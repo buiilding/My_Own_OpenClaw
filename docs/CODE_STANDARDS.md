@@ -98,19 +98,19 @@ Use Google-style docstrings:
 ```python
 def process_query(query: str, context: Optional[Dict] = None) -> str:
     """Process user query and generate response.
-    
+
     Args:
         query: The user's input text
         context: Optional dictionary containing conversation history
                  and relevant memory context
-    
+
     Returns:
         The generated response string
-    
+
     Raises:
         ValueError: If query is empty
         APIError: If LLM provider fails
-    
+
     Example:
         >>> process_query("What's the weather?")
         "I'll check the weather for you..."
@@ -256,7 +256,7 @@ const MAX_MESSAGES = 100;
 // Component
 /**
  * ChatInterface - Main chat component for user interaction
- * 
+ *
  * @param {Object} props - Component props
  * @param {Function} props.onSendMessage - Callback for sending messages
  * @param {Array} props.messages - Array of message objects
@@ -264,19 +264,19 @@ const MAX_MESSAGES = 100;
 function ChatInterface({ onSendMessage, messages }) {
   // State
   const [input, setInput] = useState('');
-  
+
   // Effects
   useEffect(() => {
     // Effect logic
   }, []);
-  
+
   // Handlers
   const handleSubmit = (e) => {
     e.preventDefault();
     onSendMessage(input);
     setInput('');
   };
-  
+
   // Render
   return (
     <div className="chat-interface">
@@ -299,14 +299,14 @@ export default ChatInterface;
 // Use functional components with hooks
 function MyComponent() {
   const [state, setState] = useState(initialState);
-  
+
   useEffect(() => {
     // Side effects here
     return () => {
       // Cleanup
     };
   }, [dependencies]);
-  
+
   return <div>Content</div>;
 }
 
@@ -314,7 +314,7 @@ function MyComponent() {
 function useWebSocket(url) {
   const [socket, setSocket] = useState(null);
   const [messages, setMessages] = useState([]);
-  
+
   useEffect(() => {
     const ws = new WebSocket(url);
     ws.onmessage = (event) => {
@@ -323,7 +323,7 @@ function useWebSocket(url) {
     setSocket(ws);
     return () => ws.close();
   }, [url]);
-  
+
   return { socket, messages };
 }
 
@@ -535,10 +535,10 @@ retry_delay = 2 ** attempt
 def process_command(command: str) -> None:
     if not command or not command.strip():
         raise ValueError("Command cannot be empty")
-    
+
     if len(command) > MAX_COMMAND_LENGTH:
         raise ValueError(f"Command exceeds maximum length of {MAX_COMMAND_LENGTH}")
-    
+
     # Sanitize inputs before using in system calls
     safe_command = shlex.quote(command)
 ```
