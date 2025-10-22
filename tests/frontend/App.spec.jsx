@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import App from './src/renderer/App';
+import App from '@/renderer/App';
 
 // Mock the ipc object provided by the preload script
 beforeAll(() => {
