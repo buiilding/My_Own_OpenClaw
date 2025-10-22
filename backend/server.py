@@ -6,8 +6,10 @@ Handles IPC between the Electron frontend and the Python agent.
 import asyncio
 import json
 import logging
+from typing import Set
 
 import websockets
+from websockets.server import WebSocketServerProtocol
 
 # Configure logging
 logging.basicConfig(
@@ -16,20 +18,20 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Store connected clients
-connected_clients = set()
+connected_clients: Set[WebSocketServerProtocol] = set()
 
 
-async def handler(websocket):
+async def handler(websocket: WebSocketServerProtocol) -> None:
     """
     Handles incoming WebSocket connections.
     """
     connected_clients.add(websocket)
-    logger.info(f"Client connected: {websocket.remote_address}")
+    logger.info("Client connected: %s", websocket.remote_address)
     try:
         async for message in websocket:
             try:
                 data = json.loads(message)
-                logger.info(f"Received message: {data}")
+                logger.info("Received message: %s", data)
 
                 # Simple ping-pong for testing
                 if data.get("type") == "ping":
@@ -39,40 +41,40 @@ async def handler(websocket):
                         "payload": "Hello from Python!",
                     }
                     await websocket.send(json.dumps(response))
-                    logger.info(f"Sent pong to {websocket.remote_address}")
+                    logger.info("Sent pong to %s", websocket.remote_address)
 
             except json.JSONDecodeError:
                 logger.error("Received malformed JSON")
                 await websocket.send(
                     json.dumps({"type": "error", "message": "Malformed JSON received."})
                 )
-            except Exception as e:
-                logger.exception(f"Error processing message: {e}")
+            except Exception:
+                logger.exception("Error processing message")
                 await websocket.send(
                     json.dumps(
-                        {"type": "error", "message": f"An error occurred: {str(e)}"}
+                        {"type": "error", "message": "An internal error occurred."}
                     )
                 )
     except websockets.exceptions.ConnectionClosed as e:
         logger.info(
-            f"Connection closed by client {websocket.remote_address}: {e.reason}"
+            "Connection closed by client %s: %s", websocket.remote_address, e.reason
         )
-    except Exception as e:
+    except Exception:
         logger.exception(
-            f"An unexpected error occurred with {websocket.remote_address}: {e}"
+            "An unexpected error occurred with %s", websocket.remote_address
         )
     finally:
         connected_clients.remove(websocket)
-        logger.info(f"Client disconnected: {websocket.remote_address}")
+        logger.info("Client disconnected: %s", websocket.remote_address)
 
 
-async def main():
+async def main() -> None:
     """
     Starts the WebSocket server.
     """
     host = "localhost"
     port = 8765
-    logger.info(f"Starting WebSocket server on ws://{host}:{port}")
+    logger.info("Starting WebSocket server on ws://%s:%s", host, port)
     async with websockets.serve(handler, host, port):
         await asyncio.Future()  # Run forever
 
