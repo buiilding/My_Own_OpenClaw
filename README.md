@@ -127,13 +127,16 @@ This project has two separate test suites: one for the Python backend and one fo
     ```bash
     cd backend
     ```
-2.  Create a virtual environment and install dependencies:
+2.  Create and activate a Conda environment:
     ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+    conda create --name desktop-assistant-env python=3.10 -y
+    conda activate desktop-assistant-env
+    ```
+3.  Install dependencies:
+    ```bash
     pip install -r requirements.txt
     ```
-3.  Run the tests:
+4.  Run the tests:
     ```bash
     pytest
     ```
