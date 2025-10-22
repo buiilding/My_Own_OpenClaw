@@ -16,7 +16,7 @@
 - **Remembers everything** you've done and are working on
 - **Controls your computer** through voice or text commands
 - **Executes tasks** automatically using a marketplace of tools
-- **Adapts to your workflow** by learning from your patterns
+- **Adapts to your workflow** by learning from your patterns in real-time
 
 Our mission: **Democratize computer power** - making advanced capabilities accessible to everyone, not just developers.
 
