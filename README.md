@@ -146,31 +146,94 @@ We're currently working on **Issue #1: Project Setup & Repository Structure**. I
 
 ---
 
-## 🏗️ Architecture (Planned)
+## 🏗️ Architecture
 
 ```
-desktop-assistant/
+.
+├── .env
+├── .gitignore
+├── .pre-commit-config.yaml
+├── .github/
+│   └── workflows/              # CI/CD workflows
 ├── backend/                    # Python backend
 │   ├── agent/                  # Main agent logic
+│   │   ├── orchestrator.py    # Core agent brain
+│   │   ├── llm_client.py      # Multi-provider LLM interface
+│   │   ├── decision_engine.py # Routing logic
+│   │   └── safety_checker.py  # Destructive op detection
+│   │
 │   ├── memory/                 # Memory system
+│   │   ├── interface.py        # Abstract memory interface
+│   │   ├── active_monitor.py   # Screen/activity capture
+│   │   ├── passive_store.py    # Conversation storage
+│   │   └── retrieval.py        # Query and context retrieval
+│   │
 │   ├── marketplace/            # Tool marketplace
+│   │   ├── registry.py         # Tool database
+│   │   ├── executor.py         # Tool execution engine
+│   │   ├── search.py           # Tool discovery
+│   │   └── schema.py           # Tool schema definitions
+│   │
 │   ├── tools/                  # Built-in tools
+│   │   ├── base.py             # Base tool class
+│   │   ├── terminal.py         # Command execution
+│   │   ├── computer_use.py     # CUA implementation
+│   │   └── file_ops.py         # File operations
+│   │
 │   ├── voice/                  # Voice processing
-│   └── server.py               # IPC server
+│   │   ├── stt.py              # Whisper integration
+│   │   ├── tts.py              # TTS implementation
+│   │   └── audio_manager.py    # Audio I/O
+│   │
+│   ├── server.py               # IPC server (WebSocket)
+│   ├── config.py               # Configuration management
+│   ├── requirements.txt        # Python dependencies
+│   ├── .pylintrc               # Pylint configuration
+│   └── pyproject.toml          # Black and Isort configuration
 │
-├── frontend/                   # Electron + React
+├── frontend/                   # Electron app
 │   ├── src/
-│   │   ├── main/              # Electron main process
-│   │   ├── renderer/          # React UI
-│   │   └── preload.js
-│   └── package.json
+│   │   ├── main/              # Main process
+│   │   │   ├── index.js       # Entry point
+│   │   │   └── ipc.js         # IPC with backend
+│   │   │
+│   │   ├── renderer/          # Renderer process
+│   │   │   ├── App.jsx        # Main React component
+│   │   │   ├── components/    # UI components
+│   │   │   │   ├── ChatInterface.jsx
+│   │   │   │   ├── VoiceControls.jsx
+│   │   │   │   ├── ThinkingDisplay.jsx
+│   │   │   │   ├── ConfirmationDialog.jsx
+│   │   │   │   └── SettingsPanel.jsx
+│   │   │   └── styles/        # CSS styles
+│   │   │
+│   │   └── preload.js         # Preload script
+│   │
+│   ├── package.json            # Node.js dependencies and scripts
+│   ├── vite.config.js          # Vite configuration
+│   ├── .eslintrc.cjs           # ESLint configuration
+│   └── .prettierrc.cjs         # Prettier configuration
 │
-├── tools/                      # Marketplace tools
+├── tools/                      # Marketplace tools (separate from built-in)
 │   └── verified/
+│       └── example_tool/
+│           ├── manifest.json   # Tool metadata
+│           ├── tool.py         # Tool implementation
+│           └── README.md       # Tool-specific documentation
 │
 ├── docs/                       # Documentation
+│   ├── architecture.md         # High-level system design
+│   ├── tool_development.md     # Guide for creating new tools
+│   ├── api_reference.md        # API documentation
+│   ├── CODE_STANDARDS.md       # Project coding standards
+│   └── ROADMAP.md              # Project development roadmap
+│
 ├── tests/                      # Test suite
-└── README.md
+│   ├── backend/                # Backend tests
+│   └── frontend/               # Frontend tests
+│
+├── LICENSE                     # Project license
+└── README.md                   # This file
 ```
 
 ---
