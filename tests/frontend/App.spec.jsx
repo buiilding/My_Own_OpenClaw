@@ -4,34 +4,33 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import App from '@/renderer/App';
+import App from '../../frontend/src/renderer/App';
+import '@testing-library/jest-dom';
 
-// Mock the ipc object provided by the preload script
+// Mock the global window.ipc object that Electron provides
 beforeAll(() => {
   global.window.ipc = {
     send: jest.fn(),
     on: jest.fn(() => () => {}), // Return a cleanup function
-    once: jest.fn(),
   };
 });
 
-describe('App Component', () => {
-  test('renders the main heading', () => {
+/**
+ * Test suite for the main App component.
+ */
+describe('App', () => {
+  /**
+   * Test case to ensure the App component renders the initial message.
+   */
+  test('renders the initial welcome message', () => {
     render(<App />);
 
-    // Check if the main heading "Desktop Assistant" is in the document
-    const headingElement = screen.getByText(/Desktop Assistant/i);
-    expect(headingElement).toBeInTheDocument();
-  });
+    // Check that the initial message from the assistant is present
+    const welcomeMessage = screen.getByText('Hello! How can I help you today?');
+    expect(welcomeMessage).toBeInTheDocument();
 
-  test('displays "Disconnected" status initially', () => {
-    render(<App />);
-
-    // Check for the connection status text
-    const statusElement = screen.getByText(/Backend Connection Status:/i);
-    expect(statusElement).toBeInTheDocument();
-
-    const disconnectedElement = screen.getByText(/Disconnected/i);
-    expect(disconnectedElement).toBeInTheDocument();
+    // Check that the message has the correct class
+    expect(welcomeMessage.closest('.message')).toHaveClass('message-assistant');
   });
 });
+

@@ -1,71 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
+import ChatInterface from './components/ChatInterface';
+import MainLayout from './components/MainLayout';
+import './styles/ChatInterface.css';
+import './styles/MainLayout.css';
+import './styles/accessibility.css';
 
 /**
- * App is the main React component for the frontend.
- * It serves as the primary UI for testing and demonstrating the IPC connection
- * to the Python backend. It displays connection status, logs, and allows
- * sending test messages.
+ * The root component of the application.
+ * It sets up the main layout, manages the application's primary state
+ * (like chat messages), and handles communication with the backend IPC bridge.
  */
 function App() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [lastMessage, setLastMessage] = useState(null);
-  const [logs, setLogs] = useState([]);
+  const [messages, setMessages] = useState([
+    { text: 'Hello! How can I help you today?', sender: 'assistant' },
+  ]);
+  const [isSending, setIsSending] = useState(false);
 
+  // Listen for messages from the backend
   useEffect(() => {
-    const removeStatusListener = window.ipc.on('ipc-status', ({ isConnected }) => {
-      setIsConnected(isConnected);
-    });
-
     const removeBackendListener = window.ipc.on('from-backend', (data) => {
-      setLastMessage(data);
-    });
-
-    const removeLogListener = window.ipc.on('log', (logMessage) => {
-      setLogs(prevLogs => [...prevLogs, logMessage]);
+      if (data.type === 'pong' || data.type === 'response') {
+        const newMesage = {
+          text: data.payload.text || JSON.stringify(data.payload),
+          sender: 'assistant',
+        };
+        setMessages((prevMessages) => [...prevMessages, newMesage]);
+        setIsSending(false);
+      }
     });
 
     return () => {
-      removeStatusListener();
       removeBackendListener();
-      removeLogListener();
     };
   }, []);
 
-  const sendPing = () => {
+  const handleSendMessage = (text) => {
+    // Add user's message to the chat
+    setMessages((prevMessages) => [...prevMessages, { text, sender: 'user' }]);
+    setIsSending(true);
+
+    // Send the message to the backend
     window.ipc.send('to-backend', {
-      type: 'ping',
-      payload: 'Hello from React!',
+      type: 'query',
+      payload: { text },
     });
   };
 
   return (
     <ErrorBoundary>
-      <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-        <h1>Desktop Assistant</h1>
-        <h2>IPC Communication Test</h2>
-        <p>
-          Backend Connection Status:{' '}
-          <span style={{ color: isConnected ? 'green' : 'red' }}>
-            {isConnected ? 'Connected' : 'Disconnected'}
-          </span>
-        </p>
-        <button onClick={sendPing} disabled={!isConnected}>
-          Send Ping to Backend
-        </button>
-        {lastMessage && (
-          <div>
-            <h3>Last message from backend:</h3>
-            <pre>{JSON.stringify(lastMessage, null, 2)}</pre>
-          </div>
-        )}
-        <h3>IPC Logs:</h3>
-        <div style={{ height: '200px', overflowY: 'scroll', border: '1px solid #ccc', padding: '10px', background: '#f0f0f0' }}>
-          {logs.map((log, index) => (
-            <div key={index}>{log}</div>
-          ))}
-        </div>
-      </div>
+      <MainLayout>
+        <ChatInterface
+          messages={messages}
+          onSendMessage={handleSendMessage}
+          isSending={isSending}
+        />
+      </MainLayout>
     </ErrorBoundary>
   );
 }

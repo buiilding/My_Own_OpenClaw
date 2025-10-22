@@ -4,74 +4,53 @@ Tests for the backend WebSocket server.
 
 import asyncio
 import json
+
 import pytest
 import websockets
 
+# Import the handler from the server file
 from backend.server import handler
 
-# Mark all tests in this module as asyncio
+# Use pytest-asyncio for async tests
 pytestmark = pytest.mark.asyncio
 
-async def start_server_in_background():
-    """Starts the server in a background task."""
-    server = await websockets.serve(handler, "localhost", 8765)
-    loop = asyncio.get_running_loop()
-    task = loop.create_task(asyncio.sleep(10)) # Keep server running for the test
 
-    async def cleanup():
-        await task
-        server.close()
-        await server.wait_closed()
-
-    loop.create_task(cleanup())
-    return server
-
-async def test_ping_pong_communication():
+async def test_ping_pong():
     """
-    Tests that the server responds to a 'ping' with a 'pong'.
+    Tests that the server correctly handles a ping message
+    and responds with a pong.
     """
-    server_task = await start_server_in_background()
-
-    uri = "ws://localhost:8765"
-    try:
-        async with websockets.connect(uri) as websocket:
+    # This context manager starts the server and provides a client connection
+    async with websockets.serve(handler, "localhost", 8766):
+        async with websockets.connect("ws://localhost:8766") as websocket:
             # 1. Send a ping message
             ping_message = {
-                "id": "test-123",
+                "id": "test-uuid-123",
                 "type": "ping",
-                "payload": "Test payload"
+                "payload": {"text": "Hello, server!"},
             }
             await websocket.send(json.dumps(ping_message))
 
-            # 2. Wait for the response
+            # 2. Receive the response
             response_raw = await asyncio.wait_for(websocket.recv(), timeout=1.0)
             response_data = json.loads(response_raw)
 
             # 3. Assert the response is correct
             assert response_data["type"] == "pong"
-            assert response_data["id"] == "test-123"
-            assert response_data["payload"] == "Hello from Python!"
-    finally:
-        # Clean up the server task
-        server_task.close()
-        await server_task.wait_closed()
+            assert response_data["id"] == "test-uuid-123"
+            assert response_data["payload"]["text"] == "Hello, server!"
 
-async def test_malformed_json():
-    """
-    Tests that the server handles malformed JSON gracefully.
-    """
-    server_task = await start_server_in_background()
 
-    uri = "ws://localhost:8765"
-    try:
-        async with websockets.connect(uri) as websocket:
+async def test_invalid_json():
+    """
+    Tests that the server sends an error message when it
+    receives malformed JSON.
+    """
+    async with websockets.serve(handler, "localhost", 8767):
+        async with websockets.connect("ws://localhost:8767") as websocket:
             await websocket.send("this is not json")
-
             response_raw = await asyncio.wait_for(websocket.recv(), timeout=1.0)
             response_data = json.loads(response_raw)
 
             assert response_data["type"] == "error"
-            assert "Malformed JSON" in response_data["message"]
-    finally:
-        server_task.close()
-        await server_task.wait_closed()
+            assert response_data["payload"]["message"] == "Malformed JSON"

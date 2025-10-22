@@ -1,15 +1,17 @@
-"""
-Main WebSocket server for the backend.
-Handles IPC between the Electron frontend and the Python agent.
+"""Main WebSocket server for the backend.
+
+Handles IPC between the Electron frontend and the Python agent, routing
+messages and managing the client connection lifecycle.
 """
 
 import asyncio
 import json
 import logging
-from typing import Set
+from typing import Any, Dict, Set
 
 import websockets
-from websockets.server import WebSocketServerProtocol
+from websockets.exceptions import ConnectionClosed
+from websockets.server import WebSocketServerProtocol  # pylint: disable=no-name-in-module
 
 # Configure logging
 logging.basicConfig(
@@ -21,12 +23,53 @@ logger = logging.getLogger(__name__)
 connected_clients: Set[WebSocketServerProtocol] = set()
 
 
-async def handler(websocket: WebSocketServerProtocol) -> None:
-    """Handles incoming WebSocket connections and routes messages.
+async def _handle_message(
+    websocket: WebSocketServerProtocol, message_data: Dict[str, Any]
+) -> None:
+    """Routes incoming messages to the appropriate handlers.
 
-    This function listens for messages from a connected client, decodes them,
-    and routes them to the appropriate logic based on the message 'type'.
-    It maintains the connection until the client disconnects.
+    Args:
+        websocket: The WebSocket connection instance.
+        message_data: The parsed JSON data from the client.
+    """
+    message_type = message_data.get("type")
+    message_id = message_data.get("id")
+
+    if message_type == "ping":
+        response_payload = {
+            "text": message_data.get("payload", {}).get("text", "Echo: No text found")
+        }
+        response = {"type": "pong", "id": message_id, "payload": response_payload}
+        await websocket.send(json.dumps(response))
+        logger.info("Sent pong to %s", websocket.remote_address)
+
+    elif message_type == "query":
+        # TODO: This is a placeholder. In the future, this will call the agent orchestrator.
+        query_text = message_data.get("payload", {}).get("text", "")
+        logger.info("Received query: %s", query_text)
+        response_payload = {
+            "text": f"Received your query: '{query_text}'. The agent is not yet connected."
+        }
+        response = {"type": "response", "id": message_id, "payload": response_payload}
+        await websocket.send(json.dumps(response))
+        logger.info("Sent query response to %s", websocket.remote_address)
+
+    else:
+        logger.warning("Received unknown message type: '%s'", message_type)
+        response = {
+            "type": "error",
+            "id": message_id,
+            "payload": {"message": f"Unknown message type: {message_type}"},
+        }
+        await websocket.send(json.dumps(response))
+
+
+async def handler(websocket: WebSocketServerProtocol) -> None:
+    """Handles a client connection and processes its messages.
+
+    This function manages the lifecycle of a single client connection,
+    listening for messages, validating them, and passing them to the
+    message router. It also handles connection cleanup.
 
     Args:
         websocket: The WebSocketServerProtocol instance for the connection.
@@ -37,37 +80,42 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
         async for message in websocket:
             try:
                 data = json.loads(message)
-                logger.info("Received message: %s", data)
-
-                # Simple ping-pong for testing
-                if data.get("type") == "ping":
-                    response = {
-                        "type": "pong",
-                        "id": data.get("id"),
-                        "payload": "Hello from Python!",
-                    }
-                    await websocket.send(json.dumps(response))
-                    logger.info("Sent pong to %s", websocket.remote_address)
+                # Validate required fields
+                if not all(k in data for k in ["id", "type", "payload"]):
+                    raise KeyError(
+                        "Message missing required keys: id, type, or payload"
+                    )
+                await _handle_message(websocket, data)
 
             except json.JSONDecodeError:
                 logger.error("Received malformed JSON")
                 await websocket.send(
-                    json.dumps({"type": "error", "message": "Malformed JSON received."})
-                )
-            except Exception:
-                logger.exception("Error processing message")
-                await websocket.send(
                     json.dumps(
-                        {"type": "error", "message": "An internal error occurred."}
+                        {
+                            "type": "error",
+                            "id": None,
+                            "payload": {"message": "Malformed JSON"},
+                        }
                     )
                 )
-    except websockets.exceptions.ConnectionClosed as e:
+            except (KeyError, TypeError) as e:
+                logger.error("Message validation failed: %s", e)
+                await websocket.send(
+                    json.dumps(
+                        {"type": "error", "id": None, "payload": {"message": str(e)}}
+                    )
+                )
+
+    except ConnectionClosed as e:
         logger.info(
             "Connection closed by client %s: %s", websocket.remote_address, e.reason
         )
-    except Exception:
+    except websockets.exceptions.WebSocketException as e:
+        # This is a fallback for unexpected errors during connection handling.
         logger.exception(
-            "An unexpected error occurred with %s", websocket.remote_address
+            "An unexpected WebSocket error occurred with client %s: %s",
+            websocket.remote_address,
+            e,
         )
     finally:
         connected_clients.remove(websocket)
