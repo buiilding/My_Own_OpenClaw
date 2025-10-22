@@ -25,7 +25,7 @@ function App() {
     };
   }, []);
 
-  const sendPing = (). => {
+  const sendPing = () => {
     window.ipc.send('to-backend', {
       type: 'ping',
       payload: 'Hello from React!',
