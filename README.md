@@ -402,4 +402,3 @@ If this vision excites you, please star the repository! It helps others discover
 [View Roadmap](docs/ROADMAP.md) · [Join Discussion](https://github.com/yourusername/desktop-assistant/discussions) · [Contribute](CONTRIBUTING.md)
 
 </div>
-"# Temporary change" 
