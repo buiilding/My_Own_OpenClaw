@@ -60,6 +60,12 @@ function connect() {
   });
 }
 
+/**
+ * Sends a structured message to the Python backend via WebSocket.
+ *
+ * @param {string} type - The message type (e.g., 'ping').
+ * @param {object} payload - The JSON object payload for the message.
+ */
 function sendMessageToBackend(type, payload) {
   if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
     log('Cannot send message: WebSocket is not connected.');
@@ -81,6 +87,12 @@ function sendMessageToBackend(type, payload) {
   }
 }
 
+/**
+ * Initializes the IPC bridge and establishes the WebSocket connection.
+ * This function should be called once when the main Electron window is created.
+ *
+ * @param {BrowserWindow} win - The main Electron BrowserWindow instance.
+ */
 function initializeIpc(win) {
   mainWindow = win;
   connect();

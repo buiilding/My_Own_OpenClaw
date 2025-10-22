@@ -22,8 +22,14 @@ connected_clients: Set[WebSocketServerProtocol] = set()
 
 
 async def handler(websocket: WebSocketServerProtocol) -> None:
-    """
-    Handles incoming WebSocket connections.
+    """Handles incoming WebSocket connections and routes messages.
+
+    This function listens for messages from a connected client, decodes them,
+    and routes them to the appropriate logic based on the message 'type'.
+    It maintains the connection until the client disconnects.
+
+    Args:
+        websocket: The WebSocketServerProtocol instance for the connection.
     """
     connected_clients.add(websocket)
     logger.info("Client connected: %s", websocket.remote_address)
@@ -69,8 +75,10 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
 
 
 async def main() -> None:
-    """
-    Starts the WebSocket server.
+    """Initializes and starts the WebSocket server.
+
+    This function sets up the server to listen on a specified host and port
+    and runs indefinitely until the process is terminated.
     """
     host = "localhost"
     port = 8765

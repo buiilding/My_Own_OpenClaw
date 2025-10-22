@@ -1,6 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * ErrorBoundary component catches JavaScript errors anywhere in its child component tree,
+ * logs those errors, and displays a fallback UI instead of the component tree that crashed.
+ *
+ * @param {object} props - Component props.
+ * @param {React.ReactNode} props.children - The child components to render.
+ */
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);

@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 
+/**
+ * App is the main React component for the frontend.
+ * It serves as the primary UI for testing and demonstrating the IPC connection
+ * to the Python backend. It displays connection status, logs, and allows
+ * sending test messages.
+ */
 function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState(null);
