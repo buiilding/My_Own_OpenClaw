@@ -119,6 +119,39 @@ cd frontend
 # Automatic linting and formatting setup will be documented here
 ```
 
+### Running Tests
+This project has two separate test suites: one for the Python backend and one for the React frontend.
+
+#### Backend Tests (pytest)
+1.  Navigate to the backend directory:
+    ```bash
+    cd backend
+    ```
+2.  Create a virtual environment and install dependencies:
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+    pip install -r requirements.txt
+    ```
+3.  Run the tests:
+    ```bash
+    pytest
+    ```
+
+#### Frontend Tests (Jest)
+1.  Navigate to the frontend directory:
+    ```bash
+    cd frontend
+    ```
+2.  Install Node.js dependencies:
+    ```bash
+    npm install
+    ```
+3.  Run the tests:
+    ```bash
+    npm test
+    ```
+
 ### Current Development Focus
 
 We're currently working on **Issue #1: Project Setup & Repository Structure**. If you want to contribute, check out:
