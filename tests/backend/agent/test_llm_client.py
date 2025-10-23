@@ -25,54 +25,6 @@ from backend.config import (
     MistralConfig,
 )
 
-import pytest
-
-from unittest.mock import patch, AsyncMock
-
-
-
-from backend.agent.llm_client import (
-
-    get_llm_client,
-
-    OpenAIClient,
-
-    AnthropicClient,
-
-    GoogleClient,
-
-    OllamaClient,
-
-    OpenRouterClient,
-
-    MistralClient,
-
-    APIError,
-
-    RateLimitError,
-
-)
-
-from backend.config import (
-
-    AppConfig,
-
-    LLMProviders,
-
-    OpenAIConfig,
-
-    AnthropicConfig,
-
-    GoogleConfig,
-
-    OllamaConfig,
-
-    OpenRouterConfig,
-
-    MistralConfig,
-
-)
-
 
 
 # --- Fixtures ---
@@ -361,60 +313,18 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-        # The awaited method should return the async generator
+    # The awaited method should return the async generator
+    mock_async_openai.return_value.chat.completions.create.return_value = mock_stream_generator()
 
+    client = OpenAIClient(api_key="test", model="gpt-4o")
+    messages = [{"role": "user", "content": "Hello"}]
 
+    # Consume the stream and collect the chunks
+    stream = await client.get_completion_stream(messages)
+    response_chunks = [chunk async for chunk in stream]
+    full_response = "".join(response_chunks)
 
-        mock_async_openai.return_value.chat.completions.create.return_value = mock_stream_generator()
-
-
-
-
-
-
-
-        client = OpenAIClient(api_key="test", model="gpt-4o")
-
-
-
-        messages = [{"role": "user", "content": "Hello"}]
-
-
-
-
-
-
-
-        # Consume the stream and collect the chunks
-
-
-
-        stream = await client.get_completion_stream(messages)
-
-
-
-        response_chunks = [chunk async for chunk in stream]
-
-
-
-        full_response = "".join(response_chunks)
-
-
-
-
-
-
-
-        assert full_response == "Hello from OpenAI!"
-
-
-
-        mock_async_openai.return_value.chat.completions.create.assert_awaited_once_with(
-
-
-
-            model="gpt-4o", messages=messages, stream=True
-
-
-
-        )
+    assert full_response == "Hello from OpenAI!"
+    mock_async_openai.return_value.chat.completions.create.assert_awaited_once_with(
+        model="gpt-4o", messages=messages, stream=True
+    )

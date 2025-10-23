@@ -1,7 +1,6 @@
 """Tests for the configuration loading and validation."""
 
 import os
-import os
 import unittest
 from pathlib import Path
 from unittest.mock import patch, mock_open
