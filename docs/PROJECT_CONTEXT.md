@@ -624,21 +624,33 @@ To run the application for testing, you must start the backend and frontend sepa
   npm run electron
   ```
 
-### Pre-Commit Hooks & Linting
+### Committing Code with Pre-Commit Hooks
 
-The project uses `pre-commit` to enforce code standards. This can lead to a specific, recurring workflow issue that you must know how to handle.
+The project uses `pre-commit` to enforce code standards automatically before each commit. This process can sometimes require a multi-step commit process. Follow these steps to ensure your commits are successful:
 
-**Known Issue: `black` vs. `pylint` Conflict**
-- The `black` formatter may automatically change code in a way that the `pylint` linter flags as an error (e.g., for line length). This will cause your `git commit` to fail, even though the formatters have run.
+**Step 1: Make Your Initial Commit Attempt**
+Run `git commit` with your message as you normally would. The pre-commit hooks will run automatically. It is common for this first attempt to fail, especially if the auto-formatters find issues.
 
-**Required Workflow to Resolve:**
-1.  Run `git commit` with your message. It will likely fail, but `black` and `isort` will auto-format your files.
-2.  Run `git add .` to stage the automatic formatting changes that the hooks just made.
-3.  Run the **exact same `git commit` command again**. Often, this second attempt will succeed.
-4.  If the commit still fails due to minor, non-critical `pylint` errors (like style warnings), it is acceptable to bypass the hook for that commit using the `--no-verify` flag. **This should be used as a last resort.**
-    ```bash
-    git commit --no-verify -m "your commit message"
-    ```
+**Step 2: Stage the Automatic Fixes**
+If the commit fails, hooks like `black` or `isort` may have automatically fixed formatting issues. These changes will be unstaged. You must stage them before trying to commit again.
+```bash
+git add .
+```
+
+**Step 3: Re-run the Commit Command**
+Attempt the **exact same `git commit` command again**. If the only issues were auto-formatable, this second attempt will succeed.
+
+**Step 4: Handle Persistent `pylint` Errors (If Necessary)**
+Sometimes, the commit may still fail due to `pylint` errors, particularly `import-error` messages. This is a known issue related to the pre-commit environment's path. If you have confirmed that your code works and all tests (`pytest`) pass, it is acceptable to bypass the hook for this commit.
+
+**This should be used as a last resort only for these known, non-critical linting issues.**
+```bash
+git commit --no-verify -m "your commit message"
+```
+
+### Commit Message Content
+- **Adhere to Conventional Commits**: Follow the format `type(scope): subject` as outlined in `CODE_STANDARDS.md`.
+- **Avoid Special Characters**: When committing (especially when using an AI assistant's shell tool), do not use shell metacharacters like backticks (\`), dollar signs with parentheses (`$()`), or angle brackets (`<>`) in the commit message itself, as this can cause the shell command to be rejected for security reasons.
 
 **Adding New Python Dependencies:**
 - If you add a new Python library to `requirements.txt` that is used in the backend, you **must** also add it to the `additional_dependencies` list for the `pylint` hook in the `.pre-commit-config.yaml` file. Failure to do so will cause `pylint` to fail with an `import-error`.
