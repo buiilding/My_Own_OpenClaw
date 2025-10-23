@@ -24,27 +24,23 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 
 ## 🚧 Project Status
 
-**Current Stage**: Foundation & Architecture (Issue #1)
+**Current Stage**: Core Agent Logic (Milestone 2)
 
-We're just getting started! The project structure has been established, and we're setting up the development environment. This is an excellent time to get involved as a contributor.
+The foundational infrastructure is complete! We have a working application with a UI, a backend server, a robust IPC communication layer, and a complete multi-provider configuration system.
 
-### ✅ Completed
-- [x] Project repository structure created
-- [x] Documentation framework established
-- [x] Code standards defined
-- [x] Development roadmap planned
+### ✅ Completed (Milestone 1)
+- [x] Project repository structure and standards
+- [x] Backend-frontend IPC (WebSocket)
+- [x] Basic UI shell with chat and settings panels
+- [x] Configuration management system (`config.yaml`)
+- [x] Multi-provider LLM client (OpenAI, Anthropic, Google, etc.)
 
 ### 🔨 Currently Working On
-- [ ] Python backend setup with dependency management
-- [ ] Electron frontend setup with React
-- [ ] Linting and formatting configuration
-- [ ] Git pre-commit hooks
-- [ ] Development environment documentation
+- [ ] **Issue #6: Agent Orchestrator**: Implementing the "brain" of the assistant to connect the UI to the new LLM client.
 
-### 📋 Coming Next (Issues #2-4)
-- Backend-frontend IPC communication
-- Basic UI shell
-- Configuration management system
+### 📋 Coming Next (Milestone 2)
+- Multi-provider LLM client integration
+- Real-time "thinking" display in the UI
 
 See our [Project Roadmap](docs/ROADMAP.md) for the complete development timeline.
 
@@ -87,8 +83,8 @@ See our [Project Roadmap](docs/ROADMAP.md) for the complete development timeline
 ## 🚀 Getting Started (For Developers)
 
 ### Prerequisites
-- **Windows 10/11** (macOS and Linux support planned)
-- **Python 3.10+**
+- **Windows 10/11, macOS, or Linux**
+- **Python 3.10+** (and Conda for environment management)
 - **Node.js 18+** and npm
 - **Git**
 
@@ -100,23 +96,56 @@ git clone https://github.com/yourusername/desktop-assistant.git
 cd desktop-assistant
 ```
 
-#### 2. Backend Setup (Coming Soon)
+#### 2. Backend Setup
 ```bash
-cd backend
-# Setup instructions will be added after Issue #1 is complete
-# Will include: virtual environment creation, dependency installation, configuration
+# Create and activate a Conda environment
+conda create --name desktop-assistant-env python=3.10 -y
+conda activate desktop-assistant-env
+
+# Install Python dependencies
+pip install -r backend/requirements.txt
 ```
 
-#### 3. Frontend Setup (Coming Soon)
+#### 3. Frontend Setup
 ```bash
 cd frontend
-# Setup instructions will be added after Issue #1 is complete
-# Will include: npm install, environment configuration, running dev server
+npm install
+cd .. # Return to project root
 ```
 
-#### 4. Pre-commit Hooks (Coming Soon)
+#### 4. Pre-commit Hooks
+Install the Git hooks to automatically lint and format your code before you commit.
 ```bash
-# Automatic linting and formatting setup will be documented here
+# From the project root
+pre-commit install
+```
+
+### Running the Application for Development
+
+You must run the backend and frontend in separate terminals.
+
+**Terminal 1: Start the Backend**
+```bash
+# Make sure your conda env is active
+conda activate desktop-assistant-env
+
+# Set a required API key (even a dummy one) for startup
+export OPENAI_API_KEY="dummy-key"
+
+# Run the server as a module from the project root
+python -m backend.server
+```
+
+**Terminal 2: Start the Frontend UI (Vite)**
+```bash
+cd frontend
+npm run dev
+```
+
+**Terminal 3: Start the Frontend App (Electron)**
+```bash
+cd frontend
+npm run electron
 ```
 
 ### Running Tests
@@ -185,91 +214,30 @@ We're currently working on **Issue #1: Project Setup & Repository Structure**. I
 ## 🏗️ Architecture
 
 ```
-.
-├── .env
-├── .gitignore
-├── .pre-commit-config.yaml
-├── .github/
-│   └── workflows/              # CI/CD workflows
-├── backend/                    # Python backend
-│   ├── agent/                  # Main agent logic
-│   │   ├── orchestrator.py    # Core agent brain
-│   │   ├── llm_client.py      # Multi-provider LLM interface
-│   │   ├── decision_engine.py # Routing logic
-│   │   └── safety_checker.py  # Destructive op detection
-│   │
-│   ├── memory/                 # Memory system
-│   │   ├── interface.py        # Abstract memory interface
-│   │   ├── active_monitor.py   # Screen/activity capture
-│   │   ├── passive_store.py    # Conversation storage
-│   │   └── retrieval.py        # Query and context retrieval
-│   │
-│   ├── marketplace/            # Tool marketplace
-│   │   ├── registry.py         # Tool database
-│   │   ├── executor.py         # Tool execution engine
-│   │   ├── search.py           # Tool discovery
-│   │   └── schema.py           # Tool schema definitions
-│   │
-│   ├── tools/                  # Built-in tools
-│   │   ├── base.py             # Base tool class
-│   │   ├── terminal.py         # Command execution
-│   │   ├── computer_use.py     # CUA implementation
-│   │   └── file_ops.py         # File operations
-│   │
-│   ├── voice/                  # Voice processing
-│   │   ├── stt.py              # Whisper integration
-│   │   ├── tts.py              # TTS implementation
-│   │   └── audio_manager.py    # Audio I/O
-│   │
-│   ├── server.py               # IPC server (WebSocket)
-│   ├── config.py               # Configuration management
-│   ├── requirements.txt        # Python dependencies
-│   ├── .pylintrc               # Pylint configuration
-│   └── pyproject.toml          # Black and Isort configuration
-│
-├── frontend/                   # Electron app
-│   ├── src/
-│   │   ├── main/              # Main process
-│   │   │   ├── index.js       # Entry point
-│   │   │   └── ipc.js         # IPC with backend
-│   │   │
-│   │   ├── renderer/          # Renderer process
-│   │   │   ├── App.jsx        # Main React component
-│   │   │   ├── components/    # UI components
-│   │   │   │   ├── ChatInterface.jsx
-│   │   │   │   ├── VoiceControls.jsx
-│   │   │   │   ├── ThinkingDisplay.jsx
-│   │   │   │   ├── ConfirmationDialog.jsx
-│   │   │   │   └── SettingsPanel.jsx
-│   │   │   └── styles/        # CSS styles
-│   │   │
-│   │   └── preload.js         # Preload script
-│   │
-│   ├── package.json            # Node.js dependencies and scripts
-│   ├── vite.config.js          # Vite configuration
-│   ├── .eslintrc.cjs           # ESLint configuration
-│   └── .prettierrc.cjs         # Prettier configuration
-│
-├── tools/                      # Marketplace tools (separate from built-in)
-│   └── verified/
-│       └── example_tool/
-│           ├── manifest.json   # Tool metadata
-│           ├── tool.py         # Tool implementation
-│           └── README.md       # Tool-specific documentation
-│
-├── docs/                       # Documentation
-│   ├── architecture.md         # High-level system design
-│   ├── tool_development.md     # Guide for creating new tools
-│   ├── api_reference.md        # API documentation
-│   ├── CODE_STANDARDS.md       # Project coding standards
-│   └── ROADMAP.md              # Project development roadmap
-│
-├── tests/                      # Test suite
-│   ├── backend/                # Backend tests
-│   └── frontend/               # Frontend tests
-│
-├── LICENSE                     # Project license
-└── README.md                   # This file
+┌─────────────────────────────────────────────────┐
+│           Electron Frontend (UI)                │
+│  ┌──────────────────────────────────────────┐  │
+│  │  React Components                        │  │
+│  │  - ChatInterface                         │  │
+│  │  - SettingsPanel                         │  │
+│  │  - ...                                   │  │
+│  └──────────────────────────────────────────┘  │
+│                    ↕ IPC (WebSocket)            │
+└─────────────────────────────────────────────────┘
+                      ↕
+┌─────────────────────────────────────────────────┐
+│         Python Backend (Core Logic)             │
+│  ┌──────────────────────────────────────────┐  │
+│  │   Agent Orchestrator                     │  │
+│  │   - LLM Client (Multi-provider)          │  │
+│  │   - ...                                  │  │
+│  └──────────────────────────────────────────┘  │
+│             ↕              ↕           ↕         │
+│  ┌─────────────┐  ┌──────────────┐  ┌────────┐ │
+│  │   Memory    │  │ Tool         │  │ Voice  │ │
+│  │   System    │  │ Marketplace  │  │ Engine │ │
+│  └─────────────┘  └──────────────┘  └────────┘ │
+└─────────────────────────────────────────────────┘
 ```
 
 ---
@@ -308,15 +276,15 @@ New to open source? No problem! Look for issues tagged:
 
 ## 🗺️ Development Roadmap
 
-### Milestone 1: Project Foundation (Current - Weeks 1-2)
-- **Issue #1**: Project setup & repository structure ⏳
-- **Issue #2**: Backend-frontend IPC communication
-- **Issue #3**: Basic UI shell
-- **Issue #4**: Configuration system
+### Milestone 1: Project Foundation (Completed - Weeks 1-2)
+- **Issue #1**: Project setup & repository structure ✅
+- **Issue #2**: Backend-frontend IPC communication ✅
+- **Issue #3**: Basic UI shell ✅
+- **Issue #4**: Configuration system ✅
 
 **Goal**: Working skeleton with backend-frontend communication
 
-### Milestone 2: Core Agent (Weeks 3-4)
+### Milestone 2: Core Agent (Current - Weeks 3-4)
 - Multi-provider LLM integration
 - Agent orchestrator
 - Real-time thinking display
