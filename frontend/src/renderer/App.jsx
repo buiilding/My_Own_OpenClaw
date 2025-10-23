@@ -25,6 +25,8 @@ function App() {
   // Listen for messages and config updates from the backend
   useEffect(() => {
     const removeBackendListener = window.ipc.on('from-backend', (data) => {
+      clearTimeout(saveTimeoutId.current); // Clear timeout on any response
+
       if (data.type === 'pong' || data.type === 'response') {
         const newMesage = {
           text: data.payload.text || JSON.stringify(data.payload),
@@ -32,17 +34,31 @@ function App() {
         };
         setMessages((prevMessages) => [...prevMessages, newMesage]);
         setIsSending(false);
+      } else if (data.type === 'streaming-response') {
+        setIsSending(false); // We've got the first chunk, so we're not "sending" anymore
+        setMessages((prevMessages) => {
+          const lastMessage = prevMessages[prevMessages.length - 1];
+          if (lastMessage && lastMessage.sender === 'assistant') {
+            // Append chunk to the last message
+            lastMessage.text += data.payload.text;
+            return [...prevMessages];
+          } else {
+            // This is the first chunk, create a new message
+            return [
+              ...prevMessages,
+              { text: data.payload.text, sender: 'assistant' },
+            ];
+          }
+        });
       } else if (data.type === 'settings-loaded') {
         setConfig(data.payload);
       } else if (data.type === 'settings-saved') {
-        clearTimeout(saveTimeoutId.current); // Clear the timeout on success
         setSaveStatus('success');
         setTimeout(() => setSaveStatus('idle'), 3000);
       } else if (
         data.type === 'error' &&
         data.payload.message?.includes('Failed to save settings')
       ) {
-        clearTimeout(saveTimeoutId.current); // Clear the timeout on error
         setSaveStatus('error');
         // Revert to the old config on failure
         if (configBeforeSave.current) {
