@@ -32,17 +32,46 @@ function App() {
         };
         setMessages((prevMessages) => [...prevMessages, newMesage]);
         setIsSending(false);
+      } else if (data.type === 'streaming-response') {
+        setIsSending(false); // We've got the first chunk, so we're not "sending" anymore
+        setMessages((prevMessages) => {
+          const lastMessage = prevMessages[prevMessages.length - 1];
+          if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete) {
+            // Append chunk to the last message by creating a new object
+            return [
+              ...prevMessages.slice(0, -1),
+              { ...lastMessage, text: lastMessage.text + data.payload.text },
+            ];
+          } else {
+            // This is the first chunk, create a new message object
+            return [
+              ...prevMessages,
+              { text: data.payload.text, sender: 'assistant', isComplete: false },
+            ];
+          }
+        });
+      } else if (data.type === 'streaming-complete') {
+        setMessages((prevMessages) => {
+          const lastMessage = prevMessages[prevMessages.length - 1];
+          if (lastMessage && lastMessage.sender === 'assistant') {
+            return [
+              ...prevMessages.slice(0, -1),
+              { ...lastMessage, isComplete: true },
+            ];
+          }
+          return prevMessages;
+        });
       } else if (data.type === 'settings-loaded') {
         setConfig(data.payload);
       } else if (data.type === 'settings-saved') {
-        clearTimeout(saveTimeoutId.current); // Clear the timeout on success
+        clearTimeout(saveTimeoutId.current);
         setSaveStatus('success');
         setTimeout(() => setSaveStatus('idle'), 3000);
       } else if (
         data.type === 'error' &&
         data.payload.message?.includes('Failed to save settings')
       ) {
-        clearTimeout(saveTimeoutId.current); // Clear the timeout on error
+        clearTimeout(saveTimeoutId.current);
         setSaveStatus('error');
         // Revert to the old config on failure
         if (configBeforeSave.current) {

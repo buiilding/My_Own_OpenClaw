@@ -50,7 +50,8 @@ Sent by the frontend on startup to request the current application configuration
   ```json
   {
     "type": "load-settings",
-    "id": "uuid-4321"
+    "id": "uuid-4321",
+    "payload": {}
   }
   ```
 

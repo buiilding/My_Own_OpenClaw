@@ -5,10 +5,12 @@ Tests for the backend WebSocket server.
 import asyncio
 import json
 import yaml
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock, MagicMock
+from functools import partial
 
 import pytest
 import websockets
+from backend.agent.orchestrator import Agent
 from backend.config import AppConfig
 from backend.server import handler
 
@@ -17,20 +19,53 @@ pytestmark = pytest.mark.asyncio
 
 
 @pytest.fixture(autouse=True)
-def reset_settings(monkeypatch):
-    """Reset the global settings object before each test to ensure isolation."""
-    # We need to patch the settings object inside the server module
-    from backend import server
-    monkeypatch.setattr(server, "settings", AppConfig())
+def mock_agent_dependencies(monkeypatch):
+    """
+    Mocks dependencies needed to instantiate the Agent without making real
+    API calls or needing a real config. This provides a correctly mocked
+    LLM client that supports async streaming.
+    """
+    mock_llm = MagicMock()
+
+    def factory(*args, **kwargs):
+        async def generator():
+            yield "Mock response"
+        return generator()
+
+    mock_llm.get_completion_stream = MagicMock(side_effect=factory)
+
+    # Mock the get_llm_client function to return our perfected mock
+    monkeypatch.setattr(
+        "backend.agent.orchestrator.get_llm_client", lambda: mock_llm
+    )
 
 
-async def test_ping_pong():
+
+@pytest.fixture(autouse=True)
+def mock_server_settings(monkeypatch):
+    """
+    Mocks the global settings object used by the server handler to ensure
+    test isolation and prevent AttributeError for 'NoneType'.
+    """
+    # The handler function in server.py uses config.settings.
+    # We must patch the object in the config module's namespace.
+    monkeypatch.setattr("backend.config.settings", AppConfig())
+
+
+@pytest.fixture
+def server_handler():
+    """Provides a handler wrapped with a mocked Agent instance."""
+    agent = Agent()
+    return partial(handler, agent=agent)
+
+
+async def test_ping_pong(server_handler):
     """
     Tests that the server correctly handles a ping message
     and responds with a pong.
     """
     # This context manager starts the server and provides a client connection
-    async with websockets.serve(handler, "localhost", 8766):
+    async with websockets.serve(server_handler, "localhost", 8766):
         async with websockets.connect("ws://localhost:8766") as websocket:
             # 1. Send a ping message
             ping_message = {
@@ -50,12 +85,12 @@ async def test_ping_pong():
             assert response_data["payload"]["text"] == "Hello, server!"
 
 
-async def test_invalid_json():
+async def test_invalid_json(server_handler):
     """
     Tests that the server sends an error message when it
     receives malformed JSON.
     """
-    async with websockets.serve(handler, "localhost", 8767):
+    async with websockets.serve(server_handler, "localhost", 8767):
         async with websockets.connect("ws://localhost:8767") as websocket:
             await websocket.send("this is not json")
             response_raw = await asyncio.wait_for(websocket.recv(), timeout=1.0)
@@ -65,12 +100,12 @@ async def test_invalid_json():
             assert response_data["payload"]["message"] == "Malformed JSON"
 
 
-async def test_query_message():
+async def test_query_message(server_handler):
     """
     Tests that the server correctly handles a query message
     and responds appropriately.
     """
-    async with websockets.serve(handler, "localhost", 8768) as server:
+    async with websockets.serve(server_handler, "localhost", 8768):
         async with websockets.connect("ws://localhost:8768") as websocket:
             query_message = {
                 "id": "test-query-123",
@@ -78,19 +113,23 @@ async def test_query_message():
                 "payload": {"text": "What is the weather?"},
             }
             await websocket.send(json.dumps(query_message))
-            response_raw = await asyncio.wait_for(websocket.recv(), timeout=1.0)
-            response_data = json.loads(response_raw)
 
-            assert response_data["type"] == "response"
+            # The server now sends a stream, so we receive until we get the 'complete' message
+            while True:
+                response_raw = await asyncio.wait_for(websocket.recv(), timeout=1.0)
+                response_data = json.loads(response_raw)
+                if response_data["type"] == "streaming-complete":
+                    break
+
+            assert response_data["type"] == "streaming-complete"
             assert response_data["id"] == "test-query-123"
-            assert "Received your query" in response_data["payload"]["text"]
 
 
-async def test_unknown_message_type():
+async def test_unknown_message_type(server_handler):
     """
     Tests that the server sends an error for an unknown message type.
     """
-    async with websockets.serve(handler, "localhost", 8769) as server:
+    async with websockets.serve(server_handler, "localhost", 8769):
         async with websockets.connect("ws://localhost:8769") as websocket:
             message = {
                 "id": "test-unknown-123",
@@ -105,11 +144,11 @@ async def test_unknown_message_type():
             assert "Unknown message type" in response_data["payload"]["message"]
 
 
-async def test_missing_key():
+async def test_missing_key(server_handler):
     """
     Tests that the server sends an error if a required key is missing.
     """
-    async with websockets.serve(handler, "localhost", 8770) as server:
+    async with websockets.serve(server_handler, "localhost", 8770):
         async with websockets.connect("ws://localhost:8770") as websocket:
             message = {
                 "type": "query",
@@ -123,11 +162,11 @@ async def test_missing_key():
             assert "Message missing required keys" in response_data["payload"]["message"]
 
 
-async def test_handle_load_settings():
+async def test_handle_load_settings(server_handler):
     """
     Tests that the server correctly sends its configuration when requested.
     """
-    async with websockets.serve(handler, "localhost", 8771):
+    async with websockets.serve(server_handler, "localhost", 8771):
         async with websockets.connect("ws://localhost:8771") as websocket:
             # Note: The frontend doesn't need to send a payload for this type
             load_msg = {"id": "test-load-settings", "type": "load-settings"}
@@ -141,7 +180,7 @@ async def test_handle_load_settings():
             assert "api_key" not in response_data["payload"] # Ensure key is not sent
 
 
-async def test_handle_save_settings(tmp_path):
+async def test_handle_save_settings(server_handler, tmp_path):
     """
     Tests that the server can receive and save new settings.
     """
@@ -152,7 +191,7 @@ async def test_handle_save_settings(tmp_path):
     # Patch the config directory function in both the config and server modules
     with patch('backend.config.get_config_dir', return_value=mock_config_dir), \
          patch('backend.server.get_config_dir', return_value=mock_config_dir):
-        async with websockets.serve(handler, "localhost", 8772):
+        async with websockets.serve(server_handler, "localhost", 8772):
             async with websockets.connect("ws://localhost:8772") as websocket:
                 new_settings = {
                     "active_provider": "ollama",

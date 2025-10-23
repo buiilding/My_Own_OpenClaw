@@ -8,9 +8,9 @@ import '@testing-library/jest-dom';
  */
 describe('MainLayout', () => {
   /**
-   * Test case to ensure the component renders its children correctly.
+   * Test case to ensure the component renders chat and settings props correctly.
    */
-  test('renders children inside the main content area', () => {
+  test('renders chat and settings content', () => {
     const chatContent = 'Chat content';
     const settingsContent = 'Settings content';
     render(
@@ -20,7 +20,7 @@ describe('MainLayout', () => {
       />
     );
 
-    // Check that the child content is rendered
+    // Check that the chat and settings content are rendered
     expect(screen.getByText(chatContent)).toBeInTheDocument();
     expect(screen.getByText(settingsContent)).toBeInTheDocument();
   });
