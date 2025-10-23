@@ -60,7 +60,6 @@ def retry_on_rate_limit(max_retries=3, initial_backoff=1.0):
                     )
                     await asyncio.sleep(delay)
                     delay *= 2  # Exponential backoff
-            raise LLMError(f"Failed after {max_retries} retries.")
 
         return wrapper
 
@@ -149,9 +148,10 @@ class OpenAIClient(LLMClient):
                 stream=True,
             )
             async for chunk in stream:
-                content = chunk.choices[0].delta.content
-                if content:
-                    yield content
+                if chunk.choices:
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        yield content
         except openai.RateLimitError as e:
             raise RateLimitError(f"OpenAI rate limit exceeded: {e}") from e
         except openai.APIError as e:
@@ -306,9 +306,10 @@ class OllamaClient(LLMClient):
                 stream=True,
             )
             async for chunk in stream:
-                content = chunk.choices[0].delta.content
-                if content:
-                    yield content
+                if chunk.choices:
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        yield content
         except openai.APIError as e:
             raise APIError(f"Ollama API error: {e}") from e
 
@@ -358,9 +359,10 @@ class OpenRouterClient(LLMClient):
                 stream=True,
             )
             async for chunk in stream:
-                content = chunk.choices[0].delta.content
-                if content:
-                    yield content
+                if chunk.choices:
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        yield content
         except openai.RateLimitError as e:
             raise RateLimitError(f"OpenRouter rate limit exceeded: {e}") from e
         except openai.APIError as e:
@@ -408,9 +410,10 @@ class MistralClient(LLMClient):
                 stream=True,
             )
             async for chunk in stream:
-                content = chunk.choices[0].delta.content
-                if content:
-                    yield content
+                if chunk.choices:
+                    content = chunk.choices[0].delta.content
+                    if content:
+                        yield content
         except openai.RateLimitError as e:
             raise RateLimitError(f"Mistral AI rate limit exceeded: {e}") from e
         except openai.APIError as e:
