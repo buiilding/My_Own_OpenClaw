@@ -133,7 +133,7 @@ async def main() -> None:
     This function sets up the server to listen on a specified host and port
     and runs indefinitely until the process is terminated.
     """
-    host = "localhost"
+    host = ""  # Listen on all interfaces (IPv4 and IPv6)
     port = 8765
     logger.info("Starting WebSocket server on ws://%s:%s", host, port)
     async with websockets.serve(handler, host, port):
