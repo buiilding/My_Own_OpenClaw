@@ -13,10 +13,18 @@
 .settings-panel input,
 .settings-panel select {
   width: 100%;
+  box-sizing: border-box;
   padding: 8px;
   border: 1px solid #d1d5db;
   border-radius: 4px;
   font-size: 1rem;
+}
+
+.settings-panel input:focus,
+.settings-panel select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .settings-panel .save-container {

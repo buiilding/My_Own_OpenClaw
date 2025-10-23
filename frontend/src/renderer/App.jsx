@@ -38,12 +38,13 @@ function App() {
         setTimeout(() => setSaveStatus('idle'), 3000);
       } else if (
         data.type === 'error' &&
-        data.payload.message.includes('Failed to save settings')
+        data.payload.message?.includes('Failed to save settings')
       ) {
         setSaveStatus('error');
         // Revert to the old config on failure
         if (configBeforeSave.current) {
           setConfig(configBeforeSave.current);
+          configBeforeSave.current = null;
         }
         setTimeout(() => setSaveStatus('idle'), 3000);
       }
@@ -70,6 +71,11 @@ function App() {
   };
 
   const handleSaveSettings = (updatedConfig) => {
+    // Prevent concurrent saves
+    if (saveStatus === 'saving') {
+      return;
+    }
+
     // Store the original config in case we need to revert
     configBeforeSave.current = config;
 

@@ -184,4 +184,4 @@ if __name__ == "__main__":
         print("API Key: Not required for this provider (e.g., Ollama)")
 
     print("\nFull config object:")
-    print(settings.model_dump_json(indent=2))
+    print(settings.model_dump_json(indent=2, exclude={"api_key"}))
