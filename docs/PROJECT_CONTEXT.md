@@ -598,6 +598,8 @@ This section contains practical, hands-on advice and documents known issues to s
 
 ### Running the Application
 
+**Note for AI Assistant:** The user will be responsible for running the backend and frontend servers. Do not attempt to start them yourself. Follow the user's lead on this.
+
 To run the application for testing, you must start the backend and frontend separately from the correct directories.
 
 **1. Start the Backend Server:**
