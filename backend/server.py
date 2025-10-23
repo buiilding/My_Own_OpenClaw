@@ -153,10 +153,6 @@ async def _handle_message(
                 merged_data = {**config.settings.model_dump(), **new_config_data}
                 validated_config = AppConfig(**merged_data)
 
-                # Update the global settings object in-place
-                for key, value in validated_config.model_dump().items():
-                    setattr(config.settings, key, value)
-
                 config_dir = get_config_dir()
                 config_file = config_dir / CONFIG_FILE_NAME
                 config_dir.mkdir(parents=True, exist_ok=True)
@@ -175,6 +171,10 @@ async def _handle_message(
                         )
 
                 await asyncio.to_thread(write_config)
+
+                # Update the global settings object in-place only after successful write
+                for key, value in validated_config.model_dump().items():
+                    setattr(config.settings, key, value)
 
             logger.info("Successfully saved new settings to %s", config_file)
 

@@ -51,9 +51,20 @@ function SettingsPanel({ config, onSave, saveStatus = 'idle' }) {
       setUserName(config.preferences?.user_name || 'User');
       if (config.llm_providers && config.llm_providers[provider]) {
         setModel(config.llm_providers[provider].model || '');
+      } else {
+        setModel('');
       }
     }
   }, [config]);
+
+  // Update model when activeProvider changes
+  useEffect(() => {
+    if (config?.llm_providers?.[activeProvider]) {
+      setModel(config.llm_providers[activeProvider].model || '');
+    } else {
+      setModel('');
+    }
+  }, [activeProvider, config]);
 
   const handleSave = (e) => {
     e.preventDefault();
