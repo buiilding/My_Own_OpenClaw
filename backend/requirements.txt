@@ -5,3 +5,6 @@ pytest-asyncio
 black
 pyyaml
 pydantic
+openai
+anthropic
+google-generativeai
