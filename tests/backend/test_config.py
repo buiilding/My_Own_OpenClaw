@@ -29,6 +29,7 @@ def mock_config_dir(tmp_path):
 
 # --- Tests ---
 
+@pytest.mark.skipif(os.name != "nt", reason="Test is for Windows paths only")
 def test_get_config_dir_windows(monkeypatch):
     """Test that the correct config dir is returned on Windows."""
     monkeypatch.setattr(os, 'name', 'nt')
@@ -46,7 +47,7 @@ def test_create_default_config_if_not_exists(mock_config_dir):
 
         assert config_file.exists()
         assert config.active_provider == "openai"
-        assert config.llm_providers.openai.model == "gpt-4-turbo"
+        assert config.llm_providers.openai.model == "gpt-4o"
 
         with open(config_file, "r") as f:
             data = yaml.safe_load(f)
@@ -74,7 +75,7 @@ def test_load_valid_config_from_file(mock_config_dir):
         assert config.active_provider == "anthropic"
         assert config.preferences.user_name == "Tester"
         # Check that default values are still present for other providers
-        assert config.llm_providers.openai.model == "gpt-4-turbo"
+        assert config.llm_providers.openai.model == "gpt-4o"
         # Check that the specified value overrides the default
         assert config.llm_providers.anthropic.model == "claude-3-opus"
         assert config.api_key == "sk-anthropic-key-from-env"

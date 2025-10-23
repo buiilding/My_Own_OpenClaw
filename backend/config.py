@@ -1,15 +1,9 @@
-"""Configuration management for the Desktop Assistant.
-
-Handles loading, validation, and providing access to application settings
-from a YAML file, environment variables, and secure credential stores.
-"""
-
 import os
 from pathlib import Path
-from typing import Dict, Literal, Optional
+from typing import Literal, Optional
 
 import yaml
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 # --- Constants ---
 APP_NAME = "DesktopAssistant"
@@ -67,6 +61,20 @@ class OllamaConfig(BaseModel):
     base_url: str = "http://localhost:11434"
 
 
+class OpenRouterConfig(BaseModel):
+    """Configuration for OpenRouter provider."""
+
+    model: str = "openrouter/auto"
+    api_key_env: str = "OPENROUTER_API_KEY"
+
+
+class MistralConfig(BaseModel):
+    """Configuration for Mistral AI provider."""
+
+    model: str = "mistral-large-latest"
+    api_key_env: str = "MISTRAL_API_KEY"
+
+
 class LLMProviders(BaseModel):
     """Container for all supported LLM provider configurations."""
 
@@ -74,6 +82,8 @@ class LLMProviders(BaseModel):
     anthropic: AnthropicConfig = Field(default_factory=AnthropicConfig)
     google: GoogleConfig = Field(default_factory=GoogleConfig)
     ollama: OllamaConfig = Field(default_factory=OllamaConfig)
+    openrouter: OpenRouterConfig = Field(default_factory=OpenRouterConfig)
+    mistral: MistralConfig = Field(default_factory=MistralConfig)
 
 
 class Preferences(BaseModel):
@@ -86,7 +96,11 @@ class Preferences(BaseModel):
 class AppConfig(BaseModel):
     """Root model for the application configuration."""
 
-    active_provider: Literal["openai", "anthropic", "google", "ollama"] = "openai"
+    model_config = ConfigDict(extra="forbid")
+
+    active_provider: Literal[
+        "openai", "anthropic", "google", "ollama", "openrouter", "mistral"
+    ] = "openai"
     preferences: Preferences = Field(default_factory=Preferences)
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
 

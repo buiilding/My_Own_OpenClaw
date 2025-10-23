@@ -656,6 +656,62 @@ This approach ensures:
 
 ---
 
+## Practical Development Workflow & Known Issues
+
+This section contains practical, hands-on advice and documents known issues to streamline the development process. All contributors should read this section before writing code.
+
+### Running the Application
+
+To run the application for testing, you must start the backend and frontend separately from the correct directories.
+
+**1. Start the Backend Server:**
+- Navigate to the **project root directory**.
+- Run the server as a Python module to ensure all imports work correctly. This avoids `ModuleNotFoundError`.
+- **Command**:
+  ```bash
+  # From /<project-root>/
+  python -m backend.server
+  ```
+
+**2. Start the Frontend Application:**
+- The frontend requires two separate terminal processes.
+- **Terminal 1 (Renderer Process)**: Navigate to the `frontend` directory and run the Vite development server.
+  ```bash
+  # From /<project-root>/frontend/
+  npm run dev
+  ```
+- **Terminal 2 (Main Process)**: In a new terminal, navigate to the `frontend` directory and run the Electron main process.
+  ```bash
+  # From /<project-root>/frontend/
+  npm run electron
+  ```
+
+### Pre-Commit Hooks & Linting
+
+The project uses `pre-commit` to enforce code standards. This can lead to a specific, recurring workflow issue that you must know how to handle.
+
+**Known Issue: `black` vs. `pylint` Conflict**
+- The `black` formatter may automatically change code in a way that the `pylint` linter flags as an error (e.g., for line length). This will cause your `git commit` to fail, even though the formatters have run.
+
+**Required Workflow to Resolve:**
+1.  Run `git commit` with your message. It will likely fail, but `black` and `isort` will auto-format your files.
+2.  Run `git add .` to stage the automatic formatting changes that the hooks just made.
+3.  Run the **exact same `git commit` command again**. Often, this second attempt will succeed.
+4.  If the commit still fails due to minor, non-critical `pylint` errors (like style warnings), it is acceptable to bypass the hook for that commit using the `--no-verify` flag. **This should be used as a last resort.**
+    ```bash
+    git commit --no-verify -m "your commit message"
+    ```
+
+**Adding New Python Dependencies:**
+- If you add a new Python library to `requirements.txt` that is used in the backend, you **must** also add it to the `additional_dependencies` list for the `pylint` hook in the `.pre-commit-config.yaml` file. Failure to do so will cause `pylint` to fail with an `import-error`.
+
+### Git Workflow
+
+- **Pull Before Pushing**: Always run `git pull` on a branch before you `git push` to ensure you have the latest changes and avoid merge conflicts.
+- **Merge Strategy**: The repository is configured to prefer merging over rebasing when pulling divergent branches.
+
+---
+
 ## Development Timeline
 
 ### Current Status
@@ -977,3 +1033,15 @@ The phased development approach, research-first methodology, and strong focus on
 ---
 
 **This context document should provide comprehensive understanding of the Desktop Assistant project for any AI or human who needs to work with or understand the system.**
+
+---
+
+## Current Implementation State & Next Steps
+
+As of the completion of Milestone 1 (Issues #1-5), the project has the following status:
+
+- **Core Infrastructure**: The backend server, frontend UI, IPC communication, and configuration system are all implemented and functional.
+- **LLM Client**: A feature-complete, multi-provider LLM client has been built and tested. It can connect to various providers but is **not yet integrated** into the main application logic.
+- **Current Behavior**: The application will run and the UI is interactive, but all chat responses are from a hard-coded placeholder in `backend/server.py`. The application does not yet perform any actual AI completions.
+
+**Immediate Next Step**: The next phase of development (Milestone 2) will focus on implementing the **Agent Orchestrator (Issue #6)**. This will involve replacing the placeholder logic in `server.py` with a call to the agent, which will use the `LLMClient` to generate real responses. A restart of the backend is required to switch LLM providers.
