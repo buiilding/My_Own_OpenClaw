@@ -547,73 +547,9 @@ Determines whether to:
 
 ### Inter-Process Communication (IPC)
 
-#### Protocol: WebSocket
-- **Why WebSocket**: Bidirectional, real-time, supports streaming
-- **Message Format**: JSON
-- **Connection**: Electron connects to Python WebSocket server on localhost
+Communication between the frontend and backend is handled via a WebSocket connection. All messages are JSON objects with a consistent structure.
 
-#### Message Types
-
-**From Frontend to Backend:**
-```json
-{
-  "type": "query",
-  "id": "uuid-1234",
-  "payload": {
-    "text": "What files did I edit yesterday?"
-  }
-}
-
-{
-  "type": "load-settings",
-  "id": "uuid-4321"
-}
-
-{
-  "type": "save-settings",
-  "id": "uuid-5678",
-  "payload": {
-    "active_provider": "anthropic",
-    "preferences": { "user_name": "Peter" }
-  }
-}
-```
-
-**From Backend to Frontend:**
-```json
-{
-  "type": "response",
-  "id": "uuid-1234",
-  "payload": {
-    "text": "Received your query: '...'. The agent is not yet connected."
-  }
-}
-
-{
-  "type": "settings-loaded",
-  "id": "uuid-4321",
-  "payload": {
-    "active_provider": "openai",
-    "preferences": { "user_name": "User" }
-  }
-}
-
-{
-  "type": "settings-saved",
-  "id": "uuid-5678",
-  "payload": {
-    "message": "Settings saved successfully"
-  }
-}
-
-{
-  "type": "error",
-  "id": "uuid-5678",
-  "payload": {
-    "message": "Description of the error that occurred."
-  }
-}
-```
+For a detailed description of the message types, structure, and examples, see the dedicated **[IPC Protocol Document](ipc_protocol.md)**.
 
 ---
 
