@@ -11,8 +11,8 @@ from typing import Any, Dict, Set
 
 import websockets
 import yaml
-from websockets import WebSocketServerProtocol
 from websockets.exceptions import ConnectionClosed
+from websockets.server import WebSocketServerProtocol
 
 from backend import config
 from backend.agent.orchestrator import Agent
@@ -122,6 +122,7 @@ async def _handle_message(
                 "payload": {"message": "Query processing timed out"},
             }
             await websocket.send(json.dumps(response))
+        # pylint: disable=broad-exception-caught
         except Exception as e:
             logger.error("Error processing query: %s", e, exc_info=True)
             response = {
@@ -183,6 +184,7 @@ async def _handle_message(
                 "payload": {"message": "Settings saved successfully"},
             }
             await websocket.send(json.dumps(response))
+        # pylint: disable=broad-exception-caught
         except Exception as e:
             logger.error("Failed to save settings: %s", e, exc_info=True)
 

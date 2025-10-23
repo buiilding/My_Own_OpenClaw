@@ -50,7 +50,7 @@ def retry_on_rate_limit(max_retries=3, initial_backoff=1.0):
             for attempt in range(max_retries):
                 try:
                     return await func(*args, **kwargs)
-                except RateLimitError as e:
+                except RateLimitError:
                     if attempt == max_retries - 1:
                         raise
                     logger.warning(
