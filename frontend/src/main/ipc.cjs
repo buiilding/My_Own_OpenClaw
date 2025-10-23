@@ -19,7 +19,10 @@ function log(message) {
 }
 
 function connect() {
-  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+  if (
+    ws &&
+    (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)
+  ) {
     log('WebSocket already open or connecting.');
     return;
   }

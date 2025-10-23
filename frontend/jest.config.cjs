@@ -12,10 +12,7 @@ module.exports = {
   roots: ['<rootDir>/frontend/src', '<rootDir>/tests/frontend'],
 
   // Ensure React and other modules resolve from frontend/node_modules
-  moduleDirectories: [
-    path.resolve(__dirname, 'node_modules'),
-    'node_modules'
-  ],
+  moduleDirectories: [path.resolve(__dirname, 'node_modules'), 'node_modules'],
 
   // Allow Jest to transform JSX using Babel from frontend config
   transform: {

@@ -2,3 +2,4 @@ websockets
 pylint
 pytest
 pytest-asyncio
+black
