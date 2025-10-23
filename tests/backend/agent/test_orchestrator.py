@@ -19,7 +19,7 @@ def mock_llm_client():
         yield " from "
         yield "the mock!"
 
-    mock_client.get_completion_stream = stream_generator
+    mock_client.get_completion_stream.side_effect = stream_generator
     return mock_client
 
 

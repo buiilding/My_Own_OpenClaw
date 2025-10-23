@@ -38,17 +38,30 @@ function App() {
         setIsSending(false); // We've got the first chunk, so we're not "sending" anymore
         setMessages((prevMessages) => {
           const lastMessage = prevMessages[prevMessages.length - 1];
-          if (lastMessage && lastMessage.sender === 'assistant') {
-            // Append chunk to the last message
-            lastMessage.text += data.payload.text;
-            return [...prevMessages];
+          if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete) {
+            // Append chunk to the last message by creating a new object
+            return [
+              ...prevMessages.slice(0, -1),
+              { ...lastMessage, text: lastMessage.text + data.payload.text },
+            ];
           } else {
-            // This is the first chunk, create a new message
+            // This is the first chunk, create a new message object
             return [
               ...prevMessages,
-              { text: data.payload.text, sender: 'assistant' },
+              { text: data.payload.text, sender: 'assistant', isComplete: false },
             ];
           }
+        });
+      } else if (data.type === 'streaming-complete') {
+        setMessages((prevMessages) => {
+          const lastMessage = prevMessages[prevMessages.length - 1];
+          if (lastMessage && lastMessage.sender === 'assistant') {
+            return [
+              ...prevMessages.slice(0, -1),
+              { ...lastMessage, isComplete: true },
+            ];
+          }
+          return prevMessages;
         });
       } else if (data.type === 'settings-loaded') {
         setConfig(data.payload);
