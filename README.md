@@ -119,6 +119,42 @@ cd frontend
 # Automatic linting and formatting setup will be documented here
 ```
 
+### Running Tests
+This project has two separate test suites: one for the Python backend and one for the React frontend.
+
+#### Backend Tests (pytest)
+1.  Navigate to the backend directory:
+    ```bash
+    cd backend
+    ```
+2.  Create and activate a Conda environment:
+    ```bash
+    conda create --name desktop-assistant-env python=3.10 -y
+    conda activate desktop-assistant-env
+    ```
+3.  Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+4.  Run the tests:
+    ```bash
+    pytest
+    ```
+
+#### Frontend Tests (Jest)
+1.  Navigate to the frontend directory:
+    ```bash
+    cd frontend
+    ```
+2.  Install Node.js dependencies:
+    ```bash
+    npm install
+    ```
+3.  Run the tests:
+    ```bash
+    npm test
+    ```
+
 ### Current Development Focus
 
 We're currently working on **Issue #1: Project Setup & Repository Structure**. If you want to contribute, check out:
