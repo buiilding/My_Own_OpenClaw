@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import ChatInterface from './ChatInterface';
+import ChatInterface from '@components/ChatInterface';
 import '@testing-library/jest-dom';
 
 /**

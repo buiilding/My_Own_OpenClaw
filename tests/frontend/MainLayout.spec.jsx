@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import MainLayout from './MainLayout';
+import MainLayout from '@components/MainLayout';
 import '@testing-library/jest-dom';
 
 /**
@@ -11,18 +11,17 @@ describe('MainLayout', () => {
    * Test case to ensure the component renders its children correctly.
    */
   test('renders children inside the main content area', () => {
-    const childText = 'This is the main content';
+    const chatContent = 'Chat content';
+    const settingsContent = 'Settings content';
     render(
-      <MainLayout>
-        <div>{childText}</div>
-      </MainLayout>
+      <MainLayout
+        chat={<div>{chatContent}</div>}
+        settings={<div>{settingsContent}</div>}
+      />
     );
 
-    // Check that the sidebar header is present
-    expect(screen.getByText('Assistant')).toBeInTheDocument();
-
     // Check that the child content is rendered
-    const mainContentElement = screen.getByText(childText);
-    expect(mainContentElement).toBeInTheDocument();
+    expect(screen.getByText(chatContent)).toBeInTheDocument();
+    expect(screen.getByText(settingsContent)).toBeInTheDocument();
   });
 });

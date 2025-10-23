@@ -4,8 +4,17 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import App from '../../frontend/src/renderer/App';
+import App from '@/renderer/App';
+import ChatInterface from '@components/ChatInterface';
+import MainLayout from '@components/MainLayout';
 import '@testing-library/jest-dom';
+
+// Mock the ipc object
+jest.mock('@/main/ipc.cjs', () => ({
+  on: jest.fn(),
+  send: jest.fn(),
+}));
+
 
 // Mock the global window.ipc object that Electron provides
 beforeAll(() => {

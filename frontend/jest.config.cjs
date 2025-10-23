@@ -25,6 +25,10 @@ module.exports = {
   // Optional: handle absolute imports like "@/components"
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/frontend/src/$1',
+    // Handle component imports from tests with a specific alias
+    '^@components/(.*)$': '<rootDir>/frontend/src/renderer/components/$1',
+    // Mock CSS files
+    '\\.css$': '<rootDir>/tests/frontend/__mocks__/styleMock.js',
   },
 
   testEnvironment: 'jsdom',

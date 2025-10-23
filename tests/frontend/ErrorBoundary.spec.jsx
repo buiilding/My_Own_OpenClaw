@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import ErrorBoundary from './ErrorBoundary';
+import ErrorBoundary from '@components/ErrorBoundary';
 
 // Mock console.error to prevent logging during tests
 beforeAll(() => {

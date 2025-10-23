@@ -109,7 +109,7 @@ async def _handle_message(
 
         # Exclude the loaded API key from being sent to the frontend
 
-        config_payload = settings.dict(exclude={"api_key"})
+        config_payload = settings.model_dump(exclude={"api_key"})
 
         response = {
             "type": "settings-loaded",
@@ -126,19 +126,21 @@ async def _handle_message(
             new_config_data = message_data.get("payload", {})
 
             # Merge with existing settings to preserve api_key
-            merged_data = {**settings.dict(), **new_config_data}
+            merged_data = {**settings.model_dump(), **new_config_data}
             validated_config = AppConfig(**merged_data)
 
             # Update the global settings object in-place
-            for key, value in validated_config.dict().items():
+            for key, value in validated_config.model_dump().items():
                 setattr(settings, key, value)
 
-            config_file = get_config_dir() / CONFIG_FILE_NAME
+            config_dir = get_config_dir()
+            config_file = config_dir / CONFIG_FILE_NAME
+            config_dir.mkdir(parents=True, exist_ok=True)
 
             with open(config_file, "w", encoding="utf-8") as f:
                 # Save the validated data, excluding the runtime api_key
 
-                config_to_save = validated_config.dict(exclude={"api_key"})
+                config_to_save = validated_config.model_dump(exclude={"api_key"})
 
                 yaml.dump(config_to_save, f, default_flow_style=False, sort_keys=False)
 

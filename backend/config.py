@@ -1,15 +1,9 @@
-"""Configuration management for the Desktop Assistant.
-
-Handles loading, validation, and providing access to application settings
-from a YAML file, environment variables, and secure credential stores.
-"""
-
 import os
 from pathlib import Path
-from typing import Dict, Literal, Optional
+from typing import Literal, Optional
 
 import yaml
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 # --- Constants ---
 APP_NAME = "DesktopAssistant"
@@ -101,6 +95,8 @@ class Preferences(BaseModel):
 
 class AppConfig(BaseModel):
     """Root model for the application configuration."""
+
+    model_config = ConfigDict(extra="forbid")
 
     active_provider: Literal[
         "openai", "anthropic", "google", "ollama", "openrouter", "mistral"
