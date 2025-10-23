@@ -42,11 +42,16 @@ SaveStatusFeedback.propTypes = {
 function SettingsPanel({ config, onSave, saveStatus = 'idle' }) {
   const [activeProvider, setActiveProvider] = useState('');
   const [userName, setUserName] = useState('');
+  const [model, setModel] = useState('');
 
   useEffect(() => {
     if (config) {
-      setActiveProvider(config.active_provider || 'openai');
+      const provider = config.active_provider || 'openai';
+      setActiveProvider(provider);
       setUserName(config.preferences?.user_name || 'User');
+      if (config.llm_providers && config.llm_providers[provider]) {
+        setModel(config.llm_providers[provider].model || '');
+      }
     }
   }, [config]);
 
@@ -60,6 +65,13 @@ function SettingsPanel({ config, onSave, saveStatus = 'idle' }) {
       preferences: {
         ...(config.preferences || {}),
         user_name: userName,
+      },
+      llm_providers: {
+        ...(config.llm_providers || {}),
+        [activeProvider]: {
+          ...(config.llm_providers?.[activeProvider] || {}),
+          model: model,
+        },
       },
     };
     onSave(updatedConfig);
@@ -90,6 +102,17 @@ function SettingsPanel({ config, onSave, saveStatus = 'idle' }) {
             <option value="openrouter">OpenRouter</option>
             <option value="mistral">Mistral</option>
           </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="llm-model">Provider Model</label>
+          <input
+            id="llm-model"
+            type="text"
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            disabled={isSaving}
+          />
         </div>
 
         <div className="form-group">

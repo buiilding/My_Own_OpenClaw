@@ -1,7 +1,7 @@
 """Tests for the Agent Orchestrator."""
 
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, MagicMock
 
 from backend.agent.orchestrator import Agent, SYSTEM_PROMPT, MAX_HISTORY_LENGTH
 
@@ -12,14 +12,19 @@ pytestmark = pytest.mark.asyncio
 @pytest.fixture
 def mock_llm_client():
     """Fixture to provide a mocked LLMClient."""
-    mock_client = AsyncMock()
+    mock_client = MagicMock()
 
-    async def stream_generator(*args, **kwargs):
-        yield "Hello"
-        yield " from "
-        yield "the mock!"
+    # A factory that returns a new async generator each time
+    def factory(*args, **kwargs):
+        async def generator():
+            yield "Hello"
+            yield " from "
+            yield "the mock!"
+        return generator()
 
-    mock_client.get_completion_stream.side_effect = stream_generator
+    # get_completion_stream should be a mock that when called,
+    # returns an async generator from the factory
+    mock_client.get_completion_stream = MagicMock(side_effect=factory)
     return mock_client
 
 

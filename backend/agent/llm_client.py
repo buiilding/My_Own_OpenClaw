@@ -17,7 +17,8 @@ import anthropic
 import google.generativeai as genai
 import openai
 
-from backend.config import AppConfig, settings
+from backend import config
+from backend.config import AppConfig
 
 logger = logging.getLogger(__name__)
 
@@ -137,12 +138,11 @@ class OpenAIClient(LLMClient):
         except openai.APIError as e:
             raise APIError(f"OpenAI API error: {e}") from e
 
-    @retry_on_rate_limit()
     async def get_completion_stream(
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[str, None]:
         try:
-            stream = await self.client.chat.completions.create(
+            stream = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 stream=True,
@@ -193,7 +193,6 @@ class AnthropicClient(LLMClient):
         except anthropic.APIError as e:
             raise APIError(f"Anthropic API error: {e}") from e
 
-    @retry_on_rate_limit()
     async def get_completion_stream(
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[str, None]:
@@ -245,7 +244,6 @@ class GoogleClient(LLMClient):
                 raise RateLimitError(f"Google rate limit exceeded: {e}") from e
             raise APIError(f"Google API error: {e}") from e
 
-    @retry_on_rate_limit()
     async def get_completion_stream(
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[str, None]:
@@ -300,7 +298,7 @@ class OllamaClient(LLMClient):
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[str, None]:
         try:
-            stream = await self.client.chat.completions.create(
+            stream = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 stream=True,
@@ -348,12 +346,11 @@ class OpenRouterClient(LLMClient):
         except openai.APIError as e:
             raise APIError(f"OpenRouter API error: {e}") from e
 
-    @retry_on_rate_limit()
     async def get_completion_stream(
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[str, None]:
         try:
-            stream = await self.client.chat.completions.create(
+            stream = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 stream=True,
@@ -399,12 +396,11 @@ class MistralClient(LLMClient):
         except openai.APIError as e:
             raise APIError(f"Mistral AI API error: {e}") from e
 
-    @retry_on_rate_limit()
     async def get_completion_stream(
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[str, None]:
         try:
-            stream = await self.client.chat.completions.create(
+            stream = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 stream=True,
@@ -423,12 +419,13 @@ class MistralClient(LLMClient):
 # --- Factory Function to Get the Correct Client ---
 
 
-def get_llm_client(config: AppConfig = settings) -> LLMClient:
+def get_llm_client(cfg: AppConfig = None) -> LLMClient:
     """
     Factory function to get an instance of the correct LLM client based on config.
 
     Args:
-        config: The application's configuration object.
+        cfg: The application's configuration object. If None, the global
+             settings object is used.
 
     Returns:
         An instance of a class that implements the LLMClient interface.
@@ -436,28 +433,29 @@ def get_llm_client(config: AppConfig = settings) -> LLMClient:
     Raises:
         ValueError: If the configured provider is not supported.
     """
-    provider = config.active_provider
-    api_key = config.api_key
+    if cfg is None:
+        cfg = config.settings
+
+    provider = cfg.active_provider
+    api_key = cfg.api_key
 
     if provider == "openai":
-        return OpenAIClient(api_key=api_key, model=config.llm_providers.openai.model)
+        return OpenAIClient(api_key=api_key, model=cfg.llm_providers.openai.model)
     if provider == "anthropic":
-        return AnthropicClient(
-            api_key=api_key, model=config.llm_providers.anthropic.model
-        )
+        return AnthropicClient(api_key=api_key, model=cfg.llm_providers.anthropic.model)
     if provider == "google":
-        return GoogleClient(api_key=api_key, model=config.llm_providers.google.model)
+        return GoogleClient(api_key=api_key, model=cfg.llm_providers.google.model)
     if provider == "ollama":
         return OllamaClient(
-            base_url=config.llm_providers.ollama.base_url,
-            model=config.llm_providers.ollama.model,
+            base_url=cfg.llm_providers.ollama.base_url,
+            model=cfg.llm_providers.ollama.model,
         )
     if provider == "openrouter":
         return OpenRouterClient(
-            api_key=api_key, model=config.llm_providers.openrouter.model
+            api_key=api_key, model=cfg.llm_providers.openrouter.model
         )
     if provider == "mistral":
-        return MistralClient(api_key=api_key, model=config.llm_providers.mistral.model)
+        return MistralClient(api_key=api_key, model=cfg.llm_providers.mistral.model)
 
     raise ValueError(f"Unsupported LLM provider: {provider}")
 
@@ -467,7 +465,13 @@ def get_llm_client(config: AppConfig = settings) -> LLMClient:
 
 async def main():
     """Example of how to use the LLM client factory."""
-    print(f"Using active provider: {settings.active_provider}")
+    # This main function is for example purposes.
+    # In the actual application, settings are initialized in server.py.
+    from backend.config import initialize_settings
+
+    initialize_settings()
+
+    print(f"Using active provider: {config.settings.active_provider}")
     try:
         client = get_llm_client()
         messages = [{"role": "user", "content": "Hello, who are you?"}]
