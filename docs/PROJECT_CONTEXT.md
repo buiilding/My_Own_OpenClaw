@@ -624,6 +624,26 @@ To run the application for testing, you must start the backend and frontend sepa
   npm run electron
   ```
 
+### Running Tests
+These instructions assume you have already set up your environment and installed all dependencies.
+
+#### Backend Tests (pytest)
+1.  Ensure your `desktop-assistant-env` Conda environment is active.
+2.  From the **project root directory**, run the test suite:
+    ```bash
+    pytest
+    ```
+
+#### Frontend Tests (Jest)
+1.  Navigate to the `frontend` directory:
+    ```bash
+    cd frontend
+    ```
+2.  Run the tests:
+    ```bash
+    npm test
+    ```
+
 ### Committing Code with Pre-Commit Hooks
 
 The project uses `pre-commit` to enforce code standards automatically before each commit. This process can sometimes require a multi-step commit process. Follow these steps to ensure your commits are successful:
