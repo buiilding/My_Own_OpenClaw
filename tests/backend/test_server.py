@@ -47,19 +47,24 @@ def mock_server_settings(monkeypatch):
     Mocks the global settings object used by the server handler to ensure
     test isolation and prevent AttributeError for 'NoneType'.
     """
-    # The handler function in server.py imports 'settings' directly.
-    # We must patch it in that module's namespace.
-    monkeypatch.setattr("backend.server.settings", AppConfig())
+    # The handler function in server.py uses config.settings.
+    # We must patch the object in the config module's namespace.
+    monkeypatch.setattr("backend.config.settings", AppConfig())
 
 
-async def test_ping_pong():
+@pytest.fixture
+def server_handler():
+    """Provides a handler wrapped with a mocked Agent instance."""
+    agent = Agent()
+    return partial(handler, agent=agent)
+
+
+async def test_ping_pong(server_handler):
     """
     Tests that the server correctly handles a ping message
     and responds with a pong.
     """
     # This context manager starts the server and provides a client connection
-    agent = Agent()
-    server_handler = partial(handler, agent=agent)
     async with websockets.serve(server_handler, "localhost", 8766):
         async with websockets.connect("ws://localhost:8766") as websocket:
             # 1. Send a ping message
@@ -80,13 +85,11 @@ async def test_ping_pong():
             assert response_data["payload"]["text"] == "Hello, server!"
 
 
-async def test_invalid_json():
+async def test_invalid_json(server_handler):
     """
     Tests that the server sends an error message when it
     receives malformed JSON.
     """
-    agent = Agent()
-    server_handler = partial(handler, agent=agent)
     async with websockets.serve(server_handler, "localhost", 8767):
         async with websockets.connect("ws://localhost:8767") as websocket:
             await websocket.send("this is not json")
@@ -97,13 +100,11 @@ async def test_invalid_json():
             assert response_data["payload"]["message"] == "Malformed JSON"
 
 
-async def test_query_message():
+async def test_query_message(server_handler):
     """
     Tests that the server correctly handles a query message
     and responds appropriately.
     """
-    agent = Agent()
-    server_handler = partial(handler, agent=agent)
     async with websockets.serve(server_handler, "localhost", 8768):
         async with websockets.connect("ws://localhost:8768") as websocket:
             query_message = {
@@ -124,12 +125,10 @@ async def test_query_message():
             assert response_data["id"] == "test-query-123"
 
 
-async def test_unknown_message_type():
+async def test_unknown_message_type(server_handler):
     """
     Tests that the server sends an error for an unknown message type.
     """
-    agent = Agent()
-    server_handler = partial(handler, agent=agent)
     async with websockets.serve(server_handler, "localhost", 8769):
         async with websockets.connect("ws://localhost:8769") as websocket:
             message = {
@@ -145,12 +144,10 @@ async def test_unknown_message_type():
             assert "Unknown message type" in response_data["payload"]["message"]
 
 
-async def test_missing_key():
+async def test_missing_key(server_handler):
     """
     Tests that the server sends an error if a required key is missing.
     """
-    agent = Agent()
-    server_handler = partial(handler, agent=agent)
     async with websockets.serve(server_handler, "localhost", 8770):
         async with websockets.connect("ws://localhost:8770") as websocket:
             message = {
@@ -165,12 +162,10 @@ async def test_missing_key():
             assert "Message missing required keys" in response_data["payload"]["message"]
 
 
-async def test_handle_load_settings():
+async def test_handle_load_settings(server_handler):
     """
     Tests that the server correctly sends its configuration when requested.
     """
-    agent = Agent()
-    server_handler = partial(handler, agent=agent)
     async with websockets.serve(server_handler, "localhost", 8771):
         async with websockets.connect("ws://localhost:8771") as websocket:
             # Note: The frontend doesn't need to send a payload for this type
@@ -185,7 +180,7 @@ async def test_handle_load_settings():
             assert "api_key" not in response_data["payload"] # Ensure key is not sent
 
 
-async def test_handle_save_settings(tmp_path):
+async def test_handle_save_settings(server_handler, tmp_path):
     """
     Tests that the server can receive and save new settings.
     """
@@ -194,8 +189,6 @@ async def test_handle_save_settings(tmp_path):
     mock_config_file = mock_config_dir / "config.yaml"
 
     # Patch the config directory function in both the config and server modules
-    agent = Agent()
-    server_handler = partial(handler, agent=agent)
     with patch('backend.config.get_config_dir', return_value=mock_config_dir), \
          patch('backend.server.get_config_dir', return_value=mock_config_dir):
         async with websockets.serve(server_handler, "localhost", 8772):

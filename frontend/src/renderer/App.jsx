@@ -25,8 +25,6 @@ function App() {
   // Listen for messages and config updates from the backend
   useEffect(() => {
     const removeBackendListener = window.ipc.on('from-backend', (data) => {
-      clearTimeout(saveTimeoutId.current); // Clear timeout on any response
-
       if (data.type === 'pong' || data.type === 'response') {
         const newMesage = {
           text: data.payload.text || JSON.stringify(data.payload),
@@ -66,12 +64,14 @@ function App() {
       } else if (data.type === 'settings-loaded') {
         setConfig(data.payload);
       } else if (data.type === 'settings-saved') {
+        clearTimeout(saveTimeoutId.current);
         setSaveStatus('success');
         setTimeout(() => setSaveStatus('idle'), 3000);
       } else if (
         data.type === 'error' &&
         data.payload.message?.includes('Failed to save settings')
       ) {
+        clearTimeout(saveTimeoutId.current);
         setSaveStatus('error');
         // Revert to the old config on failure
         if (configBeforeSave.current) {
