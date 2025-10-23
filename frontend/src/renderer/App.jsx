@@ -20,6 +20,7 @@ function App() {
   const [config, setConfig] = useState(null);
   const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, success, error
   const configBeforeSave = useRef(null);
+  const saveTimeoutId = useRef(null);
 
   // Listen for messages and config updates from the backend
   useEffect(() => {
@@ -34,12 +35,14 @@ function App() {
       } else if (data.type === 'settings-loaded') {
         setConfig(data.payload);
       } else if (data.type === 'settings-saved') {
+        clearTimeout(saveTimeoutId.current); // Clear the timeout on success
         setSaveStatus('success');
         setTimeout(() => setSaveStatus('idle'), 3000);
       } else if (
         data.type === 'error' &&
         data.payload.message?.includes('Failed to save settings')
       ) {
+        clearTimeout(saveTimeoutId.current); // Clear the timeout on error
         setSaveStatus('error');
         // Revert to the old config on failure
         if (configBeforeSave.current) {
@@ -55,6 +58,7 @@ function App() {
 
     return () => {
       removeBackendListener();
+      clearTimeout(saveTimeoutId.current); // Cleanup on unmount
     };
   }, []);
 
@@ -82,6 +86,15 @@ function App() {
     // Optimistically update the state and set status to saving
     setConfig(updatedConfig);
     setSaveStatus('saving');
+
+    // Fallback timeout in case backend never responds
+    saveTimeoutId.current = setTimeout(() => {
+      setSaveStatus('error');
+      if (configBeforeSave.current) {
+        setConfig(configBeforeSave.current);
+        configBeforeSave.current = null;
+      }
+    }, 10000); // 10 second timeout
 
     window.ipc.send('to-backend', {
       type: 'save-settings',

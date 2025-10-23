@@ -634,6 +634,7 @@ This approach ensures:
 - Technical debt is minimized
 
 ### Code Quality Standards
+- **Adherence to Standards**: All contributions must strictly follow the `CODE_STANDARDS.md` document. This includes providing comprehensive tests, writing clear docstrings, aligning with existing code patterns, and using the Conventional Commits format for all commit messages.
 - **Readability**: Code is written for humans first
 - **Consistency**: Follow established patterns
 - **Documentation**: Public APIs documented, complex logic explained
