@@ -9,12 +9,19 @@ from unittest.mock import patch
 
 import pytest
 import websockets
-
-# Import the handler from the server file
+from backend.config import AppConfig
 from backend.server import handler
 
 # Use pytest-asyncio for async tests
 pytestmark = pytest.mark.asyncio
+
+
+@pytest.fixture(autouse=True)
+def reset_settings(monkeypatch):
+    """Reset the global settings object before each test to ensure isolation."""
+    # We need to patch the settings object inside the server module
+    from backend import server
+    monkeypatch.setattr(server, "settings", AppConfig())
 
 
 async def test_ping_pong():
@@ -142,14 +149,17 @@ async def test_handle_save_settings(tmp_path):
     mock_config_dir = tmp_path / "TestApp"
     mock_config_file = mock_config_dir / "config.yaml"
 
-    with patch('backend.config.get_config_dir', return_value=mock_config_dir):
+    # Patch the config directory function in both the config and server modules
+    with patch('backend.config.get_config_dir', return_value=mock_config_dir), \
+         patch('backend.server.get_config_dir', return_value=mock_config_dir):
         async with websockets.serve(handler, "localhost", 8772):
             async with websockets.connect("ws://localhost:8772") as websocket:
                 new_settings = {
                     "active_provider": "ollama",
                     "preferences": {"user_name": "Test User"},
                     "llm_providers": {
-                        "openai": {}, "anthropic": {}, "google": {}, "ollama": {}
+                        "openai": {}, "anthropic": {}, "google": {}, "ollama": {},
+                        "openrouter": {}, "mistral": {}
                     }
                 }
                 save_msg = {

@@ -27,43 +27,34 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+
+
+
 # Store connected clients
 
 connected_clients: Set[WebSocketServerProtocol] = set()
 
+settings_lock = asyncio.Lock()
+
+
+
+
 
 async def _handle_message(
+
     websocket: WebSocketServerProtocol, message_data: Dict[str, Any]
+
 ) -> None:
+
     """Routes incoming messages to the appropriate handlers.
-
-
-
-
-
-
-
-
 
 
 
     Args:
 
-
-
-
-
         websocket: The WebSocket connection instance.
 
-
-
-
-
         message_data: The parsed JSON data from the client.
-
-
-
-
 
     """
 
@@ -73,9 +64,14 @@ async def _handle_message(
 
     message_id = message_data.get("id")
 
+
+
     if message_type == "ping":
+
         response_payload = {
+
             "text": message_data.get("payload", {}).get("text", "Echo: No text found")
+
         }
 
         response = {"type": "pong", "id": message_id, "payload": response_payload}
@@ -84,7 +80,10 @@ async def _handle_message(
 
         logger.info("Sent pong to %s", websocket.remote_address)
 
+
+
     elif message_type == "query":
+
         # TODO: This is a placeholder. In the future, this will call the agent orchestrator.
 
         query_text = message_data.get("payload", {}).get("text", "")
@@ -92,10 +91,15 @@ async def _handle_message(
         logger.info("Received query: %s", query_text)
 
         response_payload = {
+
             "text": (
+
                 f"Received your query: '{query_text}'. "
+
                 "The agent is not yet connected."
+
             )
+
         }
 
         response = {"type": "response", "id": message_id, "payload": response_payload}
@@ -104,43 +108,50 @@ async def _handle_message(
 
         logger.info("Sent query response to %s", websocket.remote_address)
 
+
+
     elif message_type == "load-settings":
+
         logger.info("Loading and sending settings to frontend.")
 
         # Exclude the loaded API key from being sent to the frontend
 
-        config_payload = settings.dict(exclude={"api_key"})
+        config_payload = settings.model_dump(exclude={"api_key"})
 
-        response = {
-            "type": "settings-loaded",
-            "id": message_id,
-            "payload": config_payload,
-        }
+        response = {"type": "settings-loaded", "id": message_id, "payload": config_payload}
 
         await websocket.send(json.dumps(response))
 
+
+
     elif message_type == "save-settings":
         logger.info("Received settings from frontend to save.")
-
         try:
-            new_config_data = message_data.get("payload", {})
+            async with settings_lock:
+                new_config_data = message_data.get("payload", {})
 
-            # Merge with existing settings to preserve api_key
-            merged_data = {**settings.dict(), **new_config_data}
-            validated_config = AppConfig(**merged_data)
+                # Merge with existing settings to preserve api_key
+                merged_data = {**settings.model_dump(), **new_config_data}
+                validated_config = AppConfig(**merged_data)
 
-            # Update the global settings object in-place
-            for key, value in validated_config.dict().items():
-                setattr(settings, key, value)
+                # Update the global settings object in-place
+                for key, value in validated_config.model_dump().items():
+                    setattr(settings, key, value)
 
-            config_file = get_config_dir() / CONFIG_FILE_NAME
+                config_dir = get_config_dir()
+                config_file = config_dir / CONFIG_FILE_NAME
+                config_dir.mkdir(parents=True, exist_ok=True)
 
-            with open(config_file, "w", encoding="utf-8") as f:
-                # Save the validated data, excluding the runtime api_key
+                def write_config():
+                    with open(config_file, "w", encoding="utf-8") as f:
+                        config_to_save = validated_config.model_dump(
+                            exclude={"api_key"}
+                        )
+                        yaml.dump(
+                            config_to_save, f, default_flow_style=False, sort_keys=False
+                        )
 
-                config_to_save = validated_config.dict(exclude={"api_key"})
-
-                yaml.dump(config_to_save, f, default_flow_style=False, sort_keys=False)
+                await asyncio.to_thread(write_config)
 
             logger.info("Successfully saved new settings to %s", config_file)
 
@@ -159,13 +170,21 @@ async def _handle_message(
                 "payload": {"message": f"Failed to save settings: {str(e)}"},
             }
             await websocket.send(json.dumps(response))
+
+
+
     else:
+
         logger.warning("Received unknown message type: '%s'", message_type)
 
         response = {
+
             "type": "error",
+
             "id": message_id,
+
             "payload": {"message": f"Unknown message type: {message_type}"},
+
         }
 
         await websocket.send(json.dumps(response))
