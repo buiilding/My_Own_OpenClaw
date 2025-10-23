@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import ChatInterface from './components/ChatInterface';
 import MainLayout from './components/MainLayout';
@@ -18,6 +18,8 @@ function App() {
   ]);
   const [isSending, setIsSending] = useState(false);
   const [config, setConfig] = useState(null);
+  const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, success, error
+  const configBeforeSave = useRef(null);
 
   // Listen for messages and config updates from the backend
   useEffect(() => {
@@ -31,6 +33,19 @@ function App() {
         setIsSending(false);
       } else if (data.type === 'settings-loaded') {
         setConfig(data.payload);
+      } else if (data.type === 'settings-saved') {
+        setSaveStatus('success');
+        setTimeout(() => setSaveStatus('idle'), 3000);
+      } else if (
+        data.type === 'error' &&
+        data.payload.message.includes('Failed to save settings')
+      ) {
+        setSaveStatus('error');
+        // Revert to the old config on failure
+        if (configBeforeSave.current) {
+          setConfig(configBeforeSave.current);
+        }
+        setTimeout(() => setSaveStatus('idle'), 3000);
       }
     });
 
@@ -55,12 +70,17 @@ function App() {
   };
 
   const handleSaveSettings = (updatedConfig) => {
+    // Store the original config in case we need to revert
+    configBeforeSave.current = config;
+
+    // Optimistically update the state and set status to saving
+    setConfig(updatedConfig);
+    setSaveStatus('saving');
+
     window.ipc.send('to-backend', {
       type: 'save-settings',
       payload: updatedConfig,
     });
-    // Optimistically update the state
-    setConfig(updatedConfig);
   };
 
   return (
@@ -74,7 +94,11 @@ function App() {
           />
         }
         settings={
-          <SettingsPanel config={config} onSave={handleSaveSettings} />
+          <SettingsPanel
+            config={config}
+            onSave={handleSaveSettings}
+            saveStatus={saveStatus}
+          />
         }
       />
     </ErrorBoundary>

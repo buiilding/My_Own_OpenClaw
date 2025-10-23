@@ -21,9 +21,19 @@ CONFIG_FILE_NAME = "config.yaml"
 def get_config_dir() -> Path:
     """Gets the application's configuration directory based on OS."""
     if os.name == "nt":  # Windows
-        return Path(os.getenv("APPDATA", "")) / APP_NAME
-    # TODO: Add paths for macOS and Linux
-    return Path.home() / f".config/{APP_NAME}"
+        appdata = os.getenv("APPDATA")
+        if not appdata:
+            raise ValueError("APPDATA environment variable is not set on Windows")
+        return Path(appdata) / APP_NAME
+    elif os.name == "posix":
+        import platform
+
+        if platform.system() == "Darwin":  # macOS
+            return Path.home() / "Library" / "Application Support" / APP_NAME
+        else:  # Linux and other Unix-like
+            return Path.home() / ".config" / APP_NAME
+    else:
+        raise ValueError(f"Unsupported OS: {os.name}")
 
 
 # --- Pydantic Models for Validation ---
@@ -32,14 +42,14 @@ def get_config_dir() -> Path:
 class OpenAIConfig(BaseModel):
     """Configuration for OpenAI provider."""
 
-    model: str = "gpt-4-turbo"
+    model: str = "gpt-4o"
     api_key_env: str = "OPENAI_API_KEY"
 
 
 class AnthropicConfig(BaseModel):
     """Configuration for Anthropic provider."""
 
-    model: str = "claude-3-5-sonnet-20240620"
+    model: str = "claude-3.7-sonnet-20250219"
     api_key_env: str = "ANTHROPIC_API_KEY"
 
 
@@ -81,7 +91,7 @@ class AppConfig(BaseModel):
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
 
     # This field will hold the actual API key after it's loaded
-    api_key: Optional[str] = None
+    api_key: Optional[str] = Field(default=None, repr=False)
 
 
 # --- Main Configuration Loading Logic ---
@@ -110,18 +120,24 @@ def load_config() -> AppConfig:
         default_config = AppConfig()
         with open(config_file, "w", encoding="utf-8") as f:
             # Dump a clean version without the 'api_key' field
-            config_dict = default_config.dict(exclude={"api_key"})
+            config_dict = default_config.model_dump(exclude={"api_key"})
             yaml.dump(config_dict, f, default_flow_style=False, sort_keys=False)
-        return default_config
+        # Continue to load API key for consistency
+        config = default_config
+    else:
+        # Load and parse the existing config file
+        with open(config_file, "r", encoding="utf-8") as f:
+            config_data = yaml.safe_load(f)
 
-    # Load and parse the existing config file
-    with open(config_file, "r", encoding="utf-8") as f:
-        config_data = yaml.safe_load(f)
+        if config_data is None:
+            raise ValueError(f"Configuration file at {config_file} is empty")
 
-    try:
-        config = AppConfig(**config_data)
-    except ValidationError as e:
-        raise ValueError(f"Configuration file at {config_file} is invalid: {e}") from e
+        try:
+            config = AppConfig(**config_data)
+        except ValidationError as e:
+            raise ValueError(
+                f"Configuration file at {config_file} is invalid: {e}"
+            ) from e
 
     # Load the API key for the active provider
     active_provider_name = config.active_provider
@@ -142,15 +158,18 @@ def load_config() -> AppConfig:
 
 # --- Global Config Instance ---
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 # Load the config once on startup
 try:
     settings = load_config()
-except (ValueError, FileNotFoundError) as e:
+except Exception as e:
     # Handle critical config errors on startup
-    print(f"FATAL: Could not load configuration. {e}")
+    logger.critical(f"Could not load configuration: {e}")
     # In a real app, you might show a dialog or exit gracefully.
-    # For now, we create a default config to allow the app to run.
-    settings = AppConfig()
+    raise SystemExit(f"FATAL: Could not load configuration. {e}") from e
 
 if __name__ == "__main__":
     # Example of how to use the config
@@ -165,4 +184,4 @@ if __name__ == "__main__":
         print("API Key: Not required for this provider (e.g., Ollama)")
 
     print("\nFull config object:")
-    print(settings.json(indent=2))
+    print(settings.model_dump_json(indent=2))

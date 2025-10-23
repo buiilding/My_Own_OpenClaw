@@ -23,7 +23,9 @@ def mock_env_vars(monkeypatch):
 @pytest.fixture
 def mock_config_dir(tmp_path):
     """Creates a temporary config directory for tests."""
-    return tmp_path / "TestApp"
+    config_dir = tmp_path / "TestApp"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    return config_dir
 
 # --- Tests ---
 

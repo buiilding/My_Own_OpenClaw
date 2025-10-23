@@ -4,6 +4,8 @@ Tests for the backend WebSocket server.
 
 import asyncio
 import json
+import yaml
+from unittest.mock import patch
 
 import pytest
 import websockets
@@ -157,8 +159,13 @@ async def test_handle_save_settings(tmp_path):
                 }
                 await websocket.send(json.dumps(save_msg))
 
-                # Give the server a moment to write the file
-                await asyncio.sleep(0.1)
+                # Poll for the file's existence to avoid flaky sleeps
+                for _ in range(100):  # Poll for up to 1 second
+                    if mock_config_file.exists():
+                        break
+                    await asyncio.sleep(0.01)
+                else:
+                    pytest.fail("Config file was not created in time")
 
                 # Verify the file was written correctly
                 assert mock_config_file.exists()
