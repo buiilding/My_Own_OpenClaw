@@ -28,19 +28,20 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 
 The foundational infrastructure is complete! We have a working application with a UI, a backend server, a robust IPC communication layer, and a complete multi-provider configuration system.
 
-### ✅ Completed (Milestone 1)
+### ✅ Completed (Milestone 1 & 2)
 - [x] Project repository structure and standards
 - [x] Backend-frontend IPC (WebSocket)
 - [x] Basic UI shell with chat and settings panels
 - [x] Configuration management system (`config.yaml`)
 - [x] Multi-provider LLM client (OpenAI, Anthropic, Google, etc.)
+- [x] **Issue #6: Agent Orchestrator**: Implementing the "brain" of the assistant.
 
 ### 🔨 Currently Working On
-- [ ] **Issue #6: Agent Orchestrator**: Implementing the "brain" of the assistant to connect the UI to the new LLM client.
+- [ ] **Issue #7: Thinking Display**: Showing the agent's status in the UI.
 
 ### 📋 Coming Next (Milestone 2)
-- Multi-provider LLM client integration
 - Real-time "thinking" display in the UI
+- Integration and refinement of the core agent.
 
 See our [Project Roadmap](docs/ROADMAP.md) for the complete development timeline.
 
