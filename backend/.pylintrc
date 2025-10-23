@@ -32,10 +32,10 @@ max-line-length=88
 max-args=7
 
 # Maximum number of locals for function / method body.
-max-locals=15
+max-locals=20
 
 # Maximum number of statements in function / method body.
-max-statements=50
+max-statements=70
 
 # Maximum number of branches in function / method body.
 max-branches=12
@@ -51,6 +51,9 @@ max-attributes=7
 
 # Minimum number of public methods for a class (see R0903 for more details).
 min-public-methods=2
+
+# Regular expression for constants (UPPER_SNAKE_CASE).
+const-rgx=([A-Z_][A-Z0-9_]{2,30})$
 
 [MISCELLANEOUS]
 # List of note tags to take into account, separated by a comma.

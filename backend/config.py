@@ -1,4 +1,6 @@
+import logging
 import os
+import platform
 from pathlib import Path
 from typing import Literal, Optional
 
@@ -19,15 +21,14 @@ def get_config_dir() -> Path:
         if not appdata:
             raise ValueError("APPDATA environment variable is not set on Windows")
         return Path(appdata) / APP_NAME
-    elif os.name == "posix":
-        import platform
 
+    if os.name == "posix":
         if platform.system() == "Darwin":  # macOS
             return Path.home() / "Library" / "Application Support" / APP_NAME
-        else:  # Linux and other Unix-like
-            return Path.home() / ".config" / APP_NAME
-    else:
-        raise ValueError(f"Unsupported OS: {os.name}")
+        # Linux and other Unix-like
+        return Path.home() / ".config" / APP_NAME
+
+    raise ValueError(f"Unsupported OS: {os.name}")
 
 
 # --- Pydantic Models for Validation ---
@@ -175,6 +176,7 @@ def initialize_settings() -> None:
     Loads the config and initializes the global 'settings' object.
     This should be called once at application startup.
     """
+    # pylint: disable=global-statement
     global settings
     try:
         settings = load_config()
