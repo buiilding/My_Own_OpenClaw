@@ -87,6 +87,8 @@ function SettingsPanel({ config, onSave, saveStatus = 'idle' }) {
             <option value="anthropic">Anthropic</option>
             <option value="google">Google</option>
             <option value="ollama">Ollama (Local)</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="mistral">Mistral</option>
           </select>
         </div>
 
