@@ -5,10 +5,12 @@ Tests for the backend WebSocket server.
 import asyncio
 import json
 import yaml
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock, MagicMock
+from functools import partial
 
 import pytest
 import websockets
+from backend.agent.orchestrator import Agent
 from backend.config import AppConfig
 from backend.server import handler
 
@@ -17,11 +19,37 @@ pytestmark = pytest.mark.asyncio
 
 
 @pytest.fixture(autouse=True)
-def reset_settings(monkeypatch):
-    """Reset the global settings object before each test to ensure isolation."""
-    # We need to patch the settings object inside the server module
-    from backend import server
-    monkeypatch.setattr(server, "settings", AppConfig())
+def mock_agent_dependencies(monkeypatch):
+    """
+    Mocks dependencies needed to instantiate the Agent without making real
+    API calls or needing a real config. This provides a correctly mocked
+    LLM client that supports async streaming.
+    """
+    mock_llm = MagicMock()
+
+    def factory(*args, **kwargs):
+        async def generator():
+            yield "Mock response"
+        return generator()
+
+    mock_llm.get_completion_stream = MagicMock(side_effect=factory)
+
+    # Mock the get_llm_client function to return our perfected mock
+    monkeypatch.setattr(
+        "backend.agent.orchestrator.get_llm_client", lambda: mock_llm
+    )
+
+
+
+@pytest.fixture(autouse=True)
+def mock_server_settings(monkeypatch):
+    """
+    Mocks the global settings object used by the server handler to ensure
+    test isolation and prevent AttributeError for 'NoneType'.
+    """
+    # The handler function in server.py imports 'settings' directly.
+    # We must patch it in that module's namespace.
+    monkeypatch.setattr("backend.server.settings", AppConfig())
 
 
 async def test_ping_pong():
@@ -30,7 +58,9 @@ async def test_ping_pong():
     and responds with a pong.
     """
     # This context manager starts the server and provides a client connection
-    async with websockets.serve(handler, "localhost", 8766):
+    agent = Agent()
+    server_handler = partial(handler, agent=agent)
+    async with websockets.serve(server_handler, "localhost", 8766):
         async with websockets.connect("ws://localhost:8766") as websocket:
             # 1. Send a ping message
             ping_message = {
@@ -55,7 +85,9 @@ async def test_invalid_json():
     Tests that the server sends an error message when it
     receives malformed JSON.
     """
-    async with websockets.serve(handler, "localhost", 8767):
+    agent = Agent()
+    server_handler = partial(handler, agent=agent)
+    async with websockets.serve(server_handler, "localhost", 8767):
         async with websockets.connect("ws://localhost:8767") as websocket:
             await websocket.send("this is not json")
             response_raw = await asyncio.wait_for(websocket.recv(), timeout=1.0)
@@ -70,7 +102,9 @@ async def test_query_message():
     Tests that the server correctly handles a query message
     and responds appropriately.
     """
-    async with websockets.serve(handler, "localhost", 8768) as server:
+    agent = Agent()
+    server_handler = partial(handler, agent=agent)
+    async with websockets.serve(server_handler, "localhost", 8768):
         async with websockets.connect("ws://localhost:8768") as websocket:
             query_message = {
                 "id": "test-query-123",
@@ -78,19 +112,25 @@ async def test_query_message():
                 "payload": {"text": "What is the weather?"},
             }
             await websocket.send(json.dumps(query_message))
-            response_raw = await asyncio.wait_for(websocket.recv(), timeout=1.0)
-            response_data = json.loads(response_raw)
 
-            assert response_data["type"] == "response"
+            # The server now sends a stream, so we receive until we get the 'complete' message
+            while True:
+                response_raw = await asyncio.wait_for(websocket.recv(), timeout=1.0)
+                response_data = json.loads(response_raw)
+                if response_data["type"] == "streaming-complete":
+                    break
+
+            assert response_data["type"] == "streaming-complete"
             assert response_data["id"] == "test-query-123"
-            assert "Received your query" in response_data["payload"]["text"]
 
 
 async def test_unknown_message_type():
     """
     Tests that the server sends an error for an unknown message type.
     """
-    async with websockets.serve(handler, "localhost", 8769) as server:
+    agent = Agent()
+    server_handler = partial(handler, agent=agent)
+    async with websockets.serve(server_handler, "localhost", 8769):
         async with websockets.connect("ws://localhost:8769") as websocket:
             message = {
                 "id": "test-unknown-123",
@@ -109,7 +149,9 @@ async def test_missing_key():
     """
     Tests that the server sends an error if a required key is missing.
     """
-    async with websockets.serve(handler, "localhost", 8770) as server:
+    agent = Agent()
+    server_handler = partial(handler, agent=agent)
+    async with websockets.serve(server_handler, "localhost", 8770):
         async with websockets.connect("ws://localhost:8770") as websocket:
             message = {
                 "type": "query",
@@ -127,7 +169,9 @@ async def test_handle_load_settings():
     """
     Tests that the server correctly sends its configuration when requested.
     """
-    async with websockets.serve(handler, "localhost", 8771):
+    agent = Agent()
+    server_handler = partial(handler, agent=agent)
+    async with websockets.serve(server_handler, "localhost", 8771):
         async with websockets.connect("ws://localhost:8771") as websocket:
             # Note: The frontend doesn't need to send a payload for this type
             load_msg = {"id": "test-load-settings", "type": "load-settings"}
@@ -150,9 +194,11 @@ async def test_handle_save_settings(tmp_path):
     mock_config_file = mock_config_dir / "config.yaml"
 
     # Patch the config directory function in both the config and server modules
+    agent = Agent()
+    server_handler = partial(handler, agent=agent)
     with patch('backend.config.get_config_dir', return_value=mock_config_dir), \
          patch('backend.server.get_config_dir', return_value=mock_config_dir):
-        async with websockets.serve(handler, "localhost", 8772):
+        async with websockets.serve(server_handler, "localhost", 8772):
             async with websockets.connect("ws://localhost:8772") as websocket:
                 new_settings = {
                     "active_provider": "ollama",

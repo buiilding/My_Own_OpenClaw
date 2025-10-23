@@ -69,4 +69,43 @@ describe('SettingsPanel', () => {
     };
     expect(handleSave).toHaveBeenCalledWith(expectedConfig);
   });
+
+  it('should save the updated model name and preserve the llm_providers structure', () => {
+    const handleSave = jest.fn();
+    const fullMockConfig = {
+      active_provider: 'google',
+      preferences: { user_name: 'Tester' },
+      llm_providers: {
+        openai: { model: 'gpt-4o' },
+        google: { model: 'gemini-1.5-pro' },
+      },
+    };
+
+    render(<SettingsPanel config={fullMockConfig} onSave={handleSave} />);
+
+    // The model input should be pre-filled with the active provider's model
+    const modelInput = screen.getByLabelText('Provider Model');
+    expect(modelInput).toHaveValue('gemini-1.5-pro');
+
+    // Simulate user changing the model
+    fireEvent.change(modelInput, { target: { value: 'gemini-2.5-flash' } });
+    expect(modelInput).toHaveValue('gemini-2.5-flash');
+
+    // Click the save button
+    fireEvent.click(screen.getByText('Save Settings'));
+
+    // Verify onSave was called with the correct, deeply nested payload
+    expect(handleSave).toHaveBeenCalledTimes(1);
+    const expectedPayload = {
+      ...fullMockConfig,
+      llm_providers: {
+        ...fullMockConfig.llm_providers,
+        google: {
+          ...fullMockConfig.llm_providers.google,
+          model: 'gemini-2.5-flash', // The new model
+        },
+      },
+    };
+    expect(handleSave).toHaveBeenCalledWith(expectedPayload);
+  });
 });

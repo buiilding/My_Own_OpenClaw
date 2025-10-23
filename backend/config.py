@@ -50,7 +50,7 @@ class AnthropicConfig(BaseModel):
 class GoogleConfig(BaseModel):
     """Configuration for Google provider."""
 
-    model: str = "gemini-1.5-pro"
+    model: str = "gemini-2.5-flash"
     api_key_env: str = "GOOGLE_API_KEY"
 
 
@@ -170,20 +170,22 @@ def load_config() -> AppConfig:
     return config
 
 
+def initialize_settings() -> None:
+    """
+    Loads the config and initializes the global 'settings' object.
+    This should be called once at application startup.
+    """
+    global settings
+    try:
+        settings = load_config()
+    except Exception as e:
+        logging.critical(f"Could not load configuration: {e}")
+        raise SystemExit(f"FATAL: Could not load configuration. {e}") from e
+
+
 # --- Global Config Instance ---
 
-import logging
-
-logger = logging.getLogger(__name__)
-
-# Load the config once on startup
-try:
-    settings = load_config()
-except Exception as e:
-    # Handle critical config errors on startup
-    logger.critical(f"Could not load configuration: {e}")
-    # In a real app, you might show a dialog or exit gracefully.
-    raise SystemExit(f"FATAL: Could not load configuration. {e}") from e
+settings: Optional[AppConfig] = None
 
 if __name__ == "__main__":
     # Example of how to use the config

@@ -279,52 +279,188 @@ async def test_openai_client_api_error(mock_async_openai):
 
 @pytest.mark.asyncio
 
+
+
+
+
 @patch("openai.AsyncOpenAI")
+
+
+
+
 
 async def test_openai_client_get_completion_stream(mock_async_openai):
 
+
+
+
+
     """Test the OpenAI client's streaming get_completion method."""
 
-    # Mock the async stream
+
+
+
+
+
+
+
+
+
+
+    # Mock the async stream by creating an async generator function
+
+
+
+
 
     async def mock_stream_generator():
 
-        chunks = [
 
-            {"choices": [{"delta": {"content": "Hello"}}]},
 
-            {"choices": [{"delta": {"content": " from"}}]},
 
-            {"choices": [{"delta": {"content": " OpenAI"}}]},
 
-            {"choices": [{"delta": {"content": "!"}}]},
+        chunks = ["Hello", " from", " OpenAI", "!"]
 
-        ]
 
-        for chunk_data in chunks:
+
+
+
+        for chunk_content in chunks:
+
+
+
+
 
             mock_chunk = AsyncMock()
 
+
+
+
+
             mock_chunk.choices = [AsyncMock()]
 
-            mock_chunk.choices[0].delta.content = chunk_data["choices"][0]["delta"]["content"]
+
+
+
+
+            mock_chunk.choices[0].delta.content = chunk_content
+
+
+
+
 
             yield mock_chunk
 
 
 
-    # The awaited method should return the async generator
-    mock_async_openai.return_value.chat.completions.create.return_value = mock_stream_generator()
+
+
+
+
+
+
+
+
+    # The create method should return the async generator directly
+
+
+
+
+
+    mock_async_openai.return_value.chat.completions.create.return_value = (
+
+
+
+
+
+        mock_stream_generator()
+
+
+
+
+
+    )
+
+
+
+
+
+
+
+
+
+
 
     client = OpenAIClient(api_key="test", model="gpt-4o")
+
+
+
+
+
     messages = [{"role": "user", "content": "Hello"}]
 
-    # Consume the stream and collect the chunks
-    stream = await client.get_completion_stream(messages)
-    response_chunks = [chunk async for chunk in stream]
+
+
+
+
+
+
+
+
+
+
+    # Call the method (which returns an async generator) and iterate over it
+
+
+
+
+
+    response_chunks = [
+
+
+
+
+
+        chunk async for chunk in client.get_completion_stream(messages)
+
+
+
+
+
+    ]
+
+
+
+
+
     full_response = "".join(response_chunks)
 
+
+
+
+
+
+
+
+
+
+
     assert full_response == "Hello from OpenAI!"
-    mock_async_openai.return_value.chat.completions.create.assert_awaited_once_with(
+
+
+
+
+
+    mock_async_openai.return_value.chat.completions.create.assert_called_once_with(
+
+
+
+
+
         model="gpt-4o", messages=messages, stream=True
+
+
+
+
+
     )

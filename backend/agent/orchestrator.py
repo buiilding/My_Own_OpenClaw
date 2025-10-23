@@ -58,8 +58,7 @@ class Agent:
             full_response = ""
 
             # Get the streamed response from the LLM client
-            stream = await self.llm_client.get_completion_stream(prompt)
-            async for chunk in stream:
+            async for chunk in self.llm_client.get_completion_stream(prompt):
                 full_response += chunk
                 yield chunk
 
