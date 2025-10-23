@@ -648,6 +648,11 @@ The project uses `pre-commit` to enforce code standards. This can lead to a spec
 - **Pull Before Pushing**: Always run `git pull` on a branch before you `git push` to ensure you have the latest changes and avoid merge conflicts.
 - **Merge Strategy**: The repository is configured to prefer merging over rebasing when pulling divergent branches.
 
+### AI Assistant Workflow Guidelines
+- **Gain Context First**: Before starting any task, read all relevant documentation (like `README.md`, `CODE_STANDARDS.md`, and `PROJECT_CONTEXT.md`) and explore the codebase to understand the project's structure, conventions, and goals.
+- **Read Before Modifying**: Always read the full content of a file before you attempt to modify it. This prevents mistakes and ensures your changes are consistent with the existing code.
+- **Adhere to Standards**: All code modifications must strictly follow the standards and patterns defined in `CODE_STANDARDS.md` and observed in the surrounding codebase.
+
 ---
 
 ## Development Timeline
