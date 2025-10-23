@@ -22,9 +22,9 @@ function ChatInterface({ messages, onSendMessage, isSending = false }) {
     scrollToBottom();
   }, [messages]);
 
-  const handleInputChange = useCallback((e) => {
+  const handleInputChange = (e) => {
     setInputValue(e.target.value);
-  }, []);
+  };
 
   const handleSubmit = useCallback(
     (e) => {

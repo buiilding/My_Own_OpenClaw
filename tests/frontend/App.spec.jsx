@@ -33,4 +33,3 @@ describe('App', () => {
     expect(welcomeMessage.closest('.message')).toHaveClass('message-assistant');
   });
 });
-

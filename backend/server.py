@@ -11,7 +11,9 @@ from typing import Any, Dict, Set
 
 import websockets
 from websockets.exceptions import ConnectionClosed
-from websockets.server import WebSocketServerProtocol  # pylint: disable=no-name-in-module
+from websockets.server import (  # pylint: disable=no-name-in-module
+    WebSocketServerProtocol,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -48,7 +50,10 @@ async def _handle_message(
         query_text = message_data.get("payload", {}).get("text", "")
         logger.info("Received query: %s", query_text)
         response_payload = {
-            "text": f"Received your query: '{query_text}'. The agent is not yet connected."
+            "text": (
+                f"Received your query: '{query_text}'. "
+                "The agent is not yet connected."
+            )
         }
         response = {"type": "response", "id": message_id, "payload": response_payload}
         await websocket.send(json.dumps(response))
