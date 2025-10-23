@@ -4,6 +4,8 @@ Tests for the backend WebSocket server.
 
 import asyncio
 import json
+import yaml
+from unittest.mock import patch
 
 import pytest
 import websockets
@@ -112,3 +114,63 @@ async def test_missing_key():
 
             assert response_data["type"] == "error"
             assert "Message missing required keys" in response_data["payload"]["message"]
+
+
+async def test_handle_load_settings():
+    """
+    Tests that the server correctly sends its configuration when requested.
+    """
+    async with websockets.serve(handler, "localhost", 8771):
+        async with websockets.connect("ws://localhost:8771") as websocket:
+            # Note: The frontend doesn't need to send a payload for this type
+            load_msg = {"id": "test-load-settings", "type": "load-settings"}
+            await websocket.send(json.dumps(load_msg))
+
+            response_raw = await asyncio.wait_for(websocket.recv(), timeout=1.0)
+            response_data = json.loads(response_raw)
+
+            assert response_data["type"] == "settings-loaded"
+            assert response_data["payload"]["active_provider"] == "openai"
+            assert "api_key" not in response_data["payload"] # Ensure key is not sent
+
+
+async def test_handle_save_settings(tmp_path):
+    """
+    Tests that the server can receive and save new settings.
+    """
+    # Use a temporary directory for the config file to avoid side effects
+    mock_config_dir = tmp_path / "TestApp"
+    mock_config_file = mock_config_dir / "config.yaml"
+
+    with patch('backend.config.get_config_dir', return_value=mock_config_dir):
+        async with websockets.serve(handler, "localhost", 8772):
+            async with websockets.connect("ws://localhost:8772") as websocket:
+                new_settings = {
+                    "active_provider": "ollama",
+                    "preferences": {"user_name": "Test User"},
+                    "llm_providers": {
+                        "openai": {}, "anthropic": {}, "google": {}, "ollama": {}
+                    }
+                }
+                save_msg = {
+                    "id": "test-save-settings",
+                    "type": "save-settings",
+                    "payload": new_settings
+                }
+                await websocket.send(json.dumps(save_msg))
+
+                # Poll for the file's existence to avoid flaky sleeps
+                for _ in range(100):  # Poll for up to 1 second
+                    if mock_config_file.exists():
+                        break
+                    await asyncio.sleep(0.01)
+                else:
+                    pytest.fail("Config file was not created in time")
+
+                # Verify the file was written correctly
+                assert mock_config_file.exists()
+                with open(mock_config_file, "r") as f:
+                    saved_data = yaml.safe_load(f)
+
+                assert saved_data["active_provider"] == "ollama"
+                assert saved_data["preferences"]["user_name"] == "Test User"

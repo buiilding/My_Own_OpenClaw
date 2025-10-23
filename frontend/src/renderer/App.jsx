@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import ChatInterface from './components/ChatInterface';
 import MainLayout from './components/MainLayout';
+import SettingsPanel from './components/SettingsPanel';
 import './styles/ChatInterface.css';
 import './styles/MainLayout.css';
 import './styles/accessibility.css';
@@ -9,15 +10,19 @@ import './styles/accessibility.css';
 /**
  * The root component of the application.
  * It sets up the main layout, manages the application's primary state
- * (like chat messages), and handles communication with the backend IPC bridge.
+ * (like chat messages and config), and handles communication with the backend.
  */
 function App() {
   const [messages, setMessages] = useState([
     { text: 'Hello! How can I help you today?', sender: 'assistant' },
   ]);
   const [isSending, setIsSending] = useState(false);
+  const [config, setConfig] = useState(null);
+  const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, success, error
+  const configBeforeSave = useRef(null);
+  const saveTimeoutId = useRef(null);
 
-  // Listen for messages from the backend
+  // Listen for messages and config updates from the backend
   useEffect(() => {
     const removeBackendListener = window.ipc.on('from-backend', (data) => {
       if (data.type === 'pong' || data.type === 'response') {
@@ -27,11 +32,33 @@ function App() {
         };
         setMessages((prevMessages) => [...prevMessages, newMesage]);
         setIsSending(false);
+      } else if (data.type === 'settings-loaded') {
+        setConfig(data.payload);
+      } else if (data.type === 'settings-saved') {
+        clearTimeout(saveTimeoutId.current); // Clear the timeout on success
+        setSaveStatus('success');
+        setTimeout(() => setSaveStatus('idle'), 3000);
+      } else if (
+        data.type === 'error' &&
+        data.payload.message?.includes('Failed to save settings')
+      ) {
+        clearTimeout(saveTimeoutId.current); // Clear the timeout on error
+        setSaveStatus('error');
+        // Revert to the old config on failure
+        if (configBeforeSave.current) {
+          setConfig(configBeforeSave.current);
+          configBeforeSave.current = null;
+        }
+        setTimeout(() => setSaveStatus('idle'), 3000);
       }
     });
 
+    // Request the initial config from the backend
+    window.ipc.send('to-backend', { type: 'load-settings' });
+
     return () => {
       removeBackendListener();
+      clearTimeout(saveTimeoutId.current); // Cleanup on unmount
     };
   }, []);
 
@@ -47,15 +74,52 @@ function App() {
     });
   };
 
+  const handleSaveSettings = (updatedConfig) => {
+    // Prevent concurrent saves
+    if (saveStatus === 'saving') {
+      return;
+    }
+
+    // Store the original config in case we need to revert
+    configBeforeSave.current = config;
+
+    // Optimistically update the state and set status to saving
+    setConfig(updatedConfig);
+    setSaveStatus('saving');
+
+    // Fallback timeout in case backend never responds
+    saveTimeoutId.current = setTimeout(() => {
+      setSaveStatus('error');
+      if (configBeforeSave.current) {
+        setConfig(configBeforeSave.current);
+        configBeforeSave.current = null;
+      }
+    }, 10000); // 10 second timeout
+
+    window.ipc.send('to-backend', {
+      type: 'save-settings',
+      payload: updatedConfig,
+    });
+  };
+
   return (
     <ErrorBoundary>
-      <MainLayout>
-        <ChatInterface
-          messages={messages}
-          onSendMessage={handleSendMessage}
-          isSending={isSending}
-        />
-      </MainLayout>
+      <MainLayout
+        chat={
+          <ChatInterface
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            isSending={isSending}
+          />
+        }
+        settings={
+          <SettingsPanel
+            config={config}
+            onSave={handleSaveSettings}
+            saveStatus={saveStatus}
+          />
+        }
+      />
     </ErrorBoundary>
   );
 }

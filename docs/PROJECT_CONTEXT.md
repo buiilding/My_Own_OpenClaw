@@ -91,8 +91,8 @@ Desktop Assistant is a locally-running application that combines:
 ### 2. Multi-Provider LLM Integration
 
 #### Supported Providers
-- **OpenAI**: GPT-4, GPT-4 Turbo, GPT-3.5
-- **Anthropic**: Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku
+- **OpenAI**: GPT-4o, GPT-4.1
+- **Anthropic**: Claude 3.7 Sonnet, Claude Sonnet 4
 - **Google**: Gemini Pro, Gemini Ultra
 - **Local Models**: Ollama (for privacy-conscious users)
 
@@ -105,10 +105,10 @@ Desktop Assistant is a locally-running application that combines:
 - Token usage tracking for cost management
 
 #### Configuration
-- API keys stored encrypted at rest
-- Easy provider switching in settings UI
-- Different providers for different tasks (e.g., local for simple, cloud for complex)
-- Cost monitoring and alerts
+- **Implementation**: Configuration is managed by a `config.yaml` file stored in the user's OS-specific application data directory.
+- **Security**: API keys are handled securely by storing the *name* of the environment variable (e.g., `OPENAI_API_KEY`) in the config file, not the key itself. The backend loads the key from the environment at runtime.
+- **Flexibility**: Supports defining multiple LLM providers and allows the user to select the active provider through the settings panel.
+- **Persistence**: Changes made in the settings UI are saved to the `config.yaml` file and persist between sessions.
 
 ### 3. Tool Marketplace Architecture
 
@@ -559,25 +559,22 @@ Determines whether to:
 {
   "type": "query",
   "id": "uuid-1234",
-  "data": {
-    "text": "What files did I edit yesterday?",
-    "mode": "text"  // or "voice"
+  "payload": {
+    "text": "What files did I edit yesterday?"
   }
 }
 
 {
-  "type": "confirmation_response",
+  "type": "load-settings",
+  "id": "uuid-4321"
+}
+
+{
+  "type": "save-settings",
   "id": "uuid-5678",
-  "data": {
-    "approved": true
-  }
-}
-
-{
-  "type": "voice_input",
-  "id": "uuid-9012",
-  "data": {
-    "audio": "base64_encoded_audio"
+  "payload": {
+    "active_provider": "anthropic",
+    "preferences": { "user_name": "Peter" }
   }
 }
 ```
@@ -585,39 +582,35 @@ Determines whether to:
 **From Backend to Frontend:**
 ```json
 {
-  "type": "thinking",
-  "id": "uuid-1234",
-  "data": {
-    "step": "Searching memory for files edited yesterday",
-    "progress": 25
-  }
-}
-
-{
   "type": "response",
   "id": "uuid-1234",
-  "data": {
-    "text": "Yesterday you edited three Python files...",
-    "streaming": false
+  "payload": {
+    "text": "Received your query: '...'. The agent is not yet connected."
   }
 }
 
 {
-  "type": "confirmation_request",
+  "type": "settings-loaded",
+  "id": "uuid-4321",
+  "payload": {
+    "active_provider": "openai",
+    "preferences": { "user_name": "User" }
+  }
+}
+
+{
+  "type": "settings-saved",
   "id": "uuid-5678",
-  "data": {
-    "action": "delete_file",
-    "description": "This will permanently delete important.txt",
-    "risk_level": "high"
+  "payload": {
+    "message": "Settings saved successfully"
   }
 }
 
 {
-  "type": "tool_execution",
-  "id": "uuid-1234",
-  "data": {
-    "tool": "terminal_executor",
-    "action": "Running command: git status"
+  "type": "error",
+  "id": "uuid-5678",
+  "payload": {
+    "message": "Description of the error that occurred."
   }
 }
 ```
@@ -641,6 +634,7 @@ This approach ensures:
 - Technical debt is minimized
 
 ### Code Quality Standards
+- **Adherence to Standards**: All contributions must strictly follow the `CODE_STANDARDS.md` document. This includes providing comprehensive tests, writing clear docstrings, aligning with existing code patterns, and using the Conventional Commits format for all commit messages.
 - **Readability**: Code is written for humans first
 - **Consistency**: Follow established patterns
 - **Documentation**: Public APIs documented, complex logic explained
@@ -665,16 +659,16 @@ This approach ensures:
 ## Development Timeline
 
 ### Current Status
-**Issue #1 Complete**: Project structure, standards, and planning established
+**Milestone 1 Complete**: The foundational infrastructure of the application is complete. This includes the project structure, a working IPC bridge between the backend and frontend, a basic user interface, and a complete configuration management system.
 
 ### Milestone Roadmap
 
 **Milestone 1: Foundation** (Weeks 1-2)
 - Issue #1: Project setup ✅
-- Issue #2: Backend-frontend IPC
-- Issue #3: Basic UI
-- Issue #4: Configuration system
-- **Demo**: Type message, backend responds
+- Issue #2: Backend-frontend IPC ✅
+- Issue #3: Basic UI ✅
+- Issue #4: Configuration system ✅
+- **Demo**: Type message, backend responds. Settings can be viewed and updated.
 
 **Milestone 2: Core Agent** (Weeks 3-4)
 - Issue #5: Multi-provider LLM client

@@ -3,13 +3,13 @@ import '../styles/MainLayout.css';
 
 /**
  * Provides the main structural layout for the application.
- * It includes a sidebar for navigation and a main content area
- * where the primary interface is displayed.
+ * It includes a sidebar and dedicated areas for the chat and settings panels.
  *
  * @param {object} props - The component's props.
- * @param {React.ReactNode} props.children - The child components to be rendered within the main content area.
+ * @param {React.ReactNode} props.chat - The chat component.
+ * @param {React.ReactNode} props.settings - The settings component.
  */
-function MainLayout({ children }) {
+function MainLayout({ chat, settings }) {
   return (
     <div className="main-layout">
       <aside className="sidebar">
@@ -20,18 +20,18 @@ function MainLayout({ children }) {
           <ul>
             <li className="active">Chat</li>
             {/* Future navigation links will go here */}
-            {/* <li>Settings</li> */}
-            {/* <li>Memory</li> */}
           </ul>
         </nav>
       </aside>
-      <main className="main-content">{children}</main>
+      <main className="main-content">{chat}</main>
+      <aside className="settings-sidebar">{settings}</aside>
     </div>
   );
 }
 
 MainLayout.propTypes = {
-  children: PropTypes.node.isRequired,
+  chat: PropTypes.node.isRequired,
+  settings: PropTypes.node.isRequired,
 };
 
 export default MainLayout;
