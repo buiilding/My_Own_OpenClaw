@@ -1,5 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import '../styles/SettingsPanel.css';
+
+/**
+ * A feedback component to show the status of the save operation.
+ */
+const SaveStatusFeedback = ({ status }) => {
+  if (status === 'idle') return null;
+
+  const messages = {
+    saving: 'Saving...',
+    success: 'Settings saved successfully!',
+    error: 'Error: Could not save settings.',
+  };
+
+  const colors = {
+    saving: '#3b82f6', // blue-500
+    success: '#22c55e', // green-500
+    error: '#ef4444', // red-500
+  };
+
+  return (
+    <div className="save-status" style={{ color: colors[status] }}>
+      {messages[status]}
+    </div>
+  );
+};
+
+SaveStatusFeedback.propTypes = {
+  status: PropTypes.oneOf(['idle', 'saving', 'success', 'error']).isRequired,
+};
 
 /**
  * A panel for displaying and editing application settings.
@@ -7,8 +37,9 @@ import PropTypes from 'prop-types';
  * @param {object} props - The component's props.
  * @param {object} props.config - The current application configuration.
  * @param {Function} props.onSave - Callback function to save updated settings.
+ * @param {string} props.saveStatus - The current status of the save operation.
  */
-function SettingsPanel({ config, onSave }) {
+function SettingsPanel({ config, onSave, saveStatus = 'idle' }) {
   const [activeProvider, setActiveProvider] = useState('');
   const [userName, setUserName] = useState('');
 
@@ -21,21 +52,24 @@ function SettingsPanel({ config, onSave }) {
 
   const handleSave = (e) => {
     e.preventDefault();
+    if (saveStatus === 'saving') return; // Prevent multiple saves
+
     const updatedConfig = {
       ...config,
       active_provider: activeProvider,
       preferences: {
-        ...config.preferences,
+        ...(config.preferences || {}),
         user_name: userName,
       },
     };
     onSave(updatedConfig);
-    // Here you might want to show a "Saved!" confirmation message
   };
 
   if (!config) {
     return <div>Loading settings...</div>;
   }
+
+  const isSaving = saveStatus === 'saving';
 
   return (
     <div className="settings-panel">
@@ -47,6 +81,7 @@ function SettingsPanel({ config, onSave }) {
             id="llm-provider"
             value={activeProvider}
             onChange={(e) => setActiveProvider(e.target.value)}
+            disabled={isSaving}
           >
             <option value="openai">OpenAI</option>
             <option value="anthropic">Anthropic</option>
@@ -62,19 +97,23 @@ function SettingsPanel({ config, onSave }) {
             type="text"
             value={userName}
             onChange={(e) => setUserName(e.target.value)}
+            disabled={isSaving}
           />
         </div>
 
         <div className="form-group">
-            <p>
-                <strong>API Keys:</strong> API keys are managed via environment variables.
-                Please see the documentation for details.
-            </p>
+          <p>
+            <strong>API Keys:</strong> API keys are managed via environment
+            variables. Please see the documentation for details.
+          </p>
         </div>
 
-        <button type="submit" className="save-button">
-          Save Settings
-        </button>
+        <div className="save-container">
+          <button type="submit" className="save-button" disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Settings'}
+          </button>
+          <SaveStatusFeedback status={saveStatus} />
+        </div>
       </form>
     </div>
   );
@@ -88,6 +127,7 @@ SettingsPanel.propTypes = {
     }),
   }),
   onSave: PropTypes.func.isRequired,
+  saveStatus: PropTypes.oneOf(['idle', 'saving', 'success', 'error']),
 };
 
 export default SettingsPanel;

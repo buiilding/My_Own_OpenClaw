@@ -1,0 +1,52 @@
+
+.settings-panel .form-group {
+  margin-bottom: 1.2rem;
+}
+
+.settings-panel label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.settings-panel input,
+.settings-panel select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.settings-panel .save-container {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.settings-panel .save-button {
+  padding: 10px 15px;
+  border: none;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.settings-panel .save-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.settings-panel .save-button:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.settings-panel .save-status {
+  font-size: 0.9rem;
+  font-weight: 500;
+}

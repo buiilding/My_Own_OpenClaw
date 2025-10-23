@@ -111,7 +111,11 @@ async def _handle_message(
 
         config_payload = settings.dict(exclude={"api_key"})
 
-        response = {"type": "settings-loaded", "payload": config_payload}
+        response = {
+            "type": "settings-loaded",
+            "id": message_id,
+            "payload": config_payload,
+        }
 
         await websocket.send(json.dumps(response))
 
@@ -121,13 +125,13 @@ async def _handle_message(
         try:
             new_config_data = message_data.get("payload", {})
 
-            # Validate the incoming data by trying to parse it with our model
+            # Merge with existing settings to preserve api_key
+            merged_data = {**settings.dict(), **new_config_data}
+            validated_config = AppConfig(**merged_data)
 
-            validated_config = AppConfig(**new_config_data)
-
-            # Re-assign the global settings object
-
-            settings = validated_config
+            # Update the global settings object in-place
+            for key, value in validated_config.dict().items():
+                setattr(settings, key, value)
 
             config_file = get_config_dir() / CONFIG_FILE_NAME
 
@@ -140,11 +144,21 @@ async def _handle_message(
 
             logger.info("Successfully saved new settings to %s", config_file)
 
-            # Optionally, send a confirmation back to the frontend
+            response = {
+                "type": "settings-saved",
+                "id": message_id,
+                "payload": {"message": "Settings saved successfully"},
+            }
+            await websocket.send(json.dumps(response))
         except Exception as e:
             logger.error("Failed to save settings: %s", e, exc_info=True)
 
-            # Optionally, send an error back to the frontend
+            response = {
+                "type": "error",
+                "id": message_id,
+                "payload": {"message": f"Failed to save settings: {str(e)}"},
+            }
+            await websocket.send(json.dumps(response))
     else:
         logger.warning("Received unknown message type: '%s'", message_type)
 
