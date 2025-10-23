@@ -21,7 +21,7 @@ const SaveStatusFeedback = ({ status }) => {
   };
 
   return (
-    <div className="save-status" style={{ color: colors[status] }}>
+    <div className="save-status" style={{ color: colors[status] }} role="status" aria-live="polite">
       {messages[status]}
     </div>
   );
