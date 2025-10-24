@@ -66,6 +66,12 @@ describe('SettingsPanel', () => {
         ...mockConfig.preferences,
         user_name: 'Updated Name',
       },
+      llm_providers: {
+        ...mockConfig.llm_providers,
+        ollama: {
+          model: '',
+        },
+      },
     };
     expect(handleSave).toHaveBeenCalledWith(expectedConfig);
   });

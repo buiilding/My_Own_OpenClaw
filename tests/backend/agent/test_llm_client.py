@@ -415,13 +415,31 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
+    response_events = [
+
+
+
+
+
+        event async for event in client.get_completion_stream(messages)
+
+
+
+
+
+    ]
+
+
+
+
+
     response_chunks = [
 
 
 
 
 
-        chunk async for chunk in client.get_completion_stream(messages)
+        event["content"] for event in response_events if event["type"] == "chunk"
 
 
 
@@ -446,6 +464,12 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
     assert full_response == "Hello from OpenAI!"
+
+
+
+
+
+
 
 
 

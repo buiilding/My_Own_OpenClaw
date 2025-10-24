@@ -29,7 +29,8 @@ def mock_agent_dependencies(monkeypatch):
 
     def factory(*args, **kwargs):
         async def generator():
-            yield "Mock response"
+            yield {"type": "thinking", "content": "Mock is thinking..."}
+            yield {"type": "chunk", "content": "Mock response"}
         return generator()
 
     mock_llm.get_completion_stream = MagicMock(side_effect=factory)
