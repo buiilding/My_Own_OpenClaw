@@ -37,3 +37,14 @@
     opacity: 1;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .thinking-spinner {
+    animation: none;
+  }
+
+  .thinking-display {
+    animation: none;
+    opacity: 1;
+  }
+}
