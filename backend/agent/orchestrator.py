@@ -6,7 +6,7 @@ It manages conversation history, constructs prompts, and interacts with the
 LLM client to generate responses.
 """
 import asyncio
-from typing import AsyncGenerator, Dict, List
+from typing import Any, AsyncGenerator, Dict, List
 
 from backend.agent.llm_client import get_llm_client
 
@@ -42,25 +42,27 @@ class Agent:
             # Keep the most recent messages
             self.history = self.history[-MAX_HISTORY_LENGTH:]
 
-    async def process_query(self, query: str) -> AsyncGenerator[str, None]:
+    async def process_query(self, query: str) -> AsyncGenerator[Dict[str, Any], None]:
         """
-        Processes a user query and yields the streamed response from the LLM.
+        Processes a user query and yields status updates and response chunks.
 
         Args:
             query: The user's input text.
 
         Yields:
-            The generated response chunks as strings.
+            A dictionary with 'type' ('thinking', 'chunk') and 'content'.
         """
         await self._lock.acquire()
         try:
             prompt = self._construct_prompt(query)
             full_response = ""
 
-            # Get the streamed response from the LLM client
-            async for chunk in self.llm_client.get_completion_stream(prompt):
-                full_response += chunk
-                yield chunk
+            # Get the structured event stream from the LLM client
+            async for event in self.llm_client.get_completion_stream(prompt):
+                if event["type"] == "chunk":
+                    full_response += event["content"]
+                # Pass all events (chunks and thinking) through to the caller
+                yield event
 
             # Add the user's query and the full assistant response to history
             self.history.append({"role": "user", "content": query})

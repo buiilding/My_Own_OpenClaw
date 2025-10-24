@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import ThinkingDisplay from './ThinkingDisplay';
+import '../styles/ThinkingDisplay.css';
 
 /**
  * A clean and simple chat interface component.
@@ -9,8 +11,14 @@ import PropTypes from 'prop-types';
  * @param {Array<object>} props.messages - An array of message objects to display.
  * @param {Function} props.onSendMessage - A callback function to be invoked when a message is sent.
  * @param {boolean} props.isSending - A flag to indicate if a message is currently being sent.
+ * @param {string|null} props.thinkingStatus - The current status message from the agent.
  */
-function ChatInterface({ messages, onSendMessage, isSending = false }) {
+function ChatInterface({
+  messages,
+  onSendMessage,
+  isSending = false,
+  thinkingStatus,
+}) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef(null);
 
@@ -20,7 +28,7 @@ function ChatInterface({ messages, onSendMessage, isSending = false }) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, thinkingStatus]);
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
@@ -40,13 +48,19 @@ function ChatInterface({ messages, onSendMessage, isSending = false }) {
   return (
     <div className="chat-container">
       <div className="message-list">
-        {messages.map((msg, index) => (
-          <div key={index} className={`message message-${msg.sender}`}>
-            <div className="message-content">{msg.text}</div>
-          </div>
-        ))}
+        {messages.map((msg, index) => {
+          const messageClass = `message message-${msg.sender} ${
+            msg.sender === 'assistant' && !msg.isComplete ? 'message-streaming' : ''
+          }`;
+          return (
+            <div key={index} className={messageClass}>
+              <div className="message-content">{msg.text}</div>
+            </div>
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
+      <ThinkingDisplay status={thinkingStatus} />
       <form onSubmit={handleSubmit} className="message-input-form">
         <label htmlFor="chat-input" className="visually-hidden">
           Type your message
@@ -77,8 +91,7 @@ ChatInterface.propTypes = {
   ).isRequired,
   onSendMessage: PropTypes.func.isRequired,
   isSending: PropTypes.bool,
+  thinkingStatus: PropTypes.string,
 };
-
-
 
 export default ChatInterface;

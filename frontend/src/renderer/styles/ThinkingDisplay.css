@@ -1,0 +1,39 @@
+.thinking-display {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #e5e7eb; /* gray-200 */
+  border-radius: 12px;
+  margin: 0 auto 10px auto; /* Center horizontally */
+  max-width: 80%;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+.thinking-text {
+  margin: 0 0 0 10px;
+  font-size: 0.9rem;
+  color: #4b5563; /* gray-600 */
+  font-style: italic;
+}
+
+.thinking-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #9ca3af; /* gray-400 */
+  border-top-color: #3b82f6; /* blue-500 */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}

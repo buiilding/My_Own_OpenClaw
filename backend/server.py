@@ -94,12 +94,26 @@ async def _handle_message(
         try:
             # Define the streaming task to be timed out
             async def stream_query_with_timeout():
-                async for chunk in agent.process_query(query_text):
-                    response = {
-                        "type": "streaming-response",
-                        "id": message_id,
-                        "payload": {"text": chunk},
-                    }
+                async for event in agent.process_query(query_text):
+                    if event["type"] == "thinking":
+                        response = {
+                            "type": "llm-thought",
+                            "id": message_id,
+                            "payload": {"status": event["content"]},
+                        }
+                    elif event["type"] == "chunk":
+                        response = {
+                            "type": "streaming-response",
+                            "id": message_id,
+                            "payload": {"text": event["content"]},
+                        }
+                    else:
+                        # This case should ideally not be reached
+                        logger.warning(
+                            "Unknown event type from agent: %s", event.get("type")
+                        )
+                        continue
+
                     await websocket.send(json.dumps(response))
 
                 # Send end-of-stream marker
