@@ -144,17 +144,3 @@ Sent when the model outputs a "thinking" step, like a tool call, before the fina
     }
   }
   ```
-
-#### `llm-thought`
-Sent when the model outputs a "thinking" step, like a tool call, before the final text response.
-
-- **Example**:
-  ```json
-  {
-    "type": "llm-thought",
-    "id": "uuid-1234",
-    "payload": {
-      "status": "Calling tool: file_search"
-    }
-  }
-  ```

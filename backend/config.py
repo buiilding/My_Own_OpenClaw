@@ -72,7 +72,7 @@ class OpenRouterConfig(BaseModel):
 class MistralConfig(BaseModel):
     """Configuration for Mistral AI provider."""
 
-    model: str = "mistral-large-latest"
+    model: str = "mistral-large-2411"
     api_key_env: str = "MISTRAL_API_KEY"
 
 

@@ -16,6 +16,7 @@ from typing import AsyncGenerator, Dict, List
 import anthropic
 import openai
 from google import genai
+from google.api_core import exceptions
 
 from backend import config
 from backend.config import AppConfig
@@ -150,7 +151,7 @@ class OpenAIClient(LLMClient):
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[Dict, None]:
         try:
-            stream = self.client.chat.completions.create(
+            stream = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 stream=True,
@@ -245,9 +246,18 @@ class GoogleClient(LLMClient):
                 model=self.model_name, contents=contents
             )
             return response.text
-        except Exception as e:
-            if "rate limit" in str(e).lower():
-                raise RateLimitError(f"Google rate limit exceeded: {e}") from e
+        except genai.types.StopCandidateException as e:
+            # This can happen if the model stops generating for safety reasons.
+            # We'll treat it as a normal completion for now.
+            logger.warning("Google response stopped early: %s", e)
+            return "".join(
+                part.text
+                for part in e.candidates[0].content.parts
+                if hasattr(part, "text")
+            )
+        except exceptions.ResourceExhausted as e:
+            raise RateLimitError(f"Google rate limit exceeded: {e}") from e
+        except exceptions.GoogleAPICallError as e:
             raise APIError(f"Google API error: {e}") from e
 
     async def get_completion_stream(
@@ -289,9 +299,9 @@ class GoogleClient(LLMClient):
                         elif hasattr(part, "text") and part.text:
                             yield {"type": "chunk", "content": part.text}
 
-        except Exception as e:
-            if "rate limit" in str(e).lower():
-                raise RateLimitError(f"Google rate limit exceeded: {e}") from e
+        except exceptions.ResourceExhausted as e:
+            raise RateLimitError(f"Google rate limit exceeded: {e}") from e
+        except exceptions.GoogleAPICallError as e:
             raise APIError(f"Google API error: {e}") from e
 
 
@@ -326,7 +336,7 @@ class OllamaClient(LLMClient):
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[Dict, None]:
         try:
-            stream = self.client.chat.completions.create(
+            stream = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 stream=True,
@@ -378,7 +388,7 @@ class OpenRouterClient(LLMClient):
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[Dict, None]:
         try:
-            stream = self.client.chat.completions.create(
+            stream = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 stream=True,
@@ -428,7 +438,7 @@ class MistralClient(LLMClient):
         self, messages: List[Dict[str, str]]
     ) -> AsyncGenerator[Dict, None]:
         try:
-            stream = self.client.chat.completions.create(
+            stream = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 stream=True,

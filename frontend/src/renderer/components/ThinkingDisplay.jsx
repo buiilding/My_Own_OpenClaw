@@ -14,7 +14,7 @@ function ThinkingDisplay({ status }) {
   }
 
   return (
-    <div className="thinking-display">
+    <div className="thinking-display" role="status" aria-live="polite">
       <div className="thinking-spinner"></div>
       <p className="thinking-text">{status}</p>
     </div>

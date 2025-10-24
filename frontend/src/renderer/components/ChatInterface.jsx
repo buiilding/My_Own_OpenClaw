@@ -87,6 +87,7 @@ ChatInterface.propTypes = {
     PropTypes.shape({
       text: PropTypes.string.isRequired,
       sender: PropTypes.oneOf(['user', 'assistant']).isRequired,
+      isComplete: PropTypes.bool,
     })
   ).isRequired,
   onSendMessage: PropTypes.func.isRequired,

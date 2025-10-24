@@ -1013,10 +1013,9 @@ The phased development approach, research-first methodology, and strong focus on
 
 ## Current Implementation State & Next Steps
 
-As of the completion of Milestone 1 (Issues #1-5), the project has the following status:
+As of the completion of Milestone 2 (Issues #1-7), the project has the following status:
 
-- **Core Infrastructure**: The backend server, frontend UI, IPC communication, and configuration system are all implemented and functional.
-- **LLM Client**: A feature-complete, multi-provider LLM client has been built and tested. It can connect to various providers but is **not yet integrated** into the main application logic.
-- **Current Behavior**: The application will run and the UI is interactive, but all chat responses are from a hard-coded placeholder in `backend/server.py`. The application does not yet perform any actual AI completions.
+- **Core Agent Complete**: The foundational agent logic is implemented. This includes the multi-provider LLM client, the agent orchestrator that manages conversation flow, and a real-time thinking display that provides transparency into the agent's reasoning process.
+- **Current Behavior**: The application can hold intelligent, multi-turn conversations with streaming responses. When using a supported provider (like Google Gemini), the agent's thought process is displayed in real-time before the final answer is delivered.
 
-**Immediate Next Step**: The next phase of development (Milestone 2) will focus on implementing the **Agent Orchestrator (Issue #6)**. This will involve replacing the placeholder logic in `server.py` with a call to the agent, which will use the `LLMClient` to generate real responses. A restart of the backend is required to switch LLM providers.
+**Immediate Next Step**: The next phase of development will be **Milestone 3: Memory**. This will involve implementing the passive memory store (Issue #8) to give the agent the ability to recall past conversations.
