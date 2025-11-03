@@ -119,10 +119,6 @@ class LiteLLMClient(LLMClient):
                 base_url=self.base_url,
             )
             async for chunk in stream:
-                if not chunk.choices:
-                    continue  # Skip chunks with no choices
-                content = chunk.choices[0].delta.content
-            async for chunk in stream:
                 if not chunk or not hasattr(chunk, "choices") or not chunk.choices:
                     continue  # Skip chunks with no choices
                 if not chunk.choices[0]:

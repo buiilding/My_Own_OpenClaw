@@ -167,16 +167,29 @@ class AppConfig(BaseModel):
         if not selected_model_id:
             return "openai"  # Default provider
 
-        # This logic should be kept in sync with the frontend's available models
-        # For simplicity, we'll infer from common prefixes or default to openai
-        if "claude" in selected_model_id:
+        # Infer provider from canonical model ID formats
+        # Use strict prefix matching to avoid false positives
+        model_id_lower = selected_model_id.lower()
+
+        # Anthropic models: claude-*, claude*
+        if model_id_lower.startswith("claude"):
             return "anthropic"
-        if "gemini" in selected_model_id:
+
+        # Google models: gemini-*, gemini*
+        if model_id_lower.startswith("gemini"):
             return "google"
-        if "mistral" in selected_model_id:
+
+        # Mistral models: mistral-*, mistral*, codestral-*, pixtral-*
+        if (
+            model_id_lower.startswith("mistral")
+            or model_id_lower.startswith("codestral")
+            or model_id_lower.startswith("pixtral")
+        ):
             return "mistral"
-        if "llama" in selected_model_id:
-            return "ollama"  # Assuming local if not specified
+
+        # Ollama/local models: llama-*, llama*
+        if model_id_lower.startswith("llama"):
+            return "ollama"
 
         return "openai"  # Default for gpt models or unknown
 
