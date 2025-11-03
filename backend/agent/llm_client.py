@@ -68,7 +68,6 @@ class LiteLLMClient(LLMClient):
         """Initializes the LiteLLM client."""
         self.api_key = api_key
         self.base_url = base_url
-        litellm.set_verbose = False  # Suppress verbose LiteLLM logging
 
     async def get_completion(self, model: str, messages: List[Dict[str, str]]) -> str:
         """Gets a completion from the LLM."""
@@ -79,6 +78,26 @@ class LiteLLMClient(LLMClient):
                 api_key=self.api_key,
                 base_url=self.base_url,
             )
+            # Validate response structure before accessing nested attributes
+            if not response:
+                logger.warning("LLM returned None response")
+                return ""
+            if (
+                not hasattr(response, "choices")
+                or not isinstance(response.choices, list)
+                or len(response.choices) == 0
+            ):
+                logger.warning("LLM response missing or empty choices list")
+                return ""
+            if not response.choices[0]:
+                logger.warning("LLM response choices[0] is None")
+                return ""
+            if (
+                not hasattr(response.choices[0], "message")
+                or not response.choices[0].message
+            ):
+                logger.warning("LLM response choices[0] missing message attribute")
+                return ""
             content = response.choices[0].message.content or ""
             # Log usage if available
             if hasattr(response, "usage"):
@@ -104,6 +123,8 @@ class LiteLLMClient(LLMClient):
                 base_url=self.base_url,
             )
             async for chunk in stream:
+                if not chunk.choices:
+                    continue  # Skip chunks with no choices
                 content = chunk.choices[0].delta.content
                 if content:
                     yield {"type": "chunk", "content": content}
@@ -145,7 +166,7 @@ def get_llm_client(cfg: AppConfig = None) -> LLMClient:
             base_url = "http://localhost:1234/v1"
         # If provider is not set, try to infer from legacy config
         elif hasattr(cfg.llm_providers, "ollama"):
-            base_url = cfg.llm_providers.ollama.base_url
+            base_url = getattr(cfg.llm_providers.ollama, "base_url", None)
     else:
         # For online models, check if provider has a base_url (like OpenRouter)
         if cfg.model_provider:

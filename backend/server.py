@@ -41,11 +41,12 @@ logger = logging.getLogger(__name__)
 connected_clients: Set[WebSocketServerProtocol] = set()
 agent: Agent | None = None  # To be initialized in main()
 
-
 settings_lock = asyncio.Lock()
+active_queries = 0  # pylint: disable=invalid-name
+active_queries_lock = asyncio.Lock()
 
 
-# pylint: disable=too-many-statements
+# pylint: disable=too-many-statements,too-many-branches
 async def _handle_message(
     websocket: WebSocketServerProtocol, message_data: Dict[str, Any]
 ) -> None:
@@ -95,6 +96,11 @@ async def _handle_message(
             return
 
         logger.info("Received query: %s", query_text)
+
+        # Increment active queries counter
+        async with active_queries_lock:
+            global active_queries  # pylint: disable=global-statement
+            active_queries += 1
 
         try:
             # Define the streaming task to be timed out
@@ -153,6 +159,11 @@ async def _handle_message(
                 "payload": {"message": "An error occurred processing your query"},
             }
             await websocket.send(json.dumps(response))
+        finally:
+            # Decrement active queries counter
+            async with active_queries_lock:
+                global active_queries  # pylint: disable=global-statement
+                active_queries -= 1
 
     elif message_type == "load-settings":
         logger.info("Loading and sending settings to frontend.")
@@ -217,6 +228,15 @@ async def _handle_message(
                 # Update the global settings object with the new, validated instance
                 config.settings = validated_config
 
+                # Wait for all active queries to complete
+                # before reinitializing the agent
+                while True:
+                    async with active_queries_lock:
+                        if active_queries == 0:
+                            break
+                    # Wait a short time before checking again
+                    await asyncio.sleep(0.1)
+
                 # Re-initialize the agent with the new settings
                 # pylint: disable=global-statement
                 global agent
@@ -259,11 +279,7 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
 
 
     This function manages the lifecycle of a single client connection,
-
-
     listening for messages, validating them, and passing them to the
-
-
     message router. It also handles connection cleanup.
 
 
@@ -271,11 +287,7 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
 
 
     Args:
-
-
         websocket: The WebSocketServerProtocol instance for the connection.
-
-
     """
 
     connected_clients.add(websocket)
