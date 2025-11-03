@@ -15,6 +15,7 @@ from websockets.exceptions import ConnectionClosed
 from websockets.server import WebSocketServerProtocol
 
 from backend import config
+from backend.agent.model_registry import get_all_models
 from backend.agent.orchestrator import Agent
 from backend.config import (
     CONFIG_FILE_NAME,
@@ -38,20 +39,21 @@ logger = logging.getLogger(__name__)
 
 
 connected_clients: Set[WebSocketServerProtocol] = set()
+agent: Agent | None = None  # To be initialized in main()
 
 
 settings_lock = asyncio.Lock()
 
 
+# pylint: disable=too-many-statements
 async def _handle_message(
-    websocket: WebSocketServerProtocol, message_data: Dict[str, Any], agent: Agent
+    websocket: WebSocketServerProtocol, message_data: Dict[str, Any]
 ) -> None:
     """Routes incoming messages to the appropriate handlers.
 
     Args:
         websocket: The WebSocket connection instance.
         message_data: The parsed JSON data from the client.
-        agent: The main Agent instance.
     """
     message_type = message_data.get("type")
     message_id = message_data.get("id")
@@ -77,13 +79,16 @@ async def _handle_message(
             await websocket.send(json.dumps(response))
             return
 
-        MAX_QUERY_LENGTH = 10000  # Adjust based on your requirements
-        if len(query_text) > MAX_QUERY_LENGTH:
+        max_query_length = 10000  # Adjust based on your requirements
+        if len(query_text) > max_query_length:
             response = {
                 "type": "error",
                 "id": message_id,
                 "payload": {
-                    "message": f"Query text exceeds maximum length of {MAX_QUERY_LENGTH} characters"
+                    "message": (
+                        f"Query text exceeds maximum length of {max_query_length} "
+                        "characters"
+                    )
                 },
             }
             await websocket.send(json.dumps(response))
@@ -94,6 +99,9 @@ async def _handle_message(
         try:
             # Define the streaming task to be timed out
             async def stream_query_with_timeout():
+                # Access the global agent instance
+                if not agent:
+                    raise RuntimeError("Agent not initialized")
                 async for event in agent.process_query(query_text):
                     if event["type"] == "thinking":
                         response = {
@@ -157,6 +165,26 @@ async def _handle_message(
         }
         await websocket.send(json.dumps(response))
 
+    elif message_type == "list-models":
+        logger.info("Fetching available models.")
+        try:
+            models = await get_all_models()
+            response = {
+                "type": "models-listed",
+                "id": message_id,
+                "payload": models,
+            }
+            await websocket.send(json.dumps(response))
+        # pylint: disable=broad-exception-caught
+        except Exception as e:
+            logger.error("Failed to fetch models: %s", e, exc_info=True)
+            response = {
+                "type": "error",
+                "id": message_id,
+                "payload": {"message": f"Failed to fetch models: {str(e)}"},
+            }
+            await websocket.send(json.dumps(response))
+
     elif message_type == "save-settings":
         logger.info("Received settings from frontend to save.")
         try:
@@ -186,9 +214,13 @@ async def _handle_message(
 
                 await asyncio.to_thread(write_config)
 
-                # Update the global settings object in-place only after successful write
-                for key, value in validated_config.model_dump().items():
-                    setattr(config.settings, key, value)
+                # Update the global settings object with the new, validated instance
+                config.settings = validated_config
+
+                # Re-initialize the agent with the new settings
+                # pylint: disable=global-statement
+                global agent
+                agent = Agent(config.settings)
 
             logger.info("Successfully saved new settings to %s", config_file)
 
@@ -220,7 +252,7 @@ async def _handle_message(
         await websocket.send(json.dumps(response))
 
 
-async def handler(websocket: WebSocketServerProtocol, agent: Agent) -> None:
+async def handler(websocket: WebSocketServerProtocol) -> None:
     """Handles a client connection and processes its messages.
 
 
@@ -237,13 +269,11 @@ async def handler(websocket: WebSocketServerProtocol, agent: Agent) -> None:
 
 
 
+
     Args:
 
 
         websocket: The WebSocketServerProtocol instance for the connection.
-
-
-        agent: The main Agent instance.
 
 
     """
@@ -269,7 +299,7 @@ async def handler(websocket: WebSocketServerProtocol, agent: Agent) -> None:
                         f"Message type '{data['type']}' missing required key: payload"
                     )
 
-                await _handle_message(websocket, data, agent)
+                await _handle_message(websocket, data)
 
             except json.JSONDecodeError:
                 logger.error("Received malformed JSON")
@@ -318,18 +348,20 @@ async def main() -> None:
     # Initialize settings before anything else
     initialize_settings()
 
-    host = ""  # Listen on all interfaces (IPv4 and IPv6)
+    # Make agent a global variable to be accessible in the handler
+    # pylint: disable=global-statement
+    global agent
+    agent = Agent(config.settings)
+
+    host = "0.0.0.0"  # Listen on all interfaces
     port = 8765
     logger.info("Starting WebSocket server on ws://%s:%s", host, port)
 
-    # Initialize agent after async context is ready
-    agent = Agent()
-
     # Create handler with agent in closure
     async def websocket_handler(websocket: WebSocketServerProtocol) -> None:
-        await handler(websocket, agent)
+        await handler(websocket)
 
-    async with websockets.serve(websocket_handler, host, port):
+    async with websockets.serve(websocket_handler, host, port, max_size=2**20):
         await asyncio.Future()  # Run forever
 
 

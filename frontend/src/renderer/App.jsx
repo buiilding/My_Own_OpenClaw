@@ -20,6 +20,7 @@ function App() {
   const [thinkingStatus, setThinkingStatus] = useState(null);
   const [config, setConfig] = useState(null);
   const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, success, error
+  const [availableModels, setAvailableModels] = useState({ local: [], online: [] });
   const configBeforeSave = useRef(null);
   const saveTimeoutId = useRef(null);
 
@@ -68,6 +69,10 @@ function App() {
         });
       } else if (data.type === 'settings-loaded') {
         setConfig(data.payload);
+        // Request available models when settings are loaded
+        window.ipc.send('to-backend', { type: 'list-models' });
+      } else if (data.type === 'models-listed') {
+        setAvailableModels(data.payload);
       } else if (data.type === 'settings-saved') {
         clearTimeout(saveTimeoutId.current);
         setSaveStatus('success');
@@ -151,6 +156,7 @@ function App() {
         settings={
           <SettingsPanel
             config={config}
+            availableModels={availableModels}
             onSave={handleSaveSettings}
             saveStatus={saveStatus}
           />

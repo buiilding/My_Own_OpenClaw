@@ -9,6 +9,7 @@ import asyncio
 from typing import Any, AsyncGenerator, Dict, List
 
 from backend.agent.llm_client import get_llm_client
+from backend.config import AppConfig, settings
 
 # A system prompt defines the agent's personality, capabilities, and instructions.
 SYSTEM_PROMPT = """
@@ -23,11 +24,12 @@ MAX_HISTORY_LENGTH = 10
 class Agent:
     """The main agent class for orchestrating tasks."""
 
-    def __init__(self) -> None:
+    def __init__(self, cfg: AppConfig = settings) -> None:
         """Initializes the agent."""
-        self.llm_client = get_llm_client()
+        self.llm_client = get_llm_client(cfg)
         self.history: List[Dict[str, str]] = []
         self._lock = asyncio.Lock()
+        self.cfg = cfg
 
     def _construct_prompt(self, query: str) -> List[Dict[str, str]]:
         """Constructs the full prompt to be sent to the LLM."""
@@ -58,7 +60,9 @@ class Agent:
             full_response = ""
 
             # Get the structured event stream from the LLM client
-            async for event in self.llm_client.get_completion_stream(prompt):
+            async for event in self.llm_client.get_completion_stream(
+                model=self.cfg.llm_model, messages=prompt
+            ):
                 if event["type"] == "chunk":
                     full_response += event["content"]
                 # Pass all events (chunks and thinking) through to the caller
