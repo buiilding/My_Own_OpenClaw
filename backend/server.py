@@ -109,6 +109,11 @@ async def _handle_message(
                 if not agent:
                     raise RuntimeError("Agent not initialized")
                 async for event in agent.process_query(query_text):
+                    # Check if client disconnected before processing event
+                    if websocket.closed:
+                        logger.info("Client disconnected during streaming")
+                        break
+
                     if event["type"] == "thinking":
                         response = {
                             "type": "llm-thought",
@@ -128,16 +133,27 @@ async def _handle_message(
                         )
                         continue
 
-                    await websocket.send(json.dumps(response))
+                    try:
+                        await websocket.send(json.dumps(response))
+                    except ConnectionClosed:
+                        logger.info("Client disconnected during streaming")
+                        break
 
-                # Send end-of-stream marker
-                response = {
-                    "type": "streaming-complete",
-                    "id": message_id,
-                    "payload": {},
-                }
-                await websocket.send(json.dumps(response))
-                logger.info("Query completed successfully")
+                # Check if client disconnected before sending end-of-stream marker
+                if not websocket.closed:
+                    # Send end-of-stream marker
+                    response = {
+                        "type": "streaming-complete",
+                        "id": message_id,
+                        "payload": {},
+                    }
+                    try:
+                        await websocket.send(json.dumps(response))
+                        logger.info("Query completed successfully")
+                    except ConnectionClosed:
+                        logger.info("Client disconnected during streaming")
+                else:
+                    logger.info("Client disconnected during streaming")
 
             # Run the streaming task with a 5-minute timeout
             await asyncio.wait_for(stream_query_with_timeout(), timeout=300)
@@ -228,15 +244,26 @@ async def _handle_message(
                 # Update the global settings object with the new, validated instance
                 config.settings = validated_config
 
+                # Set a reasonable timeout for waiting
+                wait_timeout = 60  # seconds
+                wait_start = asyncio.get_event_loop().time()
+
                 # Wait for all active queries to complete
                 # before reinitializing the agent
                 while True:
                     async with active_queries_lock:
                         if active_queries == 0:
                             break
+
+                    # Check timeout
+                    if asyncio.get_event_loop().time() - wait_start > wait_timeout:
+                        raise TimeoutError(
+                            f"Timed out waiting for {active_queries} "
+                            f"active queries to complete"
+                        )
+
                     # Wait a short time before checking again
                     await asyncio.sleep(0.1)
-
                 # Re-initialize the agent with the new settings
                 # pylint: disable=global-statement
                 global agent

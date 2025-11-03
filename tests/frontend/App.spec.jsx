@@ -5,8 +5,9 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import App from '@/renderer/App';
-import ChatInterface from '@components/ChatInterface';
-import MainLayout from '@components/MainLayout';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import App from '@/renderer/App';
+import '@testing-library/jest-dom';
 import '@testing-library/jest-dom';
 
 // Mock the ipc object

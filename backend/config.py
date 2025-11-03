@@ -10,6 +10,7 @@ from pydantic import (
     ConfigDict,
     Field,
     ValidationError,
+    ValidationInfo,
     computed_field,
     field_validator,
 )
@@ -157,12 +158,12 @@ class AppConfig(BaseModel):
     @field_validator("model_provider", mode="before")
     @classmethod
     # pylint: disable=too-many-return-statements
-    def set_provider_from_model_id(cls, v, values):
+    def set_provider_from_model_id(cls, v, info: ValidationInfo):
         """Set the provider from the selected model ID if it's not explicitly set."""
         if v:
             return v  # If provider is already set, do nothing
 
-        selected_model_id = values.get("selected_model_id")
+        selected_model_id = info.data.get("selected_model_id")
         if not selected_model_id:
             return "openai"  # Default provider
 
@@ -231,21 +232,17 @@ def load_config() -> AppConfig:
 
     # Only load API key for online models
     if config.model_mode == "online" and provider_name:
-        try:
-            # pylint: disable=no-member
-            provider_config = config.llm_providers.get_provider_config(provider_name)
-            if hasattr(provider_config, "api_key_env"):
-                api_key_env_var = provider_config.api_key_env
-                api_key = os.getenv(api_key_env_var)
-                if not api_key:
-                    raise ValueError(
-                        f"API key environment variable '{api_key_env_var}' "
-                        f"for provider '{provider_name}' is not set."
-                    )
-                config.api_key = api_key
-        except ValueError:
-            # Provider not found in legacy config, try to continue
-            logger.warning("Provider '%s' not found in legacy config", provider_name)
+        # pylint: disable=no-member
+        provider_config = config.llm_providers.get_provider_config(provider_name)
+        if hasattr(provider_config, "api_key_env"):
+            api_key_env_var = provider_config.api_key_env
+            api_key = os.getenv(api_key_env_var)
+            if not api_key:
+                raise ValueError(
+                    f"API key environment variable '{api_key_env_var}' "
+                    f"for provider '{provider_name}' is not set."
+                )
+            config.api_key = api_key
 
     # Set environment variables for LiteLLM
     # pylint: disable=no-member
