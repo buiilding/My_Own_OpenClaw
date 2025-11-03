@@ -80,24 +80,20 @@ class LiteLLMClient(LLMClient):
             )
             # Validate response structure before accessing nested attributes
             if not response:
-                logger.warning("LLM returned None response")
-                return ""
+                raise APIError("LLM returned None response")
             if (
                 not hasattr(response, "choices")
                 or not isinstance(response.choices, list)
                 or len(response.choices) == 0
             ):
-                logger.warning("LLM response missing or empty choices list")
-                return ""
+                raise APIError("LLM response missing or empty choices list")
             if not response.choices[0]:
-                logger.warning("LLM response choices[0] is None")
-                return ""
+                raise APIError("LLM response choices[0] is None")
             if (
                 not hasattr(response.choices[0], "message")
                 or not response.choices[0].message
             ):
-                logger.warning("LLM response choices[0] missing message attribute")
-                return ""
+                raise APIError("LLM response choices[0] missing message attribute")
             content = response.choices[0].message.content or ""
             # Log usage if available
             if hasattr(response, "usage"):
@@ -126,12 +122,16 @@ class LiteLLMClient(LLMClient):
                 if not chunk.choices:
                     continue  # Skip chunks with no choices
                 content = chunk.choices[0].delta.content
+            async for chunk in stream:
+                if not chunk or not hasattr(chunk, "choices") or not chunk.choices:
+                    continue  # Skip chunks with no choices
+                if not chunk.choices[0]:
+                    continue
+                if not hasattr(chunk.choices[0], "delta") or not chunk.choices[0].delta:
+                    continue
+                content = getattr(chunk.choices[0].delta, "content", None)
                 if content:
                     yield {"type": "chunk", "content": content}
-        except litellm_exceptions.RateLimitError as e:
-            raise RateLimitError(f"LLM rate limit exceeded: {e}") from e
-        except litellm_exceptions.APIError as e:
-            raise APIError(f"LLM API error: {e}") from e
         except Exception as e:
             raise LLMError(f"An unexpected LLM error occurred: {e}") from e
 

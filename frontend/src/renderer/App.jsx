@@ -35,7 +35,10 @@ function App() {
         setMessages((prevMessages) => [...prevMessages, newMesage]);
         setIsSending(false);
       } else if (data.type === 'llm-thought') {
-        setThinkingStatus((prevStatus) => (prevStatus || '') + data.payload.status);
+        setThinkingStatus((prevStatus) => {
+          const updated = (prevStatus || '') + data.payload.status;
+          return updated.length > 1000 ? updated.slice(-1000) : updated;
+        });
       } else if (data.type === 'streaming-response') {
         setIsSending(false); // We've got the first chunk, so we're not "sending" anymore
         setThinkingStatus(null); // Hide thinking status when response starts
@@ -105,7 +108,7 @@ function App() {
     // Add user's message to the chat
     setMessages((prevMessages) => [...prevMessages, { text, sender: 'user' }]);
     setIsSending(true);
-    setThinkingStatus(''); // Reset thinking status for new query
+    setThinkingStatus(null); // Reset thinking status for new query
 
     // Send the message to the backend
     window.ipc.send('to-backend', {

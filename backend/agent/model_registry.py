@@ -18,7 +18,6 @@ ONLINE_MODELS = {
         "gpt-5",  # latest flagship [web:9][web:12]
         "gpt-5-mini",  # fast, low-cost variant [web:12]
         "gpt-4.1",  # improved GPT-4 replacement [web:6]
-        "gpt-o4",  # superseded by GPT-5, still in use [web:6][web:9]
         "gpt-oss-120b",  # new open-weight, Apache 2.0 [web:9][web:20]
         "gpt-oss-20b",  # new open-weight, Apache 2.0 [web:20]
     ],
@@ -78,15 +77,9 @@ LOCAL_PROVIDERS = {
 }
 
 
-async def get_local_models() -> List[Dict[str, str]]:
-    """
-    Fetch available models from local providers (Ollama, LM Studio).
-
-    Returns:
-        List of model dicts with id, provider, display_name.
-    """
-    local_models = []
-    # Ollama API
+async def _fetch_ollama_models() -> List[Dict[str, str]]:
+    """Fetch models from Ollama provider."""
+    models = []
     try:
         async with httpx.AsyncClient(timeout=2.0) as client:
             response = await client.get(
@@ -99,25 +92,44 @@ async def get_local_models() -> List[Dict[str, str]]:
                     for model in data["models"]:
                         model_name = model.get("name", "")
                         if model_name:
-                            local_models.append(
+                            models.append(
                                 {
                                     "id": model_name,
                                     "provider": "ollama",
                                     "display_name": model_name,
                                 }
                             )
-    except httpx.ConnectError:
+            else:
+                logger.warning(
+                    "Ollama server returned unexpected status code %d: %s",
+                    response.status_code,
+                    response.reason or response.text[:100]
+                    if hasattr(response, "text")
+                    else "No response details",
+                )
+    except httpx.ConnectError as e:
         logger.info(
-            "Could not connect to Ollama server at %s",
+            "Could not connect to Ollama server at %s: %s",
             LOCAL_PROVIDERS["ollama"]["base_url"],
+            e,
+        )
+    except httpx.TimeoutException as e:
+        logger.error(
+            "Timeout while connecting to Ollama server at %s: %s",
+            LOCAL_PROVIDERS["ollama"]["base_url"],
+            e,
         )
     # pylint: disable=broad-exception-caught
     except Exception as e:
         logger.warning(
             "An unexpected error occurred while fetching Ollama models: %s", e
         )
+    return models
 
-    # LM Studio API
+
+async def _fetch_lmstudio_models() -> List[Dict[str, str]]:
+    """Fetch models from LM Studio provider."""
+    models = []
     try:
         async with httpx.AsyncClient(timeout=2.0) as client:
             response = await client.get(
@@ -130,23 +142,51 @@ async def get_local_models() -> List[Dict[str, str]]:
                     for model in data["data"]:
                         model_id = model.get("id", "")
                         if model_id:
-                            local_models.append(
+                            models.append(
                                 {
                                     "id": model_id,
                                     "provider": "lmstudio",
                                     "display_name": model_id,
                                 }
                             )
-    except httpx.ConnectError:
+            else:
+                logger.warning(
+                    "LM Studio server returned unexpected status code %d: %s",
+                    response.status_code,
+                    response.reason or response.text[:100]
+                    if hasattr(response, "text")
+                    else "No response details",
+                )
+    except httpx.ConnectError as e:
         logger.info(
-            "Could not connect to LM Studio server at %s",
+            "Could not connect to LM Studio server at %s: %s",
             LOCAL_PROVIDERS["lmstudio"]["base_url"],
+            e,
+        )
+    except httpx.TimeoutException as e:
+        logger.error(
+            "Timeout while connecting to LM Studio server at %s: %s",
+            LOCAL_PROVIDERS["lmstudio"]["base_url"],
+            e,
         )
     # pylint: disable=broad-exception-caught
     except Exception as e:
         logger.warning(
             "An unexpected error occurred while fetching LM Studio models: %s", e
         )
+    return models
+
+
+async def get_local_models() -> List[Dict[str, str]]:
+    """
+    Fetch available models from local providers (Ollama, LM Studio).
+
+    Returns:
+        List of model dicts with id, provider, display_name.
+    """
+    local_models = []
+    local_models.extend(await _fetch_ollama_models())
+    local_models.extend(await _fetch_lmstudio_models())
     return local_models
 
 
