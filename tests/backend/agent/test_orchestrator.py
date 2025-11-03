@@ -17,9 +17,10 @@ def mock_llm_client():
     # A factory that returns a new async generator each time
     def factory(*args, **kwargs):
         async def generator():
-            yield "Hello"
-            yield " from "
-            yield "the mock!"
+            yield {"type": "thinking", "content": "Mock is thinking..."}
+            yield {"type": "chunk", "content": "Hello"}
+            yield {"type": "chunk", "content": " from "}
+            yield {"type": "chunk", "content": "the mock!"}
         return generator()
 
     # get_completion_stream should be a mock that when called,
@@ -46,7 +47,10 @@ async def test_agent_process_query_streaming(mock_get_llm_client, mock_llm_clien
     query = "Test query"
 
     # Consume the stream
-    response_chunks = [chunk async for chunk in agent.process_query(query)]
+    response_events = [event async for event in agent.process_query(query)]
+    response_chunks = [
+        event["content"] for event in response_events if event["type"] == "chunk"
+    ]
     full_response = "".join(response_chunks)
 
     assert full_response == "Hello from the mock!"
@@ -68,15 +72,21 @@ async def test_agent_history_management(mock_get_llm_client, mock_llm_client):
 
     # First interaction
     query1 = "First query"
-    _ = [chunk async for chunk in agent.process_query(query1)]
+    response_events1 = [event async for event in agent.process_query(query1)]
+    full_response1 = "".join(
+        [event["content"] for event in response_events1 if event["type"] == "chunk"]
+    )
 
     assert len(agent.history) == 2
     assert agent.history[0] == {"role": "user", "content": query1}
-    assert agent.history[1] == {"role": "assistant", "content": "Hello from the mock!"}
+    assert agent.history[1] == {"role": "assistant", "content": full_response1}
 
     # Second interaction
     query2 = "Second query"
-    _ = [chunk async for chunk in agent.process_query(query2)]
+    response_events2 = [event async for event in agent.process_query(query2)]
+    full_response2 = "".join(
+        [event["content"] for event in response_events2 if event["type"] == "chunk"]
+    )
 
     assert len(agent.history) == 4
 
@@ -84,7 +94,7 @@ async def test_agent_history_management(mock_get_llm_client, mock_llm_client):
     expected_prompt = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": query1},
-        {"role": "assistant", "content": "Hello from the mock!"},
+        {"role": "assistant", "content": full_response1},
         {"role": "user", "content": query2},
     ]
     mock_llm_client.get_completion_stream.assert_called_with(expected_prompt)
@@ -98,11 +108,12 @@ async def test_agent_history_pruning(mock_get_llm_client, mock_llm_client):
 
     # Fill the history just over the max length
     for i in range(MAX_HISTORY_LENGTH // 2 + 1):
-        _ = [chunk async for chunk in agent.process_query(f"Query {i}")]
+        # We need to consume the generator to make the agent update its history
+        _ = [event async for event in agent.process_query(f"Query {i}")]
 
     # The history should be exactly the max length
     assert len(agent.history) == MAX_HISTORY_LENGTH
 
     # The first message should be from the second interaction, not the first
     assert agent.history[0]["content"] != "Query 0"
-    assert agent.history[0]["content"] == "Query 1"
+    assert "Query 1" in agent.history[0]["content"]

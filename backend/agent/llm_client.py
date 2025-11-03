@@ -14,13 +14,22 @@ from functools import wraps
 from typing import AsyncGenerator, Dict, List
 
 import anthropic
-import google.generativeai as genai
 import openai
+from google import genai
+from google.api_core import exceptions
 
 from backend import config
 from backend.config import AppConfig
 
 logger = logging.getLogger(__name__)
+
+# Conditionally import ThinkingConfig to handle different library versions
+try:
+    from google.genai.types import ThinkingConfig
+
+    HAS_THINKING_CONFIG = True
+except ImportError:
+    HAS_THINKING_CONFIG = False
 
 # --- Custom Exceptions for Consistent Error Handling ---
 
@@ -95,7 +104,7 @@ class LLMClient(ABC):
     @abstractmethod
     async def get_completion_stream(
         self, messages: List[Dict[str, str]]
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[Dict, None]:
         """
         Gets a streaming completion from the LLM.
 
@@ -103,7 +112,7 @@ class LLMClient(ABC):
             messages: A list of message dictionaries.
 
         Yields:
-            Text chunks from the assistant's response.
+            Event dictionaries, e.g., {"type": "chunk", "content": "text"}
         """
         yield  # This makes it a generator
 
@@ -140,9 +149,9 @@ class OpenAIClient(LLMClient):
 
     async def get_completion_stream(
         self, messages: List[Dict[str, str]]
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[Dict, None]:
         try:
-            stream = self.client.chat.completions.create(
+            stream = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 stream=True,
@@ -151,7 +160,7 @@ class OpenAIClient(LLMClient):
                 if chunk.choices:
                     content = chunk.choices[0].delta.content
                     if content:
-                        yield content
+                        yield {"type": "chunk", "content": content}
         except openai.RateLimitError as e:
             raise RateLimitError(f"OpenAI rate limit exceeded: {e}") from e
         except openai.APIError as e:
@@ -195,7 +204,7 @@ class AnthropicClient(LLMClient):
 
     async def get_completion_stream(
         self, messages: List[Dict[str, str]]
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[Dict, None]:
         try:
             system_prompt = ""
             if messages and messages[0]["role"] == "system":
@@ -209,7 +218,7 @@ class AnthropicClient(LLMClient):
                 messages=messages,
             ) as stream:
                 async for text in stream.text_stream:
-                    yield text
+                    yield {"type": "chunk", "content": text}
         except anthropic.RateLimitError as e:
             raise RateLimitError(f"Anthropic rate limit exceeded: {e}") from e
         except anthropic.APIError as e:
@@ -220,50 +229,79 @@ class GoogleClient(LLMClient):
     """LLM client for Google (Gemini) models."""
 
     def __init__(self, api_key: str, model: str):
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(model)
+        self.client = genai.Client(api_key=api_key)
+        self.model_name = model
 
     @retry_on_rate_limit()
     async def get_completion(self, messages: List[Dict[str, str]]) -> str:
         try:
-            # Gemini uses a different format for roles
-            gemini_messages = [
-                {
-                    "role": "user" if m["role"] == "user" else "model",
-                    "parts": [m["content"]],
-                }
+            contents = [
+                genai.types.Content(
+                    role="user" if m["role"] == "user" else "model",
+                    parts=[genai.types.Part(text=m["content"])],
+                )
                 for m in messages
             ]
-            response = await self.model.generate_content_async(gemini_messages)
-            # TODO: Add token tracking for Google client. It requires a separate API call.
+            response = await self.client.aio.models.generate_content(
+                model=self.model_name, contents=contents
+            )
             return response.text
-        except Exception as e:
-            # The Google SDK has a less specific error hierarchy, so we catch broadly
-            # It can also raise RateLimitError, but it's not guaranteed
-            if "rate limit" in str(e).lower():
-                raise RateLimitError(f"Google rate limit exceeded: {e}") from e
+        except genai.types.StopCandidateException as e:
+            # This can happen if the model stops generating for safety reasons.
+            # We'll treat it as a normal completion for now.
+            logger.warning("Google response stopped early: %s", e)
+            return "".join(
+                part.text
+                for part in e.candidates[0].content.parts
+                if hasattr(part, "text")
+            )
+        except exceptions.ResourceExhausted as e:
+            raise RateLimitError(f"Google rate limit exceeded: {e}") from e
+        except exceptions.GoogleAPICallError as e:
             raise APIError(f"Google API error: {e}") from e
 
     async def get_completion_stream(
         self, messages: List[Dict[str, str]]
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[Dict, None]:
         try:
-            gemini_messages = [
-                {
-                    "role": "user" if m["role"] == "user" else "model",
-                    "parts": [m["content"]],
-                }
+            contents = [
+                genai.types.Content(
+                    role="user" if m["role"] == "user" else "model",
+                    parts=[genai.types.Part(text=m["content"])],
+                )
                 for m in messages
             ]
-            response = await self.model.generate_content_async(
-                gemini_messages, stream=True
+
+            config = None
+            if HAS_THINKING_CONFIG:
+                config = genai.types.GenerateContentConfig(
+                    thinking_config=genai.types.ThinkingConfig(
+                        include_thoughts=True,
+                    )
+                )
+            else:
+                logger.warning(
+                    "The installed 'google-genai' library version does not support 'ThinkingConfig'. "
+                    "Thinking display will not be available for Google models. Please upgrade the library."
+                )
+
+            stream = await self.client.aio.models.generate_content_stream(
+                model=self.model_name,
+                contents=contents,
+                config=config,
             )
-            async for chunk in response:
-                if chunk.text:
-                    yield chunk.text
-        except Exception as e:
-            if "rate limit" in str(e).lower():
-                raise RateLimitError(f"Google rate limit exceeded: {e}") from e
+
+            async for chunk in stream:
+                for candidate in chunk.candidates:
+                    for part in candidate.content.parts:
+                        if hasattr(part, "thought") and part.thought:
+                            yield {"type": "thinking", "content": part.text}
+                        elif hasattr(part, "text") and part.text:
+                            yield {"type": "chunk", "content": part.text}
+
+        except exceptions.ResourceExhausted as e:
+            raise RateLimitError(f"Google rate limit exceeded: {e}") from e
+        except exceptions.GoogleAPICallError as e:
             raise APIError(f"Google API error: {e}") from e
 
 
@@ -296,9 +334,9 @@ class OllamaClient(LLMClient):
     @retry_on_rate_limit()
     async def get_completion_stream(
         self, messages: List[Dict[str, str]]
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[Dict, None]:
         try:
-            stream = self.client.chat.completions.create(
+            stream = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 stream=True,
@@ -307,7 +345,7 @@ class OllamaClient(LLMClient):
                 if chunk.choices:
                     content = chunk.choices[0].delta.content
                     if content:
-                        yield content
+                        yield {"type": "chunk", "content": content}
         except openai.APIError as e:
             raise APIError(f"Ollama API error: {e}") from e
 
@@ -348,9 +386,9 @@ class OpenRouterClient(LLMClient):
 
     async def get_completion_stream(
         self, messages: List[Dict[str, str]]
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[Dict, None]:
         try:
-            stream = self.client.chat.completions.create(
+            stream = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 stream=True,
@@ -359,7 +397,7 @@ class OpenRouterClient(LLMClient):
                 if chunk.choices:
                     content = chunk.choices[0].delta.content
                     if content:
-                        yield content
+                        yield {"type": "chunk", "content": content}
         except openai.RateLimitError as e:
             raise RateLimitError(f"OpenRouter rate limit exceeded: {e}") from e
         except openai.APIError as e:
@@ -398,9 +436,9 @@ class MistralClient(LLMClient):
 
     async def get_completion_stream(
         self, messages: List[Dict[str, str]]
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[Dict, None]:
         try:
-            stream = self.client.chat.completions.create(
+            stream = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 stream=True,
@@ -409,7 +447,7 @@ class MistralClient(LLMClient):
                 if chunk.choices:
                     content = chunk.choices[0].delta.content
                     if content:
-                        yield content
+                        yield {"type": "chunk", "content": content}
         except openai.RateLimitError as e:
             raise RateLimitError(f"Mistral AI rate limit exceeded: {e}") from e
         except openai.APIError as e:
