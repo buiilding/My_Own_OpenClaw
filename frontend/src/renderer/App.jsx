@@ -17,6 +17,7 @@ function App() {
     { text: 'Hello! How can I help you today?', sender: 'assistant' },
   ]);
   const [isSending, setIsSending] = useState(false);
+  const [thinkingStatus, setThinkingStatus] = useState(null);
   const [config, setConfig] = useState(null);
   const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, success, error
   const configBeforeSave = useRef(null);
@@ -32,8 +33,11 @@ function App() {
         };
         setMessages((prevMessages) => [...prevMessages, newMesage]);
         setIsSending(false);
+      } else if (data.type === 'llm-thought') {
+        setThinkingStatus((prevStatus) => (prevStatus || '') + data.payload.status);
       } else if (data.type === 'streaming-response') {
         setIsSending(false); // We've got the first chunk, so we're not "sending" anymore
+        setThinkingStatus(null); // Hide thinking status when response starts
         setMessages((prevMessages) => {
           const lastMessage = prevMessages[prevMessages.length - 1];
           if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete) {
@@ -51,6 +55,7 @@ function App() {
           }
         });
       } else if (data.type === 'streaming-complete') {
+        setThinkingStatus(null);
         setMessages((prevMessages) => {
           const lastMessage = prevMessages[prevMessages.length - 1];
           if (lastMessage && lastMessage.sender === 'assistant') {
@@ -95,6 +100,7 @@ function App() {
     // Add user's message to the chat
     setMessages((prevMessages) => [...prevMessages, { text, sender: 'user' }]);
     setIsSending(true);
+    setThinkingStatus(''); // Reset thinking status for new query
 
     // Send the message to the backend
     window.ipc.send('to-backend', {
@@ -139,6 +145,7 @@ function App() {
             messages={messages}
             onSendMessage={handleSendMessage}
             isSending={isSending}
+            thinkingStatus={thinkingStatus}
           />
         }
         settings={

@@ -36,13 +36,13 @@ The foundational infrastructure is complete! We have a working application with 
 - [x] Configuration management system (`config.yaml`)
 - [x] Multi-provider LLM client (OpenAI, Anthropic, Google, etc.)
 - [x] **Issue #6: Agent Orchestrator**: Implementing the "brain" of the assistant.
+- [x] **Issue #7: Thinking Display**: Showing the agent's status in the UI.
 
 ### 🔨 Currently Working On
-- [ ] **Issue #7: Thinking Display**: Showing the agent's status in the UI.
+- [ ] Integration and refinement of the core agent.
 
-### 📋 Coming Next (Milestone 2)
-- Real-time "thinking" display in the UI
-- Integration and refinement of the core agent.
+### 📋 Coming Next (Milestone 3)
+- **Issue #8: Passive Memory Storage**: Storing conversation history.
 
 See our [Project Roadmap](docs/ROADMAP.md) for the complete development timeline.
 
@@ -133,6 +133,8 @@ conda activate desktop-assistant-env
 
 # Set a required API key (even a dummy one) for startup
 export OPENAI_API_KEY="dummy-key"
+# Note: A dummy key is sufficient for the application to start.
+# A valid API key is only required if you set OpenAI as the active provider.
 
 # Run the server as a module from the project root
 python -m backend.server
@@ -188,10 +190,10 @@ This project has two separate test suites: one for the Python backend and one fo
 
 ### Current Development Focus
 
-We're currently working on **Issue #1: Project Setup & Repository Structure**. If you want to contribute, check out:
+With Milestone 2 complete, our focus now shifts to **Milestone 3: Memory System**. If you want to contribute, check out:
 
 - [Open Issues](https://github.com/yourusername/desktop-assistant/issues)
-- [Milestone 1: Project Foundation](https://github.com/yourusername/desktop-assistant/milestone/1)
+- [Milestone 3: Memory System](https://github.com/yourusername/desktop-assistant/milestone/3)
 - Look for issues tagged with `good-first-issue`
 
 ---

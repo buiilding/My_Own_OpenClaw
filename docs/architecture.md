@@ -103,3 +103,9 @@ The "brain" of the application, responsible for receiving user queries and coord
 - The entire backend is built on `asyncio`.
 - All I/O operations, especially network requests to LLM APIs and file system writes, are handled asynchronously to ensure the server remains responsive.
 - Blocking I/O calls (like writing the config file) are moved to a separate thread pool using `asyncio.to_thread`.
+
+### 5. Real-time Thinking Display
+- To provide transparency, the agent's thought process is streamed from the backend to the frontend in real-time.
+- LLM clients (like the Google Gemini client) can emit special "thinking" events.
+- These events are sent over the WebSocket IPC bridge to the frontend.
+- The frontend UI has a dedicated `ThinkingDisplay` component that accumulates and displays these thoughts, allowing the user to see the agent's reasoning as it happens.

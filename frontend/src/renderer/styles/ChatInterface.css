@@ -52,6 +52,12 @@
   background-color: #e5e5ea;
   color: black;
   border-bottom-left-radius: 4px;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Style for assistant messages that are still streaming */
+.message-streaming .message-content {
+  opacity: 0.7;
 }
 
 /* Form for message input */
