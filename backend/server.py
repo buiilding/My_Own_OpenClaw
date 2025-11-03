@@ -44,6 +44,9 @@ agent: Agent | None = None  # To be initialized in main()
 settings_lock = asyncio.Lock()
 active_queries = 0  # pylint: disable=invalid-name
 active_queries_lock = asyncio.Lock()
+active_queries_done = asyncio.Event()
+active_queries_done.set()  # Initially set since no queries are active
+agent_lock = asyncio.Lock()
 
 
 # pylint: disable=too-many-statements,too-many-branches
@@ -97,63 +100,67 @@ async def _handle_message(
 
         logger.info("Received query: %s", query_text)
 
-        # Increment active queries counter
+        # Increment active queries counter and clear done event
+        # pylint: disable=global-statement,used-prior-global-declaration
+        global active_queries
         async with active_queries_lock:
-            global active_queries  # pylint: disable=global-statement
             active_queries += 1
+            if active_queries == 1:
+                active_queries_done.clear()
 
         try:
             # Define the streaming task to be timed out
             async def stream_query_with_timeout():
-                # Access the global agent instance
-                if not agent:
-                    raise RuntimeError("Agent not initialized")
-                async for event in agent.process_query(query_text):
-                    # Check if client disconnected before processing event
-                    if websocket.closed:
-                        logger.info("Client disconnected during streaming")
-                        break
+                # Access the global agent instance with lock protection
+                async with agent_lock:
+                    if not agent:
+                        raise RuntimeError("Agent not initialized")
+                    async for event in agent.process_query(query_text):
+                        # Check if client disconnected before processing event
+                        if websocket.closed:
+                            logger.info("Client disconnected during streaming")
+                            break
 
-                    if event["type"] == "thinking":
+                        if event["type"] == "thinking":
+                            response = {
+                                "type": "llm-thought",
+                                "id": message_id,
+                                "payload": {"status": event["content"]},
+                            }
+                        elif event["type"] == "chunk":
+                            response = {
+                                "type": "streaming-response",
+                                "id": message_id,
+                                "payload": {"text": event["content"]},
+                            }
+                        else:
+                            # This case should ideally not be reached
+                            logger.warning(
+                                "Unknown event type from agent: %s", event.get("type")
+                            )
+                            continue
+
+                        try:
+                            await websocket.send(json.dumps(response))
+                        except ConnectionClosed:
+                            logger.info("Client disconnected during streaming")
+                            break
+
+                    # Check if client disconnected before sending end-of-stream marker
+                    if not websocket.closed:
+                        # Send end-of-stream marker
                         response = {
-                            "type": "llm-thought",
+                            "type": "streaming-complete",
                             "id": message_id,
-                            "payload": {"status": event["content"]},
+                            "payload": {},
                         }
-                    elif event["type"] == "chunk":
-                        response = {
-                            "type": "streaming-response",
-                            "id": message_id,
-                            "payload": {"text": event["content"]},
-                        }
+                        try:
+                            await websocket.send(json.dumps(response))
+                            logger.info("Query completed successfully")
+                        except ConnectionClosed:
+                            logger.info("Client disconnected during streaming")
                     else:
-                        # This case should ideally not be reached
-                        logger.warning(
-                            "Unknown event type from agent: %s", event.get("type")
-                        )
-                        continue
-
-                    try:
-                        await websocket.send(json.dumps(response))
-                    except ConnectionClosed:
                         logger.info("Client disconnected during streaming")
-                        break
-
-                # Check if client disconnected before sending end-of-stream marker
-                if not websocket.closed:
-                    # Send end-of-stream marker
-                    response = {
-                        "type": "streaming-complete",
-                        "id": message_id,
-                        "payload": {},
-                    }
-                    try:
-                        await websocket.send(json.dumps(response))
-                        logger.info("Query completed successfully")
-                    except ConnectionClosed:
-                        logger.info("Client disconnected during streaming")
-                else:
-                    logger.info("Client disconnected during streaming")
 
             # Run the streaming task with a 5-minute timeout
             await asyncio.wait_for(stream_query_with_timeout(), timeout=300)
@@ -176,10 +183,12 @@ async def _handle_message(
             }
             await websocket.send(json.dumps(response))
         finally:
-            # Decrement active queries counter
+            # Decrement active queries counter and set done event if zero
             async with active_queries_lock:
                 global active_queries  # pylint: disable=global-statement
                 active_queries -= 1
+                if active_queries == 0:
+                    active_queries_done.set()
 
     elif message_type == "load-settings":
         logger.info("Loading and sending settings to frontend.")
@@ -244,30 +253,25 @@ async def _handle_message(
                 # Update the global settings object with the new, validated instance
                 config.settings = validated_config
 
-                # Set a reasonable timeout for waiting
+                # Wait for all active queries to complete before reinitializing
                 wait_timeout = 60  # seconds
-                wait_start = asyncio.get_event_loop().time()
-
-                # Wait for all active queries to complete
-                # before reinitializing the agent
-                while True:
+                try:
+                    await asyncio.wait_for(
+                        active_queries_done.wait(), timeout=wait_timeout
+                    )
+                except asyncio.TimeoutError as exc:
                     async with active_queries_lock:
-                        if active_queries == 0:
-                            break
-
-                    # Check timeout
-                    if asyncio.get_event_loop().time() - wait_start > wait_timeout:
                         raise TimeoutError(
                             f"Timed out waiting for {active_queries} "
                             f"active queries to complete"
-                        )
+                        ) from exc
 
-                    # Wait a short time before checking again
-                    await asyncio.sleep(0.1)
                 # Re-initialize the agent with the new settings
-                # pylint: disable=global-statement
-                global agent
-                agent = Agent(config.settings)
+                # Hold agent_lock to prevent new queries from starting during reinit
+                async with agent_lock:
+                    # pylint: disable=global-statement
+                    global agent
+                    agent = Agent(config.settings)
 
             logger.info("Successfully saved new settings to %s", config_file)
 

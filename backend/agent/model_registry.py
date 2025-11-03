@@ -41,7 +41,7 @@ ONLINE_MODELS = {
         "llama-3.3",  # coding focus [web:18]
     ],
     "xai": [
-        "grok-5",  # advanced, multimodal reasoning [web:6][web:16]
+        "grok-4",  # advanced, multimodal reasoning [web:6][web:16]
         "grok-3",  # widely available [web:6]
     ],
     "mistral": [
@@ -114,7 +114,7 @@ async def _fetch_ollama_models() -> List[Dict[str, str]]:
             e,
         )
     except httpx.TimeoutException as e:
-        logger.error(
+        logger.warning(
             "Timeout while connecting to Ollama server at %s: %s",
             LOCAL_PROVIDERS["ollama"]["base_url"],
             e,
@@ -164,7 +164,7 @@ async def _fetch_lmstudio_models() -> List[Dict[str, str]]:
             e,
         )
     except httpx.TimeoutException as e:
-        logger.error(
+        logger.warning(
             "Timeout while connecting to LM Studio server at %s: %s",
             LOCAL_PROVIDERS["lmstudio"]["base_url"],
             e,
