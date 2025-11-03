@@ -28,7 +28,20 @@ repos:
       - id: pylint
         args: [--rcfile=backend/.pylintrc]
         files: ^backend/.*\.py$
-        additional_dependencies: [websockets, pyyaml, pydantic, openai, anthropic, google-generativeai]
+        # Add the project root to the PYTHONPATH so pylint can find the 'backend' module
+        entry: bash -c 'PYTHONPATH=. pylint "$@"' --
+        additional_dependencies: [
+          "websockets==12.0",
+          "pyyaml==6.0.1",
+          "pydantic==2.8.2",
+          "litellm==1.79.1",
+          "httpx==0.27.0",
+          "google-auth==2.30.0",
+          "openai==1.99.5",
+          "anthropic==0.29.0",
+          "mistralai==0.4.1",
+          "pylint-pydantic==0.3.0",
+        ]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v8.56.0

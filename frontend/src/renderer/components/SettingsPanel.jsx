@@ -36,35 +36,24 @@ SaveStatusFeedback.propTypes = {
  *
  * @param {object} props - The component's props.
  * @param {object} props.config - The current application configuration.
+ * @param {object} props.availableModels - Object with 'local' and 'online' arrays of model objects.
  * @param {Function} props.onSave - Callback function to save updated settings.
  * @param {string} props.saveStatus - The current status of the save operation.
  */
-function SettingsPanel({ config, onSave, saveStatus = 'idle' }) {
-  const [activeProvider, setActiveProvider] = useState('');
+function SettingsPanel({ config, availableModels, onSave, saveStatus = 'idle' }) {
+  const [modelMode, setModelMode] = useState('online');
+  const [selectedModelId, setSelectedModelId] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState('');
   const [userName, setUserName] = useState('');
-  const [model, setModel] = useState('');
 
   useEffect(() => {
     if (config) {
-      const provider = config.active_provider || 'openai';
-      setActiveProvider(provider);
+      setModelMode(config.model_mode || 'online');
+      setSelectedModelId(config.selected_model_id || '');
+      setSelectedProvider(config.model_provider || '');
       setUserName(config.preferences?.user_name || 'User');
-      if (config.llm_providers && config.llm_providers[provider]) {
-        setModel(config.llm_providers[provider].model || '');
-      } else {
-        setModel('');
-      }
     }
   }, [config]);
-
-  // Update model when activeProvider changes
-  useEffect(() => {
-    if (config?.llm_providers?.[activeProvider]) {
-      setModel(config.llm_providers[activeProvider].model || '');
-    } else {
-      setModel('');
-    }
-  }, [activeProvider, config]);
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -72,58 +61,119 @@ function SettingsPanel({ config, onSave, saveStatus = 'idle' }) {
 
     const updatedConfig = {
       ...config,
-      active_provider: activeProvider,
+      model_mode: modelMode,
+      selected_model_id: selectedModelId,
+      model_provider: selectedProvider,
       preferences: {
         ...(config.preferences || {}),
         user_name: userName,
       },
-      llm_providers: {
-        ...(config.llm_providers || {}),
-        [activeProvider]: {
-          ...(config.llm_providers?.[activeProvider] || {}),
-          model: model,
-        },
-      },
     };
+
+    // The backend now computes llm_model, so we don't send it from the frontend.
+    delete updatedConfig.llm_model;
+
     onSave(updatedConfig);
   };
+
+  const isSaving = saveStatus === 'saving';
+
+  // Get the current list of models based on mode
+  const currentModels = modelMode === 'local'
+    ? availableModels.local
+    : availableModels.online;
+
+  // Find the selected model to get its provider if not set
+  useEffect(() => {
+    if (selectedModelId) {
+      const model = currentModels.find(m => m.id === selectedModelId);
+      if (model && model.provider !== selectedProvider) {
+        setSelectedProvider(model.provider);
+      }
+    }
+  }, [selectedModelId, currentModels, selectedProvider]);
 
   if (!config) {
     return <div>Loading settings...</div>;
   }
-
-  const isSaving = saveStatus === 'saving';
 
   return (
     <div className="settings-panel">
       <h2>Settings</h2>
       <form onSubmit={handleSave}>
         <div className="form-group">
-          <label htmlFor="llm-provider">Active LLM Provider</label>
-          <select
-            id="llm-provider"
-            value={activeProvider}
-            onChange={(e) => setActiveProvider(e.target.value)}
-            disabled={isSaving}
-          >
-            <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic</option>
-            <option value="google">Google</option>
-            <option value="ollama">Ollama (Local)</option>
-            <option value="openrouter">OpenRouter</option>
-            <option value="mistral">Mistral</option>
-          </select>
+          <label>Model Mode</label>
+          <div className="mode-toggle">
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="model-mode"
+                value="online"
+                checked={modelMode === 'online'}
+                onChange={(e) => {
+                  setModelMode(e.target.value);
+                  // Reset selection when switching modes
+                  setSelectedModelId('');
+                  setSelectedProvider('');
+                }}
+                disabled={isSaving}
+              />
+              <span>Online (Cloud)</span>
+            </label>
+            <label className="radio-label">
+              <input
+                type="radio"
+                name="model-mode"
+                value="local"
+                checked={modelMode === 'local'}
+                onChange={(e) => {
+                  setModelMode(e.target.value);
+                  // Reset selection when switching modes
+                  setSelectedModelId('');
+                  setSelectedProvider('');
+                }}
+                disabled={isSaving}
+              />
+              <span>Local</span>
+            </label>
+          </div>
         </div>
 
         <div className="form-group">
-          <label htmlFor="llm-model">Provider Model</label>
-          <input
-            id="llm-model"
-            type="text"
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-            disabled={isSaving}
-          />
+          <label htmlFor="model-select">
+            {modelMode === 'local' ? 'Local Model' : 'Online Model'}
+          </label>
+          {currentModels.length === 0 ? (
+            <div className="no-models-message">
+              {modelMode === 'local'
+                ? 'No local models found. Make sure Ollama or LM Studio is running.'
+                : 'Loading available models...'}
+            </div>
+          ) : (
+            <select
+              id="model-select"
+              value={selectedModelId}
+              onChange={(e) => {
+                const model = currentModels.find(m => m.id === e.target.value);
+                setSelectedModelId(e.target.value);
+                if (model) {
+                  setSelectedProvider(model.provider);
+                }
+              }}
+              disabled={isSaving}
+            >
+              <option value="">-- Select a model --</option>
+              {currentModels.map((model) => {
+                // Format display: "model-id (provider)"
+                const displayText = `${model.id} (${model.provider})`;
+                return (
+                  <option key={model.id} value={model.id}>
+                    {displayText}
+                  </option>
+                );
+              })}
+            </select>
+          )}
         </div>
 
         <div className="form-group">
@@ -145,7 +195,7 @@ function SettingsPanel({ config, onSave, saveStatus = 'idle' }) {
         </div>
 
         <div className="save-container">
-          <button type="submit" className="save-button" disabled={isSaving}>
+          <button type="submit" className="save-button" disabled={isSaving || !selectedModelId}>
             {isSaving ? 'Saving...' : 'Save Settings'}
           </button>
           <SaveStatusFeedback status={saveStatus} />
@@ -157,13 +207,35 @@ function SettingsPanel({ config, onSave, saveStatus = 'idle' }) {
 
 SettingsPanel.propTypes = {
   config: PropTypes.shape({
-    active_provider: PropTypes.string,
+    model_mode: PropTypes.oneOf(['local', 'online']),
+    selected_model_id: PropTypes.string,
+    model_provider: PropTypes.string,
     preferences: PropTypes.shape({
       user_name: PropTypes.string,
     }),
   }),
+  availableModels: PropTypes.shape({
+    local: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        provider: PropTypes.string.isRequired,
+        display_name: PropTypes.string,
+      })
+    ),
+    online: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        provider: PropTypes.string.isRequired,
+        display_name: PropTypes.string,
+      })
+    ),
+  }),
   onSave: PropTypes.func.isRequired,
   saveStatus: PropTypes.oneOf(['idle', 'saving', 'success', 'error']),
+};
+
+SettingsPanel.defaultProps = {
+  availableModels: { local: [], online: [] },
 };
 
 export default SettingsPanel;
