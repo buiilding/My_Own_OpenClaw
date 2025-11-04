@@ -52,6 +52,10 @@ describe('App', () => {
 
     render(<App />);
 
+    // Enter a message first
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'Test message' } });
+
     // Simulate sending a message to trigger the thinking process
     fireEvent.click(screen.getByText('Send'));
 
