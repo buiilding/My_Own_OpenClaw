@@ -48,12 +48,12 @@ function ChatInterface({
   return (
     <div className="chat-container">
       <div className="message-list">
-        {messages.map((msg, index) => {
+        {messages.map((msg) => {
           const messageClass = `message message-${msg.sender} ${
             msg.sender === 'assistant' && msg.isComplete === false ? 'message-streaming' : ''
           }`;
           return (
-            <div key={index} className={messageClass}>
+            <div key={msg.id} className={messageClass}>
               <div className="message-content">{msg.text}</div>
             </div>
           );
@@ -85,6 +85,7 @@ function ChatInterface({
 ChatInterface.propTypes = {
   messages: PropTypes.arrayOf(
     PropTypes.shape({
+      id: PropTypes.string.isRequired,
       text: PropTypes.string.isRequired,
       sender: PropTypes.oneOf(['user', 'assistant']).isRequired,
       isComplete: PropTypes.bool,

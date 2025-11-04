@@ -31,10 +31,11 @@ class Agent:
         self.history: List[Dict[str, str]] = []
         self._lock = asyncio.Lock()
 
-    def update_config(self, new_cfg: AppConfig) -> None:
+    async def update_config(self, new_cfg: AppConfig) -> None:
         """Updates the agent's configuration and re-initializes dependencies."""
-        self.cfg = new_cfg
-        self.llm_client = get_llm_client(self.cfg)
+        async with self._lock:
+            self.cfg = new_cfg
+            self.llm_client = get_llm_client(self.cfg)
 
     def _construct_prompt(self) -> List[Dict[str, str]]:
         """

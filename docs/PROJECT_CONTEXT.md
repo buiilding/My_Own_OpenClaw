@@ -94,7 +94,9 @@ Desktop Assistant is a locally-running application that combines:
 - **OpenAI**: GPT-4o, GPT-4.1
 - **Anthropic**: Claude 3.7 Sonnet, Claude Sonnet 4
 - **Google**: Gemini Pro, Gemini Ultra
-- **Local Models**: Ollama (for privacy-conscious users)
+- **Local Models**: Integration with local LLM providers is supported through OpenAI-compatible server interfaces. This includes:
+  - **Ollama**: For running models like Llama 3, Gemma, etc.
+  - **LM Studio**: For a wide variety of community-provided models.
 
 #### Provider Abstraction
 - Unified interface regardless of provider
@@ -389,10 +391,8 @@ Determines whether to:
 
 #### Backend (Python 3.10+)
 - **Core Framework**: Async Python (asyncio, aiohttp)
-- **LLM SDKs**:
-  - `openai` (OpenAI API)
-  - `anthropic` (Claude API)
-  - `google-generativeai` (Gemini API)
+- **LLM Abstraction**:
+  - `litellm` (provides a unified interface for over 100 LLM providers)
 - **Voice**:
   - `openai-whisper` or `whisper` library (STT)
   - `coqui-tts` or cloud TTS APIs
@@ -1016,6 +1016,7 @@ The phased development approach, research-first methodology, and strong focus on
 As of the completion of Milestone 2 (Issues #1-7), the project has the following status:
 
 - **Core Agent Complete**: The foundational agent logic is implemented. This includes the multi-provider LLM client, the agent orchestrator that manages conversation flow, and a real-time thinking display that provides transparency into the agent's reasoning process.
+- **Robust Local LLM Support**: The agent can now reliably connect to local LLM providers like Ollama and LM Studio, thanks to a more robust frontend-backend communication protocol for model selection.
 - **Current Behavior**: The application can hold intelligent, multi-turn conversations with streaming responses. When using a supported provider (like Google Gemini), the agent's thought process is displayed in real-time before the final answer is delivered.
 
 **Immediate Next Step**: The next phase of development will be **Milestone 3: Memory**. This will involve implementing the passive memory store (Issue #8) to give the agent the ability to recall past conversations.
