@@ -5,15 +5,7 @@ from pathlib import Path
 from typing import Literal, Optional
 
 import yaml
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    ValidationError,
-    ValidationInfo,
-    computed_field,
-    field_validator,
-)
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +61,7 @@ class OllamaConfig(BaseModel):
     """Configuration for Ollama (local) provider."""
 
     model: str = "llama3"
-    base_url: str = "http://localhost:11434"
+    base_url: str = "http://localhost:11434/v1"
 
 
 class OpenRouterConfig(BaseModel):
@@ -86,6 +78,13 @@ class MistralConfig(BaseModel):
     api_key_env: str = "MISTRAL_API_KEY"
 
 
+class LMStudioConfig(BaseModel):
+    """Configuration for LMStudio (local) provider."""
+
+    model: str = ""  # Not used, models are discovered
+    base_url: str = "http://localhost:1234/v1"
+
+
 class LLMProviders(BaseModel):
     """Container for all supported LLM provider configurations."""
 
@@ -95,6 +94,7 @@ class LLMProviders(BaseModel):
     ollama: OllamaConfig = Field(default_factory=OllamaConfig)
     openrouter: OpenRouterConfig = Field(default_factory=OpenRouterConfig)
     mistral: MistralConfig = Field(default_factory=MistralConfig)
+    lmstudio: LMStudioConfig = Field(default_factory=LMStudioConfig)
 
     def get_provider_config(self, provider_name: str):
         """Gets the configuration for a specific provider."""
@@ -136,7 +136,6 @@ class AppConfig(BaseModel):
     # This field will hold the actual API key after it's loaded
     api_key: Optional[str] = Field(default=None, repr=False)
 
-    @computed_field
     @property
     def llm_model(self) -> str:
         """Returns the LiteLLM-compatible model identifier."""
@@ -147,6 +146,8 @@ class AppConfig(BaseModel):
             return ""  # Return empty if no model is selected
 
         if self.model_mode == "local":
+            # For local mode, the model_id is used directly.
+            # No special prefixing is needed for LiteLLM.
             return model_id
 
         # Online models prefixing
@@ -159,44 +160,6 @@ class AppConfig(BaseModel):
             return f"openrouter/{model_id}"
 
         return model_id
-
-    @field_validator("model_provider", mode="before")
-    @classmethod
-    # pylint: disable=too-many-return-statements
-    def set_provider_from_model_id(cls, v, info: ValidationInfo):
-        """Set the provider from the selected model ID if it's not explicitly set."""
-        if v:
-            return v  # If provider is already set, do nothing
-
-        selected_model_id = info.data.get("selected_model_id")
-        if not selected_model_id:
-            return "openai"  # Default provider
-
-        # Infer provider from canonical model ID formats
-        # Use strict prefix matching to avoid false positives
-        model_id_lower = selected_model_id.lower()
-
-        # Anthropic models: claude-*, claude*
-        if model_id_lower.startswith("claude"):
-            return "anthropic"
-
-        # Google models: gemini-*, gemini*
-        if model_id_lower.startswith("gemini"):
-            return "gemini"
-
-        # Mistral models: mistral-*, mistral*, codestral-*, pixtral-*
-        if (
-            model_id_lower.startswith("mistral")
-            or model_id_lower.startswith("codestral")
-            or model_id_lower.startswith("pixtral")
-        ):
-            return "mistral"
-
-        # Ollama/local models: llama-*, llama*
-        if model_id_lower.startswith("llama"):
-            return "ollama"
-
-        return "openai"  # Default for gpt models or unknown
 
 
 # --- Main Configuration Loading Logic ---

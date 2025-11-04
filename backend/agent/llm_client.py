@@ -64,20 +64,30 @@ class LiteLLMClient(LLMClient):
     LLM client using LiteLLM to support multiple providers.
     """
 
-    def __init__(self, api_key: str | None = None, base_url: str | None = None):
+    def __init__(
+        self,
+        api_key: str | None = None,
+        base_url: str | None = None,
+        provider: str | None = None,
+    ):
         """Initializes the LiteLLM client."""
         self.api_key = api_key
         self.base_url = base_url
+        self.provider = provider
 
     async def get_completion(self, model: str, messages: List[Dict[str, str]]) -> str:
         """Gets a completion from the LLM."""
         try:
-            response = await litellm.acompletion(
-                model=model,
-                messages=messages,
-                api_key=self.api_key,
-                base_url=self.base_url,
-            )
+            params = {
+                "model": model,
+                "messages": messages,
+                "api_key": self.api_key,
+                "base_url": self.base_url,
+            }
+            if self.provider in ["lmstudio", "ollama"]:
+                params["custom_llm_provider"] = "openai"
+
+            response = await litellm.acompletion(**params)
             # Validate response structure before accessing nested attributes
             if not response:
                 raise APIError("LLM returned None response")
@@ -111,13 +121,16 @@ class LiteLLMClient(LLMClient):
     ) -> AsyncGenerator[Dict, None]:
         """Gets a streaming completion from the LLM."""
         try:
-            stream = await litellm.acompletion(
-                model=model,
-                messages=messages,
-                stream=True,
-                api_key=self.api_key,
-                base_url=self.base_url,
-            )
+            params = {
+                "model": model,
+                "messages": messages,
+                "stream": True,
+                "api_key": self.api_key,
+                "base_url": self.base_url,
+            }
+            if self.provider in ["lmstudio", "ollama"]:
+                params["custom_llm_provider"] = "openai"
+            stream = await litellm.acompletion(**params)
             async for chunk in stream:
                 if not chunk or not hasattr(chunk, "choices") or not chunk.choices:
                     continue  # Skip chunks with no choices
@@ -152,17 +165,18 @@ def get_llm_client(cfg: AppConfig = None) -> LLMClient:
     # Determine base_url based on model mode
     base_url = None
     api_key = cfg.api_key
+    provider = cfg.model_provider
 
     if cfg.model_mode == "local":
-        # For local models, determine base_url from provider
-        provider = cfg.model_provider
-        if provider == "ollama":
-            base_url = "http://localhost:11434"
-        elif provider == "lmstudio":
-            base_url = "http://localhost:1234/v1"
-        # If provider is not set, try to infer from legacy config
-        elif hasattr(cfg.llm_providers, "ollama"):
-            base_url = getattr(cfg.llm_providers.ollama, "base_url", None)
+        # For local models, get the base_url from the provider's config
+        try:
+            provider_config = cfg.llm_providers.get_provider_config(provider)
+            base_url = getattr(provider_config, "base_url", None)
+        except ValueError:
+            logger.warning(
+                "Could not find config for local provider '%s', no base_url set.",
+                provider,
+            )
     else:
         # For online models, check if provider has a base_url (like OpenRouter)
         if cfg.model_provider:
@@ -175,7 +189,7 @@ def get_llm_client(cfg: AppConfig = None) -> LLMClient:
                 # Provider not found in legacy config, use default
                 pass
 
-    return LiteLLMClient(api_key=api_key, base_url=base_url)
+    return LiteLLMClient(api_key=api_key, base_url=base_url, provider=provider)
 
 
 # The example usage main() function has been removed to resolve a pylint C0415 error
