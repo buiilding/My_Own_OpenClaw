@@ -20,6 +20,7 @@ function App() {
   const [thinkingStatus, setThinkingStatus] = useState(null);
   const [config, setConfig] = useState(null);
   const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, success, error
+  const [availableModels, setAvailableModels] = useState({ local: [], online: [] });
   const configBeforeSave = useRef(null);
   const saveTimeoutId = useRef(null);
 
@@ -34,7 +35,10 @@ function App() {
         setMessages((prevMessages) => [...prevMessages, newMesage]);
         setIsSending(false);
       } else if (data.type === 'llm-thought') {
-        setThinkingStatus((prevStatus) => (prevStatus || '') + data.payload.status);
+        setThinkingStatus((prevStatus) => {
+          const updated = (prevStatus || '') + data.payload.status;
+          return updated.length > 1000 ? updated.slice(-1000) : updated;
+        });
       } else if (data.type === 'streaming-response') {
         setIsSending(false); // We've got the first chunk, so we're not "sending" anymore
         setThinkingStatus(null); // Hide thinking status when response starts
@@ -68,13 +72,17 @@ function App() {
         });
       } else if (data.type === 'settings-loaded') {
         setConfig(data.payload);
-      } else if (data.type === 'settings-saved') {
+        // Request available models when settings are loaded
+        window.ipc.send('to-backend', { type: 'list-models' });
+      } else if (data.type === 'models-listed') {
+        setAvailableModels(data.payload);
+      } else if (data.type === 'settings-updated') {
         clearTimeout(saveTimeoutId.current);
         setSaveStatus('success');
         setTimeout(() => setSaveStatus('idle'), 3000);
       } else if (
         data.type === 'error' &&
-        data.payload.message?.includes('Failed to save settings')
+        data.payload.message?.includes('Failed to update settings')
       ) {
         clearTimeout(saveTimeoutId.current);
         setSaveStatus('error');
@@ -100,7 +108,7 @@ function App() {
     // Add user's message to the chat
     setMessages((prevMessages) => [...prevMessages, { text, sender: 'user' }]);
     setIsSending(true);
-    setThinkingStatus(''); // Reset thinking status for new query
+    setThinkingStatus(null); // Reset thinking status for new query
 
     // Send the message to the backend
     window.ipc.send('to-backend', {
@@ -109,7 +117,7 @@ function App() {
     });
   };
 
-  const handleSaveSettings = (updatedConfig) => {
+  const handleConfigChange = (updatedConfig) => {
     // Prevent concurrent saves
     if (saveStatus === 'saving') {
       return;
@@ -132,7 +140,7 @@ function App() {
     }, 10000); // 10 second timeout
 
     window.ipc.send('to-backend', {
-      type: 'save-settings',
+      type: 'update-settings',
       payload: updatedConfig,
     });
   };
@@ -151,7 +159,8 @@ function App() {
         settings={
           <SettingsPanel
             config={config}
-            onSave={handleSaveSettings}
+            availableModels={availableModels}
+            onConfigChange={handleConfigChange}
             saveStatus={saveStatus}
           />
         }

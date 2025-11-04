@@ -24,7 +24,7 @@ function createWindow() {
   const devUrl = 'http://localhost:5173';
   if (process.env.NODE_ENV !== 'production') {
     mainWindow.loadURL(devUrl);
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../../dist/index.html'));
   }

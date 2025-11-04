@@ -482,7 +482,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-        # The create method should be an async mock that returns the generator
+    # The create method should be an async mock that returns the generator
 
 
 
@@ -494,7 +494,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-        mock_async_openai.return_value.chat.completions.create = AsyncMock(
+    mock_async_openai.return_value.chat.completions.create = AsyncMock(
 
 
 
@@ -506,7 +506,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-            return_value=mock_stream_generator()
+        return_value=mock_stream_generator()
 
 
 
@@ -542,7 +542,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-        client = OpenAIClient(api_key="test", model="gpt-4o")
+    client = OpenAIClient(api_key="test", model="gpt-4o")
 
 
 
@@ -554,7 +554,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-        messages = [{"role": "user", "content": "Hello"}]
+    messages = [{"role": "user", "content": "Hello"}]
 
 
 
@@ -578,7 +578,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-        # Call the method (which returns an async generator) and iterate over it
+    # Call the method (which returns an async generator) and iterate over it
 
 
 
@@ -590,7 +590,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-        response_events = [
+    response_events = [
 
 
 
@@ -602,7 +602,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-            event async for event in client.get_completion_stream(messages)
+        event async for event in client.get_completion_stream(messages)
 
 
 
@@ -626,7 +626,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-        response_chunks = [
+    response_chunks = [
 
 
 
@@ -638,7 +638,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-            event["content"] for event in response_events if event["type"] == "chunk"
+        event["content"] for event in response_events if event["type"] == "chunk"
 
 
 
@@ -662,7 +662,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-        full_response = "".join(response_chunks)
+    full_response = "".join(response_chunks)
 
 
 
@@ -686,7 +686,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-        assert full_response == "Hello from OpenAI!"
+    assert full_response == "Hello from OpenAI!"
 
 
 
@@ -710,7 +710,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-        mock_async_openai.return_value.chat.completions.create.assert_awaited_once_with(
+    mock_async_openai.return_value.chat.completions.create.assert_awaited_once_with(
 
 
 
@@ -722,7 +722,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-            model="gpt-4o", messages=messages, stream=True
+        model="gpt-4o", messages=messages, stream=True
 
 
 
