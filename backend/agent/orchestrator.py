@@ -26,10 +26,15 @@ class Agent:
 
     def __init__(self, cfg: AppConfig = settings) -> None:
         """Initializes the agent."""
-        self.llm_client = get_llm_client(cfg)
+        self.cfg = cfg
+        self.llm_client = get_llm_client(self.cfg)
         self.history: List[Dict[str, str]] = []
         self._lock = asyncio.Lock()
-        self.cfg = cfg
+
+    def update_config(self, new_cfg: AppConfig) -> None:
+        """Updates the agent's configuration and re-initializes dependencies."""
+        self.cfg = new_cfg
+        self.llm_client = get_llm_client(self.cfg)
 
     def _construct_prompt(self) -> List[Dict[str, str]]:
         """

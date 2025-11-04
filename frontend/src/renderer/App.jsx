@@ -76,13 +76,13 @@ function App() {
         window.ipc.send('to-backend', { type: 'list-models' });
       } else if (data.type === 'models-listed') {
         setAvailableModels(data.payload);
-      } else if (data.type === 'settings-saved') {
+      } else if (data.type === 'settings-updated') {
         clearTimeout(saveTimeoutId.current);
         setSaveStatus('success');
         setTimeout(() => setSaveStatus('idle'), 3000);
       } else if (
         data.type === 'error' &&
-        data.payload.message?.includes('Failed to save settings')
+        data.payload.message?.includes('Failed to update settings')
       ) {
         clearTimeout(saveTimeoutId.current);
         setSaveStatus('error');
@@ -117,7 +117,7 @@ function App() {
     });
   };
 
-  const handleSaveSettings = (updatedConfig) => {
+  const handleConfigChange = (updatedConfig) => {
     // Prevent concurrent saves
     if (saveStatus === 'saving') {
       return;
@@ -140,7 +140,7 @@ function App() {
     }, 10000); // 10 second timeout
 
     window.ipc.send('to-backend', {
-      type: 'save-settings',
+      type: 'update-settings',
       payload: updatedConfig,
     });
   };
@@ -160,7 +160,7 @@ function App() {
           <SettingsPanel
             config={config}
             availableModels={availableModels}
-            onSave={handleSaveSettings}
+            onConfigChange={handleConfigChange}
             saveStatus={saveStatus}
           />
         }
