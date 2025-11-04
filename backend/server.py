@@ -243,7 +243,7 @@ async def _handle_message(
                 # Update the agent's config
                 async with agent_lock:
                     if agent:
-                        agent.update_config(validated_config)
+                        await agent.update_config(validated_config)
 
                 # Asynchronously write the updated config to file
                 config_dir = get_config_dir()
