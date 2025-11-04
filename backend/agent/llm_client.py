@@ -69,11 +69,13 @@ class LiteLLMClient(LLMClient):
         api_key: str | None = None,
         base_url: str | None = None,
         provider: str | None = None,
+        timeout: int = 300,
     ):
         """Initializes the LiteLLM client."""
         self.api_key = api_key
         self.base_url = base_url
         self.provider = provider
+        self.timeout = timeout
 
     async def get_completion(self, model: str, messages: List[Dict[str, str]]) -> str:
         """Gets a completion from the LLM."""
@@ -83,6 +85,7 @@ class LiteLLMClient(LLMClient):
                 "messages": messages,
                 "api_key": self.api_key,
                 "base_url": self.base_url,
+                "timeout": self.timeout,
             }
             if self.provider in ["lmstudio", "ollama"]:
                 params["custom_llm_provider"] = "openai"
@@ -127,6 +130,7 @@ class LiteLLMClient(LLMClient):
                 "stream": True,
                 "api_key": self.api_key,
                 "base_url": self.base_url,
+                "timeout": self.timeout,
             }
             if self.provider in ["lmstudio", "ollama"]:
                 params["custom_llm_provider"] = "openai"
@@ -166,6 +170,7 @@ def get_llm_client(cfg: AppConfig = None) -> LLMClient:
     base_url = None
     api_key = cfg.api_key
     provider = cfg.model_provider
+    timeout = cfg.llm_timeout
 
     if cfg.model_mode == "local":
         # For local models, get the base_url from the provider's config
@@ -189,7 +194,9 @@ def get_llm_client(cfg: AppConfig = None) -> LLMClient:
                 # Provider not found in legacy config, use default
                 pass
 
-    return LiteLLMClient(api_key=api_key, base_url=base_url, provider=provider)
+    return LiteLLMClient(
+        api_key=api_key, base_url=base_url, provider=provider, timeout=timeout
+    )
 
 
 # The example usage main() function has been removed to resolve a pylint C0415 error

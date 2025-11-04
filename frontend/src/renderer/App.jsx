@@ -14,7 +14,11 @@ import './styles/accessibility.css';
  */
 function App() {
   const [messages, setMessages] = useState([
-    { text: 'Hello! How can I help you today?', sender: 'assistant' },
+    {
+      id: crypto.randomUUID(),
+      text: 'Hello! How can I help you today?',
+      sender: 'assistant',
+    },
   ]);
   const [isSending, setIsSending] = useState(false);
   const [thinkingStatus, setThinkingStatus] = useState(null);
@@ -29,6 +33,7 @@ function App() {
     const removeBackendListener = window.ipc.on('from-backend', (data) => {
       if (data.type === 'pong' || data.type === 'response') {
         const newMesage = {
+          id: crypto.randomUUID(),
           text: data.payload.text || JSON.stringify(data.payload),
           sender: 'assistant',
         };
@@ -54,7 +59,12 @@ function App() {
             // This is the first chunk, create a new message object
             return [
               ...prevMessages,
-              { text: data.payload.text, sender: 'assistant', isComplete: false },
+              {
+                id: crypto.randomUUID(),
+                text: data.payload.text,
+                sender: 'assistant',
+                isComplete: false,
+              },
             ];
           }
         });
@@ -106,7 +116,10 @@ function App() {
 
   const handleSendMessage = (text) => {
     // Add user's message to the chat
-    setMessages((prevMessages) => [...prevMessages, { text, sender: 'user' }]);
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { id: crypto.randomUUID(), text, sender: 'user' },
+    ]);
     setIsSending(true);
     setThinkingStatus(null); // Reset thinking status for new query
 
