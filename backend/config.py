@@ -5,7 +5,17 @@ from pathlib import Path
 from typing import Literal, Optional
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    ValidationInfo,
+    computed_field,
+    field_validator,
+)
+
+logger = logging.getLogger(__name__)
 
 # --- Constants ---
 APP_NAME = "DesktopAssistant"
@@ -48,7 +58,7 @@ class AnthropicConfig(BaseModel):
     api_key_env: str = "ANTHROPIC_API_KEY"
 
 
-class GoogleConfig(BaseModel):
+class GeminiConfig(BaseModel):
     """Configuration for Google provider."""
 
     model: str = "gemini-2.5-flash"
@@ -81,26 +91,44 @@ class LLMProviders(BaseModel):
 
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
     anthropic: AnthropicConfig = Field(default_factory=AnthropicConfig)
-    google: GoogleConfig = Field(default_factory=GoogleConfig)
+    gemini: GeminiConfig = Field(default_factory=GeminiConfig)
     ollama: OllamaConfig = Field(default_factory=OllamaConfig)
     openrouter: OpenRouterConfig = Field(default_factory=OpenRouterConfig)
     mistral: MistralConfig = Field(default_factory=MistralConfig)
+
+    def get_provider_config(self, provider_name: str):
+        """Gets the configuration for a specific provider."""
+        if not hasattr(self, provider_name):
+            raise ValueError(f"Unknown provider: {provider_name}")
+        return getattr(self, provider_name)
 
 
 class Preferences(BaseModel):
     """User-specific preferences."""
 
     theme: str = "dark"
-    user_name: str = "User"
 
 
 class AppConfig(BaseModel):
     """Root model for the application configuration."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="ignore",
+        protected_namespaces=(),  # Disable protected namespace warnings
+    )
 
+    # Model selection mode: "local" or "online"
+    model_mode: Literal["local", "online"] = "online"
+
+    # Selected model ID (e.g., "gpt-4o", "llama3", "claude-3.5-sonnet")
+    selected_model_id: str = "gpt-4o"
+
+    # Provider name for the selected model (used for API key lookup)
+    model_provider: str = "openai"
+
+    # Legacy fields for backward compatibility
     active_provider: Literal[
-        "openai", "anthropic", "google", "ollama", "openrouter", "mistral"
+        "openai", "anthropic", "ollama", "openrouter", "mistral", "gemini"
     ] = "openai"
     preferences: Preferences = Field(default_factory=Preferences)
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
@@ -108,8 +136,101 @@ class AppConfig(BaseModel):
     # This field will hold the actual API key after it's loaded
     api_key: Optional[str] = Field(default=None, repr=False)
 
+    @computed_field
+    @property
+    def llm_model(self) -> str:
+        """Returns the LiteLLM-compatible model identifier."""
+        provider = self.model_provider
+        model_id = self.selected_model_id
+
+        if not model_id:
+            return ""  # Return empty if no model is selected
+
+        if self.model_mode == "local":
+            return model_id
+
+        # Online models prefixing
+        if provider == "gemini":
+            # Ensure we don't double-prefix
+            return (
+                f"gemini/{model_id}" if not model_id.startswith("gemini/") else model_id
+            )
+        if provider == "openrouter" and not model_id.startswith("openrouter/"):
+            return f"openrouter/{model_id}"
+
+        return model_id
+
+    @field_validator("model_provider", mode="before")
+    @classmethod
+    # pylint: disable=too-many-return-statements
+    def set_provider_from_model_id(cls, v, info: ValidationInfo):
+        """Set the provider from the selected model ID if it's not explicitly set."""
+        if v:
+            return v  # If provider is already set, do nothing
+
+        selected_model_id = info.data.get("selected_model_id")
+        if not selected_model_id:
+            return "openai"  # Default provider
+
+        # Infer provider from canonical model ID formats
+        # Use strict prefix matching to avoid false positives
+        model_id_lower = selected_model_id.lower()
+
+        # Anthropic models: claude-*, claude*
+        if model_id_lower.startswith("claude"):
+            return "anthropic"
+
+        # Google models: gemini-*, gemini*
+        if model_id_lower.startswith("gemini"):
+            return "gemini"
+
+        # Mistral models: mistral-*, mistral*, codestral-*, pixtral-*
+        if (
+            model_id_lower.startswith("mistral")
+            or model_id_lower.startswith("codestral")
+            or model_id_lower.startswith("pixtral")
+        ):
+            return "mistral"
+
+        # Ollama/local models: llama-*, llama*
+        if model_id_lower.startswith("llama"):
+            return "ollama"
+
+        return "openai"  # Default for gpt models or unknown
+
 
 # --- Main Configuration Loading Logic ---
+
+
+def load_api_key_for_provider(config_obj: AppConfig) -> None:
+    """Loads the API key for the selected provider into the config object."""
+    provider_name = config_obj.model_provider or config_obj.active_provider
+
+    config_obj.api_key = None  # Reset key first
+
+    if config_obj.model_mode == "online" and provider_name:
+        try:
+            provider_config = config_obj.llm_providers.get_provider_config(
+                provider_name
+            )
+            if hasattr(provider_config, "api_key_env"):
+                api_key_env_var = provider_config.api_key_env
+                api_key = os.getenv(api_key_env_var)
+                if not api_key:
+                    # Log a warning instead of raising an error, as the key might not
+                    # be needed immediately or might be configured elsewhere for
+                    # litellm.
+                    logger.warning(
+                        (
+                            "API key environment variable '%s' for provider '%s' "
+                            "is not set."
+                        ),
+                        api_key_env_var,
+                        provider_name,
+                    )
+                config_obj.api_key = api_key
+        except ValueError:
+            logger.warning("Could not find config for provider: %s", provider_name)
 
 
 def load_config() -> AppConfig:
@@ -147,6 +268,18 @@ def load_config() -> AppConfig:
         if config_data is None:
             raise ValueError(f"Configuration file at {config_file} is empty")
 
+        # --- MIGRATION LOGIC for google -> gemini provider ---
+        # This handles legacy config files that might still reference 'google'.
+        if config_data and config_data.get("model_provider") == "google":
+            logger.info("Migrating legacy 'google' provider to 'gemini' in config.")
+            config_data["model_provider"] = "gemini"
+        if config_data and config_data.get("active_provider") == "google":
+            logger.info(
+                "Migrating legacy 'google' active_provider to 'gemini' in config."
+            )
+            config_data["active_provider"] = "gemini"
+        # --- END MIGRATION LOGIC ---
+
         try:
             config = AppConfig(**config_data)
         except ValidationError as e:
@@ -154,19 +287,20 @@ def load_config() -> AppConfig:
                 f"Configuration file at {config_file} is invalid: {e}"
             ) from e
 
-    # Load the API key for the active provider
-    active_provider_name = config.active_provider
-    active_provider_config = getattr(config.llm_providers, active_provider_name)
+    # Load the API key for the selected provider
+    load_api_key_for_provider(config)
 
-    if hasattr(active_provider_config, "api_key_env"):
-        api_key_env_var = active_provider_config.api_key_env
-        api_key = os.getenv(api_key_env_var)
-        if not api_key:
-            raise ValueError(
-                f"API key environment variable '{api_key_env_var}' for active "
-                f"provider '{active_provider_name}' is not set."
-            )
-        config.api_key = api_key
+    # Set environment variables for LiteLLM
+    # pylint: disable=no-member
+    for (
+        _provider_name,
+        provider_config,
+    ) in config.llm_providers.model_dump().items():
+        if "api_key_env" in provider_config:
+            api_key = os.getenv(provider_config["api_key_env"])
+            if api_key:
+                # LiteLLM expects env vars like OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.
+                os.environ[provider_config["api_key_env"]] = api_key
 
     return config
 
@@ -181,7 +315,7 @@ def initialize_settings() -> None:
     try:
         settings = load_config()
     except Exception as e:
-        logging.critical(f"Could not load configuration: {e}")
+        logging.critical("Could not load configuration: %s", e)
         raise SystemExit(f"FATAL: Could not load configuration. {e}") from e
 
 
@@ -193,11 +327,9 @@ if __name__ == "__main__":
     # Example of how to use the config
     print("Configuration loaded successfully!")
     print(f"Active Provider: {settings.active_provider}")
-    print(
-        f"Active Model: {getattr(settings.llm_providers, settings.active_provider).model}"
-    )
+    print(f"Active Model: {settings.llm_model}")
     if settings.api_key:
-        print("API Key: [loaded successfully]")
+        print("API Key for active provider: [loaded successfully]")
     else:
         print("API Key: Not required for this provider (e.g., Ollama)")
 
