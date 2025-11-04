@@ -58,7 +58,7 @@ class AnthropicConfig(BaseModel):
     api_key_env: str = "ANTHROPIC_API_KEY"
 
 
-class GoogleConfig(BaseModel):
+class GeminiConfig(BaseModel):
     """Configuration for Google provider."""
 
     model: str = "gemini-2.5-flash"
@@ -91,7 +91,7 @@ class LLMProviders(BaseModel):
 
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
     anthropic: AnthropicConfig = Field(default_factory=AnthropicConfig)
-    google: GoogleConfig = Field(default_factory=GoogleConfig)
+    gemini: GeminiConfig = Field(default_factory=GeminiConfig)
     ollama: OllamaConfig = Field(default_factory=OllamaConfig)
     openrouter: OpenRouterConfig = Field(default_factory=OpenRouterConfig)
     mistral: MistralConfig = Field(default_factory=MistralConfig)
@@ -107,7 +107,6 @@ class Preferences(BaseModel):
     """User-specific preferences."""
 
     theme: str = "dark"
-    user_name: str = "User"
 
 
 class AppConfig(BaseModel):
@@ -129,7 +128,7 @@ class AppConfig(BaseModel):
 
     # Legacy fields for backward compatibility
     active_provider: Literal[
-        "openai", "anthropic", "google", "ollama", "openrouter", "mistral"
+        "openai", "anthropic", "ollama", "openrouter", "mistral", "gemini"
     ] = "openai"
     preferences: Preferences = Field(default_factory=Preferences)
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
@@ -144,12 +143,18 @@ class AppConfig(BaseModel):
         provider = self.model_provider
         model_id = self.selected_model_id
 
+        if not model_id:
+            return ""  # Return empty if no model is selected
+
         if self.model_mode == "local":
             return model_id
 
         # Online models prefixing
-        if provider == "google":
-            return f"gemini/{model_id}"
+        if provider == "gemini":
+            # Ensure we don't double-prefix
+            return (
+                f"gemini/{model_id}" if not model_id.startswith("gemini/") else model_id
+            )
         if provider == "openrouter" and not model_id.startswith("openrouter/"):
             return f"openrouter/{model_id}"
 
@@ -177,7 +182,7 @@ class AppConfig(BaseModel):
 
         # Google models: gemini-*, gemini*
         if model_id_lower.startswith("gemini"):
-            return "google"
+            return "gemini"
 
         # Mistral models: mistral-*, mistral*, codestral-*, pixtral-*
         if (
@@ -195,6 +200,37 @@ class AppConfig(BaseModel):
 
 
 # --- Main Configuration Loading Logic ---
+
+
+def load_api_key_for_provider(config_obj: AppConfig) -> None:
+    """Loads the API key for the selected provider into the config object."""
+    provider_name = config_obj.model_provider or config_obj.active_provider
+
+    config_obj.api_key = None  # Reset key first
+
+    if config_obj.model_mode == "online" and provider_name:
+        try:
+            provider_config = config_obj.llm_providers.get_provider_config(
+                provider_name
+            )
+            if hasattr(provider_config, "api_key_env"):
+                api_key_env_var = provider_config.api_key_env
+                api_key = os.getenv(api_key_env_var)
+                if not api_key:
+                    # Log a warning instead of raising an error, as the key might not
+                    # be needed immediately or might be configured elsewhere for
+                    # litellm.
+                    logger.warning(
+                        (
+                            "API key environment variable '%s' for provider '%s' "
+                            "is not set."
+                        ),
+                        api_key_env_var,
+                        provider_name,
+                    )
+                config_obj.api_key = api_key
+        except ValueError:
+            logger.warning("Could not find config for provider: %s", provider_name)
 
 
 def load_config() -> AppConfig:
@@ -232,6 +268,18 @@ def load_config() -> AppConfig:
         if config_data is None:
             raise ValueError(f"Configuration file at {config_file} is empty")
 
+        # --- MIGRATION LOGIC for google -> gemini provider ---
+        # This handles legacy config files that might still reference 'google'.
+        if config_data and config_data.get("model_provider") == "google":
+            logger.info("Migrating legacy 'google' provider to 'gemini' in config.")
+            config_data["model_provider"] = "gemini"
+        if config_data and config_data.get("active_provider") == "google":
+            logger.info(
+                "Migrating legacy 'google' active_provider to 'gemini' in config."
+            )
+            config_data["active_provider"] = "gemini"
+        # --- END MIGRATION LOGIC ---
+
         try:
             config = AppConfig(**config_data)
         except ValidationError as e:
@@ -240,22 +288,7 @@ def load_config() -> AppConfig:
             ) from e
 
     # Load the API key for the selected provider
-    # Priority: model_provider > active_provider (legacy)
-    provider_name = config.model_provider or config.active_provider
-
-    # Only load API key for online models
-    if config.model_mode == "online" and provider_name:
-        # pylint: disable=no-member
-        provider_config = config.llm_providers.get_provider_config(provider_name)
-        if hasattr(provider_config, "api_key_env"):
-            api_key_env_var = provider_config.api_key_env
-            api_key = os.getenv(api_key_env_var)
-            if not api_key:
-                raise ValueError(
-                    f"API key environment variable '{api_key_env_var}' "
-                    f"for provider '{provider_name}' is not set."
-                )
-            config.api_key = api_key
+    load_api_key_for_provider(config)
 
     # Set environment variables for LiteLLM
     # pylint: disable=no-member

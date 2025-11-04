@@ -37,44 +37,39 @@ SaveStatusFeedback.propTypes = {
  * @param {object} props - The component's props.
  * @param {object} props.config - The current application configuration.
  * @param {object} props.availableModels - Object with 'local' and 'online' arrays of model objects.
- * @param {Function} props.onSave - Callback function to save updated settings.
+ * @param {Function} props.onConfigChange - Callback function to save updated settings.
  * @param {string} props.saveStatus - The current status of the save operation.
  */
-function SettingsPanel({ config, availableModels, onSave, saveStatus = 'idle' }) {
+function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = 'idle' }) {
   const [modelMode, setModelMode] = useState('online');
   const [selectedModelId, setSelectedModelId] = useState('');
   const [selectedProvider, setSelectedProvider] = useState('');
-  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     if (config) {
       setModelMode(config.model_mode || 'online');
       setSelectedModelId(config.selected_model_id || '');
       setSelectedProvider(config.model_provider || '');
-      setUserName(config.preferences?.user_name || 'User');
     }
   }, [config]);
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    if (saveStatus === 'saving') return; // Prevent multiple saves
+  // This effect is now responsible for reporting changes up to the parent component.
+  useEffect(() => {
+    if (!config) return;
 
     const updatedConfig = {
       ...config,
       model_mode: modelMode,
       selected_model_id: selectedModelId,
       model_provider: selectedProvider,
-      preferences: {
-        ...(config.preferences || {}),
-        user_name: userName,
-      },
     };
 
-    // The backend now computes llm_model, so we don't send it from the frontend.
-    delete updatedConfig.llm_model;
-
-    onSave(updatedConfig);
-  };
+    // To prevent sending a save request for every single character change in the
+    // username input, we'll only call onConfigChange if the config has actually changed.
+    if (JSON.stringify(updatedConfig) !== JSON.stringify(config)) {
+      onConfigChange(updatedConfig);
+    }
+  }, [modelMode, selectedModelId, selectedProvider, config, onConfigChange]);
 
   const isSaving = saveStatus === 'saving';
 
@@ -100,7 +95,7 @@ function SettingsPanel({ config, availableModels, onSave, saveStatus = 'idle' })
   return (
     <div className="settings-panel">
       <h2>Settings</h2>
-      <form onSubmit={handleSave}>
+      <form onSubmit={(e) => e.preventDefault()}>
         <div className="form-group">
           <label>Model Mode</label>
           <div className="mode-toggle">
@@ -177,28 +172,10 @@ function SettingsPanel({ config, availableModels, onSave, saveStatus = 'idle' })
         </div>
 
         <div className="form-group">
-          <label htmlFor="user-name">User Name</label>
-          <input
-            id="user-name"
-            type="text"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            disabled={isSaving}
-          />
-        </div>
-
-        <div className="form-group">
           <p>
             <strong>API Keys:</strong> API keys are managed via environment
             variables. Please see the documentation for details.
           </p>
-        </div>
-
-        <div className="save-container">
-          <button type="submit" className="save-button" disabled={isSaving || !selectedModelId}>
-            {isSaving ? 'Saving...' : 'Save Settings'}
-          </button>
-          <SaveStatusFeedback status={saveStatus} />
         </div>
       </form>
     </div>
@@ -210,9 +187,7 @@ SettingsPanel.propTypes = {
     model_mode: PropTypes.oneOf(['local', 'online']),
     selected_model_id: PropTypes.string,
     model_provider: PropTypes.string,
-    preferences: PropTypes.shape({
-      user_name: PropTypes.string,
-    }),
+    preferences: PropTypes.shape({}),
   }),
   availableModels: PropTypes.shape({
     local: PropTypes.arrayOf(
@@ -230,7 +205,7 @@ SettingsPanel.propTypes = {
       })
     ),
   }),
-  onSave: PropTypes.func.isRequired,
+  onConfigChange: PropTypes.func.isRequired,
   saveStatus: PropTypes.oneOf(['idle', 'saving', 'success', 'error']),
 };
 

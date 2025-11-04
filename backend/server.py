@@ -11,6 +11,7 @@ from typing import Any, Dict, Set
 
 import websockets
 import yaml
+from pydantic import ValidationError
 from websockets.exceptions import ConnectionClosed
 from websockets.server import WebSocketServerProtocol
 
@@ -59,6 +60,9 @@ async def _handle_message(
         websocket: The WebSocket connection instance.
         message_data: The parsed JSON data from the client.
     """
+    global active_queries  # pylint: disable=global-statement
+    # Note: agent is accessed but not assigned in this function
+    # It's modified via method calls which pylint doesn't recognize as assignments
     message_type = message_data.get("type")
     message_id = message_data.get("id")
 
@@ -101,8 +105,6 @@ async def _handle_message(
         logger.info("Received query: %s", query_text)
 
         # Increment active queries counter and clear done event
-        # pylint: disable=global-statement,used-prior-global-declaration
-        global active_queries
         async with active_queries_lock:
             active_queries += 1
             if active_queries == 1:
@@ -185,7 +187,6 @@ async def _handle_message(
         finally:
             # Decrement active queries counter and set done event if zero
             async with active_queries_lock:
-                global active_queries  # pylint: disable=global-statement
                 active_queries -= 1
                 if active_queries == 0:
                     active_queries_done.set()
@@ -221,23 +222,34 @@ async def _handle_message(
             }
             await websocket.send(json.dumps(response))
 
-    elif message_type == "save-settings":
-        logger.info("Received settings from frontend to save.")
+    elif message_type == "update-settings":
+        logger.info("Received settings from frontend to update.")
         try:
             async with settings_lock:
                 new_config_data = message_data.get("payload", {})
 
-                # Merge with existing settings to preserve api_key
+                # Merge with existing settings to preserve fields not sent by frontend
                 merged_data = {**config.settings.model_dump(), **new_config_data}
                 validated_config = AppConfig(**merged_data)
 
+                # Reload the API key for the newly selected provider
+                config.load_api_key_for_provider(validated_config)
+
+                # Update the global settings object in-memory
+                config.settings = validated_config
+
+                # Update the agent's config
+                async with agent_lock:
+                    if agent:
+                        agent.update_config(validated_config)
+
+                # Asynchronously write the updated config to file
                 config_dir = get_config_dir()
                 config_file = config_dir / CONFIG_FILE_NAME
                 config_dir.mkdir(parents=True, exist_ok=True)
 
                 def write_config():
                     with open(config_file, "w", encoding="utf-8") as f:
-                        # Save the validated data, excluding the runtime api_key
                         config_to_save = validated_config.model_dump(
                             exclude={"api_key"}
                         )
@@ -250,45 +262,19 @@ async def _handle_message(
 
                 await asyncio.to_thread(write_config)
 
-                # Update the global settings object with the new, validated instance
-                config.settings = validated_config
-
-                # Wait for all active queries to complete before reinitializing
-                wait_timeout = 60  # seconds
-                try:
-                    await asyncio.wait_for(
-                        active_queries_done.wait(), timeout=wait_timeout
-                    )
-                except asyncio.TimeoutError as exc:
-                    async with active_queries_lock:
-                        raise TimeoutError(
-                            f"Timed out waiting for {active_queries} "
-                            f"active queries to complete"
-                        ) from exc
-
-                # Re-initialize the agent with the new settings
-                # Hold agent_lock to prevent new queries from starting during reinit
-                async with agent_lock:
-                    # pylint: disable=global-statement
-                    global agent
-                    agent = Agent(config.settings)
-
-            logger.info("Successfully saved new settings to %s", config_file)
-
+            logger.info("Successfully updated settings.")
             response = {
-                "type": "settings-saved",
+                "type": "settings-updated",
                 "id": message_id,
-                "payload": {"message": "Settings saved successfully"},
+                "payload": {"message": "Settings updated successfully"},
             }
             await websocket.send(json.dumps(response))
-        # pylint: disable=broad-exception-caught
-        except Exception as e:
-            logger.error("Failed to save settings: %s", e, exc_info=True)
-
+        except (ValueError, ValidationError, yaml.YAMLError, OSError) as e:
+            logger.error("Failed to update settings: %s", e, exc_info=True)
             response = {
                 "type": "error",
                 "id": message_id,
-                "payload": {"message": f"Failed to save settings: {str(e)}"},
+                "payload": {"message": f"Failed to update settings: {str(e)}"},
             }
             await websocket.send(json.dumps(response))
     else:
@@ -337,7 +323,10 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
 
                 # Stricter validation for messages that require a payload
 
-                if data["type"] in ["query", "save-settings"] and "payload" not in data:
+                if (
+                    data["type"] in ["query", "update-settings"]
+                    and "payload" not in data
+                ):
                     raise KeyError(
                         f"Message type '{data['type']}' missing required key: payload"
                     )

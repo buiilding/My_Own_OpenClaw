@@ -28,12 +28,35 @@ ONLINE_MODELS = {
         "claude-3-opus",  # older, high-quality [web:6]
         "claude-3-haiku",  # cost-efficient variant [web:10]
     ],
-    "google": [
-        "gemini-2.5-pro",  # newest flagship [web:6]
-        "gemini-2.0-flash-lite",  # fast, lightweight [web:6]
-        "gemini-2.0-pro",  # high performance [web:6]
-        "gemini-1.5-pro",  # established release [web:6]
-        "gemma-7b",  # open source [web:6]
+    "gemini": [
+        # Text-out models
+        "gemini-2.5-pro",  # newest flagship
+        "gemini-2.5-flash",  # fast, high-throughput
+        "gemini-2.5-flash-lite",  # lightweight variant
+        "gemini-2.0-flash-lite",  # previous generation lightweight
+        "gemini-2.0-flash-exp",  # experimental variant
+        "gemini-2.0-flash",  # previous generation flash model
+        # Other models
+        "computer-use-preview",  # computer use capabilities
+        "gemini-robotics-er-1.5-preview",  # robotics model
+        # Multi-modal generative models
+        "gemini-2.0-flash-preview-image-generation",  # image generation preview
+        "gemini-2.5-flash-preview-image",  # image generation
+        "gemini-2.5-flash-tts",  # text-to-speech
+        "gemini-2.5-pro-tts",  # pro text-to-speech
+        "imagen-3.0-generate",  # Imagen 3.0 image generation
+        "imagen-4.0-fast-generate",  # Imagen 4.0 fast variant
+        "imagen-4.0-generate",  # Imagen 4.0 standard
+        "imagen-4.0-ultra-generate",  # Imagen 4.0 ultra
+        "veo-2.0-generate-001",  # Veo 2.0 video generation
+        "veo-3.0-fast-generate-preview",  # Veo 3.0 fast preview
+        "veo-3.0-fast-generate",  # Veo 3.0 fast
+        "veo-3.0-generate-preview",  # Veo 3.0 preview
+        "veo-3.0-generate",  # Veo 3.0 standard
+        # Live API models
+        "gemini-2.0-flash-live",  # live API 2.0
+        "gemini-2.5-flash-live",  # live API 2.5
+        "gemini-2.5-flash-native-audio-dialog",  # native audio dialog
     ],
     "meta": [
         "llama-4-scout",  # latest open-source release [web:6][web:9]
