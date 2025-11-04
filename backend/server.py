@@ -117,52 +117,54 @@ async def _handle_message(
                 async with agent_lock:
                     if not agent:
                         raise RuntimeError("Agent not initialized")
-                    async for event in agent.process_query(query_text):
-                        # Check if client disconnected before processing event
-                        if websocket.closed:
-                            logger.info("Client disconnected during streaming")
-                            break
+                    agent_instance = agent
 
-                        if event["type"] == "thinking":
-                            response = {
-                                "type": "llm-thought",
-                                "id": message_id,
-                                "payload": {"status": event["content"]},
-                            }
-                        elif event["type"] == "chunk":
-                            response = {
-                                "type": "streaming-response",
-                                "id": message_id,
-                                "payload": {"text": event["content"]},
-                            }
-                        else:
-                            # This case should ideally not be reached
-                            logger.warning(
-                                "Unknown event type from agent: %s", event.get("type")
-                            )
-                            continue
-
-                        try:
-                            await websocket.send(json.dumps(response))
-                        except ConnectionClosed:
-                            logger.info("Client disconnected during streaming")
-                            break
-
-                    # Check if client disconnected before sending end-of-stream marker
-                    if not websocket.closed:
-                        # Send end-of-stream marker
-                        response = {
-                            "type": "streaming-complete",
-                            "id": message_id,
-                            "payload": {},
-                        }
-                        try:
-                            await websocket.send(json.dumps(response))
-                            logger.info("Query completed successfully")
-                        except ConnectionClosed:
-                            logger.info("Client disconnected during streaming")
-                    else:
+                async for event in agent_instance.process_query(query_text):
+                    # Check if client disconnected before processing event
+                    if websocket.closed:
                         logger.info("Client disconnected during streaming")
+                        break
+
+                    if event["type"] == "thinking":
+                        response = {
+                            "type": "llm-thought",
+                            "id": message_id,
+                            "payload": {"status": event["content"]},
+                        }
+                    elif event["type"] == "chunk":
+                        response = {
+                            "type": "streaming-response",
+                            "id": message_id,
+                            "payload": {"text": event["content"]},
+                        }
+                    else:
+                        # This case should ideally not be reached
+                        logger.warning(
+                            "Unknown event type from agent: %s", event.get("type")
+                        )
+                        continue
+
+                    try:
+                        await websocket.send(json.dumps(response))
+                    except ConnectionClosed:
+                        logger.info("Client disconnected during streaming")
+                        break
+
+                # Check if client disconnected before sending end-of-stream marker
+                if not websocket.closed:
+                    # Send end-of-stream marker
+                    response = {
+                        "type": "streaming-complete",
+                        "id": message_id,
+                        "payload": {},
+                    }
+                    try:
+                        await websocket.send(json.dumps(response))
+                        logger.info("Query completed successfully")
+                    except ConnectionClosed:
+                        logger.info("Client disconnected during streaming")
+                else:
+                    logger.info("Client disconnected during streaming")
 
             # Run the streaming task with a 5-minute timeout
             await asyncio.wait_for(stream_query_with_timeout(), timeout=300)

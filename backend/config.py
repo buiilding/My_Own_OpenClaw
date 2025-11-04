@@ -126,6 +126,9 @@ class AppConfig(BaseModel):
     # Provider name for the selected model (used for API key lookup)
     model_provider: str = "openai"
 
+    # Timeout for LLM requests in seconds
+    llm_timeout: int = 300
+
     # Legacy fields for backward compatibility
     active_provider: Literal[
         "openai", "anthropic", "ollama", "openrouter", "mistral", "gemini"
@@ -151,13 +154,16 @@ class AppConfig(BaseModel):
             return model_id
 
         # Online models prefixing
-        if provider == "gemini":
-            # Ensure we don't double-prefix
-            return (
-                f"gemini/{model_id}" if not model_id.startswith("gemini/") else model_id
-            )
-        if provider == "openrouter" and not model_id.startswith("openrouter/"):
-            return f"openrouter/{model_id}"
+        provider_prefixes = {
+            "gemini": "gemini/",
+            "openrouter": "openrouter/",
+            "anthropic": "anthropic/",
+            "mistral": "mistral/",
+        }
+
+        prefix = provider_prefixes.get(provider)
+        if prefix and not model_id.startswith(prefix):
+            return f"{prefix}{model_id}"
 
         return model_id
 
@@ -241,8 +247,13 @@ def load_config() -> AppConfig:
                 "Migrating legacy 'google' active_provider to 'gemini' in config."
             )
             config_data["active_provider"] = "gemini"
+        if config_data and "llm_providers" in config_data:
+            if "google" in config_data["llm_providers"]:
+                logger.info("Migrating legacy 'google' provider config to 'gemini'.")
+                config_data["llm_providers"]["gemini"] = config_data[
+                    "llm_providers"
+                ].pop("google")
         # --- END MIGRATION LOGIC ---
-
         try:
             config = AppConfig(**config_data)
         except ValidationError as e:

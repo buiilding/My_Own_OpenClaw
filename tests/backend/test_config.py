@@ -32,7 +32,6 @@ def mock_config_dir(tmp_path):
 @pytest.mark.skipif(os.name != "nt", reason="Test is for Windows paths only")
 def test_get_config_dir_windows(monkeypatch):
     """Test that the correct config dir is returned on Windows."""
-    monkeypatch.setattr(os, 'name', 'nt')
     monkeypatch.setenv("APPDATA", "C:\\Users\\TestUser\\AppData\\Roaming")
     expected_path = Path("C:\\Users\\TestUser\\AppData\\Roaming\\DesktopAssistant")
     assert get_config_dir() == expected_path
