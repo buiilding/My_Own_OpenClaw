@@ -2,7 +2,7 @@ import logging
 import os
 import platform
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -122,6 +122,9 @@ class AppConfig(BaseModel):
     selected_model_id: str = "gpt-4o"
     llm_timeout: int = 300
     query_timeout: int = 600  # New field for query timeout
+
+    # Shell Tool Settings
+    allowed_shell_commands: List[str] = Field(default_factory=lambda: ["echo", "pwd", "whoami", "date", "ls", "dir", "cat", "type"])
 
     # Provider Configurations
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
@@ -373,6 +376,29 @@ class FileService:
 
         return False
 
+    def filter_files_with_report(
+        self, relative_paths: List[str], filtering_options: Dict[str, Any]
+    ) -> tuple[List[str], int]:
+        """Filter files based on filtering options and return report.
+
+        Args:
+            relative_paths: List of relative file paths to filter
+            filtering_options: Dict with filtering options like 'respect_git_ignore', 'respect_gemini_ignore'
+
+        Returns:
+            Tuple of (filtered_paths, ignored_count)
+        """
+        filtered_paths = []
+        ignored_count = 0
+
+        for path in relative_paths:
+            if self.should_ignore_file(path, filtering_options):
+                ignored_count += 1
+            else:
+                filtered_paths.append(path)
+
+        return filtered_paths, ignored_count
+
 
 class StorageService:
     """Service for storage operations."""
@@ -420,6 +446,14 @@ class AppServices:
         if self._storage is None:
             self._storage = StorageService()
         return self._storage
+
+    def get_allowed_tools(self) -> List[str]:
+        """Get the list of allowed shell commands."""
+        return self.config.allowed_shell_commands
+
+    def get_shell_timeout(self) -> float:
+        """Get the shell command timeout in seconds."""
+        return 30.0  # Default timeout for shell commands
 
 
 # To run this, you would execute `python -m backend.config` and it would

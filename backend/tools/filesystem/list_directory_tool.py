@@ -149,9 +149,10 @@ class ListDirectoryTool(Tool):
             logger.info(f"ListDirectory: Filtering options: {filtering_options}")
 
             # Convert to relative paths for filtering
-            logger.info(f"ListDirectory: Target dir: {self.config.get_target_dir()}")
+            target_dir = self.config.get_workspace_context().workspace_path
+            logger.info(f"ListDirectory: Target dir: {target_dir}")
             relative_paths = [
-                make_relative_path(p, self.config.get_target_dir()) for p in full_paths
+                make_relative_path(p, target_dir) for p in full_paths
             ]
             logger.info(f"ListDirectory: Relative paths: {relative_paths}")
 
@@ -167,7 +168,7 @@ class ListDirectoryTool(Tool):
             filtered_full_paths = []
             for full_path in full_paths:
                 relative_path = make_relative_path(
-                    full_path, self.config.get_target_dir()
+                    full_path, target_dir
                 )
                 if relative_path in filtered_paths:
                     # Check ignore patterns

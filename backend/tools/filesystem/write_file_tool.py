@@ -52,6 +52,9 @@ class WriteFileTool(Tool):
                     return_display="File path must be absolute",
                 )
 
+            # Get target directory for relative path resolution
+            target_dir = self.config.get_workspace_context().workspace_path
+
             # Check if path is within workspace
             workspace_context = self.config.get_workspace_context()
             if not workspace_context.is_path_within_workspace(file_path):
@@ -106,7 +109,7 @@ class WriteFileTool(Tool):
                     "content_length": len(content),
                 },
                 llm_content=llm_content,
-                return_display=f"{'Created' if is_new_file else 'Updated'} file: {shorten_path(make_relative_path(file_path, self.config.get_target_dir()))}",
+                return_display=f"{'Created' if is_new_file else 'Updated'} file: {shorten_path(make_relative_path(file_path, target_dir))}",
             )
 
         except Exception as e:
