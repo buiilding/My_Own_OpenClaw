@@ -86,7 +86,9 @@ class SearchFileContentTool(Tool):
                 )
 
             # Perform search
-            matches = await self._perform_search(search_dir, pattern, include, target_dir)
+            matches = await self._perform_search(
+                search_dir, pattern, include, target_dir
+            )
 
             if not matches:
                 search_location = f'in path "{path}"' if path else "in workspace"
@@ -194,7 +196,9 @@ class SearchFileContentTool(Tool):
 
             if process.returncode in [0, 1]:  # 0 = matches found, 1 = no matches
                 if process.returncode == 0:
-                    return self._parse_grep_output(stdout.decode(), search_dir, target_dir)
+                    return self._parse_grep_output(
+                        stdout.decode(), search_dir, target_dir
+                    )
                 else:
                     return []  # No matches
             else:
@@ -235,9 +239,7 @@ class SearchFileContentTool(Tool):
 
         for file_path in file_paths:
             if os.path.isfile(file_path):
-                relative_path = make_relative_path(
-                    file_path, target_dir
-                )
+                relative_path = make_relative_path(file_path, target_dir)
                 filtering_options = {
                     "respect_git_ignore": True,
                     "respect_gemini_ignore": True,
@@ -260,9 +262,7 @@ class SearchFileContentTool(Tool):
                         if regex.search(line):
                             matches.append(
                                 GrepMatch(
-                                    file_path=make_relative_path(
-                                        file_path, target_dir
-                                    ),
+                                    file_path=make_relative_path(file_path, target_dir),
                                     line_number=line_num,
                                     line=line,
                                 )
@@ -287,7 +287,9 @@ class SearchFileContentTool(Tool):
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
 
-    def _parse_grep_output(self, output: str, search_dir: str, target_dir: str) -> List[GrepMatch]:
+    def _parse_grep_output(
+        self, output: str, search_dir: str, target_dir: str
+    ) -> List[GrepMatch]:
         """Parse grep output into GrepMatch objects."""
         matches = []
 
@@ -305,9 +307,7 @@ class SearchFileContentTool(Tool):
 
                     # Convert to relative path
                     abs_path = os.path.join(search_dir, file_path)
-                    rel_path = make_relative_path(
-                        abs_path, target_dir
-                    )
+                    rel_path = make_relative_path(abs_path, target_dir)
 
                     matches.append(
                         GrepMatch(
