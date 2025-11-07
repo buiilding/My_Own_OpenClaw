@@ -201,5 +201,3 @@ def get_llm_client(cfg: AppConfig = None) -> LLMClient:
 
 # The example usage main() function has been removed to resolve a pylint C0415 error
 # and because it is not part of the main application logic.
-
-

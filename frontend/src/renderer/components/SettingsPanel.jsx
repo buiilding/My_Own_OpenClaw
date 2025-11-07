@@ -44,21 +44,20 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
   const [modelMode, setModelMode] = useState('online');
   const [selectedModelId, setSelectedModelId] = useState('');
   const [selectedProvider, setSelectedProvider] = useState('');
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [modelResetWarning, setModelResetWarning] = useState('');
 
   useEffect(() => {
     if (config) {
       setModelMode(config.model_mode || 'online');
       setSelectedModelId(config.selected_model_id || '');
       setSelectedProvider(config.model_provider || '');
-      setIsInitialized(true);
     }
   }, [config]);
 
   // This effect is now responsible for reporting changes up to the parent component.
-  // Only sync changes after initialization to prevent unnecessary updates on first load.
+  // Only update config after availableModels are loaded to prevent invalid model selections
   useEffect(() => {
-    if (!config || !isInitialized) return;
+    if (!config || availableModels.local.length === 0 && availableModels.online.length === 0) return;
 
     const updatedConfig = {
       ...config,
@@ -72,7 +71,7 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
     if (JSON.stringify(updatedConfig) !== JSON.stringify(config)) {
       onConfigChange(updatedConfig);
     }
-  }, [modelMode, selectedModelId, selectedProvider, config, onConfigChange, isInitialized]);
+  }, [modelMode, selectedModelId, selectedProvider, config, onConfigChange, availableModels]);
 
   const isSaving = saveStatus === 'saving';
 
@@ -81,15 +80,39 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
     ? availableModels.local
     : availableModels.online;
 
-  // Find the selected model to get its provider if not set
+  // Find the selected model to get its provider if not set, but only after models are loaded
   useEffect(() => {
-    if (selectedModelId) {
+    // Only validate after availableModels are loaded
+    if (availableModels.local.length === 0 && availableModels.online.length === 0) return;
+
+    if (selectedModelId && currentModels.length > 0) {
       const model = currentModels.find(m => m.id === selectedModelId);
-      if (model && model.provider !== selectedProvider) {
-        setSelectedProvider(model.provider);
+      if (model) {
+        // Model exists, update provider if needed
+        if (model.provider !== selectedProvider) {
+          setSelectedProvider(model.provider);
+        }
+      } else {
+        // Model doesn't exist in available models, reset to first available model
+        const warningMsg = `Selected model "${selectedModelId}" is not available. Resetting to default.`;
+        console.warn(warningMsg);
+        setModelResetWarning(warningMsg);
+
+        if (currentModels.length > 0) {
+          const defaultModel = currentModels[0];
+          setSelectedModelId(defaultModel.id);
+          setSelectedProvider(defaultModel.provider);
+        } else {
+          // No models available, reset to empty
+          setSelectedModelId('');
+          setSelectedProvider('');
+        }
+
+        // Clear warning after 5 seconds
+        setTimeout(() => setModelResetWarning(''), 5000);
       }
     }
-  }, [selectedModelId, currentModels, selectedProvider]);
+  }, [selectedModelId, currentModels, selectedProvider, availableModels]);
 
   if (!config) {
     return <div>Loading settings...</div>;
@@ -98,6 +121,19 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
   return (
     <div className="settings-panel">
       <h2>Settings</h2>
+      {modelResetWarning && (
+        <div className="model-reset-warning" style={{
+          backgroundColor: '#fef3c7',
+          border: '1px solid #f59e0b',
+          borderRadius: '4px',
+          padding: '8px 12px',
+          marginBottom: '16px',
+          color: '#92400e',
+          fontSize: '14px'
+        }}>
+          ⚠️ {modelResetWarning}
+        </div>
+      )}
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="form-group">
           <label>Model Mode</label>

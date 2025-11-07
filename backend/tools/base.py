@@ -7,9 +7,9 @@ including async support, error handling, and tool chaining capabilities.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 # Import schema generator for automatic schema generation
 try:
@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class Kind(Enum):
     """Enumeration of tool types for categorization and permissions."""
+
     READ = "read"
     EDIT = "edit"
     DELETE = "delete"
@@ -41,6 +42,7 @@ MUTATOR_KINDS = {Kind.EDIT, Kind.DELETE, Kind.MOVE, Kind.EXECUTE}
 @dataclass
 class ToolResult:
     """Result of a tool execution."""
+
     success: bool
     data: Any = None
     error: Optional[str] = None
@@ -56,6 +58,7 @@ class ToolResult:
 @dataclass
 class ToolContext:
     """Context information for tool execution."""
+
     parsed_response: Optional[Any] = None
     working_directory: Optional[str] = None
     environment: Optional[Dict[str, str]] = None
@@ -66,6 +69,7 @@ class ToolContext:
 @dataclass
 class ToolLocation:
     """Represents a file system location affected by a tool."""
+
     path: str
     line: Optional[int] = None
 
@@ -107,11 +111,7 @@ class Tool(ABC):
         return self._kind
 
     @abstractmethod
-    async def execute_async(
-        self,
-        context: ToolContext,
-        **kwargs
-    ) -> ToolResult:
+    async def execute_async(self, context: ToolContext, **kwargs) -> ToolResult:
         """
         Execute the tool asynchronously.
 
@@ -172,7 +172,7 @@ class Tool(ABC):
             "description": self.description,
             "kind": self.kind.value,
             "parameters": {},
-            "requires_context": False
+            "requires_context": False,
         }
 
     def get_schema(self) -> Dict[str, Any]:
@@ -190,24 +190,20 @@ class Tool(ABC):
         if generate_tool_schema is not None:
             try:
                 # Use the execute_async method for schema generation
-                if hasattr(self, 'execute_async'):
+                if hasattr(self, "execute_async"):
                     return generate_tool_schema(
-                        self.execute_async,
-                        self.name,
-                        self.description
+                        self.execute_async, self.name, self.description
                     )
             except Exception as e:
-                logger.warning(f"Failed to generate schema automatically for {self.name}: {e}")
+                logger.warning(
+                    f"Failed to generate schema automatically for {self.name}: {e}"
+                )
 
         # Fallback to empty schema
         return {
             "name": self.name,
             "description": self.description,
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
+            "parameters": {"type": "object", "properties": {}, "required": []},
         }
 
 
@@ -262,7 +258,7 @@ class ToolBuilder(ABC):
         pass
 
     @abstractmethod
-    def build(self, params: Dict[str, Any]) -> 'ToolInvocation':
+    def build(self, params: Dict[str, Any]) -> "ToolInvocation":
         """
         Validates raw parameters and builds a ready-to-execute invocation.
 
@@ -280,6 +276,7 @@ class ToolInvocation:
     """
     A validated and ready-to-execute tool call.
     """
+
     params: Dict[str, Any]
     tool: Tool
     context: ToolContext
@@ -315,9 +312,7 @@ class ToolChain:
         self.tools = tools
 
     async def execute_chain(
-        self,
-        initial_context: ToolContext,
-        **initial_kwargs
+        self, initial_context: ToolContext, **initial_kwargs
     ) -> List[ToolResult]:
         """
         Execute the tool chain.
@@ -340,7 +335,7 @@ class ToolChain:
                 if validation_errors:
                     result = ToolResult(
                         success=False,
-                        error=f"Parameter validation failed: {', '.join(validation_errors)}"
+                        error=f"Parameter validation failed: {', '.join(validation_errors)}",
                     )
                 else:
                     result = await tool.execute_async(current_context, **current_kwargs)
@@ -358,8 +353,7 @@ class ToolChain:
             except Exception as e:
                 logger.exception(f"Tool chain execution failed on {tool.name}")
                 result = ToolResult(
-                    success=False,
-                    error=f"Exception in {tool.name}: {str(e)}"
+                    success=False, error=f"Exception in {tool.name}: {str(e)}"
                 )
                 results.append(result)
                 break
@@ -382,7 +376,7 @@ def create_tool_registry() -> Dict[str, Tool]:
 def validate_tool_permissions(
     tool: Tool,
     user_permissions: List[str],
-    required_permissions: Optional[List[str]] = None
+    required_permissions: Optional[List[str]] = None,
 ) -> bool:
     """
     Validate that the user has permission to use a tool.

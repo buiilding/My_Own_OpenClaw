@@ -14,7 +14,7 @@ from backend.agent.llm_client import get_llm_client
 from backend.agent.response_parser import ResponseParser
 from backend.agent.tool_orchestrator import ToolOrchestrator
 from backend.config import AppConfig, settings
-from backend.tools.tool_registry import create_tool_registry, ToolRegistry
+from backend.tools.tool_registry import ToolRegistry, create_tool_registry
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,9 @@ MAX_TOOL_ITERATIONS = 5
 class Agent:
     """The main agent class for orchestrating tasks with tool support."""
 
-    def __init__(self, cfg: AppConfig = settings, tool_registry: Optional[ToolRegistry] = None) -> None:
+    def __init__(
+        self, cfg: AppConfig = settings, tool_registry: Optional[ToolRegistry] = None
+    ) -> None:
         """Initializes the agent."""
         self.cfg = cfg
         self.llm_client = get_llm_client(self.cfg)
@@ -98,8 +100,10 @@ class Agent:
             tool_schemas = self.tool_registry.get_function_declarations()
             if tool_schemas:
                 logger.info(f"Sending {len(tool_schemas)} tool schemas to LLM")
-                system_content += "\n\nAvailable Tools:\n" + json.dumps(tool_schemas, indent=2)
-                system_content += "\n\nTOOL USAGE: When you need to use tools, call them using function syntax: tool_name(param=\"value\")"
+                system_content += "\n\nAvailable Tools:\n" + json.dumps(
+                    tool_schemas, indent=2
+                )
+                system_content += '\n\nTOOL USAGE: When you need to use tools, call them using function syntax: tool_name(param="value")'
             else:
                 logger.warning("No tool schemas available to send to LLM")
 
@@ -135,6 +139,11 @@ class Agent:
         """
         await self._lock.acquire()
         try:
+            # Validate that we have a valid model before proceeding
+            if not self.cfg.selected_model_id:
+                error_msg = "No model selected. Please select a model in settings."
+                yield {"type": "thinking", "content": error_msg}
+                return
             # Add user query to history
             self.history.append({"role": "user", "content": query})
 
@@ -171,7 +180,9 @@ class Agent:
                     break
 
                 # Parse response for tool calls
-                logger.info(f"LLM Response for parsing (iteration {iteration}, first 500 chars): {llm_response[:500]}...")
+                logger.info(
+                    f"LLM Response for parsing (iteration {iteration}, first 500 chars): {llm_response[:500]}..."
+                )
                 if len(llm_response) > 500:
                     logger.info(f"LLM Response continues: {llm_response[500:1000]}...")
                 parsed_response = self.response_parser.parse_response(llm_response)
@@ -185,22 +196,32 @@ class Agent:
                             valid_tool_calls.append(call)
                         else:
                             invalid_calls.append(call.tool_name)
-                            logger.warning(f"Ignoring invalid tool call: {call.tool_name} (tool not found)")
+                            logger.warning(
+                                f"Ignoring invalid tool call: {call.tool_name} (tool not found)"
+                            )
 
                     # If we had some invalid calls, inform the LLM about the mistake
                     if invalid_calls:
                         if not valid_tool_calls:
                             # All calls were invalid - likely a format error
                             error_msg = f"I tried to call tools {invalid_calls} but those tool names don't exist. I should use one of the available tools from the list above. Let me try again with the correct format."
-                            self.history.append({"role": "system", "content": error_msg})
-                            logger.info(f"Added error message to history for invalid tools {invalid_calls}, continuing loop for retry")
+                            self.history.append(
+                                {"role": "system", "content": error_msg}
+                            )
+                            logger.info(
+                                f"Added error message to history for invalid tools {invalid_calls}, continuing loop for retry"
+                            )
                             # Continue the loop to let LLM try again
                             continue
                         else:
                             # Some calls were invalid but some were valid - warn but continue
                             warning_msg = f"I tried to call some invalid tools {invalid_calls} that don't exist. I'll ignore those and proceed with the valid tool calls."
-                            self.history.append({"role": "system", "content": warning_msg})
-                            logger.info(f"Some invalid tools {invalid_calls} were ignored, proceeding with valid calls")
+                            self.history.append(
+                                {"role": "system", "content": warning_msg}
+                            )
+                            logger.info(
+                                f"Some invalid tools {invalid_calls} were ignored, proceeding with valid calls"
+                            )
 
                     parsed_response.tool_calls = valid_tool_calls
                     parsed_response.has_tool_calls = len(valid_tool_calls) > 0
@@ -209,20 +230,33 @@ class Agent:
                     # Check if the response looks like it was trying to make a tool call but failed
                     response_lower = llm_response.lower()
                     # Only detect truly malformed/generic patterns, not legitimate tool calls with formatting
-                    looks_like_tool_attempt = any(phrase in response_lower for phrase in [
-                        'tool_name(parameter=', 'tool_name(name=', 'tool_name=tool_call(',
-                        'function_name(', 'tool_call({"', 'example_tool(',
-                        'generic_tool(', 'placeholder_function(',
-                        '"functioncall":', '"tool":', '"call":',  # Malformed JSON keys
-                        'function_call(', 'tool-call('  # Wrong naming
-                    ])
+                    looks_like_tool_attempt = any(
+                        phrase in response_lower
+                        for phrase in [
+                            "tool_name(parameter=",
+                            "tool_name(name=",
+                            "tool_name=tool_call(",
+                            "function_name(",
+                            'tool_call({"',
+                            "example_tool(",
+                            "generic_tool(",
+                            "placeholder_function(",
+                            '"functioncall":',
+                            '"tool":',
+                            '"call":',  # Malformed JSON keys
+                            "function_call(",
+                            "tool-call(",  # Wrong naming
+                        ]
+                    )
 
                     if looks_like_tool_attempt and iteration == 1:
                         # This looks like a malformed tool call attempt
                         example_format = '{"functionCall": {"name": "read_file", "args": {"path": "/path/to/file.txt"}}}'
                         error_msg = f"I tried to call a tool but used the wrong format. I should use the exact JSON syntax shown in the examples above, like: {example_format}. Let me try again."
                         self.history.append({"role": "system", "content": error_msg})
-                        logger.info("Detected malformed tool call attempt, added error message and continuing for retry")
+                        logger.info(
+                            "Detected malformed tool call attempt, added error message and continuing for retry"
+                        )
                         continue
                     else:
                         # No tool calls found, this is the final response
@@ -230,10 +264,17 @@ class Agent:
                         break
 
                 # Tool calls found - execute them
-                yield {"type": "thinking", "content": f"Executing {len(parsed_response.tool_calls)} tool(s)..."}
+                yield {
+                    "type": "thinking",
+                    "content": f"Executing {len(parsed_response.tool_calls)} tool(s)...",
+                }
 
                 try:
-                    orchestration_result = await self.tool_orchestrator.execute_tools_from_response(parsed_response)
+                    orchestration_result = (
+                        await self.tool_orchestrator.execute_tools_from_response(
+                            parsed_response
+                        )
+                    )
 
                     # Report tool execution results
                     yield {
@@ -244,17 +285,20 @@ class Agent:
                                 "tool": result.tool_call.tool_name,
                                 "success": result.success,
                                 "execution_time": result.execution_time,
-                                "output": result.result.llm_content
+                                "output": result.result.llm_content,
                             }
                             for result in orchestration_result.tool_results
-                        ]
+                        ],
                     }
 
                     # Add tool results to conversation history
                     for result in orchestration_result.tool_results:
                         if result.success:
                             # Different feedback based on tool type
-                            terminal_tools = {'write_file', 'run_shell_command'}  # Tools that typically complete the task
+                            terminal_tools = {
+                                "write_file",
+                                "run_shell_command",
+                            }  # Tools that typically complete the task
                             if result.tool_call.tool_name in terminal_tools:
                                 tool_message = f"✅ TOOL EXECUTED SUCCESSFULLY: {result.tool_call.tool_name}\n\n📄 RESULT:\n{result.result.llm_content}\n\n🎯 TASK COMPLETE: The {result.tool_call.tool_name} operation finished successfully. The user's request has been fulfilled - provide your final response to confirm completion."
                             else:
@@ -265,15 +309,23 @@ class Agent:
 
                     # Check if all tools succeeded
                     if not orchestration_result.all_successful:
-                        yield {"type": "thinking", "content": "Some tools failed. Providing response with available results."}
+                        yield {
+                            "type": "thinking",
+                            "content": "Some tools failed. Providing response with available results.",
+                        }
                         final_response = f"I encountered some issues while executing tools: {orchestration_result.summary}"
                         break
 
                     # Continue the loop - let LLM decide what to do next based on tool results
 
                 except Exception as e:
-                    yield {"type": "thinking", "content": f"Tool execution failed: {str(e)}"}
-                    final_response = f"I encountered an error while executing tools: {str(e)}"
+                    yield {
+                        "type": "thinking",
+                        "content": f"Tool execution failed: {str(e)}",
+                    }
+                    final_response = (
+                        f"I encountered an error while executing tools: {str(e)}"
+                    )
                     break
 
             # Store final response in history
@@ -284,7 +336,9 @@ class Agent:
         finally:
             self._lock.release()
 
-    async def execute_tool_directly(self, tool_name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute_tool_directly(
+        self, tool_name: str, parameters: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Execute a tool directly without going through the LLM.
 
@@ -300,7 +354,7 @@ class Agent:
             "tool_name": tool_name,
             "success": result.success,
             "result": result.result,
-            "execution_time": result.execution_time
+            "execution_time": result.execution_time,
         }
 
     def get_available_tools(self) -> List[Dict[str, Any]]:
