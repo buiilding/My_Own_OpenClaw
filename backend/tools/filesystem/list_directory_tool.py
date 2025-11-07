@@ -41,7 +41,6 @@ class ListDirectoryTool(Tool):
             logger.info(
                 f"ListDirectory tool called with path: '{path}', ignore: {ignore}, file_filtering_options: {file_filtering_options}"
             )
-            path = path
             ignore = ignore or []
             file_filtering_options = file_filtering_options or {}
 

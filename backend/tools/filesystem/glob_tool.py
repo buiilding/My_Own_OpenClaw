@@ -1,13 +1,19 @@
 """
 Glob Tool.
 
-Tool for glob.
+Tool for finding files matching glob patterns.
 """
 
-from .data_structures import GlobEntry
-from backend.utils.file_utils import make_relative_path
-from pathlib import Path
+import logging
 import os
+from glob import glob as glob_module
+from pathlib import Path
+from typing import Any, Optional
+
+from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.utils.file_utils import make_relative_path
+
+from .data_structures import GlobEntry
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +40,6 @@ class GlobTool(Tool):
     ) -> ToolResult:
         """Execute the glob tool."""
         try:
-            pattern = pattern
-            path = path
             # case_sensitive = case_sensitive  # Reserved for future use
             respect_git_ignore = (
                 respect_git_ignore if respect_git_ignore is not None else True
@@ -170,5 +174,3 @@ class GlobTool(Tool):
                 llm_content=f"Error: Unexpected error: {str(e)}",
                 return_display="Unexpected error occurred",
             )
-
-

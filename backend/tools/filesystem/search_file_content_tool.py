@@ -1,15 +1,25 @@
 """
-Searchfilecontent Tool.
+Search File Content Tool.
 
-Tool for search file content.
+Tool for searching regex patterns within file contents.
 """
 
-from .data_structures import GrepMatch
-from backend.utils.file_utils import make_relative_path
 import asyncio
+import logging
 import os
 import re
 import subprocess
+from glob import glob as glob_module
+from typing import Any, List, Optional
+
+from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.utils.file_utils import (
+    is_text_file,
+    make_relative_path,
+    read_text_file_auto_encoding,
+)
+
+from .data_structures import GrepMatch
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +44,6 @@ class SearchFileContentTool(Tool):
     ) -> ToolResult:
         """Execute the search_file_content tool."""
         try:
-            pattern = pattern
-            path = path
-            include = include
-
             if not pattern:
                 return ToolResult(
                     success=False,
@@ -311,5 +317,3 @@ class SearchFileContentTool(Tool):
                     continue
 
         return matches
-
-

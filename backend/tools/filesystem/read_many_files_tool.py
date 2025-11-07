@@ -1,13 +1,21 @@
 """
-Readmanyfiles Tool.
+Read Many Files Tool.
 
-Tool for read many files.
+Tool for reading multiple files by paths/glob patterns.
 """
 
-from backend.utils.file_utils import detect_file_type, read_file_content, read_text_file_auto_encoding
-from backend.utils.file_utils import make_relative_path
+import logging
 import os
-import re
+from glob import glob as glob_module
+from typing import Any, Dict, List, Optional
+
+from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.utils.file_utils import (
+    FileType,
+    detect_file_type,
+    make_relative_path,
+    read_file_content,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +42,6 @@ class ReadManyFilesTool(Tool):
     ) -> ToolResult:
         """Execute the read_many_files tool."""
         try:
-            paths = paths
             include = include or []
             # exclude = exclude or []  # Reserved for future use
             # use_default_excludes = useDefaultExcludes if useDefaultExcludes is not None else True  # Reserved for future use
@@ -281,4 +288,3 @@ class ReadManyFilesTool(Tool):
                 llm_content=f"Error: Unexpected error: {str(e)}",
                 return_display="Unexpected error occurred",
             )
-

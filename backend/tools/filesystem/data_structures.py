@@ -37,7 +37,7 @@ class FileEntry:
             # Try to determine if it's a directory, but fall back to False if we can't
             try:
                 is_dir = path.is_dir()
-            except:
+            except OSError:
                 is_dir = False
             return cls(
                 name=path.name,

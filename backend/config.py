@@ -139,7 +139,6 @@ class AppConfig(BaseModel):
     # This field will hold the actual API key after it's loaded
     api_key: Optional[str] = Field(default=None, repr=False)
 
-
     def get_file_service(self):
         """Returns a file service object (placeholder for now)."""
 
@@ -297,7 +296,7 @@ def get_settings() -> AppConfig:
     This function loads and caches the settings on first access.
     Subsequent calls return the cached instance.
     """
-    if not hasattr(get_settings, '_settings'):
+    if not hasattr(get_settings, "_settings"):
         try:
             get_settings._settings = load_config()
         except Exception as e:
@@ -319,4 +318,3 @@ def reload_settings() -> AppConfig:
     except Exception as e:
         logging.critical("Could not reload configuration: %s", e)
         raise
-
