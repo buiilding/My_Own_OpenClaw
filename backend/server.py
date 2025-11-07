@@ -18,6 +18,7 @@ from websockets.server import WebSocketServerProtocol
 from backend import config
 from backend.agent.model_registry import get_all_models
 from backend.agent.orchestrator import Agent
+from backend.tools.tool_registry import create_tool_registry
 from backend.config import (
     CONFIG_FILE_NAME,
     AppConfig,
@@ -136,6 +137,15 @@ async def _handle_message(
                             "type": "streaming-response",
                             "id": message_id,
                             "payload": {"text": event["content"]},
+                        }
+                    elif event["type"] == "tool_execution":
+                        response = {
+                            "type": "tool-execution",
+                            "id": message_id,
+                            "payload": {
+                                "summary": event["content"],
+                                "results": event["results"]
+                            },
                         }
                     else:
                         # This case should ideally not be reached
@@ -382,10 +392,13 @@ async def main() -> None:
     # Initialize settings before anything else
     initialize_settings()
 
+    # Initialize tool registry
+    tool_registry = create_tool_registry(config.settings)
+
     # Make agent a global variable to be accessible in the handler
     # pylint: disable=global-statement
     global agent
-    agent = Agent(config.settings)
+    agent = Agent(config.settings, tool_registry)
 
     host = "0.0.0.0"  # Listen on all interfaces
     port = 8765

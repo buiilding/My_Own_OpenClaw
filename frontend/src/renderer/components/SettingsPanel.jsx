@@ -44,18 +44,21 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
   const [modelMode, setModelMode] = useState('online');
   const [selectedModelId, setSelectedModelId] = useState('');
   const [selectedProvider, setSelectedProvider] = useState('');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     if (config) {
       setModelMode(config.model_mode || 'online');
       setSelectedModelId(config.selected_model_id || '');
       setSelectedProvider(config.model_provider || '');
+      setIsInitialized(true);
     }
   }, [config]);
 
   // This effect is now responsible for reporting changes up to the parent component.
+  // Only sync changes after initialization to prevent unnecessary updates on first load.
   useEffect(() => {
-    if (!config) return;
+    if (!config || !isInitialized) return;
 
     const updatedConfig = {
       ...config,
@@ -69,7 +72,7 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
     if (JSON.stringify(updatedConfig) !== JSON.stringify(config)) {
       onConfigChange(updatedConfig);
     }
-  }, [modelMode, selectedModelId, selectedProvider, config, onConfigChange]);
+  }, [modelMode, selectedModelId, selectedProvider, config, onConfigChange, isInitialized]);
 
   const isSaving = saveStatus === 'saving';
 
@@ -214,3 +217,4 @@ SettingsPanel.defaultProps = {
 };
 
 export default SettingsPanel;
+
