@@ -176,14 +176,512 @@ Every tool includes a JSON manifest with:
 - **Error Handling**: Exceptions caught, serialized, returned to agent
 - **Logging**: All executions logged for auditing
 
-#### Tool Development
-Community developers can create tools by:
-1. Following tool schema specification
-2. Implementing required interface methods
-3. Writing tests
-4. Submitting for verification
-5. Tool gets reviewed for security and functionality
-6. Approved tools added to verified marketplace
+#### Automatic Schema Generation
+**✅ IMPLEMENTED**: Tools now use automatic JSON schema generation from Python type hints and function signatures.
+
+```python
+# Tool methods are defined with type hints:
+async def execute_async(
+    self,
+    context: ToolContext,
+    path: str,                    # Required parameter
+    offset: Optional[int] = None, # Optional parameter
+    limit: Optional[int] = None   # Optional parameter
+) -> ToolResult:
+    pass
+
+# Automatically generates schema:
+{
+  "name": "read_file",
+  "description": "...",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "path": {"type": "string", "description": "Parameter path"},
+      "offset": {"type": "number", "description": "(optional)"},
+      "limit": {"type": "number", "description": "(optional)"}
+    },
+    "required": ["path"]
+  }
+}
+```
+
+This eliminates manual schema maintenance and ensures schemas always match implementation.
+
+#### Tool Development Guide
+
+This section provides a comprehensive guide for developers who want to add new tools to the Desktop Assistant system. Whether you're adding built-in tools to the core system or creating community tools for the marketplace, follow this step-by-step guide.
+
+---
+
+### **Step 1: Choose Tool Location**
+
+**Built-in Tools** (for core functionality):
+- Location: `backend/tools/`
+- Example: `read_file`, `write_file`, `run_shell_command`
+- Requirements: High code quality, comprehensive tests, security review
+- Use Case: Essential functionality used by most users
+
+**Community Tools** (for marketplace):
+- Location: `tools/verified/` or `tools/community/`
+- Example: `weather_lookup`, `send_email`, `database_query`
+- Requirements: Security review, user confirmation for destructive operations
+- Use Case: Specialized functionality or third-party integrations
+
+---
+
+### **Step 2: Implement the Tool Class**
+
+All tools must inherit from the `Tool` base class and implement the required interface.
+
+#### **Basic Tool Structure**
+
+```python
+from backend.tools.base import Tool, ToolContext, ToolResult
+from typing import Optional
+
+class MyTool(Tool):
+    """Description of what this tool does."""
+
+    @property
+    def name(self) -> str:
+        return "my_tool"
+
+    @property
+    def description(self) -> str:
+        return "Brief description for the LLM to understand when to use this tool"
+
+    @property
+    def kind(self) -> Tool.Kind:
+        return Tool.Kind.FILESYSTEM  # or .SHELL, .WEB, .UTILITY, etc.
+
+    async def execute_async(
+        self,
+        context: ToolContext,
+        # Define your parameters with type hints
+        param1: str,
+        param2: Optional[int] = None
+    ) -> ToolResult:
+        """
+        Execute the tool's main functionality.
+
+        Args:
+            context: Tool execution context
+            param1: Description of parameter 1
+            param2: Description of parameter 2 (optional)
+
+        Returns:
+            ToolResult with success status and output
+        """
+        try:
+            # Your tool implementation here
+            result = perform_operation(param1, param2)
+
+            return ToolResult(
+                success=True,
+                llm_content=f"Operation completed successfully. Result: {result}",
+                return_display=f"Result: {result}"
+            )
+
+        except Exception as e:
+            return ToolResult(
+                success=False,
+                error=f"Tool execution failed: {str(e)}",
+                llm_content=f"Error: {str(e)}",
+                return_display=f"Failed: {str(e)}"
+            )
+```
+
+#### **Tool Kinds Available**
+
+```python
+class Tool.Kind(Enum):
+    FILESYSTEM = "filesystem"    # File operations (read, write, list, etc.)
+    SHELL = "shell"             # Command execution
+    WEB = "web"                 # Web requests, scraping
+    UTILITY = "utility"         # General utilities
+    AI = "ai"                   # AI/ML operations
+    SYSTEM = "system"           # System management
+```
+
+#### **Parameter Validation**
+
+Override `validate_parameters` for custom validation:
+
+```python
+def validate_parameters(self, **kwargs) -> list[str]:
+    """Validate tool parameters. Return list of error messages."""
+    errors = []
+
+    if 'required_param' not in kwargs:
+        errors.append("required_param is required")
+
+    if 'number_param' in kwargs and not isinstance(kwargs['number_param'], int):
+        errors.append("number_param must be an integer")
+
+    if 'file_path' in kwargs:
+        # Custom validation logic
+        if not os.path.exists(kwargs['file_path']):
+            errors.append("File does not exist")
+
+    return errors
+```
+
+---
+
+### **Step 3: Schema Generation (Automatic)**
+
+**✅ NO MANUAL WORK REQUIRED!** The system automatically generates JSON schemas from your type hints.
+
+```python
+# This automatically generates:
+{
+  "name": "my_tool",
+  "description": "Brief description...",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "param1": {"type": "string", "description": "(optional)"},
+      "param2": {"type": "number", "description": "(optional)"}
+    },
+    "required": ["param1"]  # Based on Optional[] vs required
+  }
+}
+```
+
+**Type Hint Examples:**
+```python
+# Required string
+param: str
+
+# Optional string with default
+param: Optional[str] = None
+
+# Required integer
+count: int
+
+# Optional list
+items: Optional[List[str]] = None
+
+# Union types
+value: Union[str, int]
+```
+
+---
+
+### **Step 4: Add Tool Capabilities (Optional)**
+
+Implement `get_capabilities()` for advanced tool features:
+
+```python
+def get_capabilities(self) -> Dict[str, Any]:
+    """Return tool capabilities for advanced features."""
+    return {
+        "kind": self.kind.value,
+        "confirmation_required": True,  # Requires user approval
+        "destructive": False,           # Can modify system state
+        "timeout_seconds": 30,          # Execution timeout
+        "supported_platforms": ["windows", "linux", "macos"]
+    }
+```
+
+---
+
+### **Step 5: Register the Tool**
+
+#### **For Built-in Tools:**
+Add to `backend/tools/tool_registry.py`:
+
+```python
+from backend.tools.my_tool import MyTool
+
+def _register_builtin_tools(self) -> None:
+    """Register all built-in tools."""
+    # ... existing tools ...
+    self.register_tool(MyTool(self.config))
+```
+
+#### **For Community Tools:**
+Create directory structure in `tools/verified/my_tool/`:
+```
+tools/verified/my_tool/
+├── manifest.json    # Tool metadata
+├── tool.py         # Tool implementation
+├── __init__.py     # Package marker
+└── README.md       # Documentation
+```
+
+---
+
+### **Step 6: Write Comprehensive Tests**
+
+Create test file in `tests/backend/test_my_tool.py`:
+
+```python
+"""Tests for MyTool."""
+
+import pytest
+from unittest.mock import AsyncMock, MagicMock
+
+from backend.config import AppConfig
+from backend.tools.base import ToolContext
+from backend.tools.my_tool import MyTool
+
+
+@pytest.fixture
+def mock_config():
+    """Create mock configuration."""
+    return MagicMock(spec=AppConfig)
+
+
+class TestMyTool:
+    """Test cases for MyTool."""
+
+    @pytest.mark.asyncio
+    async def test_successful_execution(self, mock_config):
+        """Test successful tool execution."""
+        tool = MyTool(mock_config)
+        context = ToolContext()
+
+        result = await tool.execute_async(
+            context=context,
+            param1="test_value",
+            param2=42
+        )
+
+        assert result.success is True
+        assert "successfully" in result.llm_content.lower()
+
+    @pytest.mark.asyncio
+    async def test_error_handling(self, mock_config):
+        """Test error handling."""
+        tool = MyTool(mock_config)
+        context = ToolContext()
+
+        result = await tool.execute_async(
+            context=context,
+            param1="invalid_value"
+        )
+
+        assert result.success is False
+        assert result.error is not None
+
+    def test_parameter_validation(self, mock_config):
+        """Test parameter validation."""
+        tool = MyTool(mock_config)
+
+        # Valid parameters
+        errors = tool.validate_parameters(param1="value")
+        assert len(errors) == 0
+
+        # Invalid parameters
+        errors = tool.validate_parameters()  # Missing required param
+        assert len(errors) > 0
+
+    def test_tool_properties(self, mock_config):
+        """Test tool metadata."""
+        tool = MyTool(mock_config)
+
+        assert tool.name == "my_tool"
+        assert tool.description is not None
+        assert len(tool.description) > 0
+
+    def test_schema_generation(self, mock_config):
+        """Test automatic schema generation."""
+        tool = MyTool(mock_config)
+        schema = tool.get_schema()
+
+        assert "name" in schema
+        assert "description" in schema
+        assert "parameters" in schema
+        assert schema["name"] == "my_tool"
+```
+
+---
+
+### **Step 7: Security Considerations**
+
+#### **Built-in Tool Security:**
+- ✅ **Workspace Validation**: Ensure file operations stay within allowed directories
+- ✅ **Command Allowlisting**: For shell tools, restrict allowed commands
+- ✅ **Timeout Protection**: All operations have configurable timeouts
+- ✅ **Resource Limits**: Prevent excessive CPU/memory usage
+
+#### **Community Tool Security:**
+- ⚠️ **Code Review**: All community tools undergo security review
+- ⚠️ **Sandboxing**: Tools run in isolated subprocesses
+- ⚠️ **Permission Declaration**: Tools must declare required permissions
+- ⚠️ **User Confirmation**: Destructive operations require user approval
+
+---
+
+### **Step 8: Memory Payload (Optional)**
+
+For tools that should store information in memory:
+
+```python
+async def execute_async(self, context: ToolContext, query: str) -> ToolResult:
+    result = perform_search(query)
+
+    return ToolResult(
+        success=True,
+        llm_content=f"Found {len(result.items)} items matching '{query}'",
+        return_display=f"Search results: {result.items}",
+        memory_payload={
+            "action": "Performed search",
+            "query": query,
+            "result_count": len(result.items),
+            "timestamp": datetime.now().isoformat(),
+            "search_type": "web"
+        }
+    )
+```
+
+---
+
+### **Step 9: Documentation**
+
+Create comprehensive documentation:
+
+```markdown
+# My Tool
+
+## Overview
+Brief description of what this tool does and when to use it.
+
+## Parameters
+- `param1` (string, required): Description
+- `param2` (integer, optional): Description
+
+## Examples
+- "Use my_tool to process data with param1='value'"
+- "Run my_tool on file with param2=10"
+
+## Security Notes
+Any security considerations or permission requirements.
+
+## Error Handling
+Common error conditions and how they're handled.
+```
+
+---
+
+### **Complete Example: Weather Tool**
+
+```python
+# backend/tools/weather_tool.py
+import aiohttp
+from backend.tools.base import Tool, ToolContext, ToolResult
+from typing import Optional
+
+class WeatherTool(Tool):
+    """Get current weather information for a location."""
+
+    @property
+    def name(self) -> str:
+        return "get_weather"
+
+    @property
+    def description(self) -> str:
+        return "Retrieve current weather conditions and forecast for a city or location"
+
+    @property
+    def kind(self) -> Tool.Kind:
+        return Tool.Kind.WEB
+
+    async def execute_async(
+        self,
+        context: ToolContext,
+        location: str,
+        units: Optional[str] = "metric"
+    ) -> ToolResult:
+        try:
+            # Weather API call (example)
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"https://api.weather.com/{location}") as response:
+                    data = await response.json()
+
+            weather_info = f"Weather in {location}: {data['temperature']}°C, {data['conditions']}"
+
+            return ToolResult(
+                success=True,
+                llm_content=weather_info,
+                return_display=weather_info,
+                memory_payload={
+                    "action": "Checked weather",
+                    "location": location,
+                    "temperature": data['temperature'],
+                    "conditions": data['conditions']
+                }
+            )
+
+        except Exception as e:
+            return ToolResult(
+                success=False,
+                error=f"Weather lookup failed: {str(e)}",
+                llm_content=f"Unable to get weather information: {str(e)}",
+                return_display=f"Weather error: {str(e)}"
+            )
+
+    def get_capabilities(self) -> Dict[str, Any]:
+        return {
+            "kind": self.kind.value,
+            "confirmation_required": False,
+            "destructive": False,
+            "requires_network": True,
+            "supported_units": ["metric", "imperial"]
+        }
+```
+
+---
+
+### **Testing Your Tool**
+
+1. **Run Tests:**
+   ```bash
+   pytest tests/backend/test_my_tool.py -v
+   ```
+
+2. **Integration Testing:**
+   ```bash
+   # Start the backend
+   python -m backend.server
+
+   # Test via the UI or direct API calls
+   ```
+
+3. **Schema Validation:**
+   ```python
+   tool = MyTool(config)
+   schema = tool.get_schema()
+   print(json.dumps(schema, indent=2))  # Verify schema looks correct
+   ```
+
+---
+
+### **Submission Process (Community Tools)**
+
+1. **Create Tool Package** in `tools/community/my_tool/`
+2. **Write Tests** in `tests/tools/test_my_tool.py`
+3. **Create Pull Request** with documentation
+4. **Security Review** by maintainers
+5. **User Testing** period
+6. **Promotion** to `tools/verified/` on approval
+
+---
+
+### **Best Practices**
+
+1. **Type Hints**: Always use comprehensive type hints for automatic schema generation
+2. **Error Handling**: Catch exceptions and provide meaningful error messages
+3. **Validation**: Implement parameter validation to prevent misuse
+4. **Documentation**: Write clear docstrings and usage examples
+5. **Testing**: Cover success cases, error cases, and edge cases
+6. **Security**: Consider security implications of all operations
+7. **Performance**: Add timeouts and resource limits for long-running operations
+8. **User Experience**: Provide clear, helpful output messages for the LLM
+
+This guide ensures consistent, secure, and high-quality tool development across the Desktop Assistant ecosystem.
 
 #### Memory Payload Innovation
 Critical feature: Tools return not just results, but also a "memory payload" - structured information the agent should store in memory. This solves the problem of the agent not knowing what happened inside tool execution.
@@ -211,33 +709,46 @@ Agent stores this memory payload, so later when user asks "What was the git stat
 
 ### 4. Built-in Core Tools
 
-#### Terminal Executor Tool
+#### ✅ IMPLEMENTED: File System Tools (Gemini CLI Integration)
+- **ReadFile Tool**: Reads text files, images, PDFs with optional line ranges
+  - Supports absolute and relative paths
+  - Automatic encoding detection
+  - Binary file handling (images/PDFs)
+  - Large file truncation protection
+- **ListDirectory Tool**: Lists directory contents with filtering
+  - Glob pattern filtering
+  - Gitignore/gitignore respect
+  - Sorted output (directories first)
+- **WriteFile Tool**: Creates/overwrites files
+  - Automatic parent directory creation
+  - Content validation
+- **Glob Tool**: Finds files using glob patterns
+  - Recursive searching
+  - Multiple pattern support
+  - Modification time sorting
+- **SearchFileContent Tool**: Regex search within files
+  - Git grep integration for speed
+  - Include/exclude patterns
+  - Line number reporting
+- **Replace Tool**: Search/replace text in files
+  - Fuzzy matching capabilities
+  - Expected replacement validation
+- **ReadManyFiles Tool**: Batch file reading
+  - Multiple file processing
+  - Concatenated output
+  - Binary file filtering
+
+#### ✅ IMPLEMENTED: Shell Command Tool
 - **Purpose**: Execute PowerShell and CMD commands
-- **Safety**: Detects destructive operations (delete, format, registry edits)
-- **Confirmation**: Always confirms before destructive ops
+- **Safety**: Command allowlisting and validation
 - **Features**:
   - Captures stdout, stderr, exit codes
   - Supports working directory specification
-  - Environment variable injection
-  - Command history logging
-  - Timeout protection
+  - Timeout protection (30s default)
+  - Background process detection
+  - Cross-platform compatibility
 
-#### File Operations Tool
-- **Purpose**: Read, write, search, manipulate files
-- **Capabilities**:
-  - Read file contents (with encoding detection)
-  - Write/create files
-  - Append to files
-  - Search by filename (glob patterns)
-  - Search within files (grep-like)
-  - Get file metadata
-- **Safety**:
-  - Permission checking
-  - Confirmation for overwrites
-  - Binary file detection
-  - Large file handling (streaming)
-
-#### Computer Use Automation (CUA) Tool
+#### 🔄 PLANNED: Computer Use Automation (CUA) Tool
 - **Purpose**: Control mouse, keyboard, and UI elements
 - **Capabilities**:
   - Screenshot capture
@@ -393,6 +904,11 @@ Determines whether to:
 - **Core Framework**: Async Python (asyncio, aiohttp)
 - **LLM Abstraction**:
   - `litellm` (provides a unified interface for over 100 LLM providers)
+- **Tool System**:
+  - Custom tool framework with automatic schema generation
+  - Tool registry and orchestrator for execution
+  - Response parser for tool call detection
+  - Integrated Gemini CLI tools (file operations, shell commands)
 - **Voice**:
   - `openai-whisper` or `whisper` library (STT)
   - `coqui-tts` or cloud TTS APIs
@@ -406,6 +922,9 @@ Determines whether to:
   - `pyautogui` (mouse/keyboard)
   - `mss` or `PIL` (screenshots)
   - `pytesseract` or `easyocr` (OCR)
+- **File Processing**:
+  - `python-magic-bin` (file type detection)
+  - Custom file utilities for encoding detection and content reading
 - **System**:
   - `pywin32` (Windows APIs)
   - `psutil` (process management)
@@ -479,10 +998,18 @@ Determines whether to:
 │   │   └── schema.py           # Tool schema definitions
 │   │
 │   ├── tools/                  # Built-in tools
-│   │   ├── base.py             # Base tool class
-│   │   ├── terminal.py         # Command execution
-│   │   ├── computer_use.py     # CUA implementation
-│   │   └── file_ops.py         # File operations
+│   │   ├── base.py             # Base tool class + auto schema generation
+│   │   ├── file_system.py      # File operations (7 tools)
+│   │   ├── shell.py            # Shell command execution
+│   │   ├── tool_registry.py    # Tool registry and management
+│   │   ├── terminal.py         # Command execution (planned)
+│   │   ├── computer_use.py     # CUA implementation (planned)
+│   │   └── file_ops.py         # Legacy file operations (replaced)
+│   │
+│   ├── utils/                  # Utility modules
+│   │   ├── file_utils.py       # File processing utilities
+│   │   ├── schema_generator.py # Automatic JSON schema generation
+│   │   └── [other utils...]
 │   │
 │   ├── voice/                  # Voice processing
 │   │   ├── stt.py              # Whisper integration
@@ -702,28 +1229,30 @@ git commit --no-verify -m "your commit message"
 - **Demo**: Type message, backend responds. Settings can be viewed and updated.
 
 **Milestone 2: Core Agent** (Weeks 3-4)
-- Issue #5: Multi-provider LLM client
-- Issue #6: Agent orchestrator
-- Issue #7: Thinking display
-- **Demo**: Intelligent multi-turn conversation
+- Issue #5: Multi-provider LLM client ✅
+- Issue #6: Agent orchestrator ✅
+- Issue #7: Thinking display ✅
+- **Demo**: Intelligent multi-turn conversation with tool calling
 
-**Milestone 3: Memory** (Weeks 5-6)
+**Milestone 3: Tool Integration** (Weeks 5-6) **✅ COMPLETED**
+- Issue #11: Tool schema ✅ (Automatic schema generation implemented)
+- Issue #12: Tool registry ✅ (8 tools registered)
+- Issue #13: Tool executor ✅ (Tool orchestrator with error handling)
+- Issue #14: Agent tool selection ✅ (LLM-driven tool calling)
+- **Demo**: Agent uses Gemini CLI tools (file ops, shell commands)
+- **Files Added**: `schema_generator.py`, `tool_registry.py`, `file_system.py`, `shell.py`
+- **Features**: Automatic schema generation, tool execution, response parsing
+
+**Milestone 4: Memory** (Weeks 7-8) **🎯 NEXT**
 - Issue #8: Passive memory storage
 - Issue #9: Active memory monitoring
 - Issue #10: Memory controls
 - **Demo**: Agent recalls past conversations and activity
 
-**Milestone 4: Tool Marketplace** (Weeks 7-8)
-- Issue #11: Tool schema
-- Issue #12: Tool registry
-- Issue #13: Tool executor
-- Issue #14: Agent tool selection
-- **Demo**: Agent uses tools from marketplace
-
-**Milestone 5: Built-in Tools** (Weeks 9-10)
-- Issue #15: Terminal tool
+**Milestone 5: Advanced Tools** (Weeks 9-10)
+- Issue #15: Terminal tool ✅ (Basic shell tool implemented)
 - Issue #16: Confirmation system
-- Issue #17: File operations tool
+- Issue #17: File operations tool ✅ (7 file tools implemented)
 - Issue #18: Computer use tool
 - **Demo**: Agent automates complex workflows
 
@@ -1013,10 +1542,22 @@ The phased development approach, research-first methodology, and strong focus on
 
 ## Current Implementation State & Next Steps
 
-As of the completion of Milestone 2 (Issues #1-7), the project has the following status:
+As of the completion of **Milestone 3: Tool Integration**, the project has the following status:
 
-- **Core Agent Complete**: The foundational agent logic is implemented. This includes the multi-provider LLM client, the agent orchestrator that manages conversation flow, and a real-time thinking display that provides transparency into the agent's reasoning process.
-- **Robust Local LLM Support**: The agent can now reliably connect to local LLM providers like Ollama and LM Studio, thanks to a more robust frontend-backend communication protocol for model selection.
-- **Current Behavior**: The application can hold intelligent, multi-turn conversations with streaming responses. When using a supported provider (like Google Gemini), the agent's thought process is displayed in real-time before the final answer is delivered.
+- **✅ Tool System Complete**: Full tool integration with automatic schema generation, tool registry, orchestrator, and response parser. 8 tools implemented (7 file system + 1 shell).
+- **✅ Agent Tool Calling**: The agent can now detect tool calls in LLM responses, execute tools safely, and feed results back for continued conversation.
+- **✅ Gemini CLI Integration**: Successfully integrated file system and shell tools from Gemini CLI with proper error handling and workspace validation.
+- **Current Behavior**: The application can hold intelligent conversations AND execute tools. Users can ask the agent to read files, list directories, search content, run shell commands, and more.
 
-**Immediate Next Step**: The next phase of development will be **Milestone 3: Memory**. This will involve implementing the passive memory store (Issue #8) to give the agent the ability to recall past conversations.
+**Immediate Next Step**: **Milestone 4: Memory** (Weeks 7-8). This will involve implementing the passive memory store (Issue #8) to give the agent the ability to recall past conversations and build context over time.
+
+### Recent Major Accomplishments:
+
+1. **Automatic Schema Generation**: Tools now generate JSON schemas automatically from Python type hints, eliminating manual maintenance
+2. **Tool Registry System**: Centralized management of 8+ tools with execution orchestration
+3. **Response Parser**: Multi-strategy parsing to detect tool calls in various LLM response formats
+4. **Security & Validation**: Workspace boundaries, command allowlisting, timeout protection
+5. **File System Tools**: Complete suite of file operations (read, write, search, list, replace)
+6. **Shell Tool**: Safe command execution with cross-platform support
+
+The agent now has practical capabilities beyond conversation - it can actually perform tasks on the user's computer!

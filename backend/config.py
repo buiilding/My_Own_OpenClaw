@@ -139,6 +139,62 @@ class AppConfig(BaseModel):
     # This field will hold the actual API key after it's loaded
     api_key: Optional[str] = Field(default=None, repr=False)
 
+    def get_target_dir(self) -> str:
+        """Returns the target directory for file operations."""
+        # For now, return the current working directory
+        # This should be configurable in the future
+        import os
+        return os.getcwd()
+
+    def get_workspace_context(self):
+        """Returns a workspace context object for path validation."""
+        # Simple workspace context that allows all paths for now
+        # This should be more sophisticated in the future
+        class SimpleWorkspaceContext:
+            def is_path_within_workspace(self, path: str) -> bool:
+                # For now, allow all paths. This should be restricted to a specific workspace
+                return True
+
+        return SimpleWorkspaceContext()
+
+    @property
+    def storage(self):
+        """Returns a storage object (placeholder for now)."""
+        class SimpleStorage:
+            def get_project_temp_dir(self):
+                import tempfile
+                import os
+                return os.path.join(tempfile.gettempdir(), "desktop_assistant")
+
+        return SimpleStorage()
+
+    def get_file_service(self):
+        """Returns a file service object (placeholder for now)."""
+        class SimpleFileService:
+            def should_ignore_file(self, path: str, options=None):
+                # Simple implementation - ignore common files
+                import os
+                filename = os.path.basename(path)
+                ignored = {'.git', '__pycache__', 'node_modules', '.DS_Store'}
+                return any(ignored_part in path for ignored_part in ignored)
+
+            def filter_files_with_report(self, paths, options=None):
+                # Simple implementation - return all paths for now
+                return paths, 0
+
+        return SimpleFileService()
+
+    def get_file_filtering_options(self):
+        """Returns file filtering options."""
+        return {
+            "respect_git_ignore": True,
+            "respect_gemini_ignore": True
+        }
+
+    def get_shell_timeout(self):
+        """Returns shell command timeout."""
+        return 30.0
+
     @property
     def llm_model(self) -> str:
         """Returns the LiteLLM-compatible model identifier."""
