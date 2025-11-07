@@ -2,34 +2,48 @@
 The Agent Orchestrator.
 
 This module contains the Agent class, which is the core "brain" of the assistant.
-It manages conversation history, constructs prompts, and interacts with the
-LLM client to generate responses.
+It manages conversation history, constructs prompts with tool schemas, and interacts with the
+LLM client to generate responses with tool calling capabilities.
 """
 import asyncio
-from typing import Any, AsyncGenerator, Dict, List
+import json
+import logging
+import re
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from backend.agent.llm_client import get_llm_client
-from backend.config import AppConfig, settings
+from backend.agent.prompts import SYSTEM_PROMPT
+from backend.agent.response_parser import ResponseParser
+from backend.agent.tool_execution_error import ToolExecutionError
+from backend.agent.tool_orchestrator import ToolOrchestrator
+from backend.config import AppConfig
+from backend.tools.tool_registry import ToolRegistry, create_tool_registry
 
-# A system prompt defines the agent's personality, capabilities, and instructions.
-SYSTEM_PROMPT = """
-You are a helpful and friendly desktop assistant.
-Your responses should be concise, informative, and conversational.
-"""
+logger = logging.getLogger(__name__)
 
 # The maximum number of messages to keep in the conversation history.
 MAX_HISTORY_LENGTH = 10
 
+# Maximum number of tool calling iterations to prevent infinite loops
+MAX_TOOL_ITERATIONS = 5
+
 
 class Agent:
-    """The main agent class for orchestrating tasks."""
+    """The main agent class for orchestrating tasks with tool support."""
 
-    def __init__(self, cfg: AppConfig = settings) -> None:
+    def __init__(
+        self, cfg: AppConfig, tool_registry: Optional[ToolRegistry] = None
+    ) -> None:
         """Initializes the agent."""
         self.cfg = cfg
         self.llm_client = get_llm_client(self.cfg)
         self.history: List[Dict[str, str]] = []
         self._lock = asyncio.Lock()
+
+        # Initialize tool system
+        self.tool_registry = tool_registry or create_tool_registry(self.cfg)
+        self.tool_orchestrator = ToolOrchestrator(self.tool_registry, self.cfg)
+        self.response_parser = ResponseParser()
 
     async def update_config(self, new_cfg: AppConfig) -> None:
         """Updates the agent's configuration and re-initializes dependencies."""
@@ -37,14 +51,28 @@ class Agent:
             self.cfg = new_cfg
             self.llm_client = get_llm_client(self.cfg)
 
-    def _construct_prompt(self) -> List[Dict[str, str]]:
+    def _construct_prompt(self, include_tools: bool = True) -> List[Dict[str, str]]:
         """
         Constructs the full prompt to be sent to the LLM.
 
-        The prompt includes the system prompt and all messages from history.
+        The prompt includes the system prompt, tool schemas (if enabled), and conversation history.
         The user query should be appended to history before calling this method.
         """
-        prompt = [{"role": "system", "content": SYSTEM_PROMPT}]
+        system_content = SYSTEM_PROMPT
+
+        if include_tools:
+            # Add tool schemas to system prompt
+            tool_schemas = self.tool_registry.get_function_declarations()
+            if tool_schemas:
+                logger.info(f"Sending {len(tool_schemas)} tool schemas to LLM")
+                system_content += "\n\nAvailable Tools:\n" + json.dumps(
+                    tool_schemas, indent=2
+                )
+                system_content += '\n\nTOOL USAGE: When you need to use tools, call them using function syntax: tool_name(param="value")'
+            else:
+                logger.warning("No tool schemas available to send to LLM")
+
+        prompt = [{"role": "system", "content": system_content}]
         prompt.extend(self.history)
         return prompt
 
@@ -54,57 +82,236 @@ class Agent:
             # Keep the most recent messages
             self.history = self.history[-MAX_HISTORY_LENGTH:]
 
+    async def _get_llm_response_stream(
+        self, prompt: List[Dict[str, str]]
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """Gets a streaming completion from the LLM, yielding events."""
+        llm_response_content = ""
+        try:
+            async for event in self.llm_client.get_completion_stream(
+                model=self.cfg.llm_model, messages=prompt
+            ):
+                if event["type"] == "chunk":
+                    llm_response_content += event["content"]
+                yield event
+        except Exception as e:
+            error_msg = f"[ERROR: LLM request failed - {type(e).__name__}]"
+            yield {"type": "thinking", "content": error_msg}
+            # Re-raise or handle appropriately if you need to stop execution
+            raise
+
+        yield {"type": "full_response", "content": llm_response_content}
+
+    def _parse_and_validate_tool_calls(self, llm_response: str):
+        """Parses the LLM response for tool calls and validates them."""
+        parsed_response = self.response_parser.parse_response(llm_response)
+
+        if not parsed_response.has_tool_calls:
+            return parsed_response, None
+
+        valid_tool_calls = []
+        invalid_calls = []
+        for call in parsed_response.tool_calls:
+            if self.tool_registry.is_tool_available(call.tool_name):
+                valid_tool_calls.append(call)
+            else:
+                invalid_calls.append(call.tool_name)
+                logger.warning(
+                    f"Ignoring invalid tool call: {call.tool_name} (tool not found)"
+                )
+
+        parsed_response.tool_calls = valid_tool_calls
+        parsed_response.has_tool_calls = len(valid_tool_calls) > 0
+
+        return parsed_response, invalid_calls
+
+    async def _execute_tools(
+        self, parsed_response
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """Executes tool calls and yields results."""
+        yield {
+            "type": "thinking",
+            "content": f"Executing {len(parsed_response.tool_calls)} tool(s)...",
+        }
+
+        orchestration_result = await self.tool_orchestrator.execute_tools_from_response(
+            parsed_response
+        )
+
+        # Send individual tool output messages for each tool result
+        for result in orchestration_result.tool_results:
+            yield {
+                "type": "tool_output",
+                "tool_name": result.tool_call.tool_name,
+                "success": result.success,
+                "execution_time": result.execution_time,
+                "output": result.result.llm_content
+                or result.result.return_display
+                or str(result.result.data),
+                "error": result.result.error,
+            }
+
+        # Report tool execution summary (for backwards compatibility)
+        yield {
+            "type": "tool_execution",
+            "content": orchestration_result.summary,
+            "results": [
+                {
+                    "tool": result.tool_call.tool_name,
+                    "success": result.success,
+                    "execution_time": result.execution_time,
+                    "output": result.result.llm_content,
+                }
+                for result in orchestration_result.tool_results
+            ],
+        }
+
+        # Add tool results to conversation history
+        for result in orchestration_result.tool_results:
+            if result.success:
+                terminal_tools = {"write_file", "run_shell_command"}
+                if result.tool_call.tool_name in terminal_tools:
+                    tool_message = f"✅ TOOL EXECUTED SUCCESSFULLY: {result.tool_call.tool_name}\n\n📄 RESULT:\n{result.result.llm_content}\n\n🎯 TASK COMPLETE: The {result.tool_call.tool_name} operation finished successfully. The user's request has been fulfilled - provide your final response to confirm completion."
+                else:
+                    tool_message = f"✅ TOOL EXECUTED SUCCESSFULLY: {result.tool_call.tool_name}\n\n📄 RESULT:\n{result.result.llm_content}\n\n🎯 TASK COMPLETE: I now have the information from this tool. I should either call another tool if needed, or provide my final answer to the user."
+            else:
+                tool_message = f"❌ TOOL FAILED: {result.tool_call.tool_name}\n\n🔧 ERROR: {result.result.error}\n\n💡 I should try a different approach or inform the user of the error."
+            self.history.append({"role": "system", "content": tool_message})
+
+        if not orchestration_result.all_successful:
+            raise ToolExecutionError(
+                f"Some tools failed: {orchestration_result.summary}"
+            )
+
+    def _handle_invalid_tool_calls(self, invalid_calls, has_valid_calls):
+        """Handles invalid tool calls by adding a message to history."""
+        if not invalid_calls:
+            return
+
+        if not has_valid_calls:
+            # All calls were invalid
+            error_msg = f"I tried to call tools {invalid_calls} but those tool names don't exist. I should use one of the available tools from the list above. Let me try again with the correct format."
+            self.history.append({"role": "system", "content": error_msg})
+            logger.info(
+                f"Added error message to history for invalid tools {invalid_calls}, continuing loop for retry"
+            )
+        else:
+            # Some calls were invalid
+            warning_msg = f"I tried to call some invalid tools {invalid_calls} that don't exist. I'll ignore those and proceed with the valid tool calls."
+            self.history.append({"role": "system", "content": warning_msg})
+            logger.info(
+                f"Some invalid tools {invalid_calls} were ignored, proceeding with valid calls"
+            )
+
+    def _is_malformed_tool_attempt(self, llm_response: str) -> bool:
+        """Checks if a response looks like a malformed tool call attempt."""
+        response_lower = llm_response.lower()
+        # A more robust regex could be used here. For now, keeping it simple.
+        malformed_patterns = [
+            r"tool_name\s*\(\s*parameter=",
+            r"tool_name\s*\(\s*name=",
+            r"tool_name\s*=\s*tool_call\(",
+            r"function_name\s*\(",
+            r'tool_call\s*\(\s*{"',
+            r"example_tool\s*\(",
+            r"generic_tool\s*\(",
+            r"placeholder_function\s*\(",
+            r'"functioncall":',
+            r'"tool":',
+            r'"call":',
+            r"function_call\s*\(",
+            r"tool-call\s*\(",
+        ]
+        return any(re.search(pattern, response_lower) for pattern in malformed_patterns)
+
     async def process_query(self, query: str) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Processes a user query and yields status updates and response chunks.
-
-        Args:
-            query: The user's input text.
-
-        Yields:
-            A dictionary with 'type' ('thinking', 'chunk') and 'content'.
+        This implements the main tool calling loop.
         """
         await self._lock.acquire()
         try:
-            # Temporarily append user query for the prompt,
-            # but we'll remove it if no response
+            if not self.cfg.selected_model_id:
+                yield {
+                    "type": "thinking",
+                    "content": "No model selected. Please select a model in settings.",
+                }
+                return
+
             self.history.append({"role": "user", "content": query})
-            prompt = self._construct_prompt()
-            full_response = ""
 
-            try:
-                # Get the structured event stream from the LLM client
-                async for event in self.llm_client.get_completion_stream(
-                    model=self.cfg.llm_model, messages=prompt
-                ):
-                    if event["type"] == "chunk":
-                        full_response += event["content"]
-                    # Pass all events (chunks and thinking) through to the caller
-                    yield event
+            for iteration in range(1, MAX_TOOL_ITERATIONS + 1):
+                prompt = self._construct_prompt(include_tools=(iteration == 1))
+                llm_response = ""
 
-                # On successful completion, only append if we got a non-empty response
-                if full_response:
-                    self.history.append({"role": "assistant", "content": full_response})
-                    self._prune_history()
-                else:
-                    # No response received, remove the user query we added
-                    self.history.pop()
-            except Exception as e:
-                # On streaming failure, only append if we got some chunks
-                if full_response:
-                    # We got some chunks before failure, preserve partial response
-                    error_msg = f"[ERROR: Streaming interrupted - {type(e).__name__}]"
-                    self.history.append(
-                        {
-                            "role": "assistant",
-                            "content": full_response + "\n\n" + error_msg,
+                try:
+                    async for event in self._get_llm_response_stream(prompt):
+                        if event["type"] == "full_response":
+                            llm_response = event["content"]
+                        else:
+                            yield event
+                except Exception:
+                    break  # Error already yielded, exit loop
+
+                logger.info(
+                    f"LLM Response (iteration {iteration}, first 500 chars): {llm_response[:500]}..."
+                )
+
+                parsed_response, invalid_calls = self._parse_and_validate_tool_calls(
+                    llm_response
+                )
+
+                self._handle_invalid_tool_calls(
+                    invalid_calls, parsed_response.has_tool_calls
+                )
+
+                if invalid_calls and not parsed_response.has_tool_calls:
+                    continue  # All calls were invalid, retry
+
+                # Send tool call messages to frontend
+                if parsed_response.has_tool_calls:
+                    for tool_call in parsed_response.tool_calls:
+                        yield {
+                            "type": "tool_call",
+                            "tool_name": tool_call.tool_name,
+                            "parameters": tool_call.parameters,
+                            "raw_call": tool_call.raw_call,
                         }
-                    )
-                    self._prune_history()
-                else:
-                    # No chunks received, remove the user query we added
-                    self.history.pop()
-                # Re-raise the exception so the caller knows streaming failed
-                raise
+
+                if not parsed_response.has_tool_calls:
+                    if iteration == 1 and self._is_malformed_tool_attempt(llm_response):
+                        example_format = '{"functionCall": {"name": "read_file", "args": {"path": "/path/to/file.txt"}}}'
+                        error_msg = f"I tried to call a tool but used the wrong format. I should use the exact JSON syntax shown in the examples, like: {example_format}. Let me try again."
+                        self.history.append({"role": "system", "content": error_msg})
+                        logger.info(
+                            "Detected malformed tool call attempt, continuing for retry"
+                        )
+                        continue
+                    else:
+                        # Final response, no more tool calls
+                        self.history.append(
+                            {
+                                "role": "assistant",
+                                "content": parsed_response.text_content,
+                            }
+                        )
+                        self._prune_history()
+                        break
+
+                # Execute tools
+                try:
+                    async for event in self._execute_tools(parsed_response):
+                        yield event
+                except ToolExecutionError as e:
+                    yield {"type": "thinking", "content": str(e)}
+                    # Let the LLM respond to the tool failure
+                    continue
+                except Exception as e:
+                    yield {
+                        "type": "thinking",
+                        "content": f"An unexpected error occurred during tool execution: {str(e)}",
+                    }
+                    break  # Exit on unexpected error
+
         finally:
             self._lock.release()
