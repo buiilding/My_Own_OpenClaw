@@ -11,14 +11,10 @@ from typing import Any, Optional
 
 from backend.tools.base import Kind, Tool, ToolContext, ToolResult
 from backend.utils.file_utils import (
-    DEFAULT_ENCODING,
-    FileType,
-    detect_file_type,
     get_specific_mime_type,
     is_text_file,
     read_file_content,
     read_text_file_auto_encoding,
-    shorten_path,
 )
 
 logger = logging.getLogger(__name__)
@@ -77,14 +73,51 @@ class ReadFileTool(Tool):
 
             # Check if path is within workspace
             logger.info("ReadFile: About to get workspace context")
-            workspace_context = self.config.get_workspace_context()
-            logger.info(f"ReadFile: Got workspace context: {workspace_context}")
-            project_temp_dir = self.config.storage.get_project_temp_dir()
-            logger.info(f"ReadFile: Temp dir: {project_temp_dir}")
+            try:
+                workspace_context = self.config.get_workspace_context()
+                logger.info(f"ReadFile: Got workspace context: {workspace_context}")
+                logger.info(
+                    f"ReadFile: Workspace context type: {type(workspace_context)}"
+                )
+            except Exception as e:
+                logger.error(f"ReadFile: Failed to get workspace context: {e}")
+                return ToolResult(
+                    success=False,
+                    error=f"Failed to get workspace context: {e}",
+                    llm_content=f"Error: Failed to get workspace context: {e}",
+                    return_display="Workspace context error",
+                )
 
-            is_within_workspace = workspace_context.is_path_within_workspace(
-                absolute_path
-            )
+            try:
+                project_temp_dir = self.config.storage.get_project_temp_dir()
+                logger.info(f"ReadFile: Temp dir: {project_temp_dir}")
+            except Exception as e:
+                logger.error(f"ReadFile: Failed to get project temp dir: {e}")
+                return ToolResult(
+                    success=False,
+                    error=f"Failed to get project temp dir: {e}",
+                    llm_content=f"Error: Failed to get project temp dir: {e}",
+                    return_display="Temp dir error",
+                )
+
+            try:
+                is_within_workspace = workspace_context.is_path_within_workspace(
+                    absolute_path
+                )
+                logger.info(
+                    f"ReadFile: is_within_workspace check completed: {is_within_workspace}"
+                )
+            except Exception as e:
+                logger.error(
+                    f"ReadFile: Failed to check if path is within workspace: {e}"
+                )
+                return ToolResult(
+                    success=False,
+                    error=f"Failed to check workspace path: {e}",
+                    llm_content=f"Error: Failed to check workspace path: {e}",
+                    return_display="Workspace path check error",
+                )
+
             is_within_temp = (
                 absolute_path.startswith(project_temp_dir)
                 if project_temp_dir

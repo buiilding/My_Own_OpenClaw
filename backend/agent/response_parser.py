@@ -54,6 +54,12 @@ class ResponseParser:
             re.MULTILINE | re.DOTALL,
         )
 
+        # Gemma format: {"tool_name": "...", "parameters": {...}}
+        self.gemma_format_pattern = re.compile(
+            r'{\s*"tool_name"\s*:\s*"([^"]+)"\s*,\s*"parameters"\s*:\s*({[^}]*})\s*}',
+            re.MULTILINE | re.DOTALL,
+        )
+
         # Fallback: Function call format for backward compatibility
         self.function_call_pattern = re.compile(
             r"\b(\w+)\s*\(\s*([^)]*)\s*\)", re.MULTILINE | re.DOTALL
@@ -76,6 +82,7 @@ class ResponseParser:
             # Try parsing strategies in order of preference
             parsing_strategies = [
                 self._parse_structured_function_calls,  # Primary: Gemini CLI format
+                self._parse_gemma_format,  # Secondary: Gemma format
                 self._parse_function_calls,  # Fallback: Text format
             ]
 
@@ -118,22 +125,83 @@ class ResponseParser:
             )
 
     def _parse_function_calls(self, response: str) -> Tuple[List[ParsedToolCall], str]:
-        """Parse function call format like tool_name(param="value") as fallback."""
+        """Parse function call format like tool_name(param="value") as fallback - VERY RESTRICTIVE."""
         tool_calls = []
         remaining_text = response
 
         matches = self.function_call_pattern.findall(response)
 
+        # List of common words that appear in explanations with parentheses (NOT tool calls)
+        EXPLANATION_WORDS = {
+            "e",
+            "g",
+            "i",
+            "providers",
+            "modes",
+            "functions",
+            "methods",
+            "parameters",
+            "IDs",
+            "ids",
+            "model",
+            "configuration",
+            "settings",
+            "manipulation",
+            "patterns",
+            "filtering",
+            "securely",
+            "values",
+            "properties",
+            "attributes",
+            "variables",
+            "classes",
+            "objects",
+            "instances",
+            "modules",
+            "packages",
+            "imports",
+            "get",
+            "set",
+            "add",
+            "remove",
+            "update",
+            "delete",
+            "create",
+            "load",
+            "save",
+            "print",
+            "return",
+            "import",
+            "from",
+            "def",
+            "class",
+            "if",
+            "else",
+            "for",
+            "while",
+        }
+
         for match in matches:
             function_name, params_str = match
 
-            # Skip obvious non-tool patterns
-            if len(function_name) < 3 or function_name.lower() in {"the", "and", "for"}:
+            # STRICT FILTERING: Skip if it matches common explanation patterns
+            if (
+                len(function_name) < 3
+                or function_name.lower() in EXPLANATION_WORDS
+                or function_name.lower().startswith("get_")
+                or function_name.lower().startswith("set_")
+                or not params_str.strip()
+                or "=" not in params_str  # No empty parameter calls
+            ):  # Must have key=value pairs for valid tool call
                 continue
 
             try:
                 # Simple parameter parsing for fallback
                 params = self._parse_simple_parameters(params_str)
+
+                # Must have actual parameters to be a valid tool call
+                if not params:
+                    continue
 
                 tool_call = ParsedToolCall(
                     tool_name=function_name,
@@ -186,6 +254,41 @@ class ResponseParser:
             except json.JSONDecodeError as e:
                 logger.debug(
                     f"Failed to parse structured function call args for {tool_name}: {e}"
+                )
+                continue
+
+        return tool_calls, remaining_text
+
+    def _parse_gemma_format(self, response: str) -> Tuple[List[ParsedToolCall], str]:
+        """Parse Gemma format: {"tool_name": "...", "parameters": {...}}"""
+        tool_calls = []
+        remaining_text = response
+
+        # Look for Gemma format objects
+        matches = self.gemma_format_pattern.findall(response)
+
+        for tool_name, params_json in matches:
+            try:
+                # Parse the JSON parameters
+                params = json.loads(params_json)
+
+                tool_call = ParsedToolCall(
+                    tool_name=tool_name,
+                    parameters=params,
+                    raw_call=f'{{"tool_name": "{tool_name}", "parameters": {params_json}}}',
+                    confidence=0.9,  # High confidence for Gemma format
+                )
+                tool_calls.append(tool_call)
+
+                # Remove this call from remaining text
+                call_text = (
+                    f'{{"tool_name": "{tool_name}", "parameters": {params_json}}}'
+                )
+                remaining_text = remaining_text.replace(call_text, "", 1)
+
+            except json.JSONDecodeError as e:
+                logger.debug(
+                    f"Failed to parse Gemma format tool call for {tool_name}: {e}"
                 )
                 continue
 

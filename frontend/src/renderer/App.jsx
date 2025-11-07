@@ -9,6 +9,11 @@ import './styles/ChatInterface.css';
 import './styles/MainLayout.css';
 import './styles/accessibility.css';
 
+// TODO: Refactor state management.
+// The current approach of passing down state setters ("prop drilling") is not ideal.
+// A centralized state management solution like Zustand or Redux Toolkit would be more
+// scalable and would simplify the component hierarchy. This is a medium-priority refactor.
+
 /**
  * The root component of the application.
  * It sets up the main layout, manages the application's primary state

@@ -94,6 +94,8 @@ Desktop Assistant is a locally-running application that combines:
 - **OpenAI**: GPT-4o, GPT-4.1
 - **Anthropic**: Claude 3.7 Sonnet, Claude Sonnet 4
 - **Google**: Gemini Pro, Gemini Ultra
+- **OpenRouter**: Access to 100+ models through unified API
+- **Mistral AI**: Mistral Large and other Mistral models
 - **Local Models**: Integration with local LLM providers is supported through OpenAI-compatible server interfaces. This includes:
   - **Ollama**: For running models like Llama 3, Gemma, etc.
   - **LM Studio**: For a wide variety of community-provided models.
@@ -111,6 +113,39 @@ Desktop Assistant is a locally-running application that combines:
 - **Security**: API keys are handled securely by storing the *name* of the environment variable (e.g., `OPENAI_API_KEY`) in the config file, not the key itself. The backend loads the key from the environment at runtime.
 - **Flexibility**: Supports defining multiple LLM providers and allows the user to select the active provider through the settings panel.
 - **Persistence**: Changes made in the settings UI are saved to the `config.yaml` file and persist between sessions.
+
+#### Configuration System (Excruciating Detail)
+The configuration is managed by `backend/config.py` using Pydantic for validation and a singleton pattern for access, ensuring consistency and robustness.
+
+**1. Pydantic Models for Validation:**
+- The entire configuration structure is defined by Pydantic models (e.g., `AppConfig`, `LLMProviders`, `OpenAIConfig`).
+- This ensures that any loaded configuration is automatically validated against a strict schema. If the `config.yaml` file is malformed or missing fields, the system logs an error and gracefully falls back to default values, preventing crashes.
+
+**2. Singleton Access Pattern:**
+- The `get_settings()` function provides global access to the configuration.
+- On its first call, it loads the `config.yaml` file into a cached `settings` object. Subsequent calls return the cached object, preventing repeated and unnecessary file I/O.
+- `reload_settings()` can be called to force a re-read from the disk, which is used after settings are updated.
+
+**3. Secure API Key Handling:**
+- The `config.yaml` file **never** stores raw API keys. Instead, it stores the name of the environment variable that holds the key (e.g., `api_key_env: "OPENAI_API_KEY"`).
+- The `load_api_key_for_provider` function is called when settings are loaded or updated. It reads the appropriate `..._env` field for the currently active provider and fetches the key from the environment using `os.getenv()`.
+- The key is then stored in a `api_key` field on the `AppConfig` model, which is explicitly marked to be excluded from being saved back to the YAML file. This ensures keys remain only in the environment and in memory during runtime.
+
+**4. Dynamic Model Naming:**
+- The `AppConfig.llm_model` is a `@property` that dynamically constructs the model identifier required by the `LiteLLMClient`.
+- For `local` mode, it returns the `selected_model_id` directly (e.g., `"llama3"`).
+- For `online` mode, it prepends the provider name (e.g., `"openai/gpt-4o"`), forming the identifier that LiteLLM uses to route the request to the correct API.
+
+**5. Deprecation of Old Functions:**
+- The file contains several deprecated functions (`get_model_id`, `set_provider`, etc.). The new, preferred method is to get the singleton object via `get_settings()` and modify its properties directly before saving (e.g., `settings = get_settings(); settings.model_provider = "anthropic"; save_settings_to_file(settings)`).
+
+**6. Service Layer Architecture:**
+- The `AppServices` class provides a service container that wraps the configuration and provides access to various application services.
+- **WorkspaceContext**: Handles workspace path validation with `is_path_within_workspace()` method using `is_within_directory()` utility.
+- **FileService**: Provides file filtering logic with `should_ignore_file()` method for common patterns (`.git`, `__pycache__`, `node_modules`, etc.).
+- **StorageService**: Manages temporary directories and storage operations.
+- Tools receive an `AppServices` instance instead of raw config, providing clean separation between configuration data and service logic.
+- This architecture enables tools to access workspace-aware services while maintaining proper encapsulation.
 
 ### 3. Tool Marketplace Architecture
 
@@ -295,13 +330,16 @@ class MyTool(Tool):
 #### **Tool Kinds Available**
 
 ```python
-class Tool.Kind(Enum):
-    FILESYSTEM = "filesystem"    # File operations (read, write, list, etc.)
-    SHELL = "shell"             # Command execution
-    WEB = "web"                 # Web requests, scraping
-    UTILITY = "utility"         # General utilities
-    AI = "ai"                   # AI/ML operations
-    SYSTEM = "system"           # System management
+class Kind(Enum):
+    READ = "read"        # Reading operations (files, data)
+    EDIT = "edit"        # Editing/modification operations
+    DELETE = "delete"    # Deletion operations
+    MOVE = "move"        # Moving/renaming operations
+    SEARCH = "search"    # Search operations
+    EXECUTE = "execute"  # Command execution
+    THINK = "think"      # Reasoning/processing operations
+    FETCH = "fetch"      # Data fetching operations
+    OTHER = "other"      # Miscellaneous operations
 ```
 
 #### **Parameter Validation**
@@ -398,7 +436,7 @@ from backend.tools.my_tool import MyTool
 def _register_builtin_tools(self) -> None:
     """Register all built-in tools."""
     # ... existing tools ...
-    self.register_tool(MyTool(self.config))
+    self.register_tool(MyTool(self.services))  # Tools receive AppServices instance
 ```
 
 #### **For Community Tools:**
@@ -844,6 +882,59 @@ Determines whether to:
 - Memory retrieval to supplement context
 - Summarization of long conversations
 
+#### Agent Orchestrator Logic (Excruciating Detail)
+The core logic resides in the `Agent.process_query` method (`backend/agent/orchestrator.py`). It follows a sophisticated loop to enable tool usage, correction, and robust error handling.
+
+**Step 1: Initialization & Query Validation**
+1.  An `asyncio.Lock` is acquired to ensure only one query is processed at a time, preventing race conditions.
+2.  The system checks if a model is selected in the configuration (`cfg.selected_model_id`). If not, it yields an error message and stops.
+3.  The user's query is appended to the `self.history` list as a `{"role": "user", ...}` message.
+
+**Step 2: The Tool-Calling Loop**
+The agent enters a `while` loop that can run for a maximum of `MAX_TOOL_ITERATIONS` (currently 5) to prevent infinite loops of tool calls.
+
+**Step 3: Prompt Construction**
+1.  On the first iteration, `_construct_prompt` is called with `include_tools=True`.
+2.  This method builds the prompt by combining:
+    - The `SYSTEM_PROMPT` from `prompts.py`.
+    - The JSON schemas of all registered tools, fetched from the `ToolRegistry`. This is crucial for the LLM to know what functions it can call.
+    - The entire conversation `self.history`.
+3.  In subsequent iterations (`>1`), tools are not included in the prompt, as the context is now about responding to the previous tool's output.
+
+**Step 4: LLM Interaction & Streaming**
+1.  The complete prompt is sent to the LLM via `_get_llm_response_stream`, which uses the `LiteLLMClient`.
+2.  The method streams the response back, yielding `chunk` events for each piece of text received. This allows the UI to display the response as it's being generated.
+3.  The full, concatenated response from the LLM is collected for parsing.
+
+**Step 5: Response Parsing & Tool Call Validation**
+1.  The complete LLM response is passed to the `ResponseParser`. This component uses multiple strategies (e.g., regex for function-like calls, JSON parsing) to find any tool calls within the text.
+2.  The `_parse_and_validate_tool_calls` method iterates through the detected tool calls.
+3.  It checks each tool name against the `ToolRegistry` to ensure it's a real, available tool. Any calls to non-existent tools are flagged as `invalid_calls`.
+4.  A feedback message is added to the conversation history if any invalid tools were called, instructing the LLM on its mistake. If all calls were invalid, the loop continues, giving the LLM a chance to correct itself.
+
+**Step 6: Handling Malformed Calls & Final Responses**
+1.  **If no valid tool calls are found:**
+    - The system checks if the response *looks like* a malformed attempt to call a tool (e.g., incorrect syntax).
+    - If it's a malformed attempt on the first iteration, a system message is added to the history correcting the LLM's format, and the loop continues.
+    - If it's not a tool-call attempt, the agent assumes this is the final, text-based answer for the user. The response is added to history as an `assistant` message, the history is pruned, and the loop breaks.
+2.  **If valid tool calls are found:** The process continues to the next step.
+
+**Step 7: Tool Execution**
+1.  The `_execute_tools` method is called with the list of valid tool calls.
+2.  It yields a `thinking` event to the frontend to show that tools are being executed.
+3.  The `ToolOrchestrator` is invoked, which executes the tools concurrently.
+4.  Upon completion, it yields a `tool_execution` event containing a summary and detailed results for each tool call.
+5.  A detailed system message for *each* tool's result (success or failure) is appended to the conversation history. This is critical for the LLM to understand what happened and decide its next step.
+
+**Step 8: Loop Continuation or Exit**
+1.  If any tool failed, the `ToolExecutionError` is caught, and the loop continues, allowing the LLM to process the failure message and try a different approach.
+2.  If all tools succeed, the loop continues to the next iteration. The LLM will now receive the tool execution results in the history and can decide whether to respond to the user, call another tool, or chain operations.
+3.  The loop terminates if it reaches `MAX_TOOL_ITERATIONS` or if a final text response is generated.
+
+**Step 9: Cleanup**
+- The `asyncio.Lock` is released, allowing the next user query to be processed.
+
+This detailed, stateful loop is the "brain" of the agent, enabling it to use tools, handle errors, learn from mistakes within a single conversation, and decide when a task is complete.
 ---
 
 ## Technical Architecture
@@ -901,36 +992,37 @@ Determines whether to:
 ### Technology Stack
 
 #### Backend (Python 3.10+)
-- **Core Framework**: Async Python (asyncio, aiohttp)
+- **Core Framework**: Async Python (asyncio, websockets)
 - **LLM Abstraction**:
-  - `litellm` (provides a unified interface for over 100 LLM providers)
-- **Tool System**:
-  - Custom tool framework with automatic schema generation
+  - `litellm` (provides a unified interface for multiple LLM providers)
+  - Support for OpenAI, Anthropic, Google, Mistral, and local models
+- **Tool System** ✅ IMPLEMENTED:
+  - Custom tool framework with automatic schema generation from type hints
   - Tool registry and orchestrator for execution
-  - Response parser for tool call detection
-  - Integrated Gemini CLI tools (file operations, shell commands)
-- **Voice**:
+  - Response parser for tool call detection with multi-strategy parsing
+  - 8 built-in tools: 7 filesystem operations + 1 shell command tool
+  - Workspace validation and security controls
+- **Voice** 🔄 PLANNED:
   - `openai-whisper` or `whisper` library (STT)
   - `coqui-tts` or cloud TTS APIs
   - `pvporcupine` or `openwakeword` (wake word)
-- **Memory**:
+- **Memory** 🔄 PLANNED:
   - Vector database: ChromaDB, FAISS, or Qdrant
   - `sentence-transformers` for embeddings
   - SQLite for structured data
-- **Computer Control**:
+- **Computer Control** 🔄 PLANNED:
   - `pywinauto` (Windows UI Automation)
   - `pyautogui` (mouse/keyboard)
   - `mss` or `PIL` (screenshots)
   - `pytesseract` or `easyocr` (OCR)
-- **File Processing**:
+- **File Processing** ✅ IMPLEMENTED:
   - `python-magic-bin` (file type detection)
   - Custom file utilities for encoding detection and content reading
-- **System**:
+- **System** ✅ IMPLEMENTED:
   - `pywin32` (Windows APIs)
-  - `psutil` (process management)
-  - `watchdog` (file system monitoring)
-- **Web**:
-  - `websockets` or `aiohttp` (WebSocket server for IPC)
+  - Configuration management with YAML and Pydantic validation
+- **Web** ✅ IMPLEMENTED:
+  - `websockets` (WebSocket server for IPC)
 - **Testing**:
   - `pytest` (unit and integration tests)
   - `pytest-asyncio` (async tests)
@@ -946,6 +1038,51 @@ Determines whether to:
 - **Testing**:
   - Jest + React Testing Library (unit tests)
   - Playwright or Spectron (E2E tests)
+
+#### Frontend Architecture (Excruciating Detail)
+The frontend is a single-page application built with React and running inside an Electron renderer process. Its architecture is centered around a main `App.jsx` component that orchestrates state and passes data to child components, with complex logic encapsulated in custom hooks.
+
+**1. `App.jsx` - The Root Component**
+- **Role**: Serves as the top-level container for the entire UI.
+- **State Management**: It holds all the primary application state using `useState`, including `messages`, `isSending` (to disable UI during a query), `thinkingStatus`, `config`, `availableModels`, and `saveStatus`.
+- **Event Handlers**: It defines the core event handlers, such as `handleSendMessage` (which sends a `query` message to the backend) and `handleConfigChange` (which sends an `update-settings` message).
+- **Prop Drilling**: It passes state and event handlers down to its children (`MainLayout`, `ChatInterface`, `SettingsPanel`). A `TODO` note exists in the code to refactor this to a more scalable state management solution like Zustand in the future.
+
+**2. Custom Hooks - The Logic Layer (`frontend/src/renderer/hooks/`)**
+The majority of the frontend's logic is cleanly separated into custom hooks, promoting reusability and separation of concerns.
+
+- **`useInitialConfig.js`**:
+  - **Purpose**: To initialize the application's configuration when it first loads.
+  - **Logic**: It contains a single `useEffect` with an empty dependency array, meaning it runs only once on component mount. It sends two messages to the backend: `load-settings` and `list-models`. This populates the settings panel with the user's saved configuration and the available LLM models.
+
+- **`useMessageHandling.js`**:
+  - **Purpose**: This is the central message hub for all communication coming *from* the backend.
+  - **Logic**: It sets up a single `window.ipc.on('from-backend', ...)` listener. Inside this listener, it acts as a router, inspecting the `type` of the incoming message and calling the appropriate handler from the other, more specialized hooks (`useStreamingMessages` and `useSettingsManagement`). This hook is the bridge between the raw IPC messages and the stateful logic of the application.
+  - **Message Types Handled**: Routes `streaming-response`, `streaming-complete`, `tool-call`, `tool-output`, `llm-thought`, `pong`, `response`, `settings-loaded`, `models-listed`, `settings-updated`, and `error` messages to their respective handlers.
+
+- **`useStreamingMessages.js`**:
+  - **Purpose**: To handle the real-time display of the agent's responses, including streaming text, tool calls, tool outputs, and thinking-status updates.
+  - **Logic**:
+    - `handleStreamingResponse`: When a `streaming-response` message arrives, it finds the last message in the `messages` array (which is the incomplete assistant message) and appends the new text `chunk` to it. This creates the "typing" effect. Only appends to messages with type `llm-text`.
+    - `handleToolCall`: Creates a new message with type `tool-call` when the LLM requests a tool, displaying the JSON function call in a green-styled container.
+    - `handleToolOutput`: Creates a new message with type `tool-output` when a tool execution completes, displaying the result in an orange-styled container.
+    - `handleLlmThought`: Updates the `thinkingStatus` state, which is displayed in a dedicated `ThinkingDisplay` component.
+    - `handleStreamingComplete`: This message signals the end of a query. The hook sets `isSending` to `false` (re-enabling the input) and clears the `thinkingStatus`.
+
+- **`useSettingsManagement.js`**:
+  - **Purpose**: To manage the state and interactions of the `SettingsPanel`.
+  - **Logic**:
+    - `handleSettingsLoaded`: Populates the `config` state with the data received from the backend.
+    - `handleModelsListed`: Populates the `availableModels` state, which is used to build the model selection dropdowns.
+    - **Optimistic Updates & Error Handling**: When settings are changed in the UI, the `handleConfigChange` function in `App.jsx` first *optimistically* updates the local state and sets the `saveStatus` to `"saving"`. The `useSettingsManagement` hook then handles the `settings-updated` confirmation from the backend (setting status to `"success"`) or an `error` message (setting status to `"error"` and reverting the change). It includes a 10-second timeout as a fallback in case the backend never responds.
+
+**3. UI Components (`frontend/src/renderer/components/`)**
+- **`ChatInterface.jsx`**: A presentational component that receives the `messages` array and renders it with different visual styles based on message type (`llm-text`, `tool-call`, `tool-output`). It also contains the input form for sending new messages. The component uses `renderMessageContent()` to determine the appropriate rendering style for each message type.
+- **`SettingsPanel.jsx`**: A component that receives the `config` and `availableModels` objects and renders the various settings controls (dropdowns, text inputs). It calls the `onConfigChange` handler when a setting is modified.
+- **`ThinkingDisplay.jsx`**: A simple component that displays the current `thinkingStatus` message, giving the user visibility into the agent's internal state (e.g., "Executing tool: read_file...").
+- **`MainLayout.jsx`**: Provides the main two-column structure of the application (chat on the left, settings on the right).
+
+This architecture effectively separates the view layer (components), the state and IPC logic (hooks), and the main application container (`App.jsx`), making the frontend organized and maintainable.
 
 #### Development Tools
 - **Python**:
@@ -978,28 +1115,30 @@ Determines whether to:
 │       ├── feature_request.md
 │       └── milestone_issue.md
 │
-├── backend/                    # Python backend
-│   ├── agent/                  # Main agent logic
-│   │   ├── orchestrator.py    # Core agent brain
-│   │   ├── llm_client.py      # Multi-provider LLM interface
-│   │   ├── decision_engine.py # Routing logic
-│   │   └── safety_checker.py  # Destructive op detection
+├── backend/                    # Python backend ✅ IMPLEMENTED
+│   ├── agent/                  # Main agent logic ✅ IMPLEMENTED
+│   │   ├── orchestrator.py    # Core agent brain with tool calling loop
+│   │   ├── llm_client.py      # Multi-provider LLM interface (LiteLLM)
+│   │   ├── model_registry.py  # Model discovery and management
+│   │   ├── prompts.py         # System prompts and templates
+│   │   ├── response_parser.py # Tool call detection in LLM responses
+│   │   └── tool_orchestrator.py # Tool execution coordination
 │   │
-│   ├── memory/                 # Memory system
-│   │   ├── interface.py        # Abstract memory interface
-│   │   ├── active_monitor.py   # Screen/activity capture
-│   │   ├── passive_store.py    # Conversation storage
-│   │   └── retrieval.py        # Query and context retrieval
+│   ├── memory/                 # Memory system 🔄 PLANNED
+│   │   ├── interface.py        # Abstract memory interface (empty)
+│   │   ├── active_monitor.py   # Screen/activity capture (empty)
+│   │   ├── passive_store.py    # Conversation storage (empty)
+│   │   └── retrieval.py        # Query and context retrieval (empty)
 │   │
-│   ├── marketplace/            # Tool marketplace
-│   │   ├── registry.py         # Tool database
-│   │   ├── executor.py         # Tool execution engine
-│   │   ├── search.py           # Tool discovery
-│   │   └── schema.py           # Tool schema definitions
+│   ├── marketplace/            # Tool marketplace 🔄 PARTIALLY IMPLEMENTED
+│   │   ├── registry.py         # Tool database (basic)
+│   │   ├── executor.py         # Tool execution engine (basic)
+│   │   ├── search.py           # Tool discovery (basic)
+│   │   └── schema.py           # Tool schema definitions (basic)
 │   │
-│   ├── tools/                  # Built-in tools
+│   ├── tools/                  # Built-in tools ✅ IMPLEMENTED
 │   │   ├── base.py             # Base tool class + auto schema generation
-│   │   ├── filesystem/         # File operations (7 tools)
+│   │   ├── filesystem/         # File operations (7 tools) ✅ IMPLEMENTED
 │   │   │   ├── data_structures.py    # Common data classes
 │   │   │   ├── list_directory_tool.py
 │   │   │   ├── read_file_tool.py
@@ -1009,27 +1148,25 @@ Determines whether to:
 │   │   │   ├── replace_tool.py
 │   │   │   ├── read_many_files_tool.py
 │   │   │   └── __init__.py
-│   │   ├── shell.py            # Shell command execution
-│   │   ├── tool_registry.py    # Tool registry and management
-│   │   ├── terminal.py         # Command execution (planned)
-│   │   ├── computer_use.py     # CUA implementation (planned)
-│   │   └── file_ops.py         # Legacy file operations (replaced)
+│   │   ├── shell.py            # Shell command execution ✅ IMPLEMENTED
+│   │   ├── tool_registry.py    # Tool registry and management ✅ IMPLEMENTED
+│   │   └── __init__.py
 │   │
-│   ├── utils/                  # Utility modules
+│   ├── utils/                  # Utility modules ✅ IMPLEMENTED
 │   │   ├── file_utils.py       # File processing utilities
 │   │   ├── schema_generator.py # Automatic JSON schema generation
-│   │   └── [other utils...]
+│   │   └── __init__.py
 │   │
-│   ├── voice/                  # Voice processing
-│   │   ├── stt.py              # Whisper integration
-│   │   ├── tts.py              # TTS implementation
-│   │   └── audio_manager.py    # Audio I/O
+│   ├── voice/                  # Voice processing 🔄 PLANNED
+│   │   ├── stt.py              # Whisper integration (empty)
+│   │   ├── tts.py              # TTS implementation (empty)
+│   │   └── audio_manager.py    # Audio I/O (empty)
 │   │
-│   ├── server.py               # IPC server (WebSocket)
-│   ├── config.py               # Configuration management
-│   ├── requirements.txt        # Python dependencies
-│   ├── .pylintrc               # Pylint configuration
-│   └── pyproject.toml          # Black and Isort configuration
+│   ├── server.py               # IPC server (WebSocket) ✅ IMPLEMENTED
+│   ├── config.py               # Configuration management & service layer ✅ IMPLEMENTED
+│   ├── requirements.txt        # Python dependencies ✅ IMPLEMENTED
+│   ├── pyproject.toml          # Black and Isort configuration ✅ IMPLEMENTED
+│   └── __init__.py
 │
 ├── frontend/                   # Electron app
 │   ├── src/
@@ -1086,6 +1223,25 @@ Determines whether to:
 Communication between the frontend and backend is handled via a WebSocket connection. All messages are JSON objects with a consistent structure.
 
 For a detailed description of the message types, structure, and examples, see the dedicated **[IPC Protocol Document](ipc_protocol.md)**.
+
+#### IPC Implementation Details
+
+The IPC is managed by two key components working in tandem: the Python WebSocket server (`backend/server.py`) and the Electron IPC bridge (`frontend/src/main/ipc.cjs`).
+
+**Backend: `server.py`**
+- **Connection Handling**: The `handler` function manages the lifecycle of each client connection. It adds new clients to a global `connected_clients` set and removes them on disconnection.
+- **Message Routing**: The `_handle_message` function acts as a router, inspecting the `type` field of incoming JSON messages and dispatching them to the appropriate handler function (e.g., `_handle_query`, `_handle_update_settings`).
+- **State Management**: The server holds a singleton instance of the `Agent` class. Asynchronous locks (`agent_lock`, `settings_lock`) are used to prevent race conditions when updating the agent's configuration or processing multiple requests.
+- **Asynchronous Operations**: The entire server is built on `asyncio` and `websockets`, allowing it to handle multiple clients and long-running agent tasks (like LLM calls) without blocking.
+
+**Frontend: `ipc.cjs`**
+- **WebSocket Client**: This script, running in Electron's main process, establishes and maintains a WebSocket connection to the Python backend.
+- **Auto-Reconnection**: The `connect` function includes a `setTimeout` to automatically attempt reconnection if the connection is lost, making the system resilient to backend restarts.
+- **Renderer-to-Main Bridge**: It uses Electron's `ipcMain.on('to-backend', ...)` to listen for messages sent from the React renderer process (the UI).
+- **Message Forwarding**:
+  1.  When a message is received from the renderer, it's wrapped in the standard JSON structure (with a UUID and timestamp) and forwarded to the Python backend via the WebSocket.
+  2.  When a message is received from the backend WebSocket, it's forwarded directly to the renderer process using `mainWindow.webContents.send('from-backend', data)`. This triggers updates in the React UI.
+- **Initialization**: The `initializeIpc` function is called once when the main Electron window is created, starting the entire communication flow.
 
 ---
 
@@ -1226,7 +1382,7 @@ git commit --no-verify -m "your commit message"
 ## Development Timeline
 
 ### Current Status
-**Milestone 1 Complete**: The foundational infrastructure of the application is complete. This includes the project structure, a working IPC bridge between the backend and frontend, a basic user interface, and a complete configuration management system.
+**Milestone 3 Complete**: Tool Integration has been successfully implemented. The agent now has practical capabilities beyond conversation - it can actually perform tasks on the user's computer through 8 built-in tools, automatic schema generation, and LLM-driven tool calling.
 
 ### Milestone Roadmap
 
@@ -1248,9 +1404,10 @@ git commit --no-verify -m "your commit message"
 - Issue #12: Tool registry ✅ (8 tools registered)
 - Issue #13: Tool executor ✅ (Tool orchestrator with error handling)
 - Issue #14: Agent tool selection ✅ (LLM-driven tool calling)
-- **Demo**: Agent uses Gemini CLI tools (file ops, shell commands)
+- **Demo**: Agent uses tools for file operations, shell commands, and more
 - **Files Added**: `schema_generator.py`, `tool_registry.py`, `filesystem/`, `shell.py`
-- **Features**: Automatic schema generation, tool execution, response parsing
+- **Features**: Automatic schema generation from Python type hints, tool execution with safety, response parsing
+- **Tools Implemented**: 7 filesystem tools + 1 shell tool with workspace validation and security
 
 **Milestone 4: Memory** (Weeks 7-8) **🎯 NEXT**
 - Issue #8: Passive memory storage
@@ -1521,7 +1678,7 @@ git commit --no-verify -m "your commit message"
 ## Technical Innovations
 
 ### 1. Memory Payload System
-Unlike typical agent frameworks where tools return opaque results, our tools return structured "memory payloads" that tell the agent what to remember. This solves the black box problem of tool execution.
+Unlike typical agent frameworks where tools return opaque results, our tools return structured "memory payloads" that tell the agent what to remember. This solves the problem of the agent not knowing what happened inside tool execution.
 
 ### 2. Unified Memory Architecture
 Combining episodic (events), semantic (facts), and procedural (workflows) memory in a single system with semantic search enables truly context-aware assistance.
@@ -1549,24 +1706,176 @@ The phased development approach, research-first methodology, and strong focus on
 
 ---
 
-## Current Implementation State & Next Steps
+## Implementation Status Summary
 
-As of the completion of **Milestone 3: Tool Integration**, the project has the following status:
+### ✅ FULLY IMPLEMENTED
+- **Core Agent**: Multi-turn conversations with tool calling capabilities
+- **Multi-Provider LLM Support**: OpenAI, Anthropic, Google, OpenRouter, Mistral AI, local models (Ollama, LM Studio)
+- **Tool System**: 8 built-in tools (7 filesystem + 1 shell) with automatic schema generation
+- **Configuration Management**: Secure API key handling, provider-specific configs, service layer architecture
+- **IPC Bridge**: Robust WebSocket communication between frontend and backend
+- **Frontend UI**: React components for chat, settings, and thinking display
+- **File Operations**: Complete suite of safe file manipulation tools
+- **Shell Commands**: Secure command execution with workspace validation
 
-- **✅ Tool System Complete**: Full tool integration with automatic schema generation, tool registry, orchestrator, and response parser. 8 tools implemented (7 file system + 1 shell).
-- **✅ Agent Tool Calling**: The agent can now detect tool calls in LLM responses, execute tools safely, and feed results back for continued conversation.
-- **✅ Gemini CLI Integration**: Successfully integrated file system and shell tools from Gemini CLI with proper error handling and workspace validation.
-- **Current Behavior**: The application can hold intelligent conversations AND execute tools. Users can ask the agent to read files, list directories, search content, run shell commands, and more.
+### 🔄 PARTIALLY IMPLEMENTED
+- **Tool Marketplace**: Basic registry and executor framework (needs community tools)
 
-**Immediate Next Step**: **Milestone 4: Memory** (Weeks 7-8). This will involve implementing the passive memory store (Issue #8) to give the agent the ability to recall past conversations and build context over time.
+### ❌ NOT YET IMPLEMENTED
+- **Memory System**: Passive conversation storage and active monitoring
+- **Voice Interface**: STT, TTS, wake word detection
+- **Computer Use Automation**: GUI control and screen interaction
+- **Advanced Tools**: Web browsing, API integrations, computer vision
 
-### Recent Major Accomplishments:
+### 🎯 NEXT PRIORITY (Milestone 4)
+**Memory System Implementation**: Enable the agent to recall past conversations and maintain context across sessions.
 
-1. **Automatic Schema Generation**: Tools now generate JSON schemas automatically from Python type hints, eliminating manual maintenance
-2. **Tool Registry System**: Centralized management of 8+ tools with execution orchestration
-3. **Response Parser**: Multi-strategy parsing to detect tool calls in various LLM response formats
-4. **Security & Validation**: Workspace boundaries, command allowlisting, timeout protection
-5. **File System Tools**: Complete suite of file operations (read, write, search, list, replace)
-6. **Shell Tool**: Safe command execution with cross-platform support
+---
 
-The agent now has practical capabilities beyond conversation - it can actually perform tasks on the user's computer!
+**Last Updated**: November 8, 2025
+
+---
+
+## Recent Updates (November 8, 2025)
+
+### UI Message Type Separation
+- **Visual Distinction**: The UI now displays three distinct message types with different styling:
+  - **Tool Calls** (Green): Shows the JSON function call when the LLM requests a tool (e.g., `{"functionCall": {"name": "read_file", "args": {...}}}`)
+  - **Tool Outputs** (Orange): Displays the actual result/content from tool execution (e.g., file contents, command output)
+  - **LLM Text** (Gray): Normal conversational responses from the assistant
+- **Backend Changes**: The orchestrator now sends separate `tool_call` and `tool_output` events to the frontend, allowing proper message type classification
+- **Frontend Changes**: Updated `useStreamingMessages.js` to handle `tool-call` and `tool-output` message types, and `ChatInterface.jsx` to render them with distinct visual styles
+
+### Response Parser Improvements
+- **Stricter Fallback Parsing**: Enhanced the fallback parser (`_parse_function_calls`) to prevent false positive tool call detection from LLM explanatory text
+- **Blacklist Filtering**: Added comprehensive blacklist of common words that appear in explanations (e.g., "providers", "modes", "get_model_id") to prevent them from being parsed as tool calls
+- **Validation Rules**: Tool calls must now have `key=value` parameter format and produce actual parsed parameters to be considered valid
+
+### Service Layer Architecture
+- **AppServices Container**: Created a service container class that wraps configuration and provides access to application services
+- **WorkspaceContext**: Handles workspace path validation with `is_path_within_workspace()` method
+- **FileService**: Provides file filtering logic for common patterns (`.git`, `__pycache__`, etc.)
+- **StorageService**: Manages temporary directories and storage operations
+- **Tool Integration**: Tools now receive `AppServices` instances instead of raw config for clean separation of concerns
+
+---
+**Current Milestone**: 3/7 completed (43% complete)
+**Architecture**: Stable and well-tested foundation ready for memory system development
+
+---
+
+## Testing Strategy (Excruciating Detail)
+The project maintains a rigorous testing strategy to ensure code quality, prevent regressions, and validate functionality. The tests are located in the top-level `tests/` directory, mirroring the structure of the main `backend/` and `frontend/` source directories.
+
+**Backend Testing (`tests/backend/`)**
+- **Framework**: `pytest` is used as the primary testing framework for its powerful features, fixture support, and plugin ecosystem. `pytest-asyncio` is used to test the extensive `async` code.
+- **Unit Tests**: Each module and class generally has a corresponding test file (e.g., `backend/agent/orchestrator.py` is tested by `tests/backend/agent/test_orchestrator.py`).
+- **Mocking**: The `unittest.mock` library (especially `MagicMock` and `AsyncMock`) is used extensively to isolate components during unit testing. For example, when testing the `Agent Orchestrator`, the `LLMClient` is mocked to return predefined responses, allowing tests to focus solely on the orchestrator's logic without making actual API calls.
+- **Tool Testing**: Each built-in tool has a dedicated test file (e.g., `test_file_system_tools.py`). These tests cover:
+  - **Success Cases**: Validating that the tool works as expected with correct inputs.
+  - **Error Cases**: Ensuring the tool fails gracefully and returns informative error messages for invalid inputs (e.g., non-existent files, paths outside the workspace).
+  - **Edge Cases**: Testing for specific scenarios like empty files, large files (for truncation), or commands with no output.
+- **Configuration Testing**: `test_config.py` validates that the configuration loads correctly, falls back to defaults, and handles API key loading as expected.
+- **End-to-End (Integration) Style Tests**: While not true end-to-end tests, some tests cover the integration between multiple components. For example, `test_server.py` simulates a WebSocket client connecting to the server and sending messages, testing the entire backend stack from the server entry point down to the agent and tools.
+
+**Frontend Testing (`tests/frontend/`)**
+- **Framework**: `Jest` is used as the test runner, and `React Testing Library` is used for rendering and interacting with React components.
+- **Component Tests**: Each major React component has a corresponding `.spec.jsx` file (e.g., `ChatInterface.spec.jsx`).
+- **User Interaction Simulation**: Tests use `@testing-library/user-event` to simulate real user actions like typing in an input field and clicking buttons.
+- **Snapshot Testing**: While used sparingly, some tests may use snapshot testing to detect unintentional UI changes.
+- **Mocking**: The `jest.mock` function is used to mock dependencies, such as the `window.ipc` object, to isolate components from the Electron environment and simulate messages from the backend.
+
+---
+## Detailed End-to-End Workflows
+
+### End-to-End Query Lifecycle (Excruciating Detail)
+This workflow details the entire journey of a user message, from a key press in the UI to the final streamed response appearing on the screen.
+
+**1. Frontend (Renderer): User Input**
+   - The user types a message into the `<input>` field in `ChatInterface.jsx` and clicks "Send".
+   - The `handleSubmit` function calls `handleSendMessage` in `App.jsx`.
+
+**2. Frontend (Renderer): State Update & IPC Send**
+   - `handleSendMessage` in `App.jsx` immediately updates the local React state:
+     - The user's message is added to the `messages` array, causing the UI to re-render and show the new message.
+     - `isSending` is set to `true`, disabling the input field.
+   - It then sends the message to the Electron main process: `window.ipc.send('to-backend', { type: 'query', ... })`.
+
+**3. Frontend (Main): IPC Bridge to WebSocket**
+   - In `ipc.cjs`, the `ipcMain.on('to-backend', ...)` listener receives the message.
+   - It wraps the message in the standard IPC format (adding a UUID and timestamp) and sends it over the active WebSocket connection to the Python backend.
+
+**4. Backend: WebSocket Server Receives Message**
+   - The `handler` function in `server.py` is constantly listening for messages on the WebSocket.
+   - The message is received, parsed from JSON, and passed to the `_handle_message` router.
+
+**5. Backend: Routing and Agent Invocation**
+   - `_handle_message` sees the `type: "query"` and calls `_handle_query`.
+   - `_handle_query` extracts the query text and calls the main `agent.process_query(query_text)` method.
+
+**6. Backend: Agent Processing (The Loop)**
+   - `agent.process_query` executes its full tool-calling loop (as documented in "Agent Orchestrator Logic").
+   - As the agent processes, it `yield`s a stream of dictionary events, such as:
+     - `{'type': 'thinking', 'content': 'Executing tool...'}`
+     - `{'type': 'chunk', 'content': 'Hello, this is part of the response.'}`
+     - `{'type': 'tool_execution', ...}`
+
+**7. Backend: Streaming Responses back via WebSocket**
+   - Back in `server.py`, the `stream_query_with_timeout` function iterates through the events yielded by the agent.
+   - For each event, it constructs a JSON response message (e.g., `{ "type": "llm-thought", ... }` or `{ "type": "streaming-response", ... }`) and sends it back to the frontend over the WebSocket.
+
+**8. Frontend (Main): WebSocket to IPC Bridge**
+   - The `ws.on('message', ...)` listener in `ipc.cjs` receives the streamed events from the backend.
+   - It immediately forwards each event to the renderer process: `mainWindow.webContents.send('from-backend', data)`.
+
+**9. Frontend (Renderer): IPC to State Update**
+   - The `window.ipc.on('from-backend', ...)` listener in `useMessageHandling.js` receives the events.
+   - It calls the appropriate handler from the specialized hooks:
+     - A `streaming-response` event calls `handleStreamingResponse` in `useStreamingMessages.js`. This function finds the last (incomplete) assistant message in the `messages` state and appends the new text chunk, triggering a re-render.
+     - An `llm-thought` event calls `handleLlmThought`, which updates the `thinkingStatus` state, causing the `ThinkingDisplay` component to show the agent's current action.
+
+**10. Frontend (Renderer): Finalizing the Stream**
+    - When the backend sends the `streaming-complete` message, `handleStreamingComplete` is called.
+    - This sets `isSending` to `false` (re-enabling the input field) and clears the `thinkingStatus`. The user can now send another message.
+
+### Dynamic Model Switching Lifecycle (Excruciating Detail)
+This workflow details the sequence of events when a user changes the active LLM in the settings panel.
+
+**1. Frontend: User Selection**
+   - The user selects a new model from the dropdown in the `SettingsPanel.jsx` component.
+   - The component's `onChange` handler calls the `handleConfigChange` function, which was passed down from `App.jsx`.
+
+**2. Frontend: Optimistic Update & IPC Send**
+   - `handleConfigChange` in `App.jsx` immediately performs an **optimistic update**:
+     - It updates the local `config` state with the new model information. The UI re-renders instantly to reflect the change.
+     - It sets the `saveStatus` state to `"saving"`, which can be used to show a saving indicator in the UI.
+     - It starts a 10-second `setTimeout` as a safety net. If no confirmation is received from the backend within 10 seconds, it will automatically set the `saveStatus` to `"error"` and revert the UI to the previous state.
+   - It then sends the updated configuration object to the backend: `window.ipc.send('to-backend', { type: 'update-settings', ... })`.
+
+**3. Backend: IPC to Settings Handler**
+   - The `_handle_message` router in `server.py` receives the message and calls `_handle_update_settings`.
+
+**4. Backend: Validation, Persistence, and Agent Update**
+   - `_handle_update_settings` performs several critical actions inside a lock to prevent race conditions:
+     - **Validation**: It merges the received settings with the existing ones and validates the complete object against the `AppConfig` Pydantic model. If validation fails, it sends an `error` message back and stops.
+     - **API Key Reload**: It calls `load_api_key_for_provider` to load the new API key (if any) from the environment variables.
+     - **Persistence**: It saves the new, validated configuration to the `config.yaml` file on disk (excluding the raw API key).
+     - **Agent Hot-Swap**: It calls `agent.update_config(new_config)`.
+     - Inside the `Agent` class, the `update_config` method replaces the agent's internal config and, most importantly, creates a **new instance** of the `LiteLLMClient` with the updated settings: `self.llm_client = get_llm_client(self.cfg)`. The agent is now ready to use the new model for the next query.
+     - **Reload Global Settings**: It calls `reload_settings()` to ensure the global singleton is updated.
+
+**5. Backend: Confirmation Message**
+   - After successfully completing all steps, the backend sends a `settings-updated` confirmation message back to the frontend.
+
+**6. Frontend: Handling Confirmation**
+   - The `useMessageHandling.js` hook receives the confirmation.
+   - It calls `handleSettingsUpdated` from `useSettingsManagement.js`.
+   - This handler clears the 10-second safety timeout and sets the `saveStatus` to `"success"`, typically displaying a "Saved!" message for a few seconds before returning to idle.
+
+This robust, optimistic-update-with-fallback process provides a snappy user experience while ensuring that the frontend and backend states remain synchronized and the agent is always using the correct, validated configuration.
+
+#### Testing Strategy (Excruciating Detail)
+The project maintains a rigorous testing strategy to ensure code quality, prevent regressions, and validate functionality. The tests are located in the top-level `tests/` directory, mirroring the structure of the main `backend/` and `frontend/` source directories.
+
+**Backend Testing (`tests/backend/`)**
+// ... existing code ...

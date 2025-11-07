@@ -167,8 +167,11 @@ class ReplaceTool(Tool):
         self, content: str, old_string: str, new_string: str, expected_count: int
     ) -> Tuple[str, int]:
         """Perform the actual replacement operation."""
-        # For now, use exact string matching
         # TODO: Implement fuzzy matching like Gemini CLI
+        raise NotImplementedError(
+            "Fuzzy matching has not been implemented yet. Only exact matches are supported."
+        )
+        # For now, use exact string matching
         count = content.count(old_string)
         if count == 0:
             return content, 0

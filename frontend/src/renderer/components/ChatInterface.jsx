@@ -45,16 +45,43 @@ function ChatInterface({
     [inputValue, isSending, onSendMessage]
   );
 
+  const renderMessageContent = (msg) => {
+    // Determine if message is a tool output (function result)
+    const isToolOutput = msg.type === 'tool-output';
+    const isToolCall = msg.type === 'tool-call';
+    const isLlmText = msg.type === 'llm-text' || !msg.type; // default to text
+
+    if (isToolOutput) {
+      return (
+        <div className="tool-output-container">
+          <div className="tool-output-header">📤 Tool Output</div>
+          <pre className="tool-output-content">{msg.text}</pre>
+        </div>
+      );
+    }
+
+    if (isToolCall) {
+      return (
+        <div className="tool-call-container">
+          <div className="tool-call-header">🔧 Tool Call</div>
+          <pre className="tool-call-content">{msg.text}</pre>
+        </div>
+      );
+    }
+
+    return <div className="message-content">{msg.text}</div>;
+  };
+
   return (
     <div className="chat-container">
       <div className="message-list">
         {messages.map((msg) => {
           const messageClass = `message message-${msg.sender} ${
             msg.sender === 'assistant' && msg.isComplete === false ? 'message-streaming' : ''
-          }`;
+          } ${msg.type ? `message-type-${msg.type}` : ''}`;
           return (
             <div key={msg.id} className={messageClass}>
-              <div className="message-content">{msg.text}</div>
+              {renderMessageContent(msg)}
             </div>
           );
         })}
