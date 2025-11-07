@@ -120,7 +120,7 @@ class ShellTool(Tool):
                     )
 
             # Execute the command
-            working_dir = directory or self.config.get_target_dir()
+            working_dir = directory or self.config.get_workspace_context().workspace_path
             result = await self._execute_command(command, working_dir)
 
             # Format output for LLM
@@ -224,16 +224,12 @@ class ShellTool(Tool):
             return False
 
         for allowed in allowed_tools:
-            # Check for exact match
-            if allowed == f"run_shell_command({command})":
+            # Check for exact match with command name
+            if allowed == command:
                 return True
 
-            # Check for wildcard match
+            # Check for wildcard match (allow all shell commands)
             if allowed == "run_shell_command":
-                return True
-
-            # Check for prefix match (e.g., "run_shell_command(git)" allows "git status")
-            if allowed == f"run_shell_command({command})":
                 return True
 
         return False

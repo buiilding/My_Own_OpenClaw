@@ -63,6 +63,9 @@ class ReplaceTool(Tool):
                     return_display="File path must be absolute",
                 )
 
+            # Get target directory for relative path resolution
+            target_dir = self.config.get_workspace_context().workspace_path
+
             # Check if path is within workspace
             workspace_context = self.config.get_workspace_context()
             if not workspace_context.is_path_within_workspace(file_path):
@@ -85,7 +88,7 @@ class ReplaceTool(Tool):
                         success=True,
                         data={"replacements": 1, "is_new_file": True},
                         llm_content=f"Created new file: {file_path} with provided content.",
-                        return_display=f"Created new file: {shorten_path(make_relative_path(file_path, self.config.get_target_dir()))}",
+                        return_display=f"Created new file: {shorten_path(make_relative_path(file_path, target_dir))}",
                     )
                 except OSError as e:
                     return ToolResult(
@@ -152,7 +155,7 @@ class ReplaceTool(Tool):
                 success=True,
                 data={"replacements": replacements, "is_new_file": False},
                 llm_content=f"Successfully modified file: {file_path} ({replacements} replacements).",
-                return_display=f"Modified file: {shorten_path(make_relative_path(file_path, self.config.get_target_dir()))} ({replacements} replacements)",
+                return_display=f"Modified file: {shorten_path(make_relative_path(file_path, target_dir))} ({replacements} replacements)",
             )
 
         except Exception as e:
@@ -168,9 +171,6 @@ class ReplaceTool(Tool):
     ) -> Tuple[str, int]:
         """Perform the actual replacement operation."""
         # TODO: Implement fuzzy matching like Gemini CLI
-        raise NotImplementedError(
-            "Fuzzy matching has not been implemented yet. Only exact matches are supported."
-        )
         # For now, use exact string matching
         count = content.count(old_string)
         if count == 0:
