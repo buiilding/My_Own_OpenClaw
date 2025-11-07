@@ -56,14 +56,17 @@ class GlobTool(Tool):
                     return_display="pattern parameter is required",
                 )
 
+            # Get target directory for relative path resolution
+            target_dir = self.config.get_workspace_context().workspace_path
+
             # Determine search directory
             if path:
                 if not os.path.isabs(path):
-                    search_dir = os.path.join(self.config.get_target_dir(), path)
+                    search_dir = os.path.join(target_dir, path)
                 else:
                     search_dir = path
             else:
-                search_dir = self.config.get_target_dir()
+                search_dir = target_dir
 
             # Validate search directory
             workspace_context = self.config.get_workspace_context()
@@ -122,7 +125,7 @@ class GlobTool(Tool):
             # Apply file filtering
             file_discovery = self.config.get_file_service()
             relative_paths = [
-                make_relative_path(p, self.config.get_target_dir())
+                make_relative_path(p, target_dir)
                 for p in file_matches
             ]
 
@@ -137,7 +140,7 @@ class GlobTool(Tool):
 
             # Convert back to absolute paths
             filtered_absolute_paths = [
-                os.path.join(self.config.get_target_dir(), p) for p in filtered_paths
+                os.path.join(target_dir, p) for p in filtered_paths
             ]
 
             # Create GlobEntry objects and sort by modification time

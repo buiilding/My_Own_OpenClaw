@@ -55,6 +55,9 @@ class ReadManyFilesTool(Tool):
                     return_display="paths parameter is required",
                 )
 
+            # Get target directory for relative path resolution
+            target_dir = self.config.get_workspace_context().workspace_path
+
             # Collect all file paths
             all_files = set()
 
@@ -78,7 +81,7 @@ class ReadManyFilesTool(Tool):
                         all_files.update(matches)
                 else:
                     # Relative path - resolve against workspace
-                    full_pattern = os.path.join(self.config.get_target_dir(), pattern)
+                    full_pattern = os.path.join(target_dir, pattern)
                     if os.path.exists(full_pattern):
                         if os.path.isfile(full_pattern):
                             all_files.add(full_pattern)
@@ -103,7 +106,7 @@ class ReadManyFilesTool(Tool):
                     skipped_files.append(
                         {
                             "path": make_relative_path(
-                                file_path, self.config.get_target_dir()
+                                file_path, target_dir
                             ),
                             "reason": "Outside workspace boundaries",
                         }
@@ -112,7 +115,7 @@ class ReadManyFilesTool(Tool):
             # Apply file filtering
             file_discovery = self.config.get_file_service()
             relative_paths = [
-                make_relative_path(p, self.config.get_target_dir())
+                make_relative_path(p, target_dir)
                 for p in workspace_files
             ]
 
@@ -139,7 +142,7 @@ class ReadManyFilesTool(Tool):
 
             # Convert back to absolute paths
             filtered_absolute_paths = [
-                os.path.join(self.config.get_target_dir(), p) for p in filtered_paths
+                os.path.join(target_dir, p) for p in filtered_paths
             ]
 
             # Process files
@@ -172,7 +175,7 @@ class ReadManyFilesTool(Tool):
                             skipped_files.append(
                                 {
                                     "path": make_relative_path(
-                                        file_path, self.config.get_target_dir()
+                                        file_path, target_dir
                                     ),
                                     "reason": "asset file (image/pdf) was not explicitly requested by name or extension",
                                 }
@@ -186,7 +189,7 @@ class ReadManyFilesTool(Tool):
                         skipped_files.append(
                             {
                                 "path": make_relative_path(
-                                    file_path, self.config.get_target_dir()
+                                    file_path, target_dir
                                 ),
                                 "reason": f"Read error: {error}",
                             }
@@ -215,7 +218,7 @@ class ReadManyFilesTool(Tool):
                     skipped_files.append(
                         {
                             "path": make_relative_path(
-                                file_path, self.config.get_target_dir()
+                                file_path, target_dir
                             ),
                             "reason": f"Unexpected error: {str(e)}",
                         }
@@ -232,7 +235,7 @@ class ReadManyFilesTool(Tool):
 
             # Create display message
             display_parts = [
-                f"### ReadManyFiles Result (Target Dir: `{self.config.get_target_dir()}`)\n\n"
+                f"### ReadManyFiles Result (Target Dir: `{target_dir}`)\n\n"
             ]
 
             if processed_files:
