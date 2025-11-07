@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import ChatInterface from './components/ChatInterface';
 import MainLayout from './components/MainLayout';
 import SettingsPanel from './components/SettingsPanel';
+import { useMessageHandling } from './hooks/useMessageHandling';
+import { useInitialConfig } from './hooks/useInitialConfig';
 import './styles/ChatInterface.css';
 import './styles/MainLayout.css';
 import './styles/accessibility.css';
@@ -28,91 +30,20 @@ function App() {
   const configBeforeSave = useRef(null);
   const saveTimeoutId = useRef(null);
 
-  // Listen for messages and config updates from the backend
-  useEffect(() => {
-    const removeBackendListener = window.ipc.on('from-backend', (data) => {
-      if (data.type === 'pong' || data.type === 'response') {
-        const newMesage = {
-          id: crypto.randomUUID(),
-          text: data.payload.text || JSON.stringify(data.payload),
-          sender: 'assistant',
-        };
-        setMessages((prevMessages) => [...prevMessages, newMesage]);
-        setIsSending(false);
-      } else if (data.type === 'llm-thought') {
-        setThinkingStatus((prevStatus) => {
-          const updated = (prevStatus || '') + data.payload.status;
-          return updated.length > 1000 ? updated.slice(-1000) : updated;
-        });
-      } else if (data.type === 'streaming-response') {
-        setIsSending(false); // We've got the first chunk, so we're not "sending" anymore
-        setThinkingStatus(null); // Hide thinking status when response starts
-        setMessages((prevMessages) => {
-          const lastMessage = prevMessages[prevMessages.length - 1];
-          if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete) {
-            // Append chunk to the last message by creating a new object
-            return [
-              ...prevMessages.slice(0, -1),
-              { ...lastMessage, text: lastMessage.text + data.payload.text },
-            ];
-          } else {
-            // This is the first chunk, create a new message object
-            return [
-              ...prevMessages,
-              {
-                id: crypto.randomUUID(),
-                text: data.payload.text,
-                sender: 'assistant',
-                isComplete: false,
-              },
-            ];
-          }
-        });
-      } else if (data.type === 'streaming-complete') {
-        setThinkingStatus(null);
-        setMessages((prevMessages) => {
-          const lastMessage = prevMessages[prevMessages.length - 1];
-          if (lastMessage && lastMessage.sender === 'assistant') {
-            return [
-              ...prevMessages.slice(0, -1),
-              { ...lastMessage, isComplete: true },
-            ];
-          }
-          return prevMessages;
-        });
-      } else if (data.type === 'settings-loaded') {
-        setConfig(data.payload);
-        // Request available models when settings are loaded
-        window.ipc.send('to-backend', { type: 'list-models' });
-      } else if (data.type === 'models-listed') {
-        setAvailableModels(data.payload);
-      } else if (data.type === 'settings-updated') {
-        clearTimeout(saveTimeoutId.current);
-        setSaveStatus('success');
-        setTimeout(() => setSaveStatus('idle'), 3000);
-      } else if (
-        data.type === 'error' &&
-        data.payload.message?.includes('Failed to update settings')
-      ) {
-        clearTimeout(saveTimeoutId.current);
-        setSaveStatus('error');
-        // Revert to the old config on failure
-        if (configBeforeSave.current) {
-          setConfig(configBeforeSave.current);
-          configBeforeSave.current = null;
-        }
-        setTimeout(() => setSaveStatus('idle'), 3000);
-      }
-    });
+  // Handle backend messages and config updates
+  useMessageHandling(
+    setMessages,
+    setIsSending,
+    setThinkingStatus,
+    setConfig,
+    setAvailableModels,
+    setSaveStatus,
+    configBeforeSave,
+    saveTimeoutId
+  );
 
-    // Request the initial config from the backend
-    window.ipc.send('to-backend', { type: 'load-settings' });
-
-    return () => {
-      removeBackendListener();
-      clearTimeout(saveTimeoutId.current); // Cleanup on unmount
-    };
-  }, []);
+  // Initialize app configuration
+  useInitialConfig();
 
   const handleSendMessage = (text) => {
     // Add user's message to the chat
