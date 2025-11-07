@@ -1,12 +1,25 @@
 """
-Readfile Tool.
+Read File Tool.
 
-Tool for read file.
+Tool for reading text files, images, PDFs with optional line ranges.
 """
 
-from backend.utils.file_utils import detect_file_type, read_file_content, read_text_file_auto_encoding
-from pathlib import Path
+import logging
 import os
+from pathlib import Path
+from typing import Any, Optional
+
+from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.utils.file_utils import (
+    DEFAULT_ENCODING,
+    FileType,
+    detect_file_type,
+    get_specific_mime_type,
+    is_text_file,
+    read_file_content,
+    read_text_file_auto_encoding,
+    shorten_path,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +47,6 @@ class ReadFileTool(Tool):
         try:
             # Accept both 'absolute_path' and 'path' for flexibility
             absolute_path = absolute_path or path or ""
-            offset = offset
-            limit = limit
 
             logger.info(
                 f"ReadFile tool called with path: '{absolute_path}', offset: {offset}, limit: {limit}"
@@ -220,5 +231,3 @@ class ReadFileTool(Tool):
             ".md": "markdown",
         }
         return language_map.get(ext)
-
-

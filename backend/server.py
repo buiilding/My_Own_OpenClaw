@@ -22,7 +22,8 @@ from backend.config import (
     CONFIG_FILE_NAME,
     AppConfig,
     get_config_dir,
-    initialize_settings,
+    get_settings,
+    reload_settings,
 )
 from backend.tools.tool_registry import create_tool_registry
 
@@ -206,7 +207,7 @@ async def _handle_message(
     elif message_type == "load-settings":
         logger.info("Loading and sending settings to frontend.")
         # Exclude the loaded API key from being sent to the frontend
-        config_payload = config.settings.model_dump(exclude={"api_key"})
+        config_payload = get_settings().model_dump(exclude={"api_key"})
         response = {
             "type": "settings-loaded",
             "id": message_id,
@@ -241,14 +242,14 @@ async def _handle_message(
                 new_config_data = message_data.get("payload", {})
 
                 # Merge with existing settings to preserve fields not sent by frontend
-                merged_data = {**config.settings.model_dump(), **new_config_data}
+                merged_data = {**get_settings().model_dump(), **new_config_data}
                 validated_config = AppConfig(**merged_data)
 
                 # Reload the API key for the newly selected provider
                 config.load_api_key_for_provider(validated_config)
 
-                # Update the global settings object in-memory
-                config.settings = validated_config
+                # Update the settings object in-memory (reload from disk)
+                reload_settings()
 
                 # Update the agent's config
                 async with agent_lock:
@@ -389,16 +390,16 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
 
 async def main() -> None:
     """Initializes and starts the WebSocket server."""
-    # Initialize settings before anything else
-    initialize_settings()
+    # Get settings (loaded on first access)
+    settings = get_settings()
 
     # Initialize tool registry
-    tool_registry = create_tool_registry(config.settings)
+    tool_registry = create_tool_registry(settings)
 
-    # Make agent a global variable to be accessible in the handler
+    # Create agent instance (store in a way that handlers can access)
     # pylint: disable=global-statement
     global agent
-    agent = Agent(config.settings, tool_registry)
+    agent = Agent(settings, tool_registry)
 
     host = "0.0.0.0"  # Listen on all interfaces
     port = 8765

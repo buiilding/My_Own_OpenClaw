@@ -1,11 +1,21 @@
 """
 Replace Tool.
 
-Tool for replace.
+Tool for search/replace text in files with fuzzy matching.
 """
 
-from backend.utils.file_utils import make_relative_path
+import logging
 import os
+from typing import Any, Optional, Tuple
+
+from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.utils.file_utils import (
+    DEFAULT_ENCODING,
+    ensure_directory_exists,
+    make_relative_path,
+    read_text_file_auto_encoding,
+    shorten_path,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +41,6 @@ class ReplaceTool(Tool):
     ) -> ToolResult:
         """Execute the replace tool."""
         try:
-            file_path = file_path
-            old_string = old_string
-            new_string = new_string
             expected_replacements = (
                 expected_replacements if expected_replacements is not None else 1
             )
@@ -174,5 +181,3 @@ class ReplaceTool(Tool):
         new_content = content.replace(old_string, new_string, replace_count)
 
         return new_content, replace_count
-
-

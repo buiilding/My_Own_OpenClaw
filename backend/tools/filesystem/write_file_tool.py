@@ -1,11 +1,20 @@
 """
-Writefile Tool.
+Write File Tool.
 
-Tool for write file.
+Tool for creating/overwriting files with content.
 """
 
-from backend.utils.file_utils import make_relative_path
+import logging
 import os
+from typing import Any
+
+from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.utils.file_utils import (
+    DEFAULT_ENCODING,
+    ensure_directory_exists,
+    make_relative_path,
+    shorten_path,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +35,6 @@ class WriteFileTool(Tool):
     ) -> ToolResult:
         """Execute the write_file tool."""
         try:
-            file_path = file_path
-            content = content
-
             if not file_path:
                 return ToolResult(
                     success=False,
@@ -110,5 +116,3 @@ class WriteFileTool(Tool):
                 llm_content=f"Error: Unexpected error: {str(e)}",
                 return_display="Unexpected error occurred",
             )
-
-
