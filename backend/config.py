@@ -184,11 +184,11 @@ def load_api_key_for_provider(cfg: AppConfig) -> None:
     if api_key_env_var:
         cfg.api_key = os.getenv(api_key_env_var)
         if not cfg.api_key:
-            logger.warning(
+                    logger.warning(
                 "Environment variable '%s' for provider '%s' is not set.",
-                api_key_env_var,
-                provider_name,
-            )
+                        api_key_env_var,
+                        provider_name,
+                    )
     else:
         # This case is for local models like Ollama that don't require an API key
         cfg.api_key = None
