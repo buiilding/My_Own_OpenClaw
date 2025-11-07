@@ -63,6 +63,7 @@ class ReadManyFilesTool(Tool):
 
             # Process direct paths and glob patterns
             search_patterns = paths + (include or [])
+            logger.info(f"ReadManyFiles: Processing {len(search_patterns)} patterns: {search_patterns}")
 
             for pattern in search_patterns:
                 if os.path.isabs(pattern):
@@ -99,6 +100,7 @@ class ReadManyFilesTool(Tool):
             workspace_files = []
             skipped_files = []
 
+            logger.info(f"ReadManyFiles: Collected {len(all_files)} files before workspace filtering")
             for file_path in all_files:
                 if workspace_context.is_path_within_workspace(file_path):
                     workspace_files.append(file_path)
@@ -111,6 +113,7 @@ class ReadManyFilesTool(Tool):
                             "reason": "Outside workspace boundaries",
                         }
                     )
+            logger.info(f"ReadManyFiles: {len(workspace_files)} files within workspace, {len(skipped_files)} skipped")
 
             # Apply file filtering
             file_discovery = self.config.get_file_service()
@@ -128,9 +131,11 @@ class ReadManyFilesTool(Tool):
                 ),
             }
 
+            logger.info(f"ReadManyFiles: Filtering {len(relative_paths)} relative paths: {relative_paths[:5]}")
             filtered_paths, ignored_count = file_discovery.filter_files_with_report(
                 relative_paths, filtering_options
             )
+            logger.info(f"ReadManyFiles: After filtering: {len(filtered_paths)} files passed, {ignored_count} ignored")
 
             if ignored_count > 0:
                 skipped_files.append(
@@ -144,6 +149,7 @@ class ReadManyFilesTool(Tool):
             filtered_absolute_paths = [
                 os.path.join(target_dir, p) for p in filtered_paths
             ]
+            logger.info(f"ReadManyFiles: Processing {len(filtered_absolute_paths)} files: {filtered_absolute_paths[:3]}")
 
             # Process files
             processed_files = []
@@ -151,7 +157,9 @@ class ReadManyFilesTool(Tool):
 
             for file_path in filtered_absolute_paths:
                 try:
+                    logger.info(f"ReadManyFiles: Reading file: {file_path}")
                     file_type = detect_file_type(file_path)
+                    logger.info(f"ReadManyFiles: Detected file type: {file_type} for {file_path}")
 
                     # Handle image/PDF files specially
                     if file_type in [FileType.IMAGE, FileType.PDF]:
@@ -183,7 +191,9 @@ class ReadManyFilesTool(Tool):
                             continue
 
                     # Read file content
+                    logger.info(f"ReadManyFiles: Calling read_file_content for {file_path}")
                     content, error, is_truncated = read_file_content(file_path)
+                    logger.info(f"ReadManyFiles: Read result - error: {error}, is_truncated: {is_truncated}, content_length: {len(content) if isinstance(content, str) else 'binary'}")
 
                     if error:
                         skipped_files.append(
@@ -197,7 +207,7 @@ class ReadManyFilesTool(Tool):
                         continue
 
                     relative_path = make_relative_path(
-                        file_path, self.config.get_target_dir()
+                        file_path, target_dir
                     )
 
                     if isinstance(content, str):
@@ -208,11 +218,14 @@ class ReadManyFilesTool(Tool):
                             file_content = f"[WARNING: This file was truncated. To view the full content, use the 'read_file' tool on this specific file.]\n\n{file_content}"
 
                         content_parts.append(f"{separator}\n\n{file_content}\n\n")
+                        logger.info(f"ReadManyFiles: Added text content for {file_path}, length: {len(file_content)}")
                     else:
                         # Binary file (image/PDF) - add without separator
                         content_parts.append(content)
+                        logger.info(f"ReadManyFiles: Added binary content for {file_path}")
 
                     processed_files.append(relative_path)
+                    logger.info(f"ReadManyFiles: Successfully processed {file_path}")
 
                 except Exception as e:
                     skipped_files.append(
@@ -228,10 +241,12 @@ class ReadManyFilesTool(Tool):
             if content_parts:
                 content_parts.append("--- End of content ---")
                 llm_content = "".join(content_parts)
+                logger.info(f"ReadManyFiles: Created llm_content with {len(content_parts)} parts, total length: {len(llm_content)}")
             else:
                 llm_content = (
                     "No files matching the criteria were found or all were skipped."
                 )
+                logger.warning("ReadManyFiles: No content parts created!")
 
             # Create display message
             display_parts = [

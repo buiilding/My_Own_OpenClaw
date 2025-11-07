@@ -86,7 +86,7 @@ class SearchFileContentTool(Tool):
                 )
 
             # Perform search
-            matches = await self._perform_search(search_dir, pattern, include)
+            matches = await self._perform_search(search_dir, pattern, include, target_dir)
 
             if not matches:
                 search_location = f'in path "{path}"' if path else "in workspace"
@@ -144,21 +144,21 @@ class SearchFileContentTool(Tool):
             )
 
     async def _perform_search(
-        self, search_dir: str, pattern: str, include: Optional[str]
+        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str
     ) -> List[GrepMatch]:
         """Perform the actual search operation."""
         matches = []
 
         # Use git grep if available and in a git repository
-        matches = await self._try_git_grep(search_dir, pattern, include)
+        matches = await self._try_git_grep(search_dir, pattern, include, target_dir)
         if matches is not None:
             return matches
 
         # Fall back to manual file search
-        return await self._manual_file_search(search_dir, pattern, include)
+        return await self._manual_file_search(search_dir, pattern, include, target_dir)
 
     async def _try_git_grep(
-        self, search_dir: str, pattern: str, include: Optional[str]
+        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str
     ) -> Optional[List[GrepMatch]]:
         """Try to use git grep for faster searching."""
         try:
@@ -194,7 +194,7 @@ class SearchFileContentTool(Tool):
 
             if process.returncode in [0, 1]:  # 0 = matches found, 1 = no matches
                 if process.returncode == 0:
-                    return self._parse_grep_output(stdout.decode(), search_dir)
+                    return self._parse_grep_output(stdout.decode(), search_dir, target_dir)
                 else:
                     return []  # No matches
             else:
@@ -205,7 +205,7 @@ class SearchFileContentTool(Tool):
             return None
 
     async def _manual_file_search(
-        self, search_dir: str, pattern: str, include: Optional[str]
+        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str
     ) -> List[GrepMatch]:
         """Perform manual file search as fallback."""
         matches = []
@@ -287,7 +287,7 @@ class SearchFileContentTool(Tool):
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
 
-    def _parse_grep_output(self, output: str, search_dir: str) -> List[GrepMatch]:
+    def _parse_grep_output(self, output: str, search_dir: str, target_dir: str) -> List[GrepMatch]:
         """Parse grep output into GrepMatch objects."""
         matches = []
 

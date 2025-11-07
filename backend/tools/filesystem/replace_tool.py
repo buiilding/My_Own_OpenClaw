@@ -171,9 +171,6 @@ class ReplaceTool(Tool):
     ) -> Tuple[str, int]:
         """Perform the actual replacement operation."""
         # TODO: Implement fuzzy matching like Gemini CLI
-        raise NotImplementedError(
-            "Fuzzy matching has not been implemented yet. Only exact matches are supported."
-        )
         # For now, use exact string matching
         count = content.count(old_string)
         if count == 0:
