@@ -146,6 +146,28 @@ async def _handle_query(
                         "id": message_id,
                         "payload": {"text": event["content"]},
                     }
+                elif event["type"] == "tool_call":
+                    response = {
+                        "type": "tool-call",
+                        "id": message_id,
+                        "payload": {
+                            "tool_name": event.get("tool_name"),
+                            "parameters": event.get("parameters"),
+                            "raw_call": event.get("raw_call"),
+                        },
+                    }
+                elif event["type"] == "tool_output":
+                    response = {
+                        "type": "tool-output",
+                        "id": message_id,
+                        "payload": {
+                            "tool_name": event.get("tool_name"),
+                            "success": event.get("success"),
+                            "execution_time": event.get("execution_time"),
+                            "output": event.get("output"),
+                            "error": event.get("error"),
+                        },
+                    }
                 elif event["type"] == "tool_execution":
                     response = {
                         "type": "tool-execution",
@@ -184,15 +206,24 @@ async def _handle_query(
             else:
                 logger.info("Client disconnected during streaming")
 
-        # Run the streaming task with a 5-minute timeout
-        await asyncio.wait_for(stream_query_with_timeout(), timeout=300)
+        # Run the streaming task with a timeout from the settings
+        timeout_seconds = agent.cfg.query_timeout if agent else 300
+        await asyncio.wait_for(stream_query_with_timeout(), timeout=timeout_seconds)
 
     except asyncio.TimeoutError:
-        logger.error("Query timed out after 300 seconds")
+        logger.error(f"Query timed out after {timeout_seconds} seconds")
         response = {
             "type": "error",
             "id": message_id,
             "payload": {"message": "Query processing timed out"},
+        }
+        await websocket.send(json.dumps(response))
+    except RuntimeError as e:
+        logger.error("Agent-related error: %s", e, exc_info=True)
+        response = {
+            "type": "error",
+            "id": message_id,
+            "payload": {"message": "An agent error occurred"},
         }
         await websocket.send(json.dumps(response))
     # pylint: disable=broad-exception-caught

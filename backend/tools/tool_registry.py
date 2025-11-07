@@ -8,6 +8,7 @@ to the LLM, including schema generation and tool filtering.
 import logging
 from typing import Any, Dict, List, Optional
 
+from backend.config import AppServices
 from backend.tools.base import Tool, ToolBuilder, ToolInvocation, ToolResult
 from backend.tools.filesystem import (
     GlobTool,
@@ -39,22 +40,23 @@ class ToolRegistry:
             config: Application configuration object
         """
         self.config = config
+        self.services = AppServices(config)
         self.tools: Dict[str, Tool] = {}
         self._register_builtin_tools()
 
     def _register_builtin_tools(self) -> None:
         """Register all built-in tools."""
         # File system tools
-        self.register_tool(ListDirectoryTool(self.config))
-        self.register_tool(ReadFileTool(self.config))
-        self.register_tool(WriteFileTool(self.config))
-        self.register_tool(GlobTool(self.config))
-        self.register_tool(SearchFileContentTool(self.config))
-        self.register_tool(ReplaceTool(self.config))
-        self.register_tool(ReadManyFilesTool(self.config))
+        self.register_tool(ListDirectoryTool(self.services))
+        self.register_tool(ReadFileTool(self.services))
+        self.register_tool(WriteFileTool(self.services))
+        self.register_tool(GlobTool(self.services))
+        self.register_tool(SearchFileContentTool(self.services))
+        self.register_tool(ReplaceTool(self.services))
+        self.register_tool(ReadManyFilesTool(self.services))
 
         # Shell tool
-        self.register_tool(ShellTool(self.config))
+        self.register_tool(ShellTool(self.services))
 
         logger.info(f"Registered {len(self.tools)} built-in tools")
 

@@ -50,6 +50,10 @@ export function useMessageHandling(
         streamingHandlers.handleStreamingResponse(data);
       } else if (data.type === 'streaming-complete') {
         streamingHandlers.handleStreamingComplete();
+      } else if (data.type === 'tool-call') {
+        streamingHandlers.handleToolCall(data);
+      } else if (data.type === 'tool-output') {
+        streamingHandlers.handleToolOutput(data);
       } else if (data.type === 'settings-loaded') {
         settingsHandlers.handleSettingsLoaded(data);
       } else if (data.type === 'models-listed') {

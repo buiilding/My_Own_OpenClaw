@@ -2,10 +2,12 @@ import logging
 import os
 import platform
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Any, Dict, Literal, Optional
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
+
+from backend.utils.file_utils import is_within_directory
 
 logger = logging.getLogger(__name__)
 
@@ -110,211 +112,317 @@ class Preferences(BaseModel):
 
 
 class AppConfig(BaseModel):
-    """Root model for the application configuration."""
+    """Main application configuration model."""
 
-    model_config = ConfigDict(
-        extra="ignore",
-        protected_namespaces=(),  # Disable protected namespace warnings
-    )
+    model_config = ConfigDict(extra="ignore")
 
-    # Model selection mode: "local" or "online"
+    # LLM Settings
     model_mode: Literal["local", "online"] = "online"
-
-    # Selected model ID (e.g., "gpt-4o", "llama3", "claude-3.5-sonnet")
+    model_provider: str = "openai"  # Default provider
     selected_model_id: str = "gpt-4o"
-
-    # Provider name for the selected model (used for API key lookup)
-    model_provider: str = "openai"
-
-    # Timeout for LLM requests in seconds
     llm_timeout: int = 300
+    query_timeout: int = 600  # New field for query timeout
 
-    # Legacy fields for backward compatibility
-    active_provider: Literal[
-        "openai", "anthropic", "ollama", "openrouter", "mistral", "gemini"
-    ] = "openai"
-    preferences: Preferences = Field(default_factory=Preferences)
+    # Provider Configurations
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
 
-    # This field will hold the actual API key after it's loaded
-    api_key: Optional[str] = Field(default=None, repr=False)
-
-    def get_file_service(self):
-        """Returns a file service object (placeholder for now)."""
-
-        class SimpleFileService:
-            def should_ignore_file(self, path: str, options=None):
-                # Simple implementation - ignore common files
-                filename = os.path.basename(path)
-                ignored = {".git", "__pycache__", "node_modules", ".DS_Store"}
-                return (
-                    any(ignored_part in path for ignored_part in ignored)
-                    or filename in ignored
-                )
-
-            def filter_files_with_report(self, paths, options=None):
-                # Simple implementation - return all paths for now
-                return paths, 0
-
-        return SimpleFileService()
-
-    def get_file_filtering_options(self):
-        """Returns file filtering options."""
-        return {"respect_git_ignore": True, "respect_gemini_ignore": True}
-
-    def get_shell_timeout(self):
-        """Returns shell command timeout."""
-        return 30.0
+    # This field is populated at runtime, not loaded from config file
+    api_key: Optional[str] = None
 
     @property
     def llm_model(self) -> str:
-        """Returns the LiteLLM-compatible model identifier."""
-        provider = self.model_provider
-        model_id = self.selected_model_id
-
-        if not model_id:
-            return ""  # Return empty if no model is selected
-
+        """
+        Returns the fully qualified model name for the selected provider.
+        For local models, this is just the model ID.
+        For online models, it's usually provider/model_id.
+        """
         if self.model_mode == "local":
-            # For local mode, the model_id is used directly.
-            # No special prefixing is needed for LiteLLM.
-            return model_id
-
-        # Online models prefixing
-        provider_prefixes = {
-            "gemini": "gemini/",
-            "openrouter": "openrouter/",
-            "anthropic": "anthropic/",
-            "mistral": "mistral/",
-        }
-
-        prefix = provider_prefixes.get(provider)
-        if prefix and not model_id.startswith(prefix):
-            return f"{prefix}{model_id}"
-
-        return model_id
+            return self.selected_model_id
+        return f"{self.model_provider}/{self.selected_model_id}"
 
 
-# --- Main Configuration Loading Logic ---
+# --- Singleton for Settings ---
 
-
-def load_api_key_for_provider(config_obj: AppConfig) -> None:
-    """Loads the API key for the selected provider into the config object."""
-    provider_name = config_obj.model_provider or config_obj.active_provider
-
-    config_obj.api_key = None  # Reset key first
-
-    if config_obj.model_mode == "online" and provider_name:
-        try:
-            provider_config = config_obj.llm_providers.get_provider_config(
-                provider_name
-            )
-            if hasattr(provider_config, "api_key_env"):
-                api_key_env_var = provider_config.api_key_env
-                api_key = os.getenv(api_key_env_var)
-                if not api_key:
-                    # Log a warning instead of raising an error, as the key might not
-                    # be needed immediately or might be configured elsewhere for
-                    # litellm.
-                    logger.warning(
-                        (
-                            "API key environment variable '%s' for provider '%s' "
-                            "is not set."
-                        ),
-                        api_key_env_var,
-                        provider_name,
-                    )
-                config_obj.api_key = api_key
-        except ValueError:
-            logger.warning("Could not find config for provider: %s", provider_name)
-
-
-def load_config() -> AppConfig:
-    """Loads the application configuration from the YAML file.
-
-    If the config file doesn't exist, it creates one with default values.
-    It validates the config structure and loads the active API key from
-    environment variables.
-
-    Returns:
-        An AppConfig instance with the loaded and validated settings.
-
-    Raises:
-        ValueError: If the configuration is invalid or an API key is missing.
-    """
-    config_dir = get_config_dir()
-    config_file = config_dir / CONFIG_FILE_NAME
-
-    config_dir.mkdir(parents=True, exist_ok=True)
-
-    if not config_file.exists():
-        # Create a default config file
-        default_config = AppConfig()
-        with open(config_file, "w", encoding="utf-8") as f:
-            # Dump a clean version without the 'api_key' field
-            config_dict = default_config.model_dump(exclude={"api_key"})
-            yaml.dump(config_dict, f, default_flow_style=False, sort_keys=False)
-        # Continue to load API key for consistency
-        config = default_config
-    else:
-        # Load and parse the existing config file
-        with open(config_file, "r", encoding="utf-8") as f:
-            config_data = yaml.safe_load(f)
-
-        if config_data is None:
-            raise ValueError(f"Configuration file at {config_file} is empty")
-
-        try:
-            config = AppConfig(**config_data)
-        except ValidationError as e:
-            raise ValueError(
-                f"Configuration file at {config_file} is invalid: {e}"
-            ) from e
-
-    # Load the API key for the selected provider
-    load_api_key_for_provider(config)
-
-    # Set environment variables for LiteLLM
-    # pylint: disable=no-member
-    for (
-        _provider_name,
-        provider_config,
-    ) in config.llm_providers.model_dump().items():
-        if "api_key_env" in provider_config:
-            api_key = os.getenv(provider_config["api_key_env"])
-            if api_key:
-                # LiteLLM expects env vars like OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.
-                os.environ[provider_config["api_key_env"]] = api_key
-
-    return config
+settings: Optional[AppConfig] = None
 
 
 def get_settings() -> AppConfig:
     """
-    Get the application settings.
-
-    This function loads and caches the settings on first access.
-    Subsequent calls return the cached instance.
+    Loads settings from YAML file and returns an AppConfig instance.
+    Implements singleton pattern to avoid repeated file I/O.
     """
-    if not hasattr(get_settings, "_settings"):
-        try:
-            get_settings._settings = load_config()
-        except Exception as e:
-            logging.critical("Could not load configuration: %s", e)
-            raise SystemExit(f"FATAL: Could not load configuration. {e}") from e
-    return get_settings._settings
+    global settings
+    if settings is None:
+        settings = load_settings_from_file()
+    return settings
 
 
-def reload_settings() -> AppConfig:
+def reload_settings() -> None:
+    """Forces a reload of the settings from the config file."""
+    global settings
+    settings = load_settings_from_file()
+
+
+def load_api_key_for_provider(cfg: AppConfig) -> None:
     """
-    Force reload of settings from disk.
-
-    Returns:
-        The reloaded AppConfig instance.
+    Loads the API key for the currently selected provider from environment variables.
+    The key is stored in the `api_key` field of the AppConfig object.
     """
+    provider_name = cfg.model_provider
+    api_key_env_var = None
+
     try:
-        get_settings._settings = load_config()
-        return get_settings._settings
-    except Exception as e:
-        logging.critical("Could not reload configuration: %s", e)
+        provider_config = cfg.llm_providers.get_provider_config(provider_name)
+        api_key_env_var = getattr(provider_config, "api_key_env", None)
+    except ValueError:
+        logger.warning(
+            "No config found for provider '%s' when loading API key.", provider_name
+        )
+        cfg.api_key = None
+        return
+
+    if api_key_env_var:
+        cfg.api_key = os.getenv(api_key_env_var)
+        if not cfg.api_key:
+            logger.warning(
+                "Environment variable '%s' for provider '%s' is not set.",
+                api_key_env_var,
+                provider_name,
+            )
+    else:
+        # This case is for local models like Ollama that don't require an API key
+        cfg.api_key = None
+        logger.info("No API key environment variable for provider '%s'.", provider_name)
+
+
+def load_settings_from_file() -> AppConfig:
+    """Loads the application configuration from a YAML file."""
+    config_dir = get_config_dir()
+    config_file = config_dir / CONFIG_FILE_NAME
+
+    if not config_file.exists():
+        logger.info("Config file not found. Creating a default one.")
+        default_config = AppConfig()
+        save_settings_to_file(default_config)
+        return default_config
+
+    try:
+        with open(config_file, "r", encoding="utf-8") as f:
+            config_data = yaml.safe_load(f) or {}
+        app_config = AppConfig(**config_data)
+    except (yaml.YAMLError, ValidationError, TypeError) as e:
+        logger.error("Failed to load or validate config file: %s", e, exc_info=True)
+        logger.warning("Falling back to default configuration.")
+        app_config = AppConfig()
+
+    # Load API key for the selected provider
+    load_api_key_for_provider(app_config)
+
+    return app_config
+
+
+def save_settings_to_file(cfg: AppConfig) -> None:
+    """Saves the application configuration to a YAML file."""
+    config_dir = get_config_dir()
+    config_file = config_dir / CONFIG_FILE_NAME
+    config_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        # Exclude the runtime-only api_key field from being saved
+        config_to_save = cfg.model_dump(exclude={"api_key"})
+        with open(config_file, "w", encoding="utf-8") as f:
+            yaml.dump(config_to_save, f, default_flow_style=False, sort_keys=False)
+        logger.info("Successfully saved settings to %s", config_file)
+    except (yaml.YAMLError, OSError) as e:
+        logger.error("Failed to save settings to file: %s", e, exc_info=True)
         raise
+
+
+# Initialize settings on module load
+settings = get_settings()
+
+# --- Functions for managing config.py ---
+
+# The following functions (get_model_id, set_model_id, etc.) are deprecated
+# and will be removed. Direct manipulation of the AppConfig object (via get_settings())
+# is now the preferred way to manage configuration.
+
+
+def get_config_path() -> str:
+    """DEPRECATED: Returns the path to the config file."""
+    return str(get_config_dir() / CONFIG_FILE_NAME)
+
+
+def get_model_id() -> str:
+    """DEPRECATED: Gets the current model ID from settings."""
+    return get_settings().selected_model_id
+
+
+def set_model_id(model_id: str) -> None:
+    """DEPRECATED: Sets the model ID in settings and saves to file."""
+    current_settings = get_settings()
+    current_settings.selected_model_id = model_id
+    save_settings_to_file(current_settings)
+    reload_settings()
+
+
+def get_provider() -> str:
+    """DEPRECATED: Gets the current provider from settings."""
+    return get_settings().model_provider
+
+
+def set_provider(provider: str) -> None:
+    """DEPRECATED: Sets the provider in settings and saves to file."""
+    current_settings = get_settings()
+    current_settings.model_provider = provider
+    save_settings_to_file(current_settings)
+    reload_settings()
+
+
+def get_model_mode() -> str:
+    """DEPRECATED: Gets the current model mode from settings."""
+    return get_settings().model_mode
+
+
+def set_model_mode(mode: str) -> None:
+    """DEPRECATED: Sets the model mode in settings and saves to file."""
+    current_settings = get_settings()
+    if mode not in ["local", "online"]:
+        raise ValueError("Invalid model mode. Must be 'local' or 'online'.")
+    current_settings.model_mode = mode
+    save_settings_to_file(current_settings)
+    reload_settings()
+
+
+def get_full_model_name() -> str:
+    """DEPRECATED: Gets the full model name."""
+    return get_settings().llm_model
+
+
+if __name__ == "__main__":
+    # Example of how to use the configuration system
+    current_settings = get_settings()
+    print(f"Current provider: {current_settings.model_provider}")
+    print(f"Current model ID: {current_settings.selected_model_id}")
+    print(f"Full model name for LLM: {current_settings.llm_model}")
+    print(f"API Key loaded: {'Yes' if current_settings.api_key else 'No'}")
+
+    # Example of updating settings
+    print("\nUpdating provider to 'anthropic'...")
+    current_settings.model_provider = "anthropic"
+    current_settings.selected_model_id = "claude-3.7-sonnet-20250219"
+    save_settings_to_file(current_settings)
+    reload_settings()
+
+    reloaded_settings = get_settings()
+    print(f"New provider: {reloaded_settings.model_provider}")
+    print(f"New model ID: {reloaded_settings.selected_model_id}")
+    print(f"New full model name: {reloaded_settings.llm_model}")
+    print(f"New API Key loaded: {'Yes' if reloaded_settings.api_key else 'No'}")
+
+    # Reset to default
+    print("\nResetting to default...")
+    default_settings = AppConfig()
+    save_settings_to_file(default_settings)
+    reload_settings()
+    print("Done.")
+
+# This is a sample script to generate a schema for the AppConfig model.
+# It's useful for documentation or for building tools that interact with the config.
+
+
+def generate_config_schema():
+    """Generates and prints the JSON schema for AppConfig."""
+    schema = AppConfig.model_json_schema()
+    import json
+
+    print(json.dumps(schema, indent=2))
+
+
+# --- Service Classes for Tools ---
+
+
+class WorkspaceContext:
+    """Context for workspace operations."""
+
+    def __init__(self, workspace_path: Optional[str] = None):
+        self.workspace_path = workspace_path or os.getcwd()
+
+    def is_path_within_workspace(self, path: str) -> bool:
+        """Check if a path is within the workspace."""
+        try:
+            return is_within_directory(path, self.workspace_path)
+        except Exception:
+            return False
+
+
+class FileService:
+    """Service for file operations."""
+
+    def should_ignore_file(
+        self, file_path: str, filtering_options: Dict[str, Any]
+    ) -> bool:
+        """Check if a file should be ignored based on filtering options."""
+        # For now, just check if it's a common ignore pattern
+        path_obj = Path(file_path)
+        ignore_patterns = [".git", "__pycache__", "node_modules", ".DS_Store"]
+
+        for pattern in ignore_patterns:
+            if pattern in str(path_obj):
+                return True
+
+        return False
+
+
+class StorageService:
+    """Service for storage operations."""
+
+    def __init__(self, temp_dir: Optional[str] = None):
+        self.temp_dir = temp_dir or os.path.join(os.getcwd(), "temp")
+
+    def get_project_temp_dir(self) -> Optional[str]:
+        """Get the project temp directory."""
+        return self.temp_dir
+
+
+class AppServices:
+    """Service container that provides access to various application services."""
+
+    def __init__(self, config: AppConfig):
+        self.config = config
+        self._workspace_context: Optional[WorkspaceContext] = None
+        self._file_service: Optional[FileService] = None
+        self._storage: Optional[StorageService] = None
+
+    def get_workspace_context(self) -> WorkspaceContext:
+        """Get the workspace context."""
+        if self._workspace_context is None:
+            # Use current working directory as workspace for now
+            self._workspace_context = WorkspaceContext()
+        return self._workspace_context
+
+    def get_file_service(self) -> FileService:
+        """Get the file service."""
+        if self._file_service is None:
+            self._file_service = FileService()
+        return self._file_service
+
+    def get_file_filtering_options(self) -> Dict[str, Any]:
+        """Get file filtering options."""
+        return {
+            "respect_git_ignore": True,
+            "respect_gemini_ignore": True,
+        }
+
+    @property
+    def storage(self) -> StorageService:
+        """Get the storage service."""
+        if self._storage is None:
+            self._storage = StorageService()
+        return self._storage
+
+
+# To run this, you would execute `python -m backend.config` and it would
+# demonstrate the config system and then you could uncomment the schema
+# generation call if needed.
+# generate_config_schema()

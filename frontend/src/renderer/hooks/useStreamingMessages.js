@@ -15,6 +15,7 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
       id: crypto.randomUUID(),
       text: data.payload.text || JSON.stringify(data.payload),
       sender: 'assistant',
+      type: 'llm-text',
     };
     setMessages((prevMessages) => [...prevMessages, newMessage]);
     setIsSending(false);
@@ -30,13 +31,18 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
   const handleStreamingResponse = useCallback((data) => {
     setIsSending(false); // We've got the first chunk, so we're not "sending" anymore
     setThinkingStatus(null); // Hide thinking status when response starts
+
     setMessages((prevMessages) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
-      if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete) {
-        // Append chunk to the last message by creating a new object
+      if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete && lastMessage.type === 'llm-text') {
+        // Append chunk to the last message if it's a streaming LLM text message
         return [
           ...prevMessages.slice(0, -1),
-          { ...lastMessage, text: lastMessage.text + data.payload.text },
+          {
+            ...lastMessage,
+            text: lastMessage.text + data.payload.text,
+            type: 'llm-text',
+          },
         ];
       } else {
         // This is the first chunk, create a new message object
@@ -47,11 +53,39 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
             text: data.payload.text,
             sender: 'assistant',
             isComplete: false,
+            type: 'llm-text', // Default to LLM text for streaming chunks
           },
         ];
       }
     });
   }, [setIsSending, setThinkingStatus, setMessages]);
+
+  const handleToolCall = useCallback((data) => {
+    const newMessage = {
+      id: crypto.randomUUID(),
+      text: data.payload.raw_call || JSON.stringify({
+        name: data.payload.tool_name,
+        args: data.payload.parameters
+      }, null, 2),
+      sender: 'assistant',
+      type: 'tool-call',
+    };
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+  }, [setMessages]);
+
+  const handleToolOutput = useCallback((data) => {
+    const outputText = data.payload.error
+      ? `Error: ${data.payload.error}`
+      : (data.payload.output || 'No output');
+
+    const newMessage = {
+      id: crypto.randomUUID(),
+      text: outputText,
+      sender: 'assistant',
+      type: 'tool-output',
+    };
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+  }, [setMessages]);
 
   const handleStreamingComplete = useCallback(() => {
     setThinkingStatus(null);
@@ -72,5 +106,7 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
     handleLlmThought,
     handleStreamingResponse,
     handleStreamingComplete,
+    handleToolCall,
+    handleToolOutput,
   };
 }
