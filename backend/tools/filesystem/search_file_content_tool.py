@@ -63,14 +63,17 @@ class SearchFileContentTool(Tool):
                     return_display="Invalid regex pattern",
                 )
 
+            # Get target directory for relative path resolution
+            target_dir = self.config.get_workspace_context().workspace_path
+
             # Determine search directory
             if path:
                 if not os.path.isabs(path):
-                    search_dir = os.path.join(self.config.get_target_dir(), path)
+                    search_dir = os.path.join(target_dir, path)
                 else:
                     search_dir = path
             else:
-                search_dir = self.config.get_target_dir()
+                search_dir = target_dir
 
             # Validate search directory
             workspace_context = self.config.get_workspace_context()
@@ -233,7 +236,7 @@ class SearchFileContentTool(Tool):
         for file_path in file_paths:
             if os.path.isfile(file_path):
                 relative_path = make_relative_path(
-                    file_path, self.config.get_target_dir()
+                    file_path, target_dir
                 )
                 filtering_options = {
                     "respect_git_ignore": True,
@@ -258,7 +261,7 @@ class SearchFileContentTool(Tool):
                             matches.append(
                                 GrepMatch(
                                     file_path=make_relative_path(
-                                        file_path, self.config.get_target_dir()
+                                        file_path, target_dir
                                     ),
                                     line_number=line_num,
                                     line=line,
@@ -303,7 +306,7 @@ class SearchFileContentTool(Tool):
                     # Convert to relative path
                     abs_path = os.path.join(search_dir, file_path)
                     rel_path = make_relative_path(
-                        abs_path, self.config.get_target_dir()
+                        abs_path, target_dir
                     )
 
                     matches.append(

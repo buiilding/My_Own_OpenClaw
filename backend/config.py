@@ -2,7 +2,7 @@ import logging
 import os
 import platform
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -372,6 +372,29 @@ class FileService:
                 return True
 
         return False
+
+    def filter_files_with_report(
+        self, relative_paths: List[str], filtering_options: Dict[str, Any]
+    ) -> tuple[List[str], int]:
+        """Filter files based on filtering options and return report.
+
+        Args:
+            relative_paths: List of relative file paths to filter
+            filtering_options: Dict with filtering options like 'respect_git_ignore', 'respect_gemini_ignore'
+
+        Returns:
+            Tuple of (filtered_paths, ignored_count)
+        """
+        filtered_paths = []
+        ignored_count = 0
+
+        for path in relative_paths:
+            if self.should_ignore_file(path, filtering_options):
+                ignored_count += 1
+            else:
+                filtered_paths.append(path)
+
+        return filtered_paths, ignored_count
 
 
 class StorageService:
