@@ -7,10 +7,16 @@ to the LLM, including schema generation and tool filtering.
 
 import logging
 from typing import Any, Dict, List, Optional
+
 from backend.tools.base import Tool, ToolBuilder, ToolInvocation, ToolResult
 from backend.tools.file_system import (
-    ListDirectoryTool, ReadFileTool, WriteFileTool, GlobTool,
-    SearchFileContentTool, ReplaceTool, ReadManyFilesTool
+    GlobTool,
+    ListDirectoryTool,
+    ReadFileTool,
+    ReadManyFilesTool,
+    ReplaceTool,
+    SearchFileContentTool,
+    WriteFileTool,
 )
 from backend.tools.shell import ShellTool
 
@@ -113,7 +119,9 @@ class ToolRegistry:
                 continue
         return declarations
 
-    def get_function_declarations_filtered(self, tool_names: List[str]) -> List[Dict[str, Any]]:
+    def get_function_declarations_filtered(
+        self, tool_names: List[str]
+    ) -> List[Dict[str, Any]]:
         """
         Get function declarations for specific tools.
 
@@ -152,24 +160,27 @@ class ToolRegistry:
                 success=False,
                 error=f"Tool '{tool_name}' not found",
                 llm_content=f"Error: Tool '{tool_name}' not found",
-                return_display=f"Tool '{tool_name}' not found"
+                return_display=f"Tool '{tool_name}' not found",
             )
 
         try:
             # Validate parameters
             validation_errors = tool.validate_parameters(**kwargs)
             if validation_errors:
-                error_msg = f"Parameter validation failed: {', '.join(validation_errors)}"
+                error_msg = (
+                    f"Parameter validation failed: {', '.join(validation_errors)}"
+                )
                 return ToolResult(
                     success=False,
                     error=error_msg,
                     llm_content=f"Error: {error_msg}",
-                    return_display=error_msg
+                    return_display=error_msg,
                 )
 
             # Execute the tool
             logger.info(f"Executing tool {tool_name} with kwargs: {kwargs}")
             from backend.tools.base import ToolContext
+
             context = ToolContext()
             result = await tool.execute_async(context, **kwargs)
             return result
@@ -180,7 +191,7 @@ class ToolRegistry:
                 success=False,
                 error=f"Tool execution failed: {str(e)}",
                 llm_content=f"Error: Tool execution failed: {str(e)}",
-                return_display=f"Tool execution failed: {str(e)}"
+                return_display=f"Tool execution failed: {str(e)}",
             )
 
     def is_tool_available(self, tool_name: str) -> bool:
@@ -265,7 +276,7 @@ class ToolRegistry:
         return {
             "total_tools": len(self.tools),
             "tools_by_kind": tools_by_kind,
-            "tool_names": sorted(self.tools.keys())
+            "tool_names": sorted(self.tools.keys()),
         }
 
 

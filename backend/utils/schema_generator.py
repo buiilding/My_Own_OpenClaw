@@ -6,8 +6,8 @@ from Python function signatures and type hints.
 """
 
 import inspect
-from typing import Any, Dict, List, Optional, Union, get_origin, get_args
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union, get_args, get_origin
 
 
 class SchemaGenerator:
@@ -25,7 +25,9 @@ class SchemaGenerator:
             dict: {"type": "object"},
         }
 
-    def generate_schema_from_function(self, func: callable, tool_name: str, description: str) -> Dict[str, Any]:
+    def generate_schema_from_function(
+        self, func: callable, tool_name: str, description: str
+    ) -> Dict[str, Any]:
         """
         Generate a JSON schema from a function's signature and type hints.
 
@@ -42,7 +44,7 @@ class SchemaGenerator:
 
         for param_name, param in sig.parameters.items():
             # Skip 'self', 'context', and **kwargs parameters
-            if param_name in ['self', 'context'] or param.kind == param.VAR_KEYWORD:
+            if param_name in ["self", "context"] or param.kind == param.VAR_KEYWORD:
                 continue
 
             param_schema = self._generate_parameter_schema(param)
@@ -50,9 +52,10 @@ class SchemaGenerator:
                 parameters[param_name] = param_schema
 
         required = [
-            name for name, param in sig.parameters.items()
+            name
+            for name, param in sig.parameters.items()
             if param.default == inspect.Parameter.empty
-            and name not in ['self', 'context']
+            and name not in ["self", "context"]
             and param.kind != param.VAR_KEYWORD
         ]
 
@@ -62,11 +65,13 @@ class SchemaGenerator:
             "parameters": {
                 "type": "object",
                 "properties": parameters,
-                "required": required
-            }
+                "required": required,
+            },
         }
 
-    def _generate_parameter_schema(self, param: inspect.Parameter) -> Optional[Dict[str, Any]]:
+    def _generate_parameter_schema(
+        self, param: inspect.Parameter
+    ) -> Optional[Dict[str, Any]]:
         """
         Generate schema for a single parameter.
 
@@ -112,7 +117,9 @@ class SchemaGenerator:
             if len(non_none_args) == 1:
                 # This is Optional[T]
                 schema = self._type_hint_to_schema(non_none_args[0])
-                schema["description"] = f"{schema.get('description', '')} (optional)".strip()
+                schema[
+                    "description"
+                ] = f"{schema.get('description', '')} (optional)".strip()
                 return schema
             else:
                 # Multiple types - not supported in JSON schema, use string
@@ -126,15 +133,12 @@ class SchemaGenerator:
             return {
                 "type": "array",
                 "items": item_schema,
-                "description": "List of items"
+                "description": "List of items",
             }
 
         # Handle Dict types
         if origin is dict or origin is Dict:
-            return {
-                "type": "object",
-                "description": "Key-value pairs"
-            }
+            return {"type": "object", "description": "Key-value pairs"}
 
         # Handle basic types
         if type_hint in self.type_mappings:
@@ -146,7 +150,7 @@ class SchemaGenerator:
                 return {
                     "type": "string",
                     "enum": [e.value for e in type_hint],
-                    "description": f"Enum: {', '.join(e.value for e in type_hint)}"
+                    "description": f"Enum: {', '.join(e.value for e in type_hint)}",
                 }
             else:
                 # Custom class - treat as object
@@ -156,7 +160,9 @@ class SchemaGenerator:
         return {"type": "string", "description": "Parameter value"}
 
 
-def generate_tool_schema(func: callable, tool_name: str, description: str) -> Dict[str, Any]:
+def generate_tool_schema(
+    func: callable, tool_name: str, description: str
+) -> Dict[str, Any]:
     """
     Convenience function to generate a tool schema.
 

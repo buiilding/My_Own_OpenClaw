@@ -8,12 +8,12 @@ and provides streaming updates during tool operations.
 import asyncio
 import logging
 import time
-from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 from dataclasses import dataclass
+from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 
-from backend.tools.tool_registry import ToolRegistry
 from backend.agent.response_parser import ParsedResponse, ParsedToolCall
 from backend.tools.base import ToolResult
+from backend.tools.tool_registry import ToolRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ToolExecutionResult:
     """Result of executing a tool call."""
+
     tool_call: ParsedToolCall
     result: ToolResult
     execution_time: float
@@ -30,6 +31,7 @@ class ToolExecutionResult:
 @dataclass
 class OrchestrationResult:
     """Overall result of orchestrating multiple tool calls."""
+
     tool_results: List[ToolExecutionResult]
     total_execution_time: float
     all_successful: bool
@@ -57,8 +59,7 @@ class ToolOrchestrator:
         self._execution_lock = asyncio.Lock()
 
     async def execute_tools_from_response(
-        self,
-        parsed_response: ParsedResponse
+        self, parsed_response: ParsedResponse
     ) -> OrchestrationResult:
         """
         Execute all tool calls from a parsed LLM response.
@@ -74,7 +75,7 @@ class ToolOrchestrator:
                 tool_results=[],
                 total_execution_time=0.0,
                 all_successful=True,
-                summary="No tool calls to execute"
+                summary="No tool calls to execute",
             )
 
         start_time = time.time()
@@ -96,7 +97,10 @@ class ToolOrchestrator:
                     )
 
                 except Exception as e:
-                    logger.error(f"Failed to execute tool {tool_call.tool_name}: {e}", exc_info=True)
+                    logger.error(
+                        f"Failed to execute tool {tool_call.tool_name}: {e}",
+                        exc_info=True,
+                    )
 
                     # Create error result
                     error_result = ToolExecutionResult(
@@ -105,10 +109,10 @@ class ToolOrchestrator:
                             success=False,
                             error=f"Tool execution failed: {str(e)}",
                             llm_content=f"Error executing {tool_call.tool_name}: {str(e)}",
-                            return_display=f"Tool execution failed: {str(e)}"
+                            return_display=f"Tool execution failed: {str(e)}",
                         ),
                         execution_time=0.0,
-                        success=False
+                        success=False,
                     )
                     results.append(error_result)
 
@@ -121,13 +125,11 @@ class ToolOrchestrator:
                 tool_results=results,
                 total_execution_time=total_time,
                 all_successful=all_successful,
-                summary=summary
+                summary=summary,
             )
 
     async def execute_single_tool(
-        self,
-        tool_name: str,
-        parameters: Dict[str, Any]
+        self, tool_name: str, parameters: Dict[str, Any]
     ) -> ToolResult:
         """
         Execute a single tool by name with given parameters.
@@ -143,13 +145,15 @@ class ToolOrchestrator:
             tool_name=tool_name,
             parameters=parameters,
             raw_call=f"{tool_name}({parameters})",
-            confidence=1.0
+            confidence=1.0,
         )
 
         execution_result = await self._execute_single_tool(tool_call)
         return execution_result.result
 
-    async def _execute_single_tool(self, tool_call: ParsedToolCall) -> ToolExecutionResult:
+    async def _execute_single_tool(
+        self, tool_call: ParsedToolCall
+    ) -> ToolExecutionResult:
         """
         Execute a single tool call.
 
@@ -168,19 +172,18 @@ class ToolOrchestrator:
                     success=False,
                     error=f"Tool '{tool_call.tool_name}' is not available",
                     llm_content=f"Error: Tool '{tool_call.tool_name}' is not available",
-                    return_display=f"Tool '{tool_call.tool_name}' is not available"
+                    return_display=f"Tool '{tool_call.tool_name}' is not available",
                 )
                 return ToolExecutionResult(
                     tool_call=tool_call,
                     result=error_result,
                     execution_time=time.time() - start_time,
-                    success=False
+                    success=False,
                 )
 
             # Execute the tool
             result = await self.tool_registry.execute_tool(
-                tool_call.tool_name,
-                **tool_call.parameters
+                tool_call.tool_name, **tool_call.parameters
             )
 
             execution_time = time.time() - start_time
@@ -189,31 +192,33 @@ class ToolOrchestrator:
                 tool_call=tool_call,
                 result=result,
                 execution_time=execution_time,
-                success=result.success
+                success=result.success,
             )
 
         except Exception as e:
             execution_time = time.time() - start_time
-            logger.error(f"Tool execution error for {tool_call.tool_name}: {e}", exc_info=True)
+            logger.error(
+                f"Tool execution error for {tool_call.tool_name}: {e}", exc_info=True
+            )
 
             error_result = ToolResult(
                 success=False,
                 error=f"Unexpected error executing {tool_call.tool_name}: {str(e)}",
                 llm_content=f"Error: Unexpected error executing {tool_call.tool_name}: {str(e)}",
-                return_display=f"Tool execution failed: {str(e)}"
+                return_display=f"Tool execution failed: {str(e)}",
             )
 
             return ToolExecutionResult(
                 tool_call=tool_call,
                 result=error_result,
                 execution_time=execution_time,
-                success=False
+                success=False,
             )
 
     async def execute_tools_with_progress(
         self,
         parsed_response: ParsedResponse,
-        progress_callback: Optional[callable] = None
+        progress_callback: Optional[callable] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Execute tools with progress updates.
@@ -226,10 +231,7 @@ class ToolOrchestrator:
             Progress updates and final results
         """
         if not parsed_response.has_tool_calls:
-            yield {
-                "type": "no_tools",
-                "message": "No tool calls to execute"
-            }
+            yield {"type": "no_tools", "message": "No tool calls to execute"}
             return
 
         total_tools = len(parsed_response.tool_calls)
@@ -238,7 +240,7 @@ class ToolOrchestrator:
         yield {
             "type": "execution_started",
             "total_tools": total_tools,
-            "message": f"Starting execution of {total_tools} tool(s)"
+            "message": f"Starting execution of {total_tools} tool(s)",
         }
 
         results = []
@@ -249,7 +251,7 @@ class ToolOrchestrator:
                 "tool_index": i,
                 "tool_name": tool_call.tool_name,
                 "parameters": tool_call.parameters,
-                "message": f"Executing {tool_call.tool_name}..."
+                "message": f"Executing {tool_call.tool_name}...",
             }
 
             try:
@@ -264,7 +266,7 @@ class ToolOrchestrator:
                     "success": execution_result.success,
                     "execution_time": execution_result.execution_time,
                     "result": execution_result.result,
-                    "message": f"{'✓' if execution_result.success else '✗'} {tool_call.tool_name} completed in {execution_result.execution_time:.2f}s"
+                    "message": f"{'✓' if execution_result.success else '✗'} {tool_call.tool_name} completed in {execution_result.execution_time:.2f}s",
                 }
 
                 if progress_callback:
@@ -279,10 +281,10 @@ class ToolOrchestrator:
                         success=False,
                         error=str(e),
                         llm_content=f"Error: {str(e)}",
-                        return_display=f"Tool execution failed: {str(e)}"
+                        return_display=f"Tool execution failed: {str(e)}",
                     ),
                     execution_time=0.0,
-                    success=False
+                    success=False,
                 )
                 results.append(error_result)
                 completed_tools += 1
@@ -292,7 +294,7 @@ class ToolOrchestrator:
                     "tool_index": i,
                     "tool_name": tool_call.tool_name,
                     "error": str(e),
-                    "message": f"✗ {tool_call.tool_name} failed: {str(e)}"
+                    "message": f"✗ {tool_call.tool_name} failed: {str(e)}",
                 }
 
         # Final summary
@@ -306,10 +308,12 @@ class ToolOrchestrator:
             "total_time": total_time,
             "all_successful": successful_tools == total_tools,
             "results": results,
-            "summary": self._create_execution_summary(results, total_time)
+            "summary": self._create_execution_summary(results, total_time),
         }
 
-    def _create_execution_summary(self, results: List[ToolExecutionResult], total_time: float) -> str:
+    def _create_execution_summary(
+        self, results: List[ToolExecutionResult], total_time: float
+    ) -> str:
         """Create a summary of tool execution results."""
         if not results:
             return "No tools executed"
@@ -370,9 +374,7 @@ class ToolOrchestrator:
         return True, ""
 
     async def execute_tools_batch(
-        self,
-        tool_calls: List[ParsedToolCall],
-        max_concurrent: int = 3
+        self, tool_calls: List[ParsedToolCall], max_concurrent: int = 3
     ) -> List[ToolExecutionResult]:
         """
         Execute multiple tool calls in parallel batches.
@@ -384,14 +386,16 @@ class ToolOrchestrator:
         Returns:
             List of execution results
         """
-        async def execute_with_semaphore(semaphore: asyncio.Semaphore, tool_call: ParsedToolCall):
+
+        async def execute_with_semaphore(
+            semaphore: asyncio.Semaphore, tool_call: ParsedToolCall
+        ):
             async with semaphore:
                 return await self._execute_single_tool(tool_call)
 
         semaphore = asyncio.Semaphore(max_concurrent)
         tasks = [
-            execute_with_semaphore(semaphore, tool_call)
-            for tool_call in tool_calls
+            execute_with_semaphore(semaphore, tool_call) for tool_call in tool_calls
         ]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -407,10 +411,10 @@ class ToolOrchestrator:
                         success=False,
                         error=f"Execution failed: {str(result)}",
                         llm_content=f"Error: Execution failed: {str(result)}",
-                        return_display=f"Tool execution failed: {str(result)}"
+                        return_display=f"Tool execution failed: {str(result)}",
                     ),
                     execution_time=0.0,
-                    success=False
+                    success=False,
                 )
                 final_results.append(error_result)
             else:

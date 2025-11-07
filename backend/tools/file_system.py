@@ -17,25 +17,33 @@ import os
 import re
 import subprocess
 from dataclasses import dataclass
+from glob import glob as glob_module
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-from glob import glob as glob_module
 
 logger = logging.getLogger(__name__)
 
-from backend.tools.base import Tool, ToolContext, ToolResult, Kind
+from backend.tools.base import Kind, Tool, ToolContext, ToolResult
 from backend.utils.file_utils import (
-    detect_file_type, FileType, read_file_content, ensure_directory_exists,
-    make_relative_path, shorten_path, get_specific_mime_type, is_text_file,
-    read_text_file_auto_encoding, DEFAULT_ENCODING
+    DEFAULT_ENCODING,
+    FileType,
+    detect_file_type,
+    ensure_directory_exists,
+    get_specific_mime_type,
+    is_text_file,
+    make_relative_path,
+    read_file_content,
+    read_text_file_auto_encoding,
+    shorten_path,
 )
 
-
 # --- Data Structures ---
+
 
 @dataclass
 class FileEntry:
     """File entry returned by list_directory tool."""
+
     name: str
     path: str
     is_directory: bool
@@ -43,7 +51,7 @@ class FileEntry:
     modified_time: float
 
     @classmethod
-    def from_path(cls, path: Path) -> 'FileEntry':
+    def from_path(cls, path: Path) -> "FileEntry":
         """Create a FileEntry from a Path object."""
         try:
             stat_info = path.stat()
@@ -53,7 +61,7 @@ class FileEntry:
                 path=str(path),
                 is_directory=is_dir,
                 size=0 if is_dir else stat_info.st_size,
-                modified_time=stat_info.st_mtime
+                modified_time=stat_info.st_mtime,
             )
         except OSError:
             # If we can't stat the file, create a basic entry
@@ -67,38 +75,34 @@ class FileEntry:
                 path=str(path),
                 is_directory=is_dir,
                 size=0,
-                modified_time=0
+                modified_time=0,
             )
 
 
 @dataclass
 class GlobEntry:
     """Entry returned by glob tool."""
+
     path: str
     size: int
     modified_time: float
 
     @classmethod
-    def from_path(cls, path: Path) -> 'GlobEntry':
+    def from_path(cls, path: Path) -> "GlobEntry":
         """Create a GlobEntry from a Path object."""
         try:
             stat_info = path.stat()
             return cls(
-                path=str(path),
-                size=stat_info.st_size,
-                modified_time=stat_info.st_mtime
+                path=str(path), size=stat_info.st_size, modified_time=stat_info.st_mtime
             )
         except OSError:
-            return cls(
-                path=str(path),
-                size=0,
-                modified_time=0
-            )
+            return cls(path=str(path), size=0, modified_time=0)
 
 
 @dataclass
 class GrepMatch:
     """Match result from search_file_content tool."""
+
     file_path: str
     line_number: int
     line: str
@@ -107,6 +111,7 @@ class GrepMatch:
 @dataclass
 class ProcessedFileResult:
     """Result of processing a single file."""
+
     success: bool
     file_path: str
     relative_path: str
@@ -117,6 +122,7 @@ class ProcessedFileResult:
 
 # --- List Directory Tool ---
 
+
 class ListDirectoryTool(Tool):
     """Tool for listing files and directories in a path."""
 
@@ -124,7 +130,7 @@ class ListDirectoryTool(Tool):
         super().__init__(
             name="list_directory",
             description="Lists the names of files and subdirectories directly within a specified directory path. Can optionally ignore entries matching provided glob patterns.",
-            kind=Kind.SEARCH
+            kind=Kind.SEARCH,
         )
         self.config = config
 
@@ -133,11 +139,13 @@ class ListDirectoryTool(Tool):
         context: ToolContext,
         path: str,
         ignore: Optional[List[str]] = None,
-        file_filtering_options: Optional[Dict[str, Any]] = None
+        file_filtering_options: Optional[Dict[str, Any]] = None,
     ) -> ToolResult:
         """Execute the list_directory tool."""
         try:
-            logger.info(f"ListDirectory tool called with path: '{path}', ignore: {ignore}, file_filtering_options: {file_filtering_options}")
+            logger.info(
+                f"ListDirectory tool called with path: '{path}', ignore: {ignore}, file_filtering_options: {file_filtering_options}"
+            )
             path = path
             ignore = ignore or []
             file_filtering_options = file_filtering_options or {}
@@ -148,18 +156,20 @@ class ListDirectoryTool(Tool):
                     success=False,
                     error="Path parameter is required",
                     llm_content="Error: Path parameter is required",
-                    return_display="Error: Path parameter is required"
+                    return_display="Error: Path parameter is required",
                 )
 
             # Validate path is absolute
-            logger.info(f"ListDirectory: Path is absolute check: {os.path.isabs(path)} for path: {path}")
+            logger.info(
+                f"ListDirectory: Path is absolute check: {os.path.isabs(path)} for path: {path}"
+            )
             if not os.path.isabs(path):
                 logger.error(f"ListDirectory: Path is not absolute: {path}")
                 return ToolResult(
                     success=False,
                     error=f"Path must be absolute: {path}",
                     llm_content=f"Error: Path must be absolute: {path}",
-                    return_display=f"Path must be absolute: {path}"
+                    return_display=f"Path must be absolute: {path}",
                 )
 
             # Check if path is within workspace
@@ -175,28 +185,32 @@ class ListDirectoryTool(Tool):
                     success=False,
                     error=f"Path is not within workspace: {path}",
                     llm_content=f"Error: Path is not within workspace: {path}",
-                    return_display=f"Path is not within workspace: {path}"
+                    return_display=f"Path is not within workspace: {path}",
                 )
 
             # Check if directory exists
-            logger.info(f"ListDirectory: Checking if directory exists: {os.path.exists(path)} for path: {path}")
+            logger.info(
+                f"ListDirectory: Checking if directory exists: {os.path.exists(path)} for path: {path}"
+            )
             if not os.path.exists(path):
                 logger.error(f"ListDirectory: Directory not found: {path}")
                 return ToolResult(
                     success=False,
                     error=f"Directory not found: {path}",
                     llm_content=f"Error: Directory not found: {path}",
-                    return_display="Directory not found"
+                    return_display="Directory not found",
                 )
 
-            logger.info(f"ListDirectory: Checking if path is directory: {os.path.isdir(path)} for path: {path}")
+            logger.info(
+                f"ListDirectory: Checking if path is directory: {os.path.isdir(path)} for path: {path}"
+            )
             if not os.path.isdir(path):
                 logger.error(f"ListDirectory: Path is not a directory: {path}")
                 return ToolResult(
                     success=False,
                     error=f"Path is not a directory: {path}",
                     llm_content=f"Error: Path is not a directory: {path}",
-                    return_display="Path is not a directory"
+                    return_display="Path is not a directory",
                 )
 
             # List directory contents
@@ -210,7 +224,7 @@ class ListDirectoryTool(Tool):
                     success=False,
                     error=f"Failed to list directory: {e}",
                     llm_content=f"Error: Failed to list directory: {e}",
-                    return_display="Failed to list directory"
+                    return_display="Failed to list directory",
                 )
 
             if not entries:
@@ -219,36 +233,48 @@ class ListDirectoryTool(Tool):
                     success=True,
                     data=[],
                     llm_content=content,
-                    return_display="Directory is empty"
+                    return_display="Directory is empty",
                 )
 
             # Convert to full paths and filter
-            logger.info("ListDirectory: Converting to full paths and setting up filtering")
+            logger.info(
+                "ListDirectory: Converting to full paths and setting up filtering"
+            )
             full_paths = [os.path.join(path, entry) for entry in entries]
             logger.info(f"ListDirectory: Full paths: {full_paths}")
             file_discovery = self.config.get_file_service()
             logger.info(f"ListDirectory: Got file service: {file_discovery}")
             filtering_options = {
-                "respect_git_ignore": file_filtering_options.get("respect_git_ignore", True),
-                "respect_gemini_ignore": file_filtering_options.get("respect_gemini_ignore", True),
+                "respect_git_ignore": file_filtering_options.get(
+                    "respect_git_ignore", True
+                ),
+                "respect_gemini_ignore": file_filtering_options.get(
+                    "respect_gemini_ignore", True
+                ),
             }
             logger.info(f"ListDirectory: Filtering options: {filtering_options}")
 
             # Convert to relative paths for filtering
             logger.info(f"ListDirectory: Target dir: {self.config.get_target_dir()}")
-            relative_paths = [make_relative_path(p, self.config.get_target_dir()) for p in full_paths]
+            relative_paths = [
+                make_relative_path(p, self.config.get_target_dir()) for p in full_paths
+            ]
             logger.info(f"ListDirectory: Relative paths: {relative_paths}")
 
             logger.info("ListDirectory: Calling filter_files_with_report")
             filtered_paths, ignored_count = file_discovery.filter_files_with_report(
                 relative_paths, filtering_options
             )
-            logger.info(f"ListDirectory: Filtered paths: {filtered_paths}, ignored_count: {ignored_count}")
+            logger.info(
+                f"ListDirectory: Filtered paths: {filtered_paths}, ignored_count: {ignored_count}"
+            )
 
             # Apply ignore patterns
             filtered_full_paths = []
             for full_path in full_paths:
-                relative_path = make_relative_path(full_path, self.config.get_target_dir())
+                relative_path = make_relative_path(
+                    full_path, self.config.get_target_dir()
+                )
                 if relative_path in filtered_paths:
                     # Check ignore patterns
                     should_ignore = False
@@ -283,21 +309,25 @@ class ListDirectoryTool(Tool):
             if ignored_count > 0:
                 display += f" ({ignored_count} ignored)"
 
-            logger.info(f"ListDirectory: Returning success with {len(file_entries)} entries")
+            logger.info(
+                f"ListDirectory: Returning success with {len(file_entries)} entries"
+            )
             return ToolResult(
                 success=True,
                 data=file_entries,
                 llm_content=content,
-                return_display=display
+                return_display=display,
             )
 
         except Exception as e:
-            logger.error(f"ListDirectory: Unexpected error for path {path}: {e}", exc_info=True)
+            logger.error(
+                f"ListDirectory: Unexpected error for path {path}: {e}", exc_info=True
+            )
             return ToolResult(
                 success=False,
                 error=f"Unexpected error: {str(e)}",
                 llm_content=f"Error: Unexpected error: {str(e)}",
-                return_display="Unexpected error occurred"
+                return_display="Unexpected error occurred",
             )
 
     def _matches_pattern(self, filename: str, pattern: str) -> bool:
@@ -312,6 +342,7 @@ class ListDirectoryTool(Tool):
 
 # --- Read File Tool ---
 
+
 class ReadFileTool(Tool):
     """Tool for reading text files, images, PDFs with optional line ranges."""
 
@@ -319,7 +350,7 @@ class ReadFileTool(Tool):
         super().__init__(
             name="read_file",
             description="Reads and returns the content of a specified file. If the file is large, the content will be truncated. The tool's response will clearly indicate if truncation has occurred and will provide details on how to read more of the file using the 'offset' and 'limit' parameters. Handles text, images (PNG, JPG, GIF, WEBP, SVG, BMP), and PDF files. For text files, it can read specific line ranges.",
-            kind=Kind.READ
+            kind=Kind.READ,
         )
         self.config = config
 
@@ -329,7 +360,7 @@ class ReadFileTool(Tool):
         absolute_path: Optional[str] = None,
         path: Optional[str] = None,
         offset: Optional[int] = None,
-        limit: Optional[int] = None
+        limit: Optional[int] = None,
     ) -> ToolResult:
         """Execute the read_file tool."""
         try:
@@ -338,7 +369,9 @@ class ReadFileTool(Tool):
             offset = offset
             limit = limit
 
-            logger.info(f"ReadFile tool called with path: '{absolute_path}', offset: {offset}, limit: {limit}")
+            logger.info(
+                f"ReadFile tool called with path: '{absolute_path}', offset: {offset}, limit: {limit}"
+            )
 
             if not absolute_path:
                 logger.error("ReadFile: No path provided")
@@ -346,7 +379,7 @@ class ReadFileTool(Tool):
                     success=False,
                     error="absolute_path or path parameter is required",
                     llm_content="Error: absolute_path or path parameter is required",
-                    return_display="absolute_path or path parameter is required"
+                    return_display="absolute_path or path parameter is required",
                 )
 
             # Validate path is absolute
@@ -356,10 +389,12 @@ class ReadFileTool(Tool):
                     success=False,
                     error=f"File path must be absolute: {absolute_path}",
                     llm_content=f"Error: File path must be absolute: {absolute_path}",
-                    return_display="File path must be absolute"
+                    return_display="File path must be absolute",
                 )
 
-            logger.info(f"ReadFile: Path is absolute, checking workspace: {absolute_path}")
+            logger.info(
+                f"ReadFile: Path is absolute, checking workspace: {absolute_path}"
+            )
 
             # Check if path is within workspace
             logger.info("ReadFile: About to get workspace context")
@@ -368,18 +403,28 @@ class ReadFileTool(Tool):
             project_temp_dir = self.config.storage.get_project_temp_dir()
             logger.info(f"ReadFile: Temp dir: {project_temp_dir}")
 
-            is_within_workspace = workspace_context.is_path_within_workspace(absolute_path)
-            is_within_temp = absolute_path.startswith(project_temp_dir) if project_temp_dir else False
+            is_within_workspace = workspace_context.is_path_within_workspace(
+                absolute_path
+            )
+            is_within_temp = (
+                absolute_path.startswith(project_temp_dir)
+                if project_temp_dir
+                else False
+            )
 
-            logger.info(f"ReadFile: is_within_workspace={is_within_workspace}, is_within_temp={is_within_temp}")
+            logger.info(
+                f"ReadFile: is_within_workspace={is_within_workspace}, is_within_temp={is_within_temp}"
+            )
 
             if not (is_within_workspace or is_within_temp):
-                logger.error(f"ReadFile: Path not within allowed directories: {absolute_path}")
+                logger.error(
+                    f"ReadFile: Path not within allowed directories: {absolute_path}"
+                )
                 return ToolResult(
                     success=False,
                     error=f"File path must be within workspace or temp directory: {absolute_path}",
                     llm_content=f"Error: File path must be within workspace or temp directory: {absolute_path}",
-                    return_display="File path not within allowed directories"
+                    return_display="File path not within allowed directories",
                 )
 
             # Check file filtering
@@ -390,7 +435,7 @@ class ReadFileTool(Tool):
                     success=False,
                     error=f"File is ignored by filtering rules: {absolute_path}",
                     llm_content=f"Error: File is ignored by filtering rules: {absolute_path}",
-                    return_display="File is ignored"
+                    return_display="File is ignored",
                 )
 
             # Validate parameters
@@ -399,7 +444,7 @@ class ReadFileTool(Tool):
                     success=False,
                     error="Offset must be non-negative",
                     llm_content="Error: Offset must be non-negative",
-                    return_display="Invalid offset parameter"
+                    return_display="Invalid offset parameter",
                 )
 
             if limit is not None and limit <= 0:
@@ -407,23 +452,25 @@ class ReadFileTool(Tool):
                     success=False,
                     error="Limit must be positive",
                     llm_content="Error: Limit must be positive",
-                    return_display="Invalid limit parameter"
+                    return_display="Invalid limit parameter",
                 )
 
             # Read file content
-            content, error, is_truncated = read_file_content(absolute_path, offset, limit)
+            content, error, is_truncated = read_file_content(
+                absolute_path, offset, limit
+            )
 
             if error:
                 return ToolResult(
                     success=False,
                     error=error,
                     llm_content=f"Error: {error}",
-                    return_display=error
+                    return_display=error,
                 )
 
             # Format response
             if is_truncated:
-                lines_shown = content.count('\n') + 1 if content else 0
+                lines_shown = content.count("\n") + 1 if content else 0
                 total_lines = self._get_total_lines(absolute_path)
                 next_offset = (offset or 0) + lines_shown
 
@@ -439,7 +486,7 @@ class ReadFileTool(Tool):
                 llm_content = content
 
             # Get metadata for telemetry
-            lines = content.count('\n') + 1 if isinstance(content, str) else None
+            lines = content.count("\n") + 1 if isinstance(content, str) else None
             mimetype = get_specific_mime_type(absolute_path)
             programming_language = self._get_programming_language(absolute_path)
 
@@ -450,10 +497,12 @@ class ReadFileTool(Tool):
                     "is_truncated": is_truncated,
                     "lines": lines,
                     "mimetype": mimetype,
-                    "programming_language": programming_language
+                    "programming_language": programming_language,
                 },
                 llm_content=llm_content,
-                return_display=content if len(content) < 500 else f"Read {len(content)} characters"
+                return_display=content
+                if len(content) < 500
+                else f"Read {len(content)} characters",
             )
 
         except Exception as e:
@@ -461,7 +510,7 @@ class ReadFileTool(Tool):
                 success=False,
                 error=f"Unexpected error: {str(e)}",
                 llm_content=f"Error: Unexpected error: {str(e)}",
-                return_display="Unexpected error occurred"
+                return_display="Unexpected error occurred",
             )
 
     def _get_total_lines(self, file_path: str) -> int:
@@ -469,7 +518,7 @@ class ReadFileTool(Tool):
         try:
             if is_text_file(file_path):
                 content, _ = read_text_file_auto_encoding(file_path)
-                return content.count('\n') + 1
+                return content.count("\n") + 1
         except Exception:
             pass
         return 0
@@ -478,34 +527,35 @@ class ReadFileTool(Tool):
         """Get the programming language for a file."""
         ext = Path(file_path).suffix.lower()
         language_map = {
-            '.py': 'python',
-            '.js': 'javascript',
-            '.ts': 'typescript',
-            '.jsx': 'javascript',
-            '.tsx': 'typescript',
-            '.java': 'java',
-            '.cpp': 'cpp',
-            '.c': 'c',
-            '.h': 'c',
-            '.hpp': 'cpp',
-            '.rs': 'rust',
-            '.go': 'go',
-            '.php': 'php',
-            '.rb': 'ruby',
-            '.html': 'html',
-            '.css': 'css',
-            '.sql': 'sql',
-            '.sh': 'bash',
-            '.yaml': 'yaml',
-            '.yml': 'yaml',
-            '.json': 'json',
-            '.xml': 'xml',
-            '.md': 'markdown'
+            ".py": "python",
+            ".js": "javascript",
+            ".ts": "typescript",
+            ".jsx": "javascript",
+            ".tsx": "typescript",
+            ".java": "java",
+            ".cpp": "cpp",
+            ".c": "c",
+            ".h": "c",
+            ".hpp": "cpp",
+            ".rs": "rust",
+            ".go": "go",
+            ".php": "php",
+            ".rb": "ruby",
+            ".html": "html",
+            ".css": "css",
+            ".sql": "sql",
+            ".sh": "bash",
+            ".yaml": "yaml",
+            ".yml": "yaml",
+            ".json": "json",
+            ".xml": "xml",
+            ".md": "markdown",
         }
         return language_map.get(ext)
 
 
 # --- Write File Tool ---
+
 
 class WriteFileTool(Tool):
     """Tool for creating/overwriting files with content."""
@@ -514,15 +564,12 @@ class WriteFileTool(Tool):
         super().__init__(
             name="write_file",
             description="Writes content to a specified file in the local filesystem. The user has the ability to modify `content`. If modified, this will be stated in the response.",
-            kind=Kind.EDIT
+            kind=Kind.EDIT,
         )
         self.config = config
 
     async def execute_async(
-        self,
-        context: ToolContext,
-        file_path: str,
-        content: str
+        self, context: ToolContext, file_path: str, content: str
     ) -> ToolResult:
         """Execute the write_file tool."""
         try:
@@ -534,7 +581,7 @@ class WriteFileTool(Tool):
                     success=False,
                     error="file_path parameter is required",
                     llm_content="Error: file_path parameter is required",
-                    return_display="file_path parameter is required"
+                    return_display="file_path parameter is required",
                 )
 
             # Validate path is absolute
@@ -543,7 +590,7 @@ class WriteFileTool(Tool):
                     success=False,
                     error=f"File path must be absolute: {file_path}",
                     llm_content=f"Error: File path must be absolute: {file_path}",
-                    return_display="File path must be absolute"
+                    return_display="File path must be absolute",
                 )
 
             # Check if path is within workspace
@@ -553,7 +600,7 @@ class WriteFileTool(Tool):
                     success=False,
                     error=f"File path must be within workspace: {file_path}",
                     llm_content=f"Error: File path must be within workspace: {file_path}",
-                    return_display="File path not within workspace"
+                    return_display="File path not within workspace",
                 )
 
             # Check if trying to overwrite a directory
@@ -562,7 +609,7 @@ class WriteFileTool(Tool):
                     success=False,
                     error=f"Path is a directory, not a file: {file_path}",
                     llm_content=f"Error: Path is a directory, not a file: {file_path}",
-                    return_display="Cannot write to directory"
+                    return_display="Cannot write to directory",
                 )
 
             # Ensure parent directory exists
@@ -570,14 +617,14 @@ class WriteFileTool(Tool):
 
             # Write the file
             try:
-                with open(file_path, 'w', encoding=DEFAULT_ENCODING) as f:
+                with open(file_path, "w", encoding=DEFAULT_ENCODING) as f:
                     f.write(content)
             except OSError as e:
                 return ToolResult(
                     success=False,
                     error=f"Failed to write file: {e}",
                     llm_content=f"Error: Failed to write file: {e}",
-                    return_display="Failed to write file"
+                    return_display="Failed to write file",
                 )
 
             # Check if file was newly created or overwritten
@@ -586,7 +633,9 @@ class WriteFileTool(Tool):
 
             # Create success message
             if is_new_file:
-                llm_content = f"Successfully created and wrote to new file: {file_path}."
+                llm_content = (
+                    f"Successfully created and wrote to new file: {file_path}."
+                )
             else:
                 llm_content = f"Successfully overwrote file: {file_path}."
 
@@ -595,10 +644,10 @@ class WriteFileTool(Tool):
                 data={
                     "file_path": file_path,
                     "is_new_file": is_new_file,
-                    "content_length": len(content)
+                    "content_length": len(content),
                 },
                 llm_content=llm_content,
-                return_display=f"{'Created' if is_new_file else 'Updated'} file: {shorten_path(make_relative_path(file_path, self.config.get_target_dir()))}"
+                return_display=f"{'Created' if is_new_file else 'Updated'} file: {shorten_path(make_relative_path(file_path, self.config.get_target_dir()))}",
             )
 
         except Exception as e:
@@ -606,11 +655,12 @@ class WriteFileTool(Tool):
                 success=False,
                 error=f"Unexpected error: {str(e)}",
                 llm_content=f"Error: Unexpected error: {str(e)}",
-                return_display="Unexpected error occurred"
+                return_display="Unexpected error occurred",
             )
 
 
 # --- Glob Tool ---
+
 
 class GlobTool(Tool):
     """Tool for finding files matching glob patterns."""
@@ -619,7 +669,7 @@ class GlobTool(Tool):
         super().__init__(
             name="glob",
             description="Efficiently finds files matching specific glob patterns (e.g., `src/**/*.ts`, `**/*.md`), returning absolute paths sorted by modification time (newest first). Ideal for quickly locating files based on their name or path structure, especially in large codebases.",
-            kind=Kind.SEARCH
+            kind=Kind.SEARCH,
         )
         self.config = config
 
@@ -630,22 +680,26 @@ class GlobTool(Tool):
         path: Optional[str] = None,
         case_sensitive: Optional[bool] = None,
         respect_git_ignore: Optional[bool] = None,
-        respect_gemini_ignore: Optional[bool] = None
+        respect_gemini_ignore: Optional[bool] = None,
     ) -> ToolResult:
         """Execute the glob tool."""
         try:
             pattern = pattern
             path = path
             # case_sensitive = case_sensitive  # Reserved for future use
-            respect_git_ignore = respect_git_ignore if respect_git_ignore is not None else True
-            respect_gemini_ignore = respect_gemini_ignore if respect_gemini_ignore is not None else True
+            respect_git_ignore = (
+                respect_git_ignore if respect_git_ignore is not None else True
+            )
+            respect_gemini_ignore = (
+                respect_gemini_ignore if respect_gemini_ignore is not None else True
+            )
 
             if not pattern:
                 return ToolResult(
                     success=False,
                     error="pattern parameter is required",
                     llm_content="Error: pattern parameter is required",
-                    return_display="pattern parameter is required"
+                    return_display="pattern parameter is required",
                 )
 
             # Determine search directory
@@ -664,7 +718,7 @@ class GlobTool(Tool):
                     success=False,
                     error=f"Search path not within workspace: {search_dir}",
                     llm_content=f"Error: Search path not within workspace: {search_dir}",
-                    return_display="Search path not within workspace"
+                    return_display="Search path not within workspace",
                 )
 
             if not os.path.exists(search_dir):
@@ -672,7 +726,7 @@ class GlobTool(Tool):
                     success=False,
                     error=f"Search path does not exist: {search_dir}",
                     llm_content=f"Error: Search path does not exist: {search_dir}",
-                    return_display="Search path does not exist"
+                    return_display="Search path does not exist",
                 )
 
             if not os.path.isdir(search_dir):
@@ -680,7 +734,7 @@ class GlobTool(Tool):
                     success=False,
                     error=f"Search path is not a directory: {search_dir}",
                     llm_content=f"Error: Search path is not a directory: {search_dir}",
-                    return_display="Search path is not a directory"
+                    return_display="Search path is not a directory",
                 )
 
             # Perform glob search
@@ -697,21 +751,26 @@ class GlobTool(Tool):
                     success=False,
                     error=f"Glob search failed: {e}",
                     llm_content=f"Error: Glob search failed: {e}",
-                    return_display="Glob search failed"
+                    return_display="Glob search failed",
                 )
 
             if not file_matches:
-                content = f"No files found matching pattern \"{pattern}\" within {search_dir}"
+                content = (
+                    f'No files found matching pattern "{pattern}" within {search_dir}'
+                )
                 return ToolResult(
                     success=True,
                     data=[],
                     llm_content=content,
-                    return_display="No files found"
+                    return_display="No files found",
                 )
 
             # Apply file filtering
             file_discovery = self.config.get_file_service()
-            relative_paths = [make_relative_path(p, self.config.get_target_dir()) for p in file_matches]
+            relative_paths = [
+                make_relative_path(p, self.config.get_target_dir())
+                for p in file_matches
+            ]
 
             filtering_options = {
                 "respect_git_ignore": respect_git_ignore,
@@ -741,7 +800,7 @@ class GlobTool(Tool):
 
             search_location = f"within {search_dir}" if path else "across workspace"
             content = (
-                f"Found {len(entries)} file(s) matching \"{pattern}\" {search_location}"
+                f'Found {len(entries)} file(s) matching "{pattern}" {search_location}'
                 f"{f' ({ignored_count} additional files were ignored)' if ignored_count > 0 else ''}, "
                 "sorted by modification time (newest first):\n"
                 f"{file_list}"
@@ -751,7 +810,7 @@ class GlobTool(Tool):
                 success=True,
                 data=entries,
                 llm_content=content,
-                return_display=f"Found {len(entries)} matching file(s)"
+                return_display=f"Found {len(entries)} matching file(s)",
             )
 
         except Exception as e:
@@ -759,11 +818,12 @@ class GlobTool(Tool):
                 success=False,
                 error=f"Unexpected error: {str(e)}",
                 llm_content=f"Error: Unexpected error: {str(e)}",
-                return_display="Unexpected error occurred"
+                return_display="Unexpected error occurred",
             )
 
 
 # --- Search File Content Tool (Grep) ---
+
 
 class SearchFileContentTool(Tool):
     """Tool for searching regex patterns within file contents."""
@@ -772,7 +832,7 @@ class SearchFileContentTool(Tool):
         super().__init__(
             name="search_file_content",
             description="Searches for a regular expression pattern within the content of files in a specified directory. Can filter files by a glob pattern. Returns the lines containing matches, along with their file paths and line numbers.",
-            kind=Kind.SEARCH
+            kind=Kind.SEARCH,
         )
         self.config = config
 
@@ -781,7 +841,7 @@ class SearchFileContentTool(Tool):
         context: ToolContext,
         pattern: str,
         path: Optional[str] = None,
-        include: Optional[str] = None
+        include: Optional[str] = None,
     ) -> ToolResult:
         """Execute the search_file_content tool."""
         try:
@@ -794,7 +854,7 @@ class SearchFileContentTool(Tool):
                     success=False,
                     error="pattern parameter is required",
                     llm_content="Error: pattern parameter is required",
-                    return_display="pattern parameter is required"
+                    return_display="pattern parameter is required",
                 )
 
             # Validate regex pattern
@@ -805,7 +865,7 @@ class SearchFileContentTool(Tool):
                     success=False,
                     error=f"Invalid regex pattern: {e}",
                     llm_content=f"Error: Invalid regex pattern: {e}",
-                    return_display="Invalid regex pattern"
+                    return_display="Invalid regex pattern",
                 )
 
             # Determine search directory
@@ -824,22 +884,22 @@ class SearchFileContentTool(Tool):
                     success=False,
                     error=f"Search path not within workspace: {search_dir}",
                     llm_content=f"Error: Search path not within workspace: {search_dir}",
-                    return_display="Search path not within workspace"
+                    return_display="Search path not within workspace",
                 )
 
             # Perform search
             matches = await self._perform_search(search_dir, pattern, include)
 
             if not matches:
-                search_location = f"in path \"{path}\"" if path else "in workspace"
-                filter_desc = f" (filter: \"{include}\")" if include else ""
-                content = f"No matches found for pattern \"{pattern}\" {search_location}{filter_desc}."
+                search_location = f'in path "{path}"' if path else "in workspace"
+                filter_desc = f' (filter: "{include}")' if include else ""
+                content = f'No matches found for pattern "{pattern}" {search_location}{filter_desc}.'
 
                 return ToolResult(
                     success=True,
                     data=[],
                     llm_content=content,
-                    return_display="No matches found"
+                    return_display="No matches found",
                 )
 
             # Group matches by file
@@ -854,11 +914,11 @@ class SearchFileContentTool(Tool):
                 file_matches.sort(key=lambda m: m.line_number)
 
             # Create output
-            search_location = f"in path \"{path}\"" if path else "in workspace"
-            filter_desc = f" (filter: \"{include}\")" if include else ""
+            search_location = f'in path "{path}"' if path else "in workspace"
+            filter_desc = f' (filter: "{include}")' if include else ""
 
             content = (
-                f"Found {len(matches)} match(es) for pattern \"{pattern}\" "
+                f'Found {len(matches)} match(es) for pattern "{pattern}" '
                 f"{search_location}{filter_desc}:\n---\n"
             )
 
@@ -874,7 +934,7 @@ class SearchFileContentTool(Tool):
                 success=True,
                 data=matches,
                 llm_content=content.rstrip(),
-                return_display=f"Found {len(matches)} match(es)"
+                return_display=f"Found {len(matches)} match(es)",
             )
 
         except Exception as e:
@@ -882,10 +942,12 @@ class SearchFileContentTool(Tool):
                 success=False,
                 error=f"Unexpected error: {str(e)}",
                 llm_content=f"Error: Unexpected error: {str(e)}",
-                return_display="Unexpected error occurred"
+                return_display="Unexpected error occurred",
             )
 
-    async def _perform_search(self, search_dir: str, pattern: str, include: Optional[str]) -> List[GrepMatch]:
+    async def _perform_search(
+        self, search_dir: str, pattern: str, include: Optional[str]
+    ) -> List[GrepMatch]:
         """Perform the actual search operation."""
         matches = []
 
@@ -897,7 +959,9 @@ class SearchFileContentTool(Tool):
         # Fall back to manual file search
         return await self._manual_file_search(search_dir, pattern, include)
 
-    async def _try_git_grep(self, search_dir: str, pattern: str, include: Optional[str]) -> Optional[List[GrepMatch]]:
+    async def _try_git_grep(
+        self, search_dir: str, pattern: str, include: Optional[str]
+    ) -> Optional[List[GrepMatch]]:
         """Try to use git grep for faster searching."""
         try:
             # Check if we're in a git repository
@@ -906,25 +970,26 @@ class SearchFileContentTool(Tool):
 
             # Check if git is available
             result = await asyncio.create_subprocess_exec(
-                'git', '--version',
+                "git",
+                "--version",
                 stdout=asyncio.subprocess.DEVNULL,
-                stderr=asyncio.subprocess.DEVNULL
+                stderr=asyncio.subprocess.DEVNULL,
             )
             await result.wait()
             if result.returncode != 0:
                 return None
 
             # Build git grep command
-            cmd = ['git', 'grep', '--untracked', '-n', '-E', '--ignore-case', pattern]
+            cmd = ["git", "grep", "--untracked", "-n", "-E", "--ignore-case", pattern]
             if include:
-                cmd.extend(['--', include])
+                cmd.extend(["--", include])
 
             # Run git grep
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 cwd=search_dir,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
 
             stdout, stderr = await process.communicate()
@@ -941,7 +1006,9 @@ class SearchFileContentTool(Tool):
         except Exception:
             return None
 
-    async def _manual_file_search(self, search_dir: str, pattern: str, include: Optional[str]) -> List[GrepMatch]:
+    async def _manual_file_search(
+        self, search_dir: str, pattern: str, include: Optional[str]
+    ) -> List[GrepMatch]:
         """Perform manual file search as fallback."""
         matches = []
         regex = re.compile(pattern, re.IGNORECASE)
@@ -955,7 +1022,12 @@ class SearchFileContentTool(Tool):
             file_paths = []
             for root, dirs, files in os.walk(search_dir):
                 # Skip common directories
-                dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '__pycache__']]
+                dirs[:] = [
+                    d
+                    for d in dirs
+                    if not d.startswith(".")
+                    and d not in ["node_modules", "__pycache__"]
+                ]
                 for file in files:
                     file_paths.append(os.path.join(root, file))
 
@@ -965,13 +1037,17 @@ class SearchFileContentTool(Tool):
 
         for file_path in file_paths:
             if os.path.isfile(file_path):
-                relative_path = make_relative_path(file_path, self.config.get_target_dir())
+                relative_path = make_relative_path(
+                    file_path, self.config.get_target_dir()
+                )
                 filtering_options = {
                     "respect_git_ignore": True,
                     "respect_gemini_ignore": True,
                 }
 
-                filtered_paths, _ = file_discovery.filter_files_with_report([relative_path], filtering_options)
+                filtered_paths, _ = file_discovery.filter_files_with_report(
+                    [relative_path], filtering_options
+                )
                 if filtered_paths:
                     workspace_files.append(file_path)
 
@@ -984,11 +1060,15 @@ class SearchFileContentTool(Tool):
 
                     for line_num, line in enumerate(lines, 1):
                         if regex.search(line):
-                            matches.append(GrepMatch(
-                                file_path=make_relative_path(file_path, self.config.get_target_dir()),
-                                line_number=line_num,
-                                line=line
-                            ))
+                            matches.append(
+                                GrepMatch(
+                                    file_path=make_relative_path(
+                                        file_path, self.config.get_target_dir()
+                                    ),
+                                    line_number=line_num,
+                                    line=line,
+                                )
+                            )
             except Exception:
                 # Skip files that can't be read
                 continue
@@ -999,11 +1079,11 @@ class SearchFileContentTool(Tool):
         """Check if a path is within a git repository."""
         try:
             result = subprocess.run(
-                ['git', 'rev-parse', '--git-dir'],
+                ["git", "rev-parse", "--git-dir"],
                 cwd=path,
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
             )
             return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -1013,12 +1093,12 @@ class SearchFileContentTool(Tool):
         """Parse grep output into GrepMatch objects."""
         matches = []
 
-        for line in output.strip().split('\n'):
+        for line in output.strip().split("\n"):
             if not line.strip():
                 continue
 
             # Parse format: file_path:line_number:line_content
-            parts = line.split(':', 2)
+            parts = line.split(":", 2)
             if len(parts) >= 3:
                 file_path = parts[0]
                 try:
@@ -1027,13 +1107,17 @@ class SearchFileContentTool(Tool):
 
                     # Convert to relative path
                     abs_path = os.path.join(search_dir, file_path)
-                    rel_path = make_relative_path(abs_path, self.config.get_target_dir())
+                    rel_path = make_relative_path(
+                        abs_path, self.config.get_target_dir()
+                    )
 
-                    matches.append(GrepMatch(
-                        file_path=rel_path,
-                        line_number=line_number,
-                        line=line_content
-                    ))
+                    matches.append(
+                        GrepMatch(
+                            file_path=rel_path,
+                            line_number=line_number,
+                            line=line_content,
+                        )
+                    )
                 except ValueError:
                     continue
 
@@ -1042,6 +1126,7 @@ class SearchFileContentTool(Tool):
 
 # --- Replace Tool ---
 
+
 class ReplaceTool(Tool):
     """Tool for search/replace text in files with fuzzy matching."""
 
@@ -1049,7 +1134,7 @@ class ReplaceTool(Tool):
         super().__init__(
             name="replace",
             description="Replaces text within a file. By default, replaces a single occurrence, but can replace multiple occurrences when `expected_replacements` is specified. This tool requires providing significant context around the change to ensure precise targeting.",
-            kind=Kind.EDIT
+            kind=Kind.EDIT,
         )
         self.config = config
 
@@ -1059,14 +1144,16 @@ class ReplaceTool(Tool):
         file_path: str,
         old_string: str,
         new_string: str,
-        expected_replacements: Optional[int] = None
+        expected_replacements: Optional[int] = None,
     ) -> ToolResult:
         """Execute the replace tool."""
         try:
             file_path = file_path
             old_string = old_string
             new_string = new_string
-            expected_replacements = expected_replacements if expected_replacements is not None else 1
+            expected_replacements = (
+                expected_replacements if expected_replacements is not None else 1
+            )
 
             # Validate required parameters
             if not file_path:
@@ -1074,7 +1161,7 @@ class ReplaceTool(Tool):
                     success=False,
                     error="file_path parameter is required",
                     llm_content="Error: file_path parameter is required",
-                    return_display="file_path parameter is required"
+                    return_display="file_path parameter is required",
                 )
 
             # Validate path is absolute
@@ -1083,7 +1170,7 @@ class ReplaceTool(Tool):
                     success=False,
                     error=f"File path must be absolute: {file_path}",
                     llm_content=f"Error: File path must be absolute: {file_path}",
-                    return_display="File path must be absolute"
+                    return_display="File path must be absolute",
                 )
 
             # Check if path is within workspace
@@ -1093,7 +1180,7 @@ class ReplaceTool(Tool):
                     success=False,
                     error=f"File path must be within workspace: {file_path}",
                     llm_content=f"Error: File path must be within workspace: {file_path}",
-                    return_display="File path not within workspace"
+                    return_display="File path not within workspace",
                 )
 
             # Handle file creation case
@@ -1102,20 +1189,20 @@ class ReplaceTool(Tool):
                 # Create new file
                 try:
                     ensure_directory_exists(os.path.dirname(file_path))
-                    with open(file_path, 'w', encoding=DEFAULT_ENCODING) as f:
+                    with open(file_path, "w", encoding=DEFAULT_ENCODING) as f:
                         f.write(new_string)
                     return ToolResult(
                         success=True,
                         data={"replacements": 1, "is_new_file": True},
                         llm_content=f"Created new file: {file_path} with provided content.",
-                        return_display=f"Created new file: {shorten_path(make_relative_path(file_path, self.config.get_target_dir()))}"
+                        return_display=f"Created new file: {shorten_path(make_relative_path(file_path, self.config.get_target_dir()))}",
                     )
                 except OSError as e:
                     return ToolResult(
                         success=False,
                         error=f"Failed to create file: {e}",
                         llm_content=f"Error: Failed to create file: {e}",
-                        return_display="Failed to create file"
+                        return_display="Failed to create file",
                     )
 
             # Handle existing file editing
@@ -1124,7 +1211,7 @@ class ReplaceTool(Tool):
                     success=False,
                     error=f"File does not exist and old_string is not empty: {file_path}",
                     llm_content=f"Error: File does not exist and old_string is not empty: {file_path}",
-                    return_display="File does not exist"
+                    return_display="File does not exist",
                 )
 
             # Read current file content
@@ -1135,7 +1222,7 @@ class ReplaceTool(Tool):
                     success=False,
                     error=f"Failed to read file: {e}",
                     llm_content=f"Error: Failed to read file: {e}",
-                    return_display="Failed to read file"
+                    return_display="Failed to read file",
                 )
 
             # Perform replacement
@@ -1148,7 +1235,7 @@ class ReplaceTool(Tool):
                     success=False,
                     error="Failed to edit, could not find the string to replace",
                     llm_content="Failed to edit, could not find the string to replace.",
-                    return_display="No occurrences found to replace"
+                    return_display="No occurrences found to replace",
                 )
 
             if replacements != expected_replacements:
@@ -1156,26 +1243,26 @@ class ReplaceTool(Tool):
                     success=False,
                     error=f"Failed to edit, expected {expected_replacements} occurrence(s) but found {replacements}",
                     llm_content=f"Failed to edit, expected {expected_replacements} occurrence(s) but found {replacements}.",
-                    return_display=f"Expected {expected_replacements} but found {replacements} occurrences"
+                    return_display=f"Expected {expected_replacements} but found {replacements} occurrences",
                 )
 
             # Write back the modified content
             try:
-                with open(file_path, 'w', encoding=DEFAULT_ENCODING) as f:
+                with open(file_path, "w", encoding=DEFAULT_ENCODING) as f:
                     f.write(new_content)
             except OSError as e:
                 return ToolResult(
                     success=False,
                     error=f"Failed to write file: {e}",
                     llm_content=f"Error: Failed to write file: {e}",
-                    return_display="Failed to write file"
+                    return_display="Failed to write file",
                 )
 
             return ToolResult(
                 success=True,
                 data={"replacements": replacements, "is_new_file": False},
                 llm_content=f"Successfully modified file: {file_path} ({replacements} replacements).",
-                return_display=f"Modified file: {shorten_path(make_relative_path(file_path, self.config.get_target_dir()))} ({replacements} replacements)"
+                return_display=f"Modified file: {shorten_path(make_relative_path(file_path, self.config.get_target_dir()))} ({replacements} replacements)",
             )
 
         except Exception as e:
@@ -1183,10 +1270,12 @@ class ReplaceTool(Tool):
                 success=False,
                 error=f"Unexpected error: {str(e)}",
                 llm_content=f"Error: Unexpected error: {str(e)}",
-                return_display="Unexpected error occurred"
+                return_display="Unexpected error occurred",
             )
 
-    def _perform_replacement(self, content: str, old_string: str, new_string: str, expected_count: int) -> Tuple[str, int]:
+    def _perform_replacement(
+        self, content: str, old_string: str, new_string: str, expected_count: int
+    ) -> Tuple[str, int]:
         """Perform the actual replacement operation."""
         # For now, use exact string matching
         # TODO: Implement fuzzy matching like Gemini CLI
@@ -1206,6 +1295,7 @@ class ReplaceTool(Tool):
 
 # --- Read Many Files Tool ---
 
+
 class ReadManyFilesTool(Tool):
     """Tool for reading multiple files by paths/glob patterns."""
 
@@ -1213,7 +1303,7 @@ class ReadManyFilesTool(Tool):
         super().__init__(
             name="read_many_files",
             description="Reads content from multiple files specified by paths or glob patterns within a configured target directory. For text files, it concatenates their content into a single string. It is primarily designed for text-based files. However, it can also process image (e.g., .png, .jpg) and PDF (.pdf) files if their file names or extensions are explicitly included in the 'paths' argument.",
-            kind=Kind.READ
+            kind=Kind.READ,
         )
         self.config = config
 
@@ -1224,7 +1314,7 @@ class ReadManyFilesTool(Tool):
         include: Optional[List[str]] = None,
         exclude: Optional[List[str]] = None,
         useDefaultExcludes: Optional[bool] = None,
-        file_filtering_options: Optional[Dict[str, Any]] = None
+        file_filtering_options: Optional[Dict[str, Any]] = None,
     ) -> ToolResult:
         """Execute the read_many_files tool."""
         try:
@@ -1239,7 +1329,7 @@ class ReadManyFilesTool(Tool):
                     success=False,
                     error="paths parameter is required",
                     llm_content="Error: paths parameter is required",
-                    return_display="paths parameter is required"
+                    return_display="paths parameter is required",
                 )
 
             # Collect all file paths
@@ -1287,18 +1377,29 @@ class ReadManyFilesTool(Tool):
                 if workspace_context.is_path_within_workspace(file_path):
                     workspace_files.append(file_path)
                 else:
-                    skipped_files.append({
-                        "path": make_relative_path(file_path, self.config.get_target_dir()),
-                        "reason": "Outside workspace boundaries"
-                    })
+                    skipped_files.append(
+                        {
+                            "path": make_relative_path(
+                                file_path, self.config.get_target_dir()
+                            ),
+                            "reason": "Outside workspace boundaries",
+                        }
+                    )
 
             # Apply file filtering
             file_discovery = self.config.get_file_service()
-            relative_paths = [make_relative_path(p, self.config.get_target_dir()) for p in workspace_files]
+            relative_paths = [
+                make_relative_path(p, self.config.get_target_dir())
+                for p in workspace_files
+            ]
 
             filtering_options = {
-                "respect_git_ignore": file_filtering_options.get("respect_git_ignore", True),
-                "respect_gemini_ignore": file_filtering_options.get("respect_gemini_ignore", True),
+                "respect_git_ignore": file_filtering_options.get(
+                    "respect_git_ignore", True
+                ),
+                "respect_gemini_ignore": file_filtering_options.get(
+                    "respect_gemini_ignore", True
+                ),
             }
 
             filtered_paths, ignored_count = file_discovery.filter_files_with_report(
@@ -1306,10 +1407,12 @@ class ReadManyFilesTool(Tool):
             )
 
             if ignored_count > 0:
-                skipped_files.append({
-                    "path": f"{ignored_count} file(s)",
-                    "reason": "ignored by project ignore files"
-                })
+                skipped_files.append(
+                    {
+                        "path": f"{ignored_count} file(s)",
+                        "reason": "ignored by project ignore files",
+                    }
+                )
 
             # Convert back to absolute paths
             filtered_absolute_paths = [
@@ -1330,27 +1433,46 @@ class ReadManyFilesTool(Tool):
                         explicitly_requested = any(
                             file_path.endswith(ext) or ext in file_path
                             for pattern in paths + (include or [])
-                            for ext in ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp', '.pdf']
+                            for ext in [
+                                ".png",
+                                ".jpg",
+                                ".jpeg",
+                                ".gif",
+                                ".webp",
+                                ".svg",
+                                ".bmp",
+                                ".pdf",
+                            ]
                         )
 
                         if not explicitly_requested:
-                            skipped_files.append({
-                                "path": make_relative_path(file_path, self.config.get_target_dir()),
-                                "reason": "asset file (image/pdf) was not explicitly requested by name or extension"
-                            })
+                            skipped_files.append(
+                                {
+                                    "path": make_relative_path(
+                                        file_path, self.config.get_target_dir()
+                                    ),
+                                    "reason": "asset file (image/pdf) was not explicitly requested by name or extension",
+                                }
+                            )
                             continue
 
                     # Read file content
                     content, error, is_truncated = read_file_content(file_path)
 
                     if error:
-                        skipped_files.append({
-                            "path": make_relative_path(file_path, self.config.get_target_dir()),
-                            "reason": f"Read error: {error}"
-                        })
+                        skipped_files.append(
+                            {
+                                "path": make_relative_path(
+                                    file_path, self.config.get_target_dir()
+                                ),
+                                "reason": f"Read error: {error}",
+                            }
+                        )
                         continue
 
-                    relative_path = make_relative_path(file_path, self.config.get_target_dir())
+                    relative_path = make_relative_path(
+                        file_path, self.config.get_target_dir()
+                    )
 
                     if isinstance(content, str):
                         # Text file - add separator
@@ -1367,23 +1489,33 @@ class ReadManyFilesTool(Tool):
                     processed_files.append(relative_path)
 
                 except Exception as e:
-                    skipped_files.append({
-                        "path": make_relative_path(file_path, self.config.get_target_dir()),
-                        "reason": f"Unexpected error: {str(e)}"
-                    })
+                    skipped_files.append(
+                        {
+                            "path": make_relative_path(
+                                file_path, self.config.get_target_dir()
+                            ),
+                            "reason": f"Unexpected error: {str(e)}",
+                        }
+                    )
 
             # Create output
             if content_parts:
                 content_parts.append("--- End of content ---")
                 llm_content = "".join(content_parts)
             else:
-                llm_content = "No files matching the criteria were found or all were skipped."
+                llm_content = (
+                    "No files matching the criteria were found or all were skipped."
+                )
 
             # Create display message
-            display_parts = [f"### ReadManyFiles Result (Target Dir: `{self.config.get_target_dir()}`)\n\n"]
+            display_parts = [
+                f"### ReadManyFiles Result (Target Dir: `{self.config.get_target_dir()}`)\n\n"
+            ]
 
             if processed_files:
-                display_parts.append(f"Successfully read and concatenated content from **{len(processed_files)} file(s)**.\n")
+                display_parts.append(
+                    f"Successfully read and concatenated content from **{len(processed_files)} file(s)**.\n"
+                )
 
                 if len(processed_files) <= 10:
                     display_parts.append("**Processed Files:**\n")
@@ -1393,16 +1525,24 @@ class ReadManyFilesTool(Tool):
                     display_parts.append("**Processed Files (first 10 shown):**\n")
                     for file in processed_files[:10]:
                         display_parts.append(f"- `{file}`\n")
-                    display_parts.append(f"- ...and {len(processed_files) - 10} more.\n")
+                    display_parts.append(
+                        f"- ...and {len(processed_files) - 10} more.\n"
+                    )
 
             if skipped_files:
                 if len(skipped_files) <= 5:
-                    display_parts.append(f"\n**Skipped {len(skipped_files)} item(s):**\n")
+                    display_parts.append(
+                        f"\n**Skipped {len(skipped_files)} item(s):**\n"
+                    )
                 else:
-                    display_parts.append(f"\n**Skipped {len(skipped_files)} item(s) (first 5 shown):**\n")
+                    display_parts.append(
+                        f"\n**Skipped {len(skipped_files)} item(s) (first 5 shown):**\n"
+                    )
 
                 for skipped in skipped_files[:5]:
-                    display_parts.append(f"- `{skipped['path']}` (Reason: {skipped['reason']})\n")
+                    display_parts.append(
+                        f"- `{skipped['path']}` (Reason: {skipped['reason']})\n"
+                    )
 
                 if len(skipped_files) > 5:
                     display_parts.append(f"- ...and {len(skipped_files) - 5} more.\n")
@@ -1412,10 +1552,10 @@ class ReadManyFilesTool(Tool):
                 data={
                     "processed_files": processed_files,
                     "skipped_files": skipped_files,
-                    "total_files_attempted": len(workspace_files)
+                    "total_files_attempted": len(workspace_files),
                 },
                 llm_content=llm_content,
-                return_display="".join(display_parts).rstrip()
+                return_display="".join(display_parts).rstrip(),
             )
 
         except Exception as e:
@@ -1423,5 +1563,5 @@ class ReadManyFilesTool(Tool):
                 success=False,
                 error=f"Unexpected error: {str(e)}",
                 llm_content=f"Error: Unexpected error: {str(e)}",
-                return_display="Unexpected error occurred"
+                return_display="Unexpected error occurred",
             )

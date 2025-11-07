@@ -18,13 +18,13 @@ from websockets.server import WebSocketServerProtocol
 from backend import config
 from backend.agent.model_registry import get_all_models
 from backend.agent.orchestrator import Agent
-from backend.tools.tool_registry import create_tool_registry
 from backend.config import (
     CONFIG_FILE_NAME,
     AppConfig,
     get_config_dir,
     initialize_settings,
 )
+from backend.tools.tool_registry import create_tool_registry
 
 # Configure logging
 
@@ -144,7 +144,7 @@ async def _handle_message(
                             "id": message_id,
                             "payload": {
                                 "summary": event["content"],
-                                "results": event["results"]
+                                "results": event["results"],
                             },
                         }
                     else:
