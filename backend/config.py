@@ -123,6 +123,9 @@ class AppConfig(BaseModel):
     llm_timeout: int = 300
     query_timeout: int = 600  # New field for query timeout
 
+    # Shell Tool Settings
+    allowed_shell_commands: List[str] = Field(default_factory=lambda: ["echo", "pwd", "whoami", "date", "ls", "dir", "cat", "type"])
+
     # Provider Configurations
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
 
@@ -184,11 +187,11 @@ def load_api_key_for_provider(cfg: AppConfig) -> None:
     if api_key_env_var:
         cfg.api_key = os.getenv(api_key_env_var)
         if not cfg.api_key:
-                    logger.warning(
+            logger.warning(
                 "Environment variable '%s' for provider '%s' is not set.",
-                        api_key_env_var,
-                        provider_name,
-                    )
+                api_key_env_var,
+                provider_name,
+            )
     else:
         # This case is for local models like Ollama that don't require an API key
         cfg.api_key = None
@@ -443,6 +446,14 @@ class AppServices:
         if self._storage is None:
             self._storage = StorageService()
         return self._storage
+
+    def get_allowed_tools(self) -> List[str]:
+        """Get the list of allowed shell commands."""
+        return self.config.allowed_shell_commands
+
+    def get_shell_timeout(self) -> float:
+        """Get the shell command timeout in seconds."""
+        return 30.0  # Default timeout for shell commands
 
 
 # To run this, you would execute `python -m backend.config` and it would
