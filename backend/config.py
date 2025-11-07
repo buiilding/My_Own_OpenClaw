@@ -139,38 +139,6 @@ class AppConfig(BaseModel):
     # This field will hold the actual API key after it's loaded
     api_key: Optional[str] = Field(default=None, repr=False)
 
-    def get_target_dir(self) -> str:
-        """Returns the target directory for file operations."""
-        # For now, return the current working directory
-        # This should be configurable in the future
-        import os
-
-        return os.getcwd()
-
-    def get_workspace_context(self):
-        """Returns a workspace context object for path validation."""
-
-        # Simple workspace context that allows all paths for now
-        # This should be more sophisticated in the future
-        class SimpleWorkspaceContext:
-            def is_path_within_workspace(self, path: str) -> bool:
-                # For now, allow all paths. This should be restricted to a specific workspace
-                return True
-
-        return SimpleWorkspaceContext()
-
-    @property
-    def storage(self):
-        """Returns a storage object (placeholder for now)."""
-
-        class SimpleStorage:
-            def get_project_temp_dir(self):
-                import os
-                import tempfile
-
-                return os.path.join(tempfile.gettempdir(), "desktop_assistant")
-
-        return SimpleStorage()
 
     def get_file_service(self):
         """Returns a file service object (placeholder for now)."""
@@ -178,11 +146,12 @@ class AppConfig(BaseModel):
         class SimpleFileService:
             def should_ignore_file(self, path: str, options=None):
                 # Simple implementation - ignore common files
-                import os
-
                 filename = os.path.basename(path)
                 ignored = {".git", "__pycache__", "node_modules", ".DS_Store"}
-                return any(ignored_part in path for ignored_part in ignored) or filename in ignored
+                return (
+                    any(ignored_part in path for ignored_part in ignored)
+                    or filename in ignored
+                )
 
             def filter_files_with_report(self, paths, options=None):
                 # Simple implementation - return all paths for now
@@ -197,7 +166,6 @@ class AppConfig(BaseModel):
     def get_shell_timeout(self):
         """Returns shell command timeout."""
         return 30.0
-
 
     @property
     def llm_model(self) -> str:
@@ -297,23 +265,6 @@ def load_config() -> AppConfig:
         if config_data is None:
             raise ValueError(f"Configuration file at {config_file} is empty")
 
-        # --- MIGRATION LOGIC for google -> gemini provider ---
-        # This handles legacy config files that might still reference 'google'.
-        if config_data and config_data.get("model_provider") == "google":
-            logger.info("Migrating legacy 'google' provider to 'gemini' in config.")
-            config_data["model_provider"] = "gemini"
-        if config_data and config_data.get("active_provider") == "google":
-            logger.info(
-                "Migrating legacy 'google' active_provider to 'gemini' in config."
-            )
-            config_data["active_provider"] = "gemini"
-        if config_data and "llm_providers" in config_data:
-            if "google" in config_data["llm_providers"]:
-                logger.info("Migrating legacy 'google' provider config to 'gemini'.")
-                config_data["llm_providers"]["gemini"] = config_data[
-                    "llm_providers"
-                ].pop("google")
-        # --- END MIGRATION LOGIC ---
         try:
             config = AppConfig(**config_data)
         except ValidationError as e:
@@ -339,33 +290,33 @@ def load_config() -> AppConfig:
     return config
 
 
-def initialize_settings() -> None:
+def get_settings() -> AppConfig:
     """
-    Loads the config and initializes the global 'settings' object.
-    This should be called once at application startup.
+    Get the application settings.
+
+    This function loads and caches the settings on first access.
+    Subsequent calls return the cached instance.
     """
-    # pylint: disable=global-statement
-    global settings
+    if not hasattr(get_settings, '_settings'):
+        try:
+            get_settings._settings = load_config()
+        except Exception as e:
+            logging.critical("Could not load configuration: %s", e)
+            raise SystemExit(f"FATAL: Could not load configuration. {e}") from e
+    return get_settings._settings
+
+
+def reload_settings() -> AppConfig:
+    """
+    Force reload of settings from disk.
+
+    Returns:
+        The reloaded AppConfig instance.
+    """
     try:
-        settings = load_config()
+        get_settings._settings = load_config()
+        return get_settings._settings
     except Exception as e:
-        logging.critical("Could not load configuration: %s", e)
-        raise SystemExit(f"FATAL: Could not load configuration. {e}") from e
+        logging.critical("Could not reload configuration: %s", e)
+        raise
 
-
-# --- Global Config Instance ---
-
-settings: Optional[AppConfig] = None
-
-if __name__ == "__main__":
-    # Example of how to use the config
-    print("Configuration loaded successfully!")
-    print(f"Active Provider: {settings.active_provider}")
-    print(f"Active Model: {settings.llm_model}")
-    if settings.api_key:
-        print("API Key for active provider: [loaded successfully]")
-    else:
-        print("API Key: Not required for this provider (e.g., Ollama)")
-
-    print("\nFull config object:")
-    print(settings.model_dump_json(indent=2, exclude={"api_key"}))
