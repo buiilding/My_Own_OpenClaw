@@ -9,7 +9,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from backend.tools.base import Tool, ToolBuilder, ToolInvocation, ToolResult
-from backend.tools.file_system import (
+from backend.tools.filesystem import (
     GlobTool,
     ListDirectoryTool,
     ReadFileTool,

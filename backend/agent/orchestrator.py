@@ -11,50 +11,13 @@ import logging
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from backend.agent.llm_client import get_llm_client
+from backend.agent.prompts import SYSTEM_PROMPT
 from backend.agent.response_parser import ResponseParser
 from backend.agent.tool_orchestrator import ToolOrchestrator
-from backend.config import AppConfig, settings
+from backend.config import AppConfig
 from backend.tools.tool_registry import ToolRegistry, create_tool_registry
 
 logger = logging.getLogger(__name__)
-
-# A system prompt defines the agent's personality, capabilities, and instructions.
-SYSTEM_PROMPT = """
-You are a helpful and friendly desktop assistant with access to various tools to help users with their computer tasks.
-
-Your capabilities include:
-- Reading and writing files
-- Executing safe shell commands
-- Searching for files and content
-- Listing directories
-- And more...
-
-TOOL CALLING FORMAT (Gemini CLI Style):
-When you need to use tools, embed structured functionCall objects in your response using this exact format:
-
-✅ CORRECT FORMAT:
-{"functionCall": {"name": "tool_name", "args": {"parameter": "value"}}}
-
-Examples:
-- {"functionCall": {"name": "read_file", "args": {"path": "/path/to/file.txt"}}}
-- {"functionCall": {"name": "write_file", "args": {"file_path": "/path/to/file.txt", "content": "Hello world"}}}
-- {"functionCall": {"name": "list_directory", "args": {"path": "/some/folder"}}}
-
-❌ WRONG FORMATS (DO NOT USE):
-- tool_name(parameter="value")
-- tool_name(name="read_file", path="...")
-- result = read_file(path="/path/to/file.txt")
-- Let me read the file: read_file(path="/path/to/file.txt")
-- Plain text function call syntax
-
-After tool execution, you'll see the results. Then you can:
-- Call another tool if needed (but don't repeat the same tool call)
-- Provide your final text response when you have enough information
-
-If I make a mistake with tool calling format, I'll be told what went wrong and can try again.
-
-Available tools are listed below. Use them when appropriate.
-"""
 
 # The maximum number of messages to keep in the conversation history.
 MAX_HISTORY_LENGTH = 10
@@ -67,7 +30,7 @@ class Agent:
     """The main agent class for orchestrating tasks with tool support."""
 
     def __init__(
-        self, cfg: AppConfig = settings, tool_registry: Optional[ToolRegistry] = None
+        self, cfg: AppConfig, tool_registry: Optional[ToolRegistry] = None
     ) -> None:
         """Initializes the agent."""
         self.cfg = cfg

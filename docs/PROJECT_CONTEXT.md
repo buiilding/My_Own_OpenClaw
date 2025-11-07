@@ -999,7 +999,16 @@ Determines whether to:
 │   │
 │   ├── tools/                  # Built-in tools
 │   │   ├── base.py             # Base tool class + auto schema generation
-│   │   ├── file_system.py      # File operations (7 tools)
+│   │   ├── filesystem/         # File operations (7 tools)
+│   │   │   ├── data_structures.py    # Common data classes
+│   │   │   ├── list_directory_tool.py
+│   │   │   ├── read_file_tool.py
+│   │   │   ├── write_file_tool.py
+│   │   │   ├── glob_tool.py
+│   │   │   ├── search_file_content_tool.py
+│   │   │   ├── replace_tool.py
+│   │   │   ├── read_many_files_tool.py
+│   │   │   └── __init__.py
 │   │   ├── shell.py            # Shell command execution
 │   │   ├── tool_registry.py    # Tool registry and management
 │   │   ├── terminal.py         # Command execution (planned)
@@ -1240,7 +1249,7 @@ git commit --no-verify -m "your commit message"
 - Issue #13: Tool executor ✅ (Tool orchestrator with error handling)
 - Issue #14: Agent tool selection ✅ (LLM-driven tool calling)
 - **Demo**: Agent uses Gemini CLI tools (file ops, shell commands)
-- **Files Added**: `schema_generator.py`, `tool_registry.py`, `file_system.py`, `shell.py`
+- **Files Added**: `schema_generator.py`, `tool_registry.py`, `filesystem/`, `shell.py`
 - **Features**: Automatic schema generation, tool execution, response parsing
 
 **Milestone 4: Memory** (Weeks 7-8) **🎯 NEXT**

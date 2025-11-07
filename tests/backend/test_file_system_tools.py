@@ -10,7 +10,7 @@ import pytest
 
 from backend.config import AppConfig
 from backend.tools.base import ToolContext
-from backend.tools.file_system import (
+from backend.tools.filesystem import (
     GlobTool, ListDirectoryTool, ReadFileTool, ReadManyFilesTool,
     ReplaceTool, SearchFileContentTool, WriteFileTool
 )
