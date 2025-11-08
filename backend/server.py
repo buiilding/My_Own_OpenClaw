@@ -25,7 +25,7 @@ from backend.config import (
     get_settings,
     reload_settings,
 )
-from backend.tools.tool_registry import create_tool_registry
+from backend.tools.registry import create_tool_registry
 
 # Configure logging
 

@@ -10,26 +10,38 @@ import pytest
 
 from backend.config import AppConfig
 from backend.tools.base import ToolContext
-from backend.tools.shell import ShellTool
+from backend.tools.core.system.shell_tool import ShellTool
 
 
 @pytest.fixture
-def mock_config():
-    """Create a mock configuration for testing."""
-    config = MagicMock(spec=AppConfig)
-    config.get_target_dir.return_value = "/tmp"
-    config.get_workspace_context.return_value = MagicMock()
-    config.get_shell_timeout.return_value = 30.0
-    return config
+def mock_services():
+    """Create a mock AppServices for testing."""
+    from backend.config import AppServices
+
+    services = MagicMock(spec=AppServices)
+
+    # Mock workspace context
+    workspace_context = MagicMock()
+    workspace_context.is_path_within_workspace.return_value = True
+    workspace_context.workspace_path = "/tmp"  # Provide a valid workspace path
+    services.get_workspace_context.return_value = workspace_context
+
+    # Mock shell timeout
+    services.get_shell_timeout.return_value = 30.0
+
+    # Mock allowed tools (include echo for testing)
+    services.get_allowed_tools.return_value = ["echo", "dir", "ls", "pwd", "whoami", "date"]
+
+    return services
 
 
 class TestShellTool:
     """Tests for the ShellTool."""
 
     @pytest.mark.asyncio
-    async def test_shell_command_success(self, mock_config):
+    async def test_shell_command_success(self, mock_services):
         """Test successful shell command execution."""
-        tool = ShellTool(mock_config)
+        tool = ShellTool(mock_services)
         context = ToolContext()
 
         # Use a simple cross-platform command
@@ -46,9 +58,9 @@ class TestShellTool:
         assert expected_output in result.llm_content
 
     @pytest.mark.asyncio
-    async def test_shell_command_with_directory(self, mock_config, tmp_path):
+    async def test_shell_command_with_directory(self, mock_services, tmp_path):
         """Test shell command execution in specific directory."""
-        tool = ShellTool(mock_config)
+        tool = ShellTool(mock_services)
         context = ToolContext()
 
         # Create a test directory
@@ -77,9 +89,9 @@ class TestShellTool:
         assert expected_content in result.llm_content
 
     @pytest.mark.asyncio
-    async def test_shell_command_failure(self, mock_config):
+    async def test_shell_command_failure(self, mock_services):
         """Test shell command that fails."""
-        tool = ShellTool(mock_config)
+        tool = ShellTool(mock_services)
         context = ToolContext()
 
         # Use a command that will fail
@@ -88,12 +100,12 @@ class TestShellTool:
         result = await tool.execute_async(context, command=command)
 
         assert result.success is False
-        assert "Error executing shell command" in result.error
+        assert "Command not allowed" in result.error
 
     @pytest.mark.asyncio
-    async def test_shell_command_with_description(self, mock_config):
+    async def test_shell_command_with_description(self, mock_services):
         """Test shell command with description parameter."""
-        tool = ShellTool(mock_config)
+        tool = ShellTool(mock_services)
         context = ToolContext()
 
         if os.name == 'nt':  # Windows
@@ -112,7 +124,7 @@ class TestShellTool:
 
     @pytest.mark.asyncio
     @patch('asyncio.create_subprocess_shell')
-    async def test_shell_command_timeout(self, mock_create_subprocess, mock_config):
+    async def test_shell_command_timeout(self, mock_create_subprocess, mock_services):
         """Test shell command timeout handling."""
         # Mock a process that doesn't complete
         mock_process = AsyncMock()
@@ -120,7 +132,7 @@ class TestShellTool:
         mock_process.returncode = None
         mock_create_subprocess.return_value = mock_process
 
-        tool = ShellTool(mock_config)
+        tool = ShellTool(mock_services)
         context = ToolContext()
 
         # This test is tricky because we need to test timeout behavior
@@ -131,30 +143,30 @@ class TestShellTool:
         # In a real scenario, this would be tested with proper timeout mocking
 
     @pytest.mark.asyncio
-    async def test_shell_command_empty(self, mock_config):
+    async def test_shell_command_empty(self, mock_services):
         """Test empty shell command."""
-        tool = ShellTool(mock_config)
+        tool = ShellTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(context, command="")
 
         assert result.success is False
-        assert "Error executing shell command" in result.error
+        assert "Command not allowed" in result.error
 
     @pytest.mark.asyncio
-    async def test_shell_command_whitespace_only(self, mock_config):
+    async def test_shell_command_whitespace_only(self, mock_services):
         """Test whitespace-only shell command."""
-        tool = ShellTool(mock_config)
+        tool = ShellTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(context, command="   \t   \n   ")
 
         assert result.success is False
-        assert "Error executing shell command" in result.error
+        assert "Command not allowed" in result.error
 
-    def test_tool_schema(self, mock_config):
+    def test_tool_schema(self, mock_services):
         """Test that the tool provides a valid schema."""
-        tool = ShellTool(mock_config)
+        tool = ShellTool(mock_services)
 
         schema = tool.get_schema()
 
@@ -164,9 +176,9 @@ class TestShellTool:
         assert schema["name"] == "run_shell_command"
         assert "command" in schema["parameters"]["properties"]
 
-    def test_tool_validation(self, mock_config):
+    def test_tool_validation(self, mock_services):
         """Test parameter validation."""
-        tool = ShellTool(mock_config)
+        tool = ShellTool(mock_services)
 
         # Valid parameters
         errors = tool.validate_parameters(command="echo hello")
@@ -177,9 +189,9 @@ class TestShellTool:
         assert len(errors) > 0
         assert any("command" in error.lower() for error in errors)
 
-    def test_tool_capabilities(self, mock_config):
+    def test_tool_capabilities(self, mock_services):
         """Test tool capabilities."""
-        tool = ShellTool(mock_config)
+        tool = ShellTool(mock_services)
 
         capabilities = tool.get_capabilities()
 

@@ -17,7 +17,7 @@ from backend.agent.response_parser import ResponseParser
 from backend.agent.tool_execution_error import ToolExecutionError
 from backend.agent.tool_orchestrator import ToolOrchestrator
 from backend.config import AppConfig
-from backend.tools.tool_registry import ToolRegistry, create_tool_registry
+from backend.tools.registry import ToolRegistry, create_tool_registry
 
 logger = logging.getLogger(__name__)
 
