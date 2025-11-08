@@ -120,7 +120,9 @@ class ShellTool(Tool):
                     )
 
             # Execute the command
-            working_dir = directory or self.config.get_workspace_context().workspace_path
+            working_dir = (
+                directory or self.config.get_workspace_context().workspace_path
+            )
             result = await self._execute_command(command, working_dir)
 
             # Format output for LLM

@@ -13,7 +13,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 
 from backend.agent.response_parser import ParsedResponse, ParsedToolCall
 from backend.tools.base import ToolResult
-from backend.tools.tool_registry import ToolRegistry
+from backend.tools.registry import ToolRegistry
 
 logger = logging.getLogger(__name__)
 

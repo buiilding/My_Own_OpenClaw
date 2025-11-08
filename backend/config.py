@@ -124,7 +124,18 @@ class AppConfig(BaseModel):
     query_timeout: int = 600  # New field for query timeout
 
     # Shell Tool Settings
-    allowed_shell_commands: List[str] = Field(default_factory=lambda: ["echo", "pwd", "whoami", "date", "ls", "dir", "cat", "type"])
+    allowed_shell_commands: List[str] = Field(
+        default_factory=lambda: [
+            "echo",
+            "pwd",
+            "whoami",
+            "date",
+            "ls",
+            "dir",
+            "cat",
+            "type",
+        ]
+    )
 
     # Provider Configurations
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
