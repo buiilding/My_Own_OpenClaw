@@ -16,14 +16,19 @@ from websockets.exceptions import ConnectionClosed
 from websockets.server import WebSocketServerProtocol
 
 from backend import config
-from backend.agent.model_registry import get_all_models
-from backend.agent.orchestrator import Agent
+from backend.agent import AgentSession
+from backend.agent.llm.model_registry import get_all_models
 from backend.config import (
     CONFIG_FILE_NAME,
     AppConfig,
     get_config_dir,
     get_settings,
     reload_settings,
+)
+from backend.memory.memory_manager import (
+    end_session,
+    run_summarization_periodically,
+    start_session,
 )
 from backend.tools.registry import create_tool_registry
 
@@ -42,7 +47,7 @@ logger = logging.getLogger(__name__)
 
 
 connected_clients: Set[WebSocketServerProtocol] = set()
-agent: Agent | None = None  # To be initialized in main()
+agent_sessions: Dict[str, AgentSession] = {}  # Maps user_id to AgentSession
 
 settings_lock = asyncio.Lock()
 active_queries = 0  # pylint: disable=invalid-name
@@ -85,6 +90,16 @@ async def _handle_query(
     global active_queries  # pylint: disable=global-statement
     query_text = message_data.get("payload", {}).get("text", "")
     message_id = message_data.get("id")
+    user_id = message_data.get("user_id", "default_user")  # Assume a user_id is passed
+
+    # Get or create an agent session
+    if user_id not in agent_sessions:
+        settings = get_settings()
+        tool_registry = create_tool_registry(settings)
+        agent_sessions[user_id] = AgentSession(settings, tool_registry, user_id=user_id)
+        start_session(user_id, agent_sessions[user_id].session_id)
+
+    agent_instance = agent_sessions[user_id]
 
     # Validate query input
     if not query_text or not query_text.strip():
@@ -122,11 +137,10 @@ async def _handle_query(
     try:
         # Define the streaming task to be timed out
         async def stream_query_with_timeout():
-            # Access the global agent instance with lock protection
-            async with agent_lock:
-                if not agent:
-                    raise RuntimeError("Agent not initialized")
-                agent_instance = agent
+            # Access the agent instance for the user
+            nonlocal agent_instance
+            if not agent_instance:
+                raise RuntimeError("Agent not initialized for this user")
 
             async for event in agent_instance.process_query(query_text):
                 # Check if client disconnected before processing event
@@ -157,16 +171,20 @@ async def _handle_query(
                         },
                     }
                 elif event["type"] == "tool_output":
+                    payload = {
+                        "tool_name": event.get("tool_name"),
+                        "success": event.get("success"),
+                        "execution_time": event.get("execution_time"),
+                        "output": event.get("output"),
+                        "error": event.get("error"),
+                    }
+                    # Include screenshot if available
+                    if event.get("screenshot"):
+                        payload["screenshot"] = event.get("screenshot")
                     response = {
                         "type": "tool-output",
                         "id": message_id,
-                        "payload": {
-                            "tool_name": event.get("tool_name"),
-                            "success": event.get("success"),
-                            "execution_time": event.get("execution_time"),
-                            "output": event.get("output"),
-                            "error": event.get("error"),
-                        },
+                        "payload": payload,
                     }
                 elif event["type"] == "tool_execution":
                     response = {
@@ -207,7 +225,7 @@ async def _handle_query(
                 logger.info("Client disconnected during streaming")
 
         # Run the streaming task with a timeout from the settings
-        timeout_seconds = agent.cfg.query_timeout if agent else 300
+        timeout_seconds = agent_instance.cfg.query_timeout if agent_instance else 300
         await asyncio.wait_for(stream_query_with_timeout(), timeout=timeout_seconds)
 
     except asyncio.TimeoutError:
@@ -310,16 +328,25 @@ async def _handle_update_settings(
             merged_data = {**get_settings().model_dump(), **new_config_data}
             validated_config = AppConfig(**merged_data)
 
+            # Log the provider and model mode for debugging
+            logger.info(
+                "Updating settings: model_mode=%s, model_provider=%s, selected_model_id=%s",
+                validated_config.model_mode,
+                validated_config.model_provider,
+                validated_config.selected_model_id,
+            )
+
             # Reload the API key for the newly selected provider
             config.load_api_key_for_provider(validated_config)
 
-            # Update the settings object in-memory (reload from disk)
-            reload_settings()
+            # Update the global settings object directly with the validated config
+            # (instead of reloading from disk, which would have old values)
+            config.settings = validated_config
 
-            # Update the agent's config
+            # Update all agent sessions' config
             async with agent_lock:
-                if agent:
-                    await agent.update_config(validated_config)
+                for user_id, agent_session in agent_sessions.items():
+                    await agent_session.update_config(validated_config)
 
             # Asynchronously write the updated config to file
             config_dir = get_config_dir()
@@ -406,13 +433,25 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
     """
 
     connected_clients.add(websocket)
+    user_id = None  # To be determined from a handshake message
 
     logger.info("Client connected: %s", websocket.remote_address)
 
     try:
+        # Simple handshake to get user_id
+        handshake_message = await websocket.recv()
+        handshake_data = json.loads(handshake_message)
+        if handshake_data.get("type") == "handshake":
+            user_id = handshake_data.get("user_id", "default_user")
+            logger.info("Handshake successful for user %s", user_id)
+        else:
+            await websocket.close(reason="Handshake failed")
+            return
+
         async for message in websocket:
             try:
                 data = json.loads(message)
+                data["user_id"] = user_id  # Inject user_id into all messages
 
                 # Basic validation for required keys
 
@@ -453,6 +492,33 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
                     )
                 )
 
+            except Exception as e:
+                logger.error(
+                    "Unexpected error processing message: %s", e, exc_info=True
+                )
+                message_id = None
+                try:
+                    # Try to get message id if data was parsed successfully
+                    parsed_data = json.loads(message)
+                    message_id = parsed_data.get("id")
+                except Exception:
+                    pass  # Ignore if we can't parse for id
+
+                try:
+                    await websocket.send(
+                        json.dumps(
+                            {
+                                "type": "error",
+                                "id": message_id,
+                                "payload": {"message": f"An error occurred: {str(e)}"},
+                            }
+                        )
+                    )
+                except Exception:
+                    # If we can't send error message, connection is likely broken
+                    logger.error("Failed to send error message to client")
+                    break
+
     except ConnectionClosed as e:
         logger.info(
             "Connection closed by client %s: %s", websocket.remote_address, e.reason
@@ -469,22 +535,18 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
 
     finally:
         connected_clients.remove(websocket)
+        if user_id:
+            end_session(user_id)
+            if user_id in agent_sessions:
+                del agent_sessions[user_id]
 
         logger.info("Client disconnected: %s", websocket.remote_address)
 
 
 async def main() -> None:
     """Initializes and starts the WebSocket server."""
-    # Get settings (loaded on first access)
-    settings = get_settings()
-
-    # Initialize tool registry
-    tool_registry = create_tool_registry(settings)
-
-    # Create agent instance (store in a way that handlers can access)
-    # pylint: disable=global-statement
-    global agent
-    agent = Agent(settings, tool_registry)
+    # Start the background summarization task
+    asyncio.create_task(run_summarization_periodically())
 
     host = "0.0.0.0"  # Listen on all interfaces
     port = 8765

@@ -151,9 +151,7 @@ class ListDirectoryTool(Tool):
             # Convert to relative paths for filtering
             target_dir = self.config.get_workspace_context().workspace_path
             logger.info(f"ListDirectory: Target dir: {target_dir}")
-            relative_paths = [
-                make_relative_path(p, target_dir) for p in full_paths
-            ]
+            relative_paths = [make_relative_path(p, target_dir) for p in full_paths]
             logger.info(f"ListDirectory: Relative paths: {relative_paths}")
 
             logger.info("ListDirectory: Calling filter_files_with_report")
@@ -167,9 +165,7 @@ class ListDirectoryTool(Tool):
             # Apply ignore patterns
             filtered_full_paths = []
             for full_path in full_paths:
-                relative_path = make_relative_path(
-                    full_path, target_dir
-                )
+                relative_path = make_relative_path(full_path, target_dir)
                 if relative_path in filtered_paths:
                     # Check ignore patterns
                     should_ignore = False

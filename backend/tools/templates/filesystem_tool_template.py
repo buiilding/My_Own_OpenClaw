@@ -11,10 +11,11 @@ Replace:
 - execute_async method with your file operation logic
 """
 
-from backend.tools.base import Tool, ToolContext, ToolResult, Kind
-from backend.config import AppServices
-from typing import Optional, List
 import os
+from typing import List, Optional
+
+from backend.config import AppServices
+from backend.tools.base import Kind, Tool, ToolContext, ToolResult
 
 
 class ToolName(Tool):
@@ -26,7 +27,9 @@ class ToolName(Tool):
     """
 
     def __init__(self, services: AppServices):
-        super().__init__(name="tool_name", description="...", kind=Tool.Kind.READ)  # Adjust kind
+        super().__init__(
+            name="tool_name", description="...", kind=Tool.Kind.READ
+        )  # Adjust kind
         self.services = services
 
     @property
@@ -45,7 +48,7 @@ class ToolName(Tool):
         self,
         context: ToolContext,
         path: str,  # File/directory path
-        recursive: Optional[bool] = False
+        recursive: Optional[bool] = False,
     ) -> ToolResult:
         """
         Execute filesystem operation with proper validation.
@@ -66,7 +69,7 @@ class ToolName(Tool):
                     success=False,
                     error=f"Path {path} is outside workspace boundaries",
                     llm_content=f"Error: Cannot access {path} - outside workspace",
-                    return_display=f"Access denied: {path}"
+                    return_display=f"Access denied: {path}",
                 )
 
             # Validate path exists (if needed)
@@ -75,7 +78,7 @@ class ToolName(Tool):
                     success=False,
                     error=f"Path does not exist: {path}",
                     llm_content=f"Error: {path} does not exist",
-                    return_display=f"Not found: {path}"
+                    return_display=f"Not found: {path}",
                 )
 
             # Your filesystem operation logic here
@@ -92,7 +95,7 @@ class ToolName(Tool):
                 success=True,
                 llm_content=f"Successfully processed {path}",
                 return_display=result_data,
-                data=result_data
+                data=result_data,
             )
 
         except PermissionError as e:
@@ -100,12 +103,12 @@ class ToolName(Tool):
                 success=False,
                 error=f"Permission denied: {str(e)}",
                 llm_content=f"Error: Permission denied accessing {path}",
-                return_display=f"Permission denied: {path}"
+                return_display=f"Permission denied: {path}",
             )
         except Exception as e:
             return ToolResult(
                 success=False,
                 error=f"Filesystem operation failed: {str(e)}",
                 llm_content=f"Error: {str(e)}",
-                return_display=f"Failed: {str(e)}"
+                return_display=f"Failed: {str(e)}",
             )

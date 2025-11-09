@@ -34,6 +34,18 @@ function connect() {
     isConnected = true;
     log('Successfully connected to Python backend.');
     mainWindow?.webContents.send('ipc-status', { isConnected: true });
+
+    // Send handshake message as required by the backend server
+    const handshakeMessage = {
+      type: 'handshake',
+      user_id: 'default_user',
+    };
+    try {
+      ws.send(JSON.stringify(handshakeMessage));
+      log(`Sent handshake to backend: ${JSON.stringify(handshakeMessage)}`);
+    } catch (error) {
+      log(`Error sending handshake: ${error}`);
+    }
   });
 
   ws.on('message', (message) => {

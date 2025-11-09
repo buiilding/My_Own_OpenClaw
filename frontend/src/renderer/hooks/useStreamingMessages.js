@@ -83,6 +83,7 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
       text: outputText,
       sender: 'assistant',
       type: 'tool-output',
+      screenshot: data.payload.screenshot, // Include screenshot data if available
     };
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   }, [setMessages]);
