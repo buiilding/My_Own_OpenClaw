@@ -10,7 +10,7 @@ from functools import partial
 
 import pytest
 import websockets
-from backend.agent.orchestrator import Agent
+from backend.agent import Agent
 from backend.config import AppConfig
 from backend.server import handler
 

@@ -122,12 +122,30 @@ class AppConfig(BaseModel):
     selected_model_id: str = "gpt-4o"
     llm_timeout: int = 300
     query_timeout: int = 600  # New field for query timeout
+    debug_litellm: bool = False  # Enable LiteLLM debug logging
 
     # Shell Tool Settings
-    allowed_shell_commands: List[str] = Field(default_factory=lambda: ["echo", "pwd", "whoami", "date", "ls", "dir", "cat", "type"])
+    allowed_shell_commands: List[str] = Field(
+        default_factory=lambda: [
+            "echo",
+            "pwd",
+            "whoami",
+            "date",
+            "ls",
+            "dir",
+            "cat",
+            "type",
+        ]
+    )
 
     # Provider Configurations
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
+
+    # Memory System Settings
+    memory_enabled: bool = True
+    memory_db_path: Optional[str] = None  # Defaults to config_dir/memory
+    embedding_model: str = "all-MiniLM-L6-v2"
+    summarization_interval: int = 3600  # seconds
 
     # This field is populated at runtime, not loaded from config file
     api_key: Optional[str] = None
@@ -170,7 +188,14 @@ def load_api_key_for_provider(cfg: AppConfig) -> None:
     """
     Loads the API key for the currently selected provider from environment variables.
     The key is stored in the `api_key` field of the AppConfig object.
+    For local models, no API key is required.
     """
+    # For local models, no API key is needed
+    if cfg.model_mode == "local":
+        cfg.api_key = None
+        logger.info("Local model mode selected - no API key required.")
+        return
+
     provider_name = cfg.model_provider
     api_key_env_var = None
 

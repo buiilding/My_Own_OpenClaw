@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.agent.model_registry import (
+from backend.agent.llm.model_registry import (
     get_all_models, get_local_models, get_online_models,
     _fetch_ollama_models, _fetch_lmstudio_models
 )
