@@ -1,4 +1,4 @@
-"""Tests for the Agent Orchestrator."""
+"""Tests for the Agent Session."""
 
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock

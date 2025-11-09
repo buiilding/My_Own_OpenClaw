@@ -11,8 +11,9 @@ Replace:
 - parameter types and validation as needed
 """
 
-from backend.tools.base import Tool, ToolContext, ToolResult, Kind
 from typing import Optional
+
+from backend.tools.base import Kind, Tool, ToolContext, ToolResult
 
 
 class ToolName(Tool):
@@ -39,7 +40,7 @@ class ToolName(Tool):
         self,
         context: ToolContext,
         param1: str,  # Replace with actual parameters
-        param2: Optional[int] = None  # Optional parameter example
+        param2: Optional[int] = None,  # Optional parameter example
     ) -> ToolResult:
         """
         Execute the tool's main functionality.
@@ -65,7 +66,7 @@ class ToolName(Tool):
                 success=True,
                 llm_content=f"Successfully processed: {result}",
                 return_display=result,
-                data=result
+                data=result,
             )
 
         except Exception as e:
@@ -73,5 +74,5 @@ class ToolName(Tool):
                 success=False,
                 error=f"Tool execution failed: {str(e)}",
                 llm_content=f"Error: {str(e)}",
-                return_display=f"Failed: {str(e)}"
+                return_display=f"Failed: {str(e)}",
             )

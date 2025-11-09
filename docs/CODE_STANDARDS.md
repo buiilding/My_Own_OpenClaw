@@ -65,8 +65,8 @@ _module_internal_cache = {}
 Module docstring describing the purpose and main classes/functions.
 
 Example:
-    from backend.agent import orchestrator
-    agent = orchestrator.Agent()
+    from backend.agent import Agent
+    agent = Agent()
 """
 
 # Standard library imports

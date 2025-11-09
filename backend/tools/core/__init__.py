@@ -5,9 +5,9 @@ This package contains all built-in tools that are always available
 to the assistant, organized by functionality.
 """
 
+from backend.tools.core.computer import *
 from backend.tools.core.filesystem import *
 from backend.tools.core.system import *
-from backend.tools.core.computer import *
 
 __all__ = [
     # Filesystem tools
@@ -18,10 +18,8 @@ __all__ = [
     "SearchFileContentTool",
     "ReplaceTool",
     "ReadManyFilesTool",
-
     # System tools
     "ShellTool",
-
     # Computer Use Automation tools
     "ScreenshotTool",
     "MouseTool",
