@@ -3,14 +3,9 @@
 import pytest
 from unittest.mock import patch, AsyncMock
 
-from backend.agent.llm_client import (
+from backend.agent.llm.llm_client import (
     get_llm_client,
-    OpenAIClient,
-    AnthropicClient,
-    GoogleClient,
-    OllamaClient,
-    OpenRouterClient,
-    MistralClient,
+    LiteLLMClient,
     APIError,
 )
 from backend.config import (
@@ -78,17 +73,17 @@ def mock_config():
 
     [
 
-        ("openai", OpenAIClient),
+        ("openai", LiteLLMClient),
 
-        ("anthropic", AnthropicClient),
+        ("anthropic", LiteLLMClient),
 
-        ("google", GoogleClient),
+        ("google", LiteLLMClient),
 
-        ("ollama", OllamaClient),
+        ("ollama", LiteLLMClient),
 
-        ("openrouter", OpenRouterClient),
+        ("openrouter", LiteLLMClient),
 
-        ("mistral", MistralClient),
+        ("mistral", LiteLLMClient),
 
     ],
 
@@ -154,7 +149,7 @@ async def test_openai_client_get_completion(mock_async_openai):
 
     # Test
 
-    client = OpenAIClient(api_key="test", model="gpt-4o")
+    client = LiteLLMClient(api_key="test", provider="openai")
 
     messages = [{"role": "user", "content": "Hello"}]
 
@@ -194,7 +189,7 @@ async def test_anthropic_client_get_completion(mock_async_anthropic):
 
 
 
-    client = AnthropicClient(api_key="test", model="claude-3.7")
+    client = LiteLLMClient(api_key="test", provider="anthropic")
 
     messages = [{"role": "user", "content": "Hello"}]
 
@@ -282,7 +277,7 @@ async def test_google_client_get_completion(mock_genai_client):
 
 
 
-    client = GoogleClient(api_key="test", model="gemini-1.5-pro")
+    client = LiteLLMClient(api_key="test", provider="google")
 
 
 
@@ -350,7 +345,7 @@ async def test_google_client_get_completion_stream_with_thinking(mock_genai_clie
     mock_genai_client.return_value.aio = mock_aio_client
 
     # 2. Instantiate the client and call the method
-    client = GoogleClient(api_key="test", model="gemini-2.5-pro")
+    client = LiteLLMClient(api_key="test", provider="google")
     messages = [{"role": "user", "content": "Hello"}]
     response_events = [event async for event in client.get_completion_stream(messages)]
 
@@ -388,7 +383,7 @@ async def test_openai_client_api_error(mock_async_openai):
 
 
 
-    client = OpenAIClient(api_key="test", model="gpt-4o")
+    client = LiteLLMClient(api_key="test", provider="openai")
 
     with pytest.raises(APIError, match="OpenAI API error"):
 
@@ -542,7 +537,7 @@ async def test_openai_client_get_completion_stream(mock_async_openai):
 
 
 
-    client = OpenAIClient(api_key="test", model="gpt-4o")
+    client = LiteLLMClient(api_key="test", provider="openai")
 
 
 

@@ -56,6 +56,17 @@ function ChatInterface({
         <div className="tool-output-container">
           <div className="tool-output-header">📤 Tool Output</div>
           <pre className="tool-output-content">{msg.text}</pre>
+          {msg.screenshot && (
+            <div className="tool-screenshot-container">
+              <div className="tool-screenshot-header">📸 Screenshot After Action</div>
+              <img
+                src={`data:image/png;base64,${msg.screenshot}`}
+                alt="Screenshot after tool execution"
+                className="tool-screenshot-image"
+                style={{ maxWidth: '100%', maxHeight: '400px', border: '1px solid #ccc', borderRadius: '4px' }}
+              />
+            </div>
+          )}
         </div>
       );
     }

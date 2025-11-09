@@ -7,25 +7,30 @@ and screen interaction. Based on the CUA (Computer-Using Agent) library.
 
 import asyncio
 import base64
-import time
-from typing import Dict, List, Optional, Tuple, Literal
-from dataclasses import dataclass
 import logging
+import time
+from dataclasses import dataclass
+from typing import Dict, List, Literal, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
 # Type definitions matching CUA library
 MouseButton = Literal["left", "right", "middle"]
-NavigationKey = Literal["pagedown", "pageup", "home", "end", "left", "right", "up", "down"]
+NavigationKey = Literal[
+    "pagedown", "pageup", "home", "end", "left", "right", "up", "down"
+]
 SpecialKey = Literal["enter", "esc", "tab", "space", "backspace", "del"]
 ModifierKey = Literal["ctrl", "alt", "shift", "win", "command", "option"]
-FunctionKey = Literal["f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12"]
+FunctionKey = Literal[
+    "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12"
+]
 KeyType = str  # Simplified for now
 
 
 @dataclass
 class ComputerActionResult:
     """Result of a computer action execution."""
+
     success: bool
     message: str
     screenshot_data: Optional[str] = None
@@ -62,6 +67,7 @@ class ComputerInterface:
         try:
             # Import pyautogui lazily to avoid import errors
             import pyautogui
+
             self._pyautogui = pyautogui
 
             # Configure pyautogui
@@ -72,7 +78,9 @@ class ComputerInterface:
             self._screen_size = pyautogui.size()
             self._initialized = True
 
-            logger.info(f"Computer interface initialized. Screen size: {self._screen_size}")
+            logger.info(
+                f"Computer interface initialized. Screen size: {self._screen_size}"
+            )
             return True
 
         except ImportError:
@@ -86,15 +94,21 @@ class ComputerInterface:
     # MOUSE ACTIONS
     # ============================================================================
 
-    async def left_click(self, x: Optional[int] = None, y: Optional[int] = None) -> ComputerActionResult:
+    async def left_click(
+        self, x: Optional[int] = None, y: Optional[int] = None
+    ) -> ComputerActionResult:
         """Perform a left mouse button click."""
-        return await self._click(x, y, "left")
+        return self._click(x, y, "left")
 
-    async def right_click(self, x: Optional[int] = None, y: Optional[int] = None) -> ComputerActionResult:
+    async def right_click(
+        self, x: Optional[int] = None, y: Optional[int] = None
+    ) -> ComputerActionResult:
         """Perform a right mouse button click."""
-        return await self._click(x, y, "right")
+        return self._click(x, y, "right")
 
-    async def double_click(self, x: Optional[int] = None, y: Optional[int] = None) -> ComputerActionResult:
+    async def double_click(
+        self, x: Optional[int] = None, y: Optional[int] = None
+    ) -> ComputerActionResult:
         """Perform a double left mouse button click."""
         try:
             if not self._initialized:
@@ -107,14 +121,11 @@ class ComputerInterface:
             await asyncio.sleep(0.1)  # Brief pause
 
             return ComputerActionResult(
-                success=True,
-                message=f"Double-clicked at ({x}, {y})"
+                success=True, message=f"Double-clicked at ({x}, {y})"
             )
         except Exception as e:
             return ComputerActionResult(
-                success=False,
-                message="Failed to perform double-click",
-                error=str(e)
+                success=False, message="Failed to perform double-click", error=str(e)
             )
 
     async def move_cursor(self, x: int, y: int) -> ComputerActionResult:
@@ -127,17 +138,16 @@ class ComputerInterface:
             await asyncio.sleep(0.05)  # Brief pause
 
             return ComputerActionResult(
-                success=True,
-                message=f"Moved cursor to ({x}, {y})"
+                success=True, message=f"Moved cursor to ({x}, {y})"
             )
         except Exception as e:
             return ComputerActionResult(
-                success=False,
-                message="Failed to move cursor",
-                error=str(e)
+                success=False, message="Failed to move cursor", error=str(e)
             )
 
-    async def drag_to(self, x: int, y: int, button: str = "left", duration: float = 0.5) -> ComputerActionResult:
+    async def drag_to(
+        self, x: int, y: int, button: str = "left", duration: float = 0.5
+    ) -> ComputerActionResult:
         """Drag from current position to specified coordinates."""
         try:
             if not self._initialized:
@@ -147,17 +157,19 @@ class ComputerInterface:
             await asyncio.sleep(0.1)
 
             return ComputerActionResult(
-                success=True,
-                message=f"Dragged to ({x}, {y}) with {button} button"
+                success=True, message=f"Dragged to ({x}, {y}) with {button} button"
             )
         except Exception as e:
             return ComputerActionResult(
-                success=False,
-                message="Failed to perform drag operation",
-                error=str(e)
+                success=False, message="Failed to perform drag operation", error=str(e)
             )
 
-    async def mouse_down(self, x: Optional[int] = None, y: Optional[int] = None, button: MouseButton = "left") -> ComputerActionResult:
+    async def mouse_down(
+        self,
+        x: Optional[int] = None,
+        y: Optional[int] = None,
+        button: MouseButton = "left",
+    ) -> ComputerActionResult:
         """Press and hold a mouse button."""
         try:
             if not self._initialized:
@@ -169,17 +181,19 @@ class ComputerInterface:
             self._pyautogui.mouseDown(button=button)
 
             return ComputerActionResult(
-                success=True,
-                message=f"Pressed {button} mouse button at ({x}, {y})"
+                success=True, message=f"Pressed {button} mouse button at ({x}, {y})"
             )
         except Exception as e:
             return ComputerActionResult(
-                success=False,
-                message="Failed to press mouse button",
-                error=str(e)
+                success=False, message="Failed to press mouse button", error=str(e)
             )
 
-    async def mouse_up(self, x: Optional[int] = None, y: Optional[int] = None, button: MouseButton = "left") -> ComputerActionResult:
+    async def mouse_up(
+        self,
+        x: Optional[int] = None,
+        y: Optional[int] = None,
+        button: MouseButton = "left",
+    ) -> ComputerActionResult:
         """Release a mouse button."""
         try:
             if not self._initialized:
@@ -191,14 +205,11 @@ class ComputerInterface:
             self._pyautogui.mouseUp(button=button)
 
             return ComputerActionResult(
-                success=True,
-                message=f"Released {button} mouse button at ({x}, {y})"
+                success=True, message=f"Released {button} mouse button at ({x}, {y})"
             )
         except Exception as e:
             return ComputerActionResult(
-                success=False,
-                message="Failed to release mouse button",
-                error=str(e)
+                success=False, message="Failed to release mouse button", error=str(e)
             )
 
     # ============================================================================
@@ -216,7 +227,7 @@ class ComputerInterface:
                 return ComputerActionResult(
                     success=False,
                     message="Text too long for safety reasons",
-                    error=f"Text length {len(text)} exceeds maximum allowed {self.max_text_length}"
+                    error=f"Text length {len(text)} exceeds maximum allowed {self.max_text_length}",
                 )
 
             self._pyautogui.typewrite(text)
@@ -224,13 +235,11 @@ class ComputerInterface:
 
             return ComputerActionResult(
                 success=True,
-                message=f"Typed text: '{text[:50]}{'...' if len(text) > 50 else ''}'"
+                message=f"Typed text: '{text[:50]}{'...' if len(text) > 50 else ''}'",
             )
         except Exception as e:
             return ComputerActionResult(
-                success=False,
-                message="Failed to type text",
-                error=str(e)
+                success=False, message="Failed to type text", error=str(e)
             )
 
     async def press_key(self, key: KeyType) -> ComputerActionResult:
@@ -243,15 +252,10 @@ class ComputerInterface:
             normalized_key = self._normalize_key(key)
             self._pyautogui.press(normalized_key)
 
-            return ComputerActionResult(
-                success=True,
-                message=f"Pressed key: {key}"
-            )
+            return ComputerActionResult(success=True, message=f"Pressed key: {key}")
         except Exception as e:
             return ComputerActionResult(
-                success=False,
-                message="Failed to press key",
-                error=str(e)
+                success=False, message="Failed to press key", error=str(e)
             )
 
     async def hotkey(self, *keys: KeyType) -> ComputerActionResult:
@@ -284,36 +288,39 @@ class ComputerInterface:
                         return ComputerActionResult(
                             success=False,
                             message="Potentially dangerous key combination blocked",
-                            error=f"Key combination {' + '.join(combo)} is blocked for safety"
+                            error=f"Key combination {' + '.join(combo)} is blocked for safety",
                         )
 
                 # Check for confirmation-required keys
-                confirmation_keys = {k for k in normalized_keys if k in self.confirmation_required_keys}
+                confirmation_keys = {
+                    k for k in normalized_keys if k in self.confirmation_required_keys
+                }
                 if confirmation_keys:
                     # In a real implementation, this would prompt for confirmation
                     # For now, we'll allow it but log the warning
-                    logger.warning(f"Confirmation-required keys used in hotkey: {confirmation_keys}")
+                    logger.warning(
+                        f"Confirmation-required keys used in hotkey: {confirmation_keys}"
+                    )
 
             # Normalize all keys
             normalized_keys = [self._normalize_key(key) for key in keys]
             self._pyautogui.hotkey(*normalized_keys)
 
             return ComputerActionResult(
-                success=True,
-                message=f"Pressed hotkey: {' + '.join(keys)}"
+                success=True, message=f"Pressed hotkey: {' + '.join(keys)}"
             )
         except Exception as e:
             return ComputerActionResult(
-                success=False,
-                message="Failed to execute hotkey",
-                error=str(e)
+                success=False, message="Failed to execute hotkey", error=str(e)
             )
 
     # ============================================================================
     # SCROLLING ACTIONS
     # ============================================================================
 
-    async def scroll(self, x: int, y: int, scroll_clicks: int = 3) -> ComputerActionResult:
+    async def scroll(
+        self, x: int, y: int, scroll_clicks: int = 3
+    ) -> ComputerActionResult:
         """Scroll at coordinates by the specified number of clicks."""
         try:
             if not self._initialized:
@@ -327,14 +334,11 @@ class ComputerInterface:
             await asyncio.sleep(0.1)
 
             return ComputerActionResult(
-                success=True,
-                message=f"Scrolled {scroll_clicks} clicks at ({x}, {y})"
+                success=True, message=f"Scrolled {scroll_clicks} clicks at ({x}, {y})"
             )
         except Exception as e:
             return ComputerActionResult(
-                success=False,
-                message="Failed to scroll",
-                error=str(e)
+                success=False, message="Failed to scroll", error=str(e)
             )
 
     async def scroll_down(self, clicks: int = 3) -> ComputerActionResult:
@@ -356,13 +360,11 @@ class ComputerInterface:
 
             return ComputerActionResult(
                 success=True,
-                message=f"Scrolled {clicks} clicks at cursor position ({current_pos[0]}, {current_pos[1]})"
+                message=f"Scrolled {clicks} clicks at cursor position ({current_pos[0]}, {current_pos[1]})",
             )
         except Exception as e:
             return ComputerActionResult(
-                success=False,
-                message="Failed to scroll at cursor",
-                error=str(e)
+                success=False, message="Failed to scroll at cursor", error=str(e)
             )
 
     # ============================================================================
@@ -380,22 +382,20 @@ class ComputerInterface:
 
             # Convert to bytes
             img_buffer = io.BytesIO()
-            screenshot.save(img_buffer, format='PNG')
+            screenshot.save(img_buffer, format="PNG")
             img_bytes = img_buffer.getvalue()
 
             # Convert to base64
-            b64_data = base64.b64encode(img_bytes).decode('utf-8')
+            b64_data = base64.b64encode(img_bytes).decode("utf-8")
 
             return ComputerActionResult(
                 success=True,
                 message="Screenshot captured successfully",
-                screenshot_data=b64_data
+                screenshot_data=b64_data,
             )
         except Exception as e:
             return ComputerActionResult(
-                success=False,
-                message="Failed to capture screenshot",
-                error=str(e)
+                success=False, message="Failed to capture screenshot", error=str(e)
             )
 
     async def get_screen_size(self) -> Dict[str, int]:
@@ -422,12 +422,15 @@ class ComputerInterface:
     # HELPER METHODS
     # ============================================================================
 
-    def _click(self, x: Optional[int], y: Optional[int], button: MouseButton) -> ComputerActionResult:
+    def _click(
+        self, x: Optional[int], y: Optional[int], button: MouseButton
+    ) -> ComputerActionResult:
         """Internal click method."""
         try:
             if not self._initialized:
                 # Run initialize in a new event loop since this is not async
                 import asyncio
+
                 asyncio.run(self.initialize())
 
             if x is not None and y is not None:
@@ -435,17 +438,15 @@ class ComputerInterface:
 
             self._pyautogui.click(button=button)
             import time
+
             time.sleep(0.1)  # Brief pause (blocking)
 
             return ComputerActionResult(
-                success=True,
-                message=f"{button.title()}-clicked at ({x}, {y})"
+                success=True, message=f"{button.title()}-clicked at ({x}, {y})"
             )
         except Exception as e:
             return ComputerActionResult(
-                success=False,
-                message=f"Failed to {button}-click",
-                error=str(e)
+                success=False, message=f"Failed to {button}-click", error=str(e)
             )
 
     def _normalize_key(self, key: str) -> str:
