@@ -10,26 +10,44 @@ import pytest
 
 from backend.config import AppConfig
 from backend.tools.base import ToolContext
-from backend.tools.filesystem import (
+from backend.tools.core.filesystem import (
     GlobTool, ListDirectoryTool, ReadFileTool, ReadManyFilesTool,
     ReplaceTool, SearchFileContentTool, WriteFileTool
 )
 
 
 @pytest.fixture
-def mock_config():
-    """Create a mock configuration for testing."""
-    config = MagicMock(spec=AppConfig)
-    config.get_target_dir.return_value = "/tmp"
-    config.get_workspace_context.return_value = MagicMock()
-    config.storage = MagicMock()
-    config.storage.get_project_temp_dir.return_value = "/tmp"
-    config.get_file_service.return_value = MagicMock()
-    config.get_file_filtering_options.return_value = {
+def mock_services():
+    """Create a mock AppServices for testing."""
+    from backend.config import AppServices
+
+    services = MagicMock(spec=AppServices)
+
+    # Mock workspace context
+    workspace_context = MagicMock()
+    workspace_context.is_path_within_workspace.return_value = True
+    services.get_workspace_context.return_value = workspace_context
+
+    # Mock file service
+    file_service = MagicMock()
+    # Mock the filter_files_with_report to return all input files (no filtering in tests)
+    def mock_filter_files_with_report(relative_paths, filtering_options):
+        return relative_paths, 0  # Return all paths, 0 ignored
+    file_service.filter_files_with_report.side_effect = mock_filter_files_with_report
+    services.get_file_service.return_value = file_service
+
+    # Mock file filtering options
+    services.get_file_filtering_options.return_value = {
         "respect_git_ignore": True,
         "respect_gemini_ignore": True
     }
-    return config
+
+    # Mock storage service
+    storage = MagicMock()
+    storage.get_project_temp_dir.return_value = "/tmp"
+    services.storage = storage
+
+    return services
 
 
 @pytest.fixture
@@ -43,7 +61,7 @@ class TestListDirectoryTool:
     """Tests for the ListDirectoryTool."""
 
     @pytest.mark.asyncio
-    async def test_list_directory_success(self, mock_config, temp_dir):
+    async def test_list_directory_success(self, mock_services, temp_dir):
         """Test successful directory listing."""
         # Create test files and directories
         (temp_dir / "file1.txt").write_text("content1")
@@ -51,7 +69,7 @@ class TestListDirectoryTool:
         (temp_dir / "subdir").mkdir()
         (temp_dir / "subdir" / "nested.txt").write_text("nested")
 
-        tool = ListDirectoryTool(mock_config)
+        tool = ListDirectoryTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(context, path=str(temp_dir))
@@ -59,12 +77,12 @@ class TestListDirectoryTool:
         assert result.success is True
         assert "file1.txt" in result.llm_content
         assert "file2.txt" in result.llm_content
-        assert "[DIR] subdir" in result.llm_content
+        assert "[DIR]subdir" in result.llm_content
 
     @pytest.mark.asyncio
-    async def test_list_directory_nonexistent(self, mock_config):
+    async def test_list_directory_nonexistent(self, mock_services):
         """Test listing a nonexistent directory."""
-        tool = ListDirectoryTool(mock_config)
+        tool = ListDirectoryTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(context, path="/nonexistent/path")
@@ -80,7 +98,7 @@ class TestListDirectoryTool:
         (temp_dir / "file2.log").write_text("content2")
         (temp_dir / "important.txt").write_text("important")
 
-        tool = ListDirectoryTool(mock_config)
+        tool = ListDirectoryTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(
@@ -105,7 +123,7 @@ class TestReadFileTool:
         test_content = "This is a test file\nwith multiple lines\nand content."
         test_file.write_text(test_content)
 
-        tool = ReadFileTool(mock_config)
+        tool = ReadFileTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(context, path=str(test_file))
@@ -120,7 +138,7 @@ class TestReadFileTool:
         test_content = "\n".join([f"Line {i}" for i in range(100)])
         test_file.write_text(test_content)
 
-        tool = ReadFileTool(mock_config)
+        tool = ReadFileTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(
@@ -137,9 +155,9 @@ class TestReadFileTool:
         assert "Line 9" not in result.llm_content
 
     @pytest.mark.asyncio
-    async def test_read_file_nonexistent(self, mock_config):
+    async def test_read_file_nonexistent(self, mock_services):
         """Test reading a nonexistent file."""
-        tool = ReadFileTool(mock_config)
+        tool = ReadFileTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(context, path="/nonexistent/file.txt")
@@ -154,7 +172,7 @@ class TestReadFileTool:
         test_content = "Test content"
         test_file.write_text(test_content)
 
-        tool = ReadFileTool(mock_config)
+        tool = ReadFileTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(context, absolute_path=str(test_file))
@@ -172,7 +190,7 @@ class TestWriteFileTool:
         test_file = temp_dir / "new_file.txt"
         test_content = "This is new content for the file."
 
-        tool = WriteFileTool(mock_config)
+        tool = WriteFileTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(
@@ -194,7 +212,7 @@ class TestWriteFileTool:
 
         new_content = "New content that replaces the original"
 
-        tool = WriteFileTool(mock_config)
+        tool = WriteFileTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(
@@ -213,7 +231,7 @@ class TestWriteFileTool:
         nested_file = temp_dir / "nested" / "deep" / "file.txt"
         test_content = "Content in nested file"
 
-        tool = WriteFileTool(mock_config)
+        tool = WriteFileTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(
@@ -240,7 +258,7 @@ class TestGlobTool:
         (temp_dir / "subdir").mkdir()
         (temp_dir / "subdir" / "nested.txt").write_text("nested")
 
-        tool = GlobTool(mock_config)
+        tool = GlobTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(context, pattern="*.txt", path=str(temp_dir))
@@ -260,7 +278,7 @@ class TestGlobTool:
         (temp_dir / "subdir2").mkdir()
         (temp_dir / "subdir2" / "file.txt").write_text("nested file 2")
 
-        tool = GlobTool(mock_config)
+        tool = GlobTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(context, pattern="**/*.txt", path=str(temp_dir))
@@ -286,7 +304,7 @@ class TestSearchFileContentTool:
         file3 = temp_dir / "file3.txt"
         file3.write_text("This file has no matching content.")
 
-        tool = SearchFileContentTool(mock_config)
+        tool = SearchFileContentTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(
@@ -307,7 +325,7 @@ class TestSearchFileContentTool:
         test_file = temp_dir / "test.txt"
         test_file.write_text("email: user@example.com\nphone: 123-456-7890\nother: data")
 
-        tool = SearchFileContentTool(mock_config)
+        tool = SearchFileContentTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(
@@ -331,7 +349,7 @@ class TestReplaceTool:
         original_content = "The quick brown fox jumps over the lazy dog."
         test_file.write_text(original_content)
 
-        tool = ReplaceTool(mock_config)
+        tool = ReplaceTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(
@@ -354,7 +372,7 @@ class TestReplaceTool:
         test_file = temp_dir / "test.txt"
         test_file.write_text("Some content here")
 
-        tool = ReplaceTool(mock_config)
+        tool = ReplaceTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(
@@ -381,7 +399,7 @@ class TestReadManyFilesTool:
         file2 = temp_dir / "file2.txt"
         file2.write_text("Content of file 2")
 
-        tool = ReadManyFilesTool(mock_config)
+        tool = ReadManyFilesTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(
@@ -401,7 +419,7 @@ class TestReadManyFilesTool:
         (temp_dir / "test2.txt").write_text("File 2")
         (temp_dir / "other.py").write_text("Python code")
 
-        tool = ReadManyFilesTool(mock_config)
+        tool = ReadManyFilesTool(mock_services)
         context = ToolContext()
 
         result = await tool.execute_async(

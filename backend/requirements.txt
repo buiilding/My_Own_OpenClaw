@@ -8,6 +8,12 @@ pylint-pydantic==0.3.0
 pydantic==2.8.2
 litellm==1.79.1
 httpx==0.27.0
+pyautogui==0.9.54
+
+# Memory system dependencies
+sentence-transformers>=2.2.0
+faiss-cpu>=1.7.4
+numpy>=1.24.0
 
 # Provider-specific SDKs required by LiteLLM
 google-auth==2.30.0

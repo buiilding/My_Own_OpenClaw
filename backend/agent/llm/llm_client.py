@@ -7,7 +7,7 @@ different Large Language Models (LLMs) through the LiteLLM library.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, Dict, List
+from typing import Any, AsyncGenerator, Dict, List, Union
 
 import litellm
 from litellm import exceptions as litellm_exceptions
@@ -41,17 +41,21 @@ class LLMClient(ABC):
     """
 
     @abstractmethod
-    async def get_completion(self, model: str, messages: List[Dict[str, str]]) -> str:
+    async def get_completion(
+        self, model: str, messages: List[Union[Dict[str, str], Dict[str, Any]]]
+    ) -> str:
         """
         Gets a completion from the LLM based on a list of messages.
+        Messages can contain text and images.
         """
 
     @abstractmethod
     async def get_completion_stream(
-        self, model: str, messages: List[Dict[str, str]]
+        self, model: str, messages: List[Union[Dict[str, str], Dict[str, Any]]]
     ) -> AsyncGenerator[Dict, None]:
         """
         Gets a streaming completion from the LLM.
+        Messages can contain text and images.
         """
         yield
 
@@ -77,19 +81,41 @@ class LiteLLMClient(LLMClient):
         self.provider = provider
         self.timeout = timeout
 
-    async def get_completion(self, model: str, messages: List[Dict[str, str]]) -> str:
+    async def get_completion(
+        self, model: str, messages: List[Union[Dict[str, str], Dict[str, Any]]]
+    ) -> str:
         """Gets a completion from the LLM."""
         try:
             params = {
                 "model": model,
                 "messages": messages,
-                "api_key": self.api_key,
                 "base_url": self.base_url,
                 "timeout": self.timeout,
             }
+            # For local models, use placeholder API key if none is provided
             if self.provider in ["lmstudio", "ollama"]:
                 params["custom_llm_provider"] = "openai"
+                params["api_key"] = (
+                    self.api_key if self.api_key is not None else "placeholder"
+                )
+                logger.info("Using custom_llm_provider: openai")
+            elif self.api_key is not None:
+                params["api_key"] = self.api_key
 
+            logger.info(f"Calling litellm.acompletion with {len(messages)} messages")
+            # Log message structure for debugging multimodal messages
+            for i, msg in enumerate(messages):
+                content = msg.get("content", "")
+                if isinstance(content, list):
+                    logger.debug(
+                        f"Message {i} ({msg.get('role')}): multimodal with {len(content)} items"
+                    )
+                    for j, item in enumerate(content):
+                        item_type = item.get("type", "unknown")
+                        logger.debug(f"  Item {j}: type={item_type}")
+                        if item_type == "image_url":
+                            img_url = item.get("image_url", {}).get("url", "")
+                            logger.debug(f"    Image URL prefix: {img_url[:60]}...")
             response = await litellm.acompletion(**params)
             # Validate response structure before accessing nested attributes
             if not response:
@@ -120,7 +146,7 @@ class LiteLLMClient(LLMClient):
             raise LLMError(f"An unexpected LLM error occurred: {e}") from e
 
     async def get_completion_stream(
-        self, model: str, messages: List[Dict[str, str]]
+        self, model: str, messages: List[Union[Dict[str, str], Dict[str, Any]]]
     ) -> AsyncGenerator[Dict, None]:
         """Gets a streaming completion from the LLM."""
         try:
@@ -128,12 +154,32 @@ class LiteLLMClient(LLMClient):
                 "model": model,
                 "messages": messages,
                 "stream": True,
-                "api_key": self.api_key,
                 "base_url": self.base_url,
                 "timeout": self.timeout,
             }
+            # For local models, use placeholder API key if none is provided
             if self.provider in ["lmstudio", "ollama"]:
                 params["custom_llm_provider"] = "openai"
+                params["api_key"] = (
+                    self.api_key if self.api_key is not None else "placeholder"
+                )
+            elif self.api_key is not None:
+                params["api_key"] = self.api_key
+
+            # Log message structure for debugging multimodal messages
+            for i, msg in enumerate(messages):
+                content = msg.get("content", "")
+                if isinstance(content, list):
+                    logger.debug(
+                        f"Stream message {i} ({msg.get('role')}): multimodal with {len(content)} items"
+                    )
+                    for j, item in enumerate(content):
+                        item_type = item.get("type", "unknown")
+                        logger.debug(f"  Item {j}: type={item_type}")
+                        if item_type == "image_url":
+                            img_url = item.get("image_url", {}).get("url", "")
+                            logger.debug(f"    Image URL prefix: {img_url[:60]}...")
+
             stream = await litellm.acompletion(**params)
             async for chunk in stream:
                 if not chunk or not hasattr(chunk, "choices") or not chunk.choices:
@@ -165,6 +211,11 @@ def get_llm_client(cfg: AppConfig = None) -> LLMClient:
     """
     if cfg is None:
         cfg = config.settings
+
+    # Enable LiteLLM debug logging if configured
+    if cfg.debug_litellm:
+        litellm._turn_on_debug()
+        logger.info("LiteLLM debug logging enabled")
 
     # Determine base_url based on model mode
     base_url = None

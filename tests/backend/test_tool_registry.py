@@ -6,7 +6,7 @@ import pytest
 
 from backend.config import AppConfig
 from backend.tools.base import ToolResult
-from backend.tools.tool_registry import ToolRegistry, create_tool_registry
+from backend.tools.registry import ToolRegistry, create_tool_registry
 
 
 @pytest.fixture

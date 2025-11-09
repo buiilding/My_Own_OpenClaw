@@ -10,7 +10,13 @@ from typing import Any, Dict, List, Optional
 
 from backend.config import AppServices
 from backend.tools.base import Tool, ToolBuilder, ToolInvocation, ToolResult
-from backend.tools.filesystem import (
+from backend.tools.core.computer import (
+    KeyboardTool,
+    MouseTool,
+    ScreenshotTool,
+    ScrollTool,
+)
+from backend.tools.core.filesystem import (
     GlobTool,
     ListDirectoryTool,
     ReadFileTool,
@@ -19,7 +25,7 @@ from backend.tools.filesystem import (
     SearchFileContentTool,
     WriteFileTool,
 )
-from backend.tools.shell import ShellTool
+from backend.tools.core.system.shell_tool import ShellTool
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +63,12 @@ class ToolRegistry:
 
         # Shell tool
         self.register_tool(ShellTool(self.services))
+
+        # Computer Use Automation (CUA) tools
+        self.register_tool(ScreenshotTool(self.services))
+        self.register_tool(MouseTool(self.services))
+        self.register_tool(KeyboardTool(self.services))
+        self.register_tool(ScrollTool(self.services))
 
         logger.info(f"Registered {len(self.tools)} built-in tools")
 
