@@ -124,10 +124,7 @@ class GlobTool(Tool):
 
             # Apply file filtering
             file_discovery = self.config.get_file_service()
-            relative_paths = [
-                make_relative_path(p, target_dir)
-                for p in file_matches
-            ]
+            relative_paths = [make_relative_path(p, target_dir) for p in file_matches]
 
             filtering_options = {
                 "respect_git_ignore": respect_git_ignore,

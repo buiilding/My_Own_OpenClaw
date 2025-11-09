@@ -18,8 +18,6 @@ ONLINE_MODELS = {
         "gpt-5",  # latest flagship [web:9][web:12]
         "gpt-5-mini",  # fast, low-cost variant [web:12]
         "gpt-4.1",  # improved GPT-4 replacement [web:6]
-        "gpt-oss-120b",  # new open-weight, Apache 2.0 [web:9][web:20]
-        "gpt-oss-20b",  # new open-weight, Apache 2.0 [web:20]
     ],
     "anthropic": [
         "claude-4.1",  # latest flagship [web:6][web:16]
@@ -38,52 +36,30 @@ ONLINE_MODELS = {
         "gemini-2.0-flash",  # previous generation flash model
         # Other models
         "computer-use-preview",  # computer use capabilities
-        "gemini-robotics-er-1.5-preview",  # robotics model
-        # Multi-modal generative models
-        "gemini-2.0-flash-preview-image-generation",  # image generation preview
-        "gemini-2.5-flash-preview-image",  # image generation
-        "gemini-2.5-flash-tts",  # text-to-speech
-        "gemini-2.5-pro-tts",  # pro text-to-speech
-        "imagen-3.0-generate",  # Imagen 3.0 image generation
-        "imagen-4.0-fast-generate",  # Imagen 4.0 fast variant
-        "imagen-4.0-generate",  # Imagen 4.0 standard
-        "imagen-4.0-ultra-generate",  # Imagen 4.0 ultra
-        "veo-2.0-generate-001",  # Veo 2.0 video generation
-        "veo-3.0-fast-generate-preview",  # Veo 3.0 fast preview
-        "veo-3.0-fast-generate",  # Veo 3.0 fast
-        "veo-3.0-generate-preview",  # Veo 3.0 preview
-        "veo-3.0-generate",  # Veo 3.0 standard
-        # Live API models
-        "gemini-2.0-flash-live",  # live API 2.0
-        "gemini-2.5-flash-live",  # live API 2.5
-        "gemini-2.5-flash-native-audio-dialog",  # native audio dialog
     ],
     "meta": [
         "llama-4-scout",  # latest open-source release [web:6][web:9]
-        "llama-3.1-70b-instruct",  # popular instruction-tuned [web:6]
-        "llama-3.3",  # coding focus [web:18]
+        "llama-4-maverick",  # multimodal variant from Llama 4 family
+        "llama-3.2-vision",  # Llama 3.2 multimodal (text + image)
     ],
     "xai": [
-        "grok-4",  # advanced, multimodal reasoning [web:6][web:16]
-        "grok-3",  # widely available [web:6]
+        "grok-4",  # advanced, multimodal reasoning (text + image) [web:6][web:16]
+        "grok-3",  # reasoning and coding; limited multimodal support [web:6]
+        "grok-1.5v",  # first multimodal Grok model (text + vision) [venturebeat.com]
     ],
-    "mistral": [
-        "mistral-large-24.11",  # latest flagship [web:7]
-        "codestral-25.01",  # newest code model [web:7]
-        "mistral-nemo",  # reasoning/lightweight [web:7]
-        "pixtral-12x-2409",  # established creative model [web:6]
-        "mistral-medium-2312",  # proven midsize [web:6]
+    "mistral_multimodal": [
+        "pixtral-12b-2409",  # 12B parameters, natively multimodal (text + images) :contentReference[oaicite:1]{index=1}
+        "pixtral-large",  # 124B parameters, frontier-class multimodal (text + images) :contentReference[oaicite:2]{index=2}
     ],
-    "qwen": [
-        "qwen-3",  # high coding performance [web:6][web:18]
-        "qwen-2.5-max",  # large variant [web:6]
+    "qwen_multimodal": [
+        "qwen2.5-omni",  # end-to-end multimodal: text + image + audio + video :contentReference[oaicite:1]{index=1}
+        "qwen3-omni",  # natively omni-modal: text, images, audio, video :contentReference[oaicite:2]{index=2}
+        "qwen3-vl",  # vision-language variant: text + image (and video) support :contentReference[oaicite:3]{index=3}
     ],
     "openrouter": [
-        "openrouter/auto",
-        "openrouter/anthropic/claude-4.1-sonnet",
-        "openrouter/xai/grok-5",
-        "openrouter/google/gemini-2.5-pro",
-        "openrouter/meta-llama/llama-4-scout",
+        "openrouter/meta-llama/llama-4-scout",  # supports native text + image input. :contentReference[oaicite:2]{index=2}
+        "openrouter/qwen/qwen3-vl-32b-instruct",  # vision-language (text + image/video) model. :contentReference[oaicite:3]{index=3}
+        "openrouter/qwen/qwen3-vl-235b-a22b-instruct",  # vision-language (text + image/video) model. :contentReference[oaicite:4]{index=4}
     ],
 }
 
