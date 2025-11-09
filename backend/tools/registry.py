@@ -10,6 +10,12 @@ from typing import Any, Dict, List, Optional
 
 from backend.config import AppServices
 from backend.tools.base import Tool, ToolBuilder, ToolInvocation, ToolResult
+from backend.tools.core.computer import (
+    KeyboardTool,
+    MouseTool,
+    ScreenshotTool,
+    ScrollTool,
+)
 from backend.tools.core.filesystem import (
     GlobTool,
     ListDirectoryTool,
@@ -20,12 +26,6 @@ from backend.tools.core.filesystem import (
     WriteFileTool,
 )
 from backend.tools.core.system.shell_tool import ShellTool
-from backend.tools.core.computer import (
-    ScreenshotTool,
-    MouseTool,
-    KeyboardTool,
-    ScrollTool,
-)
 
 logger = logging.getLogger(__name__)
 

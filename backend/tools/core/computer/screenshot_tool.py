@@ -4,11 +4,13 @@ Screenshot Tool
 Captures screenshots of the computer screen for computer use automation.
 """
 
-from backend.tools.base import Tool, ToolContext, ToolResult, Kind
-from backend.config import AppServices
-from .computer_interface import ComputerInterface
-from typing import Optional, Dict, Any, List
 import logging
+from typing import Any, Dict, List, Optional
+
+from backend.config import AppServices
+from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+
+from .computer_interface import ComputerInterface
 
 logger = logging.getLogger(__name__)
 
@@ -25,16 +27,12 @@ class ScreenshotTool(Tool):
         super().__init__(
             name="screenshot",
             description="Capture a screenshot of the current computer screen and return it as a base64-encoded image.",
-            kind=Kind.READ
+            kind=Kind.READ,
         )
         self.config = config
         self.computer = ComputerInterface()
 
-    async def execute_async(
-        self,
-        context: ToolContext,
-        **kwargs
-    ) -> ToolResult:
+    async def execute_async(self, context: ToolContext, **kwargs) -> ToolResult:
         """
         Take a screenshot and return it.
 
@@ -43,14 +41,17 @@ class ScreenshotTool(Tool):
         """
         try:
             # Initialize computer interface if needed
-            if not hasattr(self.computer, '_initialized') or not self.computer._initialized:
+            if (
+                not hasattr(self.computer, "_initialized")
+                or not self.computer._initialized
+            ):
                 success = await self.computer.initialize()
                 if not success:
                     return ToolResult(
                         success=False,
                         error="Failed to initialize computer interface",
                         llm_content="Error: Could not initialize computer control interface",
-                        return_display="Screenshot failed: Computer interface not available"
+                        return_display="Screenshot failed: Computer interface not available",
                     )
 
             # Take screenshot
@@ -62,14 +63,14 @@ class ScreenshotTool(Tool):
                     data={"screenshot": result.screenshot_data},
                     llm_content="Screenshot captured successfully",
                     return_display="Screenshot captured and returned as base64 image",
-                    metadata={"screenshot_size": len(result.screenshot_data)}
+                    metadata={"screenshot_size": len(result.screenshot_data)},
                 )
             else:
                 return ToolResult(
                     success=False,
                     error=result.error or "Screenshot capture failed",
                     llm_content=f"Error capturing screenshot: {result.error}",
-                    return_display=f"Screenshot failed: {result.error}"
+                    return_display=f"Screenshot failed: {result.error}",
                 )
 
         except Exception as e:
@@ -78,16 +79,18 @@ class ScreenshotTool(Tool):
                 success=False,
                 error=f"Screenshot capture failed: {str(e)}",
                 llm_content="Error: Failed to capture screenshot",
-                return_display=f"Screenshot error: {str(e)}"
+                return_display=f"Screenshot error: {str(e)}",
             )
 
     def get_capabilities(self) -> Dict[str, Any]:
         """Get tool capabilities."""
         capabilities = super().get_capabilities()
-        capabilities.update({
-            "returns_image": True,
-            "image_format": "base64_png",
-            "requires_display": True,
-            "safe": True,  # Screenshots are read-only
-        })
+        capabilities.update(
+            {
+                "returns_image": True,
+                "image_format": "base64_png",
+                "requires_display": True,
+                "safe": True,  # Screenshots are read-only
+            }
+        )
         return capabilities

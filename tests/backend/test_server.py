@@ -10,7 +10,7 @@ from functools import partial
 
 import pytest
 import websockets
-from backend.agent.orchestrator import Agent
+from backend.agent import AgentSession
 from backend.config import AppConfig
 from backend.server import handler
 
@@ -56,7 +56,7 @@ def mock_server_settings(monkeypatch):
 @pytest.fixture
 def server_handler():
     """Provides a handler wrapped with a mocked Agent instance."""
-    agent = Agent()
+    agent = AgentSession(AppConfig())
     return partial(handler, agent=agent)
 
 

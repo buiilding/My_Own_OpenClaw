@@ -7,7 +7,7 @@ from Python function signatures and type hints.
 
 import inspect
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union, get_args, get_origin
+from typing import Any, Dict, List, Literal, Optional, Union, get_args, get_origin
 
 
 class SchemaGenerator:
@@ -87,10 +87,14 @@ class SchemaGenerator:
         else:
             schema = self._type_hint_to_schema(param.annotation)
 
-        # Add description from default value if it's a string
+        # Add description from default value if it's a string and not already set by type hint
         if param.default != inspect.Parameter.empty and isinstance(param.default, str):
-            # If default is a string, it might be a description
-            schema["description"] = param.default
+            # Only use default value as description if the schema doesn't already have one from type hint
+            if (
+                not schema.get("description")
+                or schema.get("description") == f"Parameter {param.name}"
+            ):
+                schema["description"] = param.default
         elif not schema.get("description"):
             # Add a generic description
             schema["description"] = f"Parameter {param.name}"
@@ -143,6 +147,16 @@ class SchemaGenerator:
         # Handle basic types
         if type_hint in self.type_mappings:
             return self.type_mappings[type_hint].copy()
+
+        # Handle Literal types (e.g., Literal['click', 'double_click'])
+        if origin is Literal:
+            # Extract the literal values
+            literal_values = list(args)
+            return {
+                "type": "string",
+                "enum": literal_values,
+                "description": f"One of: {', '.join(str(v) for v in literal_values)}",
+            }
 
         # Handle classes and enums
         if inspect.isclass(type_hint):

@@ -9,9 +9,11 @@ Replace:
 - API endpoints, authentication, and logic
 """
 
+from typing import Any, Dict, Optional
+
 import aiohttp
-from backend.tools.base import Tool, ToolContext, ToolResult, Kind
-from typing import Optional, Dict, Any
+
+from backend.tools.base import Kind, Tool, ToolContext, ToolResult
 
 
 class ToolName(Tool):
@@ -44,7 +46,7 @@ class ToolName(Tool):
         self,
         context: ToolContext,
         query: str,  # Main query parameter
-        limit: Optional[int] = 10  # Optional limit parameter
+        limit: Optional[int] = 10,  # Optional limit parameter
     ) -> ToolResult:
         """
         Execute web/API operation.
@@ -59,15 +61,12 @@ class ToolName(Tool):
         """
         try:
             # Prepare request parameters
-            params = {
-                "q": query,
-                "limit": limit or 10
-            }
+            params = {"q": query, "limit": limit or 10}
 
             # Prepare headers
             headers = {
                 "User-Agent": "DesktopAssistant/1.0",
-                "Accept": "application/json"
+                "Accept": "application/json",
             }
 
             # Add authentication if available
@@ -79,9 +78,8 @@ class ToolName(Tool):
                 async with session.get(
                     f"{self.base_url}/endpoint",  # Replace with actual endpoint
                     params=params,
-                    headers=headers
+                    headers=headers,
                 ) as response:
-
                     # Check for HTTP errors
                     if response.status >= 400:
                         error_text = await response.text()
@@ -89,7 +87,7 @@ class ToolName(Tool):
                             success=False,
                             error=f"API error {response.status}: {error_text}",
                             llm_content=f"Error: API returned {response.status}",
-                            return_display=f"API Error: {response.status}"
+                            return_display=f"API Error: {response.status}",
                         )
 
                     # Parse JSON response
@@ -102,7 +100,7 @@ class ToolName(Tool):
                         success=True,
                         llm_content=f"Successfully retrieved data for: {query}",
                         return_display=result_data,
-                        data=result_data
+                        data=result_data,
                     )
 
         except aiohttp.ClientTimeout:
@@ -110,21 +108,21 @@ class ToolName(Tool):
                 success=False,
                 error="Request timed out",
                 llm_content="Error: Request timed out",
-                return_display="Timeout: Request took too long"
+                return_display="Timeout: Request took too long",
             )
         except aiohttp.ClientError as e:
             return ToolResult(
                 success=False,
                 error=f"Network error: {str(e)}",
                 llm_content=f"Error: {str(e)}",
-                return_display=f"Network Error: {str(e)}"
+                return_display=f"Network Error: {str(e)}",
             )
         except Exception as e:
             return ToolResult(
                 success=False,
                 error=f"Unexpected error: {str(e)}",
                 llm_content=f"Error: {str(e)}",
-                return_display=f"Unexpected Error: {str(e)}"
+                return_display=f"Unexpected Error: {str(e)}",
             )
 
     def _process_response(self, data: Dict[str, Any]) -> str:
