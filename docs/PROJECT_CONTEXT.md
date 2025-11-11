@@ -320,6 +320,128 @@ class ActivityMonitor:
         ]
 ```
 
+#### **Memory System Dataflow - Complete Query-to-Response Cycle** 🔄
+
+**Step-by-Step Dataflow for Each User Query:**
+
+1. **User Sends Query** → WebSocket message received by `backend/server.py`
+   - Message routed to `_handle_query()` function
+   - User ID extracted from message or defaults to "default_user"
+
+2. **Agent Session Initialization** (if first query for user)
+   - `AgentSession` created with `MemoryManager` instance
+   - `MemoryManager` initializes:
+     - `LocalMemoryStore` (SQLite + FAISS)
+     - `SemanticRetrieval` (for memory search)
+     - `MemorySummarizer` (for fact extraction)
+   - Session registered via `start_session(user_id, session_id)`
+
+3. **Memory Retrieval** (Before Processing Query)
+   - `agent_session.process_query()` calls `memory_manager.retrieve_memories(query)`
+   - `SemanticRetrieval.hybrid_search()` executes:
+     - **Semantic Search**: Vector similarity search for semantic memories (facts/preferences)
+     - **Temporal Search**: Recent episodic memories from last 7 days
+   - Results re-ranked by: semantic similarity (70%), recency (20%), importance (10%)
+   - Memories formatted into context string:
+     ```
+     [Semantic Memory]
+     - User prefers Python over JavaScript
+     - User's name is John
+     
+     [Recent Interactions]
+     - User asked about file operations yesterday
+     ```
+
+4. **Query Enrichment**
+   - Memory context prepended to user query
+   - Enriched query: `"{memory_context}\n\nUser: {original_query}"`
+   - Added to conversation history
+
+5. **LLM Processing**
+   - LLM processes enriched query with tool calling loop
+   - May execute multiple tools iteratively
+   - Generates final text response
+
+6. **Episodic Memory Storage** (Immediate - After Each Query)
+   - `memory_manager.store_episodic_memory(user_message, assistant_reply)` called
+   - `LocalMemoryStore.add()` executes:
+     - Generates UUID for memory ID
+     - Creates embedding using SentenceTransformer (local, no API calls)
+     - Normalizes embedding for cosine similarity
+     - Adds to FAISS index (in-memory vector search)
+     - Stores in SQLite with metadata:
+       ```json
+       {
+         "type": "episodic",
+         "session_id": "...",
+         "timestamp": "2024-01-15T10:30:00",
+         "summarized": "false"
+       }
+       ```
+     - Commits transaction immediately (ACID guarantee)
+   - FAISS index saved to disk every 10 additions
+
+7. **Background Summarization** (Later - Asynchronous)
+   - **Trigger 1: Session End**
+     - User disconnects → `end_session(user_id)` called
+     - Creates background task: `summarize_and_store_semantic_memory()`
+   - **Trigger 2: Periodic Task**
+     - Background task runs every hour (configurable via `summarization_interval`)
+     - Processes all active sessions
+   - **Summarization Process**:
+     - Finds unsummarized episodic memories (`summarized: "false"`)
+     - Batches memories (default: 10 per batch)
+     - Calls LLM with prompt:
+       ```
+       "Extract key facts, preferences, and general knowledge from these 
+       conversation logs. Return as a list of short, standalone factual statements."
+       ```
+     - Parses LLM response into individual facts
+     - Stores each fact as semantic memory:
+       ```json
+       {
+         "type": "semantic",
+         "source_session_id": "...",
+         "extracted_from": ["memory_id1", "memory_id2"]
+       }
+       ```
+     - Marks episodic memories as `summarized: "true"`
+
+**Database Structure:**
+
+- **Single SQLite Database**: `{config_dir}/memory/memories.db`
+  - Table: `memories`
+  - Columns: `id`, `user_id`, `type`, `content`, `timestamp`, `metadata`, `embedding_id`, `created_at`
+  - Both episodic and semantic memories stored in same table (distinguished by `type` column)
+
+- **FAISS Index**: `{config_dir}/memory/faiss.index`
+  - Vector index for fast semantic search
+  - 384-dimensional embeddings (all-MiniLM-L6-v2)
+  - Cosine similarity search
+
+**Memory Lifecycle:**
+
+```
+User Query
+    ↓
+[Memory Retrieval] → Semantic + Recent Episodic Memories
+    ↓
+[Query Enrichment] → Prepend memory context
+    ↓
+[LLM Processing] → Generate response
+    ↓
+[Episodic Storage] → Store interaction immediately (SQLite + FAISS)
+    ↓
+[Background Summarization] → Extract facts → Store as Semantic Memory
+```
+
+**Key Points:**
+- Episodic memories stored **immediately** after each query (synchronous)
+- Semantic memories created **asynchronously** via background summarization
+- All embeddings generated **locally** (no external API calls)
+- All data stored **locally** in user's data directory
+- Database location: `%APPDATA%\DesktopAssistant\memory\memories.db` (Windows)
+
 #### **Semantic Search & Retrieval Implementation (✅ IMPLEMENTED)**
 
 **Embedding-Based Search System:**
@@ -8532,6 +8654,15 @@ To run the application for testing, you must start the backend and frontend sepa
 
 **Prerequisites:**
 - Activate the conda environment: `conda activate nerva`
+- Set required API key environment variable (if using cloud models):
+  ```powershell
+  # Windows PowerShell
+  $env:OPENAI_API_KEY = "sk-your-key-here"
+  
+  # Or for other providers:
+  $env:ANTHROPIC_API_KEY = "sk-ant-your-key"
+  $env:GOOGLE_API_KEY = "your-google-key"
+  ```
 
 **1. Start the Backend Server:**
 - Navigate to the **project root directory**.
@@ -8541,6 +8672,11 @@ To run the application for testing, you must start the backend and frontend sepa
   # From /<project-root>/
   python -m backend.server
   ```
+- The server will:
+  - Start WebSocket server on `ws://0.0.0.0:8765`
+  - Initialize memory system (creates database on first query)
+  - Start background summarization task (runs every hour)
+  - Log: "Starting WebSocket server on ws://0.0.0.0:8765"
 
 **2. Start the Frontend Application:**
 - The frontend requires two separate terminal processes.
@@ -8549,11 +8685,62 @@ To run the application for testing, you must start the backend and frontend sepa
   # From /<project-root>/frontend/
   npm run dev
   ```
+  - Starts Vite dev server (typically on `http://localhost:5173`)
+  - Hot-reloads React components during development
+
 - **Terminal 2 (Main Process)**: In a new terminal, navigate to the `frontend` directory and run the Electron main process.
   ```bash
   # From /<project-root>/frontend/
   npm run electron
   ```
+  - Launches Electron desktop application window
+  - Connects to backend WebSocket server
+  - Connects to Vite dev server for UI
+
+**Complete Startup Sequence:**
+
+```bash
+# Terminal 1: Backend
+conda activate nerva
+cd D:\Team\Personal_Assistant\codebase
+python -m backend.server
+
+# Terminal 2: Frontend Dev Server
+cd frontend
+npm run dev
+
+# Terminal 3: Electron App
+cd frontend
+npm run electron
+```
+
+**What Happens on Startup:**
+
+1. **Backend Server** (`python -m backend.server`):
+   - Loads configuration from `%APPDATA%\DesktopAssistant\config.yaml`
+   - Initializes memory system (if enabled)
+   - Creates memory database directory if needed
+   - Starts background summarization task
+   - Listens for WebSocket connections on port 8765
+
+2. **Frontend Dev Server** (`npm run dev`):
+   - Starts Vite development server
+   - Serves React application
+   - Enables hot module replacement
+
+3. **Electron App** (`npm run electron`):
+   - Launches desktop window
+   - Connects to backend WebSocket (ws://localhost:8765)
+   - Loads UI from Vite dev server
+   - Sends handshake with user_id
+   - Ready to process queries
+
+**Memory System Initialization:**
+
+- Memory database created on **first query** (not on server startup)
+- Location: `%APPDATA%\DesktopAssistant\memory\memories.db`
+- FAISS index created alongside database
+- Embedding model (`all-MiniLM-L6-v2`) downloaded on first use (if not cached)
 
 ### Running Tests
 These instructions assume you have already set up your environment and installed all dependencies.

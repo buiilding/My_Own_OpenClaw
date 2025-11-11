@@ -225,14 +225,31 @@ def get_llm_client(cfg: AppConfig = None) -> LLMClient:
 
     if cfg.model_mode == "local":
         # For local models, get the base_url from the provider's config
-        try:
-            provider_config = cfg.llm_providers.get_provider_config(provider)
-            base_url = getattr(provider_config, "base_url", None)
-        except ValueError:
-            logger.warning(
-                "Could not find config for local provider '%s', no base_url set.",
-                provider,
+        if not provider:
+            logger.error(
+                "Local model mode selected but model_provider is empty. "
+                "Please select a model provider in settings."
             )
+        else:
+            try:
+                provider_config = cfg.llm_providers.get_provider_config(provider)
+                base_url = getattr(provider_config, "base_url", None)
+                if base_url:
+                    logger.info(
+                        "Using local provider '%s' with base_url: %s", provider, base_url
+                    )
+                else:
+                    logger.warning(
+                        "Provider '%s' config found but base_url is not set.", provider
+                    )
+            except ValueError as e:
+                logger.error(
+                    "Could not find config for local provider '%s': %s. "
+                    "Available providers: %s",
+                    provider,
+                    e,
+                    [attr for attr in dir(cfg.llm_providers) if not attr.startswith("_")],
+                )
     else:
         # For online models, check if provider has a base_url (like OpenRouter)
         if cfg.model_provider:

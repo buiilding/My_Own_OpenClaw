@@ -496,7 +496,7 @@ class TestComputerToolIntegration:
 
     async def test_computer_tools_include_screenshot_in_result_message(self, mock_services):
         """Test that computer tool results include automatic screenshots."""
-        from backend.agent.agent_session import Agent
+        from backend.agent.agent_session import AgentSession
         from backend.agent.state.exceptions import ToolExecutionError
         from backend.config import AppConfig
 
@@ -509,7 +509,7 @@ class TestComputerToolIntegration:
             mock_llm_client = MagicMock()
             mock_get_client.return_value = mock_llm_client
 
-            agent = Agent(config)
+            agent = AgentSession(config)
 
             # Mock tool registry to return computer tool
             mock_registry = MagicMock()

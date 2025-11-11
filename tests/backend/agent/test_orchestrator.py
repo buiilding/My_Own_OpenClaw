@@ -3,7 +3,8 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
-from backend.agent import Agent
+from backend.agent import AgentSession
+from backend.config import AppConfig
 from backend.agent.prompts import SYSTEM_PROMPT
 from backend.agent.agent_session import MAX_TOOL_ITERATIONS
 from backend.agent.state.conversation_history import MAX_HISTORY_LENGTH
@@ -36,7 +37,7 @@ def mock_llm_client():
 async def test_agent_initialization(mock_get_llm_client, mock_llm_client):
     """Test that the agent initializes correctly and gets an LLM client."""
     mock_get_llm_client.return_value = mock_llm_client
-    agent = Agent()
+    agent = AgentSession(AppConfig())
     assert agent.llm_client is not None
     mock_get_llm_client.assert_called_once()
 
@@ -45,7 +46,7 @@ async def test_agent_initialization(mock_get_llm_client, mock_llm_client):
 async def test_agent_process_query_streaming(mock_get_llm_client, mock_llm_client):
     """Test that process_query correctly streams the response."""
     mock_get_llm_client.return_value = mock_llm_client
-    agent = Agent()
+    agent = AgentSession(AppConfig())
 
     query = "Test query"
 
@@ -71,7 +72,7 @@ async def test_agent_process_query_streaming(mock_get_llm_client, mock_llm_clien
 async def test_agent_history_management(mock_get_llm_client, mock_llm_client):
     """Test that the agent correctly manages conversation history."""
     mock_get_llm_client.return_value = mock_llm_client
-    agent = Agent()
+    agent = AgentSession(AppConfig())
 
     # First interaction
     query1 = "First query"
@@ -107,7 +108,7 @@ async def test_agent_history_management(mock_get_llm_client, mock_llm_client):
 async def test_agent_history_pruning(mock_get_llm_client, mock_llm_client):
     """Test that the agent prunes history when it exceeds the max length."""
     mock_get_llm_client.return_value = mock_llm_client
-    agent = Agent()
+    agent = AgentSession(AppConfig())
 
     # Fill the history just over the max length
     for i in range(MAX_HISTORY_LENGTH // 2 + 1):

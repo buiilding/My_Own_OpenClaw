@@ -327,17 +327,26 @@ async def _handle_update_settings(
             # Merge with existing settings to preserve fields not sent by frontend
             merged_data = {**get_settings().model_dump(), **new_config_data}
             validated_config = AppConfig(**merged_data)
+            
+            # Log the provider and model mode for debugging
+            logger.info(
+                "Updating settings: model_mode=%s, model_provider=%s, selected_model_id=%s",
+                validated_config.model_mode,
+                validated_config.model_provider,
+                validated_config.selected_model_id,
+            )
 
             # Reload the API key for the newly selected provider
             config.load_api_key_for_provider(validated_config)
 
-            # Update the settings object in-memory (reload from disk)
-            reload_settings()
+            # Update the global settings object directly with the validated config
+            # (instead of reloading from disk, which would have old values)
+            config.settings = validated_config
 
-            # Update the agent's config
+            # Update all agent sessions' config
             async with agent_lock:
-                if agent:
-                    await agent.update_config(validated_config)
+                for user_id, agent_session in agent_sessions.items():
+                    await agent_session.update_config(validated_config)
 
             # Asynchronously write the updated config to file
             config_dir = get_config_dir()
@@ -482,6 +491,31 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
                         {"type": "error", "id": None, "payload": {"message": str(e)}}
                     )
                 )
+
+            except Exception as e:
+                logger.error("Unexpected error processing message: %s", e, exc_info=True)
+                message_id = None
+                try:
+                    # Try to get message id if data was parsed successfully
+                    parsed_data = json.loads(message)
+                    message_id = parsed_data.get("id")
+                except Exception:
+                    pass  # Ignore if we can't parse for id
+                
+                try:
+                    await websocket.send(
+                        json.dumps(
+                            {
+                                "type": "error",
+                                "id": message_id,
+                                "payload": {"message": f"An error occurred: {str(e)}"},
+                            }
+                        )
+                    )
+                except Exception:
+                    # If we can't send error message, connection is likely broken
+                    logger.error("Failed to send error message to client")
+                    break
 
     except ConnectionClosed as e:
         logger.info(
