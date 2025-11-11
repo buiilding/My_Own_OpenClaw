@@ -1,5 +1,5 @@
 """Agent package for the Personal Assistant."""
 
-from backend.agent.agent_session import Agent
+from backend.agent.agent_session import AgentSession
 
-__all__ = ["Agent"]
+__all__ = ["AgentSession"]

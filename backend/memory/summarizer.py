@@ -49,11 +49,15 @@ class MemorySummarizer:
     ) -> int:
         """
         Summarize unsummarized episodic memories into semantic facts.
+        
+        Groups memories by session_id to preserve conversation context, then processes
+        each complete session as a unit. If a session has more than batch_size interactions,
+        it will be split into chunks of batch_size.
 
         Args:
             user_id: User identifier
-            session_id: Optional session ID filter
-            batch_size: Number of episodic memories to process per batch
+            session_id: Optional session ID filter (if provided, only processes that session)
+            batch_size: Maximum number of interactions to process per batch within a session
 
         Returns:
             Number of semantic memories created
@@ -68,7 +72,7 @@ class MemorySummarizer:
             query="",  # Empty query to get all matching
             user_id=user_id,
             filters=filters,
-            limit=100,  # Process up to 100 at a time
+            limit=1000,  # Increased limit to ensure we get all memories for session grouping
         )
 
         if not unsummarized:
@@ -76,18 +80,44 @@ class MemorySummarizer:
             return 0
 
         logger.info(
-            f"Summarizing {len(unsummarized)} episodic memories for user {user_id}"
+            f"Found {len(unsummarized)} unsummarized episodic memories for user {user_id}"
         )
 
-        # Process in batches
-        total_created = 0
-        for i in range(0, len(unsummarized), batch_size):
-            batch = unsummarized[i : i + batch_size]
-            created = await self._process_batch(user_id, batch, session_id)
-            total_created += created
+        # Group memories by session_id to preserve conversation context
+        sessions: Dict[str, List[Dict[str, Any]]] = {}
+        for memory in unsummarized:
+            mem_session_id = memory.get("metadata", {}).get("session_id", "unknown")
+            if mem_session_id not in sessions:
+                sessions[mem_session_id] = []
+            sessions[mem_session_id].append(memory)
+
+        # Sort memories within each session by timestamp to maintain conversation order
+        for session_memories in sessions.values():
+            session_memories.sort(key=lambda m: m.get("timestamp", ""))
 
         logger.info(
-            f"Created {total_created} semantic memories from {len(unsummarized)} episodic memories"
+            f"Grouped memories into {len(sessions)} session(s) for summarization"
+        )
+
+        # Process each session completely, splitting into chunks if needed
+        total_created = 0
+        for session_id_key, session_memories in sessions.items():
+            logger.debug(
+                f"Processing session {session_id_key} with {len(session_memories)} interactions"
+            )
+
+            # If session has more than batch_size interactions, split into chunks
+            # but still process them sequentially to maintain context
+            for i in range(0, len(session_memories), batch_size):
+                chunk = session_memories[i : i + batch_size]
+                created = await self._process_batch(
+                    user_id, chunk, session_id_key or session_id
+                )
+                total_created += created
+
+        logger.info(
+            f"Created {total_created} semantic memories from {len(unsummarized)} episodic memories "
+            f"across {len(sessions)} session(s)"
         )
 
         return total_created
