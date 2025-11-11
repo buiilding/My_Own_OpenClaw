@@ -347,7 +347,7 @@ class ActivityMonitor:
      [Semantic Memory]
      - User prefers Python over JavaScript
      - User's name is John
-     
+
      [Recent Interactions]
      - User asked about file operations yesterday
      ```
@@ -393,7 +393,7 @@ class ActivityMonitor:
      - Batches memories (default: 10 per batch)
      - Calls LLM with prompt:
        ```
-       "Extract key facts, preferences, and general knowledge from these 
+       "Extract key facts, preferences, and general knowledge from these
        conversation logs. Return as a list of short, standalone factual statements."
        ```
      - Parses LLM response into individual facts
@@ -8658,7 +8658,7 @@ To run the application for testing, you must start the backend and frontend sepa
   ```powershell
   # Windows PowerShell
   $env:OPENAI_API_KEY = "sk-your-key-here"
-  
+
   # Or for other providers:
   $env:ANTHROPIC_API_KEY = "sk-ant-your-key"
   $env:GOOGLE_API_KEY = "your-google-key"

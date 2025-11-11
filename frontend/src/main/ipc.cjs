@@ -34,7 +34,7 @@ function connect() {
     isConnected = true;
     log('Successfully connected to Python backend.');
     mainWindow?.webContents.send('ipc-status', { isConnected: true });
-    
+
     // Send handshake message as required by the backend server
     const handshakeMessage = {
       type: 'handshake',

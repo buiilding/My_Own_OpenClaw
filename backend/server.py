@@ -336,6 +336,14 @@ async def _handle_update_settings(
                 validated_config.selected_model_id,
             )
 
+            # Log the provider and model mode for debugging
+            logger.info(
+                "Updating settings: model_mode=%s, model_provider=%s, selected_model_id=%s",
+                validated_config.model_mode,
+                validated_config.model_provider,
+                validated_config.selected_model_id,
+            )
+
             # Reload the API key for the newly selected provider
             config.load_api_key_for_provider(validated_config)
 
@@ -493,7 +501,9 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
                 )
 
             except Exception as e:
-                logger.error("Unexpected error processing message: %s", e, exc_info=True)
+                logger.error(
+                    "Unexpected error processing message: %s", e, exc_info=True
+                )
                 message_id = None
                 try:
                     # Try to get message id if data was parsed successfully
@@ -501,7 +511,7 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
                     message_id = parsed_data.get("id")
                 except Exception:
                     pass  # Ignore if we can't parse for id
-                
+
                 try:
                     await websocket.send(
                         json.dumps(

@@ -49,7 +49,7 @@ class MemorySummarizer:
     ) -> int:
         """
         Summarize unsummarized episodic memories into semantic facts.
-        
+
         Groups memories by session_id to preserve conversation context, then processes
         each complete session as a unit. If a session has more than batch_size interactions,
         it will be split into chunks of batch_size.

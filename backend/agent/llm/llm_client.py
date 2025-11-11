@@ -236,7 +236,9 @@ def get_llm_client(cfg: AppConfig = None) -> LLMClient:
                 base_url = getattr(provider_config, "base_url", None)
                 if base_url:
                     logger.info(
-                        "Using local provider '%s' with base_url: %s", provider, base_url
+                        "Using local provider '%s' with base_url: %s",
+                        provider,
+                        base_url,
                     )
                 else:
                     logger.warning(
@@ -248,7 +250,11 @@ def get_llm_client(cfg: AppConfig = None) -> LLMClient:
                     "Available providers: %s",
                     provider,
                     e,
-                    [attr for attr in dir(cfg.llm_providers) if not attr.startswith("_")],
+                    [
+                        attr
+                        for attr in dir(cfg.llm_providers)
+                        if not attr.startswith("_")
+                    ],
                 )
     else:
         # For online models, check if provider has a base_url (like OpenRouter)
