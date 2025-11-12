@@ -448,6 +448,70 @@ class LocalMemoryStore:
 
         return deleted
 
+    def get_by_filters(
+        self,
+        user_id: str,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 1000,
+        order_by: str = "timestamp",
+        order_desc: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get memories by filters without using vector search.
+        Useful for getting all records matching certain criteria.
+
+        Args:
+            user_id: User identifier
+            filters: Optional metadata filters (e.g., {"metadata.type": "episodic"})
+            limit: Maximum number of results
+            order_by: Column to order by (default: "timestamp")
+            order_desc: Whether to order descending (default: True)
+
+        Returns:
+            List of memory dictionaries with 'id', 'text', 'metadata', 'timestamp', 'type' keys
+        """
+        results = []
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            # Build query
+            query = "SELECT id, user_id, type, content, timestamp, metadata FROM memories WHERE user_id = ?"
+            params = [user_id]
+
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+
+            for row in rows:
+                # Parse metadata
+                metadata = json.loads(row["metadata"]) if row["metadata"] else {}
+
+                # Apply metadata filters
+                if filters:
+                    if not self._matches_filters(metadata, filters):
+                        continue
+
+                results.append(
+                    {
+                        "id": row["id"],
+                        "text": row["content"],
+                        "metadata": metadata,
+                        "timestamp": row["timestamp"],
+                        "type": row["type"],
+                    }
+                )
+
+        # Sort results
+        reverse = order_desc
+        if order_by == "timestamp":
+            results.sort(key=lambda x: x.get("timestamp", ""), reverse=reverse)
+        elif order_by == "created_at":
+            # Would need created_at in results, but for now use timestamp
+            results.sort(key=lambda x: x.get("timestamp", ""), reverse=reverse)
+
+        # Apply limit
+        return results[:limit]
+
     def get_stats(self, user_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Get statistics about stored memories.

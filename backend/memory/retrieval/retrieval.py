@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from backend.memory.local_store import LocalMemoryStore
+from backend.memory.storage import LocalMemoryStore
 
 logger = logging.getLogger(__name__)
 
