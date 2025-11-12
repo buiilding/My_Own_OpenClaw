@@ -15,7 +15,8 @@
 
 - **Remembers everything** you've done and are working on
 - **Controls your computer** through voice or text commands
-- **Executes tasks** automatically using a marketplace of tools
+- **Execute commands** on the CLI using an agent loop
+- **Executes tasks** automatically using a marketplace of tools (possibly MCPs)
 - **Adapts to your workflow** by learning from your patterns
 
 Our mission: **Democratize computer power** - making advanced capabilities accessible to everyone, not just developers.
@@ -373,3 +374,4 @@ If this vision excites you, please star the repository! It helps others discover
 [View Roadmap](docs/ROADMAP.md) · [Join Discussion](https://github.com/yourusername/desktop-assistant/discussions) · [Contribute](CONTRIBUTING.md)
 
 </div>
+
