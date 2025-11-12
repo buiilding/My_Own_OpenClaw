@@ -327,6 +327,14 @@ async def _handle_update_settings(
             # Merge with existing settings to preserve fields not sent by frontend
             merged_data = {**get_settings().model_dump(), **new_config_data}
             validated_config = AppConfig(**merged_data)
+            
+            # Log the provider and model mode for debugging
+            logger.info(
+                "Updating settings: model_mode=%s, model_provider=%s, selected_model_id=%s",
+                validated_config.model_mode,
+                validated_config.model_provider,
+                validated_config.selected_model_id,
+            )
 
             # Log the provider and model mode for debugging
             logger.info(
