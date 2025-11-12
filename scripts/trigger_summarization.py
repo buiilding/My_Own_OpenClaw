@@ -12,12 +12,17 @@ import asyncio
 import sys
 from pathlib import Path
 
+# Fix Unicode encoding for Windows console
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from backend.config import get_settings
-from backend.memory.memory_manager import MemoryManager
-from backend.memory.local_store import get_memory_store
+from backend.memory.memory_manager import MemoryManager, get_memory_store
 
 
 async def trigger_summarization(user_id: str, session_id: str = None):
@@ -47,8 +52,9 @@ async def trigger_summarization(user_id: str, session_id: str = None):
     if session_id:
         filters["metadata.session_id"] = session_id
 
-    unsummarized = memory_store.search(
-        query="",
+    # Use get_by_filters instead of search for getting all matching records
+    # (search uses vector similarity which doesn't work well with empty queries)
+    unsummarized = memory_store.get_by_filters(
         user_id=user_id,
         filters=filters,
         limit=1000,
@@ -72,10 +78,15 @@ async def trigger_summarization(user_id: str, session_id: str = None):
 
     for sess_id, memories in sessions.items():
         print(f"  - Session {sess_id}: {len(memories)} interactions")
-        # Show first interaction preview
+        # Show first interaction preview (handle Unicode safely)
         if memories:
             first_content = memories[0].get("text", "")[:100]
-            print(f"    Preview: {first_content}...")
+            # Remove or replace problematic Unicode characters for Windows console
+            try:
+                preview = first_content.encode('ascii', errors='replace').decode('ascii')
+            except Exception:
+                preview = first_content.replace('\U0001f60a', ':smile:').replace('\U0001f44d', ':thumbs_up:')
+            print(f"    Preview: {preview}...")
 
     print("\n[PROCESSING] Starting summarization...\n")
 

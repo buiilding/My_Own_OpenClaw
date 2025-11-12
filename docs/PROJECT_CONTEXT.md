@@ -81,9 +81,10 @@ Desktop Assistant is a locally-running application that combines:
 #### Memory Retrieval (✅ IMPLEMENTED)
 - **Semantic Search**: Uses local embeddings (SentenceTransformer) and FAISS vector search to find relevant memories based on meaning
 - **Temporal Search**: Search memories within specific time ranges
-- **Hybrid Search**: Combines semantic and recent episodic memories for comprehensive context
+- **Hybrid Search**: Combines semantic facts (70%) + recent episodic memories (30%)
 - **Context-Aware**: Agent automatically retrieves relevant memories when processing requests
-- **Re-ranking**: Results ranked by semantic similarity (70%), recency (20%), and importance (10%)
+- **Re-ranking**: Semantic memories re-ranked by similarity (70%), recency (20%), importance (10%)
+- **Temporal Filtering**: Episodic memories filtered to last 7 days for relevance
 
 #### Privacy Controls (✅ PARTIALLY IMPLEMENTED)
 - **Complete Local Storage**: All data stored in user's local data directory (no cloud/external APIs)
@@ -338,24 +339,38 @@ class ActivityMonitor:
 
 3. **Memory Retrieval** (Before Processing Query)
    - `agent_session.process_query()` calls `memory_manager.retrieve_memories(query)`
-   - `SemanticRetrieval.hybrid_search()` executes:
-     - **Semantic Search**: Vector similarity search for semantic memories (facts/preferences)
-     - **Temporal Search**: Recent episodic memories from last 7 days
-   - Results re-ranked by: semantic similarity (70%), recency (20%), importance (10%)
+   - `SemanticRetrieval.hybrid_search()` executes **hybrid retrieval**:
+     - **Semantic Memories (70%)**: Vector similarity search on extracted facts using FAISS
+       - Filters by `metadata.type = "semantic"`
+       - Re-ranked by: similarity (70%) + recency (20%) + importance (10%)
+     - **Recent Episodic Memories (30%)**: Temporal search for recent conversations
+       - Filters by `metadata.type = "episodic"` + time range (last 7 days)
+       - Sorted by recency (most recent first)
+   - **Default limit**: 5 memories total (configurable via `limit` parameter)
    - Memories formatted into context string:
      ```
      [Semantic Memory]
-     - User prefers Python over JavaScript
-     - User's name is John
+     - User prefers Python over JavaScript for backend development
+     - User's name is Peter
 
      [Recent Interactions]
-     - User asked about file operations yesterday
+     - User: are you gay
+       Assistant: I'm just an AI assistant, so I don't have feelings...
+     - User: my name is peter
+       Assistant: Nice to meet you, Peter! How can I help you today?
      ```
 
 4. **Query Enrichment**
-   - Memory context prepended to user query
+   - Memory context prepended to user query as conversation history
    - Enriched query: `"{memory_context}\n\nUser: {original_query}"`
-   - Added to conversation history
+   - Added to conversation history with enriched context
+   - **LLM Prompt Structure**:
+     ```
+     [System Prompt]
+     [Tool Schemas] (first iteration only)
+     [Memory Context]
+     User: [original query]
+     ```
 
 5. **LLM Processing**
    - LLM processes enriched query with tool calling loop
@@ -390,22 +405,26 @@ class ActivityMonitor:
      - Processes all active sessions
    - **Summarization Process**:
      - Finds unsummarized episodic memories (`summarized: "false"`)
-     - Batches memories (default: 10 per batch)
-     - Calls LLM with prompt:
+     - **Groups memories by `session_id`** to preserve conversation context
+     - Sorts memories within each session by timestamp for conversation flow
+     - Processes each complete session as a unit (batches of 10 if session > 10 interactions)
+     - Calls LLM with prompt for entire session:
        ```
-       "Extract key facts, preferences, and general knowledge from these
-       conversation logs. Return as a list of short, standalone factual statements."
+       "Extract key facts, preferences, and general knowledge from the following
+       conversation logs. Return ONLY a list of short, standalone factual statements,
+       one per line. Each statement should be concise and factual."
        ```
-     - Parses LLM response into individual facts
-     - Stores each fact as semantic memory:
+     - **Parses LLM response using newlines as separators**
+     - LLM determines number of facts to extract (no fixed limit)
+     - Stores each fact as separate semantic memory:
        ```json
        {
          "type": "semantic",
          "source_session_id": "...",
-         "extracted_from": ["memory_id1", "memory_id2"]
+         "extracted_from": ["memory_id1", "memory_id2", ...]
        }
        ```
-     - Marks episodic memories as `summarized: "true"`
+     - Marks all episodic memories in session as `summarized: "true"`
 
 **Database Structure:**
 
@@ -444,29 +463,48 @@ User Query
 
 #### **Semantic Search & Retrieval Implementation (✅ IMPLEMENTED)**
 
-**Embedding-Based Search System:**
+**Hybrid Memory Retrieval System:**
 
 ```python
 # backend/memory/retrieval.py - Memory Retrieval System
 class SemanticRetrieval:
-    """Handles semantic search and memory retrieval with re-ranking."""
+    """Advanced memory retrieval with semantic search and temporal filtering."""
 
-    def __init__(self, memory_store: LocalMemoryStore):
-        self.memory_store = memory_store
-        self.embedder = memory_store.embedder  # Reuse embedder from store
+    def hybrid_search(
+        self, query: str, user_id: str, limit: int = 5, semantic_ratio: float = 0.7
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Combine semantic search with recent episodic memories.
+
+        Returns dict with 'semantic' and 'episodic' keys for context formatting.
+        """
+        # Get semantic memories (facts/preferences) - 70% of results
+        semantic_limit = int(limit * semantic_ratio)
+        semantic_results = self.semantic_search(
+            query=query, user_id=user_id, memory_type="semantic", limit=semantic_limit
+        )
+
+        # Get recent episodic memories - remaining slots
+        episodic_limit = limit - len(semantic_results)
+        recent_episodic = self.temporal_search(
+            user_id=user_id,
+            start_time=datetime.now() - timedelta(days=7),  # Last 7 days
+            memory_type="episodic",
+            limit=episodic_limit,
+        )
+
+        return {"semantic": semantic_results, "episodic": recent_episodic}
 
     def semantic_search(
         self, query: str, user_id: str, memory_type: Optional[str] = None, limit: int = 10
     ) -> List[Dict[str, Any]]:
-        """Perform semantic search across memories with re-ranking."""
+        """Perform semantic search with FAISS vector similarity and re-ranking."""
         filters = {}
         if memory_type:
             filters["metadata.type"] = memory_type
 
-        # Get more results for re-ranking
+        # Get more results for re-ranking, then apply re-ranking algorithm
         results = self.memory_store.search(query, user_id, filters, limit * 2)
-
-        # Re-rank results
         if results:
             query_embedding = self.embedder.encode(query, convert_to_numpy=True)
             results = self._rerank_memories(query_embedding, results, query)
@@ -474,25 +512,57 @@ class SemanticRetrieval:
         return results[:limit]
 
     def temporal_search(
-        self, user_id: str, start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None, memory_type: Optional[str] = None, limit: int = 50
+        self, user_id: str, memory_type: Optional[str] = None, limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """Search memories within a specific time range."""
-        if end_time is None:
-            end_time = datetime.now()
-        if start_time is None:
-            start_time = end_time - timedelta(days=30)
+        """Get recent memories by time (last 7 days for episodic, broader for semantic)."""
+        # Use get_by_filters for reliable temporal retrieval
+        filters = {"metadata.type": memory_type} if memory_type else {}
+        results = self.memory_store.get_by_filters(
+            user_id=user_id, filters=filters, limit=limit, order_desc=True
+        )
 
-        filters = {}
-        if memory_type:
-            filters["metadata.type"] = memory_type
+        # Apply time filtering for episodic memories
+        if memory_type == "episodic":
+            cutoff = datetime.now() - timedelta(days=7)
+            results = [
+                r for r in results
+                if datetime.fromisoformat(r["timestamp"]) > cutoff
+            ]
 
-        # Get memories and filter by time
-        results = self.memory_store.search("", user_id, filters, limit * 5)
+        return results
 
-        # Filter by time range
-        filtered_results = []
-        for result in results:
+    def _rerank_memories(
+        self, query_embedding: np.ndarray, memories: List[Dict[str, Any]], query: str
+    ) -> List[Dict[str, Any]]:
+        """Re-rank by: similarity (70%) + recency (20%) + importance (10%)."""
+        scored_memories = []
+        now = datetime.now()
+
+        for memory in memories:
+            similarity_score = memory.get("score", 0.0)
+
+            # Recency score (decays over 30 days)
+            try:
+                timestamp = datetime.fromisoformat(memory["timestamp"])
+                hours_old = (now - timestamp).total_seconds() / 3600
+                recency_score = max(0.0, 1.0 - (hours_old / (24 * 30)))
+            except (ValueError, KeyError):
+                recency_score = 0.5
+
+            # Importance from metadata
+            importance = memory.get("metadata", {}).get("importance", 0.5)
+
+            # Final score combines all factors
+            final_score = (
+                similarity_score * 0.7 +      # Semantic similarity
+                recency_score * 0.2 +         # How recent
+                importance * 0.1              # How important
+            )
+
+            memory["score"] = final_score
+            scored_memories.append(memory)
+
+        return sorted(scored_memories, key=lambda x: x["score"], reverse=True)
             try:
                 timestamp = datetime.fromisoformat(result['timestamp'])
                 if start_time <= timestamp <= end_time:
@@ -618,10 +688,11 @@ class MemorySummarizer:
         """Extract facts from episodic memories and store as semantic memories."""
 
         # Get unsummarized episodic memories
-        unsummarized = self.memory_store.search(
-            query="", user_id=user_id,
+        # Groups by session_id, sorts by timestamp, processes complete sessions
+        unsummarized = self.memory_store.get_by_filters(
+            user_id=user_id,
             filters={"metadata.type": "episodic", "metadata.summarized": "false"},
-            limit=100
+            limit=1000
         )
 
         # Use LLM to extract facts
@@ -5519,7 +5590,7 @@ The `backend/agent/response_parser.py` implements multi-strategy parsing to extr
 - **Confidence Scoring**: Each parsing strategy assigns confidence scores (structured formats get 1.0, text fallback gets 0.7) to prioritize reliable parsing results.
 
 #### Agent Orchestrator Logic (Excruciating Detail)
-The core logic resides in the `Agent.process_query` method (`backend/agent/orchestrator.py`). It follows a sophisticated loop to enable tool usage, correction, and robust error handling.
+The core logic resides in the `AgentSession.process_query` method (`backend/agent/agent_session.py`). It follows a sophisticated loop to enable tool usage, correction, and robust error handling.
 
 #### Async Generator Streaming Patterns (Excruciating Detail)
 The system uses async generators extensively for real-time streaming of responses:
@@ -5964,7 +6035,7 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
 
 **Thread-Safe Model Switching:**
 ```python
-# backend/agent/orchestrator.py
+# backend/agent/agent_session.py
 async def update_config(self, new_cfg: AppConfig) -> None:
     """Hot-swap LLM client without restarting agent."""
     async with self._lock:  # Prevent race conditions during switch
@@ -6261,7 +6332,7 @@ agent = Agent(settings, tool_registry)          # Injects registry into agent
 
 #### **2. Agent Architecture**
 ```python
-# backend/agent/orchestrator.py
+# backend/agent/agent_session.py
 class Agent:
     def __init__(self, cfg: AppConfig, tool_registry: Optional[ToolRegistry] = None):
         self.tool_registry = tool_registry or create_tool_registry(self.cfg)
@@ -7073,7 +7144,7 @@ async def _execute_tools(self, parsed_response) -> AsyncGenerator[Dict[str, Any]
 **Core Agent Implementation:**
 
 ```python
-# backend/agent/orchestrator.py - Main Agent Class
+# backend/agent/agent_session.py - Main Agent Class
 class Agent:
     """The main agent class for orchestrating tasks with tool support."""
 
@@ -7101,7 +7172,7 @@ class Agent:
 **Dynamic Prompt Construction:**
 
 ```python
-# backend/agent/orchestrator.py - Prompt Building
+# backend/agent/agent_session.py - Prompt Building
 def _construct_prompt(self, include_tools: bool = True) -> List[Dict[str, str]]:
     """Construct full prompt with system prompt, tool schemas, and history."""
 
@@ -7393,7 +7464,7 @@ async def _execute_single_tool(self, tool_call: ParsedToolCall) -> ToolExecution
 **Conversation Flow Management:**
 
 ```python
-# backend/agent/orchestrator.py - Main Query Processing Loop
+# backend/agent/agent_session.py - Main Query Processing Loop
 async def process_query(self, query: str) -> AsyncGenerator[Dict[str, Any], None]:
     """Process user query with tool calling loop and streaming responses."""
 
@@ -7482,7 +7553,7 @@ async def process_query(self, query: str) -> AsyncGenerator[Dict[str, Any], None
 **Tool Call Validation Pipeline:**
 
 ```python
-# backend/agent/orchestrator.py - Tool Call Validation
+# backend/agent/agent_session.py - Tool Call Validation
 def _parse_and_validate_tool_calls(self, llm_response: str):
     """Parse LLM response and validate tool calls against registry."""
 
@@ -7527,7 +7598,7 @@ def _handle_invalid_tool_calls(self, invalid_calls, has_valid_calls):
 **Malformed Tool Call Detection:**
 
 ```python
-# backend/agent/orchestrator.py - Malformed Call Detection
+# backend/agent/agent_session.py - Malformed Call Detection
 def _is_malformed_tool_attempt(self, llm_response: str) -> bool:
     """Detect when LLM attempted tool call but used wrong format."""
 
@@ -9310,7 +9381,7 @@ The project maintains a rigorous testing strategy to ensure code quality, preven
 
 **Backend Testing (`tests/backend/`)**
 - **Framework**: `pytest` is used as the primary testing framework for its powerful features, fixture support, and plugin ecosystem. `pytest-asyncio` is used to test the extensive `async` code.
-- **Unit Tests**: Each module and class generally has a corresponding test file (e.g., `backend/agent/orchestrator.py` is tested by `tests/backend/agent/test_orchestrator.py`).
+- **Unit Tests**: Each module and class generally has a corresponding test file (e.g., `backend/agent/agent_session.py` is tested by `tests/backend/agent/test_agent_session.py`).
 - **Mocking**: The `unittest.mock` library (especially `MagicMock` and `AsyncMock`) is used extensively to isolate components during unit testing. For example, when testing the `Agent Orchestrator`, the `LLMClient` is mocked to return predefined responses, allowing tests to focus solely on the orchestrator's logic without making actual API calls.
 - **Tool Testing**: Each built-in tool has a dedicated test file (e.g., `test_file_system_tools.py`). These tests cover:
   - **Success Cases**: Validating that the tool works as expected with correct inputs.
