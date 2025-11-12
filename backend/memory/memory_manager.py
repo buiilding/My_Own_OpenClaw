@@ -8,12 +8,10 @@ import asyncio
 import logging
 from typing import Dict, List, Optional
 
-from backend.agent.llm.llm_client import get_llm_client
 from backend.config import AppConfig, get_config_dir
-from backend.memory.local_store import LocalMemoryStore
-from backend.memory.retrieval import SemanticRetrieval
+from backend.memory.retrieval import MemorySummarizer, SemanticRetrieval
 from backend.memory.schemas import EpisodicMemory, SemanticMemory
-from backend.memory.summarizer import MemorySummarizer
+from backend.memory.storage import LocalMemoryStore
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +86,9 @@ class MemoryManager:
         if cfg.memory_enabled:
             self.memory_store = get_memory_store(cfg)
             self.retrieval = SemanticRetrieval(self.memory_store)
+            # Lazy import to avoid circular dependency with agent.agent_session
+            from backend.agent.llm.llm_client import get_llm_client
+
             self.llm_client = get_llm_client(cfg)
             self.summarizer = MemorySummarizer(
                 memory_store=self.memory_store, llm_client=self.llm_client, cfg=cfg
