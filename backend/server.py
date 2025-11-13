@@ -7,7 +7,7 @@ messages and managing the client connection lifecycle.
 import asyncio
 import json
 import logging
-from typing import Any, Dict, Set
+from typing import Any, Dict, Optional, Set
 
 import websockets
 import yaml
@@ -32,6 +32,17 @@ from backend.memory.memory_manager import (
 )
 from backend.tools.registry import create_tool_registry
 
+# Optional marketplace imports
+try:
+    from backend.marketplace.registry import MarketplaceRegistry
+    from backend.marketplace.search import ToolSearchEngine
+
+    MARKETPLACE_AVAILABLE = True
+except ImportError:
+    MARKETPLACE_AVAILABLE = False
+    MarketplaceRegistry = None
+    ToolSearchEngine = None
+
 # Configure logging
 
 
@@ -55,6 +66,10 @@ active_queries_lock = asyncio.Lock()
 active_queries_done = asyncio.Event()
 active_queries_done.set()  # Initially set since no queries are active
 agent_lock = asyncio.Lock()
+
+# Global marketplace registry (initialized at startup)
+marketplace_registry: Optional[MarketplaceRegistry] = None
+tool_search_engine: Optional[ToolSearchEngine] = None
 
 
 async def _handle_ping(
@@ -95,7 +110,12 @@ async def _handle_query(
     # Get or create an agent session
     if user_id not in agent_sessions:
         settings = get_settings()
-        tool_registry = create_tool_registry(settings)
+        # Create tool registry with marketplace if available
+        tool_registry = create_tool_registry(
+            settings,
+            marketplace_registry=marketplace_registry,
+            tool_search_engine=tool_search_engine,
+        )
         agent_sessions[user_id] = AgentSession(settings, tool_registry, user_id=user_id)
         start_session(user_id, agent_sessions[user_id].session_id)
 
@@ -327,7 +347,7 @@ async def _handle_update_settings(
             # Merge with existing settings to preserve fields not sent by frontend
             merged_data = {**get_settings().model_dump(), **new_config_data}
             validated_config = AppConfig(**merged_data)
-            
+
             # Log the provider and model mode for debugging
             logger.info(
                 "Updating settings: model_mode=%s, model_provider=%s, selected_model_id=%s",
@@ -553,6 +573,31 @@ async def handler(websocket: WebSocketServerProtocol) -> None:
 
 async def main() -> None:
     """Initializes and starts the WebSocket server."""
+    global marketplace_registry, tool_search_engine
+
+    # Initialize marketplace if available
+    if MARKETPLACE_AVAILABLE:
+        try:
+            logger.info("Initializing marketplace registry...")
+            marketplace_registry = MarketplaceRegistry()
+            await marketplace_registry.load_marketplace_tools()
+            tool_count = marketplace_registry.get_tool_count()
+            logger.info(f"Loaded {tool_count} marketplace tools")
+
+            # Initialize search engine (even if no tools yet, so it's ready when tools are added)
+            tool_search_engine = ToolSearchEngine(marketplace_registry)
+            if tool_count > 0:
+                tool_search_engine.index_tools()
+                logger.info("Tool search engine initialized and indexed")
+            else:
+                logger.info("Tool search engine initialized (no tools to index yet)")
+        except Exception as e:
+            logger.error(f"Failed to initialize marketplace: {e}", exc_info=True)
+            marketplace_registry = None
+            tool_search_engine = None
+    else:
+        logger.info("Marketplace not available (optional dependencies not installed)")
+
     # Start the background summarization task
     asyncio.create_task(run_summarization_periodically())
 

@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 
 from backend.config import AppConfig, get_config_dir
 from backend.memory.retrieval import MemorySummarizer, SemanticRetrieval
-from backend.memory.schemas import EpisodicMemory, SemanticMemory
+from backend.memory.schemas import EpisodicMemory
 from backend.memory.storage import LocalMemoryStore
 
 logger = logging.getLogger(__name__)
@@ -99,6 +99,26 @@ class MemoryManager:
             self.llm_client = None
             self.summarizer = None
             logger.warning("Memory system is disabled")
+
+    async def update_config(self, new_cfg: AppConfig) -> None:
+        """
+        Updates the memory manager's configuration and re-initializes dependencies.
+
+        Args:
+            new_cfg: New AppConfig instance
+        """
+        self.cfg = new_cfg
+
+        # Re-initialize LLM client and summarizer if memory is enabled
+        if new_cfg.memory_enabled and self.memory_store:
+            # Lazy import to avoid circular dependency with agent.agent_session
+            from backend.agent.llm.llm_client import get_llm_client
+
+            self.llm_client = get_llm_client(new_cfg)
+            self.summarizer = MemorySummarizer(
+                memory_store=self.memory_store, llm_client=self.llm_client, cfg=new_cfg
+            )
+            logger.info("Updated memory manager configuration")
 
     def store_episodic_memory(self, user_message: str, assistant_reply: str) -> None:
         """

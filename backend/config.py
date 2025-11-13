@@ -269,63 +269,6 @@ def save_settings_to_file(cfg: AppConfig) -> None:
 # Initialize settings on module load
 settings = get_settings()
 
-# --- Functions for managing config.py ---
-
-# The following functions (get_model_id, set_model_id, etc.) are deprecated
-# and will be removed. Direct manipulation of the AppConfig object (via get_settings())
-# is now the preferred way to manage configuration.
-
-
-def get_config_path() -> str:
-    """DEPRECATED: Returns the path to the config file."""
-    return str(get_config_dir() / CONFIG_FILE_NAME)
-
-
-def get_model_id() -> str:
-    """DEPRECATED: Gets the current model ID from settings."""
-    return get_settings().selected_model_id
-
-
-def set_model_id(model_id: str) -> None:
-    """DEPRECATED: Sets the model ID in settings and saves to file."""
-    current_settings = get_settings()
-    current_settings.selected_model_id = model_id
-    save_settings_to_file(current_settings)
-    reload_settings()
-
-
-def get_provider() -> str:
-    """DEPRECATED: Gets the current provider from settings."""
-    return get_settings().model_provider
-
-
-def set_provider(provider: str) -> None:
-    """DEPRECATED: Sets the provider in settings and saves to file."""
-    current_settings = get_settings()
-    current_settings.model_provider = provider
-    save_settings_to_file(current_settings)
-    reload_settings()
-
-
-def get_model_mode() -> str:
-    """DEPRECATED: Gets the current model mode from settings."""
-    return get_settings().model_mode
-
-
-def set_model_mode(mode: str) -> None:
-    """DEPRECATED: Sets the model mode in settings and saves to file."""
-    current_settings = get_settings()
-    if mode not in ["local", "online"]:
-        raise ValueError("Invalid model mode. Must be 'local' or 'online'.")
-    current_settings.model_mode = mode
-    save_settings_to_file(current_settings)
-    reload_settings()
-
-
-def get_full_model_name() -> str:
-    """DEPRECATED: Gets the full model name."""
-    return get_settings().llm_model
-
 
 if __name__ == "__main__":
     # Example of how to use the configuration system

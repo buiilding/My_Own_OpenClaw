@@ -31,6 +31,10 @@ class ShellExecutionResult:
     aborted: bool
 
 
+# Default timeout for shell commands (seconds)
+DEFAULT_SHELL_TIMEOUT = 30.0
+
+
 class ShellTool(Tool):
     """Tool for executing shell commands with safety restrictions."""
 
@@ -165,15 +169,59 @@ class ShellTool(Tool):
                 "Could not identify command root to obtain permission from user",
             )
 
-        # Check if any root command is allowed
-        allowed_tools = self.config.get_allowed_tools() or []
+        # Define destructive commands that are never allowed
+        destructive_commands = {
+            # File/directory deletion
+            "rm",
+            "del",
+            "delete",
+            "erase",
+            "rd",
+            "rmdir",
+            "unlink",
+            # Disk operations
+            "format",
+            "fdisk",
+            "mkfs",
+            "dd",
+            "diskpart",
+            # System operations
+            "shutdown",
+            "reboot",
+            "halt",
+            "poweroff",
+            "init",
+            "systemctl",
+            # Network destructive
+            "iptables",
+            "firewall-cmd",
+            "ufw",
+            # Process killing (except specific safe ones)
+            "killall",
+            "pkill",
+            "kill",
+            # Package managers when used destructively (we can't check flags, so be conservative)
+            "apt-get",
+            "yum",
+            "dnf",
+            "pacman",
+            "brew",
+        }
 
         for root_cmd in root_commands:
-            # Check if command is in allowlist
+            # Check if command is in allowlist (overrides destructive check)
             if root_cmd in self.allowlist:
                 continue
 
-            # Check against allowed tools configuration
+            # Check if command is destructive
+            if root_cmd in destructive_commands:
+                return (
+                    False,
+                    f"Command '{root_cmd}' is potentially destructive and not allowed",
+                )
+
+            # Check against allowed tools configuration (legacy support)
+            allowed_tools = self.config.get_allowed_tools() or []
             is_allowed = self._is_command_in_allowed_tools(root_cmd, allowed_tools)
             if not is_allowed:
                 return (
@@ -263,7 +311,7 @@ class ShellTool(Tool):
                 # Wait for completion with timeout
                 stdout, stderr = await asyncio.wait_for(
                     process.communicate(),
-                    timeout=self.config.get_shell_timeout() or 30.0,
+                    timeout=self.config.get_shell_timeout() or DEFAULT_SHELL_TIMEOUT,
                 )
 
                 output = stdout.decode("utf-8", errors="replace") if stdout else ""

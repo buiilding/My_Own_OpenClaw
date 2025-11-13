@@ -1,7 +1,7 @@
 """
 Replace Tool.
 
-Tool for search/replace text in files with fuzzy matching.
+Tool for precise search and replace operations in files.
 """
 
 import logging
@@ -21,12 +21,12 @@ logger = logging.getLogger(__name__)
 
 
 class ReplaceTool(Tool):
-    """Tool for search/replace text in files with fuzzy matching."""
+    """Tool for precise search and replace operations in files."""
 
     def __init__(self, config: Any):
         super().__init__(
             name="replace",
-            description="Replaces text within a file. By default, replaces a single occurrence, but can replace multiple occurrences when `expected_replacements` is specified. This tool requires providing significant context around the change to ensure precise targeting.",
+            description="Use this tool to propose a search and replace operation on an existing file.\n\nThe tool will replace ONE occurrence of old_string with new_string in the specified file.\n\nCRITICAL REQUIREMENTS FOR USING THIS TOOL:\n\n1. UNIQUENESS: The old_string MUST uniquely identify the specific instance you want to change. This means:\n   - Include AT LEAST 3-5 lines of context BEFORE the change point\n   - Include AT LEAST 3-5 lines of context AFTER the change point\n   - Include all whitespace, indentation, and surrounding code exactly as it appears in the file\n\n2. SINGLE INSTANCE: This tool can only change ONE instance at a time. If you need to change multiple instances:\n   - Make separate calls to this tool for each instance\n   - Each call must uniquely identify its specific instance using extensive context\n\n3. VERIFICATION: Before using this tool:\n   - If multiple instances exist, gather enough context to uniquely identify each one\n   - Plan separate tool calls for each instance\n",
             kind=Kind.EDIT,
         )
         self.config = config
@@ -37,14 +37,9 @@ class ReplaceTool(Tool):
         file_path: str,
         old_string: str,
         new_string: str,
-        expected_replacements: Optional[int] = None,
     ) -> ToolResult:
         """Execute the replace tool."""
         try:
-            expected_replacements = (
-                expected_replacements if expected_replacements is not None else 1
-            )
-
             # Validate required parameters
             if not file_path:
                 return ToolResult(
@@ -54,20 +49,18 @@ class ReplaceTool(Tool):
                     return_display="file_path parameter is required",
                 )
 
-            # Validate path is absolute
+            # Resolve relative paths to absolute paths
+            workspace_context = self.config.get_workspace_context()
             if not os.path.isabs(file_path):
-                return ToolResult(
-                    success=False,
-                    error=f"File path must be absolute: {file_path}",
-                    llm_content=f"Error: File path must be absolute: {file_path}",
-                    return_display="File path must be absolute",
-                )
+                # Resolve relative path to absolute using workspace path
+                workspace_path = workspace_context.workspace_path
+                file_path = os.path.abspath(os.path.join(workspace_path, file_path))
+                logger.info(f"Replace: Resolved relative path to absolute: {file_path}")
 
             # Get target directory for relative path resolution
-            target_dir = self.config.get_workspace_context().workspace_path
+            target_dir = workspace_context.workspace_path
 
             # Check if path is within workspace
-            workspace_context = self.config.get_workspace_context()
             if not workspace_context.is_path_within_workspace(file_path):
                 return ToolResult(
                     success=False,
@@ -118,9 +111,9 @@ class ReplaceTool(Tool):
                     return_display="Failed to read file",
                 )
 
-            # Perform replacement
+            # Perform replacement (only one occurrence)
             new_content, replacements = self._perform_replacement(
-                current_content, old_string, new_string, expected_replacements
+                current_content, old_string, new_string, 1
             )
 
             if replacements == 0:
@@ -131,12 +124,12 @@ class ReplaceTool(Tool):
                     return_display="No occurrences found to replace",
                 )
 
-            if replacements != expected_replacements:
+            if replacements > 1:
                 return ToolResult(
                     success=False,
-                    error=f"Failed to edit, expected {expected_replacements} occurrence(s) but found {replacements}",
-                    llm_content=f"Failed to edit, expected {expected_replacements} occurrence(s) but found {replacements}.",
-                    return_display=f"Expected {expected_replacements} but found {replacements} occurrences",
+                    error="Failed to edit, old_string matches multiple occurrences. Provide more context to uniquely identify the specific instance.",
+                    llm_content="Failed to edit, old_string matches multiple occurrences. Provide more context to uniquely identify the specific instance.",
+                    return_display="Multiple occurrences found - provide more context",
                 )
 
             # Write back the modified content

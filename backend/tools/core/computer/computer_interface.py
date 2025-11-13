@@ -90,6 +90,30 @@ class ComputerInterface:
             logger.error(f"Failed to initialize computer interface: {e}")
             return False
 
+    async def ensure_initialized(self):
+        """
+        Ensure the computer interface is initialized, returning a ToolResult on failure.
+
+        This method is used by computer tools to check initialization before performing actions.
+        Returns None if initialization succeeds, or a ToolResult with error if it fails.
+
+        Returns:
+            ToolResult with error if initialization failed, None if successful
+        """
+        if not hasattr(self, "_initialized") or not self._initialized:
+            success = await self.initialize()
+            if not success:
+                # Import here to avoid circular imports
+                from backend.tools.base import ToolResult
+
+                return ToolResult(
+                    success=False,
+                    error="Failed to initialize computer interface",
+                    llm_content="Error: Could not initialize computer control interface",
+                    return_display="Computer interface not available",
+                )
+        return None
+
     # ============================================================================
     # MOUSE ACTIONS
     # ============================================================================
@@ -98,13 +122,13 @@ class ComputerInterface:
         self, x: Optional[int] = None, y: Optional[int] = None
     ) -> ComputerActionResult:
         """Perform a left mouse button click."""
-        return self._click(x, y, "left")
+        return await self._click(x, y, "left")
 
     async def right_click(
         self, x: Optional[int] = None, y: Optional[int] = None
     ) -> ComputerActionResult:
         """Perform a right mouse button click."""
-        return self._click(x, y, "right")
+        return await self._click(x, y, "right")
 
     async def double_click(
         self, x: Optional[int] = None, y: Optional[int] = None
@@ -422,16 +446,13 @@ class ComputerInterface:
     # HELPER METHODS
     # ============================================================================
 
-    def _click(
+    async def _click(
         self, x: Optional[int], y: Optional[int], button: MouseButton
     ) -> ComputerActionResult:
         """Internal click method."""
         try:
             if not self._initialized:
-                # Run initialize in a new event loop since this is not async
-                import asyncio
-
-                asyncio.run(self.initialize())
+                await self.initialize()
 
             if x is not None and y is not None:
                 self._pyautogui.moveTo(x, y)

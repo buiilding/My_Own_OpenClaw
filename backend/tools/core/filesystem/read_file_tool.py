@@ -57,14 +57,16 @@ class ReadFileTool(Tool):
                     return_display="absolute_path or path parameter is required",
                 )
 
-            # Validate path is absolute
+            # Resolve relative paths to absolute paths
+            workspace_context = self.config.get_workspace_context()
             if not os.path.isabs(absolute_path):
-                logger.error(f"ReadFile: Path is not absolute: {absolute_path}")
-                return ToolResult(
-                    success=False,
-                    error=f"File path must be absolute: {absolute_path}",
-                    llm_content=f"Error: File path must be absolute: {absolute_path}",
-                    return_display="File path must be absolute",
+                # Resolve relative path to absolute using workspace path
+                workspace_path = workspace_context.workspace_path
+                absolute_path = os.path.abspath(
+                    os.path.join(workspace_path, absolute_path)
+                )
+                logger.info(
+                    f"ReadFile: Resolved relative path to absolute: {absolute_path}"
                 )
 
             logger.info(

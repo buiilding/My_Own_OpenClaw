@@ -1,0 +1,62 @@
+{
+  "name": "coact_automation",
+  "version": "1.0.0",
+  "description": "CoAct-1 Multi-Agent Computer Automation Tool - Intelligent task decomposition and execution using specialized AI agents for complex computer workflows",
+  "author": "Desktop Assistant Team",
+  "category": "system",
+  "tool_class": "CoActAutomationTool",
+  "permissions": [
+    "filesystem_read",
+    "filesystem_write",
+    "process_execution",
+    "gui_access",
+    "network_access"
+  ],
+  "is_destructive": false,
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "task": {
+        "type": "string",
+        "description": "Natural language description of the computer automation task to perform"
+      }
+    },
+    "required": ["task"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "description": "Whether the task was completed successfully"
+      },
+      "summary": {
+        "type": "string",
+        "description": "Summary of actions performed and results achieved"
+      },
+      "execution_details": {
+        "type": "object",
+        "description": "Detailed breakdown of agent actions and decisions"
+      }
+    }
+  },
+  "tags": [
+    "automation",
+    "multi-agent",
+    "computer-control",
+    "task-decomposition",
+    "intelligent-execution",
+    "screenshot-analysis",
+    "ocr-integration",
+    "gui-automation"
+  ],
+  "homepage": "https://github.com/desktop-assistant/coact-automation",
+  "license": "MIT",
+  "dependencies": [],
+  "memory_contribution": {
+    "episodic_detail_level": "high",
+    "semantic_extraction": true,
+    "performance_tracking": true,
+    "privacy_level": "user_consent"
+  }
+}
