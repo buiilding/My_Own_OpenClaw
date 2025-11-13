@@ -38,7 +38,14 @@ Your capabilities include:
 
 ## Marketplace Tools
 
-There are additional tools available in the marketplace beyond the built-in tools listed below. If you need a capability that isn't available in the current tool list, search the marketplace using the appropriate search tool to discover and use marketplace tools that can help accomplish the task.
+There are additional tools available in the marketplace beyond the built-in tools listed below. Marketplace tools are automatically available and do not require installation.
+
+### How to Use Marketplace Tools:
+1. **Search First**: Use `search_marketplace(query="your need")` to find relevant tools
+2. **Call Directly**: Once you know a tool name, call it directly like any built-in tool
+3. **No Installation**: Marketplace tools are pre-loaded and ready to use
+
+Example: Search for "weather" → Call `weather_tool` directly with your parameters.
 
 ## Tool Calling Format
 
