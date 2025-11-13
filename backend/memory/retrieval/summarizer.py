@@ -5,11 +5,13 @@ Uses the local LLM client to extract key facts, preferences, and general
 knowledge from episodic interaction logs, storing them as semantic memories.
 """
 import logging
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from backend.agent.llm.llm_client import LLMClient, get_llm_client
 from backend.config import AppConfig
-from backend.memory.local_store import LocalMemoryStore
+from backend.memory.storage import LocalMemoryStore
+
+if TYPE_CHECKING:
+    from backend.agent.llm.llm_client import LLMClient
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +24,7 @@ class MemorySummarizer:
     def __init__(
         self,
         memory_store: LocalMemoryStore,
-        llm_client: Optional[LLMClient] = None,
+        llm_client: Optional["LLMClient"] = None,
         cfg: Optional[AppConfig] = None,
     ):
         """
@@ -40,6 +42,9 @@ class MemorySummarizer:
             self.cfg = None
         elif cfg:
             self.cfg = cfg
+            # Lazy import to avoid circular dependency with agent.agent_session
+            from backend.agent.llm.llm_client import get_llm_client
+
             self.llm_client = get_llm_client(cfg)
         else:
             raise ValueError("Either llm_client or cfg must be provided")
@@ -68,8 +73,9 @@ class MemorySummarizer:
         if session_id:
             filters["metadata.session_id"] = session_id
 
-        unsummarized = self.memory_store.search(
-            query="",  # Empty query to get all matching
+        # Use get_by_filters instead of search for getting all matching records
+        # (search uses vector similarity which doesn't work well with empty queries)
+        unsummarized = self.memory_store.get_by_filters(
             user_id=user_id,
             filters=filters,
             limit=1000,  # Increased limit to ensure we get all memories for session grouping

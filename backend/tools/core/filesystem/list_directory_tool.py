@@ -53,23 +53,23 @@ class ListDirectoryTool(Tool):
                     return_display="Error: Path parameter is required",
                 )
 
-            # Validate path is absolute
+            # Resolve relative paths to absolute paths and get workspace context
             logger.info(
                 f"ListDirectory: Path is absolute check: {os.path.isabs(path)} for path: {path}"
             )
+            workspace_context = self.config.get_workspace_context()
+            logger.info(f"ListDirectory: Got workspace context: {workspace_context}")
+
             if not os.path.isabs(path):
-                logger.error(f"ListDirectory: Path is not absolute: {path}")
-                return ToolResult(
-                    success=False,
-                    error=f"Path must be absolute: {path}",
-                    llm_content=f"Error: Path must be absolute: {path}",
-                    return_display=f"Path must be absolute: {path}",
+                # Resolve relative path to absolute using workspace path
+                workspace_path = workspace_context.workspace_path
+                path = os.path.abspath(os.path.join(workspace_path, path))
+                logger.info(
+                    f"ListDirectory: Resolved relative path to absolute: {path}"
                 )
 
             # Check if path is within workspace
-            logger.info("ListDirectory: About to get workspace context")
-            workspace_context = self.config.get_workspace_context()
-            logger.info(f"ListDirectory: Got workspace context: {workspace_context}")
+            logger.info("ListDirectory: About to check if path is within workspace")
             logger.info(f"ListDirectory: Checking if path is within workspace: {path}")
             is_within_workspace = workspace_context.is_path_within_workspace(path)
             logger.info(f"ListDirectory: is_within_workspace={is_within_workspace}")

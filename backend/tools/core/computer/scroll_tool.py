@@ -59,19 +59,10 @@ class ScrollTool(Tool):
             ToolResult with action outcome
         """
         try:
-            # Initialize computer interface if needed
-            if (
-                not hasattr(self.computer, "_initialized")
-                or not self.computer._initialized
-            ):
-                success = await self.computer.initialize()
-                if not success:
-                    return ToolResult(
-                        success=False,
-                        error="Failed to initialize computer interface",
-                        llm_content="Error: Could not initialize scroll control",
-                        return_display="Scroll control failed: Interface not available",
-                    )
+            # Ensure computer interface is initialized
+            init_error = await self.computer.ensure_initialized()
+            if init_error:
+                return init_error
 
             # Execute the requested action
             result = await self._execute_scroll_action(action, x, y, clicks, direction)

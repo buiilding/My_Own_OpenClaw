@@ -20,6 +20,7 @@ from backend.agent.state.conversation_history import ConversationHistory
 from backend.agent.state.exceptions import ToolExecutionError
 from backend.config import AppConfig
 from backend.memory.memory_manager import MemoryManager
+from backend.tools.base import ToolResult
 from backend.tools.registry import ToolRegistry, create_tool_registry
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,8 @@ class AgentSession:
         async with self._lock:
             self.cfg = new_cfg
             self.llm_client = get_llm_client(self.cfg)
+            # Update memory manager configuration as well
+            await self.memory_manager.update_config(new_cfg)
 
     async def _get_llm_response_stream(
         self, prompt: List[Dict[str, str]]
@@ -122,7 +125,13 @@ class AgentSession:
 
         # Store screenshot data for computer tools to include in conversation history
         tool_screenshots = {}
-        computer_tools = {"mouse_control", "keyboard_control", "scroll_control"}
+        computer_tools = {
+            "mouse_control",
+            "keyboard_control",
+            "scroll_control",
+            "click_ocr_element",
+            "predict_click",
+        }
 
         # Send individual tool output messages for each tool result
         for result in orchestration_result.tool_results:
@@ -189,6 +198,10 @@ class AgentSession:
             ],
         }
 
+        # Process tool-contributed memories
+        for result in orchestration_result.tool_results:
+            await self._process_tool_memories(result.result, result.tool_call.tool_name)
+
         # Add tool results to conversation history
         for result in orchestration_result.tool_results:
             if result.success:
@@ -217,6 +230,42 @@ class AgentSession:
             raise ToolExecutionError(
                 f"Some tools failed: {orchestration_result.summary}"
             )
+
+    async def _process_tool_memories(self, tool_result: "ToolResult", tool_name: str):
+        """
+        Process and store memories contributed by marketplace tools.
+
+        Args:
+            tool_result: The ToolResult from tool execution
+            tool_name: Name of the tool that produced the result
+        """
+        # Store episodic memories
+        if tool_result.episodic_memories:
+            for memory in tool_result.episodic_memories:
+                # Format as episodic memory with tool context
+                memory_content = (
+                    f"[Tool: {tool_name}] {memory.get('description', str(memory))}"
+                )
+                if memory.get("context"):
+                    memory_content += f" | Context: {memory['context']}"
+
+                self.memory_manager.store_episodic_memory(
+                    f"Tool execution: {tool_name}", memory_content
+                )
+
+        # Store semantic facts
+        if tool_result.semantic_facts:
+            for fact in tool_result.semantic_facts:
+                # Store as semantic memory directly in the memory store
+                self.memory_manager.memory_store.add(
+                    text=fact.strip(),
+                    user_id=self.memory_manager.user_id,
+                    metadata={
+                        "type": "semantic",
+                        "source": f"tool_execution_{tool_name}",
+                        "tool_name": tool_name,
+                    },
+                )
 
     def _handle_invalid_tool_calls(self, invalid_calls, has_valid_calls):
         """Handles invalid tool calls by adding a message to history."""
