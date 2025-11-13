@@ -43,20 +43,20 @@ class WriteFileTool(Tool):
                     return_display="file_path parameter is required",
                 )
 
-            # Validate path is absolute
+            # Resolve relative paths to absolute paths
+            workspace_context = self.config.get_workspace_context()
             if not os.path.isabs(file_path):
-                return ToolResult(
-                    success=False,
-                    error=f"File path must be absolute: {file_path}",
-                    llm_content=f"Error: File path must be absolute: {file_path}",
-                    return_display="File path must be absolute",
+                # Resolve relative path to absolute using workspace path
+                workspace_path = workspace_context.workspace_path
+                file_path = os.path.abspath(os.path.join(workspace_path, file_path))
+                logger.info(
+                    f"WriteFile: Resolved relative path to absolute: {file_path}"
                 )
 
             # Get target directory for relative path resolution
-            target_dir = self.config.get_workspace_context().workspace_path
+            target_dir = workspace_context.workspace_path
 
             # Check if path is within workspace
-            workspace_context = self.config.get_workspace_context()
             if not workspace_context.is_path_within_workspace(file_path):
                 return ToolResult(
                     success=False,

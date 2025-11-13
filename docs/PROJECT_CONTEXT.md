@@ -1361,7 +1361,7 @@ Every tool includes a JSON manifest with:
   "description": "Executes terminal commands on Windows (PowerShell/CMD)",
   "author": "Desktop Assistant Team",
   "category": "system",
-  "permissions": ["filesystem", "process_execution"],
+  "permissions": ["process_execution"],
   "is_destructive": true,
   "input_schema": {
     "command": {
@@ -1385,6 +1385,98 @@ Every tool includes a JSON manifest with:
     "format": "Command executed: {command}, Exit code: {exit_code}, Output summary: {summary}"
   }
 }
+```
+
+#### Permission System (Handled in AppServices)
+
+**Overview**: Tools declare permissions in their manifest, but permissions are validated at runtime by the `ToolSecurityValidator` in `AppServices`. This ensures tools can only perform operations they have explicitly declared permissions for.
+
+**6 Available Permissions**:
+- **`filesystem_read`**: Read files and list directories
+- **`filesystem_write`**: Create, modify, or delete files and directories
+- **`process_execution`**: Execute shell commands and external processes
+- **`network_access`**: Make HTTP requests, socket connections, or other network operations
+- **`system_info`**: Access system information (environment variables, running processes, system details)
+- **`gui_access`**: Control GUI elements (mouse movement, keyboard input, screenshots)
+
+**How It Works**:
+1. **Declaration**: Tools declare required permissions in `manifest.json`
+2. **Runtime Validation**: When tool executes, `AppServices` checks if operation requires permission
+3. **Parameter-Based**: Permission validation based on actual parameters passed to tool
+4. **Security Violation**: Tools attempting operations without declared permissions are blocked
+
+**Example**: A tool that needs to execute shell commands must declare `"permissions": ["process_execution"]` in its manifest. At runtime, if the tool receives a `command` parameter, the system verifies it has the `process_execution` permission before allowing execution.
+
+**Built-in Tools**: The built-in filesystem and shell tools automatically have appropriate permissions granted through their implementation in the core system.
+
+#### **Tool Execution Environment**
+
+**Where Marketplace Tools Run:**
+- **Same Process**: Marketplace tools execute in the same Python process as the Desktop Assistant backend
+- **Module Loading**: Tools are dynamically imported as Python modules using `importlib`
+- **Class Instantiation**: Tool classes are instantiated with `AppServices` dependency injection
+- **Security Isolation**: Security provided through permission validation, workspace restrictions, and AppServices layer
+
+**Execution Flow:**
+1. **Discovery**: Tool discovered and validated at server startup from `tools/verified/`
+2. **Registration**: Valid tools registered in `MarketplaceRegistry`
+3. **Lazy Loading**: Tools loaded on-demand when first called
+4. **Instantiation**: Tool class created with `AppServices(config)` for security context
+5. **Execution**: `tool.execute_async(context, **kwargs)` called with parameter validation
+6. **Result**: `ToolResult` returned to agent for LLM consumption
+
+**Implementation Code Locations:**
+- **Marketplace Tool Loading**: `backend/marketplace/registry.py` - `get_tool_instance()`
+- **Tool Execution Entry Point**: `backend/tools/registry.py` - `execute_tool()`
+- **Orchestration Layer**: `backend/agent/execution/tool_orchestrator.py` - `_execute_single_tool()`
+- **Agent Integration**: `backend/agent/agent_session.py` - `_execute_tools()`
+
+**Security Model:**
+- **Process-level**: All tools share the same Python process (not subprocess isolation)
+- **Permission-based**: Runtime validation of declared permissions against actual operations
+- **Workspace-bound**: File operations restricted to user workspace and temp directories
+- **Import-restricted**: Only whitelisted Python modules can be imported
+- **Parameter-validated**: All inputs validated before execution
+
+#### Example Marketplace Tool: Weather Lookup
+
+A complete weather lookup tool demonstrating marketplace capabilities is available at `tools/verified/weather_tool/`:
+
+**Why this can't be done with built-in tools:**
+- Built-in tools can only access local files, execute shell commands, and control UI
+- Weather data requires external API access (network requests)
+- The agent would need the `network_access` permission to make HTTP requests
+
+**Manifest (`tools/verified/weather_tool/manifest.json`):**
+```json
+{
+  "name": "weather_tool",
+  "version": "1.0.0",
+  "description": "Get current weather information for any location using a weather API",
+  "permissions": ["network_access"],
+  "tool_class": "WeatherTool"
+}
+```
+
+**Implementation (`tools/verified/weather_tool/tool.py`):**
+```python
+class WeatherTool(Tool):
+    def __init__(self, config):
+        super().__init__(name="weather_tool", description="...", kind=Kind.FETCH)
+        self.config = config  # AppServices instance for security
+
+    async def execute_async(self, context, location: str, unit: str = "celsius"):
+        # Make secure API request through AppServices security layer
+        response = await self.client.get(f"https://wttr.in/{location}?format=j1")
+        # Parse and return weather data
+        return ToolResult(success=True, data=weather_data, ...)
+```
+
+**Usage:**
+```
+User: "What's the weather like in London?"
+Agent: Calls weather_tool with location="London"
+Tool: Returns "Weather in London: 15°C, Partly cloudy, Humidity: 72%, Wind: 8 km/h"
 ```
 
 #### Tool Discovery & Selection
@@ -1425,7 +1517,7 @@ class ReadFileTool(Tool):
 - **Testability**: Easy mocking of services for unit testing
 
 #### Tool Execution
-- **Sandboxing**: Tools run in isolated subprocess environments with resource constraints and timeout protection
+- **Execution Context**: Marketplace tools run in the same Python process as the main application with security isolation through AppServices
 - **Timeout Management**: Configurable execution timeouts (default 30s) with graceful termination of hung processes
 - **Resource Limits**: Optional CPU and memory constraints to prevent system impact
 - **Permission System**: Tools declare required permissions upfront, enabling user review and approval workflows
@@ -1691,10 +1783,14 @@ class ToolManifestValidator:
             if not re.match(r'^\d+\.\d+\.\d+$', manifest["version"]):
                 return False
 
-            # Validate permissions
+            # Validate permissions (6 total allowed permissions)
             allowed_permissions = {
-                "filesystem_read", "filesystem_write", "process_execution",
-                "network_access", "system_info", "gui_access"
+                "filesystem_read",    # Read files and directories
+                "filesystem_write",   # Create, modify, delete files/directories
+                "process_execution",  # Execute shell commands/processes
+                "network_access",     # Make network requests (HTTP, sockets, etc.)
+                "system_info",        # Access system information (environment, processes)
+                "gui_access",         # Control GUI elements (mouse, keyboard, screenshots)
             }
 
             permissions = manifest.get("permissions", [])
@@ -1934,20 +2030,35 @@ class SandboxedToolExecutor:
     async def _validate_permissions(
         self, tool_permissions: List[str], kwargs: Dict[str, Any]
     ) -> None:
-        """Validate that tool has necessary permissions for the operation."""
+        """
+        Validate that tool has necessary permissions for the operation.
 
-        # Check if tool requires permissions it doesn't have
+        Permissions are declared in tool manifests but validated at runtime based on
+        actual parameters passed to tool execution. Tools can only execute operations
+        they have declared permissions for.
+
+        Args:
+            tool_permissions: List of permissions declared in tool manifest
+            kwargs: Parameters being passed to tool execution
+
+        Raises:
+            SecurityViolationError: If tool lacks required permission for operation
+        """
+
+        # Map dangerous operations to required permissions
         dangerous_operations = {
-            "filesystem_write": ["path", "file_path", "directory"],
-            "process_execution": ["command", "cmd", "script"],
-            "network_access": ["url", "endpoint", "host"],
+            "filesystem_write": ["path", "file_path", "directory"],  # File write operations
+            "process_execution": ["command", "cmd", "script"],      # Shell command execution
+            "network_access": ["url", "endpoint", "host"],          # Network requests
         }
 
+        # Check if any dangerous operation is being attempted without permission
         for permission, param_names in dangerous_operations.items():
             if any(param in kwargs for param in param_names):
                 if permission not in tool_permissions:
                     raise SecurityViolationError(
-                        f"Tool lacks required permission '{permission}' for operation"
+                        f"Tool lacks required permission '{permission}' for operation. "
+                        f"Tool must declare '{permission}' in its manifest.json to perform this operation."
                     )
 
     async def _check_dangerous_parameters(self, kwargs: Dict[str, Any]) -> None:
@@ -2610,7 +2721,7 @@ class TestMyTool:
 
 #### **Community Tool Security:**
 - ⚠️ **Code Review**: All community tools undergo security review
-- ⚠️ **Sandboxing**: Tools run in isolated subprocesses
+- ⚠️ **Execution Context**: Tools run in main Python process with AppServices security layer
 - ⚠️ **Permission Declaration**: Tools must declare required permissions
 - ⚠️ **User Confirmation**: Destructive operations require user approval
 
@@ -8973,7 +9084,7 @@ git commit --no-verify -m "your commit message"
 ### Challenge 4: Tool Execution Security
 **Problem**: Tools execute arbitrary code, potential security risk.
 **Solution**:
-- Subprocess sandboxing
+- Same-process execution with AppServices security
 - Permission system (tools declare needs)
 - Human verification for marketplace tools
 - Timeouts and resource limits
@@ -9172,7 +9283,7 @@ git commit --no-verify -m "your commit message"
 - **File Type Validation**: Content type verification for uploaded/processed files
 
 #### **Process Security:**
-- **Subprocess Sandboxing**: Tool execution in isolated subprocesses with resource limits
+- **Same-Process Execution**: Tools run in main Python process with AppServices security isolation
 - **Command Validation**: Allowlisting of permitted shell commands and arguments
 - **Timeout Protection**: All operations have configurable timeouts to prevent hangs
 - **Resource Limits**: CPU and memory constraints prevent system impact

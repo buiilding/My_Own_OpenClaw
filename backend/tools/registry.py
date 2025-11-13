@@ -9,10 +9,12 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from backend.config import AppServices
-from backend.tools.base import Tool, ToolBuilder, ToolInvocation, ToolResult
+from backend.tools.base import Tool, ToolResult
 from backend.tools.core.computer import (
+    ClickOcrTool,
     KeyboardTool,
     MouseTool,
+    PredictClickTool,
     ScreenshotTool,
     ScrollTool,
 )
@@ -25,9 +27,18 @@ from backend.tools.core.filesystem import (
     SearchFileContentTool,
     WriteFileTool,
 )
+from backend.tools.core.marketplace import SearchMarketplaceTool
 from backend.tools.core.system.shell_tool import ShellTool
 
 logger = logging.getLogger(__name__)
+
+# Optional marketplace registry import
+try:
+    from backend.marketplace.registry import MarketplaceRegistry
+    from backend.marketplace.search import ToolSearchEngine
+except ImportError:
+    MarketplaceRegistry = None
+    ToolSearchEngine = None
 
 
 class ToolRegistry:
@@ -38,16 +49,25 @@ class ToolRegistry:
     capabilities for the agent system.
     """
 
-    def __init__(self, config: Any):
+    def __init__(
+        self,
+        config: Any,
+        marketplace_registry: Optional[Any] = None,
+        tool_search_engine: Optional[Any] = None,
+    ):
         """
         Initialize the tool registry.
 
         Args:
             config: Application configuration object
+            marketplace_registry: Optional MarketplaceRegistry instance for community tools
+            tool_search_engine: Optional ToolSearchEngine instance for marketplace search
         """
         self.config = config
         self.services = AppServices(config)
         self.tools: Dict[str, Tool] = {}
+        self.marketplace_registry: Optional[MarketplaceRegistry] = marketplace_registry
+        self.tool_search_engine: Optional[ToolSearchEngine] = tool_search_engine
         self._register_builtin_tools()
 
     def _register_builtin_tools(self) -> None:
@@ -66,9 +86,18 @@ class ToolRegistry:
 
         # Computer Use Automation (CUA) tools
         self.register_tool(ScreenshotTool(self.services))
+        self.register_tool(ClickOcrTool(self.services))
         self.register_tool(MouseTool(self.services))
         self.register_tool(KeyboardTool(self.services))
         self.register_tool(ScrollTool(self.services))
+        self.register_tool(PredictClickTool(self.services))
+
+        # Marketplace search tool
+        self.register_tool(
+            SearchMarketplaceTool(
+                self.services, tool_search_engine=self.tool_search_engine
+            )
+        )
 
         logger.info(f"Registered {len(self.tools)} built-in tools")
 
@@ -88,13 +117,33 @@ class ToolRegistry:
         """
         Get a tool by name.
 
+        Checks built-in tools first, then marketplace tools if not found.
+
         Args:
             name: Name of the tool to retrieve
 
         Returns:
             The tool instance, or None if not found
         """
-        return self.tools.get(name)
+        # First check built-in tools
+        tool = self.tools.get(name)
+        if tool:
+            return tool
+
+        # Check marketplace if available
+        if self.marketplace_registry:
+            try:
+                # Note: get_tool_instance is async, but we're in sync context
+                # We'll need to handle this differently - for now, check if already loaded
+                marketplace_tool = self.marketplace_registry.instances.get(name)
+                if marketplace_tool:
+                    # Register it in our tools dict for future lookups
+                    self.tools[name] = marketplace_tool
+                    return marketplace_tool
+            except Exception as e:
+                logger.debug(f"Error checking marketplace for tool {name}: {e}")
+
+        return None
 
     def get_all_tools(self) -> List[Tool]:
         """
@@ -119,11 +168,13 @@ class ToolRegistry:
         Get function declarations (schemas) for all tools.
 
         This is used to provide tool schemas to LLMs.
+        Includes both built-in tools and marketplace tools.
 
         Returns:
             List of function declaration dictionaries
         """
         declarations = []
+        # Add built-in tool schemas
         for tool in self.tools.values():
             try:
                 schema = tool.get_schema()
@@ -131,6 +182,27 @@ class ToolRegistry:
             except Exception as e:
                 logger.error(f"Failed to get schema for tool {tool.name}: {e}")
                 continue
+
+        # Add marketplace tool schemas if available
+        if self.marketplace_registry:
+            try:
+                # Get schemas for all marketplace tools
+                # Note: This requires async, but we'll handle it by checking cached instances
+                for tool_name in self.marketplace_registry.list_tools():
+                    # Check if tool is already instantiated
+                    if tool_name in self.marketplace_registry.instances:
+                        tool = self.marketplace_registry.instances[tool_name]
+                        try:
+                            schema = tool.get_schema()
+                            declarations.append(schema)
+                        except Exception as e:
+                            logger.error(
+                                f"Failed to get schema for marketplace tool {tool_name}: {e}"
+                            )
+                            continue
+            except Exception as e:
+                logger.error(f"Error getting marketplace tool schemas: {e}")
+
         return declarations
 
     def get_function_declarations_filtered(
@@ -161,6 +233,8 @@ class ToolRegistry:
         """
         Execute a tool by name.
 
+        Checks built-in tools first, then marketplace tools.
+
         Args:
             tool_name: Name of the tool to execute
             **kwargs: Tool parameters
@@ -169,6 +243,20 @@ class ToolRegistry:
             Tool execution result
         """
         tool = self.get_tool(tool_name)
+
+        # If not found in built-in tools, try marketplace (async)
+        if not tool and self.marketplace_registry:
+            try:
+                marketplace_tool = await self.marketplace_registry.get_tool_instance(
+                    tool_name
+                )
+                if marketplace_tool:
+                    # Register it for future lookups
+                    self.tools[tool_name] = marketplace_tool
+                    tool = marketplace_tool
+            except Exception as e:
+                logger.error(f"Error loading marketplace tool {tool_name}: {e}")
+
         if not tool:
             return ToolResult(
                 success=False,
@@ -212,13 +300,23 @@ class ToolRegistry:
         """
         Check if a tool is available.
 
+        Checks both built-in tools and marketplace tools.
+
         Args:
             tool_name: Name of the tool to check
 
         Returns:
             True if the tool is available, False otherwise
         """
-        return tool_name in self.tools
+        # Check built-in tools first
+        if tool_name in self.tools:
+            return True
+
+        # Check marketplace if available
+        if self.marketplace_registry:
+            return tool_name in self.marketplace_registry.tools
+
+        return False
 
     def get_tool_capabilities(self, tool_name: str) -> Optional[Dict[str, Any]]:
         """
@@ -294,14 +392,24 @@ class ToolRegistry:
         }
 
 
-def create_tool_registry(config: Any) -> ToolRegistry:
+def create_tool_registry(
+    config: Any,
+    marketplace_registry: Optional[Any] = None,
+    tool_search_engine: Optional[Any] = None,
+) -> ToolRegistry:
     """
     Create and initialize a tool registry.
 
     Args:
         config: Application configuration
+        marketplace_registry: Optional MarketplaceRegistry instance
+        tool_search_engine: Optional ToolSearchEngine instance for marketplace search
 
     Returns:
         Initialized tool registry
     """
-    return ToolRegistry(config)
+    return ToolRegistry(
+        config,
+        marketplace_registry=marketplace_registry,
+        tool_search_engine=tool_search_engine,
+    )

@@ -75,6 +75,17 @@ LOCAL_PROVIDERS = {
     },
 }
 
+# Local HuggingFace vision models available via LiteLLM
+LOCAL_VISION_MODELS = {
+    "huggingface-local": [
+        "OpenGVLab/InternVL3_5-4B",  # Latest InternVL model for UI grounding
+        "OpenGVLab/InternVL2_5-8B",  # Previous InternVL version
+        "OpenGVLab/InternVL2_5-4B",  # Smaller InternVL model
+        "OpenGVLab/InternVL2_5-2B",  # Lightweight InternVL model
+        "OpenGVLab/InternVL2_5-1B",  # Fastest InternVL model
+    ]
+}
+
 
 async def _fetch_ollama_models() -> List[Dict[str, str]]:
     """Fetch models from Ollama provider."""
@@ -209,14 +220,35 @@ def get_online_models() -> List[Dict[str, str]]:
     return online_models
 
 
-async def get_all_models() -> Dict[str, List[Dict[str, str]]]:
+def get_vision_models() -> List[Dict[str, str]]:
     """
-    Fetch all available models (local and online).
+    Return curated list of local vision models for UI grounding.
 
     Returns:
-        Dict with 'local' and 'online' keys.
+        List of model dicts with id, provider, display_name.
+    """
+    vision_models = []
+    for provider, models in LOCAL_VISION_MODELS.items():
+        for model_id in models:
+            vision_models.append(
+                {
+                    "id": f"{provider}/{model_id}",
+                    "provider": provider,
+                    "display_name": f"{provider}/{model_id}",
+                }
+            )
+    return vision_models
+
+
+async def get_all_models() -> Dict[str, List[Dict[str, str]]]:
+    """
+    Fetch all available models (local, online, vision).
+
+    Returns:
+        Dict with 'local', 'online', and 'vision' keys.
     """
     return {
         "local": await get_local_models(),
         "online": get_online_models(),
+        "vision": get_vision_models(),
     }

@@ -54,6 +54,10 @@ class ToolResult:
     # Markdown string for user display
     return_display: Optional[str] = None
 
+    # Memory contributions from the tool (for marketplace tools)
+    episodic_memories: Optional[List[Dict[str, Any]]] = None  # Detailed execution logs
+    semantic_facts: Optional[List[str]] = None  # Extracted insights/learnings
+
 
 @dataclass
 class ToolContext:
@@ -222,145 +226,6 @@ class ToolExecutionError(Exception):
         self.metadata = metadata or {}
 
 
-class ToolBuilder(ABC):
-    """
-    Interface for tool builders that validate parameters and create invocations.
-    """
-
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """The internal name of the tool."""
-        pass
-
-    @property
-    @abstractmethod
-    def display_name(self) -> str:
-        """The user-friendly display name of the tool."""
-        pass
-
-    @property
-    @abstractmethod
-    def description(self) -> str:
-        """Description of what the tool does."""
-        pass
-
-    @property
-    @abstractmethod
-    def kind(self) -> Kind:
-        """The kind of tool for categorization and permissions."""
-        pass
-
-    @property
-    @abstractmethod
-    def schema(self) -> Dict[str, Any]:
-        """Function declaration schema for LLM consumption."""
-        pass
-
-    @abstractmethod
-    def build(self, params: Dict[str, Any]) -> "ToolInvocation":
-        """
-        Validates raw parameters and builds a ready-to-execute invocation.
-
-        Args:
-            params: The raw, untrusted parameters from the model.
-
-        Returns:
-            A valid ToolInvocation if successful. Throws an error if validation fails.
-        """
-        pass
-
-
-@dataclass
-class ToolInvocation:
-    """
-    A validated and ready-to-execute tool call.
-    """
-
-    params: Dict[str, Any]
-    tool: Tool
-    context: ToolContext
-
-    async def execute(self) -> ToolResult:
-        """Execute the tool with the validated parameters."""
-        return await self.tool.execute_async(self.context, **self.params)
-
-    def get_description(self) -> str:
-        """Get a pre-execution description of the tool operation."""
-        return f"Execute {self.tool.display_name}: {self.tool.description}"
-
-    def tool_locations(self) -> List[ToolLocation]:
-        """Determine what file system paths the tool will affect."""
-        return []
-
-
-class ToolChain:
-    """
-    Chain multiple tools together for complex operations.
-
-    Allows sequential execution of tools where the output of one
-    tool becomes the input for the next.
-    """
-
-    def __init__(self, tools: List[Tool]):
-        """
-        Initialize the tool chain.
-
-        Args:
-            tools: Ordered list of tools to execute
-        """
-        self.tools = tools
-
-    async def execute_chain(
-        self, initial_context: ToolContext, **initial_kwargs
-    ) -> List[ToolResult]:
-        """
-        Execute the tool chain.
-
-        Args:
-            initial_context: Initial execution context
-            **initial_kwargs: Initial parameters for the first tool
-
-        Returns:
-            List of results from each tool execution
-        """
-        results = []
-        current_context = initial_context
-        current_kwargs = initial_kwargs
-
-        for tool in self.tools:
-            try:
-                # Validate parameters before execution
-                validation_errors = tool.validate_parameters(**current_kwargs)
-                if validation_errors:
-                    result = ToolResult(
-                        success=False,
-                        error=f"Parameter validation failed: {', '.join(validation_errors)}",
-                    )
-                else:
-                    result = await tool.execute_async(current_context, **current_kwargs)
-
-                results.append(result)
-
-                # Stop chain on failure unless tool specifies otherwise
-                if not result.success:
-                    break
-
-                # Update context and kwargs for next tool
-                # (This could be enhanced with more sophisticated chaining logic)
-                current_kwargs = {"previous_result": result.data}
-
-            except Exception as e:
-                logger.exception(f"Tool chain execution failed on {tool.name}")
-                result = ToolResult(
-                    success=False, error=f"Exception in {tool.name}: {str(e)}"
-                )
-                results.append(result)
-                break
-
-        return results
-
-
 # Utility functions for tool management
 def create_tool_registry() -> Dict[str, Tool]:
     """
@@ -371,30 +236,3 @@ def create_tool_registry() -> Dict[str, Tool]:
     """
     # This will be populated when tools are created
     return {}
-
-
-def validate_tool_permissions(
-    tool: Tool,
-    user_permissions: List[str],
-    required_permissions: Optional[List[str]] = None,
-) -> bool:
-    """
-    Validate that the user has permission to use a tool.
-
-    Args:
-        tool: The tool to check
-        user_permissions: List of user's permissions
-        required_permissions: Tool-specific required permissions
-
-    Returns:
-        True if user has permission, False otherwise
-    """
-    if required_permissions is None:
-        required_permissions = []
-
-    # Check tool-specific permissions
-    for permission in required_permissions:
-        if permission not in user_permissions:
-            return False
-
-    return True
