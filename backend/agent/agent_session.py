@@ -25,8 +25,8 @@ from backend.tools.registry import ToolRegistry, create_tool_registry
 
 logger = logging.getLogger(__name__)
 
-# Maximum number of tool calling iterations to prevent infinite loops
-MAX_TOOL_ITERATIONS = 5
+# Maximum number of malformed tool calling iterations to prevent infinite loops
+MAX_MALFORMED_TOOL_ITERATIONS = 5
 
 
 class AgentSession:
@@ -154,6 +154,9 @@ class AgentSession:
                     screenshot_data = None
             elif result.tool_call.tool_name in computer_tools and result.success:
                 try:
+                    # Wait before taking screenshot to allow UI to update after computer action
+                    await asyncio.sleep(self.cfg.screenshot_delay_after_action)
+
                     # Try to get screenshot for display in UI and LLM analysis
                     screenshot_result = await self.tool_registry.execute_tool(
                         "screenshot"
@@ -326,16 +329,22 @@ class AgentSession:
             memories = self.memory_manager.retrieve_memories(query)
             memory_context = self.memory_manager.format_context(memories)
 
+            # Memories are retrieved but not logged (only system prompt is logged at initialization)
+
             # Prepend memory context to the user query
             enriched_query = f"{memory_context}\n\nUser: {query}"
             self.history.add_message("user", enriched_query)
 
             final_response = ""
+            iteration = 0
+            malformed_attempt_count = 0
 
-            for iteration in range(1, MAX_TOOL_ITERATIONS + 1):
+            while True:  # Unlimited iterations for normal tool calling
+                iteration += 1
                 prompt = self.prompt_builder.build_prompt(
                     self.history.get_history(), include_tools=(iteration == 1)
                 )
+
                 llm_response = ""
 
                 try:
@@ -373,7 +382,27 @@ class AgentSession:
                         }
 
                 if not parsed_response.has_tool_calls:
-                    if iteration == 1 and self._is_malformed_tool_attempt(llm_response):
+                    if self._is_malformed_tool_attempt(llm_response):
+                        malformed_attempt_count += 1
+                        logger.warning(
+                            f"Detected malformed tool call attempt #{malformed_attempt_count}"
+                        )
+
+                        # Limit malformed attempts to prevent infinite loops
+                        if malformed_attempt_count >= MAX_MALFORMED_TOOL_ITERATIONS:
+                            logger.error(
+                                f"Reached maximum malformed tool attempts ({MAX_MALFORMED_TOOL_ITERATIONS}). "
+                                "Stopping to prevent infinite loop."
+                            )
+                            error_msg = (
+                                f"I've tried calling tools {malformed_attempt_count} times with incorrect format. "
+                                "To prevent infinite loops, I'm stopping here. Please check the tool calling format in the examples above."
+                            )
+                            self.history.add_message("user", error_msg)
+                            final_response = "I encountered repeated formatting errors when trying to call tools. Please check the tool calling format and try again."
+                            self.history.add_message("assistant", final_response)
+                            break
+
                         example_format = '{"functionCall": {"name": "read_file", "args": {"path": "/path/to/file.txt"}}}'
                         error_msg = f"I tried to call a tool but used the wrong format. I should use the exact JSON syntax shown in the examples, like: {example_format}. Let me try again."
                         self.history.add_message("user", error_msg)
@@ -386,6 +415,9 @@ class AgentSession:
                         final_response = parsed_response.text_content
                         self.history.add_message("assistant", final_response)
                         break
+
+                # Reset malformed counter when we successfully execute tools
+                malformed_attempt_count = 0
 
                 # Execute tools
                 try:

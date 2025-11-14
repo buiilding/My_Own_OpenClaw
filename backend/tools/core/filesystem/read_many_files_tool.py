@@ -10,6 +10,7 @@ from glob import glob as glob_module
 from typing import Any, Dict, List, Optional
 
 from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.tools.core.system.shell_tool import ShellTool
 from backend.utils.file_utils import (
     FileType,
     detect_file_type,
@@ -55,8 +56,8 @@ class ReadManyFilesTool(Tool):
                     return_display="paths parameter is required",
                 )
 
-            # Get target directory for relative path resolution
-            target_dir = self.config.get_workspace_context().workspace_path
+            # Get target directory for relative path resolution (use current working directory from shell tool)
+            target_dir = ShellTool.get_current_working_directory()
 
             # Collect all file paths
             all_files = set()
@@ -97,27 +98,9 @@ class ReadManyFilesTool(Tool):
                         matches = glob_module(full_pattern, recursive=True)
                         all_files.update(matches)
 
-            # Apply workspace filtering
-            workspace_context = self.config.get_workspace_context()
-            workspace_files = []
+            # Removed workspace filtering - allow operations anywhere on the system
+            workspace_files = list(all_files)
             skipped_files = []
-
-            logger.info(
-                f"ReadManyFiles: Collected {len(all_files)} files before workspace filtering"
-            )
-            for file_path in all_files:
-                if workspace_context.is_path_within_workspace(file_path):
-                    workspace_files.append(file_path)
-                else:
-                    skipped_files.append(
-                        {
-                            "path": make_relative_path(file_path, target_dir),
-                            "reason": "Outside workspace boundaries",
-                        }
-                    )
-            logger.info(
-                f"ReadManyFiles: {len(workspace_files)} files within workspace, {len(skipped_files)} skipped"
-            )
 
             # Apply file filtering
             file_discovery = self.config.get_file_service()

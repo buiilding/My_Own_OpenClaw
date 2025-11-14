@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.tools.core.system.shell_tool import ShellTool
 from backend.utils.file_utils import (
     get_specific_mime_type,
     is_text_file,
@@ -58,15 +59,14 @@ class ReadFileTool(Tool):
                 )
 
             # Resolve relative paths to absolute paths
-            workspace_context = self.config.get_workspace_context()
             if not os.path.isabs(absolute_path):
-                # Resolve relative path to absolute using workspace path
-                workspace_path = workspace_context.workspace_path
+                # Resolve relative path to absolute using current working directory (from shell tool)
+                current_dir = ShellTool.get_current_working_directory()
                 absolute_path = os.path.abspath(
-                    os.path.join(workspace_path, absolute_path)
+                    os.path.join(current_dir, absolute_path)
                 )
                 logger.info(
-                    f"ReadFile: Resolved relative path to absolute: {absolute_path}"
+                    f"ReadFile: Resolved relative path to absolute using current dir: {absolute_path}"
                 )
 
             logger.info(
@@ -130,16 +130,7 @@ class ReadFileTool(Tool):
                 f"ReadFile: is_within_workspace={is_within_workspace}, is_within_temp={is_within_temp}"
             )
 
-            if not (is_within_workspace or is_within_temp):
-                logger.error(
-                    f"ReadFile: Path not within allowed directories: {absolute_path}"
-                )
-                return ToolResult(
-                    success=False,
-                    error=f"File path must be within workspace or temp directory: {absolute_path}",
-                    llm_content=f"Error: File path must be within workspace or temp directory: {absolute_path}",
-                    return_display="File path not within allowed directories",
-                )
+            # Removed workspace restriction - allow operations anywhere on the system
 
             # Check file filtering
             file_service = self.config.get_file_service()

@@ -62,15 +62,7 @@ class ToolName(Tool):
             ToolResult with operation outcome
         """
         try:
-            # Validate workspace boundaries
-            workspace_context = self.services.get_workspace_context()
-            if not workspace_context.is_path_within_workspace(path):
-                return ToolResult(
-                    success=False,
-                    error=f"Path {path} is outside workspace boundaries",
-                    llm_content=f"Error: Cannot access {path} - outside workspace",
-                    return_display=f"Access denied: {path}",
-                )
+            # Removed workspace restriction - allow operations anywhere on the system
 
             # Validate path exists (if needed)
             if not os.path.exists(path):

@@ -208,8 +208,11 @@ class InternVLModel:
 
     # ---- Image preprocessing utilities adapted from CoAct-1 InternVL implementation ----
 
-    def _build_transform(self, input_size: int) -> T.Compose:
+    def _build_transform(self, input_size: int) -> Any:
         """Build image transformation pipeline."""
+        if not VISION_MODELS_AVAILABLE or T is None:
+            raise ImportError("Vision model dependencies not available")
+
         MEAN = (0.485, 0.456, 0.406)
         STD = (0.229, 0.224, 0.225)
         transform = T.Compose(

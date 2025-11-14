@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.tools.core.system.shell_tool import ShellTool
 from backend.utils.file_utils import make_relative_path
 
 from .data_structures import FileEntry
@@ -61,26 +62,14 @@ class ListDirectoryTool(Tool):
             logger.info(f"ListDirectory: Got workspace context: {workspace_context}")
 
             if not os.path.isabs(path):
-                # Resolve relative path to absolute using workspace path
-                workspace_path = workspace_context.workspace_path
-                path = os.path.abspath(os.path.join(workspace_path, path))
+                # Resolve relative path to absolute using current working directory (from shell tool)
+                current_dir = ShellTool.get_current_working_directory()
+                path = os.path.abspath(os.path.join(current_dir, path))
                 logger.info(
-                    f"ListDirectory: Resolved relative path to absolute: {path}"
+                    f"ListDirectory: Resolved relative path to absolute using current dir: {path}"
                 )
 
-            # Check if path is within workspace
-            logger.info("ListDirectory: About to check if path is within workspace")
-            logger.info(f"ListDirectory: Checking if path is within workspace: {path}")
-            is_within_workspace = workspace_context.is_path_within_workspace(path)
-            logger.info(f"ListDirectory: is_within_workspace={is_within_workspace}")
-            if not is_within_workspace:
-                logger.error(f"ListDirectory: Path is not within workspace: {path}")
-                return ToolResult(
-                    success=False,
-                    error=f"Path is not within workspace: {path}",
-                    llm_content=f"Error: Path is not within workspace: {path}",
-                    return_display=f"Path is not within workspace: {path}",
-                )
+            # Removed workspace restriction - allow operations anywhere on the system
 
             # Check if directory exists
             logger.info(

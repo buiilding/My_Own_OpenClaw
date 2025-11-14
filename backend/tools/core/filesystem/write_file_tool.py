@@ -9,6 +9,7 @@ import os
 from typing import Any
 
 from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.tools.core.system.shell_tool import ShellTool
 from backend.utils.file_utils import (
     DEFAULT_ENCODING,
     ensure_directory_exists,
@@ -46,24 +47,17 @@ class WriteFileTool(Tool):
             # Resolve relative paths to absolute paths
             workspace_context = self.config.get_workspace_context()
             if not os.path.isabs(file_path):
-                # Resolve relative path to absolute using workspace path
-                workspace_path = workspace_context.workspace_path
-                file_path = os.path.abspath(os.path.join(workspace_path, file_path))
+                # Resolve relative path to absolute using current working directory (from shell tool)
+                current_dir = ShellTool.get_current_working_directory()
+                file_path = os.path.abspath(os.path.join(current_dir, file_path))
                 logger.info(
-                    f"WriteFile: Resolved relative path to absolute: {file_path}"
+                    f"WriteFile: Resolved relative path to absolute using current dir: {file_path}"
                 )
 
             # Get target directory for relative path resolution
             target_dir = workspace_context.workspace_path
 
-            # Check if path is within workspace
-            if not workspace_context.is_path_within_workspace(file_path):
-                return ToolResult(
-                    success=False,
-                    error=f"File path must be within workspace: {file_path}",
-                    llm_content=f"Error: File path must be within workspace: {file_path}",
-                    return_display="File path not within workspace",
-                )
+            # Removed workspace restriction - allow operations anywhere on the system
 
             # Check if trying to overwrite a directory
             if os.path.exists(file_path) and os.path.isdir(file_path):
