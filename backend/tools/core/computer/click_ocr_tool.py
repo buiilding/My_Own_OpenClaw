@@ -34,7 +34,12 @@ class ClickOcrTool(Tool):
         self.computer = ComputerInterface()
 
     async def execute_async(
-        self, context: ToolContext, id: int = None, ocr_id: int = None, click_type: str = "single", **kwargs
+        self,
+        context: ToolContext,
+        id: int = None,
+        ocr_id: int = None,
+        click_type: str = "single",
+        **kwargs,
     ) -> ToolResult:
         """
         Click on an OCR element by ID.
@@ -56,7 +61,7 @@ class ClickOcrTool(Tool):
                 success=False,
                 error="Either 'ocr_id' or 'id' parameter must be provided",
                 llm_content="Error: No element ID provided for clicking",
-                return_display="Missing element ID"
+                return_display="Missing element ID",
             )
         try:
             # Ensure computer interface is initialized
@@ -114,9 +119,7 @@ class ClickOcrTool(Tool):
                 llm_content = f"Successfully performed {click_desc} on OCR element ID {element_id} ('{text}') at coordinates ({center_x}, {center_y})"
                 return_display = f"Clicked on '{text}' (ID {element_id})"
             else:
-                llm_content = (
-                    f"Failed to click on OCR element ID {element_id} ('{text}'): {result.error}"
-                )
+                llm_content = f"Failed to click on OCR element ID {element_id} ('{text}'): {result.error}"
                 return_display = f"Click failed: {result.error}"
 
             return ToolResult(

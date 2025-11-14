@@ -43,7 +43,7 @@ class ShellTool(Tool):
         "working_directory": None,  # Will be initialized on first use
         "environment": {},
         "last_command_time": 0,
-        "command_history": []  # Track recent commands for context
+        "command_history": [],  # Track recent commands for context
     }
 
     @classmethod
@@ -473,17 +473,18 @@ class ShellTool(Tool):
             # Command succeeded but no output
             return "Command executed successfully"
 
-
     def _handle_directory_change(self, command: str) -> Optional[str]:
         """Handle cd commands and update global shell directory."""
-        if command.startswith('cd ') or command.strip() == 'cd':
+        if command.startswith("cd ") or command.strip() == "cd":
             # Extract directory from cd command
             parts = command.strip().split()
             if len(parts) >= 2:
                 new_dir = parts[1]
                 # Handle relative paths from current working directory
                 if not os.path.isabs(new_dir):
-                    new_dir = os.path.join(self.get_current_working_directory(), new_dir)
+                    new_dir = os.path.join(
+                        self.get_current_working_directory(), new_dir
+                    )
                 new_dir = os.path.abspath(new_dir)
 
                 if os.path.exists(new_dir) and os.path.isdir(new_dir):
@@ -501,15 +502,19 @@ class ShellTool(Tool):
 
     def _update_command_history(self, command: str, working_dir: str):
         """Update the command history for context awareness."""
-        self._global_shell_state["command_history"].append({
-            "command": command,
-            "working_directory": working_dir,
-            "timestamp": time.time()
-        })
+        self._global_shell_state["command_history"].append(
+            {
+                "command": command,
+                "working_directory": working_dir,
+                "timestamp": time.time(),
+            }
+        )
 
         # Keep only last 50 commands to avoid memory bloat
         if len(self._global_shell_state["command_history"]) > 50:
-            self._global_shell_state["command_history"] = self._global_shell_state["command_history"][-50:]
+            self._global_shell_state["command_history"] = self._global_shell_state[
+                "command_history"
+            ][-50:]
 
         self._global_shell_state["last_command_time"] = time.time()
 

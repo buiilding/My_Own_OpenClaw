@@ -76,13 +76,18 @@ def _log_system_prompt_at_startup():
     """Log the complete system prompt at server startup."""
     try:
         # Import required modules
-        from backend.tools.registry import create_tool_registry
-        from backend.agent.prompts import SYSTEM_PROMPT
         import json
+
+        from backend.agent.prompts import SYSTEM_PROMPT
+        from backend.tools.registry import create_tool_registry
 
         # Get current settings and create tool registry
         cfg = get_settings()
-        tool_registry = create_tool_registry(cfg, marketplace_registry=marketplace_registry, tool_search_engine=tool_search_engine)
+        tool_registry = create_tool_registry(
+            cfg,
+            marketplace_registry=marketplace_registry,
+            tool_search_engine=tool_search_engine,
+        )
 
         # Get tool schemas
         tool_schemas = tool_registry.get_function_declarations()

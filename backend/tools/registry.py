@@ -284,12 +284,16 @@ class ToolRegistry:
             from backend.tools.base import ToolContext
 
             # Check if this is a marketplace tool and pass the tool registry
-            is_marketplace_tool = (self.marketplace_registry and
-                                 tool_name in self.marketplace_registry.tools)
+            is_marketplace_tool = (
+                self.marketplace_registry
+                and tool_name in self.marketplace_registry.tools
+            )
 
             context = ToolContext()
             if is_marketplace_tool:
-                context.tool_registry = self  # Allow marketplace tools to call other tools
+                context.tool_registry = (
+                    self  # Allow marketplace tools to call other tools
+                )
 
             result = await tool.execute_async(context, **kwargs)
             return result
