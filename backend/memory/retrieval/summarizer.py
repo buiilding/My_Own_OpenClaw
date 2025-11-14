@@ -37,10 +37,16 @@ class MemorySummarizer:
         """
         self.memory_store = memory_store
 
-        if llm_client:
+        if llm_client and cfg:
+            # Both provided - use both for proper model selection
+            self.llm_client = llm_client
+            self.cfg = cfg
+        elif llm_client:
+            # Only llm_client provided - no cfg available
             self.llm_client = llm_client
             self.cfg = None
         elif cfg:
+            # Only cfg provided - create llm_client from cfg
             self.cfg = cfg
             # Lazy import to avoid circular dependency with agent.agent_session
             from backend.agent.llm.llm_client import get_llm_client

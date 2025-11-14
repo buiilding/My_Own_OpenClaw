@@ -7,8 +7,6 @@ from typing import Any, Dict, List, Literal, Optional
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from backend.utils.file_utils import is_within_directory
-
 logger = logging.getLogger(__name__)
 
 # --- Constants ---
@@ -114,7 +112,9 @@ class Preferences(BaseModel):
 class AppConfig(BaseModel):
     """Main application configuration model."""
 
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(
+        extra="ignore", protected_namespaces=()  # Allow fields starting with 'model_'
+    )
 
     # LLM Settings
     model_mode: Literal["local", "online"] = "online"
@@ -146,6 +146,11 @@ class AppConfig(BaseModel):
     memory_db_path: Optional[str] = None  # Defaults to config_dir/memory
     embedding_model: str = "all-MiniLM-L6-v2"
     summarization_interval: int = 3600  # seconds
+
+    # Computer/Screenshot Settings
+    screenshot_delay_after_action: float = (
+        0.5  # seconds to wait before screenshot after computer actions
+    )
 
     # This field is populated at runtime, not loaded from config file
     api_key: Optional[str] = None
@@ -320,11 +325,12 @@ class WorkspaceContext:
         self.workspace_path = workspace_path or os.getcwd()
 
     def is_path_within_workspace(self, path: str) -> bool:
-        """Check if a path is within the workspace."""
-        try:
-            return is_within_directory(path, self.workspace_path)
-        except Exception:
-            return False
+        """Check if a path is within the workspace.
+
+        Modified to allow operations anywhere on the system for global file access.
+        """
+        # Allow access to any path on the system
+        return True
 
 
 class FileService:

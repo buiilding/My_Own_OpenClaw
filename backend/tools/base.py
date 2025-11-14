@@ -68,6 +68,7 @@ class ToolContext:
     environment: Optional[Dict[str, str]] = None
     timeout: Optional[float] = None
     user_permissions: Optional[List[str]] = None
+    tool_registry: Optional[Any] = None  # For marketplace tools to access other tools
 
 
 @dataclass

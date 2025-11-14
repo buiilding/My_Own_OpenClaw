@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.tools.core.system.shell_tool import ShellTool
 from backend.utils.file_utils import make_relative_path
 
 from .data_structures import GlobEntry
@@ -62,21 +63,16 @@ class GlobTool(Tool):
             # Determine search directory
             if path:
                 if not os.path.isabs(path):
-                    search_dir = os.path.join(target_dir, path)
+                    # Use current working directory from shell tool
+                    current_dir = ShellTool.get_current_working_directory()
+                    search_dir = os.path.join(current_dir, path)
                 else:
                     search_dir = path
             else:
-                search_dir = target_dir
+                # Use current working directory from shell tool
+                search_dir = ShellTool.get_current_working_directory()
 
-            # Validate search directory
-            workspace_context = self.config.get_workspace_context()
-            if not workspace_context.is_path_within_workspace(search_dir):
-                return ToolResult(
-                    success=False,
-                    error=f"Search path not within workspace: {search_dir}",
-                    llm_content=f"Error: Search path not within workspace: {search_dir}",
-                    return_display="Search path not within workspace",
-                )
+            # Removed workspace restriction - allow operations anywhere on the system
 
             if not os.path.exists(search_dir):
                 return ToolResult(

@@ -72,6 +72,47 @@ marketplace_registry: Optional[MarketplaceRegistry] = None
 tool_search_engine: Optional[ToolSearchEngine] = None
 
 
+def _log_system_prompt_at_startup():
+    """Log the complete system prompt at server startup."""
+    try:
+        # Import required modules
+        import json
+
+        from backend.agent.prompts import SYSTEM_PROMPT
+        from backend.tools.registry import create_tool_registry
+
+        # Get current settings and create tool registry
+        cfg = get_settings()
+        tool_registry = create_tool_registry(
+            cfg,
+            marketplace_registry=marketplace_registry,
+            tool_search_engine=tool_search_engine,
+        )
+
+        # Get tool schemas
+        tool_schemas = tool_registry.get_function_declarations()
+
+        # Build the complete system content
+        system_content = SYSTEM_PROMPT
+
+        if tool_schemas:
+            system_content += "\n\nAvailable Tools:\n" + json.dumps(
+                tool_schemas, indent=2
+            )
+            system_content += '\n\nTOOL USAGE: When you need to use tools, call them using function syntax: tool_name(param="value")'
+
+        logger.info("=" * 100)
+        logger.info("COMPLETE SYSTEM PROMPT BEING SENT TO LLM:")
+        logger.info("=" * 100)
+        logger.info(f"\n{system_content}")
+        logger.info("=" * 100)
+        logger.info("END SYSTEM PROMPT")
+        logger.info("=" * 100)
+
+    except Exception as e:
+        logger.error(f"Failed to log system prompt at startup: {e}", exc_info=True)
+
+
 async def _handle_ping(
     websocket: WebSocketServerProtocol, message_data: Dict[str, Any]
 ) -> None:
@@ -600,6 +641,9 @@ async def main() -> None:
 
     # Start the background summarization task
     asyncio.create_task(run_summarization_periodically())
+
+    # Log the complete system prompt at server startup
+    _log_system_prompt_at_startup()
 
     host = "0.0.0.0"  # Listen on all interfaces
     port = 8765
