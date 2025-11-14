@@ -56,7 +56,9 @@ class ReplaceTool(Tool):
                 # Resolve relative path to absolute using current working directory (from shell tool)
                 current_dir = ShellTool.get_current_working_directory()
                 file_path = os.path.abspath(os.path.join(current_dir, file_path))
-                logger.info(f"Replace: Resolved relative path to absolute using current dir: {file_path}")
+                logger.info(
+                    f"Replace: Resolved relative path to absolute using current dir: {file_path}"
+                )
 
             # Get target directory for relative path resolution (use current working directory from shell tool)
             target_dir = ShellTool.get_current_working_directory()

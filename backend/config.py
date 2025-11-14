@@ -113,8 +113,7 @@ class AppConfig(BaseModel):
     """Main application configuration model."""
 
     model_config = ConfigDict(
-        extra="ignore",
-        protected_namespaces=()  # Allow fields starting with 'model_'
+        extra="ignore", protected_namespaces=()  # Allow fields starting with 'model_'
     )
 
     # LLM Settings
@@ -149,7 +148,9 @@ class AppConfig(BaseModel):
     summarization_interval: int = 3600  # seconds
 
     # Computer/Screenshot Settings
-    screenshot_delay_after_action: float = 0.5  # seconds to wait before screenshot after computer actions
+    screenshot_delay_after_action: float = (
+        0.5  # seconds to wait before screenshot after computer actions
+    )
 
     # This field is populated at runtime, not loaded from config file
     api_key: Optional[str] = None

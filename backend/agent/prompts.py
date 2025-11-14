@@ -36,11 +36,11 @@ def load_system_prompt() -> str:
     prompt_file = current_dir / "system_prompt.txt"
 
     try:
-        with open(prompt_file, 'r', encoding='utf-8') as f:
+        with open(prompt_file, "r", encoding="utf-8") as f:
             prompt_template = f.read()
 
         # Replace the datetime placeholder with current datetime
-        current_datetime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         return prompt_template.replace("{datetime}", current_datetime)
 
     except FileNotFoundError:
