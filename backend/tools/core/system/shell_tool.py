@@ -38,6 +38,27 @@ DEFAULT_SHELL_TIMEOUT = 30.0
 class ShellTool(Tool):
     """Tool for executing shell commands with safety restrictions."""
 
+    # Global shell state shared across all filesystem tools
+    _global_shell_state = {
+        "working_directory": None,  # Will be initialized on first use
+        "environment": {},
+        "last_command_time": 0,
+        "command_history": []  # Track recent commands for context
+    }
+
+    @classmethod
+    def get_current_working_directory(cls):
+        """Get the current working directory for all filesystem tools."""
+        if cls._global_shell_state["working_directory"] is None:
+            # Initialize with the current working directory (same as workspace path)
+            cls._global_shell_state["working_directory"] = os.getcwd()
+        return cls._global_shell_state["working_directory"]
+
+    @classmethod
+    def set_current_working_directory(cls, directory: str):
+        """Set the current working directory for all filesystem tools."""
+        cls._global_shell_state["working_directory"] = directory
+
     def __init__(self, config: AppConfig):
         super().__init__(
             name="run_shell_command",
@@ -49,15 +70,22 @@ class ShellTool(Tool):
 
     def _get_shell_description(self) -> str:
         """Get the shell description based on platform."""
+        base_description = (
+            "This tool executes shell commands with safety restrictions. "
+            "Most commands are allowed except destructive operations like file deletion, system shutdown, or disk formatting. "
+            "Shell state (working directory, environment) persists across commands in the same conversation. "
+            "Use cd commands to change directories persistently, then run subsequent commands in that directory. "
+        )
+
         if platform.system() == "Windows":
-            return (
-                "This tool executes a given shell command as `powershell.exe -NoProfile -Command <command>`. "
+            return base_description + (
+                "Commands are executed as `powershell.exe -NoProfile -Command <command>`. "
                 "Command can start background processes using PowerShell constructs such as `Start-Process -NoNewWindow` or `Start-Job`. "
                 "The following information is returned: Command, Directory, Stdout, Stderr, Error, Exit Code, Signal, Background PIDs, Process Group PGID"
             )
         else:
-            return (
-                "This tool executes a given shell command as `bash -c <command>`. "
+            return base_description + (
+                "Commands are executed as `bash -c <command>`. "
                 "Command can start background processes using `&`. "
                 "Command is executed as a subprocess that leads its own process group. "
                 "Command process group can be terminated as `kill -- -PGID` or signaled as `kill -s SIGNAL -- -PGID`. "
@@ -68,14 +96,11 @@ class ShellTool(Tool):
         self,
         context: ToolContext,
         command: str,
-        description: Optional[str] = None,
         directory: Optional[str] = None,
     ) -> ToolResult:
         """Execute the shell tool."""
         try:
             command = command.strip()
-            # description parameter is for user-facing display but not used in execution
-            description = description  # Keep for compatibility
             directory = directory
 
             if not command:
@@ -96,23 +121,15 @@ class ShellTool(Tool):
                     return_display="Command not allowed",
                 )
 
-            # Validate directory if provided
+            # Determine working directory (priority: explicit directory > conversation state > workspace default)
             if directory:
+                # Explicit directory parameter takes precedence
                 if not os.path.isabs(directory):
                     return ToolResult(
                         success=False,
                         error="Directory must be an absolute path",
                         llm_content="Error: Directory must be an absolute path",
                         return_display="Directory must be an absolute path",
-                    )
-
-                workspace_context = self.config.get_workspace_context()
-                if not workspace_context.is_path_within_workspace(directory):
-                    return ToolResult(
-                        success=False,
-                        error=f"Directory not within workspace: {directory}",
-                        llm_content=f"Error: Directory not within workspace: {directory}",
-                        return_display="Directory not within workspace",
                     )
 
                 if not os.path.exists(directory) or not os.path.isdir(directory):
@@ -123,11 +140,35 @@ class ShellTool(Tool):
                         return_display="Directory does not exist",
                     )
 
-            # Execute the command
-            working_dir = (
-                directory or self.config.get_workspace_context().workspace_path
-            )
+                working_dir = directory
+                # Update persistent working directory for ALL filesystem tools
+                self.set_current_working_directory(working_dir)
+            else:
+                # Use persistent working directory from conversation state
+                working_dir = self.get_current_working_directory()
+
+            # Handle directory change commands
+            dir_change_result = self._handle_directory_change(command)
+            if dir_change_result:
+                # This was a directory change command - update state and return
+                self._update_command_history(command, working_dir)
+                return ToolResult(
+                    success=True,
+                    data={
+                        "command": command,
+                        "exit_code": 0,
+                        "background_pids": [],
+                        "execution_time": 0.0,
+                        "working_directory": self.get_current_working_directory(),
+                    },
+                    llm_content=f"Directory changed: {dir_change_result}",
+                    return_display=f"Changed directory: {self.get_current_working_directory()}",
+                )
+
             result = await self._execute_command(command, working_dir)
+
+            # Update command history for successful commands
+            self._update_command_history(command, working_dir)
 
             # Format output for LLM
             llm_content = self._format_llm_output(command, working_dir, result)
@@ -220,14 +261,8 @@ class ShellTool(Tool):
                     f"Command '{root_cmd}' is potentially destructive and not allowed",
                 )
 
-            # Check against allowed tools configuration (legacy support)
-            allowed_tools = self.config.get_allowed_tools() or []
-            is_allowed = self._is_command_in_allowed_tools(root_cmd, allowed_tools)
-            if not is_allowed:
-                return (
-                    False,
-                    f"Command '{root_cmd}' is not in the list of allowed tools",
-                )
+            # Skip allowed tools check - allow any command except destructive ones
+            # (Legacy allowed tools check removed for broader command access)
 
         return True, ""
 
@@ -438,6 +473,46 @@ class ShellTool(Tool):
             # Command succeeded but no output
             return "Command executed successfully"
 
+
+    def _handle_directory_change(self, command: str) -> Optional[str]:
+        """Handle cd commands and update global shell directory."""
+        if command.startswith('cd ') or command.strip() == 'cd':
+            # Extract directory from cd command
+            parts = command.strip().split()
+            if len(parts) >= 2:
+                new_dir = parts[1]
+                # Handle relative paths from current working directory
+                if not os.path.isabs(new_dir):
+                    new_dir = os.path.join(self.get_current_working_directory(), new_dir)
+                new_dir = os.path.abspath(new_dir)
+
+                if os.path.exists(new_dir) and os.path.isdir(new_dir):
+                    self.set_current_working_directory(new_dir)
+                    return f"Changed directory to {new_dir}"
+                else:
+                    return f"Directory does not exist: {new_dir}"
+            else:
+                # cd with no args goes to home
+                home_dir = os.path.expanduser("~")
+                self.set_current_working_directory(home_dir)
+                return f"Changed directory to {home_dir}"
+
+        return None
+
+    def _update_command_history(self, command: str, working_dir: str):
+        """Update the command history for context awareness."""
+        self._global_shell_state["command_history"].append({
+            "command": command,
+            "working_directory": working_dir,
+            "timestamp": time.time()
+        })
+
+        # Keep only last 50 commands to avoid memory bloat
+        if len(self._global_shell_state["command_history"]) > 50:
+            self._global_shell_state["command_history"] = self._global_shell_state["command_history"][-50:]
+
+        self._global_shell_state["last_command_time"] = time.time()
+
     def get_schema(self) -> Dict[str, Any]:
         """Get the JSON schema for this tool's parameters."""
         command_desc = (
@@ -456,13 +531,9 @@ class ShellTool(Tool):
                         "type": "string",
                         "description": f"Exact command to execute as `{command_desc}`",
                     },
-                    "description": {
-                        "type": "string",
-                        "description": "Brief description of the command for the user. Be specific and concise. Ideally a single sentence. Can be up to 3 sentences for clarity. No line breaks.",
-                    },
                     "directory": {
                         "type": "string",
-                        "description": "(OPTIONAL) The absolute path of the directory to run the command in. If not provided, the project root directory is used. Must be a directory within the workspace and must already exist.",
+                        "description": "(OPTIONAL) The absolute path of the directory to run the command in. If not provided, uses the current persistent working directory from conversation context. Must be an absolute path and must already exist.",
                     },
                 },
                 "required": ["command"],

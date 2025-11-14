@@ -6,9 +6,10 @@ Tool for precise search and replace operations in files.
 
 import logging
 import os
-from typing import Any, Optional, Tuple
+from typing import Any, Tuple
 
 from backend.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.tools.core.system.shell_tool import ShellTool
 from backend.utils.file_utils import (
     DEFAULT_ENCODING,
     ensure_directory_exists,
@@ -26,7 +27,7 @@ class ReplaceTool(Tool):
     def __init__(self, config: Any):
         super().__init__(
             name="replace",
-            description="Use this tool to propose a search and replace operation on an existing file.\n\nThe tool will replace ONE occurrence of old_string with new_string in the specified file.\n\nCRITICAL REQUIREMENTS FOR USING THIS TOOL:\n\n1. UNIQUENESS: The old_string MUST uniquely identify the specific instance you want to change. This means:\n   - Include AT LEAST 3-5 lines of context BEFORE the change point\n   - Include AT LEAST 3-5 lines of context AFTER the change point\n   - Include all whitespace, indentation, and surrounding code exactly as it appears in the file\n\n2. SINGLE INSTANCE: This tool can only change ONE instance at a time. If you need to change multiple instances:\n   - Make separate calls to this tool for each instance\n   - Each call must uniquely identify its specific instance using extensive context\n\n3. VERIFICATION: Before using this tool:\n   - If multiple instances exist, gather enough context to uniquely identify each one\n   - Plan separate tool calls for each instance\n",
+            description="Use this tool to propose a search and replace operation on an existing file.\n\nThe tool will replace occurrences of old_string with new_string in the specified file.\n\nBy default, replaces only ONE occurrence. Set replace_all=true to replace all occurrences.\n\nCRITICAL REQUIREMENTS FOR USING THIS TOOL:\n\n1. UNIQUENESS: When replace_all=false, the old_string MUST uniquely identify the specific instance you want to change. This means:\n   - Include AT LEAST 3-5 lines of context BEFORE the change point\n   - Include AT LEAST 3-5 lines of context AFTER the change point\n   - Include all whitespace, indentation, and surrounding code exactly as it appears in the file\n\n2. MULTIPLE INSTANCES: When you need to change multiple instances:\n   - Set replace_all=true to change all occurrences at once\n   - Or make separate calls for each instance with unique context\n\n3. VERIFICATION: Before using this tool:\n   - Check how many occurrences exist using grep or read_file\n   - Plan your replacement strategy accordingly\n",
             kind=Kind.EDIT,
         )
         self.config = config
@@ -37,6 +38,7 @@ class ReplaceTool(Tool):
         file_path: str,
         old_string: str,
         new_string: str,
+        replace_all: bool = False,
     ) -> ToolResult:
         """Execute the replace tool."""
         try:
@@ -50,24 +52,16 @@ class ReplaceTool(Tool):
                 )
 
             # Resolve relative paths to absolute paths
-            workspace_context = self.config.get_workspace_context()
             if not os.path.isabs(file_path):
-                # Resolve relative path to absolute using workspace path
-                workspace_path = workspace_context.workspace_path
-                file_path = os.path.abspath(os.path.join(workspace_path, file_path))
-                logger.info(f"Replace: Resolved relative path to absolute: {file_path}")
+                # Resolve relative path to absolute using current working directory (from shell tool)
+                current_dir = ShellTool.get_current_working_directory()
+                file_path = os.path.abspath(os.path.join(current_dir, file_path))
+                logger.info(f"Replace: Resolved relative path to absolute using current dir: {file_path}")
 
-            # Get target directory for relative path resolution
-            target_dir = workspace_context.workspace_path
+            # Get target directory for relative path resolution (use current working directory from shell tool)
+            target_dir = ShellTool.get_current_working_directory()
 
-            # Check if path is within workspace
-            if not workspace_context.is_path_within_workspace(file_path):
-                return ToolResult(
-                    success=False,
-                    error=f"File path must be within workspace: {file_path}",
-                    llm_content=f"Error: File path must be within workspace: {file_path}",
-                    return_display="File path not within workspace",
-                )
+            # Removed workspace restriction - allow operations anywhere on the system
 
             # Handle file creation case
             file_exists = os.path.exists(file_path)
@@ -111,9 +105,10 @@ class ReplaceTool(Tool):
                     return_display="Failed to read file",
                 )
 
-            # Perform replacement (only one occurrence)
+            # Perform replacement
+            expected_count = -1 if replace_all else 1
             new_content, replacements = self._perform_replacement(
-                current_content, old_string, new_string, 1
+                current_content, old_string, new_string, expected_count
             )
 
             if replacements == 0:
@@ -124,12 +119,12 @@ class ReplaceTool(Tool):
                     return_display="No occurrences found to replace",
                 )
 
-            if replacements > 1:
+            if not replace_all and replacements > 1:
                 return ToolResult(
                     success=False,
-                    error="Failed to edit, old_string matches multiple occurrences. Provide more context to uniquely identify the specific instance.",
-                    llm_content="Failed to edit, old_string matches multiple occurrences. Provide more context to uniquely identify the specific instance.",
-                    return_display="Multiple occurrences found - provide more context",
+                    error="Multiple matches found. Provide more unique context around the specific text you want to replace.",
+                    llm_content="Multiple matches found. Provide more unique context around the specific text you want to replace.",
+                    return_display="Multiple matches found - provide more unique context",
                 )
 
             # Write back the modified content

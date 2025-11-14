@@ -34,19 +34,30 @@ class ClickOcrTool(Tool):
         self.computer = ComputerInterface()
 
     async def execute_async(
-        self, context: ToolContext, id: int, click_type: str = "single", **kwargs
+        self, context: ToolContext, id: int = None, ocr_id: int = None, click_type: str = "single", **kwargs
     ) -> ToolResult:
         """
         Click on an OCR element by ID.
 
         Args:
             context: Tool execution context
-            id: ID of the OCR element to click (from screenshot OCR results)
+            id: ID of the OCR element to click (from screenshot OCR results) - DEPRECATED: use ocr_id
+            ocr_id: ID of the OCR element to click (from screenshot OCR results)
             click_type: Type of click - "single", "double", "right"
 
         Returns:
             ToolResult with click action result
         """
+        # Handle backward compatibility: use ocr_id if provided, otherwise use id
+        element_id = ocr_id if ocr_id is not None else id
+
+        if element_id is None:
+            return ToolResult(
+                success=False,
+                error="Either 'ocr_id' or 'id' parameter must be provided",
+                llm_content="Error: No element ID provided for clicking",
+                return_display="Missing element ID"
+            )
         try:
             # Ensure computer interface is initialized
             init_error = await self.computer.ensure_initialized()
@@ -64,16 +75,16 @@ class ClickOcrTool(Tool):
                     return_display="No OCR results available",
                 )
 
-            if id < 0 or id >= len(_latest_ocr_results):
+            if element_id < 0 or element_id >= len(_latest_ocr_results):
                 return ToolResult(
                     success=False,
-                    error=f"OCR ID {id} is out of range. Available IDs: 0-{len(_latest_ocr_results)-1}",
-                    llm_content=f"Error: OCR ID {id} is out of range. Available IDs: 0-{len(_latest_ocr_results)-1}",
-                    return_display=f"Invalid OCR ID: {id}",
+                    error=f"OCR ID {element_id} is out of range. Available IDs: 0-{len(_latest_ocr_results)-1}",
+                    llm_content=f"Error: OCR ID {element_id} is out of range. Available IDs: 0-{len(_latest_ocr_results)-1}",
+                    return_display=f"Invalid OCR ID: {element_id}",
                 )
 
             # Get the OCR element
-            ocr_element = _latest_ocr_results[id]
+            ocr_element = _latest_ocr_results[element_id]
             bbox = ocr_element["bbox"]
             text = ocr_element["text"]
 
@@ -100,11 +111,11 @@ class ClickOcrTool(Tool):
                 click_desc = (
                     f"{click_type} click" if click_type != "single" else "click"
                 )
-                llm_content = f"Successfully performed {click_desc} on OCR element ID {id} ('{text}') at coordinates ({center_x}, {center_y})"
-                return_display = f"Clicked on '{text}' (ID {id})"
+                llm_content = f"Successfully performed {click_desc} on OCR element ID {element_id} ('{text}') at coordinates ({center_x}, {center_y})"
+                return_display = f"Clicked on '{text}' (ID {element_id})"
             else:
                 llm_content = (
-                    f"Failed to click on OCR element ID {id} ('{text}'): {result.error}"
+                    f"Failed to click on OCR element ID {element_id} ('{text}'): {result.error}"
                 )
                 return_display = f"Click failed: {result.error}"
 
@@ -134,6 +145,10 @@ class ClickOcrTool(Tool):
                 "properties": {
                     "id": {
                         "type": "integer",
+                        "description": "ID of the OCR-detected text element to click (from the most recent screenshot with OCR) - DEPRECATED: use ocr_id",
+                    },
+                    "ocr_id": {
+                        "type": "integer",
                         "description": "ID of the OCR-detected text element to click (from the most recent screenshot with OCR)",
                     },
                     "click_type": {
@@ -143,6 +158,6 @@ class ClickOcrTool(Tool):
                         "default": "single",
                     },
                 },
-                "required": ["id"],
+                "required": [],
             },
         }

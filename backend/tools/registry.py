@@ -27,11 +27,7 @@ from backend.tools.core.filesystem import (
     SearchFileContentTool,
     WriteFileTool,
 )
-from backend.tools.core.marketplace import (
-    InstallMarketplaceTool,
-    RunMarketplaceTool,
-    SearchMarketplaceTool,
-)
+from backend.tools.core.marketplace import SearchMarketplaceTool
 from backend.tools.core.system.shell_tool import ShellTool
 
 logger = logging.getLogger(__name__)
@@ -96,20 +92,10 @@ class ToolRegistry:
         self.register_tool(ScrollTool(self.services))
         self.register_tool(PredictClickTool(self.services))
 
-        # Marketplace tools
+        # Marketplace search tool
         self.register_tool(
             SearchMarketplaceTool(
                 self.services, tool_search_engine=self.tool_search_engine
-            )
-        )
-        self.register_tool(
-            InstallMarketplaceTool(
-                self.services, marketplace_registry=self.marketplace_registry
-            )
-        )
-        self.register_tool(
-            RunMarketplaceTool(
-                self.services, marketplace_registry=self.marketplace_registry
             )
         )
 
@@ -297,7 +283,14 @@ class ToolRegistry:
             logger.info(f"Executing tool {tool_name} with kwargs: {kwargs}")
             from backend.tools.base import ToolContext
 
+            # Check if this is a marketplace tool and pass the tool registry
+            is_marketplace_tool = (self.marketplace_registry and
+                                 tool_name in self.marketplace_registry.tools)
+
             context = ToolContext()
+            if is_marketplace_tool:
+                context.tool_registry = self  # Allow marketplace tools to call other tools
+
             result = await tool.execute_async(context, **kwargs)
             return result
 

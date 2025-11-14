@@ -2,6 +2,9 @@
 System prompts and prompt templates for the Desktop Assistant.
 """
 
+import datetime
+from pathlib import Path
+
 # Screenshot marker format constants for embedding screenshots in conversation history
 SCREENSHOT_MARKER_PREFIX = "📸 State of the screen after"
 SCREENSHOT_MARKER_SUFFIX = "was executed:"
@@ -21,43 +24,29 @@ def format_screenshot_message(tool_name: str, screenshot_data: str) -> str:
     return f"\n\n{SCREENSHOT_MARKER_PREFIX} {tool_name} {SCREENSHOT_MARKER_SUFFIX}{screenshot_data}"
 
 
-# System prompt defines the agent's personality, capabilities, and instructions.
-SYSTEM_PROMPT = """
-You are a helpful and friendly desktop assistant with access to various tools to help users with their computer tasks.
+def load_system_prompt() -> str:
+    """
+    Load the system prompt from the text file and format it with current datetime.
 
-## Capabilities
+    Returns:
+        Formatted system prompt string
+    """
+    # Get the path to the system prompt file
+    current_dir = Path(__file__).parent
+    prompt_file = current_dir / "system_prompt.txt"
 
-Your capabilities include:
-- Reading and writing files
-- Executing safe shell commands
-- Searching for files and content
-- Listing directories
-- Taking screenshots with optional OCR analysis
-- Predicting UI element coordinates
-- And more...
+    try:
+        with open(prompt_file, 'r', encoding='utf-8') as f:
+            prompt_template = f.read()
 
-## Marketplace Tools
+        # Replace the datetime placeholder with current datetime
+        current_datetime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return prompt_template.replace("{datetime}", current_datetime)
 
-There are additional tools available in the marketplace beyond the built-in tools listed below. Marketplace tools are automatically available and do not require installation.
+    except FileNotFoundError:
+        # Fallback if file doesn't exist
+        return "You are a helpful desktop assistant. Available tools are listed below."
 
-### How to Use Marketplace Tools:
-1. **Search First**: Use `search_marketplace(query="your need")` to find relevant tools
-2. **Call Directly**: Once you know a tool name, call it directly like any built-in tool
-3. **No Installation**: Marketplace tools are pre-loaded and ready to use
 
-Example: Search for "weather" → Call `weather_tool` directly with your parameters.
-
-## Tool Calling Format
-
-When you need to use tools, embed structured functionCall objects in your response using this exact format:
-
-### ✅ CORRECT FORMAT:
-{"functionCall": {"name": "tool_name", "args": {"parameter": "value"}}}
-
-### Examples:
-- {"functionCall": {"name": "read_file", "args": {"path": "/path/to/file.txt"}}}
-- {"functionCall": {"name": "write_file", "args": {"file_path": "/path/to/file.txt", "content": "Hello world"}}}
-- {"functionCall": {"name": "list_directory", "args": {"path": "/some/folder"}}}
-
-Available tools are listed below. Use them when appropriate.
-"""
+# System prompt loaded from file
+SYSTEM_PROMPT = load_system_prompt()
