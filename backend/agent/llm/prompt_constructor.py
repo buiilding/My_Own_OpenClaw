@@ -7,7 +7,7 @@ tool schemas, conversation history, and image processing for vision-capable mode
 
 import json
 import logging
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from backend.agent.prompts import (
     SCREENSHOT_MARKER_PREFIX,
@@ -34,17 +34,18 @@ class PromptConstructor:
         self.tool_registry = tool_registry
 
     def build_prompt(
-        self, history: List[Dict[str, str]], include_tools: bool = True
+        self, history: List[Dict[str, str]], include_tools: bool = True, memory_context: Optional[str] = None
     ) -> List[Union[Dict[str, str], Dict[str, Any]]]:
         """
         Constructs the full prompt to be sent to the LLM.
 
         The prompt includes the system prompt, tool schemas (if enabled), conversation history,
-        and processes images for multimodal models.
+        memory context, and processes images for multimodal models.
 
         Args:
             history: Conversation history (list of message dicts with 'role' and 'content')
             include_tools: Whether to include tool schemas in the prompt
+            memory_context: Optional memory context string to inject as a system message
 
         Returns:
             List of message dicts ready to send to LLM (may include image content)
@@ -59,13 +60,22 @@ class PromptConstructor:
                 system_content += "\n\nAvailable Tools:\n" + json.dumps(
                     tool_schemas, indent=2
                 )
-                system_content += '\n\nTOOL USAGE: When you need to use tools, call them using function syntax: tool_name(param="value")'
+                system_content += '\n\nTOOL USAGE: When you need to use tools, call them using EXACT JSON format: {"functionCall": {"name": "tool_name", "args": {"param": "value"}}}. NEVER generate fake tool output or describe tool execution - only ACTUAL tool calls produce results.'
             else:
                 logger.warning("No tool schemas available to send to LLM")
 
         prompt: List[Union[Dict[str, str], Dict[str, Any]]] = [
             {"role": "system", "content": system_content}
         ]
+
+        # Add memory context as a separate system message if provided
+        # This is injected into the prompt but NOT stored in conversation history
+        # Format changed to avoid headers that might be echoed
+        if memory_context:
+            prompt.append({
+                "role": "system",
+                "content": f"Background information (use silently, do not mention or reference):\n{memory_context}\n\nIMPORTANT: This is background context for your understanding. Use it to inform your responses naturally, but never quote it, reference it, or show that you're using it. Respond as if you naturally know these things without revealing this context exists."
+            })
 
         # Process history and convert images for multimodal models
         for message in history:

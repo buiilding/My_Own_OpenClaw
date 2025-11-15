@@ -72,18 +72,35 @@ class AgentSession:
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """Gets a streaming completion from the LLM, yielding events."""
         llm_response_content = ""
+        thinking_content = ""
         try:
             async for event in self.llm_client.get_completion_stream(
                 model=self.cfg.llm_model, messages=prompt
             ):
                 if event["type"] == "chunk":
+                    # Only accumulate actual answer content (for tool calling)
                     llm_response_content += event["content"]
-                yield event
+                    yield event
+                elif event["type"] == "thinking_chunk":
+                    # Accumulate thinking tokens separately and forward to UI
+                    thinking_content += event["content"]
+                    # Yield as thinking event for UI display
+                    yield {"type": "thinking", "content": event["content"]}
+                else:
+                    # Forward other event types as-is
+                    yield event
         except Exception as e:
-            error_msg = f"[ERROR: LLM request failed - {type(e).__name__}]"
-            yield {"type": "thinking", "content": error_msg}
-            # Re-raise or handle appropriately if you need to stop execution
-            raise
+            from backend.agent.llm.llm_client import RateLimitError
+            if isinstance(e, RateLimitError):
+                error_msg = "Rate limit exceeded. Please wait a moment and try again."
+                logger.warning(f"Rate limit exceeded: {e}")  # Log as warning, not error with traceback
+            else:
+                error_msg = f"LLM request failed: {type(e).__name__}: {str(e)}"
+                logger.error(f"LLM stream error: {e}", exc_info=True)  # Keep full traceback for unexpected errors
+            yield {"type": "error", "content": error_msg}
+            # Signal completion so UI unblocks
+            yield {"type": "streaming-complete"}
+            return  # Stop streaming on error
 
         yield {"type": "full_response", "content": llm_response_content}
 
@@ -209,7 +226,7 @@ class AgentSession:
         for result in orchestration_result.tool_results:
             if result.success:
                 # Build tool message (same format for all tools)
-                tool_message = f"✅ TOOL EXECUTED SUCCESSFULLY: {result.tool_call.tool_name}\n\n📄 RESULT:\n{result.result.llm_content}"
+                tool_message = f"TOOL EXECUTED SUCCESSFULLY: {result.tool_call.tool_name}\n\n Tool Output:\n{result.result.llm_content}"
 
                 # For computer tools, include screenshot data for LLM analysis
                 if result.tool_call.tool_name in tool_screenshots:
@@ -226,7 +243,7 @@ class AgentSession:
                             "Screenshot tool succeeded but screenshot not found in tool_screenshots dict"
                         )
             else:
-                tool_message = f"❌ TOOL FAILED: {result.tool_call.tool_name}\n\n🔧 ERROR: {result.result.error}\n\n💡 I should try a different approach or inform the user of the error."
+                tool_message = f"TOOL FAILED: {result.tool_call.tool_name}\n\n Tool Error: {result.result.error}\n\n I should try a different approach or inform the user of the error."
             self.history.add_message("user", tool_message)
 
         if not orchestration_result.all_successful:
@@ -311,6 +328,28 @@ class AgentSession:
         ]
         return any(re.search(pattern, response_lower) for pattern in malformed_patterns)
 
+    def _contains_fake_tool_output(self, llm_response: str) -> bool:
+        """Checks if response contains fake tool output formatting that should be rejected."""
+        # Check for fake tool output patterns
+        fake_output_patterns = [
+            r"TOOL EXECUTED SUCCESSFULLY:",
+            r"Tool Output:",
+            r"Command:\s*\w",
+            r"Directory:\s*[A-Za-z]:",
+            r"Stdout:",
+            r"Stderr:",
+            r"Exit Code:",
+            r"Signal:",
+            r"Background PIDs:",
+            r"Process Group PGID:",
+        ]
+        # Only flag if it contains these patterns BUT no actual tool call JSON
+        has_fake_output = any(re.search(pattern, llm_response, re.IGNORECASE) for pattern in fake_output_patterns)
+        has_actual_tool_call = '"functionCall"' in llm_response or '"tool_name"' in llm_response
+        
+        # If it has fake output patterns but no actual tool call, it's hallucinating
+        return has_fake_output and not has_actual_tool_call
+
     async def process_query(self, query: str) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Processes a user query and yields status updates and response chunks.
@@ -329,11 +368,9 @@ class AgentSession:
             memories = self.memory_manager.retrieve_memories(query)
             memory_context = self.memory_manager.format_context(memories)
 
-            # Memories are retrieved but not logged (only system prompt is logged at initialization)
-
-            # Prepend memory context to the user query
-            enriched_query = f"{memory_context}\n\nUser: {query}"
-            self.history.add_message("user", enriched_query)
+            # Add user query to history WITHOUT memory context
+            # Memory context will be injected as a separate system message in the prompt
+            self.history.add_message("user", query)
 
             final_response = ""
             iteration = 0
@@ -342,7 +379,9 @@ class AgentSession:
             while True:  # Unlimited iterations for normal tool calling
                 iteration += 1
                 prompt = self.prompt_builder.build_prompt(
-                    self.history.get_history(), include_tools=(iteration == 1)
+                    self.history.get_history(), 
+                    include_tools=(iteration == 1),
+                    memory_context=memory_context  # Include memory context in all iterations
                 )
 
                 llm_response = ""
@@ -353,7 +392,21 @@ class AgentSession:
                             llm_response = event["content"]
                         else:
                             yield event
-                except Exception:
+                except Exception as e:
+                    # Check if it's a rate limit error and provide user-friendly message
+                    from backend.agent.llm.llm_client import RateLimitError
+                    if isinstance(e, RateLimitError):
+                        yield {
+                            "type": "error",
+                            "content": "Rate limit exceeded. Please wait a moment and try again.",
+                        }
+                        logger.warning(f"Rate limit error: {e}")  # Log as warning, not error
+                    else:
+                        error_msg = f"LLM request failed: {type(e).__name__}: {str(e)}"
+                        yield {"type": "error", "content": error_msg}
+                        logger.error(f"LLM error: {e}", exc_info=True)  # Keep full traceback for unexpected errors
+                    # Signal completion so UI unblocks
+                    yield {"type": "streaming-complete"}
                     break  # Error already yielded, exit loop
 
                 logger.info(
@@ -382,6 +435,13 @@ class AgentSession:
                         }
 
                 if not parsed_response.has_tool_calls:
+                    # Check for fake tool output hallucination FIRST
+                    if self._contains_fake_tool_output(llm_response):
+                        logger.warning("Detected fake tool output in response - rejecting and retrying")
+                        error_msg = "I generated fake tool output text instead of calling the tool. I must ONLY call tools using JSON format: {\"functionCall\": {\"name\": \"tool_name\", \"args\": {\"param\": \"value\"}}}. I must NEVER generate text like 'TOOL EXECUTED SUCCESSFULLY' or fake output - only the system generates that after actual tool execution. Let me call the tool properly."
+                        self.history.add_message("user", error_msg)
+                        continue  # Retry with corrected instruction
+                    
                     if self._is_malformed_tool_attempt(llm_response):
                         malformed_attempt_count += 1
                         logger.warning(

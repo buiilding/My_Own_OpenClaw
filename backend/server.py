@@ -99,7 +99,7 @@ def _log_system_prompt_at_startup():
             system_content += "\n\nAvailable Tools:\n" + json.dumps(
                 tool_schemas, indent=2
             )
-            system_content += '\n\nTOOL USAGE: When you need to use tools, call them using function syntax: tool_name(param="value")'
+            system_content += '\n\nTOOL USAGE: When you need to use tools, call them using EXACT JSON format: {"functionCall": {"name": "tool_name", "args": {"param": "value"}}}. NEVER generate fake tool output or describe tool execution - only ACTUAL tool calls produce results.'
 
         logger.info("=" * 100)
         logger.info("COMPLETE SYSTEM PROMPT BEING SENT TO LLM:")
@@ -220,6 +220,18 @@ async def _handle_query(
                         "type": "streaming-response",
                         "id": message_id,
                         "payload": {"text": event["content"]},
+                    }
+                elif event["type"] == "error":
+                    response = {
+                        "type": "error",
+                        "id": message_id,
+                        "payload": {"content": event.get("content", "An error occurred")},
+                    }
+                elif event["type"] == "streaming-complete":
+                    response = {
+                        "type": "streaming-complete",
+                        "id": message_id,
+                        "payload": {},
                     }
                 elif event["type"] == "tool_call":
                     response = {

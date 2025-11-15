@@ -1,20 +1,65 @@
 .thinking-display {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   padding: 8px 12px;
-  background-color: #e5e7eb; /* gray-200 */
-  border-radius: 12px;
+  background-color: #f3f4f6; /* gray-100 */
+  border: 1px solid #d1d5db; /* gray-300 */
+  border-radius: 8px;
   margin: 0 auto 10px auto; /* Center horizontally */
-  max-width: 80%;
+  max-width: 90%;
   opacity: 0;
   animation: fadeIn 0.3s ease-in-out forwards;
 }
 
+.thinking-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+}
+
+.thinking-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151; /* gray-700 */
+  flex: 1;
+}
+
+.thinking-toggle {
+  font-size: 0.75rem;
+  color: #6b7280; /* gray-500 */
+  margin-left: auto;
+}
+
+.thinking-content {
+  margin-top: 8px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.thinking-content.expanded {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.thinking-content.collapsed {
+  max-height: 0;
+}
+
 .thinking-text {
-  margin: 0 0 0 10px;
-  font-size: 0.9rem;
+  margin: 0;
+  font-size: 0.85rem;
   color: #4b5563; /* gray-600 */
-  font-style: italic;
+  font-family: 'Courier New', monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 1.5;
+  background-color: #ffffff;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb; /* gray-200 */
 }
 
 .thinking-spinner {
@@ -24,6 +69,7 @@
   border-top-color: #3b82f6; /* blue-500 */
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  flex-shrink: 0;
 }
 
 @keyframes spin {

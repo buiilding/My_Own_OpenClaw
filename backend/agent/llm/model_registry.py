@@ -13,6 +13,8 @@ import httpx
 logger = logging.getLogger(__name__)
 
 # Curated registry of popular online AI models (as of November 2025)
+# Separate lists for thinking and non-thinking models for cleaner code
+
 ONLINE_MODELS = {
     "openai": [
         "gpt-5",  # latest flagship [web:9][web:12]
@@ -20,23 +22,47 @@ ONLINE_MODELS = {
         "gpt-4.1",  # improved GPT-4 replacement [web:6]
     ],
     "anthropic": [
-        "claude-4.1",  # latest flagship [web:6][web:16]
-        "claude-3.7-sonnet",  # high-parameter, recent release [web:6]
-        "claude-3.5-sonnet",  # established model [web:6][web:9]
-        "claude-3-opus",  # older, high-quality [web:6]
-        "claude-3-haiku",  # cost-efficient variant [web:10]
+        # Claude 3.0 models (older, no thinking support)
+        # Note: Many 20240229 models are deprecated (404 errors)
+        # Only including models confirmed working
+        "claude-3-haiku-20240307",  # Claude 3 Haiku (confirmed working)
+        # Claude 4.x models (non-thinking versions)
+        "claude-sonnet-4-20250522",  # Claude Sonnet 4 (non-thinking)
+        "claude-sonnet-4-5-20250929",  # Claude Sonnet 4.5 (non-thinking)
+        "claude-haiku-4-5-20251001",  # Claude Haiku 4.5 (non-thinking)
+        "claude-haiku-4-5",  # Claude Haiku 4.5 alternative format (non-thinking)
     ],
     "gemini": [
-        # Text-out models
-        "gemini-2.5-pro",  # newest flagship
-        "gemini-2.5-flash",  # fast, high-throughput
-        "gemini-2.5-flash-lite",  # lightweight variant
+        # Text-out models (non-thinking)
         "gemini-2.0-flash-lite",  # previous generation lightweight
         "gemini-2.0-flash-exp",  # experimental variant
         "gemini-2.0-flash",  # previous generation flash model
         # Other models
         "computer-use-preview",  # computer use capabilities
     ],
+}
+
+# Models that support thinking tokens (reasoning)
+# Only including models confirmed working (not deprecated)
+THINKING_MODELS = {
+    "anthropic": [
+        # Claude 3.7 models with thinking support
+        "claude-3-7-sonnet-20250219",  # Claude 3.7 Sonnet (latest) - supports thinking
+        # Claude 4.x models with thinking support
+        "claude-sonnet-4-20250522",  # Claude Sonnet 4 (thinking)
+        "claude-sonnet-4-5-20250929",  # Claude Sonnet 4.5 (thinking)
+        "claude-haiku-4-5-20251001",  # Claude Haiku 4.5 (thinking)
+        "claude-haiku-4-5",  # Claude Haiku 4.5 (alternative format, thinking)
+    ],
+    "gemini": [
+        "gemini-2.5-pro",  # newest flagship with thinking
+        "gemini-2.5-flash",  # fast, high-throughput with thinking
+        "gemini-2.5-flash-lite",  # lightweight variant with thinking
+    ],
+}
+
+# Add remaining providers to ONLINE_MODELS
+ONLINE_MODELS.update({
     "meta": [
         "llama-4-scout",  # latest open-source release [web:6][web:9]
         "llama-4-maverick",  # multimodal variant from Llama 4 family
@@ -61,7 +87,7 @@ ONLINE_MODELS = {
         "openrouter/qwen/qwen3-vl-32b-instruct",  # vision-language (text + image/video) model. :contentReference[oaicite:3]{index=3}
         "openrouter/qwen/qwen3-vl-235b-a22b-instruct",  # vision-language (text + image/video) model. :contentReference[oaicite:4]{index=4}
     ],
-}
+})
 
 # Local model providers and their endpoints
 LOCAL_PROVIDERS = {
@@ -202,7 +228,7 @@ async def get_local_models() -> List[Dict[str, str]]:
 
 def get_online_models() -> List[Dict[str, str]]:
     """
-    Return curated list of popular online models.
+    Return curated list of popular online models (non-thinking).
 
     Returns:
         List of model dicts with id, provider, display_name.
@@ -215,9 +241,52 @@ def get_online_models() -> List[Dict[str, str]]:
                     "id": model_id,
                     "provider": provider,
                     "display_name": f"{provider}/{model_id}",
+                    "supports_thinking": False,
                 }
             )
     return online_models
+
+
+def get_thinking_models() -> List[Dict[str, str]]:
+    """
+    Return curated list of models that support thinking tokens.
+
+    Returns:
+        List of model dicts with id, provider, display_name.
+    """
+    thinking_models = []
+    for provider, models in THINKING_MODELS.items():
+        for model_id in models:
+            thinking_models.append(
+                {
+                    "id": model_id,
+                    "provider": provider,
+                    "display_name": f"{provider}/{model_id}",
+                    "supports_thinking": True,
+                }
+            )
+    return thinking_models
+
+
+def get_all_online_models() -> List[Dict[str, str]]:
+    """
+    Return all online models (both thinking and non-thinking).
+    Models are grouped by provider, with non-thinking models appearing before
+    thinking models within each provider group.
+
+    Returns:
+        List of model dicts with id, provider, display_name, supports_thinking.
+    """
+    all_models = get_online_models() + get_thinking_models()
+    
+    # Sort by provider first, then by thinking status (non-thinking before thinking)
+    # This ensures models from the same provider appear together in the UI
+    all_models.sort(key=lambda m: (
+        m["provider"],  # Group by provider first
+        m.get("supports_thinking", False)  # Non-thinking (False) before thinking (True)
+    ))
+    
+    return all_models
 
 
 def get_vision_models() -> List[Dict[str, str]]:
@@ -242,13 +311,14 @@ def get_vision_models() -> List[Dict[str, str]]:
 
 async def get_all_models() -> Dict[str, List[Dict[str, str]]]:
     """
-    Fetch all available models (local, online, vision).
+    Fetch all available models (local, online+thinking, vision).
 
     Returns:
         Dict with 'local', 'online', and 'vision' keys.
+        'online' now includes both regular online models and thinking models.
     """
     return {
         "local": await get_local_models(),
-        "online": get_online_models(),
+        "online": get_all_online_models(),  # Combines online + thinking models
         "vision": get_vision_models(),
     }

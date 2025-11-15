@@ -65,6 +65,9 @@ export function useMessageHandling(
         data.payload.message?.includes('Failed to update settings')
       ) {
         settingsHandlers.handleSettingsError(data);
+      } else if (data.type === 'error') {
+        // Handle general errors (LLM errors, rate limits, etc.)
+        streamingHandlers.handleError(data);
       }
     });
 

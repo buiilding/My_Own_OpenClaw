@@ -476,27 +476,41 @@ class ShellTool(Tool):
     def _handle_directory_change(self, command: str) -> Optional[str]:
         """Handle cd commands and update global shell directory."""
         if command.startswith("cd ") or command.strip() == "cd":
-            # Extract directory from cd command
-            parts = command.strip().split()
-            if len(parts) >= 2:
-                new_dir = parts[1]
-                # Handle relative paths from current working directory
-                if not os.path.isabs(new_dir):
-                    new_dir = os.path.join(
-                        self.get_current_working_directory(), new_dir
-                    )
-                new_dir = os.path.abspath(new_dir)
-
-                if os.path.exists(new_dir) and os.path.isdir(new_dir):
-                    self.set_current_working_directory(new_dir)
-                    return f"Changed directory to {new_dir}"
-                else:
-                    return f"Directory does not exist: {new_dir}"
-            else:
+            # Extract directory from cd command, handling quoted paths
+            cmd_stripped = command.strip()
+            if cmd_stripped == "cd":
                 # cd with no args goes to home
                 home_dir = os.path.expanduser("~")
                 self.set_current_working_directory(home_dir)
                 return f"Changed directory to {home_dir}"
+            
+            # Remove "cd " prefix
+            dir_part = cmd_stripped[3:].strip()
+            
+            # Handle quoted paths (both single and double quotes)
+            if (dir_part.startswith("'") and dir_part.endswith("'")) or \
+               (dir_part.startswith('"') and dir_part.endswith('"')):
+                new_dir = dir_part[1:-1]  # Remove surrounding quotes
+            else:
+                # Not quoted, take first word (handles simple paths)
+                parts = dir_part.split()
+                new_dir = parts[0] if parts else dir_part
+            
+            # Strip any remaining quotes (handles edge cases)
+            new_dir = new_dir.strip("'\"")
+            
+            # Handle relative paths from current working directory
+            if not os.path.isabs(new_dir):
+                new_dir = os.path.join(
+                    self.get_current_working_directory(), new_dir
+                )
+            new_dir = os.path.abspath(new_dir)
+
+            if os.path.exists(new_dir) and os.path.isdir(new_dir):
+                self.set_current_working_directory(new_dir)
+                return f"Changed directory to {new_dir}"
+            else:
+                return f"Directory does not exist: {new_dir}"
 
         return None
 
