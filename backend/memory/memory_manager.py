@@ -200,6 +200,8 @@ class MemoryManager:
         """
         Format memories into a string for LLM context.
 
+        Uses a format without headers to prevent the LLM from echoing memory structure.
+
         Args:
             memories: Dictionary with 'semantic' and 'episodic' keys
 
@@ -208,13 +210,15 @@ class MemoryManager:
         """
         context = []
 
+        # Format semantic memories as plain facts without headers
         if memories.get("semantic"):
-            context.append("[Semantic Memory]")
-            context.extend(f"- {fact}" for fact in memories["semantic"])
+            for fact in memories["semantic"]:
+                context.append(f"• {fact}")
 
+        # Format episodic memories as plain facts without headers
         if memories.get("episodic"):
-            context.append("\n[Recent Interactions]")
-            context.extend(f"- {interaction}" for interaction in memories["episodic"])
+            for interaction in memories["episodic"]:
+                context.append(f"• {interaction}")
 
         return "\n".join(context) if context else ""
 

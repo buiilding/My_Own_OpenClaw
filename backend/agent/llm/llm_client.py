@@ -13,6 +13,7 @@ import litellm
 from litellm import exceptions as litellm_exceptions
 
 from backend import config
+from backend.agent.llm.model_registry import THINKING_MODELS
 from backend.config import AppConfig
 
 logger = logging.getLogger(__name__)
@@ -81,6 +82,19 @@ class LiteLLMClient(LLMClient):
         self.provider = provider
         self.timeout = timeout
 
+    def _is_thinking_model(self, model: str) -> bool:
+        """Check if the model supports thinking tokens by looking it up in THINKING_MODELS."""
+        # Extract provider and model ID from full model string (e.g., "anthropic/claude-sonnet-4-thinking")
+        if "/" in model:
+            provider, model_id = model.split("/", 1)
+        else:
+            # Fallback: assume current provider
+            provider = self.provider or "unknown"
+            model_id = model
+
+        # Check if this provider+model combination is in THINKING_MODELS
+        return provider in THINKING_MODELS and model_id in THINKING_MODELS[provider]
+
     async def get_completion(
         self, model: str, messages: List[Union[Dict[str, str], Dict[str, Any]]]
     ) -> str:
@@ -92,6 +106,10 @@ class LiteLLMClient(LLMClient):
                 "base_url": self.base_url,
                 "timeout": self.timeout,
             }
+            # Enable thinking tokens for models that support it
+            if self._is_thinking_model(model):
+                params["thinking"] = {"type": "enabled", "budget_tokens": 16384}
+                logger.info("Enabled thinking tokens for thinking model: %s", model)
             # For local models, use placeholder API key if none is provided
             if self.provider in ["lmstudio", "ollama"]:
                 params["custom_llm_provider"] = "openai"
@@ -157,6 +175,11 @@ class LiteLLMClient(LLMClient):
                 "base_url": self.base_url,
                 "timeout": self.timeout,
             }
+            # Enable thinking tokens for models that support it
+            is_thinking_model = self._is_thinking_model(model)
+            if is_thinking_model:
+                params["thinking"] = {"type": "enabled", "budget_tokens": 16384}
+                logger.info("Enabled thinking tokens for thinking model: %s", model)
             # For local models, use placeholder API key if none is provided
             if self.provider in ["lmstudio", "ollama"]:
                 params["custom_llm_provider"] = "openai"
@@ -188,10 +211,46 @@ class LiteLLMClient(LLMClient):
                     continue
                 if not hasattr(chunk.choices[0], "delta") or not chunk.choices[0].delta:
                     continue
-                content = getattr(chunk.choices[0].delta, "content", None)
+
+                delta = chunk.choices[0].delta
+
+                # Check for thinking/reasoning tokens (for both thinking models and local models with reasoning capabilities)
+                # Some local models (like Qwen) expose reasoning tokens even if not in THINKING_MODELS
+                thinking_content = None
+
+                # Primary method: Check delta.reasoning_content (LiteLLM's standard field)
+                if hasattr(delta, "reasoning_content") and delta.reasoning_content:
+                    thinking_content = delta.reasoning_content
+                # Fallback: Check other possible field names
+                elif hasattr(delta, "thinking") and delta.thinking:
+                    thinking_content = delta.thinking
+                elif hasattr(delta, "reasoning") and delta.reasoning:
+                    thinking_content = delta.reasoning
+                elif hasattr(delta, "thought") and delta.thought:
+                    thinking_content = delta.thought
+
+                if thinking_content:
+                    # Handle both string and dict formats
+                    if isinstance(thinking_content, str):
+                        yield {"type": "thinking_chunk", "content": thinking_content}
+                    elif isinstance(thinking_content, dict):
+                        # Extract text from dict if present
+                        text = thinking_content.get("text") or thinking_content.get("content")
+                        if text:
+                            yield {"type": "thinking_chunk", "content": text}
+
+                # Extract regular content tokens
+                content = getattr(delta, "content", None)
                 if content:
                     yield {"type": "chunk", "content": content}
+        except litellm_exceptions.RateLimitError as e:
+            logger.error(f"Rate limit exceeded for model {model}: {e}")
+            raise RateLimitError(f"LLM rate limit exceeded: {e}. Please wait a moment and try again.") from e
+        except litellm_exceptions.APIError as e:
+            logger.error(f"API error for model {model}: {e}")
+            raise APIError(f"LLM API error: {e}") from e
         except Exception as e:
+            logger.error(f"Unexpected error for model {model}: {e}")
             raise LLMError(f"An unexpected LLM error occurred: {e}") from e
 
 

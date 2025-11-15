@@ -403,6 +403,16 @@ def read_file_content(
         - is_truncated: True if content was truncated due to limit
     """
     try:
+        path = Path(file_path)
+        
+        # Check if file exists first
+        if not path.exists():
+            return "", f"File does not exist: {file_path}", False
+        
+        # Check if it's a directory
+        if path.is_dir():
+            return "", f"Path is a directory, not a file: {file_path}", False
+        
         file_type = detect_file_type(file_path)
 
         if file_type == FileType.TEXT:

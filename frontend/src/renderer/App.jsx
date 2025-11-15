@@ -103,6 +103,7 @@ function App() {
             onSendMessage={handleSendMessage}
             isSending={isSending}
             thinkingStatus={thinkingStatus}
+            voiceModeEnabled={config?.voice_mode_enabled || false}
           />
         }
         settings={
