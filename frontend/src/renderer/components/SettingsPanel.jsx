@@ -45,12 +45,14 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
   const [selectedModelId, setSelectedModelId] = useState('');
   const [selectedProvider, setSelectedProvider] = useState('');
   const [modelResetWarning, setModelResetWarning] = useState('');
+  const [voiceModeEnabled, setVoiceModeEnabled] = useState(false); // Default: disabled
 
   useEffect(() => {
     if (config) {
       setModelMode(config.model_mode || 'online');
       setSelectedModelId(config.selected_model_id || '');
       setSelectedProvider(config.model_provider || '');
+      setVoiceModeEnabled(config.voice_mode_enabled || false);
     }
   }, [config]);
 
@@ -64,6 +66,7 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
       model_mode: modelMode,
       selected_model_id: selectedModelId,
       model_provider: selectedProvider,
+      voice_mode_enabled: voiceModeEnabled,
     };
 
     // To prevent sending a save request for every single character change in the
@@ -71,7 +74,7 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
     if (JSON.stringify(updatedConfig) !== JSON.stringify(config)) {
       onConfigChange(updatedConfig);
     }
-  }, [modelMode, selectedModelId, selectedProvider, config, onConfigChange, availableModels]);
+  }, [modelMode, selectedModelId, selectedProvider, voiceModeEnabled, config, onConfigChange, availableModels]);
 
   const isSaving = saveStatus === 'saving';
 
@@ -216,6 +219,23 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
             variables. Please see the documentation for details.
           </p>
         </div>
+
+        <div className="form-group">
+          <label htmlFor="voice-mode-toggle" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span><strong>Voice Mode:</strong></span>
+            <div className="toggle-switch">
+              <input
+                type="checkbox"
+                id="voice-mode-toggle"
+                checked={voiceModeEnabled}
+                onChange={(e) => setVoiceModeEnabled(e.target.checked)}
+                disabled={isSaving}
+                className="toggle-input"
+              />
+              <span className="toggle-slider"></span>
+            </div>
+          </label>
+        </div>
       </form>
     </div>
   );
@@ -226,6 +246,7 @@ SettingsPanel.propTypes = {
     model_mode: PropTypes.oneOf(['local', 'online']),
     selected_model_id: PropTypes.string,
     model_provider: PropTypes.string,
+    voice_mode_enabled: PropTypes.bool,
     preferences: PropTypes.shape({}),
   }),
   availableModels: PropTypes.shape({

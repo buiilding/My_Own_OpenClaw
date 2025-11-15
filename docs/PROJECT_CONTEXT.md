@@ -889,14 +889,21 @@ class MemoryExporter:
 ### 2. Multi-Provider LLM Integration
 
 #### Supported Providers
-- **OpenAI**: GPT-4o, GPT-4.1
-- **Anthropic**: Claude 3.7 Sonnet, Claude Sonnet 4
-- **Google**: Gemini Pro, Gemini Ultra
+- **OpenAI**: GPT-5, GPT-5-mini, GPT-4.1
+- **Anthropic**: Claude 3.5 Haiku/Sonnet, Claude 3.7 Sonnet, Claude Haiku 4.5 (with thinking tokens support)
+- **Google**: Gemini 2.5 Pro/Flash/Flash-Lite (with thinking tokens support), Gemini 2.0 Flash variants
 - **OpenRouter**: Access to 100+ models through unified API
 - **Mistral AI**: Mistral Large and other Mistral models
 - **Local Models**: Integration with local LLM providers is supported through OpenAI-compatible server interfaces. This includes:
   - **Ollama**: For running models like Llama 3, Gemma, etc.
   - **LM Studio**: For a wide variety of community-provided models.
+
+#### Thinking Tokens Support (✅ IMPLEMENTED)
+- **Gemini 2.5 models** automatically enable thinking tokens for reasoning display
+- **Claude thinking models** (identified by "-thinking" suffix) enable thinking tokens
+- Thinking tokens are displayed in a collapsible UI section showing the model's reasoning process
+- Thinking tokens are excluded from tool calling to prevent false positive tool detections
+- Only final answer content is used for tool execution
 
 #### Provider Abstraction
 - Unified interface regardless of provider using `LiteLLM` library
@@ -1052,8 +1059,7 @@ class OpenAIProvider(LLMProvider):
 
     def get_model_list(self) -> List[str]:
         return [
-            "gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-4o-mini",
-            "gpt-3.5-turbo", "gpt-3.5-turbo-16k"
+            "gpt-5", "gpt-5-mini", "gpt-4.1"
         ]
 
     def validate_config(self, config: Dict[str, Any]) -> bool:
@@ -1299,7 +1305,30 @@ class StreamingResponseProcessor:
 
 ---
 
-**Provider-Specific Configuration Schema:**
+### 2. Thinking Tokens Support (✅ IMPLEMENTED)
+
+#### Overview
+Modern LLMs like Gemini 2.5 and Claude thinking models generate intermediate "thinking" tokens that show their reasoning process before producing the final answer. The Desktop Assistant captures, displays, and separates these thinking tokens to provide transparency while ensuring they don't interfere with tool calling.
+
+#### Technical Implementation
+- **Automatic Detection**: System automatically detects thinking-capable models (Gemini 2.5, Claude thinking variants)
+- **Token Separation**: Thinking tokens are extracted from streaming responses and handled separately from answer content
+- **UI Display**: Thinking content appears in a collapsible "🧠 Model Reasoning" section
+- **Tool Safety**: Only final answer content is used for tool calling to prevent false positive detections
+
+#### Supported Models
+- **Gemini 2.5**: Pro, Flash, Flash-Lite (thinking enabled automatically)
+- **Claude Thinking Models**: 3.5 Haiku/Sonnet, 3.7 Sonnet, Haiku 4.5 variants
+
+#### Benefits
+- **Transparency**: Users can see the model's reasoning process
+- **Debugging**: Helps identify why the model made certain decisions
+- **Education**: Demonstrates LLM reasoning patterns
+- **Safety**: Prevents thinking tokens from triggering unintended tool calls
+
+---
+
+### 3. Tool Marketplace Architecture (PLACEHOLDER FILES EXIST - NOT IMPLEMENTED)
 
 ```yaml
 # config.yaml - Provider Configuration Example
@@ -1307,15 +1336,19 @@ llm_providers:
   openai:
     api_key_env: "OPENAI_API_KEY"
     models:
-      - "gpt-4o"
-      - "gpt-4o-mini"
-      - "gpt-3.5-turbo"
+      - "gpt-5"  # Latest flagship model
+      - "gpt-5-mini"  # Fast, low-cost variant
+      - "gpt-4.1"  # Improved GPT-4 replacement
 
   anthropic:
     api_key_env: "ANTHROPIC_API_KEY"
     models:
-      - "claude-3-5-sonnet-20241022"
-      - "claude-3-haiku-20240307"
+      - "claude-3-5-haiku-20241022"  # Thinking model
+      - "claude-3-5-sonnet-20241022"  # Thinking model
+      - "claude-3-7-sonnet-20250219"  # Thinking model
+      - "claude-haiku-4-5-20251001"  # Thinking model
+      - "claude-haiku-4-5"  # Thinking model
+      - "claude-3-haiku-20240307"  # Regular model
 
   ollama:
     base_url: "http://localhost:11434"
@@ -1328,7 +1361,7 @@ llm_providers:
 # Global LLM settings
 model_mode: "online"  # "online" or "local"
 model_provider: "openai"
-selected_model_id: "gpt-4o"
+selected_model_id: "gpt-5"
 llm_timeout: 300
 query_timeout: 600
 

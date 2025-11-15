@@ -22,15 +22,18 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
   }, [setMessages, setIsSending]);
 
   const handleLlmThought = useCallback((data) => {
+    // Accumulate thinking tokens for display
     setThinkingStatus((prevStatus) => {
-      const updated = (prevStatus || '') + data.payload.status;
-      return updated.length > 1000 ? updated.slice(-1000) : updated;
+      const newChunk = data.payload.status || '';
+      const updated = (prevStatus || '') + newChunk;
+      // Keep last 5000 characters to show substantial thinking content
+      return updated.length > 5000 ? updated.slice(-5000) : updated;
     });
   }, [setThinkingStatus]);
 
   const handleStreamingResponse = useCallback((data) => {
     setIsSending(false); // We've got the first chunk, so we're not "sending" anymore
-    setThinkingStatus(null); // Hide thinking status when response starts
+    // Don't clear thinking status - keep it visible so users can see reasoning tokens
 
     setMessages((prevMessages) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
@@ -58,7 +61,7 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
         ];
       }
     });
-  }, [setIsSending, setThinkingStatus, setMessages]);
+  }, [setIsSending, setMessages]);
 
   const handleToolCall = useCallback((data) => {
     const newMessage = {
@@ -89,7 +92,9 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
   }, [setMessages]);
 
   const handleStreamingComplete = useCallback(() => {
-    setThinkingStatus(null);
+    // Don't clear thinking status - keep it visible so users can review reasoning tokens
+    // Thinking status will be cleared when a new query starts (in App.jsx handleSendMessage)
+    setIsSending(false); // Always unblock UI when streaming completes
     setMessages((prevMessages) => {
       const lastMessage = prevMessages[prevMessages.length - 1];
       if (lastMessage && lastMessage.sender === 'assistant') {
@@ -100,7 +105,21 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
       }
       return prevMessages;
     });
-  }, [setThinkingStatus, setMessages]);
+  }, [setMessages, setIsSending]);
+
+  const handleError = useCallback((data) => {
+    // Display error message and unblock UI
+    setIsSending(false);
+    setThinkingStatus(''); // Clear thinking status on error
+    const errorText = data.payload?.content || data.payload?.message || 'An error occurred';
+    const newMessage = {
+      id: crypto.randomUUID(),
+      text: errorText,
+      sender: 'assistant',
+      type: 'error',
+    };
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+  }, [setMessages, setIsSending, setThinkingStatus]);
 
   return {
     handlePongResponse,
@@ -109,5 +128,6 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
     handleStreamingComplete,
     handleToolCall,
     handleToolOutput,
+    handleError,
   };
 }

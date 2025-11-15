@@ -2,7 +2,7 @@
 System prompts and prompt templates for the Desktop Assistant.
 """
 
-import datetime
+import platform
 from pathlib import Path
 
 # Screenshot marker format constants for embedding screenshots in conversation history
@@ -26,7 +26,7 @@ def format_screenshot_message(tool_name: str, screenshot_data: str) -> str:
 
 def load_system_prompt() -> str:
     """
-    Load the system prompt from the text file and format it with current datetime.
+    Load the system prompt from the text file and format it with current context.
 
     Returns:
         Formatted system prompt string
@@ -39,9 +39,12 @@ def load_system_prompt() -> str:
         with open(prompt_file, "r", encoding="utf-8") as f:
             prompt_template = f.read()
 
-        # Replace the datetime placeholder with current datetime
-        current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        return prompt_template.replace("{datetime}", current_datetime)
+        # Replace placeholders with current context
+        current_os = platform.system()
+
+        prompt = prompt_template.replace("{os}", current_os)
+
+        return prompt
 
     except FileNotFoundError:
         # Fallback if file doesn't exist
