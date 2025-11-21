@@ -1,25 +1,67 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, screen, globalShortcut } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const { initializeIpc } = require('./ipc.cjs');
 
-// Disable hardware acceleration to prevent GPU crashes
-app.disableHardwareAcceleration();
+// Simple store using JSON file
+const storePath = path.join(app.getPath('userData'), 'window-state.json');
+
+const store = {
+  get(key, defaultValue) {
+    try {
+      if (fs.existsSync(storePath)) {
+        const data = JSON.parse(fs.readFileSync(storePath, 'utf8'));
+        return data[key] !== undefined ? data[key] : defaultValue;
+      }
+    } catch (error) {
+      console.error('Error reading store:', error);
+    }
+    return defaultValue;
+  },
+  set(key, value) {
+    try {
+      let data = {};
+      if (fs.existsSync(storePath)) {
+        data = JSON.parse(fs.readFileSync(storePath, 'utf8'));
+      }
+      data[key] = value;
+      fs.writeFileSync(storePath, JSON.stringify(data, null, 2));
+    } catch (error) {
+      console.error('Error writing store:', error);
+    }
+  }
+};
+
+// Enable hardware acceleration for smooth animations
+// app.disableHardwareAcceleration(); // Commented out for overlay performance
 
 let mainWindow = null;
 let tray = null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1000, // Increased width to accommodate sidebar
-    height: 700,
+    width: 900,
+    height: 650,
+    transparent: true, // Enable transparency for overlay
+    frame: false, // Remove window frame
+    alwaysOnTop: true, // Keep window on top
+    resizable: false, // Fixed size for overlay
+    movable: true, // Ensure window is movable
+    hasShadow: false, // Remove shadow for clean overlay
     webPreferences: {
       preload: path.join(__dirname, '../preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
-    // Optional: Hide from taskbar when minimized to tray
-    // skipTaskbar: true,
+    skipTaskbar: false, // Show in taskbar for easy access
+    backgroundColor: '#00000000', // Fully transparent background
+    fullscreenable: false, // Prevent fullscreen
+    maximizable: false, // Prevent maximize
   });
+
+  // Allow window to be positioned anywhere, including under menu bar
+  mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  mainWindow.setAlwaysOnTop(true, 'screen-saver');
 
   const devUrl = 'http://localhost:5173';
   if (process.env.NODE_ENV !== 'production') {
@@ -28,6 +70,30 @@ function createWindow() {
   } else {
     mainWindow.loadFile(path.join(__dirname, '../../dist/index.html'));
   }
+
+  // Set window position - restore last position or use default (10% from top, centered)
+  mainWindow.once('ready-to-show', () => {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
+
+    // Get saved position or calculate default
+    const savedPosition = store.get('window-position', {
+      x: Math.floor((screenWidth - 900) / 2), // Horizontally centered
+      y: Math.floor(screenHeight * 0.10) // 10% from top
+    });
+
+    mainWindow.setPosition(savedPosition.x, savedPosition.y);
+
+    // Save position when window is moved (with debounce)
+    let savePositionTimeout;
+    mainWindow.on('move', () => {
+      clearTimeout(savePositionTimeout);
+      savePositionTimeout = setTimeout(() => {
+        const [x, y] = mainWindow.getPosition();
+        store.set('window-position', { x, y });
+      }, 100);
+    });
+  });
 
   initializeIpc(mainWindow);
 
@@ -69,6 +135,11 @@ function createTray() {
     },
   ]);
 
+  // Unregister shortcuts when quitting
+  app.on('will-quit', () => {
+    globalShortcut.unregisterAll();
+  });
+
   tray.setToolTip('Desktop Assistant');
   tray.setContextMenu(contextMenu);
 
@@ -80,6 +151,20 @@ function createTray() {
 app.whenReady().then(() => {
   createWindow();
   createTray();
+
+  // Register global shortcut to toggle collapse mode
+  globalShortcut.register('CommandOrControl+/', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('toggle-collapse');
+    }
+  });
+
+  // Register global shortcut to toggle voice mode
+  globalShortcut.register('CommandOrControl+Shift+M', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('toggle-voice-mode');
+    }
+  });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

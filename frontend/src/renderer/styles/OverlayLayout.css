@@ -1,0 +1,617 @@
+/* ============================================
+   DESKTOP OVERLAY UI - NEW DESIGN
+   Emerald/Mint Color Scheme with History Box
+   ============================================ */
+
+/* Color Variables */
+:root {
+  --accent-primary: #00C896;
+  --accent-secondary: #2AFFC2;
+  --bg-dark: rgba(12, 14, 13, 0.3);
+  --surface-dark: #151A17;
+  --text-primary: #E5FFF5;
+  --text-secondary: #A8D9C8;
+  --halo-gradient: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  --halo-secondary: radial-gradient(circle at 50% 50%, rgba(0, 200, 150, 0.35), rgba(42, 255, 194, 0.1));
+  --highlight-line: rgba(42, 255, 194, 0.25);
+}
+
+/* ============================================
+   RESET & BASE STYLES
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  overflow: visible !important;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Aptos', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  -webkit-app-region: drag;
+}
+
+/* ============================================
+   CONTAINER & LAYOUT
+   ============================================ */
+
+.overlay-container {
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+  padding: 40px;
+  padding-bottom: 150px;
+  /* Extra space for bottom halo - increased from 60px */
+  font-family: 'Aptos', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  -webkit-app-region: drag;
+  overflow: visible;
+}
+
+/* ============================================
+   HISTORY BOX (TOP)
+   ============================================ */
+
+.history-box {
+  width: 70%;
+  max-width: 900px;
+  max-height: 200px;
+  min-height: auto;
+  /* GLASS EFFECT WITHOUT BACKDROP-FILTER */
+  background: linear-gradient(135deg,
+      rgba(18, 22, 20, 0.75) 0%,
+      rgba(0, 200, 150, 0.08) 30%,
+      /* Add mint tint */
+      rgba(12, 14, 13, 0.75) 100%);
+  border-radius: 30px;
+  border: 1px solid rgba(229, 255, 245, 0.15);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(229, 255, 245, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  display: none;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  margin: 12px auto 0;
+  /* Reduced from 16px for consistent spacing */
+  overflow: hidden;
+  transform: translateZ(0);
+  /* Force hardware acceleration */
+}
+
+.history-box.visible {
+  display: flex;
+}
+
+.messages-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  overflow-y: auto;
+  max-height: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  position: relative;
+  z-index: 2;
+  -webkit-app-region: no-drag;
+  will-change: transform;
+  /* Optimize for animations */
+  transform: translateZ(0);
+  /* Force hardware acceleration */
+  backface-visibility: hidden;
+  /* Prevent rendering issues */
+}
+
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: rgba(229, 255, 245, 0.2);
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(229, 255, 245, 0.3);
+}
+
+.message {
+  display: flex;
+  width: 100%;
+  animation: messageSlideIn 0.3s ease-out;
+  -webkit-app-region: no-drag;
+  position: relative;
+  z-index: 1;
+  transform: translateZ(0);
+  /* Force hardware acceleration */
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message.user {
+  justify-content: flex-end;
+}
+
+.message.assistant {
+  justify-content: flex-start;
+}
+
+.message-bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  -webkit-app-region: no-drag;
+  position: relative;
+  /* Ensure proper stacking context */
+  z-index: 2;
+  /* Ensure bubbles stay above the container background */
+  transform: translateZ(0);
+  /* Force hardware acceleration */
+}
+
+.message.user .message-bubble {
+  /* GLASS EFFECT WITH SLIGHT MINT TINT */
+  background: linear-gradient(135deg,
+      rgba(18, 22, 20, 0.9) 0%,
+      rgba(12, 14, 13, 0.85) 100%);
+  color: var(--text-primary);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(229, 255, 245, 0.1);
+}
+
+.message.assistant .message-bubble {
+  /* GLASS EFFECT WITH SUBTLE HALO GLOW */
+  background: linear-gradient(135deg,
+      rgba(18, 22, 20, 0.9) 0%,
+      rgba(12, 14, 13, 0.85) 100%);
+  color: var(--text-primary);
+
+  border: 1px solid rgba(229, 255, 245, 0.15);
+  box-shadow:
+    0 0 8px rgba(42, 255, 194, 0.3),
+    /* Subtle halo glow */
+    0 0 16px rgba(42, 255, 194, 0.15),
+    /* Softer outer glow */
+    inset 0 1px 0 rgba(229, 255, 245, 0.1);
+}
+
+/* ============================================
+   INPUT BOX (BOTTOM)
+   ============================================ */
+
+.overlay-box {
+  width: 70%;
+  max-width: 900px;
+  height: 50px;
+  background: transparent;
+  border-radius: 30px;
+  padding: 0;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  -webkit-app-region: drag;
+  overflow: visible;
+  flex-shrink: 0;
+  z-index: 2;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Compact mode - 50% width, centered, no buttons */
+.overlay-box.compact {
+  width: 35%;
+  /* 50% of the original 70% */
+  max-width: 450px;
+  /* 50% of 900px */
+}
+
+
+.overlay-box-inner.compact {
+  padding: 0 20px;
+  /* Remove space for buttons */
+}
+
+.overlay-box.compact .typing-input {
+  text-align: center;
+  cursor: default;
+}
+
+
+
+/* Primary halo layer - emerald pulse */
+.overlay-box::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 38px;
+  background: #2AFFC2;
+  opacity: 0.5;
+  filter: blur(18px);
+  animation: pulse-halo 3s ease-in-out infinite;
+  z-index: 0;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.overlay-box.halo-off::before {
+  opacity: 0;
+  animation: none;
+}
+
+/* Secondary ambient halo layer - subsurface scattering */
+.overlay-box::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  border-radius: 36px;
+  background: #2AFFC2;
+  opacity: 0.4;
+  filter: blur(25px);
+  animation: pulse-halo 4s ease-in-out infinite;
+  z-index: 0;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.overlay-box.halo-off::after {
+  opacity: 0;
+  animation: none;
+}
+
+.overlay-box-inner {
+  width: 100%;
+  height: 100%;
+  /* GLASS EFFECT WITHOUT BACKDROP-FILTER - Matches history box */
+  background: linear-gradient(135deg,
+      rgba(18, 22, 20, 0.85) 0%,
+      /* Between 0.95 (dark) and 0.75 (light) */
+      rgba(12, 14, 13, 0.82) 50%,
+      /* Between 0.92 (dark) and 0.75 (light) */
+      rgba(15, 18, 16, 0.85) 100%
+      /* Between 0.95 (dark) and 0.75 (light) */
+    );
+  border-radius: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(229, 255, 245, 0.15);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.15),
+    /* Lighter shadow */
+    inset 0 1px 0 rgba(229, 255, 245, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  /* Much lighter */
+}
+
+@keyframes pulse-halo {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1) translateZ(0);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05) translateZ(0);
+  }
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  padding: 0 50px;
+}
+
+.typing-input {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #d4d3d3;
+  font-size: 16px;
+  font-family: 'Aptos', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-weight: normal;
+  letter-spacing: 1px;
+  padding: 0;
+  -webkit-app-region: no-drag;
+  caret-color: var(--accent-secondary);
+}
+
+.typing-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.typing-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   MICROPHONE BUTTON
+   ============================================ */
+
+.mic-btn {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-app-region: no-drag;
+  z-index: 10;
+  padding: 0;
+}
+
+.mic-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: #ffffff;
+  transition: fill 0.3s ease;
+}
+
+.mic-btn.voice-mode svg {
+  fill: #ff5757;
+}
+
+.mic-btn:hover svg {
+  fill: var(--accent-secondary);
+  transform: scale(1.1);
+}
+
+.mic-btn.voice-mode:hover svg {
+  fill: #ff5757;
+}
+
+/* ============================================
+   SEND BUTTON
+   ============================================ */
+
+.send-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-app-region: no-drag;
+  z-index: 10;
+  padding: 0;
+  overflow: hidden;
+}
+
+.send-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.8);
+  /* Very dark arrow */
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: all 0.3s ease;
+}
+
+.send-btn:hover:not(:disabled) {
+  background: var(--accent-secondary);
+}
+
+.send-btn:hover:not(:disabled) svg {
+  stroke: var(--bg-dark);
+  transform: translateY(-2px);
+}
+
+.send-btn:active:not(:disabled) {
+  background: var(--accent-primary);
+}
+
+.send-btn:active:not(:disabled) svg {
+  stroke: var(--bg-dark);
+}
+
+.send-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.send-btn:disabled svg {
+  opacity: 1;
+}
+
+/* ============================================
+   MODEL SELECTOR DROPDOWN
+   ============================================ */
+
+.model-selector {
+  position: absolute;
+  right: 50px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid rgba(229, 255, 245, 0.2);
+  border-radius: 14px;
+  background: rgba(18, 22, 20, 0.7);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: 'Aptos', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-app-region: no-drag;
+  z-index: 10;
+  outline: none;
+  max-width: 150px;
+}
+
+.model-selector:hover:not(:disabled) {
+  background: rgba(18, 22, 20, 0.9);
+  border-color: var(--accent-secondary);
+}
+
+.model-selector:focus {
+  border-color: var(--accent-secondary);
+  box-shadow: 0 0 0 2px rgba(42, 255, 194, 0.2);
+}
+
+.model-selector:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.model-selector option {
+  background: var(--surface-dark);
+  color: var(--text-primary);
+  padding: 8px;
+}
+
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+p {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   COLLAPSED STATE (Moved to end for specificity)
+   ============================================ */
+
+.overlay-box.collapsed {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #000000;
+  border: 1px solid rgba(42, 255, 194, 0.3);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Ensure halo is visible and circular when collapsed */
+.overlay-box.collapsed::before,
+.overlay-box.collapsed::after {
+  border-radius: 50%;
+  opacity: 1;
+  /* Reset opacity so animation can take over */
+  animation: pulse-halo 3s ease-in-out infinite !important;
+}
+
+/* Microphone button in collapsed state - centered */
+.mic-btn.collapsed-mic {
+  position: static;
+  transform: none;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mic-btn.collapsed-mic svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* ============================================
+   CONVERSATION BOX (Bottom Input)
+   ============================================ */
+
+.conversation-box::before {
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -30px;
+  /* Extended downward - changed from -8px */
+  border-radius: 38px;
+}
+
+.conversation-box::after {
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -35px;
+  /* Extended downward more - changed from -6px */
+  border-radius: 36px;
+}

@@ -58,8 +58,8 @@ class LocalMemoryStore:
         self.memory_dir = Path(db_path).parent
 
         # Initialize embedding model on CUDA for better performance
-        logger.info(f"Loading embedding model: {embedding_model} on CUDA")
-        self.embedder = SentenceTransformer(embedding_model, device="cuda")
+        logger.info(f"Loading embedding model: {embedding_model} on CPU")
+        self.embedder = SentenceTransformer(embedding_model, device="cpu")
 
         # Initialize FAISS index
         self.faiss_index_path = self.memory_dir / "faiss.index"

@@ -1,0 +1,31 @@
+websockets==12.0
+pylint==3.0.3
+pytest==8.1.1
+pytest-asyncio==0.23.6
+black==24.3.0
+pyyaml==6.0.1
+pylint-pydantic==0.3.0
+pydantic==2.8.2
+litellm==1.79.1
+httpx==0.27.0
+pyautogui==0.9.54
+rapidocr
+pillow>=10.0.0
+transformers
+accelerate
+einops
+timm
+# flash-attn  # Optional: improves performance but may have installation issues on Windows
+
+# Memory system dependencies
+sentence-transformers>=2.2.0
+faiss-cpu>=1.7.4
+numpy>=1.24.0
+
+# Provider-specific SDKs required by LiteLLM
+google-auth==2.30.0
+openai==1.99.5
+anthropic==0.72.0
+mistralai==0.4.1
+python-magic>=0.4.27
+onnxruntime>=1.15.0

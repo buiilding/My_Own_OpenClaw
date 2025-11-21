@@ -1,18 +1,10 @@
 import { useState, useRef } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
-import ChatInterface from './components/ChatInterface';
-import MainLayout from './components/MainLayout';
-import SettingsPanel from './components/SettingsPanel';
+import OverlayLayout from './components/OverlayLayout';
 import { useMessageHandling } from './hooks/useMessageHandling';
 import { useInitialConfig } from './hooks/useInitialConfig';
-import './styles/ChatInterface.css';
-import './styles/MainLayout.css';
-import './styles/accessibility.css';
-
-// TODO: Refactor state management.
-// The current approach of passing down state setters ("prop drilling") is not ideal.
-// A centralized state management solution like Zustand or Redux Toolkit would be more
-// scalable and would simplify the component hierarchy. This is a medium-priority refactor.
+import './styles/OverlayLayout.css';
+import './styles/ThinkingDisplay.css';
 
 /**
  * The root component of the application.
@@ -20,13 +12,7 @@ import './styles/accessibility.css';
  * (like chat messages and config), and handles communication with the backend.
  */
 function App() {
-  const [messages, setMessages] = useState([
-    {
-      id: crypto.randomUUID(),
-      text: 'Hello! How can I help you today?',
-      sender: 'assistant',
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [isSending, setIsSending] = useState(false);
   const [thinkingStatus, setThinkingStatus] = useState(null);
   const [config, setConfig] = useState(null);
@@ -66,6 +52,7 @@ function App() {
     });
   };
 
+  // Config change handler is kept but not used in OverlayLayout for now
   const handleConfigChange = (updatedConfig) => {
     // Prevent concurrent saves
     if (saveStatus === 'saving') {
@@ -96,24 +83,14 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <MainLayout
-        chat={
-          <ChatInterface
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            isSending={isSending}
-            thinkingStatus={thinkingStatus}
-            voiceModeEnabled={config?.voice_mode_enabled || false}
-          />
-        }
-        settings={
-          <SettingsPanel
-            config={config}
-            availableModels={availableModels}
-            onConfigChange={handleConfigChange}
-            saveStatus={saveStatus}
-          />
-        }
+      <OverlayLayout
+        messages={messages}
+        onSendMessage={handleSendMessage}
+        isSending={isSending}
+        thinkingStatus={thinkingStatus}
+        config={config}
+        availableModels={availableModels}
+        onConfigChange={handleConfigChange}
       />
     </ErrorBoundary>
   );

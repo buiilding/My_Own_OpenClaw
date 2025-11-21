@@ -15,7 +15,7 @@ contextBridge.exposeInMainWorld('ipc', {
   },
   // Receive messages from main process
   on: (channel, func) => {
-    const validChannels = ['from-backend', 'ipc-status', 'log'];
+    const validChannels = ['from-backend', 'ipc-status', 'log', 'toggle-collapse', 'toggle-voice-mode'];
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender`
       const subscription = (event, ...args) => func(...args);
@@ -27,7 +27,7 @@ contextBridge.exposeInMainWorld('ipc', {
   },
   // One-time listener
   once: (channel, func) => {
-    const validChannels = ['from-backend', 'ipc-status', 'log'];
+    const validChannels = ['from-backend', 'ipc-status', 'log', 'toggle-collapse', 'toggle-voice-mode'];
     if (validChannels.includes(channel)) {
       ipcRenderer.once(channel, (event, ...args) => func(...args));
     }
