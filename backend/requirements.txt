@@ -19,6 +19,10 @@ python-magic-bin
 onnxruntime-gpu
 # flash-attn  # Optional: improves performance but may have installation issues on Windows
 
+# Web Framework
+fastapi==0.121.3
+uvicorn==0.38.0
+
 # Memory system dependencies
 sentence-transformers>=2.2.0
 faiss-cpu>=1.7.4

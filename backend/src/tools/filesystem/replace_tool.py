@@ -1,0 +1,175 @@
+"""
+Replace Tool.
+
+Tool for precise search and replace operations in files.
+"""
+import logging
+import os
+from typing import Any, Tuple
+
+from backend.src.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.src.tools.system.shell_tool import ShellTool
+from backend.src.core.utils.file_utils import (
+    DEFAULT_ENCODING,
+    ensure_directory_exists,
+    make_relative_path,
+    read_text_file_auto_encoding,
+    shorten_path,
+)
+
+logger = logging.getLogger(__name__)
+
+
+class ReplaceTool(Tool):
+    """Tool for precise search and replace operations in files."""
+
+    def __init__(self, config: Any):
+        super().__init__(
+            name="replace",
+            description="Use this tool to propose a search and replace operation on an existing file.\n\nThe tool will replace occurrences of old_string with new_string in the specified file.\n\nBy default, replaces only ONE occurrence. Set replace_all=true to replace all occurrences.\n\nCRITICAL REQUIREMENTS FOR USING THIS TOOL:\n\n1. UNIQUENESS: When replace_all=false, the old_string MUST uniquely identify the specific instance you want to change. This means:\n   - Include AT LEAST 3-5 lines of context BEFORE the change point\n   - Include AT LEAST 3-5 lines of context AFTER the change point\n   - Include all whitespace, indentation, and surrounding code exactly as it appears in the file\n\n2. MULTIPLE INSTANCES: When you need to change multiple instances:\n   - Set replace_all=true to change all occurrences at once\n   - Or make separate calls for each instance with unique context\n\n3. VERIFICATION: Before using this tool:\n   - Check how many occurrences exist using grep or read_file\n   - Plan your replacement strategy accordingly\n",
+            kind=Kind.EDIT,
+        )
+        self.config = config
+
+    async def execute_async(
+        self,
+        context: ToolContext,
+        file_path: str,
+        old_string: str,
+        new_string: str,
+        replace_all: bool = False,
+    ) -> ToolResult:
+        """Execute the replace tool."""
+        try:
+            # Validate required parameters
+            if not file_path:
+                return ToolResult(
+                    success=False,
+                    error="file_path parameter is required",
+                    llm_content="Error: file_path parameter is required",
+                    return_display="file_path parameter is required",
+                )
+
+            # Resolve relative paths to absolute paths
+            if not os.path.isabs(file_path):
+                # Resolve relative path to absolute using current working directory (from shell tool)
+                current_dir = ShellTool.get_current_working_directory()
+                file_path = os.path.abspath(os.path.join(current_dir, file_path))
+                logger.info(
+                    f"Replace: Resolved relative path to absolute using current dir: {file_path}"
+                )
+
+            # Get target directory for relative path resolution (use current working directory from shell tool)
+            target_dir = ShellTool.get_current_working_directory()
+
+            # Removed workspace restriction - allow operations anywhere on the system
+
+            # Handle file creation case
+            file_exists = os.path.exists(file_path)
+            if not file_exists and not old_string:
+                # Create new file
+                try:
+                    ensure_directory_exists(os.path.dirname(file_path))
+                    with open(file_path, "w", encoding=DEFAULT_ENCODING) as f:
+                        f.write(new_string)
+                    return ToolResult(
+                        success=True,
+                        data={"replacements": 1, "is_new_file": True},
+                        llm_content=f"Created new file: {file_path} with provided content.",
+                        return_display=f"Created new file: {shorten_path(make_relative_path(file_path, target_dir))}",
+                    )
+                except OSError as e:
+                    return ToolResult(
+                        success=False,
+                        error=f"Failed to create file: {e}",
+                        llm_content=f"Error: Failed to create file: {e}",
+                        return_display="Failed to create file",
+                    )
+
+            # Handle existing file editing
+            if not file_exists:
+                return ToolResult(
+                    success=False,
+                    error=f"File does not exist and old_string is not empty: {file_path}",
+                    llm_content=f"Error: File does not exist and old_string is not empty: {file_path}",
+                    return_display="File does not exist",
+                )
+
+            # Read current file content
+            try:
+                current_content, _ = read_text_file_auto_encoding(file_path)
+            except Exception as e:
+                return ToolResult(
+                    success=False,
+                    error=f"Failed to read file: {e}",
+                    llm_content=f"Error: Failed to read file: {e}",
+                    return_display="Failed to read file",
+                )
+
+            # Perform replacement
+            expected_count = -1 if replace_all else 1
+            new_content, replacements = self._perform_replacement(
+                current_content, old_string, new_string, expected_count
+            )
+
+            if replacements == 0:
+                return ToolResult(
+                    success=False,
+                    error="Failed to edit, could not find the string to replace",
+                    llm_content="Failed to edit, could not find the string to replace.",
+                    return_display="No occurrences found to replace",
+                )
+
+            if not replace_all and replacements > 1:
+                return ToolResult(
+                    success=False,
+                    error="Multiple matches found. Provide more unique context around the specific text you want to replace.",
+                    llm_content="Multiple matches found. Provide more unique context around the specific text you want to replace.",
+                    return_display="Multiple matches found - provide more unique context",
+                )
+
+            # Write back the modified content
+            try:
+                with open(file_path, "w", encoding=DEFAULT_ENCODING) as f:
+                    f.write(new_content)
+            except OSError as e:
+                return ToolResult(
+                    success=False,
+                    error=f"Failed to write file: {e}",
+                    llm_content=f"Error: Failed to write file: {e}",
+                    return_display="Failed to write file",
+                )
+
+            return ToolResult(
+                success=True,
+                data={"replacements": replacements, "is_new_file": False},
+                llm_content=f"Successfully modified file: {file_path} ({replacements} replacements).",
+                return_display=f"Modified file: {shorten_path(make_relative_path(file_path, target_dir))} ({replacements} replacements)",
+            )
+
+        except Exception as e:
+            return ToolResult(
+                success=False,
+                error=f"Unexpected error: {str(e)}",
+                llm_content=f"Error: Unexpected error: {str(e)}",
+                return_display="Unexpected error occurred",
+            )
+
+    def _perform_replacement(
+        self, content: str, old_string: str, new_string: str, expected_count: int
+    ) -> Tuple[str, int]:
+        """Perform the actual replacement operation."""
+        # TODO: Implement fuzzy matching like Gemini CLI
+        # For now, use exact string matching
+        count = content.count(old_string)
+        if count == 0:
+            return content, 0
+
+        if count != expected_count and expected_count != -1:  # -1 means replace all
+            return content, count
+
+        # Perform replacement
+        replace_count = expected_count if expected_count > 0 else count
+        new_content = content.replace(old_string, new_string, replace_count)
+
+        return new_content, replace_count
