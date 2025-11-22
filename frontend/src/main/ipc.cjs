@@ -7,7 +7,7 @@ const { ipcMain, BrowserWindow } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 
-const BACKEND_URL = "ws://127.0.0.1:8765";
+const BACKEND_URL = "ws://127.0.0.1:8765/ws";
 let ws = null;
 let mainWindow = null;
 let isConnected = false;
@@ -28,7 +28,7 @@ function connect() {
   }
 
   log(`Attempting to connect to Python backend at ${BACKEND_URL}...`);
-  ws = new WebSocket(BACKEND_URL);
+  ws = new WebSocket(BACKEND_URL, { origin: 'http://localhost:5173' });
 
   ws.on('open', () => {
     isConnected = true;
