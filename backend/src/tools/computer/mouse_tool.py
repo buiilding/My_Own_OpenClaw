@@ -7,8 +7,8 @@ import logging
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
-from backend.sdk.tool import Tool
-from backend.sdk.context import Context
+from backend.src.sdk.tool import Tool
+from backend.src.sdk.context import Context
 from backend.src.tools.computer.computer_interface import ComputerInterface, MouseButton
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class MouseTool(Tool[MouseToolArgs]):
     def __init__(self):
         self.computer = ComputerInterface()
 
-    async def run(self, args: MouseToolArgs, ctx: Context) -> str:
+    async def run(self, args: MouseToolArgs, ctx: Context) -> dict:
         # Ensure computer interface is initialized
         if not self.computer._initialized:
             success = await self.computer.initialize()
@@ -59,7 +59,13 @@ class MouseTool(Tool[MouseToolArgs]):
         if not result.success:
              raise Exception(f"Mouse action failed: {result.error}")
 
-        return result.message
+        # Return dictionary with llm_content and other fields
+        return {
+            "success": True,
+            "data": result.message,
+            "llm_content": result.message,
+            "return_display": result.message
+        }
 
     async def _execute_mouse_action(
         self,

@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from backend.src.memory.storage import LocalMemoryStore
+from backend.src.core.interfaces.memory_store import MemoryStoreInterface
 
 logger = logging.getLogger(__name__)
 
@@ -20,17 +20,21 @@ class SemanticRetrieval:
     Advanced memory retrieval system with semantic search and re-ranking.
     """
 
-    def __init__(self, memory_store: LocalMemoryStore):
+    def __init__(self, memory_store: MemoryStoreInterface, embedder: Optional[Any] = None):
         """
         Initialize the retrieval system.
 
         Args:
-            memory_store: LocalMemoryStore instance
+            memory_store: MemoryStoreInterface instance
+            embedder: Optional embedding provider (if not provided, will try to get from memory_store)
         """
         self.memory_store = memory_store
-        self.embedder = memory_store.embedder
+        # Try to get embedder from memory_store if available, otherwise use provided one
+        self.embedder = getattr(memory_store, "embedder", None) or embedder
+        if self.embedder is None:
+            raise ValueError("EmbeddingProvider is required for SemanticRetrieval")
 
-    def semantic_search(
+    async def semantic_search(
         self,
         query: str,
         user_id: str,
@@ -53,7 +57,7 @@ class SemanticRetrieval:
         if memory_type:
             filters["metadata.type"] = memory_type
 
-        results = self.memory_store.search(
+        results = await self.memory_store.search(
             query=query,
             user_id=user_id,
             filters=filters if filters else None,
@@ -67,7 +71,7 @@ class SemanticRetrieval:
 
         return results[:limit]
 
-    def temporal_search(
+    async def temporal_search(
         self,
         user_id: str,
         start_time: Optional[datetime] = None,
@@ -99,7 +103,7 @@ class SemanticRetrieval:
             filters["metadata.type"] = memory_type
 
         # Get more results than needed to filter by time
-        results = self.memory_store.search(
+        results = await self.memory_store.search(
             query="",  # Empty query returns all (sorted by recency)
             user_id=user_id,
             filters=filters if filters else None,
@@ -123,7 +127,7 @@ class SemanticRetrieval:
 
         return filtered_results[:limit]
 
-    def hybrid_search(
+    async def hybrid_search(
         self, query: str, user_id: str, limit: int = 10, semantic_ratio: float = 0.7
     ) -> Dict[str, List[Dict[str, Any]]]:
         """
@@ -140,13 +144,13 @@ class SemanticRetrieval:
         """
         # Get semantic memories
         semantic_limit = int(limit * semantic_ratio)
-        semantic_results = self.semantic_search(
+        semantic_results = await self.semantic_search(
             query=query, user_id=user_id, memory_type="semantic", limit=semantic_limit
         )
 
         # Get recent episodic memories
         episodic_limit = limit - len(semantic_results)
-        recent_episodic = self.temporal_search(
+        recent_episodic = await self.temporal_search(
             user_id=user_id,
             start_time=datetime.now() - timedelta(days=7),  # Last 7 days
             memory_type="episodic",

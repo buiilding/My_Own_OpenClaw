@@ -1,101 +1,97 @@
 """
-Keyboard Control Tool
+Keyboard Control Tool (SDK Version)
 
 Tool for controlling keyboard input.
 """
 import logging
-from typing import Any, Dict, List, Literal, Optional
+from typing import List, Literal, Optional
+from pydantic import BaseModel, Field
 
-from backend.src.core.config import AppServices
-from backend.src.tools.base import Kind, Tool, ToolContext, ToolResult
-from backend.src.tools.computer.computer_interface import ComputerInterface, KeyType
+from backend.src.sdk.tool import Tool
+from backend.src.sdk.context import Context
+from backend.src.tools.computer.computer_interface import ComputerInterface
 
 logger = logging.getLogger(__name__)
 
 
-class KeyboardTool(Tool):
+class KeyboardControlArgs(BaseModel):
+    action: Literal["type", "press", "hotkey"] = Field(..., description="Keyboard action to perform")
+    text: Optional[str] = Field(None, description="Text to type (required for 'type' action)")
+    key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
+    keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
+
+
+class KeyboardTool(Tool[KeyboardControlArgs]):
     """
     Tool for controlling keyboard input.
-
+    
     Supports typing text, pressing individual keys, and keyboard shortcuts
     for computer use automation.
     """
+    
+    name = "keyboard_control"
+    description = "Control keyboard input including typing text, pressing keys, and keyboard shortcuts."
+    args_model = KeyboardControlArgs
 
-    def __init__(self, config: AppServices):
-        super().__init__(
-            name="keyboard_control",
-            description="Control keyboard input including typing text, pressing keys, and keyboard shortcuts.",
-            kind=Kind.EXECUTE,
-        )
-        self.config = config
+    def __init__(self):
+        """Initialize the keyboard tool."""
         self.computer = ComputerInterface()
 
-    async def execute_async(
-        self,
-        context: ToolContext,
-        action: Literal["type", "press", "hotkey"],
-        text: Optional[str] = None,
-        key: Optional[KeyType] = None,
-        keys: Optional[List[KeyType]] = None,
-        **kwargs,
-    ) -> ToolResult:
+    async def run(self, args: KeyboardControlArgs, ctx: Context) -> dict:
         """
         Execute keyboard control actions.
-
+        
         Args:
-            context: Tool execution context
-            action: Keyboard action to perform ("type", "press", "hotkey")
-            text: Text to type (for "type" action)
-            key: Single key to press (for "press" action)
-            keys: List of keys for hotkey (for "hotkey" action)
-
+            args: Keyboard control arguments
+            ctx: Execution context
+            
         Returns:
-            ToolResult with action outcome
+            Dictionary with action outcome
         """
         try:
             # Ensure computer interface is initialized
             init_error = await self.computer.ensure_initialized()
             if init_error:
-                return init_error
+                # Convert ToolResult to dict
+                return {
+                    "error": init_error.error or "Computer interface initialization failed",
+                    "llm_content": f"Error: {init_error.error or 'Computer interface initialization failed'}"
+                }
 
             # Execute the requested action
-            result = await self._execute_keyboard_action(action, text, key, keys)
+            result = await self._execute_keyboard_action(args.action, args.text, args.key, args.keys)
 
             if result.success:
-                return ToolResult(
-                    success=True,
-                    data={"action": action, "input": text or key or keys},
-                    llm_content=result.message,
-                    return_display=result.message,
-                    metadata={
-                        "action": action,
-                        "input_type": "text" if text else "key" if key else "keys",
-                        "input_length": len(text) if text else len(keys) if keys else 1,
-                    },
-                )
+                return {
+                    "action": args.action,
+                    "input": args.text or args.key or args.keys,
+                    "llm_content": result.message,
+                    "return_display": result.message,
+                    "metadata": {
+                        "action": args.action,
+                        "input_type": "text" if args.text else "key" if args.key else "keys",
+                        "input_length": len(args.text) if args.text else len(args.keys) if args.keys else 1,
+                    }
+                }
             else:
-                return ToolResult(
-                    success=False,
-                    error=result.error or "Keyboard action failed",
-                    llm_content=f"Error: {result.error}",
-                    return_display=f"Keyboard action failed: {result.error}",
-                )
+                return {
+                    "error": result.error or "Keyboard action failed",
+                    "llm_content": f"Error: {result.error}"
+                }
 
         except Exception as e:
             logger.error(f"Keyboard tool error: {e}", exc_info=True)
-            return ToolResult(
-                success=False,
-                error=f"Keyboard control failed: {str(e)}",
-                llm_content="Error: Keyboard action failed",
-                return_display=f"Keyboard error: {str(e)}",
-            )
+            return {
+                "error": f"Keyboard control failed: {str(e)}",
+                "llm_content": f"Error: Keyboard action failed: {str(e)}"
+            }
 
     async def _execute_keyboard_action(
         self,
         action: str,
         text: Optional[str],
-        key: Optional[KeyType],
-        keys: Optional[List[KeyType]],
+        key: Optional[str],
+        keys: Optional[List[str]],
     ):
         """Execute the specific keyboard action."""
         if action == "type":
@@ -140,82 +136,3 @@ class KeyboardTool(Tool):
                 (),
                 {"success": False, "error": f"Unknown keyboard action: {action}", "message": f"Unknown action: {action}"},
             )()
-
-    def validate_parameters(self, **kwargs) -> List[str]:
-        """Validate keyboard tool parameters."""
-        errors = []
-
-        # Check required action parameter
-        if "action" not in kwargs:
-            errors.append("action parameter is required")
-            return errors
-
-        action = kwargs["action"]
-
-        # Validate action type
-        valid_actions = ["type", "press", "hotkey"]
-        if action not in valid_actions:
-            errors.append(f"action must be one of: {', '.join(valid_actions)}")
-
-        # Validate action-specific parameters
-        if action == "type":
-            if "text" not in kwargs or not kwargs["text"]:
-                errors.append("text parameter is required for type action")
-            elif not isinstance(kwargs["text"], str):
-                errors.append("text must be a string")
-
-        elif action == "press":
-            if "key" not in kwargs or not kwargs["key"]:
-                errors.append("key parameter is required for press action")
-            elif not isinstance(kwargs["key"], str):
-                errors.append("key must be a string")
-
-        elif action == "hotkey":
-            if "keys" not in kwargs or not kwargs["keys"]:
-                errors.append("keys parameter is required for hotkey action")
-            elif not isinstance(kwargs["keys"], list):
-                errors.append("keys must be a list of strings")
-            elif len(kwargs["keys"]) == 0:
-                errors.append("keys list cannot be empty")
-            elif not all(isinstance(k, str) for k in kwargs["keys"]):
-                errors.append("all keys must be strings")
-
-        return errors
-
-    def get_capabilities(self) -> Dict[str, Any]:
-        """Get tool capabilities."""
-        capabilities = super().get_capabilities()
-        capabilities.update(
-            {
-                "supported_actions": ["type", "press", "hotkey"],
-                "supported_keys": [
-                    "a-z",
-                    "0-9",
-                    "enter",
-                    "esc",
-                    "tab",
-                    "space",
-                    "backspace",
-                    "delete",
-                    "f1-f12",
-                    "ctrl",
-                    "alt",
-                    "shift",
-                    "win",
-                    "up",
-                    "down",
-                    "left",
-                    "right",
-                    "home",
-                    "end",
-                    "pageup",
-                    "pagedown",
-                ],
-                "max_text_length": 10000,  # Reasonable limit for typing
-                "requires_confirmation": False,
-                "destructive": False,  # Keyboard input itself isn't destructive
-                "safe": True,
-                "requires_screenshot": True,
-            }
-        )
-        return capabilities

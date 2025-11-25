@@ -1,25 +1,27 @@
 """
-Shell Tool for the Desktop Assistant.
+Shell Tool for the Desktop Assistant (SDK Version).
 
 This module implements shell command execution with safety restrictions,
 supporting both PowerShell (Windows) and bash (Unix) with command allowlists.
 """
-
 import asyncio
 import logging
 import os
 import platform
 import shlex
+import subprocess
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
+from pydantic import BaseModel, Field
 
-from backend.src.core.config import AppConfig
-from backend.src.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.src.sdk.tool import Tool
+from backend.src.sdk.context import Context
 
 logger = logging.getLogger(__name__)
 
-# Default timeout for shell commands (seconds)
+# Default timeout for shell commands (seconds) - fallback if config not available
 DEFAULT_SHELL_TIMEOUT = 30.0
 
 
@@ -37,7 +39,12 @@ class ShellExecutionResult:
     aborted: bool
 
 
-class ShellTool(Tool):
+class RunShellCommandArgs(BaseModel):
+    command: str = Field(..., description="Exact command to execute")
+    directory: Optional[str] = Field(None, description="(OPTIONAL) The absolute path of the directory to run the command in. If not provided, uses the current persistent working directory from conversation context. Must be an absolute path and must already exist.")
+
+
+class ShellTool(Tool[RunShellCommandArgs]):
     """Tool for executing shell commands with safety restrictions."""
 
     # Global shell state shared across all filesystem tools
@@ -61,86 +68,65 @@ class ShellTool(Tool):
         """Set the current working directory for all filesystem tools."""
         cls._global_shell_state["working_directory"] = directory
 
-    def __init__(self, config: AppConfig):
-        super().__init__(
-            name="run_shell_command",
-            description=self._get_shell_description(),
-            kind=Kind.EXECUTE,
-        )
-        self.config = config
+    name = "run_shell_command"
+    description = (
+        "This tool executes shell commands with safety restrictions. "
+        "Most commands are allowed except destructive operations like file deletion, system shutdown, or disk formatting. "
+        "Shell state (working directory, environment) persists across commands in the same conversation. "
+        "Use cd commands to change directories persistently, then run subsequent commands in that directory. "
+    ) + (
+        "Commands are executed as `powershell.exe -NoProfile -Command <command>`. "
+        "Command can start background processes using PowerShell constructs such as `Start-Process -NoNewWindow` or `Start-Job`. "
+        "The following information is returned: Command, Directory, Stdout, Stderr, Error, Exit Code, Signal, Background PIDs, Process Group PGID"
+        if platform.system() == "Windows"
+        else "Commands are executed as `bash -c <command>`. "
+        "Command can start background processes using `&`. "
+        "Command is executed as a subprocess that leads its own process group. "
+        "Command process group can be terminated as `kill -- -PGID` or signaled as `kill -s SIGNAL -- -PGID`. "
+        "The following information is returned: Command, Directory, Stdout, Stderr, Error, Exit Code, Signal, Background PIDs, Process Group PGID"
+    )
+    args_model = RunShellCommandArgs
+
+    def __init__(self):
+        """Initialize the shell tool."""
         self.allowlist: set[str] = set()
 
-    def _get_shell_description(self) -> str:
-        """Get the shell description based on platform."""
-        base_description = (
-            "This tool executes shell commands with safety restrictions. "
-            "Most commands are allowed except destructive operations like file deletion, system shutdown, or disk formatting. "
-            "Shell state (working directory, environment) persists across commands in the same conversation. "
-            "Use cd commands to change directories persistently, then run subsequent commands in that directory. "
-        )
-
-        if platform.system() == "Windows":
-            return base_description + (
-                "Commands are executed as `powershell.exe -NoProfile -Command <command>`. "
-                "Command can start background processes using PowerShell constructs such as `Start-Process -NoNewWindow` or `Start-Job`. "
-                "The following information is returned: Command, Directory, Stdout, Stderr, Error, Exit Code, Signal, Background PIDs, Process Group PGID"
-            )
-        else:
-            return base_description + (
-                "Commands are executed as `bash -c <command>`. "
-                "Command can start background processes using `&`. "
-                "Command is executed as a subprocess that leads its own process group. "
-                "Command process group can be terminated as `kill -- -PGID` or signaled as `kill -s SIGNAL -- -PGID`. "
-                "The following information is returned: Command, Directory, Stdout, Stderr, Error, Exit Code, Signal, Background PIDs, Process Group PGID"
-            )
-
-    async def execute_async(
-        self,
-        context: ToolContext,
-        command: str,
-        directory: Optional[str] = None,
-    ) -> ToolResult:
+    async def run(self, args: RunShellCommandArgs, ctx: Context) -> dict:
         """Execute the shell tool."""
+        logger.debug(f"ShellTool.run called with command: '{args.command}', directory: {args.directory}")
         try:
-            command = command.strip()
-            directory = directory
+            command = args.command.strip()
+            directory = args.directory
 
             if not command:
-                return ToolResult(
-                    success=False,
-                    error="Command cannot be empty",
-                    llm_content="Error: Command cannot be empty",
-                    return_display="Command cannot be empty",
-                )
+                logger.error("SHELL TOOL FAILED: Command cannot be empty")
+                return {
+                    "error": "Command cannot be empty",
+                    "llm_content": "Error: Command cannot be empty"
+                }
 
             # Validate command safety
             is_allowed, reason = self._is_command_allowed(command)
             if not is_allowed:
-                return ToolResult(
-                    success=False,
-                    error=f"Command not allowed: {reason}",
-                    llm_content=f"Error: Command not allowed: {reason}",
-                    return_display="Command not allowed",
-                )
+                return {
+                    "error": f"Command not allowed: {reason}",
+                    "llm_content": f"Error: Command not allowed: {reason}"
+                }
 
             # Determine working directory (priority: explicit directory > conversation state > workspace default)
             if directory:
                 # Explicit directory parameter takes precedence
                 if not os.path.isabs(directory):
-                    return ToolResult(
-                        success=False,
-                        error="Directory must be an absolute path",
-                        llm_content="Error: Directory must be an absolute path",
-                        return_display="Directory must be an absolute path",
-                    )
+                    return {
+                        "error": "Directory must be an absolute path",
+                        "llm_content": "Error: Directory must be an absolute path"
+                    }
 
                 if not os.path.exists(directory) or not os.path.isdir(directory):
-                    return ToolResult(
-                        success=False,
-                        error=f"Directory does not exist or is not a directory: {directory}",
-                        llm_content=f"Error: Directory does not exist or is not a directory: {directory}",
-                        return_display="Directory does not exist",
-                    )
+                    return {
+                        "error": f"Directory does not exist or is not a directory: {directory}",
+                        "llm_content": f"Error: Directory does not exist or is not a directory: {directory}"
+                    }
 
                 working_dir = directory
                 # Update persistent working directory for ALL filesystem tools
@@ -154,20 +140,23 @@ class ShellTool(Tool):
             if dir_change_result:
                 # This was a directory change command - update state and return
                 self._update_command_history(command, working_dir)
-                return ToolResult(
-                    success=True,
-                    data={
-                        "command": command,
-                        "exit_code": 0,
-                        "background_pids": [],
-                        "execution_time": 0.0,
-                        "working_directory": self.get_current_working_directory(),
-                    },
-                    llm_content=f"Directory changed: {dir_change_result}",
-                    return_display=f"Changed directory: {self.get_current_working_directory()}",
-                )
+                return {
+                    "command": command,
+                    "exit_code": 0,
+                    "background_pids": [],
+                    "execution_time": 0.0,
+                    "working_directory": self.get_current_working_directory(),
+                    "llm_content": f"Directory changed: {dir_change_result}",
+                    "return_display": f"Changed directory: {self.get_current_working_directory()}"
+                }
 
-            result = await self._execute_command(command, working_dir)
+            # Get shell timeout from config if available
+            shell_timeout = DEFAULT_SHELL_TIMEOUT
+            config = ctx.services.get("config")
+            if config and hasattr(config, "shell_timeout"):
+                shell_timeout = config.shell_timeout
+
+            result = await self._execute_command(command, working_dir, shell_timeout)
 
             # Update command history for successful commands
             self._update_command_history(command, working_dir)
@@ -181,25 +170,26 @@ class ShellTool(Tool):
             # Determine success based on exit code and errors
             success = result.exit_code == 0 and not result.error and not result.aborted
 
-            return ToolResult(
-                success=success,
-                data={
-                    "command": command,
-                    "exit_code": result.exit_code,
-                    "background_pids": result.background_pids,
-                    "execution_time": result.execution_time,
-                },
-                llm_content=llm_content,
-                return_display=return_display,
-            )
+            return {
+                "command": command,
+                "exit_code": result.exit_code,
+                "background_pids": result.background_pids,
+                "execution_time": result.execution_time,
+                "working_directory": working_dir,
+                "output": result.output,
+                "error": result.error,
+                "signal": result.signal,
+                "llm_content": llm_content,
+                "return_display": return_display,
+                "success": success
+            }
 
         except Exception as e:
-            return ToolResult(
-                success=False,
-                error=f"Unexpected error: {str(e)}",
-                llm_content=f"Error: Unexpected error: {str(e)}",
-                return_display="Unexpected error occurred",
-            )
+            logger.error(f"Unexpected error in shell tool: {e}", exc_info=True)
+            return {
+                "error": f"Unexpected error: {str(e)}",
+                "llm_content": f"Error: Unexpected error: {str(e)}"
+            }
 
     def _is_command_allowed(self, command: str) -> Tuple[bool, str]:
         """Check if a command is allowed to execute."""
@@ -265,9 +255,6 @@ class ShellTool(Tool):
                     f"Command '{root_cmd}' is potentially destructive and not allowed",
                 )
 
-            # Skip allowed tools check - allow any command except destructive ones
-            # (Legacy allowed tools check removed for broader command access)
-
         return True, ""
 
     def _get_command_roots(self, command: str) -> List[str]:
@@ -305,26 +292,8 @@ class ShellTool(Tool):
 
         return [part.strip() for part in parts if part.strip()]
 
-    def _is_command_in_allowed_tools(
-        self, command: str, allowed_tools: List[str]
-    ) -> bool:
-        """Check if a command matches any allowed tool pattern."""
-        if not allowed_tools:
-            return False
-
-        for allowed in allowed_tools:
-            # Check for exact match with command name
-            if allowed == command:
-                return True
-
-            # Check for wildcard match (allow all shell commands)
-            if allowed == "run_shell_command":
-                return True
-
-        return False
-
     async def _execute_command(
-        self, command: str, working_dir: str
+        self, command: str, working_dir: str, timeout: float
     ) -> ShellExecutionResult:
         """Execute a shell command."""
         start_time = time.time()
@@ -332,65 +301,39 @@ class ShellTool(Tool):
         try:
             # Determine shell and command format
             if platform.system() == "Windows":
-                shell_cmd = ["powershell.exe", "-NoProfile", "-Command", command]
+                # Force UTF-8 encoding for reliable output capture and ensure non-interactive mode
+                ps_command = f"$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {command}; if ($?) {{ exit 0 }} else {{ exit 1 }}"
+                shell_cmd = ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", ps_command]
             else:
                 shell_cmd = ["bash", "-c", command]
 
-            # Execute the command
-            process = await asyncio.create_subprocess_exec(
-                *shell_cmd,
+            # Execute command in thread pool to avoid asyncio subprocess limitations
+            loop = asyncio.get_event_loop()
+
+            def run_subprocess():
+                try:
+                    result = subprocess.run(
+                        shell_cmd,
                 cwd=working_dir,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                # Create new process group for better control
-                preexec_fn=None if platform.system() == "Windows" else os.setsid,
+                        capture_output=True,
+                        timeout=timeout,
+                        text=True,
+                        encoding='utf-8',
+                        errors='replace'
+                    )
+                    return result.returncode, result.stdout, result.stderr, []
+                except subprocess.TimeoutExpired:
+                    return None, "", "Command timed out", []
+
+            # Run subprocess in thread pool
+            exit_code, output, error_output, background_pids = await loop.run_in_executor(
+                None, run_subprocess
             )
 
-            try:
-                # Wait for completion with timeout
-                stdout, stderr = await asyncio.wait_for(
-                    process.communicate(),
-                    timeout=self.config.get_shell_timeout() or DEFAULT_SHELL_TIMEOUT,
-                )
+            execution_time = time.time() - start_time
 
-                output = stdout.decode("utf-8", errors="replace") if stdout else ""
-                error_output = (
-                    stderr.decode("utf-8", errors="replace") if stderr else ""
-                )
-
-                # Get background PIDs (Unix only)
-                background_pids = []
-                if platform.system() != "Windows":
-                    background_pids = await self._get_background_pids(process.pid)
-
-                execution_time = time.time() - start_time
-
-                return ShellExecutionResult(
-                    command=command,
-                    output=output,
-                    error=error_output if error_output else None,
-                    exit_code=process.returncode,
-                    signal=None,
-                    background_pids=background_pids,
-                    execution_time=execution_time,
-                    aborted=False,
-                )
-
-            except asyncio.TimeoutError:
-                # Timeout - terminate process
-                if platform.system() == "Windows":
-                    process.terminate()
-                else:
-                    # Kill the entire process group
-                    try:
-                        os.killpg(os.getpgid(process.pid), 15)  # SIGTERM first
-                        await asyncio.sleep(0.1)
-                        os.killpg(os.getpgid(process.pid), 9)  # SIGKILL if needed
-                    except (OSError, ProcessLookupError):
-                        pass
-
-                execution_time = time.time() - start_time
-
+            # Handle timeout case
+            if exit_code is None:
                 return ShellExecutionResult(
                     command=command,
                     output="",
@@ -402,8 +345,20 @@ class ShellTool(Tool):
                     aborted=True,
                 )
 
+            return ShellExecutionResult(
+                command=command,
+                output=output,
+                error=error_output if error_output else None,
+                exit_code=exit_code,
+                signal=None,
+                background_pids=background_pids,
+                execution_time=execution_time,
+                aborted=False,
+                )
+
         except Exception as e:
             execution_time = time.time() - start_time
+            logger.debug(f"Exception in _execute_command: {type(e).__name__}: {str(e)}")
             return ShellExecutionResult(
                 command=command,
                 output="",
@@ -455,7 +410,6 @@ class ShellTool(Tool):
             f"Exit Code: {result.exit_code if result.exit_code is not None else '(none)'}",
             f"Signal: {result.signal or '(none)'}",
             f"Background PIDs: {', '.join(map(str, result.background_pids)) if result.background_pids else '(none)'}",
-            f"Process Group PGID: {result.pid if hasattr(result, 'pid') and result.pid else '(none)'}",
         ]
 
         return "\n".join(parts)
@@ -533,30 +487,3 @@ class ShellTool(Tool):
             ][-50:]
 
         self._global_shell_state["last_command_time"] = time.time()
-
-    def get_schema(self) -> Dict[str, Any]:
-        """Get the JSON schema for this tool's parameters."""
-        command_desc = (
-            "powershell.exe -NoProfile -Command <command>"
-            if platform.system() == "Windows"
-            else "bash -c <command>"
-        )
-
-        return {
-            "name": self.name,
-            "description": self.description,
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "command": {
-                        "type": "string",
-                        "description": f"Exact command to execute as `{command_desc}`",
-                    },
-                    "directory": {
-                        "type": "string",
-                        "description": "(OPTIONAL) The absolute path of the directory to run the command in. If not provided, uses the current persistent working directory from conversation context. Must be an absolute path and must already exist.",
-                    },
-                },
-                "required": ["command"],
-            },
-        }

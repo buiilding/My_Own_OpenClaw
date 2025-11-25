@@ -5,10 +5,10 @@ import logging
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from backend.src.core.config import AppConfig
-from backend.src.memory.storage.local_store import LocalMemoryStore
+from backend.src.core.interfaces.memory_store import MemoryStoreInterface
 
 if TYPE_CHECKING:
-    from backend.src.brain.llm.llm_client import LLMClient
+    from backend.src.llm.llm_client import LLMClient
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class MemorySummarizer:
 
     def __init__(
         self,
-        memory_store: LocalMemoryStore,
+        memory_store: MemoryStoreInterface,
         llm_client: Optional["LLMClient"] = None,
         cfg: Optional[AppConfig] = None,
     ):
@@ -28,7 +28,7 @@ class MemorySummarizer:
         Initialize the memory summarizer.
 
         Args:
-            memory_store: LocalMemoryStore instance
+            memory_store: MemoryStoreInterface instance
             llm_client: LLM client for fact extraction (optional, will create if not provided)
             cfg: AppConfig instance (required if llm_client not provided)
         """
@@ -46,14 +46,14 @@ class MemorySummarizer:
             # Only cfg provided - create llm_client from cfg
             self.cfg = cfg
             # Lazy import to avoid circular dependency with agent.agent_session
-            from backend.src.brain.llm.llm_client import get_llm_client
+            from backend.src.llm.llm_client import get_llm_client
 
             self.llm_client = get_llm_client(cfg)
         else:
             raise ValueError("Either llm_client or cfg must be provided")
 
     async def summarize_episodic_memories(
-        self, user_id: str, session_id: Optional[str] = None, batch_size: int = 10
+        self, user_id: str, session_id: Optional[str] = None, batch_size: Optional[int] = None
     ) -> int:
         """
         Summarize unsummarized episodic memories into semantic facts.
@@ -78,10 +78,13 @@ class MemorySummarizer:
 
         # Use get_by_filters instead of search for getting all matching records
         # (search uses vector similarity which doesn't work well with empty queries)
-        unsummarized = self.memory_store.get_by_filters(
+        limit = self.cfg.memory_summarization_limit if self.cfg else 1000
+        batch_size = batch_size or (self.cfg.memory_summarization_batch_size if self.cfg else 10)
+        
+        unsummarized = await self.memory_store.get_by_filters(
             user_id=user_id,
             filters=filters,
-            limit=1000,  # Increased limit to ensure we get all memories for session grouping
+            limit=limit,
         )
 
         if not unsummarized:
@@ -190,7 +193,7 @@ class MemorySummarizer:
                         metadata = episodic_memories[0].get("metadata", {})
                         source_session = metadata.get("session_id")
 
-                    memory_id = self.memory_store.add(
+                    memory_id = await self.memory_store.add(
                         text=fact.strip(),
                         user_id=user_id,
                         metadata={
@@ -204,7 +207,7 @@ class MemorySummarizer:
 
             # Mark episodic memories as summarized
             for memory_id in memory_ids:
-                self.memory_store.update(memory_id, metadata={"summarized": "true"})
+                await self.memory_store.update(memory_id, metadata={"summarized": "true"})
 
             return created_count
 

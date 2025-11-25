@@ -65,7 +65,7 @@ ALLOWED_IMPORTS: Set[str] = {
     "math",
     "random",
     "string",
-    "backend.src.tools.base",
+    "backend.src.sdk.tool",
     "backend.src.core.config",
     "backend.src.core.utils.file_utils",
     "backend.src.core.utils.schema_generator",

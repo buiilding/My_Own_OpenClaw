@@ -100,7 +100,7 @@ class ComputerInterface:
         if not self._initialized:
             success = await self.initialize()
             if not success:
-                from backend.src.tools.base import ToolResult
+                from backend.src.core.interfaces.tool import ToolResult
                 return ToolResult(
                     success=False,
                     error="Computer interface could not be initialized. Please ensure pyautogui is installed.",

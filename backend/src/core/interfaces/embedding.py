@@ -1,3 +1,9 @@
+"""
+Embedding Provider Interface.
+
+This module defines the abstract interface for embedding generation, allowing
+different implementations (SentenceTransformer, OpenAI, etc.) to be used interchangeably.
+"""
 from abc import ABC, abstractmethod
 from typing import List, Union
 import numpy as np

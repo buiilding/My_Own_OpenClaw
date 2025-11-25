@@ -4,14 +4,20 @@ Local Memory Store - SQLite + FAISS implementation for local memory storage.
 This module provides a complete local implementation of Mem0 functionality
 with zero external API dependencies. All embeddings are generated locally
 and all data is stored on the user's device.
+
+Uses aiosqlite for async database operations.
 """
 import json
 import logging
-import sqlite3
 import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+
+try:
+    import aiosqlite
+except ImportError:
+    aiosqlite = None
 
 try:
     import faiss
@@ -23,9 +29,11 @@ from backend.src.core.interfaces.embedding import EmbeddingProvider
 
 logger = logging.getLogger(__name__)
 
+
 class LocalMemoryStore:
     """
     Local memory storage using SQLite for metadata and FAISS for vector search.
+    All database operations are async using aiosqlite.
     """
 
     def __init__(
@@ -61,28 +69,36 @@ class LocalMemoryStore:
             raise ImportError(
                 "FAISS is not installed. Install with: pip install faiss-cpu"
             )
+        
+        if aiosqlite is None:
+            raise ImportError(
+                "aiosqlite is not installed. Install with: pip install aiosqlite"
+            )
 
         # Load or create FAISS index
         if self.faiss_index_path.exists():
             self.index = faiss.read_index(str(self.faiss_index_path))
-            # Load vector ID mappings
-            self._load_vector_mappings()
+            # Load vector ID mappings (sync operation during init)
+            # Note: This is called during __init__, so we'll load mappings async later
         else:
             # Create new FAISS index for cosine similarity
             self.index = faiss.IndexFlatIP(self.embedder.dimension)
 
-        # Initialize SQLite database
-        self._init_database()
+    async def initialize(self) -> None:
+        """
+        Async initialization: create database schema and load vector mappings.
+        Call this after instantiation to complete setup.
+        """
+        await self._init_database()
+        await self._load_vector_mappings()
+        await self._sync_vector_mappings()
 
-        # Sync vector mappings with database
-        self._sync_vector_mappings()
-
-    def _init_database(self) -> None:
+    async def _init_database(self) -> None:
         """Initialize SQLite database schema."""
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
+        async with aiosqlite.connect(self.db_path) as conn:
+            cursor = await conn.cursor()
 
-            cursor.execute(
+            await cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS memories (
                     id TEXT PRIMARY KEY,
@@ -97,65 +113,67 @@ class LocalMemoryStore:
             """
             )
 
-            cursor.execute(
+            await cursor.execute(
                 """
                 CREATE INDEX IF NOT EXISTS idx_user_type
                 ON memories(user_id, type)
             """
             )
 
-            cursor.execute(
+            await cursor.execute(
                 """
                 CREATE INDEX IF NOT EXISTS idx_timestamp
                 ON memories(timestamp)
             """
             )
 
-            cursor.execute(
+            await cursor.execute(
                 """
                 CREATE INDEX IF NOT EXISTS idx_embedding_id
                 ON memories(embedding_id)
             """
             )
 
-            conn.commit()
+            await conn.commit()
 
-    def _load_vector_mappings(self) -> None:
+    async def _load_vector_mappings(self) -> None:
         """Load vector ID to memory ID mappings from database."""
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
+        async with aiosqlite.connect(self.db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(
                 """
                 SELECT id, embedding_id FROM memories
                 WHERE embedding_id IS NOT NULL
             """
             )
 
-            for memory_id, vector_id in cursor.fetchall():
+            rows = await cursor.fetchall()
+            for memory_id, vector_id in rows:
                 self.vector_id_to_memory_id[vector_id] = memory_id
                 self.memory_id_to_vector_id[memory_id] = vector_id
                 if vector_id >= self.next_vector_id:
                     self.next_vector_id = vector_id + 1
 
-    def _sync_vector_mappings(self) -> None:
+    async def _sync_vector_mappings(self) -> None:
         """Sync vector mappings: ensure all memories in DB have vector IDs."""
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
+        async with aiosqlite.connect(self.db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(
                 """
                 SELECT id FROM memories
                 WHERE embedding_id IS NULL
             """
             )
 
-            missing_ids = [row[0] for row in cursor.fetchall()]
+            rows = await cursor.fetchall()
+            missing_ids = [row[0] for row in rows]
 
             for memory_id in missing_ids:
                 # Get content for this memory
-                cursor.execute(
+                await cursor.execute(
                     "SELECT content FROM memories WHERE id = ?", (memory_id,)
                 )
-                row = cursor.fetchone()
+                row = await cursor.fetchone()
                 if row:
                     content = row[0]
                     # Generate embedding and add to FAISS
@@ -168,7 +186,7 @@ class LocalMemoryStore:
                     self.index.add(embedding)
 
                     # Update database
-                    cursor.execute(
+                    await cursor.execute(
                         """
                         UPDATE memories SET embedding_id = ? WHERE id = ?
                     """,
@@ -180,19 +198,19 @@ class LocalMemoryStore:
                     self.memory_id_to_vector_id[memory_id] = vector_id
                     self.next_vector_id += 1
 
-            conn.commit()
+            await conn.commit()
 
         # Save FAISS index
         self._save_faiss_index()
 
     def _save_faiss_index(self) -> None:
-        """Save FAISS index to disk."""
+        """Save FAISS index to disk (sync operation)."""
         try:
             faiss.write_index(self.index, str(self.faiss_index_path))
         except Exception as e:
             logger.error(f"Failed to save FAISS index: {e}")
 
-    def add(
+    async def add(
         self, text: str, user_id: str, metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         """
@@ -226,9 +244,9 @@ class LocalMemoryStore:
         # Store in SQLite
         metadata_json = json.dumps(metadata) if metadata else None
 
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
+        async with aiosqlite.connect(self.db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(
                 """
                 INSERT INTO memories
                 (id, user_id, type, content, timestamp, metadata, embedding_id)
@@ -244,7 +262,7 @@ class LocalMemoryStore:
                     vector_id,
                 ),
             )
-            conn.commit()
+            await conn.commit()
 
         # Update mappings
         self.vector_id_to_memory_id[vector_id] = memory_id
@@ -257,7 +275,7 @@ class LocalMemoryStore:
         logger.debug(f"Stored memory {memory_id} for user {user_id}")
         return memory_id
 
-    def search(
+    async def search(
         self,
         query: str,
         user_id: str,
@@ -290,9 +308,9 @@ class LocalMemoryStore:
 
         # Retrieve memories from database
         results = []
-        with sqlite3.connect(self.db_path) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
+        async with aiosqlite.connect(self.db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
 
             for i, (similarity, vector_id) in enumerate(
                 zip(similarities[0], indices[0])
@@ -302,7 +320,7 @@ class LocalMemoryStore:
 
                 memory_id = self.vector_id_to_memory_id[vector_id]
 
-                cursor.execute(
+                await cursor.execute(
                     """
                     SELECT id, user_id, type, content, timestamp, metadata
                     FROM memories WHERE id = ?
@@ -310,7 +328,7 @@ class LocalMemoryStore:
                     (memory_id,),
                 )
 
-                row = cursor.fetchone()
+                row = await cursor.fetchone()
                 if not row:
                     continue
 
@@ -370,7 +388,7 @@ class LocalMemoryStore:
 
         return True
 
-    def update(self, memory_id: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+    async def update(self, memory_id: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
         """
         Update memory metadata.
 
@@ -381,12 +399,12 @@ class LocalMemoryStore:
         Returns:
             True if update successful, False otherwise
         """
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
+        async with aiosqlite.connect(self.db_path) as conn:
+            cursor = await conn.cursor()
 
             # Get existing metadata
-            cursor.execute("SELECT metadata FROM memories WHERE id = ?", (memory_id,))
-            row = cursor.fetchone()
+            await cursor.execute("SELECT metadata FROM memories WHERE id = ?", (memory_id,))
+            row = await cursor.fetchone()
 
             if not row:
                 return False
@@ -397,19 +415,19 @@ class LocalMemoryStore:
                 existing_metadata.update(metadata)
 
             # Update database
-            cursor.execute(
+            await cursor.execute(
                 """
                 UPDATE memories SET metadata = ? WHERE id = ?
             """,
                 (json.dumps(existing_metadata), memory_id),
             )
 
-            conn.commit()
+            await conn.commit()
 
         logger.debug(f"Updated memory {memory_id}")
         return True
 
-    def delete(self, memory_id: str) -> bool:
+    async def delete(self, memory_id: str) -> bool:
         """
         Delete a memory entry.
 
@@ -422,11 +440,11 @@ class LocalMemoryStore:
         # Get vector ID before deletion
         vector_id = self.memory_id_to_vector_id.get(memory_id)
 
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM memories WHERE id = ?", (memory_id,))
+        async with aiosqlite.connect(self.db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute("DELETE FROM memories WHERE id = ?", (memory_id,))
             deleted = cursor.rowcount > 0
-            conn.commit()
+            await conn.commit()
 
         if deleted:
             # Remove from mappings
@@ -438,7 +456,7 @@ class LocalMemoryStore:
 
         return deleted
 
-    def get_by_filters(
+    async def get_by_filters(
         self,
         user_id: str,
         filters: Optional[Dict[str, Any]] = None,
@@ -461,16 +479,16 @@ class LocalMemoryStore:
             List of memory dictionaries with 'id', 'text', 'metadata', 'timestamp', 'type' keys
         """
         results = []
-        with sqlite3.connect(self.db_path) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
+        async with aiosqlite.connect(self.db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
 
             # Build query
             query = "SELECT id, user_id, type, content, timestamp, metadata FROM memories WHERE user_id = ?"
             params = [user_id]
 
-            cursor.execute(query, params)
-            rows = cursor.fetchall()
+            await cursor.execute(query, params)
+            rows = await cursor.fetchall()
 
             for row in rows:
                 # Parse metadata
@@ -502,7 +520,7 @@ class LocalMemoryStore:
         # Apply limit
         return results[:limit]
 
-    def get_stats(self, user_id: Optional[str] = None) -> Dict[str, Any]:
+    async def get_stats(self, user_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Get statistics about stored memories.
 
@@ -512,11 +530,11 @@ class LocalMemoryStore:
         Returns:
             Dictionary with statistics
         """
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
+        async with aiosqlite.connect(self.db_path) as conn:
+            cursor = await conn.cursor()
 
             if user_id:
-                cursor.execute(
+                await cursor.execute(
                     """
                     SELECT type, COUNT(*) as count
                     FROM memories
@@ -525,24 +543,31 @@ class LocalMemoryStore:
                 """,
                     (user_id,),
                 )
-                cursor.execute(
+                by_type_rows = await cursor.fetchall()
+                by_type = {row[0]: row[1] for row in by_type_rows}
+                
+                await cursor.execute(
                     """
                     SELECT COUNT(*) FROM memories WHERE user_id = ?
                 """,
                     (user_id,),
                 )
+                total_row = await cursor.fetchone()
+                total_count = total_row[0] if total_row else 0
             else:
-                cursor.execute(
+                await cursor.execute(
                     """
                     SELECT type, COUNT(*) as count
                     FROM memories
                     GROUP BY type
                 """
                 )
-                cursor.execute("SELECT COUNT(*) FROM memories")
-
-            by_type = {row[0]: row[1] for row in cursor.fetchall()}
-            total_count = cursor.fetchone()[0]
+                by_type_rows = await cursor.fetchall()
+                by_type = {row[0]: row[1] for row in by_type_rows}
+                
+                await cursor.execute("SELECT COUNT(*) FROM memories")
+                total_row = await cursor.fetchone()
+                total_count = total_row[0] if total_row else 0
 
         return {
             "total_count": total_count,

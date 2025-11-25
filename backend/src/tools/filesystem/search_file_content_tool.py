@@ -1,5 +1,5 @@
 """
-Search File Content Tool.
+Search File Content Tool (SDK Version).
 
 Tool for searching regex patterns within file contents.
 """
@@ -9,9 +9,11 @@ import os
 import re
 import subprocess
 from glob import glob as glob_module
-from typing import Any, List, Optional
+from typing import List, Optional
+from pydantic import BaseModel, Field
 
-from backend.src.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.src.sdk.tool import Tool
+from backend.src.sdk.context import Context
 from backend.src.tools.filesystem.data_structures import GrepMatch
 from backend.src.tools.system.shell_tool import ShellTool
 from backend.src.core.utils.file_utils import (
@@ -23,78 +25,71 @@ from backend.src.core.utils.file_utils import (
 logger = logging.getLogger(__name__)
 
 
-class SearchFileContentTool(Tool):
+class SearchFileContentArgs(BaseModel):
+    pattern: str = Field(..., description="Regular expression pattern to search for")
+    path: Optional[str] = Field(None, description="Directory path to search in (defaults to current working directory)")
+    include: Optional[str] = Field(None, description="Glob pattern to filter files (e.g., '*.py')")
+
+
+class SearchFileContentTool(Tool[SearchFileContentArgs]):
     """Tool for searching regex patterns within file contents."""
+    
+    name = "search_file_content"
+    description = "Searches for a regular expression pattern within the content of files in a specified directory. Can filter files by a glob pattern. Returns the lines containing matches, along with their file paths and line numbers."
+    args_model = SearchFileContentArgs
 
-    def __init__(self, config: Any):
-        super().__init__(
-            name="search_file_content",
-            description="Searches for a regular expression pattern within the content of files in a specified directory. Can filter files by a glob pattern. Returns the lines containing matches, along with their file paths and line numbers.",
-            kind=Kind.SEARCH,
-        )
-        self.config = config
-
-    async def execute_async(
-        self,
-        context: ToolContext,
-        pattern: str,
-        path: Optional[str] = None,
-        include: Optional[str] = None,
-    ) -> ToolResult:
+    async def run(self, args: SearchFileContentArgs, ctx: Context) -> dict:
         """Execute the search_file_content tool."""
         try:
-            if not pattern:
-                return ToolResult(
-                    success=False,
-                    error="pattern parameter is required",
-                    llm_content="Error: pattern parameter is required",
-                    return_display="pattern parameter is required",
-                )
+            if not args.pattern:
+                return {
+                    "error": "pattern parameter is required",
+                    "llm_content": "Error: pattern parameter is required"
+                }
 
             # Validate regex pattern
             try:
-                re.compile(pattern)
+                re.compile(args.pattern)
             except re.error as e:
-                return ToolResult(
-                    success=False,
-                    error=f"Invalid regex pattern: {e}",
-                    llm_content=f"Error: Invalid regex pattern: {e}",
-                    return_display="Invalid regex pattern",
-                )
+                return {
+                    "error": f"Invalid regex pattern: {e}",
+                    "llm_content": f"Error: Invalid regex pattern: {e}"
+                }
 
-            # Get target directory for relative path resolution
-            target_dir = self.config.get_workspace_context().workspace_path
+            # Get workspace context for relative path resolution
+            workspace_context = ctx.services.get("workspace_context")
+            if workspace_context:
+                target_dir = workspace_context.workspace_path
+            else:
+                target_dir = ctx.workspace_root
 
             # Determine search directory
-            if path:
-                if not os.path.isabs(path):
+            if args.path:
+                if not os.path.isabs(args.path):
                     # Use current working directory from shell tool
                     current_dir = ShellTool.get_current_working_directory()
-                    search_dir = os.path.join(current_dir, path)
+                    search_dir = os.path.join(current_dir, args.path)
                 else:
-                    search_dir = path
+                    search_dir = args.path
             else:
                 # Use current working directory from shell tool
                 search_dir = ShellTool.get_current_working_directory()
 
-            # Removed workspace restriction - allow operations anywhere on the system
-
             # Perform search
             matches = await self._perform_search(
-                search_dir, pattern, include, target_dir
+                search_dir, args.pattern, args.include, target_dir, ctx
             )
 
             if not matches:
-                search_location = f'in path "{path}"' if path else "in workspace"
-                filter_desc = f' (filter: "{include}")' if include else ""
-                content = f'No matches found for pattern "{pattern}" {search_location}{filter_desc}.'
+                search_location = f'in path "{args.path}"' if args.path else "in workspace"
+                filter_desc = f' (filter: "{args.include}")' if args.include else ""
+                content = f'No matches found for pattern "{args.pattern}" {search_location}{filter_desc}.'
 
-                return ToolResult(
-                    success=True,
-                    data=[],
-                    llm_content=content,
-                    return_display="No matches found",
-                )
+                return {
+                    "matches": [],
+                    "llm_content": content,
+                    "return_display": "No matches found"
+                }
 
             # Group matches by file
             matches_by_file = {}
@@ -108,11 +103,11 @@ class SearchFileContentTool(Tool):
                 file_matches.sort(key=lambda m: m.line_number)
 
             # Create output
-            search_location = f'in path "{path}"' if path else "in workspace"
-            filter_desc = f' (filter: "{include}")' if include else ""
+            search_location = f'in path "{args.path}"' if args.path else "in workspace"
+            filter_desc = f' (filter: "{args.include}")' if args.include else ""
 
             content = (
-                f'Found {len(matches)} match(es) for pattern "{pattern}" '
+                f'Found {len(matches)} match(es) for pattern "{args.pattern}" '
                 f"{search_location}{filter_desc}:\n---\n"
             )
 
@@ -124,23 +119,21 @@ class SearchFileContentTool(Tool):
                     content += f"L{match.line_number}: {trimmed_line}\n"
                 content += "---\n"
 
-            return ToolResult(
-                success=True,
-                data=matches,
-                llm_content=content.rstrip(),
-                return_display=f"Found {len(matches)} match(es)",
-            )
+            return {
+                "matches": [{"file_path": m.file_path, "line_number": m.line_number, "line": m.line} for m in matches],
+                "llm_content": content.rstrip(),
+                "return_display": f"Found {len(matches)} match(es)"
+            }
 
         except Exception as e:
-            return ToolResult(
-                success=False,
-                error=f"Unexpected error: {str(e)}",
-                llm_content=f"Error: Unexpected error: {str(e)}",
-                return_display="Unexpected error occurred",
-            )
+            logger.error(f"Unexpected error in search_file_content: {e}", exc_info=True)
+            return {
+                "error": f"Unexpected error: {str(e)}",
+                "llm_content": f"Error: Unexpected error: {str(e)}"
+            }
 
     async def _perform_search(
-        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str
+        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str, ctx: Context
     ) -> List[GrepMatch]:
         """Perform the actual search operation."""
         matches = []
@@ -151,7 +144,7 @@ class SearchFileContentTool(Tool):
             return matches
 
         # Fall back to manual file search
-        return await self._manual_file_search(search_dir, pattern, include, target_dir)
+        return await self._manual_file_search(search_dir, pattern, include, target_dir, ctx)
 
     async def _try_git_grep(
         self, search_dir: str, pattern: str, include: Optional[str], target_dir: str
@@ -203,7 +196,7 @@ class SearchFileContentTool(Tool):
             return None
 
     async def _manual_file_search(
-        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str
+        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str, ctx: Context
     ) -> List[GrepMatch]:
         """Perform manual file search as fallback."""
         matches = []
@@ -228,7 +221,7 @@ class SearchFileContentTool(Tool):
                     file_paths.append(os.path.join(root, file))
 
         # Filter to actual files and apply file filtering
-        file_discovery = self.config.get_file_service()
+        file_service = ctx.services.get("file_service")
         workspace_files = []
 
         for file_path in file_paths:
@@ -240,10 +233,14 @@ class SearchFileContentTool(Tool):
                     "respect_gitignore": True,
                 }
 
-                filtered_paths, _ = file_discovery.filter_files_with_report(
-                    [relative_path], filtering_options
-                )
-                if filtered_paths:
+                if file_service:
+                    filtered_paths, _ = file_service.filter_files_with_report(
+                        [relative_path], filtering_options
+                    )
+                    if filtered_paths:
+                        workspace_files.append(file_path)
+                else:
+                    # No file service, include all files
                     workspace_files.append(file_path)
 
         # Search each file

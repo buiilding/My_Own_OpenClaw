@@ -9,10 +9,10 @@ import logging
 from typing import Dict, List, Optional
 
 from backend.src.core.config import AppConfig
+from backend.src.core.interfaces.memory_store import MemoryStoreInterface
 from backend.src.memory.retrieval import MemorySummarizer, SemanticRetrieval
 from backend.src.memory.schemas import EpisodicMemory
-from backend.src.memory.storage import LocalMemoryStore
-from backend.src.brain.llm.llm_client import LLMClient
+from backend.src.llm.llm_client import LLMClient
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class MemoryManager:
         self, 
         user_id: str, 
         session_id: str, 
-        memory_store: Optional[LocalMemoryStore],
+        memory_store: Optional[MemoryStoreInterface],
         retrieval: Optional[SemanticRetrieval],
         summarizer: Optional[MemorySummarizer],
         cfg: AppConfig
@@ -68,7 +68,7 @@ class MemoryManager:
             
         logger.info("Updated memory manager configuration")
 
-    def store_episodic_memory(self, user_message: str, assistant_reply: str) -> None:
+    async def store_episodic_memory(self, user_message: str, assistant_reply: str) -> None:
         """
         Store a raw user-assistant interaction as episodic memory.
 
@@ -85,7 +85,7 @@ class MemoryManager:
             content=f"User: {user_message}\nAssistant: {assistant_reply}",
         )
 
-        self.memory_store.add(
+        await self.memory_store.add(
             episodic_memory.content,
             user_id=self.user_id,
             metadata={
@@ -120,7 +120,7 @@ class MemoryManager:
             logger.error(f"Error during summarization: {e}", exc_info=True)
             return 0
 
-    def retrieve_memories(self, query: str, limit: int = 5) -> Dict[str, List[str]]:
+    async def retrieve_memories(self, query: str, limit: int = 5) -> Dict[str, List[str]]:
         """
         Retrieve relevant semantic and recent episodic memories.
 
@@ -135,7 +135,7 @@ class MemoryManager:
             return {"semantic": [], "episodic": []}
 
         # Use hybrid search to get both semantic and episodic memories
-        results = self.retrieval.hybrid_search(
+        results = await self.retrieval.hybrid_search(
             query=query, user_id=self.user_id, limit=limit
         )
 

@@ -1,14 +1,16 @@
 """
-Read Many Files Tool.
+Read Many Files Tool (SDK Version).
 
 Tool for reading multiple files by paths/glob patterns.
 """
 import logging
 import os
 from glob import glob as glob_module
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
+from pydantic import BaseModel, Field
 
-from backend.src.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.src.sdk.tool import Tool
+from backend.src.sdk.context import Context
 from backend.src.tools.system.shell_tool import ShellTool
 from backend.src.core.utils.file_utils import (
     FileType,
@@ -20,49 +22,41 @@ from backend.src.core.utils.file_utils import (
 logger = logging.getLogger(__name__)
 
 
-class ReadManyFilesTool(Tool):
+class ReadManyFilesArgs(BaseModel):
+    paths: List[str] = Field(..., description="List of file paths or glob patterns to read")
+    include: Optional[List[str]] = Field(None, description="Additional glob patterns to include")
+    exclude: Optional[List[str]] = Field(None, description="Glob patterns to exclude (reserved for future use)")
+    useDefaultExcludes: Optional[bool] = Field(None, description="Whether to use default excludes (reserved for future use)")
+    file_filtering_options: Optional[Dict[str, bool]] = Field(None, description="File filtering options (respect_git_ignore, respect_gemini_ignore)")
+
+
+class ReadManyFilesTool(Tool[ReadManyFilesArgs]):
     """Tool for reading multiple files by paths/glob patterns."""
+    
+    name = "read_many_files"
+    description = "Reads content from multiple files specified by paths or glob patterns within a configured target directory. For text files, it concatenates their content into a single string. It is primarily designed for text-based files. However, it can also process image (e.g., .png, .jpg) and PDF (.pdf) files if their file names or extensions are explicitly included in the 'paths' argument."
+    args_model = ReadManyFilesArgs
 
-    def __init__(self, config: Any):
-        super().__init__(
-            name="read_many_files",
-            description="Reads content from multiple files specified by paths or glob patterns within a configured target directory. For text files, it concatenates their content into a single string. It is primarily designed for text-based files. However, it can also process image (e.g., .png, .jpg) and PDF (.pdf) files if their file names or extensions are explicitly included in the 'paths' argument.",
-            kind=Kind.READ,
-        )
-        self.config = config
-
-    async def execute_async(
-        self,
-        context: ToolContext,
-        paths: List[str],
-        include: Optional[List[str]] = None,
-        exclude: Optional[List[str]] = None,
-        useDefaultExcludes: Optional[bool] = None,
-        file_filtering_options: Optional[Dict[str, Any]] = None,
-    ) -> ToolResult:
+    async def run(self, args: ReadManyFilesArgs, ctx: Context) -> dict:
         """Execute the read_many_files tool."""
         try:
-            include = include or []
-            # exclude = exclude or []  # Reserved for future use
-            # use_default_excludes = useDefaultExcludes if useDefaultExcludes is not None else True  # Reserved for future use
-            file_filtering_options = file_filtering_options or {}
+            include = args.include or []
+            file_filtering_options = args.file_filtering_options or {}
 
-            if not paths:
-                return ToolResult(
-                    success=False,
-                    error="paths parameter is required",
-                    llm_content="Error: paths parameter is required",
-                    return_display="paths parameter is required",
-                )
+            if not args.paths:
+                return {
+                    "error": "paths parameter is required",
+                    "llm_content": "Error: paths parameter is required"
+                }
 
-            # Get target directory for relative path resolution (use current working directory from shell tool)
+            # Get target directory for relative path resolution
             target_dir = ShellTool.get_current_working_directory()
 
             # Collect all file paths
             all_files = set()
 
             # Process direct paths and glob patterns
-            search_patterns = paths + (include or [])
+            search_patterns = args.paths + include
             logger.info(
                 f"ReadManyFiles: Processing {len(search_patterns)} patterns: {search_patterns}"
             )
@@ -97,12 +91,11 @@ class ReadManyFilesTool(Tool):
                         matches = glob_module(full_pattern, recursive=True)
                         all_files.update(matches)
 
-            # Removed workspace filtering - allow operations anywhere on the system
             workspace_files = list(all_files)
             skipped_files = []
 
             # Apply file filtering
-            file_discovery = self.config.get_file_service()
+            file_service = ctx.services.get("file_service")
             relative_paths = [
                 make_relative_path(p, target_dir) for p in workspace_files
             ]
@@ -119,9 +112,15 @@ class ReadManyFilesTool(Tool):
             logger.info(
                 f"ReadManyFiles: Filtering {len(relative_paths)} relative paths: {relative_paths[:5]}"
             )
-            filtered_paths, ignored_count = file_discovery.filter_files_with_report(
-                relative_paths, filtering_options
-            )
+            
+            if file_service:
+                filtered_paths, ignored_count = file_service.filter_files_with_report(
+                    relative_paths, filtering_options
+                )
+            else:
+                filtered_paths = relative_paths
+                ignored_count = 0
+                
             logger.info(
                 f"ReadManyFiles: After filtering: {len(filtered_paths)} files passed, {ignored_count} ignored"
             )
@@ -159,7 +158,7 @@ class ReadManyFilesTool(Tool):
                         # Check if explicitly requested
                         explicitly_requested = any(
                             file_path.endswith(ext) or ext in file_path
-                            for pattern in paths + (include or [])
+                            for pattern in args.paths + include
                             for ext in [
                                 ".png",
                                 ".jpg",
@@ -283,21 +282,17 @@ class ReadManyFilesTool(Tool):
                 if len(skipped_files) > 5:
                     display_parts.append(f"- ...and {len(skipped_files) - 5} more.\n")
 
-            return ToolResult(
-                success=True,
-                data={
-                    "processed_files": processed_files,
-                    "skipped_files": skipped_files,
-                    "total_files_attempted": len(workspace_files),
-                },
-                llm_content=llm_content,
-                return_display="".join(display_parts).rstrip(),
-            )
+            return {
+                "processed_files": processed_files,
+                "skipped_files": skipped_files,
+                "total_files_attempted": len(workspace_files),
+                "llm_content": llm_content,
+                "return_display": "".join(display_parts).rstrip()
+            }
 
         except Exception as e:
-            return ToolResult(
-                success=False,
-                error=f"Unexpected error: {str(e)}",
-                llm_content=f"Error: Unexpected error: {str(e)}",
-                return_display="Unexpected error occurred",
-            )
+            logger.error(f"Unexpected error in read_many_files: {e}", exc_info=True)
+            return {
+                "error": f"Unexpected error: {str(e)}",
+                "llm_content": f"Error: Unexpected error: {str(e)}"
+            }

@@ -10,7 +10,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from backend.src.tools.base import Tool, ToolResult, ToolContext
+from backend.src.sdk.tool import Tool as SDKTool
+from backend.src.core.security.executor import get_tool_executor
+from backend.src.core.services.context_factory import ContextFactory
+from backend.src.tools.categorization import ToolDomain, get_categorizer
+from backend.src.tools.lifecycle import ToolLifecycleManager
 
 # Marketplace Discovery
 from backend.src.tools.marketplace.discovery.security import SecurityScanResult
@@ -37,7 +41,7 @@ class ToolMetadata:
 
 class ToolRegistry:
     """
-    Registry for managing available tools.
+    Registry for managing available SDK tools.
 
     Provides tool registration, schema generation, and tool execution
     capabilities for the agent system. Supports both built-in tools and
@@ -48,6 +52,7 @@ class ToolRegistry:
         self,
         config: Any,
         tool_loader: Optional[Any] = None,
+        context_factory: Optional[ContextFactory] = None,
     ):
         """
         Initialize the tool registry.
@@ -55,45 +60,77 @@ class ToolRegistry:
         Args:
             config: Application configuration object
             tool_loader: Optional ToolLoader instance
+            context_factory: Optional ContextFactory instance (created if not provided)
         """
         self.config = config
-        self.tools: Dict[str, Tool] = {}
+        self.tools: Dict[str, SDKTool] = {}
         
         # Marketplace
         self.marketplace_tools: Dict[str, ToolMetadata] = {}
-        self.marketplace_instances: Dict[str, Tool] = {}
+        self.marketplace_instances: Dict[str, SDKTool] = {}
         
         self.tool_loader = tool_loader
-        if self.tool_loader:
-             # Load built-ins immediately
-             core_tools = self.tool_loader.load_core_tools()
-             for tool in core_tools:
-                 self.register_tool(tool)
+        self.executor = get_tool_executor()
+        self.categorizer = get_categorizer()
+        self.lifecycle_manager = ToolLifecycleManager(tool_registry=self)
+        
+        # Initialize context factory (create if not provided)
+        if context_factory is None:
+            self.context_factory = ContextFactory(
+                config=config,
+                tool_registry=self,
+                tool_loader=tool_loader,
+            )
+        else:
+            self.context_factory = context_factory
+        
+        # Tool loading is deferred to async initialization
+        # Call load_core_tools_async() from Container.initialize()
 
-    def register_tool(self, tool: Tool) -> None:
+    def register_tool(self, tool: SDKTool) -> None:
         """
         Register a tool in the registry.
 
         Args:
-            tool: The tool to register
+            tool: The SDK tool to register
         """
         if tool.name in self.tools:
             logger.warning(f"Tool '{tool.name}' is already registered. Overwriting.")
         self.tools[tool.name] = tool
         logger.debug(f"Registered tool: {tool.name}")
 
+    async def load_core_tools_async(self) -> None:
+        """
+        Load core tools asynchronously.
+        
+        This should be called from Container.initialize() during async startup.
+        """
+        if not self.tool_loader:
+            logger.warning("ToolLoader not initialized, skipping core tool loading")
+            return
+        
+        try:
+            core_tools = await self.tool_loader.load_core_tools()
+            for tool in core_tools:
+                self.register_tool(tool)
+            logger.info(f"Loaded {len(core_tools)} core tools into registry")
+        except Exception as e:
+            logger.error(f"Failed to load core tools: {e}", exc_info=True)
+
     async def load_marketplace_tools(self, marketplace_dir: Path) -> Dict[str, ToolMetadata]:
         """
         Load all tools from the marketplace directory using the loader.
+        
+        This method is async and should be called from an async context.
         """
         if not self.tool_loader:
             logger.error("ToolLoader not initialized")
             return {}
 
-        self.marketplace_tools = self.tool_loader.scan_marketplace_tools(marketplace_dir)
+        self.marketplace_tools = await self.tool_loader.scan_marketplace_tools(marketplace_dir)
         return self.marketplace_tools
 
-    async def get_marketplace_tool_instance(self, tool_name: str) -> Optional[Tool]:
+    async def get_marketplace_tool_instance(self, tool_name: str) -> Optional[SDKTool]:
         """
         Get a marketplace tool instance by name (lazy loading).
         """
@@ -117,7 +154,7 @@ class ToolRegistry:
             
         return None
 
-    def get_tool(self, name: str) -> Optional[Tool]:
+    def get_tool(self, name: str) -> Optional[SDKTool]:
         """
         Get a tool by name.
 
@@ -127,7 +164,7 @@ class ToolRegistry:
             name: Name of the tool to retrieve
 
         Returns:
-            The tool instance, or None if not found
+            The SDK tool instance, or None if not found
         """
         # First check built-in tools
         tool = self.tools.get(name)
@@ -140,12 +177,12 @@ class ToolRegistry:
             
         return None
 
-    def get_all_tools(self) -> List[Tool]:
+    def get_all_tools(self) -> List[SDKTool]:
         """
         Get all registered tools (built-in + instantiated marketplace).
 
         Returns:
-            List of all registered tools
+            List of all registered SDK tools
         """
         all_tools = list(self.tools.values())
         all_tools.extend(self.marketplace_instances.values())
@@ -165,6 +202,7 @@ class ToolRegistry:
     def get_function_declarations(self) -> List[Dict[str, Any]]:
         """
         Get function declarations (schemas) for all tools.
+        Uses caching to avoid regenerating schemas.
 
         This is used to provide tool schemas to LLMs.
         Includes both built-in tools and marketplace tools.
@@ -172,11 +210,21 @@ class ToolRegistry:
         Returns:
             List of function declaration dictionaries
         """
+        from backend.src.core.cache import cache_manager
+        
         declarations = []
         # Add built-in tool schemas
         for tool in self.tools.values():
             try:
-                schema = tool.get_schema()
+                # Try cache first
+                cache_key = cache_manager.get_tool_schema_key(tool.name)
+                schema = cache_manager.tool_schemas.get(cache_key)
+                
+                if schema is None:
+                    # Cache miss - generate schema
+                    schema = tool.get_json_schema()
+                    cache_manager.tool_schemas.set(cache_key, schema)
+                
                 declarations.append(schema)
             except Exception as e:
                 logger.error(f"Failed to get schema for tool {tool.name}: {e}")
@@ -185,7 +233,15 @@ class ToolRegistry:
         # Add marketplace tool schemas if available
         for tool_name, tool in self.marketplace_instances.items():
             try:
-                schema = tool.get_schema()
+                # Try cache first
+                cache_key = cache_manager.get_tool_schema_key(tool_name)
+                schema = cache_manager.tool_schemas.get(cache_key)
+                
+                if schema is None:
+                    # Cache miss - generate schema
+                    schema = tool.get_json_schema()
+                    cache_manager.tool_schemas.set(cache_key, schema)
+                
                 declarations.append(schema)
             except Exception as e:
                 logger.error(
@@ -200,6 +256,7 @@ class ToolRegistry:
     ) -> List[Dict[str, Any]]:
         """
         Get function declarations for specific tools.
+        Uses caching to avoid regenerating schemas.
 
         Args:
             tool_names: List of tool names to include
@@ -207,30 +264,46 @@ class ToolRegistry:
         Returns:
             List of function declarations for the specified tools
         """
+        from backend.src.core.cache import cache_manager
+        
         declarations = []
         for name in tool_names:
             tool = self.get_tool(name)
             if tool:
                 try:
-                    schema = tool.get_schema()
+                    # Try cache first
+                    cache_key = cache_manager.get_tool_schema_key(name)
+                    schema = cache_manager.tool_schemas.get(cache_key)
+                    
+                    if schema is None:
+                        # Cache miss - generate schema
+                        schema = tool.get_json_schema()
+                        cache_manager.tool_schemas.set(cache_key, schema)
+                    
                     declarations.append(schema)
                 except Exception as e:
                     logger.error(f"Failed to get schema for tool {name}: {e}")
                     continue
         return declarations
 
-    async def execute_tool(self, tool_name: str, **kwargs) -> ToolResult:
+    async def execute_tool(
+        self, 
+        tool_name: str, 
+        parameters: Optional[Dict[str, Any]] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
         """
-        Execute a tool by name.
-
-        Checks built-in tools first, then marketplace tools.
+        Execute a tool by name using SDK execution pattern.
 
         Args:
             tool_name: Name of the tool to execute
-            **kwargs: Tool parameters
+            parameters: Tool parameters (dict)
+            user_id: User ID for context
+            session_id: Session ID for context
+            workspace_root: Workspace root path (defaults to current working directory)
 
         Returns:
-            Tool execution result
+            Dictionary with execution result (success, data, error, llm_content, etc.)
         """
         tool = self.get_tool(tool_name)
 
@@ -242,45 +315,66 @@ class ToolRegistry:
                 logger.error(f"Error loading marketplace tool {tool_name}: {e}")
 
         if not tool:
-            return ToolResult(
-                success=False,
-                error=f"Tool '{tool_name}' not found",
-                llm_content=f"Error: Tool '{tool_name}' not found",
-                return_display=f"Tool '{tool_name}' not found",
-            )
+            return {
+                "success": False,
+                "error": f"Tool '{tool_name}' not found",
+                "llm_content": f"Error: Tool '{tool_name}' not found",
+                "return_display": f"Tool '{tool_name}' not found"
+            }
 
         try:
-            # Validate parameters
-            validation_errors = tool.validate_parameters(**kwargs)
-            if validation_errors:
-                error_msg = (
-                    f"Parameter validation failed: {', '.join(validation_errors)}"
-                )
-                return ToolResult(
-                    success=False,
-                    error=error_msg,
-                    llm_content=f"Error: {error_msg}",
-                    return_display=error_msg,
-                )
-
-            # Execute the tool
-            logger.info(f"Executing tool {tool_name} with kwargs: {kwargs}")
+            # Extract context parameters from kwargs
+            user_id = kwargs.get("user_id", "default_user")
+            session_id = kwargs.get("session_id", "default_session")
+            workspace_root = kwargs.get("workspace_root")
             
-            context = ToolContext()
-            # Pass registry to context if needed (e.g. for tools calling other tools)
-            context.tool_registry = self
+            # Validate parameters using Pydantic
+            try:
+                args = tool.args_model(**(parameters or {}))
+            except Exception as e:
+                error_msg = f"Invalid parameters: {str(e)}"
+                return {
+                    "success": False,
+                    "error": error_msg,
+                    "llm_content": f"Error: {error_msg}",
+                    "return_display": error_msg
+                }
 
-            result = await tool.execute_async(context, **kwargs)
-            return result
+            # Build execution context using ContextFactory
+            session_ref = kwargs.get("session_ref")
+            context = self.context_factory.create_tool_context(
+                user_id=user_id,
+                session_id=session_id,
+                workspace_root=workspace_root,
+                session_ref=session_ref,
+            )
+
+            # Execute the tool via executor
+            logger.info(f"Executing SDK tool {tool_name} with parameters: {parameters}")
+            result = await self.executor.execute(tool, args, context)
+            
+            # Ensure result is a dict with success field
+            if isinstance(result, dict):
+                if "success" not in result:
+                    result["success"] = "error" not in result
+                return result
+            else:
+                # Wrap non-dict results
+                return {
+                    "success": True,
+                    "data": result,
+                    "llm_content": str(result),
+                    "return_display": str(result)
+                }
 
         except Exception as e:
             logger.error(f"Error executing tool {tool_name}: {e}", exc_info=True)
-            return ToolResult(
-                success=False,
-                error=f"Tool execution failed: {str(e)}",
-                llm_content=f"Error: Tool execution failed: {str(e)}",
-                return_display=f"Tool execution failed: {str(e)}",
-            )
+            return {
+                "success": False,
+                "error": f"Tool execution failed: {str(e)}",
+                "llm_content": f"Error: Tool execution failed: {str(e)}",
+                "return_display": f"Tool execution failed: {str(e)}"
+            }
 
     def is_tool_available(self, tool_name: str) -> bool:
         """
@@ -297,6 +391,7 @@ class ToolRegistry:
     def get_tool_capabilities(self, tool_name: str) -> Optional[Dict[str, Any]]:
         """
         Get capabilities information for a tool.
+        Uses caching to avoid regenerating schemas.
 
         Args:
             tool_name: Name of the tool
@@ -304,23 +399,26 @@ class ToolRegistry:
         Returns:
             Tool capabilities dictionary, or None if tool not found
         """
+        from backend.src.core.cache import cache_manager
+        
         tool = self.get_tool(tool_name)
         if tool:
-            return tool.get_capabilities()
+            # Try cache first
+            cache_key = cache_manager.get_tool_schema_key(tool_name)
+            schema = cache_manager.tool_schemas.get(cache_key)
+            
+            if schema is None:
+                # Cache miss - generate schema
+                schema = tool.get_json_schema()
+                cache_manager.tool_schemas.set(cache_key, schema)
+            
+            return {
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": schema.get("parameters", {}),
+                "requires_context": True,
+            }
         return None
-
-    def get_tools_by_kind(self, kind: str) -> List[Tool]:
-        """
-        Get all tools of a specific kind.
-
-        Args:
-            kind: Tool kind to filter by
-
-        Returns:
-            List of tools matching the kind
-        """
-        all_tools = self.get_all_tools()
-        return [tool for tool in all_tools if tool.kind.value == kind]
 
     def get_registry_stats(self) -> Dict[str, Any]:
         """
@@ -329,22 +427,45 @@ class ToolRegistry:
         Returns:
             Dictionary with registry statistics
         """
-        tools_by_kind = {}
-        for tool in self.get_all_tools():
-            kind = tool.kind.value
-            tools_by_kind[kind] = tools_by_kind.get(kind, 0) + 1
-
+        all_tools_list = self.get_all_tools()
+        domain_stats = self.categorizer.get_domain_statistics(all_tools_list)
+        
         return {
             "total_tools": len(self.tools) + len(self.marketplace_instances),
             "builtin_tools": len(self.tools),
             "marketplace_tools_loaded": len(self.marketplace_instances),
             "marketplace_tools_available": len(self.marketplace_tools),
-            "tools_by_kind": tools_by_kind,
             "tool_names": self.get_tool_names(),
+            "domain_statistics": {domain.value: count for domain, count in domain_stats.items()},
         }
+    
+    def get_tools_by_domain(self, domain: ToolDomain) -> List[SDKTool]:
+        """
+        Get all tools in a specific domain.
+        
+        Args:
+            domain: Domain to filter by
+            
+        Returns:
+            List of tools in the specified domain
+        """
+        all_tools = self.get_all_tools()
+        return self.categorizer.get_tools_by_domain(all_tools, domain)
+    
+    def categorize_tool(self, tool: SDKTool) -> ToolDomain:
+        """
+        Categorize a tool by domain.
+        
+        Args:
+            tool: Tool instance to categorize
+            
+        Returns:
+            ToolDomain for the tool
+        """
+        return self.categorizer.categorize_tool(tool)
 
 
-    def create_tool_registry(
+def create_tool_registry(
     config: Any,
     marketplace_dir: Optional[Path] = None,
     tool_search_engine: Optional[Any] = None,
@@ -363,7 +484,7 @@ class ToolRegistry:
     """
     from backend.src.tools.loader import ToolLoader
     loader = ToolLoader(config)
-    # Note: marketplace_dir and tool_search_engine are handled by the caller 
-    # calling load_marketplace_tools or setting attributes, as per new design.
-    # This factory is a bit limited now.
-    return ToolRegistry(config, tool_loader=loader)
+    registry = ToolRegistry(config, tool_loader=loader)
+    if tool_search_engine:
+        registry.tool_search_engine = tool_search_engine
+    return registry

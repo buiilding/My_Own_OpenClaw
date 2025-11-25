@@ -45,14 +45,18 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
   const [selectedModelId, setSelectedModelId] = useState('');
   const [selectedProvider, setSelectedProvider] = useState('');
   const [modelResetWarning, setModelResetWarning] = useState('');
-  const [voiceModeEnabled, setVoiceModeEnabled] = useState(false); // Default: disabled
+  // Default to undefined so we can distinguish between "not loaded" and "false"
+  const [voiceModeEnabled, setVoiceModeEnabled] = useState(false);
 
   useEffect(() => {
     if (config) {
       setModelMode(config.model_mode || 'online');
       setSelectedModelId(config.selected_model_id || '');
       setSelectedProvider(config.model_provider || '');
-      setVoiceModeEnabled(config.voice_mode_enabled || false);
+      // Only update local state if config has the value
+      if (config.voice_mode_enabled !== undefined) {
+        setVoiceModeEnabled(config.voice_mode_enabled);
+      }
     }
   }, [config]);
 
@@ -66,12 +70,20 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
       model_mode: modelMode,
       selected_model_id: selectedModelId,
       model_provider: selectedProvider,
+      // Explicitly include voice_mode_enabled to persist it
       voice_mode_enabled: voiceModeEnabled,
     };
 
     // To prevent sending a save request for every single character change in the
     // username input, we'll only call onConfigChange if the config has actually changed.
-    if (JSON.stringify(updatedConfig) !== JSON.stringify(config)) {
+    // We check specific fields to avoid false positives/negatives
+    const hasChanged = 
+      updatedConfig.model_mode !== config.model_mode ||
+      updatedConfig.selected_model_id !== config.selected_model_id ||
+      updatedConfig.model_provider !== config.model_provider ||
+      updatedConfig.voice_mode_enabled !== config.voice_mode_enabled;
+
+    if (hasChanged) {
       onConfigChange(updatedConfig);
     }
   }, [modelMode, selectedModelId, selectedProvider, voiceModeEnabled, config, onConfigChange, availableModels]);
@@ -221,7 +233,7 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
         </div>
 
         <div className="form-group">
-          <label htmlFor="voice-mode-toggle" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <label htmlFor="voice-mode-toggle" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', cursor: 'pointer' }}>
             <span><strong>Voice Mode:</strong></span>
             <div className="toggle-switch">
               <input

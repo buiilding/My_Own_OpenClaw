@@ -1,5 +1,5 @@
 """
-List Directory Tool.
+List Directory Tool (SDK Version).
 
 Tool for listing files and directories in a path.
 """
@@ -7,9 +7,11 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
+from pydantic import BaseModel, Field
 
-from backend.src.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.src.sdk.tool import Tool
+from backend.src.sdk.context import Context
 from backend.src.tools.filesystem.data_structures import FileEntry
 from backend.src.tools.system.shell_tool import ShellTool
 from backend.src.core.utils.file_utils import make_relative_path
@@ -17,46 +19,47 @@ from backend.src.core.utils.file_utils import make_relative_path
 logger = logging.getLogger(__name__)
 
 
-class ListDirectoryTool(Tool):
+class ListDirectoryArgs(BaseModel):
+    path: str = Field(..., description="Directory path to list (absolute or relative to workspace)")
+    ignore: Optional[List[str]] = Field(None, description="List of glob patterns to ignore (e.g., ['*.pyc', '__pycache__'])")
+    file_filtering_options: Optional[Dict[str, bool]] = Field(None, description="File filtering options (respect_git_ignore, respect_gemini_ignore)")
+
+
+class ListDirectoryTool(Tool[ListDirectoryArgs]):
     """Tool for listing files and directories in a path."""
+    
+    name = "list_directory"
+    description = "Lists the names of files and subdirectories directly within a specified directory path. Can optionally ignore entries matching provided glob patterns."
+    args_model = ListDirectoryArgs
 
-    def __init__(self, config: Any):
-        super().__init__(
-            name="list_directory",
-            description="Lists the names of files and subdirectories directly within a specified directory path. Can optionally ignore entries matching provided glob patterns.",
-            kind=Kind.SEARCH,
-        )
-        self.config = config
-
-    async def execute_async(
-        self,
-        context: ToolContext,
-        path: str,
-        ignore: Optional[List[str]] = None,
-        file_filtering_options: Optional[Dict[str, Any]] = None,
-    ) -> ToolResult:
+    async def run(self, args: ListDirectoryArgs, ctx: Context) -> dict:
         """Execute the list_directory tool."""
         try:
             logger.info(
-                f"ListDirectory tool called with path: '{path}', ignore: {ignore}, file_filtering_options: {file_filtering_options}"
+                f"ListDirectory tool called with path: '{args.path}', ignore: {args.ignore}, file_filtering_options: {args.file_filtering_options}"
             )
-            ignore = ignore or []
-            file_filtering_options = file_filtering_options or {}
+            ignore = args.ignore or []
+            file_filtering_options = args.file_filtering_options or {}
 
-            if not path:
+            if not args.path:
                 logger.error("ListDirectory: No path provided")
-                return ToolResult(
-                    success=False,
-                    error="Path parameter is required",
-                    llm_content="Error: Path parameter is required",
-                    return_display="Error: Path parameter is required",
-                )
+                return {
+                    "error": "Path parameter is required",
+                    "llm_content": "Error: Path parameter is required"
+                }
 
-            # Resolve relative paths to absolute paths and get workspace context
+            # Resolve relative paths to absolute paths
+            path = args.path
             logger.info(
                 f"ListDirectory: Path is absolute check: {os.path.isabs(path)} for path: {path}"
             )
-            workspace_context = self.config.get_workspace_context()
+            
+            workspace_context = ctx.services.get("workspace_context")
+            if workspace_context:
+                target_dir = workspace_context.workspace_path
+            else:
+                target_dir = ctx.workspace_root
+            
             logger.info(f"ListDirectory: Got workspace context: {workspace_context}")
 
             if not os.path.isabs(path):
@@ -67,32 +70,26 @@ class ListDirectoryTool(Tool):
                     f"ListDirectory: Resolved relative path to absolute using current dir: {path}"
                 )
 
-            # Removed workspace restriction - allow operations anywhere on the system
-
             # Check if directory exists
             logger.info(
                 f"ListDirectory: Checking if directory exists: {os.path.exists(path)} for path: {path}"
             )
             if not os.path.exists(path):
                 logger.error(f"ListDirectory: Directory not found: {path}")
-                return ToolResult(
-                    success=False,
-                    error=f"Directory not found: {path}",
-                    llm_content=f"Error: Directory not found: {path}",
-                    return_display="Directory not found",
-                )
+                return {
+                    "error": f"Directory not found: {path}",
+                    "llm_content": f"Error: Directory not found: {path}"
+                }
 
             logger.info(
                 f"ListDirectory: Checking if path is directory: {os.path.isdir(path)} for path: {path}"
             )
             if not os.path.isdir(path):
                 logger.error(f"ListDirectory: Path is not a directory: {path}")
-                return ToolResult(
-                    success=False,
-                    error=f"Path is not a directory: {path}",
-                    llm_content=f"Error: Path is not a directory: {path}",
-                    return_display="Path is not a directory",
-                )
+                return {
+                    "error": f"Path is not a directory: {path}",
+                    "llm_content": f"Error: Path is not a directory: {path}"
+                }
 
             # List directory contents
             try:
@@ -101,21 +98,18 @@ class ListDirectoryTool(Tool):
                 logger.info(f"ListDirectory: Found {len(entries)} entries: {entries}")
             except OSError as e:
                 logger.error(f"ListDirectory: Failed to list directory {path}: {e}")
-                return ToolResult(
-                    success=False,
-                    error=f"Failed to list directory: {e}",
-                    llm_content=f"Error: Failed to list directory: {e}",
-                    return_display="Failed to list directory",
-                )
+                return {
+                    "error": f"Failed to list directory: {e}",
+                    "llm_content": f"Error: Failed to list directory: {e}"
+                }
 
             if not entries:
                 content = f"Directory {path} is empty."
-                return ToolResult(
-                    success=True,
-                    data=[],
-                    llm_content=content,
-                    return_display="Directory is empty",
-                )
+                return {
+                    "entries": [],
+                    "llm_content": content,
+                    "return_display": "Directory is empty"
+                }
 
             # Convert to full paths and filter
             logger.info(
@@ -123,8 +117,10 @@ class ListDirectoryTool(Tool):
             )
             full_paths = [os.path.join(path, entry) for entry in entries]
             logger.info(f"ListDirectory: Full paths: {full_paths}")
-            file_discovery = self.config.get_file_service()
-            logger.info(f"ListDirectory: Got file service: {file_discovery}")
+            
+            file_service = ctx.services.get("file_service")
+            logger.info(f"ListDirectory: Got file service: {file_service}")
+            
             filtering_options = {
                 "respect_git_ignore": file_filtering_options.get(
                     "respect_git_ignore", True
@@ -136,15 +132,20 @@ class ListDirectoryTool(Tool):
             logger.info(f"ListDirectory: Filtering options: {filtering_options}")
 
             # Convert to relative paths for filtering
-            target_dir = self.config.get_workspace_context().workspace_path
             logger.info(f"ListDirectory: Target dir: {target_dir}")
             relative_paths = [make_relative_path(p, target_dir) for p in full_paths]
             logger.info(f"ListDirectory: Relative paths: {relative_paths}")
 
             logger.info("ListDirectory: Calling filter_files_with_report")
-            filtered_paths, ignored_count = file_discovery.filter_files_with_report(
-                relative_paths, filtering_options
-            )
+            if file_service:
+                filtered_paths, ignored_count = file_service.filter_files_with_report(
+                    relative_paths, filtering_options
+                )
+            else:
+                # No file service, include all paths
+                filtered_paths = relative_paths
+                ignored_count = 0
+                
             logger.info(
                 f"ListDirectory: Filtered paths: {filtered_paths}, ignored_count: {ignored_count}"
             )
@@ -189,23 +190,29 @@ class ListDirectoryTool(Tool):
             logger.info(
                 f"ListDirectory: Returning success with {len(file_entries)} entries"
             )
-            return ToolResult(
-                success=True,
-                data=file_entries,
-                llm_content=content,
-                return_display=display,
-            )
+            return {
+                "entries": [
+                    {
+                        "name": e.name,
+                        "path": e.path,
+                        "is_directory": e.is_directory,
+                        "size": e.size,
+                        "modified_time": e.modified_time
+                    }
+                    for e in file_entries
+                ],
+                "llm_content": content,
+                "return_display": display
+            }
 
         except Exception as e:
             logger.error(
-                f"ListDirectory: Unexpected error for path {path}: {e}", exc_info=True
+                f"ListDirectory: Unexpected error for path {args.path}: {e}", exc_info=True
             )
-            return ToolResult(
-                success=False,
-                error=f"Unexpected error: {str(e)}",
-                llm_content=f"Error: Unexpected error: {str(e)}",
-                return_display="Unexpected error occurred",
-            )
+            return {
+                "error": f"Unexpected error: {str(e)}",
+                "llm_content": f"Error: Unexpected error: {str(e)}"
+            }
 
     def _matches_pattern(self, filename: str, pattern: str) -> bool:
         """Check if a filename matches a glob pattern."""

@@ -1,3 +1,10 @@
+"""
+Application Configuration Management.
+
+This module handles loading, validation, and management of application configuration.
+Supports YAML-based configuration files with environment-specific settings and
+immutable configuration objects for type safety.
+"""
 import logging
 import os
 import platform
@@ -110,10 +117,12 @@ class Preferences(BaseModel):
 
 
 class AppConfig(BaseModel):
-    """Main application configuration model."""
+    """Main application configuration model (immutable)."""
 
     model_config = ConfigDict(
-        extra="ignore", protected_namespaces=()  # Allow fields starting with 'model_'
+        extra="ignore", 
+        protected_namespaces=(),
+        frozen=True  # Make config immutable
     )
 
     # LLM Settings
@@ -146,11 +155,26 @@ class AppConfig(BaseModel):
     memory_db_path: Optional[str] = None  # Defaults to config_dir/memory
     embedding_model: str = "all-MiniLM-L6-v2"
     summarization_interval: int = 3600  # seconds
+    memory_summarization_batch_size: int = 10  # Number of interactions per batch
+    memory_summarization_limit: int = 1000  # Max memories to fetch for summarization
+
+    # Agent Execution Settings
+    max_history_length: int = 10  # Maximum conversation history messages
+    max_agent_iterations: int = 10  # Maximum tool execution iterations per query
+
+    # Tool Execution Settings
+    shell_timeout: float = 30.0  # Shell command timeout in seconds
+    search_file_timeout: float = 5.0  # File search timeout in seconds
+    marketplace_search_limit: int = 5  # Marketplace search result limit
+    model_registry_timeout: float = 2.0  # Model registry API timeout in seconds
 
     # Computer/Screenshot Settings
     screenshot_delay_after_action: float = (
         0.5  # seconds to wait before screenshot after computer actions
     )
+    
+    # Voice Mode Settings
+    voice_mode_enabled: bool = False
 
     # This field is populated at runtime, not loaded from config file
     api_key: Optional[str] = None
@@ -171,31 +195,116 @@ class AppConfig(BaseModel):
 
 # settings: Optional[AppConfig] = None  # Removed global singleton side-effect
 
+# Deprecated: Use ConfigManager instead
 def get_settings() -> AppConfig:
     """
-    Loads settings from YAML file and returns an AppConfig instance.
-    Note: In production, avoid calling this repeatedly. Load once at startup.
+    DEPRECATED: Loads settings from YAML file and returns an AppConfig instance.
+    This function reads from disk each time it's called.
+    Use ConfigManager.get_config() instead for cached config access.
     """
+    logger.warning("get_settings() is deprecated. Use ConfigManager.get_config() instead.")
     return load_settings_from_file()
 
 
-def reload_settings() -> None:
-    """Forces a reload of the settings from the config file."""
-    global settings
-    settings = load_settings_from_file()
+class ConfigManager:
+    """
+    Manages application configuration with single load at startup.
+    Provides immutable config access and config change events.
+    """
+    
+    def __init__(self):
+        """Initialize the config manager."""
+        self._config: Optional[AppConfig] = None
+        self._config_file_path: Optional[Path] = None
+    
+    def load_config(self) -> AppConfig:
+        """
+        Load configuration from file (called once at startup).
+        
+        Returns:
+            Loaded AppConfig instance
+        """
+        if self._config is not None:
+            logger.debug("Config already loaded. Returning existing config.")
+            return self._config
+        
+        config_dir = get_config_dir()
+        self._config_file_path = config_dir / CONFIG_FILE_NAME
+        self._config = load_settings_from_file()
+        logger.info(f"Configuration loaded from {self._config_file_path}")
+        return self._config
+    
+    def get_config(self) -> AppConfig:
+        """
+        Get the current configuration.
+        
+        Returns:
+            Current AppConfig instance
+            
+        Raises:
+            RuntimeError: If config has not been loaded
+        """
+        if self._config is None:
+            raise RuntimeError("Config not loaded. Call load_config() first.")
+        return self._config
+    
+    def update_config(self, new_config: AppConfig) -> AppConfig:
+        """
+        Update configuration and save to file.
+        Publishes config change event.
+        
+        Args:
+            new_config: New configuration instance
+            
+        Returns:
+            Updated config with API key loaded
+        """
+        # Load API key for new config
+        updated_config = load_api_key_for_provider(new_config)
+        
+        # Save to file
+        save_settings_to_file(updated_config)
+        
+        # Update cached config
+        self._config = updated_config
+        
+        # Publish config change event (async, will be handled by event bus subscribers)
+        logger.info("Configuration updated")
+        
+        return updated_config
+    
+    def reload_config(self) -> AppConfig:
+        """
+        Reload configuration from file.
+        
+        Returns:
+            Reloaded AppConfig instance
+        """
+        self._config = load_settings_from_file()
+        logger.info("Configuration reloaded from file")
+        
+        return self._config
 
 
-def load_api_key_for_provider(cfg: AppConfig) -> None:
+# Global config manager instance
+_config_manager = ConfigManager()
+
+
+def get_config_manager() -> ConfigManager:
+    """Get the global config manager instance."""
+    return _config_manager
+
+
+def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
     """
     Loads the API key for the currently selected provider from environment variables.
-    The key is stored in the `api_key` field of the AppConfig object.
+    Returns a new AppConfig instance with the api_key set.
     For local models, no API key is required.
     """
     # For local models, no API key is needed
     if cfg.model_mode == "local":
-        cfg.api_key = None
         logger.info("Local model mode selected - no API key required.")
-        return
+        return cfg.model_copy(update={"api_key": None})
 
     provider_name = cfg.model_provider
     api_key_env_var = None
@@ -207,25 +316,29 @@ def load_api_key_for_provider(cfg: AppConfig) -> None:
         logger.warning(
             "No config found for provider '%s' when loading API key.", provider_name
         )
-        cfg.api_key = None
-        return
+        return cfg.model_copy(update={"api_key": None})
 
     if api_key_env_var:
-        cfg.api_key = os.getenv(api_key_env_var)
-        if not cfg.api_key:
+        api_key = os.getenv(api_key_env_var)
+        if not api_key:
             logger.warning(
                 "Environment variable '%s' for provider '%s' is not set.",
                 api_key_env_var,
                 provider_name,
             )
+        return cfg.model_copy(update={"api_key": api_key})
     else:
         # This case is for local models like Ollama that don't require an API key
-        cfg.api_key = None
         logger.info("No API key environment variable for provider '%s'.", provider_name)
+        return cfg.model_copy(update={"api_key": None})
 
 
 def load_settings_from_file() -> AppConfig:
-    """Loads the application configuration from a YAML file."""
+    """
+    Loads the application configuration from a YAML file.
+    This function should only be called once at startup.
+    Use ConfigManager for runtime config access.
+    """
     config_dir = get_config_dir()
     config_file = config_dir / CONFIG_FILE_NAME
 
@@ -233,7 +346,7 @@ def load_settings_from_file() -> AppConfig:
         logger.info("Config file not found. Creating a default one.")
         default_config = AppConfig()
         save_settings_to_file(default_config)
-        return default_config
+        return load_api_key_for_provider(default_config)
 
     try:
         with open(config_file, "r", encoding="utf-8") as f:
@@ -244,10 +357,8 @@ def load_settings_from_file() -> AppConfig:
         logger.warning("Falling back to default configuration.")
         app_config = AppConfig()
 
-    # Load API key for the selected provider
-    load_api_key_for_provider(app_config)
-
-    return app_config
+    # Load API key for the selected provider (returns new instance)
+    return load_api_key_for_provider(app_config)
 
 
 def save_settings_to_file(cfg: AppConfig) -> None:
@@ -273,7 +384,10 @@ def save_settings_to_file(cfg: AppConfig) -> None:
 
 if __name__ == "__main__":
     # Example of how to use the configuration system
-    current_settings = get_settings()
+    config_manager = get_config_manager()
+    config_manager.load_config()
+    current_settings = config_manager.get_config()
+    
     print(f"Current provider: {current_settings.model_provider}")
     print(f"Current model ID: {current_settings.selected_model_id}")
     print(f"Full model name for LLM: {current_settings.llm_model}")
@@ -281,12 +395,13 @@ if __name__ == "__main__":
 
     # Example of updating settings
     print("\nUpdating provider to 'anthropic'...")
-    current_settings.model_provider = "anthropic"
-    current_settings.selected_model_id = "claude-3.7-sonnet-20250219"
-    save_settings_to_file(current_settings)
-    reload_settings()
+    updated_config = current_settings.model_copy(update={
+        "model_provider": "anthropic",
+        "selected_model_id": "claude-3.7-sonnet-20250219"
+    })
+    config_manager.update_config(updated_config)
 
-    reloaded_settings = get_settings()
+    reloaded_settings = config_manager.get_config()
     print(f"New provider: {reloaded_settings.model_provider}")
     print(f"New model ID: {reloaded_settings.selected_model_id}")
     print(f"New full model name: {reloaded_settings.llm_model}")
@@ -296,7 +411,7 @@ if __name__ == "__main__":
     print("\nResetting to default...")
     default_settings = AppConfig()
     save_settings_to_file(default_settings)
-    reload_settings()
+    config_manager.reload_config()
     print("Done.")
 
 # This is a sample script to generate a schema for the AppConfig model.
@@ -312,6 +427,9 @@ def generate_config_schema():
 
 
 # --- Service Classes for Tools ---
+# DEPRECATED: These classes have been moved to backend/src/core/services/
+# Use ServiceContainer from backend.src.core.services instead
+# This section is kept for backward compatibility only
 
 
 class WorkspaceContext:
@@ -382,8 +500,12 @@ class StorageService:
 
 
 class AppServices:
-    """Service container that provides access to various application services."""
-
+    """
+    DEPRECATED: Use ServiceContainer from backend.src.core.services instead.
+    
+    This class is kept for backward compatibility only.
+    New code should use ServiceContainer.
+    """
     def __init__(self, config: AppConfig):
         self.config = config
         self._workspace_context: Optional[WorkspaceContext] = None
