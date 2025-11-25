@@ -1,3 +1,9 @@
+"""
+Tool Interface Definitions.
+
+This module defines interfaces and data structures for tool execution results
+and tool categorization. Used for backward compatibility with legacy tool system.
+"""
 from typing import Any, Dict, List, Protocol, runtime_checkable, Optional
 from dataclasses import dataclass
 from enum import Enum

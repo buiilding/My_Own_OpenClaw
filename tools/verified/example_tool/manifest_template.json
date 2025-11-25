@@ -1,0 +1,45 @@
+{
+  "name": "your_tool_name",
+  "version": "1.0.0",
+  "description": "A clear description of what your tool does and when to use it. This should be detailed enough for users to understand the tool's purpose.",
+  "author": "Your Name",
+  "category": "utility",
+  "tool_class": "YourTool",
+  "permissions": [
+    "filesystem_read"
+  ],
+  "is_destructive": false,
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "required_param": {
+        "type": "string",
+        "description": "A required parameter"
+      },
+      "optional_param": {
+        "type": "string",
+        "description": "An optional parameter",
+        "default": "default_value"
+      }
+    },
+    "required": ["required_param"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean"
+      },
+      "data": {
+        "type": "object"
+      }
+    }
+  },
+  "tags": [
+    "example",
+    "template"
+  ],
+  "homepage": "https://github.com/yourusername/your-tool",
+  "license": "MIT"
+}
+

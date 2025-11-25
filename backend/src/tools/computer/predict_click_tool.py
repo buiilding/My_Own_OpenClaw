@@ -1,5 +1,5 @@
 """
-UI Grounding Tool
+UI Grounding Tool (SDK Version)
 
 Predicts click coordinates for UI elements based on visual analysis and text descriptions.
 Uses local vision models like InternVL to find interactive elements on screen.
@@ -10,14 +10,14 @@ import logging
 import math
 import re
 from io import BytesIO
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Optional, Tuple
 
 from PIL import Image
 
-from backend.src.core.config import AppServices
-from backend.src.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.src.sdk.tool import Tool
+from backend.src.sdk.context import Context
 from backend.src.tools.computer.computer_interface import ComputerInterface
-from backend.src.tools.computer.screenshot_tool import ScreenshotTool
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
@@ -206,7 +206,7 @@ class InternVLModel:
 
     # ---- Image preprocessing utilities adapted from CoAct-1 InternVL implementation ----
 
-    def _build_transform(self, input_size: int) -> Any:
+    def _build_transform(self, input_size: int):
         """Build image transformation pipeline."""
         if not VISION_MODELS_AVAILABLE or T is None:
             raise ImportError("Vision model dependencies not available")
@@ -479,115 +479,105 @@ class InternVLModel:
             return None
 
 
-class PredictClickTool(Tool):
+class PredictClickArgs(BaseModel):
+    element_description: str = Field(..., description="Detailed visual description of the element to find (include color, position, shape, text, icons, etc.)")
+    model_name: Optional[str] = Field(None, description="Optional specific vision model to use")
+
+
+class PredictClickTool(Tool[PredictClickArgs]):
     """
     Tool for finding and clicking on UI elements using vision-language models.
-
+    
     This tool analyzes screenshots and element descriptions to predict precise
     click coordinates for GUI automation tasks and then performs the click.
     """
+    
+    name = "predict_click"
+    description = "Find and click on UI elements by automatically taking a screenshot and analyzing it with detailed element descriptions using vision-language models. Provide specific, detailed descriptions of visual elements (e.g., 'the blue Save button in the top-right corner', 'the red close X button', 'the search bar with the magnifying glass icon')."
+    args_model = PredictClickArgs
 
-    def __init__(self, config: AppServices):
-        super().__init__(
-            name="predict_click",
-            description="Find and click on UI elements by automatically taking a screenshot and analyzing it with detailed element descriptions using vision-language models. Provide specific, detailed descriptions of visual elements (e.g., 'the blue Save button in the top-right corner', 'the red close X button', 'the search bar with the magnifying glass icon').",
-            kind=Kind.EXECUTE,
-        )
-        self.config = config
+    def __init__(self):
+        """Initialize the predict click tool."""
         self._vision_model = None
-        self._processor = None
         self.computer = ComputerInterface()
 
-    async def execute_async(
-        self,
-        context: ToolContext,
-        element_description: str,
-        model_name: Optional[str] = None,
-    ) -> ToolResult:
+    async def run(self, args: PredictClickArgs, ctx: Context) -> dict:
         """
         Predict click coordinates for a described UI element by taking a screenshot automatically.
-
+        
         Args:
-            context: Tool execution context
-            element_description: Detailed visual description of the element to find (include color, position, shape, text, icons, etc.)
-            model_name: Optional specific vision model to use
-
+            args: Predict click arguments
+            ctx: Execution context
+            
         Returns:
-            ToolResult with predicted coordinates
+            Dictionary with predicted coordinates and click result
         """
         try:
             if not VISION_MODELS_AVAILABLE:
-                return ToolResult(
-                    success=False,
-                    error="Vision models not available - UI grounding functionality requires local vision model installation",
-                    llm_content="Error: UI grounding models not installed. This feature requires additional vision model dependencies.",
-                    return_display="Vision models not available for UI grounding",
-                )
+                return {
+                    "error": "Vision models not available - UI grounding functionality requires local vision model installation",
+                    "llm_content": "Error: UI grounding models not installed. This feature requires additional vision model dependencies."
+                }
 
-            if not element_description:
-                return ToolResult(
-                    success=False,
-                    error="element_description is required",
-                    llm_content="Error: Missing element description for UI grounding",
-                    return_display="Missing element description",
-                )
+            if not args.element_description:
+                return {
+                    "error": "element_description is required",
+                    "llm_content": "Error: Missing element description for UI grounding"
+                }
 
-            # Take a screenshot automatically using the registry
-            if context.tool_registry:
-                screenshot_result = await context.tool_registry.execute_tool("screenshot")
+            # Take a screenshot automatically using tool registry from context
+            tool_registry = ctx.services.get("tool_registry")
+            if not tool_registry:
+                return {
+                    "error": "Tool registry not available in context",
+                    "llm_content": "Error: Internal system error (registry missing)"
+                }
+
+            # Execute screenshot tool
+            screenshot_result = await tool_registry.execute_tool("screenshot", {})
+
+            # Handle SDK tool result (dict) or legacy ToolResult
+            if isinstance(screenshot_result, dict):
+                screenshot_data = screenshot_result.get("screenshot")
+                success = screenshot_result.get("success", True)
             else:
-                # Fallback if no registry (unlikely in normal operation)
-                # Instantiate SDK tool (requires manual run handling which is complex here)
-                # Ideally we assume registry is present.
-                return ToolResult(
-                    success=False,
-                    error="Tool registry not available in context",
-                    llm_content="Error: Internal system error (registry missing)",
-                )
+                # Legacy ToolResult
+                screenshot_data = screenshot_result.data.get("screenshot") if screenshot_result.success else None
+                success = screenshot_result.success
 
-            if (
-                not screenshot_result.success
-                # SDK tool returns data dict in result.data
-                or not isinstance(screenshot_result.data, dict)
-                or "screenshot" not in screenshot_result.data
-            ):
-                return ToolResult(
-                    success=False,
-                    error="Failed to capture screenshot for UI grounding",
-                    llm_content="Error: Could not capture screenshot",
-                    return_display="Screenshot capture failed",
-                )
-
-            screenshot_data = screenshot_result.data["screenshot"]
+            if not success or not screenshot_data:
+                return {
+                    "error": "Failed to capture screenshot for UI grounding",
+                    "llm_content": "Error: Could not capture screenshot"
+                }
 
             # Initialize vision model if needed
-            if not await self._initialize_vision_model(model_name):
-                return ToolResult(
-                    success=False,
-                    error="Failed to initialize vision model",
-                    llm_content="Error: Could not initialize vision model for UI grounding",
-                    return_display="Vision model initialization failed",
-                )
+            if not await self._initialize_vision_model(args.model_name):
+                return {
+                    "error": "Failed to initialize vision model",
+                    "llm_content": "Error: Could not initialize vision model for UI grounding"
+                }
 
             # Predict click coordinates
             coordinates = await self._predict_coordinates(
-                screenshot_data, element_description
+                screenshot_data, args.element_description
             )
 
             if coordinates is None:
-                return ToolResult(
-                    success=False,
-                    error="Could not predict coordinates for the described element",
-                    llm_content="UI grounding failed to find the described element",
-                    return_display="Element not found in screenshot",
-                )
+                return {
+                    "error": "Could not predict coordinates for the described element",
+                    "llm_content": "UI grounding failed to find the described element"
+                }
 
             x, y = coordinates
 
             # Ensure computer interface is initialized
             init_error = await self.computer.ensure_initialized()
             if init_error:
-                return init_error
+                return {
+                    "error": init_error.error or "Computer interface initialization failed",
+                    "llm_content": f"Error: {init_error.error or 'Computer interface initialization failed'}"
+                }
 
             # Perform the actual click
             click_result = await self.computer.left_click(x, y)
@@ -595,42 +585,42 @@ class PredictClickTool(Tool):
                 logger.warning(
                     f"Click failed at coordinates ({x}, {y}): {click_result.error}"
                 )
-                return ToolResult(
-                    success=False,
-                    error=f"Click failed: {click_result.error}",
-                    llm_content=f"Predicted coordinates ({x}, {y}) but click failed",
-                    return_display=f"Found element but click failed at ({x}, {y})",
-                )
+                return {
+                    "error": f"Click failed: {click_result.error}",
+                    "llm_content": f"Predicted coordinates ({x}, {y}) but click failed",
+                    "coordinates": coordinates,
+                    "clicked": False
+                }
 
-            return ToolResult(
-                success=True,
-                data={"coordinates": coordinates, "x": x, "y": y, "clicked": True},
-                llm_content=f"Successfully clicked at coordinates ({x}, {y}) for element: '{element_description}'",
-                return_display=f"Clicked element at coordinates ({x}, {y})",
-                metadata={
-                    "element_description": element_description,
-                    "model_used": model_name or "default",
+            return {
+                "coordinates": coordinates,
+                "x": x,
+                "y": y,
+                "clicked": True,
+                "llm_content": f"Successfully clicked at coordinates ({x}, {y}) for element: '{args.element_description}'",
+                "return_display": f"Clicked element at coordinates ({x}, {y})",
+                "metadata": {
+                    "element_description": args.element_description,
+                    "model_used": args.model_name or "default",
                     "confidence": 0.8,  # Placeholder confidence score
                     "action_performed": "click",
-                },
-            )
+                }
+            }
 
         except Exception as e:
             logger.error(f"UI grounding tool error: {e}", exc_info=True)
-            return ToolResult(
-                success=False,
-                error=f"UI grounding failed: {str(e)}",
-                llm_content="Error: UI grounding analysis failed",
-                return_display=f"UI grounding error: {str(e)}",
-            )
+            return {
+                "error": f"UI grounding failed: {str(e)}",
+                "llm_content": f"Error: UI grounding analysis failed: {str(e)}"
+            }
 
     async def _initialize_vision_model(self, model_name: Optional[str] = None) -> bool:
         """
         Initialize the vision model for UI grounding.
-
+        
         Args:
             model_name: Specific model to load
-
+            
         Returns:
             True if initialization successful, False otherwise
         """
@@ -662,11 +652,11 @@ class PredictClickTool(Tool):
     ) -> Optional[Tuple[int, int]]:
         """
         Predict click coordinates using vision model (InternVL-style).
-
+        
         Args:
             screenshot_b64: Base64 screenshot data
             element_description: Text description of element
-
+            
         Returns:
             Tuple of (x, y) coordinates or None if prediction fails
         """
@@ -683,24 +673,3 @@ class PredictClickTool(Tool):
         except Exception as e:
             logger.error(f"Coordinate prediction failed: {e}")
             return None
-
-    def get_capabilities(self) -> dict[str, Any]:
-        """Get tool capabilities."""
-        capabilities = super().get_capabilities()
-        capabilities.update(
-            {
-                "supports_vision_models": VISION_MODELS_AVAILABLE,
-                "available_models": [
-                    "huggingface-local/OpenGVLab/InternVL3_5-4B",
-                    "huggingface-local/OpenGVLab/InternVL2_5-8B",
-                ]
-                if VISION_MODELS_AVAILABLE
-                else [],
-                "input_format": "base64_screenshot_with_text_description",
-                "output_format": "pixel_coordinates",
-                "coordinate_format": "0-1000_normalized_to_pixels",
-                "safe": True,  # Read-only analysis
-                "requires_screenshot": True,
-            }
-        )
-        return capabilities

@@ -1,10 +1,15 @@
+"""
+Read File Tool (SDK Version).
+
+Tool for reading file contents with automatic encoding detection and MIME type handling.
+"""
 import os
 from pathlib import Path
 from typing import Optional
 from pydantic import BaseModel, Field
 
-from backend.sdk.tool import Tool
-from backend.sdk.context import Context
+from backend.src.sdk.tool import Tool
+from backend.src.sdk.context import Context
 from backend.src.core.utils.file_utils import (
     get_specific_mime_type,
     is_text_file,

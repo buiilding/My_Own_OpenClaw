@@ -1,10 +1,17 @@
+"""
+Security Executor for Tool Execution.
+
+This module provides the security executor that handles tool execution with
+sandboxing, isolation, and security boundaries. Currently implements a basic
+executor, but can be extended for process/container isolation.
+"""
 from abc import ABC, abstractmethod
 from typing import Any, TypeVar
 import asyncio
 import logging
 
-from backend.sdk.tool import Tool
-from backend.sdk.context import Context
+from backend.src.sdk.tool import Tool
+from backend.src.sdk.context import Context
 
 logger = logging.getLogger(__name__)
 

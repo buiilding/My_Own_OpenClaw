@@ -1,0 +1,5 @@
+python tests/backend/test_mouse_control_tool_pipeline.py
+python tests/backend/test_keyboard_control_tool_pipeline.py
+python tests/backend/test_scroll_control_tool_pipeline.py
+python tests/backend/test_predict_click_tool_pipeline.py
+python tests/backend/test_click_ocr_element_tool_pipeline.py

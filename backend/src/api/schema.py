@@ -1,3 +1,9 @@
+"""
+API Schema Definitions.
+
+This module defines Pydantic models for all WebSocket message types used in the API,
+including incoming messages (query, settings updates) and outgoing responses.
+"""
 from typing import Any, Dict, Literal, Optional, Union
 from pydantic import BaseModel, Field
 

@@ -52,5 +52,5 @@ tool = await registry.get_tool_instance("weather_lookup")
 
 Tools should be placed in `tools/verified/{tool_name}/` with:
 - `manifest.json` - Tool metadata and configuration
-- `tool.py` - Tool implementation (must inherit from `backend.tools.base.Tool`)
+- `tool.py` - Tool implementation (must inherit from `backend.src.sdk.tool.Tool`)
 - `README.md` - Documentation (optional)

@@ -1,13 +1,14 @@
 """
-Search Marketplace Tool.
+Search Marketplace Tool (SDK Version)
 
 Tool for searching the marketplace for available tools.
 """
-
 import logging
-from typing import Any, Optional
+from typing import Optional
+from pydantic import BaseModel, Field
 
-from backend.src.tools.base import Kind, Tool, ToolContext, ToolResult
+from backend.src.sdk.tool import Tool
+from backend.src.sdk.context import Context
 
 logger = logging.getLogger(__name__)
 
@@ -18,80 +19,80 @@ except ImportError:
     ToolSearchEngine = None
 
 
-class SearchMarketplaceTool(Tool):
-    """Tool for searching the marketplace for available tools."""
+class SearchMarketplaceArgs(BaseModel):
+    query: str = Field(..., description="Natural language search query describing what tool capability is needed")
+    limit: Optional[int] = Field(5, ge=1, le=20, description="Maximum number of results to return (default: 5, max: 20)")
 
-    def __init__(self, config: Any, tool_search_engine: Optional[Any] = None):
+
+class SearchMarketplaceTool(Tool[SearchMarketplaceArgs]):
+    """Tool for searching the marketplace for available tools."""
+    
+    name = "search_marketplace"
+    description = "Search the marketplace for available tools based on a natural language query. Use this when you need a capability that isn't available in the current tool list."
+    args_model = SearchMarketplaceArgs
+
+    def __init__(self, tool_search_engine: Optional[ToolSearchEngine] = None):
         """
         Initialize the search marketplace tool.
-
+        
         Args:
-            config: AppServices instance (dependency injection)
             tool_search_engine: Optional ToolSearchEngine instance for marketplace search
         """
-        super().__init__(
-            name="search_marketplace",
-            description="Search the marketplace for available tools based on a natural language query. Use this when you need a capability that isn't available in the current tool list.",
-            kind=Kind.SEARCH,
-        )
-        self.config = config
         self.tool_search_engine = tool_search_engine
 
-    async def execute_async(
-        self,
-        context: ToolContext,
-        query: str,
-        limit: Optional[int] = 5,
-    ) -> ToolResult:
+    async def run(self, args: SearchMarketplaceArgs, ctx: Context) -> dict:
         """
         Execute the search marketplace tool.
-
+        
         Args:
-            context: Tool execution context
-            query: Natural language search query describing what tool capability is needed
-            limit: Maximum number of results to return (default: 5)
-
+            args: Search marketplace arguments
+            ctx: Execution context
+            
         Returns:
-            ToolResult with search results
+            Dictionary with search results
         """
         try:
-            if not query or not query.strip():
-                return ToolResult(
-                    success=False,
-                    error="Query parameter is required",
-                    llm_content="Error: Query parameter is required",
-                    return_display="Error: Query parameter is required",
-                )
+            if not args.query or not args.query.strip():
+                return {
+                    "error": "Query parameter is required",
+                    "llm_content": "Error: Query parameter is required"
+                }
 
+            # Get tool search engine from context services if not provided
             if self.tool_search_engine is None:
-                return ToolResult(
-                    success=False,
-                    error="Marketplace search is not available",
-                    llm_content="Error: Marketplace search is not available. The marketplace system may not be initialized.",
-                    return_display="Marketplace search is not available",
-                )
+                tool_search_engine = ctx.services.get("tool_search_engine")
+                if tool_search_engine is None:
+                    return {
+                        "error": "Marketplace search is not available",
+                        "llm_content": "Error: Marketplace search is not available. The marketplace system may not be initialized."
+                    }
+            else:
+                tool_search_engine = self.tool_search_engine
 
-            limit = limit or 5
+            # Get default limit from config if available
+            config = ctx.services.get("config")
+            default_limit = config.marketplace_search_limit if config and hasattr(config, "marketplace_search_limit") else 5
+            
+            limit = args.limit or default_limit
             if limit < 1 or limit > 20:
-                limit = 5
+                limit = default_limit
 
-            logger.info(f"Searching marketplace for: {query} (limit: {limit})")
+            logger.info(f"Searching marketplace for: {args.query} (limit: {limit})")
 
             # Perform search
-            results = self.tool_search_engine.search(query, limit=limit)
+            results = tool_search_engine.search(args.query, limit=limit)
 
             if not results:
-                content = f"No marketplace tools found matching: '{query}'"
-                return ToolResult(
-                    success=True,
-                    data=[],
-                    llm_content=content,
-                    return_display="No tools found",
-                )
+                content = f"No marketplace tools found matching: '{args.query}'"
+                return {
+                    "results": [],
+                    "llm_content": content,
+                    "return_display": "No tools found"
+                }
 
             # Format results
             formatted_results = []
-            lines = [f"Found {len(results)} marketplace tool(s) matching '{query}':\n"]
+            lines = [f"Found {len(results)} marketplace tool(s) matching '{args.query}':\n"]
 
             for i, result in enumerate(results, 1):
                 metadata = result.metadata
@@ -118,18 +119,15 @@ class SearchMarketplaceTool(Tool):
 
             logger.info(f"Marketplace search returned {len(results)} results")
 
-            return ToolResult(
-                success=True,
-                data=formatted_results,
-                llm_content=content,
-                return_display=display,
-            )
+            return {
+                "results": formatted_results,
+                "llm_content": content,
+                "return_display": display
+            }
 
         except Exception as e:
             logger.error(f"Error in marketplace search tool: {e}", exc_info=True)
-            return ToolResult(
-                success=False,
-                error=f"Marketplace search failed: {str(e)}",
-                llm_content=f"Error: Marketplace search failed: {str(e)}",
-                return_display=f"Search failed: {str(e)}",
-            )
+            return {
+                "error": f"Marketplace search failed: {str(e)}",
+                "llm_content": f"Error: Marketplace search failed: {str(e)}"
+            }

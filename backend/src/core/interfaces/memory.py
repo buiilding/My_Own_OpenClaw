@@ -1,3 +1,9 @@
+"""
+Memory Interface Definitions.
+
+This module defines Protocol interfaces for memory storage and management operations.
+Provides type-safe contracts for memory system implementations.
+"""
 from typing import Protocol, List, Dict, Any, Optional, runtime_checkable
 
 @runtime_checkable
@@ -20,7 +26,7 @@ class MemoryStoreInterface(Protocol):
 class MemoryManagerInterface(Protocol):
     """Interface for high-level memory management."""
     
-    def store_episodic_memory(self, user_message: str, assistant_reply: str) -> None:
+    async def store_episodic_memory(self, user_message: str, assistant_reply: str) -> None:
         """Store a conversation turn."""
         ...
 
@@ -28,7 +34,7 @@ class MemoryManagerInterface(Protocol):
         """Summarize recent memories into semantic memory."""
         ...
 
-    def retrieve_memories(self, query: str, limit: int = 5) -> Dict[str, List[str]]:
+    async def retrieve_memories(self, query: str, limit: int = 5) -> Dict[str, List[str]]:
         """Retrieve relevant memories."""
         ...
 

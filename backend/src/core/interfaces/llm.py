@@ -1,3 +1,9 @@
+"""
+LLM Client Interface.
+
+This module defines the Protocol interface for LLM client implementations,
+allowing different LLM providers to be used interchangeably.
+"""
 from typing import Protocol, List, Dict, Any, AsyncGenerator, Optional, runtime_checkable
 
 @runtime_checkable
