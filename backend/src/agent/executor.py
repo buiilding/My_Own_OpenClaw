@@ -5,7 +5,7 @@ This module implements the main agent execution loop that processes user queries
 manages tool execution, handles LLM streaming, and coordinates memory operations.
 """
 import logging
-from typing import TYPE_CHECKING, AsyncGenerator, List, Optional
+from typing import TYPE_CHECKING, Any, AsyncGenerator, List, Optional
 
 from backend.src.llm.parser import ParsedResponse, ResponseParser
 from backend.src.tools.orchestrator import ToolOrchestrator
@@ -13,7 +13,6 @@ from backend.src.agent.plugins.manager import PluginManager
 from backend.src.llm.llm_client import LLMClient
 from backend.src.llm.prompt_constructor import PromptConstructor
 from backend.src.core.exceptions import LLMRateLimitError
-from backend.src.llm.prompts import format_screenshot_message
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.core.types import StreamingEvent, LLMMessage
 
@@ -51,12 +50,11 @@ class AgentExecutor:
         """
         Processes a user query and yields status updates and response chunks.
         """
-        # 1. Context Preparation
-        memories = await self.session.memory_manager.retrieve_memories(query)
-        memory_context = self.session.memory_manager.format_context(memories)
+        # 1. Retrieve memories for this user query and format with message
+        user_message_with_memory = await self._retrieve_and_format_memories(query)
         
-        # Add user query to history
-        self.session.history.add_message("user", query)
+        # Add user query with memory to history (as user message)
+        self.session.history.add_user_message(user_message_with_memory)
 
         # 2. Main Execution Loop
         iteration = 0
@@ -71,7 +69,6 @@ class AgentExecutor:
             prompt = self.prompt_builder.build_prompt(
                 self.session.history.get_history(),
                 include_tools=(iteration == 1),
-                memory_context=memory_context,
             )
 
             # B. Get LLM Response (Streamed)
@@ -97,7 +94,7 @@ class AgentExecutor:
             if not parsed_response.has_tool_calls:
                 # No tools called -> Final answer
                 final_response = parsed_response.text_content
-                self.session.history.add_message("assistant", final_response)
+                self.session.history.add_assistant_message(final_response)
                 yield {"type": "streaming-complete"}
                 break
 
@@ -132,14 +129,17 @@ class AgentExecutor:
     async def _stream_llm_response(self, prompt: List[LLMMessage]) -> AsyncGenerator[StreamingEvent, None]:
         """Streams the LLM response and aggregates the full text."""
         full_text = ""
+        model_id = self.session.cfg.selected_model_id
         async for event in self.llm_client.get_completion_stream(
-            model=self.session.cfg.llm_model, messages=prompt
+            model=model_id, messages=prompt
         ):
-            if event["type"] == "chunk":
+            if event["type"] == "content":
+                # Normalize 'content' to 'chunk' for frontend compatibility
                 full_text += event["content"]
+                yield {"type": "chunk", "content": event["content"]}
+            elif event["type"] == "thinking":
+                # Pass through thinking events
                 yield event
-            elif event["type"] == "thinking_chunk":
-                yield {"type": "thinking", "content": event["content"]}
             else:
                 yield event
         
@@ -160,8 +160,6 @@ class AgentExecutor:
         )
         
         # Process Results
-        tool_screenshots = {}
-        
         for result in orchestration_result.tool_results:
             # 1. Plugin Hooks (e.g. Computer Use, OCR)
             plugin_result = await self.plugin_manager.on_tool_end(
@@ -183,56 +181,36 @@ class AgentExecutor:
                     self.session._ocr_results_cache["latest"] = plugin_result.artifacts["ocr_results"]
                     logger.debug(f"Stored {len(plugin_result.artifacts['ocr_results'])} OCR results in session cache")
             
-            # Extract screenshot data from plugin artifacts
-            # ComputerUsePlugin provides both formatted message (for LLM) and raw data (for history)
-            screenshot_data = None
-            screenshot_message = None
-            
-            if plugin_result and plugin_result.artifacts:
-                # Extract formatted message for LLM output (from ComputerUsePlugin)
-                if "screenshot_message" in plugin_result.artifacts:
-                    screenshot_message = plugin_result.artifacts["screenshot_message"]
-                    logger.debug(f"Found formatted screenshot message from plugin for {result.tool_call.tool_name}")
-                
-                # Extract raw screenshot data for history/display
-                if "screenshot" in plugin_result.artifacts:
-                    screenshot_data = plugin_result.artifacts["screenshot"]
-            
-            # Also check tool result artifacts (for tools that provide screenshots directly)
-            if not screenshot_data and result.result.artifacts and "screenshot" in result.result.artifacts:
-                screenshot_data = result.result.artifacts["screenshot"]
+            # Extract screenshot data (helper method to avoid nested checks)
+            screenshot_data = self._extract_screenshot_data(result.result, plugin_result)
 
-            # Store raw screenshot data for history updates
+            # Construct the full tool message for both History and UI
+            # This ensures the UI displays EXACTLY what the LLM sees in its history
+            if result.success:
+                # Use llm_content which may include OCR results from plugin
+                content = result.result.llm_content or result.result.return_display or str(result.result.data or "No output")
+                tool_message = f"TOOL EXECUTED SUCCESSFULLY: {result.tool_call.tool_name}\n\n Tool Output:\n{content}"
+            else:
+                tool_message = f"TOOL FAILED: {result.tool_call.tool_name}\n\n Tool Error: {result.result.error}"
+            
+            # Append screenshot text indicator if screenshot is present
+            # This matches the system prompt format: "📸 State of the screen after..."
             if screenshot_data:
-                tool_screenshots[result.tool_call.tool_name] = screenshot_data
+                tool_message += f"\n\n📸 State of the screen after {result.tool_call.tool_name} was executed:"
+
+            # Update history with the exact message
+            self.session.history.add_tool_output(tool_message, screenshot_data)
 
             # 2. Yield Output Event
-            # Use llm_content for tool output (this is what gets passed to LLM)
-            # llm_content should always be set by ExecutionResult.to_tool_result() from tool's result dict
-            output = result.result.llm_content
-            
-            # If llm_content is None (not set), log a warning and use fallback
-            # Note: Empty string is valid output, only None indicates missing value
-            if output is None:
-                logger.warning(
-                    f"Tool {result.tool_call.tool_name} returned no llm_content. "
-                    f"return_display: {result.result.return_display}, "
-                    f"data: {result.result.data}"
-                )
-                # Fallback for display purposes only (indicates upstream bug)
-                output = result.result.return_display or (str(result.result.data) if result.result.data else "No output")
-
-            # Append screenshot message from computer plugin if available
-            if screenshot_message:
-                output += screenshot_message
-                logger.debug(f"Appended screenshot message to tool output for {result.tool_call.tool_name}")
+            # Send the EXACT SAME message to the frontend
+            # This ensures full transparency - user sees what AI sees
             
             yield {
                 "type": "tool_output",
                 "tool_name": result.tool_call.tool_name,
                 "success": result.success,
                 "execution_time": result.execution_time,
-                "output": output,
+                "output": tool_message,  # Use the full formatted message
                 "error": result.result.error,
                 "screenshot": screenshot_data,
             }
@@ -240,21 +218,30 @@ class AgentExecutor:
             # 3. Store Semantic Memories
             await self._process_tool_memories(result.result, result.tool_call.tool_name)
 
-        # 4. Update Conversation History
-        for result in orchestration_result.tool_results:
-            self._update_history_with_tool_result(result, tool_screenshots.get(result.tool_call.tool_name))
-
-    def _update_history_with_tool_result(self, result, screenshot_data: Optional[str]):
-        """Updates the conversation history with the tool result."""
-        if result.success:
-            tool_message = f"TOOL EXECUTED SUCCESSFULLY: {result.tool_call.tool_name}\n\n Tool Output:\n{result.result.llm_content}"
-            if screenshot_data:
-                tool_message += format_screenshot_message(result.tool_call.tool_name, screenshot_data)
-        else:
-            tool_message = f"TOOL FAILED: {result.tool_call.tool_name}\n\n Tool Error: {result.result.error}"
+    def _extract_screenshot_data(self, tool_result: ToolResult, plugin_result: Optional[Any]) -> Optional[str]:
+        """
+        Extract screenshot data from tool result or plugin artifacts.
+        
+        Args:
+            tool_result: Tool execution result
+            plugin_result: Optional plugin result with artifacts
             
-        self.session.history.add_message("user", tool_message)
-
+        Returns:
+            Base64 screenshot data or None
+        """
+        # Check plugin artifacts first (ComputerUsePlugin provides screenshots here)
+        if plugin_result and plugin_result.artifacts and "screenshot" in plugin_result.artifacts:
+            return plugin_result.artifacts["screenshot"]
+        
+        # Check tool result artifacts
+        if tool_result.artifacts and "screenshot" in tool_result.artifacts:
+            return tool_result.artifacts["screenshot"]
+        
+        # Check tool result data dict (SDK tools often return it here)
+        if isinstance(tool_result.data, dict) and "screenshot" in tool_result.data:
+            return tool_result.data["screenshot"]
+        
+        return None
 
     async def _process_tool_memories(self, tool_result: ToolResult, tool_name: str):
         """Extracts and stores memories from tool results."""
@@ -274,6 +261,30 @@ class AgentExecutor:
                     user_id=self.session.memory_manager.user_id,
                     metadata={"type": "semantic", "source": f"tool_execution_{tool_name}", "tool_name": tool_name},
                 )
+
+    async def _retrieve_and_format_memories(self, query: str) -> str:
+        """
+        Retrieve memories for a user query and format them with explicit sections.
+        
+        Args:
+            query: User query text
+            
+        Returns:
+            Formatted string with [MAIN MESSAGE], [EPISODIC CONTEXT], and [PROCEDURAL CONTEXT] sections
+        """
+        memories = await self.session.memory_manager.retrieve_memories(query)
+        memory_context = self.session.memory_manager.format_context(memories)
+        
+        # Build formatted message with explicit sections
+        sections = [
+            "[MAIN MESSAGE — Assistant should respond ONLY to this section]",
+            query
+        ]
+        
+        if memory_context:
+            sections.append(memory_context)
+        
+        return "\n\n".join(sections)
 
     async def _publish_completion_event(self, query: str, response: str):
         """Publishes the InteractionCompleted event."""

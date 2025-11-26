@@ -5,24 +5,6 @@ System prompts and prompt templates for the Desktop Assistant.
 import platform
 from pathlib import Path
 
-# Screenshot marker format constants for embedding screenshots in conversation history
-SCREENSHOT_MARKER_PREFIX = "📸 State of the screen after"
-SCREENSHOT_MARKER_SUFFIX = "was executed:"
-
-
-def format_screenshot_message(tool_name: str, screenshot_data: str) -> str:
-    """
-    Format a message with embedded screenshot data.
-
-    Args:
-        tool_name: Name of the tool that was executed
-        screenshot_data: Base64-encoded screenshot data
-
-    Returns:
-        Formatted message string with screenshot marker
-    """
-    return f"\n\n{SCREENSHOT_MARKER_PREFIX} {tool_name} {SCREENSHOT_MARKER_SUFFIX}{screenshot_data}"
-
 
 def load_system_prompt() -> str:
     """

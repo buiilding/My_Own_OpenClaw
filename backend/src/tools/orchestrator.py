@@ -183,9 +183,10 @@ class ToolOrchestrator:
                     )
 
                 except Exception as e:
+                    # Don't log full exception context to avoid logging screenshot data in traceback
                     logger.error(
                         f"Failed to execute tool {tool_call.tool_name}: {e}",
-                        exc_info=True,
+                        exc_info=False,
                     )
 
                     # Create error result
@@ -340,8 +341,9 @@ class ToolOrchestrator:
         
         except Exception as e:
             execution_time = time.time() - start_time
+            # Don't log full exception context to avoid logging screenshot data in traceback
             logger.error(
-                f"Tool execution error for {tool_call.tool_name}: {e}", exc_info=True
+                f"Tool execution error for {tool_call.tool_name}: {e}", exc_info=False
             )
             
             error_result = ToolResult(
@@ -426,7 +428,8 @@ class ToolOrchestrator:
                     progress_callback(i, total_tools, execution_result)
 
             except Exception as e:
-                logger.error(f"Tool execution error: {e}", exc_info=True)
+                # Don't log full exception context to avoid logging screenshot data in traceback
+                logger.error(f"Tool execution error: {e}", exc_info=False)
 
                 error_result = ToolExecutionResult(
                     tool_call=tool_call,

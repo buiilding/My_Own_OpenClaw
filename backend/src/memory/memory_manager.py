@@ -4,7 +4,6 @@ Memory Manager - High-level interface for memory operations.
 Manages episodic and semantic memory storage, retrieval, and summarization
 using the local memory store implementation.
 """
-import asyncio
 import logging
 from typing import Dict, List, Optional
 
@@ -146,26 +145,28 @@ class MemoryManager:
 
     def format_context(self, memories: Dict[str, List[str]]) -> str:
         """
-        Format memories into a string for LLM context.
-
-        Uses a format without headers to prevent the LLM from echoing memory structure.
+        Format memories into a string for LLM context with explicit section headers.
 
         Args:
             memories: Dictionary with 'semantic' and 'episodic' keys
 
         Returns:
-            Formatted context string
+            Formatted context string with episodic and procedural sections
         """
-        context = []
+        sections = []
 
-        # Format semantic memories as plain facts without headers
-        if memories.get("semantic"):
-            for fact in memories["semantic"]:
-                context.append(f"• {fact}")
-
-        # Format episodic memories as plain facts without headers
+        # Format episodic memories (past interactions)
         if memories.get("episodic"):
+            episodic_section = ["[Recent Interactions]"]
             for interaction in memories["episodic"]:
-                context.append(f"• {interaction}")
+                episodic_section.append(f"- {interaction}")
+            sections.append("\n".join(episodic_section))
 
-        return "\n".join(context) if context else ""
+        # Format semantic memories (procedural context - preferences, rules, facts)
+        if memories.get("semantic"):
+            semantic_section = ["[Semantic Memory]"]
+            for fact in memories["semantic"]:
+                semantic_section.append(f"- {fact}")
+            sections.append("\n".join(semantic_section))
+
+        return "\n\n".join(sections) if sections else ""

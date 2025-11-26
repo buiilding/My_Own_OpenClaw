@@ -54,17 +54,6 @@ class ResponseParser:
             re.MULTILINE | re.DOTALL,
         )
 
-        # Gemma format: {"tool_name": "...", "parameters": {...}}
-        self.gemma_format_pattern = re.compile(
-            r'{\s*"tool_name"\s*:\s*"([^"]+)"\s*,\s*"parameters"\s*:\s*({[^}]*})\s*}',
-            re.MULTILINE | re.DOTALL,
-        )
-
-        # Fallback: Function call format for backward compatibility
-        self.function_call_pattern = re.compile(
-            r"\b(\w+)\s*\(\s*([^)]*)\s*\)", re.MULTILINE | re.DOTALL
-        )
-
     def parse_response(self, response: str) -> ParsedResponse:
         """
         Parse the LLM response to extract tool calls and other structured data.
@@ -79,11 +68,9 @@ class ResponseParser:
             tool_calls = []
             text_content = response
 
-            # Try parsing strategies in order of preference
+            # Only support Gemini CLI structured format
             parsing_strategies = [
-                self._parse_structured_function_calls,  # Primary: Gemini CLI format
-                self._parse_gemma_format,  # Secondary: Gemma format
-                self._parse_function_calls,  # Fallback: Text format
+                self._parse_structured_function_calls,
             ]
 
             for strategy in parsing_strategies:
@@ -98,7 +85,7 @@ class ResponseParser:
                     )
                     tool_calls.extend(calls)
                     text_content = remaining_text
-                    break  # Use the first successful strategy
+                    break
 
             if tool_calls:
                 logger.info(f"Total tool calls extracted: {len(tool_calls)}")
@@ -123,106 +110,6 @@ class ResponseParser:
                 text_content=response,
                 has_tool_calls=False,
             )
-
-    def _parse_function_calls(self, response: str) -> Tuple[List[ParsedToolCall], str]:
-        """Parse function call format like tool_name(param="value") as fallback - VERY RESTRICTIVE."""
-        tool_calls = []
-        remaining_text = response
-
-        matches = self.function_call_pattern.findall(response)
-
-        # List of common words that appear in explanations with parentheses (NOT tool calls)
-        EXPLANATION_WORDS = {
-            "e",
-            "g",
-            "i",
-            "providers",
-            "modes",
-            "functions",
-            "methods",
-            "parameters",
-            "IDs",
-            "ids",
-            "model",
-            "configuration",
-            "settings",
-            "manipulation",
-            "patterns",
-            "filtering",
-            "securely",
-            "values",
-            "properties",
-            "attributes",
-            "variables",
-            "classes",
-            "objects",
-            "instances",
-            "modules",
-            "packages",
-            "imports",
-            "get",
-            "set",
-            "add",
-            "remove",
-            "update",
-            "delete",
-            "create",
-            "load",
-            "save",
-            "print",
-            "return",
-            "import",
-            "from",
-            "def",
-            "class",
-            "if",
-            "else",
-            "for",
-            "while",
-        }
-
-        for match in matches:
-            function_name, params_str = match
-
-            # STRICT FILTERING: Skip if it matches common explanation patterns
-            if (
-                len(function_name) < 3
-                or function_name.lower() in EXPLANATION_WORDS
-                or function_name.lower().startswith("get_")
-                or function_name.lower().startswith("set_")
-                or not params_str.strip()
-                or "=" not in params_str  # No empty parameter calls
-            ):  # Must have key=value pairs for valid tool call
-                continue
-
-            try:
-                # Simple parameter parsing for fallback
-                params = self._parse_simple_parameters(params_str)
-
-                # Must have actual parameters to be a valid tool call
-                if not params:
-                    continue
-
-                tool_call = ParsedToolCall(
-                    tool_name=function_name,
-                    parameters=params,
-                    raw_call=f"{function_name}({params_str})",
-                    confidence=0.7,  # Lower confidence for text fallback
-                )
-                tool_calls.append(tool_call)
-
-                # Remove this call from remaining text
-                remaining_text = remaining_text.replace(
-                    f"{function_name}({params_str})", "", 1
-                )
-
-            except Exception as e:
-                logger.debug(
-                    f"Failed to parse fallback function call {function_name}({params_str}): {e}"
-                )
-                continue
-
-        return tool_calls, remaining_text
 
     def _parse_structured_function_calls(
         self, response: str
@@ -258,70 +145,6 @@ class ResponseParser:
                 continue
 
         return tool_calls, remaining_text
-
-    def _parse_gemma_format(self, response: str) -> Tuple[List[ParsedToolCall], str]:
-        """Parse Gemma format: {"tool_name": "...", "parameters": {...}}"""
-        tool_calls = []
-        remaining_text = response
-
-        # Look for Gemma format objects
-        matches = self.gemma_format_pattern.findall(response)
-
-        for tool_name, params_json in matches:
-            try:
-                # Parse the JSON parameters
-                params = json.loads(params_json)
-
-                tool_call = ParsedToolCall(
-                    tool_name=tool_name,
-                    parameters=params,
-                    raw_call=f'{{"tool_name": "{tool_name}", "parameters": {params_json}}}',
-                    confidence=0.9,  # High confidence for Gemma format
-                )
-                tool_calls.append(tool_call)
-
-                # Remove this call from remaining text
-                call_text = (
-                    f'{{"tool_name": "{tool_name}", "parameters": {params_json}}}'
-                )
-                remaining_text = remaining_text.replace(call_text, "", 1)
-
-            except json.JSONDecodeError as e:
-                logger.debug(
-                    f"Failed to parse Gemma format tool call for {tool_name}: {e}"
-                )
-                continue
-
-        return tool_calls, remaining_text
-
-    def _parse_simple_parameters(self, params_str: str) -> Dict[str, Any]:
-        """Simple parameter parsing for fallback text format."""
-        params = {}
-
-        if not params_str.strip():
-            return params
-
-        # Simple comma splitting for basic cases
-        for pair in params_str.split(","):
-            pair = pair.strip()
-            if "=" in pair:
-                key, value = pair.split("=", 1)
-                key = key.strip()
-                value = value.strip()
-
-                # Remove quotes
-                if (value.startswith('"') and value.endswith('"')) or (
-                    value.startswith("'") and value.endswith("'")
-                ):
-                    value = value[1:-1]
-
-                # Try JSON parsing, fallback to string
-                try:
-                    params[key] = json.loads(value)
-                except (json.JSONDecodeError, ValueError):
-                    params[key] = value
-
-        return params
 
     def _clean_text_content(self, text: str, tool_calls: List[ParsedToolCall]) -> str:
         """Clean up text content by removing tool call artifacts."""
