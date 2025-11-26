@@ -107,7 +107,23 @@ class OCRPlugin(AgentPlugin):
             if not ocr_results:
                 return None
 
-            # Return OCR results in artifacts
+            # Format OCR results as string to append to message
+            ocr_text = self._format_ocr_results(ocr_results)
+            
+            # Modify the result's llm_content to include OCR text
+            # The plugin receives ToolResult (dataclass) from executor
+            if hasattr(result, "llm_content"):
+                # ToolResult is a dataclass, so we can modify it directly
+                result.llm_content = (result.llm_content or "") + f"\n\n{ocr_text}"
+            elif isinstance(result, dict):
+                # Fallback for dict format (shouldn't happen, but safe)
+                if "llm_content" in result:
+                    result["llm_content"] = (result.get("llm_content") or "") + f"\n\n{ocr_text}"
+                elif "data" in result and isinstance(result["data"], dict):
+                    if "llm_content" in result["data"]:
+                        result["data"]["llm_content"] = (result["data"].get("llm_content") or "") + f"\n\n{ocr_text}"
+
+            # Return OCR results in artifacts (for session cache and click mapping)
             return PluginResult(
                 artifacts={
                     "ocr_results": ocr_results,
@@ -118,6 +134,29 @@ class OCRPlugin(AgentPlugin):
         except Exception as e:
             logger.error(f"OCR plugin error: {e}", exc_info=True)
             return None
+
+    def _format_ocr_results(self, ocr_results: List[Dict[str, Any]]) -> str:
+        """
+        Format OCR results as a string to append to message.
+        
+        Args:
+            ocr_results: List of OCR result dictionaries
+            
+        Returns:
+            Formatted string with OCR text elements
+        """
+        if not ocr_results:
+            return ""
+        
+        ocr_text = f"OCR Analysis detected {len(ocr_results)} text elements:"
+        for i, ocr_result in enumerate(ocr_results[:10]):  # Limit to first 10 for brevity
+            text = ocr_result.get('text', '')
+            confidence = ocr_result.get('confidence', 0.0)
+            ocr_text += f"\n{i+1}. '{text}' (confidence: {confidence:.2f})"
+        if len(ocr_results) > 10:
+            ocr_text += f"\n... and {len(ocr_results) - 10} more text elements"
+        
+        return ocr_text
 
     def _check_ocr_requested(self, result: Any) -> bool:
         """
@@ -195,6 +234,8 @@ class OCRPlugin(AgentPlugin):
         """
         Perform OCR analysis on a base64-encoded screenshot.
         
+        Uses the pre-initialized OCR engine from startup (no reinitialization).
+        
         Args:
             screenshot_b64: Base64-encoded screenshot image
             
@@ -202,18 +243,20 @@ class OCRPlugin(AgentPlugin):
             List of OCR results with text, bounding boxes, and confidence scores
         """
         try:
-            # Initialize OCR engine if needed
+            # OCR engine should already be initialized at startup via initialize()
+            # This is just a safety check (should never happen in normal operation)
             if self._ocr_engine is None:
                 if not OCR_AVAILABLE:
                     logger.warning("OCR requested but rapidocr not available")
                     return None
                 
-                # Configure RapidOCR to use CUDA for better performance
+                # Fallback: Initialize OCR engine if somehow not initialized at startup
+                logger.warning("OCR engine not initialized at startup, initializing now (this should not happen)")
                 ocr_params = {
                     "EngineConfig.onnxruntime.use_cuda": True,
                 }
                 self._ocr_engine = RapidOCR(params=ocr_params)
-                logger.info("Initialized RapidOCR engine with CUDA support")
+                logger.info("Initialized RapidOCR engine with CUDA support (lazy initialization)")
 
             # Decode base64 to bytes
             try:
@@ -221,10 +264,10 @@ class OCRPlugin(AgentPlugin):
             except Exception as e:
                 logger.error(f"Failed to decode screenshot base64: {e}")
                 return None
-
+            
             # Perform OCR
             result = self._ocr_engine(image_bytes)
-
+            
             if not result or not hasattr(result, "txts"):
                 logger.warning("OCR returned invalid result format")
                 return []
@@ -275,19 +318,19 @@ class OCRPlugin(AgentPlugin):
 
                     ocr_results.append({
                         "id": str(i),
-                        "text": str(text).strip(),
+                    "text": str(text).strip(),
                         "confidence": confidence,  # Confidence score from RapidOCR
-                        "bbox": {
+                    "bbox": {
                             "x": int(x1),
                             "y": int(y1),
                             "width": int(x2 - x1),
                             "height": int(y2 - y1),
                         },
-                    })
+                })
                 except (ValueError, IndexError) as e:
                     logger.warning(f"Failed to parse OCR bbox for text '{text}': {e}")
                     continue
-
+            
             logger.info(f"OCR analysis completed: found {len(ocr_results)} text elements")
             return ocr_results
 

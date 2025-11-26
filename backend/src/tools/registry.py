@@ -368,7 +368,8 @@ class ToolRegistry:
                 }
 
         except Exception as e:
-            logger.error(f"Error executing tool {tool_name}: {e}", exc_info=True)
+            # Don't log full exception context to avoid logging screenshot data in traceback
+            logger.error(f"Error executing tool {tool_name}: {e}", exc_info=False)
             return {
                 "success": False,
                 "error": f"Tool execution failed: {str(e)}",

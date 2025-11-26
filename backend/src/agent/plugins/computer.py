@@ -52,7 +52,7 @@ class ComputerUsePlugin(AgentPlugin):
     async def on_tool_end(self, tool_name: str, result: Any) -> Optional[PluginResult]:
         """
         After computer control tools execute, capture a screenshot.
-
+        
         Handles both dict (SDK) and ToolResult results.
         """
         logger.debug(f"ComputerUsePlugin.on_tool_end called for tool: {tool_name}")
@@ -79,18 +79,13 @@ class ComputerUsePlugin(AgentPlugin):
                 )
                 return None
 
-            # Format screenshot message for LLM consumption
-            from backend.src.llm.prompts import format_screenshot_message
-            screenshot_message = format_screenshot_message(tool_name, screenshot_data)
-
-            logger.debug(f"Screenshot captured successfully after {tool_name}, message length: {len(screenshot_message)} chars")
+            logger.debug(f"Screenshot captured successfully after {tool_name}")
             
-            # Provide both formatted message (for LLM) and raw data (for history/display)
+            # Provide raw screenshot data for history/display
             return PluginResult(
-                artifacts={
-                    "screenshot_message": screenshot_message,  # Formatted for LLM
-                    "screenshot": screenshot_data,  # Raw data for history/display
-                }
+            artifacts={
+                    "screenshot": screenshot_data,  # Raw base64 data
+            }
             )
 
         except Exception as e:

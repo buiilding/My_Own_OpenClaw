@@ -230,9 +230,11 @@ class ExecutionStrategy(ABC):
         
         except Exception as e:
             execution_time = time.time() - exec_context.start_time
+            # Sanitize any result data that might contain screenshot before logging
+            # Don't log full exception context if it might contain large base64 data
             logger.error(
                 f"Tool execution error for {exec_context.tool_call.tool_name}: {e}",
-                exc_info=True
+                exc_info=False  # Don't include full traceback to avoid logging screenshot data
             )
             return ExecutionResult(
                 success=False,

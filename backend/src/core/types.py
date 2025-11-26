@@ -5,7 +5,7 @@ This module provides TypedDict definitions for common dictionary structures
 used throughout the codebase, improving type safety and IDE support.
 """
 
-from typing import TypedDict, Literal, Optional, List, Dict, Union, Any
+from typing import Any, AsyncGenerator, Dict, List, Literal, Optional, TypedDict, Union
 from typing_extensions import NotRequired
 
 
@@ -13,72 +13,17 @@ from typing_extensions import NotRequired
 # Event and Message Types
 # ============================================================================
 
-class StreamingChunk(TypedDict):
-    """A single chunk from streaming LLM response."""
-    type: Literal["chunk", "thinking_chunk", "full_response", "error"]
-    content: str
-
-
-class ToolCallEvent(TypedDict):
-    """Event emitted when a tool is called."""
-    type: Literal["tool_call"]
-    tool_name: str
-    parameters: Dict[str, Any]
-    raw_call: str
-
-
-class ToolOutputEvent(TypedDict):
-    """Event emitted when a tool execution completes."""
-    type: Literal["tool_output"]
-    tool_name: str
-    success: bool
-    execution_time: float
-    output: str
-    error: Optional[str]
-    screenshot: NotRequired[Optional[str]]
-
-
-class ThinkingEvent(TypedDict):
-    """Event emitted during LLM thinking/reasoning."""
-    type: Literal["thinking"]
-    content: str
-
-
-class ErrorEvent(TypedDict):
-    """Event emitted when an error occurs."""
-    type: Literal["error"]
-    content: str
-
-
-class StreamingCompleteEvent(TypedDict):
-    """Event emitted when streaming completes."""
-    type: Literal["streaming-complete"]
-
-
-# Union type for all possible streaming events
-StreamingEvent = Union[
-    StreamingChunk,
-    ToolCallEvent,
-    ToolOutputEvent,
-    ThinkingEvent,
-    ErrorEvent,
-    StreamingCompleteEvent,
-    Dict[str, Any],  # Fallback for other event types
-]
-
-
-# ============================================================================
-# LLM Message Types
-# ============================================================================
 
 class TextContent(TypedDict):
     """Text content in a multimodal message."""
+
     type: Literal["text"]
     text: str
 
 
 class ImageContent(TypedDict):
     """Image content in a multimodal message."""
+
     type: Literal["image_url"]
     image_url: Dict[str, str]  # {"url": "data:image/..."}
 
@@ -88,16 +33,69 @@ MultimodalContent = List[Union[TextContent, ImageContent]]
 
 class LLMMessage(TypedDict):
     """Standard LLM message format."""
+
     role: Literal["system", "user", "assistant"]
     content: Union[str, MultimodalContent]
+
+
+# --- Normalized Streaming Chunks ---
+
+
+class ContentChunk(TypedDict):
+    """A single chunk from streaming LLM response."""
+
+    type: Literal["content"]
+    content: str
+
+
+class ThinkingChunk(TypedDict):
+    """Event emitted during LLM thinking/reasoning."""
+
+    type: Literal["thinking"]
+    content: str
+
+
+class ToolCallChunk(TypedDict):
+    """Event emitted when a tool is called."""
+
+    type: Literal["tool_call"]
+    tool_name: str
+    parameters: Dict
+    raw_call: str
+
+
+class ErrorChunk(TypedDict):
+    """Event emitted when an error occurs."""
+
+    type: Literal["error"]
+    content: str
+
+
+StreamingChunk = Union[ContentChunk, ThinkingChunk, ToolCallChunk, ErrorChunk]
+
+# --- Normalized Final Response ---
+
+
+class NormalizedLLMResponse(TypedDict):
+    """Dictionary representation of a tool execution result."""
+
+    content: str
+    # Future additions could include token counts, stop reason, etc.
+
+
+# --- Deprecated ---
+
+StreamingEvent = Dict[str, any]
 
 
 # ============================================================================
 # Tool Result Types
 # ============================================================================
 
+
 class ToolResultDict(TypedDict, total=False):
     """Dictionary representation of a tool execution result."""
+
     success: bool
     error: NotRequired[Optional[str]]
     llm_content: NotRequired[Optional[str]]
@@ -113,8 +111,10 @@ class ToolResultDict(TypedDict, total=False):
 # Configuration Types
 # ============================================================================
 
+
 class ProviderConfigDict(TypedDict, total=False):
     """Dictionary representation of LLM provider configuration."""
+
     model: str
     api_key_env: str
     base_url: NotRequired[Optional[str]]
@@ -125,8 +125,10 @@ class ProviderConfigDict(TypedDict, total=False):
 # Memory Types
 # ============================================================================
 
+
 class MemoryItem(TypedDict, total=False):
     """Dictionary representation of a memory item."""
+
     id: str
     text: str
     user_id: str
@@ -138,6 +140,7 @@ class MemoryItem(TypedDict, total=False):
 
 class EpisodicMemory(TypedDict, total=False):
     """Dictionary representation of an episodic memory."""
+
     description: str
     context: NotRequired[Optional[str]]
     timestamp: NotRequired[float]
@@ -148,8 +151,10 @@ class EpisodicMemory(TypedDict, total=False):
 # API Request/Response Types
 # ============================================================================
 
+
 class WebSocketMessage(TypedDict, total=False):
     """WebSocket message format."""
+
     type: str
     data: NotRequired[Dict[str, Any]]
     content: NotRequired[str]
@@ -161,8 +166,10 @@ class WebSocketMessage(TypedDict, total=False):
 # Plugin Types
 # ============================================================================
 
+
 class PluginResultDict(TypedDict, total=False):
     """Dictionary representation of a plugin result."""
+
     artifacts: NotRequired[Optional[Dict[str, Any]]]
     modified_result: NotRequired[Optional[Any]]
 
@@ -171,8 +178,10 @@ class PluginResultDict(TypedDict, total=False):
 # Tool Schema Types
 # ============================================================================
 
+
 class ToolParameterSchema(TypedDict, total=False):
     """JSON schema for a tool parameter."""
+
     type: str
     description: NotRequired[str]
     enum: NotRequired[List[Any]]
@@ -182,6 +191,7 @@ class ToolParameterSchema(TypedDict, total=False):
 
 class ToolSchema(TypedDict, total=False):
     """JSON schema for a tool."""
+
     name: str
     description: str
     parameters: Dict[str, ToolParameterSchema]
