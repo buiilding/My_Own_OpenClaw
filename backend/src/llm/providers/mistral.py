@@ -1,5 +1,5 @@
 import logging
-from typing import Any, AsyncGenerator, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import litellm
 from litellm import exceptions as litellm_exceptions
@@ -58,6 +58,10 @@ class MistralProvider(LLMProvider):
         except Exception as e:
             logger.error(f"Error streaming from Mistral: {e}")
             yield {"type": "error", "content": str(e)}
+
+    async def list_models(self) -> List[Dict[str, str]]:
+        """Lists available Mistral models."""
+        return []
 
     def _get_full_model_string(self, model_id: str) -> str:
         if model_id.startswith("mistral/"):

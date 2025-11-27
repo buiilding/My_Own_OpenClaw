@@ -17,7 +17,7 @@ from PIL import Image
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
 from backend.src.tools.computer.computer_interface import ComputerInterface
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 logger = logging.getLogger(__name__)
 
@@ -480,6 +480,8 @@ class InternVLModel:
 
 
 class PredictClickArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     element_description: str = Field(..., description="Detailed visual description of the element to find (include color, position, shape, text, icons, etc.)")
     model_name: Optional[str] = Field(None, description="Optional specific vision model to use")
 

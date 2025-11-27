@@ -7,8 +7,8 @@ import logging
 import os
 from glob import glob as glob_module
 from pathlib import Path
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import Dict, List, Optional
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -20,11 +20,12 @@ logger = logging.getLogger(__name__)
 
 
 class GlobArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     pattern: str = Field(..., description="Glob pattern to search for (e.g., 'src/**/*.ts', '**/*.md')")
     path: Optional[str] = Field(None, description="Directory path to search in (defaults to current working directory)")
     case_sensitive: Optional[bool] = Field(None, description="Whether pattern matching is case sensitive (reserved for future use)")
-    respect_git_ignore: Optional[bool] = Field(True, description="Whether to respect .gitignore files")
-    respect_gemini_ignore: Optional[bool] = Field(True, description="Whether to respect .geminiignore files")
+    file_filtering_options: Optional[Dict[str, bool]] = Field(None, description="File filtering options (respect_git_ignore, respect_gemini_ignore)")
 
 
 class GlobTool(Tool[GlobArgs]):
@@ -38,10 +39,12 @@ class GlobTool(Tool[GlobArgs]):
         """Execute the glob tool."""
         try:
             respect_git_ignore = (
-                args.respect_git_ignore if args.respect_git_ignore is not None else True
+                args.file_filtering_options.get("respect_git_ignore", True)
+                if args.file_filtering_options else True
             )
             respect_gemini_ignore = (
-                args.respect_gemini_ignore if args.respect_gemini_ignore is not None else True
+                args.file_filtering_options.get("respect_gemini_ignore", True)
+                if args.file_filtering_options else True
             )
 
             if not args.pattern:

@@ -5,7 +5,7 @@ Tool for clicking on OCR-detected text elements by their ID.
 """
 import logging
 from typing import Literal, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class ClickOCRElementArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     ocr_id: Optional[int] = Field(None, description="ID of the OCR-detected text element to click (from the most recent screenshot with OCR)")
     id: Optional[int] = Field(None, description="DEPRECATED: Use ocr_id instead. ID of the OCR-detected text element to click")
     click_type: Literal["single", "double", "right"] = Field("single", description="Type of click to perform")

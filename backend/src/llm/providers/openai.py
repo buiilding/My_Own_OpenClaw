@@ -1,5 +1,5 @@
 import logging
-from typing import Any, AsyncGenerator, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import litellm
 from litellm import exceptions as litellm_exceptions
@@ -58,6 +58,14 @@ class OpenAIProvider(LLMProvider):
         except Exception as e:
             logger.error(f"Error streaming from OpenAI: {e}")
             yield {"type": "error", "content": str(e)}
+
+    async def list_models(self) -> List[Dict[str, str]]:
+        """
+        Lists available OpenAI models.
+        Note: For online providers, we typically use the static configuration
+        instead of making API calls, to save on latency/rate limits.
+        """
+        return []
 
     def _get_full_model_string(self, model_id: str) -> str:
         return model_id

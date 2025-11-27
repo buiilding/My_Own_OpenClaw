@@ -5,7 +5,7 @@ Tool for creating/overwriting files with content.
 """
 import logging
 import os
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 class WriteFileArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     file_path: str = Field(..., description="The path to the file to write (absolute or relative to workspace)")
     content: str = Field(..., description="The content to write to the file")
 

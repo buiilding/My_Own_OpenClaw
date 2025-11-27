@@ -1,7 +1,8 @@
 import logging
 from abc import abstractmethod
-from typing import Any, AsyncGenerator, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
+import httpx
 import litellm
 from litellm import exceptions as litellm_exceptions
 
@@ -87,6 +88,37 @@ class OllamaProvider(LocalLLMProvider):
     def _provider_name(self) -> str:
         return "Ollama"
 
+    async def list_models(self) -> List[Dict[str, str]]:
+        """Fetch models from Ollama."""
+        models = []
+        base_url = self.config.llm_providers.ollama.base_url
+        # Handle the fact that config base_url usually ends in /v1 but api/tags is at root
+        if base_url.endswith("/v1"):
+            base_url = base_url[:-3]
+        
+        url = f"{base_url.rstrip('/')}/api/tags"
+        
+        try:
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                response = await client.get(url)
+                if response.status_code == 200:
+                    data = response.json()
+                    if "models" in data:
+                        for model in data["models"]:
+                            model_name = model.get("name", "")
+                            if model_name:
+                                models.append({
+                                    "id": model_name,
+                                    "provider": "ollama",
+                                    "display_name": model_name,
+                                })
+                else:
+                    logger.warning(f"Ollama list models failed: {response.status_code}")
+        except Exception as e:
+            logger.warning(f"Error listing Ollama models: {e}")
+            
+        return models
+
 
 class LMStudioProvider(LocalLLMProvider):
     """Provider for LMStudio models."""
@@ -101,3 +133,31 @@ class LMStudioProvider(LocalLLMProvider):
 
     def _provider_name(self) -> str:
         return "LMStudio"
+
+    async def list_models(self) -> List[Dict[str, str]]:
+        """Fetch models from LM Studio."""
+        models = []
+        base_url = self.config.llm_providers.lmstudio.base_url
+        # Config base_url usually includes /v1, which is what we want for /models
+        url = f"{base_url.rstrip('/')}/models"
+        
+        try:
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                response = await client.get(url)
+                if response.status_code == 200:
+                    data = response.json()
+                    if "data" in data:
+                        for model in data["data"]:
+                            model_id = model.get("id", "")
+                            if model_id:
+                                models.append({
+                                    "id": model_id,
+                                    "provider": "lmstudio",
+                                    "display_name": model_id,
+                                })
+                else:
+                    logger.warning(f"LM Studio list models failed: {response.status_code}")
+        except Exception as e:
+            logger.warning(f"Error listing LM Studio models: {e}")
+            
+        return models

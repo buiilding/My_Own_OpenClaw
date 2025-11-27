@@ -10,7 +10,7 @@ import re
 import subprocess
 from glob import glob as glob_module
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 class SearchFileContentArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     pattern: str = Field(..., description="Regular expression pattern to search for")
     path: Optional[str] = Field(None, description="Directory path to search in (defaults to current working directory)")
     include: Optional[str] = Field(None, description="Glob pattern to filter files (e.g., '*.py')")

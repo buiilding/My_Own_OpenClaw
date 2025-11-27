@@ -8,7 +8,7 @@ import os
 import re
 from pathlib import Path
 from typing import Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 
 
 class ListDirectoryArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     path: str = Field(..., description="Directory path to list (absolute or relative to workspace)")
     ignore: Optional[List[str]] = Field(None, description="List of glob patterns to ignore (e.g., ['*.pyc', '__pycache__'])")
     file_filtering_options: Optional[Dict[str, bool]] = Field(None, description="File filtering options (respect_git_ignore, respect_gemini_ignore)")

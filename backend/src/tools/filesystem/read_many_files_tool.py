@@ -7,7 +7,7 @@ import logging
 import os
 from glob import glob as glob_module
 from typing import Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 class ReadManyFilesArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     paths: List[str] = Field(..., description="List of file paths or glob patterns to read")
     include: Optional[List[str]] = Field(None, description="Additional glob patterns to include")
     exclude: Optional[List[str]] = Field(None, description="Glob patterns to exclude (reserved for future use)")

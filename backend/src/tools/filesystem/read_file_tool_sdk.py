@@ -6,7 +6,7 @@ Tool for reading file contents with automatic encoding detection and MIME type h
 import os
 from pathlib import Path
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -18,7 +18,9 @@ from backend.src.core.utils.file_utils import (
 )
 
 class ReadFileArgs(BaseModel):
-    path: str = Field(..., description="The path to the file to read (absolute or relative to workspace)")
+    model_config = ConfigDict(extra='forbid')
+
+    file_path: str = Field(..., description="The path to the file to read (absolute or relative to workspace)")
     offset: Optional[int] = Field(None, ge=0, description="Line number to start reading from (0-based)")
     limit: Optional[int] = Field(None, gt=0, description="Number of lines to read")
 
@@ -29,7 +31,7 @@ class ReadFileToolSDK(Tool[ReadFileArgs]):
 
     async def run(self, args: ReadFileArgs, ctx: Context) -> dict:
         # Resolve path
-        absolute_path = args.path
+        absolute_path = args.file_path
         if not os.path.isabs(absolute_path):
             absolute_path = os.path.abspath(os.path.join(ctx.workspace_root, absolute_path))
 
