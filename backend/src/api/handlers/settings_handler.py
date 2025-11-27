@@ -17,7 +17,7 @@ from backend.src.core.validation import (
     validate_settings_update, 
     ValidationError
 )
-from backend.src.llm.model_registry import get_all_models
+from backend.src.llm.model_service import get_model_service
 
 logger = logging.getLogger(__name__)
 
@@ -175,7 +175,7 @@ class ListModelsHandler(MessageHandler):
         try:
             from backend.src.api.schema import ListModelsMessage
             validated = validate_message(data, "list-models", ListModelsMessage)
-            models = await get_all_models()
+            models = await get_model_service().get_all_models()
             await websocket.send_json({
                 "type": "models-listed",
                 "id": validated.id,

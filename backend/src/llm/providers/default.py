@@ -32,10 +32,10 @@ class DefaultProvider(GeminiProvider):
         }
         
         # Add Gemini-specific thinking params if applicable
-        from backend.src.llm.model_registry import THINKING_MODELS
+        from backend.src.llm.models_config import ONLINE_THINKING_MODELS
         if (
-            provider_name in THINKING_MODELS
-            and model in THINKING_MODELS[provider_name]
+            provider_name in ONLINE_THINKING_MODELS
+            and model in ONLINE_THINKING_MODELS[provider_name]
         ):
             params["thinking"] = {"type": "enabled", "budget_tokens": 16384}
             

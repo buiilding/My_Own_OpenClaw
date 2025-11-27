@@ -6,7 +6,7 @@ Tool for precise search and replace operations in files.
 import logging
 import os
 from typing import Tuple
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 class ReplaceArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     file_path: str = Field(..., description="The path to the file to modify")
     old_string: str = Field(..., description="The string to search for and replace")
     new_string: str = Field(..., description="The replacement string")

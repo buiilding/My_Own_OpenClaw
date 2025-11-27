@@ -6,7 +6,7 @@ OCR analysis is handled by the OCRPlugin, not directly in this tool.
 """
 import logging
 from typing import Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -17,8 +17,10 @@ logger = logging.getLogger(__name__)
 
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
+    model_config = ConfigDict(extra='forbid')
+
     include_ocr: bool = Field(
-        False, 
+        False,
         description="Whether to perform OCR analysis on the screenshot. Set to True if you need to detect text or interact with text elements."
     )
 

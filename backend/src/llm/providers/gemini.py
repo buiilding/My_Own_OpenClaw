@@ -1,5 +1,5 @@
 import logging
-from typing import Any, AsyncGenerator, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import litellm
 from litellm import exceptions as litellm_exceptions
@@ -14,7 +14,7 @@ from backend.src.core.types import (
     NormalizedLLMResponse,
     StreamingChunk,
 )
-from backend.src.llm.model_registry import THINKING_MODELS
+from backend.src.llm.models_config import ONLINE_THINKING_MODELS
 from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
@@ -68,12 +68,17 @@ class GeminiProvider(LLMProvider):
             logger.error(f"Error streaming from Gemini: {e}")
             yield {"type": "error", "content": str(e)}
 
+    async def list_models(self) -> List[Dict[str, str]]:
+        """Lists available Gemini models."""
+        # Return empty list as online models are handled by static config
+        return []
+
     def _build_request_params(self, model: str, messages: List[LLMMessage]) -> dict:
         params = super()._build_request_params(model, messages)
         provider_name = "gemini"
         if (
-            provider_name in THINKING_MODELS
-            and model in THINKING_MODELS[provider_name]
+            provider_name in ONLINE_THINKING_MODELS
+            and model in ONLINE_THINKING_MODELS[provider_name]
         ):
             params["thinking"] = {"type": "enabled", "budget_tokens": 16384}
         return params

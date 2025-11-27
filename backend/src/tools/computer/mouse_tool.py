@@ -5,7 +5,7 @@ Tool for controlling mouse actions.
 """
 import logging
 from typing import Literal, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -14,6 +14,8 @@ from backend.src.tools.computer.computer_interface import ComputerInterface, Mou
 logger = logging.getLogger(__name__)
 
 class MouseToolArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     action: Literal[
         "click",
         "double_click",

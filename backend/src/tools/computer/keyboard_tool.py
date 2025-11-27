@@ -5,7 +5,7 @@ Tool for controlling keyboard input.
 """
 import logging
 from typing import List, Literal, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class KeyboardControlArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     action: Literal["type", "press", "hotkey"] = Field(..., description="Keyboard action to perform")
     text: Optional[str] = Field(None, description="Text to type (required for 'type' action)")
     key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")

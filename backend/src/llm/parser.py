@@ -68,9 +68,10 @@ class ResponseParser:
             tool_calls = []
             text_content = response
 
-            # Only support Gemini CLI structured format
+            # Support both pure JSON and embedded JSON formats
             parsing_strategies = [
-                self._parse_structured_function_calls,
+                self._parse_json_response,  # Try pure JSON first (modern, reliable)
+                self._parse_structured_function_calls,  # Fallback to embedded JSON (legacy)
             ]
 
             for strategy in parsing_strategies:
@@ -110,6 +111,41 @@ class ResponseParser:
                 text_content=response,
                 has_tool_calls=False,
             )
+
+    def _parse_json_response(
+        self, response: str
+    ) -> Tuple[List[ParsedToolCall], str]:
+        """Parse pure JSON responses containing tool calls."""
+        tool_calls = []
+
+        try:
+            # Try to parse the entire response as JSON
+            parsed_json = json.loads(response.strip())
+
+            # Check if it has the expected functionCall structure
+            if isinstance(parsed_json, dict) and "functionCall" in parsed_json:
+                function_call = parsed_json["functionCall"]
+
+                if isinstance(function_call, dict) and "name" in function_call and "args" in function_call:
+                    tool_name = function_call["name"]
+                    args = function_call["args"]
+
+                    if isinstance(args, dict):
+                        tool_call = ParsedToolCall(
+                            tool_name=tool_name,
+                            parameters=args,
+                            raw_call=response.strip(),  # The entire JSON response
+                            confidence=1.0,  # Highest confidence for pure JSON format
+                        )
+                        tool_calls.append(tool_call)
+                        return tool_calls, ""  # No remaining text for pure JSON
+
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
+            # Not a valid tool call JSON, continue to next strategy
+            logger.debug(f"Failed to parse response as tool call JSON: {e}")
+            pass
+
+        return tool_calls, response  # Return original response as remaining text
 
     def _parse_structured_function_calls(
         self, response: str

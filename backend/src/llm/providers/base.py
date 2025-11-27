@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import litellm
 from litellm import exceptions as litellm_exceptions
@@ -41,6 +41,16 @@ class LLMProvider(ABC):
     ) -> AsyncGenerator[StreamingChunk, None]:
         """Gets a streaming completion from the LLM, yielding normalized chunks."""
         yield
+
+    @abstractmethod
+    async def list_models(self) -> List[Dict[str, str]]:
+        """
+        Lists available models from the provider.
+        
+        Returns:
+            List of model dictionaries with 'id', 'provider', and 'display_name'.
+        """
+        return []
 
     def _build_request_params(self, model: str, messages: List[LLMMessage]) -> dict:
         """Helper to construct the basic request parameters for LiteLLM."""

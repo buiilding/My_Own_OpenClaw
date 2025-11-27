@@ -5,7 +5,7 @@ Tool for searching the marketplace for available tools.
 """
 import logging
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -20,6 +20,8 @@ except ImportError:
 
 
 class SearchMarketplaceArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     query: str = Field(..., description="Natural language search query describing what tool capability is needed")
     limit: Optional[int] = Field(5, ge=1, le=20, description="Maximum number of results to return (default: 5, max: 20)")
 

@@ -14,7 +14,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -40,6 +40,8 @@ class ShellExecutionResult:
 
 
 class RunShellCommandArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     command: str = Field(..., description="Exact command to execute")
     directory: Optional[str] = Field(None, description="(OPTIONAL) The absolute path of the directory to run the command in. If not provided, uses the current persistent working directory from conversation context. Must be an absolute path and must already exist.")
 

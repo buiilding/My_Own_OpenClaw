@@ -5,7 +5,7 @@ Tool for controlling scrolling actions.
 """
 import logging
 from typing import Literal, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
@@ -17,6 +17,8 @@ ScrollDirection = Literal["up", "down", "left", "right"]
 
 
 class ScrollControlArgs(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(..., description="Scroll action to perform")
     x: Optional[int] = Field(None, description="X coordinate to scroll at (optional, uses current cursor if not provided)")
     y: Optional[int] = Field(None, description="Y coordinate to scroll at (optional, uses current cursor if not provided)")

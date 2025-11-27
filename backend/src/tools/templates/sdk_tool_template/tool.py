@@ -8,7 +8,7 @@ See tool_development.md for detailed documentation.
 """
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import Context
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Dict, Any
 import logging
 
@@ -18,10 +18,12 @@ logger = logging.getLogger(__name__)
 class ExampleToolArgs(BaseModel):
     """
     Arguments for the ExampleTool.
-    
+
     Use Pydantic Field to provide descriptions that help the LLM understand
     what each parameter does.
     """
+    model_config = ConfigDict(extra='forbid')
+
     required_param: str = Field(
         ...,
         description="A required parameter. Describe what it does and any constraints."
