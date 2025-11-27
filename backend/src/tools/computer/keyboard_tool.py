@@ -30,7 +30,7 @@ class KeyboardTool(Tool[KeyboardControlArgs]):
     """
     
     name = "keyboard_control"
-    description = "Control keyboard input including typing text, pressing keys, and keyboard shortcuts."
+    description = "Control keyboard input including typing text, pressing keys, and keyboard shortcuts. After execution, returns a status message and a screenshot showing the screen state after the keyboard action."
     args_model = KeyboardControlArgs
 
     def __init__(self):

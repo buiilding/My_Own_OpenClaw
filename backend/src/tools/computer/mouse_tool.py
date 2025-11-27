@@ -34,7 +34,7 @@ class MouseTool(Tool[MouseToolArgs]):
     Tool for controlling mouse actions including clicking, moving, and dragging.
     """
     name = "mouse_control"
-    description = "Control mouse actions including clicking, moving, and dragging on the computer screen."
+    description = "Control mouse actions including clicking, moving, and dragging on the computer screen. After execution, returns a status message and a screenshot showing the screen state after the mouse action."
     args_model = MouseToolArgs
 
     def __init__(self):

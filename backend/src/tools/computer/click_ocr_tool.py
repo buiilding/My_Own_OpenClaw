@@ -29,7 +29,7 @@ class ClickOCRTool(Tool[ClickOCRElementArgs]):
     """
     
     name = "click_ocr_element"
-    description = "Click on an OCR-detected text element by its ID. Use this after taking a screenshot with OCR enabled to interact with detected text elements."
+    description = "Click on an OCR-detected text element by its ID. Use this after taking a screenshot with OCR enabled to interact with detected text elements. After execution, returns a status message and a screenshot showing the screen state after the click action."
     args_model = ClickOCRElementArgs
 
     def __init__(self):
