@@ -493,7 +493,7 @@ class PredictClickTool(Tool[PredictClickArgs]):
     """
     
     name = "predict_click"
-    description = "Find and click on UI elements by automatically taking a screenshot and analyzing it with detailed element descriptions using vision-language models. Provide specific, detailed descriptions of visual elements (e.g., 'the blue Save button in the top-right corner', 'the red close X button', 'the search bar with the magnifying glass icon')."
+    description = "Find and click on UI elements by automatically taking a screenshot and analyzing it with detailed element descriptions using vision-language models. Provide specific, detailed descriptions of visual elements (e.g., 'the blue Save button in the top-right corner', 'the red close X button', 'the search bar with the magnifying glass icon'). After execution, returns a status message and a screenshot showing the screen state after the click action."
     args_model = PredictClickArgs
 
     def __init__(self):

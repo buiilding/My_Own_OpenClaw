@@ -32,7 +32,7 @@ class ScreenshotTool(Tool[ScreenshotToolArgs]):
     which processes screenshots and adds OCR results to artifacts.
     """
     name = "screenshot"
-    description = "Capture a screenshot of the current computer screen. Set include_ocr=True if you need to detect text or interact with text elements."
+    description = "Capture a screenshot of the current computer screen. Set include_ocr=True if you need to detect text or interact with text elements. After execution, returns a status message and a screenshot image (with optional OCR analysis if requested)."
     args_model = ScreenshotToolArgs
 
     def __init__(self):

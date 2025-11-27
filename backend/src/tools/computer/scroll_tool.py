@@ -33,7 +33,7 @@ class ScrollTool(Tool[ScrollControlArgs]):
     """
     
     name = "scroll_control"
-    description = "Control scrolling actions including up, down, left, and right scrolling."
+    description = "Control scrolling actions including up, down, left, and right scrolling. After execution, returns a status message and a screenshot showing the screen state after the scroll action."
     args_model = ScrollControlArgs
 
     def __init__(self):
