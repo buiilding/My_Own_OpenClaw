@@ -75,12 +75,18 @@ class ApplicationContainer(containers.DeclarativeContainer):
         instantiator=tool_instantiator,
     )
     
+    # Agent Factory
+    agent_factory = providers.Singleton(
+        lambda: _create_agent_factory(),
+    )
+
     # Create tool registry and context factory together to resolve circular dependency
     # This factory creates both and wires them together properly
     tool_registry_and_factory = providers.Singleton(
-        lambda cfg, loader: _create_tool_registry_with_factory(cfg, loader),
+        lambda cfg, loader, af: _create_tool_registry_with_factory(cfg, loader, af),
         cfg=config,
         loader=tool_loader,
+        af=agent_factory,
     )
     
     # Extract registry and factory from the tuple
@@ -148,7 +154,13 @@ def _create_tool_loader(config: AppConfig, service_container, tool_instantiator)
     )
 
 
-def _create_tool_registry_with_factory(config: AppConfig, tool_loader):
+def _create_agent_factory():
+    """Create agent factory."""
+    from backend.src.core.services.agent_factory import AgentFactory
+    return AgentFactory()
+
+
+def _create_tool_registry_with_factory(config: AppConfig, tool_loader, agent_factory):
     """
     Create tool registry and context factory together.
     
@@ -165,6 +177,7 @@ def _create_tool_registry_with_factory(config: AppConfig, tool_loader):
         config=config,
         tool_registry=None,  # Will be set after registry is created
         tool_loader=tool_loader,
+        agent_factory=agent_factory,
     )
     
     # Create tool registry with context factory
@@ -287,6 +300,7 @@ class Container:
         self.tool_registry = self._di_container.tool_registry()
         self.context_factory = self._di_container.context_factory()
         self.tool_search_engine = self._di_container.tool_search_engine()
+        self.agent_factory = self._di_container.agent_factory()
         
         # Properly wire search_engine into instantiator via DI (no manual assignment)
         # This completes the dependency cycle using proper DI patterns
