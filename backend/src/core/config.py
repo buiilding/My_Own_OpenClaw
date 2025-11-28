@@ -160,7 +160,7 @@ class AppConfig(BaseModel):
 
     # Agent Execution Settings
     max_history_length: int = 10  # Maximum conversation history messages
-    max_agent_iterations: int = 25  # Maximum tool execution iterations per query
+    max_agent_iterations: int = 1000  # Maximum tool execution iterations per query (high limit to effectively remove constraint)
 
     # Tool Execution Settings
     shell_timeout: float = 30.0  # Shell command timeout in seconds

@@ -33,6 +33,7 @@ class ContextFactory:
         tool_registry: Optional["ToolRegistry"] = None,
         tool_loader: Optional[Any] = None,
         session_ref: Optional["AgentSession"] = None,
+        agent_factory: Optional[Any] = None,
     ):
         """
         Initialize the context factory.
@@ -42,11 +43,13 @@ class ContextFactory:
             tool_registry: Optional tool registry instance (can be set later)
             tool_loader: Optional tool loader instance (for service access)
             session_ref: Optional session reference (for session-scoped data)
+            agent_factory: Optional agent factory instance
         """
         self.config = config
         self.tool_registry = tool_registry
         self.tool_loader = tool_loader
         self.session_ref = session_ref
+        self.agent_factory = agent_factory
     
     def set_tool_registry(self, tool_registry: "ToolRegistry") -> None:
         """
@@ -56,6 +59,10 @@ class ContextFactory:
             tool_registry: Tool registry instance
         """
         self.tool_registry = tool_registry
+
+    def set_agent_factory(self, agent_factory: Any) -> None:
+        """Set the agent factory."""
+        self.agent_factory = agent_factory
     
     def create_tool_context(
         self,
@@ -108,6 +115,10 @@ class ContextFactory:
         if hasattr(self.tool_registry, "tool_search_engine"):
             services["tool_search_engine"] = self.tool_registry.tool_search_engine
         
+        # Add agent factory if available
+        if self.agent_factory:
+            services["agent_factory"] = self.agent_factory
+
         # Merge additional services
         if additional_services:
             services.update(additional_services)

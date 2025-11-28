@@ -21,14 +21,16 @@ class PromptConstructor:
     Constructs prompts for LLM interactions, including system prompts, tool schemas, and images.
     """
 
-    def __init__(self, tool_registry: ToolRegistry):
+    def __init__(self, tool_registry: ToolRegistry, system_prompt: str = SYSTEM_PROMPT):
         """
         Initialize the prompt constructor.
 
         Args:
             tool_registry: Registry of available tools
+            system_prompt: Optional custom system prompt (defaults to global SYSTEM_PROMPT)
         """
         self.tool_registry = tool_registry
+        self.system_prompt = system_prompt
 
     def build_prompt(
         self,
@@ -48,7 +50,7 @@ class PromptConstructor:
         Returns:
             List of LLMMessage dicts ready to send to LLM
         """
-        system_content = SYSTEM_PROMPT
+        system_content = self.system_prompt
 
         if include_tools:
             # Add tool schemas to system prompt (combined into single system message)
