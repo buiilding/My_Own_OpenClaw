@@ -8,7 +8,7 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.tools.computer.computer_interface import ComputerInterface
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class KeyboardTool(Tool[KeyboardControlArgs]):
         """Initialize the keyboard tool."""
         self.computer = ComputerInterface()
 
-    async def run(self, args: KeyboardControlArgs, ctx: Context) -> dict:
+    async def run(self, args: KeyboardControlArgs, ctx: ToolContext) -> dict:
         """
         Execute keyboard control actions.
         

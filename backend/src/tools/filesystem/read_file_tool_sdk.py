@@ -9,7 +9,7 @@ from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.core.utils.file_utils import (
     get_specific_mime_type,
     is_text_file,
@@ -29,7 +29,7 @@ class ReadFileToolSDK(Tool[ReadFileArgs]):
     description = "Reads and returns the content of a specified file. Handles text, images, and PDFs. Supports pagination for large text files."
     args_model = ReadFileArgs
 
-    async def run(self, args: ReadFileArgs, ctx: Context) -> dict:
+    async def run(self, args: ReadFileArgs, ctx: ToolContext) -> dict:
         # Resolve path
         absolute_path = args.file_path
         if not os.path.isabs(absolute_path):

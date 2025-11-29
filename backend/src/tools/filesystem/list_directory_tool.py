@@ -11,7 +11,7 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.tools.filesystem.data_structures import FileEntry
 from backend.src.tools.system.shell_tool import ShellTool
 from backend.src.core.utils.file_utils import make_relative_path
@@ -34,7 +34,7 @@ class ListDirectoryTool(Tool[ListDirectoryArgs]):
     description = "Lists the names of files and subdirectories directly within a specified directory path. Can optionally ignore entries matching provided glob patterns."
     args_model = ListDirectoryArgs
 
-    async def run(self, args: ListDirectoryArgs, ctx: Context) -> dict:
+    async def run(self, args: ListDirectoryArgs, ctx: ToolContext) -> dict:
         """Execute the list_directory tool."""
         try:
             logger.info(

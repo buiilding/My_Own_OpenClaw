@@ -8,7 +8,7 @@ import os
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.tools.system.shell_tool import ShellTool
 from backend.src.core.utils.file_utils import (
     DEFAULT_ENCODING,
@@ -34,7 +34,7 @@ class WriteFileTool(Tool[WriteFileArgs]):
     description = "Writes content to a specified file in the local filesystem. The user has the ability to modify `content`. If modified, this will be stated in the response."
     args_model = WriteFileArgs
 
-    async def run(self, args: WriteFileArgs, ctx: Context) -> dict:
+    async def run(self, args: WriteFileArgs, ctx: ToolContext) -> dict:
         """Execute the write_file tool."""
         try:
             if not args.file_path:

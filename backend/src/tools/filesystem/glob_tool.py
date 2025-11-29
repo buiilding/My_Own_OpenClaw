@@ -11,7 +11,7 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.tools.filesystem.data_structures import GlobEntry
 from backend.src.tools.system.shell_tool import ShellTool
 from backend.src.core.utils.file_utils import make_relative_path
@@ -35,7 +35,7 @@ class GlobTool(Tool[GlobArgs]):
     description = "Efficiently finds files matching specific glob patterns (e.g., `src/**/*.ts`, `**/*.md`), returning absolute paths sorted by modification time (newest first). Ideal for quickly locating files based on their name or path structure, especially in large codebases."
     args_model = GlobArgs
 
-    async def run(self, args: GlobArgs, ctx: Context) -> dict:
+    async def run(self, args: GlobArgs, ctx: ToolContext) -> dict:
         """Execute the glob tool."""
         try:
             respect_git_ignore = (

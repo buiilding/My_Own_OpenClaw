@@ -8,7 +8,7 @@ from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class SearchMarketplaceTool(Tool[SearchMarketplaceArgs]):
         """
         self.tool_search_engine = tool_search_engine
 
-    async def run(self, args: SearchMarketplaceArgs, ctx: Context) -> dict:
+    async def run(self, args: SearchMarketplaceArgs, ctx: ToolContext) -> dict:
         """
         Execute the search marketplace tool.
         

@@ -9,7 +9,7 @@ from typing import Tuple
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.tools.system.shell_tool import ShellTool
 from backend.src.core.utils.file_utils import (
     DEFAULT_ENCODING,
@@ -58,7 +58,7 @@ CRITICAL REQUIREMENTS FOR USING THIS TOOL:
 """
     args_model = ReplaceArgs
 
-    async def run(self, args: ReplaceArgs, ctx: Context) -> dict:
+    async def run(self, args: ReplaceArgs, ctx: ToolContext) -> dict:
         """Execute the replace tool."""
         try:
             # Validate required parameters

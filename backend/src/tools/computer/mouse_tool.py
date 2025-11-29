@@ -8,7 +8,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.tools.computer.computer_interface import ComputerInterface, MouseButton
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class MouseTool(Tool[MouseToolArgs]):
     def __init__(self):
         self.computer = ComputerInterface()
 
-    async def run(self, args: MouseToolArgs, ctx: Context) -> dict:
+    async def run(self, args: MouseToolArgs, ctx: ToolContext) -> dict:
         # Ensure computer interface is initialized
         if not self.computer._initialized:
             success = await self.computer.initialize()

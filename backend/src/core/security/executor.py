@@ -6,12 +6,11 @@ sandboxing, isolation, and security boundaries. Currently implements a basic
 executor, but can be extended for process/container isolation.
 """
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar
-import asyncio
+from typing import Any
 import logging
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +21,7 @@ class ToolExecutor(ABC):
     """
 
     @abstractmethod
-    async def execute(self, tool: Tool, args: Any, context: Context) -> Any:
+    async def execute(self, tool: Tool, args: Any, context: ToolContext) -> Any:
         """
         Execute the tool with the given arguments and context.
         """
@@ -33,7 +32,7 @@ class DirectToolExecutor(ToolExecutor):
     Executes tools directly in the current process.
     No isolation, but lowest overhead.
     """
-    async def execute(self, tool: Tool, args: Any, context: Context) -> Any:
+    async def execute(self, tool: Tool, args: Any, context: ToolContext) -> Any:
         return await tool.run(args, context)
 
 class ProcessSandboxedExecutor(ToolExecutor):
@@ -44,7 +43,7 @@ class ProcessSandboxedExecutor(ToolExecutor):
     - Tool must be importable.
     - Side effects on global state (if any) won't persist.
     """
-    async def execute(self, tool: Tool, args: Any, context: Context) -> Any:
+    async def execute(self, tool: Tool, args: Any, context: ToolContext) -> Any:
         # TODO: Implement multiprocessing.Process wrapper
         # For now, falls back to direct execution but logs a warning/placeholder
         logger.warning(f"ProcessSandboxedExecutor not fully implemented. Executing {tool.name} directly.")

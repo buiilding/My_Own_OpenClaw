@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.tools.system.shell_tool import ShellTool
 from backend.src.core.utils.file_utils import (
     FileType,
@@ -39,7 +39,7 @@ class ReadManyFilesTool(Tool[ReadManyFilesArgs]):
     description = "Reads content from multiple files specified by paths or glob patterns within a configured target directory. For text files, it concatenates their content into a single string. It is primarily designed for text-based files. However, it can also process image (e.g., .png, .jpg) and PDF (.pdf) files if their file names or extensions are explicitly included in the 'paths' argument."
     args_model = ReadManyFilesArgs
 
-    async def run(self, args: ReadManyFilesArgs, ctx: Context) -> dict:
+    async def run(self, args: ReadManyFilesArgs, ctx: ToolContext) -> dict:
         """Execute the read_many_files tool."""
         try:
             include = args.include or []

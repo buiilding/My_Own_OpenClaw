@@ -15,7 +15,7 @@ from typing import Optional, Tuple
 from PIL import Image
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.tools.computer.computer_interface import ComputerInterface
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -503,7 +503,7 @@ class PredictClickTool(Tool[PredictClickArgs]):
         self._vision_model = None
         self.computer = ComputerInterface()
 
-    async def run(self, args: PredictClickArgs, ctx: Context) -> dict:
+    async def run(self, args: PredictClickArgs, ctx: ToolContext) -> dict:
         """
         Predict click coordinates for a described UI element by taking a screenshot automatically.
         
