@@ -9,7 +9,7 @@ from typing import List, Optional, Type, Any
 from pydantic import BaseModel
 
 from backend.src.sdk.tool import Tool, TArgs
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class Agent(Tool[TArgs]):
     system_prompt: str
     allowed_tools: List[str]
 
-    async def run(self, args: TArgs, ctx: Context) -> dict:
+    async def run(self, args: TArgs, ctx: ToolContext) -> dict:
         """
         Standard Tool implementation that orchestrates the agent loop.
         """

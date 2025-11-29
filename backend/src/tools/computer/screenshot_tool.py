@@ -9,7 +9,7 @@ from typing import Dict, Any
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.tools.computer.computer_interface import ComputerInterface
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class ScreenshotTool(Tool[ScreenshotToolArgs]):
     def __init__(self):
         self.computer = ComputerInterface()
 
-    async def run(self, args: ScreenshotToolArgs, ctx: Context) -> Dict[str, Any]:
+    async def run(self, args: ScreenshotToolArgs, ctx: ToolContext) -> Dict[str, Any]:
         """
         Capture a screenshot and return the image data directly to the LLM.
 

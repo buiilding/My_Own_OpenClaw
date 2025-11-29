@@ -6,12 +6,12 @@ composable execution logic (security checks, auditing, caching, etc.).
 """
 import logging
 import time
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Any, Dict, Optional
 from pydantic import BaseModel
 
 from backend.src.sdk.tool import Tool as SDKTool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.llm.parser import ParsedToolCall
 
@@ -26,7 +26,7 @@ class ExecutionContext:
         tool_call: ParsedToolCall,
         tool: SDKTool,
         args: BaseModel,
-        context: Context,
+        context: ToolContext,
         user_id: str,
         session_id: str,
     ):
@@ -267,7 +267,6 @@ class SecurityExecutionStrategy(ExecutionStrategy):
     
     async def execute(self, exec_context: ExecutionContext) -> ExecutionResult:
         """Execute security checks."""
-        from backend.src.core.security import Permission, get_security_policy
 
         tool_name = exec_context.tool_call.tool_name
         execution_time = time.time() - exec_context.start_time

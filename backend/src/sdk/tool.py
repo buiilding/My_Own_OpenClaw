@@ -8,7 +8,7 @@ from typing import Any, Generic, Type, TypeVar, ClassVar
 from abc import ABC, abstractmethod
 from pydantic import BaseModel
 
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 
 # Type variable for the arguments model
 TArgs = TypeVar("TArgs", bound=BaseModel)
@@ -26,7 +26,7 @@ class Tool(ABC, Generic[TArgs]):
             description = "Does something"
             args_model = MyToolArgs
 
-            async def run(self, args: MyToolArgs, ctx: Context) -> Any:
+            async def run(self, args: MyToolArgs, ctx: ToolContext) -> Any:
                 return "result"
     """
     
@@ -36,7 +36,7 @@ class Tool(ABC, Generic[TArgs]):
     args_model: Type[TArgs]
 
     @abstractmethod
-    async def run(self, args: TArgs, ctx: Context) -> Any:
+    async def run(self, args: TArgs, ctx: ToolContext) -> Any:
         """
         The main execution logic of the tool.
         

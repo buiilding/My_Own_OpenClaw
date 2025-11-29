@@ -8,7 +8,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.tools.computer.computer_interface import ComputerInterface
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class ClickOCRTool(Tool[ClickOCRElementArgs]):
         """Initialize the click OCR tool."""
         self.computer = ComputerInterface()
 
-    async def run(self, args: ClickOCRElementArgs, ctx: Context) -> dict:
+    async def run(self, args: ClickOCRElementArgs, ctx: ToolContext) -> dict:
         """
         Click on an OCR element by ID.
         

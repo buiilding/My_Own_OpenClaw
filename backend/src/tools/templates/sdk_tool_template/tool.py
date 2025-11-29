@@ -7,7 +7,7 @@ to create your own tool.
 See tool_development.md for detailed documentation.
 """
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Dict, Any
 import logging
@@ -57,7 +57,7 @@ class ExampleTool(Tool[ExampleToolArgs]):
     )
     args_model = ExampleToolArgs
     
-    async def run(self, args: ExampleToolArgs, ctx: Context) -> Dict[str, Any]:
+    async def run(self, args: ExampleToolArgs, ctx: ToolContext) -> Dict[str, Any]:
         """
         Execute the tool.
         

@@ -13,7 +13,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 from backend.src.tools.filesystem.data_structures import GrepMatch
 from backend.src.tools.system.shell_tool import ShellTool
 from backend.src.core.utils.file_utils import (
@@ -40,7 +40,7 @@ class SearchFileContentTool(Tool[SearchFileContentArgs]):
     description = "Searches for a regular expression pattern within the content of files in a specified directory. Can filter files by a glob pattern. Returns the lines containing matches, along with their file paths and line numbers."
     args_model = SearchFileContentArgs
 
-    async def run(self, args: SearchFileContentArgs, ctx: Context) -> dict:
+    async def run(self, args: SearchFileContentArgs, ctx: ToolContext) -> dict:
         """Execute the search_file_content tool."""
         try:
             if not args.pattern:
@@ -198,7 +198,7 @@ class SearchFileContentTool(Tool[SearchFileContentArgs]):
             return None
 
     async def _manual_file_search(
-        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str, ctx: Context
+        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str, ctx: ToolContext
     ) -> List[GrepMatch]:
         """Perform manual file search as fallback."""
         matches = []

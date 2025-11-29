@@ -9,7 +9,7 @@ import time
 import logging
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
-from backend.src.sdk.context import Context, UserContext, SessionContext
+from backend.src.sdk.context import ToolContext, UserContext, SessionContext, ExecutionRuntime
 from backend.src.core.config import AppConfig
 
 if TYPE_CHECKING:
@@ -71,7 +71,7 @@ class ContextFactory:
         workspace_root: Optional[str] = None,
         session_ref: Optional["AgentSession"] = None,
         additional_services: Optional[Dict[str, Any]] = None,
-    ) -> Context:
+    ) -> ToolContext:
         """
         Create a tool execution context.
         
@@ -86,7 +86,7 @@ class ContextFactory:
             additional_services: Optional additional services to inject
             
         Returns:
-            Configured Context instance
+            Configured ToolContext instance
         """
         # Use provided session_ref or fall back to factory default
         effective_session_ref = session_ref or self.session_ref
@@ -124,14 +124,18 @@ class ContextFactory:
             services.update(additional_services)
         
         # Create context
-        context = Context(
+        workspace = workspace_root or os.getcwd()
+        
+        context = ToolContext(
             user=UserContext(user_id=user_id),
             session=SessionContext(
                 session_id=session_id,
                 created_at=time.time()
             ),
-            workspace_root=workspace_root or os.getcwd(),
-            services=services
+            runtime=ExecutionRuntime(
+                workspace_root=workspace,
+                services=services
+            )
         )
         
         logger.debug(

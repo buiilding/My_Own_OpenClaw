@@ -17,7 +17,7 @@ from typing import List, Optional, Tuple
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +93,7 @@ class ShellTool(Tool[RunShellCommandArgs]):
         """Initialize the shell tool."""
         self.allowlist: set[str] = set()
 
-    async def run(self, args: RunShellCommandArgs, ctx: Context) -> dict:
+    async def run(self, args: RunShellCommandArgs, ctx: ToolContext) -> dict:
         """Execute the shell tool."""
         logger.debug(f"ShellTool.run called with command: '{args.command}', directory: {args.directory}")
         try:

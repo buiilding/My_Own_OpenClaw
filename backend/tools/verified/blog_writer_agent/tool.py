@@ -1,10 +1,9 @@
 import logging
 from pydantic import BaseModel, Field
-from typing import List, Optional
 
 from backend.src.sdk.agents.base import Agent
 from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import Context
+from backend.src.sdk.context import ToolContext
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +48,7 @@ class BlogOrchestrator(Tool[TopicArgs]):
     description = "Creates a full blog post by researching and then writing it using specialized sub-agents."
     args_model = TopicArgs
 
-    async def run(self, args: TopicArgs, ctx: Context) -> dict:
+    async def run(self, args: TopicArgs, ctx: ToolContext) -> dict:
         """
         Executes the two-agent workflow: Researcher -> Writer.
         """
