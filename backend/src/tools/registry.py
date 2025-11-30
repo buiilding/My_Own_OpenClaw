@@ -22,11 +22,25 @@ logger = logging.getLogger(__name__)
 
 class ToolRegistry:
     """
-    Registry for managing available SDK tools.
+    Central registry for managing SDK tools in the Personal Assistant.
 
-    Provides tool registration, schema generation, and tool execution
-    capabilities for the agent system. Supports both built-in tools and
-    dynamically loaded marketplace tools.
+    The ToolRegistry is responsible for the complete tool lifecycle:
+    - Tool discovery and registration from filesystem and marketplace
+    - Schema generation for LLM integration
+    - Secure tool execution with proper context
+    - Tool categorization and organization
+    - Runtime tool loading and unloading
+
+    Key Features:
+    - Dynamic tool loading from multiple sources
+    - JSON schema generation for LLM tool calling
+    - Security sandboxing for tool execution
+    - Tool categorization by domain/functionality
+    - Marketplace integration for community tools
+    - Comprehensive error handling and logging
+
+    The registry ensures tools are properly validated, securely executed,
+    and efficiently accessed by the agent system.
     """
 
     def __init__(

@@ -23,14 +23,30 @@ logger = logging.getLogger(__name__)
 
 
 class QueryMessageHandler(MessageHandler):
-    """Handler for query messages."""
+    """
+    Handler for user query messages.
+
+    Processes incoming query messages from WebSocket clients, validates them,
+    and orchestrates the complete query processing pipeline. This includes
+    agent session management, LLM interaction, tool execution, and streaming
+    responses back to the client.
+
+    The handler supports:
+    - Query validation and sanitization
+    - Agent session creation/retrieval
+    - Streaming response handling
+    - Text-to-speech integration
+    - Error handling and recovery
+    - Response formatting for WebSocket transport
+    """
 
     def __init__(self, session_manager: SessionManager):
         """
         Initialize the query handler.
 
         Args:
-            session_manager: Session manager instance
+            session_manager: Session manager for handling agent sessions
+                and WebSocket connections
         """
         self.session_manager = session_manager
         self.tts_manager = TTSManager()
