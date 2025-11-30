@@ -15,28 +15,10 @@ from backend.src.core.security.executor import get_tool_executor
 from backend.src.core.services.context_factory import ContextFactory
 from backend.src.tools.categorization import ToolDomain, get_categorizer
 from backend.src.tools.lifecycle import ToolLifecycleManager
-
-# Marketplace Discovery
-from backend.src.tools.marketplace.discovery.security import SecurityScanResult
-from backend.src.tools.marketplace.discovery.validator import ToolManifest
+from backend.src.tools.marketplace_manager import MarketplaceManager, ToolMetadata
+from backend.src.tools.schema_registry import SchemaRegistry
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class ToolMetadata:
-    """Metadata for a marketplace tool."""
-    name: str
-    version: str
-    description: str
-    author: str
-    category: str
-    permissions: List[str]
-    is_destructive: bool
-    tool_dir: Path
-    manifest_path: Path
-    security_status: SecurityScanResult
-    manifest: ToolManifest
 
 
 class ToolRegistry:
@@ -65,14 +47,14 @@ class ToolRegistry:
         self.config = config
         self.tools: Dict[str, SDKTool] = {}
         
-        # Marketplace
-        self.marketplace_tools: Dict[str, ToolMetadata] = {}
-        self.marketplace_instances: Dict[str, SDKTool] = {}
-        
         self.tool_loader = tool_loader
         self.executor = get_tool_executor()
         self.categorizer = get_categorizer()
         self.lifecycle_manager = ToolLifecycleManager(tool_registry=self)
+        
+        # New Managers
+        self.marketplace_manager = MarketplaceManager(tool_loader)
+        self.schema_registry = SchemaRegistry()
         
         # Initialize context factory (create if not provided)
         if context_factory is None:
@@ -86,6 +68,16 @@ class ToolRegistry:
         
         # Tool loading is deferred to async initialization
         # Call load_core_tools_async() from Container.initialize()
+
+    @property
+    def marketplace_tools(self) -> Dict[str, ToolMetadata]:
+        """Backward compatibility for marketplace_tools attribute."""
+        return self.marketplace_manager.marketplace_tools
+
+    @property
+    def marketplace_instances(self) -> Dict[str, SDKTool]:
+        """Backward compatibility for marketplace_instances attribute."""
+        return self.marketplace_manager.marketplace_instances
 
     def register_tool(self, tool: SDKTool) -> None:
         """
@@ -123,36 +115,13 @@ class ToolRegistry:
         
         This method is async and should be called from an async context.
         """
-        if not self.tool_loader:
-            logger.error("ToolLoader not initialized")
-            return {}
-
-        self.marketplace_tools = await self.tool_loader.scan_marketplace_tools(marketplace_dir)
-        return self.marketplace_tools
+        return await self.marketplace_manager.load_marketplace_tools(marketplace_dir)
 
     async def get_marketplace_tool_instance(self, tool_name: str) -> Optional[SDKTool]:
         """
         Get a marketplace tool instance by name (lazy loading).
         """
-        if tool_name not in self.marketplace_tools:
-            return None
-
-        # Return cached instance if available
-        if tool_name in self.marketplace_instances:
-            return self.marketplace_instances[tool_name]
-
-        if not self.tool_loader:
-            return None
-
-        metadata = self.marketplace_tools[tool_name]
-        
-        tool_instance = await self.tool_loader.load_marketplace_tool(metadata)
-        
-        if tool_instance:
-            self.marketplace_instances[tool_name] = tool_instance
-            return tool_instance
-            
-        return None
+        return await self.marketplace_manager.get_marketplace_tool_instance(tool_name)
 
     def get_tool(self, name: str) -> Optional[SDKTool]:
         """
@@ -172,10 +141,7 @@ class ToolRegistry:
             return tool
 
         # Check marketplace if available
-        if name in self.marketplace_instances:
-            return self.marketplace_instances[name]
-            
-        return None
+        return self.marketplace_manager.marketplace_instances.get(name)
 
     def get_all_tools(self) -> List[SDKTool]:
         """
@@ -185,7 +151,7 @@ class ToolRegistry:
             List of all registered SDK tools
         """
         all_tools = list(self.tools.values())
-        all_tools.extend(self.marketplace_instances.values())
+        all_tools.extend(self.marketplace_manager.get_all_instances())
         return all_tools
 
     def get_tool_names(self) -> List[str]:
@@ -196,7 +162,7 @@ class ToolRegistry:
             List of tool names
         """
         names = list(self.tools.keys())
-        names.extend(self.marketplace_tools.keys())
+        names.extend(self.marketplace_manager.get_available_tool_names())
         return sorted(list(set(names)))
 
     def get_function_declarations(self) -> List[Dict[str, Any]]:
@@ -210,46 +176,7 @@ class ToolRegistry:
         Returns:
             List of function declaration dictionaries
         """
-        from backend.src.core.cache import cache_manager
-        
-        declarations = []
-        # Add built-in tool schemas
-        for tool in self.tools.values():
-            try:
-                # Try cache first
-                cache_key = cache_manager.get_tool_schema_key(tool.name)
-                schema = cache_manager.tool_schemas.get(cache_key)
-                
-                if schema is None:
-                    # Cache miss - generate schema
-                    schema = tool.get_json_schema()
-                    cache_manager.tool_schemas.set(cache_key, schema)
-                
-                declarations.append(schema)
-            except Exception as e:
-                logger.error(f"Failed to get schema for tool {tool.name}: {e}")
-                continue
-
-        # Add marketplace tool schemas if available
-        for tool_name, tool in self.marketplace_instances.items():
-            try:
-                # Try cache first
-                cache_key = cache_manager.get_tool_schema_key(tool_name)
-                schema = cache_manager.tool_schemas.get(cache_key)
-                
-                if schema is None:
-                    # Cache miss - generate schema
-                    schema = tool.get_json_schema()
-                    cache_manager.tool_schemas.set(cache_key, schema)
-                
-                declarations.append(schema)
-            except Exception as e:
-                logger.error(
-                    f"Failed to get schema for marketplace tool {tool_name}: {e}"
-                )
-                continue
-
-        return declarations
+        return self.schema_registry.get_declarations(self.get_all_tools())
 
     def get_function_declarations_filtered(
         self, tool_names: List[str]
@@ -264,27 +191,12 @@ class ToolRegistry:
         Returns:
             List of function declarations for the specified tools
         """
-        from backend.src.core.cache import cache_manager
-        
-        declarations = []
+        tools = []
         for name in tool_names:
             tool = self.get_tool(name)
             if tool:
-                try:
-                    # Try cache first
-                    cache_key = cache_manager.get_tool_schema_key(name)
-                    schema = cache_manager.tool_schemas.get(cache_key)
-                    
-                    if schema is None:
-                        # Cache miss - generate schema
-                        schema = tool.get_json_schema()
-                        cache_manager.tool_schemas.set(cache_key, schema)
-                    
-                    declarations.append(schema)
-                except Exception as e:
-                    logger.error(f"Failed to get schema for tool {name}: {e}")
-                    continue
-        return declarations
+                tools.append(tool)
+        return self.schema_registry.get_declarations(tools)
 
     async def execute_tool(
         self, 
@@ -400,25 +312,16 @@ class ToolRegistry:
         Returns:
             Tool capabilities dictionary, or None if tool not found
         """
-        from backend.src.core.cache import cache_manager
-        
         tool = self.get_tool(tool_name)
         if tool:
-            # Try cache first
-            cache_key = cache_manager.get_tool_schema_key(tool_name)
-            schema = cache_manager.tool_schemas.get(cache_key)
-            
-            if schema is None:
-                # Cache miss - generate schema
-                schema = tool.get_json_schema()
-                cache_manager.tool_schemas.set(cache_key, schema)
-            
-            return {
-                "name": tool.name,
-                "description": tool.description,
-                "parameters": schema.get("parameters", {}),
-                "requires_context": True,
-            }
+            schema = self.schema_registry.get_schema(tool)
+            if schema:
+                return {
+                    "name": tool.name,
+                    "description": tool.description,
+                    "parameters": schema.get("parameters", {}),
+                    "requires_context": True,
+                }
         return None
 
     def get_registry_stats(self) -> Dict[str, Any]:
