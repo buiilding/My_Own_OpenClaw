@@ -12,7 +12,7 @@ import logging
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 try:
     import aiosqlite
@@ -36,11 +36,7 @@ class LocalMemoryStore:
     All database operations are async using aiosqlite.
     """
 
-    def __init__(
-        self, 
-        embedder: EmbeddingProvider,
-        db_path: Optional[str] = None
-    ):
+    def __init__(self, embedder: EmbeddingProvider, db_path: Optional[str] = None):
         """
         Initialize the local memory store.
 
@@ -69,7 +65,7 @@ class LocalMemoryStore:
             raise ImportError(
                 "FAISS is not installed. Install with: pip install faiss-cpu"
             )
-        
+
         if aiosqlite is None:
             raise ImportError(
                 "aiosqlite is not installed. Install with: pip install aiosqlite"
@@ -388,7 +384,9 @@ class LocalMemoryStore:
 
         return True
 
-    async def update(self, memory_id: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+    async def update(
+        self, memory_id: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> bool:
         """
         Update memory metadata.
 
@@ -403,7 +401,9 @@ class LocalMemoryStore:
             cursor = await conn.cursor()
 
             # Get existing metadata
-            await cursor.execute("SELECT metadata FROM memories WHERE id = ?", (memory_id,))
+            await cursor.execute(
+                "SELECT metadata FROM memories WHERE id = ?", (memory_id,)
+            )
             row = await cursor.fetchone()
 
             if not row:
@@ -545,7 +545,7 @@ class LocalMemoryStore:
                 )
                 by_type_rows = await cursor.fetchall()
                 by_type = {row[0]: row[1] for row in by_type_rows}
-                
+
                 await cursor.execute(
                     """
                     SELECT COUNT(*) FROM memories WHERE user_id = ?
@@ -564,7 +564,7 @@ class LocalMemoryStore:
                 )
                 by_type_rows = await cursor.fetchall()
                 by_type = {row[0]: row[1] for row in by_type_rows}
-                
+
                 await cursor.execute("SELECT COUNT(*) FROM memories")
                 total_row = await cursor.fetchone()
                 total_count = total_row[0] if total_row else 0

@@ -10,32 +10,36 @@ import re
 import subprocess
 from glob import glob as glob_module
 from typing import List, Optional
-from pydantic import BaseModel, Field, ConfigDict
 
-from backend.src.sdk.tool import Tool
+from pydantic import BaseModel, ConfigDict, Field
+
+from backend.src.core.utils.file_reader import read_text_file_auto_encoding
+from backend.src.core.utils.file_type import is_text_file
+from backend.src.core.utils.path_utils import make_relative_path
 from backend.src.sdk.context import ToolContext
+from backend.src.sdk.tool import Tool
 from backend.src.tools.filesystem.data_structures import GrepMatch
 from backend.src.tools.system.shell_tool import ShellTool
-from backend.src.core.utils.file_utils import (
-    is_text_file,
-    make_relative_path,
-    read_text_file_auto_encoding,
-)
 
 logger = logging.getLogger(__name__)
 
 
 class SearchFileContentArgs(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra="forbid")
 
     pattern: str = Field(..., description="Regular expression pattern to search for")
-    path: Optional[str] = Field(None, description="Directory path to search in (defaults to current working directory)")
-    include: Optional[str] = Field(None, description="Glob pattern to filter files (e.g., '*.py')")
+    path: Optional[str] = Field(
+        None,
+        description="Directory path to search in (defaults to current working directory)",
+    )
+    include: Optional[str] = Field(
+        None, description="Glob pattern to filter files (e.g., '*.py')"
+    )
 
 
 class SearchFileContentTool(Tool[SearchFileContentArgs]):
     """Tool for searching regex patterns within file contents."""
-    
+
     name = "search_file_content"
     description = "Searches for a regular expression pattern within the content of files in a specified directory. Can filter files by a glob pattern. Returns the lines containing matches, along with their file paths and line numbers."
     args_model = SearchFileContentArgs
@@ -46,7 +50,7 @@ class SearchFileContentTool(Tool[SearchFileContentArgs]):
             if not args.pattern:
                 return {
                     "error": "pattern parameter is required",
-                    "llm_content": "Error: pattern parameter is required"
+                    "llm_content": "Error: pattern parameter is required",
                 }
 
             # Validate regex pattern
@@ -55,7 +59,7 @@ class SearchFileContentTool(Tool[SearchFileContentArgs]):
             except re.error as e:
                 return {
                     "error": f"Invalid regex pattern: {e}",
-                    "llm_content": f"Error: Invalid regex pattern: {e}"
+                    "llm_content": f"Error: Invalid regex pattern: {e}",
                 }
 
             # Get workspace context for relative path resolution
@@ -83,14 +87,16 @@ class SearchFileContentTool(Tool[SearchFileContentArgs]):
             )
 
             if not matches:
-                search_location = f'in path "{args.path}"' if args.path else "in workspace"
+                search_location = (
+                    f'in path "{args.path}"' if args.path else "in workspace"
+                )
                 filter_desc = f' (filter: "{args.include}")' if args.include else ""
                 content = f'No matches found for pattern "{args.pattern}" {search_location}{filter_desc}.'
 
                 return {
                     "matches": [],
                     "llm_content": content,
-                    "return_display": "No matches found"
+                    "return_display": "No matches found",
                 }
 
             # Group matches by file
@@ -122,20 +128,32 @@ class SearchFileContentTool(Tool[SearchFileContentArgs]):
                 content += "---\n"
 
             return {
-                "matches": [{"file_path": m.file_path, "line_number": m.line_number, "line": m.line} for m in matches],
+                "matches": [
+                    {
+                        "file_path": m.file_path,
+                        "line_number": m.line_number,
+                        "line": m.line,
+                    }
+                    for m in matches
+                ],
                 "llm_content": content.rstrip(),
-                "return_display": f"Found {len(matches)} match(es)"
+                "return_display": f"Found {len(matches)} match(es)",
             }
 
         except Exception as e:
             logger.error(f"Unexpected error in search_file_content: {e}", exc_info=True)
             return {
                 "error": f"Unexpected error: {str(e)}",
-                "llm_content": f"Error: Unexpected error: {str(e)}"
+                "llm_content": f"Error: Unexpected error: {str(e)}",
             }
 
     async def _perform_search(
-        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str, ctx: ToolContext
+        self,
+        search_dir: str,
+        pattern: str,
+        include: Optional[str],
+        target_dir: str,
+        ctx: ToolContext,
     ) -> List[GrepMatch]:
         """Perform the actual search operation."""
         matches = []
@@ -146,7 +164,9 @@ class SearchFileContentTool(Tool[SearchFileContentArgs]):
             return matches
 
         # Fall back to manual file search
-        return await self._manual_file_search(search_dir, pattern, include, target_dir, ctx)
+        return await self._manual_file_search(
+            search_dir, pattern, include, target_dir, ctx
+        )
 
     async def _try_git_grep(
         self, search_dir: str, pattern: str, include: Optional[str], target_dir: str
@@ -198,7 +218,12 @@ class SearchFileContentTool(Tool[SearchFileContentArgs]):
             return None
 
     async def _manual_file_search(
-        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str, ctx: ToolContext
+        self,
+        search_dir: str,
+        pattern: str,
+        include: Optional[str],
+        target_dir: str,
+        ctx: ToolContext,
     ) -> List[GrepMatch]:
         """Perform manual file search as fallback."""
         matches = []

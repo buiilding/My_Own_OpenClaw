@@ -5,8 +5,10 @@ This module defines the abstract interface for embedding generation, allowing
 different implementations (SentenceTransformer, OpenAI, etc.) to be used interchangeably.
 """
 from abc import ABC, abstractmethod
-from typing import List, Union
+from typing import List
+
 import numpy as np
+
 
 class EmbeddingProvider(ABC):
     """
@@ -18,10 +20,10 @@ class EmbeddingProvider(ABC):
     def embed_text(self, text: str) -> np.ndarray:
         """
         Embed a single text string into a vector.
-        
+
         Args:
             text: The text to embed.
-            
+
         Returns:
             A numpy array representing the embedding vector.
         """
@@ -31,10 +33,10 @@ class EmbeddingProvider(ABC):
     def embed_batch(self, texts: List[str]) -> List[np.ndarray]:
         """
         Embed a batch of texts.
-        
+
         Args:
             texts: List of strings to embed.
-            
+
         Returns:
             List of numpy arrays.
         """
@@ -45,4 +47,3 @@ class EmbeddingProvider(ABC):
     def dimension(self) -> int:
         """Returns the dimension of the embeddings."""
         pass
-

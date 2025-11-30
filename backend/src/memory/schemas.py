@@ -5,7 +5,6 @@ This module defines Pydantic models for episodic and semantic memory structures
 used throughout the memory system for storage and retrieval operations.
 """
 from datetime import datetime
-from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 

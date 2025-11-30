@@ -67,7 +67,10 @@ ALLOWED_IMPORTS: Set[str] = {
     "string",
     "backend.src.sdk.tool",
     "backend.src.core.config",
-    "backend.src.core.utils.file_utils",
+    "backend.src.core.utils.file_type",
+    "backend.src.core.utils.mime_types",
+    "backend.src.core.utils.file_reader",
+    "backend.src.core.utils.path_utils",
     "backend.src.core.utils.schema_generator",
 }
 
