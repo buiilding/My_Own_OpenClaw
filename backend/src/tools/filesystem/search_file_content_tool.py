@@ -135,7 +135,7 @@ class SearchFileContentTool(Tool[SearchFileContentArgs]):
             }
 
     async def _perform_search(
-        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str, ctx: Context
+        self, search_dir: str, pattern: str, include: Optional[str], target_dir: str, ctx: ToolContext
     ) -> List[GrepMatch]:
         """Perform the actual search operation."""
         matches = []

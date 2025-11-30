@@ -47,6 +47,7 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
   const [modelResetWarning, setModelResetWarning] = useState('');
   // Default to undefined so we can distinguish between "not loaded" and "false"
   const [voiceModeEnabled, setVoiceModeEnabled] = useState(false);
+  const [speechModeEnabled, setSpeechModeEnabled] = useState(false);
 
   useEffect(() => {
     if (config) {
@@ -56,6 +57,9 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
       // Only update local state if config has the value
       if (config.voice_mode_enabled !== undefined) {
         setVoiceModeEnabled(config.voice_mode_enabled);
+      }
+      if (config.speech_mode_enabled !== undefined) {
+        setSpeechModeEnabled(config.speech_mode_enabled);
       }
     }
   }, [config]);
@@ -72,6 +76,7 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
       model_provider: selectedProvider,
       // Explicitly include voice_mode_enabled to persist it
       voice_mode_enabled: voiceModeEnabled,
+      speech_mode_enabled: speechModeEnabled,
     };
 
     // To prevent sending a save request for every single character change in the
@@ -81,12 +86,13 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
       updatedConfig.model_mode !== config.model_mode ||
       updatedConfig.selected_model_id !== config.selected_model_id ||
       updatedConfig.model_provider !== config.model_provider ||
-      updatedConfig.voice_mode_enabled !== config.voice_mode_enabled;
+      updatedConfig.voice_mode_enabled !== config.voice_mode_enabled ||
+      updatedConfig.speech_mode_enabled !== config.speech_mode_enabled;
 
     if (hasChanged) {
       onConfigChange(updatedConfig);
     }
-  }, [modelMode, selectedModelId, selectedProvider, voiceModeEnabled, config, onConfigChange, availableModels]);
+  }, [modelMode, selectedModelId, selectedProvider, voiceModeEnabled, speechModeEnabled, config, onConfigChange, availableModels]);
 
   const isSaving = saveStatus === 'saving';
 
@@ -248,6 +254,23 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
             </div>
           </label>
         </div>
+
+        <div className="form-group">
+          <label htmlFor="speech-mode-toggle" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', cursor: 'pointer' }}>
+            <span><strong>Speech Mode (TTS):</strong></span>
+            <div className="toggle-switch">
+              <input
+                type="checkbox"
+                id="speech-mode-toggle"
+                checked={speechModeEnabled}
+                onChange={(e) => setSpeechModeEnabled(e.target.checked)}
+                disabled={isSaving}
+                className="toggle-input"
+              />
+              <span className="toggle-slider"></span>
+            </div>
+          </label>
+        </div>
       </form>
     </div>
   );
@@ -259,6 +282,7 @@ SettingsPanel.propTypes = {
     selected_model_id: PropTypes.string,
     model_provider: PropTypes.string,
     voice_mode_enabled: PropTypes.bool,
+    speech_mode_enabled: PropTypes.bool,
     preferences: PropTypes.shape({}),
   }),
   availableModels: PropTypes.shape({

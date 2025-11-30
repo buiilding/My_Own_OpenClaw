@@ -4,13 +4,15 @@ Query Message Handler.
 Handles user query messages and streams responses back to the client.
 """
 import logging
-from typing import Any, Dict
+import asyncio
+from typing import Any, Dict, Optional
 from fastapi import WebSocket
 
 from backend.src.api.handlers.base import MessageHandler
 from backend.src.api.schema import QueryMessage
 from backend.src.api.deps import SessionManager
 from backend.src.core.validation import validate_message, validate_query_text, ValidationError
+from backend.src.core.services.tts_service import TTSService
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +51,9 @@ class QueryMessageHandler(MessageHandler):
             websocket: WebSocket connection
             user_id: User ID from connection context
         """
+        tts_service: Optional[TTSService] = None
+        audio_task: Optional[asyncio.Task] = None
+        
         try:
             # Validate message
             validated = validate_message(data, "query", QueryMessage)
@@ -64,12 +69,29 @@ class QueryMessageHandler(MessageHandler):
             # Get or create agent session
             agent_instance = await self.session_manager.get_or_create_session(user_id)
             
+            # Initialize TTS if enabled in config
+            if agent_instance.cfg.speech_mode_enabled:
+                tts_service = TTSService(agent_instance.cfg)
+                await tts_service.initialize()
+                # Start streaming task
+                audio_task = asyncio.create_task(
+                    self._stream_audio(tts_service, websocket, msg_id)
+                )
+            
             # Process query and stream responses
             try:
                 async for event in agent_instance.process_query(query_text):
+                    # Handle TTS
+                    if tts_service and event.get("type") == "chunk":
+                        await tts_service.process_text(event["content"])
+                    
                     response = self._format_event_response(event, msg_id)
                     if response:
                         await websocket.send_json(response)
+                
+                # Flush TTS buffer
+                if tts_service:
+                    await tts_service.flush()
                 
                 # Send final complete message
                 await websocket.send_json({
@@ -81,6 +103,19 @@ class QueryMessageHandler(MessageHandler):
             except Exception as e:
                 logger.error(f"Error in query processing: {e}", exc_info=True)
                 await self._send_error(websocket, msg_id, str(e))
+            finally:
+                # Clean up TTS
+                if tts_service:
+                    await tts_service.shutdown()
+                if audio_task:
+                    # Wait for any remaining audio to be sent
+                    try:
+                        # Give it a moment to finish streaming remaining chunks
+                        # The tts_service shutdown signals end of stream, 
+                        # so _stream_audio should exit naturally if queue is empty
+                        await asyncio.wait_for(audio_task, timeout=2.0)
+                    except (asyncio.TimeoutError, asyncio.CancelledError):
+                        audio_task.cancel()
         
         except ValidationError as e:
             await self._send_error(websocket, data.get("id"), f"Invalid query message: {e.message}")
@@ -88,6 +123,23 @@ class QueryMessageHandler(MessageHandler):
             logger.error(f"Unexpected error in query handler: {e}", exc_info=True)
             await self._send_error(websocket, data.get("id"), f"Internal error: {str(e)}")
     
+    async def _stream_audio(
+        self, 
+        tts_service: TTSService, 
+        websocket: WebSocket, 
+        msg_id: str
+    ):
+        """Stream audio chunks from TTS service to WebSocket."""
+        try:
+            async for audio_chunk in tts_service.stream_audio():
+                await websocket.send_json({
+                    "type": "audio-chunk",
+                    "id": msg_id,
+                    "payload": audio_chunk
+                })
+        except Exception as e:
+            logger.error(f"Error streaming audio: {e}", exc_info=True)
+
     def _format_event_response(self, event: Dict[str, Any], msg_id: str) -> Dict[str, Any] | None:
         """Format agent event into WebSocket response."""
         event_type = event.get("type")
@@ -149,4 +201,3 @@ class QueryMessageHandler(MessageHandler):
             "id": msg_id,
             "payload": {"message": message}
         })
-
