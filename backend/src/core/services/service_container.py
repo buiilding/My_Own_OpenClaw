@@ -21,7 +21,7 @@ class ServiceContainer(IServiceContainer):
     """
     Service container that provides access to various application services.
     
-    This is the unified service layer that replaces AppServices.
+    This is the unified service layer.
     All services are lazily initialized and cached for the lifetime of the container.
     """
 
@@ -99,8 +99,3 @@ class ServiceContainer(IServiceContainer):
             Timeout in seconds (default: 30.0)
         """
         return 30.0  # Default timeout for shell commands
-
-
-# Backward compatibility alias
-AppServices = ServiceContainer
-

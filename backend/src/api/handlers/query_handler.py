@@ -106,14 +106,16 @@ class QueryMessageHandler(MessageHandler):
             finally:
                 # Clean up TTS
                 if tts_service:
+                    # Flush any remaining TTS text and wait for processing
+                    await tts_service.flush()
+                    # Give TTS service time to finish processing remaining text
+                    await asyncio.sleep(1.0)
                     await tts_service.shutdown()
                 if audio_task:
                     # Wait for any remaining audio to be sent
                     try:
-                        # Give it a moment to finish streaming remaining chunks
-                        # The tts_service shutdown signals end of stream, 
-                        # so _stream_audio should exit naturally if queue is empty
-                        await asyncio.wait_for(audio_task, timeout=2.0)
+                        # Give it more time to finish streaming remaining chunks
+                        await asyncio.wait_for(audio_task, timeout=5.0)
                     except (asyncio.TimeoutError, asyncio.CancelledError):
                         audio_task.cancel()
         
