@@ -30,7 +30,29 @@ logger = logging.getLogger(__name__)
 
 
 class AgentSession:
-    """The main agent class for orchestrating tasks with tool support."""
+    """
+    The main agent class for orchestrating tasks with tool support.
+
+    AgentSession manages conversation state and coordinates between the LLM,
+    tool execution, and memory systems. It processes user queries through
+    a complete pipeline: query processing → LLM interaction → tool execution → response streaming.
+
+    Key responsibilities:
+    - Maintain conversation history and context
+    - Coordinate LLM interactions with tool calls
+    - Stream responses back to clients
+    - Persist conversation memory
+    - Handle session lifecycle events
+
+    Attributes:
+        cfg: Application configuration
+        user_id: Unique identifier for the user
+        session_id: Unique identifier for this session
+        memory_manager: Interface for conversation memory operations
+        tool_registry: Registry of available tools
+        llm_client: Client for LLM provider interactions
+        history: Conversation history for this session
+    """
 
     def __init__(
         self,
@@ -43,7 +65,19 @@ class AgentSession:
         user_id: str = "default_user",
         session_id: Optional[str] = None,
     ) -> None:
-        """Initializes the agent session."""
+        """
+        Initialize the agent session.
+
+        Args:
+            cfg: Application configuration object
+            memory_manager: Memory management interface for conversation persistence
+            tool_registry: Registry containing all available tools
+            plugin_registry: Registry for plugin management
+            llm_client: LLM client instance (auto-created if None)
+            tool_orchestrator: Tool orchestration instance (auto-created if None)
+            user_id: User identifier for session ownership
+            session_id: Session identifier (auto-generated if None)
+        """
         self.cfg = cfg
         self.llm_client: LLMClient = llm_client or get_llm_client(self.cfg)
         self._lock = asyncio.Lock()
