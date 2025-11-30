@@ -176,6 +176,12 @@ class AppConfig(BaseModel):
     # Voice Mode Settings
     voice_mode_enabled: bool = False
 
+    # TTS Settings
+    tts_enabled: bool = False
+    tts_model_path: Optional[str] = None
+    tts_use_cuda: bool = False
+    speech_mode_enabled: bool = False
+
     # This field is populated at runtime, not loaded from config file
     api_key: Optional[str] = None
 

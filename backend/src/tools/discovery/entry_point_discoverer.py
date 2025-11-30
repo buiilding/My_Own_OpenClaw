@@ -8,9 +8,13 @@ import logging
 from typing import List, Optional
 
 try:
-    import pkg_resources
+    from importlib.metadata import entry_points
 except ImportError:
-    pkg_resources = None
+    # Fallback for Python < 3.8
+    try:
+        from importlib_metadata import entry_points
+    except ImportError:
+        entry_points = None
 
 from backend.src.tools.discovery.base import ToolDiscoverer, DiscoveredTool
 from backend.src.sdk.tool import Tool as SDKTool
@@ -49,17 +53,24 @@ class EntryPointToolDiscoverer(ToolDiscoverer):
         Returns:
             List of discovered tools
         """
-        if pkg_resources is None:
+        if entry_points is None:
             logger.warning(
-                "pkg_resources not available. Entry point discovery disabled. "
-                "Install setuptools to enable entry point discovery."
+                "importlib.metadata not available. Entry point discovery disabled. "
+                "This requires Python 3.8+ or install importlib-metadata."
             )
             return []
-        
+
         discovered_tools: List[DiscoveredTool] = []
-        
+
         try:
-            for entry_point in pkg_resources.iter_entry_points(self.entry_point_group):
+            # Get entry points for the specific group
+            eps = entry_points()
+            if hasattr(eps, 'select'):  # Python 3.10+
+                group_eps = eps.select(group=self.entry_point_group)
+            else:  # Python 3.8-3.9
+                group_eps = eps.get(self.entry_point_group, [])
+
+            for entry_point in group_eps:
                 try:
                     tool_class = entry_point.load()
                     

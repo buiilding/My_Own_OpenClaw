@@ -84,3 +84,10 @@ class ToolOutputMessage(BaseMessage):
     type: Literal["tool-output"]
     payload: ToolOutputPayload
 
+class AudioChunkPayload(BaseModel):
+    audio: str # Base64 encoded PCM data
+    sample_rate: int
+
+class AudioChunkMessage(BaseMessage):
+    type: Literal["audio-chunk"]
+    payload: AudioChunkPayload

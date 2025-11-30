@@ -123,6 +123,12 @@ class ApplicationContainer(containers.DeclarativeContainer):
         lambda cfg: get_llm_client(cfg),
         cfg=config,
     )
+
+    # TTS Service
+    tts_service = providers.Singleton(
+        lambda cfg: _create_tts_service(cfg),
+        cfg=config,
+    )
     
     # Tool Orchestrator - lazy import to avoid circular dependencies
     tool_orchestrator = providers.Factory(
@@ -260,6 +266,13 @@ def _create_memory_store(
     except Exception as e:
         logger.error(f"Failed to create memory store: {e}")
         return None
+
+
+def _create_tts_service(config: AppConfig):
+    """Create TTS service."""
+    from backend.src.core.services.tts_service import TTSService
+    return TTSService(config)
+
 
 
 class Container:

@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import ChatInterface from './components/ChatInterface';
 import MainLayout from './components/MainLayout';
 import SettingsPanel from './components/SettingsPanel';
 import { useMessageHandling } from './hooks/useMessageHandling';
 import { useInitialConfig } from './hooks/useInitialConfig';
+import { useAudioPlayer } from './hooks/useAudioPlayer';
 import './styles/ChatInterface.css';
 import './styles/MainLayout.css';
 import './styles/accessibility.css';
@@ -35,6 +36,9 @@ function App() {
   const configBeforeSave = useRef(null);
   const saveTimeoutId = useRef(null);
 
+  // Initialize audio player
+  const { enqueueAudio, stopPlayback } = useAudioPlayer();
+
   // Handle backend messages and config updates
   useMessageHandling(
     setMessages,
@@ -50,7 +54,38 @@ function App() {
   // Initialize app configuration
   useInitialConfig();
 
+  // Listen for audio chunks from backend
+  useEffect(() => {
+    const handleAudioChunk = (event, data) => {
+      if (data.type === 'audio-chunk') {
+        enqueueAudio(data.payload);
+      }
+    };
+
+    // Listen for IPC messages for audio chunks
+    // Note: useMessageHandling handles most messages, but we can add a specific listener here
+    // or modify useMessageHandling to accept an audio handler.
+    // For simplicity and separation of concerns, we'll attach a listener here,
+    // but we need to make sure we don't double-process messages if useMessageHandling consumes them.
+    // Actually, useMessageHandling uses a specific set of handlers.
+    // Let's check if we can piggyback on window.ipc
+    
+    const removeListener = window.ipc.on('from-backend', (data) => {
+      if (data.type === 'audio-chunk') {
+        enqueueAudio(data.payload);
+      }
+    });
+
+    return () => {
+      removeListener();
+      stopPlayback(); // Stop playback when unmounting
+    };
+  }, [enqueueAudio, stopPlayback]);
+
   const handleSendMessage = (text) => {
+    // Stop any current audio playback when user sends a new message
+    stopPlayback();
+    
     // Add user's message to the chat
     setMessages((prevMessages) => [
       ...prevMessages,
