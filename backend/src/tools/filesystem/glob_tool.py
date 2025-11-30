@@ -8,29 +8,41 @@ import os
 from glob import glob as glob_module
 from pathlib import Path
 from typing import Dict, List, Optional
-from pydantic import BaseModel, Field, ConfigDict
 
-from backend.src.sdk.tool import Tool
+from pydantic import BaseModel, ConfigDict, Field
+
+from backend.src.core.utils.path_utils import make_relative_path
 from backend.src.sdk.context import ToolContext
+from backend.src.sdk.tool import Tool
 from backend.src.tools.filesystem.data_structures import GlobEntry
 from backend.src.tools.system.shell_tool import ShellTool
-from backend.src.core.utils.file_utils import make_relative_path
 
 logger = logging.getLogger(__name__)
 
 
 class GlobArgs(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra="forbid")
 
-    pattern: str = Field(..., description="Glob pattern to search for (e.g., 'src/**/*.ts', '**/*.md')")
-    path: Optional[str] = Field(None, description="Directory path to search in (defaults to current working directory)")
-    case_sensitive: Optional[bool] = Field(None, description="Whether pattern matching is case sensitive (reserved for future use)")
-    file_filtering_options: Optional[Dict[str, bool]] = Field(None, description="File filtering options (respect_git_ignore, respect_gemini_ignore)")
+    pattern: str = Field(
+        ..., description="Glob pattern to search for (e.g., 'src/**/*.ts', '**/*.md')"
+    )
+    path: Optional[str] = Field(
+        None,
+        description="Directory path to search in (defaults to current working directory)",
+    )
+    case_sensitive: Optional[bool] = Field(
+        None,
+        description="Whether pattern matching is case sensitive (reserved for future use)",
+    )
+    file_filtering_options: Optional[Dict[str, bool]] = Field(
+        None,
+        description="File filtering options (respect_git_ignore, respect_gemini_ignore)",
+    )
 
 
 class GlobTool(Tool[GlobArgs]):
     """Tool for finding files matching glob patterns."""
-    
+
     name = "glob"
     description = "Efficiently finds files matching specific glob patterns (e.g., `src/**/*.ts`, `**/*.md`), returning absolute paths sorted by modification time (newest first). Ideal for quickly locating files based on their name or path structure, especially in large codebases."
     args_model = GlobArgs
@@ -40,17 +52,19 @@ class GlobTool(Tool[GlobArgs]):
         try:
             respect_git_ignore = (
                 args.file_filtering_options.get("respect_git_ignore", True)
-                if args.file_filtering_options else True
+                if args.file_filtering_options
+                else True
             )
             respect_gemini_ignore = (
                 args.file_filtering_options.get("respect_gemini_ignore", True)
-                if args.file_filtering_options else True
+                if args.file_filtering_options
+                else True
             )
 
             if not args.pattern:
                 return {
                     "error": "pattern parameter is required",
-                    "llm_content": "Error: pattern parameter is required"
+                    "llm_content": "Error: pattern parameter is required",
                 }
 
             # Get workspace context for relative path resolution
@@ -75,13 +89,13 @@ class GlobTool(Tool[GlobArgs]):
             if not os.path.exists(search_dir):
                 return {
                     "error": f"Search path does not exist: {search_dir}",
-                    "llm_content": f"Error: Search path does not exist: {search_dir}"
+                    "llm_content": f"Error: Search path does not exist: {search_dir}",
                 }
 
             if not os.path.isdir(search_dir):
                 return {
                     "error": f"Search path is not a directory: {search_dir}",
-                    "llm_content": f"Error: Search path is not a directory: {search_dir}"
+                    "llm_content": f"Error: Search path is not a directory: {search_dir}",
                 }
 
             # Perform glob search
@@ -96,17 +110,15 @@ class GlobTool(Tool[GlobArgs]):
             except Exception as e:
                 return {
                     "error": f"Glob search failed: {e}",
-                    "llm_content": f"Error: Glob search failed: {e}"
+                    "llm_content": f"Error: Glob search failed: {e}",
                 }
 
             if not file_matches:
-                content = (
-                    f'No files found matching pattern "{args.pattern}" within {search_dir}'
-                )
+                content = f'No files found matching pattern "{args.pattern}" within {search_dir}'
                 return {
                     "entries": [],
                     "llm_content": content,
-                    "return_display": "No files found"
+                    "return_display": "No files found",
                 }
 
             # Apply file filtering
@@ -143,7 +155,9 @@ class GlobTool(Tool[GlobArgs]):
             # Create output
             file_list = "\n".join([entry.path for entry in entries])
 
-            search_location = f"within {search_dir}" if args.path else "across workspace"
+            search_location = (
+                f"within {search_dir}" if args.path else "across workspace"
+            )
             content = (
                 f'Found {len(entries)} file(s) matching "{args.pattern}" {search_location}'
                 f"{f' ({ignored_count} additional files were ignored)' if ignored_count > 0 else ''}, "
@@ -153,20 +167,16 @@ class GlobTool(Tool[GlobArgs]):
 
             return {
                 "entries": [
-                    {
-                        "path": e.path,
-                        "size": e.size,
-                        "modified_time": e.modified_time
-                    }
+                    {"path": e.path, "size": e.size, "modified_time": e.modified_time}
                     for e in entries
                 ],
                 "llm_content": content,
-                "return_display": f"Found {len(entries)} matching file(s)"
+                "return_display": f"Found {len(entries)} matching file(s)",
             }
 
         except Exception as e:
             logger.error(f"Unexpected error in glob: {e}", exc_info=True)
             return {
                 "error": f"Unexpected error: {str(e)}",
-                "llm_content": f"Error: Unexpected error: {str(e)}"
+                "llm_content": f"Error: Unexpected error: {str(e)}",
             }

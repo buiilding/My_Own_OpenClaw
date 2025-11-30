@@ -7,34 +7,43 @@ import logging
 import os
 from glob import glob as glob_module
 from typing import Dict, List, Optional
-from pydantic import BaseModel, Field, ConfigDict
 
-from backend.src.sdk.tool import Tool
+from pydantic import BaseModel, ConfigDict, Field
+
+from backend.src.core.utils.file_reader import read_file_content
+from backend.src.core.utils.file_type import FileType, detect_file_type
+from backend.src.core.utils.path_utils import make_relative_path
 from backend.src.sdk.context import ToolContext
+from backend.src.sdk.tool import Tool
 from backend.src.tools.system.shell_tool import ShellTool
-from backend.src.core.utils.file_utils import (
-    FileType,
-    detect_file_type,
-    make_relative_path,
-    read_file_content,
-)
 
 logger = logging.getLogger(__name__)
 
 
 class ReadManyFilesArgs(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra="forbid")
 
-    paths: List[str] = Field(..., description="List of file paths or glob patterns to read")
-    include: Optional[List[str]] = Field(None, description="Additional glob patterns to include")
-    exclude: Optional[List[str]] = Field(None, description="Glob patterns to exclude (reserved for future use)")
-    useDefaultExcludes: Optional[bool] = Field(None, description="Whether to use default excludes (reserved for future use)")
-    file_filtering_options: Optional[Dict[str, bool]] = Field(None, description="File filtering options (respect_git_ignore, respect_gemini_ignore)")
+    paths: List[str] = Field(
+        ..., description="List of file paths or glob patterns to read"
+    )
+    include: Optional[List[str]] = Field(
+        None, description="Additional glob patterns to include"
+    )
+    exclude: Optional[List[str]] = Field(
+        None, description="Glob patterns to exclude (reserved for future use)"
+    )
+    useDefaultExcludes: Optional[bool] = Field(
+        None, description="Whether to use default excludes (reserved for future use)"
+    )
+    file_filtering_options: Optional[Dict[str, bool]] = Field(
+        None,
+        description="File filtering options (respect_git_ignore, respect_gemini_ignore)",
+    )
 
 
 class ReadManyFilesTool(Tool[ReadManyFilesArgs]):
     """Tool for reading multiple files by paths/glob patterns."""
-    
+
     name = "read_many_files"
     description = "Reads content from multiple files specified by paths or glob patterns within a configured target directory. For text files, it concatenates their content into a single string. It is primarily designed for text-based files. However, it can also process image (e.g., .png, .jpg) and PDF (.pdf) files if their file names or extensions are explicitly included in the 'paths' argument."
     args_model = ReadManyFilesArgs
@@ -48,7 +57,7 @@ class ReadManyFilesTool(Tool[ReadManyFilesArgs]):
             if not args.paths:
                 return {
                     "error": "paths parameter is required",
-                    "llm_content": "Error: paths parameter is required"
+                    "llm_content": "Error: paths parameter is required",
                 }
 
             # Get target directory for relative path resolution
@@ -114,7 +123,7 @@ class ReadManyFilesTool(Tool[ReadManyFilesArgs]):
             logger.info(
                 f"ReadManyFiles: Filtering {len(relative_paths)} relative paths: {relative_paths[:5]}"
             )
-            
+
             if file_service:
                 filtered_paths, ignored_count = file_service.filter_files_with_report(
                     relative_paths, filtering_options
@@ -122,7 +131,7 @@ class ReadManyFilesTool(Tool[ReadManyFilesArgs]):
             else:
                 filtered_paths = relative_paths
                 ignored_count = 0
-                
+
             logger.info(
                 f"ReadManyFiles: After filtering: {len(filtered_paths)} files passed, {ignored_count} ignored"
             )
@@ -289,12 +298,12 @@ class ReadManyFilesTool(Tool[ReadManyFilesArgs]):
                 "skipped_files": skipped_files,
                 "total_files_attempted": len(workspace_files),
                 "llm_content": llm_content,
-                "return_display": "".join(display_parts).rstrip()
+                "return_display": "".join(display_parts).rstrip(),
             }
 
         except Exception as e:
             logger.error(f"Unexpected error in read_many_files: {e}", exc_info=True)
             return {
                 "error": f"Unexpected error: {str(e)}",
-                "llm_content": f"Error: Unexpected error: {str(e)}"
+                "llm_content": f"Error: Unexpected error: {str(e)}",
             }

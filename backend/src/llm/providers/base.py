@@ -1,20 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
-import litellm
-from litellm import exceptions as litellm_exceptions
-
 from backend.src.core.config import AppConfig
-from backend.src.core.exceptions import (
-    LLMAPIError,
-    LLMError,
-    LLMRateLimitError,
-)
-from backend.src.core.types import (
-    LLMMessage,
-    NormalizedLLMResponse,
-    StreamingChunk,
-)
+from backend.src.core.types import LLMMessage, NormalizedLLMResponse, StreamingChunk
 
 
 class LLMProvider(ABC):
@@ -22,8 +10,6 @@ class LLMProvider(ABC):
     Abstract base class for a true LLM provider.
     It handles request construction, calling the LLM, and normalizing the response.
     """
-
-
 
     def __init__(self, cfg: AppConfig):
         self.config = cfg
@@ -46,7 +32,7 @@ class LLMProvider(ABC):
     async def list_models(self) -> List[Dict[str, str]]:
         """
         Lists available models from the provider.
-        
+
         Returns:
             List of model dictionaries with 'id', 'provider', and 'display_name'.
         """

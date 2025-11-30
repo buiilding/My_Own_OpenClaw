@@ -6,13 +6,12 @@ including both built-in tools and community tools from the marketplace.
 """
 
 import logging
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from backend.src.sdk.tool import Tool as SDKTool
 from backend.src.core.security.executor import get_tool_executor
 from backend.src.core.services.context_factory import ContextFactory
+from backend.src.sdk.tool import Tool as SDKTool
 from backend.src.tools.categorization import ToolDomain, get_categorizer
 from backend.src.tools.lifecycle import ToolLifecycleManager
 from backend.src.tools.marketplace_manager import MarketplaceManager, ToolMetadata
@@ -46,16 +45,16 @@ class ToolRegistry:
         """
         self.config = config
         self.tools: Dict[str, SDKTool] = {}
-        
+
         self.tool_loader = tool_loader
         self.executor = get_tool_executor()
         self.categorizer = get_categorizer()
         self.lifecycle_manager = ToolLifecycleManager(tool_registry=self)
-        
+
         # New Managers
         self.marketplace_manager = MarketplaceManager(tool_loader)
         self.schema_registry = SchemaRegistry()
-        
+
         # Initialize context factory (create if not provided)
         if context_factory is None:
             self.context_factory = ContextFactory(
@@ -65,7 +64,7 @@ class ToolRegistry:
             )
         else:
             self.context_factory = context_factory
-        
+
         # Tool loading is deferred to async initialization
         # Call load_core_tools_async() from Container.initialize()
 
@@ -94,13 +93,13 @@ class ToolRegistry:
     async def load_core_tools_async(self) -> None:
         """
         Load core tools asynchronously.
-        
+
         This should be called from Container.initialize() during async startup.
         """
         if not self.tool_loader:
             logger.warning("ToolLoader not initialized, skipping core tool loading")
             return
-        
+
         try:
             core_tools = await self.tool_loader.load_core_tools()
             for tool in core_tools:
@@ -109,10 +108,12 @@ class ToolRegistry:
         except Exception as e:
             logger.error(f"Failed to load core tools: {e}", exc_info=True)
 
-    async def load_marketplace_tools(self, marketplace_dir: Path) -> Dict[str, ToolMetadata]:
+    async def load_marketplace_tools(
+        self, marketplace_dir: Path
+    ) -> Dict[str, ToolMetadata]:
         """
         Load all tools from the marketplace directory using the loader.
-        
+
         This method is async and should be called from an async context.
         """
         return await self.marketplace_manager.load_marketplace_tools(marketplace_dir)
@@ -198,97 +199,6 @@ class ToolRegistry:
                 tools.append(tool)
         return self.schema_registry.get_declarations(tools)
 
-    async def execute_tool(
-        self, 
-        tool_name: str, 
-        parameters: Optional[Dict[str, Any]] = None,
-        **kwargs
-    ) -> Dict[str, Any]:
-        """
-        Execute a tool by name using SDK execution pattern.
-
-        Args:
-            tool_name: Name of the tool to execute
-            parameters: Tool parameters (dict)
-            user_id: User ID for context
-            session_id: Session ID for context
-            workspace_root: Workspace root path (defaults to current working directory)
-
-        Returns:
-            Dictionary with execution result (success, data, error, llm_content, etc.)
-        """
-        tool = self.get_tool(tool_name)
-
-        # If not found in built-in or instantiated marketplace tools, try to load from marketplace
-        if not tool and tool_name in self.marketplace_tools:
-            try:
-                tool = await self.get_marketplace_tool_instance(tool_name)
-            except Exception as e:
-                logger.error(f"Error loading marketplace tool {tool_name}: {e}")
-
-        if not tool:
-            return {
-                "success": False,
-                "error": f"Tool '{tool_name}' not found",
-                "llm_content": f"Error: Tool '{tool_name}' not found",
-                "return_display": f"Tool '{tool_name}' not found"
-            }
-
-        try:
-            # Extract context parameters from kwargs
-            user_id = kwargs.get("user_id", "default_user")
-            session_id = kwargs.get("session_id", "default_session")
-            workspace_root = kwargs.get("workspace_root")
-            
-            # Validate parameters using Pydantic
-            try:
-                args = tool.args_model(**(parameters or {}))
-            except Exception as e:
-                error_msg = f"Invalid parameters: {str(e)}"
-                return {
-                    "success": False,
-                    "error": error_msg,
-                    "llm_content": f"Error: {error_msg}",
-                    "return_display": error_msg
-                }
-
-            # Build execution context using ContextFactory
-            session_ref = kwargs.get("session_ref")
-            context = self.context_factory.create_tool_context(
-                user_id=user_id,
-                session_id=session_id,
-                workspace_root=workspace_root,
-                session_ref=session_ref,
-            )
-
-            # Execute the tool via executor
-            logger.info(f"Executing SDK tool {tool_name} with parameters: {parameters}")
-            result = await self.executor.execute(tool, args, context)
-            
-            # Ensure result is a dict with success field
-            if isinstance(result, dict):
-                if "success" not in result:
-                    result["success"] = "error" not in result
-                return result
-            else:
-                # Wrap non-dict results
-                return {
-                    "success": True,
-                    "data": result,
-                    "llm_content": str(result),
-                    "return_display": str(result)
-                }
-
-        except Exception as e:
-            # Don't log full exception context to avoid logging screenshot data in traceback
-            logger.error(f"Error executing tool {tool_name}: {e}", exc_info=False)
-            return {
-                "success": False,
-                "error": f"Tool execution failed: {str(e)}",
-                "llm_content": f"Error: Tool execution failed: {str(e)}",
-                "return_display": f"Tool execution failed: {str(e)}"
-            }
-
     def is_tool_available(self, tool_name: str) -> bool:
         """
         Check if a tool is available.
@@ -333,62 +243,39 @@ class ToolRegistry:
         """
         all_tools_list = self.get_all_tools()
         domain_stats = self.categorizer.get_domain_statistics(all_tools_list)
-        
+
         return {
             "total_tools": len(self.tools) + len(self.marketplace_instances),
             "builtin_tools": len(self.tools),
             "marketplace_tools_loaded": len(self.marketplace_instances),
             "marketplace_tools_available": len(self.marketplace_tools),
             "tool_names": self.get_tool_names(),
-            "domain_statistics": {domain.value: count for domain, count in domain_stats.items()},
+            "domain_statistics": {
+                domain.value: count for domain, count in domain_stats.items()
+            },
         }
-    
+
     def get_tools_by_domain(self, domain: ToolDomain) -> List[SDKTool]:
         """
         Get all tools in a specific domain.
-        
+
         Args:
             domain: Domain to filter by
-            
+
         Returns:
             List of tools in the specified domain
         """
         all_tools = self.get_all_tools()
         return self.categorizer.get_tools_by_domain(all_tools, domain)
-    
+
     def categorize_tool(self, tool: SDKTool) -> ToolDomain:
         """
         Categorize a tool by domain.
-        
+
         Args:
             tool: Tool instance to categorize
-            
+
         Returns:
             ToolDomain for the tool
         """
         return self.categorizer.categorize_tool(tool)
-
-
-def create_tool_registry(
-    config: Any,
-    marketplace_dir: Optional[Path] = None,
-    tool_search_engine: Optional[Any] = None,
-) -> ToolRegistry:
-    """
-    Create and initialize a tool registry.
-    (Wrapper for backward compatibility, though usage should be updated to Container)
-
-    Args:
-        config: Application configuration
-        marketplace_dir: Optional path to marketplace directory
-        tool_search_engine: Optional ToolSearchEngine instance
-
-    Returns:
-        Initialized tool registry
-    """
-    from backend.src.tools.loader import ToolLoader
-    loader = ToolLoader(config)
-    registry = ToolRegistry(config, tool_loader=loader)
-    if tool_search_engine:
-        registry.tool_search_engine = tool_search_engine
-    return registry

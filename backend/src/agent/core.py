@@ -9,23 +9,25 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
-from typing import Any, AsyncGenerator, Optional, Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional
 
-from backend.src.llm.parser import ResponseParser
 from backend.src.agent.executor import AgentExecutor
-from backend.src.llm.llm_client import LLMClient, get_llm_client
-from backend.src.llm.prompt_constructor import PromptConstructor
 from backend.src.agent.state import ConversationHistory
-from backend.src.core.config import AppConfig
-from backend.src.core.interfaces.memory import MemoryManagerInterface
-from backend.src.tools.registry import ToolRegistry
 from backend.src.core.bus import message_bus
+from backend.src.core.config import AppConfig
 from backend.src.core.events import InteractionCompleted
+from backend.src.core.interfaces.memory import MemoryManagerInterface
+from backend.src.core.plugins.registry import PluginRegistry
+from backend.src.llm.llm_client import LLMClient, get_llm_client
+from backend.src.llm.parser import ResponseParser
+from backend.src.llm.prompt_constructor import PromptConstructor
+from backend.src.tools.registry import ToolRegistry
 
 if TYPE_CHECKING:
     from backend.src.tools.orchestrator import ToolOrchestrator
 
 logger = logging.getLogger(__name__)
+
 
 class AgentSession:
     """The main agent class for orchestrating tasks with tool support."""
@@ -35,6 +37,7 @@ class AgentSession:
         cfg: AppConfig,
         memory_manager: MemoryManagerInterface,
         tool_registry: ToolRegistry,
+        plugin_registry: PluginRegistry,
         llm_client: Optional[LLMClient] = None,
         tool_orchestrator: Optional[ToolOrchestrator] = None,
         user_id: str = "default_user",
@@ -49,6 +52,7 @@ class AgentSession:
         self.tool_registry = tool_registry
         if tool_orchestrator is None:
             from backend.src.tools.orchestrator import ToolOrchestrator
+
             self.tool_orchestrator = ToolOrchestrator(self.tool_registry, self.cfg)
         else:
             self.tool_orchestrator = tool_orchestrator
@@ -62,14 +66,15 @@ class AgentSession:
         self.user_id = user_id
         self.session_id = session_id or str(uuid.uuid4())
         self.memory_manager = memory_manager
-        
+
         # Initialize Executor
         self.executor = AgentExecutor(
             session=self,
             llm_client=self.llm_client,
             tool_orchestrator=self.tool_orchestrator,
             prompt_constructor=self.prompt_builder,
-            response_parser=self.response_parser
+            response_parser=self.response_parser,
+            plugin_registry=plugin_registry,
         )
 
         # Subscribe to events
@@ -80,10 +85,12 @@ class AgentSession:
         # Only handle events for this session
         if event.session_id != self.session_id:
             return
-            
+
         logger.debug(f"Processing interaction completion for session {self.session_id}")
         try:
-            await self.memory_manager.store_episodic_memory(event.user_message, event.assistant_response)
+            await self.memory_manager.store_episodic_memory(
+                event.user_message, event.assistant_response
+            )
         except Exception as e:
             logger.error(f"Failed to store episodic memory: {e}", exc_info=True)
 
@@ -94,7 +101,7 @@ class AgentSession:
             # Re-initialize LLM client with new config
             self.llm_client = get_llm_client(self.cfg)
             self.executor.llm_client = self.llm_client
-            
+
             # Update memory manager configuration as well
             await self.memory_manager.update_config(new_cfg)
 

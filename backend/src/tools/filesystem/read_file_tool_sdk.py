@@ -6,23 +6,31 @@ Tool for reading file contents with automatic encoding detection and MIME type h
 import os
 from pathlib import Path
 from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict
 
-from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import ToolContext
-from backend.src.core.utils.file_utils import (
-    get_specific_mime_type,
-    is_text_file,
+from pydantic import BaseModel, ConfigDict, Field
+
+from backend.src.core.utils.file_reader import (
     read_file_content,
     read_text_file_auto_encoding,
 )
+from backend.src.core.utils.file_type import is_text_file
+from backend.src.core.utils.mime_types import get_specific_mime_type
+from backend.src.sdk.context import ToolContext
+from backend.src.sdk.tool import Tool
+
 
 class ReadFileArgs(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra="forbid")
 
-    file_path: str = Field(..., description="The path to the file to read (absolute or relative to workspace)")
-    offset: Optional[int] = Field(None, ge=0, description="Line number to start reading from (0-based)")
+    file_path: str = Field(
+        ...,
+        description="The path to the file to read (absolute or relative to workspace)",
+    )
+    offset: Optional[int] = Field(
+        None, ge=0, description="Line number to start reading from (0-based)"
+    )
     limit: Optional[int] = Field(None, gt=0, description="Number of lines to read")
+
 
 class ReadFileToolSDK(Tool[ReadFileArgs]):
     name = "read_file"
@@ -33,19 +41,24 @@ class ReadFileToolSDK(Tool[ReadFileArgs]):
         # Resolve path
         absolute_path = args.file_path
         if not os.path.isabs(absolute_path):
-            absolute_path = os.path.abspath(os.path.join(ctx.workspace_root, absolute_path))
+            absolute_path = os.path.abspath(
+                os.path.join(ctx.workspace_root, absolute_path)
+            )
 
         # Security/filtering check
         file_service = ctx.services.get("file_service")
         if file_service:
             # Filtering options should arguably be in context too, or default
-            filtering_options = {"respect_git_ignore": True, "respect_gemini_ignore": True}
+            filtering_options = {
+                "respect_git_ignore": True,
+                "respect_gemini_ignore": True,
+            }
             if file_service.should_ignore_file(absolute_path, filtering_options):
                 return {"error": f"File is ignored by filtering rules: {absolute_path}"}
 
         # Check existence
         if not os.path.exists(absolute_path):
-             return {"error": f"File not found: {absolute_path}"}
+            return {"error": f"File not found: {absolute_path}"}
 
         # Read file content
         content, error, is_truncated = read_file_content(
@@ -84,14 +97,14 @@ class ReadFileToolSDK(Tool[ReadFileArgs]):
         # Wait, my Adapter implementation:
         # return ToolResult(success=True, data=result, llm_content=str(result), return_display=str(result))
         # This is suboptimal if result is a complex dict.
-        
+
         # IMPROVEMENT: Let the tool return a specific Result object or dict that Adapter understands?
         # Or just return the content string as the main result?
         # For read_file, the LLM needs the content.
-        
+
         # Let's return just the content for now to be safe with current Adapter,
         # OR update Adapter to check for specific keys like 'llm_content' in the result dict.
-        
+
         # I will update Adapter to be smarter about dict returns.
         return {
             "content": content,
@@ -99,7 +112,7 @@ class ReadFileToolSDK(Tool[ReadFileArgs]):
             "lines": lines,
             "mimetype": mimetype,
             "programming_language": programming_language,
-            "llm_content": llm_content # Special key for Adapter
+            "llm_content": llm_content,  # Special key for Adapter
         }
 
     def _get_total_lines(self, file_path: str) -> int:
@@ -117,4 +130,3 @@ class ReadFileToolSDK(Tool[ReadFileArgs]):
         ext = Path(file_path).suffix.lower()
         # ... (same map as before, shortened for brevity) ...
         return ext.lstrip(".")
-

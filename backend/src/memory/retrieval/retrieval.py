@@ -6,7 +6,7 @@ temporal search, and hybrid search combining both approaches.
 """
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -20,7 +20,9 @@ class SemanticRetrieval:
     Advanced memory retrieval system with semantic search and re-ranking.
     """
 
-    def __init__(self, memory_store: MemoryStoreInterface, embedder: Optional[Any] = None):
+    def __init__(
+        self, memory_store: MemoryStoreInterface, embedder: Optional[Any] = None
+    ):
         """
         Initialize the retrieval system.
 

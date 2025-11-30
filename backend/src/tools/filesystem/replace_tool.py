@@ -6,34 +6,38 @@ Tool for precise search and replace operations in files.
 import logging
 import os
 from typing import Tuple
-from pydantic import BaseModel, Field, ConfigDict
 
-from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import ToolContext
-from backend.src.tools.system.shell_tool import ShellTool
-from backend.src.core.utils.file_utils import (
-    DEFAULT_ENCODING,
+from pydantic import BaseModel, ConfigDict, Field
+
+from backend.src.core.utils.file_reader import read_text_file_auto_encoding
+from backend.src.core.utils.file_type import DEFAULT_ENCODING
+from backend.src.core.utils.path_utils import (
     ensure_directory_exists,
     make_relative_path,
-    read_text_file_auto_encoding,
     shorten_path,
 )
+from backend.src.sdk.context import ToolContext
+from backend.src.sdk.tool import Tool
+from backend.src.tools.system.shell_tool import ShellTool
 
 logger = logging.getLogger(__name__)
 
 
 class ReplaceArgs(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra="forbid")
 
     file_path: str = Field(..., description="The path to the file to modify")
     old_string: str = Field(..., description="The string to search for and replace")
     new_string: str = Field(..., description="The replacement string")
-    replace_all: bool = Field(False, description="If true, replace all occurrences; if false, replace only the first occurrence")
+    replace_all: bool = Field(
+        False,
+        description="If true, replace all occurrences; if false, replace only the first occurrence",
+    )
 
 
 class ReplaceTool(Tool[ReplaceArgs]):
     """Tool for precise search and replace operations in files."""
-    
+
     name = "replace"
     description = """Use this tool to propose a search and replace operation on an existing file.
 
@@ -65,7 +69,7 @@ CRITICAL REQUIREMENTS FOR USING THIS TOOL:
             if not args.file_path:
                 return {
                     "error": "file_path parameter is required",
-                    "llm_content": "Error: file_path parameter is required"
+                    "llm_content": "Error: file_path parameter is required",
                 }
 
             # Resolve relative paths to absolute paths
@@ -89,24 +93,26 @@ CRITICAL REQUIREMENTS FOR USING THIS TOOL:
                     ensure_directory_exists(os.path.dirname(file_path))
                     with open(file_path, "w", encoding=DEFAULT_ENCODING) as f:
                         f.write(args.new_string)
-                    relative_path = shorten_path(make_relative_path(file_path, target_dir))
+                    relative_path = shorten_path(
+                        make_relative_path(file_path, target_dir)
+                    )
                     return {
                         "replacements": 1,
                         "is_new_file": True,
                         "llm_content": f"Created new file: {file_path} with provided content.",
-                        "return_display": f"Created new file: {relative_path}"
+                        "return_display": f"Created new file: {relative_path}",
                     }
                 except OSError as e:
                     return {
                         "error": f"Failed to create file: {e}",
-                        "llm_content": f"Error: Failed to create file: {e}"
+                        "llm_content": f"Error: Failed to create file: {e}",
                     }
 
             # Handle existing file editing
             if not file_exists:
                 return {
                     "error": f"File does not exist and old_string is not empty: {file_path}",
-                    "llm_content": f"Error: File does not exist and old_string is not empty: {file_path}"
+                    "llm_content": f"Error: File does not exist and old_string is not empty: {file_path}",
                 }
 
             # Read current file content
@@ -115,7 +121,7 @@ CRITICAL REQUIREMENTS FOR USING THIS TOOL:
             except Exception as e:
                 return {
                     "error": f"Failed to read file: {e}",
-                    "llm_content": f"Error: Failed to read file: {e}"
+                    "llm_content": f"Error: Failed to read file: {e}",
                 }
 
             # Perform replacement
@@ -127,13 +133,13 @@ CRITICAL REQUIREMENTS FOR USING THIS TOOL:
             if replacements == 0:
                 return {
                     "error": "Failed to edit, could not find the string to replace",
-                    "llm_content": "Failed to edit, could not find the string to replace."
+                    "llm_content": "Failed to edit, could not find the string to replace.",
                 }
 
             if not args.replace_all and replacements > 1:
                 return {
                     "error": "Multiple matches found. Provide more unique context around the specific text you want to replace.",
-                    "llm_content": "Multiple matches found. Provide more unique context around the specific text you want to replace."
+                    "llm_content": "Multiple matches found. Provide more unique context around the specific text you want to replace.",
                 }
 
             # Write back the modified content
@@ -143,7 +149,7 @@ CRITICAL REQUIREMENTS FOR USING THIS TOOL:
             except OSError as e:
                 return {
                     "error": f"Failed to write file: {e}",
-                    "llm_content": f"Error: Failed to write file: {e}"
+                    "llm_content": f"Error: Failed to write file: {e}",
                 }
 
             relative_path = shorten_path(make_relative_path(file_path, target_dir))
@@ -151,14 +157,14 @@ CRITICAL REQUIREMENTS FOR USING THIS TOOL:
                 "replacements": replacements,
                 "is_new_file": False,
                 "llm_content": f"Successfully modified file: {file_path} ({replacements} replacements).",
-                "return_display": f"Modified file: {relative_path} ({replacements} replacements)"
+                "return_display": f"Modified file: {relative_path} ({replacements} replacements)",
             }
 
         except Exception as e:
             logger.error(f"Unexpected error in replace: {e}", exc_info=True)
             return {
                 "error": f"Unexpected error: {str(e)}",
-                "llm_content": f"Error: Unexpected error: {str(e)}"
+                "llm_content": f"Error: Unexpected error: {str(e)}",
             }
 
     def _perform_replacement(

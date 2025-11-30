@@ -5,9 +5,9 @@ This module provides TypedDict definitions for common dictionary structures
 used throughout the codebase, improving type safety and IDE support.
 """
 
-from typing import Any, AsyncGenerator, Dict, List, Literal, Optional, TypedDict, Union
-from typing_extensions import NotRequired
+from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
 
+from typing_extensions import NotRequired
 
 # ============================================================================
 # Event and Message Types
@@ -205,4 +205,3 @@ class ToolSchema(TypedDict, total=False):
 # Generic dictionary types (use sparingly, prefer TypedDict)
 JSONDict = Dict[str, Any]
 StringDict = Dict[str, str]
-

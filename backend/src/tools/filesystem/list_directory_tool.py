@@ -8,28 +8,37 @@ import os
 import re
 from pathlib import Path
 from typing import Dict, List, Optional
-from pydantic import BaseModel, Field, ConfigDict
 
-from backend.src.sdk.tool import Tool
+from pydantic import BaseModel, ConfigDict, Field
+
+from backend.src.core.utils.path_utils import make_relative_path
 from backend.src.sdk.context import ToolContext
+from backend.src.sdk.tool import Tool
 from backend.src.tools.filesystem.data_structures import FileEntry
 from backend.src.tools.system.shell_tool import ShellTool
-from backend.src.core.utils.file_utils import make_relative_path
 
 logger = logging.getLogger(__name__)
 
 
 class ListDirectoryArgs(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra="forbid")
 
-    path: str = Field(..., description="Directory path to list (absolute or relative to workspace)")
-    ignore: Optional[List[str]] = Field(None, description="List of glob patterns to ignore (e.g., ['*.pyc', '__pycache__'])")
-    file_filtering_options: Optional[Dict[str, bool]] = Field(None, description="File filtering options (respect_git_ignore, respect_gemini_ignore)")
+    path: str = Field(
+        ..., description="Directory path to list (absolute or relative to workspace)"
+    )
+    ignore: Optional[List[str]] = Field(
+        None,
+        description="List of glob patterns to ignore (e.g., ['*.pyc', '__pycache__'])",
+    )
+    file_filtering_options: Optional[Dict[str, bool]] = Field(
+        None,
+        description="File filtering options (respect_git_ignore, respect_gemini_ignore)",
+    )
 
 
 class ListDirectoryTool(Tool[ListDirectoryArgs]):
     """Tool for listing files and directories in a path."""
-    
+
     name = "list_directory"
     description = "Lists the names of files and subdirectories directly within a specified directory path. Can optionally ignore entries matching provided glob patterns."
     args_model = ListDirectoryArgs
@@ -47,7 +56,7 @@ class ListDirectoryTool(Tool[ListDirectoryArgs]):
                 logger.error("ListDirectory: No path provided")
                 return {
                     "error": "Path parameter is required",
-                    "llm_content": "Error: Path parameter is required"
+                    "llm_content": "Error: Path parameter is required",
                 }
 
             # Resolve relative paths to absolute paths
@@ -55,13 +64,13 @@ class ListDirectoryTool(Tool[ListDirectoryArgs]):
             logger.info(
                 f"ListDirectory: Path is absolute check: {os.path.isabs(path)} for path: {path}"
             )
-            
+
             workspace_context = ctx.services.get("workspace_context")
             if workspace_context:
                 target_dir = workspace_context.workspace_path
             else:
                 target_dir = ctx.workspace_root
-            
+
             logger.info(f"ListDirectory: Got workspace context: {workspace_context}")
 
             if not os.path.isabs(path):
@@ -80,7 +89,7 @@ class ListDirectoryTool(Tool[ListDirectoryArgs]):
                 logger.error(f"ListDirectory: Directory not found: {path}")
                 return {
                     "error": f"Directory not found: {path}",
-                    "llm_content": f"Error: Directory not found: {path}"
+                    "llm_content": f"Error: Directory not found: {path}",
                 }
 
             logger.info(
@@ -90,7 +99,7 @@ class ListDirectoryTool(Tool[ListDirectoryArgs]):
                 logger.error(f"ListDirectory: Path is not a directory: {path}")
                 return {
                     "error": f"Path is not a directory: {path}",
-                    "llm_content": f"Error: Path is not a directory: {path}"
+                    "llm_content": f"Error: Path is not a directory: {path}",
                 }
 
             # List directory contents
@@ -102,7 +111,7 @@ class ListDirectoryTool(Tool[ListDirectoryArgs]):
                 logger.error(f"ListDirectory: Failed to list directory {path}: {e}")
                 return {
                     "error": f"Failed to list directory: {e}",
-                    "llm_content": f"Error: Failed to list directory: {e}"
+                    "llm_content": f"Error: Failed to list directory: {e}",
                 }
 
             if not entries:
@@ -110,7 +119,7 @@ class ListDirectoryTool(Tool[ListDirectoryArgs]):
                 return {
                     "entries": [],
                     "llm_content": content,
-                    "return_display": "Directory is empty"
+                    "return_display": "Directory is empty",
                 }
 
             # Convert to full paths and filter
@@ -119,10 +128,10 @@ class ListDirectoryTool(Tool[ListDirectoryArgs]):
             )
             full_paths = [os.path.join(path, entry) for entry in entries]
             logger.info(f"ListDirectory: Full paths: {full_paths}")
-            
+
             file_service = ctx.services.get("file_service")
             logger.info(f"ListDirectory: Got file service: {file_service}")
-            
+
             filtering_options = {
                 "respect_git_ignore": file_filtering_options.get(
                     "respect_git_ignore", True
@@ -147,7 +156,7 @@ class ListDirectoryTool(Tool[ListDirectoryArgs]):
                 # No file service, include all paths
                 filtered_paths = relative_paths
                 ignored_count = 0
-                
+
             logger.info(
                 f"ListDirectory: Filtered paths: {filtered_paths}, ignored_count: {ignored_count}"
             )
@@ -199,21 +208,22 @@ class ListDirectoryTool(Tool[ListDirectoryArgs]):
                         "path": e.path,
                         "is_directory": e.is_directory,
                         "size": e.size,
-                        "modified_time": e.modified_time
+                        "modified_time": e.modified_time,
                     }
                     for e in file_entries
                 ],
                 "llm_content": content,
-                "return_display": display
+                "return_display": display,
             }
 
         except Exception as e:
             logger.error(
-                f"ListDirectory: Unexpected error for path {args.path}: {e}", exc_info=True
+                f"ListDirectory: Unexpected error for path {args.path}: {e}",
+                exc_info=True,
             )
             return {
                 "error": f"Unexpected error: {str(e)}",
-                "llm_content": f"Error: Unexpected error: {str(e)}"
+                "llm_content": f"Error: Unexpected error: {str(e)}",
             }
 
     def _matches_pattern(self, filename: str, pattern: str) -> bool:
