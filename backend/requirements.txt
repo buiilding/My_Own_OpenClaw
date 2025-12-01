@@ -17,6 +17,8 @@ einops
 timm
 python-magic-bin
 onnxruntime-gpu
+openwakeword
+numpy
 # flash-attn  # Optional: improves performance but may have installation issues on Windows
 
 # Web Framework

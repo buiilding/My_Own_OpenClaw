@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 /**
  * Custom hook for managing settings loading and updating.
@@ -47,10 +47,15 @@ export function useSettingsManagement(
     }
   }, [setSaveStatus, configBeforeSave, saveTimeoutId, setConfig]);
 
-  return {
+  return useMemo(() => ({
     handleSettingsLoaded,
     handleModelsListed,
     handleSettingsUpdated,
     handleSettingsError,
-  };
+  }), [
+    handleSettingsLoaded,
+    handleModelsListed,
+    handleSettingsUpdated,
+    handleSettingsError
+  ]);
 }

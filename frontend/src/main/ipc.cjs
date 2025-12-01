@@ -14,8 +14,13 @@ let isConnected = false;
 let reconnectInterval = 5000; // 5 seconds
 
 function log(message) {
+  // Only log important events, not every message
   console.log(`[IPC Bridge] ${message}`);
-  mainWindow?.webContents.send('log', `[IPC Bridge] ${message}`);
+}
+
+function logDebug(message) {
+  // Debug logging - can be enabled for troubleshooting
+  // console.log(`[IPC Bridge] ${message}`);
 }
 
 function connect() {
@@ -42,7 +47,6 @@ function connect() {
     };
     try {
       ws.send(JSON.stringify(handshakeMessage));
-      log(`Sent handshake to backend: ${JSON.stringify(handshakeMessage)}`);
     } catch (error) {
       log(`Error sending handshake: ${error}`);
     }
@@ -51,7 +55,10 @@ function connect() {
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
-      log(`Received message from backend: ${JSON.stringify(data)}`);
+      // Only log errors or important message types
+      if (data.type === 'error') {
+        log(`Error from backend: ${data.payload?.message || 'Unknown error'}`);
+      }
       mainWindow?.webContents.send('from-backend', data);
     } catch (error) {
       log(`Error parsing message from backend: ${error}`);
@@ -96,7 +103,7 @@ function sendMessageToBackend(type, payload) {
 
   try {
     ws.send(JSON.stringify(message));
-    log(`Sent message to backend: ${JSON.stringify(message)}`);
+    // Only log errors, not every message
   } catch (error) {
     log(`Error sending message to backend: ${error}`);
   }
@@ -113,7 +120,10 @@ function initializeIpc(win) {
   connect();
 
   ipcMain.on('to-backend', (event, { type, payload }) => {
-    log(`Received message from renderer: ${type}`);
+    // Only log important message types
+    if (type === 'query' || type === 'wakeword-detected') {
+      log(`Received ${type} from renderer`);
+    }
     sendMessageToBackend(type, payload);
   });
 }
