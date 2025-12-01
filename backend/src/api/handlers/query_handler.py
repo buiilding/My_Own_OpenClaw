@@ -98,11 +98,58 @@ class QueryMessageHandler(MessageHandler):
                     tts_service, websocket, msg_id
                 )
 
+            # State to track if current response stream is a function call
+            # None = unknown (buffer start), True = is tool call, False = is not tool call
+            is_potential_tool_call = None
+            stream_buffer = ""
+
             # Process query and stream responses
             try:
                 async for event in agent_instance.process_query(query_text):
-                    # Handle TTS
-                    await self.tts_manager.process_event(tts_service, event)
+                    # Handle TTS with function call filtering
+                    # We want to block function call JSON from being spoken
+                    
+                    event_type = event.get("type")
+                    
+                    # Reset detection state on new interaction phases
+                    if event_type in ["tool_call", "tool_output", "thinking"]:
+                        is_potential_tool_call = None
+                        stream_buffer = ""
+                    
+                    if event_type == "chunk":
+                        content = event.get("content", "")
+                        
+                        if is_potential_tool_call is None:
+                            # Buffer beginning of stream to detect content type
+                            stream_buffer += content
+                            stripped = stream_buffer.lstrip()
+                            
+                            if len(stripped) > 0:
+                                if stripped.startswith("{") or stripped.startswith("`"):
+                                    # Starts with JSON brace or code block -> likely tool call
+                                    is_potential_tool_call = True
+                                    # Do NOT send to TTS
+                                else:
+                                    # Starts with normal text
+                                    is_potential_tool_call = False
+                                    # Flush buffered text to TTS
+                                    if tts_service:
+                                        await self.tts_manager.process_event(
+                                            tts_service, 
+                                            {"type": "chunk", "content": stream_buffer}
+                                        )
+                            # If still empty/whitespace, continue buffering
+                        
+                        elif is_potential_tool_call is False:
+                            # Known text stream, pass through to TTS
+                            await self.tts_manager.process_event(tts_service, event)
+                        
+                        # If is_potential_tool_call is True, we drop the chunks for TTS
+                        
+                    else:
+                        # For non-chunk events, pass through if needed (usually ignored by tts_manager)
+                        # except for the ones we handled above for reset
+                        await self.tts_manager.process_event(tts_service, event)
 
                     response = self.response_formatter.format(event, msg_id)
                     if response:

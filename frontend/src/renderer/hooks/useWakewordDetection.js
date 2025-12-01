@@ -14,9 +14,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 export function useWakewordDetection(enabled, onWakewordDetected, options = {}) {
   // Validate and fix chunkSize - must be power of 2 for ScriptProcessor
   const getValidChunkSize = (size) => {
-    const validSizes = [256, 512, 1024, 2048, 4096, 8192, 16384];
+    const validSizes = [256, 512, 1024, 1280, 2048, 4096, 8192, 16384];
     // Find closest valid size
-    return validSizes.reduce((prev, curr) => 
+    return validSizes.reduce((prev, curr) =>
       Math.abs(curr - size) < Math.abs(prev - size) ? curr : prev
     );
   };

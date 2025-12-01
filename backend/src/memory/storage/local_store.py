@@ -304,27 +304,43 @@ class LocalMemoryStore:
 
         # Retrieve memories from database
         results = []
+        if not indices[0].size:
+            return results
+
+        # Filter indices that exist in mapping
+        valid_indices = []
+        valid_similarities = []
+        for sim, idx in zip(similarities[0], indices[0]):
+            if idx in self.vector_id_to_memory_id:
+                valid_indices.append(idx)
+                valid_similarities.append(sim)
+
+        if not valid_indices:
+            return results
+
+        # Get memory IDs
+        memory_ids = [self.vector_id_to_memory_id[idx] for idx in valid_indices]
+        
+        # Batch retrieval from SQLite
         async with aiosqlite.connect(self.db_path) as conn:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.cursor()
-
-            for i, (similarity, vector_id) in enumerate(
-                zip(similarities[0], indices[0])
-            ):
-                if vector_id not in self.vector_id_to_memory_id:
-                    continue
-
-                memory_id = self.vector_id_to_memory_id[vector_id]
-
-                await cursor.execute(
-                    """
-                    SELECT id, user_id, type, content, timestamp, metadata
-                    FROM memories WHERE id = ?
-                """,
-                    (memory_id,),
-                )
-
-                row = await cursor.fetchone()
+            
+            placeholders = ",".join(["?"] * len(memory_ids))
+            query = f"""
+                SELECT id, user_id, type, content, timestamp, metadata
+                FROM memories WHERE id IN ({placeholders})
+            """
+            
+            await cursor.execute(query, memory_ids)
+            rows = await cursor.fetchall()
+            
+            # Create a lookup map for O(1) access
+            rows_map = {row["id"]: row for row in rows}
+            
+            # Reconstruct results in order of similarity
+            for memory_id, similarity in zip(memory_ids, valid_similarities):
+                row = rows_map.get(memory_id)
                 if not row:
                     continue
 
@@ -519,6 +535,74 @@ class LocalMemoryStore:
 
         # Apply limit
         return results[:limit]
+
+    async def get_in_time_range(
+        self,
+        user_id: str,
+        start_time: datetime,
+        end_time: datetime,
+        memory_type: Optional[str] = None,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get memories created within a specific time range.
+        Optimized SQL query for time-based retrieval.
+
+        Args:
+            user_id: User identifier
+            start_time: Start datetime (inclusive)
+            end_time: End datetime (inclusive)
+            memory_type: Optional filter by memory type
+            limit: Maximum number of results
+
+        Returns:
+            List of memory dictionaries sorted by timestamp (newest first)
+        """
+        start_iso = start_time.isoformat()
+        end_iso = end_time.isoformat()
+        results = []
+
+        async with aiosqlite.connect(self.db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
+
+            query = """
+                SELECT id, user_id, type, content, timestamp, metadata
+                FROM memories
+                WHERE user_id = ?
+                AND timestamp >= ?
+                AND timestamp <= ?
+            """
+            params = [user_id, start_iso, end_iso]
+
+            if memory_type:
+                query += " AND type = ?"
+                params.append(memory_type)
+
+            # Order by timestamp desc (newest first)
+            query += " ORDER BY timestamp DESC LIMIT ?"
+            params.append(limit)
+
+            await cursor.execute(query, params)
+            rows = await cursor.fetchall()
+
+            for row in rows:
+                # Parse metadata
+                metadata = json.loads(row["metadata"]) if row["metadata"] else {}
+
+                results.append(
+                    {
+                        "id": row["id"],
+                        "text": row["content"],
+                        "metadata": metadata,
+                        "timestamp": row["timestamp"],
+                        "type": row["type"],
+                        # Score is not applicable for purely temporal search, but interface might expect it
+                        "score": 1.0 
+                    }
+                )
+
+        return results
 
     async def get_stats(self, user_id: Optional[str] = None) -> Dict[str, Any]:
         """
