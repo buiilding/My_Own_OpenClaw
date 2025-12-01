@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const { initializeIpc } = require('./ipc.cjs');
+const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 
 // Disable hardware acceleration to prevent GPU crashes
 app.disableHardwareAcceleration();
@@ -30,6 +31,7 @@ function createWindow() {
   }
 
   initializeIpc(mainWindow);
+  initializeWakewordBridge(mainWindow);
 
   // Instead of quitting, hide the window to the tray
   mainWindow.on('close', (event) => {

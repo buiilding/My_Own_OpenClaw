@@ -34,13 +34,17 @@ class UpdateSettingsMessage(BaseMessage):
     type: Literal["update-settings"]
     payload: Dict[str, Any]
 
+class WakewordDetectedMessage(BaseMessage):
+    type: Literal["wakeword-detected"]
+
 # Union type for parsing
 IncomingMessage = Union[
     PingMessage,
     QueryMessage,
     LoadSettingsMessage,
     ListModelsMessage,
-    UpdateSettingsMessage
+    UpdateSettingsMessage,
+    WakewordDetectedMessage
 ]
 
 # Outgoing Messages
@@ -91,3 +95,14 @@ class AudioChunkPayload(BaseModel):
 class AudioChunkMessage(BaseMessage):
     type: Literal["audio-chunk"]
     payload: AudioChunkPayload
+
+class WakewordActivatedMessage(BaseMessage):
+    type: Literal["wakeword-activated"]
+    payload: Dict[str, Any]
+
+class WakewordGreetingPayload(BaseModel):
+    text: str
+
+class WakewordGreetingMessage(BaseMessage):
+    type: Literal["wakeword-greeting"]
+    payload: WakewordGreetingPayload

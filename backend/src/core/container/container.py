@@ -23,15 +23,32 @@ logger = logging.getLogger(__name__)
 
 class ApplicationContainer(containers.DeclarativeContainer):
     """
-    Main application container that composes domain-specific containers.
+    Main application container using dependency injection composition.
 
-    Uses container composition to organize dependencies by domain:
-    - CoreContainer: Configuration, services, LLM, TTS
-    - ToolContainer: Tool system components
-    - MemoryContainer: Memory system components
+    This container orchestrates the entire application's dependency graph using
+    domain-driven design principles. It composes specialized containers for
+    different functional areas, providing clean separation of concerns and
+    improved testability.
 
-    This approach improves maintainability and testability by separating
-    concerns into focused containers.
+    Container Composition:
+    - CoreContainer: Foundation services (config, LLM, TTS, core services)
+    - ToolContainer: Tool system (registry, orchestrator, loaders)
+    - MemoryContainer: Memory system (embeddings, storage, retrieval)
+
+    Key Benefits:
+    - Clear dependency boundaries between domains
+    - Easy testing through container overrides
+    - Runtime reconfiguration capabilities
+    - Lazy initialization of expensive resources
+    - Centralized dependency management
+
+    Usage:
+        container = ApplicationContainer()
+        await container.initialize()
+
+        # Access components
+        agent = container.agent_session_factory("user123")
+        llm_client = container.core.llm_client()
     """
 
     # Core container (provides config, services, LLM, TTS)

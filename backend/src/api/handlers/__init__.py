@@ -17,6 +17,7 @@ from backend.src.api.handlers.settings_handler import (
     LoadSettingsHandler,
     UpdateSettingsHandler,
 )
+from backend.src.api.handlers.wakeword_handler import WakewordHandler
 
 __all__ = [
     "MessageHandler",
@@ -28,6 +29,7 @@ __all__ = [
     "LoadSettingsHandler",
     "UpdateSettingsHandler",
     "ListModelsHandler",
+    "WakewordHandler",
     "initialize_handlers",
 ]
 
@@ -42,7 +44,10 @@ def initialize_handlers(session_manager) -> MessageHandlerRegistry:
     Returns:
         Initialized MessageHandlerRegistry instance
     """
+    from backend.src.core.config_service import get_config_service
+    
     registry = initialize_handler_registry()
+    config_service = get_config_service()
 
     # Register handlers
     registry.register("ping", PingMessageHandler())
@@ -50,5 +55,6 @@ def initialize_handlers(session_manager) -> MessageHandlerRegistry:
     registry.register("load-settings", LoadSettingsHandler())
     registry.register("update-settings", UpdateSettingsHandler(session_manager))
     registry.register("list-models", ListModelsHandler())
+    registry.register("wakeword-detected", WakewordHandler(config_service.get_config()))
 
     return registry

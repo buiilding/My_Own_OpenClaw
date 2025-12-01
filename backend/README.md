@@ -46,21 +46,21 @@ You can also create/edit this file manually. See `backend/src/core/config.py` fo
 
 ```powershell
 cd backend
-python -m backend.src.main
+python -m src.main
 ```
 
 Or using uvicorn directly:
 
 ```powershell
 cd backend
-uvicorn backend.src.main:app --host 0.0.0.0 --port 8765 --reload
+uvicorn src.main:app --host 0.0.0.0 --port 8765 --reload
 ```
 
 ### Production Mode
 
 ```powershell
 cd backend
-uvicorn backend.src.main:app --host 0.0.0.0 --port 8765
+uvicorn src.main:app --host 0.0.0.0 --port 8765
 ```
 
 ## Configuration
@@ -106,6 +106,8 @@ backend/
 
 - **Dependency Injection**: Using `dependency-injector` for clean architecture
 - **SDK-Based Tools**: All tools inherit from `backend.src.sdk.tool.Tool`
+- **Agent SDK**: Specialized agents for complex multi-step tasks with sub-conversations
+- **Vision Services**: AI-powered visual understanding with InternVL models for UI interaction
 - **Type Safety**: Strict type hints with mypy support
 - **Async I/O**: Fully asynchronous using `aiofiles` and `aiosqlite`
 - **Caching**: Built-in caching for tool schemas, embeddings, and LLM clients
@@ -149,9 +151,8 @@ isort src/
 If you encounter import errors, ensure you're running from the project root and that `backend` is in your Python path:
 
 ```powershell
-# From project root
-$env:PYTHONPATH = "$PWD"
-python -m backend.src.main
+# From backend directory
+python -m src.main
 ```
 
 ### Configuration Not Found
@@ -170,7 +171,11 @@ If you encounter SQLite errors, ensure the database directory exists and is writ
 
 ### Technical Documentation
 - [Architecture Overview](docs/architecture.md) - System architecture
+- [Bootstrap System](docs/bootstrap_system.md) - System initialization and startup
+- [Core Services](docs/core_services.md) - Infrastructure services and components
 - [Tool Development Guide](docs/tool_development.md) - Creating tools
+- [LLM Providers](docs/llm_providers.md) - LLM provider implementations
+- [Plugin System](docs/plugin_system.md) - Plugin architecture and development
 - [API Reference](docs/api_reference.md) - API documentation
 - [Extension Points Guide](docs/extension_points.md) - Extension guide
 

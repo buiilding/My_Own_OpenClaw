@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 /**
  * Custom hook for managing streaming message responses.
@@ -121,7 +121,7 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   }, [setMessages, setIsSending, setThinkingStatus]);
 
-  return {
+  return useMemo(() => ({
     handlePongResponse,
     handleLlmThought,
     handleStreamingResponse,
@@ -129,5 +129,13 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
     handleToolCall,
     handleToolOutput,
     handleError,
-  };
+  }), [
+    handlePongResponse,
+    handleLlmThought,
+    handleStreamingResponse,
+    handleStreamingComplete,
+    handleToolCall,
+    handleToolOutput,
+    handleError
+  ]);
 }
