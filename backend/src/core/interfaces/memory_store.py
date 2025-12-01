@@ -85,3 +85,26 @@ class MemoryStoreInterface(Protocol):
         """
         ...
 
+    async def get_in_time_range(
+        self,
+        user_id: str,
+        start_time: Any, # Using Any to avoid import overhead in interface file, implementation uses datetime
+        end_time: Any,
+        memory_type: Optional[str] = None,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get memories created within a specific time range.
+        
+        Args:
+            user_id: User identifier
+            start_time: Start datetime
+            end_time: End datetime
+            memory_type: Optional filter by memory type
+            limit: Maximum number of results
+            
+        Returns:
+            List of memory dictionaries sorted by timestamp (newest first)
+        """
+        ...
+
