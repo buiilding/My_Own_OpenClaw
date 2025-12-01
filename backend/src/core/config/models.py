@@ -139,6 +139,17 @@ class AppConfig(BaseModel):
     # Voice Mode Settings
     voice_mode_enabled: bool = False
 
+    # Wakeword Settings
+    wakeword_enabled: bool = True
+    wakeword_phrase: str = "hey jarvis"
+    wakeword_greetings: List[str] = Field(default_factory=lambda: [
+        "Hello! I'm listening.",
+        "Hi there! How can I help you?",
+        "Yes? I'm here to assist.",
+        "Good day! What can I do for you?",
+        "Hello! Ready to help."
+    ])
+
     # TTS Settings
     tts_enabled: bool = False
     tts_model_path: Optional[str] = None

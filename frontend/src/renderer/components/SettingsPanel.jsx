@@ -40,7 +40,7 @@ SaveStatusFeedback.propTypes = {
  * @param {Function} props.onConfigChange - Callback function to save updated settings.
  * @param {string} props.saveStatus - The current status of the save operation.
  */
-function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = 'idle' }) {
+function SettingsPanel({ config, availableModels = { local: [], online: [] }, onConfigChange, saveStatus = 'idle' }) {
   const [modelMode, setModelMode] = useState('online');
   const [selectedModelId, setSelectedModelId] = useState('');
   const [selectedProvider, setSelectedProvider] = useState('');
@@ -218,11 +218,13 @@ function SettingsPanel({ config, availableModels, onConfigChange, saveStatus = '
               disabled={isSaving}
             >
               <option value="">-- Select a model --</option>
-              {currentModels.map((model) => {
+              {currentModels.map((model, index) => {
                 // Format display: "model-id (provider)"
                 const displayText = `${model.id} (${model.provider})`;
+                // Use combination of id and provider for unique key, fallback to index if needed
+                const uniqueKey = `${model.id}-${model.provider}-${index}`;
                 return (
-                  <option key={model.id} value={model.id}>
+                  <option key={uniqueKey} value={model.id}>
                     {displayText}
                   </option>
                 );
@@ -303,10 +305,6 @@ SettingsPanel.propTypes = {
   }),
   onConfigChange: PropTypes.func.isRequired,
   saveStatus: PropTypes.oneOf(['idle', 'saving', 'success', 'error']),
-};
-
-SettingsPanel.defaultProps = {
-  availableModels: { local: [], online: [] },
 };
 
 export default SettingsPanel;

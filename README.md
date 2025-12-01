@@ -94,7 +94,7 @@ See our [Project Roadmap](docs/ROADMAP.md) for the complete development timeline
 - **Custom Development**: Framework for building your own tools
 - **Sandbox Execution**: Isolated tool execution for safety
 
-### 🎤 **Voice Integration** (Coming Soon)
+### 🎤 **Voice Integration** (In Progress)
 - **Natural Speech**: Voice commands and responses
 - **Wake Word Detection**: Hands-free activation
 - **Multi-Provider STT/TTS**: Choose from Whisper, cloud APIs, or local engines
@@ -111,7 +111,7 @@ See our [Project Roadmap](docs/ROADMAP.md) for the complete development timeline
 
 ### Prerequisites
 - **Windows 10/11, macOS, or Linux**
-- **Python 3.10+** (and Conda for environment management)
+- **Python 3.9+** (and Conda for environment management)
 - **Node.js 18+** and npm
 - **Git**
 
@@ -119,18 +119,17 @@ See our [Project Roadmap](docs/ROADMAP.md) for the complete development timeline
 
 #### 1. Clone the Repository
 ```bash
-git clone https://github.com/buiilding/ALL_OR_NOTHING.git
-cd ALL_OR_NOTHING
+git clone <repository-url>
+cd personal-assistant
 ```
 
 #### 2. Backend Setup
 ```bash
-# Create and activate a Conda environment
-conda create --name desktop-assistant-env python=3.10 -y
-conda activate desktop-assistant-env
+# Navigate to backend directory
+cd backend
 
 # Install Python dependencies
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
 ```
 
 #### 3. Frontend Setup
@@ -162,7 +161,7 @@ export OPENAI_API_KEY="dummy-key"
 # A valid API key is only required if you set OpenAI as the active provider.
 
 # Run the server as a module from the project root
-python -m backend.server
+python -m backend.src.main
 ```
 
 **Terminal 2: Start the Frontend UI (Vite)**
@@ -185,18 +184,13 @@ This project has two separate test suites: one for the Python backend and one fo
     ```bash
     cd backend
     ```
-2.  Create and activate a Conda environment:
-    ```bash
-    conda create --name desktop-assistant-env python=3.10 -y
-    conda activate desktop-assistant-env
-    ```
-3.  Install dependencies:
+2.  Install dependencies:
     ```bash
     pip install -r requirements.txt
     ```
-4.  Run the tests:
+3.  Run the tests:
     ```bash
-    pytest
+    pytest ../tests/backend
     ```
 
 #### Frontend Tests (Jest)
@@ -215,28 +209,32 @@ This project has two separate test suites: one for the Python backend and one fo
 
 ### Current Development Focus
 
-With Milestone 2 complete, our focus now shifts to **Milestone 3: Memory System**. If you want to contribute, check out:
+With the core AI assistant fully functional, our focus now includes:
 
-- [Open Issues](https://github.com/yourusername/desktop-assistant/issues)
-- [Milestone 3: Memory System](https://github.com/yourusername/desktop-assistant/milestone/3)
-- Look for issues tagged with `good-first-issue`
+- **Voice Integration**: Adding STT/TTS capabilities for natural interaction
+- **Advanced Features**: Enhanced marketplace tools and monitoring capabilities
+- **Performance Optimization**: Further improvements to CUDA acceleration and memory usage
+- **User Experience**: Polish and additional features for better usability
+
+If you want to contribute, check out:
+
+- [Open Issues](https://github.com/buiilding/ALL_OR_NOTHING/issues)
+- Look for issues tagged with `good-first-issue`, `help-wanted`, or `enhancement`
 
 ---
 
 ## 📖 Documentation
 
-### Project Planning
+### Project Documentation
+- **[Changelog](CHANGELOG.md)** - Version history and release notes
 - **[Project Roadmap](docs/ROADMAP.md)** - Complete development timeline and milestones
-- **[Code Standards](CODE_STANDARDS.md)** - Coding conventions and best practices
-- **[Contributing Guidelines](CONTRIBUTING.md)** - How to contribute to the project
-- **[Architecture Overview](docs/architecture.md)** - System design (will be created)
-
-### Future Documentation (Coming as Features Develop)
-- User Guide - How to use the assistant
-- Developer Guide - Technical contributor guide
-- Tool Development Guide - Creating marketplace tools
-- API Reference - Technical API documentation
-- FAQ - Common questions and troubleshooting
+- **[Backend Documentation](backend/docs/)** - Comprehensive backend documentation
+- **[User Guide](backend/docs/user_guide.md)** - Complete guide for end users
+- **[Developer Guide](backend/docs/DEVELOPER_GUIDE.md)** - Technical contributor guide
+- **[Architecture Overview](backend/docs/architecture.md)** - System design and patterns
+- **[API Reference](backend/docs/api_reference.md)** - Technical API documentation
+- **[Tool Development Guide](backend/docs/tool_development.md)** - Creating marketplace tools
+- **[Testing Guide](backend/docs/testing_guide.md)** - Testing patterns and best practices
 
 ---
 
@@ -292,7 +290,7 @@ This is a great time to get involved as a founding contributor. Whether you're e
 
 ### How to Contribute
 
-1. **Check Current Work**: Look at [Milestone 6 Issues](https://github.com/buiilding/ALL_OR_NOTHING/milestone/6)
+1. **Check Current Work**: Look at open [Issues](https://github.com/buiilding/ALL_OR_NOTHING/issues)
 2. **Read Guidelines**: Review [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_STANDARDS.md](CODE_STANDARDS.md)
 3. **Pick an Issue**: Comment on an issue to claim it (or create a new one)
 4. **Make Your Contribution**: Fork, branch, code, test, submit PR
@@ -361,10 +359,11 @@ New to open source? No problem! Look for issues tagged:
 - [ ] Audio processing pipeline
 
 #### Milestone 7: Advanced Features (Planned)
-- [ ] Active memory monitoring (optional tracking)
-- [ ] Advanced marketplace features
-- [ ] Plugin system expansion
-- [ ] Performance optimizations
+- [ ] Active memory monitoring and analytics
+- [ ] Advanced marketplace features and curation
+- [ ] Plugin system expansion and marketplace
+- [ ] Performance optimizations and scaling
+- [ ] Enhanced security and privacy features
 
 ### 📈 **Project Evolution**
 - **Started**: Basic IPC communication skeleton
@@ -394,14 +393,14 @@ New to open source? No problem! Look for issues tagged:
 - **License**: MIT
 - **Status**: Advanced Development - Full AI Assistant Implementation
 - **Team**: Open source, community-driven
-- **Lines of Code**: ~15,000+ lines across backend, frontend, and tools
+- **Lines of Code**: ~20,000+ lines across backend, frontend, and tools
 - **Key Technologies**:
   - **AI/ML**: SentenceTransformers, FAISS, RapidOCR, InternVL, CUDA acceleration
-  - **Backend**: FastAPI, WebSocket IPC, multi-agent coordination
+  - **Backend**: FastAPI, WebSocket IPC, dependency injection, async architecture
   - **Frontend**: Electron, React, real-time UI updates
-  - **Tools**: 15+ built-in tools, extensible marketplace system
-- **Performance**: GPU-accelerated embeddings and OCR processing
-- **Architecture**: Modular design with security validation and sandboxing
+  - **Tools**: 60+ built-in tools, verified marketplace system with security validation
+- **Performance**: GPU-accelerated embeddings, OCR, and vision processing
+- **Architecture**: Clean architecture with protocol interfaces, plugin system, and sandboxing
 
 ---
 
@@ -416,8 +415,8 @@ Inspired by:
 
 ## 📬 Contact & Community
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/desktop-assistant/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/desktop-assistant/discussions)
+- **Issues**: [GitHub Issues](https://github.com/buiilding/ALL_OR_NOTHING/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/buiilding/ALL_OR_NOTHING/discussions)
 - **Email**: contact@yourproject.com
 - **Discord**: [Join our community](#) (coming soon)
 
