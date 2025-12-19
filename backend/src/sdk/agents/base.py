@@ -1,122 +1,115 @@
 """
 SDK Agents Module.
 
-This module defines the base Agent class, which allows developers to define specialized
-agent workflows as Tools. An Agent IS-A Tool that spins up a sub-session to execute a task.
+This module defines the Agent class, which provides a clean API for creating
+sub-agents with custom personalities and tool restrictions.
 """
 import logging
-from typing import List
+from typing import List, Optional, TYPE_CHECKING
 
-from backend.src.sdk.context import ToolContext
-from backend.src.sdk.tool import TArgs, Tool
+if TYPE_CHECKING:
+    from backend.src.agent.core import AgentSession
 
 logger = logging.getLogger(__name__)
 
 
-class Agent(Tool[TArgs]):
+class Agent:
     """
-    An Agent is a specialized Tool that runs a conversation loop (workflow).
-
-    It inherits from Tool, so it can be registered and called just like any other tool.
-    However, its `run` method is pre-wired to spin up a sub-session and execute a task
-    using the AgentFactory service.
+    Agent API for creating sub-agents with custom personalities and tool restrictions.
+    
+    This is a thin wrapper around AgentSession creation that provides a clean,
+    intuitive API matching the pseudo-code structure.
+    
+    Agents inherit all infrastructure from the parent session (memory, plugins, tool registry)
+    but have:
+    - Their own conversation history (scoped)
+    - Restricted tools (filtered from parent's tool registry)
+    - Custom system prompt (personality)
+    - Overridden model_id (which LLM to use)
+    
+    Example:
+        agent = Agent(
+            parent_session=parent_session,
+            model_id="gemini-2.5-flash",
+            system_prompt="You are a helpful assistant...",
+            tools=["screenshot", "click_ocr_element"]
+        )
+        
+        response = await agent.respond(text="Open Chrome", image=screenshot_b64)
+        agent.clear_history()
     """
-
-    # Subclasses must define these
-    system_prompt: str
-    allowed_tools: List[str]
-
-    async def run(self, args: TArgs, ctx: ToolContext) -> dict:
+    
+    def __init__(
+        self,
+        parent_session: "AgentSession",
+        model_id: str,
+        system_prompt: str,
+        tools: Optional[List[str]] = None,
+    ):
         """
-        Standard Tool implementation that orchestrates the agent loop.
+        Initialize an Agent.
+        
+        Args:
+            parent_session: The parent AgentSession to inherit resources from
+            model_id: The model_id to use for this agent (overrides parent's selected_model_id)
+            system_prompt: Custom system prompt for the agent's personality
+            tools: List of allowed tool names. If None, no tools are allowed.
         """
-        # 1. Get AgentFactory
-        if not ctx.agents:
-            return {
-                "success": False,
-                "error": "AgentFactory service not available in context",
-                "llm_content": "Error: Agent system not available",
-            }
-
-        # 2. Get Parent Session
-        # The context factory puts the AgentSession object in ctx.services["session"]
-        parent_session = ctx.services.get("session")
-        if not parent_session:
-            return {
-                "success": False,
-                "error": "Parent AgentSession not available in context",
-                "llm_content": "Error: Context missing parent session",
-            }
-
-        # 3. Extract Task
-        task_description = self.get_task_from_args(args)
-        logger.info(f"Agent '{self.name}' starting task: {task_description[:50]}...")
-
-        try:
-            # 4. Create Sub-Agent Session
-            agent_session = ctx.agents.create_agent(
-                name=self.name,
-                system_prompt=self.system_prompt,
-                parent_session=parent_session,
-                tools=self.allowed_tools,
-            )
-
-            # 5. Run the Loop
-            # We need to consume the generator to let the agent run
-            # We'll accumulate the final response
-            final_response = ""
-
-            # Collect events (we could stream them to the parent if we wanted via callback?)
-            # For now, we just wait for completion.
-            async for event in agent_session.process_query(task_description):
-                if event["type"] == "error":
-                    logger.error(f"Agent '{self.name}' error: {event.get('content')}")
-                    return {
-                        "success": False,
-                        "error": f"Agent execution error: {event.get('content')}",
-                        "llm_content": f"Agent Error: {event.get('content')}",
-                    }
-
-            # 6. Retrieve Final Answer
-            # The agent's last message in history should be the answer
-            history = agent_session.history.get_history()
-            if history and history[-1]["role"] == "assistant":
-                final_response = history[-1].get("content", "")
-                # Handle multimodal content list if necessary (usually text for response)
-                if isinstance(final_response, list):
-                    # Extract text parts
-                    text_parts = [
-                        p["text"] for p in final_response if p.get("type") == "text"
-                    ]
-                    final_response = "".join(text_parts)
-            else:
-                final_response = "Agent finished without a final response."
-
-            return {
-                "success": True,
-                "llm_content": final_response,
-                "return_display": final_response,
-            }
-
-        except Exception as e:
-            logger.error(f"Agent '{self.name}' failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e),
-                "llm_content": f"Agent Execution Failed: {str(e)}",
-            }
-
-    def get_task_from_args(self, args: TArgs) -> str:
+        from backend.src.sdk.agents.session_builder import build_session
+        
+        self.parent_session = parent_session
+        self.model_id = model_id
+        self.system_prompt = system_prompt
+        self.tools = tools
+        
+        # Create the sub-session
+        self._session = build_session(
+            parent_session=parent_session,
+            model_id=model_id,
+            system_prompt=system_prompt,
+            tools=tools,
+        )
+    
+    async def respond(
+        self, 
+        text: str, 
+        image: Optional[str] = None,
+        collect_tool_calls: bool = False
+    ) -> str | tuple[str, list[dict]]:
         """
-        Helper to extract the main instruction string from the arguments.
-        Developers can override this if their args are complex.
+        Send a query to the agent and get the response.
+        
+        The agent will run its tool loop automatically if tools are available.
+        When the agent stops calling tools, it returns the final response text.
+        
+        Args:
+            text: The text query to send to the agent
+            image: Optional base64-encoded image data for multimodal queries
+            collect_tool_calls: If True, also return list of tool calls made
+            
+        Returns:
+            The final response text as a plain string, or tuple (response, tool_calls) if collect_tool_calls=True
         """
-        # Default strategies to find the "prompt"
-        for attr in ["task", "query", "instruction", "topic", "question", "prompt"]:
-            if hasattr(args, attr):
-                val = getattr(args, attr)
-                if isinstance(val, str):
-                    return val
-
-        # Fallback: string representation
-        return str(args.model_dump())
+        from backend.src.sdk.agents.response_extractor import extract_response
+        
+        return await extract_response(self._session, text, image, collect_tool_calls=collect_tool_calls)
+    
+    def clear_history(self) -> None:
+        """
+        Clear the agent's conversation history.
+        
+        This clears all user and assistant messages but keeps the system prompt
+        (which is stored in PromptConstructor, not in history).
+        """
+        self._session.history.clear()
+        logger.debug(f"Cleared history for agent session {self._session.session_id}")
+    
+    @property
+    def session(self) -> "AgentSession":
+        """
+        Access the underlying AgentSession if needed for advanced use cases.
+        
+        Returns:
+            The underlying AgentSession instance
+        """
+        return self._session

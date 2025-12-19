@@ -139,9 +139,17 @@ class AgentSession:
             # Update memory manager configuration as well
             await self.memory_manager.update_config(new_cfg)
 
-    async def process_query(self, query: str) -> AsyncGenerator[Dict[str, Any], None]:
+    async def process_query(
+        self, 
+        query: str, 
+        image_data: Optional[str] = None
+    ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Processes a user query and yields status updates and response chunks.
+        
+        Args:
+            query: The user's query text
+            image_data: Optional base64-encoded image data for multimodal queries
         """
         async with self._lock:
             if not self.cfg.selected_model_id:
@@ -151,5 +159,5 @@ class AgentSession:
                 }
                 return
 
-            async for event in self.executor.process_query(query):
+            async for event in self.executor.process_query(query, image_data=image_data):
                 yield event

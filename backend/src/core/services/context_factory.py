@@ -50,6 +50,7 @@ class ContextFactory:
         self.tool_loader = tool_loader
         self.session_ref = session_ref
         self.agent_factory = agent_factory
+        self.vision_service: Optional[Any] = None
     
     def set_tool_registry(self, tool_registry: "ToolRegistry") -> None:
         """
@@ -63,6 +64,15 @@ class ContextFactory:
     def set_agent_factory(self, agent_factory: Any) -> None:
         """Set the agent factory."""
         self.agent_factory = agent_factory
+
+    def set_vision_service(self, vision_service: Optional[Any]) -> None:
+        """
+        Set the vision service (for pre-initialized InternVL model).
+        
+        Args:
+            vision_service: VisionService instance or None
+        """
+        self.vision_service = vision_service
     
     def create_tool_context(
         self,
@@ -107,17 +117,21 @@ class ContextFactory:
                 services["workspace_context"] = self.tool_loader.services.get_workspace_context()
                 services["storage_service"] = self.tool_loader.services.get_storage_service()
         
-        # Add session reference if available (for session-scoped data like OCR cache)
+        # Add session reference if available (for session-scoped data)
         if effective_session_ref:
             services["session"] = effective_session_ref
         
-        # Add tool search engine if available
-        if hasattr(self.tool_registry, "tool_search_engine"):
+        # Add tool search engine if available and not None
+        if hasattr(self.tool_registry, "tool_search_engine") and self.tool_registry.tool_search_engine is not None:
             services["tool_search_engine"] = self.tool_registry.tool_search_engine
         
         # Add agent factory if available
         if self.agent_factory:
             services["agent_factory"] = self.agent_factory
+
+        # Add vision service if available (pre-initialized InternVL model)
+        if self.vision_service:
+            services["vision_service"] = self.vision_service
 
         # Merge additional services
         if additional_services:

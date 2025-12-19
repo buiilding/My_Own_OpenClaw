@@ -5,7 +5,7 @@ This module implements the main agent execution loop that processes user queries
 manages tool execution, handles LLM streaming, and coordinates memory operations.
 """
 import logging
-from typing import TYPE_CHECKING, AsyncGenerator
+from typing import TYPE_CHECKING, AsyncGenerator, Optional
 
 from backend.src.agent.interaction_loop import InteractionLoop
 from backend.src.agent.plugins.manager import PluginManager
@@ -58,15 +58,23 @@ class AgentExecutor:
             result_processor=self.result_processor,
         )
 
-    async def process_query(self, query: str) -> AsyncGenerator[StreamingEvent, None]:
+    async def process_query(
+        self, 
+        query: str, 
+        image_data: Optional[str] = None
+    ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Processes a user query and yields status updates and response chunks.
+        
+        Args:
+            query: The user's query text
+            image_data: Optional base64-encoded image data for multimodal queries
         """
         # 1. Retrieve memories for this user query and format with message
         user_message_with_memory = await self._retrieve_and_format_memories(query)
 
-        # Add user query with memory to history (as user message)
-        self.session.history.add_user_message(user_message_with_memory)
+        # Add user query with memory to history (as user message) with optional image data
+        self.session.history.add_user_message(user_message_with_memory, image_data=image_data)
 
         # 2. Execute Main Loop
         async for event in self.interaction_loop.run_loop():

@@ -39,7 +39,7 @@ class ResultProcessor:
             Dictionary containing processed output fields (tool_message, screenshot_data)
         """
         
-        # 1. Plugin Hooks (e.g. Computer Use, OCR)
+        # 1. Plugin Hooks (e.g. Computer Use)
         plugin_result = await self.plugin_manager.on_tool_end(
             tool_name, result
         )
@@ -49,15 +49,6 @@ class ResultProcessor:
             if result.artifacts is None:
                 result.artifacts = {}
             result.artifacts.update(plugin_result.artifacts)
-            
-            # Store OCR results in session for ClickOCRTool access
-            if "ocr_results" in plugin_result.artifacts:
-                # Initialize OCR cache if needed
-                if not hasattr(self.session, "_ocr_results_cache"):
-                    self.session._ocr_results_cache = {}
-                # Store latest OCR results
-                self.session._ocr_results_cache["latest"] = plugin_result.artifacts["ocr_results"]
-                logger.debug(f"Stored {len(plugin_result.artifacts['ocr_results'])} OCR results in session cache")
         
         # Extract screenshot data (helper method to avoid nested checks)
         screenshot_data = self._extract_screenshot_data(result, plugin_result)
@@ -65,7 +56,7 @@ class ResultProcessor:
         # Construct the full tool message for both History and UI
         # This ensures the UI displays EXACTLY what the LLM sees in its history
         if result.success:
-            # Use llm_content which may include OCR results from plugin
+            # Use llm_content from tool result
             content = result.llm_content or result.return_display or str(result.data or "No output")
             tool_message = f"TOOL EXECUTED SUCCESSFULLY: {tool_name}\n\n Tool Output:\n{content}"
         else:

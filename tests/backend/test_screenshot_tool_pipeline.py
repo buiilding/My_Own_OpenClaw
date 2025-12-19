@@ -2,12 +2,11 @@
 Test file for screenshot tool that simulates the full LLM tool call pipeline.
 
 This test demonstrates different scenarios for the screenshot tool:
-1. Taking a screenshot without OCR
-2. Taking a screenshot with OCR enabled
-3. Error cases (computer interface not available)
+1. Taking a screenshot
+2. Error cases (computer interface not available)
 
 All scenarios simulate LLM tool call format:
-{"functionCall": {"name": "screenshot", "args": {"include_ocr": true/false}}}
+{"functionCall": {"name": "screenshot", "args": {}}}
 
 The test goes through all the steps:
 1. Parse the LLM response
@@ -39,26 +38,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def test_screenshot_without_ocr():
+async def test_screenshot():
     """
-    Test screenshot tool without OCR enabled.
-    """
-    print("\n" + "="*60)
-    print("TEST 1: SCREENSHOT WITHOUT OCR")
-    print("="*60)
-
-    await run_screenshot_test(include_ocr=False, expect_success=True)
-
-
-async def test_screenshot_with_ocr():
-    """
-    Test screenshot tool with OCR enabled.
+    Test screenshot tool.
     """
     print("\n" + "="*60)
-    print("TEST 2: SCREENSHOT WITH OCR ENABLED")
+    print("TEST 1: SCREENSHOT")
     print("="*60)
 
-    await run_screenshot_test(include_ocr=True, expect_success=True)
+    await run_screenshot_test(expect_success=True)
 
 
 async def test_screenshot_error_case():
@@ -67,21 +55,20 @@ async def test_screenshot_error_case():
     For now, this just tests parameter validation.
     """
     print("\n" + "="*60)
-    print("TEST 3: SCREENSHOT PARAMETER VALIDATION")
+    print("TEST 2: SCREENSHOT PARAMETER VALIDATION")
     print("="*60)
 
-    # Test with invalid parameters - screenshot tool only takes include_ocr boolean
-    # So we'll test the successful case and verify the response structure
-    await run_screenshot_test(include_ocr=False, expect_success=True, verify_response=True)
+    # Test the successful case and verify the response structure
+    await run_screenshot_test(expect_success=True, verify_response=True)
 
 
-async def run_screenshot_test(include_ocr: bool, expect_success: bool = True, verify_response: bool = False):
+async def run_screenshot_test(expect_success: bool = True, verify_response: bool = False):
     """
     Run a single screenshot test with the given parameters.
     """
     # Step 1: Simulate LLM Response
     print("\n🔧 STEP 1: Simulating LLM Response")
-    llm_response = f'{{"functionCall": {{"name": "screenshot", "args": {{"include_ocr": {str(include_ocr).lower()}}}}}}}'
+    llm_response = '{"functionCall": {"name": "screenshot", "args": {}}}'
 
     print(f"LLM Response: {llm_response}")
 
@@ -194,12 +181,6 @@ async def run_screenshot_test(include_ocr: bool, expect_success: bool = True, ve
                         else:
                             print("⚠️  Response missing screenshot data")
 
-                        if "include_ocr" in data:
-                            actual_ocr = data["include_ocr"]
-                            if actual_ocr == include_ocr:
-                                print(f"✅ OCR setting correctly set to {include_ocr}")
-                            else:
-                                print(f"⚠️  OCR setting mismatch: expected {include_ocr}, got {actual_ocr}")
 
             else:
                 print("❌ FAILED" if expect_success else "❌ EXPECTED ERROR")
@@ -247,8 +228,7 @@ async def test_screenshot_tool_pipeline():
     print("=" * 80)
 
     # Test different screenshot scenarios
-    await test_screenshot_without_ocr()
-    await test_screenshot_with_ocr()
+    await test_screenshot()
     await test_screenshot_error_case()
 
     print("\n" + "=" * 80)
