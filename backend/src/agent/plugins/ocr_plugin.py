@@ -1,8 +1,8 @@
 """
 OCR Plugin for Agent.
 
-This plugin performs OCR analysis on screenshots captured by the screenshot tool,
-enabling text detection and interaction capabilities.
+This plugin provides OCR analysis functionality for screenshots.
+Tools can use the perform_ocr() method to analyze screenshots.
 """
 import logging
 import base64
@@ -49,14 +49,13 @@ def get_ocr_plugin_instance():
 
 class OCRPlugin(AgentPlugin):
     """
-    Plugin that performs OCR analysis on screenshots.
+    Plugin that provides OCR analysis functionality for screenshots.
     
-    Automatically processes screenshots from the screenshot tool and adds
-    OCR results to artifacts for use by other tools like ClickOCRTool.
+    Provides OCR engine that can be used by tools like ClickOCRTool.
     """
     name = "ocr_analysis"
     version = "1.0.0"
-    description = "Performs OCR analysis on screenshots for text detection"
+    description = "Provides OCR analysis functionality for screenshots"
 
     def __init__(self, enabled: bool = True):
         """
@@ -67,125 +66,6 @@ class OCRPlugin(AgentPlugin):
         """
         self.enabled = enabled
         self._ocr_engine = None
-
-    async def on_tool_end(self, tool_name: str, result: Any) -> Optional[PluginResult]:
-        """
-        Process screenshot tool results and perform OCR if needed.
-        
-        Args:
-            tool_name: Name of the tool that finished executing
-            result: The tool's execution result
-            
-        Returns:
-            PluginResult with OCR results in artifacts, or None
-        """
-        # Only process screenshot tool results
-        if tool_name != "screenshot":
-            return None
-        
-        if not self.enabled:
-            return None
-        
-        if not OCR_AVAILABLE:
-            logger.warning("OCR requested but rapidocr is not installed")
-            return None
-
-        try:
-            # Check if OCR was requested by the AI
-            include_ocr = self._check_ocr_requested(result)
-            if not include_ocr:
-                logger.debug("OCR not requested for this screenshot, skipping")
-                return None
-            
-            # Extract screenshot data from result
-            screenshot_data = self._extract_screenshot_data(result)
-            if not screenshot_data:
-                return None
-
-            # Perform OCR
-            ocr_results = await self._perform_ocr(screenshot_data)
-            if not ocr_results:
-                return None
-
-            # Format OCR results as string to append to message
-            ocr_text = self._format_ocr_results(ocr_results)
-            
-            # Modify the result's llm_content to include OCR text
-            # The plugin receives ToolResult (dataclass) from executor
-            if hasattr(result, "llm_content"):
-                # ToolResult is a dataclass, so we can modify it directly
-                result.llm_content = (result.llm_content or "") + f"\n\n{ocr_text}"
-            elif isinstance(result, dict):
-                # Fallback for dict format (shouldn't happen, but safe)
-                if "llm_content" in result:
-                    result["llm_content"] = (result.get("llm_content") or "") + f"\n\n{ocr_text}"
-                elif "data" in result and isinstance(result["data"], dict):
-                    if "llm_content" in result["data"]:
-                        result["data"]["llm_content"] = (result["data"].get("llm_content") or "") + f"\n\n{ocr_text}"
-
-            # Return OCR results in artifacts (for session cache and click mapping)
-            return PluginResult(
-                artifacts={
-                    "ocr_results": ocr_results,
-                    "ocr_enabled": True,
-                }
-            )
-
-        except Exception as e:
-            logger.error(f"OCR plugin error: {e}", exc_info=True)
-            return None
-
-    def _format_ocr_results(self, ocr_results: List[Dict[str, Any]]) -> str:
-        """
-        Format OCR results as a string to append to message.
-        
-        Args:
-            ocr_results: List of OCR result dictionaries
-            
-        Returns:
-            Formatted string with OCR text elements
-        """
-        if not ocr_results:
-            return ""
-        
-        ocr_text = f"OCR Analysis detected {len(ocr_results)} text elements:"
-        for i, ocr_result in enumerate(ocr_results[:10]):  # Limit to first 10 for brevity
-            text = ocr_result.get('text', '')
-            confidence = ocr_result.get('confidence', 0.0)
-            ocr_text += f"\n{i+1}. '{text}' (confidence: {confidence:.2f})"
-        if len(ocr_results) > 10:
-            ocr_text += f"\n... and {len(ocr_results) - 10} more text elements"
-        
-        return ocr_text
-
-    def _check_ocr_requested(self, result: Any) -> bool:
-        """
-        Check if OCR was requested by checking the tool result.
-        
-        Args:
-            result: Tool execution result
-            
-        Returns:
-            True if OCR was requested, False otherwise
-        """
-        # Check if include_ocr flag is set in the result
-        # Handle dict format (SDK tools)
-        if isinstance(result, dict):
-            if "include_ocr" in result:
-                return bool(result["include_ocr"])
-            if "data" in result and isinstance(result["data"], dict):
-                if "include_ocr" in result["data"]:
-                    return bool(result["data"]["include_ocr"])
-        
-        # Handle ToolResult object format
-        if hasattr(result, "data"):
-            data = result.data
-            if isinstance(data, dict):
-                if "include_ocr" in data:
-                    return bool(data["include_ocr"])
-        
-        # Default: OCR not requested (conservative approach)
-        return False
 
     def _extract_screenshot_data(self, result: Any) -> Optional[str]:
         """
@@ -230,10 +110,11 @@ class OCRPlugin(AgentPlugin):
         
         return None
 
-    async def _perform_ocr(self, screenshot_b64: str) -> Optional[List[Dict[str, Any]]]:
+    async def perform_ocr(self, screenshot_b64: str) -> Optional[List[Dict[str, Any]]]:
         """
         Perform OCR analysis on a base64-encoded screenshot.
         
+        Public method for tools to use OCR functionality.
         Uses the pre-initialized OCR engine from startup (no reinitialization).
         
         Args:

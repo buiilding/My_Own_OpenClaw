@@ -53,6 +53,7 @@ await interface.initialize()
 - Screenshot capture with optional region selection
 - Safety measures for destructive operations
 - Coordinate scaling and normalization
+- Platform-specific scroll scaling (Windows: 120 units per tick, Mac/Linux: 1 unit per tick)
 - Action result tracking
 
 **Safety Features:**
@@ -83,6 +84,35 @@ await interface.click_mouse(button="right")
 - `move_mouse(x, y)`: Move cursor to absolute coordinates
 - `click_mouse(button, double_click)`: Perform mouse clicks
 - `scroll_mouse(direction, amount)`: Scroll operations
+
+### Scroll Control
+
+The scroll control system provides precise scrolling operations that match physical mouse wheel behavior.
+
+```python
+# Scroll down 3 ticks (notches) at current cursor position
+await interface.scroll_down(clicks=3)
+
+# Scroll up 1 tick
+await interface.scroll_up(clicks=1)
+
+# Scroll at specific coordinates
+await interface.scroll(x=500, y=300, scroll_clicks=5)
+```
+
+**Platform-Specific Behavior:**
+- **Windows**: Each `click` parameter represents one physical mouse wheel tick. Internally, this is scaled to 120 units (Windows WHEEL_DELTA standard) to match hardware behavior.
+- **Mac/Linux**: Each `click` parameter equals 1 unit, matching native scroll behavior.
+- The actual scroll distance in applications depends on:
+  - User's OS scroll sensitivity settings (e.g., "Scroll 3 lines at a time")
+  - Application-specific scroll behavior
+  - Content type (web pages, documents, etc.)
+
+**Scroll Methods:**
+- `scroll_down(clicks)`: Scroll down by specified number of ticks
+- `scroll_up(clicks)`: Scroll up by specified number of ticks
+- `scroll(x, y, scroll_clicks)`: Scroll at specific coordinates
+- `scroll_at_cursor(clicks)`: Scroll at current cursor position
 
 ### Keyboard Control
 
@@ -280,6 +310,13 @@ class ScrollTool(Tool[ScrollArgs]):
     description = "Scroll in specified direction"
 ```
 
+**Scroll Behavior:**
+- The `amount` parameter represents the number of **physical mouse wheel ticks** (notches)
+- On Windows, each tick is automatically scaled to 120 units (Windows WHEEL_DELTA standard)
+- On Mac/Linux, each tick equals 1 unit
+- This ensures that `amount=1` behaves like one physical mouse wheel notch regardless of platform
+- The actual scroll distance depends on the application and user's OS scroll sensitivity settings
+
 ## Vision Integration
 
 The computer control system integrates with vision services for advanced UI interaction:
@@ -435,7 +472,7 @@ result = await click_ocr_tool.run(
 
 - **Region-Specific Operations**: Limit operations to relevant screen areas
 - **Batch Processing**: Group related operations
-- **Async Execution**: Non-blocking computer control operations
+- **Async Execution**: All OS operations (mouse, keyboard, screenshots) run in a dedicated ThreadPoolExecutor to prevent blocking the main asyncio event loop, ensuring low latency and seamless operation
 
 ## Troubleshooting
 
@@ -495,13 +532,20 @@ print(f"Model loaded: {vision_model.is_loaded()}")
 
 | Method | Description | Parameters | Returns |
 |--------|-------------|------------|---------|
-| `initialize()` | Initialize computer control interface | - | `None` |
-| `move_mouse(x, y)` | Move mouse to coordinates | `x, y: int` | `ComputerActionResult` |
-| `click_mouse(button, double_click)` | Perform mouse click | `button: str, double_click: bool` | `ComputerActionResult` |
+| `initialize()` | Initialize computer control interface | - | `bool` |
+| `move_cursor(x, y)` | Move mouse to coordinates | `x, y: int` | `ComputerActionResult` |
+| `left_click(x, y)` | Perform left mouse click | `x, y: Optional[int]` | `ComputerActionResult` |
+| `right_click(x, y)` | Perform right mouse click | `x, y: Optional[int]` | `ComputerActionResult` |
+| `double_click(x, y)` | Perform double click | `x, y: Optional[int]` | `ComputerActionResult` |
+| `scroll_down(clicks)` | Scroll down by ticks | `clicks: int` | `ComputerActionResult` |
+| `scroll_up(clicks)` | Scroll up by ticks | `clicks: int` | `ComputerActionResult` |
+| `scroll(x, y, scroll_clicks)` | Scroll at coordinates | `x, y: int, scroll_clicks: int` | `ComputerActionResult` |
 | `type_text(text)` | Type text on keyboard | `text: str` | `ComputerActionResult` |
-| `press_key(*keys)` | Press key combination | `*keys: str` | `ComputerActionResult` |
-| `take_screenshot(region)` | Capture screen image | `region: tuple` | `ComputerActionResult` |
-| `extract_text_from_region(region)` | Extract text via OCR | `region: tuple` | `str` |
+| `press_key(key)` | Press single key | `key: str` | `ComputerActionResult` |
+| `hotkey(*keys)` | Press key combination | `*keys: str` | `ComputerActionResult` |
+| `screenshot()` | Capture screen image | - | `ComputerActionResult` |
+| `get_screen_size()` | Get screen dimensions | - | `Dict[str, int]` |
+| `get_cursor_position()` | Get current cursor position | - | `Dict[str, int]` |
 
 ### Tool Classes
 

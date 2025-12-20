@@ -69,6 +69,13 @@ class ToolRegistry:
         self.marketplace_manager = MarketplaceManager(tool_loader)
         self.schema_registry = SchemaRegistry()
 
+        # Tool search engine (set by factory after initialization)
+        self.tool_search_engine: Optional[Any] = None
+        
+        # Cache for marketplace tool instances loaded for schema generation
+        # These are lightweight instances used only for schema extraction
+        self._schema_tool_cache: Dict[str, SDKTool] = {}
+
         # Initialize context factory (create if not provided)
         if context_factory is None:
             self.context_factory = ContextFactory(
@@ -102,7 +109,6 @@ class ToolRegistry:
         if tool.name in self.tools:
             logger.warning(f"Tool '{tool.name}' is already registered. Overwriting.")
         self.tools[tool.name] = tool
-        logger.debug(f"Registered tool: {tool.name}")
 
     async def load_core_tools_async(self) -> None:
         """
@@ -116,9 +122,10 @@ class ToolRegistry:
 
         try:
             core_tools = await self.tool_loader.load_core_tools()
+            # Register all loaded tools
             for tool in core_tools:
                 self.register_tool(tool)
-            logger.info(f"Loaded {len(core_tools)} core tools into registry")
+            # Summary log already provided by tool_loader.load_core_tools()
         except Exception as e:
             logger.error(f"Failed to load core tools: {e}", exc_info=True)
 
@@ -143,6 +150,9 @@ class ToolRegistry:
         Get a tool by name.
 
         Checks built-in tools first, then marketplace tools if not found.
+        Only returns already-loaded tools (does not trigger lazy loading).
+
+        For schema generation with lazy loading, use get_all_tools() instead.
 
         Args:
             name: Name of the tool to retrieve
@@ -155,19 +165,67 @@ class ToolRegistry:
         if tool:
             return tool
 
-        # Check marketplace if available
-        return self.marketplace_manager.marketplace_instances.get(name)
+        # Check marketplace if available (already instantiated or cached)
+        tool = self.marketplace_manager.marketplace_instances.get(name)
+        if tool:
+            return tool
+        
+        # Check schema cache (for tools loaded for schema generation)
+        tool = self._schema_tool_cache.get(name)
+        if tool:
+            return tool
+
+        return None
 
     def get_all_tools(self) -> List[SDKTool]:
         """
-        Get all registered tools (built-in + instantiated marketplace).
+        Get all registered tools (built-in + marketplace).
+        
+        For marketplace tools, includes both instantiated tools and loads
+        non-instantiated tools for schema generation. This ensures marketplace
+        tools are available in function declarations even before first use.
 
         Returns:
             List of all registered SDK tools
         """
         all_tools = list(self.tools.values())
+        
+        # Add instantiated marketplace tools
         all_tools.extend(self.marketplace_manager.get_all_instances())
+        
+        # Load non-instantiated marketplace tools for schema generation
+        # This ensures schemas are available even if tools haven't been called yet
+        for tool_name, metadata in self.marketplace_manager.marketplace_tools.items():
+            if tool_name not in self.marketplace_manager.marketplace_instances:
+                # Check cache first
+                if tool_name in self._schema_tool_cache:
+                    all_tools.append(self._schema_tool_cache[tool_name])
+                else:
+                    tool_instance = self._load_marketplace_tool_for_schema(metadata)
+                    if tool_instance:
+                        self._schema_tool_cache[tool_name] = tool_instance
+                        all_tools.append(tool_instance)
+        
         return all_tools
+    
+    def _load_marketplace_tool_for_schema(self, metadata: ToolMetadata) -> Optional[SDKTool]:
+        """
+        Load a marketplace tool synchronously for schema generation.
+        
+        Delegates to ToolLoader's synchronous loading method to avoid code duplication.
+        This ensures consistent loading logic between async execution and sync schema generation.
+        
+        Args:
+            metadata: ToolMetadata for the tool to load
+            
+        Returns:
+            Tool instance or None if loading fails
+        """
+        if not self.tool_loader:
+            return None
+        
+        # Use ToolLoader's synchronous loading method (shared logic)
+        return self.tool_loader.load_marketplace_tool_sync(metadata)
 
     def get_tool_names(self) -> List[str]:
         """
@@ -199,6 +257,9 @@ class ToolRegistry:
         """
         Get function declarations for specific tools.
         Uses caching to avoid regenerating schemas.
+        
+        Ensures marketplace tools are loaded for schema generation by using
+        get_all_tools() which handles lazy loading, then filters to requested tools.
 
         Args:
             tool_names: List of tool names to include
@@ -206,12 +267,15 @@ class ToolRegistry:
         Returns:
             List of function declarations for the specified tools
         """
-        tools = []
-        for name in tool_names:
-            tool = self.get_tool(name)
-            if tool:
-                tools.append(tool)
-        return self.schema_registry.get_declarations(tools)
+        # Use get_all_tools() to ensure marketplace tools are loaded for schema generation
+        # This handles lazy loading properly and uses the same path as get_function_declarations()
+        all_tools = self.get_all_tools()
+        tool_names_set = set(tool_names)
+        
+        # Filter to only requested tools
+        filtered_tools = [tool for tool in all_tools if tool.name in tool_names_set]
+        
+        return self.schema_registry.get_declarations(filtered_tools)
 
     def is_tool_available(self, tool_name: str) -> bool:
         """

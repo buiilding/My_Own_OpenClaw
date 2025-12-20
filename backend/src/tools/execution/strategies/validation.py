@@ -7,6 +7,9 @@ import logging
 import time
 from typing import Any, Optional
 
+from pydantic import ValidationError
+
+from backend.src.tools.execution.error_formatter import ToolErrorFormatter
 from backend.src.tools.execution.strategies.base import (
     ExecutionContext,
     ExecutionResult,
@@ -47,11 +50,11 @@ class ValidationExecutionStrategy(ExecutionStrategy):
 
         # Check if tool exists
         if not self.tool_registry.is_tool_available(tool_name):
-            error_msg = f"Tool '{tool_name}' is not available"
-            logger.error(f"VALIDATION FAILED: {error_msg}")
-            logger.error(
-                f"Available tools: {list(self.tool_registry.get_tool_names())}"
+            available_tools = list(self.tool_registry.get_tool_names())
+            error_msg = ToolErrorFormatter.format_tool_not_found_error(
+                tool_name, available_tools
             )
+            logger.error(f"VALIDATION FAILED: {error_msg}")
             return ExecutionResult(
                 success=False,
                 error=error_msg,
@@ -94,11 +97,35 @@ class ValidationExecutionStrategy(ExecutionStrategy):
             logger.debug(
                 f"Validation strategy: Parameters validated successfully for '{tool_name}'"
             )
-        except Exception as e:
-            error_msg = f"Invalid parameters for tool '{tool_name}': {str(e)}"
+        except ValidationError as e:
+            # Get tool schema for better error messages
+            tool_schema = None
+            try:
+                tool_schema = exec_context.tool.get_json_schema()
+            except Exception:
+                # If schema generation fails, continue without it
+                pass
+
+            error_msg = ToolErrorFormatter.format_validation_error(
+                error=e,
+                tool_name=tool_name,
+                tool_schema=tool_schema,
+                provided_params=exec_context.tool_call.parameters,
+            )
             logger.error(f"VALIDATION FAILED: {error_msg}")
-            logger.error(f"Tool args_model: {exec_context.tool.args_model}")
-            logger.error(f"Raw parameters: {exec_context.tool_call.parameters}")
+            return ExecutionResult(
+                success=False,
+                error=error_msg,
+                execution_time=execution_time,
+            )
+        except Exception as e:
+            # Non-validation errors (shouldn't happen, but handle gracefully)
+            error_msg = ToolErrorFormatter.format_generic_error(
+                error=e,
+                tool_name=tool_name,
+                context="parameter validation",
+            )
+            logger.error(f"VALIDATION FAILED: {error_msg}", exc_info=True)
             return ExecutionResult(
                 success=False,
                 error=error_msg,

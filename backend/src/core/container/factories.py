@@ -92,11 +92,12 @@ def _create_tool_search_engine(tool_registry):
         from backend.src.tools.marketplace.search import ToolSearchEngine
 
         engine = ToolSearchEngine(tool_registry)
-        # Update registry with search engine if it has the attribute
-        if hasattr(tool_registry, "tool_search_engine"):
-            tool_registry.tool_search_engine = engine
+        # Attach search engine to registry
+        tool_registry.tool_search_engine = engine
         return engine
     except ImportError:
+        logger = logging.getLogger(__name__)
+        logger.warning("ToolSearchEngine not available, marketplace search disabled")
         return None
 
 
@@ -152,3 +153,10 @@ def _create_tts_service(config: AppConfig):
     from backend.src.core.services.tts_service import TTSService
 
     return TTSService(config)
+
+
+def _create_vision_service():
+    """Create vision service."""
+    from backend.src.services.vision import VisionService
+
+    return VisionService()

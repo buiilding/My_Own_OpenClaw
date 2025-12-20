@@ -8,9 +8,12 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
+from pydantic import ValidationError
+
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.core.services.context_factory import ContextFactory
 from backend.src.llm.parser import ParsedToolCall
+from backend.src.tools.execution.error_formatter import ToolErrorFormatter
 from backend.src.tools.execution.strategies import ExecutionContext, ExecutionStrategy
 from backend.src.tools.execution.types import ToolExecutionResult
 from backend.src.tools.registry import ToolRegistry
@@ -77,15 +80,39 @@ class ToolExecutionEngine:
             tool = await self._get_tool_instance(tool_name)
             if not tool:
                 execution_time = time.time() - start_time
-                error_msg = f"Tool '{tool_name}' is not available"
+                available_tools = list(self.tool_registry.get_tool_names())
+                error_msg = ToolErrorFormatter.format_tool_not_found_error(
+                    tool_name, available_tools
+                )
                 return self._create_error_result(tool_call, error_msg, execution_time)
 
             # Validate parameters
             try:
                 args = tool.args_model(**tool_call.parameters)
+            except ValidationError as e:
+                execution_time = time.time() - start_time
+                # Get tool schema for better error messages
+                tool_schema = None
+                try:
+                    tool_schema = tool.get_json_schema()
+                except Exception:
+                    # If schema generation fails, continue without it
+                    pass
+
+                error_msg = ToolErrorFormatter.format_validation_error(
+                    error=e,
+                    tool_name=tool_name,
+                    tool_schema=tool_schema,
+                    provided_params=tool_call.parameters,
+                )
+                return self._create_error_result(tool_call, error_msg, execution_time)
             except Exception as e:
                 execution_time = time.time() - start_time
-                error_msg = f"Invalid parameters: {str(e)}"
+                error_msg = ToolErrorFormatter.format_generic_error(
+                    error=e,
+                    tool_name=tool_name,
+                    context="parameter validation",
+                )
                 return self._create_error_result(tool_call, error_msg, execution_time)
 
             # Build execution context
@@ -124,7 +151,11 @@ class ToolExecutionEngine:
                 f"Tool execution error for {tool_call.tool_name}: {e}", exc_info=False
             )
 
-            error_msg = f"Unexpected error executing {tool_call.tool_name}: {str(e)}"
+            error_msg = ToolErrorFormatter.format_generic_error(
+                error=e,
+                tool_name=tool_call.tool_name,
+                context="tool execution",
+            )
             return self._create_error_result(tool_call, error_msg, execution_time)
 
     async def execute_tool_by_name(

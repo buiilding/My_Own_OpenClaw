@@ -96,43 +96,25 @@ class MyTool(Tool[MyToolArgs]):
 
 The Agent SDK enables creation of specialized AI agents with custom behaviors and tool access.
 
-#### Base Agent Class
+#### Agent Class
+
+The `Agent` class provides a clean API for creating sub-agents with custom personalities and tool restrictions.
 
 ```python
-from typing import List
-from pydantic import BaseModel, Field
 from backend.src.sdk.agents.base import Agent
-from backend.src.sdk.context import ToolContext
+from backend.src.agent.core import AgentSession
 
-class ResearcherArgs(BaseModel):
-    """Arguments for the researcher agent."""
-    topic: str = Field(..., description="Topic to research")
+# Create an agent with custom configuration
+agent = Agent(
+    parent_session=parent_session,
+    model_id="gemini-2.5-flash",
+    system_prompt="You are a helpful assistant...",
+    tools=["screenshot", "click_ocr_element"]
+)
 
-class ResearcherAgent(Agent[ResearcherArgs]):
-    """A specialized research agent that creates sub-conversations."""
-
-    # Required attributes (inherited from Tool)
-    name = "researcher_agent"
-    description = "Researches topics and creates outlines"
-    args_model = ResearcherArgs
-
-    # Agent-specific configuration
-    system_prompt = """
-    You are an expert researcher.
-    Analyze the given topic and create a detailed outline.
-    Focus on structure and key points.
-    """
-
-    # Tools this agent can use in its sub-session
-    allowed_tools: List[str] = ["web_search", "read_file"]
-
-    # Optional: override how to extract task from args
-    def get_task_from_args(self, args: ResearcherArgs) -> str:
-        """Convert arguments to a task description."""
-        return f"Research the topic '{args.topic}' and create a detailed outline with key findings."
-
-    # The run method is pre-implemented in the Agent base class
-    # It creates a sub-session and executes the task using the LLM
+# Use the agent
+response = await agent.respond(text="Open Chrome", image=screenshot_b64)
+agent.clear_history()
 ```
 
 #### Agent System Prompt
@@ -488,69 +470,7 @@ class AgentOrchestratorTool(Tool[CreateAgentArgs]):
 
 ## Agent Development Patterns
 
-### Specialized Research Agent
-
-```python
-class ResearchAgent(Agent[ResearchArgs]):
-    name = "research_agent"
-    description = "Conducts in-depth research on topics"
-    args_model = ResearchArgs
-
-    system_prompt = """
-    You are an expert research analyst.
-
-    Your role:
-    - Analyze the given topic thoroughly
-    - Gather information from available sources
-    - Provide comprehensive, well-structured research
-    - Cite sources and provide evidence
-    - Identify trends and key insights
-
-    Output format:
-    - Executive summary
-    - Key findings
-    - Supporting evidence
-    - Recommendations
-    """
-
-    allowed_tools = ["web_search", "read_file", "run_terminal_cmd"]
-
-    async def run(self, args: ResearchArgs, ctx: Context) -> Dict[str, Any]:
-        # The system handles LLM interaction automatically
-        # Custom logic can be added here if needed
-        return {"topic": args.topic, "status": "research_completed"}
-```
-
-### Code Generation Agent
-
-```python
-class CodeGeneratorAgent(Agent[CodeGenArgs]):
-    name = "code_generator"
-    description = "Generates high-quality code based on specifications"
-    args_model = CodeGenArgs
-
-    system_prompt = """
-    You are an expert software engineer.
-
-    Code generation guidelines:
-    - Write clean, maintainable code
-    - Include proper error handling
-    - Add meaningful comments
-    - Follow language-specific best practices
-    - Consider edge cases and validation
-
-    Always provide:
-    - Complete, runnable code
-    - Usage examples
-    - Explanation of implementation choices
-    """
-
-    allowed_tools = ["run_terminal_cmd", "read_file", "search_replace"]
-
-    async def run(self, args: CodeGenArgs, ctx: Context) -> Dict[str, Any]:
-        # Custom pre/post processing can be added
-        return {"language": args.language, "task": args.task}
-```
+Note: Legacy `AgentTool` examples have been removed. Use the `Agent` class instead.
 
 ## Manifest System
 

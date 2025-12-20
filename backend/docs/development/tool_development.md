@@ -49,111 +49,34 @@ class MyTool(Tool[MyToolArgs]):
 
 ## Agent Development
 
-Agents are specialized tools that create sub-conversations to handle complex, multi-step tasks. An Agent IS-A Tool, meaning it can be registered and called just like any other tool, but internally it spins up a separate agent session with its own conversation loop.
+The `Agent` class provides a clean API for creating sub-agents with custom personalities and tool restrictions.
 
-### Basic Agent Structure
+### Basic Agent Usage
 
 ```python
-from typing import Dict, Any, List
-from pydantic import BaseModel, Field
 from backend.src.sdk.agents.base import Agent
-from backend.src.sdk.context import ToolContext
+from backend.src.agent.core import AgentSession
 
-class BlogWriterArgs(BaseModel):
-    """Arguments for blog writing agent."""
-    topic: str = Field(..., description="The topic to write about")
-    word_count: int = Field(default=800, description="Target word count")
-    style: str = Field(default="professional", description="Writing style")
+# Create an agent with custom configuration
+agent = Agent(
+    parent_session=parent_session,
+    model_id="gemini-2.5-flash",
+    system_prompt="You are a helpful assistant...",
+    tools=["screenshot", "click_ocr_element"]
+)
 
-class BlogWriterAgent(Agent[BlogWriterArgs]):
-    """Agent that writes blog posts."""
-
-    name = "blog_writer_agent"
-    description = "Writes comprehensive blog posts on given topics"
-    args_model = BlogWriterArgs
-
-    # Agent-specific configuration
-    system_prompt = """You are a professional blog writer. You have access to research tools,
-    writing assistants, and can break down complex topics into engaging articles."""
-
-    allowed_tools = [
-        "web_search",
-        "read_file",
-        "write_file",
-        "text_analyzer",
-        "content_planner"
-    ]
-
-    def get_task_from_args(self, args: BlogWriterArgs) -> str:
-        """Convert arguments to a task description for the agent."""
-        return f"""Write a {args.word_count}-word blog post about "{args.topic}"
-        in a {args.style} style. Research the topic thoroughly, create an outline,
-        and write an engaging article with proper structure, headings, and formatting."""
+# Use the agent
+response = await agent.respond(text="Open Chrome", image=screenshot_b64)
+agent.clear_history()
 ```
-
-### How Agents Work
-
-When an Agent tool is executed:
-
-1. **Session Creation**: A new sub-session is created with the agent's system prompt
-2. **Tool Access**: The sub-agent has access only to the specified `allowed_tools`
-3. **Task Execution**: The agent processes the task through its conversation loop
-4. **Result Collection**: The final response from the agent's last message is returned
 
 ### Agent Configuration
 
 #### System Prompt
-The `system_prompt` defines the agent's personality and capabilities:
-
-```python
-system_prompt = """You are an expert data analyst. You excel at:
-- Analyzing complex datasets
-- Creating insightful visualizations
-- Drawing meaningful conclusions
-- Explaining technical concepts clearly"""
-```
+The `system_prompt` defines the agent's personality and capabilities.
 
 #### Allowed Tools
-The `allowed_tools` list specifies which tools the agent can use:
-
-```python
-allowed_tools = [
-    "data_analyzer",
-    "chart_generator",
-    "file_reader",
-    "calculator",
-    "report_writer"
-]
-```
-
-### Advanced Agent Patterns
-
-#### Research Agent
-```python
-class ResearchAgent(Agent[ResearchArgs]):
-    """Agent specialized in research tasks."""
-
-    system_prompt = "You are a research specialist who thoroughly investigates topics..."
-    allowed_tools = ["web_search", "academic_search", "data_extractor", "note_taker"]
-
-    def get_task_from_args(self, args: ResearchArgs) -> str:
-        return f"Research the topic '{args.topic}' and provide a comprehensive summary..."
-```
-
-#### Multi-Step Workflow Agent
-```python
-class ProjectManagerAgent(Agent[ProjectArgs]):
-    """Agent that manages complex projects."""
-
-    system_prompt = "You are a project manager who breaks down complex tasks..."
-    allowed_tools = ["task_planner", "resource_allocator", "progress_tracker", "team_communicator"]
-
-    def get_task_from_args(self, args: ProjectArgs) -> str:
-        return f"""Manage the project: {args.project_name}
-        Goals: {args.goals}
-        Deadline: {args.deadline}
-        Resources: {args.resources}"""
-```
+The `tools` parameter specifies which tools the agent can use. Pass `None` for no tools.
 
 ### Agent Context and Services
 
@@ -690,53 +613,7 @@ Agents are specialized tools that create sub-conversations to execute complex, m
 
 ### Creating Custom Agents
 
-Agents inherit from the `Agent` base class, which provides the infrastructure for managing sub-sessions and tool orchestration.
-
-```python
-from typing import List
-from pydantic import BaseModel, Field
-from backend.src.sdk.agents.base import Agent
-from backend.src.sdk.context import ToolContext
-
-class BlogWriterArgs(BaseModel):
-    """Arguments for blog writing agent."""
-    topic: str = Field(..., description="The topic to write about")
-    target_audience: str = Field(default="general", description="Target audience for the blog post")
-    word_count: int = Field(default=800, description="Approximate word count")
-
-class BlogWriterAgent(Agent[BlogWriterArgs]):
-    """An agent that writes comprehensive blog posts."""
-
-    name = "blog_writer"
-    description = "Write comprehensive blog posts on given topics"
-    args_model = BlogWriterArgs
-
-    # Required agent configuration
-    system_prompt = """
-    You are an expert blog writer. Your task is to create engaging, well-researched blog posts.
-    Use available tools to research the topic, gather information, and write comprehensive content.
-    Structure your posts with:
-    - Compelling introduction
-    - Well-organized sections with headings
-    - Practical examples and insights
-    - Strong conclusion with actionable takeaways
-    """
-
-    # Specify which tools this agent can use in its sub-session
-    allowed_tools: List[str] = [
-        "web_search",      # For research
-        "read_file",       # For reading existing content
-        "write_file",      # For saving drafts
-        "run_shell_command" # For running formatters, etc.
-    ]
-
-    # Optional: customize how arguments are converted to task description
-    def get_task_from_args(self, args: BlogWriterArgs) -> str:
-        """Convert arguments to a task description for the agent."""
-        return f"""Write a {args.word_count}-word blog post about "{args.topic}"
-        for a {args.target_audience} audience. Research thoroughly, create an outline,
-        and write an engaging article with proper structure and formatting."""
-```
+Use the `Agent` class to create sub-agents with custom personalities and tool restrictions. See the Agent SDK documentation for details.
 
 ### Agent System Prompt
 
@@ -801,67 +678,7 @@ When called, agents follow this execution pattern:
 
 ### Advanced Agent Patterns
 
-#### Sequential Task Agents
-
-Agents that break work into clear phases:
-
-```python
-class ResearchPaperAgent(Agent[ResearchArgs]):
-    """Agent that writes research papers."""
-
-    system_prompt = """
-    You are a research paper writing specialist. Follow this process:
-
-    Phase 1: Research and Literature Review
-    - Search for relevant papers and studies
-    - Identify key findings and methodologies
-    - Note contradictory evidence
-
-    Phase 2: Outline Development
-    - Create detailed paper structure
-    - Define research questions and hypotheses
-    - Plan evidence presentation
-
-    Phase 3: Content Writing
-    - Write introduction and background
-    - Present methodology and results
-    - Discuss implications and conclusions
-
-    Phase 4: Review and Editing
-    - Check for logical flow
-    - Verify citations and references
-    - Polish language and clarity
-    """
-
-    allowed_tools = [
-        "web_search",
-        "read_file",
-        "write_file",
-        "run_shell_command"
-    ]
-```
-
-#### Collaborative Agents
-
-Agents that work together by calling other agents:
-
-```python
-class ProjectManagerAgent(Agent[ProjectArgs]):
-    """Agent that manages complex projects by coordinating other agents."""
-
-    system_prompt = """
-    You are a project manager agent. Break down complex projects into tasks
-    and delegate to specialized agents. Coordinate their outputs and ensure
-    project completion.
-    """
-
-    allowed_tools = [
-        "blog_writer_agent",    # For documentation
-        "code_reviewer_agent",  # For code review
-        "testing_agent",        # For quality assurance
-        "deployment_agent"      # For deployment tasks
-    ]
-```
+Note: Legacy `AgentTool` examples have been removed. Use the `Agent` class instead.
 
 ### Agent Context and State
 
@@ -890,9 +707,7 @@ Agents maintain their own conversation history and can access:
 
 #### Error Handling
 
-```python
-class RobustAgent(Agent[TaskArgs]):
-    """Agent with comprehensive error handling."""
+Note: Legacy `AgentTool` examples have been removed. Use the `Agent` class instead.
 
     system_prompt = """
     You are a robust task executor. If you encounter issues:

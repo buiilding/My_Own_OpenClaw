@@ -2,16 +2,15 @@
 Test file for click_ocr_element tool that simulates the full LLM tool call pipeline.
 
 This test demonstrates different scenarios for the click_ocr_element tool:
-1. Clicking OCR element by ID
-2. Clicking OCR element by deprecated 'id' parameter
-3. Different click types (single, double, right)
-4. Error cases (missing OCR ID, no OCR data available)
+1. Clicking OCR element by text search
+2. Different click types (single, double, right)
+3. Error cases (missing text, no matching text found)
 
-The click_ocr_element tool works with OCR data from previous screenshots.
-It allows clicking on text elements that were detected in screenshots.
+The click_ocr_element tool takes a screenshot, performs OCR, and searches for
+matching text using fuzzy matching. If exactly one match is found, it clicks on it.
 
 All scenarios simulate LLM tool call format:
-{"functionCall": {"name": "click_ocr_element", "args": {"ocr_id": 5, "click_type": "single"}}}
+{"functionCall": {"name": "click_ocr_element", "args": {"text": "Search", "click_type": "single"}}}
 
 The test goes through all the steps:
 1. Parse the LLM response
@@ -43,15 +42,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def test_click_ocr_by_id():
+async def test_click_ocr_by_text():
     """
-    Test clicking OCR element by ID.
+    Test clicking OCR element by text search.
     """
     print("\n" + "="*60)
-    print("TEST 1: CLICK OCR ELEMENT BY ID")
+    print("TEST 1: CLICK OCR ELEMENT BY TEXT")
     print("="*60)
 
-    await run_click_ocr_test(ocr_id=5, expect_success=True)
+    await run_click_ocr_test(text="Search", expect_success=True)
 
 
 async def test_click_ocr_double_click():
@@ -62,7 +61,7 @@ async def test_click_ocr_double_click():
     print("TEST 2: DOUBLE CLICK OCR ELEMENT")
     print("="*60)
 
-    await run_click_ocr_test(ocr_id=3, click_type="double", expect_success=True)
+    await run_click_ocr_test(text="Click me", click_type="double", expect_success=True)
 
 
 async def test_click_ocr_right_click():
@@ -73,32 +72,21 @@ async def test_click_ocr_right_click():
     print("TEST 3: RIGHT CLICK OCR ELEMENT")
     print("="*60)
 
-    await run_click_ocr_test(ocr_id=7, click_type="right", expect_success=True)
+    await run_click_ocr_test(text="Menu", click_type="right", expect_success=True)
 
 
-async def test_click_ocr_deprecated_id():
+async def test_click_ocr_missing_text():
     """
-    Test clicking OCR element using deprecated 'id' parameter.
-    """
-    print("\n" + "="*60)
-    print("TEST 4: CLICK OCR ELEMENT WITH DEPRECATED 'id' PARAMETER")
-    print("="*60)
-
-    await run_click_ocr_test(use_deprecated_id=True, deprecated_id=2, expect_success=True)
-
-
-async def test_click_ocr_missing_id():
-    """
-    Test clicking OCR element with missing ID (error case).
+    Test clicking OCR element with missing text (error case).
     """
     print("\n" + "="*60)
-    print("TEST 5: CLICK OCR ELEMENT MISSING ID (ERROR)")
+    print("TEST 4: CLICK OCR ELEMENT MISSING TEXT (ERROR)")
     print("="*60)
 
-    await run_click_ocr_test(expect_success=False, expect_error="OCR element ID")
+    await run_click_ocr_test(expect_success=False, expect_error="text")
 
 
-async def run_click_ocr_test(ocr_id: int = None, deprecated_id: int = None, click_type: str = "single", use_deprecated_id: bool = False, expect_success: bool = True, expect_error: str = None):
+async def run_click_ocr_test(text: str = None, click_type: str = "single", expect_success: bool = True, expect_error: str = None):
     """
     Run a single click_ocr_element test with the given parameters.
     """
@@ -107,10 +95,8 @@ async def run_click_ocr_test(ocr_id: int = None, deprecated_id: int = None, clic
 
     # Build args dict dynamically based on provided parameters
     args = {}
-    if ocr_id is not None:
-        args["ocr_id"] = ocr_id
-    if use_deprecated_id and deprecated_id is not None:
-        args["id"] = deprecated_id  # Deprecated parameter
+    if text is not None:
+        args["text"] = text
     if click_type != "single":  # Only include if not default
         args["click_type"] = click_type
 
@@ -279,11 +265,9 @@ async def run_click_ocr_test(ocr_id: int = None, deprecated_id: int = None, clic
                     if "right" in validation_content:
                         print("✅ Correctly performed right click")
 
-                # Verify element ID is mentioned (use enhanced content)
-                element_id = ocr_id if ocr_id is not None else deprecated_id
-                if element_id is not None and str(element_id) in enhanced_llm_content:
-                    param_name = "ocr_id" if ocr_id is not None else "id (deprecated)"
-                    print(f"✅ Correctly referenced element {param_name}: {element_id}")
+                # Verify text is mentioned (use enhanced content)
+                if text is not None and text.lower() in enhanced_llm_content.lower():
+                    print(f"✅ Correctly referenced text: '{text}'")
 
             else:
                 print("❌ EXPECTED ERROR" if expect_error else "❌ FAILED")
@@ -314,18 +298,17 @@ async def test_click_ocr_element_tool_pipeline():
     print("COMPREHENSIVE CLICK OCR ELEMENT TOOL PIPELINE TEST")
     print("=" * 80)
 
-    print("\n📝 NOTE: Click OCR Element works with OCR data from previous screenshots.")
-    print("It allows clicking on text elements detected in screenshots.")
-    print("Tests focus on parameter validation and click type variations.\n")
+    print("\n📝 NOTE: Click OCR Element takes a screenshot, performs OCR, and searches")
+    print("for matching text using fuzzy matching. If exactly one match is found,")
+    print("it clicks on it. Tests focus on parameter validation and click type variations.\n")
 
     # Test different click scenarios
-    await test_click_ocr_by_id()
+    await test_click_ocr_by_text()
     await test_click_ocr_double_click()
     await test_click_ocr_right_click()
-    await test_click_ocr_deprecated_id()
 
     # Test error case
-    await test_click_ocr_missing_id()
+    await test_click_ocr_missing_text()
 
     print("\n" + "=" * 80)
     print("ALL CLICK OCR ELEMENT TOOL TESTS COMPLETED")

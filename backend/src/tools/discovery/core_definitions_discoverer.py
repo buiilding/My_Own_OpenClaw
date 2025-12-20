@@ -55,7 +55,6 @@ class CoreDefinitionsDiscoverer(ToolDiscoverer):
                 )
                 
                 discovered_tools.append(discovered_tool)
-                logger.debug(f"Discovered core tool via definitions: {tool_name}")
             
             except Exception as e:
                 logger.error(
@@ -64,7 +63,11 @@ class CoreDefinitionsDiscoverer(ToolDiscoverer):
                 )
                 continue
         
-        logger.info(f"Discovered {len(discovered_tools)} tools from core definitions")
+        tool_names = [dt.name for dt in discovered_tools]
+        logger.info(
+            f"Discovered {len(discovered_tools)} tools from core definitions: "
+            f"{', '.join(tool_names)}"
+        )
         return discovered_tools
     
     def get_source_name(self) -> str:

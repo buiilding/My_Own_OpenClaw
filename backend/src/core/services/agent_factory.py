@@ -117,22 +117,25 @@ class AgentFactory:
             cfg=parent_session.cfg
         )
 
-        # 4. Create AgentSession
+        # 4. Get plugin registry from parent session
+        # Sub-agents share the same plugin registry to ensure consistent behavior
+        # (e.g., ComputerUsePlugin, OCRPlugin work the same way)
+        plugin_registry = parent_session.executor.plugin_manager.plugin_registry
+
+        # 5. Create AgentSession
         sub_session = AgentSession(
             cfg=parent_session.cfg,
             memory_manager=sub_memory_manager,
             tool_registry=restricted_registry, # type: ignore
+            plugin_registry=plugin_registry,
             llm_client=parent_session.llm_client,
             tool_orchestrator=None, # Will be created by Session if None, using restricted registry
             user_id=parent_session.user_id,
             session_id=sub_session_id
         )
 
-        # 5. Inject System Prompt
-        # We need to update PromptConstructor to support this.
-        # For now, we'll hack it or update PromptConstructor.
-        # Plan implies updating PromptConstructor is fine or doing it here.
-        # Let's assume we will update PromptConstructor to have a `system_prompt` attribute.
+        # 6. Inject System Prompt
+        # Update PromptConstructor to use the custom system prompt for this agent
         sub_session.prompt_builder.system_prompt = system_prompt
 
         return sub_session

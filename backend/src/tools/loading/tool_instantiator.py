@@ -66,7 +66,6 @@ class ToolInstantiator:
                 # Add more dependency injection cases here as needed
             
             instance = tool_class(*args)
-            logger.debug(f"Instantiated tool: {tool_name or tool_class.__name__}")
             return instance
             
         except Exception as e:

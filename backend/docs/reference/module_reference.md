@@ -156,14 +156,13 @@ Plugin system for extending agent functionality.
 
 #### `ocr_plugin.py` - OCRPlugin
 
-**Purpose**: Performs OCR analysis on screenshots for text detection and interaction capabilities.
+**Purpose**: Provides OCR analysis functionality for screenshots.
 
 **Key Classes**:
-- `OCRPlugin`: Plugin that performs OCR analysis on screenshots
+- `OCRPlugin`: Plugin that provides OCR analysis functionality
 
 **Key Methods**:
-- `on_tool_end(tool_name: str, result: Any) -> Optional[PluginResult]`: Processes screenshot tool results
-- `_perform_ocr(screenshot_b64: str) -> Optional[List[Dict[str, Any]]]`: Performs OCR analysis
+- `perform_ocr(screenshot_b64: str) -> Optional[List[Dict[str, Any]]]`: Performs OCR analysis (public method for tools to use)
 
 **Dependencies**: `RapidOCR` (optional)
 

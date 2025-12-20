@@ -8,9 +8,10 @@ and screen interaction. Based on the CUA (Computer-Using Agent) library.
 import asyncio
 import base64
 import logging
-import time
+import platform
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import Dict, List, Literal, Optional, Tuple
+from typing import Dict, Literal, Optional, Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -43,19 +44,27 @@ class ComputerInterface:
 
     Uses pyautogui for cross-platform computer control capabilities.
     Includes safety measures and confirmation requirements for potentially destructive actions.
+    
+    Refactored to use ThreadPoolExecutor to prevent blocking the main asyncio event loop.
     """
 
     def __init__(self, safety_enabled: bool = True):
         self._initialized = False
         self._pyautogui = None
         self._screen_size = None
-        self._cursor_position = None
         self.safety_enabled = safety_enabled
+        
+        # Dedicated executor for blocking OS calls
+        self._executor = ThreadPoolExecutor(max_workers=1)
 
         # Safety settings
         self.max_text_length = 10000  # Max characters to type at once
         self.dangerous_keys = {"delete", "backspace", "ctrl", "alt", "win", "command"}
         self.confirmation_required_keys = {"ctrl", "alt", "win", "command", "f4", "esc"}
+        
+        # Platform-specific scroll scaling
+        # Windows requires 120 units per "tick". Mac/Linux usually use 1 or 10.
+        self._scroll_scale = 120 if platform.system() == "Windows" else 1
 
     async def initialize(self) -> bool:
         """
@@ -74,8 +83,10 @@ class ComputerInterface:
             pyautogui.FAILSAFE = True
             pyautogui.PAUSE = 0.1  # Small pause between actions
 
-            # Get screen size
-            self._screen_size = pyautogui.size()
+            # Get screen size (blocking call, run in executor)
+            loop = asyncio.get_running_loop()
+            self._screen_size = await loop.run_in_executor(self._executor, pyautogui.size)
+            
             self._initialized = True
 
             logger.info(
@@ -109,6 +120,11 @@ class ComputerInterface:
                 )
         return None
 
+    async def _run_in_executor(self, func: Callable, *args: Any) -> Any:
+        """Helper to run blocking functions in the thread pool."""
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(self._executor, func, *args)
+
     # ============================================================================
     # MOUSE ACTIONS
     # ============================================================================
@@ -133,12 +149,13 @@ class ComputerInterface:
             if not self._initialized:
                 await self.initialize()
 
-            if x is not None and y is not None:
-                self._pyautogui.moveTo(x, y)
+            def _perform_double_click():
+                if x is not None and y is not None:
+                    self._pyautogui.moveTo(x, y)
+                self._pyautogui.doubleClick()
 
-            self._pyautogui.doubleClick()
-            await asyncio.sleep(0.1)  # Brief pause
-
+            await self._run_in_executor(_perform_double_click)
+            
             return ComputerActionResult(
                 success=True, message=f"Double-clicked at ({x}, {y})"
             )
@@ -153,9 +170,8 @@ class ComputerInterface:
             if not self._initialized:
                 await self.initialize()
 
-            self._pyautogui.moveTo(x, y)
-            await asyncio.sleep(0.05)  # Brief pause
-
+            await self._run_in_executor(self._pyautogui.moveTo, x, y)
+            
             return ComputerActionResult(
                 success=True, message=f"Moved cursor to ({x}, {y})"
             )
@@ -172,8 +188,9 @@ class ComputerInterface:
             if not self._initialized:
                 await self.initialize()
 
-            self._pyautogui.dragTo(x, y, duration=duration, button=button)
-            await asyncio.sleep(0.1)
+            await self._run_in_executor(
+                self._pyautogui.dragTo, x, y, duration, button
+            )
 
             return ComputerActionResult(
                 success=True, message=f"Dragged to ({x}, {y}) with {button} button"
@@ -194,10 +211,12 @@ class ComputerInterface:
             if not self._initialized:
                 await self.initialize()
 
-            if x is not None and y is not None:
-                self._pyautogui.moveTo(x, y)
+            def _perform_mouse_down():
+                if x is not None and y is not None:
+                    self._pyautogui.moveTo(x, y)
+                self._pyautogui.mouseDown(button=button)
 
-            self._pyautogui.mouseDown(button=button)
+            await self._run_in_executor(_perform_mouse_down)
 
             return ComputerActionResult(
                 success=True, message=f"Pressed {button} mouse button at ({x}, {y})"
@@ -218,10 +237,12 @@ class ComputerInterface:
             if not self._initialized:
                 await self.initialize()
 
-            if x is not None and y is not None:
-                self._pyautogui.moveTo(x, y)
+            def _perform_mouse_up():
+                if x is not None and y is not None:
+                    self._pyautogui.moveTo(x, y)
+                self._pyautogui.mouseUp(button=button)
 
-            self._pyautogui.mouseUp(button=button)
+            await self._run_in_executor(_perform_mouse_up)
 
             return ComputerActionResult(
                 success=True, message=f"Released {button} mouse button at ({x}, {y})"
@@ -249,8 +270,7 @@ class ComputerInterface:
                     error=f"Text length {len(text)} exceeds maximum allowed {self.max_text_length}",
                 )
 
-            self._pyautogui.typewrite(text)
-            await asyncio.sleep(0.1)
+            await self._run_in_executor(self._pyautogui.typewrite, text)
 
             return ComputerActionResult(
                 success=True,
@@ -269,7 +289,8 @@ class ComputerInterface:
 
             # Normalize key names to pyautogui format
             normalized_key = self._normalize_key(key)
-            self._pyautogui.press(normalized_key)
+            
+            await self._run_in_executor(self._pyautogui.press, normalized_key)
 
             return ComputerActionResult(success=True, message=f"Pressed key: {key}")
         except Exception as e:
@@ -323,7 +344,11 @@ class ComputerInterface:
 
             # Normalize all keys
             normalized_keys = [self._normalize_key(key) for key in keys]
-            self._pyautogui.hotkey(*normalized_keys)
+            
+            def _perform_hotkey():
+                self._pyautogui.hotkey(*normalized_keys)
+                
+            await self._run_in_executor(_perform_hotkey)
 
             return ComputerActionResult(
                 success=True, message=f"Pressed hotkey: {' + '.join(keys)}"
@@ -340,17 +365,20 @@ class ComputerInterface:
     async def scroll(
         self, x: int, y: int, scroll_clicks: int = 3
     ) -> ComputerActionResult:
-        """Scroll at coordinates by the specified number of clicks."""
+        """Scroll at coordinates by the specified number of clicks (ticks)."""
         try:
             if not self._initialized:
                 await self.initialize()
 
-            # Move to position first
-            self._pyautogui.moveTo(x, y)
+            def _perform_scroll():
+                # Move to position first
+                self._pyautogui.moveTo(x, y)
+                # Scroll (positive = up, negative = down in pyautogui)
+                # Apply scaling for platform (Windows = 120 per click)
+                scaled_scroll = scroll_clicks * self._scroll_scale
+                self._pyautogui.scroll(scaled_scroll)
 
-            # Scroll (positive = up, negative = down in pyautogui)
-            self._pyautogui.scroll(scroll_clicks)
-            await asyncio.sleep(0.1)
+            await self._run_in_executor(_perform_scroll)
 
             return ComputerActionResult(
                 success=True, message=f"Scrolled {scroll_clicks} clicks at ({x}, {y})"
@@ -361,11 +389,11 @@ class ComputerInterface:
             )
 
     async def scroll_down(self, clicks: int = 3) -> ComputerActionResult:
-        """Scroll down by the specified number of clicks."""
+        """Scroll down by the specified number of clicks (ticks)."""
         return await self.scroll_at_cursor(-clicks)
 
     async def scroll_up(self, clicks: int = 3) -> ComputerActionResult:
-        """Scroll up by the specified number of clicks."""
+        """Scroll up by the specified number of clicks (ticks)."""
         return await self.scroll_at_cursor(clicks)
 
     async def scroll_at_cursor(self, clicks: int) -> ComputerActionResult:
@@ -374,8 +402,14 @@ class ComputerInterface:
             if not self._initialized:
                 await self.initialize()
 
-            current_pos = self._pyautogui.position()
-            self._pyautogui.scroll(clicks)
+            def _perform_scroll_at_cursor():
+                current_pos = self._pyautogui.position()
+                # Apply scaling for platform (Windows = 120 per click)
+                scaled_scroll = clicks * self._scroll_scale
+                self._pyautogui.scroll(scaled_scroll)
+                return current_pos
+
+            current_pos = await self._run_in_executor(_perform_scroll_at_cursor)
 
             return ComputerActionResult(
                 success=True,
@@ -396,16 +430,19 @@ class ComputerInterface:
             if not self._initialized:
                 await self.initialize()
 
-            screenshot = self._pyautogui.screenshot()
-            import io
+            def _perform_screenshot():
+                screenshot = self._pyautogui.screenshot()
+                import io
 
-            # Convert to bytes
-            img_buffer = io.BytesIO()
-            screenshot.save(img_buffer, format="PNG")
-            img_bytes = img_buffer.getvalue()
+                # Convert to bytes
+                img_buffer = io.BytesIO()
+                screenshot.save(img_buffer, format="PNG")
+                img_bytes = img_buffer.getvalue()
 
-            # Convert to base64
-            b64_data = base64.b64encode(img_bytes).decode("utf-8")
+                # Convert to base64
+                return base64.b64encode(img_bytes).decode("utf-8")
+
+            b64_data = await self._run_in_executor(_perform_screenshot)
 
             return ComputerActionResult(
                 success=True,
@@ -432,7 +469,10 @@ class ComputerInterface:
             if not self._initialized:
                 await self.initialize()
 
-            pos = self._pyautogui.position()
+            def _get_pos():
+                return self._pyautogui.position()
+
+            pos = await self._run_in_executor(_get_pos)
             return {"x": pos[0], "y": pos[1]}
         except Exception:
             return {"x": 0, "y": 0}
@@ -449,12 +489,12 @@ class ComputerInterface:
             if not self._initialized:
                 await self.initialize()
 
-            if x is not None and y is not None:
-                self._pyautogui.moveTo(x, y)
+            def _perform_click():
+                if x is not None and y is not None:
+                    self._pyautogui.moveTo(x, y)
+                self._pyautogui.click(button=button)
 
-            self._pyautogui.click(button=button)
-            import asyncio
-            await asyncio.sleep(0.1)  # Brief pause (non-blocking)
+            await self._run_in_executor(_perform_click)
 
             return ComputerActionResult(
                 success=True, message=f"{button.title()}-clicked at ({x}, {y})"

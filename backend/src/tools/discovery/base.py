@@ -114,6 +114,36 @@ class ToolDiscoveryService:
             self._discoverers.append(discoverer)
             logger.info(f"Registered tool discoverer: {discoverer.get_source_name()}")
     
+    def has_discoverer(self, source_name: str) -> bool:
+        """
+        Check if a discoverer with the given source name is registered.
+        
+        Args:
+            source_name: Name of the source to check
+            
+        Returns:
+            True if discoverer is registered, False otherwise
+        """
+        return any(
+            discoverer.get_source_name() == source_name
+            for discoverer in self._discoverers
+        )
+    
+    def get_discoverer(self, source_name: str) -> Optional[ToolDiscoverer]:
+        """
+        Get a discoverer by source name.
+        
+        Args:
+            source_name: Name of the source
+            
+        Returns:
+            ToolDiscoverer instance or None if not found
+        """
+        for discoverer in self._discoverers:
+            if discoverer.get_source_name() == source_name:
+                return discoverer
+        return None
+    
     def unregister_discoverer(self, source_name: str) -> bool:
         """
         Unregister a discovery mechanism.
@@ -130,6 +160,21 @@ class ToolDiscoveryService:
                 logger.info(f"Unregistered tool discoverer: {source_name}")
                 return True
         return False
+    
+    def register_or_update_discoverer(self, discoverer: ToolDiscoverer) -> None:
+        """
+        Register a discoverer or update existing one if already registered.
+        
+        If a discoverer with the same source name exists, it will be unregistered
+        first, then the new one will be registered. This ensures clean updates.
+        
+        Args:
+            discoverer: ToolDiscoverer instance to register or update
+        """
+        source_name = discoverer.get_source_name()
+        if self.has_discoverer(source_name):
+            self.unregister_discoverer(source_name)
+        self.register_discoverer(discoverer)
     
     async def discover_all_tools(self, force_refresh: bool = False) -> Dict[str, DiscoveredTool]:
         """
@@ -168,9 +213,11 @@ class ToolDiscoveryService:
                     else:
                         all_tools[tool.name] = tool
                 
-                logger.info(
-                    f"Discovered {len(discovered)} tools from {discoverer.get_source_name()}"
-                )
+                # Only log if tools were actually discovered (skip empty sources)
+                if len(discovered) > 0:
+                    logger.debug(
+                        f"Discovered {len(discovered)} tools from {discoverer.get_source_name()}"
+                    )
             
             except Exception as e:
                 logger.error(
@@ -179,7 +226,9 @@ class ToolDiscoveryService:
                 )
         
         self._discovered_tools = all_tools
-        logger.info(f"Total tools discovered: {len(all_tools)}")
+        # Only log total if there are tools (avoid noise for empty discovery)
+        if len(all_tools) > 0:
+            logger.debug(f"Total tools discovered: {len(all_tools)}")
         return all_tools
     
     async def discover_tool(self, tool_name: str) -> Optional[DiscoveredTool]:
