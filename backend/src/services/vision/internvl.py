@@ -77,7 +77,7 @@ class InternVLModel:
             try:
                 self.model = AutoModel.from_pretrained(
                     self.model_name,
-                    torch_dtype=torch.bfloat16,
+                    dtype=torch.bfloat16,
                     low_cpu_mem_usage=True,
                     use_flash_attn=use_flash_attn,
                     device_map="auto",  # Let accelerate decide device placement
@@ -98,7 +98,7 @@ class InternVLModel:
                     self.model = (
                         AutoModel.from_pretrained(
                             self.model_name,
-                            torch_dtype=dtype,
+                            dtype=dtype,
                             low_cpu_mem_usage=True,
                             use_flash_attn=False,
                             trust_remote_code=self.trust_remote_code,
@@ -118,7 +118,7 @@ class InternVLModel:
                         self.model = (
                             AutoModel.from_pretrained(
                                 self.model_name,
-                                torch_dtype=torch.float32,
+                                dtype=torch.float32,
                                 low_cpu_mem_usage=True,
                                 use_flash_attn=False,
                                 trust_remote_code=self.trust_remote_code,

@@ -11,6 +11,7 @@ from backend.src.core.config import ConfigManager
 from backend.src.core.container.factories import (
     _create_service_container,
     _create_tts_service,
+    _create_vision_service,
 )
 from backend.src.llm.llm_client import get_llm_client
 
@@ -54,3 +55,6 @@ class CoreContainer(containers.DeclarativeContainer):
         lambda cfg: _create_tts_service(cfg),
         cfg=config,
     )
+
+    # Vision Service (initialized asynchronously during container initialization)
+    vision_service = providers.Singleton(_create_vision_service)

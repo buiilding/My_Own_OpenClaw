@@ -150,11 +150,18 @@ class MarketplaceToolDiscoverer(ToolDiscoverer):
             return None
         
         try:
-            import importlib
+            from pathlib import Path
+            from backend.src.tools.loader import load_module_from_file
             
-            # Import module (assumes structure: tools.verified.{dir_name}.tool)
+            # Use centralized module loading utility (shared with ToolLoader)
+            tool_dir_path = Path(metadata.tool_dir)
+            tool_file = tool_dir_path / "tool.py"
             module_name = f"tools.verified.{metadata.tool_dir.name}.tool"
-            module = importlib.import_module(module_name)
+            
+            module = load_module_from_file(tool_file, module_name)
+            if module is None:
+                return None
+            
             tool_class = getattr(module, metadata.manifest.tool_class)
             
             if not issubclass(tool_class, SDKTool):

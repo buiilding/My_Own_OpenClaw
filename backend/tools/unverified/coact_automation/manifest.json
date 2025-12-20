@@ -4,7 +4,7 @@
   "description": "CoAct-1 Multi-Agent Computer Automation Tool - Intelligent task decomposition and execution using specialized AI agents for complex computer workflows",
   "author": "Desktop Assistant Team",
   "category": "system",
-  "tool_class": "CoActAutomationTool",
+  "tool_class": "CoAct1Tool",
   "permissions": [
     "filesystem_read",
     "filesystem_write",

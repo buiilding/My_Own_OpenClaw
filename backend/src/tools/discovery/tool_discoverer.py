@@ -18,7 +18,6 @@ from backend.src.tools.discovery.base import (
 from backend.src.tools.discovery.core_definitions_discoverer import (
     CoreDefinitionsDiscoverer,
 )
-from backend.src.tools.discovery.entry_point_discoverer import EntryPointToolDiscoverer
 from backend.src.tools.discovery.marketplace_discoverer import MarketplaceToolDiscoverer
 from backend.src.tools.registry import ToolMetadata
 
@@ -54,22 +53,18 @@ class ToolDiscoverer:
         if discovery_service is None:
             discovery_service = get_discovery_service()
 
-            # Register discoverers (entry points first, then core definitions, then marketplace)
-            discovery_service.register_discoverer(EntryPointToolDiscoverer())
+            # Register discoverers (only core definitions for core tools, marketplace separately)
+            # Entry points are optional and only registered if actually used
             discovery_service.register_discoverer(CoreDefinitionsDiscoverer())
-            if marketplace_dir:
-                discovery_service.register_discoverer(
-                    MarketplaceToolDiscoverer(marketplace_dir)
-                )
 
         self.discovery_service = discovery_service
 
     async def discover_core_tools(self) -> List[DiscoveredTool]:
         """
-        Discover core tools from entry points and core definitions.
+        Discover core tools from core definitions.
 
-        Uses unified discovery service to discover tools from entry points
-        and core definitions. This is the single source of truth for tool discovery.
+        Uses unified discovery service to discover tools from core definitions.
+        This is the single source of truth for built-in tool discovery.
 
         Returns:
             List of DiscoveredTool objects for core tools
@@ -78,19 +73,14 @@ class ToolDiscoverer:
             Exception: If discovery service fails (fail fast, no fallback)
         """
         try:
-            discovered = await self.discovery_service.discover_all_tools()
-
-            # Filter core tools (from entry points or core definitions)
-            core_tools = [
-                tool
-                for tool in discovered.values()
-                if tool.source in ("core", "core_definitions")
-            ]
-
-            logger.info(
-                f"Discovered {len(core_tools)} core tools via discovery service."
-            )
-            return core_tools
+            # Only discover from core_definitions (built-in tools)
+            core_discoverer = self.discovery_service.get_discoverer("core_definitions")
+            if core_discoverer:
+                core_tools = await core_discoverer.discover()
+                return core_tools
+            else:
+                logger.warning("Core definitions discoverer not registered")
+                return []
         except Exception as e:
             logger.error(f"Failed to discover core tools: {e}", exc_info=True)
             raise
@@ -119,12 +109,32 @@ class ToolDiscoverer:
         if not dir_to_scan:
             raise ValueError("No marketplace directory provided")
 
+        # Ensure marketplace discoverer is registered with the correct directory
+        # Use public API to check and update discoverer registration
+        existing_discoverer = self.discovery_service.get_discoverer("marketplace")
+        
+        if existing_discoverer is None:
+            # No marketplace discoverer registered, register a new one
+            logger.info(f"Registering marketplace discoverer for {dir_to_scan}")
+            self.discovery_service.register_discoverer(
+                MarketplaceToolDiscoverer(dir_to_scan)
+            )
+        elif hasattr(existing_discoverer, "marketplace_dir") and existing_discoverer.marketplace_dir != dir_to_scan:
+            # Marketplace discoverer exists but with different directory, update it
+            logger.info(f"Updating marketplace discoverer directory from {existing_discoverer.marketplace_dir} to {dir_to_scan}")
+            self.discovery_service.register_or_update_discoverer(
+                MarketplaceToolDiscoverer(dir_to_scan)
+            )
+
         try:
-            # Use discovery service (async)
-            discovered = await self.discovery_service.discover_all_tools()
-            marketplace_tools = [
-                tool for tool in discovered.values() if tool.source == "marketplace"
-            ]
+            # Only discover from marketplace discoverer (don't re-discover core tools)
+            marketplace_discoverer = self.discovery_service.get_discoverer("marketplace")
+            if not marketplace_discoverer:
+                logger.warning("Marketplace discoverer not registered")
+                return {}
+            
+            discovered_tools = await marketplace_discoverer.discover()
+            marketplace_tools = discovered_tools
 
             # Convert to ToolMetadata format
             metadata_dict: Dict[str, ToolMetadata] = {}

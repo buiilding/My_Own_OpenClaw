@@ -73,6 +73,7 @@ class ApplicationContainer(containers.DeclarativeContainer):
     service_container = core.service_container
     llm_client = core.llm_client
     tts_service = core.tts_service
+    vision_service = core.vision_service
 
     tool_instantiator = tools.tool_instantiator
     tool_loader = tools.tool_loader
@@ -142,6 +143,9 @@ class Container:
         # Initialize memory system
         self.memory_store = self._di_container.memory_store()
         self.embedder = self._di_container.embedder()
+
+        # Vision service (from core container)
+        self.vision_service = self._di_container.core.vision_service()
 
         # Plugin registry (set after bootstrap initialization)
         self._plugin_registry: Optional[Any] = None
