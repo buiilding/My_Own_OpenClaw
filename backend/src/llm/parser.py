@@ -64,6 +64,7 @@ class ResponseParser:
         Returns:
             ParsedResponse with extracted tool calls and content
         """
+        logger.debug(f"Parsing LLM response for tool calls: {repr(response)}")
         try:
             tool_calls = []
             text_content = response
@@ -91,7 +92,8 @@ class ResponseParser:
             if tool_calls:
                 logger.info(f"Total tool calls extracted: {len(tool_calls)}")
             else:
-                logger.debug("No tool calls found in response")
+                logger.debug("No tool calls found in response (conversational response)")
+                logger.debug(f"Response content: {repr(response)}")
 
             # Clean up text content by removing tool call syntax
             text_content = self._clean_text_content(text_content, tool_calls)
@@ -141,8 +143,9 @@ class ResponseParser:
                         return tool_calls, ""  # No remaining text for pure JSON
 
         except (json.JSONDecodeError, KeyError, TypeError) as e:
-            # Not a valid tool call JSON, continue to next strategy
-            logger.debug(f"Failed to parse response as tool call JSON: {e}")
+            # Not a valid tool call JSON - this is normal for conversational responses
+            logger.debug(f"Response is not tool call JSON (expected for conversational responses): {e}")
+            logger.debug(f"Non-JSON response content: {repr(response)}")
             pass
 
         return tool_calls, response  # Return original response as remaining text
