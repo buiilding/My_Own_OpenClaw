@@ -36,6 +36,7 @@ class TTSService:
         # Buffer for sentence detection
         self.buffer = ""
         self.delimiters = {".", "!", "?", "\n", ";", ":"}
+        self._buffer_lock = threading.Lock()  # Protect buffer access
 
         # Thread
         self.worker_thread: Optional[threading.Thread] = None
@@ -137,60 +138,71 @@ class TTSService:
         if not self.running:
             return
 
-        self.buffer += text_chunk
-        self._process_buffer()
+        with self._buffer_lock:
+            self.buffer += text_chunk
+            self._process_buffer()
 
     def _process_buffer(self):
-        """Split buffer into sentences."""
+        """
+        Split buffer into sentences for synthesis.
+        Simple sentence-buffering: split on natural boundaries, preserve all text.
+        """
+        if not self.buffer:
+            return
+            
         start = 0
         i = 0
+        processed_count = 0
         while i < len(self.buffer):
             char = self.buffer[i]
             
             # Check for delimiters
             if char in self.delimiters:
-                # Special handling for period to avoid splitting filenames like .env or version numbers 1.0
+                # Special handling for period to avoid splitting filenames
                 if char == ".":
-                    # Look ahead - if next char is NOT space/newline/EOF, it's likely part of a word/filename
-                    # e.g. ".env" or "file.txt" or "1.5"
-                    if i + 1 < len(self.buffer) and self.buffer[i + 1] not in {" ", "\n", "\t", "\r"}:
+                    # Look ahead - if next char is NOT whitespace/newline/EOF, skip splitting
+                    # This handles: .env, file.txt, version 1.0, etc.
+                    # Also handles backticks: `.env` should not split
+                    if i + 1 < len(self.buffer):
+                        next_char = self.buffer[i + 1]
+                        # If next char is alphanumeric or special filename chars, it's part of a word/filename
+                        if next_char.isalnum() or next_char in {"`", "'", '"', "-", "_"}:
+                            i += 1
+                            continue
+                    # If at end of buffer, don't split yet (wait for more text or flush)
+                    else:
+                        # End of current buffer, don't split yet - let it accumulate
                         i += 1
                         continue
 
-                # Extract substring including the delimiter
+                # Extract sentence up to and including the delimiter
                 sentence = self.buffer[start : i + 1]
                 
-                # Check if it's a list item delimiter like " - "
-                # If we split here, we might break the flow of the list
-                if char == "\n":
-                    # Newlines are good split points
-                    pass
-                elif char == ".":
-                    # Periods are good split points (we already handled filenames above)
-                    pass
-                elif char in {"!", "?"}:
-                    # Punctuation is good
-                    pass
-                
-                # Only queue if it contains non-whitespace characters
-                if sentence:
-                    # Don't strip excessively, but ensure we don't send purely whitespace
-                    # unless it's significant (e.g. part of a larger sentence)
-                    if sentence.strip():
-                        self.input_queue.put(sentence)
+                # Queue non-empty sentences
+                clean_sentence = sentence.strip()
+                if clean_sentence:
+                    self.input_queue.put(clean_sentence)
                 
                 start = i + 1
             
             i += 1
 
-        # Keep remaining text
+        # Keep remaining text that doesn't end with a delimiter
         self.buffer = self.buffer[start:]
 
     async def flush(self):
         """Flush any remaining text in the buffer."""
-        if self.buffer.strip():
-            self.input_queue.put(self.buffer.strip())
-        self.buffer = ""
+        with self._buffer_lock:
+            # Get any remaining text
+            text = self.buffer.strip()
+            if text:
+                logger.debug(f"Flushing TTS buffer: {text}")
+                self.input_queue.put(text)
+            self.buffer = ""
+        
+        # Wait a bit for the queue to process (but don't block forever)
+        # The worker thread will process items asynchronously
+        await asyncio.sleep(0.1)  # Small delay to allow queue processing
 
     async def stream_audio(self) -> AsyncGenerator[Dict[str, Any], None]:
         """
