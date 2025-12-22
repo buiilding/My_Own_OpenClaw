@@ -9,13 +9,45 @@ to detect wakewords using openWakeWord library.
 import sys
 import json
 import numpy as np
+import os
 from openwakeword.model import Model
+from openwakeword.utils import download_models
+
+# Check if models are downloaded, if not, download them
+def ensure_models_available():
+    """Ensure wakeword models are downloaded before initializing."""
+    try:
+        # Check if models directory exists and has hey_jarvis model
+        import openwakeword
+        models_dir = os.path.join(os.path.dirname(openwakeword.__file__), 'resources', 'models')
+        hey_jarvis_model = os.path.join(models_dir, 'hey_jarvis_v0.1.tflite')
+
+        if not os.path.exists(hey_jarvis_model):
+            print(json.dumps({"status": "downloading", "message": "Downloading wakeword models..."}), file=sys.stderr, flush=True)
+            download_models(['hey_jarvis'])
+            print(json.dumps({"status": "download_complete", "message": "Models downloaded successfully"}), file=sys.stderr, flush=True)
+        else:
+            print(json.dumps({"status": "models_ready", "message": "Wakeword models already available"}), file=sys.stderr, flush=True)
+    except Exception as e:
+        print(json.dumps({"status": "error", "message": f"Failed to download models: {str(e)}"}), file=sys.stderr, flush=True)
+        sys.exit(1)
+
+# Ensure models are available before initializing
+ensure_models_available()
 
 # Initialize the wakeword model
 # Load only "hey_jarvis" model for efficiency
 try:
-    owwModel = Model(wakeword_models=["hey_jarvis"], inference_framework="tflite")
-    print(json.dumps({"status": "ready", "model": "hey_jarvis"}), file=sys.stderr, flush=True)
+    # Try TFLite first, fall back to ONNX if TFLite fails
+    try:
+        owwModel = Model(wakeword_models=["hey_jarvis"], inference_framework="tflite")
+        inference_type = "tflite"
+    except Exception as tflite_error:
+        print(json.dumps({"status": "fallback", "message": f"TFLite failed ({str(tflite_error)}), trying ONNX"}), file=sys.stderr, flush=True)
+        owwModel = Model(wakeword_models=["hey_jarvis"], inference_framework="onnx")
+        inference_type = "onnx"
+
+    print(json.dumps({"status": "ready", "model": "hey_jarvis", "inference": inference_type}), file=sys.stderr, flush=True)
 except Exception as e:
     print(json.dumps({"status": "error", "message": str(e)}), file=sys.stderr, flush=True)
     sys.exit(1)

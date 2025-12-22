@@ -61,8 +61,4 @@ class ScreenshotTool(Tool[ScreenshotToolArgs]):
 
     def get_json_schema(self) -> dict:
         schema = super().get_json_schema()
-        schema["capabilities"] = {
-            "returns_image": True,
-            "image_format": "base64_png"
-        }
         return schema
