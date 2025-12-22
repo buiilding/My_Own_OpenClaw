@@ -35,7 +35,7 @@ class TTSService:
 
         # Buffer for sentence detection
         self.buffer = ""
-        self.delimiters = {".", "!", "?", "\n"}
+        self.delimiters = {".", "!", "?", "\n", ";", ":"}
 
         # Thread
         self.worker_thread: Optional[threading.Thread] = None
@@ -143,19 +143,42 @@ class TTSService:
     def _process_buffer(self):
         """Split buffer into sentences."""
         start = 0
-
-        for i, char in enumerate(self.buffer):
+        i = 0
+        while i < len(self.buffer):
+            char = self.buffer[i]
+            
             # Check for delimiters
-            # Also assume simple sentence boundaries for now
             if char in self.delimiters:
-                # Check if it's really a sentence end (basic heuristic)
-                # e.g., not "Mr." or "i.e." - implementing full NLP is complex,
-                # so we stick to the user's "full stop" requirement.
+                # Special handling for period to avoid splitting filenames like .env or version numbers 1.0
+                if char == ".":
+                    # Look ahead - if next char is NOT space/newline/EOF, it's likely part of a word/filename
+                    # e.g. ".env" or "file.txt" or "1.5"
+                    if i + 1 < len(self.buffer) and self.buffer[i + 1] not in {" ", "\n", "\t", "\r"}:
+                        i += 1
+                        continue
 
-                sentence = self.buffer[start : i + 1].strip()
-                if sentence:
+                # Extract substring including the delimiter
+                sentence = self.buffer[start : i + 1]
+                
+                # Check if it's a list item delimiter like " - "
+                # If we split here, we might break the flow of the list
+                if char == "\n":
+                    # Newlines are good split points
+                    pass
+                elif char == ".":
+                    # Periods are good split points (we already handled filenames above)
+                    pass
+                elif char in {"!", "?"}:
+                    # Punctuation is good
+                    pass
+                
+                # Only queue if it contains non-whitespace characters
+                if sentence.strip():
                     self.input_queue.put(sentence)
+                
                 start = i + 1
+            
+            i += 1
 
         # Keep remaining text
         self.buffer = self.buffer[start:]
