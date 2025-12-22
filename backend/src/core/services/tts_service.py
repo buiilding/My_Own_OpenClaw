@@ -173,8 +173,11 @@ class TTSService:
                     pass
                 
                 # Only queue if it contains non-whitespace characters
-                if sentence.strip():
-                    self.input_queue.put(sentence)
+                if sentence:
+                    # Don't strip excessively, but ensure we don't send purely whitespace
+                    # unless it's significant (e.g. part of a larger sentence)
+                    if sentence.strip():
+                        self.input_queue.put(sentence)
                 
                 start = i + 1
             
