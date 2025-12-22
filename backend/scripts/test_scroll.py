@@ -42,34 +42,20 @@ async def main():
     logger.info(f"Screen size: {screen_size}")
 
     logger.info("Preparing to scroll in 3 seconds. Please focus a scrollable window...")
-    await asyncio.sleep(3)
 
     # Scroll Down
-    # On Windows, 120 is equivalent to 1 physical "tick" or "nudge" of the mouse wheel
-    ONE_TICK = 120
-    
-    # Scroll down 3 ticks (standard 3-line scroll)
-    clicks_down = 3 * ONE_TICK
+    # On Linux, 1 unit is equivalent to 1 physical "tick" or "nudge" of the mouse wheel
+    ONE_TICK = 1
+
+    # Scroll down 1 tick
+    clicks_down = 1 * ONE_TICK
     logger.info(f"Scrolling down {clicks_down} units (3 ticks)...")
     result_down = await computer.scroll_down(clicks=clicks_down)
-    
+
     if result_down.success:
         logger.info(f"Scroll down success: {result_down.message}")
     else:
         logger.error(f"Scroll down failed: {result_down.error}")
-
-    await asyncio.sleep(1)
-
-    # Scroll Up
-    # Scroll up 1 tick
-    clicks_up = 1 * ONE_TICK
-    logger.info(f"Scrolling up {clicks_up} units (1 tick)...")
-    result_up = await computer.scroll_up(clicks=clicks_up)
-    
-    if result_up.success:
-        logger.info(f"Scroll up success: {result_up.message}")
-    else:
-        logger.error(f"Scroll up failed: {result_up.error}")
 
     logger.info("Scroll test completed.")
 

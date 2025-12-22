@@ -101,9 +101,4 @@ class MouseTool(Tool[MouseToolArgs]):
 
     def get_json_schema(self) -> dict:
         schema = super().get_json_schema()
-        # Add capability markers for the UI/Plugin system
-        schema["capabilities"] = {
-            "requires_screenshot": True,
-            "destructive": False
-        }
         return schema
