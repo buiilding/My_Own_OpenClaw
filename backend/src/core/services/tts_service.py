@@ -84,10 +84,15 @@ class TTSService:
             try:
                 # Get sentence from queue
                 text = self.input_queue.get()
-                if text is None:  # Sentinel
-                    break
+                
+                # Check for sentinel (None) which means end of current stream
+                # We don't break the loop (keep thread alive), just mark task done
+                if text is None:
+                    self.input_queue.task_done()
+                    continue
 
                 if not text.strip():
+                    self.input_queue.task_done()
                     continue
 
                 logger.debug(f"Synthesizing: {text}")
@@ -198,11 +203,15 @@ class TTSService:
             if text:
                 logger.debug(f"Flushing TTS buffer: {text}")
                 self.input_queue.put(text)
+            
+            # Sentinel to signal end of stream to worker
+            self.input_queue.put(None)
+            
             self.buffer = ""
         
         # Wait a bit for the queue to process (but don't block forever)
         # The worker thread will process items asynchronously
-        await asyncio.sleep(0.1)  # Small delay to allow queue processing
+        await asyncio.sleep(0.5)  # Increased delay to allow queue processing
 
     async def stream_audio(self) -> AsyncGenerator[Dict[str, Any], None]:
         """
