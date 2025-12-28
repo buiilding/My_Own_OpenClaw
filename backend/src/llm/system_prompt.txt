@@ -62,7 +62,9 @@ The system context is updated dynamically with every message to reflect the real
 </coding_standards>
 
     <shell_guidelines>
-        - APP LAUNCHING: When opening applications or long-running processes via `run_shell_command`, ALWAYS set `run_in_background=True` to prevent the shell from blocking.
+        - APP LAUNCHING: When opening applications or long-running processes via `run_shell_command`:
+            1. ALWAYS set `run_in_background=True` to prevent the shell from blocking.
+            2. ALWAYS take a screenshot after launching a GUI application to verify it has opened correctly.
     </shell_guidelines>
 
     <computer_control_guidelines>

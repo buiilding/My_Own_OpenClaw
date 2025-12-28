@@ -195,7 +195,7 @@ class ShellTool(Tool[RunShellCommandArgs]):
 
             # Get current working directory from shell state
             shell_session = self._shell_manager.get_session(session_id, user_id)
-            final_working_dir = shell_session.working_directory if shell_session else (working_dir or os.getcwd())
+            final_working_dir = shell_session.working_dir if shell_session else (working_dir or os.getcwd())
 
             # Format output for LLM
             llm_content = self._format_llm_output(command, final_working_dir, result)

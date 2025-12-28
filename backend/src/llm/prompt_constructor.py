@@ -123,18 +123,38 @@ class PromptConstructor:
         processed_history = []
         user_message_metadata = None
 
-        # Check if this is the first user message in the conversation
-        user_messages_before_current = 0
-        for msg in history:
+        # Find the last actual user query message (not tool output)
+        # Tool outputs are also "user" role but don't have <user_query> tags
+        last_user_query_msg = None
+        last_user_query_idx = -1
+        user_query_count = 0
+        
+        for i, msg in enumerate(history):
             if msg["role"] == "user":
-                user_messages_before_current += 1
+                # Check if this is an actual user query (has <user_query> tags) vs tool output
+                content = msg["content"]
+                if isinstance(content, str):
+                    has_user_query_tag = "<user_query>" in content
+                elif isinstance(content, list):
+                    text_parts = [part.get("text", "") for part in content if isinstance(part, dict) and part.get("type") == "text"]
+                    full_text = " ".join(text_parts)
+                    has_user_query_tag = "<user_query>" in full_text
+                else:
+                    has_user_query_tag = False
+                
+                if has_user_query_tag:
+                    last_user_query_msg = msg
+                    last_user_query_idx = i
+                    user_query_count += 1
 
         for i, msg in enumerate(history):
             is_last_message = (i == len(history) - 1)
+            is_last_user_query = (i == last_user_query_idx)
 
-            if is_last_message and msg["role"] == "user":
+            # Only process actual user query messages (not tool outputs)
+            if is_last_user_query and msg["role"] == "user" and last_user_query_msg:
                 # Check if this is the first user message (initial message)
-                is_first_user_message = (user_messages_before_current == 1)  # Count includes current message
+                is_first_user_message = (user_query_count == 1)
 
                 # Extract original user query (just the query, not memory sections)
                 original_content = msg["content"]
@@ -144,8 +164,7 @@ class PromptConstructor:
                     if user_query_match:
                         original_text = user_query_match.group(1).strip()
                     else:
-                        # Fallback: if no tags, assume entire content is the query
-                        # But remove memory sections if present
+                        # This shouldn't happen if we checked has_user_query_tag, but fallback anyway
                         original_text = original_content
                         # Remove episodic and semantic memory sections
                         original_text = re.sub(r'<episodic_memory>.*?</episodic_memory>', '', original_text, flags=re.DOTALL)
