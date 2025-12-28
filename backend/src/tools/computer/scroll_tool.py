@@ -24,6 +24,10 @@ class ScrollControlArgs(BaseModel):
     y: Optional[int] = Field(None, description="Y coordinate to scroll at (optional, uses current cursor if not provided)")
     clicks: int = Field(3, description="Number of scroll clicks")
     direction: Optional[ScrollDirection] = Field(None, description="Direction for scroll action ('up', 'down', 'left', 'right')")
+    explanation: str = Field(
+        ...,
+        description="One concise sentence explaining why this tool is being used and what you expect to see in the screenshot after this scroll action executes (e.g., 'Scrolling down to reveal more content and expecting to see additional items in the list')."
+    )
 
 
 class ScrollTool(Tool[ScrollControlArgs]):
@@ -35,7 +39,7 @@ class ScrollTool(Tool[ScrollControlArgs]):
     """
     
     name = "scroll_control"
-    description = "Control scrolling actions including up, down, left, and right scrolling. After execution, returns a status message and a screenshot showing the screen state after the scroll action."
+    description = "Control scrolling actions including up, down, left, and right scrolling."
     args_model = ScrollControlArgs
 
     def __init__(self):

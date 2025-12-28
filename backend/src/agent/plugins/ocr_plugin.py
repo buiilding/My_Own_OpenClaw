@@ -51,7 +51,7 @@ class OCRPlugin(AgentPlugin):
     """
     Plugin that provides OCR analysis functionality for screenshots.
     
-    Provides OCR engine that can be used by tools like ClickOCRTool.
+    Provides OCR engine that can be used by tools like mouse_control (find_coordinates_by="ocr").
     """
     name = "ocr_analysis"
     version = "1.0.0"

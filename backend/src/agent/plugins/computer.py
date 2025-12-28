@@ -26,8 +26,6 @@ COMPUTER_CONTROL_TOOLS: Set[str] = {
     "mouse_control",
     "keyboard_control",
     "scroll_control",
-    "click_ocr_element",
-    "predict_click",
 }
 
 
@@ -39,7 +37,7 @@ class ComputerUsePlugin(AgentPlugin):
 
     name = "computer_use"
 
-    def __init__(self, screenshot_delay: float = 0.5):
+    def __init__(self, screenshot_delay: float = 1.0):
         self.tool_registry: Optional[ToolRegistry] = None
         self.execution_engine: Optional[ToolExecutionEngine] = None
         self.screenshot_delay = screenshot_delay
@@ -73,10 +71,11 @@ class ComputerUsePlugin(AgentPlugin):
         logger.debug(f"ComputerUsePlugin.on_tool_end called for tool: {tool_name}")
 
         if not self.execution_engine:
-            logger.warning("ToolExecutionEngine not available in ComputerUsePlugin")
+            logger.error("ToolExecutionEngine not available in ComputerUsePlugin")
             return None
 
         if tool_name not in COMPUTER_CONTROL_TOOLS:
+            logger.debug(f"Tool {tool_name} not in COMPUTER_CONTROL_TOOLS, skipping screenshot")
             return None
 
         # Wait for UI to update
@@ -84,9 +83,13 @@ class ComputerUsePlugin(AgentPlugin):
 
         # Execute screenshot tool using ToolExecutionEngine
         try:
+            logger.debug(f"Capturing screenshot after {tool_name}")
             screenshot_result = await self.execution_engine.execute_tool_by_name(
-                SCREENSHOT_TOOL_NAME, {}
+                SCREENSHOT_TOOL_NAME, {
+                    "explanation": f"Automatically capturing screenshot after {tool_name} execution to show the screen state."
+                }
             )
+
             screenshot_data = self._extract_screenshot_data(screenshot_result)
 
             if not screenshot_data:

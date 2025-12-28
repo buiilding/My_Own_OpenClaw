@@ -122,7 +122,7 @@ class AppConfig(BaseModel):
     memory_summarization_limit: int = 1000  # Max memories to fetch for summarization
 
     # Agent Execution Settings
-    max_history_length: int = 10  # Maximum conversation history messages
+    max_history_length: int = 1000  # Maximum conversation history messages
     max_agent_iterations: int = 1000  # Maximum tool execution iterations per query (high limit to effectively remove constraint)
 
     # Tool Execution Settings
@@ -133,7 +133,7 @@ class AppConfig(BaseModel):
 
     # Computer/Screenshot Settings
     screenshot_delay_after_action: float = (
-        0.5  # seconds to wait before screenshot after computer actions
+        1.0  # seconds to wait before screenshot after computer actions
     )
     
     # Voice Mode Settings

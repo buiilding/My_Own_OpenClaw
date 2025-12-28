@@ -68,6 +68,33 @@ class ResponseFormatter:
                     "output": event.get("output"),
                     "error": event.get("error"),
                     "screenshot": event.get("screenshot"),
+                    "metadata": event.get("metadata"),
+                },
+            }
+        elif event_type == "system_prompt":
+            return {
+                "type": "system-prompt",
+                "id": msg_id,
+                "payload": {
+                    "content": event.get("content"),
+                    "tool_schemas": event.get("tool_schemas"),
+                },
+            }
+        elif event_type == "user_message_full":
+            return {
+                "type": "user-message-full",
+                "id": msg_id,
+                "payload": {
+                    "content": event.get("content"),
+                    "metadata": event.get("metadata"),
+                },
+            }
+        elif event_type == "assistant_message_full":
+            return {
+                "type": "assistant-message-full",
+                "id": msg_id,
+                "payload": {
+                    "content": event.get("content"),
                 },
             }
 

@@ -38,13 +38,30 @@ class GlobArgs(BaseModel):
         None,
         description="File filtering options (respect_git_ignore, respect_gemini_ignore)",
     )
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class GlobTool(Tool[GlobArgs]):
     """Tool for finding files matching glob patterns."""
 
     name = "glob"
-    description = "Efficiently finds files matching specific glob patterns (e.g., `src/**/*.ts`, `**/*.md`), returning absolute paths sorted by modification time (newest first). Ideal for quickly locating files based on their name or path structure, especially in large codebases."
+    description = """Use this tool to DISCOVER FILES by name patterns or path structure (fuzzy/filename search).
+
+WHEN TO USE:
+- Finding files by extension (e.g., '*.py', '*.ts')
+- Discovering files in specific directories (e.g., 'src/**/*.ts')
+- Locating files when you know part of the name or path pattern
+- Exploring directory structure
+
+WHEN NOT TO USE:
+- Do NOT use this to search file CONTENTS (use 'search_file_content' for that)
+- Do NOT use this to understand code behavior (read files instead)
+- Do NOT use this for semantic/conceptual search (read and analyze files)
+
+This tool matches file names and paths, not file contents. After finding files, use read_file to examine their contents."""
     args_model = GlobArgs
 
     async def run(self, args: GlobArgs, ctx: ToolContext) -> dict:

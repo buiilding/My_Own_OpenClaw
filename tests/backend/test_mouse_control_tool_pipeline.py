@@ -1,16 +1,16 @@
 """
-Test file for mouse_control tool that simulates the full LLM tool call pipeline.
+Test file for unified mouse_control tool that simulates the full LLM tool call pipeline.
 
-This test demonstrates different scenarios for the mouse control tool:
-1. Left click at coordinates
-2. Right click action
-3. Double click action
-4. Move mouse to coordinates
-5. Drag operation
-6. Error cases (missing coordinates for move/drag)
+This test demonstrates different scenarios for the unified mouse control tool:
+1. Manual coordinate clicks (left, right, double)
+2. OCR-based text finding and clicking
+3. Vision-based element prediction and clicking
+4. Mouse movement and drag operations
+5. Scrolling operations
+6. Error cases (missing required fields)
 
 All scenarios simulate LLM tool call format:
-{"functionCall": {"name": "mouse_control", "args": {"action": "click", "x": 100, "y": 200, ...}}}
+{"functionCall": {"name": "mouse_control", "args": {"action": "click", "find_coordinates_by": "manual", "x": 100, "y": 200, ...}}}
 
 The test goes through all the steps:
 1. Parse the LLM response
@@ -42,57 +42,57 @@ logging.getLogger('backend').setLevel(logging.INFO)
 
 async def test_mouse_click():
     """
-    Test mouse left click at specific coordinates.
+    Test mouse left click at specific coordinates (manual mode).
     """
     print("\n" + "="*60)
-    print("TEST 1: MOUSE LEFT CLICK")
+    print("TEST 1: MOUSE LEFT CLICK (MANUAL COORDINATES)")
     print("="*60)
 
-    await run_mouse_test(action="click", x=100, y=200, expect_success=True)
+    await run_mouse_test(action="click", find_coordinates_by="manual", x=100, y=200, expect_success=True)
 
 
 async def test_mouse_right_click():
     """
-    Test mouse right click action.
+    Test mouse right click action (manual mode).
     """
     print("\n" + "="*60)
-    print("TEST 2: MOUSE RIGHT CLICK")
+    print("TEST 2: MOUSE RIGHT CLICK (MANUAL COORDINATES)")
     print("="*60)
 
-    await run_mouse_test(action="right_click", x=150, y=250, button="right", expect_success=True)
+    await run_mouse_test(action="right_click", find_coordinates_by="manual", x=150, y=250, expect_success=True)
 
 
 async def test_mouse_double_click():
     """
-    Test mouse double click action.
+    Test mouse double click action (manual mode).
     """
     print("\n" + "="*60)
-    print("TEST 3: MOUSE DOUBLE CLICK")
+    print("TEST 3: MOUSE DOUBLE CLICK (MANUAL COORDINATES)")
     print("="*60)
 
-    await run_mouse_test(action="double_click", x=200, y=300, expect_success=True)
+    await run_mouse_test(action="double_click", find_coordinates_by="manual", x=200, y=300, expect_success=True)
 
 
 async def test_mouse_move():
     """
-    Test mouse move to coordinates.
+    Test mouse move to coordinates (manual mode).
     """
     print("\n" + "="*60)
-    print("TEST 4: MOUSE MOVE TO COORDINATES")
+    print("TEST 4: MOUSE MOVE TO COORDINATES (MANUAL)")
     print("="*60)
 
-    await run_mouse_test(action="move", x=300, y=400, expect_success=True)
+    await run_mouse_test(action="move", find_coordinates_by="manual", x=300, y=400, expect_success=True)
 
 
 async def test_mouse_drag():
     """
-    Test mouse drag operation.
+    Test mouse drag operation (manual mode).
     """
     print("\n" + "="*60)
-    print("TEST 5: MOUSE DRAG OPERATION")
+    print("TEST 5: MOUSE DRAG OPERATION (MANUAL)")
     print("="*60)
 
-    await run_mouse_test(action="drag", x=400, y=500, duration=1.0, expect_success=True)
+    await run_mouse_test(action="drag", find_coordinates_by="manual", x=400, y=500, duration=1.0, expect_success=True)
 
 
 async def test_mouse_move_missing_coordinates():
@@ -117,21 +117,78 @@ async def test_mouse_drag_missing_coordinates():
     await run_mouse_test(action="drag", expect_success=False, expect_error="Coordinates")
 
 
-async def run_mouse_test(action: str, x: Optional[int] = None, y: Optional[int] = None, button: str = "left", duration: float = 0.5, expect_success: bool = True, expect_error: str = None):
+async def test_mouse_click_ocr():
+    """
+    Test mouse click using OCR text finding.
+    """
+    print("\n" + "="*60)
+    print("TEST 8: MOUSE CLICK WITH OCR TEXT SEARCH")
+    print("="*60)
+
+    await run_mouse_test(action="click", find_coordinates_by="ocr", ocr_text="Save", expect_success=True)
+
+
+async def test_mouse_click_prediction():
+    """
+    Test mouse click using vision prediction.
+    """
+    print("\n" + "="*60)
+    print("TEST 9: MOUSE CLICK WITH VISION PREDICTION")
+    print("="*60)
+
+    await run_mouse_test(action="click", find_coordinates_by="prediction", description="blue Save button in the top right", expect_success=True)
+
+
+async def test_mouse_scroll():
+    """
+    Test mouse scroll operation.
+    """
+    print("\n" + "="*60)
+    print("TEST 10: MOUSE SCROLL OPERATION")
+    print("="*60)
+
+    await run_mouse_test(action="scroll", scroll_amount=500, expect_success=True)
+
+
+async def test_mouse_scroll_horizontal():
+    """
+    Test mouse horizontal scroll operation.
+    """
+    print("\n" + "="*60)
+    print("TEST 11: MOUSE HORIZONTAL SCROLL")
+    print("="*60)
+
+    await run_mouse_test(action="scroll", scroll_amount=300, scroll_direction="horizontal", expect_success=True)
+
+
+async def run_mouse_test(action: str, find_coordinates_by: str = "manual", x: Optional[int] = None, y: Optional[int] = None, ocr_text: Optional[str] = None, description: Optional[str] = None, scroll_amount: Optional[int] = None, scroll_direction: str = "vertical", duration: float = 0.5, expect_success: bool = True, expect_error: str = None):
     """
     Run a single mouse control test with the given parameters.
     """
     # Step 1: Simulate LLM Response
     print("\n🔧 STEP 1: Simulating LLM Response")
 
-    # Build args dict dynamically based on provided parameters
-    args = {"action": action}
-    if x is not None:
-        args["x"] = x
-    if y is not None:
-        args["y"] = y
-    if button != "left":  # Only include if not default
-        args["button"] = button
+    # Build args dict dynamically based on coordinate finding method
+    args = {"action": action, "find_coordinates_by": find_coordinates_by}
+
+    if find_coordinates_by == "manual":
+        if x is not None:
+            args["x"] = x
+        if y is not None:
+            args["y"] = y
+    elif find_coordinates_by == "ocr":
+        if ocr_text:
+            args["ocr_text"] = ocr_text
+    elif find_coordinates_by == "prediction":
+        if description:
+            args["description"] = description
+
+    if action == "scroll":
+        if scroll_amount is not None:
+            args["scroll_amount"] = scroll_amount
+        if scroll_direction != "vertical":
+            args["scroll_direction"] = scroll_direction
+
     if duration != 0.5:  # Only include if not default
         args["duration"] = duration
 
@@ -231,7 +288,7 @@ async def run_mouse_test(action: str, x: Optional[int] = None, y: Optional[int] 
                 enhanced_llm_content = result.result.llm_content
 
                 # Check if this is a computer control tool that should trigger screenshots
-                computer_tools = {"mouse_control", "keyboard_control", "scroll_control", "click_ocr_element", "predict_click"}
+                computer_tools = {"mouse_control", "keyboard_control", "scroll_control"}
                 if result.tool_call.tool_name in computer_tools:
                     print(f"\n�� STEP 5: Simulating ComputerUsePlugin Integration")
 
@@ -332,25 +389,35 @@ async def run_mouse_test(action: str, x: Optional[int] = None, y: Optional[int] 
 
 async def test_mouse_control_tool_pipeline():
     """
-    Run all mouse control test scenarios.
+    Run all unified mouse control test scenarios.
     """
     print("=" * 80)
-    print("COMPREHENSIVE MOUSE CONTROL TOOL PIPELINE TEST")
+    print("COMPREHENSIVE UNIFIED MOUSE CONTROL TOOL PIPELINE TEST")
     print("=" * 80)
 
-    # Test different mouse actions
+    # Test manual coordinate actions
     await test_mouse_click()
     await test_mouse_right_click()
     await test_mouse_double_click()
     await test_mouse_move()
     await test_mouse_drag()
 
+    # Test OCR coordinate finding
+    await test_mouse_click_ocr()
+
+    # Test prediction coordinate finding
+    await test_mouse_click_prediction()
+
+    # Test scrolling actions
+    await test_mouse_scroll()
+    await test_mouse_scroll_horizontal()
+
     # Test error cases
     await test_mouse_move_missing_coordinates()
     await test_mouse_drag_missing_coordinates()
 
     print("\n" + "=" * 80)
-    print("ALL MOUSE CONTROL TOOL TESTS COMPLETED")
+    print("ALL UNIFIED MOUSE CONTROL TOOL TESTS COMPLETED")
     print("=" * 80)
 
 

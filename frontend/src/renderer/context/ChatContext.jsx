@@ -42,6 +42,15 @@ export function ChatProvider({ children }) {
         case 'tool-output':
           streamingHandlers.handleToolOutput(data);
           break;
+        case 'system-prompt':
+          streamingHandlers.handleSystemPrompt(data);
+          break;
+        case 'user-message-full':
+          streamingHandlers.handleUserMessageFull(data);
+          break;
+        case 'assistant-message-full':
+          streamingHandlers.handleAssistantMessageFull(data);
+          break;
         case 'wakeword-activated':
            // Handle wakeword activation logging
            console.log('[MessageHandling] Wakeword activated:', data.payload);

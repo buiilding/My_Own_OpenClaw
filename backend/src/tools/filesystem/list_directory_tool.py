@@ -34,13 +34,24 @@ class ListDirectoryArgs(BaseModel):
         None,
         description="File filtering options (respect_git_ignore, respect_gemini_ignore)",
     )
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class ListDirectoryTool(Tool[ListDirectoryArgs]):
     """Tool for listing files and directories in a path."""
 
     name = "list_directory"
-    description = "Lists the names of files and subdirectories directly within a specified directory path. Can optionally ignore entries matching provided glob patterns."
+    description = """Lists files and subdirectories in a directory. Use this to explore directory structure and discover files before reading them.
+
+WHEN TO USE:
+- Exploring directory structure to understand project layout
+- Discovering what files exist in a directory before reading them
+- Understanding file organization
+
+After listing, use read_file to examine file contents, or glob to find files by pattern."""
     args_model = ListDirectoryArgs
 
     async def run(self, args: ListDirectoryArgs, ctx: ToolContext) -> dict:

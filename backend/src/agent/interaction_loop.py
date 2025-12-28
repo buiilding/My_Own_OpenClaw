@@ -54,10 +54,32 @@ class InteractionLoop:
             iteration += 1
             
             # A. Build Prompt
-            prompt = self.prompt_builder.build_prompt(
+            prompt, prompt_metadata = self.prompt_builder.build_prompt(
                 self.session.history.get_history(),
                 include_tools=(iteration == 1),
             )
+
+            # Emit system prompt transparency event (only on first iteration)
+            if iteration == 1 and prompt_metadata.get("tool_schemas") is not None:
+                yield {
+                    "type": "system_prompt",
+                    "content": prompt_metadata["system_prompt"],
+                    "tool_schemas": prompt_metadata["tool_schemas"],
+                }
+
+            # Emit user message transparency event if metadata available
+            if prompt_metadata.get("user_message_metadata"):
+                metadata = prompt_metadata["user_message_metadata"]
+                yield {
+                    "type": "user_message_full",
+                    "content": metadata["full_content"],
+                    "metadata": {
+                        "original_query": metadata["original_query"],
+                        "context_type": metadata["context_type"],
+                        "injected_context": metadata["injected_context"],
+                        "active_window": metadata["active_window"],
+                    },
+                }
 
             # B. Get LLM Response (Streamed)
             llm_response_text = ""
@@ -78,6 +100,12 @@ class InteractionLoop:
             # C. Parse Response
             parsed_response = self.response_parser.parse_response(llm_response_text)
             
+            # Emit assistant message transparency event
+            yield {
+                "type": "assistant_message_full",
+                "content": llm_response_text,
+            }
+            
             # D. Decision Logic
             if not parsed_response.has_tool_calls:
                 # No tools called -> Final answer
@@ -87,6 +115,9 @@ class InteractionLoop:
                 break
 
             # E. Tool Execution
+            # Add assistant message with tool calls to history (context is king!)
+            self.session.history.add_assistant_message(llm_response_text)
+
             # Notify frontend of tool calls
             for tool_call in parsed_response.tool_calls:
                 yield {
@@ -154,7 +185,11 @@ class InteractionLoop:
                 result.result
             )
             
-            # Yield Output Event
+            # Get active window at execution time
+            from backend.src.tools.computer.window_utils import get_active_window_title
+            active_window = get_active_window_title()
+            
+            # Yield Output Event with enhanced metadata
             yield {
                 "type": "tool_output",
                 "tool_name": result.tool_call.tool_name,
@@ -163,5 +198,10 @@ class InteractionLoop:
                 "output": processed_output["tool_message"],
                 "error": result.result.error,
                 "screenshot": processed_output["screenshot_data"],
+                "metadata": {
+                    "active_window": active_window,
+                    "execution_time": result.execution_time,
+                    "success": result.success,
+                },
             }
 

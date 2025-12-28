@@ -90,24 +90,25 @@ class AgentExecutor:
     async def _retrieve_and_format_memories(self, query: str) -> str:
         """
         Retrieve memories for a user query and format them with explicit sections.
+        Order: episodic_memory, semantic_memory, then user_query.
 
         Args:
             query: User query text
 
         Returns:
-            Formatted string with [MAIN MESSAGE], [EPISODIC CONTEXT], and [PROCEDURAL CONTEXT] sections
+            Formatted string with <episodic_memory>, <semantic_memory>, and <user_query> sections
         """
         memories = await self.session.memory_manager.retrieve_memories(query)
         memory_context = self.session.memory_manager.format_context(memories)
 
         # Build formatted message with explicit sections
+        # Order: memories first, then user query
         sections = [
-            "[MAIN MESSAGE — Assistant should respond ONLY to this section]",
+            memory_context,  # Includes both episodic and semantic memory (always present)
+            "<user_query>",
             query,
+            "</user_query>",
         ]
-
-        if memory_context:
-            sections.append(memory_context)
 
         return "\n\n".join(sections)
 

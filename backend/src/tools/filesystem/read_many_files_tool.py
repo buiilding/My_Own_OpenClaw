@@ -39,13 +39,24 @@ class ReadManyFilesArgs(BaseModel):
         None,
         description="File filtering options (respect_git_ignore, respect_gemini_ignore)",
     )
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class ReadManyFilesTool(Tool[ReadManyFilesArgs]):
     """Tool for reading multiple files by paths/glob patterns."""
 
     name = "read_many_files"
-    description = "Reads content from multiple files specified by paths or glob patterns within a configured target directory. For text files, it concatenates their content into a single string. It is primarily designed for text-based files. However, it can also process image (e.g., .png, .jpg) and PDF (.pdf) files if their file names or extensions are explicitly included in the 'paths' argument."
+    description = """Reads content from multiple files at once. Use this when you need to gather information from several related files before making changes.
+
+WHEN TO USE:
+- Reading multiple related files to understand context before modifying code
+- Gathering information from several files simultaneously
+- Understanding relationships between files
+
+PRINCIPLE: Prefer multiple read_file calls if you're unsure which files to read. This tool is for efficiency when you already know which files you need."""
     args_model = ReadManyFilesArgs
 
     async def run(self, args: ReadManyFilesArgs, ctx: ToolContext) -> dict:

@@ -64,9 +64,25 @@ class TTSService:
         try:
             from piper import PiperVoice
 
-            self.voice = PiperVoice.load(
-                self.config.tts_model_path, use_cuda=self.config.tts_use_cuda
-            )
+            # Try loading with configured CUDA setting
+            use_cuda = self.config.tts_use_cuda
+            try:
+                self.voice = PiperVoice.load(
+                    self.config.tts_model_path, use_cuda=use_cuda
+                )
+            except RuntimeError as e:
+                # If CUDA fails and was requested, try CPU fallback
+                if use_cuda and ("Failed to allocate memory" in str(e) or "RUNTIME_EXCEPTION" in str(e)):
+                    logger.warning(
+                        f"TTS CUDA initialization failed (GPU memory likely exhausted). "
+                        f"Falling back to CPU. Error: {str(e)[:200]}"
+                    )
+                    self.voice = PiperVoice.load(
+                        self.config.tts_model_path, use_cuda=False
+                    )
+                else:
+                    raise  # Re-raise if it's not a memory error or CPU was already requested
+
             self.running = True
             self.worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
             self.worker_thread.start()
@@ -99,31 +115,52 @@ class TTSService:
 
                 # Synthesize
                 # voice.synthesize yields chunks of audio data
-                for audio_chunk in self.voice.synthesize(text):
-                    if not self.running:
-                        break
+                try:
+                    for audio_chunk in self.voice.synthesize(text):
+                        if not self.running:
+                            break
 
-                    # Prepare audio data
-                    # audio_chunk has .audio_int16_bytes (raw PCM)
-                    audio_data = {
-                        "audio": base64.b64encode(audio_chunk.audio_int16_bytes).decode(
-                            "utf-8"
-                        ),
-                        "sample_rate": audio_chunk.sample_rate,
-                        "sample_width": audio_chunk.sample_width,
-                        "channels": audio_chunk.sample_channels,
-                    }
+                        # Prepare audio data
+                        # audio_chunk has .audio_int16_bytes (raw PCM)
+                        audio_data = {
+                            "audio": base64.b64encode(audio_chunk.audio_int16_bytes).decode(
+                                "utf-8"
+                            ),
+                            "sample_rate": audio_chunk.sample_rate,
+                            "sample_width": audio_chunk.sample_width,
+                            "channels": audio_chunk.sample_channels,
+                        }
 
-                    # Push to async queue safely
-                    if self.loop and self.audio_queue:
-                        self.loop.call_soon_threadsafe(
-                            self.audio_queue.put_nowait, audio_data
+                        # Push to async queue safely
+                        if self.loop and self.audio_queue:
+                            self.loop.call_soon_threadsafe(
+                                self.audio_queue.put_nowait, audio_data
+                            )
+                except RuntimeError as e:
+                    # Handle CUDA memory allocation failures
+                    error_msg = str(e)
+                    if "Failed to allocate memory" in error_msg or "RUNTIME_EXCEPTION" in error_msg:
+                        logger.warning(
+                            f"TTS CUDA memory allocation failed for text: '{text[:50]}...'. "
+                            f"This usually means GPU memory is exhausted. Consider disabling TTS CUDA "
+                            f"or freeing GPU memory from other models. Error: {error_msg[:200]}"
                         )
+                        # Skip this synthesis but continue processing
+                    else:
+                        raise  # Re-raise if it's a different RuntimeError
+                except Exception as e:
+                    logger.error(f"TTS synthesis error for text '{text[:50]}...': {e}", exc_info=True)
+                    # Continue processing other sentences
 
                 self.input_queue.task_done()
 
             except Exception as e:
                 logger.error(f"TTS Worker Error: {e}", exc_info=True)
+                # Ensure task is marked done even on error
+                try:
+                    self.input_queue.task_done()
+                except ValueError:
+                    pass  # Task already done
 
         logger.debug("TTS Worker thread stopped")
 

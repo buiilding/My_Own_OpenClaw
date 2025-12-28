@@ -71,7 +71,38 @@ class ErrorChunk(TypedDict):
     content: str
 
 
-StreamingChunk = Union[ContentChunk, ThinkingChunk, ToolCallChunk, ErrorChunk]
+class SystemPromptChunk(TypedDict):
+    """Event emitted with full system prompt sent to LLM."""
+
+    type: Literal["system_prompt"]
+    content: str
+    tool_schemas: Optional[Dict[str, Any]]
+
+
+class UserMessageFullChunk(TypedDict):
+    """Event emitted with full user message including injected context."""
+
+    type: Literal["user_message_full"]
+    content: str
+    metadata: Dict[str, Any]
+
+
+class AssistantMessageFullChunk(TypedDict):
+    """Event emitted with complete assistant response."""
+
+    type: Literal["assistant_message_full"]
+    content: str
+
+
+StreamingChunk = Union[
+    ContentChunk,
+    ThinkingChunk,
+    ToolCallChunk,
+    ErrorChunk,
+    SystemPromptChunk,
+    UserMessageFullChunk,
+    AssistantMessageFullChunk,
+]
 
 # --- Normalized Final Response ---
 

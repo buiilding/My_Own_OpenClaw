@@ -151,22 +151,28 @@ class MemoryManager:
             memories: Dictionary with 'semantic' and 'episodic' keys
 
         Returns:
-            Formatted context string with episodic and procedural sections
+            Formatted context string with episodic_memory and semantic_memory sections
         """
         sections = []
 
-        # Format episodic memories (past interactions)
+        # Format episodic memories (past interactions) - always include
+        episodic_section = ["<episodic_memory>"]
         if memories.get("episodic"):
-            episodic_section = ["[Recent Interactions]"]
             for interaction in memories["episodic"]:
                 episodic_section.append(f"- {interaction}")
-            sections.append("\n".join(episodic_section))
+        else:
+            episodic_section.append("None")
+        episodic_section.append("</episodic_memory>")
+        sections.append("\n".join(episodic_section))
 
-        # Format semantic memories (procedural context - preferences, rules, facts)
+        # Format semantic memories (procedural context - preferences, rules, facts) - always include
+        semantic_section = ["<semantic_memory>"]
         if memories.get("semantic"):
-            semantic_section = ["[Semantic Memory]"]
             for fact in memories["semantic"]:
                 semantic_section.append(f"- {fact}")
-            sections.append("\n".join(semantic_section))
+        else:
+            semantic_section.append("None")
+        semantic_section.append("</semantic_memory>")
+        sections.append("\n".join(semantic_section))
 
-        return "\n\n".join(sections) if sections else ""
+        return "\n\n".join(sections)

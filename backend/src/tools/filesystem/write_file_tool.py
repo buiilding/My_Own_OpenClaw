@@ -29,13 +29,32 @@ class WriteFileArgs(BaseModel):
         description="The path to the file to write (absolute or relative to workspace)",
     )
     content: str = Field(..., description="The content to write to the file")
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class WriteFileTool(Tool[WriteFileArgs]):
     """Tool for creating/overwriting files with content."""
 
     name = "write_file"
-    description = "Writes content to a specified file in the local filesystem. The user has the ability to modify `content`. If modified, this will be stated in the response."
+    description = """CRITICAL: This tool should ONLY be used for creating NEW files or when a complete file rewrite is explicitly necessary. 
+
+BEFORE USING THIS TOOL:
+- ALWAYS read the existing file first using read_file if it exists
+- ALWAYS use the 'replace' tool for modifying existing files instead of write_file
+- ALWAYS search for relevant context using search_file_content or read related files
+- NEVER use write_file to overwrite existing files unless you have read the entire file and confirmed a full rewrite is required
+
+USE CASES:
+- Creating completely new files that don't exist
+- Complete file rewrites when the entire file structure needs to change (only after reading the original)
+
+RESTRICTIONS:
+- Do NOT use this tool if the file already exists and you only need to modify parts of it
+- Do NOT use this tool without first reading the file and understanding its current structure
+- Prefer 'replace' tool for all modifications to existing files"""
     args_model = WriteFileArgs
 
     async def run(self, args: WriteFileArgs, ctx: ToolContext) -> dict:

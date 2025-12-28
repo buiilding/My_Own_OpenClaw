@@ -131,15 +131,9 @@ def _create_memory_store(
         from backend.src.core.config import get_config_dir
         from backend.src.memory.storage.local_store import LocalMemoryStore
 
-        # Determine DB path
-        db_path = config.memory_db_path
-        if db_path is None:
-            config_dir = get_config_dir()
-            memory_dir = config_dir / "memory"
-            memory_dir.mkdir(parents=True, exist_ok=True)
-            db_path = str(memory_dir / "memories.db")
-
-        return LocalMemoryStore(db_path=db_path, embedder=embedder)
+        # LocalMemoryStore now uses separate databases (episodic.db and semantic.db)
+        # Pass the configured path (if any) or None to use default location
+        return LocalMemoryStore(db_path=config.memory_db_path, embedder=embedder)
     except ImportError as e:
         logger.error(f"Failed to initialize memory store: {e}")
         return None
