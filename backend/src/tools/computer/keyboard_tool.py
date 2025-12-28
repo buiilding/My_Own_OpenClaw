@@ -21,6 +21,10 @@ class KeyboardControlArgs(BaseModel):
     text: Optional[str] = Field(None, description="Text to type (required for 'type' action)")
     key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
     keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
+    explanation: str = Field(
+        ...,
+        description="One concise sentence explaining why this tool is being used and what you expect to see in the screenshot after this keyboard action executes (e.g., 'Typing a URL and expecting to see the browser navigate to that page')."
+    )
 
 
 class KeyboardTool(Tool[KeyboardControlArgs]):
@@ -32,7 +36,7 @@ class KeyboardTool(Tool[KeyboardControlArgs]):
     """
     
     name = "keyboard_control"
-    description = "Control keyboard input including typing text, pressing keys, and keyboard shortcuts. After execution, returns a status message and a screenshot showing the screen state after the keyboard action."
+    description = "Control keyboard input including typing text, pressing keys, and keyboard shortcuts. Use this tool to simulate keyboard actions on the computer."
     args_model = KeyboardControlArgs
 
     def __init__(self):

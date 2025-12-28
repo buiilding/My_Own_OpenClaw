@@ -12,6 +12,7 @@ from backend.src.agent.core import AgentSession
 from backend.src.core.config import AppConfig
 from backend.src.core.config_subscription_manager import ConfigSubscriber
 from backend.src.core.container import Container
+from backend.src.services.persistent_shell_manager import get_shell_manager
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,10 @@ class SessionManager(ConfigSubscriber):
                 asyncio.create_task(
                     session.memory_manager.summarize_and_store_semantic_memory()
                 )
+
+            # Clean up persistent shell for this session
+            shell_manager = get_shell_manager()
+            shell_manager.cleanup_shell(session.session_id, user_id)
 
             del self.active_sessions[user_id]
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import ThinkingDisplay from '../ThinkingDisplay';
+import TransparencySection from './TransparencySection';
 import '../../styles/ThinkingDisplay.css';
 
 function MessageList({ messages, thinkingStatus }) {
@@ -50,6 +51,19 @@ function MessageList({ messages, thinkingStatus }) {
               />
             </div>
           )}
+          {msg.toolMetadata && (
+            <TransparencySection
+              title="Execution Details"
+              content={msg.text}
+              metadata={{
+                'Tool Name': msg.toolName || 'Unknown',
+                'Execution Time': msg.executionTime ? `${msg.executionTime.toFixed(3)}s` : 'N/A',
+                'Success': msg.success ? 'Yes' : 'No',
+                'Active Window': msg.toolMetadata?.active_window || 'Unknown',
+              }}
+              type="text"
+            />
+          )}
         </div>
       );
     }
@@ -66,6 +80,60 @@ function MessageList({ messages, thinkingStatus }) {
     return <div className="message-content">{msg.text}</div>;
   };
 
+  const renderTransparencySections = (msg) => {
+    const sections = [];
+
+    // System Prompt (for first user message)
+    if (msg.systemPrompt) {
+      sections.push(
+        <TransparencySection
+          key="system-prompt"
+          title="System Prompt"
+          content={msg.systemPrompt.content}
+          metadata={msg.systemPrompt.toolSchemas ? { 'Tool Schemas Count': Object.keys(msg.systemPrompt.toolSchemas).length } : null}
+          type="system-prompt"
+        />
+      );
+      if (msg.systemPrompt.toolSchemas) {
+        sections.push(
+          <TransparencySection
+            key="tool-schemas"
+            title="Tool Schemas"
+            content={msg.systemPrompt.toolSchemas}
+            type="json"
+          />
+        );
+      }
+    }
+
+    // User Message Full - Show complete message sent to assistant
+    if (msg.fullUserMessage) {
+      sections.push(
+        <TransparencySection
+          key="user-message-full"
+          title="Full Message Sent to Assistant (Complete)"
+          content={msg.fullUserMessage.content}
+          metadata={msg.fullUserMessage.metadata}
+          type="xml" // Use xml type for better formatting
+        />
+      );
+    }
+
+    // Assistant Message Full
+    if (msg.fullAssistantMessage) {
+      sections.push(
+        <TransparencySection
+          key="assistant-message-full"
+          title="Full Assistant Response"
+          content={msg.fullAssistantMessage.content}
+          type="text"
+        />
+      );
+    }
+
+    return sections.length > 0 ? <div className="transparency-sections">{sections}</div> : null;
+  };
+
   return (
     <div className="message-list">
       {messages.map((msg) => {
@@ -75,6 +143,7 @@ function MessageList({ messages, thinkingStatus }) {
         return (
           <div key={msg.id} className={messageClass}>
             {renderMessageContent(msg)}
+            {renderTransparencySections(msg)}
           </div>
         );
       })}

@@ -5,7 +5,7 @@ Captures screenshots of the computer screen for computer use automation.
 """
 import logging
 from typing import Dict, Any
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
@@ -17,6 +17,11 @@ logger = logging.getLogger(__name__)
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
     model_config = ConfigDict(extra='forbid')
+    
+    explanation: str = Field(
+        ...,
+        description="One concise sentence explaining why this screenshot is being captured and what you expect to see in the resulting image (e.g., 'Capturing the current screen state to verify the login form is displayed')."
+    )
 
 
 class ScreenshotTool(Tool[ScreenshotToolArgs]):

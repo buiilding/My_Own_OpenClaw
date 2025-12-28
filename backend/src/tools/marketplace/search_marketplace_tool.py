@@ -24,6 +24,10 @@ class SearchMarketplaceArgs(BaseModel):
 
     query: str = Field(..., description="Natural language search query describing what tool capability is needed")
     limit: Optional[int] = Field(5, ge=1, le=20, description="Maximum number of results to return (default: 5, max: 20)")
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class SearchMarketplaceTool(Tool[SearchMarketplaceArgs]):

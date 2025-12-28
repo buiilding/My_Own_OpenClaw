@@ -35,13 +35,30 @@ class SearchFileContentArgs(BaseModel):
     include: Optional[str] = Field(
         None, description="Glob pattern to filter files (e.g., '*.py')"
     )
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class SearchFileContentTool(Tool[SearchFileContentArgs]):
     """Tool for searching regex patterns within file contents."""
 
     name = "search_file_content"
-    description = "Searches for a regular expression pattern within the content of files in a specified directory. Can filter files by a glob pattern. Returns the lines containing matches, along with their file paths and line numbers."
+    description = """Use this tool to locate SPECIFIC STRINGS, SYMBOLS, or PATTERNS within file contents using regex/exact matching.
+
+WHEN TO USE:
+- Finding exact function names, variable names, class names, or specific code patterns
+- Locating specific strings or symbols you know exist
+- Verifying text exists before using replace tool
+- Counting occurrences of specific patterns
+
+WHEN NOT TO USE:
+- Do NOT use this for understanding concepts or behavior (that requires reading files)
+- Do NOT use this for semantic/conceptual search (use read_file and analyze content)
+- Do NOT use this to discover files (use 'glob' tool instead)
+
+This tool performs regex/exact text matching. It returns line numbers and file paths where matches occur. Always read the matched files using read_file to understand context before making changes."""
     args_model = SearchFileContentArgs
 
     async def run(self, args: SearchFileContentArgs, ctx: ToolContext) -> dict:

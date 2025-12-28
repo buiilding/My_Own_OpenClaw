@@ -8,6 +8,7 @@ context window overflow.
 import logging
 from typing import Dict, List, Optional, Union
 from backend.src.core.types import LLMMessage, MultimodalContent
+# Removed unused imports - active window is now included in system_context XML
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +38,15 @@ class ConversationHistory:
         These messages trigger memory retrieval.
 
         Args:
-            message: Message text content
+            message: Message text content (already includes memory sections from executor)
             image_data: Optional base64 image data
+        
+        Note: Active window is included in system_context XML injected by prompt_constructor,
+        so we don't add it here to avoid duplication.
         """
         self.history.append({
             "role": "user",
-            "message": message,
+            "message": message,  # Message already has <user_query> and memory sections
             "image_data": image_data
         })
         self._prune_if_needed()
@@ -51,9 +55,12 @@ class ConversationHistory:
         """
         Add a tool execution result to the conversation history.
         These messages do NOT trigger memory retrieval.
+        
+        Note: The message should already include os_state XML with active_window, mouse_position, and time.
+        ResultProcessor handles adding the os_state XML before calling this method.
 
         Args:
-            message: Tool output message text
+            message: Tool output message text (includes os_state XML from result_processor)
             image_data: Optional base64 image data (for screenshots)
         """
         self.history.append({
