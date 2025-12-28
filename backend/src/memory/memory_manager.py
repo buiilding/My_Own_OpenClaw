@@ -146,6 +146,9 @@ class MemoryManager:
     def format_context(self, memories: Dict[str, List[str]]) -> str:
         """
         Format memories into a string for LLM context with explicit section headers.
+        
+        Always includes both episodic_memory and semantic_memory tags, even when empty.
+        Empty sections will contain "None" between the tags.
 
         Args:
             memories: Dictionary with 'semantic' and 'episodic' keys
@@ -155,20 +158,22 @@ class MemoryManager:
         """
         sections = []
 
-        # Format episodic memories (past interactions) - always include
+        # Format episodic memories (past interactions) - always include tags
         episodic_section = ["<episodic_memory>"]
-        if memories.get("episodic"):
-            for interaction in memories["episodic"]:
+        episodic_memories = memories.get("episodic")
+        if episodic_memories and len(episodic_memories) > 0:
+            for interaction in episodic_memories:
                 episodic_section.append(f"- {interaction}")
         else:
             episodic_section.append("None")
         episodic_section.append("</episodic_memory>")
         sections.append("\n".join(episodic_section))
 
-        # Format semantic memories (procedural context - preferences, rules, facts) - always include
+        # Format semantic memories (procedural context - preferences, rules, facts) - always include tags
         semantic_section = ["<semantic_memory>"]
-        if memories.get("semantic"):
-            for fact in memories["semantic"]:
+        semantic_memories = memories.get("semantic")
+        if semantic_memories and len(semantic_memories) > 0:
+            for fact in semantic_memories:
                 semantic_section.append(f"- {fact}")
         else:
             semantic_section.append("None")
