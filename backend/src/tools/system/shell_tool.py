@@ -166,13 +166,19 @@ class ShellTool(Tool[RunShellCommandArgs]):
 
             # Execute command in persistent shell
             start_time = time.time()
-            stdout, stderr, exit_code, timed_out = self._shell_manager.execute_command(
-                session_id=session_id,
-                user_id=user_id,
-                command=command,
-                timeout=shell_timeout,
-                working_dir=working_dir
+            
+            # Run in executor because PTY operations are blocking
+            loop = asyncio.get_event_loop()
+            stdout, stderr, exit_code, timed_out = await loop.run_in_executor(
+                None,
+                self._shell_manager.execute_command,
+                session_id,
+                user_id,
+                command,
+                shell_timeout,
+                working_dir
             )
+            
             execution_time = time.time() - start_time
 
             # Create result object
@@ -188,8 +194,8 @@ class ShellTool(Tool[RunShellCommandArgs]):
             )
 
             # Get current working directory from shell state
-            shell_state = self._shell_manager.get_shell_state(session_id, user_id)
-            final_working_dir = shell_state.working_directory if shell_state else (working_dir or os.getcwd())
+            shell_session = self._shell_manager.get_session(session_id, user_id)
+            final_working_dir = shell_session.working_directory if shell_session else (working_dir or os.getcwd())
 
             # Format output for LLM
             llm_content = self._format_llm_output(command, final_working_dir, result)

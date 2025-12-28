@@ -1,544 +1,463 @@
 """
-Persistent Shell Manager for maintaining long-running shell processes per session.
+Persistent Shell Manager for true persistent terminal sessions (Cross-Platform).
 
-This module manages persistent shell sessions that maintain:
-- Environment variables across commands
-- Conda environment activation
-- Working directory
-- Shell state (aliases, functions, variables)
-- Command history
+This module implements robust persistent shell sessions for both Unix (using PTY)
+and Windows (using named pipes and threads).
 
-Each session gets its own persistent shell process that lives for the duration
-of the session, providing true terminal-like behavior.
+Features:
+1. True interactive shell behavior (maintaining state, variables, aliases)
+2. Proper handling of standard I/O streams
+3. Reliable command completion detection
 """
-import asyncio
 import logging
 import os
 import platform
-import shlex
+import re
 import subprocess
 import threading
 import time
+import uuid
+from abc import ABC, abstractmethod
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Dict, Optional, Tuple, Deque
 from queue import Queue, Empty
+from typing import Dict, List, Optional, Tuple, Union
+
+# Platform-specific imports
+if platform.system() == "Windows":
+    import msvcrt
+else:
+    import fcntl
+    import pty
+    import select
+    import struct
+    import termios
 
 logger = logging.getLogger(__name__)
 
+# Constants
+READ_TIMEOUT = 0.1
+ANSI_ESCAPE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+
 
 @dataclass
-class ShellState:
-    """State maintained for each persistent shell session."""
+class ShellSession:
+    """Represents a single persistent shell session."""
+    session_id: str
+    user_id: str
     process: subprocess.Popen
-    working_directory: str
-    environment: Dict[str, str] = field(default_factory=dict)
-    conda_env: Optional[str] = None
-    command_history: Deque[str] = field(default_factory=lambda: deque(maxlen=100))
-    last_command_time: float = 0.0
+    delimiter: str
+    working_dir: str
+    command_history: deque = field(default_factory=lambda: deque(maxlen=100))
     lock: threading.Lock = field(default_factory=threading.Lock)
-    output_queue: Queue = field(default_factory=Queue)
-    is_active: bool = True
+    created_at: float = field(default_factory=time.time)
+    last_activity: float = field(default_factory=time.time)
+    
+    # Platform specific fields
+    master_fd: Optional[int] = None  # Unix only
+    output_queue: Optional[Queue] = None  # Windows only
 
-
-class PersistentShellManager:
-    """
-    Manages persistent shell processes per session.
-    
-    Each session gets a long-running shell process that maintains state
-    across multiple command executions, just like a real terminal.
-    """
-    
-    def __init__(self):
-        """Initialize the shell manager."""
-        self._shells: Dict[str, ShellState] = {}
-        self._lock = threading.Lock()
-        self._output_readers: Dict[str, threading.Thread] = {}
-        
-    def _get_shell_key(self, session_id: str, user_id: str) -> str:
-        """Generate a unique key for a shell session."""
-        return f"{user_id}:{session_id}"
-    
-    def _create_shell_process(self, initial_dir: str, initial_env: Optional[Dict[str, str]] = None) -> subprocess.Popen:
-        """
-        Create a new persistent shell process.
-        
-        Uses a wrapper approach: we maintain environment state in Python and execute
-        commands through the shell with the accumulated environment.
-        
-        Args:
-            initial_dir: Initial working directory
-            initial_env: Initial environment variables (merged with system env)
-            
-        Returns:
-            Popen process for the shell (actually a dummy process for state tracking)
-        """
-        # For now, we'll use a simpler approach: maintain state in Python
-        # and execute commands with the environment passed in
-        # This is more reliable than trying to maintain a true interactive shell
-        
-        # We maintain state in Python and execute commands via subprocess with env
-        # Create a minimal process-like object for compatibility
-        # Note: This is just for state tracking, actual execution happens in execute_command
-        class ShellStateProcess:
-            def __init__(self):
-                self.pid = os.getpid()  # Placeholder PID
-                self._returncode = None
-                self.stdin = None
-                self.stdout = None
-                self.stderr = None
-            
-            def poll(self):
-                return self._returncode
-            
-            def terminate(self):
-                self._returncode = -1
-            
-            def kill(self):
-                self._returncode = -1
-        
-        process = ShellStateProcess()
-        logger.info(f"Created persistent shell state for directory: {initial_dir}")
-        return process
-    
-    def _start_output_reader(self, shell_key: str, shell_state: ShellState):
-        """
-        Start a background thread to read shell output.
-        
-        Note: With the simplified approach, this is not needed but kept for API compatibility.
-        """
-        pass  # No-op for simplified approach
-    
-    def get_or_create_shell(
-        self,
-        session_id: str,
-        user_id: str,
-        initial_dir: Optional[str] = None,
-        initial_env: Optional[Dict[str, str]] = None
-    ) -> ShellState:
-        """
-        Get existing shell for session or create a new one.
-        
-        Args:
-            session_id: Session identifier
-            user_id: User identifier
-            initial_dir: Initial working directory (if creating new shell)
-            initial_env: Initial environment variables (if creating new shell)
-            
-        Returns:
-            ShellState for the session
-        """
-        shell_key = self._get_shell_key(session_id, user_id)
-        
-        with self._lock:
-            if shell_key in self._shells:
-                shell_state = self._shells[shell_key]
-                # Check if process is still alive
-                if shell_state.process.poll() is None:
-                    return shell_state
-                else:
-                    # Process died, remove it
-                    logger.warning(f"Shell process for {shell_key} died, recreating...")
-                    del self._shells[shell_key]
-                    if shell_key in self._output_readers:
-                        del self._output_readers[shell_key]
-            
-            # Create new shell
-            working_dir = initial_dir or os.getcwd()
-            process = self._create_shell_process(working_dir, initial_env)
-            
-            shell_state = ShellState(
-                process=process,
-                working_directory=working_dir,
-                environment=initial_env or {}
-            )
-            
-            self._shells[shell_key] = shell_state
-            self._start_output_reader(shell_key, shell_state)
-            
-            return shell_state
-    
-    def execute_command(
-        self,
-        session_id: str,
-        user_id: str,
-        command: str,
-        timeout: Optional[float] = None,
-        working_dir: Optional[str] = None
-    ) -> Tuple[str, str, Optional[int], bool]:
-        """
-        Execute a command in the persistent shell for a session.
-        
-        Maintains environment variables, conda environment, and working directory
-        across commands, just like a real terminal.
-        
-        Args:
-            session_id: Session identifier
-            user_id: User identifier
-            command: Command to execute
-            timeout: Optional timeout in seconds
-            working_dir: Optional working directory (changes directory if provided)
-            
-        Returns:
-            Tuple of (stdout, stderr, exit_code, timed_out)
-        """
-        shell_key = self._get_shell_key(session_id, user_id)
-        
-        with self._lock:
-            if shell_key not in self._shells:
-                # Create shell if it doesn't exist
-                shell_state = self.get_or_create_shell(session_id, user_id, working_dir)
-            else:
-                shell_state = self._shells[shell_key]
-        
-        # Acquire shell lock to ensure sequential command execution
-        with shell_state.lock:
-            # Update working directory if provided
-            if working_dir:
-                shell_state.working_directory = working_dir
-            
-            # Build environment: merge system env with persistent env
-            env = os.environ.copy()
-            env.update(shell_state.environment)
-            
-            # Build full command with conda activation if needed
-            if shell_state.conda_env:
-                conda_init = self._find_conda_init()
-                if conda_init:
-                    if platform.system() == "Windows":
-                        full_command = f"conda activate {shell_state.conda_env} && {command}"
-                    else:
-                        full_command = f"source {conda_init} && conda activate {shell_state.conda_env} && {command}"
-                else:
-                    full_command = command
-            else:
-                full_command = command
-            
-            # Handle cd commands specially to update state
-            if command.strip().startswith("cd ") or command.strip() == "cd":
-                self._handle_cd_command(shell_state, command)
-                return ("", "", 0, False)
-            
-            # Handle conda activate/deactivate commands specially to update state
-            if command.strip().startswith("conda activate") or command.strip() == "conda deactivate":
-                self._handle_conda_command(shell_state, command)
-                return ("", "", 0, False)
-            
-            # Handle export/set commands to track environment variables
-            # We update state AND execute the command (so the var is set in current execution too)
-            if platform.system() == "Windows":
-                # PowerShell: $env:VAR = "value" or set VAR=value
-                if "$env:" in command or command.strip().startswith("set "):
-                    self._handle_env_set_command(shell_state, command)
-                    # Update env dict for current execution
-                    env.update(shell_state.environment)
-            else:
-                # Bash: export VAR=value
-                if command.strip().startswith("export "):
-                    self._handle_export_command(shell_state, command)
-                    # Update env dict for current execution
-                    env.update(shell_state.environment)
-            
-            # Execute command with persistent environment
+    def close(self):
+        """Clean up resources."""
+        if self.master_fd is not None:
             try:
-                if platform.system() == "Windows":
-                    # PowerShell execution
-                    ps_command = f"$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {full_command}; if ($?) {{ exit 0 }} else {{ exit 1 }}"
-                    shell_cmd = ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", ps_command]
-                else:
-                    # Bash execution
-                    shell_cmd = ["bash", "-c", full_command]
-                
-                # Execute with timeout
-                process = subprocess.Popen(
-                    shell_cmd,
-                    cwd=shell_state.working_directory,
-                    env=env,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    encoding='utf-8',
-                    errors='replace'
-                )
-                
-                try:
-                    stdout, stderr = process.communicate(timeout=timeout)
-                    exit_code = process.returncode
-                    timed_out = False
-                except subprocess.TimeoutExpired:
-                    process.kill()
-                    stdout, stderr = process.communicate()
-                    exit_code = None
-                    timed_out = True
-                
-                # Update command history
-                shell_state.command_history.append(command)
-                shell_state.last_command_time = time.time()
-                
-                return (stdout, stderr, exit_code, timed_out)
-                
-            except Exception as e:
-                logger.error(f"Error executing command: {e}", exc_info=True)
-                return ("", str(e), None, False)
-    
-    def _handle_cd_command(self, shell_state: ShellState, command: str):
-        """Handle cd command and update working directory state."""
-        cmd_stripped = command.strip()
-        if cmd_stripped == "cd":
-            # cd with no args goes to home
-            new_dir = os.path.expanduser("~")
-        else:
-            # Extract directory from cd command
-            dir_part = cmd_stripped[3:].strip()
-            
-            # Handle quoted paths
-            if (dir_part.startswith("'") and dir_part.endswith("'")) or (
-                dir_part.startswith('"') and dir_part.endswith('"')
-            ):
-                new_dir = dir_part[1:-1]
-            else:
-                parts = dir_part.split()
-                new_dir = parts[0] if parts else dir_part
-            
-            new_dir = new_dir.strip("'\"")
-            
-            # Handle relative paths
-            if not os.path.isabs(new_dir):
-                new_dir = os.path.join(shell_state.working_directory, new_dir)
-            new_dir = os.path.abspath(new_dir)
-        
-        if os.path.exists(new_dir) and os.path.isdir(new_dir):
-            shell_state.working_directory = new_dir
-            
-    def _handle_conda_command(self, shell_state: ShellState, command: str):
-        """Handle conda activate/deactivate commands."""
-        cmd_stripped = command.strip()
-        
-        if cmd_stripped == "conda deactivate":
-            shell_state.conda_env = None
-            return
-
-        if cmd_stripped.startswith("conda activate"):
-            parts = cmd_stripped.split()
-            if len(parts) >= 3:
-                env_name = parts[2]
-                if self._find_conda_init():
-                    shell_state.conda_env = env_name
-                else:
-                    logger.warning("Conda not found, cannot activate environment")
-            elif len(parts) == 2:
-                # 'conda activate' -> base
-                if self._find_conda_init():
-                    shell_state.conda_env = "base"
-    
-    def _handle_export_command(self, shell_state: ShellState, command: str):
-        """Handle export command and track environment variables."""
-        # Parse: export VAR=value or export VAR="value"
-        cmd_stripped = command.strip()
-        if not cmd_stripped.startswith("export "):
-            return
-        
-        var_part = cmd_stripped[7:].strip()  # Remove "export "
-        
-        # Handle: export VAR=value
-        if "=" in var_part:
-            parts = var_part.split("=", 1)
-            if len(parts) == 2:
-                key = parts[0].strip()
-                value = parts[1].strip().strip("'\"")  # Remove quotes
-                shell_state.environment[key] = value
-    
-    def _handle_env_set_command(self, shell_state: ShellState, command: str):
-        """Handle PowerShell environment variable setting."""
-        cmd_stripped = command.strip()
-        
-        # Handle: $env:VAR = "value"
-        if "$env:" in cmd_stripped:
-            try:
-                # Extract VAR from $env:VAR = "value"
-                parts = cmd_stripped.split("$env:", 1)
-                if len(parts) == 2:
-                    var_part = parts[1].split("=", 1)
-                    if len(var_part) == 2:
-                        key = var_part[0].strip()
-                        value = var_part[1].strip().strip("'\"")
-                        shell_state.environment[key] = value
-            except Exception:
+                os.close(self.master_fd)
+            except OSError:
                 pass
         
-        # Handle: set VAR=value
-        elif cmd_stripped.startswith("set "):
-            var_part = cmd_stripped[4:].strip()
-            if "=" in var_part:
-                parts = var_part.split("=", 1)
-                if len(parts) == 2:
-                    key = parts[0].strip()
-                    value = parts[1].strip().strip("'\"")
-                    shell_state.environment[key] = value
-    
-    def set_environment_variable(
-        self,
-        session_id: str,
-        user_id: str,
-        key: str,
-        value: str
-    ):
-        """
-        Set an environment variable in the persistent shell.
-        
-        Args:
-            session_id: Session identifier
-            user_id: User identifier
-            key: Environment variable name
-            value: Environment variable value
-        """
-        shell_key = self._get_shell_key(session_id, user_id)
-        
-        with self._lock:
-            if shell_key not in self._shells:
-                return
-            
-            shell_state = self._shells[shell_key]
-        
-        with self._lock:
-            if shell_key not in self._shells:
-                return
-            
-            shell_state = self._shells[shell_key]
-        
-        with shell_state.lock:
-            # Update our tracking (will be used in next command execution)
-            shell_state.environment[key] = value
-    
-    def activate_conda_env(
-        self,
-        session_id: str,
-        user_id: str,
-        env_name: str
-    ) -> bool:
-        """
-        Activate a conda environment in the persistent shell.
-        
-        Args:
-            session_id: Session identifier
-            user_id: User identifier
-            env_name: Conda environment name
-            
-        Returns:
-            True if activation succeeded, False otherwise
-        """
-        shell_key = self._get_shell_key(session_id, user_id)
-        
-        with self._lock:
-            if shell_key not in self._shells:
-                return False
-            
-            shell_state = self._shells[shell_key]
-        
-        with self._lock:
-            if shell_key not in self._shells:
-                return False
-            
-            shell_state = self._shells[shell_key]
-        
-        with shell_state.lock:
-            # Verify conda is available
-            conda_init = self._find_conda_init()
-            if not conda_init:
-                logger.warning("Conda not found, cannot activate environment")
-                return False
-            
-            # Store conda environment (will be used in next command execution)
-            shell_state.conda_env = env_name
-            return True
-    
-    def _find_conda_init(self) -> Optional[str]:
-        """Find conda initialization script."""
-        # Common locations
-        conda_base = os.environ.get("CONDA_PREFIX")
-        if conda_base:
-            if platform.system() == "Windows":
-                return os.path.join(conda_base, "Scripts", "conda.exe")
-            else:
-                return os.path.join(conda_base, "..", "etc", "profile.d", "conda.sh")
-        
-        # Try to find conda in PATH
-        import shutil
-        conda_path = shutil.which("conda")
-        if conda_path:
-            if platform.system() == "Windows":
-                return conda_path
-            else:
-                # Find conda.sh relative to conda executable
-                conda_dir = os.path.dirname(conda_path)
-                conda_sh = os.path.join(conda_dir, "..", "etc", "profile.d", "conda.sh")
-                if os.path.exists(conda_sh):
-                    return os.path.abspath(conda_sh)
-        
-        return None
-    
-    def get_shell_state(
-        self,
-        session_id: str,
-        user_id: str
-    ) -> Optional[ShellState]:
-        """
-        Get the shell state for a session.
-        
-        Args:
-            session_id: Session identifier
-            user_id: User identifier
-            
-        Returns:
-            ShellState if exists, None otherwise
-        """
-        shell_key = self._get_shell_key(session_id, user_id)
-        
-        with self._lock:
-            return self._shells.get(shell_key)
-    
-    def cleanup_shell(self, session_id: str, user_id: str):
-        """
-        Clean up and terminate a shell session.
-        
-        Args:
-            session_id: Session identifier
-            user_id: User identifier
-        """
-        shell_key = self._get_shell_key(session_id, user_id)
-        
-        with self._lock:
-            if shell_key not in self._shells:
-                return
-            
-            shell_state = self._shells[shell_key]
-            shell_state.is_active = False
-            
-            # Clean up (no process to terminate with simplified approach)
-            del self._shells[shell_key]
-            if shell_key in self._output_readers:
-                del self._output_readers[shell_key]
-            
-            logger.info(f"Cleaned up shell state for session {shell_key}")
-    
-    def cleanup_all(self):
-        """Clean up all shell sessions."""
-        with self._lock:
-            shell_keys = list(self._shells.keys())
-        
-        for shell_key in shell_keys:
-            user_id, session_id = shell_key.split(":", 1)
-            self.cleanup_shell(session_id, user_id)
+        if self.process:
+            try:
+                self.process.terminate()
+                self.process.wait(timeout=1)
+            except (OSError, subprocess.TimeoutExpired):
+                try:
+                    self.process.kill()
+                except OSError:
+                    pass
 
 
-# Global singleton instance
-_shell_manager: Optional[PersistentShellManager] = None
+class BaseShellManager(ABC):
+    """Abstract base class for shell managers."""
+    
+    def __init__(self):
+        self._sessions: Dict[str, ShellSession] = {}
+        self._lock = threading.Lock()
+
+    def get_session(self, session_id: str, user_id: str) -> Optional[ShellSession]:
+        key = self._get_key(session_id, user_id)
+        return self._sessions.get(key)
+        
+    def _get_key(self, session_id: str, user_id: str) -> str:
+        return f"{user_id}:{session_id}"
+
+    @abstractmethod
+    def create_session(self, session_id: str, user_id: str, working_dir: Optional[str] = None) -> ShellSession:
+        pass
+
+    @abstractmethod
+    def execute_command(self, session_id: str, user_id: str, command: str, timeout: float = 30.0, working_dir: Optional[str] = None) -> Tuple[str, str, int, bool]:
+        pass
+
+    def _clean_output(self, output: str, command: str) -> str:
+        """Clean raw shell output."""
+        # Remove ANSI codes
+        cleaned = ANSI_ESCAPE.sub('', output)
+        cleaned = cleaned.strip()
+        
+        # Remove echoed command if present at start
+        if cleaned.startswith(command):
+            cleaned = cleaned[len(command):].strip()
+            
+        return cleaned
 
 
-def get_shell_manager() -> PersistentShellManager:
-    """Get the global PersistentShellManager instance."""
+class UnixShellManager(BaseShellManager):
+    """Unix implementation using PTY."""
+
+    def create_session(self, session_id: str, user_id: str, working_dir: Optional[str] = None) -> ShellSession:
+        key = self._get_key(session_id, user_id)
+        
+        with self._lock:
+            if key in self._sessions:
+                self._sessions[key].close()
+            
+            master_fd, slave_fd = pty.openpty()
+            delimiter = f"__CTX_SHELL_END_{uuid.uuid4().hex[:8]}__"
+            
+            env = os.environ.copy()
+            env["TERM"] = "dumb"
+            env["PS1"] = f"\n{delimiter}\n"
+            
+            process = subprocess.Popen(
+                ["/bin/bash", "--noprofile", "--norc"],
+                stdin=slave_fd,
+                stdout=slave_fd,
+                stderr=slave_fd,
+                cwd=working_dir or os.getcwd(),
+                env=env,
+                preexec_fn=os.setsid,
+                bufsize=0
+            )
+            
+            os.close(slave_fd)
+            
+            fl = fcntl.fcntl(master_fd, fcntl.F_GETFL)
+            fcntl.fcntl(master_fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+            
+            # Set generic window size
+            winsize = struct.pack("HHHH", 24, 120, 0, 0)
+            fcntl.ioctl(master_fd, termios.TIOCSWINSZ, winsize)
+
+            session = ShellSession(
+                session_id=session_id,
+                user_id=user_id,
+                process=process,
+                master_fd=master_fd,
+                delimiter=delimiter,
+                working_dir=working_dir or os.getcwd()
+            )
+            
+            self._initialize_session(session)
+            self._sessions[key] = session
+            return session
+
+    def execute_command(self, session_id: str, user_id: str, command: str, timeout: float = 30.0, working_dir: Optional[str] = None) -> Tuple[str, str, int, bool]:
+        session = self.get_session(session_id, user_id)
+        
+        if not session or (session.process.poll() is not None):
+            session = self.create_session(session_id, user_id, working_dir)
+        
+        with session.lock:
+            if working_dir and working_dir != session.working_dir:
+                self._send_command(session, f"cd {working_dir}", timeout=5.0)
+                session.working_dir = working_dir
+
+            output, timed_out = self._send_command(session, command, timeout)
+            
+            if timed_out:
+                session.close()
+                key = self._get_key(session_id, user_id)
+                if key in self._sessions:
+                    del self._sessions[key]
+                return output, "Command timed out", -1, True
+
+            # Get exit code
+            code_out, _ = self._send_command(session, "echo $?", timeout=2.0)
+            try:
+                exit_code = int(code_out.strip())
+            except (ValueError, TypeError):
+                exit_code = -1
+
+            if command.strip().startswith("cd "):
+                 pwd_out, _ = self._send_command(session, "pwd", timeout=2.0)
+                 if pwd_out:
+                     session.working_dir = pwd_out.strip()
+
+            session.last_activity = time.time()
+            session.command_history.append(command)
+            
+            return output, "", exit_code, False
+
+    def _send_command(self, session: ShellSession, command: str, timeout: float) -> Tuple[str, bool]:
+        self._read_available(session.master_fd)
+        
+        if not command.endswith('\n'):
+            command += '\n'
+        os.write(session.master_fd, command.encode())
+        
+        output = []
+        start_time = time.time()
+        buffer = ""
+        
+        while (time.time() - start_time) < timeout:
+            chunk = self._read_available(session.master_fd)
+            if chunk:
+                buffer += chunk
+                if session.delimiter in buffer:
+                    parts = buffer.split(session.delimiter)
+                    content = parts[0]
+                    return self._clean_output(content, command.strip()), False
+            
+            time.sleep(0.01)
+            
+        return self._clean_output(buffer, command.strip()), True
+
+    def _read_available(self, fd: int) -> str:
+        out = b""
+        while True:
+            try:
+                r, _, _ = select.select([fd], [], [], 0)
+                if not r:
+                    break
+                chunk = os.read(fd, 10240)
+                if not chunk:
+                    break
+                out += chunk
+            except OSError:
+                break
+        return out.decode('utf-8', errors='replace')
+
+    def _initialize_session(self, session: ShellSession):
+        time.sleep(0.1)
+        self._read_available(session.master_fd)
+        self._send_command(session, "stty -echo", timeout=2.0)
+        self._read_available(session.master_fd)
+
+
+class WindowsShellManager(BaseShellManager):
+    """Windows implementation using subprocess pipes and threads."""
+
+    def create_session(self, session_id: str, user_id: str, working_dir: Optional[str] = None) -> ShellSession:
+        key = self._get_key(session_id, user_id)
+        
+        with self._lock:
+            if key in self._sessions:
+                self._sessions[key].close()
+            
+            delimiter = f"__CTX_END_{uuid.uuid4().hex[:8]}__"
+            
+            # Start PowerShell with UTF8 encoding forced
+            # We use -NoExit to keep session alive
+            # We assume 'powershell.exe' is in PATH
+            process = subprocess.Popen(
+                ["powershell.exe", "-NoLogo", "-NoExit", "-Command", "-"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,  # Merge stderr for simplicity
+                text=True,
+                cwd=working_dir or os.getcwd(),
+                bufsize=1,  # Line buffered
+                encoding='utf-8'
+            )
+            
+            # Setup output consumption
+            output_queue = Queue()
+            
+            def reader_thread(proc, q):
+                """Reads stdout from process and puts into queue."""
+                while True:
+                    try:
+                        # Read char by char to ensure we catch the delimiter even without newline
+                        # (though we append newline in delimiter usually)
+                        char = proc.stdout.read(1)
+                        if not char:
+                            break
+                        q.put(char)
+                    except ValueError:
+                        break
+                    except Exception as e:
+                        logger.error(f"Windows shell reader error: {e}")
+                        break
+
+            t = threading.Thread(target=reader_thread, args=(process, output_queue), daemon=True)
+            t.start()
+
+            session = ShellSession(
+                session_id=session_id,
+                user_id=user_id,
+                process=process,
+                delimiter=delimiter,
+                working_dir=working_dir or os.getcwd(),
+                output_queue=output_queue
+            )
+            
+            # Initial setup: set encoding and clear initial output
+            # We don't read initial banner here because our execute_command relies on fresh delimiter injection
+            # But good to set encoding explicitly again just in case
+            self._send_command(session, "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8", 5.0)
+            
+            self._sessions[key] = session
+            return session
+
+    def execute_command(self, session_id: str, user_id: str, command: str, timeout: float = 30.0, working_dir: Optional[str] = None) -> Tuple[str, str, int, bool]:
+        session = self.get_session(session_id, user_id)
+        
+        if not session or (session.process.poll() is not None):
+            session = self.create_session(session_id, user_id, working_dir)
+        
+        with session.lock:
+            if working_dir and working_dir != session.working_dir:
+                self._send_command(session, f"cd '{working_dir}'", timeout=5.0)
+                session.working_dir = working_dir
+
+            # Wrapped command to print delimiter
+            # We also capture $LASTEXITCODE
+            wrapped_cmd = f"{command}\nWrite-Output '{session.delimiter}'\nWrite-Output $LASTEXITCODE"
+            
+            # Flush queue before command
+            while not session.output_queue.empty():
+                try:
+                    session.output_queue.get_nowait()
+                except Empty:
+                    break
+
+            # Send command
+            try:
+                session.process.stdin.write(wrapped_cmd + "\n")
+                session.process.stdin.flush()
+            except OSError:
+                return "", "Shell process died", -1, False
+
+            # Read until delimiter
+            output_buffer = ""
+            start_time = time.time()
+            found_delimiter = False
+            
+            while (time.time() - start_time) < timeout:
+                try:
+                    char = session.output_queue.get(timeout=0.1)
+                    output_buffer += char
+                    
+                    if session.delimiter in output_buffer:
+                        found_delimiter = True
+                        # We still need to read the exit code which comes AFTER delimiter
+                        # The delimiter logic in the loop below handles it
+                        break
+                except Empty:
+                    continue
+            
+            if not found_delimiter:
+                # Timeout
+                session.close()
+                if key := self._get_key(session_id, user_id) in self._sessions:
+                    del self._sessions[key]
+                return output_buffer, "Command timed out", -1, True
+
+            # Parse output
+            # Format: <output> <delimiter> \n <exit_code> \n ...
+            parts = output_buffer.split(session.delimiter)
+            raw_output = parts[0]
+            
+            # Now we need to read the exit code
+            # It should be in the queue or coming very soon
+            exit_code_buffer = ""
+            # Read remaining lines for exit code
+            # We expect just one number
+            
+            # Quick read for exit code
+            sub_start = time.time()
+            while (time.time() - sub_start) < 2.0:
+                try:
+                    char = session.output_queue.get(timeout=0.1)
+                    exit_code_buffer += char
+                    if '\n' in exit_code_buffer.strip(): 
+                         # Got a line
+                         break
+                except Empty:
+                    # If we have something that looks like a number, maybe that's it
+                    if exit_code_buffer.strip().isdigit():
+                        break
+            
+            try:
+                # Extract first number found after delimiter
+                import re
+                matches = re.findall(r'\d+', exit_code_buffer)
+                exit_code = int(matches[0]) if matches else 0
+            except:
+                exit_code = 0 # Default success if we can't parse, or -1? 0 is safer for "echo" style
+
+            # Update working dir tracking
+            if command.strip().lower().startswith("cd "):
+                 # On Windows, we need to ask for location
+                 # We do a quick separate call
+                 # But we can't easily nest calls inside execute_command due to lock re-entrancy
+                 # So we manually write to stdin
+                 session.process.stdin.write("Get-Location | Select-Object -ExpandProperty Path\nWrite-Output '" + session.delimiter + "'\n")
+                 session.process.stdin.flush()
+                 
+                 # Read pwd
+                 pwd_buf = ""
+                 while True:
+                     try:
+                         c = session.output_queue.get(timeout=1.0)
+                         pwd_buf += c
+                         if session.delimiter in pwd_buf:
+                             session.working_dir = pwd_buf.split(session.delimiter)[0].strip()
+                             break
+                     except Empty:
+                         break
+
+            session.last_activity = time.time()
+            session.command_history.append(command)
+
+            return self._clean_output(raw_output, command.strip()), "", exit_code, False
+            
+    def _send_command(self, session: ShellSession, command: str, timeout: float) -> Tuple[str, bool]:
+        """Helper for internal commands."""
+        # Simple send and wait for delimiter
+        wrapped_cmd = f"{command}\nWrite-Output '{session.delimiter}'"
+        
+        # Clear queue
+        while not session.output_queue.empty():
+            session.output_queue.get_nowait()
+            
+        session.process.stdin.write(wrapped_cmd + "\n")
+        session.process.stdin.flush()
+        
+        buf = ""
+        start = time.time()
+        while (time.time() - start) < timeout:
+            try:
+                c = session.output_queue.get(timeout=0.1)
+                buf += c
+                if session.delimiter in buf:
+                    return buf.split(session.delimiter)[0].strip(), False
+            except Empty:
+                continue
+                
+        return buf, True
+
+
+# Global Factory
+_shell_manager = None
+
+def get_shell_manager() -> Union[UnixShellManager, WindowsShellManager]:
+    """Singleton accessor returning platform-appropriate manager."""
     global _shell_manager
     if _shell_manager is None:
-        _shell_manager = PersistentShellManager()
+        if platform.system() == "Windows":
+            _shell_manager = WindowsShellManager()
+        else:
+            _shell_manager = UnixShellManager()
     return _shell_manager
 
