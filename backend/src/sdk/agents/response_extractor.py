@@ -6,6 +6,8 @@ Extracts final response text from agent session execution.
 import logging
 from typing import TYPE_CHECKING
 
+from backend.src.core.types import ContentType
+
 if TYPE_CHECKING:
     from backend.src.agent.core import AgentSession
 
@@ -105,7 +107,7 @@ async def extract_response(
                     if isinstance(content, list):
                         # Extract text parts
                         text_parts = [
-                            p.get("text", "") for p in content if p.get("type") == "text"
+                            p.get("text", "") for p in content if p.get("type") == ContentType.TEXT.value
                         ]
                         final_response = "".join(text_parts)
                     elif isinstance(content, str):

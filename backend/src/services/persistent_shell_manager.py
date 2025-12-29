@@ -40,6 +40,39 @@ READ_TIMEOUT = 0.1
 ANSI_ESCAPE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 
+@dataclass(frozen=True)
+class SessionKey:
+    """Immutable session key for shell sessions.
+    
+    Provides type-safe key construction and prevents ordering mistakes.
+    """
+    user_id: str
+    session_id: str
+    
+    def __str__(self) -> str:
+        """Convert to string format for dict keys."""
+        return f"{self.user_id}:{self.session_id}"
+    
+    @classmethod
+    def from_string(cls, key_str: str) -> "SessionKey":
+        """
+        Parse key string (for backward compatibility).
+        
+        Args:
+            key_str: String in format "user_id:session_id"
+            
+        Returns:
+            SessionKey instance
+            
+        Raises:
+            ValueError: If key format is invalid
+        """
+        parts = key_str.split(":", 1)
+        if len(parts) != 2:
+            raise ValueError(f"Invalid session key format: {key_str}")
+        return cls(user_id=parts[0], session_id=parts[1])
+
+
 @dataclass
 class ShellSession:
     """Represents a single persistent shell session."""
@@ -56,6 +89,7 @@ class ShellSession:
     # Platform specific fields
     master_fd: Optional[int] = None  # Unix only
     output_queue: Optional[Queue] = None  # Windows only
+    last_exit_code: Optional[int] = None  # Windows: stores exit code from last command
 
     def close(self):
         """Clean up resources."""
@@ -85,18 +119,189 @@ class BaseShellManager(ABC):
 
     def get_session(self, session_id: str, user_id: str) -> Optional[ShellSession]:
         key = self._get_key(session_id, user_id)
-        return self._sessions.get(key)
+        return self._sessions.get(str(key))
         
-    def _get_key(self, session_id: str, user_id: str) -> str:
-        return f"{user_id}:{session_id}"
+    def _get_key(self, session_id: str, user_id: str) -> SessionKey:
+        """Create type-safe session key."""
+        return SessionKey(user_id=user_id, session_id=session_id)
+    
+    def cleanup_shell(self, session_id: str, user_id: str) -> None:
+        """
+        Clean up and remove a shell session.
+        
+        Args:
+            session_id: Session ID
+            user_id: User ID
+        """
+        key = self._get_key(session_id, user_id)
+        key_str = str(key)
+        
+        with self._lock:
+            session = self._sessions.get(key_str)
+            if session:
+                session.close()
+                del self._sessions[key_str]
+                logger.debug(f"Cleaned up shell session {key_str}")
 
     @abstractmethod
     def create_session(self, session_id: str, user_id: str, working_dir: Optional[str] = None) -> ShellSession:
         pass
 
-    @abstractmethod
     def execute_command(self, session_id: str, user_id: str, command: str, timeout: float = 30.0, working_dir: Optional[str] = None) -> Tuple[str, str, int, bool]:
+        """
+        Execute a command in a persistent shell session.
+        
+        Shared implementation that handles session management, working directory,
+        timeout, and command history. Platform-specific I/O is delegated to
+        abstract methods.
+        """
+        # Get or create session
+        session = self.get_session(session_id, user_id)
+        
+        if not session or (session.process.poll() is not None):
+            session = self.create_session(session_id, user_id, working_dir)
+        
+        with session.lock:
+            # Handle working directory change if needed
+            if working_dir and working_dir != session.working_dir:
+                self._send_command(session, self._get_cd_command(working_dir), timeout=5.0)
+                session.working_dir = working_dir
+
+            # Execute command (platform-specific)
+            output, timed_out = self._send_command(session, command, timeout)
+            
+            # Handle timeout
+            if timed_out:
+                session.close()
+                key = self._get_key(session_id, user_id)
+                key_str = str(key)
+                if key_str in self._sessions:
+                    del self._sessions[key_str]
+                return output, "Command timed out", -1, True
+
+            # Get exit code (platform-specific)
+            exit_code = self._get_exit_code(session)
+            
+            # Update working directory for 'cd' commands
+            # Parse cd command directly instead of querying shell
+            if command.strip().lower().startswith("cd "):
+                new_dir = self._parse_cd_command(command, session.working_dir)
+                if new_dir:
+                    # Validate directory exists before updating
+                    import os
+                    if os.path.exists(new_dir) and os.path.isdir(new_dir):
+                        session.working_dir = new_dir
+                    else:
+                        logger.warning(f"cd to invalid directory: {new_dir}")
+
+            # Update session state (shared)
+            session.last_activity = time.time()
+            session.command_history.append(command)
+            
+            return self._clean_output(output, command.strip()), "", exit_code, False
+
+    @abstractmethod
+    def _send_command(self, session: ShellSession, command: str, timeout: float) -> Tuple[str, bool]:
+        """
+        Send a command to the shell session and read output.
+        
+        Platform-specific implementation for command execution.
+        
+        Args:
+            session: Shell session
+            command: Command to execute
+            timeout: Timeout in seconds
+            
+        Returns:
+            Tuple of (output, timed_out)
+        """
         pass
+    
+    @abstractmethod
+    def _get_exit_code(self, session: ShellSession) -> int:
+        """
+        Get the exit code of the last command.
+        
+        Platform-specific implementation.
+        
+        Args:
+            session: Shell session
+            
+        Returns:
+            Exit code (0 for success, -1 if unable to determine)
+        """
+        pass
+    
+    def _parse_cd_command(self, command: str, current_dir: str) -> Optional[str]:
+        """
+        Parse cd command to extract target directory.
+        
+        Handles:
+        - cd /absolute/path
+        - cd relative/path
+        - cd ~ (home directory)
+        - cd - (previous directory - not supported, returns None)
+        - cd (home directory)
+        
+        Args:
+            command: cd command string
+            current_dir: Current working directory
+            
+        Returns:
+            Resolved directory path, or None if unable to parse
+        """
+        import os
+        
+        # Extract directory from command
+        parts = command.strip().split(maxsplit=1)
+        if len(parts) < 2:
+            # cd without arguments -> home directory
+            return os.path.expanduser("~")
+        
+        target = parts[1].strip()
+        
+        # Handle special cases
+        if target == "-":
+            # Previous directory - not supported
+            return None
+        
+        if target == "~" or target.startswith("~/"):
+            # Home directory
+            return os.path.expanduser(target)
+        
+        # Resolve path (handles both absolute and relative)
+        if os.path.isabs(target):
+            return target
+        else:
+            return os.path.normpath(os.path.join(current_dir, target))
+    
+    @abstractmethod
+    def _get_current_directory(self, session: ShellSession) -> Optional[str]:
+        """
+        Get the current working directory from the shell session.
+        
+        Platform-specific implementation. Used as fallback when cd parsing fails.
+        
+        Args:
+            session: Shell session
+            
+        Returns:
+            Current directory path, or None if unable to determine
+        """
+        pass
+    
+    def _get_cd_command(self, directory: str) -> str:
+        """
+        Get platform-specific cd command.
+        
+        Args:
+            directory: Directory path
+            
+        Returns:
+            cd command string
+        """
+        # Default Unix-style, Windows overrides
+        return f"cd {directory}"
 
     def _clean_output(self, output: str, command: str) -> str:
         """Clean raw shell output."""
@@ -158,45 +363,8 @@ class UnixShellManager(BaseShellManager):
             )
             
             self._initialize_session(session)
-            self._sessions[key] = session
+            self._sessions[str(key)] = session
             return session
-
-    def execute_command(self, session_id: str, user_id: str, command: str, timeout: float = 30.0, working_dir: Optional[str] = None) -> Tuple[str, str, int, bool]:
-        session = self.get_session(session_id, user_id)
-        
-        if not session or (session.process.poll() is not None):
-            session = self.create_session(session_id, user_id, working_dir)
-        
-        with session.lock:
-            if working_dir and working_dir != session.working_dir:
-                self._send_command(session, f"cd {working_dir}", timeout=5.0)
-                session.working_dir = working_dir
-
-            output, timed_out = self._send_command(session, command, timeout)
-            
-            if timed_out:
-                session.close()
-                key = self._get_key(session_id, user_id)
-                if key in self._sessions:
-                    del self._sessions[key]
-                return output, "Command timed out", -1, True
-
-            # Get exit code
-            code_out, _ = self._send_command(session, "echo $?", timeout=2.0)
-            try:
-                exit_code = int(code_out.strip())
-            except (ValueError, TypeError):
-                exit_code = -1
-
-            if command.strip().startswith("cd "):
-                 pwd_out, _ = self._send_command(session, "pwd", timeout=2.0)
-                 if pwd_out:
-                     session.working_dir = pwd_out.strip()
-
-            session.last_activity = time.time()
-            session.command_history.append(command)
-            
-            return output, "", exit_code, False
 
     def _send_command(self, session: ShellSession, command: str, timeout: float) -> Tuple[str, bool]:
         self._read_available(session.master_fd)
@@ -221,6 +389,19 @@ class UnixShellManager(BaseShellManager):
             time.sleep(0.01)
             
         return self._clean_output(buffer, command.strip()), True
+    
+    def _get_exit_code(self, session: ShellSession) -> int:
+        """Get exit code using Unix echo $? command."""
+        code_out, _ = self._send_command(session, "echo $?", timeout=2.0)
+        try:
+            return int(code_out.strip())
+        except (ValueError, TypeError):
+            return -1
+    
+    def _get_current_directory(self, session: ShellSession) -> Optional[str]:
+        """Get current directory using Unix pwd command."""
+        pwd_out, _ = self._send_command(session, "pwd", timeout=2.0)
+        return pwd_out.strip() if pwd_out else None
 
     def _read_available(self, fd: int) -> str:
         out = b""
@@ -306,146 +487,89 @@ class WindowsShellManager(BaseShellManager):
             # But good to set encoding explicitly again just in case
             self._send_command(session, "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8", 5.0)
             
-            self._sessions[key] = session
+            self._sessions[str(key)] = session
             return session
 
-    def execute_command(self, session_id: str, user_id: str, command: str, timeout: float = 30.0, working_dir: Optional[str] = None) -> Tuple[str, str, int, bool]:
-        session = self.get_session(session_id, user_id)
-        
-        if not session or (session.process.poll() is not None):
-            session = self.create_session(session_id, user_id, working_dir)
-        
-        with session.lock:
-            if working_dir and working_dir != session.working_dir:
-                self._send_command(session, f"cd '{working_dir}'", timeout=5.0)
-                session.working_dir = working_dir
-
-            # Wrapped command to print delimiter
-            # We also capture $LASTEXITCODE
-            wrapped_cmd = f"{command}\nWrite-Output '{session.delimiter}'\nWrite-Output $LASTEXITCODE"
-            
-            # Flush queue before command
-            while not session.output_queue.empty():
-                try:
-                    session.output_queue.get_nowait()
-                except Empty:
-                    break
-
-            # Send command
-            try:
-                session.process.stdin.write(wrapped_cmd + "\n")
-                session.process.stdin.flush()
-            except OSError:
-                return "", "Shell process died", -1, False
-
-            # Read until delimiter
-            output_buffer = ""
-            start_time = time.time()
-            found_delimiter = False
-            
-            while (time.time() - start_time) < timeout:
-                try:
-                    char = session.output_queue.get(timeout=0.1)
-                    output_buffer += char
-                    
-                    if session.delimiter in output_buffer:
-                        found_delimiter = True
-                        # We still need to read the exit code which comes AFTER delimiter
-                        # The delimiter logic in the loop below handles it
-                        break
-                except Empty:
-                    continue
-            
-            if not found_delimiter:
-                # Timeout
-                session.close()
-                if key := self._get_key(session_id, user_id) in self._sessions:
-                    del self._sessions[key]
-                return output_buffer, "Command timed out", -1, True
-
-            # Parse output
-            # Format: <output> <delimiter> \n <exit_code> \n ...
-            parts = output_buffer.split(session.delimiter)
-            raw_output = parts[0]
-            
-            # Now we need to read the exit code
-            # It should be in the queue or coming very soon
-            exit_code_buffer = ""
-            # Read remaining lines for exit code
-            # We expect just one number
-            
-            # Quick read for exit code
-            sub_start = time.time()
-            while (time.time() - sub_start) < 2.0:
-                try:
-                    char = session.output_queue.get(timeout=0.1)
-                    exit_code_buffer += char
-                    if '\n' in exit_code_buffer.strip(): 
-                         # Got a line
-                         break
-                except Empty:
-                    # If we have something that looks like a number, maybe that's it
-                    if exit_code_buffer.strip().isdigit():
-                        break
-            
-            try:
-                # Extract first number found after delimiter
-                import re
-                matches = re.findall(r'\d+', exit_code_buffer)
-                exit_code = int(matches[0]) if matches else 0
-            except:
-                exit_code = 0 # Default success if we can't parse, or -1? 0 is safer for "echo" style
-
-            # Update working dir tracking
-            if command.strip().lower().startswith("cd "):
-                 # On Windows, we need to ask for location
-                 # We do a quick separate call
-                 # But we can't easily nest calls inside execute_command due to lock re-entrancy
-                 # So we manually write to stdin
-                 session.process.stdin.write("Get-Location | Select-Object -ExpandProperty Path\nWrite-Output '" + session.delimiter + "'\n")
-                 session.process.stdin.flush()
-                 
-                 # Read pwd
-                 pwd_buf = ""
-                 while True:
-                     try:
-                         c = session.output_queue.get(timeout=1.0)
-                         pwd_buf += c
-                         if session.delimiter in pwd_buf:
-                             session.working_dir = pwd_buf.split(session.delimiter)[0].strip()
-                             break
-                     except Empty:
-                         break
-
-            session.last_activity = time.time()
-            session.command_history.append(command)
-
-            return self._clean_output(raw_output, command.strip()), "", exit_code, False
-            
+    def _get_cd_command(self, directory: str) -> str:
+        """Get Windows-style cd command with quotes."""
+        return f"cd '{directory}'"
+    
     def _send_command(self, session: ShellSession, command: str, timeout: float) -> Tuple[str, bool]:
-        """Helper for internal commands."""
-        # Simple send and wait for delimiter
-        wrapped_cmd = f"{command}\nWrite-Output '{session.delimiter}'"
+        """
+        Send command to Windows PowerShell and read output.
+        
+        For main command execution, wraps command to include delimiter and exit code.
+        For helper commands, just includes delimiter.
+        """
+        # Check if this is a helper command (doesn't need exit code capture)
+        is_helper = command.strip().lower() in ["write-output $lastexitcode", "get-location | select-object -expandproperty path"]
+        
+        if is_helper:
+            # Simple send and wait for delimiter
+            wrapped_cmd = f"{command}\nWrite-Output '{session.delimiter}'"
+        else:
+            # Main command - wrap to capture exit code
+            wrapped_cmd = f"{command}\nWrite-Output '{session.delimiter}'\nWrite-Output $LASTEXITCODE"
         
         # Clear queue
         while not session.output_queue.empty():
-            session.output_queue.get_nowait()
+            try:
+                session.output_queue.get_nowait()
+            except Empty:
+                break
             
-        session.process.stdin.write(wrapped_cmd + "\n")
-        session.process.stdin.flush()
+        try:
+            session.process.stdin.write(wrapped_cmd + "\n")
+            session.process.stdin.flush()
+        except OSError:
+            return "", True  # Process died, treat as timeout
         
         buf = ""
         start = time.time()
+        found_delimiter = False
+        
         while (time.time() - start) < timeout:
             try:
                 c = session.output_queue.get(timeout=0.1)
                 buf += c
                 if session.delimiter in buf:
-                    return buf.split(session.delimiter)[0].strip(), False
+                    found_delimiter = True
+                    break
             except Empty:
                 continue
-                
-        return buf, True
+        
+        if not found_delimiter:
+            return buf, True  # Timeout
+        
+        # Parse output
+        parts = buf.split(session.delimiter)
+        output = parts[0].strip()
+        
+        # Extract exit code if this was a main command
+        if not is_helper and len(parts) > 1:
+            exit_code_str = parts[1].strip()
+            try:
+                import re
+                matches = re.findall(r'\d+', exit_code_str)
+                session.last_exit_code = int(matches[0]) if matches else 0
+            except (ValueError, TypeError):
+                session.last_exit_code = 0
+        
+        return output, False
+    
+    def _get_exit_code(self, session: ShellSession) -> int:
+        """
+        Get exit code from Windows PowerShell.
+        
+        The exit code is captured by _send_command() and stored in session.last_exit_code.
+        """
+        # Exit code was captured during _send_command execution
+        return session.last_exit_code if session.last_exit_code is not None else 0
+    
+    def _get_current_directory(self, session: ShellSession) -> Optional[str]:
+        """Get current directory using Windows Get-Location command."""
+        pwd_out, _ = self._send_command(session, "Get-Location | Select-Object -ExpandProperty Path", timeout=2.0)
+        return pwd_out.strip() if pwd_out else None
 
 
 # Global Factory

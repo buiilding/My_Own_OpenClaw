@@ -137,14 +137,28 @@ class ContextFactory:
         if additional_services:
             services.update(additional_services)
         
+        # Retrieve active window at context creation time
+        active_window = None
+        try:
+            from backend.src.tools.computer.window_utils import get_active_window_title
+            active_window = get_active_window_title()
+        except Exception as e:
+            logger.debug(f"Could not retrieve active window: {e}")
+        
         # Create context
         workspace = workspace_root or os.getcwd()
+        
+        # Store active window in session metadata
+        session_metadata = {}
+        if active_window:
+            session_metadata['active_window'] = active_window
         
         context = ToolContext(
             user=UserContext(user_id=user_id),
             session=SessionContext(
                 session_id=session_id,
-                created_at=time.time()
+                created_at=time.time(),
+                metadata=session_metadata
             ),
             runtime=ExecutionRuntime(
                 workspace_root=workspace,
@@ -154,7 +168,7 @@ class ContextFactory:
         
         logger.debug(
             f"Created context for user={user_id}, session={session_id}, "
-            f"workspace={context.workspace_root}"
+            f"workspace={context.workspace_root}, active_window={active_window}"
         )
         
         return context

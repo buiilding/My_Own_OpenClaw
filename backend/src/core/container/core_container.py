@@ -1,12 +1,13 @@
 """
 Core Container for basic application dependencies.
 
-Contains configuration, service layer, LLM client, and TTS service providers.
+Contains configuration, service layer, LLM client, TTS service, and EventBus providers.
 """
 import logging
 
 from dependency_injector import containers, providers
 
+from backend.src.core.bus import EventBus
 from backend.src.core.config import ConfigManager
 from backend.src.core.container.factories import (
     _create_service_container,
@@ -27,6 +28,7 @@ class CoreContainer(containers.DeclarativeContainer):
     - Service layer
     - LLM client
     - TTS service
+    - EventBus (for decoupled component communication)
     """
 
     # Configuration
@@ -37,6 +39,9 @@ class CoreContainer(containers.DeclarativeContainer):
         lambda cm: cm.load_config(),
         cm=config_manager,
     )
+
+    # Event Bus (singleton for application-wide event communication)
+    event_bus = providers.Singleton(EventBus)
 
     # Service Layer
     service_container = providers.Singleton(

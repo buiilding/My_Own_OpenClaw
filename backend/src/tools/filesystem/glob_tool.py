@@ -12,8 +12,10 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.src.core.utils.path_utils import make_relative_path
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.filesystem.data_structures import GlobEntry
 from backend.src.tools.system.shell_tool import ShellTool
 
@@ -48,6 +50,8 @@ class GlobTool(Tool[GlobArgs]):
     """Tool for finding files matching glob patterns."""
 
     name = "glob"
+    required_permissions = {Permission.READ_FILESYSTEM}
+    category = ToolDomain.FILESYSTEM
     description = """Use this tool to DISCOVER FILES by name patterns or path structure (fuzzy/filename search).
 
 WHEN TO USE:
@@ -92,16 +96,18 @@ This tool matches file names and paths, not file contents. After finding files, 
                 target_dir = ctx.workspace_root
 
             # Determine search directory
+            session_id = ctx.session.session_id
+            user_id = ctx.user.user_id
             if args.path:
                 if not os.path.isabs(args.path):
                     # Use current working directory from shell tool
-                    current_dir = ShellTool.get_current_working_directory()
+                    current_dir = ShellTool.get_current_working_directory(session_id, user_id)
                     search_dir = os.path.join(current_dir, args.path)
                 else:
                     search_dir = args.path
             else:
                 # Use current working directory from shell tool
-                search_dir = ShellTool.get_current_working_directory()
+                search_dir = ShellTool.get_current_working_directory(session_id, user_id)
 
             if not os.path.exists(search_dir):
                 return {

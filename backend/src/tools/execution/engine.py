@@ -142,6 +142,7 @@ class ToolExecutionEngine:
                 result=result,
                 execution_time=exec_result.execution_time,
                 success=exec_result.success,
+                context=context,  # Include context for accessing active_window, etc.
             )
 
         except Exception as e:
@@ -157,76 +158,6 @@ class ToolExecutionEngine:
                 context="tool execution",
             )
             return self._create_error_result(tool_call, error_msg, execution_time)
-
-    async def execute_tool_by_name(
-        self, tool_name: str, parameters: Optional[Dict[str, Any]] = None, **kwargs
-    ) -> Dict[str, Any]:
-        """
-        Convenience method to execute a tool by name (matching ToolExecutor interface).
-
-        This method provides backward compatibility with the old ToolExecutor interface,
-        allowing code to execute tools using tool_name and parameters dict instead of
-        ParsedToolCall objects.
-
-        Args:
-            tool_name: Name of the tool to execute
-            parameters: Tool parameters (dict)
-            **kwargs: Additional context parameters (user_id, session_id, session_ref, workspace_root)
-
-        Returns:
-            Dictionary with execution result (success, data, error, llm_content, etc.)
-        """
-        # Create a ParsedToolCall from tool_name and parameters
-        tool_call = ParsedToolCall(
-            tool_name=tool_name,
-            parameters=parameters or {},
-            raw_call=f"{tool_name}({parameters or {}})",
-            confidence=1.0,
-        )
-
-        # Extract context parameters from kwargs
-        user_id = kwargs.get("user_id", "default_user")
-        session_id = kwargs.get("session_id", "default_session")
-        session_ref = kwargs.get("session_ref")
-
-        # Execute using the main execute method
-        execution_result = await self.execute(
-            tool_call=tool_call,
-            user_id=user_id,
-            session_id=session_id,
-            session_ref=session_ref,
-        )
-
-        # Convert ToolExecutionResult to dict format (matching ToolExecutor interface)
-        result = execution_result.result
-
-        # Build result dict
-        result_dict: Dict[str, Any] = {
-            "success": execution_result.success,
-        }
-
-        if result.error:
-            result_dict["error"] = result.error
-            result_dict["llm_content"] = result.llm_content or f"Error: {result.error}"
-            result_dict["return_display"] = result.return_display or result.error
-        else:
-            # Success case
-            if result.data is not None:
-                result_dict["data"] = result.data
-                # If data is a dict, merge its keys into result_dict for convenience
-                if isinstance(result.data, dict):
-                    result_dict.update(result.data)
-
-            if result.llm_content:
-                result_dict["llm_content"] = result.llm_content
-            if result.return_display:
-                result_dict["return_display"] = result.return_display
-            if result.metadata:
-                result_dict["metadata"] = result.metadata
-            if result.artifacts:
-                result_dict.update(result.artifacts)
-
-        return result_dict
 
     async def _get_tool_instance(self, tool_name: str):
         """
@@ -299,6 +230,7 @@ class ToolExecutionEngine:
 
 def create_execution_engine_from_registry(
     tool_registry: ToolRegistry,
+    security_policy: Optional[Any] = None,
     context_factory: Optional[ContextFactory] = None,
 ) -> ToolExecutionEngine:
     """
@@ -310,13 +242,18 @@ def create_execution_engine_from_registry(
 
     Args:
         tool_registry: ToolRegistry instance
+        security_policy: SecurityPolicy instance (required)
         context_factory: Optional ContextFactory (uses registry's factory if not provided)
 
     Returns:
         Configured ToolExecutionEngine instance
     """
-    from backend.src.core.security import get_security_policy
+    from backend.src.core.security import SecurityPolicy
     from backend.src.tools.execution.strategies.chain import create_execution_chain
+
+    # SecurityPolicy is required - create default if not provided
+    if security_policy is None:
+        security_policy = SecurityPolicy(tool_registry=tool_registry)
 
     # Use registry's context factory if not provided
     if context_factory is None:
@@ -324,7 +261,7 @@ def create_execution_engine_from_registry(
 
     # Create execution strategy chain
     execution_strategy = create_execution_chain(
-        tool_registry=tool_registry, security_policy=get_security_policy()
+        tool_registry=tool_registry, security_policy=security_policy
     )
 
     # Create and return execution engine

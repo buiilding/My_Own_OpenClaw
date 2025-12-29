@@ -16,8 +16,10 @@ from dataclasses import dataclass
 from typing import List, Optional, Tuple
 from pydantic import BaseModel, Field, ConfigDict
 
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
+from backend.src.tools.categorization import ToolDomain
 from backend.src.services.persistent_shell_manager import get_shell_manager
 
 logger = logging.getLogger(__name__)
@@ -68,8 +70,28 @@ class ShellTool(Tool[RunShellCommandArgs]):
         self.allowlist: set[str] = set()
         self._shell_manager = get_shell_manager()
 
+    @staticmethod
+    def get_current_working_directory(session_id: str, user_id: str) -> str:
+        """
+        Get the current working directory for a shell session.
+        
+        Args:
+            session_id: Session identifier
+            user_id: User identifier
+            
+        Returns:
+            Current working directory path, or os.getcwd() if session doesn't exist
+        """
+        shell_manager = get_shell_manager()
+        session = shell_manager.get_session(session_id, user_id)
+        if session:
+            return session.working_dir
+        return os.getcwd()
+
 
     name = "run_shell_command"
+    required_permissions = {Permission.EXECUTE_COMMANDS}
+    category = ToolDomain.SYSTEM
     description = (
         "This tool executes shell commands with safety restrictions and maintains a persistent shell session. "
         "Each conversation session has its own persistent shell that maintains:\n"

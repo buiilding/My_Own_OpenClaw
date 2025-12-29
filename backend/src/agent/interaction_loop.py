@@ -7,8 +7,20 @@ cycle of LLM generation, parsing, and tool execution.
 import logging
 from typing import TYPE_CHECKING, AsyncGenerator, List
 
+from backend.src.agent.presenter import ResponsePresenter
+from backend.src.core.events import (
+    AgentStreamingEvent,
+    AssistantMessageFullEvent,
+    ChunkEvent,
+    ErrorEvent,
+    FullResponseEvent,
+    StreamingCompleteEvent,
+    ThinkingEvent,
+    ToolCallEvent,
+    ToolOutputEvent,
+)
 from backend.src.core.exceptions import LLMRateLimitError
-from backend.src.core.types import LLMMessage, StreamingEvent
+from backend.src.core.types import LLMMessage
 from backend.src.llm.parser import ParsedResponse
 
 if TYPE_CHECKING:
@@ -40,8 +52,9 @@ class InteractionLoop:
         self.prompt_builder = prompt_constructor
         self.response_parser = response_parser
         self.result_processor = result_processor
+        self.presenter = ResponsePresenter()
 
-    async def run_loop(self) -> AsyncGenerator[StreamingEvent, None]:
+    async def run_loop(self) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
         Executes the agent loop: Prompt -> LLM -> Parse -> Tools -> Repeat.
         """
@@ -54,64 +67,48 @@ class InteractionLoop:
             iteration += 1
             
             # A. Build Prompt
+            # Pass ConversationHistory directly to use cached last_user_query property
             prompt, prompt_metadata = self.prompt_builder.build_prompt(
                 self.session.history.get_history(),
+                stored_messages=self.session.history,  # Pass history object for O(1) access
                 include_tools=(iteration == 1),
             )
 
-            # Emit system prompt transparency event (only on first iteration)
-            if iteration == 1 and prompt_metadata.get("tool_schemas") is not None:
-                yield {
-                    "type": "system_prompt",
-                    "content": prompt_metadata["system_prompt"],
-                    "tool_schemas": prompt_metadata["tool_schemas"],
-                }
-
-            # Emit user message transparency event if metadata available
-            if prompt_metadata.get("user_message_metadata"):
-                metadata = prompt_metadata["user_message_metadata"]
-                yield {
-                    "type": "user_message_full",
-                    "content": metadata["full_content"],
-                    "metadata": {
-                        "original_query": metadata["original_query"],
-                        "context_type": metadata["context_type"],
-                        "injected_context": metadata["injected_context"],
-                        "active_window": metadata["active_window"],
-                    },
-                }
+            # Present system prompt and user message events via presenter
+            async for event in self.presenter.present_system_prompt(prompt_metadata, iteration):
+                yield event
+            
+            async for event in self.presenter.present_user_message(prompt_metadata):
+                yield event
 
             # B. Get LLM Response (Streamed)
             llm_response_text = ""
             try:
                 async for event in self._stream_llm_response(prompt):
-                    if event["type"] == "full_response":
-                        llm_response_text = event["content"]
+                    if isinstance(event, FullResponseEvent):
+                        llm_response_text = event.content
                     else:
                         yield event
             except LLMRateLimitError:
-                yield {"type": "error", "content": "Rate limit exceeded. Please wait."}
+                yield ErrorEvent(content="Rate limit exceeded. Please wait.")
                 return
             except Exception as e:
                 logger.error(f"LLM error: {e}", exc_info=True)
-                yield {"type": "error", "content": f"LLM error: {str(e)}"}
+                yield ErrorEvent(content=f"LLM error: {str(e)}")
                 return
 
             # C. Parse Response
             parsed_response = self.response_parser.parse_response(llm_response_text)
             
             # Emit assistant message transparency event
-            yield {
-                "type": "assistant_message_full",
-                "content": llm_response_text,
-            }
+            yield AssistantMessageFullEvent(content=llm_response_text)
             
             # D. Decision Logic
             if not parsed_response.has_tool_calls:
                 # No tools called -> Final answer
                 final_response = parsed_response.text_content
                 self.session.history.add_assistant_message(final_response)
-                yield {"type": "streaming-complete"}
+                yield StreamingCompleteEvent()
                 break
 
             # E. Tool Execution
@@ -120,12 +117,11 @@ class InteractionLoop:
 
             # Notify frontend of tool calls
             for tool_call in parsed_response.tool_calls:
-                yield {
-                    "type": "tool_call",
-                    "tool_name": tool_call.tool_name,
-                    "parameters": tool_call.parameters,
-                    "raw_call": tool_call.raw_call,
-                }
+                yield ToolCallEvent(
+                    tool_name=tool_call.tool_name,
+                    parameters=tool_call.parameters,
+                    raw_call=tool_call.raw_call,
+                )
 
             # Execute tools
             try:
@@ -133,12 +129,12 @@ class InteractionLoop:
                     yield event
             except Exception as e:
                  logger.error(f"Critical tool execution error: {e}", exc_info=True)
-                 yield {"type": "error", "content": f"Tool execution error: {str(e)}"}
+                 yield ErrorEvent(content=f"Tool execution error: {str(e)}")
                  break
 
         if iteration >= max_iterations:
             logger.warning("Max iterations reached in agent loop.")
-            yield {"type": "error", "content": "I reached the maximum number of steps without finishing."}
+            yield ErrorEvent(content="I reached the maximum number of steps without finishing.")
 
         # Finalization (Events) - Handled by caller or separate method if needed,
         # but loop logic typically yields the final state.
@@ -146,29 +142,36 @@ class InteractionLoop:
         if final_response:
             self.final_response = final_response # Store for access by caller
 
-    async def _stream_llm_response(self, prompt: List[LLMMessage]) -> AsyncGenerator[StreamingEvent, None]:
+    async def _stream_llm_response(self, prompt: List[LLMMessage]) -> AsyncGenerator[AgentStreamingEvent, None]:
         """Streams the LLM response and aggregates the full text."""
         full_text = ""
         model_id = self.session.cfg.selected_model_id
         async for event in self.llm_client.get_completion_stream(
             model=model_id, messages=prompt
         ):
-            if event["type"] == "content":
-                # Normalize 'content' to 'chunk' for frontend compatibility
-                full_text += event["content"]
-                yield {"type": "chunk", "content": event["content"]}
-            elif event["type"] == "thinking":
-                # Pass through thinking events
+            # LLM client now returns StreamingEvent objects directly
+            # Use isinstance() for type checking instead of string comparison
+            if isinstance(event, ChunkEvent):
+                full_text += event.content
+                yield event
+            elif isinstance(event, ThinkingEvent):
+                yield event
+            elif isinstance(event, ErrorEvent):
                 yield event
             else:
-                yield event
+                # Fallback for any unexpected event types
+                logger.warning(f"Unexpected event type from LLM client: {type(event)}")
+                if hasattr(event, 'content'):
+                    yield ChunkEvent(content=str(event.content))
+                else:
+                    yield ChunkEvent(content=str(event))
         
-        yield {"type": "full_response", "content": full_text}
+        yield FullResponseEvent(content=full_text)
 
-    async def _execute_tools(self, parsed_response: ParsedResponse) -> AsyncGenerator[StreamingEvent, None]:
+    async def _execute_tools(self, parsed_response: ParsedResponse) -> AsyncGenerator[AgentStreamingEvent, None]:
         """Executes tools and delegates result processing."""
         
-        yield {"type": "thinking", "content": f"Executing {len(parsed_response.tool_calls)} tool(s)..."}
+        yield ThinkingEvent(content=f"Executing {len(parsed_response.tool_calls)} tool(s)...")
 
         # Execute tools with explicit session reference
         orchestration_result = await self.tool_orchestrator.execute_tools_from_response(
@@ -185,23 +188,20 @@ class InteractionLoop:
                 result.result
             )
             
-            # Get active window at execution time
-            from backend.src.tools.computer.window_utils import get_active_window_title
-            active_window = get_active_window_title()
+            # Get active window from execution context (set during context creation in ContextFactory)
+            active_window = None
+            if result.context and result.context.session.metadata:
+                active_window = result.context.session.metadata.get('active_window')
             
-            # Yield Output Event with enhanced metadata
-            yield {
-                "type": "tool_output",
-                "tool_name": result.tool_call.tool_name,
-                "success": result.success,
-                "execution_time": result.execution_time,
-                "output": processed_output["tool_message"],
-                "error": result.result.error,
-                "screenshot": processed_output["screenshot_data"],
-                "metadata": {
-                    "active_window": active_window,
-                    "execution_time": result.execution_time,
-                    "success": result.success,
-                },
-            }
+            # Present tool output event via presenter
+            async for event in self.presenter.present_tool_output(
+                tool_name=result.tool_call.tool_name,
+                success=result.success,
+                execution_time=result.execution_time,
+                output=processed_output["tool_message"],
+                error=result.result.error or "",
+                screenshot=processed_output["screenshot_data"] or "",
+                active_window=active_window or "",
+            ):
+                yield event
 

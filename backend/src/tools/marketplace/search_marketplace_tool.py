@@ -7,8 +7,10 @@ import logging
 from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
+from backend.src.tools.categorization import ToolDomain
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +36,8 @@ class SearchMarketplaceTool(Tool[SearchMarketplaceArgs]):
     """Tool for searching the marketplace for available tools."""
     
     name = "search_marketplace"
+    required_permissions = set()  # Marketplace search doesn't require special permissions
+    category = ToolDomain.MARKETPLACE
     description = "Search the marketplace for available tools based on a natural language query. Use this when you need a capability that isn't available in the current tool list."
     args_model = SearchMarketplaceArgs
 

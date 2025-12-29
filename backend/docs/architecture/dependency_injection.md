@@ -49,6 +49,9 @@ class CoreContainer(containers.DeclarativeContainer):
     config_manager = providers.Singleton(ConfigManager)
     config = providers.Singleton(lambda cm: cm.load_config(), cm=config_manager)
 
+    # Event Bus (singleton for application-wide event communication)
+    event_bus = providers.Singleton(EventBus)
+
     # Service layer
     service_container = providers.Singleton(
         lambda cfg: _create_service_container(cfg),
@@ -58,6 +61,7 @@ class CoreContainer(containers.DeclarativeContainer):
     # LLM and TTS services
     llm_client = providers.Factory(lambda cfg: get_llm_client(cfg), cfg=config)
     tts_service = providers.Singleton(_create_tts_service, config=config)
+    vision_service = providers.Singleton(_create_vision_service)
 ```
 
 #### ToolContainer
@@ -640,6 +644,23 @@ def bad_factory():
     return create_service(global_config)
 
 bad_service = providers.Factory(bad_factory)
+```
+
+#### Global Singletons (Anti-Pattern)
+
+```python
+# ❌ BAD: Global singleton (removed from codebase)
+# backend/src/core/bus.py
+message_bus = EventBus()  # Global singleton - removed!
+
+# ✅ GOOD: Inject via container
+class CoreContainer(containers.DeclarativeContainer):
+    event_bus = providers.Singleton(EventBus)  # Singleton via DI
+
+# Usage
+class MyService:
+    def __init__(self, event_bus: EventBus):  # ✅ Injected
+        self.event_bus = event_bus
 ```
 
 #### Tight Coupling

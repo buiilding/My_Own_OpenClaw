@@ -10,8 +10,9 @@ from typing import TYPE_CHECKING, AsyncGenerator, Optional
 from backend.src.agent.interaction_loop import InteractionLoop
 from backend.src.agent.plugins.manager import PluginManager
 from backend.src.agent.result_processor import ResultProcessor
+from backend.src.core.bus import EventBus
+from backend.src.core.events import AgentStreamingEvent, InteractionCompleted
 from backend.src.core.plugins.registry import PluginRegistry
-from backend.src.core.types import StreamingEvent
 from backend.src.llm.llm_client import LLMClient
 from backend.src.llm.parser import ResponseParser
 from backend.src.llm.prompt_constructor import PromptConstructor
@@ -37,12 +38,14 @@ class AgentExecutor:
         prompt_constructor: PromptConstructor,
         response_parser: ResponseParser,
         plugin_registry: PluginRegistry,
+        event_bus: EventBus,
     ):
         self.session = session
         self.llm_client = llm_client
         self.tool_orchestrator = tool_orchestrator
         self.prompt_builder = prompt_constructor
         self.response_parser = response_parser
+        self.event_bus = event_bus
 
         # Initialize Plugin Manager
         self.plugin_manager = PluginManager(plugin_registry)
@@ -62,7 +65,7 @@ class AgentExecutor:
         self, 
         query: str, 
         image_data: Optional[str] = None
-    ) -> AsyncGenerator[StreamingEvent, None]:
+    ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
         Processes a user query and yields status updates and response chunks.
         
@@ -114,13 +117,10 @@ class AgentExecutor:
 
     async def _publish_completion_event(self, query: str, response: str):
         """Publishes the InteractionCompleted event."""
-        from backend.src.core.bus import message_bus
-        from backend.src.core.events import InteractionCompleted
-
         event = InteractionCompleted(
             session_id=self.session.session_id,
             user_id=self.session.user_id,
             user_message=query,
             assistant_response=response,
         )
-        await message_bus.publish(event)
+        await self.event_bus.publish(event)

@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from backend.src.core.config import AppConfig
-from backend.src.core.types import LLMMessage, NormalizedLLMResponse, StreamingChunk
+from backend.src.core.events import StreamingEvent
+from backend.src.core.types import LLMMessage, NormalizedLLMResponse
 
 
 class LLMProvider(ABC):
@@ -24,8 +25,8 @@ class LLMProvider(ABC):
     @abstractmethod
     async def get_completion_stream(
         self, model: str, messages: List[LLMMessage]
-    ) -> AsyncGenerator[StreamingChunk, None]:
-        """Gets a streaming completion from the LLM, yielding normalized chunks."""
+    ) -> AsyncGenerator[StreamingEvent, None]:
+        """Gets a streaming completion from the LLM, yielding StreamingEvent objects."""
         yield
 
     @abstractmethod

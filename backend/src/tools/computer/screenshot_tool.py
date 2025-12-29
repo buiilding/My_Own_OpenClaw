@@ -7,8 +7,10 @@ import logging
 from typing import Dict, Any
 from pydantic import BaseModel, ConfigDict, Field
 
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.computer.computer_interface import ComputerInterface
 
 logger = logging.getLogger(__name__)
@@ -32,6 +34,8 @@ class ScreenshotTool(Tool[ScreenshotToolArgs]):
     name = "screenshot"
     description = "Capture a screenshot of the current computer screen. After execution, returns a status message and a screenshot image showing the current state of the screen."
     args_model = ScreenshotToolArgs
+    required_permissions = {Permission.COMPUTER_CONTROL}
+    category = ToolDomain.COMPUTER
 
     def __init__(self):
         self.computer = ComputerInterface()

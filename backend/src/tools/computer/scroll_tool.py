@@ -7,8 +7,10 @@ import logging
 from typing import Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.computer.computer_interface import ComputerInterface
 
 logger = logging.getLogger(__name__)
@@ -41,6 +43,8 @@ class ScrollTool(Tool[ScrollControlArgs]):
     name = "scroll_control"
     description = "Control scrolling actions including up, down, left, and right scrolling."
     args_model = ScrollControlArgs
+    required_permissions = {Permission.COMPUTER_CONTROL}
+    category = ToolDomain.COMPUTER
 
     def __init__(self):
         """Initialize the scroll tool."""

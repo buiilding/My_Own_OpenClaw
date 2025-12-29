@@ -6,15 +6,19 @@ and type-safe access. It wraps ConfigManager and provides a cleaner interface
 for components that need to react to configuration changes.
 """
 import logging
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
-from backend.src.core.bus import message_bus
+from backend.src.core.bus import EventBus
 from backend.src.core.config import AppConfig, ConfigManager
 from backend.src.core.config_subscription_manager import (
     ConfigSubscriber,
     ConfigSubscriptionManager,
 )
 from backend.src.core.events import ConfigChanged
+from backend.src.core.plugin_config import (
+    PluginConfigManager,
+    get_plugin_config_manager,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -23,20 +27,34 @@ class ConfigurationService:
     """
     Centralized configuration service with change notifications.
 
-    Provides a single source of truth for configuration access.
+    Provides a single source of truth for configuration access, including:
+    - Application configuration (AppConfig)
+    - Plugin configuration (PluginConfigManager)
+    
     Delegates subscriber management to ConfigSubscriptionManager.
     """
 
-    def __init__(self, config_manager: ConfigManager):
+    def __init__(
+        self,
+        config_manager: ConfigManager,
+        event_bus: Optional[EventBus] = None,
+        plugin_config_manager: Optional[PluginConfigManager] = None,
+    ):
         """
         Initialize the configuration service.
 
         Args:
             config_manager: ConfigManager instance to wrap
+            event_bus: EventBus instance for publishing config change events (optional)
+            plugin_config_manager: Optional PluginConfigManager instance (created if not provided)
         """
         self._config_manager = config_manager
         self._config: Optional[AppConfig] = None
         self._subscription_manager = ConfigSubscriptionManager()
+        self._event_bus = event_bus
+        self._plugin_config_manager = (
+            plugin_config_manager or get_plugin_config_manager()
+        )
 
     def initialize(self) -> AppConfig:
         """
@@ -127,8 +145,9 @@ class ConfigurationService:
         await self._subscription_manager.notify_subscribers(old_config, updated_config)
 
         # Publish event for event bus subscribers
-        event = ConfigChanged(old_config=old_config, new_config=updated_config)
-        await message_bus.publish(event)
+        if self._event_bus:
+            event = ConfigChanged(old_config=old_config, new_config=updated_config)
+            await self._event_bus.publish(event)
 
         logger.info("Configuration updated and subscribers notified")
         return updated_config
@@ -191,6 +210,38 @@ class ConfigurationService:
 
         logger.info("Configuration reloaded and subscribers notified")
         return reloaded_config
+
+    def get_plugin_config(self, plugin_name: str) -> Dict[str, Any]:
+        """
+        Get configuration for a specific plugin.
+
+        Args:
+            plugin_name: Name of the plugin
+
+        Returns:
+            Plugin configuration dictionary
+        """
+        return self._plugin_config_manager.get_plugin_config(plugin_name)
+
+    def update_plugin_config(self, plugin_name: str, config: Dict[str, Any]) -> None:
+        """
+        Update configuration for a specific plugin.
+
+        Args:
+            plugin_name: Name of the plugin
+            config: Configuration dictionary
+        """
+        self._plugin_config_manager.update_plugin_config(plugin_name, config)
+
+    @property
+    def config(self) -> AppConfig:
+        """
+        Get application configuration (property access for convenience).
+
+        Returns:
+            Current AppConfig instance
+        """
+        return self.get_config()
 
 
 # Global configuration service instance

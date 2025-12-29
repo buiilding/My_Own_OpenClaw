@@ -7,8 +7,10 @@ import logging
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.computer.computer_interface import ComputerInterface
 
 logger = logging.getLogger(__name__)
@@ -38,6 +40,8 @@ class KeyboardTool(Tool[KeyboardControlArgs]):
     name = "keyboard_control"
     description = "Control keyboard input including typing text, pressing keys, and keyboard shortcuts. Use this tool to simulate keyboard actions on the computer."
     args_model = KeyboardControlArgs
+    required_permissions = {Permission.COMPUTER_CONTROL}
+    category = ToolDomain.COMPUTER
 
     def __init__(self):
         """Initialize the keyboard tool."""
