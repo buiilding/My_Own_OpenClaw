@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional
 
 from backend.src.agent.executor import AgentExecutor
 from backend.src.agent.state import ConversationHistory
-from backend.src.core.bus import message_bus
+from backend.src.core.bus import EventBus
 from backend.src.core.config import AppConfig
 from backend.src.core.events import InteractionCompleted
 from backend.src.core.interfaces.memory import MemoryManagerInterface
@@ -62,6 +62,7 @@ class AgentSession:
         plugin_registry: PluginRegistry,
         llm_client: Optional[LLMClient] = None,
         tool_orchestrator: Optional[ToolOrchestrator] = None,
+        event_bus: Optional[EventBus] = None,
         user_id: str = "default_user",
         session_id: Optional[str] = None,
     ) -> None:
@@ -75,6 +76,7 @@ class AgentSession:
             plugin_registry: Registry for plugin management
             llm_client: LLM client instance (auto-created if None)
             tool_orchestrator: Tool orchestration instance (auto-created if None)
+            event_bus: EventBus instance for event communication (required)
             user_id: User identifier for session ownership
             session_id: Session identifier (auto-generated if None)
         """
@@ -101,6 +103,11 @@ class AgentSession:
         self.session_id = session_id or str(uuid.uuid4())
         self.memory_manager = memory_manager
 
+        # Store event bus
+        if event_bus is None:
+            raise ValueError("event_bus is required for AgentSession")
+        self.event_bus = event_bus
+
         # Initialize Executor
         self.executor = AgentExecutor(
             session=self,
@@ -109,10 +116,11 @@ class AgentSession:
             prompt_constructor=self.prompt_builder,
             response_parser=self.response_parser,
             plugin_registry=plugin_registry,
+            event_bus=self.event_bus,
         )
 
         # Subscribe to events
-        message_bus.subscribe(InteractionCompleted, self._on_interaction_completed)
+        self.event_bus.subscribe(InteractionCompleted, self._on_interaction_completed)
 
     async def _on_interaction_completed(self, event: InteractionCompleted) -> None:
         """Handle interaction completed event."""

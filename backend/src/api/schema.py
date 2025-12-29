@@ -37,6 +37,11 @@ class UpdateSettingsMessage(BaseMessage):
 class WakewordDetectedMessage(BaseMessage):
     type: Literal["wakeword-detected"]
 
+class HandshakeMessage(BaseModel):
+    """Handshake message sent at WebSocket connection start."""
+    type: Literal["handshake"]
+    user_id: str = "default_user"
+
 # Union type for parsing
 IncomingMessage = Union[
     PingMessage,

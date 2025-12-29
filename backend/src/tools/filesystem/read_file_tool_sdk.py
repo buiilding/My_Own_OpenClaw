@@ -15,8 +15,10 @@ from backend.src.core.utils.file_reader import (
 )
 from backend.src.core.utils.file_type import is_text_file
 from backend.src.core.utils.mime_types import get_specific_mime_type
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
+from backend.src.tools.categorization import ToolDomain
 
 
 class ReadFileArgs(BaseModel):
@@ -38,6 +40,8 @@ class ReadFileArgs(BaseModel):
 
 class ReadFileToolSDK(Tool[ReadFileArgs]):
     name = "read_file"
+    required_permissions = {Permission.READ_FILESYSTEM}
+    category = ToolDomain.FILESYSTEM
     description = """PRIMARY tool for gathering information and understanding code. ALWAYS read files before modifying them.
 
 CRITICAL PRINCIPLES:

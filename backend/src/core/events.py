@@ -1,106 +1,190 @@
 """
-Event System for the Desktop Assistant.
+Structured Event System for Agent Streaming and Event Bus.
 
-This module defines all event types used throughout the application for decoupled
-communication between components. Events are dataclasses that carry relevant data.
+This module provides typed dataclass-based events for:
+1. Agent streaming events (for WebSocket communication)
+2. Event bus events (for internal component communication)
 """
+import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Union
 
-@dataclass
+from backend.src.core.types import StreamingEventType
+
+
+# ============================================================================
+# Event Bus Events (for internal component communication)
+# ============================================================================
+
 class Event:
-    """Base class for all events."""
-    timestamp: float = field(default=0.0)  # Should be set on creation
+    """Base class for all event bus events."""
+    def __init__(self, timestamp: Optional[float] = None):
+        """Initialize event with optional timestamp."""
+        self.timestamp = timestamp if timestamp is not None else time.time()
 
-@dataclass
-class UserMessageReceived(Event):
-    """Event fired when a user sends a message."""
-    session_id: str = None
-    user_id: str = None
-    message: str = None
-
-@dataclass
-class AgentResponseGenerated(Event):
-    """Event fired when the agent generates a response."""
-    session_id: str = None
-    user_id: str = None
-    response: str = None
-
-@dataclass
-class ToolExecuted(Event):
-    """Event fired when a tool finishes execution."""
-    session_id: str = None
-    user_id: str = None
-    tool_name: str = None
-    input_params: Dict[str, Any] = None
-    result: Any = None
-    success: bool = False
 
 @dataclass
 class InteractionCompleted(Event):
-    """Event fired when a full conversation turn is completed."""
-    session_id: str = None
-    user_id: str = None
-    user_message: str = None
-    assistant_response: str = None
+    """Event fired when a conversation turn completes."""
+    session_id: str
+    user_id: str
+    user_message: str
+    assistant_response: str
+    timestamp: Optional[float] = None
+    
+    def __post_init__(self):
+        """Initialize parent and set timestamp."""
+        super().__init__(self.timestamp)
+
 
 @dataclass
 class ConfigChanged(Event):
     """Event fired when configuration is updated."""
-    old_config: Any = None
-    new_config: Any = None
+    old_config: Dict[str, Any]
+    new_config: Dict[str, Any]
+    timestamp: Optional[float] = None
+    
+    def __post_init__(self):
+        """Initialize parent and set timestamp."""
+        super().__init__(self.timestamp)
+
+
+# ============================================================================
+# Streaming Events (for agent interaction loop and WebSocket communication)
+# ============================================================================
+
 
 @dataclass
-class ToolExecutionStarted(Event):
-    """Event fired when a tool execution begins."""
-    session_id: str = None
-    user_id: str = None
-    tool_name: str = None
-    input_params: Dict[str, Any] = None
+class StreamingEvent:
+    """Base class for all streaming events."""
+    type: StreamingEventType = field(init=False)  # Set in __post_init__ by subclasses
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert event to dictionary format for serialization."""
+        result = {"type": self.type.value}
+        for key, value in self.__dict__.items():
+            if key != "type":
+                if isinstance(value, dict):
+                    result[key] = value
+                elif isinstance(value, list):
+                    result[key] = value
+                else:
+                    result[key] = value
+        return result
+
 
 @dataclass
-class LLMRequestStarted(Event):
-    """Event fired when an LLM request begins."""
-    session_id: str = None
-    user_id: str = None
-    model: str = None
-    prompt_length: int = 0
+class ThinkingEvent(StreamingEvent):
+    """Event emitted during LLM thinking/reasoning."""
+    content: str
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.THINKING
+
 
 @dataclass
-class LLMRequestCompleted(Event):
-    """Event fired when an LLM request completes."""
-    session_id: str = None
-    user_id: str = None
-    model: str = None
-    response_length: int = 0
-    tokens_used: Optional[int] = None
-    duration_ms: Optional[float] = None
+class ChunkEvent(StreamingEvent):
+    """A single chunk from streaming LLM response."""
+    content: str
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.CHUNK
+
 
 @dataclass
-class MemoryStored(Event):
-    """Event fired when a memory is stored."""
-    session_id: str = None
-    user_id: str = None
-    memory_id: str = None
-    memory_type: str = None  # "episodic" or "semantic"
+class ErrorEvent(StreamingEvent):
+    """Event emitted when an error occurs."""
+    content: str
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.ERROR
+
 
 @dataclass
-class SessionCreated(Event):
-    """Event fired when a new session is created."""
-    session_id: str = None
-    user_id: str = None
+class StreamingCompleteEvent(StreamingEvent):
+    """Event emitted when streaming is complete."""
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.STREAMING_COMPLETE
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {"type": self.type.value}
+
 
 @dataclass
-class SessionDestroyed(Event):
-    """Event fired when a session is destroyed."""
-    session_id: str = None
-    user_id: str = None
+class ToolCallEvent(StreamingEvent):
+    """Event emitted when a tool is called."""
+    tool_name: str
+    parameters: Dict[str, Any]
+    raw_call: str
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.TOOL_CALL
+
 
 @dataclass
-class ErrorOccurred(Event):
-    """Event fired when an error occurs."""
-    session_id: Optional[str] = None
-    user_id: Optional[str] = None
-    error_type: str = None
-    error_message: str = None
-    error_details: Optional[Dict[str, Any]] = None
+class ToolOutputEvent(StreamingEvent):
+    """Event emitted when a tool execution completes."""
+    tool_name: str
+    success: bool
+    output: str
+    execution_time: Optional[float] = None
+    error: Optional[str] = None
+    screenshot: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.TOOL_OUTPUT
+
+
+@dataclass
+class SystemPromptEvent(StreamingEvent):
+    """Event emitted with full system prompt sent to LLM."""
+    content: str
+    tool_schemas: Optional[Dict[str, Any]] = None
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.SYSTEM_PROMPT
+
+
+@dataclass
+class UserMessageFullEvent(StreamingEvent):
+    """Event emitted with full user message including injected context."""
+    content: str
+    metadata: Dict[str, Any]
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.USER_MESSAGE_FULL
+
+
+@dataclass
+class AssistantMessageFullEvent(StreamingEvent):
+    """Event emitted with complete assistant response."""
+    content: str
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.ASSISTANT_MESSAGE_FULL
+
+
+@dataclass
+class FullResponseEvent(StreamingEvent):
+    """Event emitted with full LLM response (internal use)."""
+    content: str
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.FULL_RESPONSE
+
+
+# Union type for all event types
+AgentStreamingEvent = Union[
+    ThinkingEvent,
+    ChunkEvent,
+    ErrorEvent,
+    StreamingCompleteEvent,
+    ToolCallEvent,
+    ToolOutputEvent,
+    SystemPromptEvent,
+    UserMessageFullEvent,
+    AssistantMessageFullEvent,
+    FullResponseEvent,
+]

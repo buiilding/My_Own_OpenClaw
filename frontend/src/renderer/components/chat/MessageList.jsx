@@ -83,40 +83,55 @@ function MessageList({ messages, thinkingStatus }) {
   const renderTransparencySections = (msg) => {
     const sections = [];
 
-    // System Prompt (for first user message)
+    // System Prompt (always shown, but tool schemas are NOT in system prompt anymore)
     if (msg.systemPrompt) {
       sections.push(
         <TransparencySection
           key="system-prompt"
           title="System Prompt"
           content={msg.systemPrompt.content}
-          metadata={msg.systemPrompt.toolSchemas ? { 'Tool Schemas Count': Object.keys(msg.systemPrompt.toolSchemas).length } : null}
+          metadata={null}
           type="system-prompt"
         />
       );
-      if (msg.systemPrompt.toolSchemas) {
-        sections.push(
-          <TransparencySection
-            key="tool-schemas"
-            title="Tool Schemas"
-            content={msg.systemPrompt.toolSchemas}
-            type="json"
-          />
-        );
-      }
     }
 
     // User Message Full - Show complete message sent to assistant
+    // Tool schemas are included in user message metadata for initial messages only
     if (msg.fullUserMessage) {
+      const userMetadata = msg.fullUserMessage.metadata || {};
+      const metadataForDisplay = { ...userMetadata };
+      
+      // Extract tool schemas from metadata if present (for initial user messages)
+      let toolSchemas = null;
+      if (userMetadata.tool_schemas) {
+        toolSchemas = userMetadata.tool_schemas;
+        // Remove tool_schemas from metadata display (will show separately)
+        const { tool_schemas, ...metadataWithoutSchemas } = metadataForDisplay;
+        Object.assign(metadataForDisplay, metadataWithoutSchemas);
+      }
+      
       sections.push(
         <TransparencySection
           key="user-message-full"
           title="Full Message Sent to Assistant (Complete)"
           content={msg.fullUserMessage.content}
-          metadata={msg.fullUserMessage.metadata}
+          metadata={metadataForDisplay}
           type="xml" // Use xml type for better formatting
         />
       );
+      
+      // Show tool schemas separately if present (only for initial user messages)
+      if (toolSchemas) {
+        sections.push(
+          <TransparencySection
+            key="tool-schemas"
+            title="Tool Schemas (Available Tools)"
+            content={toolSchemas}
+            type="json"
+          />
+        );
+      }
     }
 
     // Assistant Message Full

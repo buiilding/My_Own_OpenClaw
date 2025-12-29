@@ -14,8 +14,10 @@ from backend.src.core.utils.path_utils import (
     make_relative_path,
     shorten_path,
 )
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.system.shell_tool import ShellTool
 
 logger = logging.getLogger(__name__)
@@ -39,6 +41,8 @@ class WriteFileTool(Tool[WriteFileArgs]):
     """Tool for creating/overwriting files with content."""
 
     name = "write_file"
+    required_permissions = {Permission.WRITE_FILESYSTEM}
+    category = ToolDomain.FILESYSTEM
     description = """CRITICAL: This tool should ONLY be used for creating NEW files or when a complete file rewrite is explicitly necessary. 
 
 BEFORE USING THIS TOOL:
@@ -67,10 +71,12 @@ RESTRICTIONS:
                 }
 
             # Resolve relative paths to absolute paths
+            session_id = ctx.session.session_id
+            user_id = ctx.user.user_id
             file_path = args.file_path
             if not os.path.isabs(file_path):
                 # Resolve relative path to absolute using current working directory (from shell tool)
-                current_dir = ShellTool.get_current_working_directory()
+                current_dir = ShellTool.get_current_working_directory(session_id, user_id)
                 file_path = os.path.abspath(os.path.join(current_dir, file_path))
                 logger.info(
                     f"WriteFile: Resolved relative path to absolute using current dir: {file_path}"

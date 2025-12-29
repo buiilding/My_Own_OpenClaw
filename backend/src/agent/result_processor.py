@@ -54,31 +54,20 @@ class ResultProcessor:
         # Extract screenshot data (helper method to avoid nested checks)
         screenshot_data = self._extract_screenshot_data(result, plugin_result)
 
-        # Construct the full tool message for both History and UI
-        # This ensures the UI displays EXACTLY what the LLM sees in its history
-        if result.success:
-            # Use llm_content from tool result
-            content = result.llm_content or result.return_display or str(result.data or "No output")
-            # Format:
-            # <tool_name> output:
-            # <content>
-            # status: successful
-            tool_message = f"{tool_name} output:\n{content}\nstatus: successful"
-        else:
-            tool_message = f"{tool_name} output:\nerror: {result.error}\nstatus: failed"
-
-        # Append tool output context XML (os_state with active_window, mouse_position, time)
-        # This matches the expected format from the system prompt
+        # Format result for history using ToolResult's formatting method
+        # This ensures consistent formatting and co-locates formatting logic with data
         tool_output_context_xml = system_monitor.get_tool_feedback_xml()
-        tool_message += f"\n{tool_output_context_xml}"
+        screenshot_indicator = (
+            f"State of the screen after {tool_name} was executed:"
+            if screenshot_data
+            else None
+        )
         
-        # Append screenshot text indicator if screenshot is present
-        # This matches the system prompt format: "State of the screen after..."
-        if screenshot_data:
-            tool_message += f"\nState of the screen after {tool_name} was executed:"
-
-        # formatted_message is now just tool_message since active window is embedded inside
-        formatted_message = tool_message
+        formatted_message = result.format_for_history(
+            tool_name=tool_name,
+            system_context=tool_output_context_xml,
+            screenshot_indicator=screenshot_indicator,
+        )
 
         # Update history with the formatted message (includes active window)
         self.session.history.add_tool_output(formatted_message, screenshot_data)

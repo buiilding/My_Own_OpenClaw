@@ -85,7 +85,10 @@ class ToolCategorizer:
     
     def categorize_tool(self, tool: SDKTool) -> ToolDomain:
         """
-        Categorize a tool by its name.
+        Categorize a tool by its declared category.
+        
+        Tools should explicitly declare their category via the 'category' class variable.
+        Falls back to pattern matching only for legacy tools (with deprecation warning).
         
         Args:
             tool: Tool instance to categorize
@@ -93,6 +96,19 @@ class ToolCategorizer:
         Returns:
             ToolDomain for the tool
         """
+        # Use tool's declared category (single source of truth)
+        if hasattr(tool, 'category') and tool.category is not None:
+            return tool.category
+        
+        # Fallback for legacy tools without category declaration (deprecated)
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            f"Tool '{tool.name}' does not declare category. "
+            "Using fallback pattern matching. Tools should explicitly declare category."
+        )
+        
+        # Legacy pattern matching (deprecated)
         tool_name_lower = tool.name.lower()
         
         # Check for exact matches first

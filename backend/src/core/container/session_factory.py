@@ -37,6 +37,7 @@ class AgentSessionFactory:
         plugin_registry: Optional["PluginRegistry"],
         llm_client_factory: Any,  # Callable that returns LLMClient
         tool_orchestrator_factory: Any,  # Callable that returns ToolOrchestrator
+        event_bus: Any,  # EventBus instance
     ):
         """
         Initialize the session factory.
@@ -49,6 +50,7 @@ class AgentSessionFactory:
             plugin_registry: Plugin registry instance (may be None)
             llm_client_factory: Factory function that creates LLMClient instances
             tool_orchestrator_factory: Factory function that creates ToolOrchestrator instances
+            event_bus: EventBus instance for event communication
         """
         self.config = config
         self.memory_store = memory_store
@@ -57,6 +59,7 @@ class AgentSessionFactory:
         self.plugin_registry = plugin_registry
         self.llm_client_factory = llm_client_factory
         self.tool_orchestrator_factory = tool_orchestrator_factory
+        self.event_bus = event_bus
 
     def create_session(
         self,
@@ -126,6 +129,7 @@ class AgentSessionFactory:
             plugin_registry=self.plugin_registry,
             llm_client=llm_client,
             tool_orchestrator=tool_orchestrator,
+            event_bus=self.event_bus,
             user_id=user_id,
             session_id=session_id,
         )

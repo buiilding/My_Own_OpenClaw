@@ -12,8 +12,10 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.src.core.utils.path_utils import make_relative_path
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.filesystem.data_structures import FileEntry
 from backend.src.tools.system.shell_tool import ShellTool
 
@@ -44,6 +46,8 @@ class ListDirectoryTool(Tool[ListDirectoryArgs]):
     """Tool for listing files and directories in a path."""
 
     name = "list_directory"
+    required_permissions = {Permission.READ_FILESYSTEM}
+    category = ToolDomain.FILESYSTEM
     description = """Lists files and subdirectories in a directory. Use this to explore directory structure and discover files before reading them.
 
 WHEN TO USE:
@@ -86,7 +90,9 @@ After listing, use read_file to examine file contents, or glob to find files by 
 
             if not os.path.isabs(path):
                 # Resolve relative path to absolute using current working directory (from shell tool)
-                current_dir = ShellTool.get_current_working_directory()
+                session_id = ctx.session.session_id
+                user_id = ctx.user.user_id
+                current_dir = ShellTool.get_current_working_directory(session_id, user_id)
                 path = os.path.abspath(os.path.join(current_dir, path))
                 logger.info(
                     f"ListDirectory: Resolved relative path to absolute using current dir: {path}"

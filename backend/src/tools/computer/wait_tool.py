@@ -9,8 +9,10 @@ import logging
 from typing import Dict, Any
 from pydantic import BaseModel, Field, ConfigDict
 
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.computer.computer_interface import ComputerInterface
 
 logger = logging.getLogger(__name__)
@@ -41,6 +43,8 @@ class WaitTool(Tool[WaitToolArgs]):
     - Introducing delays between actions
     """
     name = "wait"
+    required_permissions = {Permission.COMPUTER_CONTROL}
+    category = ToolDomain.COMPUTER
     description = (
         "Wait for a specified number of seconds, then capture a screenshot of the current screen state. "
         "Useful for waiting for UI changes, animations, page loads, or async operations to complete. "

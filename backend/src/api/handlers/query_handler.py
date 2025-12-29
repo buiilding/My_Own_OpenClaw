@@ -13,6 +13,8 @@ from backend.src.api.handlers.base import MessageHandler
 from backend.src.api.handlers.response_formatter import ResponseFormatter
 from backend.src.api.handlers.tts_manager import TTSManager
 from backend.src.api.schema import QueryMessage
+from backend.src.core.events import AgentStreamingEvent, StreamingEvent
+from backend.src.core.types import StreamingEventType
 from backend.src.core.validation import (
     ValidationError,
     validate_message,
@@ -109,15 +111,26 @@ class QueryMessageHandler(MessageHandler):
                     # Handle TTS with function call filtering
                     # We want to block function call JSON from being spoken
                     
-                    event_type = event.get("type")
+                    # Convert typed event to dict for compatibility
+                    if isinstance(event, StreamingEvent):
+                        event_dict = event.to_dict()
+                        event_type = event.type.value
+                    else:
+                        # Backward compatibility with dict events
+                        event_dict = event
+                        event_type = event.get("type")
                     
                     # Reset detection state on new interaction phases
-                    if event_type in ["tool_call", "tool_output", "thinking"]:
+                    if event_type in [
+                        StreamingEventType.TOOL_CALL.value,
+                        StreamingEventType.TOOL_OUTPUT.value,
+                        StreamingEventType.THINKING.value,
+                    ]:
                         is_potential_tool_call = None
                         stream_buffer = ""
                     
-                    if event_type == "chunk":
-                        content = event.get("content", "")
+                    if event_type == StreamingEventType.CHUNK.value:
+                        content = event_dict.get("content", "")
                         
                         if is_potential_tool_call is None:
                             # Buffer beginning of stream to detect content type
@@ -142,15 +155,16 @@ class QueryMessageHandler(MessageHandler):
                         
                         elif is_potential_tool_call is False:
                             # Known text stream, pass through to TTS
-                            await self.tts_manager.process_event(tts_service, event)
+                            await self.tts_manager.process_event(tts_service, event_dict)
                         
                         # If is_potential_tool_call is True, we drop the chunks for TTS
                         
                     else:
                         # For non-chunk events, pass through if needed (usually ignored by tts_manager)
                         # except for the ones we handled above for reset
-                        await self.tts_manager.process_event(tts_service, event)
+                        await self.tts_manager.process_event(tts_service, event_dict)
 
+                    # Format event (formatter handles both typed and dict events)
                     response = self.response_formatter.format(event, msg_id)
                     if response:
                         await websocket.send_json(response)

@@ -9,8 +9,10 @@ import difflib
 from typing import Literal, Optional, Tuple, Dict, Any, List
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.computer.computer_interface import ComputerInterface, MouseButton
 from backend.src.services.vision import InternVLModel
 from backend.src.services.vision.utils import normalize_model_name
@@ -87,6 +89,8 @@ class MouseTool(Tool[MouseControlArgs]):
     name = "mouse_control"
     description = "Unified mouse control with multiple coordinate finding strategies: manual coordinates, OCR text search, or visual element prediction. Supports clicking, double-clicking, right-clicking, moving, dragging, and scrolling."
     args_model = MouseControlArgs
+    required_permissions = {Permission.COMPUTER_CONTROL}
+    category = ToolDomain.COMPUTER
 
     def __init__(self):
         self.computer = ComputerInterface()
@@ -308,18 +312,34 @@ class MouseTool(Tool[MouseControlArgs]):
             logger.error("Tool registry not available in context")
             return None
 
+        from backend.src.llm.parser import ParsedToolCall
         from backend.src.tools.execution.engine import create_execution_engine_from_registry
+        
         execution_engine = create_execution_engine_from_registry(tool_registry)
-        screenshot_result = await execution_engine.execute_tool_by_name("screenshot", {})
+        
+        tool_call = ParsedToolCall(
+            tool_name="screenshot",
+            parameters={},
+            raw_call="screenshot()",
+            confidence=1.0,
+        )
+        
+        execution_result = await execution_engine.execute(
+            tool_call,
+            user_id=ctx.user_id or "system",
+            session_id=ctx.session_id or "system",
+        )
 
-        if isinstance(screenshot_result, dict):
-            screenshot_data = screenshot_result.get("screenshot")
-            success = screenshot_result.get("success", True)
+        if not execution_result.success:
+            return None
+            
+        tool_result = execution_result.result
+        if tool_result.data and isinstance(tool_result.data, dict):
+            screenshot_data = tool_result.data.get("screenshot")
         else:
-            screenshot_data = screenshot_result.data.get("screenshot") if screenshot_result.success else None
-            success = screenshot_result.success
+            screenshot_data = None
 
-        return screenshot_data if (success and screenshot_data) else None
+        return screenshot_data if screenshot_data else None
 
     async def _get_vision_model(self, ctx: ToolContext, requested_model_name: Optional[str]) -> Optional[InternVLModel]:
         """Get and validate vision model from service."""

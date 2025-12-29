@@ -13,8 +13,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from backend.src.core.utils.file_reader import read_file_content
 from backend.src.core.utils.file_type import FileType, detect_file_type
 from backend.src.core.utils.path_utils import make_relative_path
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.system.shell_tool import ShellTool
 
 logger = logging.getLogger(__name__)
@@ -49,6 +51,8 @@ class ReadManyFilesTool(Tool[ReadManyFilesArgs]):
     """Tool for reading multiple files by paths/glob patterns."""
 
     name = "read_many_files"
+    required_permissions = {Permission.READ_FILESYSTEM}
+    category = ToolDomain.FILESYSTEM
     description = """Reads content from multiple files at once. Use this when you need to gather information from several related files before making changes.
 
 WHEN TO USE:
@@ -72,7 +76,9 @@ PRINCIPLE: Prefer multiple read_file calls if you're unsure which files to read.
                 }
 
             # Get target directory for relative path resolution
-            target_dir = ShellTool.get_current_working_directory()
+            session_id = ctx.session.session_id
+            user_id = ctx.user.user_id
+            target_dir = ShellTool.get_current_working_directory(session_id, user_id)
 
             # Collect all file paths
             all_files = set()
