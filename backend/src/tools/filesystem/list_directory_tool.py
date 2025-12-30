@@ -12,8 +12,10 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.src.core.utils.path_utils import make_relative_path
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.filesystem.data_structures import FileEntry
 from backend.src.tools.system.shell_tool import ShellTool
 
@@ -34,13 +36,26 @@ class ListDirectoryArgs(BaseModel):
         None,
         description="File filtering options (respect_git_ignore, respect_gemini_ignore)",
     )
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class ListDirectoryTool(Tool[ListDirectoryArgs]):
     """Tool for listing files and directories in a path."""
 
     name = "list_directory"
-    description = "Lists the names of files and subdirectories directly within a specified directory path. Can optionally ignore entries matching provided glob patterns."
+    required_permissions = {Permission.READ_FILESYSTEM}
+    category = ToolDomain.FILESYSTEM
+    description = """Lists files and subdirectories in a directory. Use this to explore directory structure and discover files before reading them.
+
+WHEN TO USE:
+- Exploring directory structure to understand project layout
+- Discovering what files exist in a directory before reading them
+- Understanding file organization
+
+After listing, use read_file to examine file contents, or glob to find files by pattern."""
     args_model = ListDirectoryArgs
 
     async def run(self, args: ListDirectoryArgs, ctx: ToolContext) -> dict:
@@ -75,7 +90,9 @@ class ListDirectoryTool(Tool[ListDirectoryArgs]):
 
             if not os.path.isabs(path):
                 # Resolve relative path to absolute using current working directory (from shell tool)
-                current_dir = ShellTool.get_current_working_directory()
+                session_id = ctx.session.session_id
+                user_id = ctx.user.user_id
+                current_dir = await ShellTool.get_current_working_directory(session_id, user_id)
                 path = os.path.abspath(os.path.join(current_dir, path))
                 logger.info(
                     f"ListDirectory: Resolved relative path to absolute using current dir: {path}"

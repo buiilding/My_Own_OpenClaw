@@ -87,8 +87,103 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
       sender: 'assistant',
       type: 'tool-output',
       screenshot: data.payload.screenshot, // Include screenshot data if available
+      toolMetadata: data.payload.metadata, // Include enhanced metadata
+      toolName: data.payload.tool_name,
+      executionTime: data.payload.execution_time,
+      success: data.payload.success,
     };
     setMessages((prevMessages) => [...prevMessages, newMessage]);
+  }, [setMessages]);
+
+  const handleSystemPrompt = useCallback((data) => {
+    // Store system prompt data - will be linked to last user message
+    // If no user message exists yet, store it temporarily and attach on next user message
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages];
+      // Find the last user message and attach system prompt to it
+      let found = false;
+      for (let i = updatedMessages.length - 1; i >= 0; i--) {
+        if (updatedMessages[i].sender === 'user') {
+          updatedMessages[i] = {
+            ...updatedMessages[i],
+            systemPrompt: {
+              content: data.payload.content,
+              toolSchemas: data.payload.tool_schemas,
+            },
+          };
+          found = true;
+          break;
+        }
+      }
+      // If no user message found, store as a special message that will be merged
+      if (!found) {
+        // Store temporarily - will be attached when user message arrives
+        // For now, we'll attach it to the next user message that gets added
+        return updatedMessages;
+      }
+      return updatedMessages;
+    });
+  }, [setMessages]);
+
+  const handleUserMessageFull = useCallback((data) => {
+    // Update the last user message with full transparency data
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages];
+      // Find the last user message
+      for (let i = updatedMessages.length - 1; i >= 0; i--) {
+        if (updatedMessages[i].sender === 'user') {
+          updatedMessages[i] = {
+            ...updatedMessages[i],
+            fullUserMessage: {
+              content: data.payload.content,
+              metadata: data.payload.metadata,
+            },
+          };
+          break;
+        }
+      }
+      return updatedMessages;
+    });
+  }, [setMessages]);
+
+  const handleAssistantMessageFull = useCallback((data) => {
+    // Update the last assistant message with full transparency data
+    // This could be streaming or complete
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages];
+      // Find the last assistant message (could be streaming)
+      for (let i = updatedMessages.length - 1; i >= 0; i--) {
+        if (updatedMessages[i].sender === 'assistant') {
+          updatedMessages[i] = {
+            ...updatedMessages[i],
+            fullAssistantMessage: {
+              content: data.payload.content,
+            },
+          };
+          break;
+        }
+      }
+      return updatedMessages;
+    });
+  }, [setMessages]);
+
+  const handleToolSchemas = useCallback((data) => {
+    // Store tool schemas data - attach only to the first user message
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages];
+      // Find the first user message and attach tool schemas to it
+      // Tool schemas should only be displayed for the initial message
+      for (let i = 0; i < updatedMessages.length; i++) {
+        if (updatedMessages[i].sender === 'user') {
+          updatedMessages[i] = {
+            ...updatedMessages[i],
+            toolSchemas: data.payload.tool_schemas,
+          };
+          break; // Only attach to the first user message
+        }
+      }
+      return updatedMessages;
+    });
   }, [setMessages]);
 
   const handleStreamingComplete = useCallback(() => {
@@ -129,6 +224,10 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
     handleToolCall,
     handleToolOutput,
     handleError,
+    handleSystemPrompt,
+    handleUserMessageFull,
+    handleAssistantMessageFull,
+    handleToolSchemas,
   }), [
     handlePongResponse,
     handleLlmThought,
@@ -136,6 +235,10 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
     handleStreamingComplete,
     handleToolCall,
     handleToolOutput,
-    handleError
+    handleError,
+    handleSystemPrompt,
+    handleUserMessageFull,
+    handleAssistantMessageFull,
+    handleToolSchemas,
   ]);
 }

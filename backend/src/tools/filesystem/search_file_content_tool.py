@@ -17,7 +17,9 @@ from backend.src.core.utils.file_reader import read_text_file_auto_encoding
 from backend.src.core.utils.file_type import is_text_file
 from backend.src.core.utils.path_utils import make_relative_path
 from backend.src.sdk.context import ToolContext
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.tool import Tool
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.filesystem.data_structures import GrepMatch
 from backend.src.tools.system.shell_tool import ShellTool
 
@@ -35,13 +37,32 @@ class SearchFileContentArgs(BaseModel):
     include: Optional[str] = Field(
         None, description="Glob pattern to filter files (e.g., '*.py')"
     )
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class SearchFileContentTool(Tool[SearchFileContentArgs]):
     """Tool for searching regex patterns within file contents."""
 
     name = "search_file_content"
-    description = "Searches for a regular expression pattern within the content of files in a specified directory. Can filter files by a glob pattern. Returns the lines containing matches, along with their file paths and line numbers."
+    required_permissions = {Permission.READ_FILESYSTEM}
+    category = ToolDomain.FILESYSTEM
+    description = """Use this tool to locate SPECIFIC STRINGS, SYMBOLS, or PATTERNS within file contents using regex/exact matching.
+
+WHEN TO USE:
+- Finding exact function names, variable names, class names, or specific code patterns
+- Locating specific strings or symbols you know exist
+- Verifying text exists before using replace tool
+- Counting occurrences of specific patterns
+
+WHEN NOT TO USE:
+- Do NOT use this for understanding concepts or behavior (that requires reading files)
+- Do NOT use this for semantic/conceptual search (use read_file and analyze content)
+- Do NOT use this to discover files (use 'glob' tool instead)
+
+This tool performs regex/exact text matching. It returns line numbers and file paths where matches occur. Always read the matched files using read_file to understand context before making changes."""
     args_model = SearchFileContentArgs
 
     async def run(self, args: SearchFileContentArgs, ctx: ToolContext) -> dict:
@@ -70,16 +91,18 @@ class SearchFileContentTool(Tool[SearchFileContentArgs]):
                 target_dir = ctx.workspace_root
 
             # Determine search directory
+            session_id = ctx.session.session_id
+            user_id = ctx.user.user_id
             if args.path:
                 if not os.path.isabs(args.path):
                     # Use current working directory from shell tool
-                    current_dir = ShellTool.get_current_working_directory()
+                    current_dir = await ShellTool.get_current_working_directory(session_id, user_id)
                     search_dir = os.path.join(current_dir, args.path)
                 else:
                     search_dir = args.path
             else:
                 # Use current working directory from shell tool
-                search_dir = ShellTool.get_current_working_directory()
+                search_dir = await ShellTool.get_current_working_directory(session_id, user_id)
 
             # Perform search
             matches = await self._perform_search(

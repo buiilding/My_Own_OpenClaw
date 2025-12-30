@@ -9,18 +9,22 @@ pydantic==2.8.2
 litellm==1.79.1
 httpx==0.27.0
 pyautogui==0.9.54
-rapidocr
-pillow>=10.0.0
-transformers
-accelerate
-einops
-timm
+rapidocr==3.4.5
+pillow==12.0.0
+transformers==4.57.3
+accelerate==1.12.0
+einops==0.8.1
+timm==1.0.22
 # python-magic-bin
-onnxruntime-gpu
+# onnxruntime-gpu==1.23.2
 # onnxruntime
-openwakeword
-numpy
+openwakeword==0.6.0
 # flash-attn  # Optional: improves performance but may have installation issues on Windows
+
+# System integration
+psutil==7.1.3
+pyperclip==1.11.0
+pexpect
 
 # Web Framework
 fastapi==0.121.3
@@ -30,10 +34,10 @@ uvicorn==0.38.0
 dependency-injector==4.41.0
 
 # Memory system dependencies
-sentence-transformers>=2.2.0
-faiss-cpu>=1.7.4
-aiosqlite>=0.19.0
-aiofiles>=23.2.1
+sentence-transformers==5.2.0
+faiss-cpu==1.13.1
+aiosqlite==0.22.0
+aiofiles==25.1.0
 
 # Provider-specific SDKs required by LiteLLM
 google-auth==2.30.0
@@ -42,4 +46,4 @@ anthropic==0.72.0
 mistralai==0.4.1
 
 # TTS dependencies
-piper-tts
+piper-tts==1.3.0

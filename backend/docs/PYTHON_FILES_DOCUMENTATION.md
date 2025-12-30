@@ -510,7 +510,7 @@ Tool discoverer. Coordinates tool discovery from multiple sources and provides u
 Execution package initialization. Contains documentation for tool execution strategies module. Provides strategy pattern implementations for composable execution logic (security, auditing, caching, etc.). Empty package initialization file that documents the execution strategies module.
 
 ### `backend/src/tools/execution/aggregator.py`
-Result aggregator. Implements `ResultAggregator` class that aggregates multiple tool execution results into a single `OrchestrationResult`. Handles timing calculation, success tracking, and summary generation. Provides methods for aggregating results and creating empty results for cases with no tool calls.
+**Note:** `ResultAggregator` has been removed. Aggregation logic is now inlined directly in `ToolOrchestrator.execute_tools_from_response()` for simplicity.
 
 ### `backend/src/tools/execution/batch_executor.py`
 Batch executor. Implements `BatchExecutor` class that executes multiple tool calls in parallel batches with configurable concurrency control. Manages parallel execution of tools while respecting maximum concurrent execution limits.

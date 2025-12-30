@@ -407,17 +407,21 @@ Core infrastructure components including dependency injection, configuration, ev
 - `subscribe(subscriber: ConfigSubscriber) -> None`: Subscribe to changes
 - `notify_subscribers(old_config: AppConfig, new_config: AppConfig) -> None`: Notify all subscribers
 
-#### `unified_config.py` - Unified Configuration Service
+#### `config_service.py` - Configuration Service
 
-**Purpose**: Single source of truth for all configuration access.
+**Purpose**: Single source of truth for all configuration access (application + plugin config).
 
 **Key Classes**:
-- `UnifiedConfigurationService`: Unified configuration service
+- `ConfigurationService`: Centralized configuration service with change notifications
 
 **Key Methods**:
-- `get_app_config() -> AppConfig`: Get application configuration
+- `get_config() -> AppConfig`: Get application configuration
 - `get_plugin_config(plugin_name: str) -> Dict[str, Any]`: Get plugin configuration
-- `update_app_config(new_config: AppConfig) -> AppConfig`: Update application configuration
+- `update_config(new_config: AppConfig) -> AppConfig`: Update application configuration
+- `update_plugin_config(plugin_name: str, config: Dict[str, Any])`: Update plugin configuration
+- `subscribe(subscriber: ConfigSubscriber)`: Subscribe to configuration changes
+
+**Deprecated**: `UnifiedConfigurationService` in `unified_config.py` is deprecated. Use `ConfigurationService` directly.
 
 #### `plugin_config.py` - Plugin Configuration Management
 
@@ -982,7 +986,7 @@ Enterprise-grade tool management system.
 **Key Classes**:
 - `ToolExecutionEngine`: Main execution engine coordinating strategies
 - `BatchExecutor`: Parallel execution with concurrency control
-- `ResultAggregator`: Aggregates and processes tool results
+- `ToolOrchestrator`: Orchestrates tool execution and aggregates results (aggregation logic inlined)
 
 **Execution Strategies**:
 - `SecurityExecutionStrategy`: Permission checks and resource limits

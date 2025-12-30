@@ -4,6 +4,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 import litellm
 from litellm import exceptions as litellm_exceptions
 
+from backend.src.core.events import ChunkEvent, ErrorEvent, StreamingEvent
 from backend.src.core.exceptions import (
     LLMAPIError,
     LLMError,
@@ -12,7 +13,6 @@ from backend.src.core.exceptions import (
 from backend.src.core.types import (
     LLMMessage,
     NormalizedLLMResponse,
-    StreamingChunk,
 )
 from backend.src.llm.providers.base import LLMProvider
 
@@ -45,7 +45,7 @@ class MistralProvider(LLMProvider):
 
     async def get_completion_stream(
         self, model: str, messages: List[LLMMessage]
-    ) -> AsyncGenerator[StreamingChunk, None]:
+    ) -> AsyncGenerator[StreamingEvent, None]:
         params = self._build_request_params(model, messages)
         params["stream"] = True
         try:
@@ -54,10 +54,10 @@ class MistralProvider(LLMProvider):
                 if chunk and chunk.choices and chunk.choices[0].delta:
                     content = chunk.choices[0].delta.content
                     if content:
-                        yield {"type": "content", "content": content}
+                        yield ChunkEvent(content=content)
         except Exception as e:
             logger.error(f"Error streaming from Mistral: {e}")
-            yield {"type": "error", "content": str(e)}
+            yield ErrorEvent(content=str(e))
 
     async def list_models(self) -> List[Dict[str, str]]:
         """Lists available Mistral models."""

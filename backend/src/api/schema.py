@@ -37,6 +37,11 @@ class UpdateSettingsMessage(BaseMessage):
 class WakewordDetectedMessage(BaseMessage):
     type: Literal["wakeword-detected"]
 
+class HandshakeMessage(BaseModel):
+    """Handshake message sent at WebSocket connection start."""
+    type: Literal["handshake"]
+    user_id: str = "default_user"
+
 # Union type for parsing
 IncomingMessage = Union[
     PingMessage,
@@ -76,6 +81,11 @@ class ToolCallMessage(BaseMessage):
     type: Literal["tool-call"]
     payload: ToolCallPayload
 
+class ToolOutputMetadata(BaseModel):
+    active_window: str
+    execution_time: float
+    success: bool
+
 class ToolOutputPayload(BaseModel):
     tool_name: str
     success: bool
@@ -83,6 +93,7 @@ class ToolOutputPayload(BaseModel):
     output: str
     error: Optional[str]
     screenshot: Optional[str] = None
+    metadata: Optional[ToolOutputMetadata] = None
 
 class ToolOutputMessage(BaseMessage):
     type: Literal["tool-output"]
@@ -106,3 +117,33 @@ class WakewordGreetingPayload(BaseModel):
 class WakewordGreetingMessage(BaseMessage):
     type: Literal["wakeword-greeting"]
     payload: WakewordGreetingPayload
+
+# Transparency Messages
+class SystemPromptPayload(BaseModel):
+    content: str
+    tool_schemas: Optional[Dict[str, Any]] = None
+
+class SystemPromptMessage(BaseMessage):
+    type: Literal["system-prompt"]
+    payload: SystemPromptPayload
+
+class UserMessageFullMetadata(BaseModel):
+    original_query: str
+    context_type: str  # "initial" or "full"
+    injected_context: str
+    active_window: str
+
+class UserMessageFullPayload(BaseModel):
+    content: str
+    metadata: UserMessageFullMetadata
+
+class UserMessageFullMessage(BaseMessage):
+    type: Literal["user-message-full"]
+    payload: UserMessageFullPayload
+
+class AssistantMessageFullPayload(BaseModel):
+    content: str
+
+class AssistantMessageFullMessage(BaseMessage):
+    type: Literal["assistant-message-full"]
+    payload: AssistantMessageFullPayload

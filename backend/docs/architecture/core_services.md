@@ -168,15 +168,33 @@ class AgentFactory:
 
 ### ContextFactory (`backend/src/core/services/context_factory.py`)
 
-Creates execution contexts for tool operations:
+Creates execution contexts for tool operations with active window tracking:
 
 ```python
 class ContextFactory:
     """Factory for creating execution contexts for tools."""
 
-    def create_context(self, tool_name: str, **kwargs) -> ToolContext:
-        """Create execution context for a specific tool."""
+    def create_tool_context(
+        self,
+        user_id: str,
+        session_id: str,
+        workspace_root: Optional[str] = None,
+        session_ref: Optional[AgentSession] = None,
+        additional_services: Optional[Dict[str, Any]] = None,
+    ) -> ToolContext:
+        """
+        Create execution context for a specific tool.
+        
+        Automatically retrieves active window title and stores it in
+        session metadata for access during tool execution.
+        """
 ```
+
+**Key Features:**
+- **Active Window Tracking**: Automatically retrieves active window during context creation
+- **Session Metadata**: Stores active window in `context.session.metadata['active_window']`
+- **Service Injection**: Injects tool registry, file services, and other dependencies
+- **Workspace Management**: Handles workspace root path validation
 
 ## Service Integration
 

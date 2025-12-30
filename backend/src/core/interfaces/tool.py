@@ -22,7 +22,11 @@ class Kind(Enum):
 
 @dataclass
 class ToolResult:
-    """Result of a tool execution."""
+    """Result of a tool execution.
+    
+    This is the canonical format for tool results. Tools should return ToolResult
+    directly instead of dictionaries to ensure type safety and avoid information loss.
+    """
     success: bool
     data: Any = None
     error: Optional[str] = None
@@ -32,6 +36,96 @@ class ToolResult:
     episodic_memories: Optional[List[Dict[str, Any]]] = None
     semantic_facts: Optional[List[str]] = None
     artifacts: Optional[Dict[str, Any]] = None
+    
+    @classmethod
+    def from_dict(cls, result_dict: Dict[str, Any]) -> "ToolResult":
+        """
+        Convert dictionary to ToolResult (for backward compatibility with legacy tools).
+        
+        This is a single conversion point for tools that still return dicts.
+        New tools should return ToolResult directly.
+        
+        Args:
+            result_dict: Dictionary with tool result fields
+            
+        Returns:
+            ToolResult instance
+        """
+        # Standard field names that map directly to ToolResult attributes
+        standard_fields = {
+            "success", "error", "data", "metadata", "llm_content", "return_display",
+            "episodic_memories", "semantic_facts", "artifacts"
+        }
+        
+        # Extract standard fields
+        kwargs = {k: result_dict.get(k) for k in standard_fields if k in result_dict}
+        
+        # Determine success if not explicitly set
+        if "success" not in kwargs:
+            kwargs["success"] = "error" not in result_dict
+        
+        # Extract data field - if not present, use remaining non-standard fields
+        if "data" not in kwargs or kwargs["data"] is None:
+            data = {
+                k: v for k, v in result_dict.items()
+                if k not in standard_fields
+            }
+            kwargs["data"] = data if data else None
+        
+        # Auto-generate llm_content if missing
+        if not kwargs.get("llm_content"):
+            if kwargs.get("error"):
+                kwargs["llm_content"] = f"Error: {kwargs['error']}"
+            elif kwargs.get("data"):
+                data = kwargs["data"]
+                if isinstance(data, dict):
+                    # Try common output fields
+                    kwargs["llm_content"] = (
+                        str(data.get("output", data.get("screenshot", data)))
+                    )
+                else:
+                    kwargs["llm_content"] = str(data)
+        
+        # Auto-generate return_display if missing
+        if not kwargs.get("return_display"):
+            kwargs["return_display"] = kwargs.get("llm_content") or "Tool executed successfully"
+        
+        return cls(**kwargs)
+    
+    def format_for_history(
+        self,
+        tool_name: str,
+        system_context: Optional[str] = None,
+        screenshot_indicator: Optional[str] = None,
+    ) -> str:
+        """
+        Format result for conversation history.
+        
+        Args:
+            tool_name: Name of the tool that produced this result
+            system_context: Optional system context XML (e.g., from system_monitor)
+            screenshot_indicator: Optional screenshot indicator text
+            
+        Returns:
+            Formatted message string for history
+        """
+        parts = [f"{tool_name} output:"]
+        
+        if self.success:
+            content = self.llm_content or self.return_display or str(self.data or "No output")
+            parts.append(content)
+            parts.append("status: successful")
+        else:
+            parts.append(f"error: {self.error}")
+            parts.append("status: failed")
+        
+        if system_context:
+            parts.append(system_context)
+        
+        if screenshot_indicator:
+            parts.append(screenshot_indicator)
+        
+        return "\n".join(parts)
 
 @dataclass
 class ToolContext:

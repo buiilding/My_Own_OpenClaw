@@ -7,10 +7,10 @@ This avoids dynamic scanning (magic) and allows for better static analysis and p
 
 from backend.src.tools.computer.keyboard_tool import KeyboardTool
 from backend.src.tools.computer.mouse_tool import MouseTool
-from backend.src.tools.computer.predict_click_tool import PredictClickTool
-from backend.src.tools.computer.click_ocr_tool import ClickOCRTool
 from backend.src.tools.computer.scroll_tool import ScrollTool
 from backend.src.tools.computer.screenshot_tool import ScreenshotTool
+from backend.src.tools.computer.switch_tab_tool import SwitchTabTool
+from backend.src.tools.computer.wait_tool import WaitTool
 from backend.src.tools.filesystem.write_file_tool import WriteFileTool
 from backend.src.tools.filesystem.replace_tool import ReplaceTool
 from backend.src.tools.filesystem.search_file_content_tool import SearchFileContentTool
@@ -20,15 +20,16 @@ from backend.src.tools.filesystem.glob_tool import GlobTool
 from backend.src.tools.filesystem.read_file_tool_sdk import ReadFileToolSDK
 from backend.src.tools.system.shell_tool import ShellTool
 from backend.src.tools.marketplace.search_marketplace_tool import SearchMarketplaceTool
+from backend.src.tools.computer.system_tools import GetOpenWindowsTool, GetSystemStatsTool
 
 # List of tool classes to register
 CORE_TOOLS = [
     KeyboardTool,
     MouseTool,
-    PredictClickTool,
-    ClickOCRTool,
     ScrollTool,
     ScreenshotTool,
+    SwitchTabTool,
+    WaitTool,
     WriteFileTool,
     ReplaceTool,
     SearchFileContentTool,
@@ -38,5 +39,7 @@ CORE_TOOLS = [
     ReadFileToolSDK,
     ShellTool,
     SearchMarketplaceTool,
+    GetOpenWindowsTool,
+    GetSystemStatsTool,
 ]
 

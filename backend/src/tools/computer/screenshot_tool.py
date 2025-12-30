@@ -5,10 +5,12 @@ Captures screenshots of the computer screen for computer use automation.
 """
 import logging
 from typing import Dict, Any
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.computer.computer_interface import ComputerInterface
 
 logger = logging.getLogger(__name__)
@@ -17,6 +19,15 @@ logger = logging.getLogger(__name__)
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
     model_config = ConfigDict(extra='forbid')
+    
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
+    expectation: str = Field(
+        ...,
+        description="One sentence describing what you expect to see in the screenshot after this action executes."
+    )
 
 
 class ScreenshotTool(Tool[ScreenshotToolArgs]):
@@ -27,6 +38,8 @@ class ScreenshotTool(Tool[ScreenshotToolArgs]):
     name = "screenshot"
     description = "Capture a screenshot of the current computer screen. After execution, returns a status message and a screenshot image showing the current state of the screen."
     args_model = ScreenshotToolArgs
+    required_permissions = {Permission.COMPUTER_CONTROL}
+    category = ToolDomain.COMPUTER
 
     def __init__(self):
         self.computer = ComputerInterface()

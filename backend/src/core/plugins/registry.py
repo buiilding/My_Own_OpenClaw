@@ -90,22 +90,48 @@ class PluginRegistry:
         )
         self.state_manager.set_config(plugin_name, plugin_config)
 
-        # Update enabled state
+        # Update enabled state (in-memory only)
         if enabled:
             self.state_manager.enable_plugin(plugin_name)
         else:
             self.state_manager.disable_plugin(plugin_name)
 
-        # Save to config manager
-        self.config_manager.save_plugin_config(
-            plugin_name,
-            enabled=enabled,
-            priority=priority,
-        )
+        # Note: Persistence is now explicit via save_config() method
+        # This makes registration fast and testable without file I/O
 
         logger.info(
             f"Registered plugin: {plugin_name} (priority: {priority}, enabled: {enabled})"
         )
+    
+    def save_config(self, plugin_name: Optional[str] = None) -> None:
+        """
+        Persist plugin configuration to disk.
+        
+        If plugin_name is provided, saves only that plugin's config.
+        If None, saves all registered plugins' configs.
+        
+        Args:
+            plugin_name: Optional plugin name to save, or None for all plugins
+        """
+        if plugin_name:
+            # Save single plugin config
+            metadata = self.state_manager.get_metadata(plugin_name)
+            if metadata:
+                self.config_manager.save_plugin_config(
+                    plugin_name,
+                    enabled=metadata.get("enabled", True),
+                    priority=metadata.get("priority", 100),
+                )
+        else:
+            # Save all plugin configs
+            for name in self._plugins.keys():
+                metadata = self.state_manager.get_metadata(name)
+                if metadata:
+                    self.config_manager.save_plugin_config(
+                        name,
+                        enabled=metadata.get("enabled", True),
+                        priority=metadata.get("priority", 100),
+                    )
 
     def unregister(self, plugin_name: str) -> None:
         """Unregister a plugin."""

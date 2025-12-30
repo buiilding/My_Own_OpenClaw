@@ -1,6 +1,6 @@
 # Configuration Management Documentation
 
-This document provides comprehensive documentation for the Personal Assistant Backend configuration management system, including the Unified Configuration Service, Config Subscription Manager, and related components.
+This document provides comprehensive documentation for the Personal Assistant Backend configuration management system, including the Configuration Service, Config Subscription Manager, and related components.
 
 ## Overview
 
@@ -8,23 +8,22 @@ The configuration management system provides a centralized, unified approach to 
 
 ## Core Components
 
-### Unified Configuration Service
+### Configuration Service
 
-**Location**: `backend/src/core/unified_config.py`
+**Location**: `backend/src/core/config_service.py`
 
-The Unified Configuration Service provides a single source of truth for all configuration access, consolidating `AppConfig`, `PluginConfig`, and runtime configuration overrides.
+The Configuration Service provides a single source of truth for all configuration access, consolidating `AppConfig` and `PluginConfig` management.
 
 #### Architecture
 
 ```python
-class UnifiedConfigurationService:
+class ConfigurationService:
     """
-    Unified configuration service that consolidates all configuration access.
+    Centralized configuration service with change notifications.
 
-    Provides a single interface for:
+    Provides a single source of truth for configuration access, including:
     - Application configuration (AppConfig)
     - Plugin configuration (PluginConfigManager)
-    - Runtime configuration overrides
     """
 ```
 
@@ -33,27 +32,41 @@ class UnifiedConfigurationService:
 - **Single Interface**: Unified access to all configuration types
 - **Change Notifications**: Real-time updates when configuration changes
 - **Plugin Integration**: Seamless plugin configuration management
-- **Runtime Overrides**: Dynamic configuration modification
+- **Event Bus Integration**: Publishes config change events via EventBus
 - **Type Safety**: Full type hints and validation
 
 #### Usage Patterns
 
 ```python
-# Initialize the service
-config_service = UnifiedConfigurationService()
+# ✅ CORRECT: Use ConfigurationService directly
+from backend.src.core.config_service import ConfigurationService
+from backend.src.core.config import ConfigManager
+
+# Initialize the service (typically done via DI container)
+config_manager = ConfigManager()
+config_service = ConfigurationService(config_manager, event_bus=event_bus)
+config_service.initialize()
 
 # Access application configuration
-app_config = await config_service.get_app_config()
+app_config = config_service.get_config()
 
 # Access plugin configuration
-plugin_config = await config_service.get_plugin_config("tool_name")
+plugin_config = config_service.get_plugin_config("tool_name")
+
+# Update plugin configuration
+config_service.update_plugin_config("tool_name", {"setting": "value"})
 
 # Subscribe to configuration changes
-await config_service.subscribe_config_changes(subscriber)
+config_service.subscribe(subscriber)
 
-# Runtime configuration override
-await config_service.set_runtime_override("max_memory_mb", 1024)
+# Update configuration
+new_config = AppConfig(...)
+await config_service.update_config(new_config)
 ```
+
+#### Deprecated: UnifiedConfigurationService
+
+**⚠️ DEPRECATED**: `UnifiedConfigurationService` is deprecated. Use `ConfigurationService` directly instead. All functionality has been merged into `ConfigurationService`.
 
 #### Configuration Sources
 

@@ -9,6 +9,7 @@ import logging
 from typing import Any, Optional, Set
 
 from backend.src.agent.plugins.interface import AgentPlugin, PluginResult
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.execution.engine import (
     ToolExecutionEngine,
     create_execution_engine_from_registry,
@@ -21,15 +22,6 @@ logger = logging.getLogger(__name__)
 SCREENSHOT_TOOL_NAME = "screenshot"
 SCREENSHOT_DATA_KEY = "screenshot"
 
-# Computer control tools that should trigger automatic screenshots
-COMPUTER_CONTROL_TOOLS: Set[str] = {
-    "mouse_control",
-    "keyboard_control",
-    "scroll_control",
-    "click_ocr_element",
-    "predict_click",
-}
-
 
 class ComputerUsePlugin(AgentPlugin):
     """
@@ -39,7 +31,7 @@ class ComputerUsePlugin(AgentPlugin):
 
     name = "computer_use"
 
-    def __init__(self, screenshot_delay: float = 0.5):
+    def __init__(self, screenshot_delay: float = 2.0):
         self.tool_registry: Optional[ToolRegistry] = None
         self.execution_engine: Optional[ToolExecutionEngine] = None
         self.screenshot_delay = screenshot_delay
@@ -72,11 +64,14 @@ class ComputerUsePlugin(AgentPlugin):
         """
         logger.debug(f"ComputerUsePlugin.on_tool_end called for tool: {tool_name}")
 
-        if not self.execution_engine:
-            logger.warning("ToolExecutionEngine not available in ComputerUsePlugin")
+        if not self.execution_engine or not self.tool_registry:
+            logger.error("ToolExecutionEngine or ToolRegistry not available in ComputerUsePlugin")
             return None
 
-        if tool_name not in COMPUTER_CONTROL_TOOLS:
+        # Check if tool is in computer control domain using tool metadata
+        tool = self.tool_registry.get_tool(tool_name)
+        if not tool or tool.category != ToolDomain.COMPUTER:
+            logger.debug(f"Tool {tool_name} is not a computer control tool, skipping screenshot")
             return None
 
         # Wait for UI to update
@@ -84,15 +79,31 @@ class ComputerUsePlugin(AgentPlugin):
 
         # Execute screenshot tool using ToolExecutionEngine
         try:
-            screenshot_result = await self.execution_engine.execute_tool_by_name(
-                SCREENSHOT_TOOL_NAME, {}
+            logger.debug(f"Capturing screenshot after {tool_name}")
+            from backend.src.llm.parser import ParsedToolCall
+            
+            tool_call = ParsedToolCall(
+                tool_name=SCREENSHOT_TOOL_NAME,
+                parameters={
+                    "explanation": f"Automatically capturing screenshot after {tool_name} execution to show the screen state.",
+                    "expectation": f"Screenshot showing the screen state after {tool_name} was executed."
+                },
+                raw_call=f"{SCREENSHOT_TOOL_NAME}(explanation=..., expectation=...)",
+                confidence=1.0,
             )
-            screenshot_data = self._extract_screenshot_data(screenshot_result)
+            
+            execution_result = await self.execution_engine.execute(
+                tool_call,
+                user_id="system",
+                session_id="system",
+            )
+            
+            screenshot_data = self._extract_screenshot_data_from_result(execution_result)
 
             if not screenshot_data:
                 logger.warning(
                     f"Failed to extract screenshot data after {tool_name}. "
-                    f"Result keys: {list(screenshot_result.keys()) if isinstance(screenshot_result, dict) else 'N/A'}"
+                    f"Result keys: {list(execution_result.keys()) if isinstance(execution_result, dict) else 'N/A'}"
                 )
                 return None
 
@@ -111,30 +122,34 @@ class ComputerUsePlugin(AgentPlugin):
             )
             return None
 
-    def _extract_screenshot_data(self, result: Any) -> Optional[str]:
+    def _extract_screenshot_data_from_result(self, execution_result: Any) -> Optional[str]:
         """
-        Extract screenshot data from tool execution result.
-
-        Handles SDK tool result format (dict) and validates the data.
+        Extract screenshot data from ToolExecutionResult.
 
         Args:
-            result: Tool execution result (dict or legacy ToolResult)
+            execution_result: ToolExecutionResult from execute()
 
         Returns:
             Screenshot data string (base64) or None if not found/invalid
         """
-        if not isinstance(result, dict):
-            logger.warning(f"Unexpected result type: {type(result)}, expected dict")
+        from backend.src.tools.execution.types import ToolExecutionResult
+        
+        if not isinstance(execution_result, ToolExecutionResult):
+            logger.warning(f"Unexpected result type: {type(execution_result)}, expected ToolExecutionResult")
             return None
 
         # Check execution success
-        if not result.get("success", True):
-            error = result.get("error", "Unknown error")
+        if not execution_result.success:
+            error = execution_result.result.error or "Unknown error"
             logger.warning(f"Screenshot tool execution failed: {error}")
             return None
 
-        # Extract screenshot data - SDK tools return it directly in the result dict
-        screenshot_data = result.get(SCREENSHOT_DATA_KEY)
+        # Extract screenshot data from ToolResult
+        tool_result = execution_result.result
+        if tool_result.data and isinstance(tool_result.data, dict):
+            screenshot_data = tool_result.data.get(SCREENSHOT_DATA_KEY)
+        else:
+            screenshot_data = None
 
         # Validate screenshot data
         if not screenshot_data:

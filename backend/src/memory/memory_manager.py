@@ -146,27 +146,38 @@ class MemoryManager:
     def format_context(self, memories: Dict[str, List[str]]) -> str:
         """
         Format memories into a string for LLM context with explicit section headers.
+        
+        Always includes both episodic_memory and semantic_memory tags, even when empty.
+        Empty sections will contain "None" between the tags.
 
         Args:
             memories: Dictionary with 'semantic' and 'episodic' keys
 
         Returns:
-            Formatted context string with episodic and procedural sections
+            Formatted context string with episodic_memory and semantic_memory sections
         """
         sections = []
 
-        # Format episodic memories (past interactions)
-        if memories.get("episodic"):
-            episodic_section = ["[Recent Interactions]"]
-            for interaction in memories["episodic"]:
+        # Format episodic memories (past interactions) - always include tags
+        episodic_section = ["<episodic_memory>"]
+        episodic_memories = memories.get("episodic")
+        if episodic_memories and len(episodic_memories) > 0:
+            for interaction in episodic_memories:
                 episodic_section.append(f"- {interaction}")
-            sections.append("\n".join(episodic_section))
+        else:
+            episodic_section.append("None")
+        episodic_section.append("</episodic_memory>")
+        sections.append("\n".join(episodic_section))
 
-        # Format semantic memories (procedural context - preferences, rules, facts)
-        if memories.get("semantic"):
-            semantic_section = ["[Semantic Memory]"]
-            for fact in memories["semantic"]:
+        # Format semantic memories (procedural context - preferences, rules, facts) - always include tags
+        semantic_section = ["<semantic_memory>"]
+        semantic_memories = memories.get("semantic")
+        if semantic_memories and len(semantic_memories) > 0:
+            for fact in semantic_memories:
                 semantic_section.append(f"- {fact}")
-            sections.append("\n".join(semantic_section))
+        else:
+            semantic_section.append("None")
+        semantic_section.append("</semantic_memory>")
+        sections.append("\n".join(semantic_section))
 
-        return "\n\n".join(sections) if sections else ""
+        return "\n\n".join(sections)

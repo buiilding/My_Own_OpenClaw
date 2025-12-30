@@ -14,8 +14,10 @@ from backend.src.core.utils.path_utils import (
     make_relative_path,
     shorten_path,
 )
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.system.shell_tool import ShellTool
 
 logger = logging.getLogger(__name__)
@@ -29,13 +31,34 @@ class WriteFileArgs(BaseModel):
         description="The path to the file to write (absolute or relative to workspace)",
     )
     content: str = Field(..., description="The content to write to the file")
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class WriteFileTool(Tool[WriteFileArgs]):
     """Tool for creating/overwriting files with content."""
 
     name = "write_file"
-    description = "Writes content to a specified file in the local filesystem. The user has the ability to modify `content`. If modified, this will be stated in the response."
+    required_permissions = {Permission.WRITE_FILESYSTEM}
+    category = ToolDomain.FILESYSTEM
+    description = """CRITICAL: This tool should ONLY be used for creating NEW files or when a complete file rewrite is explicitly necessary. 
+
+BEFORE USING THIS TOOL:
+- ALWAYS read the existing file first using read_file if it exists
+- ALWAYS use the 'replace' tool for modifying existing files instead of write_file
+- ALWAYS search for relevant context using search_file_content or read related files
+- NEVER use write_file to overwrite existing files unless you have read the entire file and confirmed a full rewrite is required
+
+USE CASES:
+- Creating completely new files that don't exist
+- Complete file rewrites when the entire file structure needs to change (only after reading the original)
+
+RESTRICTIONS:
+- Do NOT use this tool if the file already exists and you only need to modify parts of it
+- Do NOT use this tool without first reading the file and understanding its current structure
+- Prefer 'replace' tool for all modifications to existing files"""
     args_model = WriteFileArgs
 
     async def run(self, args: WriteFileArgs, ctx: ToolContext) -> dict:
@@ -48,10 +71,12 @@ class WriteFileTool(Tool[WriteFileArgs]):
                 }
 
             # Resolve relative paths to absolute paths
+            session_id = ctx.session.session_id
+            user_id = ctx.user.user_id
             file_path = args.file_path
             if not os.path.isabs(file_path):
                 # Resolve relative path to absolute using current working directory (from shell tool)
-                current_dir = ShellTool.get_current_working_directory()
+                current_dir = await ShellTool.get_current_working_directory(session_id, user_id)
                 file_path = os.path.abspath(os.path.join(current_dir, file_path))
                 logger.info(
                     f"WriteFile: Resolved relative path to absolute using current dir: {file_path}"

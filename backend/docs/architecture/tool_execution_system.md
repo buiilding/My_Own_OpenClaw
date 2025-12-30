@@ -205,21 +205,31 @@ Aggregates and formats execution results from multiple tools.
 - Formatted output generation
 - Error summarization
 
+**Note:** `ResultAggregator` has been inlined into `ToolOrchestrator` for simplicity. The aggregation logic is now directly in `ToolOrchestrator.execute_tools_from_response()`.
+
 #### Usage
 
 ```python
-aggregator = ResultAggregator()
+from backend.src.tools.orchestrator import ToolOrchestrator
 
-# Aggregate results
-summary = aggregator.aggregate_results(execution_results)
+orchestrator = ToolOrchestrator(tool_registry, config)
 
-# Check overall success
-if summary.overall_success:
-    print("All tools executed successfully")
+# Execute tools - aggregation happens automatically
+result = await orchestrator.execute_tools_from_response(
+    parsed_response=parsed_response,
+    user_id="user123",
+    session_id="session456"
+)
+
+# Check execution status
+if result.all_successful:
+    print(f"Executed {len(result.tool_results)} tools successfully")
+    print(result.summary)
 else:
-    print(f"Failed tools: {len(summary.failed_tools)}")
-    for failure in summary.failures:
-        print(f"  {failure.tool_name}: {failure.error}")
+    print(f"Some tools failed: {result.summary}")
+    for tool_result in result.tool_results:
+        if not tool_result.success:
+            print(f"  {tool_result.tool_call.tool_name}: {tool_result.result.error}")
 ```
 
 ### Progress Tracker (`backend/src/tools/execution/progress_tracker.py`)

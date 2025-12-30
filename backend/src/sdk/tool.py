@@ -4,11 +4,17 @@ SDK Tool Base Class.
 This module provides the base Tool class that all tools in the system must inherit from.
 Tools are defined using Pydantic models for argument validation and async execution.
 """
-from typing import Any, Generic, Type, TypeVar, ClassVar
+from __future__ import annotations
+
+from typing import Any, Generic, Set, Type, TypeVar, ClassVar, TYPE_CHECKING
 from abc import ABC, abstractmethod
 from pydantic import BaseModel
 
 from backend.src.sdk.context import ToolContext
+
+if TYPE_CHECKING:
+    from backend.src.core.security.policy import Permission
+    from backend.src.tools.categorization import ToolDomain
 
 # Type variable for the arguments model
 TArgs = TypeVar("TArgs", bound=BaseModel)
@@ -34,6 +40,20 @@ class Tool(ABC, Generic[TArgs]):
     name: ClassVar[str]
     description: ClassVar[str]
     args_model: Type[TArgs]
+    
+    # Optional metadata - tools should declare these for better type safety
+    # Using string annotations (via __future__ import) to avoid circular import
+    required_permissions: ClassVar[Set[Permission]] = set()
+    category: ClassVar[ToolDomain] = None  # Will be set in __init_subclass__ if not provided
+    
+    def __init_subclass__(cls, **kwargs):
+        """Set default category if not specified by subclass."""
+        super().__init_subclass__(**kwargs)
+        # Only set default if subclass hasn't already set it
+        if cls.category is None:
+            # Lazy import here to avoid circular dependency
+            from backend.src.tools.categorization import ToolDomain
+            cls.category = ToolDomain.OTHER
 
     @abstractmethod
     async def run(self, args: TArgs, ctx: ToolContext) -> Any:

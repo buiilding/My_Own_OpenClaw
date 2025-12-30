@@ -13,8 +13,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from backend.src.core.utils.file_reader import read_file_content
 from backend.src.core.utils.file_type import FileType, detect_file_type
 from backend.src.core.utils.path_utils import make_relative_path
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.system.shell_tool import ShellTool
 
 logger = logging.getLogger(__name__)
@@ -39,13 +41,26 @@ class ReadManyFilesArgs(BaseModel):
         None,
         description="File filtering options (respect_git_ignore, respect_gemini_ignore)",
     )
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class ReadManyFilesTool(Tool[ReadManyFilesArgs]):
     """Tool for reading multiple files by paths/glob patterns."""
 
     name = "read_many_files"
-    description = "Reads content from multiple files specified by paths or glob patterns within a configured target directory. For text files, it concatenates their content into a single string. It is primarily designed for text-based files. However, it can also process image (e.g., .png, .jpg) and PDF (.pdf) files if their file names or extensions are explicitly included in the 'paths' argument."
+    required_permissions = {Permission.READ_FILESYSTEM}
+    category = ToolDomain.FILESYSTEM
+    description = """Reads content from multiple files at once. Use this when you need to gather information from several related files before making changes.
+
+WHEN TO USE:
+- Reading multiple related files to understand context before modifying code
+- Gathering information from several files simultaneously
+- Understanding relationships between files
+
+PRINCIPLE: Prefer multiple read_file calls if you're unsure which files to read. This tool is for efficiency when you already know which files you need."""
     args_model = ReadManyFilesArgs
 
     async def run(self, args: ReadManyFilesArgs, ctx: ToolContext) -> dict:
@@ -61,7 +76,9 @@ class ReadManyFilesTool(Tool[ReadManyFilesArgs]):
                 }
 
             # Get target directory for relative path resolution
-            target_dir = ShellTool.get_current_working_directory()
+            session_id = ctx.session.session_id
+            user_id = ctx.user.user_id
+            target_dir = await ShellTool.get_current_working_directory(session_id, user_id)
 
             # Collect all file paths
             all_files = set()

@@ -28,10 +28,12 @@ The system follows Clean Architecture principles with clear separation of concer
 
 The agent system manages conversation sessions and orchestrates task execution with comprehensive session management:
 
-- **AgentSession**: Core session class managing conversation state, memory integration, and tool orchestration
-- **AgentExecutor**: Handles query processing, LLM interaction, and tool execution coordination
+- **AgentSession**: Core session class managing conversation state, memory integration, and tool orchestration (requires EventBus injection)
+- **AgentExecutor**: Handles query processing, LLM interaction, and tool execution coordination (requires EventBus injection)
+- **InteractionLoop**: Core agent loop implementing ReAct pattern (prompt → LLM → parse → tools → repeat)
+- **ResponsePresenter**: Presentation layer for enriching domain events with UI metadata (separated from core logic)
 - **SessionManager**: Manages multiple concurrent user sessions with WebSocket integration
-- **ConversationHistory**: Maintains conversation state with configurable history limits
+- **ConversationHistory**: Maintains conversation state with configurable history limits and cached `last_user_query` property
 - **ResultProcessor**: Processes and formats execution results for client consumption
 - **Plugin System**: Extensible hooks for agent lifecycle events (instruction, LLM response, tool execution)
 - **State Management**: Tracks agent execution state and provides status updates
@@ -55,11 +57,10 @@ Enterprise-grade tool management system with security, validation, and marketpla
 
 - **Tool Registry**: Central registry with marketplace and filesystem tool discovery
 - **Tool Loader**: Dynamic loading system with instantiation and validation
-- **Tool Orchestrator**: Coordinates complex multi-tool executions with progress tracking
+- **Tool Orchestrator**: Coordinates complex multi-tool executions with progress tracking and result aggregation
 - **Tool Execution Engine**: Secure execution environment with strategy pattern
 - **Execution Strategies**: Chain of responsibility with security, validation, and audit layers
 - **Batch Executor**: Parallel execution with configurable concurrency and dependency resolution
-- **Result Aggregator**: Intelligent result combination with error recovery and partial success
 - **Progress Tracker**: Real-time streaming updates with cancellation and timeout support
 - **Schema Registry**: Caching system for tool JSON schemas with automatic invalidation
 - **Marketplace Manager**: Community tool distribution with security validation
@@ -117,23 +118,30 @@ Enterprise-grade multi-provider LLM abstraction with comprehensive feature suppo
 - **PromptConstructor**: Dynamic prompt engineering with tool schemas, memory context, and system instructions
 - **ResponseParser**: Robust parsing of structured outputs and tool call extraction
 - **Model Configuration**: Comprehensive model management with provider-specific settings and capabilities
-- **Streaming Support**: Real-time response streaming with proper error handling across all providers
+- **Streaming Support**: Real-time response streaming with **typed StreamingEvent objects** (not dictionaries)
 - **Rate Limiting**: Built-in rate limiting and retry logic with exponential backoff
 - **Error Handling**: Provider-specific error handling with graceful degradation
 - **Cost Tracking**: Optional usage and cost monitoring across providers
 
 **LLM Pipeline**:
 ```
-Query + Context → Prompt Construction → Provider Selection → Streaming Response → Tool Call Parsing → Execution Coordination
+Query + Context → Prompt Construction (with PromptMetadata) → Provider Selection → Streaming Response (StreamingEvent objects) → Tool Call Parsing → Execution Coordination
 ```
 
 **Key Features:**
 - **7+ LLM Providers**: Support for major providers with unified interface
+- **Type-Safe Events**: All providers yield `StreamingEvent` objects (ChunkEvent, ThinkingEvent, ErrorEvent)
 - **Dynamic Provider Switching**: Runtime provider selection based on configuration
-- **Advanced Prompting**: Tool schemas, memory integration, and system context
+- **Advanced Prompting**: Tool schemas, memory integration, and system context with typed `PromptMetadata`
 - **Streaming Responses**: Real-time output with proper WebSocket integration
 - **Error Recovery**: Automatic retry with provider fallback options
 - **Model Flexibility**: Support for various model sizes and capabilities per provider
+
+**Type Safety Improvements:**
+- All LLM providers return typed `StreamingEvent` objects instead of dictionaries
+- `PromptMetadata` dataclass replaces dictionary-based metadata
+- `isinstance()` checks instead of string-based type checking
+- Eliminated all `event.get("type")` patterns
 
 ### API Layer (`src/api/`)
 
@@ -226,12 +234,24 @@ Pydantic-based configuration system with validation and change management:
 
 ### Event System (`src/core/events.py`, `src/core/bus.py`)
 
-Asynchronous event-driven communication:
+Asynchronous event-driven communication with dependency injection:
 
-- **Message Bus**: Central event dispatcher
-- **Event Types**: Strongly typed events (InteractionCompleted, etc.)
-- **Subscriptions**: Component-level event handling
-- **Async Processing**: Non-blocking event processing
+- **EventBus**: Central event dispatcher (injected via `CoreContainer`, not global singleton)
+- **Event Types**: Strongly typed events (InteractionCompleted, ConfigChanged, etc.)
+- **Subscriptions**: Component-level event handling with priority support
+- **Async Processing**: Non-blocking event processing with error recovery
+- **Dependency Injection**: EventBus is injected via constructor for testability
+
+**Usage Pattern:**
+```python
+# ✅ CORRECT: Inject EventBus via constructor
+class MyService:
+    def __init__(self, event_bus: EventBus):
+        self.event_bus = event_bus
+        self.event_bus.subscribe(InteractionCompleted, self._on_completed)
+```
+
+**Note:** The global `message_bus` singleton has been removed. Always inject `EventBus` for proper dependency management.
 
 ### Plugin System (`src/core/plugins/`)
 
@@ -307,15 +327,20 @@ graph TD
     E --> F[Audit Logging]
     F --> G[Tool Registry Lookup]
     G --> H[Tool Instance Retrieval]
-    H --> I[Context Factory]
+    H --> I[Context Factory with Active Window]
     I --> J[Execution Engine]
     J --> K[Progress Tracker]
     K --> L[Async Tool Execution]
     L --> M[Result Processing]
-    M --> N[Aggregator]
-    N --> O[Response Formatting]
+    M --> N[Result Aggregation in Orchestrator]
+    N --> O[Response Presenter]
     O --> P[Streaming Updates]
 ```
+
+**Key Changes:**
+- **Context Factory**: Retrieves active window during context creation
+- **Result Aggregation**: Inlined in ToolOrchestrator (no separate ResultAggregator class)
+- **Response Presenter**: Handles UI formatting and metadata enrichment
 
 ### Memory Storage Flow
 
