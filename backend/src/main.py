@@ -67,4 +67,10 @@ app.include_router(websocket.router)
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("backend.src.main:app", host="0.0.0.0", port=8765, reload=True)
+    uvicorn.run(
+        "backend.src.main:app",
+        host="0.0.0.0",
+        port=8765,
+        reload=True,
+        reload_dirs=["backend/src"]
+    )

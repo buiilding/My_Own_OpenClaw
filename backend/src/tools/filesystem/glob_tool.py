@@ -101,13 +101,13 @@ This tool matches file names and paths, not file contents. After finding files, 
             if args.path:
                 if not os.path.isabs(args.path):
                     # Use current working directory from shell tool
-                    current_dir = ShellTool.get_current_working_directory(session_id, user_id)
+                    current_dir = await ShellTool.get_current_working_directory(session_id, user_id)
                     search_dir = os.path.join(current_dir, args.path)
                 else:
                     search_dir = args.path
             else:
                 # Use current working directory from shell tool
-                search_dir = ShellTool.get_current_working_directory(session_id, user_id)
+                search_dir = await ShellTool.get_current_working_directory(session_id, user_id)
 
             if not os.path.exists(search_dir):
                 return {

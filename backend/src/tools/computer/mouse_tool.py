@@ -10,6 +10,7 @@ from typing import Literal, Optional, Tuple, Dict, Any, List
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 
 from backend.src.core.security.policy import Permission
+from backend.src.core.types import MouseAction, CoordinateFindingMethod, ScrollDirection
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
 from backend.src.tools.categorization import ToolDomain
@@ -26,18 +27,11 @@ SIMILARITY_THRESHOLD = 0.8
 class MouseControlArgs(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
-    action: Literal[
-        "click",
-        "double_click",
-        "right_click",
-        "move",
-        "drag",
-        "scroll",
-    ] = Field(..., description="Mouse action to perform")
+    action: MouseAction = Field(..., description="Mouse action to perform")
 
     # Coordinate finding method
-    find_coordinates_by: Literal["manual", "ocr", "prediction"] = Field(
-        "manual", description="Method to find the target coordinates for the mouse action"
+    find_coordinates_by: CoordinateFindingMethod = Field(
+        CoordinateFindingMethod.MANUAL, description="Method to find the target coordinates for the mouse action"
     )
 
     # Manual coordinate fields
@@ -53,27 +47,31 @@ class MouseControlArgs(BaseModel):
 
     # Action-specific fields
     scroll_amount: Optional[int] = Field(None, description="Amount to scroll (positive for down/right, negative for up/left, required for scroll action)")
-    scroll_direction: Optional[Literal["vertical", "horizontal"]] = Field("vertical", description="Direction of scrolling (required for scroll action)")
+    scroll_direction: Optional[ScrollDirection] = Field(ScrollDirection.VERTICAL, description="Direction of scrolling (required for scroll action)")
     duration: float = Field(0.5, description="Duration for drag operations")
     explanation: str = Field(
         ...,
-        description="One concise sentence explaining why this tool is being used and what you expect to see in the screenshot after this mouse action executes (e.g., 'Clicking the submit button and expecting to see a confirmation dialog appear')."
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
+    expectation: str = Field(
+        ...,
+        description="One sentence describing what you expect to see in the screenshot after this mouse action executes."
     )
 
     @model_validator(mode='after')
     def validate_conditional_fields(self):
         """Validate that required fields are present based on find_coordinates_by value."""
-        if self.find_coordinates_by == "manual":
+        if self.find_coordinates_by == CoordinateFindingMethod.MANUAL:
             if self.x is None or self.y is None:
                 raise ValueError("x and y coordinates are required when find_coordinates_by='manual'")
-        elif self.find_coordinates_by == "ocr":
+        elif self.find_coordinates_by == CoordinateFindingMethod.OCR:
             if not self.ocr_text:
                 raise ValueError("ocr_text is required when find_coordinates_by='ocr'")
-        elif self.find_coordinates_by == "prediction":
+        elif self.find_coordinates_by == CoordinateFindingMethod.PREDICTION:
             if not self.description:
                 raise ValueError("description is required when find_coordinates_by='prediction'")
 
-        if self.action == "scroll":
+        if self.action == MouseAction.SCROLL:
             if self.scroll_amount is None:
                 raise ValueError("scroll_amount is required when action='scroll'")
 
@@ -127,7 +125,7 @@ class MouseTool(Tool[MouseControlArgs]):
 
             x, y = coordinates
 
-            # Execute the mouse action
+            # Execute the mouse action (args.action is already MouseAction enum)
             result = await self._execute_mouse_action(args.action, x, y, args)
 
             if not result.success:
@@ -154,11 +152,11 @@ class MouseTool(Tool[MouseControlArgs]):
 
     async def _find_coordinates(self, args: MouseControlArgs, ctx: ToolContext) -> Optional[Tuple[int, int]]:
         """Find coordinates using the specified strategy."""
-        if args.find_coordinates_by == "manual":
+        if args.find_coordinates_by == CoordinateFindingMethod.MANUAL:
             return await self._find_coordinates_manual(args)
-        elif args.find_coordinates_by == "ocr":
+        elif args.find_coordinates_by == CoordinateFindingMethod.OCR:
             return await self._find_coordinates_by_ocr(args, ctx)
-        elif args.find_coordinates_by == "prediction":
+        elif args.find_coordinates_by == CoordinateFindingMethod.PREDICTION:
             return await self._find_coordinates_by_prediction(args, ctx)
         else:
             logger.error(f"Unknown coordinate finding method: {args.find_coordinates_by}")
@@ -245,26 +243,30 @@ class MouseTool(Tool[MouseControlArgs]):
             logger.error(f"Prediction coordinate finding failed: {e}", exc_info=True)
             return None
 
-    async def _execute_mouse_action(self, action: str, x: int, y: int, args: MouseControlArgs):
+    async def _execute_mouse_action(self, action: MouseAction, x: int, y: int, args: MouseControlArgs):
         """Execute the specific mouse action at given coordinates."""
-        if action == "click":
-            return await self.computer.left_click(x, y)
-        elif action == "double_click":
-            return await self.computer.double_click(x, y)
-        elif action == "right_click":
-            return await self.computer.right_click(x, y)
-        elif action == "move":
-            return await self.computer.move_cursor(x, y)
-        elif action == "drag":
-            # Default to left button for drag if not specified
-            return await self.computer.drag_to(x, y, "left", args.duration)
-        elif action == "scroll":
-            if args.scroll_direction == "vertical":
-                return await self.computer.scroll_vertical(x, y, args.scroll_amount or 0)
-            else:
-                return await self.computer.scroll_horizontal(x, y, args.scroll_amount or 0)
+        # Use enum-based dispatch for type safety
+        action_handlers = {
+            MouseAction.CLICK: lambda: self.computer.left_click(x, y),
+            MouseAction.DOUBLE_CLICK: lambda: self.computer.double_click(x, y),
+            MouseAction.RIGHT_CLICK: lambda: self.computer.right_click(x, y),
+            MouseAction.MOVE: lambda: self.computer.move_cursor(x, y),
+            MouseAction.DRAG: lambda: self.computer.drag_to(x, y, "left", args.duration),
+            MouseAction.SCROLL: lambda: self._execute_scroll(x, y, args),
+        }
+        
+        handler = action_handlers.get(action)
+        if handler:
+            return await handler()
         else:
             raise ValueError(f"Unknown mouse action: {action}")
+    
+    async def _execute_scroll(self, x: int, y: int, args: MouseControlArgs):
+        """Execute scroll action with direction handling."""
+        if args.scroll_direction == ScrollDirection.VERTICAL:
+            return await self.computer.scroll_vertical(x, y, args.scroll_amount or 0)
+        else:
+            return await self.computer.scroll_horizontal(x, y, args.scroll_amount or 0)
 
     # OCR helper methods
     def _get_ocr_plugin(self):

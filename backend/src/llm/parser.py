@@ -10,7 +10,7 @@ Uses robust bracket-matching JSON extraction instead of brittle regex patterns.
 import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +35,68 @@ class ParsedResponse:
     has_tool_calls: bool = False
 
 
+@dataclass
+class ToolCallSchema:
+    """
+    Configuration for tool call JSON format.
+    
+    Allows parser to support different JSON schemas while defaulting to
+    the custom format: {"functionCall": {"name": "...", "args": {...}}}
+    """
+    root_key: str = "functionCall"
+    name_key: str = "name"
+    args_key: str = "args"
+    
+    def extract_tool_call(self, parsed_json: Dict[str, Any]) -> Optional[Tuple[str, Dict[str, Any]]]:
+        """
+        Extract tool name and args from parsed JSON using configured keys.
+        
+        Args:
+            parsed_json: Parsed JSON dictionary
+            
+        Returns:
+            Tuple of (tool_name, args_dict) or None if not a valid tool call
+        """
+        if not isinstance(parsed_json, dict):
+            return None
+        
+        # Check for root key (e.g., "functionCall")
+        if self.root_key not in parsed_json:
+            return None
+        
+        function_call = parsed_json[self.root_key]
+        if not isinstance(function_call, dict):
+            return None
+        
+        # Extract name and args using configured keys
+        tool_name = function_call.get(self.name_key)
+        args = function_call.get(self.args_key, {})
+        
+        if tool_name and isinstance(args, dict):
+            return (tool_name, args)
+        
+        return None
+
+
 class ResponseParser:
     """
     Parses structured responses from LLM outputs.
 
     Extracts tool calls using robust JSON parsing with bracket-matching
     for embedded JSON cases. No regex patterns - handles nested structures correctly.
+    
+    Supports configurable JSON schema via ToolCallSchema, defaulting to
+    the custom format: {"functionCall": {"name": "...", "args": {...}}}
     """
+
+    def __init__(self, schema: Optional[ToolCallSchema] = None):
+        """
+        Initialize the response parser.
+        
+        Args:
+            schema: Optional ToolCallSchema configuration (defaults to custom format)
+        """
+        self.schema = schema or ToolCallSchema()
 
     def parse_response(self, response: str) -> ParsedResponse:
         """
@@ -113,23 +168,18 @@ class ResponseParser:
             # Try to parse the entire response as JSON
             parsed_json = json.loads(response.strip())
 
-            # Check if it has the expected functionCall structure
-            if isinstance(parsed_json, dict) and "functionCall" in parsed_json:
-                function_call = parsed_json["functionCall"]
-
-                if isinstance(function_call, dict) and "name" in function_call and "args" in function_call:
-                    tool_name = function_call["name"]
-                    args = function_call["args"]
-
-                    if isinstance(args, dict):
-                        tool_call = ParsedToolCall(
-                            tool_name=tool_name,
-                            parameters=args,
-                            raw_call=response.strip(),  # The entire JSON response
-                            confidence=1.0,  # Highest confidence for pure JSON format
-                        )
-                        tool_calls.append(tool_call)
-                        return tool_calls, ""  # No remaining text for pure JSON
+            # Use schema to extract tool call
+            result = self.schema.extract_tool_call(parsed_json)
+            if result:
+                tool_name, args = result
+                tool_call = ParsedToolCall(
+                    tool_name=tool_name,
+                    parameters=args,
+                    raw_call=response.strip(),  # The entire JSON response
+                    confidence=1.0,  # Highest confidence for pure JSON format
+                )
+                tool_calls.append(tool_call)
+                return tool_calls, ""  # No remaining text for pure JSON
 
         except (json.JSONDecodeError, KeyError, TypeError) as e:
             # Not a valid tool call JSON - this is normal for conversational responses
@@ -151,36 +201,33 @@ class ResponseParser:
         tool_calls = []
         remaining_text = response
         
-        # Find all potential JSON object starts that contain "functionCall"
+        # Find all potential JSON object starts that contain the root key
+        root_key_str = f'"{self.schema.root_key}"'
         i = 0
         while i < len(response):
-            # Look for opening brace followed by "functionCall"
+            # Look for opening brace followed by root key
             if response[i] == '{':
                 # Try to extract complete JSON object starting here
                 json_obj = self._extract_json_object(response, i)
-                if json_obj:
+                if json_obj and root_key_str in json_obj:
                     try:
                         parsed = json.loads(json_obj)
-                        # Check if it's a functionCall structure
-                        if isinstance(parsed, dict) and "functionCall" in parsed:
-                            function_call = parsed["functionCall"]
-                            if isinstance(function_call, dict) and "name" in function_call:
-                                tool_name = function_call["name"]
-                                args = function_call.get("args", {})
-                                
-                                if isinstance(args, dict):
-                                    tool_call = ParsedToolCall(
-                                        tool_name=tool_name,
-                                        parameters=args,
-                                        raw_call=json_obj,
-                                        confidence=1.0,
-                                    )
-                                    tool_calls.append(tool_call)
-                                    # Remove extracted JSON from remaining text
-                                    remaining_text = remaining_text.replace(json_obj, "", 1)
-                                    # Continue searching after the extracted object
-                                    i += len(json_obj)
-                                    continue
+                        # Use schema to extract tool call
+                        result = self.schema.extract_tool_call(parsed)
+                        if result:
+                            tool_name, args = result
+                            tool_call = ParsedToolCall(
+                                tool_name=tool_name,
+                                parameters=args,
+                                raw_call=json_obj,
+                                confidence=1.0,
+                            )
+                            tool_calls.append(tool_call)
+                            # Remove extracted JSON from remaining text
+                            remaining_text = remaining_text.replace(json_obj, "", 1)
+                            # Continue searching after the extracted object
+                            i += len(json_obj)
+                            continue
                     except json.JSONDecodeError:
                         # Not valid JSON, continue searching
                         pass

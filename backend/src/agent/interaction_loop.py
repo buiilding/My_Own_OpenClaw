@@ -5,7 +5,7 @@ This module contains the main interaction loop for the agent, handling the
 cycle of LLM generation, parsing, and tool execution.
 """
 import logging
-from typing import TYPE_CHECKING, AsyncGenerator, List
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List
 
 from backend.src.agent.presenter import ResponsePresenter
 from backend.src.core.events import (
@@ -15,13 +15,16 @@ from backend.src.core.events import (
     ErrorEvent,
     FullResponseEvent,
     StreamingCompleteEvent,
+    StreamingEvent,
     ThinkingEvent,
     ToolCallEvent,
     ToolOutputEvent,
+    TokenCountEvent,
 )
 from backend.src.core.exceptions import LLMRateLimitError
 from backend.src.core.types import LLMMessage
 from backend.src.llm.parser import ParsedResponse
+from backend.src.services.token_service import get_token_service
 
 if TYPE_CHECKING:
     from backend.src.agent.core import AgentSession
@@ -67,11 +70,11 @@ class InteractionLoop:
             iteration += 1
             
             # A. Build Prompt
-            # Pass ConversationHistory directly to use cached last_user_query property
-            prompt, prompt_metadata = self.prompt_builder.build_prompt(
-                self.session.history.get_history(),
+            # Get conversation history and tool schemas as separate parameters for LLM API
+            prompt, tool_schemas, prompt_metadata = self.prompt_builder.build_prompt(
+                history=[],  # Unused - history comes from stored_messages
                 stored_messages=self.session.history,  # Pass history object for O(1) access
-                include_tools=(iteration == 1),
+                include_tools=True,  # Always include tools since they're passed as separate API parameter
             )
 
             # Present system prompt and user message events via presenter
@@ -79,6 +82,10 @@ class InteractionLoop:
                 yield event
             
             async for event in self.presenter.present_user_message(prompt_metadata):
+                yield event
+
+            # Present tool schemas as separate transparency event
+            async for event in self.presenter.present_tool_schemas(tool_schemas):
                 yield event
 
             # B. Get LLM Response (Streamed)
@@ -108,8 +115,8 @@ class InteractionLoop:
                 # No tools called -> Final answer
                 final_response = parsed_response.text_content
                 self.session.history.add_assistant_message(final_response)
-                yield StreamingCompleteEvent()
-                break
+                yield StreamingCompleteEvent(final_response=final_response)
+                return
 
             # E. Tool Execution
             # Add assistant message with tool calls to history (context is king!)
@@ -135,12 +142,11 @@ class InteractionLoop:
         if iteration >= max_iterations:
             logger.warning("Max iterations reached in agent loop.")
             yield ErrorEvent(content="I reached the maximum number of steps without finishing.")
-
-        # Finalization (Events) - Handled by caller or separate method if needed,
-        # but loop logic typically yields the final state.
-        # The caller of this generator can handle the final response event if needed.
+            return
+        
+        # If we have a final response (shouldn't happen here, but handle it)
         if final_response:
-            self.final_response = final_response # Store for access by caller
+            yield StreamingCompleteEvent(final_response=final_response)
 
     async def _stream_llm_response(self, prompt: List[LLMMessage]) -> AsyncGenerator[AgentStreamingEvent, None]:
         """Streams the LLM response and aggregates the full text."""
@@ -161,12 +167,34 @@ class InteractionLoop:
             else:
                 # Fallback for any unexpected event types
                 logger.warning(f"Unexpected event type from LLM client: {type(event)}")
-                if hasattr(event, 'content'):
+                # Try to extract content if it's a known event type
+                if isinstance(event, StreamingEvent) and hasattr(event, 'content'):
                     yield ChunkEvent(content=str(event.content))
                 else:
                     yield ChunkEvent(content=str(event))
         
         yield FullResponseEvent(content=full_text)
+
+        # Count tokens for the conversation
+        model_id = self.session.cfg.selected_model_id
+        token_service = get_token_service()
+
+        # Count tokens in the input messages (prompt)
+        input_tokens = token_service.count_tokens(prompt, model_id)
+
+        # Estimate output tokens (rough approximation based on character count)
+        # This could be improved if the LLM provider returns actual output tokens
+        output_tokens = len(full_text) // 4  # Rough approximation
+
+        # Count total conversation tokens
+        conversation_tokens = token_service.count_tokens(self.session.history.get_history(), model_id)
+
+        yield TokenCountEvent(
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=input_tokens + output_tokens,
+            conversation_tokens=conversation_tokens
+        )
 
     async def _execute_tools(self, parsed_response: ParsedResponse) -> AsyncGenerator[AgentStreamingEvent, None]:
         """Executes tools and delegates result processing."""

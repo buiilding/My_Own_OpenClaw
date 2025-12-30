@@ -20,7 +20,7 @@ from backend.src.core.security.policy import Permission
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
 from backend.src.tools.categorization import ToolDomain
-from backend.src.services.persistent_shell_manager import get_shell_manager
+from backend.src.services.shell import get_shell_manager
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +71,7 @@ class ShellTool(Tool[RunShellCommandArgs]):
         self._shell_manager = get_shell_manager()
 
     @staticmethod
-    def get_current_working_directory(session_id: str, user_id: str) -> str:
+    async def get_current_working_directory(session_id: str, user_id: str) -> str:
         """
         Get the current working directory for a shell session.
         
@@ -85,7 +85,7 @@ class ShellTool(Tool[RunShellCommandArgs]):
         shell_manager = get_shell_manager()
         session = shell_manager.get_session(session_id, user_id)
         if session:
-            return session.working_dir
+            return await session.get_working_directory()
         return os.getcwd()
 
 
@@ -186,38 +186,37 @@ class ShellTool(Tool[RunShellCommandArgs]):
             if config and hasattr(config, "shell_timeout") and args.terminate_after_seconds is None:
                 shell_timeout = config.shell_timeout
 
-            # Execute command in persistent shell
+            # Execute command in persistent shell using new abstraction
             start_time = time.time()
             
-            # Run in executor because PTY operations are blocking
-            loop = asyncio.get_event_loop()
-            stdout, stderr, exit_code, timed_out = await loop.run_in_executor(
-                None,
-                self._shell_manager.execute_command,
-                session_id,
-                user_id,
-                command,
-                shell_timeout,
-                working_dir
-            )
+            # Get or create shell session
+            shell_session = self._shell_manager.get_session(session_id, user_id)
+            if not shell_session:
+                shell_session = self._shell_manager.create_session(session_id, user_id, working_dir)
+            
+            # Change directory if needed
+            if working_dir and working_dir != await shell_session.get_working_directory():
+                await shell_session.change_directory(working_dir)
+            
+            # Execute command
+            shell_result = await shell_session.execute(command, shell_timeout)
             
             execution_time = time.time() - start_time
 
             # Create result object
             result = ShellExecutionResult(
                 command=command,
-                output=stdout,
-                error=stderr if stderr else None,
-                exit_code=exit_code,
-                signal="TIMEOUT" if timed_out else None,
+                output=shell_result.output,
+                error=shell_result.error,
+                exit_code=shell_result.exit_code,
+                signal="TIMEOUT" if shell_result.timed_out else None,
                 background_pids=[],
                 execution_time=execution_time,
-                aborted=timed_out
+                aborted=shell_result.timed_out
             )
 
             # Get current working directory from shell state
-            shell_session = self._shell_manager.get_session(session_id, user_id)
-            final_working_dir = shell_session.working_dir if shell_session else (working_dir or os.getcwd())
+            final_working_dir = await shell_session.get_working_directory()
 
             # Format output for LLM
             llm_content = self._format_llm_output(command, final_working_dir, result)
@@ -226,7 +225,32 @@ class ShellTool(Tool[RunShellCommandArgs]):
             return_display = self._format_display_output(result)
 
             # Determine success
-            success = result.exit_code == 0 and not result.error and not result.aborted
+            # Success is defined as either exit_code 0 OR (exit_code None and no error)
+            # Some tools might return non-zero exit codes but still be "successful" in execution
+            # But for shell commands, non-zero usually means failure.
+            # However, the command WAS executed, so the tool ran successfully.
+            # We should distinguish between "tool execution success" and "command success".
+            # The ToolResult.success indicates if the tool ran without crashing.
+            # The command exit code indicates if the command succeeded.
+            
+            # NOTE: If we set success=False, the orchestrator might treat it as a tool failure.
+            # But here we want to return the output even if the command failed (e.g. grep not found).
+            # So we should probably set success=True unless the tool itself crashed.
+            
+            # BUT, the current implementation sets success based on exit_code.
+            # Let's relax this: if we have output or an exit code, the tool ran.
+            # Only return False if we have an internal error or timeout.
+            
+            # Legacy logic:
+            # success = result.exit_code == 0 and not result.error and not result.aborted
+            
+            # New logic: always True if we got a result, unless aborted or internal error
+            # The exit code is part of the result data.
+            success = not result.aborted and (result.exit_code is not None or result.output)
+            
+            # If we have an explicit error string (e.g. from pexpect exception), then it failed
+            if result.error and not result.output and result.exit_code is None:
+                success = False
 
             return {
                 "command": command,
@@ -541,11 +565,23 @@ class ShellTool(Tool[RunShellCommandArgs]):
             f"Command: {command}",
             f"Directory: {directory}",
             f"Output: {result.output or '(empty)'}",
-            f"Error: {result.error or '(none)'}",
-            f"Exit Code: {result.exit_code if result.exit_code is not None else '(none)'}",
-            f"Signal: {result.signal or '(none)'}",
-            f"Background PIDs: {', '.join(map(str, result.background_pids)) if result.background_pids else '(none)'}",
         ]
+
+        if result.error:
+            parts.append(f"Error: {result.error}")
+
+        # Only show exit code if it's relevant (non-zero)
+        # We hide 0 (success) to reduce noise
+        if result.exit_code is not None and result.exit_code != 0:
+            parts.append(f"Exit Code: {result.exit_code}")
+
+        if result.signal:
+            parts.append(f"Signal: {result.signal}")
+
+        if result.background_pids:
+            parts.append(
+                f"Background PIDs: {', '.join(map(str, result.background_pids))}"
+            )
 
         return "\n".join(parts)
 

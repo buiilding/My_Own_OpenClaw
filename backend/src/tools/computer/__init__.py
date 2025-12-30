@@ -17,6 +17,7 @@ from .keyboard_tool import KeyboardTool
 from .mouse_tool import MouseTool
 from .screenshot_tool import ScreenshotTool
 from .scroll_tool import ScrollTool
+from .switch_tab_tool import SwitchTabTool
 
 __all__ = [
     "ComputerInterface",
@@ -24,4 +25,5 @@ __all__ = [
     "MouseTool",
     "KeyboardTool",
     "ScrollTool",
+    "SwitchTabTool",
 ]

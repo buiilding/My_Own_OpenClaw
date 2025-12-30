@@ -36,11 +36,25 @@ async def websocket_endpoint(
         logger.info(f"Handshake successful for user {user_id}")
     except PydanticValidationError as e:
         logger.warning(f"Handshake validation failed: {e}")
-        await websocket.close(code=1008)
+        try:
+            await websocket.close(code=1008)
+        except AttributeError as close_error:
+            # Ignore AttributeError during WebSocket cleanup (websockets library internal issue)
+            if "transfer_data_task" not in str(close_error):
+                logger.warning(f"Error closing WebSocket after handshake validation failure: {close_error}")
+        except Exception as close_error:
+            logger.warning(f"Error closing WebSocket after handshake validation failure: {close_error}")
         return
     except Exception as e:
         logger.error(f"Handshake error: {e}")
-        await websocket.close(code=1008)
+        try:
+            await websocket.close(code=1008)
+        except AttributeError as close_error:
+            # Ignore AttributeError during WebSocket cleanup (websockets library internal issue)
+            if "transfer_data_task" not in str(close_error):
+                logger.warning(f"Error closing WebSocket after handshake error: {close_error}")
+        except Exception as close_error:
+            logger.warning(f"Error closing WebSocket after handshake error: {close_error}")
         return
 
     # Main Loop

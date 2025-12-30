@@ -26,7 +26,7 @@ class AnthropicProvider(LLMProvider):
     async def get_completion(
         self, model: str, messages: List[LLMMessage]
     ) -> NormalizedLLMResponse:
-        params = self._build_request_params(model, messages)
+        params = self._build_request_params(model, messages, tools)
         try:
             response = await litellm.acompletion(**params)
             if (

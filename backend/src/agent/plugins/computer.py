@@ -31,7 +31,7 @@ class ComputerUsePlugin(AgentPlugin):
 
     name = "computer_use"
 
-    def __init__(self, screenshot_delay: float = 1.0):
+    def __init__(self, screenshot_delay: float = 2.0):
         self.tool_registry: Optional[ToolRegistry] = None
         self.execution_engine: Optional[ToolExecutionEngine] = None
         self.screenshot_delay = screenshot_delay
@@ -85,9 +85,10 @@ class ComputerUsePlugin(AgentPlugin):
             tool_call = ParsedToolCall(
                 tool_name=SCREENSHOT_TOOL_NAME,
                 parameters={
-                    "explanation": f"Automatically capturing screenshot after {tool_name} execution to show the screen state."
+                    "explanation": f"Automatically capturing screenshot after {tool_name} execution to show the screen state.",
+                    "expectation": f"Screenshot showing the screen state after {tool_name} was executed."
                 },
-                raw_call=f"{SCREENSHOT_TOOL_NAME}(explanation=...)",
+                raw_call=f"{SCREENSHOT_TOOL_NAME}(explanation=..., expectation=...)",
                 confidence=1.0,
             )
             
@@ -102,7 +103,7 @@ class ComputerUsePlugin(AgentPlugin):
             if not screenshot_data:
                 logger.warning(
                     f"Failed to extract screenshot data after {tool_name}. "
-                    f"Result keys: {list(screenshot_result.keys()) if isinstance(screenshot_result, dict) else 'N/A'}"
+                    f"Result keys: {list(execution_result.keys()) if isinstance(execution_result, dict) else 'N/A'}"
                 )
                 return None
 

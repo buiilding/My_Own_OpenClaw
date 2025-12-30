@@ -76,7 +76,7 @@ RESTRICTIONS:
             file_path = args.file_path
             if not os.path.isabs(file_path):
                 # Resolve relative path to absolute using current working directory (from shell tool)
-                current_dir = ShellTool.get_current_working_directory(session_id, user_id)
+                current_dir = await ShellTool.get_current_working_directory(session_id, user_id)
                 file_path = os.path.abspath(os.path.join(current_dir, file_path))
                 logger.info(
                     f"WriteFile: Resolved relative path to absolute using current dir: {file_path}"

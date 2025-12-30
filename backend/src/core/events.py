@@ -103,12 +103,16 @@ class ErrorEvent(StreamingEvent):
 @dataclass
 class StreamingCompleteEvent(StreamingEvent):
     """Event emitted when streaming is complete."""
+    final_response: Optional[str] = None
     
     def __post_init__(self):
         self.type = StreamingEventType.STREAMING_COMPLETE
     
     def to_dict(self) -> Dict[str, Any]:
-        return {"type": self.type.value}
+        result = {"type": self.type.value}
+        if self.final_response is not None:
+            result["final_response"] = self.final_response
+        return result
 
 
 @dataclass
@@ -148,6 +152,15 @@ class SystemPromptEvent(StreamingEvent):
 
 
 @dataclass
+class ToolSchemasEvent(StreamingEvent):
+    """Event emitted with tool schemas passed to LLM as API parameter."""
+    tool_schemas: Dict[str, Any]
+
+    def __post_init__(self):
+        self.type = StreamingEventType.TOOL_SCHEMAS
+
+
+@dataclass
 class UserMessageFullEvent(StreamingEvent):
     """Event emitted with full user message including injected context."""
     content: str
@@ -173,6 +186,18 @@ class FullResponseEvent(StreamingEvent):
     
     def __post_init__(self):
         self.type = StreamingEventType.FULL_RESPONSE
+
+
+@dataclass
+class TokenCountEvent(StreamingEvent):
+    """Event containing token usage information."""
+    input_tokens: int
+    output_tokens: int
+    total_tokens: int
+    conversation_tokens: int
+
+    def __post_init__(self):
+        self.type = StreamingEventType.TOKEN_COUNT
 
 
 # Union type for all event types

@@ -133,7 +133,7 @@ class AppConfig(BaseModel):
 
     # Computer/Screenshot Settings
     screenshot_delay_after_action: float = (
-        1.0  # seconds to wait before screenshot after computer actions
+        2.0  # seconds to wait before screenshot after computer actions
     )
     
     # Voice Mode Settings

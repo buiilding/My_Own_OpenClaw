@@ -13,6 +13,7 @@ export function ChatProvider({ children }) {
   }]);
   const [isSending, setIsSending] = useState(false);
   const [thinkingStatus, setThinkingStatus] = useState(null);
+  const [tokenCounts, setTokenCounts] = useState(null);
   
   // Audio player for TTS
   const { enqueueAudio, stopPlayback } = useAudioPlayer();
@@ -50,6 +51,12 @@ export function ChatProvider({ children }) {
           break;
         case 'assistant-message-full':
           streamingHandlers.handleAssistantMessageFull(data);
+          break;
+        case 'token-count':
+          setTokenCounts(data.payload);
+          break;
+        case 'tool-schemas':
+          streamingHandlers.handleToolSchemas(data);
           break;
         case 'wakeword-activated':
            // Handle wakeword activation logging
@@ -97,6 +104,7 @@ export function ChatProvider({ children }) {
     messages,
     isSending,
     thinkingStatus,
+    tokenCounts,
     sendMessage,
     stopPlayback
   };

@@ -8,6 +8,7 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.core.security.policy import Permission
+from backend.src.core.types import KeyboardAction
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
 from backend.src.tools.categorization import ToolDomain
@@ -19,13 +20,17 @@ logger = logging.getLogger(__name__)
 class KeyboardControlArgs(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
-    action: Literal["type", "press", "hotkey"] = Field(..., description="Keyboard action to perform")
+    action: KeyboardAction = Field(..., description="Keyboard action to perform")
     text: Optional[str] = Field(None, description="Text to type (required for 'type' action)")
     key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
     keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
     explanation: str = Field(
         ...,
-        description="One concise sentence explaining why this tool is being used and what you expect to see in the screenshot after this keyboard action executes (e.g., 'Typing a URL and expecting to see the browser navigate to that page')."
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
+    expectation: str = Field(
+        ...,
+        description="One sentence describing what you expect to see in the screenshot after this keyboard action executes."
     )
 
 
@@ -72,9 +77,12 @@ class KeyboardTool(Tool[KeyboardControlArgs]):
             result = await self._execute_keyboard_action(args.action, args.text, args.key, args.keys)
 
             if result.success:
+                # Format input description for metadata
+                input_desc = args.text or args.key or str(args.keys)
+
                 return {
                     "action": args.action,
-                    "input": args.text or args.key or args.keys,
+                    "input": input_desc,
                     "llm_content": result.message,
                     "return_display": result.message,
                     "metadata": {
@@ -98,13 +106,14 @@ class KeyboardTool(Tool[KeyboardControlArgs]):
 
     async def _execute_keyboard_action(
         self,
-        action: str,
+        action: KeyboardAction,
         text: Optional[str],
         key: Optional[str],
         keys: Optional[List[str]],
     ):
         """Execute the specific keyboard action."""
-        if action == "type":
+        # Use enum-based dispatch for type safety
+        if action == KeyboardAction.TYPE:
             if not text:
                 return type(
                     "Result",
@@ -116,7 +125,7 @@ class KeyboardTool(Tool[KeyboardControlArgs]):
                     },
                 )()
             return await self.computer.type_text(text)
-        elif action == "press":
+        elif action == KeyboardAction.PRESS:
             if not key:
                 return type(
                     "Result",
@@ -128,7 +137,7 @@ class KeyboardTool(Tool[KeyboardControlArgs]):
                     },
                 )()
             return await self.computer.press_key(key)
-        elif action == "hotkey":
+        elif action == KeyboardAction.HOTKEY:
             if not keys or len(keys) == 0:
                 return type(
                     "Result",

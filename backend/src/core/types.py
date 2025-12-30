@@ -39,9 +39,11 @@ class StreamingEventType(str, Enum):
     TOOL_CALL = "tool_call"
     TOOL_OUTPUT = "tool_output"
     SYSTEM_PROMPT = "system_prompt"
+    TOOL_SCHEMAS = "tool_schemas"
     USER_MESSAGE_FULL = "user_message_full"
     ASSISTANT_MESSAGE_FULL = "assistant_message_full"
     FULL_RESPONSE = "full_response"
+    TOKEN_COUNT = "token_count"
     CONTENT = "content"  # Used internally by LLM client
 
 
@@ -49,6 +51,42 @@ class ContentType(str, Enum):
     """Types of content in multimodal messages."""
     TEXT = "text"
     IMAGE_URL = "image_url"
+
+
+class MouseAction(str, Enum):
+    """Mouse actions for computer control."""
+    CLICK = "click"
+    DOUBLE_CLICK = "double_click"
+    RIGHT_CLICK = "right_click"
+    MOVE = "move"
+    DRAG = "drag"
+    SCROLL = "scroll"
+
+
+class KeyboardAction(str, Enum):
+    """Keyboard actions for computer control."""
+    TYPE = "type"
+    PRESS = "press"
+    HOTKEY = "hotkey"
+
+
+class CoordinateFindingMethod(str, Enum):
+    """Methods for finding coordinates in mouse control."""
+    MANUAL = "manual"
+    OCR = "ocr"
+    PREDICTION = "prediction"
+
+
+class ScrollDirection(str, Enum):
+    """Scroll directions for mouse control."""
+    VERTICAL = "vertical"
+    HORIZONTAL = "horizontal"
+
+
+class MemoryType(str, Enum):
+    """Types of memory storage."""
+    EPISODIC = "episodic"
+    SEMANTIC = "semantic"
 
 
 # ============================================================================
