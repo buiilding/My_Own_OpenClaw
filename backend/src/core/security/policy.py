@@ -56,20 +56,27 @@ class SecurityPolicy:
     Defines security policy for tool execution.
     """
     
-    def __init__(self):
-        """Initialize security policy with defaults."""
+    def __init__(self, tool_registry: Optional[Any] = None):
+        """
+        Initialize security policy with defaults.
+        
+        Args:
+            tool_registry: Optional ToolRegistry instance for looking up tool metadata
+        """
         self.resource_limits = ResourceLimits()
         self.required_permissions: Dict[str, Set[Permission]] = {}
         self.blocked_tools: Set[str] = set()
         self.blocked_paths: List[str] = []
         self.audit_log: List[ToolExecutionAudit] = []
         self.max_audit_log_size = 1000
+        self.tool_registry = tool_registry
     
     def check_permission(
         self,
         tool_name: str,
         permission: Permission,
-        parameters: Dict[str, Any]
+        parameters: Dict[str, Any],
+        tool_instance: Optional[Any] = None
     ) -> bool:
         """
         Check if a tool has the required permission.
@@ -78,6 +85,7 @@ class SecurityPolicy:
             tool_name: Name of the tool
             permission: Permission to check
             parameters: Tool parameters (for context-aware checks)
+            tool_instance: Optional tool instance (if not provided, will look up from registry)
             
         Returns:
             True if permission is granted, False otherwise
@@ -87,21 +95,27 @@ class SecurityPolicy:
             logger.warning(f"Tool {tool_name} is blocked by security policy")
             return False
         
-        # Check required permissions for this tool
-        required = self.required_permissions.get(tool_name, set())
+        # Get tool instance if not provided
+        tool = tool_instance
+        if tool is None and self.tool_registry:
+            tool = self.tool_registry.get_tool(tool_name)
         
-        # Built-in tools have implicit permissions
-        builtin_permissions = {
-            "write_file": {Permission.WRITE_FILESYSTEM},
-            "read_file": {Permission.READ_FILESYSTEM},
-            "list_directory": {Permission.READ_FILESYSTEM},
-            "run_shell_command": {Permission.EXECUTE_COMMANDS},
-            "click_ocr": {Permission.COMPUTER_CONTROL},
-            "keyboard": {Permission.COMPUTER_CONTROL},
-        }
+        # Get required permissions from tool metadata (single source of truth)
+        required = set()
+        if tool and hasattr(tool, 'required_permissions'):
+            required = tool.required_permissions
         
-        if tool_name in builtin_permissions:
-            required = builtin_permissions[tool_name]
+        # Fallback to explicit permissions dict (for tools not in registry)
+        if not required:
+            required = self.required_permissions.get(tool_name, set())
+        
+        # If still no permissions found, log warning and allow (tools should declare permissions)
+        if not required:
+            logger.warning(
+                f"Tool '{tool_name}' does not declare required_permissions. "
+                "All tools should explicitly declare their permissions. "
+                "Defaulting to no permissions required (allow)."
+            )
         
         # Check if permission is in required set
         if permission not in required:
@@ -211,33 +225,31 @@ class SecurityPolicy:
         return entries[:limit]
 
 
-# Global security policy instance
-_security_policy = SecurityPolicy()
-
-
-def get_security_policy() -> SecurityPolicy:
-    """Get the global security policy instance."""
-    return _security_policy
-
-
 def check_tool_execution_permission(
     tool_name: str,
     permission: Permission,
-    parameters: Dict[str, Any]
+    parameters: Dict[str, Any],
+    security_policy: Optional[SecurityPolicy] = None
 ) -> bool:
     """
     Check if tool execution is permitted.
+    
+    DEPRECATED: Use SecurityPolicy.check_permission() directly instead.
+    This function is kept for backward compatibility.
     
     Args:
         tool_name: Name of the tool
         permission: Required permission
         parameters: Tool parameters
+        security_policy: Optional SecurityPolicy instance (creates default if not provided)
         
     Returns:
         True if permitted, False otherwise
     """
-    policy = get_security_policy()
-    return policy.check_permission(tool_name, permission, parameters)
+    if security_policy is None:
+        # Create default policy (not ideal, but maintains backward compatibility)
+        security_policy = SecurityPolicy()
+    return security_policy.check_permission(tool_name, permission, parameters)
 
 
 def audit_tool_execution(
@@ -247,10 +259,14 @@ def audit_tool_execution(
     parameters: Dict[str, Any],
     success: bool,
     execution_time: float,
-    error: Optional[str] = None
+    error: Optional[str] = None,
+    security_policy: Optional[SecurityPolicy] = None
 ) -> None:
     """
     Log tool execution for audit purposes.
+    
+    DEPRECATED: Use SecurityPolicy.log_execution() directly instead.
+    This function is kept for backward compatibility.
     
     Args:
         tool_name: Name of the tool
@@ -260,6 +276,7 @@ def audit_tool_execution(
         success: Whether execution succeeded
         execution_time: Execution time in seconds
         error: Error message if failed
+        security_policy: Optional SecurityPolicy instance (creates default if not provided)
     """
     audit = ToolExecutionAudit(
         tool_name=tool_name,
@@ -271,6 +288,8 @@ def audit_tool_execution(
         error=error
     )
     
-    policy = get_security_policy()
-    policy.log_execution(audit)
+    if security_policy is None:
+        # Create default policy (not ideal, but maintains backward compatibility)
+        security_policy = SecurityPolicy()
+    security_policy.log_execution(audit)
 

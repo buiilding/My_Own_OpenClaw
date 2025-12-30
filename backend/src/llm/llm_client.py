@@ -7,12 +7,14 @@ different Large Language Models (LLMs) through the LiteLLM library.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, List
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from backend.src.core.config import AppConfig
+from backend.src.core.events import StreamingEvent
 from backend.src.core.exceptions import LLMAPIError, LLMRateLimitError
-from backend.src.core.types import LLMMessage, StreamingChunk
+from backend.src.core.types import LLMMessage
 from backend.src.llm.providers import get_provider
+from backend.src.services.token_service import get_token_service
 
 logger = logging.getLogger(__name__)
 
@@ -38,9 +40,9 @@ class LLMClient(ABC):
     @abstractmethod
     async def get_completion_stream(
         self, model: str, messages: List[LLMMessage]
-    ) -> AsyncGenerator[StreamingChunk, None]:
+    ) -> AsyncGenerator[StreamingEvent, None]:
         """
-        Gets a streaming completion from the LLM.
+        Gets a streaming completion from the LLM, yielding StreamingEvent objects.
         """
         yield
 
@@ -62,11 +64,11 @@ class LiteLLMClient(LLMClient):
 
     async def get_completion_stream(
         self, model: str, messages: List[LLMMessage]
-    ) -> AsyncGenerator[StreamingChunk, None]:
+    ) -> AsyncGenerator[StreamingEvent, None]:
         """Delegates getting a streaming completion to the appropriate provider."""
         provider = get_provider(self.config, self.config.model_provider)
-        async for chunk in provider.get_completion_stream(model, messages):
-            yield chunk
+        async for event in provider.get_completion_stream(model, messages):
+            yield event
 
 
 def get_llm_client(cfg: AppConfig) -> LLMClient:

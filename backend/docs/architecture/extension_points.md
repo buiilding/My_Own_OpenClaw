@@ -446,14 +446,23 @@ class MyCustomEvent(Event):
 ### Event Handlers
 
 ```python
-from backend.src.core.bus import message_bus
+# ✅ CORRECT: Inject EventBus via constructor
+from backend.src.core.bus import EventBus
+from backend.src.core.events import Event
 
-@message_bus.subscribe(MyCustomEvent)
-async def handle_my_event(event: MyCustomEvent):
-    """Handle custom events."""
-    print(f"Received custom event: {event.custom_data}")
-    # Process the event
+class MyExtension:
+    def __init__(self, event_bus: EventBus):
+        self.event_bus = event_bus
+        # Subscribe to events
+        self.event_bus.subscribe(MyCustomEvent, self.handle_my_event)
+    
+    async def handle_my_event(self, event: MyCustomEvent):
+        """Handle custom events."""
+        print(f"Received custom event: {event.custom_data}")
+        # Process the event
 ```
+
+**Note:** EventBus is now injected via dependency injection. Access it through the container or inject it via constructor. The global `message_bus` singleton has been removed.
 
 ## Best Practices
 

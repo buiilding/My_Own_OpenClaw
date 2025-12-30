@@ -5,11 +5,12 @@ Manages TTS (Text-to-Speech) lifecycle during query processing.
 """
 import asyncio
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from fastapi import WebSocket
 
 from backend.src.core.config import AppConfig
+from backend.src.core.events import StreamingEvent, ChunkEvent
 from backend.src.core.services.tts_service import TTSService
 
 logger = logging.getLogger(__name__)
@@ -53,17 +54,24 @@ class TTSManager:
         return asyncio.create_task(self._stream_audio(tts_service, websocket, msg_id))
 
     async def process_event(
-        self, tts_service: TTSService, event: Dict[str, Any]
+        self, tts_service: Optional[TTSService], event: Union[StreamingEvent, Dict[str, Any]]
     ) -> None:
         """
         Process an event for TTS (extract text chunks).
 
         Args:
-            tts_service: TTS service instance
-            event: Event dictionary with 'type' and 'content' fields
+            tts_service: TTS service instance (may be None)
+            event: Event object (typed StreamingEvent or dict for backward compatibility)
         """
-        if tts_service and event.get("type") == "chunk":
-            await tts_service.process_text(event["content"])
+        if not tts_service:
+            return
+            
+        # Use isinstance check for type safety
+        if isinstance(event, ChunkEvent):
+            await tts_service.process_text(event.content)
+        elif isinstance(event, dict) and event.get("type") == "chunk":
+            # Backward compatibility with dict events
+            await tts_service.process_text(event.get("content", ""))
 
     async def cleanup(
         self, tts_service: Optional[TTSService], audio_task: Optional[asyncio.Task]

@@ -552,11 +552,17 @@ class MessageBus:
 ### Event Subscription
 
 ```python
-from backend.src.core.bus import message_bus
+# ✅ CORRECT: Inject EventBus via constructor
+from backend.src.core.bus import EventBus
 
-@message_bus.subscribe(MyCustomEvent)
-async def handle_event(event: MyCustomEvent):
-    """Handle custom event."""
+class MyExtension:
+    def __init__(self, event_bus: EventBus):
+        self.event_bus = event_bus
+        # Subscribe to events
+        self.event_bus.subscribe(MyCustomEvent, self.handle_event)
+    
+    async def handle_event(self, event: MyCustomEvent):
+        """Handle custom event."""
     pass
 ```
 

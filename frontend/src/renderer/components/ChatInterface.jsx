@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import MessageList from './chat/MessageList';
 import MessageInput from './chat/MessageInput';
+import TokenCountDisplay from './TokenCountDisplay';
 import { useChatContext } from '../context/ChatContext';
 import { useAppContext } from '../context/AppContext';
 import { useWakewordDetection } from '../hooks/useWakewordDetection';
@@ -12,7 +13,7 @@ import '../styles/ChatInterface.css';
  * Orchestrates the chat interaction using context and smaller sub-components.
  */
 function ChatInterface() {
-  const { messages, isSending, thinkingStatus, sendMessage } = useChatContext();
+  const { messages, isSending, thinkingStatus, tokenCounts, sendMessage } = useChatContext();
   const { config, wakewordEnabled, updateConfig } = useAppContext();
 
   const voiceModeEnabled = config?.voice_mode_enabled || false;
@@ -39,6 +40,7 @@ function ChatInterface() {
         isSending={isSending} 
         voiceModeEnabled={voiceModeEnabled} 
       />
+      <TokenCountDisplay tokenCounts={tokenCounts} />
     </div>
   );
 }

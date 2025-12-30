@@ -16,11 +16,11 @@ if TYPE_CHECKING:
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.core.services.context_factory import ContextFactory
 from backend.src.llm.parser import ParsedResponse, ParsedToolCall
-from backend.src.tools.execution.aggregator import ResultAggregator
 from backend.src.tools.execution.batch_executor import BatchExecutor
 from backend.src.tools.execution.engine import ToolExecutionEngine
 from backend.src.tools.execution.progress_tracker import ProgressTracker
 from backend.src.tools.execution.strategies import create_execution_chain
+from backend.src.tools.execution.summary import create_execution_summary
 from backend.src.tools.execution.types import OrchestrationResult, ToolExecutionResult
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.validation.validator import ToolValidator
@@ -40,6 +40,7 @@ class ToolOrchestrator:
         self,
         tool_registry: ToolRegistry,
         config: Any,
+        security_policy: Optional[Any] = None,
         context_factory: Optional[ContextFactory] = None,
     ):
         """
@@ -48,8 +49,11 @@ class ToolOrchestrator:
         Args:
             tool_registry: Registry of available tools
             config: Application configuration
+            security_policy: SecurityPolicy instance (creates default if not provided)
             context_factory: Optional ContextFactory instance (uses registry's factory if not provided)
         """
+        from backend.src.core.security import SecurityPolicy
+        
         self.tool_registry = tool_registry
         self.config = config
         self._execution_lock = asyncio.Lock()
@@ -60,11 +64,13 @@ class ToolOrchestrator:
         else:
             self.context_factory = context_factory
 
-        # Initialize execution strategy chain (Phase 2)
-        from backend.src.core.security import get_security_policy
+        # SecurityPolicy is required - create default if not provided
+        if security_policy is None:
+            security_policy = SecurityPolicy(tool_registry=tool_registry)
 
+        # Initialize execution strategy chain
         execution_strategy = create_execution_chain(
-            tool_registry=tool_registry, security_policy=get_security_policy()
+            tool_registry=tool_registry, security_policy=security_policy
         )
 
         # Initialize execution engine
@@ -73,9 +79,6 @@ class ToolOrchestrator:
             context_factory=self.context_factory,
             execution_strategy=execution_strategy,
         )
-
-        # Initialize result aggregator
-        self.result_aggregator = ResultAggregator()
 
         # Initialize progress tracker and batch executor
         self.progress_tracker = ProgressTracker(self, config)
@@ -101,7 +104,12 @@ class ToolOrchestrator:
             OrchestrationResult with execution results
         """
         if not parsed_response.has_tool_calls:
-            return self.result_aggregator.aggregate_empty()
+            return OrchestrationResult(
+                tool_results=[],
+                total_execution_time=0.0,
+                all_successful=True,
+                summary="No tool calls to execute",
+            )
 
         start_time = time.time()
 
@@ -149,8 +157,16 @@ class ToolOrchestrator:
 
             total_time = time.time() - start_time
 
-            # Aggregate results
-            return self.result_aggregator.aggregate(results, total_time)
+            # Aggregate results (inlined from ResultAggregator)
+            all_successful = all(result.success for result in results)
+            summary = create_execution_summary(results, total_time)
+
+            return OrchestrationResult(
+                tool_results=results,
+                total_execution_time=total_time,
+                all_successful=all_successful,
+                summary=summary,
+            )
 
     async def execute_single_tool(
         self, tool_name: str, parameters: Dict[str, Any]

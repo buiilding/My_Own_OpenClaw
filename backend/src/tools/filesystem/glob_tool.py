@@ -12,8 +12,10 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.src.core.utils.path_utils import make_relative_path
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.filesystem.data_structures import GlobEntry
 from backend.src.tools.system.shell_tool import ShellTool
 
@@ -38,13 +40,32 @@ class GlobArgs(BaseModel):
         None,
         description="File filtering options (respect_git_ignore, respect_gemini_ignore)",
     )
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class GlobTool(Tool[GlobArgs]):
     """Tool for finding files matching glob patterns."""
 
     name = "glob"
-    description = "Efficiently finds files matching specific glob patterns (e.g., `src/**/*.ts`, `**/*.md`), returning absolute paths sorted by modification time (newest first). Ideal for quickly locating files based on their name or path structure, especially in large codebases."
+    required_permissions = {Permission.READ_FILESYSTEM}
+    category = ToolDomain.FILESYSTEM
+    description = """Use this tool to DISCOVER FILES by name patterns or path structure (fuzzy/filename search).
+
+WHEN TO USE:
+- Finding files by extension (e.g., '*.py', '*.ts')
+- Discovering files in specific directories (e.g., 'src/**/*.ts')
+- Locating files when you know part of the name or path pattern
+- Exploring directory structure
+
+WHEN NOT TO USE:
+- Do NOT use this to search file CONTENTS (use 'search_file_content' for that)
+- Do NOT use this to understand code behavior (read files instead)
+- Do NOT use this for semantic/conceptual search (read and analyze files)
+
+This tool matches file names and paths, not file contents. After finding files, use read_file to examine their contents."""
     args_model = GlobArgs
 
     async def run(self, args: GlobArgs, ctx: ToolContext) -> dict:
@@ -75,16 +96,18 @@ class GlobTool(Tool[GlobArgs]):
                 target_dir = ctx.workspace_root
 
             # Determine search directory
+            session_id = ctx.session.session_id
+            user_id = ctx.user.user_id
             if args.path:
                 if not os.path.isabs(args.path):
                     # Use current working directory from shell tool
-                    current_dir = ShellTool.get_current_working_directory()
+                    current_dir = await ShellTool.get_current_working_directory(session_id, user_id)
                     search_dir = os.path.join(current_dir, args.path)
                 else:
                     search_dir = args.path
             else:
                 # Use current working directory from shell tool
-                search_dir = ShellTool.get_current_working_directory()
+                search_dir = await ShellTool.get_current_working_directory(session_id, user_id)
 
             if not os.path.exists(search_dir):
                 return {

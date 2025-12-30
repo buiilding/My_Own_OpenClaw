@@ -1,0 +1,154 @@
+# Tool Call Examples for All Available Tools
+
+## keyboard_control
+
+### Type Action
+{"functionCall": {"name": "keyboard_control", "args": {"action": "type", "text": "Hello World", "explanation": "Typing text into a text field and expecting to see the text appear"}}}
+
+### Press Action
+{"functionCall": {"name": "keyboard_control", "args": {"action": "press", "key": "enter", "explanation": "Pressing enter key and expecting to submit a form"}}}
+
+### Hotkey Action
+{"functionCall": {"name": "keyboard_control", "args": {"action": "hotkey", "keys": ["ctrl", "c"], "explanation": "Using Ctrl+C hotkey and expecting to copy selected text"}}}
+
+## mouse_control
+
+### Manual Coordinates - Click
+{"functionCall": {"name": "mouse_control", "args": {"action": "click", "find_coordinates_by": "manual", "x": 100, "y": 200, "explanation": "Clicking at manual coordinates and expecting to see a button press effect"}}}
+
+### OCR Text - Click
+{"functionCall": {"name": "mouse_control", "args": {"action": "click", "find_coordinates_by": "ocr", "ocr_text": "Submit", "explanation": "Clicking on text found by OCR and expecting to submit a form"}}}
+
+### Prediction - Click
+{"functionCall": {"name": "mouse_control", "args": {"action": "click", "find_coordinates_by": "prediction", "description": "a blue save button with a floppy disk icon", "explanation": "Clicking on predicted save button and expecting to save the document"}}}
+
+### Double Click - Manual
+{"functionCall": {"name": "mouse_control", "args": {"action": "double_click", "find_coordinates_by": "manual", "x": 150, "y": 250, "explanation": "Double-clicking at coordinates and expecting to open a file"}}}
+
+### Right Click - OCR
+{"functionCall": {"name": "mouse_control", "args": {"action": "right_click", "find_coordinates_by": "ocr", "ocr_text": "file.txt", "explanation": "Right-clicking on file and expecting to see context menu"}}}
+
+### Move - Prediction
+{"functionCall": {"name": "mouse_control", "args": {"action": "move", "find_coordinates_by": "prediction", "description": "red close button in top-right corner", "explanation": "Moving mouse to close button and expecting cursor to change"}}}
+
+### Drag - Manual
+{"functionCall": {"name": "mouse_control", "args": {"action": "drag", "find_coordinates_by": "manual", "x": 100, "y": 100, "duration": 1.0, "explanation": "Dragging from coordinates and expecting to move an element"}}}
+
+### Scroll - Manual
+{"functionCall": {"name": "mouse_control", "args": {"action": "scroll", "find_coordinates_by": "manual", "x": 200, "y": 300, "scroll_amount": 5, "scroll_direction": "vertical", "explanation": "Scrolling vertically and expecting to see more content"}}}
+
+## scroll_control
+
+### Basic Scroll
+{"functionCall": {"name": "scroll_control", "args": {"action": "scroll", "direction": "down", "explanation": "Scrolling down and expecting to see more content"}}}
+
+### Scroll with Coordinates
+{"functionCall": {"name": "scroll_control", "args": {"action": "scroll", "x": 100, "y": 200, "direction": "up", "clicks": 5, "explanation": "Scrolling up at specific coordinates with multiple clicks"}}}
+
+### Scroll Down Action
+{"functionCall": {"name": "scroll_control", "args": {"action": "scroll_down", "clicks": 10, "explanation": "Scrolling down multiple clicks and expecting to reach bottom of page"}}}
+
+### Scroll Up Action
+{"functionCall": {"name": "scroll_control", "args": {"action": "scroll_up", "x": 50, "y": 100, "explanation": "Scrolling up at coordinates and expecting to see previous content"}}}
+
+## screenshot
+
+### Basic Screenshot
+{"functionCall": {"name": "screenshot", "args": {"explanation": "Capturing current screen state to verify application layout"}}}
+
+## write_file
+
+### Create New File
+{"functionCall": {"name": "write_file", "args": {"file_path": "/path/to/new/file.txt", "content": "Hello World", "explanation": "Creating a new file with content"}}}
+
+## replace
+
+### Single Replacement
+{"functionCall": {"name": "replace", "args": {"file_path": "/path/to/file.txt", "old_string": "old text", "new_string": "new text", "explanation": "Replacing single occurrence of text in file"}}}
+
+### Replace All
+{"functionCall": {"name": "replace", "args": {"file_path": "/path/to/file.txt", "old_string": "old text", "new_string": "new text", "replace_all": true, "explanation": "Replacing all occurrences of text in file"}}}
+
+## search_file_content
+
+### Basic Search
+{"functionCall": {"name": "search_file_content", "args": {"pattern": "function", "explanation": "Searching for function definitions in codebase"}}}
+
+### Search with Path
+{"functionCall": {"name": "search_file_content", "args": {"pattern": "class", "path": "/src", "explanation": "Searching for class definitions in src directory"}}}
+
+### Search with File Filter
+{"functionCall": {"name": "search_file_content", "args": {"pattern": "import", "include": "*.py", "explanation": "Searching for import statements in Python files"}}}
+
+## read_many_files
+
+### Basic Multi-File Read
+{"functionCall": {"name": "read_many_files", "args": {"paths": ["/file1.txt", "/file2.txt"], "explanation": "Reading multiple files to understand project structure"}}}
+
+### With Includes
+{"functionCall": {"name": "read_many_files", "args": {"paths": ["/src"], "include": ["*.py"], "explanation": "Reading all Python files in src directory"}}}
+
+### With Excludes
+{"functionCall": {"name": "read_many_files", "args": {"paths": ["/project"], "exclude": ["*.pyc"], "explanation": "Reading project files excluding compiled Python files"}}}
+
+## list_directory
+
+### Basic Directory List
+{"functionCall": {"name": "list_directory", "args": {"path": "/home/user", "explanation": "Listing contents of user home directory"}}}
+
+### With Ignores
+{"functionCall": {"name": "list_directory", "args": {"path": "/project", "ignore": ["*.pyc", "__pycache__"], "explanation": "Listing project directory excluding Python cache files"}}}
+
+## glob
+
+### Basic Glob Search
+{"functionCall": {"name": "glob", "args": {"pattern": "*.py", "explanation": "Finding all Python files in current directory"}}}
+
+### Glob with Path
+{"functionCall": {"name": "glob", "args": {"pattern": "**/*.js", "path": "/frontend", "explanation": "Finding all JavaScript files in frontend directory recursively"}}}
+
+### Case Sensitive Glob
+{"functionCall": {"name": "glob", "args": {"pattern": "*.TXT", "case_sensitive": true, "explanation": "Finding uppercase .TXT files"}}}
+
+## read_file
+
+### Basic File Read
+{"functionCall": {"name": "read_file", "args": {"file_path": "/path/to/file.txt", "explanation": "Reading entire file content"}}}
+
+### Read with Offset
+{"functionCall": {"name": "read_file", "args": {"file_path": "/path/to/file.txt", "offset": 10, "explanation": "Reading file from line 10 onwards"}}}
+
+### Read with Limit
+{"functionCall": {"name": "read_file", "args": {"file_path": "/path/to/file.txt", "limit": 50, "explanation": "Reading first 50 lines of file"}}}
+
+### Read with Offset and Limit
+{"functionCall": {"name": "read_file", "args": {"file_path": "/path/to/file.txt", "offset": 20, "limit": 30, "explanation": "Reading lines 20-50 of file"}}}
+
+## run_shell_command
+
+### Basic Command
+{"functionCall": {"name": "run_shell_command", "args": {"command": "ls -la", "explanation": "Listing directory contents with details"}}}
+
+### Command with Directory
+{"functionCall": {"name": "run_shell_command", "args": {"command": "python script.py", "directory": "/home/user/project", "explanation": "Running Python script in specific directory"}}}
+
+## search_marketplace
+
+### Basic Marketplace Search
+{"functionCall": {"name": "search_marketplace", "args": {"query": "file compression", "explanation": "Searching for file compression tools in marketplace"}}}
+
+### Marketplace Search with Limit
+{"functionCall": {"name": "search_marketplace", "args": {"query": "image processing", "limit": 10, "explanation": "Searching for image processing tools with custom limit"}}}
+
+## get_open_windows
+
+### Basic Window List
+{"functionCall": {"name": "get_open_windows", "args": {"explanation": "Listing all currently open windows"}}}
+
+### Filtered Window List
+{"functionCall": {"name": "get_open_windows", "args": {"filter_text": "browser", "explanation": "Listing windows containing 'browser' in title"}}}
+
+## get_system_stats
+
+### Basic System Stats
+{"functionCall": {"name": "get_system_stats", "args": {"explanation": "Checking current system resource usage"}}}

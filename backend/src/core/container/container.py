@@ -214,6 +214,7 @@ class Container:
                 plugin_registry=self._plugin_registry,
                 llm_client_factory=lambda: self._di_container.llm_client(),
                 tool_orchestrator_factory=lambda: self._di_container.tool_orchestrator(),
+                event_bus=self._di_container.core.event_bus(),
             )
 
         return self._session_factory.create_session(

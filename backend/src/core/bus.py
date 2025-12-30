@@ -188,7 +188,3 @@ class EventBus:
     def get_subscriber_count(self, event_type: Type[Event]) -> int:
         """Get the number of subscribers for an event type."""
         return len(self._subscribers.get(event_type, []))
-
-
-# Global singleton instance
-message_bus = EventBus()

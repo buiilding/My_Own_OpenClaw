@@ -4,6 +4,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 import litellm
 from litellm import exceptions as litellm_exceptions
 
+from backend.src.core.events import ChunkEvent, ErrorEvent, StreamingEvent, ThinkingEvent
 from backend.src.core.exceptions import (
     LLMAPIError,
     LLMError,
@@ -12,7 +13,6 @@ from backend.src.core.exceptions import (
 from backend.src.core.types import (
     LLMMessage,
     NormalizedLLMResponse,
-    StreamingChunk,
 )
 from backend.src.llm.models_config import ONLINE_THINKING_MODELS
 from backend.src.llm.providers.base import LLMProvider
@@ -26,7 +26,7 @@ class AnthropicProvider(LLMProvider):
     async def get_completion(
         self, model: str, messages: List[LLMMessage]
     ) -> NormalizedLLMResponse:
-        params = self._build_request_params(model, messages)
+        params = self._build_request_params(model, messages, tools)
         try:
             response = await litellm.acompletion(**params)
             if (
@@ -46,7 +46,7 @@ class AnthropicProvider(LLMProvider):
 
     async def get_completion_stream(
         self, model: str, messages: List[LLMMessage]
-    ) -> AsyncGenerator[StreamingChunk, None]:
+    ) -> AsyncGenerator[StreamingEvent, None]:
         params = self._build_request_params(model, messages)
         params["stream"] = True
         try:
@@ -57,13 +57,13 @@ class AnthropicProvider(LLMProvider):
                 delta = chunk.choices[0].delta
                 thinking_content = self._extract_thinking_content(delta)
                 if thinking_content:
-                    yield {"type": "thinking", "content": thinking_content}
+                    yield ThinkingEvent(content=thinking_content)
                 content = getattr(delta, "content", None)
                 if content:
-                    yield {"type": "content", "content": content}
+                    yield ChunkEvent(content=content)
         except Exception as e:
             logger.error(f"Error streaming from Anthropic: {e}")
-            yield {"type": "error", "content": str(e)}
+            yield ErrorEvent(content=str(e))
 
     async def list_models(self) -> List[Dict[str, str]]:
         """Lists available Anthropic models."""

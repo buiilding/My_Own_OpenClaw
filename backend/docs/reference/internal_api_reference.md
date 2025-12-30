@@ -588,24 +588,34 @@ class Event:
 
 ### Event Bus
 
-The event bus provides publish-subscribe functionality.
+The event bus provides publish-subscribe functionality. **EventBus is now injected via dependency injection** instead of using a global singleton.
 
 ```python
-from backend.src.core.bus import message_bus
+# ✅ CORRECT: Inject EventBus via constructor
+from backend.src.core.bus import EventBus
+from backend.src.core.events import InteractionCompleted
 
-# Publish an event
-await message_bus.publish(InteractionStarted(
-    user_id="user123",
-    session_id="sess_abc123",
-    query="Hello"
-))
-
-# Subscribe to events
-async def handle_interaction(event: InteractionStarted):
-    print(f"Interaction started: {event.data['query']}")
-
-message_bus.subscribe("interaction_started", handle_interaction)
+class MyService:
+    def __init__(self, event_bus: EventBus):
+        self.event_bus = event_bus
+        # Subscribe to events
+        self.event_bus.subscribe(InteractionCompleted, self._on_interaction_completed)
+    
+    async def _on_interaction_completed(self, event: InteractionCompleted):
+        print(f"Interaction completed: {event.user_message}")
+    
+    async def publish_event(self):
+        # Publish an event
+        event = InteractionCompleted(
+            session_id="sess_abc123",
+            user_id="user123",
+            user_message="Hello",
+            assistant_response="Hi there!"
+        )
+        await self.event_bus.publish(event)
 ```
+
+**Note:** The global `message_bus` singleton has been removed. Always inject `EventBus` via constructor for proper dependency management and testability.
 
 ## Dependency Injection
 

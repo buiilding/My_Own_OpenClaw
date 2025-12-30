@@ -3,13 +3,14 @@ Response Parser for the Desktop Assistant.
 
 This module parses LLM responses to detect and extract tool calls,
 converting them into a structured format for execution.
+
+Uses robust bracket-matching JSON extraction instead of brittle regex patterns.
 """
 
 import json
 import logging
-import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -34,25 +35,68 @@ class ParsedResponse:
     has_tool_calls: bool = False
 
 
+@dataclass
+class ToolCallSchema:
+    """
+    Configuration for tool call JSON format.
+    
+    Allows parser to support different JSON schemas while defaulting to
+    the custom format: {"functionCall": {"name": "...", "args": {...}}}
+    """
+    root_key: str = "functionCall"
+    name_key: str = "name"
+    args_key: str = "args"
+    
+    def extract_tool_call(self, parsed_json: Dict[str, Any]) -> Optional[Tuple[str, Dict[str, Any]]]:
+        """
+        Extract tool name and args from parsed JSON using configured keys.
+        
+        Args:
+            parsed_json: Parsed JSON dictionary
+            
+        Returns:
+            Tuple of (tool_name, args_dict) or None if not a valid tool call
+        """
+        if not isinstance(parsed_json, dict):
+            return None
+        
+        # Check for root key (e.g., "functionCall")
+        if self.root_key not in parsed_json:
+            return None
+        
+        function_call = parsed_json[self.root_key]
+        if not isinstance(function_call, dict):
+            return None
+        
+        # Extract name and args using configured keys
+        tool_name = function_call.get(self.name_key)
+        args = function_call.get(self.args_key, {})
+        
+        if tool_name and isinstance(args, dict):
+            return (tool_name, args)
+        
+        return None
+
+
 class ResponseParser:
     """
     Parses structured responses from LLM outputs.
 
-    Extracts tool calls using Gemini CLI structured format with JSON fallback.
+    Extracts tool calls using robust JSON parsing with bracket-matching
+    for embedded JSON cases. No regex patterns - handles nested structures correctly.
+    
+    Supports configurable JSON schema via ToolCallSchema, defaulting to
+    the custom format: {"functionCall": {"name": "...", "args": {...}}}
     """
 
-    def __init__(self):
-        """Initialize the response parser."""
-        self._init_patterns()
-
-    def _init_patterns(self):
-        """Initialize regex patterns for tool call detection."""
-
-        # Primary: Structured function call format (Gemini CLI style)
-        self.structured_function_call_pattern = re.compile(
-            r'"functionCall"\s*:\s*{\s*"name"\s*:\s*"([^"]+)"(?:\s*,\s*"args"\s*:\s*({[^}]*}))?}',
-            re.MULTILINE | re.DOTALL,
-        )
+    def __init__(self, schema: Optional[ToolCallSchema] = None):
+        """
+        Initialize the response parser.
+        
+        Args:
+            schema: Optional ToolCallSchema configuration (defaults to custom format)
+        """
+        self.schema = schema or ToolCallSchema()
 
     def parse_response(self, response: str) -> ParsedResponse:
         """
@@ -72,7 +116,7 @@ class ResponseParser:
             # Support both pure JSON and embedded JSON formats
             parsing_strategies = [
                 self._parse_json_response,  # Try pure JSON first (modern, reliable)
-                self._parse_structured_function_calls,  # Fallback to embedded JSON (legacy)
+                self._parse_embedded_json,  # Fallback to embedded JSON with bracket matching
             ]
 
             for strategy in parsing_strategies:
@@ -95,8 +139,8 @@ class ResponseParser:
                 logger.debug("No tool calls found in response (conversational response)")
                 logger.debug(f"Response content: {repr(response)}")
 
-            # Clean up text content by removing tool call syntax
-            text_content = self._clean_text_content(text_content, tool_calls)
+            # Remove extracted tool calls from text content
+            text_content = self._remove_extracted_calls(text_content, tool_calls)
 
             return ParsedResponse(
                 original_response=response,
@@ -124,23 +168,18 @@ class ResponseParser:
             # Try to parse the entire response as JSON
             parsed_json = json.loads(response.strip())
 
-            # Check if it has the expected functionCall structure
-            if isinstance(parsed_json, dict) and "functionCall" in parsed_json:
-                function_call = parsed_json["functionCall"]
-
-                if isinstance(function_call, dict) and "name" in function_call and "args" in function_call:
-                    tool_name = function_call["name"]
-                    args = function_call["args"]
-
-                    if isinstance(args, dict):
-                        tool_call = ParsedToolCall(
-                            tool_name=tool_name,
-                            parameters=args,
-                            raw_call=response.strip(),  # The entire JSON response
-                            confidence=1.0,  # Highest confidence for pure JSON format
-                        )
-                        tool_calls.append(tool_call)
-                        return tool_calls, ""  # No remaining text for pure JSON
+            # Use schema to extract tool call
+            result = self.schema.extract_tool_call(parsed_json)
+            if result:
+                tool_name, args = result
+                tool_call = ParsedToolCall(
+                    tool_name=tool_name,
+                    parameters=args,
+                    raw_call=response.strip(),  # The entire JSON response
+                    confidence=1.0,  # Highest confidence for pure JSON format
+                )
+                tool_calls.append(tool_call)
+                return tool_calls, ""  # No remaining text for pure JSON
 
         except (json.JSONDecodeError, KeyError, TypeError) as e:
             # Not a valid tool call JSON - this is normal for conversational responses
@@ -150,66 +189,118 @@ class ResponseParser:
 
         return tool_calls, response  # Return original response as remaining text
 
-    def _parse_structured_function_calls(
+    def _parse_embedded_json(
         self, response: str
     ) -> Tuple[List[ParsedToolCall], str]:
-        """Parse structured function calls in Gemini CLI format."""
+        """
+        Parse embedded JSON tool calls using bracket-matching.
+        
+        This handles nested JSON structures correctly, unlike regex-based approaches.
+        Looks for {"functionCall": {...}} patterns in the text and extracts complete JSON objects.
+        """
         tool_calls = []
         remaining_text = response
-
-        # Look for structured functionCall objects
-        matches = self.structured_function_call_pattern.findall(response)
-
-        for tool_name, args_json in matches:
-            try:
-                # Parse the JSON args
-                args = json.loads(args_json)
-
-                tool_call = ParsedToolCall(
-                    tool_name=tool_name,
-                    parameters=args,
-                    raw_call=f'{{"functionCall": {{"name": "{tool_name}", "args": {args_json}}}}}',
-                    confidence=1.0,  # Highest confidence for structured format
-                )
-                tool_calls.append(tool_call)
-
-                # Remove this call from remaining text
-                call_text = f'{{"functionCall": {{"name": "{tool_name}", "args": {args_json}}}}}'
-                remaining_text = remaining_text.replace(call_text, "", 1)
-
-            except json.JSONDecodeError as e:
-                logger.debug(
-                    f"Failed to parse structured function call args for {tool_name}: {e}"
-                )
-                continue
-
+        
+        # Find all potential JSON object starts that contain the root key
+        root_key_str = f'"{self.schema.root_key}"'
+        i = 0
+        while i < len(response):
+            # Look for opening brace followed by root key
+            if response[i] == '{':
+                # Try to extract complete JSON object starting here
+                json_obj = self._extract_json_object(response, i)
+                if json_obj and root_key_str in json_obj:
+                    try:
+                        parsed = json.loads(json_obj)
+                        # Use schema to extract tool call
+                        result = self.schema.extract_tool_call(parsed)
+                        if result:
+                            tool_name, args = result
+                            tool_call = ParsedToolCall(
+                                tool_name=tool_name,
+                                parameters=args,
+                                raw_call=json_obj,
+                                confidence=1.0,
+                            )
+                            tool_calls.append(tool_call)
+                            # Remove extracted JSON from remaining text
+                            remaining_text = remaining_text.replace(json_obj, "", 1)
+                            # Continue searching after the extracted object
+                            i += len(json_obj)
+                            continue
+                    except json.JSONDecodeError:
+                        # Not valid JSON, continue searching
+                        pass
+            i += 1
+        
         return tool_calls, remaining_text
-
-    def _clean_text_content(self, text: str, tool_calls: List[ParsedToolCall]) -> str:
-        """Clean up text content by removing tool call artifacts."""
-        # Remove common tool call prefixes/suffixes
-        text = re.sub(
-            r"^\s*(Call|Execute|Use|Run)\s+(the\s+)?\w+\s+(tool|function)",
-            "",
-            text,
-            flags=re.MULTILINE | re.IGNORECASE,
-        )
-        text = re.sub(
-            r"with\s+parameters?\s*[:\-]?\s*$",
-            "",
-            text,
-            flags=re.MULTILINE | re.IGNORECASE,
-        )
-
-        # Remove empty lines at the beginning
-        text = text.lstrip("\n")
-
-        # Remove tool call JSON from text
+    
+    def _extract_json_object(self, text: str, start_pos: int) -> str:
+        """
+        Extract a complete JSON object starting at start_pos using bracket matching.
+        
+        Handles nested objects, arrays, and strings correctly.
+        
+        Args:
+            text: The text to search in
+            start_pos: Starting position (must be at opening brace)
+            
+        Returns:
+            Extracted JSON string or empty string if not found
+        """
+        if start_pos >= len(text) or text[start_pos] != '{':
+            return ""
+        
+        brace_count = 0
+        in_string = False
+        escape_next = False
+        i = start_pos
+        
+        while i < len(text):
+            char = text[i]
+            
+            if escape_next:
+                escape_next = False
+                i += 1
+                continue
+            
+            if char == '\\':
+                escape_next = True
+                i += 1
+                continue
+            
+            if char == '"' and not escape_next:
+                in_string = not in_string
+                i += 1
+                continue
+            
+            if not in_string:
+                if char == '{':
+                    brace_count += 1
+                elif char == '}':
+                    brace_count -= 1
+                    if brace_count == 0:
+                        # Found complete object
+                        return text[start_pos:i+1]
+            
+            i += 1
+        
+        # No closing brace found
+        return ""
+    
+    def _remove_extracted_calls(self, text: str, tool_calls: List[ParsedToolCall]) -> str:
+        """
+        Remove extracted tool call JSON from text content.
+        
+        This is simpler than regex cleanup since we have exact JSON strings to remove.
+        """
+        result = text
         for call in tool_calls:
-            text = text.replace(call.raw_call, "")
-
+            result = result.replace(call.raw_call, "")
+        
         # Clean up extra whitespace
-        text = re.sub(r"\n\s*\n\s*\n", "\n\n", text)
-
-        return text.strip()
+        while "\n\n\n" in result:
+            result = result.replace("\n\n\n", "\n\n")
+        
+        return result.strip()
 

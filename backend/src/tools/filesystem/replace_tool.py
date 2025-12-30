@@ -16,8 +16,10 @@ from backend.src.core.utils.path_utils import (
     make_relative_path,
     shorten_path,
 )
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
+from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.system.shell_tool import ShellTool
 
 logger = logging.getLogger(__name__)
@@ -33,33 +35,45 @@ class ReplaceArgs(BaseModel):
         False,
         description="If true, replace all occurrences; if false, replace only the first occurrence",
     )
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class ReplaceTool(Tool[ReplaceArgs]):
     """Tool for precise search and replace operations in files."""
 
     name = "replace"
-    description = """Use this tool to propose a search and replace operation on an existing file.
+    required_permissions = {Permission.WRITE_FILESYSTEM}
+    category = ToolDomain.FILESYSTEM
+    description = """PREFERRED tool for modifying existing files. Performs precise, structured edits with minimal diffs.
 
-The tool will replace occurrences of old_string with new_string in the specified file.
+BEFORE USING THIS TOOL:
+- ALWAYS read the file first using read_file to understand its current structure
+- ALWAYS search for the exact text you want to replace using search_file_content to verify it exists
+- NEVER make assumptions about file content - read it first
 
-By default, replaces only ONE occurrence. Set replace_all=true to replace all occurrences.
+CRITICAL REQUIREMENTS:
 
-CRITICAL REQUIREMENTS FOR USING THIS TOOL:
+1. READ FIRST: You MUST have read the file using read_file before using this tool. Do not guess file contents.
 
-1. UNIQUENESS: When replace_all=false, the old_string MUST uniquely identify the specific instance you want to change. This means:
+2. UNIQUENESS: When replace_all=false, the old_string MUST uniquely identify the specific instance you want to change:
    - Include AT LEAST 3-5 lines of context BEFORE the change point
    - Include AT LEAST 3-5 lines of context AFTER the change point
    - Include all whitespace, indentation, and surrounding code exactly as it appears in the file
 
-2. MULTIPLE INSTANCES: When you need to change multiple instances:
+3. MINIMAL EDITS: Make the smallest possible change. Prefer multiple small replace operations over one large change.
+
+4. VERIFICATION: Before using this tool:
+   - Use search_file_content to verify the exact text exists and count occurrences
+   - Read the surrounding context to ensure your change fits correctly
+
+5. MULTIPLE INSTANCES: When you need to change multiple instances:
    - Set replace_all=true to change all occurrences at once
    - Or make separate calls for each instance with unique context
 
-3. VERIFICATION: Before using this tool:
-   - Check how many occurrences exist using grep or read_file
-   - Plan your replacement strategy accordingly
-"""
+This tool enforces structured, minimal edits. If you need to rewrite large sections, read the file first and consider if write_file is truly necessary."""
     args_model = ReplaceArgs
 
     async def run(self, args: ReplaceArgs, ctx: ToolContext) -> dict:
@@ -73,17 +87,19 @@ CRITICAL REQUIREMENTS FOR USING THIS TOOL:
                 }
 
             # Resolve relative paths to absolute paths
+            session_id = ctx.session.session_id
+            user_id = ctx.user.user_id
             file_path = args.file_path
             if not os.path.isabs(file_path):
                 # Resolve relative path to absolute using current working directory (from shell tool)
-                current_dir = ShellTool.get_current_working_directory()
+                current_dir = await ShellTool.get_current_working_directory(session_id, user_id)
                 file_path = os.path.abspath(os.path.join(current_dir, file_path))
                 logger.info(
                     f"Replace: Resolved relative path to absolute using current dir: {file_path}"
                 )
 
             # Get target directory for relative path resolution
-            target_dir = ShellTool.get_current_working_directory()
+            target_dir = await ShellTool.get_current_working_directory(session_id, user_id)
 
             # Handle file creation case
             file_exists = os.path.exists(file_path)

@@ -53,9 +53,10 @@ class SecurityExecutionStrategy(ExecutionStrategy):
         )
 
         if required_permission:
-            # Check permission
+            # Check permission - pass tool instance so policy can use tool metadata
             has_permission = self.security_policy.check_permission(
-                tool_name, required_permission, exec_context.tool_call.parameters
+                tool_name, required_permission, exec_context.tool_call.parameters,
+                tool_instance=exec_context.tool
             )
             logger.debug(
                 f"Security strategy: Permission check result for '{tool_name}': {has_permission}"

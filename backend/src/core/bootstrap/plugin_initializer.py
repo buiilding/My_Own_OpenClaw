@@ -65,9 +65,13 @@ class PluginInitializer:
                 filesystem_discoverer = FilesystemPluginDiscoverer(plugin_dir)
                 discovery_service.register_discoverer(filesystem_discoverer)
 
-        # Discover and register plugins
+        # Discover and register plugins (in-memory only, fast)
         await discovery_service.discover_and_register(auto_enable=True)
         logger.info(f"Registered {len(plugin_registry.get_enabled_plugins())} plugins")
+
+        # Persist plugin configurations after all plugins are registered
+        plugin_registry.save_config()
+        logger.debug("Saved plugin configurations to disk")
 
         # Initialize all enabled plugins
         await plugin_registry.initialize_all_plugins()

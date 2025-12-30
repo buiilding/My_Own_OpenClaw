@@ -15,8 +15,10 @@ from backend.src.core.utils.file_reader import (
 )
 from backend.src.core.utils.file_type import is_text_file
 from backend.src.core.utils.mime_types import get_specific_mime_type
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
+from backend.src.tools.categorization import ToolDomain
 
 
 class ReadFileArgs(BaseModel):
@@ -30,11 +32,38 @@ class ReadFileArgs(BaseModel):
         None, ge=0, description="Line number to start reading from (0-based)"
     )
     limit: Optional[int] = Field(None, gt=0, description="Number of lines to read")
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
 
 
 class ReadFileToolSDK(Tool[ReadFileArgs]):
     name = "read_file"
-    description = "Reads and returns the content of a specified file. Handles text, images, and PDFs. Supports pagination for large text files."
+    required_permissions = {Permission.READ_FILESYSTEM}
+    category = ToolDomain.FILESYSTEM
+    description = """PRIMARY tool for gathering information and understanding code. ALWAYS read files before modifying them.
+
+CRITICAL PRINCIPLES:
+- READ BEFORE WRITING: Always read a file before using replace or write_file on it
+- GATHER COMPLETE CONTEXT: Read related files, not just the target file
+- AVOID ASSUMPTIONS: Never guess file contents - read them first
+- MULTIPLE READS PREFERRED: It's better to make multiple read calls than to guess
+
+WHEN TO USE:
+- Before modifying any file (MANDATORY)
+- To understand code structure, behavior, or concepts
+- To verify file contents before making changes
+- To gather context from related files
+- When you're unsure about something - read more files
+
+USE PATTERN:
+1. Read the file you want to modify
+2. Read related files that might affect your changes
+3. Search for relevant patterns if needed
+4. Only then proceed with replace or write_file
+
+This tool supports pagination for large files. Use offset/limit to read files in sections if needed."""
     args_model = ReadFileArgs
 
     async def run(self, args: ReadFileArgs, ctx: ToolContext) -> dict:

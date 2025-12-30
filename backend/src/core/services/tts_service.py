@@ -35,7 +35,8 @@ class TTSService:
 
         # Buffer for sentence detection
         self.buffer = ""
-        self.delimiters = {".", "!", "?", "\n"}
+        self.delimiters = {".", "!", "?", "\n", ";", ":"}
+        self._buffer_lock = threading.Lock()  # Protect buffer access
 
         # Thread
         self.worker_thread: Optional[threading.Thread] = None
@@ -63,9 +64,25 @@ class TTSService:
         try:
             from piper import PiperVoice
 
-            self.voice = PiperVoice.load(
-                self.config.tts_model_path, use_cuda=self.config.tts_use_cuda
-            )
+            # Try loading with configured CUDA setting
+            use_cuda = self.config.tts_use_cuda
+            try:
+                self.voice = PiperVoice.load(
+                    self.config.tts_model_path, use_cuda=use_cuda
+                )
+            except RuntimeError as e:
+                # If CUDA fails and was requested, try CPU fallback
+                if use_cuda and ("Failed to allocate memory" in str(e) or "RUNTIME_EXCEPTION" in str(e)):
+                    logger.warning(
+                        f"TTS CUDA initialization failed (GPU memory likely exhausted). "
+                        f"Falling back to CPU. Error: {str(e)[:200]}"
+                    )
+                    self.voice = PiperVoice.load(
+                        self.config.tts_model_path, use_cuda=False
+                    )
+                else:
+                    raise  # Re-raise if it's not a memory error or CPU was already requested
+
             self.running = True
             self.worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
             self.worker_thread.start()
@@ -83,41 +100,67 @@ class TTSService:
             try:
                 # Get sentence from queue
                 text = self.input_queue.get()
-                if text is None:  # Sentinel
-                    break
+                
+                # Check for sentinel (None) which means end of current stream
+                # We don't break the loop (keep thread alive), just mark task done
+                if text is None:
+                    self.input_queue.task_done()
+                    continue
 
                 if not text.strip():
+                    self.input_queue.task_done()
                     continue
 
                 logger.debug(f"Synthesizing: {text}")
 
                 # Synthesize
                 # voice.synthesize yields chunks of audio data
-                for audio_chunk in self.voice.synthesize(text):
-                    if not self.running:
-                        break
+                try:
+                    for audio_chunk in self.voice.synthesize(text):
+                        if not self.running:
+                            break
 
-                    # Prepare audio data
-                    # audio_chunk has .audio_int16_bytes (raw PCM)
-                    audio_data = {
-                        "audio": base64.b64encode(audio_chunk.audio_int16_bytes).decode(
-                            "utf-8"
-                        ),
-                        "sample_rate": audio_chunk.sample_rate,
-                        "sample_width": audio_chunk.sample_width,
-                        "channels": audio_chunk.sample_channels,
-                    }
+                        # Prepare audio data
+                        # audio_chunk has .audio_int16_bytes (raw PCM)
+                        audio_data = {
+                            "audio": base64.b64encode(audio_chunk.audio_int16_bytes).decode(
+                                "utf-8"
+                            ),
+                            "sample_rate": audio_chunk.sample_rate,
+                            "sample_width": audio_chunk.sample_width,
+                            "channels": audio_chunk.sample_channels,
+                        }
 
-                    # Push to async queue safely
-                    if self.loop and self.audio_queue:
-                        self.loop.call_soon_threadsafe(
-                            self.audio_queue.put_nowait, audio_data
+                        # Push to async queue safely
+                        if self.loop and self.audio_queue:
+                            self.loop.call_soon_threadsafe(
+                                self.audio_queue.put_nowait, audio_data
+                            )
+                except RuntimeError as e:
+                    # Handle CUDA memory allocation failures
+                    error_msg = str(e)
+                    if "Failed to allocate memory" in error_msg or "RUNTIME_EXCEPTION" in error_msg:
+                        logger.warning(
+                            f"TTS CUDA memory allocation failed for text: '{text[:50]}...'. "
+                            f"This usually means GPU memory is exhausted. Consider disabling TTS CUDA "
+                            f"or freeing GPU memory from other models. Error: {error_msg[:200]}"
                         )
+                        # Skip this synthesis but continue processing
+                    else:
+                        raise  # Re-raise if it's a different RuntimeError
+                except Exception as e:
+                    logger.error(f"TTS synthesis error for text '{text[:50]}...': {e}", exc_info=True)
+                    # Continue processing other sentences
 
                 self.input_queue.task_done()
 
             except Exception as e:
                 logger.error(f"TTS Worker Error: {e}", exc_info=True)
+                # Ensure task is marked done even on error
+                try:
+                    self.input_queue.task_done()
+                except ValueError:
+                    pass  # Task already done
 
         logger.debug("TTS Worker thread stopped")
 
@@ -137,34 +180,75 @@ class TTSService:
         if not self.running:
             return
 
-        self.buffer += text_chunk
-        self._process_buffer()
+        with self._buffer_lock:
+            self.buffer += text_chunk
+            self._process_buffer()
 
     def _process_buffer(self):
-        """Split buffer into sentences."""
+        """
+        Split buffer into sentences for synthesis.
+        Simple sentence-buffering: split on natural boundaries, preserve all text.
+        """
+        if not self.buffer:
+            return
+            
         start = 0
-
-        for i, char in enumerate(self.buffer):
+        i = 0
+        processed_count = 0
+        while i < len(self.buffer):
+            char = self.buffer[i]
+            
             # Check for delimiters
-            # Also assume simple sentence boundaries for now
             if char in self.delimiters:
-                # Check if it's really a sentence end (basic heuristic)
-                # e.g., not "Mr." or "i.e." - implementing full NLP is complex,
-                # so we stick to the user's "full stop" requirement.
+                # Special handling for period to avoid splitting filenames
+                if char == ".":
+                    # Look ahead - if next char is NOT whitespace/newline/EOF, skip splitting
+                    # This handles: .env, file.txt, version 1.0, etc.
+                    # Also handles backticks: `.env` should not split
+                    if i + 1 < len(self.buffer):
+                        next_char = self.buffer[i + 1]
+                        # If next char is alphanumeric or special filename chars, it's part of a word/filename
+                        if next_char.isalnum() or next_char in {"`", "'", '"', "-", "_"}:
+                            i += 1
+                            continue
+                    # If at end of buffer, don't split yet (wait for more text or flush)
+                    else:
+                        # End of current buffer, don't split yet - let it accumulate
+                        i += 1
+                        continue
 
-                sentence = self.buffer[start : i + 1].strip()
-                if sentence:
-                    self.input_queue.put(sentence)
+                # Extract sentence up to and including the delimiter
+                sentence = self.buffer[start : i + 1]
+                
+                # Queue non-empty sentences
+                clean_sentence = sentence.strip()
+                if clean_sentence:
+                    self.input_queue.put(clean_sentence)
+                
                 start = i + 1
+            
+            i += 1
 
-        # Keep remaining text
+        # Keep remaining text that doesn't end with a delimiter
         self.buffer = self.buffer[start:]
 
     async def flush(self):
         """Flush any remaining text in the buffer."""
-        if self.buffer.strip():
-            self.input_queue.put(self.buffer.strip())
-        self.buffer = ""
+        with self._buffer_lock:
+            # Get any remaining text
+            text = self.buffer.strip()
+            if text:
+                logger.debug(f"Flushing TTS buffer: {text}")
+                self.input_queue.put(text)
+            
+            # Sentinel to signal end of stream to worker
+            self.input_queue.put(None)
+            
+            self.buffer = ""
+        
+        # Wait a bit for the queue to process (but don't block forever)
+        # The worker thread will process items asynchronously
+        await asyncio.sleep(0.5)  # Increased delay to allow queue processing
 
     async def stream_audio(self) -> AsyncGenerator[Dict[str, Any], None]:
         """
