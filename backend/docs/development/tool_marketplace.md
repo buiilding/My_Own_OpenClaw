@@ -4,50 +4,43 @@ This guide provides comprehensive documentation for the Personal Assistant's too
 
 ## Overview
 
-The tool marketplace provides a comprehensive ecosystem for:
+The tool marketplace provides basic functionality for:
 
-- **Community Tool Sharing**: Share and discover tools created by the community
-- **Automated Tool Discovery**: Dynamic loading and validation of marketplace tools
-- **Security Scanning**: Automated security analysis of tool code
-- **Semantic Search**: AI-powered tool discovery through natural language queries
-- **Tool Lifecycle Management**: Installation, updates, and dependency management
-- **Quality Assurance**: Tool validation and performance monitoring
+- **Tool Discovery**: Loading tools from the `tools/verified/` directory
+- **Security Scanning**: Basic security validation of tool manifests
+- **Tool Management**: Loading and caching of marketplace tools
+
+**Note**: The marketplace system is currently basic and does not include advanced features like semantic search, automated updates, or community sharing platforms.
 
 ## Architecture
 
-The marketplace system consists of multiple integrated components:
+The current marketplace system is simple:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Marketplace   │    │   Semantic      │    │   Security      │
-│   Registry      │◄──►│   Search        │◄──►│   Scanner       │
-│                 │    │   Engine        │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                        │                        │
-         ▼                        ▼                        ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Tool          │    │   Tool          │    │   Validation    │
-│   Discovery     │    │   Installation  │    │   Framework     │
+│   Marketplace   │    │   Tool          │    │   Security      │
+│   Manager       │◄──►│   Loader        │◄──►│   Scanner       │
+│                 │    │                 │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ## Core Components
 
-### MarketplaceRegistry
+### MarketplaceManager
 
-The central registry for managing marketplace tools.
+The main component for managing marketplace tools.
 
 ```python
-from backend.src.tools.marketplace.registry import MarketplaceRegistry
+from backend.src.tools.marketplace_manager import MarketplaceManager
 
-registry = MarketplaceRegistry()
-await registry.load_marketplace_tools()
+manager = MarketplaceManager(tool_loader)
+await manager.load_marketplace_tools(Path("tools/verified/"))
 ```
 
 **Key Responsibilities:**
 - Tool discovery from the `tools/verified/` directory
-- Manifest validation and parsing
-- Security scanning integration
+- Basic security scanning of tool manifests
+- Tool loading and caching
 - Tool instance caching and lifecycle management
 - Dependency resolution and conflict detection
 

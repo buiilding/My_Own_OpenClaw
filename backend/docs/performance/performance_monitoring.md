@@ -1,53 +1,44 @@
 # Performance Monitoring Guide
 
-This guide provides comprehensive monitoring strategies for the Personal Assistant Backend, including key metrics, monitoring tools, alerting thresholds, and performance optimization techniques.
+This guide outlines basic performance considerations for the Personal Assistant Backend. Note that comprehensive monitoring infrastructure is not currently implemented.
 
-## Key Performance Metrics
+## Current Performance Monitoring
 
-### Response Time Metrics
+### Basic Monitoring Available
 
-#### Query Response Time
-- **Metric**: `assistant.query.duration`
-- **Description**: End-to-end time for query processing
-- **Target**: < 3 seconds for simple queries, < 10 seconds for complex queries
-- **Monitoring**:
+#### Tool Execution Audit Logs
+- **Location**: `SecurityPolicy.audit_log`
+- **Description**: Basic logging of tool executions with timing information
+- **Implementation**: Simple list-based audit trail with configurable size limits
+- **Usage**:
   ```python
-  @metrics.timed('query.duration')
-  async def process_query(self, query: str) -> Any:
-      start_time = time.time()
-      # ... processing logic ...
-      return result
+  # Access audit logs
+  audit_logs = security_policy.get_audit_log(limit=100)
+
+  # Each log entry contains:
+  # - tool_name, user_id, session_id
+  # - parameters, success, execution_time, error
   ```
 
-#### Tool Execution Time
-- **Metric**: `assistant.tool.execution.duration`
-- **Description**: Time spent executing individual tools
-- **Target**: < 5 seconds per tool execution
-- **Breakdown**: Network I/O, computation, file operations
+#### Application Logging
+- **Framework**: Python logging with configurable levels
+- **Output**: Console and file logging
+- **Levels**: DEBUG, INFO, WARNING, ERROR
+- **Configuration**: Via environment variable `LOG_LEVEL`
 
-#### WebSocket Latency
-- **Metric**: `assistant.websocket.latency`
-- **Description**: Round-trip time for WebSocket messages
-- **Target**: < 100ms for simple messages
+### Performance Considerations
 
-### Throughput Metrics
+#### Response Time Guidelines
+- **Simple queries**: Target < 3 seconds
+- **Complex queries**: Target < 10 seconds
+- **Tool execution**: Target < 5 seconds per tool
+- **WebSocket latency**: Target < 100ms
 
-#### Queries Per Second (QPS)
-- **Metric**: `assistant.query.rate`
-- **Description**: Number of queries processed per second
-- **Target**: 10-50 QPS depending on complexity
-- **Monitoring**: Track over 1-minute windows
-
-#### Concurrent Connections
-- **Metric**: `assistant.websocket.connections.active`
-- **Description**: Number of active WebSocket connections
-- **Target**: 100-1000 concurrent connections
-- **Scaling**: Monitor connection growth patterns
-
-#### Tool Execution Rate
-- **Metric**: `assistant.tool.execution.rate`
-- **Description**: Tools executed per minute
-- **Target**: Based on tool complexity and resource limits
+#### Resource Limits (Implemented)
+- **Timeout**: 30 seconds per tool execution
+- **Memory**: Configurable per tool (default unlimited)
+- **Concurrent tools**: Max 3 simultaneous executions
+- **File size**: Configurable limits for file operations
 
 ### Resource Utilization Metrics
 

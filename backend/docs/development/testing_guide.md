@@ -16,33 +16,16 @@ The testing strategy follows a pyramid approach with multiple layers of testing:
 ### Dependencies
 
 ```txt
-# requirements.txt
+# requirements.txt (current)
 pytest==8.1.1
 pytest-asyncio==0.23.6
-pytest-cov==4.1.0
-pytest-mock==3.12.0
-pytest-xdist==3.5.0
 ```
+
+**Note**: Additional testing dependencies (pytest-cov, pytest-mock, pytest-xdist) may be needed for full testing infrastructure but are not currently included in requirements.txt.
 
 ### Configuration
 
-**pytest.ini**:
-```ini
-[tool:pytest]
-testpaths = tests
-python_files = test_*.py *_test.py
-python_classes = Test*
-python_functions = test_*
-addopts =
-    --strict-markers
-    --strict-config
-    --verbose
-    --tb=short
-    --cov=backend/src
-    --cov-report=html
-    --cov-report=term
-asyncio_mode = auto
-```
+No pytest.ini configuration file currently exists. Testing is configured via command line options or can be added to pyproject.toml in the future.
 
 ### Test Structure
 

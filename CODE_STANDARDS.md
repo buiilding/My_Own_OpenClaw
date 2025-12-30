@@ -35,9 +35,9 @@ This document outlines the coding standards and best practices for the Personal 
 ### Code Style
 
 - Follow [PEP 8](https://pep8.org/) guidelines
-- Use [Black](https://black.readthedocs.io/) for code formatting (120 character line length)
-- Use [isort](https://pycqa.github.io/isort/) for import sorting
-- Use [flake8](https://flake8.pycqa.org/) for linting
+- Use [Black](https://black.readthedocs.io/) for code formatting (88 character line length as configured)
+- **Note**: isort and flake8 are mentioned in standards but not currently configured
+- **Note**: mypy type checking is recommended but not enforced in CI
 
 ### Type Hints
 

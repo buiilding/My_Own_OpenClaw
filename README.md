@@ -3,21 +3,23 @@
 > Your AI-powered personal assistant that remembers everything, controls your computer, and adapts to your workflow.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Electron](https://img.shields.io/badge/electron-latest-brightgreen.svg)](https://www.electronjs.org/)
-[![Project Status](https://img.shields.io/badge/status-advanced%20development-green.svg)]()
+[![Project Status](https://img.shields.io/badge/status-functional%20AI%20assistant-green.svg)]()
 
 ---
 
 ## 🎯 Vision
 
-**Desktop Assistant** is an AI-powered personal assistant that fundamentally changes how people interact with their computers. Instead of needing to know commands, navigate complex UIs, or repeatedly explain context to disconnected AI services, users will have a persistent, context-aware agent that:
+**Desktop Assistant** is an AI-powered personal assistant that provides intelligent computer control and automation. Users can interact with their computer through natural language commands, with the assistant handling complex tasks using a system of specialized tools.
 
-- **Remembers everything** you've done and are working on
-- **Controls your computer** through voice or text commands
-- **Execute commands** on the CLI using an agent loop
-- **Executes tasks** automatically using a marketplace of tools (possibly MCPs)
-- **Adapts to your workflow** by learning from your patterns
+Key capabilities include:
+
+- **Intelligent Task Execution** through natural language commands
+- **Computer Control** with OCR-enhanced UI automation and vision models
+- **Memory System** for context preservation across sessions
+- **Tool Ecosystem** with 17 built-in tools for computer control and automation
+- **Multi-Provider LLM Support** for flexible AI integration
 
 Our mission: **Democratize computer power** - making advanced capabilities accessible to everyone, not just developers.
 
@@ -25,9 +27,9 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 
 ## 🚀 Project Status
 
-**Current Stage**: Advanced Automation & AI Integration (Milestone 4+)
+**Current Stage**: Functional AI Assistant with Advanced Features
 
-We now have a **fully functional AI assistant** with advanced computer control, multi-agent automation, and intelligent task execution!
+We have a **working AI assistant** with computer control, LLM integration, and tool execution capabilities.
 
 ### ✅ Completed Features
 
@@ -38,12 +40,11 @@ We now have a **fully functional AI assistant** with advanced computer control, 
 - [x] Semantic memory system with GPU-accelerated embeddings
 - [x] Conversation history and context management
 
-#### 🛠️ **Tool Marketplace System**
-- [x] Complete marketplace infrastructure with security validation
-- [x] Tool discovery and installation system
-- [x] Verified tool registry with community tools
-- [x] CoAct-1 multi-agent automation tool
-- [x] Example and weather tools as marketplace demonstrations
+#### 🛠️ **Tool System**
+- [x] Tool discovery system for loading verified tools
+- [x] Security validation for tool execution
+- [x] Tool execution sandboxing with permission controls
+- [x] 17 built-in tools for computer control, filesystem, and system operations
 
 #### 🎮 **Advanced Computer Control**
 - [x] **OCR-Enhanced UI Automation**: `click_ocr_element` tool for precision clicking on detected text
@@ -88,11 +89,11 @@ See our [Project Roadmap](docs/ROADMAP.md) for the complete development timeline
 - **Intelligent Planning**: LLM-powered decision making for optimal execution
 - **Error Recovery**: Graceful handling of failures with alternative approaches
 
-### 🛠️ **Tool Marketplace**
-- **Verified Tools**: Curated community tools with security validation
-- **Easy Installation**: One-click tool discovery and installation
-- **Custom Development**: Framework for building your own tools
-- **Sandbox Execution**: Isolated tool execution for safety
+### 🛠️ **Tool System**
+- **Verified Tools**: Tools loaded from secure verified directory
+- **Security Validation**: Permission-based tool execution
+- **Custom Development**: SDK for building your own tools
+- **Sandbox Execution**: Isolated tool execution with resource limits
 
 ### 🎤 **Voice Integration** (In Progress)
 - **Natural Speech**: Voice commands and responses
@@ -111,7 +112,7 @@ See our [Project Roadmap](docs/ROADMAP.md) for the complete development timeline
 
 ### Prerequisites
 - **Windows 10/11, macOS, or Linux**
-- **Python 3.9+** (and Conda for environment management)
+- **Python 3.9+**
 - **Node.js 18+** and npm
 - **Git**
 
@@ -139,12 +140,6 @@ npm install
 cd .. # Return to project root
 ```
 
-#### 4. Pre-commit Hooks
-Install the Git hooks to automatically lint and format your code before you commit.
-```bash
-# From the project root
-pre-commit install
-```
 
 ### Running the Application for Development
 
@@ -177,7 +172,7 @@ npm run electron
 ```
 
 ### Running Tests
-This project has two separate test suites: one for the Python backend and one for the React frontend.
+The project has basic test coverage for the backend.
 
 #### Backend Tests (pytest)
 1.  Navigate to the backend directory:
@@ -192,6 +187,7 @@ This project has two separate test suites: one for the Python backend and one fo
     ```bash
     pytest ../tests/backend
     ```
+    Note: Only basic pytest and pytest-asyncio are included. Advanced testing tools may need to be added separately.
 
 #### Frontend Tests (Jest)
 1.  Navigate to the frontend directory:
@@ -209,12 +205,12 @@ This project has two separate test suites: one for the Python backend and one fo
 
 ### Current Development Focus
 
-With the core AI assistant fully functional, our focus now includes:
+The core AI assistant is functional. Current development priorities include:
 
-- **Voice Integration**: Adding STT/TTS capabilities for natural interaction
-- **Advanced Features**: Enhanced marketplace tools and monitoring capabilities
-- **Performance Optimization**: Further improvements to CUDA acceleration and memory usage
-- **User Experience**: Polish and additional features for better usability
+- **Voice Integration**: TTS implementation (STT planned for future)
+- **Enhanced Monitoring**: Basic audit logging and tool execution tracking
+- **Performance Optimization**: CUDA acceleration for embeddings and vision processing
+- **User Experience**: UI improvements and additional tool capabilities
 
 If you want to contribute, check out:
 
@@ -233,8 +229,8 @@ If you want to contribute, check out:
 - **[Developer Guide](backend/docs/DEVELOPER_GUIDE.md)** - Technical contributor guide
 - **[Architecture Overview](backend/docs/architecture.md)** - System design and patterns
 - **[API Reference](backend/docs/api_reference.md)** - Technical API documentation
-- **[Tool Development Guide](backend/docs/tool_development.md)** - Creating marketplace tools
-- **[Testing Guide](backend/docs/testing_guide.md)** - Testing patterns and best practices
+- **[Tool Development Guide](backend/docs/development/tool_development.md)** - Creating custom tools
+- **[Testing Guide](backend/docs/development/testing_guide.md)** - Testing patterns and setup
 
 ---
 
@@ -274,11 +270,11 @@ If you want to contribute, check out:
 ```
 
 **Key Components:**
-- **Agent Orchestrator**: Core intelligence with tool calling and multi-agent coordination
+- **Agent Orchestrator**: Core intelligence with tool calling and conversation management
 - **Memory System**: FAISS vector search + semantic/episodic memory with CUDA acceleration
 - **Computer Control**: OCR + vision models for UI automation and file operations
-- **Tool Marketplace**: Verified community tools with security validation
-- **AI Models**: CUDA-accelerated embeddings, OCR, and vision-language processing
+- **Tool System**: 60+ built-in tools with permission-based security
+- **AI Models**: Multi-provider LLM support with CUDA acceleration for embeddings and vision
 
 ---
 
@@ -298,13 +294,11 @@ This is a great time to get involved as a founding contributor. Whether you're e
 
 ### Ways to Contribute Right Now
 
-- 🔧 **Issue #10**: Help implement voice integration (STT/TTS)
-- 📝 **Documentation**: Improve or create documentation
-- 💡 **Ideas**: Share thoughts in [Discussions](https://github.com/buiilding/ALL_OR_NOTHING/discussions)
-- 🧪 **Research**: Help research advanced AI capabilities
-- 🎨 **Design**: Suggest UI/UX improvements for advanced features
-- 📣 **Spread the Word**: Star the repo, share with others
-- 🛠️ **Tool Development**: Create new marketplace tools
+- 🎤 **Voice Features**: Help implement TTS improvements and STT integration
+- 📝 **Documentation**: Improve accuracy and completeness of documentation
+- 🛠️ **Tool Development**: Create new tools for the system
+- 🧪 **Testing**: Add tests and improve test coverage
+- 💡 **Ideas**: Share thoughts on new features and improvements
 
 ### First-Time Contributors Welcome!
 
@@ -339,9 +333,9 @@ New to open source? No problem! Look for issues tagged:
 - [x] Privacy controls and local data storage
 
 #### Milestone 4: Advanced Automation
-- [x] **Tool Marketplace System**: Complete infrastructure with security validation
+- [x] **Tool System**: 60+ built-in tools with security validation and sandboxing
 - [x] **Computer Control Tools**: OCR-enhanced UI automation, vision-language models
-- [x] **CoAct-1 Multi-Agent System**: Orchestrator, Programmer, GUI Operator agents
+- [x] **Agent System**: Multi-step task execution with tool coordination
 - [x] **Intelligent Task Execution**: Natural language task decomposition
 
 #### Milestone 5: Performance & Polish
@@ -367,8 +361,8 @@ New to open source? No problem! Look for issues tagged:
 
 ### 📈 **Project Evolution**
 - **Started**: Basic IPC communication skeleton
-- **Now**: Full-featured AI assistant with advanced automation
-- **Next**: Voice integration and advanced monitoring features
+- **Now**: Functional AI assistant with computer control and tool execution
+- **Next**: Voice integration and enhanced monitoring capabilities
 
 [View Full Roadmap](docs/ROADMAP.md) for detailed implementation plans.
 
@@ -376,14 +370,13 @@ New to open source? No problem! Look for issues tagged:
 
 ## 🛡️ Privacy & Security
 
-**Your data will stay on your machine.** We're building with privacy as a core principle:
+**Your data stays on your machine.** We prioritize privacy and security:
 
-- ✅ **Local storage only** - No cloud sync by default
+- ✅ **Local storage only** - All data stored locally with user control
 - ✅ **Open source** - Audit the code yourself
-- ✅ **Transparent memory** - See exactly what's stored
-- ✅ **User control** - Delete any data at any time
-- ✅ **Sandboxed tools** - Community tools will run in isolation
-- ✅ **Encrypted credentials** - API keys will be encrypted at rest
+- ✅ **Tool sandboxing** - Tools run with permission controls and resource limits
+- ✅ **Basic audit logging** - Tool execution logging for monitoring
+- ✅ **No cloud sync** - Everything runs locally by default
 
 ---
 
@@ -391,16 +384,16 @@ New to open source? No problem! Look for issues tagged:
 
 - **Language**: Python (backend), JavaScript/React (frontend), TypeScript (frontend)
 - **License**: MIT
-- **Status**: Advanced Development - Full AI Assistant Implementation
+- **Status**: Functional AI Assistant with Active Development
 - **Team**: Open source, community-driven
 - **Lines of Code**: ~20,000+ lines across backend, frontend, and tools
 - **Key Technologies**:
   - **AI/ML**: SentenceTransformers, FAISS, RapidOCR, InternVL, CUDA acceleration
   - **Backend**: FastAPI, WebSocket IPC, dependency injection, async architecture
   - **Frontend**: Electron, React, real-time UI updates
-  - **Tools**: 60+ built-in tools, verified marketplace system with security validation
+  - **Tools**: 17 built-in tools with permission-based security and sandboxing
 - **Performance**: GPU-accelerated embeddings, OCR, and vision processing
-- **Architecture**: Clean architecture with protocol interfaces, plugin system, and sandboxing
+- **Architecture**: Clean architecture with dependency injection, protocol interfaces, and tool sandboxing
 
 ---
 
