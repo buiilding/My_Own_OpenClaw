@@ -39,10 +39,10 @@ class MouseControlArgs(BaseModel):
     y: Optional[int] = Field(None, description="Y coordinate (required when find_coordinates_by='manual')")
 
     # OCR coordinate fields
-    ocr_text: Optional[str] = Field(None, description="Text to search for on screen using OCR (required when find_coordinates_by='ocr')")
+    ocr_text: Optional[str] = Field(None, description="Exact text to search for on screen using OCR. Required for 'ocr' method. Do NOT use for 'prediction'.")
 
     # Prediction coordinate fields
-    description: Optional[str] = Field(None, description="Detailed visual description of the element to find (required when find_coordinates_by='prediction')")
+    description: Optional[str] = Field(None, description="Highly detailed visual description of the non-text element (icon, image). Required for 'prediction' method. Do NOT use for 'ocr'.")
     model_name: Optional[str] = Field(None, description="Optional specific vision model to use for prediction")
 
     # Action-specific fields
@@ -117,11 +117,6 @@ class MouseTool(Tool[MouseControlArgs]):
 
             # Find coordinates based on the specified strategy
             coordinates = await self._find_coordinates(args, ctx)
-            if coordinates is None:
-                return self._error_response(
-                    "Could not determine coordinates for mouse action",
-                    "Failed to find coordinates for the specified action"
-                )
 
             x, y = coordinates
 
@@ -150,7 +145,7 @@ class MouseTool(Tool[MouseControlArgs]):
                 f"Error: Failed to perform mouse action: {str(e)}"
             )
 
-    async def _find_coordinates(self, args: MouseControlArgs, ctx: ToolContext) -> Optional[Tuple[int, int]]:
+    async def _find_coordinates(self, args: MouseControlArgs, ctx: ToolContext) -> Tuple[int, int]:
         """Find coordinates using the specified strategy."""
         if args.find_coordinates_by == CoordinateFindingMethod.MANUAL:
             return await self._find_coordinates_manual(args)
@@ -159,89 +154,71 @@ class MouseTool(Tool[MouseControlArgs]):
         elif args.find_coordinates_by == CoordinateFindingMethod.PREDICTION:
             return await self._find_coordinates_by_prediction(args, ctx)
         else:
-            logger.error(f"Unknown coordinate finding method: {args.find_coordinates_by}")
-            return None
+            raise ValueError(f"Unknown coordinate finding method: {args.find_coordinates_by}")
 
-    async def _find_coordinates_manual(self, args: MouseControlArgs) -> Optional[Tuple[int, int]]:
+    async def _find_coordinates_manual(self, args: MouseControlArgs) -> Tuple[int, int]:
         """Return manually specified coordinates."""
         if args.x is None or args.y is None:
-            logger.error("Manual coordinates require x and y values")
-            return None
+            raise ValueError("Manual coordinates require x and y values")
         return (args.x, args.y)
 
-    async def _find_coordinates_by_ocr(self, args: MouseControlArgs, ctx: ToolContext) -> Optional[Tuple[int, int]]:
+    async def _find_coordinates_by_ocr(self, args: MouseControlArgs, ctx: ToolContext) -> Tuple[int, int]:
         """Find coordinates by searching for text using OCR."""
         if not args.ocr_text:
-            logger.error("OCR coordinate finding requires ocr_text")
-            return None
+            raise ValueError("OCR coordinate finding requires ocr_text")
 
-        try:
-            # Take screenshot
-            screenshot_result = await self.computer.screenshot()
-            if not screenshot_result.success or not screenshot_result.screenshot_data:
-                logger.error(f"Screenshot failed: {screenshot_result.error}")
-                return None
+        # Take screenshot
+        screenshot_result = await self.computer.screenshot()
+        if not screenshot_result.success or not screenshot_result.screenshot_data:
+            raise ValueError(f"Screenshot failed: {screenshot_result.error}")
 
-            # Get OCR plugin and perform OCR
-            ocr_plugin = self._get_ocr_plugin()
-            if not ocr_plugin.enabled:
-                logger.error("OCR plugin is not enabled")
-                return None
+        # Get OCR plugin and perform OCR
+        ocr_plugin = self._get_ocr_plugin()
+        if not ocr_plugin.enabled:
+            raise ValueError("OCR plugin is not enabled")
 
-            ocr_results = await ocr_plugin.perform_ocr(screenshot_result.screenshot_data)
-            if ocr_results is None or not ocr_results:
-                logger.error("OCR analysis failed or found no text")
-                return None
+        ocr_results = await ocr_plugin.perform_ocr(screenshot_result.screenshot_data)
+        if ocr_results is None or not ocr_results:
+            raise ValueError("OCR analysis failed or found no text")
 
-            # Find matching text
-            matches = self._find_similar_text(args.ocr_text, ocr_results)
-            if not matches:
-                logger.warning(f"No matching text found for '{args.ocr_text}'")
-                return None
+        # Find matching text
+        matches = self._find_similar_text(args.ocr_text, ocr_results)
+        if not matches:
+            raise ValueError(f"No matching text found for '{args.ocr_text}'")
 
-            # Use the best match
-            if len(matches) == 1:
-                ocr_element, similarity = matches[0]
-                bbox = ocr_element["bbox"]
-                return self._calculate_center_coordinates(bbox)
-            else:
-                # Multiple matches - return the first one for now
-                # Could be enhanced to return all matches in the future
-                logger.warning(f"Multiple matches found for '{args.ocr_text}', using first match")
-                ocr_element, similarity = matches[0]
-                bbox = ocr_element["bbox"]
-                return self._calculate_center_coordinates(bbox)
+        # Use the best match
+        if len(matches) == 1:
+            ocr_element, similarity = matches[0]
+            bbox = ocr_element["bbox"]
+            return self._calculate_center_coordinates(bbox)
+        else:
+            # Multiple matches - return the first one for now
+            logger.warning(f"Multiple matches found for '{args.ocr_text}', using first match")
+            ocr_element, similarity = matches[0]
+            bbox = ocr_element["bbox"]
+            return self._calculate_center_coordinates(bbox)
 
-        except Exception as e:
-            logger.error(f"OCR coordinate finding failed: {e}", exc_info=True)
-            return None
-
-    async def _find_coordinates_by_prediction(self, args: MouseControlArgs, ctx: ToolContext) -> Optional[Tuple[int, int]]:
+    async def _find_coordinates_by_prediction(self, args: MouseControlArgs, ctx: ToolContext) -> Tuple[int, int]:
         """Find coordinates using vision model prediction."""
         if not args.description:
-            logger.error("Prediction coordinate finding requires description")
-            return None
+            raise ValueError("Prediction coordinate finding requires description")
 
-        try:
-            # Capture screenshot
-            screenshot_data = await self._capture_screenshot(ctx)
-            if screenshot_data is None:
-                logger.error("Failed to capture screenshot for prediction")
-                return None
+        # Capture screenshot
+        screenshot_data = await self._capture_screenshot(ctx)
+        if screenshot_data is None:
+            raise ValueError("Failed to capture screenshot for prediction")
 
-            # Get vision model
-            vision_model = await self._get_vision_model(ctx, args.model_name)
-            if vision_model is None:
-                logger.error("Vision model not available")
-                return None
+        # Get vision model
+        vision_model = await self._get_vision_model(ctx, args.model_name)
+        if vision_model is None:
+            raise ValueError("Vision model not available")
 
-            # Predict coordinates
-            coordinates = await self._predict_coordinates(vision_model, screenshot_data, args.description)
-            return coordinates
-
-        except Exception as e:
-            logger.error(f"Prediction coordinate finding failed: {e}", exc_info=True)
-            return None
+        # Predict coordinates
+        coordinates = await self._predict_coordinates(vision_model, screenshot_data, args.description)
+        if coordinates is None:
+             raise ValueError(f"Vision model could not identify element matching '{args.description}'")
+        
+        return coordinates
 
     async def _execute_mouse_action(self, action: MouseAction, x: int, y: int, args: MouseControlArgs):
         """Execute the specific mouse action at given coordinates."""
