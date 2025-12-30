@@ -179,7 +179,7 @@ Request the current application settings.
   "type": "settings-loaded",
   "id": "settings-789",
   "payload": {
-    "selected_model_id": "gpt-4",
+    "selected_model_id": "gpt-4o",
     "max_history_length": 50,
     "temperature": 0.7,
     "memory_enabled": true,
@@ -196,7 +196,7 @@ Update application settings.
   "id": "update-101",
   "type": "update-settings",
   "payload": {
-    "selected_model_id": "claude-3-sonnet",
+    "selected_model_id": "claude-3-haiku-20240307",
     "temperature": 0.8,
     "max_history_length": 100
   }
@@ -231,12 +231,12 @@ Request available LLM models.
   "id": "models-202",
   "payload": {
     "openai": [
-      {"id": "gpt-4", "name": "GPT-4", "context_window": 8192},
-      {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo", "context_window": 4096}
+      {"id": "gpt-4o", "name": "GPT-4o", "context_window": 128000},
+      {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "context_window": 128000}
     ],
     "anthropic": [
-      {"id": "claude-3-opus", "name": "Claude 3 Opus", "context_window": 200000},
-      {"id": "claude-3-sonnet", "name": "Claude 3 Sonnet", "context_window": 200000}
+      {"id": "claude-3-haiku-20240307", "name": "Claude 3 Haiku", "context_window": 200000},
+      {"id": "claude-sonnet-4-20250522", "name": "Claude Sonnet 4", "context_window": 200000}
     ]
   }
 }

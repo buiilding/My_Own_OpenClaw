@@ -194,24 +194,29 @@ for region in text_regions:
 
 ## Tool Integrations
 
-### PredictClickTool
+### MouseTool (Prediction Mode)
 
-AI-powered element detection and clicking based on natural language descriptions.
+AI-powered element detection and clicking through the unified mouse control tool.
 
 ```python
-from backend.src.tools.computer.predict_click_tool import PredictClickTool
+from backend.src.tools.computer.mouse_tool import MouseTool, MouseControlArgs
 
-class PredictClickArgs(BaseModel):
-    description: str
-    action: Literal["single_click", "double_click", "right_click"] = "single_click"
-    confidence_threshold: float = 0.7
+# Vision-based element detection
+args = MouseControlArgs(
+    action="click",
+    find_coordinates_by="prediction",
+    description="blue submit button with rounded corners in the center of the form",
+    model_name="gemini-2.5-flash",  # Optional: specify vision model
+    explanation="Clicking the submit button to send the form",
+    expectation="Form should be submitted and confirmation shown"
+)
 
-class PredictClickTool(Tool[PredictClickArgs]):
-    name = "predict_click"
-    description = "Use AI vision to predict and click on UI elements"
+class MouseTool(Tool[MouseControlArgs]):
+    name = "mouse_control"
+    description = "Unified mouse control with OCR, vision prediction, and manual modes"
 
-    async def run(self, args: PredictClickArgs, ctx: Context) -> Dict[str, Any]:
-        # Take screenshot
+    async def run(self, args: MouseControlArgs, ctx: ToolContext) -> Dict[str, Any]:
+        # Capture screenshot for vision analysis
         screenshot = await ctx.computer_interface.take_screenshot()
 
         # Use vision model to find element

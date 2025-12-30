@@ -46,8 +46,8 @@ This checklist ensures successful deployment of the Personal Assistant Backend t
 
 ## Deployment Steps
 
-### Method 1: Docker Deployment
-- [ ] **Docker Image**: Build production image
+### Method 1: Direct Python Deployment (Recommended)
+- [ ] **Python Environment**: Create isolated Python environment
   ```bash
   docker build -t personal-assistant:latest .
   ```

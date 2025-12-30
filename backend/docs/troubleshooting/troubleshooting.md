@@ -26,11 +26,11 @@ df -h | grep -E "(Filesystem|/$)"
 
 ### Application Health Check
 ```bash
-# Test basic connectivity
-curl -f http://localhost:8765/health || echo "Health check failed"
-
-# Check WebSocket endpoint
+# Test WebSocket connectivity (primary health check)
 timeout 5 websocat ws://localhost:8765/ws --text -E <<< '{"type": "ping"}' || echo "WebSocket failed"
+
+# Check for basic HTTP connectivity (if available)
+curl -f http://localhost:8765/ || echo "HTTP endpoint not available (expected for WebSocket-only server)"
 
 # Check logs for errors
 tail -20 /app/logs/assistant.log | grep -i error || echo "No recent errors"

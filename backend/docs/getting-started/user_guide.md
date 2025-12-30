@@ -294,18 +294,19 @@ Real-time weather information and forecasts.
 
 ## Voice Features
 
-### Voice Input (In Development)
+### Voice Features
 
-**Speech-to-Text Integration**:
+**Wake Word Detection** (Available):
+- Set up custom wake words like "Hey Jarvis" (default)
+- Hands-free activation from anywhere in your workflow
+- Automatic voice mode switching when wake word detected
+
+**Speech-to-Text Integration** (Coming Soon):
 - Multi-provider STT support (Whisper, Google Speech, Azure Cognitive Services)
 - Real-time audio processing pipeline
 - Voice activity detection for accurate transcription
 
-**Wake Word Detection**:
-- Set up custom wake words like "Hey Assistant" or "Computer"
-- Hands-free activation from anywhere in your workflow
-
-**Continuous Conversation**:
+**Continuous Conversation** (Coming Soon):
 - Natural back-and-forth voice conversations
 - Context preservation across voice interactions
 - Audio processing pipeline with noise reduction

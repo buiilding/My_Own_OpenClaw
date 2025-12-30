@@ -27,7 +27,90 @@ The documentation is organized into several folders for better navigation:
 
 ## Recent Updates
 
-### Documentation Reorganization (Latest)
+### Documentation Updates (December 2025)
+
+1. **Final Documentation Cleanup (December 2025)**
+   - Removed documentation references to non-existent files that were deleted during refactoring:
+     - `backend/src/core/unified_config.py` - Unified configuration service (removed)
+     - `backend/src/services/persistent_shell_manager.py` - Deprecated persistent shell manager (removed)
+     - `backend/src/tools/execution/result_converter.py` - Result converter utility (removed)
+   - Updated `final_documented_files.txt` to remove these obsolete entries
+   - Verified all 211 remaining files have accurate documentation in `PYTHON_FILES_DOCUMENTATION.md`
+   - Confirmed documentation matches current codebase implementation
+
+### Documentation Updates (Latest)
+
+1. **Documentation File List Cleanup (December 2025)**
+   - Removed duplicate entries from `documented_files.txt` (10 files appeared twice each)
+   - Removed documentation for obsolete files that no longer exist in codebase:
+     - `backend/src/core/unified_config.py` - Unified configuration service (removed)
+     - `backend/src/services/persistent_shell_manager.py` - Deprecated persistent shell manager (removed)
+     - `backend/src/tools/execution/result_converter.py` - Result converter utility (removed)
+   - Updated file lists to match current codebase structure
+   - Regenerated `documented_files_unique.txt` from cleaned `documented_files.txt`
+   - Updated `actual_files.txt` to reflect current filesystem state
+
+2. **Documentation Discrepancy Fixes (December 2025)**
+   - Removed documentation for non-existent `services/__init__.py` file
+   - Added documentation for missing `core/utils/` files: `file_reader.py`, `file_type.py`, `mime_types.py`, `path_utils.py`, `schema_generator.py`, `text_reader.py`
+   - Added documentation for `core/messages.py` - Message structures and conversation history helpers
+   - Added documentation for `core/validation.py` - Centralized validation framework
+   - Updated `llm/models_config.py` description to accurately reflect its purpose (static model configuration)
+   - Updated `reference/module_reference.md` with new core utilities and messages module documentation
+   - Updated TTS service documentation to accurately reflect Piper TTS implementation
+   - Added missing wakeword configuration documentation to config reference
+   - Corrected user guide to clarify that STT features are coming soon while wake word detection is available
+   - Updated all model examples in configuration and API documentation to use current model names (claude-3-haiku-20240307, gpt-4o, etc.)
+   - Updated API reference examples to reflect current model availability and context windows
+   - Major security documentation overhaul: removed extensive unimplemented features and documented actual security implementation (permission system, resource limits, basic audit logging)
+   - Updated deployment documentation to remove Docker references since Docker deployment is not implemented
+   - Corrected troubleshooting guide health check examples to use WebSocket ping instead of non-existent HTTP health endpoint
+   - Updated testing documentation to reflect actual testing setup (removed references to pytest-cov, pytest-mock, pytest-xdist, and pytest.ini configuration that don't exist)
+   - Updated code quality documentation to reflect that only Black is configured (isort, flake8, mypy mentioned but not enforced)
+   - Updated main README.md to accurately reflect current project status and remove overpromising about unimplemented features (marketplace system complexity, security features scope, project completion status)
+   - Corrected tool count from "60+ built-in tools" to "17 built-in tools" throughout README and documentation
+   - Major marketplace documentation overhaul: removed references to comprehensive marketplace features (MarketplaceRegistry, semantic search, automated updates) that don't exist and documented the actual simple MarketplaceManager implementation
+   - Updated performance monitoring documentation to reflect that comprehensive metrics collection doesn't exist, only basic audit logging
+
+2. **Comprehensive File Documentation Audit and Cleanup (December 2025)**
+   - Added missing documentation for `core/interfaces/vision.py` - Vision service interface definitions
+   - Added missing documentation for `tools/computer/system_tools.py` - System information tools (GetOpenWindowsTool, GetSystemStatsTool)
+   - Added missing documentation for `tools/computer/window_utils.py` - Window utility functions for active window tracking
+   - Removed duplicate entries for multiple core utility files that appeared twice in the documentation
+   - Removed duplicate entries for `core/messages.py`, `sdk/agents/base.py`, and `tools/execution/progress_tracker.py`
+   - Fixed incorrect description for `tools/execution/progress_tracker.py` (was describing engine.py functionality)
+
+2. **Services Module Documentation**
+   - Removed documentation for non-existent `services/__init__.py` file
+   - Added documentation for missing `core/utils/` files: `file_reader.py`, `file_type.py`, `mime_types.py`, `path_utils.py`, `schema_generator.py`, `text_reader.py`
+   - Added documentation for `core/messages.py` - Message structures and conversation history helpers
+   - Added documentation for `core/validation.py` - Centralized validation framework
+   - Updated `llm/models_config.py` description to accurately reflect its purpose (static model configuration)
+   - Updated `reference/module_reference.md` with new core utilities and messages module documentation
+
+2. **Comprehensive File Documentation Audit**
+   - Added missing Python files to `PYTHON_FILES_DOCUMENTATION.md`
+   - Added documentation for `agent/presenter.py` - Response presenter for streaming events
+   - Added documentation for `core/messages.py` - Message structures and conversation history helpers
+   - Added documentation for `llm/prompt_metadata.py` and `llm/prompt.py` - Structured prompt handling
+   - Added documentation for new SDK agent helper classes (`config_helper.py`, `response_extractor.py`, `session_builder.py`)
+   - Added comprehensive documentation for new services module including shell management, system interfaces, and monitoring services
+   - Added documentation for `tools/actions/` - Tool action protocol system
+   - Added missing execution module files (`error_formatter.py`)
+   - Removed documentation for non-existent files (`tools/execution/aggregator.py`)
+
+2. **Services Module Documentation**
+   - Documented complete services architecture with shell management, system interfaces, and monitoring services
+   - Added documentation for deprecated `persistent_shell_manager.py` with migration guidance
+   - Documented cross-platform shell session management system
+   - Added documentation for system monitoring and token management services
+
+3. **Tool System Documentation**
+   - Added documentation for tool actions protocol system providing type-safe action dispatch
+   - Updated execution module documentation to reflect current implementation
+   - Improved accuracy of tool execution strategy documentation
+
+### Documentation Reorganization (Previous)
 
 1. **Folder Structure Reorganization**
    - Moved loose documentation files into organized folders
@@ -89,6 +172,7 @@ The documentation is organized into several folders for better navigation:
 - ✅ Plugin system documented
 - ✅ Session manager documented
 - ✅ State management documented
+- ✅ Response presenter documented
 
 #### API Layer (`backend/src/api/`)
 - ✅ WebSocket routes documented
@@ -110,6 +194,7 @@ The documentation is organized into several folders for better navigation:
 - ✅ Security framework documented
 - ✅ Core services documented
 - ✅ Utility modules documented
+- ✅ Message structures documented
 
 #### LLM Integration (`backend/src/llm/`)
 - ✅ LLM client documented
@@ -117,6 +202,8 @@ The documentation is organized into several folders for better navigation:
 - ✅ Prompt construction documented
 - ✅ Response parsing documented
 - ✅ Provider implementations documented
+- ✅ Prompt metadata structures documented
+- ✅ Structured prompt model documented
 
 #### Memory System (`backend/src/memory/`)
 - ✅ Memory manager documented
@@ -129,9 +216,14 @@ The documentation is organized into several folders for better navigation:
 - ✅ Execution context documented
 - ✅ SDK exceptions documented
 - ✅ Agent base class documented
+- ✅ Agent helper classes documented (config_helper, response_extractor, session_builder)
 
 #### Services (`backend/src/services/`)
 - ✅ Vision services documented
+- ✅ Shell management system documented
+- ✅ System interface abstractions documented
+- ✅ System monitoring services documented
+- ✅ Token management services documented
 
 #### Tools System (`backend/src/tools/`)
 - ✅ Tool registry documented
@@ -143,6 +235,7 @@ The documentation is organized into several folders for better navigation:
 - ✅ Computer control tools documented
 - ✅ Filesystem tools documented
 - ✅ System tools documented
+- ✅ Tool actions protocol documented
 
 ## Documentation Files
 

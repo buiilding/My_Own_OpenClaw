@@ -74,7 +74,7 @@ Discovery (Filesystem + Marketplace) → Loading → Validation → Schema Gener
 ```
 
 **Key Components:**
-- **50+ Built-in Tools**: Filesystem, system, computer control, web tools
+- **17 Built-in Tools**: Filesystem, system, computer control tools
 - **Marketplace Integration**: Community tool sharing and installation
 - **Security Sandboxing**: Restricted execution environment
 - **Streaming Progress**: Real-time execution updates

@@ -762,6 +762,38 @@ Utility modules.
 **Key Functions**:
 - `generate_json_schema(model: Type) -> Dict[str, Any]`: Generates JSON schema from Pydantic model
 
+#### `mime_types.py` - MIME Type Detection
+
+**Purpose**: MIME type detection based on extensions and magic number analysis.
+
+**Key Functions**:
+- `get_mime_type(file_path: Union[str, Path]) -> str`: Get MIME type of file
+- `get_specific_mime_type(file_path: Union[str, Path]) -> str`: Get optimized MIME type for tool usage
+
+#### `path_utils.py` - Path Utilities
+
+**Purpose**: Path manipulation and resolution utilities for file system operations.
+
+#### `text_reader.py` - Text File Reader
+
+**Purpose**: Specialized utilities for reading and processing text files with encoding detection.
+
+#### `messages.py` - Message Structures
+
+**Purpose**: Message structures and helpers for conversation history.
+
+**Key Classes**:
+- `StoredMessage`: Structured representation of messages in conversation history
+- `MessageContent`: Abstract base class for message content types
+- `TextContent`: Text-only message content
+- `ImageContent`: Multimodal message content with text and image
+- `MultimodalContentHelper`: Helper for extracting text from multimodal content
+
+**Key Methods**:
+- `StoredMessage.to_llm_message() -> LLMMessage`: Convert to LLM message format
+- `MessageContent.to_llm_format() -> Union[str, MultimodalContent]`: Convert to LLM format
+- `content_to_message_content(content) -> MessageContent`: Convert raw content to MessageContent
+
 ## LLM Integration
 
 ### `backend.src.llm`

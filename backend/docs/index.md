@@ -34,30 +34,30 @@ Welcome to the Personal Assistant Backend documentation. This documentation prov
 
 ### Development Guides
 - **[Module Reference](reference/module_reference.md)** - Comprehensive reference for all backend modules
-- **[SDK Reference Guide](sdk_reference.md)** - Complete SDK API reference and examples
-- **[Configuration Reference](config_reference.md)** - All configuration options explained
-- **[Advanced Configuration Guide](advanced_configuration.md)** - Advanced config scenarios and optimization
-- **[Plugin Development Guide](plugin_development_guide.md)** - Comprehensive plugin development with examples
-- **[Internal API Reference](internal_api_reference.md)** - Internal APIs and interfaces documentation
-- **[Performance Tuning Guide](performance_tuning_guide.md)** - Optimization techniques and monitoring
+- **[SDK Reference Guide](reference/sdk_reference.md)** - Complete SDK API reference and examples
+- **[Configuration Reference](reference/config_reference.md)** - All configuration options explained
+- **[Advanced Configuration Guide](reference/advanced_configuration.md)** - Advanced config scenarios and optimization
+- **[Plugin Development Guide](development/plugin_development_guide.md)** - Comprehensive plugin development with examples
+- **[Internal API Reference](reference/internal_api_reference.md)** - Internal APIs and interfaces documentation
+- **[Performance Tuning Guide](performance/performance_tuning_guide.md)** - Optimization techniques and monitoring
 - **[Contributing Guide](contributing.md)** - How to contribute to the project
-- **[Tool Development Guide](tool_development.md)** - Creating tools and agents
-- **[Tool Marketplace](tool_marketplace.md)** - Community tool sharing and management
-- **[Computer Control Tools](computer_control.md)** - Desktop automation and interaction
-- **[Filesystem Tools](filesystem_tools.md)** - File system operations and management
-- **[System Tools](system_tools.md)** - Shell command execution and system interaction
-- **[Vision Services](vision_services.md)** - AI-powered visual understanding
-- **[LLM Integration](llm_integration.md)** - Multi-provider LLM support and management
-- **[LLM Providers](llm_providers.md)** - Detailed provider implementations and configuration
-- **[Testing Guide](testing_guide.md)** - Testing patterns and best practices
-- **[API Reference](api_reference.md)** - REST API and WebSocket documentation
+- **[Tool Development Guide](development/tool_development.md)** - Creating tools and agents
+- **[Tool Marketplace](development/tool_marketplace.md)** - Community tool sharing and management
+- **[Computer Control Tools](development/computer_control.md)** - Desktop automation and interaction
+- **[Filesystem Tools](development/filesystem_tools.md)** - File system operations and management
+- **[System Tools](development/system_tools.md)** - Shell command execution and system interaction
+- **[Vision Services](development/vision_services.md)** - AI-powered visual understanding
+- **[LLM Integration](development/llm_integration.md)** - Multi-provider LLM support and management
+- **[LLM Providers](development/llm_providers.md)** - Detailed provider implementations and configuration
+- **[Testing Guide](development/testing_guide.md)** - Testing patterns and best practices
+- **[API Reference](reference/api_reference.md)** - REST API and WebSocket documentation
 - **[Developer Guide](DEVELOPER_GUIDE.md)** - Complete development workflow
 
 ### Operations & Deployment
 - **[Deployment Checklist](deployment_checklist.md)** - Comprehensive deployment verification
 - **[Deployment & Operations](deployment_operations.md)** - Production deployment and monitoring
-- **[Performance Monitoring](performance_monitoring.md)** - Metrics, alerting, and optimization
-- **[Performance Optimization](performance_optimization.md)** - System performance tuning and optimization
+- **[Performance Monitoring](performance/performance_monitoring.md)** - Metrics, alerting, and optimization
+- **[Performance Optimization](performance/performance_optimization.md)** - System performance tuning and optimization
 - **[Security & Permissions](security_framework.md)** - Security framework and access control
 - **[Troubleshooting Guide](troubleshooting/troubleshooting.md)** - Debugging and issue resolution
 - **[Troubleshooting Quick Reference](troubleshooting/troubleshooting_quick_ref.md)** - Common issues and solutions

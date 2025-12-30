@@ -20,34 +20,9 @@ python -m backend.src.main
 PYTHONPATH=/path/to/backend python -m backend.src.main --config /path/to/config.yaml
 ```
 
-#### Development Docker Setup
+#### Development Environment Setup
 
-```dockerfile
-# Dockerfile.dev
-FROM python:3.11-slim
-
-WORKDIR /app
-
-# Install development dependencies
-COPY requirements.txt requirements-dev.txt ./
-RUN pip install -r requirements.txt -r requirements-dev.txt
-
-# Mount source code for development
-COPY . .
-
-EXPOSE 8765
-
-# Development command with reload
-CMD ["uvicorn", "backend.src.main:app", "--host", "0.0.0.0", "--port", "8765", "--reload", "--log-level", "debug"]
-```
-
-```yaml
-# docker-compose.dev.yml
-version: '3.8'
-services:
-  assistant:
-    build:
-      context: .
+For development, use the direct Python approach with auto-reload:
       dockerfile: Dockerfile.dev
     ports:
       - "8765:8765"

@@ -115,7 +115,7 @@ config = AppConfig(
             api_key_env="OPENAI_API_KEY"
         ),
         anthropic=AnthropicConfig(
-            model="claude-3-7-sonnet-20250219",
+            model="claude-3-haiku-20240307",
             api_key_env="ANTHROPIC_API_KEY"
         )
     )
@@ -147,7 +147,7 @@ from backend.src.llm.providers.anthropic import AnthropicProvider
 provider = AnthropicProvider(config)
 
 response = await provider.get_completion(
-    model="claude-3-7-sonnet-20250219",
+    model="claude-3-haiku-20240307",
     messages=messages
 )
 ```
@@ -485,7 +485,7 @@ config = AppConfig(
             api_key_env="OPENAI_API_KEY"
         ),
         anthropic=AnthropicConfig(
-            model="claude-3-7-sonnet-20250219",
+            model="claude-3-haiku-20240307",
             api_key_env="ANTHROPIC_API_KEY"
         ),
         gemini=GeminiConfig(
@@ -552,7 +552,7 @@ async for chunk in client.get_completion_stream(model, messages):
 ```python
 # Different providers
 config.model_provider = "anthropic"
-config.selected_model_id = "claude-3-7-sonnet-20250219"
+config.selected_model_id = "claude-3-haiku-20240307"
 
 client = get_llm_client()
 response = await client.get_completion(model, messages)

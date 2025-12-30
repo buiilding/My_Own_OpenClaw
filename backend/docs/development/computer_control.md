@@ -247,41 +247,55 @@ class ScreenshotTool(Tool[ScreenshotArgs]):
     description = "Capture screen content for analysis"
 ```
 
-### ClickOCRTool
+### MouseTool (OCR Mode)
 
-Combines OCR with clicking capabilities to interact with text-based UI elements.
+Provides OCR-based text finding and clicking capabilities through the unified mouse control tool.
 
 ```python
-from backend.src.tools.computer.click_ocr_tool import ClickOCRTool
+from backend.src.tools.computer.mouse_tool import MouseTool, MouseControlArgs
 
-class ClickOCRArgs(BaseModel):
-    text: str
-    action: Literal["single_click", "double_click", "right_click"] = "single_click"
-    occurrence: int = 1
+# OCR-based clicking
+args = MouseControlArgs(
+    action="click",
+    find_coordinates_by="ocr",
+    ocr_text="Search",  # Exact text to find on screen
+    explanation="Clicking the search button to initiate search",
+    expectation="Search box should be focused and ready for typing"
+)
 
-class ClickOCRTool(Tool[ClickOCRArgs]):
-    name = "click_ocr"
-    description = "Find and click on text visible on screen using OCR"
+class MouseTool(Tool[MouseControlArgs]):
+    name = "mouse_control"
+    description = "Unified mouse control with OCR, prediction, and manual modes"
 ```
 
 **Features:**
-- Text recognition using OCR
-- Multiple occurrence handling
+- Text recognition using OCR with fuzzy matching (80% similarity threshold)
+- Automatic screenshot capture for OCR analysis
+- Support for single/double/right-click actions
 - Coordinate calculation for clicking
 - Fallback to vision-based detection
 
-### PredictClickTool
+### MouseTool (Prediction Mode)
 
-Uses vision models to intelligently predict clickable elements.
+Uses vision models to intelligently predict clickable elements through detailed visual descriptions.
 
 ```python
-from backend.src.tools.computer.predict_click_tool import PredictClickTool
+from backend.src.tools.computer.mouse_tool import MouseTool, MouseControlArgs
 
-class PredictClickArgs(BaseModel):
-    description: str
-    action: Literal["single_click", "double_click", "right_click"] = "single_click"
+# Vision-based clicking
+args = MouseControlArgs(
+    action="click",
+    find_coordinates_by="prediction",
+    description="blue submit button with rounded corners in the center of the form",  # Highly detailed description
+    model_name="gemini-2.5-flash",  # Optional specific vision model
+    explanation="Clicking the submit button to send the form",
+    expectation="Form should be submitted successfully"
+)
 
-class PredictClickTool(Tool[PredictClickArgs]):
+class MouseTool(Tool[MouseControlArgs]):
+    name = "mouse_control"
+    description = "Unified mouse control with OCR, prediction, and manual modes"
+```
     name = "predict_click"
     description = "Use AI vision to predict and click on UI elements"
 ```
@@ -551,12 +565,12 @@ print(f"Model loaded: {vision_model.is_loaded()}")
 
 | Tool | Purpose | Key Features |
 |------|---------|--------------|
-| `MouseTool` | Mouse control | Movement, clicking, scrolling |
-| `KeyboardTool` | Keyboard input | Text typing, key presses, hotkeys |
-| `ScreenshotTool` | Screen capture | Full/region screenshots |
-| `ClickOCRTool` | Text-based clicking | OCR text finding and clicking |
-| `PredictClickTool` | Vision-based clicking | AI-powered element detection |
-| `ScrollTool` | Scrolling operations | Directional scrolling |
+| `MouseTool` | Unified mouse control | OCR text finding, vision prediction, manual coordinates |
+| `KeyboardTool` | Keyboard input | Text typing, key presses, hotkeys, screenshot output |
+| `ScreenshotTool` | Screen capture | Full screen screenshots with explanation |
+| `ScrollTool` | Scrolling operations | Directional scrolling with screenshot output |
+| `SwitchTabTool` | Window/tab switching | Switch by name from get_open_windows list |
+| `WaitTool` | Timed waiting | 1-second pause with screenshot capture |
 
 This computer control system provides the foundation for comprehensive desktop automation, enabling the Personal Assistant to interact naturally with any application or system through intuitive, AI-powered interfaces.</contents>
 </xai:function_call">

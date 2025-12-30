@@ -49,6 +49,9 @@ User session lifecycle management. Manages the lifecycle of agent sessions inclu
 ### `backend/src/agent/state.py`
 Conversation history manager. Contains the `ConversationHistory` class which manages conversation state with automatic pruning to prevent context window overflow. Stores messages in internal format and converts to LLM message format when retrieving history.
 
+### `backend/src/agent/presenter.py`
+Response presenter for agent streaming events. Handles the presentation layer, enriching domain events with UI-specific metadata and formatting. Separates presentation concerns from core agent logic, providing structured event presentation for system prompts, user messages, tool schemas, and tool outputs.
+
 ### `backend/src/agent/plugins/__init__.py`
 Agent plugins package initialization. Exports `AgentPlugin` interface, `PluginResult` class, `PluginManager` class, and `ComputerUsePlugin` implementation.
 
@@ -207,6 +210,9 @@ Services interface definitions. Defines protocols for core service implementatio
 ### `backend/src/core/interfaces/tool.py`
 Tool interface definitions. Defines protocols and data structures for tool execution results, including `ToolResult` class.
 
+### `backend/src/core/interfaces/vision.py`
+Vision service interface definitions. Defines protocols for vision service implementations, including `IVisionService` protocol with methods for InternVL model initialization, status checking, and error handling.
+
 ### `backend/src/core/plugin_config.py`
 Plugin configuration management. Manages configuration for plugins, providing per-plugin configuration storage and access.
 
@@ -265,7 +271,7 @@ Service container. Provides a container for core services, managing service life
 Storage service. Provides storage operations for application data, handling file system operations and data persistence.
 
 ### `backend/src/core/services/tts_service.py`
-Text-to-Speech service. Provides TTS functionality using external TTS libraries. Handles text-to-speech conversion, audio streaming, and TTS model management.
+Text-to-Speech service using Piper TTS. Provides real-time text-to-speech synthesis with low-latency audio streaming. Handles sentence detection from text streams, background thread processing for audio chunk generation, and streaming audio output to WebSocket clients.
 
 ### `backend/src/core/services/workspace_service.py`
 Workspace service. Manages workspace-related operations including workspace detection, path resolution, and workspace-specific configuration.
@@ -275,9 +281,6 @@ Application shutdown module. Handles graceful shutdown of all application compon
 
 ### `backend/src/core/types.py`
 Type definitions and TypedDict structures. Provides TypedDict definitions for common dictionary structures used throughout the codebase, including LLM messages, streaming chunks, tool results, memory items, and API message formats.
-
-### `backend/src/core/unified_config.py`
-Unified configuration service. Provides a single source of truth for all configuration access, consolidating AppConfig, PluginConfig, and runtime configuration. Provides unified interface for application and plugin configuration.
 
 ### `backend/src/core/utils/__init__.py`
 Utilities package initialization. Empty package initialization file for the core utilities module.
@@ -295,25 +298,28 @@ File extension utilities. Provides mappings and utilities for file extensions an
 File metadata utilities. Extracts and manages file metadata including size, modification time, and type information.
 
 ### `backend/src/core/utils/file_reader.py`
-File reader utilities. Provides file reading functionality with support for different file types and encodings.
+File reading utilities. Provides utilities for reading files with encoding detection and content extraction. Facade that delegates to specialized readers (TextReader, BinaryReader) for different file types.
 
 ### `backend/src/core/utils/file_type.py`
-File type utilities. Provides file type detection and classification based on content and extensions.
+File type detection utilities. Provides file type detection based on extensions and content analysis with FileType enum and utility functions.
 
 ### `backend/src/core/utils/mime_types.py`
-MIME type utilities. Provides MIME type detection and mapping utilities.
+MIME type detection utilities. Provides MIME type detection based on extensions and magic number analysis with optimized MIME types for tool usage.
 
 ### `backend/src/core/utils/path_utils.py`
-Path utilities. Provides path manipulation and resolution utilities, including workspace-relative path handling.
+Path utilities. Provides path manipulation and resolution utilities for file system operations.
 
 ### `backend/src/core/utils/schema_generator.py`
-Schema generator utilities. Generates JSON schemas from Pydantic models for tool definitions and API validation.
+Schema generation utilities. Provides utilities for generating JSON schemas from Pydantic models and tool definitions.
 
 ### `backend/src/core/utils/text_reader.py`
-Text file reader. Provides specialized text file reading with encoding detection and content extraction.
+Text file reading utilities. Provides specialized utilities for reading and processing text files with encoding detection.
 
 ### `backend/src/core/validation.py`
-Centralized validation framework. Provides Pydantic-based validation for all API inputs with consistent error handling. Includes validation functions for messages, queries, settings updates, and field-level validation.
+Centralized validation framework. Provides Pydantic-based validation for all API inputs with consistent error handling, including message validation, field validation, and settings validation.
+
+### `backend/src/core/messages.py`
+Message structures and helpers for conversation history. Provides structured message types and utilities for handling multimodal content and message parsing. Defines `StoredMessage` dataclass for type-safe message representation, `MessageContent` abstract base class hierarchy, and helper functions for converting between LLM message formats and internal representations.
 
 ---
 
@@ -329,7 +335,7 @@ LLM client abstraction layer. Provides a unified interface for communicating wit
 Model service. Manages LLM model discovery, listing, and configuration. Provides model registry functionality for discovering available models from different providers.
 
 ### `backend/src/llm/models_config.py`
-Model configuration. Defines model configuration structures and model registry settings for different LLM providers.
+Static configuration for online and supported models. Provides curated registry of popular online AI models including thinking and non-thinking models, local vision models, and model provider mappings organized by provider.
 
 ### `backend/src/llm/parser.py`
 LLM response parser. Parses LLM responses to extract tool calls, text content, and structured data. Handles different response formats and extracts tool call information for execution.
@@ -340,8 +346,14 @@ Prompt constructor. Builds prompts for LLM interactions including system prompts
 ### `backend/src/llm/prompts.py`
 Prompt templates. Loads and formats the system prompt from `system_prompt.txt` with current context (OS, working directory). Provides the `load_system_prompt()` function that reads the system prompt file and formats it with runtime information.
 
+### `backend/src/llm/prompt_metadata.py`
+Prompt metadata for LLM interactions. Provides structured metadata about prompts constructed for LLM interactions, replacing dictionary-based metadata with type-safe dataclasses. Defines `UserMessageMetadata` and `PromptMetadata` classes for structured prompt information.
+
+### `backend/src/llm/prompt.py`
+Structured prompt model for LLM interactions. Provides a structured representation of prompts where history is stored exactly as it appears to the LLM. The `Prompt` class encapsulates complete conversation history ready for LLM consumption without dynamic injection.
+
 ### `backend/src/llm/system_prompt.txt`
-System prompt template file. Contains the complete system prompt text that defines agent behavior, tool usage guidelines, workflow phases, and available tool categories. Includes instructions for marketplace tools, tool schema compliance, and response formatting. This file is loaded by `prompts.py` and formatted with runtime context before being sent to the LLM.
+System prompt template file. Contains the complete system prompt text that defines agent behavior, tool usage guidelines, computer control strategies, and incremental step-by-step approach. Includes tool chaining guidelines, verification protocols, mouse interaction strategies, and JSON formatting requirements. This file is loaded by `prompts.py` and formatted with runtime context before being sent to the LLM.
 
 ### `backend/src/llm/providers/__init__.py`
 LLM providers package initialization. Exports provider factory function (`create_provider_factory`) and provider getter function (`get_provider`) that create and retrieve LLM provider instances. The factory creates instances of all supported providers (OpenAI, Anthropic, Gemini, Ollama, OpenRouter, Mistral, LMStudio, Default) based on configuration.
@@ -356,7 +368,7 @@ Base provider class. Defines abstract base class for LLM providers with common i
 Default provider implementation. Provides fallback provider implementation when specific provider is not available.
 
 ### `backend/src/llm/providers/gemini.py`
-Google Gemini provider implementation. Implements LLM client for Google's Gemini models, handling API communication and streaming.
+Google Gemini provider implementation. Implements LLM client for Google's Gemini models with thinking tokens disabled (budget_tokens: 0, type: "disabled") to prevent verbose reasoning output. Handles API communication and streaming.
 
 ### `backend/src/llm/providers/local.py`
 Local LLM provider implementation. Implements LLM client for local models (Ollama, LMStudio), handling local API communication and streaming.
@@ -411,9 +423,6 @@ Local memory store implementation. Implements memory storage using local databas
 ### `backend/src/sdk/__init__.py`
 SDK package initialization. Exports `Tool` base class, `ToolContext` and related context classes (`UserContext`, `SessionContext`, `ExecutionRuntime`), and `Context` alias for backward compatibility. Provides the base classes and interfaces for developing tools in the Personal Assistant system.
 
-### `backend/src/sdk/agents/base.py`
-Agent base classes for SDK. Provides base classes for developing custom agents using the SDK.
-
 ### `backend/src/sdk/context.py`
 Tool context definitions. Defines `ToolContext` class and related context classes (`UserContext`, `SessionContext`, `ExecutionRuntime`) that provide execution context to tools including user information, session data, and runtime services.
 
@@ -422,6 +431,18 @@ SDK error definitions. Defines custom exceptions for SDK-related errors includin
 
 ### `backend/src/sdk/tool.py`
 SDK tool base class. Provides the base `Tool` class that all tools in the system must inherit from. Tools are defined using Pydantic models for argument validation and async execution. Includes optimized JSON schema generation for LLM integration with automatic schema cleaning: removes unnecessary fields (title, additionalProperties, null defaults), simplifies Optional types, and produces compact, token-efficient schemas.
+
+### `backend/src/sdk/agents/base.py`
+Agent base classes for SDK. Provides base classes for developing custom agents using the SDK.
+
+### `backend/src/sdk/agents/config_helper.py`
+Agent configuration helper. Provides utilities for agent configuration management and validation.
+
+### `backend/src/sdk/agents/response_extractor.py`
+Agent response extractor. Provides utilities for extracting structured responses from agent outputs.
+
+### `backend/src/sdk/agents/session_builder.py`
+Agent session builder. Provides utilities for building and configuring agent sessions.
 
 ---
 
@@ -435,6 +456,53 @@ Coordinate utilities for vision. Provides utilities for coordinate transformatio
 
 ### `backend/src/services/vision/internvl.py`
 InternVL vision service. Integrates InternVL vision model for image understanding, OCR, and visual question answering capabilities.
+
+### `backend/src/services/vision/utils.py`
+Vision service utilities. Provides utility functions for vision-related operations and data processing.
+
+### `backend/src/services/vision/vision_service.py`
+Vision service manager. Manages the InternVL vision model instance for UI grounding, initializing the model at startup for fast first-time use.
+
+---
+
+## Services Module
+
+
+### `backend/src/services/system_monitor.py`
+System monitoring service. Provides system resource monitoring and health checking capabilities.
+
+### `backend/src/services/token_service.py`
+Token counting service. Provides token counting functionality for conversation messages using LiteLLM, including support for multimodal content with image token counting.
+
+### `backend/src/services/shell/__init__.py`
+Shell services package initialization. Exports shell management classes and utilities for cross-platform shell session management.
+
+### `backend/src/services/shell/interface.py`
+Shell interface definitions. Defines protocols and interfaces for shell session management and command execution.
+
+### `backend/src/services/shell/manager.py`
+Shell manager implementation. Provides unified shell session management across different platforms (Unix/Windows).
+
+### `backend/src/services/shell/unix_session.py`
+Unix shell session implementation. Implements shell session management for Unix-like systems.
+
+### `backend/src/services/shell/windows_session.py`
+Windows shell session implementation. Implements shell session management for Windows systems.
+
+### `backend/src/services/system/__init__.py`
+System services package initialization. Exports system interface abstractions and platform-specific implementations.
+
+### `backend/src/services/system/factory.py`
+System service factory. Provides factory methods for creating platform-appropriate system service instances.
+
+### `backend/src/services/system/interface.py`
+System interface definitions. Defines protocols for system-level operations and platform abstractions.
+
+### `backend/src/services/system/linux_interface.py`
+Linux system interface. Implements system operations specific to Linux platforms.
+
+### `backend/src/services/system/windows_interface.py`
+Windows system interface. Implements system operations specific to Windows platforms.
 
 ---
 
@@ -468,28 +536,34 @@ Tool registry. Central registry for managing SDK tools. Handles tool discovery, 
 Schema registry. Manages JSON schema generation for tools, providing caching and schema generation for LLM tool calling.
 
 ### `backend/src/tools/computer/__init__.py`
-Computer tools package initialization. Exports all computer automation tool classes including `ClickOCRTool`, `ComputerInterface`, `ScreenshotTool`, `MouseTool`, `KeyboardTool`, `PredictClickTool`, and `ScrollTool`. Provides tools for controlling mouse, keyboard, and UI elements through computer use automation capabilities.
-
-### `backend/src/tools/computer/click_ocr_tool.py`
-Click OCR tool. Tool for clicking on screen elements identified by OCR text. Takes a screenshot, performs OCR analysis, and searches for matching text using fuzzy matching (0.8 similarity threshold). Accepts `text` (string) parameter to specify the text to search for. If exactly one match is found, clicks on it. If multiple matches are found, returns their coordinates for manual selection. Supports single, double, and right-click types.
+Computer tools package initialization. Exports all computer automation tool classes including `ComputerInterface`, `ScreenshotTool`, `MouseTool`, `KeyboardTool`, `ScrollTool`, `SwitchTabTool`, and `WaitTool`. Provides tools for controlling mouse, keyboard, UI navigation, and screen capture through computer use automation capabilities.
 
 ### `backend/src/tools/computer/computer_interface.py`
-Computer interface abstraction. Provides abstraction layer for computer control operations including mouse, keyboard, and screen capture functionality.
+Computer interface abstraction. Provides abstraction layer for computer control operations including mouse, keyboard, screen capture, and window management functionality.
 
 ### `backend/src/tools/computer/keyboard_tool.py`
-Keyboard control tool. Tool for simulating keyboard input including key presses, text input, and keyboard shortcuts.
+Keyboard control tool. Tool for simulating keyboard input including key presses, text input, and keyboard shortcuts. Automatically captures screenshots after keyboard actions for verification.
 
 ### `backend/src/tools/computer/mouse_tool.py`
-Mouse control tool. Tool for simulating mouse operations including clicks, movements, and drag operations.
-
-### `backend/src/tools/computer/predict_click_tool.py`
-Predict click tool. Tool for predicting click locations based on visual analysis and user intent.
+Unified mouse control tool. Supports multiple coordinate finding strategies: manual coordinates, OCR text search, and vision-based prediction. Automatically captures screenshots after mouse actions for verification.
 
 ### `backend/src/tools/computer/screenshot_tool.py`
 Screenshot tool. Tool for capturing screenshots of the current screen state for visual analysis and context.
 
 ### `backend/src/tools/computer/scroll_tool.py`
-Scroll control tool. Tool for simulating scroll operations including vertical and horizontal scrolling.
+Scroll control tool. Tool for simulating scroll operations including vertical and horizontal scrolling. Automatically captures screenshots after scroll actions for verification.
+
+### `backend/src/tools/computer/switch_tab_tool.py`
+Switch tab tool. Tool for switching focus to specific windows/tabs by name from the list returned by get_open_windows. Automatically captures screenshots after tab switches for verification.
+
+### `backend/src/tools/computer/wait_tool.py`
+Wait tool. Tool that waits for exactly 1 second, then captures a screenshot. Useful for allowing UI changes to complete before verification.
+
+### `backend/src/tools/computer/system_tools.py`
+System information tools. Contains tools for getting system information including `GetOpenWindowsTool` (lists all currently open window titles with optional filtering) and `GetSystemStatsTool` (returns current system resource usage including CPU, memory, and battery status).
+
+### `backend/src/tools/computer/window_utils.py`
+Window utility functions. Provides utility functions for window management including `get_active_window_title()` (retrieves the title of the currently active window using xdotool) and `format_active_window_tag()` (formats active window title as XML tags for LLM messages).
 
 ### `backend/src/tools/discovery/__init__.py`
 Discovery package initialization. Exports `ToolDiscoverer` class that provides unified interface for discovering tools from various sources (core tools and marketplace tools). Acts as a facade for the tool discovery system.
@@ -509,20 +583,17 @@ Tool discoverer. Coordinates tool discovery from multiple sources and provides u
 ### `backend/src/tools/execution/__init__.py`
 Execution package initialization. Contains documentation for tool execution strategies module. Provides strategy pattern implementations for composable execution logic (security, auditing, caching, etc.). Empty package initialization file that documents the execution strategies module.
 
-### `backend/src/tools/execution/aggregator.py`
-**Note:** `ResultAggregator` has been removed. Aggregation logic is now inlined directly in `ToolOrchestrator.execute_tools_from_response()` for simplicity.
-
 ### `backend/src/tools/execution/batch_executor.py`
 Batch executor. Implements `BatchExecutor` class that executes multiple tool calls in parallel batches with configurable concurrency control. Manages parallel execution of tools while respecting maximum concurrent execution limits.
 
 ### `backend/src/tools/execution/engine.py`
 Tool execution engine. Implements `ToolExecutionEngine` class that handles core execution logic for individual tool calls. Manages tool retrieval, parameter validation, context creation, and execution via strategy chain. Separates execution logic from orchestration concerns.
 
+### `backend/src/tools/execution/error_formatter.py`
+Error formatter. Provides utilities for formatting and handling tool execution errors in a consistent manner.
+
 ### `backend/src/tools/execution/progress_tracker.py`
 Progress tracker. Implements `ProgressTracker` class that tracks progress of tool execution and provides streaming progress updates during long-running operations. Yields progress events as tools execute and generates execution summaries.
-
-### `backend/src/tools/execution/result_converter.py`
-Result converter. Converts SDK tool result dictionaries to ToolResult objects for compatibility. Provides `dict_to_tool_result` function that transforms dictionary-based tool results into the standardized ToolResult interface used throughout the execution system.
 
 ### `backend/src/tools/execution/summary.py`
 Execution summary. Provides `create_execution_summary` function that generates human-readable summaries of tool execution results. Creates formatted summaries including total execution time, success/failure counts, and tool statistics.
@@ -610,6 +681,15 @@ SDK tool template. Template file for creating new SDK tools, providing a startin
 
 ### `backend/src/tools/validation/validator.py`
 Tool validator. Validates tool calls before execution, checking parameters against tool schemas and ensuring tool availability.
+
+### `backend/src/tools/actions/__init__.py`
+Tool actions package initialization. Exports tool action protocol and registry classes for type-safe action dispatch.
+
+### `backend/src/tools/actions/protocol.py`
+Tool action protocol. Defines the interface for tool actions, providing type-safe action dispatch without if/else chains.
+
+### `backend/src/tools/actions/registry.py`
+Tool actions registry. Manages registration and lookup of tool actions for execution.
 
 ---
 

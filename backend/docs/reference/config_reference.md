@@ -44,7 +44,7 @@ llm_providers:
     model: "gpt-4o"
     api_key_env: "OPENAI_API_KEY"
   anthropic:
-    model: "claude-3.7-sonnet-20250219"
+    model: "claude-3-haiku-20240307"
     api_key_env: "ANTHROPIC_API_KEY"
   gemini:
     model: "gemini-2.5-flash"
@@ -115,7 +115,7 @@ selected_model_id: "gpt-4o"
 Specific model identifier. Available models depend on the provider:
 
 - **OpenAI**: `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`, `gpt-3.5-turbo`
-- **Anthropic**: `claude-3.7-sonnet-20250219`, `claude-3.5-sonnet-20241022`, `claude-3-haiku-20240307`
+- **Anthropic**: `claude-3-haiku-20240307`, `claude-sonnet-4-20250522`, `claude-sonnet-4-5-20250929`
 - **Gemini**: `gemini-2.5-flash`, `gemini-1.5-pro`, `gemini-1.5-flash`
 - **Ollama**: Any model pulled via `ollama pull`
 - **OpenRouter**: `openrouter/auto` or specific model names
@@ -152,7 +152,7 @@ llm_providers:
 ```yaml
 llm_providers:
   anthropic:
-    model: "claude-3.7-sonnet-20250219"
+    model: "claude-3-haiku-20240307"
     api_key_env: "ANTHROPIC_API_KEY"
 ```
 
@@ -299,6 +299,17 @@ speech_mode_enabled: false   # Enable speech recognition
 ```
 TTS (Text-to-Speech) and speech recognition settings. TTS requires additional model downloads.
 
+#### Wakeword Detection
+```yaml
+wakeword_enabled: true          # Enable wakeword detection
+wakeword_phrase: "hey jarvis"   # Wakeword phrase to detect
+wakeword_greetings:             # Random greetings when wakeword detected
+  - "Hello! I'm listening."
+  - "Hi there! How can I help you?"
+  - "Yes? I'm here to assist."
+```
+Wakeword detection settings for voice activation. When enabled, the system listens for the specified wakeword phrase and responds with a random greeting.
+
 ## Environment Variables
 
 Environment variables override configuration file settings and provide sensitive information:
@@ -321,7 +332,7 @@ ENABLE_HOT_RELOAD="true"    # Enable development hot reload
 ```bash
 # Override specific config values
 PA_MODEL_PROVIDER="anthropic"
-PA_SELECTED_MODEL="claude-3.7-sonnet-20250219"
+PA_SELECTED_MODEL="claude-3-haiku-20240307"
 PA_MEMORY_ENABLED="false"
 ```
 
@@ -345,7 +356,7 @@ Settings can be updated at runtime via the WebSocket API:
 ws.send(JSON.stringify({
   type: 'update-settings',
   payload: {
-    selected_model_id: 'claude-3.7-sonnet-20250219',
+    selected_model_id: 'claude-3-haiku-20240307',
     temperature: 0.8
   }
 }));
