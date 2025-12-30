@@ -64,7 +64,12 @@ class ComputerInterface:
         
         # Platform-specific scroll scaling
         # Windows requires 120 units per "tick". Mac/Linux usually use 1 or 10.
-        self._scroll_scale = 120 if platform.system() == "Windows" else 1
+        from backend.src.services.system import get_system_interface
+        system_interface = get_system_interface()
+        
+        # Check if Windows by checking the platform
+        is_windows = platform.system() == "Windows"
+        self._scroll_scale = 120 if is_windows else 1
 
     async def initialize(self) -> bool:
         """

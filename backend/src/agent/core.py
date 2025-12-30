@@ -95,8 +95,11 @@ class AgentSession:
         self.response_parser = ResponseParser()
 
         # Initialize state management
-        self.history = ConversationHistory(max_length=self.cfg.max_history_length)
         self.prompt_builder = PromptConstructor(self.tool_registry)
+        self.history = ConversationHistory(
+            max_length=None,  # Disable pruning
+            system_prompt=self.prompt_builder.system_prompt
+        )
 
         # Initialize memory system
         self.user_id = user_id

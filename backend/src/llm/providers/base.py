@@ -51,6 +51,7 @@ class LLMProvider(ABC):
             "base_url": self._get_base_url(provider_config),
             "timeout": self.config.llm_timeout,
         }
+
         return params
 
     @abstractmethod

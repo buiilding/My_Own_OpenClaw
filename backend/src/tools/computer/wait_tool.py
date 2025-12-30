@@ -28,7 +28,11 @@ class WaitToolArgs(BaseModel):
     )
     explanation: str = Field(
         ...,
-        description="One concise sentence explaining why this wait is being used and what you expect to see in the screenshot after waiting (e.g., 'Waiting for the page to load and expecting to see the dashboard displayed')."
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
+    expectation: str = Field(
+        ...,
+        description="One sentence describing what you expect to see in the screenshot after this action executes."
     )
 
 
@@ -93,16 +97,6 @@ class WaitTool(Tool[WaitToolArgs]):
             logger.debug(f"Wait tool: Waiting for {args.seconds} seconds")
             await asyncio.sleep(args.seconds)
 
-            # Capture screenshot after waiting
-            logger.debug("Wait tool: Capturing screenshot after wait")
-            screenshot_result = await self.computer.screenshot()
-            
-            if not screenshot_result.success or not screenshot_result.screenshot_data:
-                return {
-                    "error": screenshot_result.error or "Screenshot capture failed",
-                    "llm_content": f"Error: Wait completed but screenshot failed - {screenshot_result.error or 'Unknown error'}"
-                }
-
             # Format status message
             status_message = f"Waited for {args.seconds} seconds"
             if args.seconds == 1.0:
@@ -116,7 +110,6 @@ class WaitTool(Tool[WaitToolArgs]):
                 "success": True,
                 "seconds_waited": args.seconds,
                 "status": status_message,
-                "screenshot": screenshot_result.screenshot_data,
                 "llm_content": f"status: {status_message}",
                 "return_display": status_message
             }

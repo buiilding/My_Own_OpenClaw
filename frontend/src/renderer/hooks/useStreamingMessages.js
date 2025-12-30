@@ -167,6 +167,25 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
     });
   }, [setMessages]);
 
+  const handleToolSchemas = useCallback((data) => {
+    // Store tool schemas data - attach only to the first user message
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages];
+      // Find the first user message and attach tool schemas to it
+      // Tool schemas should only be displayed for the initial message
+      for (let i = 0; i < updatedMessages.length; i++) {
+        if (updatedMessages[i].sender === 'user') {
+          updatedMessages[i] = {
+            ...updatedMessages[i],
+            toolSchemas: data.payload.tool_schemas,
+          };
+          break; // Only attach to the first user message
+        }
+      }
+      return updatedMessages;
+    });
+  }, [setMessages]);
+
   const handleStreamingComplete = useCallback(() => {
     // Don't clear thinking status - keep it visible so users can review reasoning tokens
     // Thinking status will be cleared when a new query starts (in App.jsx handleSendMessage)
@@ -208,6 +227,7 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
     handleSystemPrompt,
     handleUserMessageFull,
     handleAssistantMessageFull,
+    handleToolSchemas,
   }), [
     handlePongResponse,
     handleLlmThought,
@@ -219,5 +239,6 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
     handleSystemPrompt,
     handleUserMessageFull,
     handleAssistantMessageFull,
+    handleToolSchemas,
   ]);
 }

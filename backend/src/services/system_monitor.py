@@ -1,163 +1,57 @@
-import platform
-import socket
-import subprocess
 import logging
-from datetime import datetime
-from typing import Dict, Optional, Tuple, List, Any
+from typing import Dict, Any
 
-# Third-party imports
-try:
-    import psutil
-    import pyperclip
-    import pyautogui
-    # Configure pyautogui to fail-safe and minimum interval
-    pyautogui.FAILSAFE = False
-    pyautogui.PAUSE = 0.0
-except ImportError:
-    # Handle missing dependencies gracefully during dev/test
-    psutil = None
-    pyperclip = None
-    pyautogui = None
+from backend.src.services.system import get_system_interface
 
 logger = logging.getLogger(__name__)
 
 class SystemMonitor:
     """
     Service for monitoring system state including windows, mouse, clipboard, and resources.
+    
+    Delegates all platform-specific operations to SystemInterface abstraction.
     """
     
     def __init__(self):
-        self.os_type = platform.system()
-        self._screen_size = self._get_initial_screen_size()
-        
-    def _get_initial_screen_size(self) -> str:
-        """Get screen size at startup."""
-        if pyautogui:
-            try:
-                width, height = pyautogui.size()
-                return f"{width}x{height}"
-            except Exception:
-                pass
-        return "Unknown"
+        """Initialize system monitor with platform-appropriate interface."""
+        self._system = get_system_interface()
 
     def get_active_window(self) -> str:
         """Get the title of the currently focused window."""
-        try:
-            if self.os_type == "Linux":
-                # Try xdotool first
-                try:
-                    result = subprocess.check_output(
-                        ["xdotool", "getactivewindow", "getwindowname"],
-                        stderr=subprocess.DEVNULL,
-                        timeout=0.5
-                    ).decode("utf-8").strip()
-                    return result if result else "No Active Window"
-                except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
-                    # Fallback to creating a generic response or checking other tools if needed
-                    pass
-            
-            # TODO: Add Windows/MacOS implementations if needed
-            
-            return "Unknown Window"
-        except Exception as e:
-            logger.debug(f"Error getting active window: {e}")
-            return "Unknown Window"
+        return self._system.get_active_window()
 
     def get_mouse_position(self) -> str:
         """Get current mouse coordinates."""
-        if not pyautogui:
-            return "(0, 0)"
-        try:
-            x, y = pyautogui.position()
-            return f"({x}, {y})"
-        except Exception:
-            return "(0, 0)"
+        x, y = self._system.get_mouse_position()
+        return f"({x}, {y})"
 
     def get_clipboard_preview(self, max_length: int = 100) -> str:
         """Get truncated clipboard content."""
-        if not pyperclip:
-            return ""
-        try:
-            content = pyperclip.paste()
-            if not content:
-                return "<empty>"
-            # Replace newlines to keep it one line in the XML
-            content = content.replace("\n", "\\n").replace("\r", "")
-            if len(content) > max_length:
-                return f"{content[:max_length]}..."
-            return content
-        except Exception as e:
-            logger.debug(f"Error reading clipboard: {e}")
-            return "<error>"
+        return self._system.get_clipboard_preview(max_length)
 
     def check_internet(self) -> str:
         """Quickly check internet connectivity."""
-        try:
-            # Connect to Google DNS
-            socket.create_connection(("8.8.8.8", 53), timeout=0.5)
-            return "Online"
-        except OSError:
-            return "Offline"
+        return self._system.check_internet()
 
     def get_screen_resolution(self) -> str:
         """Get current screen resolution."""
-        if pyautogui:
-            try:
-                width, height = pyautogui.size()
-                return f"{width}x{height}"
-            except Exception:
-                pass
-        return self._screen_size
+        return self._system.get_screen_resolution()
 
     def get_system_time(self) -> str:
         """Get current formatted system time."""
-        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        return self._system.get_system_time()
 
-    def get_open_windows(self) -> List[str]:
+    def get_open_windows(self) -> list[str]:
         """Get list of all open window titles."""
-        windows = []
-        if self.os_type == "Linux":
-            try:
-                # Use wmctrl if available
-                output = subprocess.check_output(
-                    ["wmctrl", "-l"], 
-                    stderr=subprocess.DEVNULL
-                ).decode("utf-8")
-                
-                for line in output.splitlines():
-                    parts = line.split(maxsplit=3)
-                    if len(parts) >= 4:
-                        # parts[3] is the hostname + title usually, depends on wmctrl output
-                        # wmctrl output: <id> <desktop> <machine> <title>
-                        title = parts[3]
-                        windows.append(title)
-            except (FileNotFoundError, subprocess.CalledProcessError):
-                # Fallback to xdotool search
-                pass
-        return windows
+        return self._system.get_open_windows()
+
+    def switch_to_window(self, window_title: str) -> bool:
+        """Switch focus to a window with the given title."""
+        return self._system.switch_to_window(window_title)
 
     def get_system_stats(self) -> Dict[str, Any]:
         """Get system resource usage."""
-        stats = {
-            "cpu_percent": 0.0,
-            "memory_percent": 0.0,
-            "battery_percent": None,
-            "battery_charging": None
-        }
-        
-        if psutil:
-            try:
-                stats["cpu_percent"] = psutil.cpu_percent(interval=None)
-                stats["memory_percent"] = psutil.virtual_memory().percent
-                
-                battery = psutil.sensors_battery()
-                if battery:
-                    stats["battery_percent"] = round(battery.percent, 1)
-                    stats["battery_charging"] = battery.power_plugged
-            except Exception as e:
-                logger.error(f"Error reading system stats: {e}")
-                
-        return stats
+        return self._system.get_system_stats()
 
     def get_full_state_xml(self) -> str:
         """

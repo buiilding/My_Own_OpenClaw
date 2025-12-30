@@ -22,7 +22,11 @@ class ScreenshotToolArgs(BaseModel):
     
     explanation: str = Field(
         ...,
-        description="One concise sentence explaining why this screenshot is being captured and what you expect to see in the resulting image (e.g., 'Capturing the current screen state to verify the login form is displayed')."
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
+    expectation: str = Field(
+        ...,
+        description="One sentence describing what you expect to see in the screenshot after this action executes."
     )
 
 

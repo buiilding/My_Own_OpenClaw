@@ -7,7 +7,21 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional, Union
 
-from backend.src.core.events import AgentStreamingEvent, StreamingEvent
+from backend.src.core.events import (
+    AgentStreamingEvent,
+    StreamingEvent,
+    ThinkingEvent,
+    ChunkEvent,
+    ErrorEvent,
+    StreamingCompleteEvent,
+    ToolCallEvent,
+    ToolOutputEvent,
+    SystemPromptEvent,
+    ToolSchemasEvent,
+    UserMessageFullEvent,
+    AssistantMessageFullEvent,
+    TokenCountEvent,
+)
 from backend.src.core.types import StreamingEventType
 
 logger = logging.getLogger(__name__)
@@ -131,6 +145,20 @@ class SystemPromptEventFormatter(EventFormatter):
         }
 
 
+class ToolSchemasEventFormatter(EventFormatter):
+    """Formatter for tool schemas events."""
+
+    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
+        event_dict = self._get_event_dict(event)
+        return {
+            "type": "tool-schemas",
+            "id": msg_id,
+            "payload": {
+                "tool_schemas": event_dict.get("tool_schemas"),
+            },
+        }
+
+
 class UserMessageFullEventFormatter(EventFormatter):
     """Formatter for full user message events."""
 
@@ -160,6 +188,23 @@ class AssistantMessageFullEventFormatter(EventFormatter):
         }
 
 
+class TokenCountEventFormatter(EventFormatter):
+    """Formatter for token count events."""
+
+    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
+        event_dict = self._get_event_dict(event)
+        return {
+            "type": "token-count",
+            "id": msg_id,
+            "payload": {
+                "input_tokens": event_dict.get("input_tokens"),
+                "output_tokens": event_dict.get("output_tokens"),
+                "total_tokens": event_dict.get("total_tokens"),
+                "conversation_tokens": event_dict.get("conversation_tokens"),
+            },
+        }
+
+
 class ResponseFormatter:
     """
     Formats agent events into WebSocket response messages.
@@ -177,8 +222,10 @@ class ResponseFormatter:
             StreamingEventType.TOOL_CALL.value: ToolCallEventFormatter(),
             StreamingEventType.TOOL_OUTPUT.value: ToolOutputEventFormatter(),
             StreamingEventType.SYSTEM_PROMPT.value: SystemPromptEventFormatter(),
+            StreamingEventType.TOOL_SCHEMAS.value: ToolSchemasEventFormatter(),
             StreamingEventType.USER_MESSAGE_FULL.value: UserMessageFullEventFormatter(),
             StreamingEventType.ASSISTANT_MESSAGE_FULL.value: AssistantMessageFullEventFormatter(),
+            StreamingEventType.TOKEN_COUNT.value: TokenCountEventFormatter(),
         }
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
@@ -192,15 +239,34 @@ class ResponseFormatter:
         Returns:
             Formatted response dictionary or None if event type not recognized
         """
-        # Get event type from typed event or dict
-        if isinstance(event, StreamingEvent):
-            event_type = event.type.value
-        else:
+        # Use isinstance checks for type-safe dispatch
+        if isinstance(event, ThinkingEvent):
+            return self._formatters[StreamingEventType.THINKING.value].format(event, msg_id)
+        elif isinstance(event, ChunkEvent):
+            return self._formatters[StreamingEventType.CHUNK.value].format(event, msg_id)
+        elif isinstance(event, ErrorEvent):
+            return self._formatters[StreamingEventType.ERROR.value].format(event, msg_id)
+        elif isinstance(event, StreamingCompleteEvent):
+            return self._formatters[StreamingEventType.STREAMING_COMPLETE.value].format(event, msg_id)
+        elif isinstance(event, ToolCallEvent):
+            return self._formatters[StreamingEventType.TOOL_CALL.value].format(event, msg_id)
+        elif isinstance(event, ToolOutputEvent):
+            return self._formatters[StreamingEventType.TOOL_OUTPUT.value].format(event, msg_id)
+        elif isinstance(event, SystemPromptEvent):
+            return self._formatters[StreamingEventType.SYSTEM_PROMPT.value].format(event, msg_id)
+        elif isinstance(event, ToolSchemasEvent):
+            return self._formatters[StreamingEventType.TOOL_SCHEMAS.value].format(event, msg_id)
+        elif isinstance(event, UserMessageFullEvent):
+            return self._formatters[StreamingEventType.USER_MESSAGE_FULL.value].format(event, msg_id)
+        elif isinstance(event, AssistantMessageFullEvent):
+            return self._formatters[StreamingEventType.ASSISTANT_MESSAGE_FULL.value].format(event, msg_id)
+        elif isinstance(event, TokenCountEvent):
+            return self._formatters[StreamingEventType.TOKEN_COUNT.value].format(event, msg_id)
+        elif isinstance(event, dict):
+            # Backward compatibility with dict events
             event_type = event.get("type")
-        
-        formatter = self._formatters.get(event_type)
-        
-        if formatter:
-            return formatter.format(event, msg_id)
+            formatter = self._formatters.get(event_type)
+            if formatter:
+                return formatter.format(event, msg_id)
         
         return None

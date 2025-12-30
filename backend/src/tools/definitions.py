@@ -9,6 +9,7 @@ from backend.src.tools.computer.keyboard_tool import KeyboardTool
 from backend.src.tools.computer.mouse_tool import MouseTool
 from backend.src.tools.computer.scroll_tool import ScrollTool
 from backend.src.tools.computer.screenshot_tool import ScreenshotTool
+from backend.src.tools.computer.switch_tab_tool import SwitchTabTool
 from backend.src.tools.computer.wait_tool import WaitTool
 from backend.src.tools.filesystem.write_file_tool import WriteFileTool
 from backend.src.tools.filesystem.replace_tool import ReplaceTool
@@ -27,6 +28,7 @@ CORE_TOOLS = [
     MouseTool,
     ScrollTool,
     ScreenshotTool,
+    SwitchTabTool,
     WaitTool,
     WriteFileTool,
     ReplaceTool,

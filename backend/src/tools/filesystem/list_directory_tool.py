@@ -92,7 +92,7 @@ After listing, use read_file to examine file contents, or glob to find files by 
                 # Resolve relative path to absolute using current working directory (from shell tool)
                 session_id = ctx.session.session_id
                 user_id = ctx.user.user_id
-                current_dir = ShellTool.get_current_working_directory(session_id, user_id)
+                current_dir = await ShellTool.get_current_working_directory(session_id, user_id)
                 path = os.path.abspath(os.path.join(current_dir, path))
                 logger.info(
                     f"ListDirectory: Resolved relative path to absolute using current dir: {path}"

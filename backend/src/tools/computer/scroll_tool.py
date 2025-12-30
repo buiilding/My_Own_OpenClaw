@@ -8,6 +8,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.core.security.policy import Permission
+from backend.src.core.types import ScrollDirection as ScrollDirectionEnum
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
 from backend.src.tools.categorization import ToolDomain
@@ -15,6 +16,7 @@ from backend.src.tools.computer.computer_interface import ComputerInterface
 
 logger = logging.getLogger(__name__)
 
+# Scroll direction for this tool (different from ScrollDirection enum used in mouse_tool)
 ScrollDirection = Literal["up", "down", "left", "right"]
 
 
@@ -28,7 +30,11 @@ class ScrollControlArgs(BaseModel):
     direction: Optional[ScrollDirection] = Field(None, description="Direction for scroll action ('up', 'down', 'left', 'right')")
     explanation: str = Field(
         ...,
-        description="One concise sentence explaining why this tool is being used and what you expect to see in the screenshot after this scroll action executes (e.g., 'Scrolling down to reveal more content and expecting to see additional items in the list')."
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
+    expectation: str = Field(
+        ...,
+        description="One sentence describing what you expect to see in the screenshot after this scroll action executes."
     )
 
 

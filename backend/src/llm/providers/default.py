@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, Dict, List, Optional
 
 from backend.src.core.config import AppConfig
 from backend.src.core.types import LLMMessage
@@ -37,7 +37,8 @@ class DefaultProvider(GeminiProvider):
             provider_name in ONLINE_THINKING_MODELS
             and model in ONLINE_THINKING_MODELS[provider_name]
         ):
-            params["thinking"] = {"type": "enabled", "budget_tokens": 16384}
+            # Disable thinking tokens for Gemini models
+            params["thinking"] = {"type": "disabled", "budget_tokens": 0}
 
         return params
 

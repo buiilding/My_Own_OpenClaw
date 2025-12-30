@@ -78,7 +78,7 @@ PRINCIPLE: Prefer multiple read_file calls if you're unsure which files to read.
             # Get target directory for relative path resolution
             session_id = ctx.session.session_id
             user_id = ctx.user.user_id
-            target_dir = ShellTool.get_current_working_directory(session_id, user_id)
+            target_dir = await ShellTool.get_current_working_directory(session_id, user_id)
 
             # Collect all file paths
             all_files = set()

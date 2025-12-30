@@ -27,6 +27,7 @@ except ImportError:
 
 from backend.src.core.config import get_config_dir
 from backend.src.core.interfaces.embedding import EmbeddingProvider
+from backend.src.core.types import MemoryType
 
 logger = logging.getLogger(__name__)
 
@@ -345,10 +346,13 @@ class LocalMemoryStore:
         timestamp = datetime.now().isoformat()
 
         # Extract memory type from metadata (default to episodic for backward compatibility)
-        memory_type = metadata.get("type", "episodic") if metadata else "episodic"
-
-        if memory_type not in ("episodic", "semantic"):
-            raise ValueError(f"Invalid memory type: {memory_type}. Must be 'episodic' or 'semantic'")
+        memory_type_str = metadata.get("type", "episodic") if metadata else "episodic"
+        
+        # Convert string to enum for type safety
+        try:
+            memory_type = MemoryType(memory_type_str)
+        except ValueError:
+            raise ValueError(f"Invalid memory type: {memory_type_str}. Must be 'episodic' or 'semantic'")
 
         # Generate embedding
         embedding = self.embedder.embed_text(text)
@@ -356,7 +360,7 @@ class LocalMemoryStore:
         faiss.normalize_L2(embedding)
 
         # Route to appropriate database and index
-        if memory_type == "episodic":
+        if memory_type == MemoryType.EPISODIC:
             db_path = self.episodic_db_path
             index = self.episodic_index
             vector_id = self.episodic_next_vector_id
@@ -441,10 +445,16 @@ class LocalMemoryStore:
             elif "type" in filters:
                 memory_type_filter = filters["type"]
             
-            if memory_type_filter == "episodic":
-                search_semantic = False
-            elif memory_type_filter == "semantic":
-                search_episodic = False
+            # Convert string filter to enum for type safety
+            try:
+                memory_type_enum = MemoryType(memory_type_filter)
+                if memory_type_enum == MemoryType.EPISODIC:
+                    search_semantic = False
+                elif memory_type_enum == MemoryType.SEMANTIC:
+                    search_episodic = False
+            except ValueError:
+                # Invalid memory type filter, ignore it
+                pass
 
         # Generate query embedding
         query_embedding = self.embedder.embed_text(query)
@@ -749,10 +759,16 @@ class LocalMemoryStore:
             elif "type" in filters:
                 memory_type_filter = filters["type"]
 
-            if memory_type_filter == "episodic":
-                search_semantic = False
-            elif memory_type_filter == "semantic":
-                search_episodic = False
+            # Convert string filter to enum for type safety
+            try:
+                memory_type_enum = MemoryType(memory_type_filter)
+                if memory_type_enum == MemoryType.EPISODIC:
+                    search_semantic = False
+                elif memory_type_enum == MemoryType.SEMANTIC:
+                    search_episodic = False
+            except ValueError:
+                # Invalid memory type filter, ignore it
+                pass
 
         # Search both databases in parallel
         search_tasks = []
@@ -762,7 +778,7 @@ class LocalMemoryStore:
                 self._get_by_filters_from_db(
                     user_id=user_id,
                     db_path=self.episodic_db_path,
-                    memory_type="episodic",
+                    memory_type=MemoryType.EPISODIC.value,
                     filters=filters,
                 )
             )
@@ -772,7 +788,7 @@ class LocalMemoryStore:
                 self._get_by_filters_from_db(
                     user_id=user_id,
                     db_path=self.semantic_db_path,
-                    memory_type="semantic",
+                    memory_type=MemoryType.SEMANTIC.value,
                     filters=filters,
                 )
             )
@@ -866,8 +882,19 @@ class LocalMemoryStore:
         end_iso = end_time.isoformat()
 
         # Determine which databases to search
-        search_episodic = memory_type is None or memory_type == "episodic"
-        search_semantic = memory_type is None or memory_type == "semantic"
+        # Convert string to enum if provided, otherwise search both
+        if memory_type is None:
+            search_episodic = True
+            search_semantic = True
+        else:
+            try:
+                memory_type_enum = MemoryType(memory_type) if isinstance(memory_type, str) else memory_type
+                search_episodic = memory_type_enum == MemoryType.EPISODIC
+                search_semantic = memory_type_enum == MemoryType.SEMANTIC
+            except (ValueError, AttributeError):
+                # Invalid memory type, search both for safety
+                search_episodic = True
+                search_semantic = True
 
         # Search both databases in parallel
         search_tasks = []

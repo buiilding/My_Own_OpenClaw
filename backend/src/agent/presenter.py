@@ -5,13 +5,14 @@ This module handles the presentation layer, enriching domain events with UI-spec
 metadata and formatting. Separates presentation concerns from core agent logic.
 """
 import logging
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator, Dict, Optional
 
 from backend.src.core.events import (
     AgentStreamingEvent,
     AssistantMessageFullEvent,
     SystemPromptEvent,
     ToolOutputEvent,
+    ToolSchemasEvent,
     UserMessageFullEvent,
 )
 from backend.src.llm.prompt_metadata import PromptMetadata
@@ -53,9 +54,9 @@ class ResponsePresenter:
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
         Present user message event with injected context metadata.
-        
-        Tool schemas are included in metadata for initial user messages only.
-        
+
+        Tool schemas are now passed as a separate parameter to the LLM, not embedded in message content.
+
         Args:
             prompt_metadata: Prompt metadata containing user message metadata
         """
@@ -67,14 +68,26 @@ class ResponsePresenter:
                 "injected_context": user_meta.injected_context,
                 "active_window": user_meta.active_window,
             }
-            # Include tool schemas in metadata for initial user messages only
-            if user_meta.context_type == "initial" and prompt_metadata.tool_schemas is not None:
-                metadata["tool_schemas"] = prompt_metadata.tool_schemas
-            
+            # Tool schemas are now passed as a separate parameter, not embedded in metadata
+
             yield UserMessageFullEvent(
                 content=user_meta.full_content,
                 metadata=metadata,
             )
+
+    async def present_tool_schemas(
+        self, tool_schemas: Optional[Dict[str, Any]]
+    ) -> AsyncGenerator[AgentStreamingEvent, None]:
+        """
+        Present tool schemas event for transparency.
+
+        Tool schemas are now passed as a separate parameter to the LLM API.
+
+        Args:
+            tool_schemas: Tool schemas dictionary or None
+        """
+        if tool_schemas is not None:
+            yield ToolSchemasEvent(tool_schemas=tool_schemas)
 
     async def present_tool_output(
         self,

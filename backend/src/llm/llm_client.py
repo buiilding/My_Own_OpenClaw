@@ -7,13 +7,14 @@ different Large Language Models (LLMs) through the LiteLLM library.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, List
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from backend.src.core.config import AppConfig
 from backend.src.core.events import StreamingEvent
 from backend.src.core.exceptions import LLMAPIError, LLMRateLimitError
 from backend.src.core.types import LLMMessage
 from backend.src.llm.providers import get_provider
+from backend.src.services.token_service import get_token_service
 
 logger = logging.getLogger(__name__)
 
