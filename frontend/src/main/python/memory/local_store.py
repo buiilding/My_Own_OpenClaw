@@ -1244,7 +1244,7 @@ class LocalMemoryStore:
         return new_count
     
     async def get_unprocessed_memories_after_id(
-        self, last_id: Optional[str], user_id: str, limit: int = 1000
+        self, last_id: Optional[str], user_id: str, limit: int = 1000 
     ) -> List[Dict[str, Any]]:
         """
         Get all episodic memories after the watermark ID that haven't been processed.
