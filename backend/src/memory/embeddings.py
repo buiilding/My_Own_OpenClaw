@@ -36,14 +36,30 @@ class SentenceTransformerProvider(EmbeddingProvider):
             if cached_embedding is not None:
                 return cached_embedding
             
+            # Clear GPU cache before embedding to free up memory
+            from backend.src.core.services.gpu_memory_manager import GPUMemoryManager
+            GPUMemoryManager.clear_all_caches()
+            
             # Generate embedding
             embedding = self.model.encode(text, convert_to_numpy=True)
+            
+            # Clear GPU cache after embedding to free memory
+            GPUMemoryManager.clear_all_caches()
             
             # Cache it
             cache_manager.embeddings.set(cache_key, embedding)
             return embedding
         else:
-            return self.model.encode(text, convert_to_numpy=True)
+            # Clear GPU cache before embedding
+            from backend.src.core.services.gpu_memory_manager import GPUMemoryManager
+            GPUMemoryManager.clear_all_caches()
+            
+            embedding = self.model.encode(text, convert_to_numpy=True)
+            
+            # Clear GPU cache after embedding
+            GPUMemoryManager.clear_all_caches()
+            
+            return embedding
 
     def embed_batch(self, texts: List[str]) -> List[np.ndarray]:
         """Generate embeddings for a batch of texts."""

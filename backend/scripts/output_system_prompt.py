@@ -54,8 +54,7 @@ async def main():
     history = ConversationHistory()
 
     # Build prompt with tools included (this is how it's sent to the LLM on first message)
-    prompt_messages, prompt_metadata = prompt_constructor.build_prompt(
-        history=[],  # Unused - history comes from stored_messages
+    prompt_messages, tool_schemas, prompt_metadata = prompt_constructor.build_prompt(
         stored_messages=history,  # Pass history object
         include_tools=True  # This includes tool schemas at the start
     )

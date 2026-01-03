@@ -159,7 +159,12 @@ The main process runs in Node.js and manages the application lifecycle, window m
    - Sends handshake message on connect: `{ type: 'handshake', user_id: 'default_user' }`
    - Tracks connection status and notifies renderer via `ipc-status` channel
 4. **Message Format**: Adds `id` (UUID v4 generated via `uuid` package), `type`, `payload`, and `timestamp` (ISO string) to messages before sending to backend
-5. **Logging**: Selective logging - only logs important events (errors, queries, wakeword detections). Debug logging is available but commented out.
+5. **System Context Management**:
+   - **Initial/Sequential Queries**: Retrieves system state in parallel with memory search (fast execution)
+   - **Tool Results**: Retrieves system context immediately after tool execution (waits up to 30s, never skipped)
+   - **System Context is MANDATORY**: Always includes system context, uses fallback if retrieval fails
+   - **Parallel Execution**: System state capture runs operations in parallel for faster execution
+6. **Logging**: Selective logging - only logs important events (errors, queries, wakeword detections). Debug logging is available but commented out.
 
 **IPC Channels**:
 - `to-backend`: Renderer → Main → Backend (messages with type, payload)
@@ -167,6 +172,24 @@ The main process runs in Node.js and manages the application lifecycle, window m
 - `ipc-status`: Connection status updates (`{ isConnected: boolean }`)
 
 **Error Handling**: Logs errors, handles WebSocket errors gracefully, continues reconnection attempts.
+
+**System Context Retrieval**:
+
+System context is **MANDATORY** and must always be retrieved and provided to the LLM. The system will use fallback context if retrieval fails, but it will never skip system context entirely.
+
+1. **Initial/Sequential User Queries**:
+   - Retrieves system state in parallel with memory search (fast execution)
+   - Initial query: Full system state (all windows, system stats, etc.)
+   - Sequential query: Minimal system state (active window, mouse position, time, clipboard)
+   - System state capture runs operations in parallel (max_workers=5) for faster execution
+   - Always includes system context, uses fallback if retrieval fails
+
+2. **Tool Results**:
+   - Retrieves system context immediately after tool execution completes
+   - Waits up to 30 seconds for system context (safety timeout, normally completes quickly)
+   - Extracts active_window, mouse_position, and time from XML
+   - Adds to tool-result payload as `system_context` object
+   - Always includes system context, uses fallback if retrieval fails
 
 ---
 
@@ -215,6 +238,88 @@ The main process runs in Node.js and manages the application lifecycle, window m
 - Audio chunks: `[4-byte length (little-endian)][audio data]`
 - Detection results: `[4-byte length (little-endian)][JSON string]`
 - Reset signal: `[4-byte length = 0]`
+
+---
+
+### `src/main/python/runner.py`
+**Purpose**: Main Python sidecar process that handles tool execution and system state requests.
+
+**Key Responsibilities**:
+1. **Message Processing**: Reads messages from stdin, processes requests
+2. **Tool Execution**: Routes tool execution requests to ToolDispatcher
+3. **System State Requests**: Handles system state requests (initial/sequential)
+4. **Memory Search**: Handles memory search requests from backend
+
+**Message Types**:
+- `request`: Tool execution request → routes to ToolDispatcher
+- `system_state_request`: System state request → calls system_state module
+- `memory_search_request`: Memory search request → queries local memory store
+
+---
+
+### `src/main/python/core/dispatcher.py`
+**Purpose**: Tool dispatcher that routes tool execution requests to appropriate tool implementations.
+
+**Key Responsibilities**:
+1. **Tool Discovery**: Automatically discovers and loads tools from `tools/` directory
+2. **Tool Execution**: Executes tools with validated arguments using global thread pool
+3. **Automatic Screenshot Capture**: Captures screenshots automatically after tool execution (for tools with `auto_capture_image = "screenshot"`)
+4. **Result Formatting**: Formats tool results with system state XML
+5. **Logging**: Detailed logging for tool execution timing and completion
+
+**Automatic Screenshot Capture**:
+- Tools with `auto_capture_image = "screenshot"` automatically capture screenshots after execution
+- **Delay**: Waits 2 seconds after tool execution before capturing screenshot (allows UI to update)
+- **Note**: The `screenshot` tool itself does NOT have this delay - it captures immediately
+- Tools with automatic capture: `mouse_control`, `keyboard_control`, `scroll_control`, `switch_tab`, `wait`
+
+**System State in Tool Results**:
+- Tool results are automatically formatted with system state XML
+- System state is retrieved right after tool execution (parallelized operations)
+- System state is MANDATORY - always included in formatted output
+
+**Logging**:
+- Logs tool execution completion: `Tool execution completed for {tool_name}`
+- Logs system state capture completion: `System state capture finished for {tool_name}`
+- Logs response sending: `Sending response for tool {tool_name}`
+
+---
+
+### `src/main/python/core/system_state.py`
+**Purpose**: System state capture for frontend tool results and user messages.
+
+**Key Functions**:
+- `get_initial_state_xml()`: Full system state (all windows, system stats, etc.)
+- `get_sequential_state_xml()`: Minimal system state (active window, mouse position, time, clipboard)
+- `get_system_state_xml()`: Standard system state for tool output formatting
+- `capture_system_state()`: Core function that captures system state (parallelized operations)
+
+**Performance Optimizations**:
+- **Parallel Execution**: All independent operations run in parallel using global thread pool
+  - `_get_active_window()`: Uses xdotool/wmctrl (Linux)
+  - `_get_mouse_position()`: Uses pyautogui
+  - `_get_screen_resolution()`: Uses pyautogui
+  - `_get_clipboard_preview()`: Uses pyperclip
+  - `_check_internet()`: Socket connection check
+- **Global Thread Pool**: Uses shared thread pool from `core.thread_pool` for efficient execution
+- **Fast Execution**: Operations execute concurrently to minimize total time
+- **Error Handling**: Individual operation failures don't block others
+
+---
+
+### `src/main/python/core/thread_pool.py`
+**Purpose**: Global thread pool for efficient async execution of blocking operations.
+
+**Key Functions**:
+- `get_executor(max_workers=10)`: Returns singleton `ThreadPoolExecutor` instance
+- `shutdown_executor(wait=True)`: Gracefully shuts down the thread pool
+
+**Benefits**:
+- **Eliminates Thread Churn**: Single shared pool avoids creating/destroying threads for each operation
+- **Better Resource Utilization**: Reuses worker threads across all tools and operations
+- **Consistent Performance**: Reduces overhead from thread lifecycle management
+
+**Usage**: All blocking operations (pyautogui, file I/O, FAISS, JSON operations) use this global pool via `loop.run_in_executor(get_executor(), ...)`
 
 ---
 
@@ -343,14 +448,17 @@ The renderer process runs in the browser context and contains the React UI appli
 **Purpose**: Global application state management for settings and configuration.
 
 **State Managed**:
-- `config`: Current application configuration (model settings, voice mode, etc.) - initially `null`
+- `config`: Current application configuration (only frontend-managed fields: `model_mode`, `model_provider`, `selected_model_id`, `voice_mode_enabled`, `speech_mode_enabled`) - initially `null`
 - `saveStatus`: Status of settings save operation (`idle`, `saving`, `success`, `error`) - defaults to `'idle'`
 - `availableModels`: List of available LLM models (`{ local: [], online: [] }`) - defaults to empty arrays
 - `wakewordEnabled`: Whether wakeword detection is enabled - defaults to `true`
 
 **Key Functions**:
 - `updateConfig(newConfig)`: Updates config with optimistic UI updates and error handling
+  - Filters config to only include frontend-managed fields before sending to backend
+  - Only sends the 5 fields that frontend manages
 - Uses `useSettingsManagement` hook for settings logic
+- Uses `configFilter.js` utility to filter config on load and save
 
 **Backend Events Handled**:
 - `settings-loaded`: Initial config load (handled by `handleSettingsLoaded`)
@@ -431,19 +539,26 @@ The renderer process runs in the browser context and contains the React UI appli
 ---
 
 #### `src/renderer/components/SettingsPanel.jsx`
-**Purpose**: Settings configuration panel.
+**Purpose**: Settings configuration panel for frontend-managed settings.
 
-**Settings Managed**:
+**Settings Managed** (Frontend-Only Fields):
+The frontend only manages 5 configuration fields that can be changed dynamically via UI:
 1. **Model Mode**: Toggle between "Online (Cloud)" and "Local"
 2. **Model Selection**: Dropdown of available models (filtered by mode)
    - Displays models as "model-id (provider)"
    - Tracks both `selectedModelId` and `selectedProvider` state
    - Resets selection when switching modes
-3. **Voice Mode**: Toggle for voice input mode
-4. **Speech Mode (TTS)**: Toggle for text-to-speech output
+3. **Voice Mode**: Toggle for voice input mode (`voice_mode_enabled`)
+4. **Speech Mode (TTS)**: Toggle for text-to-speech output (`speech_mode_enabled`)
+
+**Per-User Configuration**:
+- These 5 fields are stored per-user on the backend
+- Each user can have different model selections, voice settings, etc.
+- All other settings (timeouts, API keys, memory settings, etc.) remain global
 
 **Key Features**:
 - **Auto-save**: Settings save automatically on change (only when values actually change, checks specific fields: `model_mode`, `selected_model_id`, `model_provider`, `voice_mode_enabled`, `speech_mode_enabled`)
+- **Config Filtering**: Only sends the 5 frontend-managed fields to backend (via `configFilter.js` utility)
 - **Model Validation**: Validates selected model exists in available models, resets if not available (waits for `availableModels` to load before validating)
 - **Provider Management**: Automatically updates provider when model is selected
 - **Save Status Feedback**: `SaveStatusFeedback` component is defined but not currently rendered in the UI (save status is tracked via `saveStatus` prop and used to disable inputs during save via `isSaving` state)
@@ -722,6 +837,35 @@ The renderer process runs in the browser context and contains the React UI appli
 **Return Value**: Returns object with `{ isReady, error, isCapturing }` where `isCapturing` is read from `isCapturingRef.current` (not state)
 
 **Cleanup**: Stops audio capture on disable/unmount.
+
+---
+
+### Utils
+
+#### `src/renderer/utils/configFilter.js`
+**Purpose**: Utility functions for filtering frontend configuration.
+
+**Frontend-Managed Fields**:
+The frontend only manages 5 configuration fields that can be changed dynamically:
+- `model_mode`: "local" or "online"
+- `model_provider`: Provider name (e.g., "openai", "gemini")
+- `selected_model_id`: Selected model ID (e.g., "gpt-4o", "gemini-2.5-flash")
+- `voice_mode_enabled`: Boolean for voice input mode
+- `speech_mode_enabled`: Boolean for text-to-speech output
+
+**Functions**:
+- `filterFrontendConfig(config)`: Filters a configuration object to only include the 5 frontend-managed fields
+  - Used when loading config from backend (filters before storing in state)
+  - Used when saving config to backend (filters before sending)
+  - Returns a new object with only the allowed fields
+- `isFrontendConfigOnly(config)`: Checks if a config object contains only frontend-managed fields
+
+**Usage**:
+- `AppContext`: Filters config on load and before sending updates
+- `useSettingsManagement`: Filters config when loading from backend
+- `SettingsPanel`: Only sends the 5 fields (no spreading of full config)
+
+**Why Filter?**: The backend stores these 5 fields per-user, while all other settings remain global. The frontend should only send/receive these 5 fields to maintain proper separation.
 
 ---
 

@@ -12,7 +12,6 @@ from dependency_injector import containers, providers
 from backend.src.core.config import AppConfig, ConfigManager, get_config_manager
 from backend.src.core.container.config_updater import ContainerConfigUpdater
 from backend.src.core.container.core_container import CoreContainer
-from backend.src.core.container.factories import _create_tool_instantiator
 from backend.src.core.container.initializer import ContainerInitializer
 from backend.src.core.container.memory_container import MemoryContainer
 from backend.src.core.container.session_factory import AgentSessionFactory
@@ -54,11 +53,10 @@ class ApplicationContainer(containers.DeclarativeContainer):
     # Core container (provides config, services, LLM, TTS)
     core = providers.Container(CoreContainer)
 
-    # Tool container (wired to core for config and services)
+    # Tool container (wired to core for config)
     tools = providers.Container(
         ToolContainer,
         config=core.config,
-        service_container=core.service_container,
     )
 
     # Memory container (wired to core for config)
@@ -70,21 +68,16 @@ class ApplicationContainer(containers.DeclarativeContainer):
     # Expose commonly used providers at top level for convenience
     config_manager = core.config_manager
     config = core.config
-    service_container = core.service_container
     llm_client = core.llm_client
     tts_service = core.tts_service
     vision_service = core.vision_service
 
-    tool_instantiator = tools.tool_instantiator
-    tool_loader = tools.tool_loader
     agent_factory = tools.agent_factory
     tool_registry = tools.tool_registry
     context_factory = tools.context_factory
-    tool_search_engine = tools.tool_search_engine
     tool_orchestrator = tools.tool_orchestrator
 
     embedder = memory.embedder
-    memory_store = memory.memory_store
 
 
 class Container:
@@ -117,31 +110,12 @@ class Container:
         # Load config at initialization
         self.config = self._di_container.config()
 
-        # Initialize service layer
-        self.service_container = self._di_container.service_container()
-
         # Initialize tool system (all dependencies properly wired via DI)
-        # The DI container handles the dependency order automatically:
-        # instantiator -> loader -> registry -> search_engine
-        # Then we wire search_engine back into instantiator via DI override
         self.tool_registry = self._di_container.tool_registry()
         self.context_factory = self._di_container.context_factory()
-        self.tool_search_engine = self._di_container.tool_search_engine()
         self.agent_factory = self._di_container.agent_factory()
 
-        # Properly wire search_engine into instantiator via DI (no manual assignment)
-        # This completes the dependency cycle using proper DI patterns
-        self._di_container.tools.tool_instantiator.override(
-            providers.Singleton(
-                lambda: _create_tool_instantiator(self.tool_search_engine)
-            )
-        )
-
-        # Get tool_loader (will use updated instantiator with search_engine)
-        self.tool_loader = self._di_container.tool_loader()
-
         # Initialize memory system
-        self.memory_store = self._di_container.memory_store()
         self.embedder = self._di_container.embedder()
 
         # Vision service (from core container)
@@ -156,6 +130,11 @@ class Container:
         # Initialize specialized handlers
         self._initializer = ContainerInitializer(self)
         self._config_updater = ContainerConfigUpdater(self)
+
+    @property
+    def llm_client(self):
+        """Get the LLM client from the DI container."""
+        return self._di_container.llm_client()
 
     @property
     def plugin_registry(self) -> Optional[Any]:
@@ -208,8 +187,6 @@ class Container:
         if self._session_factory is None:
             self._session_factory = AgentSessionFactory(
                 config=self.config,
-                memory_store=self.memory_store,
-                embedder=self.embedder,
                 tool_registry=self.tool_registry,
                 plugin_registry=self._plugin_registry,
                 llm_client_factory=lambda: self._di_container.llm_client(),

@@ -77,6 +77,13 @@ function startWakewordService(mainWindow) {
       const trimmed = line.trim();
       if (!trimmed) continue;
       
+      // Filter out harmless graphics driver warnings
+      if (trimmed.includes('terminator_CreateInstance') || 
+          trimmed.includes('Failed to CreateInstance in ICD')) {
+        // Suppress this harmless warning
+        continue;
+      }
+      
       // Only try to parse lines that look like JSON
       if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
         try {
@@ -84,7 +91,6 @@ function startWakewordService(mainWindow) {
           if (message.status === 'ready') {
             if (!isPythonReady) {
               isPythonReady = true;
-              console.log('[Wakeword] Service ready');
               mainWindow?.webContents.send('wakeword-status', { ready: true });
             }
           } else if (message.status === 'error') {
@@ -227,11 +233,6 @@ function sendAudioChunk(audioData) {
 
   try {
     sentChunkCount++;
-    if (sentChunkCount === 1) {
-      console.log(`[Wakeword] Sending first audio chunk to Python: ${audioData.length} bytes`);
-    } else if (sentChunkCount % 50 === 0) {
-      console.log(`[Wakeword] Sent ${sentChunkCount} chunks to Python`);
-    }
     
     // Send length (4 bytes) + audio data
     const lengthBuffer = Buffer.alloc(4);
@@ -278,9 +279,6 @@ function initializeWakewordBridge(mainWindow) {
     }
     
     receivedChunkCount++;
-    if (receivedChunkCount === 1) {
-      console.log('[Wakeword] Received first audio chunk from renderer');
-    }
     
     // Convert base64 or buffer to Buffer
     let audioBuffer;

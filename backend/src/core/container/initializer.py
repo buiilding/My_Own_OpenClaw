@@ -1,11 +1,9 @@
 """
 Container Initializer.
 
-Handles async initialization of container components including memory store,
-tool loading, search engine indexing, and vision service initialization.
+Handles async initialization of container components including vision service initialization.
 """
 import logging
-from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -32,33 +30,11 @@ class ContainerInitializer:
         Perform async initialization of container components.
 
         This includes:
-        - Memory store initialization
         - Vision service initialization (for fast first-time use)
-        - Core tool loading
-        - Marketplace tool loading
-        - Tool search engine indexing
+        - Setting vision service in context factory
         """
-        # Initialize memory store if available
-        if self.container.memory_store and hasattr(
-            self.container.memory_store, "initialize"
-        ):
-            await self.container.memory_store.initialize()
-
         # Initialize vision service (pre-loads InternVL model for fast first-time use)
         await self._initialize_vision_service()
-
-        # Load core tools asynchronously (deferred from ToolRegistry.__init__)
-        await self.container.tool_registry.load_core_tools_async()
-
-        # Load marketplace tools
-        project_root = Path(__file__).parent.parent.parent.parent
-        marketplace_dir = project_root / "tools" / "verified"
-
-        await self.container.tool_registry.load_marketplace_tools(marketplace_dir)
-
-        # Index tools for search
-        if self.container.tool_search_engine:
-            self.container.tool_search_engine.index_tools()
 
         # Set vision service in context factory so tools can access it
         if self.container.vision_service is not None:

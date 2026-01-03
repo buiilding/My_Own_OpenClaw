@@ -115,8 +115,13 @@ class QueryMessageHandler(MessageHandler):
             stream_buffer = ""
 
             # Process query and stream responses
+            # Frontend now sends complete message content
+            message_content = validated.payload.content
             try:
-                async for event in agent_instance.process_query(query_text):
+                async for event in agent_instance.process_query(
+                    query_text,
+                    message_content=message_content,
+                ):
                     # Handle TTS with function call filtering
                     # We want to block function call JSON from being spoken
                     

@@ -9,8 +9,6 @@ import uuid
 from typing import TYPE_CHECKING, Any, Optional
 
 from backend.src.core.config import AppConfig
-from backend.src.core.interfaces.embedding import EmbeddingProvider
-from backend.src.core.interfaces.memory_store import MemoryStoreInterface
 
 if TYPE_CHECKING:
     from backend.src.agent.core import AgentSession
@@ -24,15 +22,13 @@ class AgentSessionFactory:
     """
     Factory for creating AgentSession instances with all dependencies.
 
-    Handles the creation of MemoryManager, retrieval, summarizer, and other
+    Handles the creation of AgentSession instances with proper dependency injection.
     session dependencies, keeping this logic separate from the Container.
     """
 
     def __init__(
         self,
         config: AppConfig,
-        memory_store: Optional[MemoryStoreInterface],
-        embedder: Optional[EmbeddingProvider],
         tool_registry: "ToolRegistry",
         plugin_registry: Optional["PluginRegistry"],
         llm_client_factory: Any,  # Callable that returns LLMClient
@@ -44,8 +40,6 @@ class AgentSessionFactory:
 
         Args:
             config: Application configuration
-            memory_store: Memory store instance (may be None if memory disabled)
-            embedder: Embedding provider (may be None if memory disabled)
             tool_registry: Tool registry instance
             plugin_registry: Plugin registry instance (may be None)
             llm_client_factory: Factory function that creates LLMClient instances
@@ -53,8 +47,6 @@ class AgentSessionFactory:
             event_bus: EventBus instance for event communication
         """
         self.config = config
-        self.memory_store = memory_store
-        self.embedder = embedder
         self.tool_registry = tool_registry
         self.plugin_registry = plugin_registry
         self.llm_client_factory = llm_client_factory
@@ -85,30 +77,6 @@ class AgentSessionFactory:
         # Create LLM client
         llm_client = self.llm_client_factory()
 
-        # Create Memory Manager Dependencies
-        retrieval = None
-        summarizer = None
-
-        if self.memory_store and self.config.memory_enabled:
-            from backend.src.memory.retrieval import MemorySummarizer, SemanticRetrieval
-
-            retrieval = SemanticRetrieval(self.memory_store, embedder=self.embedder)
-            summarizer = MemorySummarizer(
-                memory_store=self.memory_store, llm_client=llm_client, cfg=self.config
-            )
-
-        # Create MemoryManager
-        from backend.src.memory.memory_manager import MemoryManager
-
-        memory_manager = MemoryManager(
-            user_id=user_id,
-            session_id=session_id,
-            memory_store=self.memory_store,
-            retrieval=retrieval,
-            summarizer=summarizer,
-            cfg=self.config,
-        )
-
         # Create ToolOrchestrator
         tool_orchestrator = self.tool_orchestrator_factory()
 
@@ -124,7 +92,6 @@ class AgentSessionFactory:
 
         session = AgentSession(
             cfg=self.config,
-            memory_manager=memory_manager,
             tool_registry=self.tool_registry,
             plugin_registry=self.plugin_registry,
             llm_client=llm_client,

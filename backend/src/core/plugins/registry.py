@@ -7,7 +7,7 @@ import logging
 from typing import Any, Dict, List, Optional, TypeVar
 
 from backend.src.agent.plugins.interface import AgentPlugin
-from backend.src.core.plugins.config_manager import PluginConfigManager
+from backend.src.core.plugin_config import PluginConfigManager, get_plugin_config_manager
 from backend.src.core.plugins.lifecycle import PluginLifecycleManager
 from backend.src.core.plugins.metadata import PluginConfig
 from backend.src.core.plugins.state_manager import PluginStateManager
@@ -37,7 +37,7 @@ class PluginRegistry:
 
         # Initialize managers
         self.state_manager = PluginStateManager()
-        self.config_manager = PluginConfigManager(use_config_manager)
+        self.config_manager = get_plugin_config_manager() if use_config_manager else None
         self.lifecycle_manager = PluginLifecycleManager(self)
 
     def set_container(self, container: Any) -> None:
@@ -113,11 +113,14 @@ class PluginRegistry:
         Args:
             plugin_name: Optional plugin name to save, or None for all plugins
         """
+        if not self.config_manager:
+            return
+            
         if plugin_name:
             # Save single plugin config
             metadata = self.state_manager.get_metadata(plugin_name)
             if metadata:
-                self.config_manager.save_plugin_config(
+                self.config_manager.set_plugin_config(
                     plugin_name,
                     enabled=metadata.get("enabled", True),
                     priority=metadata.get("priority", 100),
@@ -127,7 +130,7 @@ class PluginRegistry:
             for name in self._plugins.keys():
                 metadata = self.state_manager.get_metadata(name)
                 if metadata:
-                    self.config_manager.save_plugin_config(
+                    self.config_manager.set_plugin_config(
                         name,
                         enabled=metadata.get("enabled", True),
                         priority=metadata.get("priority", 100),
@@ -165,14 +168,16 @@ class PluginRegistry:
             return False
 
         if self.state_manager.enable_plugin(plugin_name):
-            self.config_manager.save_plugin_config(plugin_name, enabled=True)
+            if self.config_manager:
+                self.config_manager.set_plugin_config(plugin_name, enabled=True)
             return True
         return False
 
     def disable_plugin(self, plugin_name: str) -> bool:
         """Disable a plugin."""
         if self.state_manager.disable_plugin(plugin_name):
-            self.config_manager.save_plugin_config(plugin_name, enabled=False)
+            if self.config_manager:
+                self.config_manager.set_plugin_config(plugin_name, enabled=False)
             return True
         return False
 

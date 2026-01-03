@@ -18,6 +18,19 @@ contextBridge.exposeInMainWorld('ipc', {
       ipcRenderer.send(channel, data);
     }
   },
+  // Invoke async handlers (returns Promise)
+  invoke: (channel, data) => {
+    const validChannels = [
+      'execute-tool',
+      'tool-runner-status',
+      'get-system-state',
+      'store-memory',
+    ];
+    if (validChannels.includes(channel)) {
+      return ipcRenderer.invoke(channel, data);
+    }
+    return Promise.reject(new Error(`Invalid invoke channel: ${channel}`));
+  },
   // Receive messages from main process
   on: (channel, func) => {
     const validChannels = [
@@ -26,6 +39,8 @@ contextBridge.exposeInMainWorld('ipc', {
       'log',
       'wakeword-detected',
       'wakeword-status',
+      'tool-result',
+      'tool-error',
     ];
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender`
@@ -44,6 +59,8 @@ contextBridge.exposeInMainWorld('ipc', {
       'log',
       'wakeword-detected',
       'wakeword-status',
+      'tool-result',
+      'tool-error',
     ];
     if (validChannels.includes(channel)) {
       ipcRenderer.once(channel, (event, ...args) => func(...args));

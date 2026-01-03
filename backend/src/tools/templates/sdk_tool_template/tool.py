@@ -144,7 +144,7 @@ class ExampleTool(Tool[ExampleToolArgs]):
         
         Returns:
             Dictionary with capability flags:
-                - requires_screenshot: bool (auto-capture screenshot after execution)
+                - requires_screenshot: bool (screenshots are automatically captured by frontend after execution)
                 - modifies_filesystem: bool (tool modifies files)
                 - network_access: bool (tool makes network requests)
                 - timeout: float (execution timeout in seconds)

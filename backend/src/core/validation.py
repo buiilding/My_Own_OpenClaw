@@ -228,15 +228,13 @@ def validate_settings_update(settings: Dict[str, Any]) -> Dict[str, Any]:
         
         # Type validation for common fields
         # For other fields, we rely on AppConfig validation downstream
-        if key in ("max_history_length", "max_agent_iterations", "marketplace_search_limit", 
-                   "summarization_interval", "memory_summarization_batch_size", "memory_summarization_limit"):
+        if key == "max_history_length":
             validate_field(value, key, int, required=False)
-        elif key in ("shell_timeout", "llm_timeout", "query_timeout", "screenshot_delay_after_action", 
-                     "search_file_timeout", "model_registry_timeout"):
+        elif key in ("llm_timeout", "query_timeout"):
             validate_field(value, key, (int, float), required=False)
         elif key == "memory_enabled":
             validate_field(value, key, bool, required=False)
-        elif key in ("model_provider", "selected_model_id", "model_mode", "embedding_model", "memory_db_path"):
+        elif key in ("model_provider", "selected_model_id", "model_mode", "embedding_model"):
             if value is not None:  # Some string fields can be None
                 validate_field(value, key, str, required=False)
         elif key == "voice_mode_enabled":

@@ -13,7 +13,7 @@ class UserMessageMetadata:
     """Metadata about a user message including injected context."""
     original_query: str
     full_content: str
-    context_type: str  # "initial" or "full"
+    context_type: str  # "initial" or "sequential"
     injected_context: str
     active_window: Optional[str] = None
 

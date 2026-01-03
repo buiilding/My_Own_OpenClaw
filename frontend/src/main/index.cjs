@@ -2,9 +2,14 @@ const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const { initializeIpc } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
+const { initializeToolRunnerBridge, stopToolRunner } = require('./tool_runner_bridge.cjs');
 
 // Disable hardware acceleration to prevent GPU crashes
 app.disableHardwareAcceleration();
+
+// Suppress GPU-related warnings
+process.env.LIBGL_ALWAYS_SOFTWARE = '1';
+process.env.GALLIUM_DRIVER = 'llvmpipe';
 
 let mainWindow = null;
 let tray = null;
@@ -32,6 +37,7 @@ function createWindow() {
 
   initializeIpc(mainWindow);
   initializeWakewordBridge(mainWindow);
+  initializeToolRunnerBridge(mainWindow);
 
   // Instead of quitting, hide the window to the tray
   mainWindow.on('close', (event) => {
@@ -90,6 +96,12 @@ app.whenReady().then(() => {
       mainWindow.show();
     }
   });
+});
+
+// Handle app quit to cleanup subprocesses
+app.on('before-quit', () => {
+  console.log('[Main] App quitting, cleaning up subprocesses...');
+  stopToolRunner();
 });
 
 // Prevent app from quitting when all windows are closed.

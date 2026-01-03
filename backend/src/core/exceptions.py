@@ -299,14 +299,4 @@ class SessionError(BaseAppError):
         self.user_id = user_id
 
 
-# ============================================================================
-# Backward Compatibility Aliases
-# ============================================================================
-
-# For backward compatibility, keep old exception names
-# These will be deprecated in favor of the new hierarchy
-
-# LLM exceptions (keep for backward compatibility)
-APIError = LLMAPIError
-RateLimitError = LLMRateLimitError
 

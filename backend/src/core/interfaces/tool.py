@@ -79,10 +79,17 @@ class ToolResult:
             elif kwargs.get("data"):
                 data = kwargs["data"]
                 if isinstance(data, dict):
-                    # Try common output fields
-                    kwargs["llm_content"] = (
-                        str(data.get("output", data.get("screenshot", data)))
-                    )
+                    # Try common output fields, but exclude screenshot (handled separately in multimodal format)
+                    # Screenshots should never be in text content - they're sent as image_url in multimodal messages
+                    output_content = data.get("output") or data.get("message") or data.get("llm_content")
+                    if output_content:
+                        kwargs["llm_content"] = str(output_content)
+                    elif "screenshot" not in data:
+                        # Only use data dict if it doesn't contain screenshot
+                        kwargs["llm_content"] = str(data)
+                    else:
+                        # If only screenshot is present, use a generic message
+                        kwargs["llm_content"] = "Tool executed successfully"
                 else:
                     kwargs["llm_content"] = str(data)
         
@@ -109,10 +116,30 @@ class ToolResult:
         Returns:
             Formatted message string for history
         """
+        # If the result is already pre-formatted (e.g. by frontend), use it directly
+        if self.metadata and self.metadata.get("is_preformatted") and self.llm_content:
+            return self.llm_content
+
         parts = [f"{tool_name} output:"]
         
         if self.success:
-            content = self.llm_content or self.return_display or str(self.data or "No output")
+            # Use llm_content or return_display, but never include screenshot data in text
+            # Screenshots are handled separately via image_data parameter in add_tool_output()
+            content = self.llm_content or self.return_display
+            if not content and self.data:
+                # If data is a dict, extract text fields but exclude screenshot
+                if isinstance(self.data, dict):
+                    # Try to get text content, excluding screenshot
+                    content = (
+                        self.data.get("output") or 
+                        self.data.get("message") or 
+                        self.data.get("llm_content") or
+                        "Tool executed successfully"
+                    )
+                else:
+                    content = str(self.data)
+            if not content:
+                content = "No output"
             parts.append(content)
             parts.append("status: successful")
         else:

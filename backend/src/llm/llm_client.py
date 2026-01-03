@@ -14,13 +14,8 @@ from backend.src.core.events import StreamingEvent
 from backend.src.core.exceptions import LLMAPIError, LLMRateLimitError
 from backend.src.core.types import LLMMessage
 from backend.src.llm.providers import get_provider
-from backend.src.services.token_service import get_token_service
 
 logger = logging.getLogger(__name__)
-
-# Backward compatibility aliases
-APIError = LLMAPIError
-RateLimitError = LLMRateLimitError
 
 
 # --- Abstract Base Class for LLM Clients ---

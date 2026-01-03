@@ -9,7 +9,7 @@ from typing import Any
 from dependency_injector import providers
 
 from backend.src.core.config import AppConfig
-from backend.src.core.container.factories import _create_embedder, _create_memory_store
+from backend.src.core.container.factories import _create_embedder
 
 logger = logging.getLogger(__name__)
 
@@ -44,22 +44,21 @@ class ContainerConfigUpdater:
         # Update container's config
         self.container.config = updated_config
 
-        # Update tool loader and registry
-        self.container.tool_loader.config = updated_config
+        # Update tool registry config
         if self.container.tool_registry:
             self.container.tool_registry.config = updated_config
 
-        # Re-initialize memory if enabled status changed
-        # This is a simplification; in production you might want to handle this more gracefully
-        if updated_config.memory_enabled and not self.container.memory_store:
-            # Re-create memory components
-            self._reinitialize_memory_components(updated_config)
+        # Re-initialize embedder if memory enabled status changed
+        # Memory storage is now handled by frontend, but backend still handles embeddings
+        if updated_config.memory_enabled and not self.container.embedder:
+            # Re-create embedder
+            self._reinitialize_embedder(updated_config)
 
         logger.info("Container configuration updated")
 
-    def _reinitialize_memory_components(self, config: AppConfig) -> None:
+    def _reinitialize_embedder(self, config: AppConfig) -> None:
         """
-        Re-initialize memory components with new configuration.
+        Re-initialize embedder component with new configuration.
 
         Args:
             config: New configuration instance
@@ -71,14 +70,3 @@ class ContainerConfigUpdater:
                 cfg=providers.Singleton(lambda: config),
             )
         )()
-
-        # Re-create memory store
-        self.container.memory_store = (
-            self.container._di_container.memory_store.override(
-                providers.Singleton(
-                    lambda cfg, emb: _create_memory_store(cfg, emb),
-                    cfg=providers.Singleton(lambda: config),
-                    emb=self.container._di_container.embedder,
-                )
-            )()
-        )
