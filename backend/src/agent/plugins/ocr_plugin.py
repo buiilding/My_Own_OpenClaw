@@ -66,6 +66,7 @@ class OCRPlugin(AgentPlugin):
         """
         self.enabled = enabled
         self._ocr_engine = None
+        self.use_cuda = False  # Track if we're using CUDA or CPU
 
     def _extract_screenshot_data(self, result: Any) -> Optional[str]:
         """
@@ -116,6 +117,7 @@ class OCRPlugin(AgentPlugin):
         
         Public method for tools to use OCR functionality.
         Uses the pre-initialized OCR engine from startup (no reinitialization).
+        Automatically falls back to CPU if CUDA memory errors occur.
         
         Args:
             screenshot_b64: Base64-encoded screenshot image
@@ -133,11 +135,22 @@ class OCRPlugin(AgentPlugin):
                 
                 # Fallback: Initialize OCR engine if somehow not initialized at startup
                 logger.warning("OCR engine not initialized at startup, initializing now (this should not happen)")
-                ocr_params = {
-                    "EngineConfig.onnxruntime.use_cuda": True,
-                }
-                self._ocr_engine = RapidOCR(params=ocr_params)
-                logger.info("Initialized RapidOCR engine with CUDA support (lazy initialization)")
+                try:
+                    ocr_params = {
+                        "EngineConfig.onnxruntime.use_cuda": True,
+                    }
+                    self._ocr_engine = RapidOCR(params=ocr_params)
+                    self.use_cuda = True
+                    logger.info("Initialized RapidOCR engine with CUDA support (lazy initialization)")
+                except Exception as e:
+                    # Try CPU fallback if CUDA init fails
+                    logger.debug(f"CUDA initialization failed during lazy init, trying CPU: {e}")
+                    ocr_params = {
+                        "EngineConfig.onnxruntime.use_cuda": False,
+                    }
+                    self._ocr_engine = RapidOCR(params=ocr_params)
+                    self.use_cuda = False
+                    logger.info("Initialized RapidOCR engine with CPU (lazy initialization fallback)")
 
             # Decode base64 to bytes
             try:
@@ -146,8 +159,75 @@ class OCRPlugin(AgentPlugin):
                 logger.error(f"Failed to decode screenshot base64: {e}")
                 return None
             
-            # Perform OCR
-            result = self._ocr_engine(image_bytes)
+            # Clear GPU cache before OCR to free up memory
+            from backend.src.core.services.gpu_memory_manager import GPUMemoryManager
+            GPUMemoryManager.clear_all_caches()
+            GPUMemoryManager.log_memory_info("before OCR")
+            
+            # Perform OCR with CUDA error handling and CPU fallback
+            try:
+                result = self._ocr_engine(image_bytes)
+            except Exception as ocr_error:
+                # Check if it's a CUDA memory error
+                error_msg = str(ocr_error)
+                error_type = type(ocr_error).__name__
+                
+                is_cuda_error = (
+                    "ONNXRuntimeError" in error_type or
+                    "ONNXRuntimeError" in error_msg or
+                    "RuntimeException" in error_type or
+                    "RUNTIME_EXCEPTION" in error_msg or
+                    any(keyword in error_msg for keyword in [
+                        "Failed to allocate memory",
+                        "CUBLAS_STATUS_ALLOC_FAILED",
+                        "CUBLAS failure",
+                        "CUDNN",
+                        "CUDA",
+                        "cuda_call",
+                        "cublas",
+                        "cudnn",
+                        "CUDNN_STATUS",
+                        "CUBLAS_STATUS",
+                        "BFCArena",
+                        "AllocateRawInternal"
+                    ])
+                )
+                
+                # If CUDA error and we're using CUDA, try CPU fallback
+                if is_cuda_error and self.use_cuda:
+                    logger.debug(
+                        f"OCR CUDA error during analysis. GPU memory exhausted. "
+                        f"Reloading OCR engine with CPU fallback. Error: {error_msg[:200]}"
+                    )
+                    try:
+                        # Reload OCR engine with CPU
+                        ocr_params = {
+                            "EngineConfig.onnxruntime.use_cuda": False,
+                        }
+                        self._ocr_engine = RapidOCR(params=ocr_params)
+                        self.use_cuda = False
+                        logger.debug("OCR engine reloaded with CPU - retrying analysis")
+                        
+                        # Retry OCR with CPU
+                        result = self._ocr_engine(image_bytes)
+                        logger.debug("OCR analysis completed successfully with CPU fallback")
+                    except Exception as reload_error:
+                        logger.error(
+                            f"OCR CPU fallback also failed: {reload_error}. "
+                            f"Skipping OCR analysis.",
+                            exc_info=True
+                        )
+                        return None
+                elif is_cuda_error:
+                    # Already using CPU but still getting CUDA errors - skip
+                    logger.warning(
+                        f"OCR analysis failed (already using CPU but CUDA error persists): {error_msg[:200]}. "
+                        f"Skipping OCR analysis."
+                    )
+                    return None
+                else:
+                    # Different error - re-raise
+                    raise
             
             if not result or not hasattr(result, "txts"):
                 logger.warning("OCR returned invalid result format")
@@ -213,6 +293,11 @@ class OCRPlugin(AgentPlugin):
                     continue
             
             logger.info(f"OCR analysis completed: found {len(ocr_results)} text elements")
+            
+            # Clear GPU cache after OCR to free memory for other services
+            GPUMemoryManager.clear_all_caches()
+            GPUMemoryManager.log_memory_info("after OCR")
+            
             return ocr_results
 
         except Exception as e:
@@ -226,16 +311,59 @@ class OCRPlugin(AgentPlugin):
             logger.warning(error_msg)
         else:
             # Initialize OCR engine during plugin initialization
+            # Try CUDA first, fall back to CPU if GPU errors occur
             if self._ocr_engine is None:
                 try:
                     ocr_params = {
                         "EngineConfig.onnxruntime.use_cuda": True,
                     }
                     self._ocr_engine = RapidOCR(params=ocr_params)
+                    self.use_cuda = True
                     logger.info("OCR plugin initialized and ready with CUDA support")
                 except Exception as e:
-                    logger.error(f"Failed to initialize OCR engine: {e}", exc_info=True)
-                    self._ocr_engine = None
+                    # If CUDA fails (any CUDA/CUDNN error), try CPU fallback
+                    error_msg = str(e)
+                    error_type = type(e).__name__
+                    
+                    # Check if it's an ONNXRuntimeError or CUDA-related error
+                    is_cuda_error = (
+                        "ONNXRuntimeError" in error_type or
+                        "ONNXRuntimeError" in error_msg or
+                        "RuntimeException" in error_type or
+                        "RUNTIME_EXCEPTION" in error_msg or
+                        any(keyword in error_msg for keyword in [
+                            "Failed to allocate memory",
+                            "CUBLAS_STATUS_ALLOC_FAILED",
+                            "CUBLAS failure",
+                            "CUDNN",
+                            "CUDA",
+                            "cuda_call",
+                            "cublas",
+                            "cudnn",
+                            "CUDNN_STATUS",
+                            "CUBLAS_STATUS"
+                        ])
+                    )
+                    
+                    if is_cuda_error:
+                        logger.warning(
+                            f"OCR CUDA initialization failed (GPU error detected). "
+                            f"Falling back to CPU. Error: {error_msg[:200]}"
+                        )
+                        try:
+                            ocr_params = {
+                                "EngineConfig.onnxruntime.use_cuda": False,
+                            }
+                            self._ocr_engine = RapidOCR(params=ocr_params)
+                            self.use_cuda = False
+                            logger.info("OCR plugin initialized with CPU fallback")
+                        except Exception as cpu_error:
+                            logger.error(f"OCR CPU initialization also failed: {cpu_error}", exc_info=True)
+                            self._ocr_engine = None
+                    else:
+                        # Not a CUDA error - re-raise
+                        logger.error(f"Failed to initialize OCR engine: {e}", exc_info=True)
+                        self._ocr_engine = None
 
     async def shutdown(self):
         """Cleanup plugin resources (optional lifecycle method)."""

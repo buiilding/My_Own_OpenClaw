@@ -31,7 +31,6 @@ class ContextFactory:
         self,
         config: AppConfig,
         tool_registry: Optional["ToolRegistry"] = None,
-        tool_loader: Optional[Any] = None,
         session_ref: Optional["AgentSession"] = None,
         agent_factory: Optional[Any] = None,
     ):
@@ -41,13 +40,11 @@ class ContextFactory:
         Args:
             config: Application configuration
             tool_registry: Optional tool registry instance (can be set later)
-            tool_loader: Optional tool loader instance (for service access)
             session_ref: Optional session reference (for session-scoped data)
             agent_factory: Optional agent factory instance
         """
         self.config = config
         self.tool_registry = tool_registry
-        self.tool_loader = tool_loader
         self.session_ref = session_ref
         self.agent_factory = agent_factory
         self.vision_service: Optional[Any] = None
@@ -110,20 +107,9 @@ class ContextFactory:
         if self.tool_registry:
             services["tool_registry"] = self.tool_registry
         
-        # Add tool loader services if available
-        if self.tool_loader:
-            if hasattr(self.tool_loader, "services"):
-                services["file_service"] = self.tool_loader.services.get_file_service()
-                services["workspace_context"] = self.tool_loader.services.get_workspace_context()
-                services["storage_service"] = self.tool_loader.services.get_storage_service()
-        
         # Add session reference if available (for session-scoped data)
         if effective_session_ref:
             services["session"] = effective_session_ref
-        
-        # Add tool search engine if available and not None
-        if hasattr(self.tool_registry, "tool_search_engine") and self.tool_registry.tool_search_engine is not None:
-            services["tool_search_engine"] = self.tool_registry.tool_search_engine
         
         # Add agent factory if available
         if self.agent_factory:
@@ -137,21 +123,13 @@ class ContextFactory:
         if additional_services:
             services.update(additional_services)
         
-        # Retrieve active window at context creation time
-        active_window = None
-        try:
-            from backend.src.tools.computer.window_utils import get_active_window_title
-            active_window = get_active_window_title()
-        except Exception as e:
-            logger.debug(f"Could not retrieve active window: {e}")
-        
         # Create context
         workspace = workspace_root or os.getcwd()
         
-        # Store active window in session metadata
+        # Metadata from session (includes active window provided by frontend)
         session_metadata = {}
-        if active_window:
-            session_metadata['active_window'] = active_window
+        if effective_session_ref and hasattr(effective_session_ref, 'metadata'):
+             session_metadata.update(effective_session_ref.metadata)
         
         context = ToolContext(
             user=UserContext(user_id=user_id),
@@ -168,7 +146,7 @@ class ContextFactory:
         
         logger.debug(
             f"Created context for user={user_id}, session={session_id}, "
-            f"workspace={context.workspace_root}, active_window={active_window}"
+            f"workspace={context.workspace_root}"
         )
         
         return context

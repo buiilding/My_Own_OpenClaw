@@ -28,6 +28,7 @@ class TTSService:
         self.voice = None
         self.running = False
         self.loop = None
+        self.use_cuda = True  # Track whether we're using CUDA or CPU
 
         # Queues
         self.input_queue = queue.Queue()  # Sentences to synthesize
@@ -43,8 +44,14 @@ class TTSService:
 
     async def initialize(self):
         """Initialize the TTS service."""
-        if not self.config.tts_enabled or not self.config.tts_model_path:
-            logger.info("TTS Service disabled or model path not set")
+        # tts_enabled is always True (hardcoded in code, not configurable)
+        # Only check if model path is set
+        if not self.config.tts_model_path:
+            logger.info(
+                f"TTS Service not initialized: tts_model_path not set. "
+                f"tts_enabled={self.config.tts_enabled} (always True), "
+                f"tts_model_path={self.config.tts_model_path}"
+            )
             return
 
         self.loop = asyncio.get_running_loop()
@@ -64,24 +71,53 @@ class TTSService:
         try:
             from piper import PiperVoice
 
-            # Try loading with configured CUDA setting
-            use_cuda = self.config.tts_use_cuda
+            # Try CUDA first, fall back to CPU if GPU errors occur
             try:
                 self.voice = PiperVoice.load(
-                    self.config.tts_model_path, use_cuda=use_cuda
+                    self.config.tts_model_path, use_cuda=True
                 )
-            except RuntimeError as e:
-                # If CUDA fails and was requested, try CPU fallback
-                if use_cuda and ("Failed to allocate memory" in str(e) or "RUNTIME_EXCEPTION" in str(e)):
+                self.use_cuda = True
+                logger.info("TTS initialized with CUDA")
+            except Exception as e:
+                # If CUDA fails (any CUDA/CUDNN error), try CPU fallback
+                error_msg = str(e)
+                error_type = type(e).__name__
+                
+                # Check if it's an ONNXRuntimeError or CUDA-related error
+                is_cuda_error = (
+                    "ONNXRuntimeError" in error_type or
+                    "ONNXRuntimeError" in error_msg or
+                    any(keyword in error_msg for keyword in [
+                        "Failed to allocate memory",
+                        "RUNTIME_EXCEPTION",
+                        "CUBLAS_STATUS_ALLOC_FAILED",
+                        "CUBLAS failure",
+                        "CUDNN",
+                        "CUDA",
+                        "cuda_call",
+                        "cublas",
+                        "cudnn",
+                        "CUDNN_STATUS",
+                        "CUBLAS_STATUS"
+                    ])
+                )
+                
+                if is_cuda_error:
                     logger.warning(
-                        f"TTS CUDA initialization failed (GPU memory likely exhausted). "
-                        f"Falling back to CPU. Error: {str(e)[:200]}"
+                        f"TTS CUDA initialization failed (GPU error detected). "
+                        f"Falling back to CPU. Error: {error_msg[:200]}"
                     )
-                    self.voice = PiperVoice.load(
-                        self.config.tts_model_path, use_cuda=False
-                    )
+                    try:
+                        self.voice = PiperVoice.load(
+                            self.config.tts_model_path, use_cuda=False
+                        )
+                        self.use_cuda = False
+                        logger.info("TTS initialized with CPU fallback")
+                    except Exception as cpu_error:
+                        logger.error(f"TTS CPU initialization also failed: {cpu_error}")
+                        raise
                 else:
-                    raise  # Re-raise if it's not a memory error or CPU was already requested
+                    raise  # Re-raise if it's not a CUDA/CUDNN error
 
             self.running = True
             self.worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
@@ -113,8 +149,13 @@ class TTSService:
 
                 logger.debug(f"Synthesizing: {text}")
 
+                # Clear GPU cache before synthesis to free up memory
+                from backend.src.core.services.gpu_memory_manager import GPUMemoryManager
+                GPUMemoryManager.clear_all_caches()
+
                 # Synthesize
                 # voice.synthesize yields chunks of audio data
+                synthesis_successful = False
                 try:
                     for audio_chunk in self.voice.synthesize(text):
                         if not self.running:
@@ -136,22 +177,100 @@ class TTSService:
                             self.loop.call_soon_threadsafe(
                                 self.audio_queue.put_nowait, audio_data
                             )
-                except RuntimeError as e:
-                    # Handle CUDA memory allocation failures
-                    error_msg = str(e)
-                    if "Failed to allocate memory" in error_msg or "RUNTIME_EXCEPTION" in error_msg:
-                        logger.warning(
-                            f"TTS CUDA memory allocation failed for text: '{text[:50]}...'. "
-                            f"This usually means GPU memory is exhausted. Consider disabling TTS CUDA "
-                            f"or freeing GPU memory from other models. Error: {error_msg[:200]}"
-                        )
-                        # Skip this synthesis but continue processing
-                    else:
-                        raise  # Re-raise if it's a different RuntimeError
+                    synthesis_successful = True
+                    # Clear GPU cache after successful synthesis
+                    GPUMemoryManager.clear_all_caches()
                 except Exception as e:
-                    logger.error(f"TTS synthesis error for text '{text[:50]}...': {e}", exc_info=True)
-                    # Continue processing other sentences
+                    # Handle CUDA/CUDNN errors during synthesis
+                    error_msg = str(e)
+                    error_type = type(e).__name__
+                    
+                    # Check if it's an ONNXRuntimeError or CUDA-related error
+                    is_cuda_error = (
+                        "ONNXRuntimeError" in error_type or
+                        "ONNXRuntimeError" in error_msg or
+                        any(keyword in error_msg for keyword in [
+                            "Failed to allocate memory",
+                            "RUNTIME_EXCEPTION",
+                            "CUBLAS_STATUS_ALLOC_FAILED",
+                            "CUBLAS failure",
+                            "CUDNN",
+                            "CUDA",
+                            "cuda_call",
+                            "cublas",
+                            "cudnn",
+                            "CUDNN_STATUS",
+                            "CUBLAS_STATUS"
+                        ])
+                    )
+                    
+                    if is_cuda_error and self.use_cuda:
+                        # CUDA error during synthesis - reload with CPU
+                        # Log at DEBUG level initially - will upgrade to WARNING if fallback fails
+                        logger.debug(
+                            f"TTS CUDA error during synthesis for text: '{text[:50]}...'. "
+                            f"GPU error detected. Reloading TTS model with CPU fallback. "
+                            f"Error: {error_msg[:200]}"
+                        )
+                        try:
+                            # Reload model with CPU
+                            from piper import PiperVoice
+                            self.voice = PiperVoice.load(
+                                self.config.tts_model_path, use_cuda=False
+                            )
+                            self.use_cuda = False
+                            logger.debug("TTS model reloaded with CPU - retrying synthesis")
+                            
+                            # Retry synthesis with CPU
+                            try:
+                                for audio_chunk in self.voice.synthesize(text):
+                                    if not self.running:
+                                        break
+                                    audio_data = {
+                                        "audio": base64.b64encode(audio_chunk.audio_int16_bytes).decode("utf-8"),
+                                        "sample_rate": audio_chunk.sample_rate,
+                                        "sample_width": audio_chunk.sample_width,
+                                        "channels": audio_chunk.sample_channels,
+                                    }
+                                    if self.loop and self.audio_queue:
+                                        self.loop.call_soon_threadsafe(
+                                            self.audio_queue.put_nowait, audio_data
+                                        )
+                                synthesis_successful = True
+                                logger.debug(f"TTS synthesis completed successfully with CPU fallback")
+                            except Exception as retry_error:
+                                # CPU retry failed - this is a real problem, log as ERROR
+                                logger.error(
+                                    f"TTS CPU retry also failed after CUDA error: {retry_error}. "
+                                    f"Skipping synthesis for this text.",
+                                    exc_info=True
+                                )
+                                synthesis_successful = False
+                                raise  # Re-raise to be caught by outer handler if needed
+                        except Exception as reload_error:
+                            # Reload failed - this is a real problem, log as ERROR
+                            logger.error(
+                                f"Failed to reload TTS model with CPU after CUDA error: {reload_error}. "
+                                f"Skipping synthesis for this text.",
+                                exc_info=True
+                            )
+                            synthesis_successful = False
+                    elif is_cuda_error:
+                        # Already using CPU but still getting CUDA errors - skip
+                        logger.warning(
+                            f"TTS synthesis failed (already using CPU but CUDA error persists): {error_msg[:200]}. "
+                            f"Skipping this text."
+                        )
+                        synthesis_successful = False
+                    else:
+                        # Different error - log and skip (don't re-raise to avoid crashing worker thread)
+                        logger.error(
+                            f"TTS synthesis error (non-CUDA): {error_msg[:200]}. "
+                            f"Skipping this text."
+                        )
+                        synthesis_successful = False
 
+                # Mark task done (synthesis_successful tracks if we successfully handled the error)
                 self.input_queue.task_done()
 
             except Exception as e:

@@ -75,7 +75,7 @@ function TransparencySection({ title, content, metadata, type = 'text' }) {
 
 TransparencySection.propTypes = {
   title: PropTypes.string.isRequired,
-  content: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
+  content: PropTypes.oneOfType([PropTypes.string, PropTypes.object, PropTypes.oneOf([null])]),
   metadata: PropTypes.object,
   type: PropTypes.oneOf(['text', 'json', 'system-prompt', 'xml']),
 };

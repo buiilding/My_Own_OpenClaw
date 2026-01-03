@@ -88,7 +88,7 @@ class ConversationHistory:
         Args:
             message: Tool output message text (includes os_state XML from result_processor)
             image_data: Optional base64 image data (for screenshots). Automatically captured
-                       by ComputerUsePlugin for computer control tools. Included in history
+                       by the frontend after tool execution. Included in history
                        and sent to LLM as multimodal content.
         """
         self.history.append(StoredMessage(
@@ -110,21 +110,6 @@ class ConversationHistory:
             role=MessageRole.ASSISTANT,
             content=message,
             message_type=MessageType.ASSISTANT_RESPONSE,
-            image_data=None
-        ))
-        self._prune_if_needed()
-
-    def add_system_message(self, message: str) -> None:
-        """
-        Add a system message to the conversation history.
-
-        Args:
-            message: System message text
-        """
-        self.history.append(StoredMessage(
-            role=MessageRole.SYSTEM,
-            content=message,
-            message_type=MessageType.ASSISTANT_RESPONSE,  # System messages are treated as responses
             image_data=None
         ))
         self._prune_if_needed()

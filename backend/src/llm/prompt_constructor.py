@@ -18,7 +18,7 @@ from backend.src.core.messages import (
     content_to_message_content,
 )
 from backend.src.core.types import LLMMessage
-from backend.src.services.system_monitor import system_monitor
+# system_monitor removed - frontend handles system state
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,6 @@ class PromptConstructor:
 
     def build_prompt(
         self,
-        history: List[LLMMessage],
         stored_messages: Optional[Union[List[StoredMessage], Any]] = None,
         include_tools: bool = True,
     ) -> tuple[List[LLMMessage], List[Dict[str, Any]], PromptMetadata]:
@@ -52,7 +51,6 @@ class PromptConstructor:
         for the LLM API call (tools parameter and messages parameter).
 
         Args:
-            history: Unused (kept for compatibility)
             stored_messages: ConversationHistory instance - provides conversation history
             include_tools: Whether to include tool schemas (always True)
 
@@ -68,8 +66,8 @@ class PromptConstructor:
         if stored_messages and hasattr(stored_messages, 'get_history'):
             prompt_messages = stored_messages.get_history()
         else:
-            # Fallback to provided history
-            prompt_messages = history
+            # Fallback: empty history if stored_messages not available
+            prompt_messages = []
 
         # Build metadata for transparency events
         user_message_metadata = None
@@ -97,6 +95,7 @@ class PromptConstructor:
 
                 # Extract context XML from message content
                 context_xml = ""
+                active_window = "Unknown"
                 if full_content:
                     # Try to extract context XML from the message content
                     if "<system_context>" in full_content:
@@ -104,13 +103,20 @@ class PromptConstructor:
                         end_idx = full_content.find("</system_context>") + len("</system_context>")
                         if end_idx > start_idx:
                             context_xml = full_content[start_idx:end_idx]
-
+                    
+                    # Try to extract active window from context XML
+                    if "<active_window>" in full_content:
+                        a_start = full_content.find("<active_window>") + len("<active_window>")
+                        a_end = full_content.find("</active_window>")
+                        if a_end > a_start:
+                            active_window = full_content[a_start:a_end]
+                
                 user_message_metadata = UserMessageMetadata(
                     original_query=user_query,
                     full_content=full_content,
-                    context_type="initial" if is_first_user_message else "full",
+                    context_type="initial" if is_first_user_message else "sequential",
                     injected_context=context_xml,
-                    active_window=system_monitor.get_active_window(),
+                    active_window=active_window,
                 )
 
         metadata = PromptMetadata(

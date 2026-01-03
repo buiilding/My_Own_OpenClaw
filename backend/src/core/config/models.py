@@ -96,45 +96,23 @@ class AppConfig(BaseModel):
     query_timeout: int = 600  # New field for query timeout
     debug_litellm: bool = False  # Enable LiteLLM debug logging
 
-    # Shell Tool Settings
-    allowed_shell_commands: List[str] = Field(
-        default_factory=lambda: [
-            "echo",
-            "pwd",
-            "whoami",
-            "date",
-            "ls",
-            "dir",
-            "cat",
-            "type",
-        ]
-    )
-
     # Provider Configurations
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
 
     # Memory System Settings
     memory_enabled: bool = True
-    memory_db_path: Optional[str] = None  # Defaults to config_dir/memory
     embedding_model: str = "all-MiniLM-L6-v2"
-    summarization_interval: int = 3600  # seconds
-    memory_summarization_batch_size: int = 10  # Number of interactions per batch
-    memory_summarization_limit: int = 1000  # Max memories to fetch for summarization
 
     # Agent Execution Settings
     max_history_length: int = 1000  # Maximum conversation history messages
     max_agent_iterations: int = 1000  # Maximum tool execution iterations per query (high limit to effectively remove constraint)
 
     # Tool Execution Settings
-    shell_timeout: float = 30.0  # Shell command timeout in seconds
-    search_file_timeout: float = 5.0  # File search timeout in seconds
-    marketplace_search_limit: int = 5  # Marketplace search result limit
-    model_registry_timeout: float = 2.0  # Model registry API timeout in seconds
-
-    # Computer/Screenshot Settings
-    screenshot_delay_after_action: float = (
-        2.0  # seconds to wait before screenshot after computer actions
-    )
+    # This section is largely redundant as tools execute on the frontend
+    # but kept for backend-specific tool configurations if any
+    
+    # Vision Model Settings
+    vision_model_name: Optional[str] = "OpenGVLab/InternVL3_5-2B"  # Defaults to "OpenGVLab/InternVL3_5-4B" if None
     
     # Voice Mode Settings
     voice_mode_enabled: bool = False
@@ -151,9 +129,10 @@ class AppConfig(BaseModel):
     ])
 
     # TTS Settings
-    tts_enabled: bool = False
+    # tts_enabled is always True by default (hardcoded, not configurable via config file)
+    # Only changeable by modifying this default value in code
+    tts_enabled: bool = True
     tts_model_path: Optional[str] = None
-    tts_use_cuda: bool = False
     speech_mode_enabled: bool = False
 
     # This field is populated at runtime, not loaded from config file

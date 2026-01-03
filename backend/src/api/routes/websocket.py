@@ -7,7 +7,7 @@ Manages message routing, session management, and streaming responses from the ag
 import json
 import logging
 import asyncio
-from typing import Dict, Any
+from typing import Dict, Any, Union
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from pydantic import ValidationError as PydanticValidationError, TypeAdapter
@@ -20,12 +20,30 @@ from backend.src.core.validation import ValidationError
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+class SafeWebSocket:
+    """Wrapper for WebSocket to ensure thread-safe/coroutine-safe sending."""
+    def __init__(self, websocket: WebSocket):
+        self._websocket = websocket
+        self._lock = asyncio.Lock()
+
+    async def send_json(self, data: Any, **kwargs):
+        async with self._lock:
+            await self._websocket.send_json(data, **kwargs)
+
+    async def send_text(self, data: str, **kwargs):
+        async with self._lock:
+            await self._websocket.send_text(data, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._websocket, name)
+
 @router.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
     session_manager: SessionManager = Depends(get_session_manager)
 ):
     await websocket.accept()
+    safe_ws = SafeWebSocket(websocket)
     user_id = "default_user"
     
     # Handshake
@@ -73,7 +91,9 @@ async def websocket_endpoint(
                     validated_msg.user_id = user_id
                     
                     # Route message based on validated type
-                    await handle_message(websocket, validated_msg, session_manager, user_id)
+                    # We spawn a task to avoid blocking the receiving loop.
+                    # This is essential for handlers that wait for other messages (like tool-result).
+                    asyncio.create_task(handle_message(safe_ws, validated_msg, session_manager, user_id))
                     
                 except PydanticValidationError as e:
                     # Validation failed - send error
@@ -82,20 +102,20 @@ async def websocket_endpoint(
                         f"{'.'.join(str(loc) for loc in err['loc'])}: {err['msg']}"
                         for err in e.errors()
                     )
-                    await send_error(websocket, msg_id, f"Invalid message format: {error_details}")
+                    await send_error(safe_ws, msg_id, f"Invalid message format: {error_details}")
                 
             except json.JSONDecodeError:
-                await send_error(websocket, None, "Malformed JSON")
+                await send_error(safe_ws, None, "Malformed JSON")
             except Exception as e:
                 logger.error(f"Error processing message: {e}", exc_info=True)
-                await send_error(websocket, None, str(e))
+                await send_error(safe_ws, None, str(e))
                 
     except WebSocketDisconnect:
         logger.info(f"Client {user_id} disconnected")
         await session_manager.end_session(user_id)
 
 async def handle_message(
-    websocket: WebSocket, 
+    websocket: Union[WebSocket, SafeWebSocket], 
     message: IncomingMessage, 
     session_manager: SessionManager,
     user_id: str

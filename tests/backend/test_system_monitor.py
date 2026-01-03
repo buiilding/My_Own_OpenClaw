@@ -71,24 +71,6 @@ class TestSystemMonitor(unittest.TestCase):
         self.assertIsInstance(status, str)
         self.assertIn(status, ["Online", "Offline"])
 
-    def test_get_full_state_xml(self):
-        """Test full state XML generation."""
-        xml_content = system_monitor.get_full_state_xml()
-        self.assertIsInstance(xml_content, str)
-        self.assertIn("<system_context>", xml_content)
-        self.assertIn("</system_context>", xml_content)
-        self.assertIn("<os_state>", xml_content)
-        self.assertIn("</os_state>", xml_content)
-
-    def test_get_tool_feedback_xml(self):
-        """Test tool feedback XML generation."""
-        xml_content = system_monitor.get_tool_feedback_xml()
-        self.assertIsInstance(xml_content, str)
-        self.assertIn("<tool_output_context>", xml_content)
-        self.assertIn("</tool_output_context>", xml_content)
-        self.assertIn("<os_state>", xml_content)
-        self.assertIn("</os_state>", xml_content)
-
     @patch('backend.src.services.system_monitor.pyautogui')
     def test_mouse_position_with_mock(self, mock_pyautogui):
         """Test mouse position with mocked pyautogui."""

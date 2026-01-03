@@ -18,6 +18,7 @@ from backend.src.api.handlers.settings_handler import (
     UpdateSettingsHandler,
 )
 from backend.src.api.handlers.wakeword_handler import WakewordHandler
+from backend.src.api.handlers.tool_result_handler import ToolResultHandler
 
 __all__ = [
     "MessageHandler",
@@ -30,6 +31,7 @@ __all__ = [
     "UpdateSettingsHandler",
     "ListModelsHandler",
     "WakewordHandler",
+    "ToolResultHandler",
     "initialize_handlers",
 ]
 
@@ -56,5 +58,6 @@ def initialize_handlers(session_manager) -> MessageHandlerRegistry:
     registry.register("update-settings", UpdateSettingsHandler(session_manager))
     registry.register("list-models", ListModelsHandler())
     registry.register("wakeword-detected", WakewordHandler(config_service.get_config()))
+    registry.register("tool-result", ToolResultHandler(session_manager))
 
     return registry

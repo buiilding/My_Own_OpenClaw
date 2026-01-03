@@ -7,7 +7,6 @@ cycle of LLM generation, parsing, and tool execution.
 import logging
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List
 
-from backend.src.agent.presenter import ResponsePresenter
 from backend.src.core.events import (
     AgentStreamingEvent,
     AssistantMessageFullEvent,
@@ -19,12 +18,17 @@ from backend.src.core.events import (
     ThinkingEvent,
     ToolCallEvent,
     ToolOutputEvent,
+    ToolSchemasEvent,
     TokenCountEvent,
+    RequestScreenshotEvent,
+    SystemPromptEvent,
+    UserMessageFullEvent,
 )
 from backend.src.core.exceptions import LLMRateLimitError
 from backend.src.core.types import LLMMessage
 from backend.src.llm.parser import ParsedResponse
 from backend.src.services.token_service import get_token_service
+from backend.src.agent.tool_preparer import ToolPreparer
 
 if TYPE_CHECKING:
     from backend.src.agent.core import AgentSession
@@ -55,7 +59,7 @@ class InteractionLoop:
         self.prompt_builder = prompt_constructor
         self.response_parser = response_parser
         self.result_processor = result_processor
-        self.presenter = ResponsePresenter()
+        self.tool_preparer = ToolPreparer()
 
     async def run_loop(self) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
@@ -72,21 +76,33 @@ class InteractionLoop:
             # A. Build Prompt
             # Get conversation history and tool schemas as separate parameters for LLM API
             prompt, tool_schemas, prompt_metadata = self.prompt_builder.build_prompt(
-                history=[],  # Unused - history comes from stored_messages
                 stored_messages=self.session.history,  # Pass history object for O(1) access
                 include_tools=True,  # Always include tools since they're passed as separate API parameter
             )
 
-            # Present system prompt and user message events via presenter
-            async for event in self.presenter.present_system_prompt(prompt_metadata, iteration):
-                yield event
+            # Present system prompt and user message events
+            if iteration == 1:
+                yield SystemPromptEvent(
+                    content=prompt_metadata.system_prompt,
+                    tool_schemas=None,  # Tool schemas are in user message, not system prompt
+                )
             
-            async for event in self.presenter.present_user_message(prompt_metadata):
-                yield event
+            if prompt_metadata.user_message_metadata:
+                user_meta = prompt_metadata.user_message_metadata
+                metadata = {
+                    "original_query": user_meta.original_query,
+                    "context_type": user_meta.context_type,
+                    "injected_context": user_meta.injected_context,
+                    "active_window": user_meta.active_window,
+                }
+                yield UserMessageFullEvent(
+                    content=user_meta.full_content,
+                    metadata=metadata,
+                )
 
             # Present tool schemas as separate transparency event
-            async for event in self.presenter.present_tool_schemas(tool_schemas):
-                yield event
+            if tool_schemas is not None:
+                yield ToolSchemasEvent(tool_schemas=tool_schemas)
 
             # B. Get LLM Response (Streamed)
             llm_response_text = ""
@@ -122,13 +138,10 @@ class InteractionLoop:
             # Add assistant message with tool calls to history (context is king!)
             self.session.history.add_assistant_message(llm_response_text)
 
-            # Notify frontend of tool calls
-            for tool_call in parsed_response.tool_calls:
-                yield ToolCallEvent(
-                    tool_name=tool_call.tool_name,
-                    parameters=tool_call.parameters,
-                    raw_call=tool_call.raw_call,
-                )
+            # Prepare and notify frontend of tool calls
+            # This handles coordinate resolution (OCR/Vision) and hidden screenshot requests
+            async for event in self.tool_preparer.prepare_tools(parsed_response.tool_calls, self.session):
+                yield event
 
             # Execute tools
             try:
@@ -216,20 +229,27 @@ class InteractionLoop:
                 result.result
             )
             
-            # Get active window from execution context (set during context creation in ContextFactory)
+            # Get active window from tool result metadata (provided by frontend)
             active_window = None
-            if result.context and result.context.session.metadata:
-                active_window = result.context.session.metadata.get('active_window')
+            if result.result and result.result.metadata:
+                active_window = result.result.metadata.get('active_window')
             
-            # Present tool output event via presenter
-            async for event in self.presenter.present_tool_output(
+            # Fallback to session metadata if available
+            if not active_window and hasattr(self.session, 'metadata'):
+                 active_window = self.session.metadata.get('active_window')
+            
+            # Present tool output event
+            yield ToolOutputEvent(
                 tool_name=result.tool_call.tool_name,
                 success=result.success,
                 execution_time=result.execution_time,
                 output=processed_output["tool_message"],
                 error=result.result.error or "",
                 screenshot=processed_output["screenshot_data"] or "",
-                active_window=active_window or "",
-            ):
-                yield event
+                metadata={
+                    "active_window": active_window or "",
+                    "execution_time": result.execution_time,
+                    "success": result.success,
+                },
+            )
 

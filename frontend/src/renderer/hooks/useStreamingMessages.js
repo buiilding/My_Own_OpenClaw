@@ -82,7 +82,7 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
       : (data.payload.output || 'No output');
 
     const newMessage = {
-      id: crypto.randomUUID(),
+      id: data.id || crypto.randomUUID(),
       text: outputText,
       sender: 'assistant',
       type: 'tool-output',

@@ -10,7 +10,6 @@ from dependency_injector import containers, providers
 from backend.src.core.bus import EventBus
 from backend.src.core.config import ConfigManager
 from backend.src.core.container.factories import (
-    _create_service_container,
     _create_tts_service,
     _create_vision_service,
 )
@@ -43,12 +42,6 @@ class CoreContainer(containers.DeclarativeContainer):
     # Event Bus (singleton for application-wide event communication)
     event_bus = providers.Singleton(EventBus)
 
-    # Service Layer
-    service_container = providers.Singleton(
-        lambda cfg: _create_service_container(cfg),
-        cfg=config,
-    )
-
     # LLM Client
     llm_client = providers.Factory(
         lambda cfg: get_llm_client(cfg),
@@ -62,4 +55,7 @@ class CoreContainer(containers.DeclarativeContainer):
     )
 
     # Vision Service (initialized asynchronously during container initialization)
-    vision_service = providers.Singleton(_create_vision_service)
+    vision_service = providers.Singleton(
+        _create_vision_service,
+        config=config,
+    )

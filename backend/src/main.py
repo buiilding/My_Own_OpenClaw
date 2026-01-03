@@ -11,9 +11,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.src.api.routes import websocket
-from backend.src.core.bootstrap import Bootstrap
-from backend.src.core.shutdown import Shutdown
+from backend.src.api.routes import websocket, embeddings, semantic
+from backend.src.core.bootstrap.coordinator import InitializationCoordinator
 
 # Configure logging
 logging.basicConfig(
@@ -37,17 +36,15 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    bootstrap = Bootstrap()
-    _, session_manager, plugin_registry = await bootstrap.startup(app)
-
-    # Start background tasks
-    task = asyncio.create_task(session_manager.run_summarization_periodically())
+    coordinator = InitializationCoordinator()
+    _, session_manager, plugin_registry = await coordinator.initialize(app)
 
     yield
 
     # Shutdown
-    shutdown = Shutdown()
-    await shutdown.shutdown(plugin_registry, task)
+    logger.info("Shutting down...")
+    await plugin_registry.shutdown_all_plugins()
+    logger.info("Shutdown complete.")
 
 
 app = FastAPI(title="Desktop Assistant", lifespan=lifespan)
@@ -63,6 +60,8 @@ app.add_middleware(
 
 # Routes
 app.include_router(websocket.router)
+app.include_router(embeddings.router)
+app.include_router(semantic.router)
 
 if __name__ == "__main__":
     import uvicorn
