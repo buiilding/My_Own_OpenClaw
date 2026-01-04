@@ -115,8 +115,12 @@ class MouseTool(Tool[MouseControlArgs]):
                     f"Error: {init_error.error or 'Computer interface initialization failed'}"
                 )
 
+            session = ctx.services.get("session")
+            if not session:
+                raise ValueError("AgentSession not available in ToolContext services. It is required for OCR-based operations.")
+
             # Find coordinates based on the specified strategy
-            coordinates = await self._find_coordinates(args, ctx)
+            coordinates = await self._find_coordinates(args, ctx, session)
 
             x, y = coordinates
 
@@ -145,7 +149,7 @@ class MouseTool(Tool[MouseControlArgs]):
                 f"Error: Failed to perform mouse action: {str(e)}"
             )
 
-    async def _find_coordinates(self, args: MouseControlArgs, ctx: ToolContext) -> Tuple[int, int]:
+    async def _find_coordinates(self, args: MouseControlArgs, ctx: ToolContext, session: Any) -> Tuple[int, int]:
         """Find coordinates using the specified strategy."""
         if args.find_coordinates_by == CoordinateFindingMethod.MANUAL:
             return await self._find_coordinates_manual(args)
@@ -162,24 +166,40 @@ class MouseTool(Tool[MouseControlArgs]):
             raise ValueError("Manual coordinates require x and y values")
         return (args.x, args.y)
 
-    async def _find_coordinates_by_ocr(self, args: MouseControlArgs, ctx: ToolContext) -> Tuple[int, int]:
+    async def _find_coordinates_by_ocr(self, args: MouseControlArgs, ctx: ToolContext, session: Any) -> Tuple[int, int]:
         """Find coordinates by searching for text using OCR."""
         if not args.ocr_text:
             raise ValueError("OCR coordinate finding requires ocr_text")
 
-        # Take screenshot
-        screenshot_result = await self.computer.screenshot()
-        if not screenshot_result.success or not screenshot_result.screenshot_data:
-            raise ValueError(f"Screenshot failed: {screenshot_result.error}")
+        # Wait for proactive OCR to complete if it's still running
+        # Initialize event if it doesn't exist (defensive check)
+        if not hasattr(session, 'ocr_completion_event') or session.ocr_completion_event is None:
+            import asyncio
+            session.ocr_completion_event = asyncio.Event()
+            # If event was just created, it's already set (no OCR in progress), so we can continue
+        else:
+            await session.ocr_completion_event.wait()
 
-        # Get OCR plugin and perform OCR
-        ocr_plugin = self._get_ocr_plugin()
-        if not ocr_plugin.enabled:
-            raise ValueError("OCR plugin is not enabled")
+        # Try to use latest_ocr_results from proactive OCR
+        if session.latest_ocr_results:
+            ocr_results = session.latest_ocr_results
+            logger.debug("Using proactive OCR results from session.")
+        else:
+            # Fallback: if proactive OCR failed or not enabled, perform OCR locally
+            logger.warning("Proactive OCR results not available or empty. Performing OCR locally.")
+            # Take screenshot
+            screenshot_result = await self.computer.screenshot()
+            if not screenshot_result.success or not screenshot_result.screenshot_data:
+                raise ValueError(f"Screenshot failed: {screenshot_result.error}")
 
-        ocr_results = await ocr_plugin.perform_ocr(screenshot_result.screenshot_data)
-        if ocr_results is None or not ocr_results:
-            raise ValueError("OCR analysis failed or found no text")
+            # Get OCR plugin and perform OCR
+            ocr_plugin = self._get_ocr_plugin()
+            if not ocr_plugin.enabled:
+                raise ValueError("OCR plugin is not enabled")
+
+            ocr_results = await ocr_plugin.perform_ocr(screenshot_result.screenshot_data)
+            if ocr_results is None or not ocr_results:
+                raise ValueError("OCR analysis failed or found no text")
 
         # Find matching text
         matches = self._find_similar_text(args.ocr_text, ocr_results)
@@ -198,13 +218,13 @@ class MouseTool(Tool[MouseControlArgs]):
             bbox = ocr_element["bbox"]
             return self._calculate_center_coordinates(bbox)
 
-    async def _find_coordinates_by_prediction(self, args: MouseControlArgs, ctx: ToolContext) -> Tuple[int, int]:
+    async def _find_coordinates_by_prediction(self, args: MouseControlArgs, ctx: ToolContext, session: Any) -> Tuple[int, int]:
         """Find coordinates using vision model prediction."""
         if not args.description:
             raise ValueError("Prediction coordinate finding requires description")
 
         # Capture screenshot
-        screenshot_data = await self._capture_screenshot(ctx)
+        screenshot_data = await self._capture_screenshot(ctx, session)
         if screenshot_data is None:
             raise ValueError("Failed to capture screenshot for prediction")
 
@@ -284,7 +304,12 @@ class MouseTool(Tool[MouseControlArgs]):
         return (center_x, center_y)
 
     # Vision prediction helper methods
-    async def _capture_screenshot(self, ctx: ToolContext) -> Optional[str]:
+    async def _capture_screenshot(self, ctx: ToolContext, session: Any) -> Optional[str]:
+        """Capture screenshot using tool registry."""
+        # Try to use the latest_screenshot from the session if available
+        if session.latest_screenshot:
+            logger.debug("Using latest_screenshot from session for prediction.")
+            return session.latest_screenshot
         """Capture screenshot using tool registry."""
         tool_registry = ctx.services.get("tool_registry")
         if not tool_registry:

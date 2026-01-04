@@ -36,14 +36,18 @@ class GPUMemoryManager:
     
     @staticmethod
     def clear_pytorch_cache() -> None:
-        """Clear PyTorch CUDA cache to free up GPU memory."""
+        """Clear PyTorch CUDA cache to free up GPU memory.
+        
+        NOTE: This method is kept for backward compatibility but is no longer
+        called automatically. GPU memory is managed by PyTorch automatically.
+        """
         if not TORCH_AVAILABLE:
             return
         
         try:
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
-                torch.cuda.synchronize()
+                # Removed synchronize() call - it was blocking and unnecessary
                 logger.debug("Cleared PyTorch CUDA cache")
         except Exception as e:
             logger.debug(f"Failed to clear PyTorch CUDA cache: {e}")

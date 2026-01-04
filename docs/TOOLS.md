@@ -76,9 +76,15 @@ All computer control and filesystem tools are **remote tools** that delegate exe
 
 When backend receives a screenshot:
 1. Stores screenshot in session (`latest_screenshot`)
-2. Proactively triggers OCR analysis (async)
-3. Stores OCR results in session (`latest_ocr_results`)
-4. OCR results available for subsequent tool calls
+2. Clears `ocr_completion_event` (signals OCR in progress)
+3. Proactively triggers OCR analysis (async, runs in separate thread)
+4. Stores OCR results in session (`latest_ocr_results`)
+5. Sets `ocr_completion_event` (signals OCR complete)
+6. OCR results available for subsequent tool calls
+
+**Synchronization**: Tools that need OCR results (e.g., `mouse_control` with `find_coordinates_by="ocr"`) wait for `ocr_completion_event` before using `latest_ocr_results`. This ensures they use the latest OCR results from the current screenshot.
+
+**Non-blocking**: OCR runs in a background thread, so tool result processing and LLM communication continue immediately without waiting for OCR to complete.
 
 ### Tool Result Format
 
@@ -190,3 +196,8 @@ class MyTool:
 - **Tool Execution Errors**: Returned to backend, included in conversation
 - **Screenshot Failures**: Tool result still returned, screenshot may be None
 - **OCR Failures**: Logged but don't block tool result processing
+- **Coordinate Resolution Failures**: When OCR or vision-based coordinate resolution fails:
+  - Synthetic `ToolResult` created with error message
+  - `ToolOutputEvent` yielded immediately for frontend display
+  - Error sent to LLM as tool output
+  - LLM can generate appropriate response (e.g., try different approach)

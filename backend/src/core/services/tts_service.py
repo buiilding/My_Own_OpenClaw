@@ -149,10 +149,6 @@ class TTSService:
 
                 logger.debug(f"Synthesizing: {text}")
 
-                # Clear GPU cache before synthesis to free up memory
-                from backend.src.core.services.gpu_memory_manager import GPUMemoryManager
-                GPUMemoryManager.clear_all_caches()
-
                 # Synthesize
                 # voice.synthesize yields chunks of audio data
                 synthesis_successful = False
@@ -178,8 +174,6 @@ class TTSService:
                                 self.audio_queue.put_nowait, audio_data
                             )
                     synthesis_successful = True
-                    # Clear GPU cache after successful synthesis
-                    GPUMemoryManager.clear_all_caches()
                 except Exception as e:
                     # Handle CUDA/CUDNN errors during synthesis
                     error_msg = str(e)

@@ -126,6 +126,7 @@ class AgentSession:
         self.screenshot_waiter: Optional[asyncio.Future] = None
         self.hidden_screenshot_request_id: Optional[str] = None
         self._tool_result_futures: Dict[str, asyncio.Future] = {}
+        self.ocr_completion_event = asyncio.Event()
 
     async def _on_interaction_completed(self, event: InteractionCompleted) -> None:
         """Handle interaction completed event."""
