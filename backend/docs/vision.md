@@ -58,6 +58,7 @@ coordinates = await vision_service.predict_click(
 - **CUDA Support**: GPU acceleration for faster processing
 - **CPU Fallback**: Automatic fallback to CPU if GPU memory is exhausted
 - **GPU Memory Management**: Clears GPU cache before/after operations to prevent OOM errors
+- **Asynchronous Execution**: OCR runs in a separate thread using `asyncio.to_thread` to prevent blocking the event loop
 
 ### Proactive OCR
 
@@ -66,9 +67,13 @@ coordinates = await vision_service.predict_click(
 When backend receives a screenshot:
 
 1. Screenshot stored in session (`latest_screenshot`)
-2. OCR plugin triggered asynchronously
-3. OCR results stored in session (`latest_ocr_results`)
-4. Results available for subsequent tool calls
+2. OCR completion event cleared (signals OCR in progress)
+3. OCR plugin triggered asynchronously in background thread
+4. OCR results stored in session (`latest_ocr_results`)
+5. OCR completion event set (signals OCR complete)
+6. Results available for subsequent tool calls
+
+**Synchronization**: The `ocr_completion_event` (`asyncio.Event`) ensures that tools requiring OCR results wait for proactive OCR to complete before using `latest_ocr_results`.
 
 ### OCR Flow
 
@@ -77,14 +82,21 @@ When backend receives a screenshot:
    ↓
 2. Backend receives tool result
    ↓
-3. Backend triggers proactive OCR (async)
+3. Backend triggers proactive OCR (async, non-blocking)
    ↓
-4. OCR plugin analyzes screenshot
+4. OCR runs in separate thread (doesn't block event loop)
    ↓
 5. OCR results stored in session
    ↓
-6. Results available for next tool call
+6. OCR completion event set
+   ↓
+7. Results available for next tool call
 ```
+
+**Key Benefits**:
+- **Non-blocking**: OCR doesn't delay tool result processing or LLM communication
+- **Parallelism**: LLM can generate responses while OCR processes in background
+- **Synchronization**: Tools can wait for OCR completion when needed
 
 ### OCR Result Format
 
@@ -106,12 +118,34 @@ When backend receives a screenshot:
 
 **Location**: `backend/src/agent/tool_preparer.py`
 
-Tools can use OCR results for coordinate finding:
+The `ToolPreparer` handles coordinate resolution for `mouse_control` tools using OCR:
 
+1. **Intercepts** `mouse_control` calls with `find_coordinates_by="ocr"`
+2. **Waits** for proactive OCR to complete via `ocr_completion_event`
+3. **Searches** OCR results for matching text (fuzzy matching, threshold 0.8)
+4. **Resolves** coordinates (center of bounding box)
+5. **Rewrites** tool call to use manual coordinates (`x`, `y`)
+6. **Sends** rewritten tool call to frontend (frontend only accepts manual coordinates)
+
+**Error Handling**: If coordinate resolution fails (text not found, OCR error, etc.):
+- Creates synthetic `ToolResult` with error message
+- Yields `ToolOutputEvent` immediately for frontend display
+- Stores result in `session._pending_tool_results` for orchestrator
+- LLM receives error as tool output and can generate appropriate response
+
+**Example Flow**:
 ```python
-# Tool uses OCR to find coordinates
-ocr_results = session.latest_ocr_results
-coordinates = find_coordinates_by_text(ocr_results, "Login")
+# LLM calls: mouse_control(action="click", find_coordinates_by="ocr", ocr_text="Login")
+# ↓
+# ToolPreparer intercepts, waits for OCR completion
+# ↓
+# Searches latest_ocr_results for "Login"
+# ↓
+# Finds match, calculates center coordinates: (x=500, y=300)
+# ↓
+# Rewrites to: mouse_control(action="click", x=500, y=300)
+# ↓
+# Sends to frontend for execution
 ```
 
 ## Screenshot Processing
@@ -195,9 +229,12 @@ Both TTS and OCR services automatically fall back to CPU if GPU memory allocatio
 2. **CUDA Support**: GPU acceleration for faster processing
 3. **CPU Fallback**: Automatic fallback to CPU if GPU memory is exhausted
 4. **GPU Memory Management**: Cache clearing prevents OOM errors
-5. **Async Processing**: OCR processing doesn't block tool execution
-6. **Caching**: Model instances cached for reuse
-7. **No Reinitialization**: Cache clearing doesn't require model reloading
+5. **Asynchronous Processing**: OCR runs in separate thread using `asyncio.to_thread`, doesn't block event loop
+6. **Non-blocking Tool Results**: Tool results processed immediately, OCR runs in parallel
+7. **Parallel LLM Communication**: LLM can generate responses while OCR processes screenshots
+8. **Caching**: Model instances cached for reuse
+9. **No Reinitialization**: Cache clearing doesn't require model reloading
+10. **Event-based Synchronization**: `ocr_completion_event` ensures tools wait for OCR when needed without polling
 
 ## Important Notes
 

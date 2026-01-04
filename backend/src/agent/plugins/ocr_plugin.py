@@ -125,6 +125,11 @@ class OCRPlugin(AgentPlugin):
         Returns:
             List of OCR results with text, bounding boxes, and confidence scores
         """
+        import asyncio
+        return await asyncio.to_thread(self._perform_ocr_sync, screenshot_b64)
+
+    def _perform_ocr_sync(self, screenshot_b64: str) -> Optional[List[Dict[str, Any]]]:
+        """Synchronous implementation of OCR analysis to be run in a thread."""
         try:
             # OCR engine should already be initialized at startup via initialize()
             # This is just a safety check (should never happen in normal operation)
@@ -158,11 +163,6 @@ class OCRPlugin(AgentPlugin):
             except Exception as e:
                 logger.error(f"Failed to decode screenshot base64: {e}")
                 return None
-            
-            # Clear GPU cache before OCR to free up memory
-            from backend.src.core.services.gpu_memory_manager import GPUMemoryManager
-            GPUMemoryManager.clear_all_caches()
-            GPUMemoryManager.log_memory_info("before OCR")
             
             # Perform OCR with CUDA error handling and CPU fallback
             try:
@@ -279,24 +279,20 @@ class OCRPlugin(AgentPlugin):
 
                     ocr_results.append({
                         "id": str(i),
-                    "text": str(text).strip(),
+                        "text": str(text).strip(),
                         "confidence": confidence,  # Confidence score from RapidOCR
-                    "bbox": {
+                        "bbox": {
                             "x": int(x1),
                             "y": int(y1),
                             "width": int(x2 - x1),
                             "height": int(y2 - y1),
                         },
-                })
+                    })
                 except (ValueError, IndexError) as e:
                     logger.warning(f"Failed to parse OCR bbox for text '{text}': {e}")
                     continue
             
             logger.info(f"OCR analysis completed: found {len(ocr_results)} text elements")
-            
-            # Clear GPU cache after OCR to free memory for other services
-            GPUMemoryManager.clear_all_caches()
-            GPUMemoryManager.log_memory_info("after OCR")
             
             return ocr_results
 

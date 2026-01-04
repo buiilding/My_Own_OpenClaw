@@ -11,16 +11,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Voice Integration (Milestone 7)**: Initial voice command input and text-to-speech capabilities
 - **Enhanced Documentation**: Comprehensive user guide and improved developer documentation
 - **Performance Optimizations**: Further CUDA acceleration improvements
+- **OCR Completion Event**: Synchronization mechanism (`ocr_completion_event`) for coordinating OCR-dependent tools
+- **Asynchronous OCR Execution**: OCR now runs in separate thread using `asyncio.to_thread` for non-blocking execution
 
 ### Changed
 - Updated main README with current project status and accurate feature descriptions
 - Refreshed documentation structure and cross-references
 - Improved configuration documentation with current SDK context usage
+- **OCR Performance**: OCR processing now truly asynchronous, doesn't block tool result processing or LLM communication
+- **Error Handling**: Coordinate resolution failures now create synthetic tool results and send errors to both frontend and LLM immediately
 
 ### Fixed
 - Corrected repository links and documentation references
 - Updated tool development guide to match current SDK implementation
 - Fixed testing documentation to reflect actual test structure
+- Fixed `ocr_completion_event` initialization issue in `AgentSession`
+- Fixed race condition where OCR-dependent tools could access stale OCR results
 
 ## [1.0.0] - 2024-12-XX
 

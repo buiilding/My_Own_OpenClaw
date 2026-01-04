@@ -141,9 +141,15 @@ class RemoteMouseTool(Tool[MouseControlArgs], RemoteToolBase):
 When backend receives a screenshot:
 
 1. Stores screenshot in session (`latest_screenshot`)
-2. Proactively triggers OCR analysis (async)
-3. Stores OCR results in session (`latest_ocr_results`)
-4. OCR results available for subsequent tool calls
+2. Clears `ocr_completion_event` (signals OCR in progress)
+3. Proactively triggers OCR analysis (async, runs in separate thread via `asyncio.to_thread`)
+4. Stores OCR results in session (`latest_ocr_results`)
+5. Sets `ocr_completion_event` (signals OCR complete)
+6. OCR results available for subsequent tool calls
+
+**Synchronization**: The `ocr_completion_event` (`asyncio.Event`) in `AgentSession` coordinates access to OCR results. Tools that require OCR results wait for this event before using `latest_ocr_results`.
+
+**Performance**: OCR runs in a background thread, allowing tool result processing and LLM communication to continue immediately without blocking.
 
 ### Result Format
 
@@ -256,10 +262,33 @@ Provides execution context:
 - `agent_factory`: Agent factory for sub-agents
 - `vision_service`: Vision service (InternVL)
 
+## Coordinate Resolution for Mouse Control
+
+**Location**: `backend/src/agent/tool_preparer.py`
+
+The `ToolPreparer` intercepts `mouse_control` tool calls that require coordinate resolution (OCR or Vision):
+
+1. **Intercepts** tool calls with `find_coordinates_by="ocr"` or `find_coordinates_by="prediction"`
+2. **Ensures** screenshot is available (requests hidden screenshot if needed)
+3. **Waits** for proactive OCR completion via `ocr_completion_event` (for OCR method)
+4. **Resolves** coordinates using OCR text matching or Vision model prediction
+5. **Rewrites** tool call to use manual coordinates (`x`, `y`)
+6. **Removes** backend-only fields (`find_coordinates_by`, `ocr_text`, `description`)
+7. **Sends** rewritten tool call to frontend (frontend only accepts manual coordinates)
+
+**Error Handling**: If coordinate resolution fails:
+- Creates synthetic `ToolResult` with error message
+- Yields `ToolOutputEvent` immediately (frontend displays error)
+- Stores result in `session._pending_tool_results` for orchestrator
+- Orchestrator processes synthetic result, sends to LLM
+- LLM receives error and can generate appropriate response
+
 ## Important Notes
 
 1. **No Local Execution**: Backend never executes tools locally
 2. **Schema-Driven**: Tool schemas drive LLM tool selection
 3. **Automatic Screenshots**: Every tool execution includes screenshot
-4. **Proactive OCR**: Screenshots automatically analyzed with OCR
-5. **Security**: Tools execute on user's machine, not backend
+4. **Proactive OCR**: Screenshots automatically analyzed with OCR (non-blocking)
+5. **Asynchronous OCR**: OCR runs in separate thread, doesn't block event loop
+6. **Synchronization**: `ocr_completion_event` coordinates access to OCR results
+7. **Security**: Tools execute on user's machine, not backend

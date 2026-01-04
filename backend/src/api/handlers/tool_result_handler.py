@@ -103,32 +103,34 @@ class ToolResultHandler(MessageHandler):
             session.latest_screenshot = screenshot_data
             # Trigger async OCR
             import asyncio
-            from backend.src.core.services.gpu_memory_manager import GPUMemoryManager
             
             async def run_ocr_task():
                 try:
-                    # Clear GPU cache before OCR to free up memory
-                    GPUMemoryManager.clear_all_caches()
-                    GPUMemoryManager.log_memory_info("before OCR")
+                    # Initialize event if it doesn't exist (defensive check)
+                    if not hasattr(session, 'ocr_completion_event') or session.ocr_completion_event is None:
+                        import asyncio
+                        session.ocr_completion_event = asyncio.Event()
                     
+                    # Clear OCR completion event before starting new OCR
+                    session.ocr_completion_event.clear()
+
                     # Get OCR plugin from session registry
                     ocr_plugin = None
                     if session.executor and session.executor.plugin_manager:
                         ocr_plugin = session.executor.plugin_manager.plugin_registry.get_plugin("ocr_analysis")
                     
                     if ocr_plugin and ocr_plugin.enabled:
+                        # perform_ocr is now properly async and handles GPU cache management internally in a thread
                         results = await ocr_plugin.perform_ocr(screenshot_data)
                         if results:
                             session.latest_ocr_results = results
                             logger.info(f"Proactive OCR completed for request {request_id}")
-                    
-                    # Clear GPU cache after OCR to free memory for other services
-                    GPUMemoryManager.clear_all_caches()
-                    GPUMemoryManager.log_memory_info("after OCR")
                 except Exception as e:
                     logger.error(f"Proactive OCR failed: {e}")
-                    # Clear cache even on error
-                    GPUMemoryManager.clear_all_caches()
+                finally:
+                    # Always set the event, even if OCR failed, to unblock waiting tools
+                    if hasattr(session, 'ocr_completion_event') and session.ocr_completion_event is not None:
+                        session.ocr_completion_event.set()
             
             asyncio.create_task(run_ocr_task())
 

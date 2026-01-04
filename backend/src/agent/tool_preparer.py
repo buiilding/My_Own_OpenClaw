@@ -95,15 +95,41 @@ class ToolPreparer:
                     
                 except Exception as e:
                     logger.error(f"Failed to resolve coordinates for {tool_call.tool_name}: {e}", exc_info=True)
-                    # If coordinate resolution fails, we cannot send the tool call to frontend
-                    # because frontend schema requires x/y coordinates
-                    # Yield an error event instead
-                    error_msg = (
-                        f"Failed to resolve coordinates for {tool_call.tool_name}: {str(e)}. "
-                        f"Coordinate resolution is required for '{tool_call.parameters.get('find_coordinates_by')}' method."
+                    # If coordinate resolution fails, create a synthetic tool result with the error
+                    # This allows both frontend and LLM to see the error as a tool output
+                    # Use the actual exception message (e.g., "Could not find text 'X' on screen (best match: 0.5)")
+                    error_msg = str(e)
+                    
+                    # Create synthetic tool result
+                    from backend.src.core.interfaces.tool import ToolResult
+                    synthetic_result = ToolResult(
+                        success=False,
+                        error=error_msg,
+                        llm_content=f"Error: {error_msg}",
+                        data={"error": error_msg, "tool_name": tool_call.tool_name}
                     )
-                    yield ErrorEvent(content=error_msg)
-                    # Skip yielding ToolCallEvent - don't send invalid tool call to frontend
+                    
+                    # Store in pending results so orchestrator can find it immediately
+                    if not hasattr(session, '_pending_tool_results'):
+                        session._pending_tool_results = {}
+                    session._pending_tool_results[request_id] = synthetic_result
+                    
+                    # Yield ToolOutputEvent immediately for frontend display
+                    # The orchestrator will also process this and yield it again, but that's fine
+                    # - frontend will see it immediately, and LLM will see it when orchestrator processes it
+                    from backend.src.core.events import ToolOutputEvent
+                    yield ToolOutputEvent(
+                        tool_name=tool_call.tool_name,
+                        success=False,
+                        output=error_msg,
+                        error=error_msg,
+                        execution_time=0.0,
+                        metadata={"coordinate_resolution_failed": True}
+                    )
+                    
+                    # Skip yielding ToolCallEvent - don't send invalid tool to frontend
+                    # The orchestrator will still process this tool call from parsed_response.tool_calls
+                    # and find the synthetic result in _pending_tool_results
                     continue
             
             # Yield the (possibly modified) event
@@ -141,14 +167,23 @@ class ToolPreparer:
         if not text:
             raise ValueError("ocr_text parameter is required for OCR method")
             
-        # Get OCR results (use cached if available and matching screenshot, otherwise run it)
+        # Wait for proactive OCR to complete if it's still running
+        # This ensures we use the latest OCR results from the current screenshot
+        # Initialize event if it doesn't exist (defensive check)
+        if not hasattr(session, 'ocr_completion_event') or session.ocr_completion_event is None:
+            import asyncio
+            session.ocr_completion_event = asyncio.Event()
+            # If event was just created, it's already set (no OCR in progress), so we can continue
+        else:
+            await session.ocr_completion_event.wait()
+        
+        # Get OCR results (use cached if available, otherwise run it)
         # Note: ToolResultHandler updates latest_ocr_results when latest_screenshot updates.
-        # So if we just got a screenshot, it might be running.
-        # Or if we used an old screenshot, results might be there.
+        # After waiting for ocr_completion_event, results should be available if proactive OCR ran.
         
         ocr_results = session.latest_ocr_results
         
-        # If no results yet (race condition or old screenshot without OCR?), run it now
+        # If no results yet (proactive OCR disabled or failed), run it now
         if not ocr_results:
             logger.info("OCR results not cached, running OCR now...")
             
