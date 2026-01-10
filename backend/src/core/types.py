@@ -47,6 +47,8 @@ class StreamingEventType(str, Enum):
     CONTENT = "content"  # Used internally by LLM client
     REQUEST_SCREENSHOT = "request-screenshot"
     MEMORY_STORE = "memory-store"
+    BUNDLE_START = "bundle_start"
+    BUNDLE_END = "bundle_end"
 
 
 class ContentType(str, Enum):

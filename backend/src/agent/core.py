@@ -126,7 +126,10 @@ class AgentSession:
         self.screenshot_waiter: Optional[asyncio.Future] = None
         self.hidden_screenshot_request_id: Optional[str] = None
         self._tool_result_futures: Dict[str, asyncio.Future] = {}
+        # Initialize event as set (no OCR in progress initially)
+        # When OCR starts, event is cleared; when OCR completes, event is set
         self.ocr_completion_event = asyncio.Event()
+        self.ocr_completion_event.set()  # Set initially (no OCR running)
 
     async def _on_interaction_completed(self, event: InteractionCompleted) -> None:
         """Handle interaction completed event."""

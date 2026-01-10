@@ -223,6 +223,22 @@ class MemoryStoreEvent(StreamingEvent):
         self.type = StreamingEventType.MEMORY_STORE
 
 
+@dataclass
+class BundleStartEvent(StreamingEvent):
+    """Event emitted when a bundle of tools starts."""
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.BUNDLE_START
+
+
+@dataclass
+class BundleEndEvent(StreamingEvent):
+    """Event emitted when a bundle of tools ends."""
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.BUNDLE_END
+
+
 # Union type for all event types
 AgentStreamingEvent = Union[
     ThinkingEvent,
@@ -238,4 +254,6 @@ AgentStreamingEvent = Union[
     FullResponseEvent,
     RequestScreenshotEvent,
     MemoryStoreEvent,
+    BundleStartEvent,
+    BundleEndEvent,
 ]

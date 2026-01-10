@@ -93,15 +93,27 @@ class ToolOrchestrator:
                 ))
                 continue
 
-            # Check if result is already in _pending_tool_results (rare race condition)
-            if hasattr(session_ref, '_pending_tool_results') and request_id in session_ref._pending_tool_results:
+            # Initialize session attributes if needed
+            if not hasattr(session_ref, '_pending_tool_results'):
+                session_ref._pending_tool_results = {}
+            if not hasattr(session_ref, '_tool_result_futures'):
+                session_ref._tool_result_futures = {}
+            
+            # Create future FIRST to avoid race condition where result arrives
+            # between checking _pending_tool_results and creating the future
+            future = asyncio.Future()
+            session_ref._tool_result_futures[request_id] = future
+            
+            # Check if result already exists (may have arrived before we created the future)
+            # This handles the race condition where frontend executes tool very quickly
+            if request_id in session_ref._pending_tool_results:
                 tool_result = session_ref._pending_tool_results.pop(request_id)
+                # Resolve the future immediately so any code waiting on it gets the result
+                if not future.done():
+                    future.set_result(tool_result)
                 logger.info(f"Found already completed result for request_id {request_id}")
             else:
-                # Create future and wait for it
-                future = asyncio.Future()
-                session_ref._tool_result_futures[request_id] = future
-                
+                # Result not yet available, wait for it
                 try:
                     logger.info(f"Waiting for frontend tool result (request_id={request_id})...")
                     # Wait for the result with a timeout
