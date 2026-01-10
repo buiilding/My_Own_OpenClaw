@@ -1,5 +1,63 @@
 {
   "$defs": {
+    "BundleStartMessage": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "const": "bundle_start",
+          "title": "Type",
+          "type": "string"
+        },
+        "payload": {
+          "additionalProperties": true,
+          "title": "Payload",
+          "type": "object"
+        },
+        "user_id": {
+          "default": "default_user",
+          "title": "User Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "title": "BundleStartMessage",
+      "type": "object"
+    },
+    "BundleEndMessage": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "const": "bundle_end",
+          "title": "Type",
+          "type": "string"
+        },
+        "payload": {
+          "additionalProperties": true,
+          "title": "Payload",
+          "type": "object"
+        },
+        "user_id": {
+          "default": "default_user",
+          "title": "User Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "title": "BundleEndMessage",
+      "type": "object"
+    },
     "ErrorPayload": {
       "properties": {
         "message": {
@@ -482,6 +540,12 @@
     },
     "tool_output": {
       "$ref": "#/$defs/ToolOutputMessage"
+    },
+    "bundle_start": {
+      "$ref": "#/$defs/BundleStartMessage"
+    },
+    "bundle_end": {
+      "$ref": "#/$defs/BundleEndMessage"
     }
   },
   "required": [

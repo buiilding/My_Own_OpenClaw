@@ -1,24 +1,12 @@
-# Frontend Python Sidecar Dependencies
-# These are the minimal dependencies needed for local tool execution
-
-# Computer control and automation
-pyautogui>=0.9.54
-
-# System monitoring (for system stats and window management)
-psutil>=5.9.0
+# Frontend Python Memory Service Dependencies
+# Minimal dependencies for FAISS/memory operations only
 
 # Vector storage and search
 faiss-cpu>=1.7.4
 aiosqlite>=0.19.0
 
-# Data validation and serialization
-pydantic>=2.5.0
-
-# HTTP client for backend communication
+# HTTP client for backend communication (for embeddings)
 aiohttp>=3.9.0
-
-# Image processing (for screenshots)
-Pillow>=10.0.0
 
 # Additional utilities
 numpy>=1.24.0

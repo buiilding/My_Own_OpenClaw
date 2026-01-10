@@ -13,7 +13,7 @@ from typing import List, Optional, Tuple, Dict, Any, AsyncGenerator, TYPE_CHECKI
 if TYPE_CHECKING:
     from backend.src.agent.core import AgentSession
 
-from backend.src.core.events import RequestScreenshotEvent, ToolCallEvent, AgentStreamingEvent, ErrorEvent
+from backend.src.core.events import RequestScreenshotEvent, ToolCallEvent, AgentStreamingEvent, ErrorEvent, BundleStartEvent, BundleEndEvent
 from backend.src.llm.parser import ParsedToolCall
 from backend.src.core.types import CoordinateFindingMethod, MouseAction
 
@@ -43,13 +43,20 @@ class ToolPreparer:
         """
         Prepare tool calls and yield ToolCallEvents (and potentially RequestScreenshotEvents).
         
+        If multiple tool calls are present, wraps them in bundle_start/bundle_end events.
+        
         Args:
             tool_calls: List of parsed tool calls from LLM
             session: The current agent session
             
         Yields:
-            AgentStreamingEvent: RequestScreenshotEvent or ToolCallEvent
+            AgentStreamingEvent: BundleStartEvent, RequestScreenshotEvent, ToolCallEvent, BundleEndEvent
         """
+        # If multiple tool calls, send bundle_start
+        if len(tool_calls) > 1:
+            yield BundleStartEvent()
+            logger.info(f"Bundle start: {len(tool_calls)} tools")
+        
         for tool_call in tool_calls:
             # Generate request_id for each tool call
             request_id = str(uuid.uuid4())
@@ -139,6 +146,11 @@ class ToolPreparer:
                 raw_call=tool_call.raw_call,
                 request_id=request_id,
             )
+        
+        # If multiple tool calls, send bundle_end
+        if len(tool_calls) > 1:
+            yield BundleEndEvent()
+            logger.info(f"Bundle end: {len(tool_calls)} tools")
 
     def _needs_coordinate_resolution(self, tool_call: ParsedToolCall) -> bool:
         """Check if the tool call requires coordinate resolution."""
@@ -162,20 +174,34 @@ class ToolPreparer:
     # _ensure_screenshot removed as logic is now inprepare_tools to support yielding
 
     async def _resolve_by_ocr(self, tool_call: ParsedToolCall, session: "AgentSession", screenshot_data: str) -> Tuple[int, int]:
-        """Resolve coordinates using OCR."""
+        """
+        Resolve coordinates using OCR.
+        
+        CRITICAL: This method waits for proactive OCR to complete before comparing OCR text
+        with OCR results. This ensures we use the latest OCR results from the current screenshot.
+        
+        Proactive OCR is triggered automatically when screenshots arrive (non-blocking),
+        but this tool depends on it, so we wait here.
+        """
         text = tool_call.parameters.get("ocr_text")
         if not text:
             raise ValueError("ocr_text parameter is required for OCR method")
             
         # Wait for proactive OCR to complete if it's still running
         # This ensures we use the latest OCR results from the current screenshot
+        # Proactive OCR is triggered automatically by ToolResultHandler when screenshots arrive
         # Initialize event if it doesn't exist (defensive check)
         if not hasattr(session, 'ocr_completion_event') or session.ocr_completion_event is None:
             import asyncio
             session.ocr_completion_event = asyncio.Event()
-            # If event was just created, it's already set (no OCR in progress), so we can continue
+            session.ocr_completion_event.set()  # Set it (no OCR in progress initially)
+            # If event was just created and set, we can continue immediately
         else:
+            # Event exists - wait for it (OCR might be in progress)
+            # This is the synchronization point: we wait here until proactive OCR completes
+            logger.info(f"Waiting for proactive OCR to complete before resolving coordinates for '{text}'...")
             await session.ocr_completion_event.wait()
+            logger.info("Proactive OCR completed, proceeding with coordinate resolution")
         
         # Get OCR results (use cached if available, otherwise run it)
         # Note: ToolResultHandler updates latest_ocr_results when latest_screenshot updates.

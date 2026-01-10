@@ -6,9 +6,11 @@
 const { ipcMain, BrowserWindow } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
-const { getSystemState, getMemories } = require('./tool_runner_bridge.cjs');
+const { getSystemState } = require('./system_state.js');
+const { searchMemory } = require('./memory_service_bridge.cjs');
 
-const BACKEND_URL = "ws://127.0.0.1:8765/ws";
+const BACKEND_PORT = process.env.BACKEND_PORT || 8765;
+const BACKEND_URL = `ws://127.0.0.1:${BACKEND_PORT}/ws`;
 let ws = null;
 let mainWindow = null;
 let isConnected = false;
@@ -140,8 +142,21 @@ function initializeIpc(win) {
         
         // Start memory search first since it's slower (needs backend API call + FAISS search)
         // Then start system state in parallel - both run concurrently
-        const memoryPromise = getMemories(payload.text);  // Start memory search immediately
-        const statePromise = getSystemState(contextType); // Start system state immediately (parallel)
+        const memoryPromise = searchMemory(payload.text, 'default_user', 5, null).catch(err => {
+          log(`Memory search failed: ${err.message}`);
+          return { success: false, data: { memories: { episodic: [], semantic: [] } } };
+        }); // Start memory search immediately
+        const statePromise = getSystemState().then(state => {
+          // Format system state as XML based on context type
+          if (contextType === 'initial') {
+            return formatInitialStateXml(state);
+          } else {
+            return formatSequentialStateXml(state);
+          }
+        }).catch(err => {
+          log(`System state failed: ${err.message}`);
+          return formatFallbackStateXml();
+        }); // Start system state immediately (parallel)
         
         // Wait for both to complete - system context is REQUIRED, memories are optional
         const [stateResponse, memoryResponse] = await Promise.allSettled([
@@ -154,8 +169,8 @@ function initializeIpc(win) {
 
         // 1. System state XML (REQUIRED - must be present)
         let systemStateXml = null;
-        if (stateResponse.status === 'fulfilled' && stateResponse.value?.payload?.success && stateResponse.value.payload?.data?.system_state) {
-          systemStateXml = stateResponse.value.payload.data.system_state;
+        if (stateResponse.status === 'fulfilled' && stateResponse.value) {
+          systemStateXml = stateResponse.value;
           parts.push(systemStateXml.trim());
           log('System state added to message');
         } else {
@@ -165,18 +180,17 @@ function initializeIpc(win) {
             : 'No system state data in response';
           log(`ERROR: System state enrichment failed: ${errorMsg}`);
           // Add minimal fallback system context
-          const fallbackTime = new Date().toISOString();
-          systemStateXml = `<system_context>\n    <os_state>\n        <active_window>Unknown</active_window>\n        <mouse_position>Unknown</mouse_position>\n        <time>${fallbackTime}</time>\n    </os_state>\n</system_context>`;
+          systemStateXml = formatFallbackStateXml();
           parts.push(systemStateXml);
           log('Using fallback system context');
         }
 
         // 2. Memory sections
         let memories = null;
-        // Response structure: { success: true, payload: { success: true, data: { memories: {...} } } }
-        const responsePayload = memoryResponse.status === 'fulfilled' ? memoryResponse.value?.payload : null;
-        if (responsePayload?.success && responsePayload?.data?.memories) {
-          memories = responsePayload.data.memories;
+        // Response structure: { success: true, data: { memories: {...} } }
+        const responseData = memoryResponse.status === 'fulfilled' ? memoryResponse.value : null;
+        if (responseData?.success && responseData?.data?.memories) {
+          memories = responseData.data.memories;
           log(`Memory response received - episodic: ${memories.episodic?.length || 0}, semantic: ${memories.semantic?.length || 0}`);
           
           // Add episodic memory section
@@ -201,12 +215,12 @@ function initializeIpc(win) {
           if (memoryResponse.status === 'rejected') {
             log(`Memory enrichment failed: ${memoryResponse.reason?.message || 'Unknown error'}`);
           } else if (memoryResponse.status === 'fulfilled') {
-            const payload = memoryResponse.value?.payload;
-            log(`Memory response structure: success=${payload?.success}, hasData=${!!payload?.data}, hasMemories=${!!payload?.data?.memories}`);
-            if (payload && !payload.data?.memories) {
-              log(`Memory payload keys: ${Object.keys(payload).join(', ')}`);
-              if (payload.data) {
-                log(`Memory data keys: ${Object.keys(payload.data).join(', ')}`);
+            const data = memoryResponse.value;
+            log(`Memory response structure: success=${data?.success}, hasData=${!!data?.data}, hasMemories=${!!data?.data?.memories}`);
+            if (data && !data.data?.memories) {
+              log(`Memory data keys: ${Object.keys(data).join(', ')}`);
+              if (data.data) {
+                log(`Memory data keys: ${Object.keys(data.data).join(', ')}`);
               }
             }
           } else {
@@ -231,52 +245,35 @@ function initializeIpc(win) {
       } catch (error) {
         log(`ERROR: Failed to build user message: ${error.message}`);
         // Fallback: include minimal system context even on error
-        const fallbackTime = new Date().toISOString();
-        const fallbackContext = `<system_context>\n    <os_state>\n        <active_window>Unknown</active_window>\n        <mouse_position>Unknown</mouse_position>\n        <time>${fallbackTime}</time>\n    </os_state>\n</system_context>`;
+        const fallbackContext = formatFallbackStateXml();
         payload.content = `${fallbackContext}\n\n<user_query>\n${payload.text}\n</user_query>`;
         log('Using fallback system context in error handler');
       }
     }
 
     // Extract system context from tool-result messages
-    // System state is already included in llm_content by Python sidecar - extract it instead of making duplicate request
+    // System state is included in data.system_state from Node.js tool executor
     if (type === 'tool-result') {
       try {
-        // Extract system state from llm_content (already retrieved by Python sidecar)
-        // Python sidecar includes <os_state> XML in the formatted llm_content
-        // Structure: payload.data.llm_content contains the formatted string with <os_state>...</os_state>
-        let systemStateXml = null;
-        
-        // Check if llm_content exists in payload.data
-        const llmContent = payload?.data?.llm_content;
-        if (llmContent && typeof llmContent === 'string') {
-          // Extract <os_state> block from llm_content (handles multiline XML)
-          const osStateMatch = llmContent.match(/<os_state>([\s\S]*?)<\/os_state>/);
-          if (osStateMatch) {
-            systemStateXml = `<os_state>${osStateMatch[1]}</os_state>`;
-            logDebug('Extracted system state from llm_content');
-          }
-        }
-        
-        // If we couldn't extract from llm_content, use fallback
-        if (!systemStateXml) {
+        // Use structured system_state if available from tool result
+        if (payload.data?.system_state) {
+          const state = payload.data.system_state;
+          payload.system_context = {
+            active_window: state.active_window || 'Unknown',
+            mouse_position: state.mouse_position || 'Unknown',
+            time: state.time || new Date().toISOString()
+          };
+          logDebug('Using structured system_context from tool result');
+        } else {
+          // Fallback: use current system state or provide minimal context
           const fallbackTime = new Date().toISOString();
-          systemStateXml = `<os_state><active_window>Unknown</active_window><mouse_position>Unknown</mouse_position><time>${fallbackTime}</time></os_state>`;
-          log('Could not extract system state from llm_content, using fallback');
+          payload.system_context = {
+            active_window: 'Unknown',
+            mouse_position: 'Unknown',
+            time: fallbackTime
+          };
+          log('No system state in tool result, using fallback');
         }
-        
-        // Extract active_window, mouse_position, and time from XML
-        const activeWindowMatch = systemStateXml.match(/<active_window>(.*?)<\/active_window>/);
-        const mousePositionMatch = systemStateXml.match(/<mouse_position>(.*?)<\/mouse_position>/);
-        const timeMatch = systemStateXml.match(/<time>(.*?)<\/time>/);
-        
-        payload.system_context = {
-          active_window: activeWindowMatch ? activeWindowMatch[1].trim() : 'Unknown',
-          mouse_position: mousePositionMatch ? mousePositionMatch[1].trim() : 'Unknown',
-          time: timeMatch ? timeMatch[1].trim() : new Date().toISOString()
-        };
-        
-        logDebug('System context extracted from llm_content and added to tool result');
       } catch (error) {
         log(`ERROR: Failed to extract system context from tool result: ${error.message}`);
         // Always provide fallback system context - never skip it
@@ -292,6 +289,63 @@ function initializeIpc(win) {
 
     sendMessageToBackend(type, payload);
   });
+}
+
+/**
+ * Format system state as initial XML (with all windows and stats)
+ */
+function formatInitialStateXml(state) {
+  const windows = state.windows || [];
+  const windowsXml = windows.map(w => `        <window>${w}</window>`).join('\n');
+  const stats = state.stats || {};
+  
+  return `<system_context>
+    <os_state>
+        <active_window>${state.active_window || 'Unknown'}</active_window>
+        <mouse_position>${state.mouse_position || 'Unknown'}</mouse_position>
+        <clipboard_preview>${state.clipboard || '<empty>'}</clipboard_preview>
+        <screen_resolution>${state.screen_resolution || 'Unknown'}</screen_resolution>
+        <time>${state.time || new Date().toISOString()}</time>
+        <internet_status>${state.internet || 'Unknown'}</internet_status>
+        <all_open_windows>
+${windowsXml}
+        </all_open_windows>
+        <system_stats>
+            <cpu_percent>${stats.cpu_percent || 0}%</cpu_percent>
+            <memory_percent>${stats.memory_percent || 0}%</memory_percent>
+            <battery_percent>${stats.battery_percent || 'N/A'}</battery_percent>
+            <battery_charging>${stats.battery_charging || 'N/A'}</battery_charging>
+        </system_stats>
+    </os_state>
+</system_context>`;
+}
+
+/**
+ * Format system state as sequential XML (minimal)
+ */
+function formatSequentialStateXml(state) {
+  return `<system_context>
+    <os_state>
+        <active_window>${state.active_window || 'Unknown'}</active_window>
+        <mouse_position>${state.mouse_position || 'Unknown'}</mouse_position>
+        <time>${state.time || new Date().toISOString()}</time>
+        <clipboard_preview>${state.clipboard || '<empty>'}</clipboard_preview>
+    </os_state>
+</system_context>`;
+}
+
+/**
+ * Format fallback system state XML
+ */
+function formatFallbackStateXml() {
+  const fallbackTime = new Date().toISOString();
+  return `<system_context>
+    <os_state>
+        <active_window>Unknown</active_window>
+        <mouse_position>Unknown</mouse_position>
+        <time>${fallbackTime}</time>
+    </os_state>
+</system_context>`;
 }
 
 module.exports = {
