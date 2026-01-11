@@ -2,7 +2,7 @@ const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const { initializeIpc } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
-const { initializeToolExecutor } = require('./tool_executor.js');
+const { initializeToolExecutor } = require('./tool_executor.cjs');
 const { initializeMemoryServiceBridge, stopMemoryService } = require('./memory_service_bridge.cjs');
 
 // Disable hardware acceleration to prevent GPU crashes

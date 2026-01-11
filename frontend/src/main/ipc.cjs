@@ -6,7 +6,7 @@
 const { ipcMain, BrowserWindow } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
-const { getSystemState } = require('./system_state.js');
+const { getSystemState } = require('./system_state.cjs');
 const { searchMemory } = require('./memory_service_bridge.cjs');
 
 const BACKEND_PORT = process.env.BACKEND_PORT || 8765;

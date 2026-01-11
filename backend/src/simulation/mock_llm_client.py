@@ -6,6 +6,8 @@ This allows the simulation to run the exact same backend flow without actual LLM
 """
 import json
 import logging
+import os
+import platform
 from typing import AsyncGenerator, List, Optional
 
 from backend.src.core.config import AppConfig
@@ -16,11 +18,34 @@ from backend.src.core.types import LLMMessage
 logger = logging.getLogger(__name__)
 
 
+def get_chrome_command() -> str:
+    """
+    Get the platform-specific command to open Google Chrome.
+    
+    Returns:
+        Command string appropriate for the current platform
+    """
+    system = platform.system()
+    
+    if system == "Windows":
+        # Windows: use 'start chrome' which is more reliable than 'google-chrome'
+        return "start chrome"
+    elif system == "Darwin":
+        # macOS: use open command
+        return 'open -a "Google Chrome"'
+    else:
+        # Linux/Unix: use google-chrome or chromium
+        return "google-chrome"
+
+
 # ============================================================================
 # SIMULATION SEQUENCE CONFIGURATION
 # ============================================================================
 # Each step represents what the LLM should "return" for that iteration
 # The format matches what ResponseParser expects: {"functionCall": {"name": "...", "args": {...}}}
+
+# Build simulation responses with platform-aware commands
+_chrome_command = get_chrome_command()
 
 SIMULATION_RESPONSES = [
     # Iteration 1: Open Chrome and wait
@@ -29,7 +54,7 @@ SIMULATION_RESPONSES = [
             "functionCall": {
                 "name": "run_shell_command",
                 "args": {
-                    "command": "google-chrome",
+                    "command": _chrome_command,
                     "run_in_background": True,
                     "explanation": "Opening Google Chrome browser in the background to start the navigation flow."
                 }
@@ -103,7 +128,7 @@ SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 7: Bundle - Type "shoes" and press Enter
+    # Iteration 7: Bundle - Type "amazon.com" and press Enter
     # Return multiple tool calls as separate JSON objects (parser will extract both)
     {
         "response": json.dumps({
@@ -111,9 +136,9 @@ SIMULATION_RESPONSES = [
                 "name": "keyboard_control",
                 "args": {
                     "action": "type",
-                    "text": "shoes",
-                    "explanation": "Typing 'shoes' into the Amazon search box.",
-                    "expectation": "The text 'shoes' should appear in the search box."
+                    "text": "amazon.com",
+                    "explanation": "Typing 'amazon.com' into the Amazon search box.",
+                    "expectation": "The text 'amazon.com' should appear in the search box."
                 }
             }
         }) + "\n" + json.dumps({
@@ -122,8 +147,8 @@ SIMULATION_RESPONSES = [
                 "args": {
                     "action": "press",
                     "key": "enter",
-                    "explanation": "Pressing Enter to search for shoes on Amazon.",
-                    "expectation": "Amazon should display search results for shoes."
+                    "explanation": "Pressing Enter to search for amazon.com on Amazon.",
+                    "expectation": "Amazon should display search results for amazon.com."
                 }
             }
         })

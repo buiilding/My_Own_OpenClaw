@@ -2,18 +2,20 @@
  * Mouse Control Tool - Node.js implementation using nut-js
  */
 
-const { mouse, Button, Point } = require('@nut-tree/nut-js');
+const { loadNutJs } = require('../nutjs_loader.cjs');
 
 /**
  * Execute mouse control action
  */
 async function executeMouseControl(args, skipAutoCapture) {
-  const { action, x, y, scroll_amount, scroll_direction = 'vertical', duration = 0.5 } = args;
+  const { action, x, y, scroll_amount, scroll_direction = 'vertical' } = args;
 
   try {
-    // Validate coordinates for non-scroll actions
+    const nutjs = await loadNutJs();
+    const { mouse, Button, Point } = nutjs;
+    
     if (action !== 'scroll' && (x === null || x === undefined || y === null || y === undefined)) {
-      return { success: false, error: 'X and Y coordinates are required for manual coordinate finding.' };
+      return { success: false, error: 'X and Y coordinates are required' };
     }
 
     switch (action) {
@@ -93,16 +95,25 @@ async function executeMouseControl(args, skipAutoCapture) {
           return { success: false, error: 'scroll_amount required for scroll action' };
         }
 
-        // Move to position first if coordinates provided
         if (x !== null && x !== undefined && y !== null && y !== undefined) {
           await mouse.setPosition(new Point(x, y));
         }
 
-        // Scroll (nut-js scroll is in pixels, positive is down/right)
+        // Use nut-js directional scroll methods
+        // scroll_amount is typically positive, direction determines up/down or left/right
         if (scroll_direction === 'vertical') {
-          await mouse.scrollY(scroll_amount);
+          if (scroll_amount > 0) {
+            await mouse.scrollDown(scroll_amount);
+          } else {
+            await mouse.scrollUp(Math.abs(scroll_amount));
+          }
         } else {
-          await mouse.scrollX(scroll_amount);
+          // horizontal scrolling
+          if (scroll_amount > 0) {
+            await mouse.scrollRight(scroll_amount);
+          } else {
+            await mouse.scrollLeft(Math.abs(scroll_amount));
+          }
         }
 
         return {

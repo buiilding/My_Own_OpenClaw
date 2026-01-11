@@ -13,3 +13,5 @@ numpy>=1.24.0
 
 # User data directories
 platformdirs>=3.0.0
+
+openwakeword

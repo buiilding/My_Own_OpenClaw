@@ -41,7 +41,7 @@ export function ChatProvider({ children }) {
       window.ipc.send('to-backend', {
         type: 'tool-result',
         payload: {
-          correlation_id: correlationId,
+          request_id: correlationId,
           success: result.success,
           data: result.data,
           error: result.error,
@@ -55,7 +55,7 @@ export function ChatProvider({ children }) {
       window.ipc.send('to-backend', {
         type: 'tool-result',
         payload: {
-          correlation_id: correlationId,
+          request_id: correlationId,
           success: false,
           error: error.message,
         }
@@ -87,16 +87,19 @@ export function ChatProvider({ children }) {
           
           results.push({
             tool_name: tool.toolName,
-            correlation_id: tool.correlationId,
+            request_id: tool.correlationId,
             success: result.success,
             data: result.data,
             error: result.error
           });
+
+          // No delay needed here - the keyboard tool handles timing internally
+          // The lock is released after typing completes, allowing the next operation to proceed
         } catch (err) {
           console.error('[ChatContext] Bundle tool execution failed:', err);
           results.push({
             tool_name: tool.toolName,
-            correlation_id: tool.correlationId,
+            request_id: tool.correlationId,
             success: false,
             error: err.message
           });
@@ -145,7 +148,7 @@ export function ChatProvider({ children }) {
       window.ipc.send('to-backend', {
         type: 'tool-result',
         payload: {
-          correlation_id: correlationId,
+          request_id: correlationId,
           success: true,
           data: {
             bundled: true,
@@ -161,7 +164,7 @@ export function ChatProvider({ children }) {
       window.ipc.send('to-backend', {
         type: 'tool-result',
         payload: {
-          correlation_id: correlationId,
+          request_id: correlationId,
           success: false,
           error: error.message
         }
@@ -274,12 +277,12 @@ export function ChatProvider({ children }) {
           break;
         case 'request-screenshot':
            // Handle hidden screenshot request from backend
-           if (data.payload && data.payload.correlation_id) {
-               const correlationId = data.payload.correlation_id;
-               console.log('[ChatContext] Received hidden screenshot request:', correlationId);
+           const requestId = data.payload?.request_id || data.payload?.correlation_id;
+           if (requestId) {
+               console.log('[ChatContext] Received hidden screenshot request:', requestId);
                
                // Mark as hidden
-               hiddenToolCalls.current.add(correlationId);
+               hiddenToolCalls.current.add(requestId);
                
                // Execute screenshot tool (stateless)
                window.ipc.invoke('execute-tool', {
@@ -290,28 +293,28 @@ export function ChatProvider({ children }) {
                    },
                    skipAutoCapture: false
                }).then(result => {
-                   // Send result to backend
-                   window.ipc.send('to-backend', {
-                       type: 'tool-result',
-                       payload: {
-                           correlation_id: correlationId,
-                           success: result.success,
-                           data: result.data,
-                           error: result.error,
-                       }
-                   });
-                   hiddenToolCalls.current.delete(correlationId);
+                  // Send result to backend
+                  window.ipc.send('to-backend', {
+                      type: 'tool-result',
+                      payload: {
+                          request_id: requestId,
+                          success: result.success,
+                          data: result.data,
+                          error: result.error,
+                      }
+                  });
+                   hiddenToolCalls.current.delete(requestId);
                }).catch(err => {
                    console.error('[ChatContext] Failed to execute hidden screenshot:', err);
-                   window.ipc.send('to-backend', {
-                       type: 'tool-result',
-                       payload: {
-                           correlation_id: correlationId,
-                           success: false,
-                           error: err.message,
-                       }
-                   });
-                   hiddenToolCalls.current.delete(correlationId);
+                  window.ipc.send('to-backend', {
+                      type: 'tool-result',
+                      payload: {
+                          request_id: requestId,
+                          success: false,
+                          error: err.message,
+                      }
+                  });
+                   hiddenToolCalls.current.delete(requestId);
                });
            }
            break;
