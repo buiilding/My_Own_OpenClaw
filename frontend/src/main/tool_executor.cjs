@@ -6,18 +6,18 @@
  */
 
 const { ipcMain } = require('electron');
-const mouseTool = require('./tools/computer/mouse');
-const keyboardTool = require('./tools/computer/keyboard');
-const screenshotTool = require('./tools/computer/screenshot');
-const scrollTool = require('./tools/computer/scroll');
-const listDirectoryTool = require('./tools/filesystem/list_directory');
-const readFileTool = require('./tools/filesystem/read_file');
-const writeFileTool = require('./tools/filesystem/write_file');
-const shellTool = require('./tools/system/shell');
-const windowTool = require('./tools/system/window_tool');
-const statsTool = require('./tools/system/stats_tool');
-const waitTool = require('./tools/system/wait_tool');
-const { getSystemState } = require('./system_state');
+const mouseTool = require('./tools/computer/mouse.cjs');
+const keyboardTool = require('./tools/computer/keyboard.cjs');
+const screenshotTool = require('./tools/computer/screenshot.cjs');
+const scrollTool = require('./tools/computer/scroll.cjs');
+const listDirectoryTool = require('./tools/filesystem/list_directory.cjs');
+const readFileTool = require('./tools/filesystem/read_file.cjs');
+const writeFileTool = require('./tools/filesystem/write_file.cjs');
+const shellTool = require('./tools/system/shell.cjs');
+const windowTool = require('./tools/system/window_tool.cjs');
+const statsTool = require('./tools/system/stats_tool.cjs');
+const waitTool = require('./tools/system/wait_tool.cjs');
+const { getSystemState } = require('./system_state.cjs');
 
 // Tool registry
 const tools = {
@@ -41,6 +41,7 @@ const AUTO_CAPTURE_TOOLS = {
   keyboard_control: 'screenshot',
   scroll_control: 'screenshot',
   switch_tab: 'screenshot',
+  wait: 'screenshot', // Capture screenshot after waiting to see current state
 };
 
 /**

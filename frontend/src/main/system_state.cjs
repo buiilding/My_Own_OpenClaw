@@ -6,9 +6,9 @@
  */
 
 const { windowManager } = require('node-window-manager');
-const { mouse } = require('@nut-tree/nut-js');
 const si = require('systeminformation');
-const clipboardy = require('clipboardy');
+const { loadNutJs } = require('./tools/nutjs_loader.cjs');
+// @nut-tree/nut-js and clipboardy are ES modules, must use dynamic import
 
 /**
  * Get system state
@@ -70,10 +70,25 @@ async function getActiveWindow() {
  */
 async function getMousePosition() {
   try {
+    // Use the nutjs loader to avoid circular dependency
+    const nutjs = await loadNutJs();
+    if (!nutjs || !nutjs.mouse) {
+      console.error(`[SystemState] loadNutJs returned invalid result:`, {
+        hasNutjs: !!nutjs,
+        hasMouse: !!(nutjs && nutjs.mouse),
+        keys: nutjs ? Object.keys(nutjs) : []
+      });
+      return null;
+    }
+    const { mouse } = nutjs;
+    if (typeof mouse.getPosition !== 'function') {
+      console.error(`[SystemState] mouse.getPosition is not a function:`, typeof mouse.getPosition);
+      return null;
+    }
     const position = await mouse.getPosition();
     return `(${position.x}, ${position.y})`;
   } catch (error) {
-    console.error(`[SystemState] Failed to get mouse position: ${error.message}`);
+    console.error(`[SystemState] Failed to get mouse position: ${error.message}`, error);
     return null;
   }
 }
@@ -100,6 +115,9 @@ async function getScreenResolution() {
  */
 async function getClipboardPreview(maxLength = 100) {
   try {
+    // Dynamic import for ES module - clipboardy v3 may use default or named export
+    const clipboardyModule = await import('clipboardy');
+    const clipboardy = clipboardyModule.default || clipboardyModule;
     const content = await clipboardy.read();
     if (!content) {
       return '<empty>';

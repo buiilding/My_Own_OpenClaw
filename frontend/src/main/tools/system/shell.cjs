@@ -21,6 +21,16 @@ async function runShellCommand(args, skipAutoCapture) {
     if (!cmd) {
       return { success: false, error: 'Command cannot be empty' };
     }
+    
+    // Log the command being executed
+    console.log(`[ShellTool] Executing command: "${cmd}"`);
+    if (directory) {
+      console.log(`[ShellTool] Working directory: ${directory}`);
+    }
+    console.log(`[ShellTool] Background mode: ${run_in_background ? 'Yes' : 'No'}`);
+    if (!run_in_background && terminate_after_seconds) {
+      console.log(`[ShellTool] Timeout: ${terminate_after_seconds} seconds`);
+    }
 
     // Determine working directory
     let workingDir = directory;
@@ -42,7 +52,9 @@ async function runShellCommand(args, skipAutoCapture) {
 
     // Handle background execution
     if (run_in_background) {
+      console.log(`[ShellTool] Starting background command execution...`);
       await executeBackgroundCommand(cmd, workingDir);
+      console.log(`[ShellTool] Background command started successfully`);
       return {
         success: true,
         data: {
@@ -59,10 +71,24 @@ async function runShellCommand(args, skipAutoCapture) {
       ? terminate_after_seconds * 1000
       : DEFAULT_SHELL_TIMEOUT * 1000;
 
+    console.log(`[ShellTool] Starting foreground command execution...`);
     const result = await executeForegroundCommand(cmd, workingDir, timeout);
     const llmContent = formatLlmOutput(cmd, workingDir, result);
     const returnDisplay = formatDisplayOutput(result);
     const success = result.exit_code === 0 || result.exit_code === null;
+
+    console.log(`[ShellTool] Command execution completed:`);
+    console.log(`[ShellTool]   Exit Code: ${result.exit_code}`);
+    console.log(`[ShellTool]   Execution Time: ${result.execution_time.toFixed(3)}s`);
+    console.log(`[ShellTool]   Timed Out: ${result.timed_out ? 'Yes' : 'No'}`);
+    if (result.output) {
+      const outputPreview = result.output.length > 100 ? result.output.substring(0, 100) + '...' : result.output;
+      console.log(`[ShellTool]   Output: ${outputPreview.replace(/\n/g, '\\n')}`);
+    }
+    if (result.error) {
+      const errorPreview = result.error.length > 100 ? result.error.substring(0, 100) + '...' : result.error;
+      console.log(`[ShellTool]   Error: ${errorPreview.replace(/\n/g, '\\n')}`);
+    }
 
     return {
       success,

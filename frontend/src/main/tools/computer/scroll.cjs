@@ -2,7 +2,7 @@
  * Scroll Control Tool - Node.js implementation using nut-js
  */
 
-const { mouse, Point } = require('@nut-tree/nut-js');
+const { loadNutJs } = require('../nutjs_loader.cjs');
 
 /**
  * Execute scroll control action
@@ -11,26 +11,30 @@ async function executeScrollControl(args, skipAutoCapture) {
   const { action, x, y, clicks = 3, direction } = args;
 
   try {
+    const nutjs = await loadNutJs();
+    const { mouse, Point } = nutjs;
+    
     switch (action) {
       case 'scroll':
         if (!direction) {
           return { success: false, error: 'direction required for scroll action' };
         }
 
-        // Move to position first if coordinates provided
         if (x !== null && x !== undefined && y !== null && y !== undefined) {
           await mouse.setPosition(new Point(x, y));
         }
 
-        // Convert direction to scroll amount
-        // Positive clicks for up/left, negative for down/right
-        const scrollAmount = direction === 'up' || direction === 'left' ? clicks : -clicks;
-
-        // Scroll vertically or horizontally
-        if (direction === 'up' || direction === 'down') {
-          await mouse.scrollY(scrollAmount);
-        } else if (direction === 'left' || direction === 'right') {
-          await mouse.scrollX(scrollAmount);
+        // Use nut-js directional scroll methods
+        if (direction === 'up') {
+          await mouse.scrollUp(clicks);
+        } else if (direction === 'down') {
+          await mouse.scrollDown(clicks);
+        } else if (direction === 'left') {
+          await mouse.scrollLeft(clicks);
+        } else if (direction === 'right') {
+          await mouse.scrollRight(clicks);
+        } else {
+          return { success: false, error: `Invalid scroll direction: ${direction}` };
         }
 
         return {
@@ -47,7 +51,7 @@ async function executeScrollControl(args, skipAutoCapture) {
         };
 
       case 'scroll_up':
-        await mouse.scrollY(clicks);
+        await mouse.scrollUp(clicks);
         return {
           success: true,
           data: {
@@ -60,7 +64,7 @@ async function executeScrollControl(args, skipAutoCapture) {
         };
 
       case 'scroll_down':
-        await mouse.scrollY(-clicks);
+        await mouse.scrollDown(clicks);
         return {
           success: true,
           data: {
