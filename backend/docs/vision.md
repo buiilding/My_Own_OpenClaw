@@ -116,7 +116,7 @@ When backend receives a screenshot:
 
 ### Tool Integration
 
-**Location**: `backend/src/agent/tool_preparer.py`
+**Location**: `backend/src/agent/tools/tool_preparer.py`
 
 The `ToolPreparer` handles coordinate resolution for `mouse_control` tools using OCR:
 
