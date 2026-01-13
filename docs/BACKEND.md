@@ -200,8 +200,13 @@ backend/
 │   │   └── handlers/
 │   ├── services/           # Services
 │   │   └── vision/         # InternVL
-│   ├── agent/plugins/      # Plugins
-│   │   └── ocr_plugin.py
+│   ├── agent/              # Agent domain
+│   │   ├── core/           # Core agent state & execution
+│   │   ├── llm/            # LLM interaction & events
+│   │   ├── tools/          # Tool orchestration
+│   │   ├── history/        # Agent memory
+│   │   └── plugins/        # Plugins
+│   │       └── ocr_plugin.py
 │   ├── core/               # Core utilities
 │   │   ├── config/
 │   │   ├── container/

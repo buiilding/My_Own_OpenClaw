@@ -61,9 +61,40 @@ The backend is a **FastAPI** application that orchestrates the AI agent, manages
 
 **Location**: `backend/src/agent/`
 
-- **AgentSession**: Manages conversation history, LLM client, tool registry
-- **Executor**: Core execution loop, processes queries, coordinates tools
-- **InteractionLoop**: Handles streaming responses, tool calls, result processing
+The agent layer is organized into logical subpackages following Single Responsibility Principle (SRP):
+
+#### Core (`backend/src/agent/core/`)
+- **AgentSession**: Main agent brain, manages conversation history, LLM client, tool registry
+- **AgentExecutor**: Top-level orchestrator, coordinates the agent execution loop
+- **InteractionLoop**: State machine controller, sequences prompt → LLM → parse → tools → repeat
+- **ConversationHistory**: Manages conversation messages with O(1) LLM history cache
+- **SessionManager**: Manages session lifecycle, config merging, thread-safe session creation
+
+#### LLM (`backend/src/agent/llm/`)
+- **PromptCoordinator**: Prompt building and caching, optimizes prompt generation
+- **LLMInteractionHandler**: LLM streaming, text aggregation, token counting
+- **EventPresenter**: Formats and emits all frontend/UI events
+
+#### Tools (`backend/src/agent/tools/`)
+- **ToolExecutor**: Coordinates tool execution and result processing
+- **ToolPreparer**: Orchestrates tool call preparation (coordinate resolution, screenshot acquisition)
+- **ResultTransformer**: Pure data transformation of tool results (side-effect free)
+- **ScreenshotManager**: Manages screenshot acquisition and hidden screenshot workflow
+- **OcrCoordinator**: Coordinates OCR result acquisition and synchronization
+- **VisionServiceProvider**: Provides vision service access (decoupled from session hierarchy)
+- **SyntheticResultFactory**: Creates synthetic tool results for error handling
+- **Resolvers** (`tools/resolvers/`):
+  - **CoordinateResolver**: Routes coordinate resolution to OCR or Vision
+  - **OcrResolver**: Pure OCR text matching with fuzzy search
+  - **VisionResolver**: Pure Vision model coordinate prediction
+
+#### History (`backend/src/agent/history/`)
+- **HistoryCommitter**: Commits processed results into agent memory (state mutation only)
+
+#### Plugins (`backend/src/agent/plugins/`)
+- **PluginManager**: Manages plugin lifecycle and hooks
+- **AgentPlugin**: Plugin interface for extending agent functionality
+- **OCRPlugin**: OCR analysis plugin implementation
 
 ### Service Layer
 
@@ -205,11 +236,33 @@ backend/
 │   │       ├── query_handler.py
 │   │       ├── tool_result_handler.py
 │   │       └── response_formatter.py
-│   ├── agent/               # Agent core
-│   │   ├── core.py          # AgentSession
-│   │   ├── executor.py      # Executor
-│   │   ├── interaction_loop.py
-│   │   └── plugins/         # Plugins (OCR)
+│   ├── agent/               # Agent domain
+│   │   ├── core/            # Core agent state & execution
+│   │   │   ├── core.py      # AgentSession
+│   │   │   ├── executor.py  # AgentExecutor
+│   │   │   ├── interaction_loop.py  # InteractionLoop
+│   │   │   ├── state.py     # ConversationHistory
+│   │   │   └── session_manager.py  # SessionManager
+│   │   ├── llm/             # LLM interaction & events
+│   │   │   ├── prompt_coordinator.py
+│   │   │   ├── llm_interaction_handler.py
+│   │   │   └── event_presenter.py
+│   │   ├── tools/           # Tool orchestration
+│   │   │   ├── tool_executor.py
+│   │   │   ├── tool_preparer.py
+│   │   │   ├── result_transformer.py
+│   │   │   ├── screenshot_manager.py
+│   │   │   ├── ocr_coordinator.py
+│   │   │   ├── vision_service_provider.py
+│   │   │   ├── synthetic_result_factory.py
+│   │   │   └── resolvers/   # Coordinate resolution
+│   │   │       └── coordinate_resolvers.py
+│   │   ├── history/         # Agent memory
+│   │   │   └── history_committer.py
+│   │   └── plugins/        # Plugin system
+│   │       ├── manager.py
+│   │       ├── interface.py
+│   │       └── ocr_plugin.py
 │   ├── llm/                 # LLM integration
 │   │   ├── llm_client.py
 │   │   ├── providers/       # Provider implementations

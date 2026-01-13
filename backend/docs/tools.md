@@ -264,7 +264,17 @@ Provides execution context:
 
 ## Coordinate Resolution for Mouse Control
 
-**Location**: `backend/src/agent/tool_preparer.py`
+**Location**: `backend/src/agent/tools/tool_preparer.py`
+
+The `ToolPreparer` orchestrates tool call preparation, delegating to specialized components:
+
+- **ScreenshotManager**: Ensures screenshot availability (requests hidden screenshot if needed)
+- **OcrCoordinator**: Coordinates OCR result acquisition and waits for proactive OCR
+- **CoordinateResolver**: Routes to OCR or Vision resolution methods
+  - **OcrResolver**: Pure OCR text matching with fuzzy search
+  - **VisionResolver**: Pure Vision model coordinate prediction
+- **VisionServiceProvider**: Provides vision service access (decoupled)
+- **SyntheticResultFactory**: Creates error results when resolution fails
 
 The `ToolPreparer` intercepts `mouse_control` tool calls that require coordinate resolution (OCR or Vision):
 
