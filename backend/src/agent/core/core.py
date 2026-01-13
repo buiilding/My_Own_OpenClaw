@@ -11,8 +11,8 @@ import logging
 import uuid
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional
 
-from backend.src.agent.executor import AgentExecutor
-from backend.src.agent.state import ConversationHistory
+from backend.src.agent.core.executor import AgentExecutor
+from backend.src.agent.core.state import ConversationHistory
 from backend.src.core.bus import EventBus
 from backend.src.core.config import AppConfig
 from backend.src.core.events import InteractionCompleted

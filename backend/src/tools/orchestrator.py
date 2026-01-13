@@ -11,7 +11,7 @@ import time
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional, Tuple
 
 if TYPE_CHECKING:
-    from backend.src.agent.core import AgentSession
+    from backend.src.agent.core.core import AgentSession
 
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.core.services.context_factory import ContextFactory

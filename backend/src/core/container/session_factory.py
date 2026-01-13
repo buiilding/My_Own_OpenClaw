@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Optional
 from backend.src.core.config import AppConfig
 
 if TYPE_CHECKING:
-    from backend.src.agent.core import AgentSession
+    from backend.src.agent.core.core import AgentSession
     from backend.src.core.plugins.registry import PluginRegistry
     from backend.src.tools.registry import ToolRegistry
 
@@ -57,6 +57,7 @@ class AgentSessionFactory:
         self,
         user_id: str = "default_user",
         session_id: Optional[str] = None,
+        config: Optional[AppConfig] = None,
     ) -> "AgentSession":
         """
         Create a new AgentSession with all dependencies injected.
@@ -64,6 +65,7 @@ class AgentSessionFactory:
         Args:
             user_id: User identifier
             session_id: Optional session identifier (generated if not provided)
+            config: Optional configuration override. If provided, uses this instead of factory's config.
 
         Returns:
             Initialized AgentSession
@@ -74,7 +76,11 @@ class AgentSessionFactory:
         if not session_id:
             session_id = str(uuid.uuid4())
 
-        # Create LLM client
+        # Use provided config or fall back to factory's config
+        session_config = config if config is not None else self.config
+
+        # Create LLM client (needs config for initialization)
+        # Note: llm_client_factory might use container.config, but we pass config to AgentSession
         llm_client = self.llm_client_factory()
 
         # Create ToolOrchestrator
@@ -88,10 +94,10 @@ class AgentSessionFactory:
             )
 
         # Create AgentSession
-        from backend.src.agent.core import AgentSession
+        from backend.src.agent.core.core import AgentSession
 
         session = AgentSession(
-            cfg=self.config,
+            cfg=session_config,
             tool_registry=self.tool_registry,
             plugin_registry=self.plugin_registry,
             llm_client=llm_client,
