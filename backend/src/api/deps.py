@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException
 
 from backend.src.core.container import Container
-from backend.src.agent.session_manager import SessionManager
+from backend.src.agent.core.session_manager import SessionManager
 
 
 # Global container instance (set during app startup)

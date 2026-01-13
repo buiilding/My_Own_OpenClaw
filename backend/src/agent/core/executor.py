@@ -8,9 +8,15 @@ import json
 import logging
 from typing import TYPE_CHECKING, AsyncGenerator, Optional
 
-from backend.src.agent.interaction_loop import InteractionLoop
+from backend.src.agent.llm.event_presenter import EventPresenter
+from backend.src.agent.history.history_committer import HistoryCommitter
+from backend.src.agent.core.interaction_loop import InteractionLoop
+from backend.src.agent.llm.llm_interaction_handler import LLMInteractionHandler
 from backend.src.agent.plugins.manager import PluginManager
-from backend.src.agent.result_processor import ResultProcessor
+from backend.src.agent.llm.prompt_coordinator import PromptCoordinator
+from backend.src.agent.tools.result_transformer import ResultTransformer
+from backend.src.agent.tools.tool_executor import ToolExecutor
+from backend.src.agent.tools.tool_preparer import ToolPreparer
 from backend.src.core.bus import EventBus
 from backend.src.core.events import (
     AgentStreamingEvent,
@@ -26,7 +32,7 @@ from backend.src.llm.prompt_constructor import PromptConstructor
 from backend.src.tools.orchestrator import ToolOrchestrator
 
 if TYPE_CHECKING:
-    from backend.src.agent.core import AgentSession
+    from backend.src.agent.core.core import AgentSession
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +40,7 @@ logger = logging.getLogger(__name__)
 class AgentExecutor:
     """
     Executes the agent loop: Prompt -> LLM -> Parse -> Tools -> Repeat.
-    Refactored to delegate to InteractionLoop and ResultProcessor.
+    Refactored to delegate to InteractionLoop and specialized components.
     """
 
     def __init__(
@@ -57,15 +63,63 @@ class AgentExecutor:
         # Initialize Plugin Manager
         self.plugin_manager = PluginManager(plugin_registry)
 
-        # Initialize Components
-        self.result_processor = ResultProcessor(session, self.plugin_manager)
+        # Initialize specialized components for SRP
+        prompt_coordinator = PromptCoordinator(
+            prompt_constructor=prompt_constructor,
+            history=session.history,
+        )
+        
+        llm_handler = LLMInteractionHandler(
+            llm_client=llm_client,
+            session=session,
+        )
+        
+        # Result processing: split into pure transformation and state mutation
+        result_transformer = ResultTransformer(plugin_manager=self.plugin_manager)
+        history_committer = HistoryCommitter(history=session.history)
+        
+        # Tool preparation: split into specialized components
+        from backend.src.agent.tools.resolvers.coordinate_resolvers import (
+            CoordinateResolver,
+            OcrResolver,
+            VisionResolver,
+        )
+        from backend.src.agent.tools.ocr_coordinator import OcrCoordinator
+        from backend.src.agent.tools.screenshot_manager import ScreenshotManager
+        from backend.src.agent.tools.synthetic_result_factory import SyntheticResultFactory
+        
+        screenshot_manager = ScreenshotManager()
+        ocr_resolver = OcrResolver()
+        vision_resolver = VisionResolver()
+        coordinate_resolver = CoordinateResolver(ocr_resolver, vision_resolver)
+        ocr_coordinator = OcrCoordinator()
+        synthetic_result_factory = SyntheticResultFactory()
+        
+        tool_preparer = ToolPreparer(
+            screenshot_manager=screenshot_manager,
+            coordinate_resolver=coordinate_resolver,
+            ocr_coordinator=ocr_coordinator,
+            synthetic_result_factory=synthetic_result_factory,
+        )
+        
+        tool_executor = ToolExecutor(
+            tool_orchestrator=tool_orchestrator,
+            tool_preparer=tool_preparer,
+            result_transformer=result_transformer,
+            history_committer=history_committer,
+            session=session,
+        )
+        
+        event_presenter = EventPresenter()
+        
+        # Initialize InteractionLoop with all components
         self.interaction_loop = InteractionLoop(
             session=session,
-            llm_client=llm_client,
-            tool_orchestrator=tool_orchestrator,
-            prompt_constructor=prompt_constructor,
+            prompt_coordinator=prompt_coordinator,
+            llm_handler=llm_handler,
             response_parser=response_parser,
-            result_processor=self.result_processor,
+            tool_executor=tool_executor,
+            event_presenter=event_presenter,
         )
 
     async def process_query(

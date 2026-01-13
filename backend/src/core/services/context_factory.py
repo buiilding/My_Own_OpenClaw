@@ -14,7 +14,7 @@ from backend.src.core.config import AppConfig
 
 if TYPE_CHECKING:
     from backend.src.tools.registry import ToolRegistry
-    from backend.src.agent.core import AgentSession
+    from backend.src.agent.core.core import AgentSession
 
 logger = logging.getLogger(__name__)
 

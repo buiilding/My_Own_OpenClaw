@@ -168,7 +168,10 @@ class Container:
         self._config_updater.update_config(config)
 
     def create_agent_session(
-        self, user_id: str = "default_user", session_id: Optional[str] = None
+        self,
+        user_id: str = "default_user",
+        session_id: Optional[str] = None,
+        config: Optional[Any] = None,  # AppConfig - lazy import to avoid circular dependency
     ) -> Any:  # AgentSession - lazy import to avoid circular dependency
         """
         Create a new AgentSession with all dependencies injected.
@@ -179,6 +182,8 @@ class Container:
         Args:
             user_id: User identifier
             session_id: Optional session identifier (generated if not provided)
+            config: Optional configuration override. If provided, uses this instead of container's config.
+                    This allows creating sessions with user-specific config without mutating container state.
 
         Returns:
             Initialized AgentSession
@@ -195,5 +200,5 @@ class Container:
             )
 
         return self._session_factory.create_session(
-            user_id=user_id, session_id=session_id
+            user_id=user_id, session_id=session_id, config=config
         )

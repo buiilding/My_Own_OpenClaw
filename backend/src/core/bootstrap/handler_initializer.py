@@ -5,7 +5,7 @@ Handles WebSocket message handler initialization.
 """
 import logging
 
-from backend.src.agent.session_manager import SessionManager
+from backend.src.agent.core.session_manager import SessionManager
 from backend.src.api.handlers import initialize_handlers
 
 logger = logging.getLogger(__name__)

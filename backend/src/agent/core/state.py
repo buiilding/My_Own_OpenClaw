@@ -19,7 +19,7 @@ class ConversationHistory:
     Manages conversation history with automatic pruning.
     
     History stores messages in structured StoredMessage format for type safety.
-    When retrieving history, converts to LLMMessage format for LLM consumption.
+    Maintains a cached LLMMessage format for O(1) retrieval instead of O(n) conversion.
     """
 
     def __init__(self, max_length: Optional[int] = 10, system_prompt: Optional[str] = None):
@@ -32,8 +32,9 @@ class ConversationHistory:
         """
         # Internal format: List of StoredMessage instances
         self.history: List[StoredMessage] = []
+        # Cached LLM format for O(1) retrieval (updated incrementally)
+        self._llm_history_cache: List[LLMMessage] = []
         self.max_length = max_length
-        self._last_user_query: Optional[StoredMessage] = None  # Cached last user query
         self.system_prompt: Optional[str] = system_prompt
 
         # If max_length is None, disable pruning
@@ -51,10 +52,10 @@ class ConversationHistory:
         """
         Add an actual user message to the conversation history.
         Content includes context XML, memory sections, and user query.
-        Tool schemas are passed separately as an API parameter, not embedded in content.
+        For the first message only, tool schemas are embedded in content as a <tool_schemas> XML section.
 
         Args:
-            content: Message content (context + memory + query, WITHOUT tool schemas)
+            content: Message content (context + memory + query, WITH tool schemas for first message only)
             image_data: Optional base64 image data
             episodic_memory: Optional list of episodic memory strings (structured data)
             semantic_memory: Optional list of semantic memory strings (structured data)
@@ -70,7 +71,9 @@ class ConversationHistory:
             user_query_raw=user_query_raw,
         )
         self.history.append(stored_msg)
-        self._last_user_query = stored_msg  # Cache the last user query
+        # Convert and append to LLM cache immediately (O(1) per message)
+        llm_msg = stored_msg.to_llm_message()
+        self._llm_history_cache.append(llm_msg)
         self._prune_if_needed()
 
     def add_tool_output(self, message: str, image_data: Optional[str] = None) -> None:
@@ -83,20 +86,24 @@ class ConversationHistory:
         format when history is retrieved for LLM consumption.
         
         Note: The message should already include os_state XML with active_window, mouse_position, and time.
-        ResultProcessor handles adding the os_state XML before calling this method.
+        ResultTransformer formats the message before HistoryCommitter calls this method.
 
         Args:
-            message: Tool output message text (includes os_state XML from result_processor)
+            message: Tool output message text (includes os_state XML from frontend/result transformer)
             image_data: Optional base64 image data (for screenshots). Automatically captured
                        by the frontend after tool execution. Included in history
                        and sent to LLM as multimodal content.
         """
-        self.history.append(StoredMessage(
+        stored_msg = StoredMessage(
             role=MessageRole.USER,
             content=message,
             message_type=MessageType.TOOL_OUTPUT,
             image_data=image_data  # Screenshots are stored here and included in LLM history
-        ))
+        )
+        self.history.append(stored_msg)
+        # Convert and append to LLM cache immediately (O(1) per message)
+        llm_msg = stored_msg.to_llm_message()
+        self._llm_history_cache.append(llm_msg)
         self._prune_if_needed()
 
     def add_assistant_message(self, message: str) -> None:
@@ -106,19 +113,23 @@ class ConversationHistory:
         Args:
             message: Assistant response text
         """
-        self.history.append(StoredMessage(
+        stored_msg = StoredMessage(
             role=MessageRole.ASSISTANT,
             content=message,
             message_type=MessageType.ASSISTANT_RESPONSE,
             image_data=None
-        ))
+        )
+        self.history.append(stored_msg)
+        # Convert and append to LLM cache immediately (O(1) per message)
+        llm_msg = stored_msg.to_llm_message()
+        self._llm_history_cache.append(llm_msg)
         self._prune_if_needed()
 
     def get_history(self) -> List[LLMMessage]:
         """
         Get the current conversation history in LLM format.
 
-        Converts internal StoredMessage format to LLMMessage format on-the-fly.
+        Returns cached LLM format (O(1) instead of O(n) conversion).
         Includes system prompt if stored. Tool outputs with screenshots are automatically
         converted to multimodal format (text + image) for LLM consumption.
 
@@ -136,8 +147,8 @@ class ConversationHistory:
                 "content": self.system_prompt
             })
 
-        # Convert stored messages to LLM format
-        messages.extend([msg.to_llm_message() for msg in self.history])
+        # Return cached LLM format (O(1) instead of O(n) conversion)
+        messages.extend(self._llm_history_cache)
 
         return messages
     
@@ -156,37 +167,29 @@ class ConversationHistory:
     @property
     def last_user_query(self) -> Optional[StoredMessage]:
         """
-        Get the last user query message (cached for O(1) access).
-        
-        This avoids O(n) scanning through history when building prompts.
+        Get the last user query message.
         
         Returns:
             Last StoredMessage with message_type USER_QUERY, or None if no user queries exist
         """
-        # Verify cache is still valid (message still in history)
-        if self._last_user_query and self._last_user_query in self.history:
-            return self._last_user_query
-        
-        # Cache invalid or not set - find last user query
+        # Find last user query (typically near end, so reverse scan is fast)
         for msg in reversed(self.history):
             if msg.message_type == MessageType.USER_QUERY:
-                self._last_user_query = msg
                 return msg
-        
-        self._last_user_query = None
         return None
 
     def clear(self) -> None:
         """Clear all conversation history."""
         self.history = []
-        self._last_user_query = None
+        self._llm_history_cache = []
         # Note: system_prompt is preserved on clear
 
     def _prune_if_needed(self) -> None:
         """Remove the oldest messages if the history exceeds the max length."""
         if len(self.history) > self.max_length:
-            # Keep the most recent messages
+            # Keep the most recent messages (prune both lists in sync)
             removed_count = len(self.history) - self.max_length
             self.history = self.history[-self.max_length :]
+            self._llm_history_cache = self._llm_history_cache[-self.max_length :]
             logger.debug(f"Pruned conversation history to {self.max_length} messages (removed {removed_count})")
 
