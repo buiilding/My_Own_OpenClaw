@@ -137,14 +137,12 @@ class InteractionLoop:
                 async for event in self.tool_executor.execute(parsed_response):
                     yield event
 
-                # Process tool results
-                tool_results = await self.tool_executor.process_results(parsed_response)
-
-                # Present tool results
-                async for event in self.event_presenter.present_tool_results(
-                    tool_results
-                ):
-                    yield event
+                # Process tool results for history storage (for LLM context)
+                # Note: Frontend displays tool results immediately after execution.
+                # Backend only processes results for conversation history, not for display.
+                # ToolOutputEvent is only emitted for backend-side failures (e.g., coordinate resolution)
+                # which are already yielded by ToolPreparer during tool preparation.
+                await self.tool_executor.process_results(parsed_response)
 
             except Exception as e:
                 logger.error(f"Critical tool execution error: {e}", exc_info=True)

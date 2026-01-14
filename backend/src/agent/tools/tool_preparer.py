@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from backend.src.agent.core.core import AgentSession
     from backend.src.core.interfaces.vision import IVisionService
 
-from backend.src.agent.tools.resolvers.coordinate_resolvers import CoordinateResolver, OcrResolver, VisionResolver
+from backend.src.agent.tools.resolvers.coordinate_resolvers import CoordinateResolver
 from backend.src.agent.tools.ocr_coordinator import OcrCoordinator
 from backend.src.agent.tools.screenshot_manager import ScreenshotManager
 from backend.src.agent.tools.synthetic_result_factory import SyntheticResultFactory
@@ -21,7 +21,6 @@ from backend.src.core.events import (
     AgentStreamingEvent,
     BundleEndEvent,
     BundleStartEvent,
-    RequestScreenshotEvent,
     ToolCallEvent,
     ToolOutputEvent,
 )
@@ -150,13 +149,17 @@ class ToolPreparer:
 
                     # Store in pending results so orchestrator can find it immediately
                     # Note: Synthetic results are stored here so ToolOrchestrator can find them
-                    # when processing tool_calls from parsed_response, avoiding double-counting.
+                    # when processing tool_calls from parsed_response.
                     if not hasattr(session, "_pending_tool_results"):
                         session._pending_tool_results = {}
                     session._pending_tool_results[request_id] = synthetic_result
 
-                    # Yield ToolOutputEvent immediately for frontend display
-                    # This provides immediate feedback while orchestrator processes the synthetic result
+                    # Yield ToolOutputEvent for backend-side failure
+                    # This is the ONLY case where backend emits ToolOutputEvent:
+                    # - Tool never reached frontend (coordinate resolution failed)
+                    # - Frontend doesn't know about the failure
+                    # - Backend must notify frontend of the error
+                    # For normal tool execution, frontend displays results immediately.
                     yield ToolOutputEvent(
                         tool_name=tool_call.tool_name,
                         success=False,
@@ -168,7 +171,7 @@ class ToolPreparer:
 
                     # Skip yielding ToolCallEvent - don't send invalid tool to frontend
                     # The orchestrator will still process this tool call from parsed_response.tool_calls
-                    # and find the synthetic result in _pending_tool_results, ensuring no double-counting.
+                    # and find the synthetic result in _pending_tool_results for history storage.
                     continue
 
             # Yield the (possibly modified) event

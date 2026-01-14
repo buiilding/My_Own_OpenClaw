@@ -7,7 +7,7 @@ Handles async waiting and timeout logic.
 import asyncio
 import logging
 import uuid
-from typing import TYPE_CHECKING, AsyncGenerator, Optional
+from typing import TYPE_CHECKING, AsyncGenerator
 
 from backend.src.core.events import AgentStreamingEvent, RequestScreenshotEvent
 

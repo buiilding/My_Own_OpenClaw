@@ -13,7 +13,6 @@ from backend.src.llm.parser import ParsedToolCall
 
 if TYPE_CHECKING:
     from backend.src.core.interfaces.vision import IVisionService
-    from backend.src.agent.plugins.ocr_plugin import OCRPlugin
 
 logger = logging.getLogger(__name__)
 
