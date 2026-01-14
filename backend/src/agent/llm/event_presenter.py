@@ -114,35 +114,26 @@ class EventPresenter:
         """
         Formats and presents tool output events.
         
+        DEPRECATED: This method is no longer used for normal tool results.
+        Frontend displays tool results immediately after execution.
+        
+        Backend only emits ToolOutputEvent for backend-side failures
+        (e.g., coordinate resolution failures) which are handled by ToolPreparer.
+        
+        This method is kept for backward compatibility but should not be called
+        for normal tool execution results.
+        
         Args:
-            tool_results: List of processed tool results with format:
-                {
-                    "tool_name": str,
-                    "success": bool,
-                    "execution_time": float,
-                    "output": str,
-                    "error": str,
-                    "screenshot": str,
-                    "active_window": str,
-                }
+            tool_results: List of processed tool results (deprecated)
             
         Yields:
-            ToolOutputEvent for each tool result
+            Nothing (empty generator - frontend handles display)
         """
-        for result in tool_results:
-            yield ToolOutputEvent(
-                tool_name=result["tool_name"],
-                success=result["success"],
-                execution_time=result["execution_time"],
-                output=result["output"],
-                error=result.get("error", ""),
-                screenshot=result.get("screenshot", ""),
-                metadata={
-                    "active_window": result.get("active_window", ""),
-                    "execution_time": result["execution_time"],
-                    "success": result["success"],
-                },
-            )
+        # No-op: Frontend handles tool result display
+        # Backend only processes results for history storage
+        # Empty generator - no events yielded
+        if False:  # Never reached, but makes it a proper generator
+            yield
 
     async def present_error(
         self, error_message: str

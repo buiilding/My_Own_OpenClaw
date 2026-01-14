@@ -6,7 +6,7 @@ Handles OCR plugin access and synchronization.
 """
 import asyncio
 import logging
-from typing import List, Dict, Any, Optional, TYPE_CHECKING
+from typing import List, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from backend.src.agent.core.core import AgentSession

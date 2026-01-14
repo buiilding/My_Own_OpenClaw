@@ -81,19 +81,19 @@ class ToolExecutor:
 
     async def process_results(
         self, parsed_response: ParsedResponse
-    ) -> List[Dict[str, Any]]:
+    ) -> None:
         """
-        Processes tool execution results.
+        Processes tool execution results for history storage.
         
-        This is called after tools are executed to process and format results.
+        Note: Frontend displays tool results immediately after execution.
+        This method only processes results for conversation history (LLM context),
+        not for frontend display. ToolOutputEvent is only emitted for backend-side
+        failures (e.g., coordinate resolution failures) which are handled by ToolPreparer.
         
         Args:
             parsed_response: Parsed LLM response with tool calls
-            
-        Returns:
-            List of processed tool results ready for EventPresenter
         """
-        # Execute tools
+        # Execute tools (orchestrator waits for frontend results)
         orchestration_result = await self.tool_orchestrator.execute_tools_from_response(
             parsed_response,
             user_id=self.session.user_id,
@@ -101,33 +101,12 @@ class ToolExecutor:
             session_ref=self.session,
         )
 
-        # Process results: transform, commit, format for presentation
-        processed_results = []
+        # Process results: transform and commit to history (for LLM context only)
         for result in orchestration_result.tool_results:
-            # Transform: pure computation (plugins, artifacts, formatting)
+            # Transform: pure computation (plugins, artifacts, formatting for history)
             processed = await self.result_transformer.transform(
                 result.tool_call.tool_name, result.result
             )
 
-            # Commit: state mutation (history update)
+            # Commit: state mutation (history update for LLM context)
             self.history_committer.commit(processed)
-
-            # Get active window from processed result or session metadata
-            active_window = processed.active_window
-            if not active_window and hasattr(self.session, "metadata"):
-                active_window = self.session.metadata.get("active_window")
-
-            # Format for EventPresenter
-            processed_results.append(
-                {
-                    "tool_name": processed.tool_name,
-                    "success": result.success,
-                    "execution_time": result.execution_time,
-                    "output": processed.formatted_message,
-                    "error": processed.error,
-                    "screenshot": processed.screenshot_data or "",
-                    "active_window": active_window or "",
-                }
-            )
-
-        return processed_results
