@@ -14,17 +14,56 @@ const { loadNutJs } = require('./tools/nutjs_loader.cjs');
  * Get system state
  */
 async function getSystemState() {
+  const totalStart = performance.now();
   try {
-    // Run independent operations in parallel
+    // Run independent operations in parallel with individual timing
     const [activeWindow, mousePos, screenRes, clipboard, internet, stats] = await Promise.all([
-      getActiveWindow().catch(() => null),
-      getMousePosition().catch(() => null),
-      getScreenResolution().catch(() => 'Unknown'),
-      getClipboardPreview().catch(() => '<error>'),
-      checkInternet().catch(() => 'Unknown'),
-      getResourceStats().catch(() => ({})),
+      (async () => {
+        const start = performance.now();
+        const result = await getActiveWindow().catch(() => null);
+        const time = (performance.now() - start) / 1000;
+        if (time > 0.01) console.log(`[Timing] getActiveWindow took ${time.toFixed(3)}s`);
+        return result;
+      })(),
+      (async () => {
+        const start = performance.now();
+        const result = await getMousePosition().catch(() => null);
+        const time = (performance.now() - start) / 1000;
+        if (time > 0.01) console.log(`[Timing] getMousePosition took ${time.toFixed(3)}s`);
+        return result;
+      })(),
+      (async () => {
+        const start = performance.now();
+        const result = await getScreenResolution().catch(() => 'Unknown');
+        const time = (performance.now() - start) / 1000;
+        if (time > 0.01) console.log(`[Timing] getScreenResolution took ${time.toFixed(3)}s`);
+        return result;
+      })(),
+      (async () => {
+        const start = performance.now();
+        const result = await getClipboardPreview().catch(() => '<error>');
+        const time = (performance.now() - start) / 1000;
+        if (time > 0.01) console.log(`[Timing] getClipboardPreview took ${time.toFixed(3)}s`);
+        return result;
+      })(),
+      (async () => {
+        const start = performance.now();
+        const result = await checkInternet().catch(() => 'Unknown');
+        const time = (performance.now() - start) / 1000;
+        if (time > 0.01) console.log(`[Timing] checkInternet took ${time.toFixed(3)}s`);
+        return result;
+      })(),
+      (async () => {
+        const start = performance.now();
+        const result = await getResourceStats().catch(() => ({}));
+        const time = (performance.now() - start) / 1000;
+        if (time > 0.01) console.log(`[Timing] getResourceStats took ${time.toFixed(3)}s`);
+        return result;
+      })(),
     ]);
 
+    const totalTime = (performance.now() - totalStart) / 1000;
+    console.log(`[Timing] getSystemState total time: ${totalTime.toFixed(3)}s`);
     return {
       active_window: activeWindow || 'Unknown',
       mouse_position: mousePos || 'Unknown',
@@ -35,7 +74,8 @@ async function getSystemState() {
       time: new Date().toISOString(),
     };
   } catch (error) {
-    console.error(`[SystemState] Error: ${error.message}`, error);
+    const totalTime = (performance.now() - totalStart) / 1000;
+    console.error(`[SystemState] Error after ${totalTime.toFixed(3)}s: ${error.message}`, error);
     // Return fallback state
     return {
       active_window: 'Unknown',
@@ -164,9 +204,27 @@ async function checkInternet() {
 async function getResourceStats() {
   try {
     const [cpu, mem, battery] = await Promise.all([
-      si.currentLoad().catch(() => ({ currentLoad: 0 })),
-      si.mem().catch(() => ({ used: 0, total: 1 })),
-      si.battery().catch(() => null),
+      (async () => {
+        const start = performance.now();
+        const result = await si.currentLoad().catch(() => ({ currentLoad: 0 }));
+        const time = (performance.now() - start) / 1000;
+        console.log(`[Timing] si.currentLoad() took ${time.toFixed(3)}s`);
+        return result;
+      })(),
+      (async () => {
+        const start = performance.now();
+        const result = await si.mem().catch(() => ({ used: 0, total: 1 }));
+        const time = (performance.now() - start) / 1000;
+        if (time > 0.01) console.log(`[Timing] si.mem() took ${time.toFixed(3)}s`);
+        return result;
+      })(),
+      (async () => {
+        const start = performance.now();
+        const result = await si.battery().catch(() => null);
+        const time = (performance.now() - start) / 1000;
+        if (time > 0.01) console.log(`[Timing] si.battery() took ${time.toFixed(3)}s`);
+        return result;
+      })(),
     ]);
 
     const stats = {

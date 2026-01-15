@@ -4,7 +4,7 @@ Event Presenter.
 Formats and emits all frontend/UI events for the agent interaction loop.
 """
 import logging
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import AsyncGenerator, Optional
 
 from backend.src.core.events import (
     AgentStreamingEvent,
@@ -12,7 +12,6 @@ from backend.src.core.events import (
     ErrorEvent,
     StreamingCompleteEvent,
     SystemPromptEvent,
-    ToolOutputEvent,
     ToolSchemasEvent,
     UserMessageFullEvent,
 )
@@ -106,34 +105,6 @@ class EventPresenter:
             StreamingCompleteEvent
         """
         yield StreamingCompleteEvent(final_response=final_response)
-
-    async def present_tool_results(
-        self,
-        tool_results: List[Dict[str, Any]],
-    ) -> AsyncGenerator[AgentStreamingEvent, None]:
-        """
-        Formats and presents tool output events.
-        
-        DEPRECATED: This method is no longer used for normal tool results.
-        Frontend displays tool results immediately after execution.
-        
-        Backend only emits ToolOutputEvent for backend-side failures
-        (e.g., coordinate resolution failures) which are handled by ToolPreparer.
-        
-        This method is kept for backward compatibility but should not be called
-        for normal tool execution results.
-        
-        Args:
-            tool_results: List of processed tool results (deprecated)
-            
-        Yields:
-            Nothing (empty generator - frontend handles display)
-        """
-        # No-op: Frontend handles tool result display
-        # Backend only processes results for history storage
-        # Empty generator - no events yielded
-        if False:  # Never reached, but makes it a proper generator
-            yield
 
     async def present_error(
         self, error_message: str

@@ -6,7 +6,13 @@ placeholders with actual execution results including screenshots.
 """
 import asyncio
 import logging
+import time
 from typing import Any, Dict, Optional
+
+
+def _short_id(request_id: str, length: int = 15) -> str:
+    """Truncate request_id to specified length for logging."""
+    return request_id[:length] if request_id else "unknown"
 
 from fastapi import WebSocket
 
@@ -49,6 +55,7 @@ class ToolResultHandler(MessageHandler):
             websocket: WebSocket connection
             user_id: User ID from connection context
         """
+        handler_start_time = time.perf_counter()
         payload = data.get("payload", {})
         request_id = payload.get("request_id")
         success = payload.get("success", False)
@@ -57,14 +64,15 @@ class ToolResultHandler(MessageHandler):
         metadata = payload.get("metadata", {})
         system_context = payload.get("system_context")  # active_window, mouse_position, time
         
-        logger.info(f"ToolResultHandler received message type='{data.get('type')}', request_id='{request_id}'")
+        logger.info(f"[Timing] Tool result received from frontend (request_id={_short_id(request_id)})")
+        logger.info(f"ToolResultHandler received message type='{data.get('type')}', request_id='{_short_id(request_id)}'")
         
         if not request_id:
             logger.warning(f"Tool result message missing request_id. Full data: {list(data.keys())}")
             return
         
         logger.debug(
-            f"Received tool result from frontend: request_id={request_id}, "
+            f"Received tool result from frontend: request_id={_short_id(request_id)}, "
             f"success={success}, has_data={result_data is not None}, has_metadata={bool(metadata)}"
         )
         
@@ -80,6 +88,8 @@ class ToolResultHandler(MessageHandler):
         if isinstance(result_data, dict) and result_data.get("bundled"):
             logger.info(f"Received bundled tool result with {len(result_data.get('tools', []))} tools")
             await self._handle_bundled_result(session, result_data, request_id, system_context)
+            handler_total_time = time.perf_counter() - handler_start_time
+            logger.info(f"[Timing] Bundled tool result handler completed in {handler_total_time:.3f}s (bundle_id={_short_id(request_id)})")
             return
         
         # Convert frontend result to ToolResult format (for individual tool results)
@@ -102,10 +112,7 @@ class ToolResultHandler(MessageHandler):
         screenshot_data = None
         if isinstance(tool_result.data, dict) and "screenshot" in tool_result.data:
             screenshot_data = tool_result.data["screenshot"]
-            logger.debug(
-                f"Tool result includes screenshot data "
-                f"(length: {len(screenshot_data) if screenshot_data else 0})"
-            )
+            logger.debug("Tool result includes screenshot data")
 
         # Proactive OCR and Screenshot Update
         # When a screenshot arrives, trigger proactive OCR asynchronously (non-blocking)
@@ -120,18 +127,18 @@ class ToolResultHandler(MessageHandler):
         if session.screenshot_waiter:
             logger.info(
                 f"Checking hidden screenshot waiter: session_waiter_done={session.screenshot_waiter.done()}, "
-                f"session_hidden_id={session.hidden_screenshot_request_id}, "
-                f"received_id={request_id}"
+                f"session_hidden_id={_short_id(session.hidden_screenshot_request_id) if session.hidden_screenshot_request_id else None}, "
+                f"received_id={_short_id(request_id)}"
             )
             if (not session.screenshot_waiter.done() and 
                 session.hidden_screenshot_request_id == request_id):
                 
                 if screenshot_data:
                     session.screenshot_waiter.set_result(screenshot_data)
-                    logger.info(f"Resolved hidden screenshot waiter for request {request_id}")
+                    logger.info(f"Resolved hidden screenshot waiter for request {_short_id(request_id)}")
                 else:
                     session.screenshot_waiter.set_exception(ValueError("No screenshot data in result"))
-                    logger.warning(f"Hidden screenshot request {request_id} returned no data")
+                    logger.warning(f"Hidden screenshot request {_short_id(request_id)} returned no data")
                 
                 # Reset waiter state
                 session.screenshot_waiter = None
@@ -140,7 +147,7 @@ class ToolResultHandler(MessageHandler):
                 # Don't process as normal tool result (it's hidden)
                 return
         else:
-            logger.debug(f"No active screenshot waiter for request {request_id}")
+            logger.debug(f"No active screenshot waiter for request {_short_id(request_id)}")
 
         # Store the tool result in session for tool execution to pick up
         if not hasattr(session, '_pending_tool_results'):
@@ -153,10 +160,12 @@ class ToolResultHandler(MessageHandler):
             future = session._tool_result_futures.get(request_id)
             if future and not future.done():
                 future.set_result(tool_result)
-                logger.info(f"Resolved tool result future for request_id {request_id}")
+                logger.info(f"Resolved tool result future for request_id {_short_id(request_id)}")
         
+        handler_total_time = time.perf_counter() - handler_start_time
+        logger.info(f"[Timing] Tool result handler completed in {handler_total_time:.3f}s (request_id={_short_id(request_id)})")
         logger.debug(
-            f"Received tool result for request_id {request_id}. "
+            f"Received tool result for request_id {_short_id(request_id)}. "
             f"Tool execution loop will now resume."
         )
     
@@ -190,10 +199,7 @@ class ToolResultHandler(MessageHandler):
         # Process screenshot if present (update session and trigger OCR)
         if bundle_screenshot:
             session.latest_screenshot = bundle_screenshot
-            logger.debug(
-                f"Bundle result includes screenshot data "
-                f"(length: {len(bundle_screenshot) if bundle_screenshot else 0})"
-            )
+            logger.debug("Bundle result includes screenshot data")
             self._trigger_proactive_ocr(session, bundle_screenshot, bundle_request_id)
         
         # Process each individual tool result in the bundle
@@ -238,13 +244,13 @@ class ToolResultHandler(MessageHandler):
                 future = session._tool_result_futures.get(tool_request_id)
                 if future and not future.done():
                     future.set_result(tool_result)
-                    logger.info(f"Resolved bundled tool result future for request_id {tool_request_id} (tool: {tool_name})")
+                    logger.info(f"Resolved bundled tool result future for request_id {_short_id(tool_request_id)} (tool: {tool_name})")
                 else:
-                    logger.debug(f"Future for {tool_request_id} already done or missing")
+                    logger.debug(f"Future for {_short_id(tool_request_id)} already done or missing")
             else:
-                logger.debug(f"No waiting future for bundled tool request_id {tool_request_id}")
+                logger.debug(f"No waiting future for bundled tool request_id {_short_id(tool_request_id)}")
         
-        logger.info(f"Finished unpacking bundle result {bundle_request_id}")
+        logger.info(f"Finished unpacking bundle result {_short_id(bundle_request_id)}")
     
     def _trigger_proactive_ocr(
         self,
@@ -282,7 +288,7 @@ class ToolResultHandler(MessageHandler):
                     results = await ocr_plugin.perform_ocr(screenshot_data)
                     if results:
                         session.latest_ocr_results = results
-                        logger.info(f"Proactive OCR completed for request {request_id}")
+                        logger.info(f"Proactive OCR completed for request {_short_id(request_id)}")
             except Exception as e:
                 logger.error(f"Proactive OCR failed: {e}")
             finally:

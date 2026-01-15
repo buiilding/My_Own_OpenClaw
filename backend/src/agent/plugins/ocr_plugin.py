@@ -130,6 +130,10 @@ class OCRPlugin(AgentPlugin):
 
     def _perform_ocr_sync(self, screenshot_b64: str) -> Optional[List[Dict[str, Any]]]:
         """Synchronous implementation of OCR analysis to be run in a thread."""
+        import time
+        ocr_analysis_start = time.perf_counter()
+        device = "CUDA" if self.use_cuda else "CPU"
+        logger.info(f"[Timing] OCR analysis starting (device={device})")
         try:
             # OCR engine should already be initialized at startup via initialize()
             # This is just a safety check (should never happen in normal operation)
@@ -147,6 +151,7 @@ class OCRPlugin(AgentPlugin):
                     self._ocr_engine = RapidOCR(params=ocr_params)
                     self.use_cuda = True
                     logger.info("Initialized RapidOCR engine with CUDA support (lazy initialization)")
+                    logger.info(f"[OCR] Using CUDA device for OCR processing")
                 except Exception as e:
                     # Try CPU fallback if CUDA init fails
                     logger.debug(f"CUDA initialization failed during lazy init, trying CPU: {e}")
@@ -156,6 +161,7 @@ class OCRPlugin(AgentPlugin):
                     self._ocr_engine = RapidOCR(params=ocr_params)
                     self.use_cuda = False
                     logger.info("Initialized RapidOCR engine with CPU (lazy initialization fallback)")
+                    logger.info(f"[OCR] Using CPU device for OCR processing (CUDA unavailable)")
 
             # Decode base64 to bytes
             try:
@@ -206,11 +212,11 @@ class OCRPlugin(AgentPlugin):
                         }
                         self._ocr_engine = RapidOCR(params=ocr_params)
                         self.use_cuda = False
-                        logger.debug("OCR engine reloaded with CPU - retrying analysis")
+                        logger.warning("OCR engine reloaded with CPU (CUDA memory exhausted) - retrying analysis")
                         
                         # Retry OCR with CPU
                         result = self._ocr_engine(image_bytes)
-                        logger.debug("OCR analysis completed successfully with CPU fallback")
+                        logger.info("OCR analysis completed successfully with CPU fallback")
                     except Exception as reload_error:
                         logger.error(
                             f"OCR CPU fallback also failed: {reload_error}. "
@@ -292,6 +298,9 @@ class OCRPlugin(AgentPlugin):
                     logger.warning(f"Failed to parse OCR bbox for text '{text}': {e}")
                     continue
             
+            ocr_analysis_time = time.perf_counter() - ocr_analysis_start
+            device = "CUDA" if self.use_cuda else "CPU"
+            logger.info(f"[Timing] OCR analysis completed in {ocr_analysis_time:.3f}s (device={device}): found {len(ocr_results)} text elements")
             logger.info(f"OCR analysis completed: found {len(ocr_results)} text elements")
             
             return ocr_results
@@ -309,6 +318,17 @@ class OCRPlugin(AgentPlugin):
             # Initialize OCR engine during plugin initialization
             # Try CUDA first, fall back to CPU if GPU errors occur
             if self._ocr_engine is None:
+                # Check CUDA availability
+                try:
+                    import torch
+                    cuda_available = torch.cuda.is_available()
+                    if cuda_available:
+                        logger.info(f"[OCR] CUDA is available, attempting to use GPU")
+                    else:
+                        logger.info(f"[OCR] CUDA is not available, will use CPU")
+                except ImportError:
+                    logger.debug("[OCR] PyTorch not available, cannot check CUDA status")
+                
                 try:
                     ocr_params = {
                         "EngineConfig.onnxruntime.use_cuda": True,
@@ -316,6 +336,7 @@ class OCRPlugin(AgentPlugin):
                     self._ocr_engine = RapidOCR(params=ocr_params)
                     self.use_cuda = True
                     logger.info("OCR plugin initialized and ready with CUDA support")
+                    logger.info(f"[OCR] Using CUDA device for OCR processing")
                 except Exception as e:
                     # If CUDA fails (any CUDA/CUDNN error), try CPU fallback
                     error_msg = str(e)
@@ -353,6 +374,7 @@ class OCRPlugin(AgentPlugin):
                             self._ocr_engine = RapidOCR(params=ocr_params)
                             self.use_cuda = False
                             logger.info("OCR plugin initialized with CPU fallback")
+                            logger.info(f"[OCR] Using CPU device for OCR processing (CUDA initialization failed)")
                         except Exception as cpu_error:
                             logger.error(f"OCR CPU initialization also failed: {cpu_error}", exc_info=True)
                             self._ocr_engine = None

@@ -26,7 +26,7 @@ class ToolExecutor:
     Responsibility: Tool orchestration only.
     Delegates transformation to ResultTransformer and state mutation to HistoryCommitter.
     Yields execution-time events (ToolPreparer events, ThinkingEvent).
-    Returns processed tool results for EventPresenter to format.
+    Processes results for history storage only (frontend handles display).
     """
 
     def __init__(

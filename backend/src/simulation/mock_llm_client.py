@@ -6,12 +6,11 @@ This allows the simulation to run the exact same backend flow without actual LLM
 """
 import json
 import logging
-import os
 import platform
-from typing import AsyncGenerator, List, Optional
+from typing import AsyncGenerator, List
 
 from backend.src.core.config import AppConfig
-from backend.src.core.events import ChunkEvent, FullResponseEvent, StreamingEvent
+from backend.src.core.events import ChunkEvent, StreamingEvent
 from backend.src.llm.llm_client import LLMClient
 from backend.src.core.types import LLMMessage
 
@@ -136,9 +135,9 @@ SIMULATION_RESPONSES = [
                 "name": "keyboard_control",
                 "args": {
                     "action": "type",
-                    "text": "amazon.com",
-                    "explanation": "Typing 'amazon.com' into the Amazon search box.",
-                    "expectation": "The text 'amazon.com' should appear in the search box."
+                    "text": "shoes",
+                    "explanation": "Typing 'shoes' into the Amazon search box.",
+                    "expectation": "The text 'shoes' should appear in the search box."
                 }
             }
         }) + "\n" + json.dumps({
@@ -147,8 +146,8 @@ SIMULATION_RESPONSES = [
                 "args": {
                     "action": "press",
                     "key": "enter",
-                    "explanation": "Pressing Enter to search for amazon.com on Amazon.",
-                    "expectation": "Amazon should display search results for amazon.com."
+                    "explanation": "Pressing Enter to search for shoes on Amazon.",
+                    "expectation": "Amazon should display search results for shoes."
                 }
             }
         })
@@ -278,7 +277,7 @@ class MockLLMClient(LLMClient):
             # Stream it character by character to simulate real streaming
             for char in final_response:
                 yield ChunkEvent(content=char)
-            yield FullResponseEvent(content=final_response)
+            # Don't yield FullResponseEvent here - LLMInteractionHandler will yield it
             return
         
         response = SIMULATION_RESPONSES[self._iteration]["response"]
@@ -293,8 +292,8 @@ class MockLLMClient(LLMClient):
         for char in response:
             yield ChunkEvent(content=char)
         
-        # Yield full response event
-        yield FullResponseEvent(content=response)
+        # Don't yield FullResponseEvent here - LLMInteractionHandler will yield it
+        # after aggregating all chunks. This prevents duplication.
     
     def reset(self):
         """Reset iteration counter (useful for testing or restarting simulation)."""

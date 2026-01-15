@@ -4,6 +4,7 @@ Query Message Handler.
 Handles user query messages and streams responses back to the client.
 """
 import logging
+import time
 from typing import Any, Dict
 
 from fastapi import WebSocket
@@ -82,6 +83,8 @@ class QueryMessageHandler(MessageHandler):
             websocket: WebSocket connection
             user_id: User ID from connection context
         """
+        query_start_time = time.perf_counter()
+        logger.info(f"[Timing] Query received from frontend (user_id={user_id})")
         tts_service = None
         audio_task = None
 
@@ -185,8 +188,13 @@ class QueryMessageHandler(MessageHandler):
                 await websocket.send_json(
                     {"type": "streaming-complete", "id": msg_id, "payload": {}}
                 )
+                
+                query_total_time = time.perf_counter() - query_start_time
+                logger.info(f"[Timing] Query processing completed in {query_total_time:.3f}s (user_id={user_id})")
 
             except Exception as e:
+                query_total_time = time.perf_counter() - query_start_time
+                logger.error(f"[Timing] Query processing failed after {query_total_time:.3f}s: {e}", exc_info=True)
                 logger.error(f"Error in query processing: {e}", exc_info=True)
                 await self._send_error(websocket, msg_id, str(e))
             finally:

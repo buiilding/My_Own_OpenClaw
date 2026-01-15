@@ -6,8 +6,14 @@ Handles async waiting and timeout logic.
 """
 import asyncio
 import logging
+import time
 import uuid
 from typing import TYPE_CHECKING, AsyncGenerator
+
+
+def _short_id(request_id: str, length: int = 15) -> str:
+    """Truncate request_id to specified length for logging."""
+    return request_id[:length] if request_id else "unknown"
 
 from backend.src.core.events import AgentStreamingEvent, RequestScreenshotEvent
 
@@ -59,6 +65,7 @@ class ScreenshotManager:
             return
         
         # Request hidden screenshot
+        screenshot_wait_start = time.perf_counter()
         logger.info("No screenshot in session, requesting hidden screenshot...")
         
         hidden_request_id = str(uuid.uuid4())
@@ -70,16 +77,20 @@ class ScreenshotManager:
         
         # Wait for result (with timeout)
         try:
-            logger.info(f"Waiting for hidden screenshot result (id={hidden_request_id})...")
+            logger.info(f"Waiting for hidden screenshot result (id={_short_id(hidden_request_id)})...")
             screenshot_data = await asyncio.wait_for(
                 session.screenshot_waiter, timeout=self.timeout
             )
-            logger.info(f"Received hidden screenshot result (id={hidden_request_id})")
+            screenshot_wait_time = time.perf_counter() - screenshot_wait_start
+            logger.info(f"[Timing] Hidden screenshot received in {screenshot_wait_time:.3f}s (id={_short_id(hidden_request_id)})")
+            logger.info(f"Received hidden screenshot result (id={_short_id(hidden_request_id)})")
             # Update session with received screenshot
             session.latest_screenshot = screenshot_data
         except asyncio.TimeoutError:
+            screenshot_wait_time = time.perf_counter() - screenshot_wait_start
+            logger.error(f"[Timing] Hidden screenshot timeout after {screenshot_wait_time:.3f}s")
             logger.error(
-                f"Timed out waiting for hidden screenshot (id={hidden_request_id}) after {self.timeout}s"
+                f"Timed out waiting for hidden screenshot (id={_short_id(hidden_request_id)}) after {self.timeout}s"
             )
             raise ValueError(
                 f"Failed to acquire screenshot for coordinate resolution (timeout after {self.timeout}s)"

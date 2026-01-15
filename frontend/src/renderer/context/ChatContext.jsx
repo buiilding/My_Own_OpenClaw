@@ -28,8 +28,59 @@ export function ChatProvider({ children }) {
 
   const streamingHandlers = useStreamingMessages(setMessages, setIsSending, setThinkingStatus);
 
+  // Helper function to display tool result immediately in UI
+  const displayToolResult = useCallback((toolName, result, correlationId, executionTime = null) => {
+    // Skip display for hidden tool calls (e.g., background screenshots)
+    if (hiddenToolCalls.current.has(correlationId)) {
+      return;
+    }
+
+    // Format output text - handle various result formats
+    let outputText = 'No output';
+    if (result.error) {
+      outputText = `Error: ${result.error}`;
+    } else if (result.data) {
+      // Try different common output field names
+      if (typeof result.data === 'string') {
+        outputText = result.data;
+      } else if (result.data.output) {
+        outputText = result.data.output;
+      } else if (result.data.result) {
+        outputText = result.data.result;
+      } else if (result.data.message) {
+        outputText = result.data.message;
+      } else {
+        // Fallback to JSON stringify for complex objects
+        outputText = JSON.stringify(result.data, null, 2);
+      }
+    }
+
+    // Extract screenshot if available
+    const screenshot = result.data?.screenshot || null;
+
+    // Create tool output message
+    const toolOutputMessage = {
+      id: crypto.randomUUID(),
+      text: outputText,
+      sender: 'assistant',
+      type: 'tool-output',
+      screenshot: screenshot,
+      toolMetadata: result.data?.metadata || null,
+      toolName: toolName,
+      executionTime: executionTime,
+      success: result.success,
+      correlationId: correlationId,
+    };
+
+    // Add to messages immediately
+    setMessages((prevMessages) => [...prevMessages, toolOutputMessage]);
+  }, [setMessages]);
+
   // Stateless tool execution (for individual tools)
   const executeTool = useCallback(async (toolName, args, correlationId, skipAutoCapture = false) => {
+    const startTime = performance.now();
+    const shortId = correlationId ? correlationId.substring(0, 15) : 'unknown';
+    console.log(`[Timing] Tool execution started: ${toolName} (request_id=${shortId})`);
     try {
       const result = await window.ipc.invoke('execute-tool', {
         toolName,
@@ -37,7 +88,14 @@ export function ChatProvider({ children }) {
         skipAutoCapture
       });
       
-      // Send result immediately to backend
+      const executionTime = (performance.now() - startTime) / 1000; // Convert to seconds
+      const shortId = correlationId ? correlationId.substring(0, 15) : 'unknown';
+      console.log(`[Timing] Tool execution completed: ${toolName} took ${executionTime.toFixed(3)}s (request_id=${shortId})`);
+      
+      // Display result immediately in UI (frontend handles display)
+      displayToolResult(toolName, result, correlationId, executionTime);
+      
+      // Send result to backend for history storage only
       window.ipc.send('to-backend', {
         type: 'tool-result',
         payload: {
@@ -50,7 +108,12 @@ export function ChatProvider({ children }) {
       
       return result;
     } catch (error) {
+      const executionTime = (performance.now() - startTime) / 1000;
       console.error(`[ChatContext] Tool execution failed: ${error.message}`);
+      
+      // Display error result immediately
+      displayToolResult(toolName, { success: false, error: error.message, data: null }, correlationId, executionTime);
+      
       // Send error result to backend
       window.ipc.send('to-backend', {
         type: 'tool-result',
@@ -62,11 +125,13 @@ export function ChatProvider({ children }) {
       });
       throw error;
     }
-  }, []);
+  }, [displayToolResult]);
 
   // Execute a bundle of tools sequentially
   const executeToolBundle = useCallback(async (bundle, correlationId) => {
+    const bundleStartTime = performance.now();
     const results = [];
+    console.log(`[Timing] Bundle execution started: ${bundle.length} tools (bundle_id=${correlationId})`);
     console.log('[ChatContext] Executing bundle of size:', bundle.length);
     console.log('[ChatContext] Bundle correlation ID:', correlationId);
     
@@ -74,6 +139,7 @@ export function ChatProvider({ children }) {
       // Execute all tools sequentially with skipAutoCapture
       for (let i = 0; i < bundle.length; i++) {
         const tool = bundle[i];
+        const toolStartTime = performance.now();
         
         try {
           console.log(`[ChatContext] Executing bundled tool ${i+1}/${bundle.length}: ${tool.toolName}`);
@@ -84,6 +150,13 @@ export function ChatProvider({ children }) {
             args: tool.args,
             skipAutoCapture: true
           });
+          
+          const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
+          const shortId = tool.correlationId ? tool.correlationId.substring(0, 15) : 'unknown';
+          console.log(`[Timing] Bundled tool execution: ${tool.toolName} took ${toolExecutionTime.toFixed(3)}s (request_id=${shortId})`);
+          
+          // Display result immediately for each tool in bundle
+          displayToolResult(tool.toolName, result, tool.correlationId, toolExecutionTime);
           
           results.push({
             tool_name: tool.toolName,
@@ -96,7 +169,12 @@ export function ChatProvider({ children }) {
           // No delay needed here - the keyboard tool handles timing internally
           // The lock is released after typing completes, allowing the next operation to proceed
         } catch (err) {
+          const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
           console.error('[ChatContext] Bundle tool execution failed:', err);
+          
+          // Display error result immediately
+          displayToolResult(tool.toolName, { success: false, error: err.message, data: null }, tool.correlationId, toolExecutionTime);
+          
           results.push({
             tool_name: tool.toolName,
             request_id: tool.correlationId,
@@ -144,6 +222,8 @@ export function ChatProvider({ children }) {
       }
       
       // Send bundled result (ONLY ONCE)
+      const bundleTotalTime = (performance.now() - bundleStartTime) / 1000;
+      console.log(`[Timing] Bundle execution completed: ${bundle.length} tools took ${bundleTotalTime.toFixed(3)}s (bundle_id=${correlationId})`);
       console.log('[ChatContext] Sending bundled result');
       window.ipc.send('to-backend', {
         type: 'tool-result',
@@ -159,6 +239,8 @@ export function ChatProvider({ children }) {
         }
       });
     } catch (error) {
+      const bundleTotalTime = (performance.now() - bundleStartTime) / 1000;
+      console.error(`[Timing] Bundle execution failed after ${bundleTotalTime.toFixed(3)}s:`, error);
       console.error('[ChatContext] Bundle execution failed:', error);
       // Send error result
       window.ipc.send('to-backend', {
@@ -174,7 +256,20 @@ export function ChatProvider({ children }) {
 
   // No event listeners needed - using stateless request/response pattern
 
+  // Store callbacks in refs to prevent useEffect re-runs
+  const executeToolRef = useRef(executeTool);
+  const executeToolBundleRef = useRef(executeToolBundle);
+  const displayToolResultRef = useRef(displayToolResult);
+  
+  // Update refs when callbacks change
+  useEffect(() => {
+    executeToolRef.current = executeTool;
+    executeToolBundleRef.current = executeToolBundle;
+    displayToolResultRef.current = displayToolResult;
+  }, [executeTool, executeToolBundle, displayToolResult]);
+
   // Listen for chat-related backend events
+  // Use refs in the handler to avoid dependency on changing function identities
   useEffect(() => {
     const removeListener = window.ipc.on('from-backend', (data) => {
       switch (data.type) {
@@ -204,7 +299,7 @@ export function ChatProvider({ children }) {
           const correlationId = bundleCorrelationId.current;
           toolBundle.current = [];
           bundleCorrelationId.current = null;
-          executeToolBundle(bundleToExecute, correlationId);
+          executeToolBundleRef.current(bundleToExecute, correlationId);
           break;
         case 'tool-call':
           streamingHandlers.handleToolCall(data);
@@ -221,8 +316,8 @@ export function ChatProvider({ children }) {
                     correlationId: correlationId
                 });
             } else {
-                // Execute immediately (stateless)
-                executeTool(
+                // Execute immediately (stateless) - use ref to avoid stale closure
+                executeToolRef.current(
                   data.payload.tool_name,
                   data.payload.parameters,
                   correlationId,
@@ -234,12 +329,9 @@ export function ChatProvider({ children }) {
           }
           break;
         case 'tool-output':
-          // Filter out placeholder messages for remote tools to avoid duplicates
-          // The real output will be handled locally by the tool-result listener
-          if (data.payload && data.payload.output && data.payload.output.includes('executing on frontend')) {
-            console.log('[ChatContext] Skipping placeholder tool output:', data.payload.output);
-            break;
-          }
+          // Backend only emits tool-output for backend-side failures (e.g., coordinate resolution)
+          // Normal tool outputs are displayed immediately by frontend after execution
+          // This event is only for failures that never reached frontend execution
           streamingHandlers.handleToolOutput(data);
           break;
         case 'system-prompt':
@@ -350,7 +442,7 @@ export function ChatProvider({ children }) {
       }
     });
     return removeListener;
-  }, [streamingHandlers, enqueueAudio, executeToolBundle, executeTool]);
+  }, [streamingHandlers, enqueueAudio]); // Removed executeTool, executeToolBundle, displayToolResult - using refs instead
 
   const sendMessage = useCallback(async (text) => {
     stopPlayback();

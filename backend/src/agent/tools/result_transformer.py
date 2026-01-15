@@ -15,6 +15,7 @@ All methods must be pure functions: same input → same output, no side effects.
 Future contributors: if you need state mutation, use HistoryCommitter instead.
 """
 import logging
+import time
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
@@ -26,14 +27,12 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ProcessedToolResult:
-    """Processed tool result ready for history commit and event presentation."""
+    """Processed tool result ready for history commit."""
     tool_name: str
     formatted_message: str
     screenshot_data: Optional[str] = None
     success: bool = True
     error: str = ""
-    execution_time: float = 0.0
-    active_window: Optional[str] = None
     artifacts: Optional[Dict[str, Any]] = None
 
 
@@ -99,6 +98,7 @@ class ResultTransformer:
             
         Side Effects: None (pure function contract)
         """
+        transform_start = time.perf_counter()
         # 1. Plugin Hooks (plugins can process results, but screenshots come from frontend)
         # Call plugins individually to namespace artifacts by plugin name
         # This enables replay, debugging, plugin disabling, and deterministic diffs
@@ -141,11 +141,8 @@ class ResultTransformer:
             screenshot_indicator=screenshot_indicator,
         )
 
-        # Extract active window from metadata
-        active_window = None
-        if tool_result.metadata:
-            active_window = tool_result.metadata.get("active_window")
-
+        transform_time = time.perf_counter() - transform_start
+        logger.info(f"[Timing] Result transformation took {transform_time:.3f}s (tool={tool_name})")
         return ProcessedToolResult(
             tool_name=tool_name,
             formatted_message=formatted_message,
@@ -153,7 +150,6 @@ class ResultTransformer:
             success=tool_result.success,
             error=tool_result.error or "",
             artifacts=tool_result.artifacts,
-            active_window=active_window,
         )
 
     def _extract_screenshot_data(
@@ -188,7 +184,7 @@ class ResultTransformer:
             if "screenshot" in tool_result.data:
                 screenshot_data = tool_result.data["screenshot"]
                 if screenshot_data and isinstance(screenshot_data, str):
-                    logger.debug(f"Found screenshot in tool result data (length: {len(screenshot_data)})")
+                    logger.debug("Found screenshot in tool result data")
                     return screenshot_data
                 else:
                     logger.warning(f"Screenshot data found but invalid type: {type(screenshot_data)}")
