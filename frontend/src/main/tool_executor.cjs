@@ -57,6 +57,7 @@ function getAutoCaptureType(toolName) {
 function initializeToolExecutor() {
   // Main tool execution handler - stateless request/response
   ipcMain.handle('execute-tool', async (event, { toolName, args, skipAutoCapture = false }) => {
+    const totalStartTime = performance.now();
     console.log(`[ToolExecutor] Executing tool: ${toolName}`, { skipAutoCapture });
 
     const tool = tools[toolName];
@@ -67,7 +68,10 @@ function initializeToolExecutor() {
 
     try {
       // Execute tool (skipAutoCapture passed to tool if needed)
+      const toolStartTime = performance.now();
       const result = await tool(args, skipAutoCapture);
+      const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
+      console.log(`[Timing] Tool ${toolName} execution took ${toolExecutionTime.toFixed(3)}s`);
 
       // Only capture system state and screenshot if NOT skipping
       if (!skipAutoCapture && result.success) {
@@ -75,10 +79,16 @@ function initializeToolExecutor() {
 
         if (autoCaptureType === 'screenshot') {
           // Wait a bit for UI to update (especially for computer control tools)
+          const uiWaitStartTime = performance.now();
           await new Promise(resolve => setTimeout(resolve, 2000));
+          const uiWaitTime = (performance.now() - uiWaitStartTime) / 1000;
+          console.log(`[Timing] UI update delay: ${uiWaitTime.toFixed(3)}s (hardcoded 2s wait)`);
 
           // Capture screenshot
+          const screenshotStartTime = performance.now();
           const screenshotResult = await screenshotTool.captureScreenshot({}, false);
+          const screenshotTime = (performance.now() - screenshotStartTime) / 1000;
+          console.log(`[Timing] Screenshot capture took ${screenshotTime.toFixed(3)}s`);
           if (screenshotResult.success) {
             result.data = result.data || {};
             result.data.screenshot = screenshotResult.data.screenshot;
@@ -87,7 +97,10 @@ function initializeToolExecutor() {
 
         // Get system state
         try {
+          const systemStateStartTime = performance.now();
           const systemState = await getSystemState();
+          const systemStateTime = (performance.now() - systemStateStartTime) / 1000;
+          console.log(`[Timing] System state gathering took ${systemStateTime.toFixed(3)}s`);
           result.data = result.data || {};
           result.data.system_state = systemState;
         } catch (error) {
@@ -96,9 +109,13 @@ function initializeToolExecutor() {
         }
       }
 
+      const totalTime = (performance.now() - totalStartTime) / 1000;
+      console.log(`[Timing] Total tool output gathering took ${totalTime.toFixed(3)}s (tool: ${toolName})`);
       return result;
     } catch (error) {
+      const totalTime = (performance.now() - totalStartTime) / 1000;
       console.error(`[ToolExecutor] Tool execution failed: ${error.message}`, error);
+      console.log(`[Timing] Tool execution failed after ${totalTime.toFixed(3)}s (tool: ${toolName})`);
       return { success: false, error: error.message };
     }
   });

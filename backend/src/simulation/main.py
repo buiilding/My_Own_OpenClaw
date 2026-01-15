@@ -17,7 +17,7 @@ from backend.src.simulation.mock_llm_client import get_mock_llm_client
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.DEBUG, format="%(name)s - %(levelname)s - %(message)s"
 )
 
 # Disable noisy debug logs from specific libraries
@@ -27,6 +27,9 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.getLogger("aiosqlite").setLevel(logging.WARNING)
+logging.getLogger("PIL").setLevel(logging.WARNING)
+logging.getLogger("PIL.PngImagePlugin").setLevel(logging.WARNING)
+logging.getLogger("Pillow").setLevel(logging.WARNING)
 
 # Disable system prompt content logging
 logging.getLogger("backend.src.llm.prompt_constructor").setLevel(logging.INFO)

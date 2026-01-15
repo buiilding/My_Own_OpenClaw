@@ -5,8 +5,14 @@ Orchestrates tool call preparation before execution.
 Coordinates screenshot acquisition, coordinate resolution, and tool rewriting.
 """
 import logging
+import time
 import uuid
 from typing import Callable, List, AsyncGenerator, Optional, TYPE_CHECKING
+
+
+def _short_id(request_id: str, length: int = 15) -> str:
+    """Truncate request_id to specified length for logging."""
+    return request_id[:length] if request_id else "unknown"
 
 if TYPE_CHECKING:
     from backend.src.agent.core.core import AgentSession
@@ -81,12 +87,16 @@ class ToolPreparer:
         Yields:
             AgentStreamingEvent: BundleStartEvent, RequestScreenshotEvent, ToolCallEvent, BundleEndEvent, ToolOutputEvent
         """
+        preparation_start_time = time.perf_counter()
+        logger.info(f"[Timing] Tool preparation started: {len(tool_calls)} tool(s)")
+        
         # Bundle management
         if len(tool_calls) > 1:
             yield BundleStartEvent()
             logger.info(f"Bundle start: {len(tool_calls)} tools")
 
         for tool_call in tool_calls:
+            tool_prep_start_time = time.perf_counter()
             # Generate request_id for each tool call
             request_id = str(uuid.uuid4())
             if not hasattr(tool_call, "metadata"):
@@ -99,8 +109,12 @@ class ToolPreparer:
                     # 1. Ensure we have a screenshot (yields RequestScreenshotEvent if needed)
                     # Note: ScreenshotManager.get_screenshot is an async generator that may yield
                     # RequestScreenshotEvent. We forward all events to maintain real-time updates.
+                    screenshot_start_time = time.perf_counter()
                     async for event in self.screenshot_manager.get_screenshot(session):
                         yield event
+                    screenshot_time = time.perf_counter() - screenshot_start_time
+                    if screenshot_time > 0.001:  # Only log if significant
+                        logger.info(f"[Timing] Screenshot acquisition took {screenshot_time:.3f}s (request_id={_short_id(request_id)})")
                     
                     # After screenshot manager completes, check if we have screenshot
                     screenshot_data = session.latest_screenshot
@@ -110,11 +124,14 @@ class ToolPreparer:
                     # 2. Get OCR results if needed (for OCR method)
                     ocr_results = None
                     if tool_call.parameters.get("find_coordinates_by") == CoordinateFindingMethod.OCR:
+                        ocr_start_time = time.perf_counter()
                         ocr_results = await self.ocr_coordinator.get_ocr_results(
                             session, screenshot_data
                         )
+                        ocr_time = time.perf_counter() - ocr_start_time
+                        logger.info(f"[Timing] OCR results retrieval took {ocr_time:.3f}s (request_id={_short_id(request_id)}, found {len(ocr_results) if ocr_results else 0} results)")
                         logger.debug(
-                            f"[request_id={request_id}] Retrieved {len(ocr_results)} OCR results"
+                            f"[request_id={_short_id(request_id)}] Retrieved {len(ocr_results)} OCR results"
                         )
 
                     # 3. Get vision service if needed (for Vision method)
@@ -128,15 +145,21 @@ class ToolPreparer:
                             )
 
                     # 4. Resolve coordinates (pure function)
+                    coord_resolve_start_time = time.perf_counter()
                     x, y = await self.coordinate_resolver.resolve(
                         tool_call, screenshot_data, ocr_results, vision_service
                     )
+                    coord_resolve_time = time.perf_counter() - coord_resolve_start_time
+                    logger.info(f"[Timing] Coordinate resolution took {coord_resolve_time:.3f}s (request_id={_short_id(request_id)}, method={tool_call.parameters.get('find_coordinates_by')})")
 
                     # 5. Rewrite tool call to manual mode
                     self._rewrite_to_manual(tool_call, x, y)
                     logger.info(
-                        f"[request_id={request_id}] Resolved coordinates for {tool_call.tool_name}: ({x}, {y})"
+                        f"[request_id={_short_id(request_id)}] Resolved coordinates for {tool_call.tool_name}: ({x}, {y})"
                     )
+                    
+                    tool_prep_time = time.perf_counter() - tool_prep_start_time
+                    logger.info(f"[Timing] Tool preparation completed in {tool_prep_time:.3f}s (request_id={_short_id(request_id)}, tool={tool_call.tool_name})")
 
                 except Exception as e:
                     logger.error(
@@ -186,6 +209,9 @@ class ToolPreparer:
         if len(tool_calls) > 1:
             yield BundleEndEvent()
             logger.info(f"Bundle end: {len(tool_calls)} tools")
+        
+        preparation_total_time = time.perf_counter() - preparation_start_time
+        logger.info(f"[Timing] Tool preparation completed: {len(tool_calls)} tool(s) in {preparation_total_time:.3f}s")
 
     def _needs_coordinate_resolution(self, tool_call: ParsedToolCall) -> bool:
         """Check if the tool call requires coordinate resolution."""

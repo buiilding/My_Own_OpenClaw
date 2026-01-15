@@ -4,6 +4,7 @@ LLM Interaction Handler.
 Handles LLM streaming, text aggregation, and token counting.
 """
 import logging
+import time
 from typing import TYPE_CHECKING, AsyncGenerator, List, NamedTuple, Optional
 
 from backend.src.core.events import (
@@ -73,13 +74,21 @@ class LLMInteractionHandler:
         Yields:
             Streaming events: ChunkEvent, ThinkingEvent, ErrorEvent, FullResponseEvent, TokenCountEvent
         """
+        llm_start_time = time.perf_counter()
+        first_token_time = None
         full_text = ""
         model_id = self.session.cfg.selected_model_id
+        
+        logger.info(f"[Timing] LLM request started (model={model_id})")
         
         try:
             async for event in self.llm_client.get_completion_stream(
                 model=model_id, messages=prompt
             ):
+                if first_token_time is None:
+                    first_token_time = time.perf_counter()
+                    first_token_latency = first_token_time - llm_start_time
+                    logger.info(f"[Timing] LLM first token received in {first_token_latency:.3f}s")
                 # LLM client returns StreamingEvent objects directly
                 if isinstance(event, ChunkEvent):
                     full_text += event.content
@@ -88,6 +97,12 @@ class LLMInteractionHandler:
                     yield event
                 elif isinstance(event, ErrorEvent):
                     yield event
+                elif isinstance(event, FullResponseEvent):
+                    # LLM client may yield FullResponseEvent (e.g., mock client)
+                    # Extract content but don't yield it yet - we'll yield our own at the end
+                    # This prevents duplication
+                    full_text = event.content  # Use the full response from the event
+                    # Don't yield the event - we'll yield our own FullResponseEvent below
                 else:
                     # Fallback for any unexpected event types
                     logger.warning(f"Unexpected event type from LLM client: {type(event)}")
@@ -112,6 +127,9 @@ class LLMInteractionHandler:
                 total_tokens=token_counts.total_tokens,
                 conversation_tokens=token_counts.conversation_tokens,
             )
+            
+            llm_total_time = time.perf_counter() - llm_start_time
+            logger.info(f"[Timing] LLM response completed in {llm_total_time:.3f}s (model={model_id}, tokens={token_counts.total_tokens})")
             
         except LLMRateLimitError:
             yield ErrorEvent(content="Rate limit exceeded. Please wait.")

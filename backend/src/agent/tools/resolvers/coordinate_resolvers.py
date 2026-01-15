@@ -6,6 +6,7 @@ No side effects, no session access, fully testable.
 """
 import difflib
 import logging
+import time
 from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING
 
 from backend.src.core.types import CoordinateFindingMethod
@@ -44,6 +45,7 @@ class OcrResolver:
         Raises:
             ValueError: If text not found or match score below threshold
         """
+        ocr_match_start = time.perf_counter()
         if not ocr_results:
             raise ValueError("OCR results are empty")
         
@@ -60,6 +62,9 @@ class OcrResolver:
             if score > best_score:
                 best_score = score
                 best_match = item
+        
+        ocr_match_time = time.perf_counter() - ocr_match_start
+        logger.info(f"[Timing] OCR text matching took {ocr_match_time:.3f}s (searched {len(ocr_results)} items, best_score={best_score:.2f})")
         
         if best_match and best_score >= threshold:
             bbox = best_match["bbox"]
@@ -99,6 +104,7 @@ class VisionResolver:
         Raises:
             ValueError: If description missing, service unavailable, or element not found
         """
+        vision_start = time.perf_counter()
         if not description:
             raise ValueError("description parameter is required for prediction method")
         
@@ -111,6 +117,9 @@ class VisionResolver:
         
         # Run prediction
         coordinates = await model.predict_click_coordinates(screenshot_data, description)
+        vision_time = time.perf_counter() - vision_start
+        logger.info(f"[Timing] Vision model prediction took {vision_time:.3f}s (description='{description[:50]}...')")
+        
         if not coordinates:
             raise ValueError(f"Vision model could not identify '{description}'")
         
