@@ -8,7 +8,7 @@ const { loadNutJs } = require('../nutjs_loader.cjs');
  * Execute scroll control action
  */
 async function executeScrollControl(args, skipAutoCapture) {
-  const { action, x, y, clicks = 3, direction } = args;
+  const { action, x, y, clicks = 5, direction } = args;
 
   try {
     const nutjs = await loadNutJs();

@@ -20,15 +20,14 @@ NOTE: Your main window is named "Desktop Assistant". The user is operating in it
 
         Structure for INITIAL User Message:
         - <system_context>:
-            - <os_state>: Contains active_window, mouse_position, clipboard_preview, screen_resolution, time, internet_status.
+            - <os_state>: Contains active_window, mouse_position, clipboard_preview, time.
             - <all_open_windows>: List of all currently open windows.
-            - <system_stats>: cpu_percent, memory_percent, battery_percent, battery_charging.
         - <episodic_memory>: Recent conversation history.
         - <semantic_memory>: Long-term facts and user preferences.
 
         Structure for SEQUENTIAL User Messages:
         - <system_context>:
-            - <os_state>: Contains active_window, mouse_position, clipboard_preview, screen_resolution, time, internet_status.
+            - <os_state>: Contains active_window, mouse_position, clipboard_preview, time.
         - <episodic_memory>: Recent conversation history.
         - <semantic_memory>: Long-term facts and user preferences.
 

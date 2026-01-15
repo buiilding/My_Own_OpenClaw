@@ -17,7 +17,8 @@ async function getSystemState() {
   const totalStart = performance.now();
   try {
     // Run independent operations in parallel with individual timing
-    const [activeWindow, mousePos, screenRes, clipboard, internet, stats] = await Promise.all([
+    // Removed slow operations: getScreenResolution, checkInternet, getResourceStats
+    const [activeWindow, mousePos, clipboard] = await Promise.all([
       (async () => {
         const start = performance.now();
         const result = await getActiveWindow().catch(() => null);
@@ -34,30 +35,9 @@ async function getSystemState() {
       })(),
       (async () => {
         const start = performance.now();
-        const result = await getScreenResolution().catch(() => 'Unknown');
-        const time = (performance.now() - start) / 1000;
-        if (time > 0.01) console.log(`[Timing] getScreenResolution took ${time.toFixed(3)}s`);
-        return result;
-      })(),
-      (async () => {
-        const start = performance.now();
         const result = await getClipboardPreview().catch(() => '<error>');
         const time = (performance.now() - start) / 1000;
         if (time > 0.01) console.log(`[Timing] getClipboardPreview took ${time.toFixed(3)}s`);
-        return result;
-      })(),
-      (async () => {
-        const start = performance.now();
-        const result = await checkInternet().catch(() => 'Unknown');
-        const time = (performance.now() - start) / 1000;
-        if (time > 0.01) console.log(`[Timing] checkInternet took ${time.toFixed(3)}s`);
-        return result;
-      })(),
-      (async () => {
-        const start = performance.now();
-        const result = await getResourceStats().catch(() => ({}));
-        const time = (performance.now() - start) / 1000;
-        if (time > 0.01) console.log(`[Timing] getResourceStats took ${time.toFixed(3)}s`);
         return result;
       })(),
     ]);
@@ -67,10 +47,7 @@ async function getSystemState() {
     return {
       active_window: activeWindow || 'Unknown',
       mouse_position: mousePos || 'Unknown',
-      screen_resolution: screenRes,
       clipboard: clipboard,
-      internet: internet,
-      stats: stats,
       time: new Date().toISOString(),
     };
   } catch (error) {
@@ -80,10 +57,7 @@ async function getSystemState() {
     return {
       active_window: 'Unknown',
       mouse_position: 'Unknown',
-      screen_resolution: 'Unknown',
       clipboard: '<error>',
-      internet: 'Unknown',
-      stats: {},
       time: new Date().toISOString(),
     };
   }
