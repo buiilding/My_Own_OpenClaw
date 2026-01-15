@@ -68,7 +68,7 @@ class RemoteMouseTool(Tool[MouseControlArgs], RemoteToolBase):
    ↓
 3. Tool execution request sent to frontend via WebSocket
    ↓
-4. Frontend executes tool locally (Python sidecar)
+4. Frontend executes tool locally (Node.js main process)
    ↓
 5. Frontend captures screenshot automatically
    ↓
@@ -98,6 +98,7 @@ class RemoteMouseTool(Tool[MouseControlArgs], RemoteToolBase):
 
 - `get_open_windows`: Get list of open windows
 - `get_system_stats`: Get system statistics
+- `run_shell_command`: Execute shell commands
 
 ## Tool Schema Generation
 
@@ -138,41 +139,95 @@ class RemoteMouseTool(Tool[MouseControlArgs], RemoteToolBase):
 
 ### OCR Integration
 
+**Critical Behavior**: When a screenshot arrives at the backend, proactive OCR is **immediately activated** and runs **asynchronously** without blocking any other operations (LLM coordination, LLM response generation, tool result processing).
+
 When backend receives a screenshot:
 
 1. Stores screenshot in session (`latest_screenshot`)
 2. Clears `ocr_completion_event` (signals OCR in progress)
-3. Proactively triggers OCR analysis (async, runs in separate thread via `asyncio.to_thread`)
-4. Stores OCR results in session (`latest_ocr_results`)
-5. Sets `ocr_completion_event` (signals OCR complete)
-6. OCR results available for subsequent tool calls
+3. Proactively triggers OCR analysis via `asyncio.create_task()` (async, runs in separate thread via `asyncio.to_thread`)
+4. OCR runs in separate thread (doesn't block event loop)
+5. Stores OCR results in session (`latest_ocr_results`)
+6. Sets `ocr_completion_event` (signals OCR complete)
+7. OCR results available for subsequent tool calls
 
 **Synchronization**: The `ocr_completion_event` (`asyncio.Event`) in `AgentSession` coordinates access to OCR results. Tools that require OCR results wait for this event before using `latest_ocr_results`.
 
-**Performance**: OCR runs in a background thread, allowing tool result processing and LLM communication to continue immediately without blocking.
+**Tool Waiting Behavior**: If an LLM response includes a click tool with `find_coordinates_by="ocr"`, the tool **waits for OCR completion** via `ocr_completion_event` before extracting text coordinates. The `OcrCoordinator.get_ocr_results()` method blocks on `await session.ocr_completion_event.wait()` until proactive OCR completes, ensuring the tool uses the updated OCR list.
+
+**Performance**: OCR runs in a background thread, allowing tool result processing and LLM communication to continue immediately without blocking. **LLM response generation is NOT blocked by OCR** - they run in parallel.
 
 ### Result Format
+
+**Individual Tool Results**:
+
+Frontend MUST pre-format tool output messages with system context XML embedded in `llm_content`:
 
 ```json
 {
   "success": true,
   "data": {
     // Tool-specific result data
-    "screenshot": "base64_screenshot_data"
-  },
-  "system_context": {
-    "active_window": "Application Name",
-    "mouse_position": "(500, 300)",
-    "time": "2026-01-02 13:23:17"
-  },
-  "llm_content": "Formatted content for LLM"
+    "screenshot": "base64_screenshot_data",
+    "llm_content": "tool_name output:\n<content>\nstatus: successful\n<system_context>\n  <os_state>\n    <active_window>Application Name</active_window>\n    <mouse_position>(500, 300)</mouse_position>\n    <time>2026-01-02 13:23:17</time>\n    <clipboard_preview><empty></clipboard_preview>\n  </os_state>\n</system_context>\nState of the screen after tool_name was executed:",
+    "is_preformatted": true
+  }
 }
 ```
 
-**System Context**: Automatically included in tool results:
+**Bundled Tool Results**:
+
+When multiple tools are bundled, frontend sends a single bundled result:
+
+```json
+{
+  "type": "tool-result",
+  "payload": {
+    "request_id": "bundle_correlation_id",
+    "success": true,
+    "data": {
+      "bundled": true,
+      "tools": [
+        {
+          "tool_name": "keyboard_control",
+          "request_id": "tool1_request_id",
+          "success": true,
+          "data": {
+            "llm_content": "keyboard_control output:\n...",
+            "is_preformatted": true
+          }
+        },
+        {
+          "tool_name": "keyboard_control",
+          "request_id": "tool2_request_id",
+          "success": true,
+          "data": {
+            "llm_content": "keyboard_control output:\n...",
+            "is_preformatted": true
+          }
+        }
+      ],
+      "combined_llm_content": "Bundled tool execution output:\n\nkeyboard_control output:\nTyped text: 'amazon.com'\nstatus: successful\n\nkeyboard_control output:\nPressed key: enter\nstatus: successful\n\n<system_context>\n  <os_state>\n    <active_window>Application Name</active_window>\n    <mouse_position>(500, 300)</mouse_position>\n    <time>2026-01-02 13:23:17</time>\n    <clipboard_preview><empty></clipboard_preview>\n  </os_state>\n</system_context>\n\nState of the screen after bundled tools were executed:",
+      "system_state": {...},
+      "screenshot": "base64_screenshot_data"
+    }
+  }
+}
+```
+
+**System Context**: Frontend automatically formats system context as XML and embeds it in `llm_content`:
 - `active_window`: Currently active window title
 - `mouse_position`: Mouse coordinates at time of execution
 - `time`: Timestamp of tool execution
+- `clipboard_preview`: Clipboard content preview
+
+**Pre-formatting Requirement**: Backend requires pre-formatted messages with `is_preformatted: true` flag. The `format_for_history()` method will raise `ValueError` if content is not pre-formatted. No fallback formatting is provided.
+
+**Bundled Result Processing**:
+- Individual tool results in `tools` array are stored for orchestrator matching (by request_id)
+- Combined result with `combined_llm_content` is stored in `session._bundled_results` for history
+- When processing results for history, bundled results are committed as a **single message** instead of multiple messages
+- UI displays bundled tools as a **single combined output** with one `system_context` and one screenshot
 
 ## Tool Permissions
 
@@ -239,9 +294,9 @@ REMOTE_TOOLS = {
 
 ### 4. Implement Frontend Tool
 
-**Location**: `frontend/src/main/python/tools/`
+**Location**: `frontend/src/main/tools/`
 
-Implement the actual tool execution logic on the frontend sidecar.
+Implement the actual tool execution logic in Node.js (main process).
 
 ## Tool Execution Context
 
@@ -298,7 +353,9 @@ The `ToolPreparer` intercepts `mouse_control` tool calls that require coordinate
 1. **No Local Execution**: Backend never executes tools locally
 2. **Schema-Driven**: Tool schemas drive LLM tool selection
 3. **Automatic Screenshots**: Every tool execution includes screenshot
-4. **Proactive OCR**: Screenshots automatically analyzed with OCR (non-blocking)
-5. **Asynchronous OCR**: OCR runs in separate thread, doesn't block event loop
-6. **Synchronization**: `ocr_completion_event` coordinates access to OCR results
-7. **Security**: Tools execute on user's machine, not backend
+4. **Pre-formatted Messages**: Frontend MUST pre-format tool output messages with system context XML embedded in `llm_content`
+5. **No Fallback Formatting**: Backend requires pre-formatted messages - `format_for_history()` raises `ValueError` if not pre-formatted
+6. **Proactive OCR**: Screenshots automatically analyzed with OCR (non-blocking)
+7. **Asynchronous OCR**: OCR runs in separate thread, doesn't block event loop
+8. **Synchronization**: `ocr_completion_event` coordinates access to OCR results
+9. **Security**: Tools execute on user's machine, not backend

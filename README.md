@@ -18,7 +18,7 @@ Key capabilities include:
 - **Intelligent Task Execution** through natural language commands
 - **Computer Control** with OCR-enhanced UI automation and vision models
 - **Memory System** for context preservation across sessions
-- **Tool Ecosystem** with 17 built-in tools for computer control and automation
+- **Tool Ecosystem** with 12 built-in tools for computer control and automation
 - **Multi-Provider LLM Support** for flexible AI integration
 
 Our mission: **Democratize computer power** - making advanced capabilities accessible to everyone, not just developers.
@@ -44,11 +44,11 @@ We have a **working AI assistant** with computer control, LLM integration, and t
 - [x] Tool discovery system for loading verified tools
 - [x] Security validation for tool execution
 - [x] Tool execution sandboxing with permission controls
-- [x] 17 built-in tools for computer control, filesystem, and system operations
+- [x] 12 built-in tools for computer control, filesystem, and system operations
 
 #### 🎮 **Advanced Computer Control**
-- [x] **OCR-Enhanced UI Automation**: `click_ocr_element` tool for precision clicking on detected text
-- [x] **Vision-Language UI Control**: `predict_click` tool using InternVL models for intelligent element detection
+- [x] **OCR-Enhanced UI Automation**: `mouse_control` tool with `find_coordinates_by="ocr"` for precision clicking on detected text
+- [x] **Vision-Language UI Control**: `mouse_control` tool with `find_coordinates_by="prediction"` using InternVL models for intelligent element detection
 - [x] **Automatic Screenshot Capture**: All computer interactions include post-execution screen states
 - [x] **File System Tools**: Complete file operations (read, write, search, replace)
 - [x] **Terminal Integration**: Safe command execution with process management
@@ -65,7 +65,7 @@ We have a **working AI assistant** with computer control, LLM integration, and t
 - [x] Screenshot integration for visual context
 - [x] Responsive design with dark/light themes
 
-See our [Project Roadmap](docs/ROADMAP.md) for the complete development timeline.
+See our [Development Roadmap](#-development-roadmap) section below for the complete development timeline.
 
 ---
 
@@ -78,8 +78,8 @@ See our [Project Roadmap](docs/ROADMAP.md) for the complete development timeline
 - **Privacy-First**: All data stored locally with user control
 
 ### 🎮 **Advanced Computer Control**
-- **OCR-Enhanced UI**: Click on text elements detected via optical character recognition
-- **Vision-Language Models**: Use InternVL for intelligent UI element detection
+- **OCR-Enhanced UI**: `mouse_control` tool with `find_coordinates_by="ocr"` for clicking on text elements detected via optical character recognition
+- **Vision-Language Models**: `mouse_control` tool with `find_coordinates_by="prediction"` using InternVL for intelligent UI element detection
 - **Multi-Step Automation**: Complex workflows across applications
 - **Visual Feedback**: Automatic screenshots after every computer interaction
 
@@ -223,14 +223,14 @@ If you want to contribute, check out:
 
 ### Project Documentation
 - **[Changelog](CHANGELOG.md)** - Version history and release notes
-- **[Project Roadmap](docs/ROADMAP.md)** - Complete development timeline and milestones
-- **[Backend Documentation](backend/docs/)** - Comprehensive backend documentation
-- **[User Guide](backend/docs/user_guide.md)** - Complete guide for end users
-- **[Developer Guide](backend/docs/DEVELOPER_GUIDE.md)** - Technical contributor guide
-- **[Architecture Overview](backend/docs/architecture.md)** - System design and patterns
-- **[API Reference](backend/docs/api_reference.md)** - Technical API documentation
-- **[Tool Development Guide](backend/docs/development/tool_development.md)** - Creating custom tools
-- **[Testing Guide](backend/docs/development/testing_guide.md)** - Testing patterns and setup
+- **[Architecture Overview](docs/ARCHITECTURE.md)** - High-level system architecture
+- **[Backend Documentation](docs/BACKEND.md)** - Backend responsibilities and implementation
+- **[Frontend Documentation](docs/FRONTEND.md)** - Frontend responsibilities and implementation
+- **[Communication Flow](docs/COMMUNICATION.md)** - How frontend and backend communicate
+- **[Tool System](docs/TOOLS.md)** - Tool execution architecture and flow
+- **[Backend Architecture](backend/docs/architecture.md)** - Backend system design and patterns
+
+**Note**: Additional documentation (User Guide, Developer Guide, API Reference, Tool Development Guide, Testing Guide) is planned but not yet available.
 
 ---
 
@@ -273,7 +273,7 @@ If you want to contribute, check out:
 - **Agent Orchestrator**: Core intelligence with tool calling and conversation management
 - **Memory System**: FAISS vector search + semantic/episodic memory with CUDA acceleration
 - **Computer Control**: OCR + vision models for UI automation and file operations
-- **Tool System**: 60+ built-in tools with permission-based security
+- **Tool System**: 12 built-in tools with permission-based security
 - **AI Models**: Multi-provider LLM support with CUDA acceleration for embeddings and vision
 
 ---
@@ -333,7 +333,7 @@ New to open source? No problem! Look for issues tagged:
 - [x] Privacy controls and local data storage
 
 #### Milestone 4: Advanced Automation
-- [x] **Tool System**: 60+ built-in tools with security validation and sandboxing
+- [x] **Tool System**: 12 built-in tools with security validation and sandboxing
 - [x] **Computer Control Tools**: OCR-enhanced UI automation, vision-language models
 - [x] **Agent System**: Multi-step task execution with tool coordination
 - [x] **Intelligent Task Execution**: Natural language task decomposition
@@ -364,7 +364,7 @@ New to open source? No problem! Look for issues tagged:
 - **Now**: Functional AI assistant with computer control and tool execution
 - **Next**: Voice integration and enhanced monitoring capabilities
 
-[View Full Roadmap](docs/ROADMAP.md) for detailed implementation plans.
+See the [Development Roadmap](#-development-roadmap) section above for detailed implementation plans.
 
 ---
 
@@ -391,7 +391,7 @@ New to open source? No problem! Look for issues tagged:
   - **AI/ML**: SentenceTransformers, FAISS, RapidOCR, InternVL, CUDA acceleration
   - **Backend**: FastAPI, WebSocket IPC, dependency injection, async architecture
   - **Frontend**: Electron, React, real-time UI updates
-  - **Tools**: 17 built-in tools with permission-based security and sandboxing
+  - **Tools**: 12 built-in tools with permission-based security and sandboxing
 - **Performance**: GPU-accelerated embeddings, OCR, and vision processing
 - **Architecture**: Clean architecture with dependency injection, protocol interfaces, and tool sandboxing
 
@@ -433,6 +433,6 @@ If this vision excites you, please star the repository! It helps others discover
 
 **🚀 Building the future of personal computing, one commit at a time**
 
-[View Roadmap](docs/ROADMAP.md) · [Join Discussion](https://github.com/buiilding/ALL_OR_NOTHING/discussions) · [Contribute](CONTRIBUTING.md)
+[Join Discussion](https://github.com/buiilding/ALL_OR_NOTHING/discussions) · [Contribute](CONTRIBUTING.md)
 
 </div>

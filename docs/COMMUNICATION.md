@@ -18,9 +18,9 @@ The Desktop Assistant uses multiple communication channels:
 
 #### Renderer → Main
 - `to-backend`: Send query to backend
-- `execute-tool`: Execute tool on sidecar
-- `get-system-state`: Get system state from sidecar
-- `store-memory`: Store memory in sidecar
+- `execute-tool`: Execute tool in main process (Node.js)
+- `get-system-state`: Get system state from main process
+- `store-memory`: Store memory in Python sidecar
 
 #### Main → Renderer
 - `from-backend`: Backend events (streaming responses, tool calls)
@@ -55,7 +55,7 @@ The Desktop Assistant uses multiple communication channels:
 }
 ```
 
-**Tool Result Message**:
+**Tool Result Message (Individual)**:
 ```json
 {
   "type": "tool_result",
@@ -64,17 +64,51 @@ The Desktop Assistant uses multiple communication channels:
     "success": true,
     "data": {
       // Tool-specific result data
-      "screenshot": "base64_screenshot_data"
+      "screenshot": "base64_screenshot_data",
+      "llm_content": "tool_name output:\n<content>\nstatus: successful\n<system_context>\n  <os_state>\n    <active_window>Application Name</active_window>\n    <mouse_position>(500, 300)</mouse_position>\n    <time>2026-01-02 13:23:17</time>\n    <clipboard_preview><empty></clipboard_preview>\n  </os_state>\n</system_context>\nState of the screen after tool_name was executed:",
+      "is_preformatted": true
     },
-    "error": null,
-    "system_context": {
-      "active_window": "Application Name",
-      "mouse_position": "(500, 300)",
-      "time": "2026-01-02 13:23:17"
+    "error": null
+  }
+}
+```
+
+**Tool Result Message (Bundled)**:
+```json
+{
+  "type": "tool_result",
+  "payload": {
+    "request_id": "bundle_correlation_id",
+    "success": true,
+    "data": {
+      "bundled": true,
+      "tools": [
+        {
+          "tool_name": "keyboard_control",
+          "request_id": "tool1_request_id",
+          "success": true,
+          "data": {
+            "llm_content": "keyboard_control output:\n...",
+            "is_preformatted": true
+          }
+        }
+        // ... more tools
+      ],
+      "combined_llm_content": "Bundled tool execution output:\n\nkeyboard_control output:\n...\n\n<system_context>...</system_context>\n\nState of the screen after bundled tools were executed:",
+      "system_state": {...},
+      "screenshot": "base64_screenshot_data"
     }
   }
 }
 ```
+
+**Note**: System context is embedded in `llm_content` as XML, not as a separate `system_context` field. The `is_preformatted` flag indicates the message is ready for direct use by the backend.
+
+**Bundled Results**: When tools are bundled, the frontend sends a single bundled result with:
+- `bundled: true` flag
+- `tools` array containing individual tool results (for orchestrator matching)
+- `combined_llm_content` containing the combined message (for history storage)
+- One `system_state` and one `screenshot` shared across all tools in the bundle
 
 #### Backend → Frontend
 
@@ -101,33 +135,23 @@ The Desktop Assistant uses multiple communication channels:
 }
 ```
 
-### 3. stdin/stdout (Main Process ↔ Python Sidecar)
+### 3. IPC (Main Process ↔ Python Sidecar)
 
-**Protocol**: Binary protocol over stdin/stdout
+**Note**: Tool execution now happens in Node.js main process. Python sidecar is only used for memory operations.
 
-**Message Format**: Binary (length-prefixed)
+**Protocol**: IPC via `memory_service_bridge.cjs`
 
 **Message Types**:
 
-#### Main → Sidecar
+#### Main → Sidecar (Memory Operations Only)
 
-**Tool Execution Request**:
+**Memory Storage Request**:
 ```json
 {
   "type": "tool_execution",
   "payload": {
     "tool_name": "mouse_control",
     "args": {...}
-  }
-}
-```
-
-**System State Request**:
-```json
-{
-  "type": "system_state",
-  "payload": {
-    "context_type": "initial" | "sequential"
   }
 }
 ```
@@ -165,27 +189,24 @@ The Desktop Assistant uses multiple communication channels:
 
 #### Sidecar → Main
 
-**Tool Result**:
+**Memory Search Response**:
 ```json
 {
-  "type": "tool_result",
+  "id": "memory-request-id",
+  "type": "response",
   "payload": {
     "success": true,
-    "data": {...},
-    "screenshot": "base64_screenshot_data"
+    "data": {
+      "memories": {
+        "episodic": ["memory text 1", "memory text 2"],
+        "semantic": []
+      }
+    }
   }
 }
 ```
 
-**System State**:
-```json
-{
-  "type": "system_state",
-  "payload": {
-    "xml": "<system_context>...</system_context>"
-  }
-}
-```
+**Note**: Tool execution and system state capture now happen directly in the Node.js main process, not via Python sidecar.
 
 ## Complete Flow Example
 
@@ -198,8 +219,8 @@ The Desktop Assistant uses multiple communication channels:
    ↓
 3. Main process (ipc.cjs):
    - Determines context_type (initial/sequential)
-   - Gets system state from sidecar
-   - Gets memories from sidecar
+   - Gets system state from Node.js (system_state.cjs)
+   - Gets memories from Python sidecar
    - Sends WebSocket message to backend
    ↓
 4. Backend receives query:
@@ -210,10 +231,10 @@ The Desktop Assistant uses multiple communication channels:
 5. Backend sends tool_call event via WebSocket
    ↓
 6. Main process receives tool_call:
-   - Routes to sidecar via tool_runner_bridge
+   - Routes to tool_executor.cjs
    ↓
-7. Sidecar executes tool:
-   - Executes tool (e.g., mouse click)
+7. Tool executor executes tool (Node.js):
+   - Executes tool (e.g., mouse click using nut-js)
    - Captures screenshot automatically
    - Returns result + screenshot
    ↓
@@ -238,59 +259,65 @@ The Desktop Assistant uses multiple communication channels:
 **Initial Query**:
 ```
 1. Main process detects first query
-2. Requests system_state with context_type: "initial" (parallel with memory search)
-3. Sidecar captures full system state (parallelized operations):
-   - All open windows
-   - System stats (CPU, memory, battery)
-   - Screen resolution
-   - Internet status
-   - Active window, mouse position, time, clipboard
-4. Returns full XML context
+2. Determines context_type: "initial" (parallel with memory search)
+3. Main process (Node.js) calls getSystemState() which captures minimal state (parallelized operations):
+   - Active window
+   - Mouse position
+   - Time
+   - Clipboard preview
+4. Formats as full XML structure (formatInitialStateXml) - note: additional fields like windows, stats, screen_resolution, internet are expected but not currently captured, so they default to empty/Unknown
 5. Sent to backend with query (system context is REQUIRED)
 ```
 
 **Sequential Query**:
 ```
 1. Main process detects subsequent query
-2. Requests system_state with context_type: "sequential" (parallel with memory search)
-3. Sidecar captures minimal state (parallelized operations):
+2. Determines context_type: "sequential" (parallel with memory search)
+3. Main process (Node.js) calls getSystemState() which captures minimal state (parallelized operations):
    - Active window
    - Mouse position
    - Time
    - Clipboard preview
-4. Returns minimal XML context
+4. Formats as minimal XML context (formatSequentialStateXml)
 5. Sent to backend with query (system context is REQUIRED)
 ```
+
+**Note**: Currently `getSystemState()` only captures minimal state regardless of context type. The formatting functions differ in XML structure, but the underlying data captured is the same.
 
 **Tool Output**:
 ```
 1. Tool execution completes on frontend
-2. System context retrieved immediately after tool execution (30s timeout, waits for completion)
-3. Sidecar captures minimal state (parallelized operations):
+2. System context retrieved immediately after tool execution (via Node.js tool executor)
+3. Main process (Node.js) captures minimal state (parallelized operations):
    - Active window
    - Mouse position
    - Time
-4. System context added to tool-result payload
-5. Tool result sent to backend with system context (REQUIRED)
+   - Clipboard preview
+4. Frontend formats complete message with system context XML embedded in llm_content
+5. Frontend sets is_preformatted: true flag
+6. Tool result sent to backend (REQUIRED: must be pre-formatted)
+7. Backend uses pre-formatted message directly (no additional formatting)
 ```
 
 **Performance Optimizations**:
-- **Parallel Execution**: System state capture runs operations in parallel (max_workers=5)
+- **Parallel Execution**: System state capture runs operations in parallel using Promise.all()
 - **Fast Execution**: Operations execute concurrently to minimize total time
 - **Fallback Context**: If retrieval fails, minimal fallback context is provided
 - **Never Skipped**: System context is always included, even if retrieval fails
+
+**Current Limitation**: `getSystemState()` currently only captures minimal state (active window, mouse position, time, clipboard) regardless of context type. The `formatInitialStateXml()` function expects additional fields (windows, stats, screen_resolution, internet) but these are not currently captured, so they default to empty/Unknown values in the XML output.
 
 ### Tool Execution Flow
 
 ```
 1. Backend determines tool needed
 2. Sends tool_call event to frontend
-3. Main process routes to sidecar
-4. Sidecar executes tool:
-   - Computer control: pyautogui
-   - Filesystem: Python file operations
-   - System: psutil, etc.
-5. Sidecar captures screenshot automatically
+3. Main process routes to tool_executor.cjs
+4. Tool executor executes tool (Node.js):
+   - Computer control: nut-js
+   - Filesystem: Node.js fs operations
+   - System: systeminformation, etc.
+5. Tool executor captures screenshot automatically
 6. Returns result + screenshot
 7. Main process sends to backend
 8. Backend processes result
@@ -301,8 +328,10 @@ The Desktop Assistant uses multiple communication channels:
 ## Key Points
 
 1. **Automatic Screenshots**: Frontend automatically captures screenshots after every tool execution
-2. **Context Types**: Initial (full) vs Sequential (minimal) system context
-3. **Memory Coordination**: Backend queries frontend for memories, frontend stores locally
-4. **Tool Delegation**: All tool execution happens on frontend, backend only orchestrates
-5. **Streaming**: Real-time response streaming via WebSocket
-6. **Binary Protocol**: Sidecar communication uses binary protocol for efficiency
+2. **Pre-formatted Messages**: Frontend pre-formats tool output messages with system context XML embedded in `llm_content`
+3. **Context Types**: Initial (full) vs Sequential (minimal) system context for user queries
+4. **Memory Coordination**: Backend queries frontend for memories, frontend stores locally
+5. **Tool Delegation**: All tool execution happens on frontend, backend only orchestrates
+6. **Streaming**: Real-time response streaming via WebSocket
+7. **Binary Protocol**: Sidecar communication uses binary protocol for efficiency
+8. **No Fallback Formatting**: Backend requires pre-formatted messages - raises `ValueError` if not pre-formatted

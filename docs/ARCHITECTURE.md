@@ -39,7 +39,7 @@ The Desktop Assistant is a desktop application built with a **frontend-backend s
 ### Frontend (Electron)
 - **Renderer Process (React)**: User interface, chat display, user input
 - **Main Process (Node.js)**: IPC coordination, WebSocket client, tool execution bridge
-- **Python Sidecar**: Local tool execution (mouse, keyboard, filesystem), system state capture, memory storage
+- **Python Sidecar**: Memory storage only (tools and system state now in Node.js main process)
 
 ### Backend (FastAPI)
 - **Agent Core**: Conversation management, LLM orchestration, tool coordination
@@ -51,7 +51,7 @@ The Desktop Assistant is a desktop application built with a **frontend-backend s
 
 ## Key Design Principles
 
-1. **Frontend Executes Tools**: All computer control and filesystem operations happen on the frontend sidecar
+1. **Frontend Executes Tools**: All computer control and filesystem operations happen in the Node.js main process
 2. **Backend Orchestrates**: Backend manages conversation, LLM interaction, and tool coordination
 3. **WebSocket Communication**: Real-time bidirectional communication between frontend and backend
 4. **Automatic Screenshots**: Frontend automatically captures screenshots after tool execution
@@ -62,7 +62,7 @@ The Desktop Assistant is a desktop application built with a **frontend-backend s
 1. User sends message → Frontend (Renderer)
 2. Frontend → Main Process → WebSocket → Backend
 3. Backend processes with LLM → Determines tool calls
-4. Backend → WebSocket → Frontend → Tool execution (sidecar)
+4. Backend → WebSocket → Frontend → Tool execution (Node.js main process)
 5. Tool result → Frontend → Backend (with screenshot)
 6. Backend processes result → Updates conversation → Streams response
 7. Response → Frontend → Display to user

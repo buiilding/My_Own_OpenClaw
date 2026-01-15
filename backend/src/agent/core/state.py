@@ -85,11 +85,12 @@ class ConversationHistory:
         in conversation history. Screenshots are automatically converted to multimodal
         format when history is retrieved for LLM consumption.
         
-        Note: The message should already include os_state XML with active_window, mouse_position, and time.
-        ResultTransformer formats the message before HistoryCommitter calls this method.
+        Note: The message must include os_state XML with active_window, mouse_position, and time.
+        Frontend pre-formats messages with system context XML embedded in llm_content.
+        ResultTransformer passes pre-formatted messages through.
 
         Args:
-            message: Tool output message text (includes os_state XML from frontend/result transformer)
+            message: Tool output message text (pre-formatted by frontend with os_state XML)
             image_data: Optional base64 image data (for screenshots). Automatically captured
                        by the frontend after tool execution. Included in history
                        and sent to LLM as multimodal content.

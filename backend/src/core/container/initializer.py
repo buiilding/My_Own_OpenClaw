@@ -46,7 +46,7 @@ class ContainerInitializer:
         """
         Initialize the vision service to pre-load the InternVL model.
         
-        This enables fast first-time use in predict_click tool without
+        This enables fast first-time use in mouse_control tool with find_coordinates_by="prediction" without
         waiting for model initialization during tool execution.
         
         The vision service is obtained from the DI container and initialized.

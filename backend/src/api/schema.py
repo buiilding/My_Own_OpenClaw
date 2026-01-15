@@ -43,7 +43,6 @@ class ToolResultPayload(BaseModel):
     success: bool
     data: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
-    system_context: Optional[Dict[str, str]] = None
 
 class ToolResultMessage(BaseMessage):
     type: Literal["tool-result"]

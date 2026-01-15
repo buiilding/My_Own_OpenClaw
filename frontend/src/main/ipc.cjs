@@ -251,42 +251,9 @@ function initializeIpc(win) {
       }
     }
 
-    // Extract system context from tool-result messages
-    // System state is included in data.system_state from Node.js tool executor
-    if (type === 'tool-result') {
-      try {
-        // Use structured system_state if available from tool result
-        if (payload.data?.system_state) {
-          const state = payload.data.system_state;
-          payload.system_context = {
-            active_window: state.active_window || 'Unknown',
-            mouse_position: state.mouse_position || 'Unknown',
-            time: state.time || new Date().toISOString()
-          };
-          logDebug('Using structured system_context from tool result');
-        } else {
-          // Fallback: use current system state or provide minimal context
-          const fallbackTime = new Date().toISOString();
-          payload.system_context = {
-            active_window: 'Unknown',
-            mouse_position: 'Unknown',
-            time: fallbackTime
-          };
-          log('No system state in tool result, using fallback');
-        }
-      } catch (error) {
-        log(`ERROR: Failed to extract system context from tool result: ${error.message}`);
-        // Always provide fallback system context - never skip it
-        const fallbackTime = new Date().toISOString();
-        payload.system_context = {
-          active_window: 'Unknown',
-          mouse_position: 'Unknown',
-          time: fallbackTime
-        };
-        log('Using fallback system context for tool result due to error');
-      }
-    }
-
+    // System context is now pre-formatted in llm_content by ChatContext.jsx
+    // No need to extract or add system_context here - backend expects pre-formatted messages
+    
     sendMessageToBackend(type, payload);
   });
 }

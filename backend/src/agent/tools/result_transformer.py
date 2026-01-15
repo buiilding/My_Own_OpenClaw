@@ -127,19 +127,11 @@ class ResultTransformer:
         # Extract screenshot data (helper method to avoid nested checks)
         screenshot_data = self._extract_screenshot_data(tool_result, plugin_result)
 
-        # 2. Format message for history
-        # System context is embedded in result.llm_content (frontend provides it)
-        screenshot_indicator = (
-            f"State of the screen after {tool_name} was executed:"
-            if screenshot_data
-            else None
-        )
-        
-        formatted_message = tool_result.format_for_history(
-            tool_name=tool_name,
-            system_context=None,  # Explicitly None, as context is now in llm_content
-            screenshot_indicator=screenshot_indicator,
-        )
+        # 2. Get pre-formatted message for history
+        # Frontend should pre-format messages with system context XML embedded in llm_content.
+        # format_for_history() accepts whatever the frontend sends - no validation is performed.
+        # The frontend is responsible for formatting correctly.
+        formatted_message = tool_result.format_for_history(tool_name=tool_name)
 
         transform_time = time.perf_counter() - transform_start
         logger.info(f"[Timing] Result transformation took {transform_time:.3f}s (tool={tool_name})")

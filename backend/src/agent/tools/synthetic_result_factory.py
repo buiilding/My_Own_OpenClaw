@@ -30,16 +30,20 @@ class SyntheticResultFactory:
         """
         Create a synthetic tool result for coordinate resolution failures.
         
+        Creates a pre-formatted error result that can be sent to LLM as tool output.
+        No system context or screenshot needed for error results.
+        
         Args:
             tool_call: The tool call that failed
             error_msg: Error message to include in result
             
         Returns:
-            ToolResult with error information
+            ToolResult with error information, pre-formatted for history
         """
         return ToolResult(
             success=False,
             error=error_msg,
             llm_content=f"Error: {error_msg}",
             data={"error": error_msg, "tool_name": tool_call.tool_name},
+            metadata={"is_preformatted": True},
         )

@@ -97,15 +97,29 @@ NOTE: Your main window is named "Desktop Assistant". The user is operating in it
         </mouse_interaction>
 
         <tool_chaining_guidelines>
-            CRITICAL: Incremental Step-by-Step Approach
-                - Break down complex tasks into small, self-contained steps
-                - Each step should contain a single, focused tool call that advances toward the goal
-            - Example workflow:
-                * Step 1: Write tool call to locate/find the target file
-                * Step 2: Write tool call to **THOROUGHLY** inspect/read the file contents  
-                * Step 3: Write tool call to modify the file based on findings
-                * Step 4: Write tool call to verify the changes
-            Do NOT write entire tool call chains in one step - focus on one small task per step
+            TOOL CHAINING STRATEGY: Use tool chaining for predictable sequential actions
+            
+            HOW TO CHAIN TOOLS (Format for multiple tool calls):
+            - Output multiple JSON tool calls on separate lines (one per line)
+            - Each tool call must be a complete, valid JSON object in the format: {"functionCall": {"name": "tool_name", "args": {...}}}
+            - Example format for chaining two keyboard actions:
+                {"functionCall": {"name": "keyboard_control", "args": {"action": "type", "text": "amazon.com", "explanation": "...", "expectation": "..."}}}
+                {"functionCall": {"name": "keyboard_control", "args": {"action": "press", "key": "enter", "explanation": "...", "expectation": "..."}}}
+            - The parser will automatically detect and extract all JSON objects from your response
+            - Tools will be executed sequentially in the order they appear
+            
+            WHEN TO CHAIN TOOLS (Bundle multiple tool calls):
+            - Use tool chaining when actions are predictable and don't require visual verification between steps
+            - Chain tools when the next action is known and doesn't depend on visual changes
+            - Examples of good tool chaining:
+                * Typing text then pressing Enter (e.g., type "amazon.com" → press Enter)
+                * Multiple keyboard actions in sequence (e.g., type search term → press Enter)
+                * Sequential file operations that don't require reading results between steps
+            
+            GUIDELINES:
+            - Chain tools when actions are deterministic and predictable
+            - For computer-use tools: Chain keyboard actions (type → press) when the sequence is known
+            - For computer-use tools: Use incremental steps when you need to verify UI state after each action
         </tool_chaining_guidelines>
 
         <verification_protocol>
@@ -125,5 +139,26 @@ NOTE: Your main window is named "Desktop Assistant". The user is operating in it
         <context_awareness>
             Monitor <system_context> in the User Message to understand the active application state, mouse position, and system time.
         </context_awareness>
-</computer_control_guidelines>
+    </computer_control_guidelines>
 </capability_guidelines>
+
+<tips>
+    <tool_chaining_examples>
+        Common tool chaining patterns for predictable sequential actions:
+        
+        - **Text Input + Submit**: When typing text and submitting (e.g., search queries, form inputs):
+            * Chain `keyboard_control` (action: "type") → `keyboard_control` (action: "press", key: "enter")
+            * Example: Type "amazon.com" then press Enter to navigate
+            * Example: Type search query then press Enter to search
+        
+        - **Sequential Keyboard Actions**: Multiple keyboard operations in known sequence:
+            * Chain multiple `keyboard_control` actions when the sequence is deterministic
+            * Example: Type text → Press Enter → Type more text → Press Enter
+        
+        - **File Operations**: Sequential file operations that don't require reading between steps:
+            * Chain file operations when you know the exact sequence needed
+            * Example: Create file → Write content → Set permissions (if all steps are known)
+        
+        Remember: Chain tools when actions are predictable and don't require visual verification between steps.
+    </tool_chaining_examples>
+</tips>

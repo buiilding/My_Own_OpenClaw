@@ -102,57 +102,48 @@ class ToolResult:
     def format_for_history(
         self,
         tool_name: str,
-        system_context: Optional[str] = None,
-        screenshot_indicator: Optional[str] = None,
     ) -> str:
         """
-        Format result for conversation history.
+        Get pre-formatted message for conversation history.
+        
+        Frontend tools should pre-format messages with system context XML embedded in llm_content.
+        However, the backend accepts whatever the frontend sends - no validation is performed.
+        The frontend is responsible for formatting correctly.
+        
+        For error results (synthetic results), simple error messages without system context are acceptable.
         
         Args:
-            tool_name: Name of the tool that produced this result
-            system_context: Optional system context XML (e.g., from system_monitor)
-            screenshot_indicator: Optional screenshot indicator text
+            tool_name: Name of the tool that produced this result (for error messages only)
             
         Returns:
-            Formatted message string for history
+            Pre-formatted message string for history (llm_content as-is, no validation)
+            
+        Raises:
+            ValueError: If llm_content is missing entirely
         """
-        # If the result is already pre-formatted (e.g. by frontend), use it directly
-        if self.metadata and self.metadata.get("is_preformatted") and self.llm_content:
+        # If marked as pre-formatted, use llm_content as-is (no validation)
+        if self.metadata and self.metadata.get("is_preformatted"):
+            if self.llm_content:
+                return self.llm_content
+            # Fallback to error message if llm_content missing
+            if self.error:
+                return f"Error: {self.error}"
+            return f"Tool {tool_name} executed"
+        
+        # Not pre-formatted - use llm_content if available, otherwise generate from error/data
+        if self.llm_content:
             return self.llm_content
-
-        parts = [f"{tool_name} output:"]
         
-        if self.success:
-            # Use llm_content or return_display, but never include screenshot data in text
-            # Screenshots are handled separately via image_data parameter in add_tool_output()
-            content = self.llm_content or self.return_display
-            if not content and self.data:
-                # If data is a dict, extract text fields but exclude screenshot
-                if isinstance(self.data, dict):
-                    # Try to get text content, excluding screenshot
-                    content = (
-                        self.data.get("output") or 
-                        self.data.get("message") or 
-                        self.data.get("llm_content") or
-                        "Tool executed successfully"
-                    )
-                else:
-                    content = str(self.data)
-            if not content:
-                content = "No output"
-            parts.append(content)
-            parts.append("status: successful")
-        else:
-            parts.append(f"error: {self.error}")
-            parts.append("status: failed")
+        if self.error:
+            return f"Error: {self.error}"
         
-        if system_context:
-            parts.append(system_context)
+        # Last resort: generate from data
+        if self.data:
+            if isinstance(self.data, dict):
+                return str(self.data.get("output") or self.data.get("message") or self.data)
+            return str(self.data)
         
-        if screenshot_indicator:
-            parts.append(screenshot_indicator)
-        
-        return "\n".join(parts)
+        return f"Tool {tool_name} executed"
 
 @dataclass
 class ToolContext:

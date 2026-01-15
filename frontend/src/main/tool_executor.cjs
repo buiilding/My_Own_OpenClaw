@@ -80,9 +80,9 @@ function initializeToolExecutor() {
         if (autoCaptureType === 'screenshot') {
           // Wait a bit for UI to update (especially for computer control tools)
           const uiWaitStartTime = performance.now();
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 2000));
           const uiWaitTime = (performance.now() - uiWaitStartTime) / 1000;
-          console.log(`[Timing] UI update delay: ${uiWaitTime.toFixed(3)}s (hardcoded 1s wait)`);
+          console.log(`[Timing] UI update delay: ${uiWaitTime.toFixed(3)}s (hardcoded 2s wait)`);
 
           // Capture screenshot
           const screenshotStartTime = performance.now();

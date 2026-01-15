@@ -5,6 +5,135 @@ import { useAudioPlayer } from '../hooks/useAudioPlayer';
 
 const ChatContext = createContext();
 
+/**
+ * Format system state as sequential XML (minimal) for tool output
+ */
+function formatSequentialStateXml(state) {
+  if (!state) {
+    const fallbackTime = new Date().toISOString();
+    return `<system_context>
+    <os_state>
+        <active_window>Unknown</active_window>
+        <mouse_position>Unknown</mouse_position>
+        <time>${fallbackTime}</time>
+        <clipboard_preview><empty></clipboard_preview>
+    </os_state>
+</system_context>`;
+  }
+  
+  return `<system_context>
+    <os_state>
+        <active_window>${state.active_window || 'Unknown'}</active_window>
+        <mouse_position>${state.mouse_position || 'Unknown'}</mouse_position>
+        <time>${state.time || new Date().toISOString()}</time>
+        <clipboard_preview>${state.clipboard || '<empty>'}</clipboard_preview>
+    </os_state>
+</system_context>`;
+}
+
+/**
+ * Format complete tool output message with system context XML for backend history
+ */
+function formatToolOutputMessage(toolName, result, systemState) {
+  const parts = [`${toolName} output:`];
+  
+  if (result.success) {
+    // Extract content from result
+    let content = 'No output';
+    if (result.data) {
+      if (typeof result.data === 'string') {
+        content = result.data;
+      } else if (result.data.llm_content) {
+        content = result.data.llm_content;
+      } else if (result.data.output) {
+        content = result.data.output;
+      } else if (result.data.message) {
+        content = result.data.message;
+      } else if (result.data.result) {
+        content = result.data.result;
+      } else {
+        // Exclude screenshot from text content
+        const { screenshot, system_state, ...textData } = result.data;
+        if (Object.keys(textData).length > 0) {
+          content = JSON.stringify(textData, null, 2);
+        }
+      }
+    }
+    parts.push(content);
+    parts.push('status: successful');
+  } else {
+    parts.push(`error: ${result.error || 'Unknown error'}`);
+    parts.push('status: failed');
+  }
+  
+  // Add system context XML
+  const systemContextXml = formatSequentialStateXml(systemState);
+  parts.push(systemContextXml);
+  
+  // Add screenshot indicator if screenshot is present
+  if (result.data?.screenshot) {
+    parts.push(`State of the screen after ${toolName} was executed:`);
+  }
+  
+  return parts.join('\n');
+}
+
+/**
+ * Format combined bundled tool output message with system context XML
+ * Combines multiple tool outputs into a single message
+ */
+function formatBundledToolOutputMessage(tools, systemState, screenshot) {
+  const parts = ['Bundled tool execution output:'];
+  
+  // Add each tool's output
+  for (const tool of tools) {
+    const toolName = tool.tool_name || 'unknown';
+    const toolResult = tool._rawResult || { success: tool.success, error: tool.error, data: tool.data };
+    
+    parts.push(`\n${toolName} output:`);
+    
+    if (toolResult.success) {
+      // Extract content from result (matching formatToolOutputMessage logic)
+      let content = 'No output';
+      if (toolResult.data) {
+        if (typeof toolResult.data === 'string') {
+          content = toolResult.data;
+        } else if (toolResult.data.llm_content) {
+          content = toolResult.data.llm_content;
+        } else if (toolResult.data.message) {
+          content = toolResult.data.message;
+        } else if (toolResult.data.output) {
+          content = toolResult.data.output;
+        } else if (toolResult.data.result) {
+          content = toolResult.data.result;
+        } else {
+          // Exclude screenshot from text content
+          const { screenshot: _, system_state: __, ...textData } = toolResult.data;
+          if (Object.keys(textData).length > 0) {
+            content = JSON.stringify(textData, null, 2);
+          }
+        }
+      }
+      parts.push(content);
+      parts.push('status: successful');
+    } else {
+      parts.push(`error: ${toolResult.error || 'Unknown error'}`);
+      parts.push('status: failed');
+    }
+  }
+  
+  // Add single system context XML (shared across all tools in bundle)
+  const systemContextXml = formatSequentialStateXml(systemState);
+  parts.push('\n' + systemContextXml);
+  
+  // Add screenshot indicator if screenshot is present
+  if (screenshot) {
+    parts.push('\nState of the screen after bundled tools were executed:');
+  }
+  
+  return parts.join('\n');
+}
+
 export function ChatProvider({ children }) {
   const [messages, setMessages] = useState([{
     id: crypto.randomUUID(),
@@ -29,29 +158,37 @@ export function ChatProvider({ children }) {
   const streamingHandlers = useStreamingMessages(setMessages, setIsSending, setThinkingStatus);
 
   // Helper function to display tool result immediately in UI
-  const displayToolResult = useCallback((toolName, result, correlationId, executionTime = null) => {
+  // Uses pre-formatted llm_content (includes system context XML)
+  const displayToolResult = useCallback((toolName, result, correlationId, executionTime = null, formattedMessage = null) => {
     // Skip display for hidden tool calls (e.g., background screenshots)
     if (hiddenToolCalls.current.has(correlationId)) {
       return;
     }
 
-    // Format output text - handle various result formats
-    let outputText = 'No output';
-    if (result.error) {
-      outputText = `Error: ${result.error}`;
-    } else if (result.data) {
-      // Try different common output field names
-      if (typeof result.data === 'string') {
-        outputText = result.data;
-      } else if (result.data.output) {
-        outputText = result.data.output;
-      } else if (result.data.result) {
-        outputText = result.data.result;
-      } else if (result.data.message) {
-        outputText = result.data.message;
+    // Use formatted message if provided, otherwise extract from result
+    let outputText = formattedMessage;
+    if (!outputText) {
+      // Fallback: extract from result.data.llm_content or other fields
+      if (result.data?.llm_content) {
+        outputText = result.data.llm_content;
+      } else if (result.error) {
+        outputText = `Error: ${result.error}`;
+      } else if (result.data) {
+        // Try different common output field names
+        if (typeof result.data === 'string') {
+          outputText = result.data;
+        } else if (result.data.output) {
+          outputText = result.data.output;
+        } else if (result.data.result) {
+          outputText = result.data.result;
+        } else if (result.data.message) {
+          outputText = result.data.message;
+        } else {
+          // Fallback to JSON stringify for complex objects
+          outputText = JSON.stringify(result.data, null, 2);
+        }
       } else {
-        // Fallback to JSON stringify for complex objects
-        outputText = JSON.stringify(result.data, null, 2);
+        outputText = 'No output';
       }
     }
 
@@ -92,16 +229,29 @@ export function ChatProvider({ children }) {
       const shortId = correlationId ? correlationId.substring(0, 15) : 'unknown';
       console.log(`[Timing] Tool execution completed: ${toolName} took ${executionTime.toFixed(3)}s (request_id=${shortId})`);
       
-      // Display result immediately in UI (frontend handles display)
-      displayToolResult(toolName, result, correlationId, executionTime);
+      // Format complete message with system context XML (used for both display and backend)
+      const formattedMessage = formatToolOutputMessage(
+        toolName,
+        result,
+        result.data?.system_state
+      );
+      
+      // Display formatted message in UI (includes system context XML)
+      displayToolResult(toolName, result, correlationId, executionTime, formattedMessage);
       
       // Send result to backend for history storage only
+      const payloadData = {
+        ...result.data,
+        llm_content: formattedMessage,
+        is_preformatted: true,
+      };
+      
       window.ipc.send('to-backend', {
         type: 'tool-result',
         payload: {
           request_id: correlationId,
           success: result.success,
-          data: result.data,
+          data: payloadData,
           error: result.error,
         }
       });
@@ -111,8 +261,15 @@ export function ChatProvider({ children }) {
       const executionTime = (performance.now() - startTime) / 1000;
       console.error(`[ChatContext] Tool execution failed: ${error.message}`);
       
-      // Display error result immediately
-      displayToolResult(toolName, { success: false, error: error.message, data: null }, correlationId, executionTime);
+      // Format error message with system context XML (used for both display and backend)
+      const errorFormattedMessage = formatToolOutputMessage(
+        toolName,
+        { success: false, error: error.message, data: null },
+        null // No system state for errors
+      );
+      
+      // Display formatted error message in UI (includes system context XML)
+      displayToolResult(toolName, { success: false, error: error.message, data: null }, correlationId, executionTime, errorFormattedMessage);
       
       // Send error result to backend
       window.ipc.send('to-backend', {
@@ -121,6 +278,10 @@ export function ChatProvider({ children }) {
           request_id: correlationId,
           success: false,
           error: error.message,
+          data: {
+            llm_content: errorFormattedMessage,
+            is_preformatted: true,
+          },
         }
       });
       throw error;
@@ -155,15 +316,15 @@ export function ChatProvider({ children }) {
           const shortId = tool.correlationId ? tool.correlationId.substring(0, 15) : 'unknown';
           console.log(`[Timing] Bundled tool execution: ${tool.toolName} took ${toolExecutionTime.toFixed(3)}s (request_id=${shortId})`);
           
-          // Display result immediately for each tool in bundle
-          displayToolResult(tool.toolName, result, tool.correlationId, toolExecutionTime);
-          
+          // Store raw result (will format with system_state at bundle end and display then)
           results.push({
             tool_name: tool.toolName,
             request_id: tool.correlationId,
             success: result.success,
             data: result.data,
-            error: result.error
+            error: result.error,
+            executionTime: toolExecutionTime,
+            _rawResult: result // Store raw result for formatting later
           });
 
           // No delay needed here - the keyboard tool handles timing internally
@@ -172,14 +333,14 @@ export function ChatProvider({ children }) {
           const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
           console.error('[ChatContext] Bundle tool execution failed:', err);
           
-          // Display error result immediately
-          displayToolResult(tool.toolName, { success: false, error: err.message, data: null }, tool.correlationId, toolExecutionTime);
-          
+          // Store raw error result (will format with system_state at bundle end and display then)
           results.push({
             tool_name: tool.toolName,
             request_id: tool.correlationId,
             success: false,
-            error: err.message
+            error: err.message,
+            executionTime: toolExecutionTime,
+            _rawResult: { success: false, error: err.message, data: null }
           });
         }
       }
@@ -221,7 +382,69 @@ export function ChatProvider({ children }) {
         console.log('[ChatContext] Skipping system state/screenshot (no computer-use tools in bundle)');
       }
       
-      // Send bundled result (ONLY ONCE)
+      // Format combined bundled message for display and backend
+      const combinedFormattedMessage = formatBundledToolOutputMessage(
+        results.map(r => ({
+          tool_name: r.tool_name,
+          _rawResult: r._rawResult,
+          success: r.success,
+          error: r.error,
+          data: r.data
+        })),
+        systemState,
+        screenshot
+      );
+      
+      // Display single combined output in UI
+      const combinedResult = {
+        success: results.every(r => r.success),
+        error: results.find(r => r.error)?.error || null,
+        data: {
+          screenshot: screenshot,
+          bundled: true,
+          tool_count: results.length,
+          tools: results.map(r => ({
+            tool_name: r.tool_name,
+            success: r.success,
+            error: r.error
+          }))
+        }
+      };
+      
+      displayToolResult(
+        `bundled_tools (${results.length} tools)`,
+        combinedResult,
+        correlationId,
+        (performance.now() - bundleStartTime) / 1000,
+        combinedFormattedMessage
+      );
+      
+      // Format individual tools for backend (still needed for orchestrator to match request_ids)
+      const formattedTools = results.map(toolResult => {
+        // Include bundle screenshot in tool result data if present
+        const toolDataWithScreenshot = screenshot && toolResult.data
+          ? { ...toolResult.data, screenshot: screenshot }
+          : toolResult.data;
+        
+        return {
+          tool_name: toolResult.tool_name,
+          request_id: toolResult.request_id,
+          success: toolResult.success,
+          data: {
+            ...toolDataWithScreenshot,
+            // Individual tool llm_content for orchestrator matching
+            llm_content: formatToolOutputMessage(
+              toolResult.tool_name,
+              toolResult._rawResult || { success: toolResult.success, error: toolResult.error, data: toolDataWithScreenshot },
+              systemState
+            ),
+            is_preformatted: true,
+          },
+          error: toolResult.error
+        };
+      });
+      
+      // Send bundled result (ONLY ONCE) with combined message
       const bundleTotalTime = (performance.now() - bundleStartTime) / 1000;
       console.log(`[Timing] Bundle execution completed: ${bundle.length} tools took ${bundleTotalTime.toFixed(3)}s (bundle_id=${correlationId})`);
       console.log('[ChatContext] Sending bundled result');
@@ -232,7 +455,8 @@ export function ChatProvider({ children }) {
           success: true,
           data: {
             bundled: true,
-            tools: results,
+            tools: formattedTools, // Individual tools for orchestrator matching
+            combined_llm_content: combinedFormattedMessage, // Combined message for history
             system_state: systemState,
             screenshot: screenshot
           }
