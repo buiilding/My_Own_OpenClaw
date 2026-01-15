@@ -48,29 +48,14 @@ async def lifespan(app: FastAPI):
     # Startup: Initialize using the same coordinator as main backend
     logger.info("Initializing simulation backend (using MockLLMClient)...")
     
-    # SIMULATION: Override vision service to None before initialization to save memory
-    # This prevents the vision model from being loaded at startup
-    # Vision service will be lazy-loaded only if actually needed (which it won't be in simulation)
     from dependency_injector import providers
-    
-    # Create a custom coordinator that skips vision initialization
     from backend.src.core.bootstrap.coordinator import InitializationCoordinator
-    from backend.src.core.container.initializer import ContainerInitializer
-    
-    class SimulationContainerInitializer(ContainerInitializer):
-        """Container initializer that skips vision service initialization for simulation."""
-        
-        async def _initialize_vision_service(self) -> None:
-            """Skip vision service initialization in simulation to save memory."""
-            logger.info("Skipping vision service initialization in simulation mode (lazy-load only)")
-            # Don't initialize vision service - it will be lazy-loaded if needed
-            # Don't set it in context factory - tools will handle None gracefully
     
     class SimulationInitializationCoordinator(InitializationCoordinator):
-        """Initialization coordinator that uses simulation container initializer."""
+        """Initialization coordinator for simulation mode."""
         
         async def _initialize_container(self) -> None:
-            """Initialize container with simulation initializer."""
+            """Initialize container for simulation mode."""
             logger.info("Phase 2: Initializing container (simulation mode)...")
             
             from backend.src.core.container.container import Container
@@ -78,15 +63,7 @@ async def lifespan(app: FastAPI):
             
             self.container = Container()
             
-            # Override vision service provider to return None (saves memory)
-            self.container._di_container.core.vision_service.override(
-                providers.Object(None)
-            )
-            logger.info("Vision service provider overridden to None (simulation mode)")
-            
-            # Replace initializer with simulation version before initialization
-            self.container._initializer = SimulationContainerInitializer(self.container)
-            
+            # Initialize container normally (including vision service)
             await self.container.initialize()
             
             # Set container in DI system

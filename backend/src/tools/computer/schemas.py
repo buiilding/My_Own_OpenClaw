@@ -113,7 +113,7 @@ class ScrollControlArgs(BaseModel):
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(..., description="Scroll action to perform")
     x: Optional[int] = Field(None, description="X coordinate to scroll at (optional, uses current cursor if not provided)")
     y: Optional[int] = Field(None, description="Y coordinate to scroll at (optional, uses current cursor if not provided)")
-    clicks: int = Field(3, description="Number of scroll clicks")
+    clicks: int = Field(5, description="Number of scroll clicks")
     direction: Optional[ScrollToolDirection] = Field(None, description="Direction for scroll action ('up', 'down', 'left', 'right')")
     explanation: str = Field(
         ...,
