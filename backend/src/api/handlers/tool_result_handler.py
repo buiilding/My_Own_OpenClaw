@@ -62,7 +62,6 @@ class ToolResultHandler(MessageHandler):
         result_data = payload.get("data")
         error = payload.get("error")
         metadata = payload.get("metadata", {})
-        system_context = payload.get("system_context")  # active_window, mouse_position, time
         
         logger.info(f"[Timing] Tool result received from frontend (request_id={_short_id(request_id)})")
         logger.info(f"ToolResultHandler received message type='{data.get('type')}', request_id='{_short_id(request_id)}'")
@@ -85,21 +84,18 @@ class ToolResultHandler(MessageHandler):
         # Handle bundled tool results
         # When frontend executes multiple tools as a bundle, it sends a single result
         # with bundled=true and a tools array containing individual tool results
+        # Each tool result is pre-formatted with system context XML by the frontend
         if isinstance(result_data, dict) and result_data.get("bundled"):
             logger.info(f"Received bundled tool result with {len(result_data.get('tools', []))} tools")
-            await self._handle_bundled_result(session, result_data, request_id, system_context)
+            await self._handle_bundled_result(session, result_data, request_id)
             handler_total_time = time.perf_counter() - handler_start_time
             logger.info(f"[Timing] Bundled tool result handler completed in {handler_total_time:.3f}s (bundle_id={_short_id(request_id)})")
             return
         
         # Convert frontend result to ToolResult format (for individual tool results)
-        # Check for pre-formatted content flag from frontend
+        # Frontend pre-formats messages with system context XML and sets is_preformatted flag
         if isinstance(result_data, dict) and result_data.get("is_preformatted"):
             metadata["is_preformatted"] = True
-            
-        # Include system context in metadata if provided
-        if system_context:
-            metadata["system_context"] = system_context
         
         tool_result = ToolResult.from_dict({
             "success": success,
@@ -173,28 +169,34 @@ class ToolResultHandler(MessageHandler):
         self,
         session: Any,
         bundle_data: Dict[str, Any],
-        bundle_request_id: str,
-        system_context: Optional[Dict[str, Any]]
+        bundle_request_id: str
     ) -> None:
         """
-        Handle a bundled tool result by unpacking individual tool results.
+        Handle a bundled tool result by storing individual tool results for orchestrator
+        and creating a combined bundled result for history.
+        
+        Each tool result is pre-formatted with system context XML by the frontend.
+        Individual results are stored for orchestrator matching, but a combined result
+        is also created for single-message history storage.
         
         Args:
             session: AgentSession instance
-            bundle_data: The data dict from the bundle result (contains 'tools' array and 'screenshot')
+            bundle_data: The data dict from the bundle result (contains 'tools' array, 'combined_llm_content', and 'screenshot')
             bundle_request_id: The request_id of the bundle (for logging)
-            system_context: Optional system context metadata
         """
         tools = bundle_data.get("tools", [])
         bundle_screenshot = bundle_data.get("screenshot")
+        combined_llm_content = bundle_data.get("combined_llm_content")
         
-        logger.info(f"Unpacking bundle result: {len(tools)} tools, has_screenshot={bundle_screenshot is not None}")
+        logger.info(f"Processing bundle result: {len(tools)} tools, has_screenshot={bundle_screenshot is not None}, has_combined_content={combined_llm_content is not None}")
         
         # Initialize session attributes if needed
         if not hasattr(session, '_pending_tool_results'):
             session._pending_tool_results = {}
         if not hasattr(session, '_tool_result_futures'):
             session._tool_result_futures = {}
+        if not hasattr(session, '_bundled_results'):
+            session._bundled_results = {}
         
         # Process screenshot if present (update session and trigger OCR)
         if bundle_screenshot:
@@ -202,7 +204,7 @@ class ToolResultHandler(MessageHandler):
             logger.debug("Bundle result includes screenshot data")
             self._trigger_proactive_ocr(session, bundle_screenshot, bundle_request_id)
         
-        # Process each individual tool result in the bundle
+        # Store individual tool results for orchestrator matching (still needed for request_id resolution)
         for tool_result_data in tools:
             tool_request_id = tool_result_data.get("request_id")
             if not tool_request_id:
@@ -214,10 +216,10 @@ class ToolResultHandler(MessageHandler):
             tool_data = tool_result_data.get("data")
             tool_error = tool_result_data.get("error")
             
-            # Create ToolResult for this individual tool
+            # Create ToolResult for this individual tool (for orchestrator matching)
             tool_metadata = {}
-            if system_context:
-                tool_metadata["system_context"] = system_context
+            if isinstance(tool_data, dict) and tool_data.get("is_preformatted"):
+                tool_metadata["is_preformatted"] = True
             
             # Include screenshot in tool result data if present
             if bundle_screenshot and isinstance(tool_data, dict):
@@ -232,11 +234,11 @@ class ToolResultHandler(MessageHandler):
             })
             
             logger.debug(
-                f"Processing bundled tool result: request_id={tool_request_id}, "
+                f"Storing bundled tool result for orchestrator: request_id={tool_request_id}, "
                 f"tool={tool_name}, success={tool_success}"
             )
             
-            # Store in pending results
+            # Store in pending results (for orchestrator to match by request_id)
             session._pending_tool_results[tool_request_id] = tool_result
             
             # Resolve waiting future for this tool's request_id
@@ -250,7 +252,40 @@ class ToolResultHandler(MessageHandler):
             else:
                 logger.debug(f"No waiting future for bundled tool request_id {_short_id(tool_request_id)}")
         
-        logger.info(f"Finished unpacking bundle result {_short_id(bundle_request_id)}")
+        # Create combined bundled result for history (single message instead of multiple)
+        if combined_llm_content:
+            # Create a combined ToolResult for the entire bundle
+            combined_data = {
+                "bundled": True,
+                "tool_count": len(tools),
+                "screenshot": bundle_screenshot,
+            }
+            
+            combined_result = ToolResult.from_dict({
+                "success": all(t.get("success", False) for t in tools),
+                "data": combined_data,
+                "error": None,
+                "metadata": {
+                    "is_preformatted": True,
+                    "is_bundled": True,
+                    "bundle_request_id": bundle_request_id,
+                },
+                "llm_content": combined_llm_content,
+            })
+            
+            # Store combined result for history processing
+            # Use bundle_request_id (from frontend) as the key
+            # Note: This bundle_request_id is the frontend's correlationId, which is different
+            # from the bundle_id generated in ToolPreparer. We'll match by checking if
+            # we have multiple tool results and finding the bundled result.
+            if not hasattr(session, '_bundled_results'):
+                session._bundled_results = {}
+            session._bundled_results[bundle_request_id] = combined_result
+            logger.info(f"Stored combined bundled result for history (bundle_id={_short_id(bundle_request_id)})")
+        else:
+            logger.warning(f"Bundle result missing combined_llm_content, cannot create combined history message")
+        
+        logger.info(f"Finished processing bundle result {_short_id(bundle_request_id)}")
     
     def _trigger_proactive_ocr(
         self,

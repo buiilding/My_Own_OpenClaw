@@ -90,6 +90,9 @@ class ToolExecutor:
         not for frontend display. ToolOutputEvent is only emitted for backend-side
         failures (e.g., coordinate resolution failures) which are handled by ToolPreparer.
         
+        For bundled tools, uses the combined bundled result instead of individual results
+        to create a single history message.
+        
         Args:
             parsed_response: Parsed LLM response with tool calls
         """
@@ -101,7 +104,35 @@ class ToolExecutor:
             session_ref=self.session,
         )
 
-        # Process results: transform and commit to history (for LLM context only)
+        # Check if this is a bundled execution (multiple tools)
+        # If so, try to use the combined bundled result for history
+        if len(orchestration_result.tool_results) > 1:
+            # Check if we have a bundled result stored
+            # Since bundles are processed sequentially, the most recent bundled result
+            # should correspond to these tool results
+            bundled_result = None
+            if hasattr(self.session, '_bundled_results') and self.session._bundled_results:
+                # Get the first (most recent) bundled result
+                # In practice, there should only be one active bundle at a time
+                for bundle_id, bresult in self.session._bundled_results.items():
+                    bundle_metadata = bresult.metadata or {}
+                    if bundle_metadata.get("is_bundled"):
+                        bundled_result = bresult
+                        logger.info(f"Found bundled result for history (bundle_id={bundle_id[:15] if bundle_id else 'unknown'}, {len(orchestration_result.tool_results)} tools)")
+                        # Remove from storage after use
+                        del self.session._bundled_results[bundle_id]
+                        break
+            
+            if bundled_result:
+                # Use combined bundled result for history (single message)
+                processed = await self.result_transformer.transform(
+                    "bundled_tools", bundled_result
+                )
+                self.history_committer.commit(processed)
+                logger.info(f"Committed combined bundled result to history ({len(orchestration_result.tool_results)} tools as single message)")
+                return
+        
+        # Process individual results (non-bundled or bundled result not found)
         for result in orchestration_result.tool_results:
             # Transform: pure computation (plugins, artifacts, formatting for history)
             processed = await self.result_transformer.transform(

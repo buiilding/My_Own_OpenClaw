@@ -91,9 +91,13 @@ class ToolPreparer:
         logger.info(f"[Timing] Tool preparation started: {len(tool_calls)} tool(s)")
         
         # Bundle management
-        if len(tool_calls) > 1:
+        is_bundle = len(tool_calls) > 1
+        bundle_id = None
+        if is_bundle:
+            # Generate bundle ID for tracking
+            bundle_id = str(uuid.uuid4())
             yield BundleStartEvent()
-            logger.info(f"Bundle start: {len(tool_calls)} tools")
+            logger.info(f"Bundle start: {len(tool_calls)} tools (bundle_id={_short_id(bundle_id)})")
 
         for tool_call in tool_calls:
             tool_prep_start_time = time.perf_counter()
@@ -102,6 +106,9 @@ class ToolPreparer:
             if not hasattr(tool_call, "metadata"):
                 tool_call.metadata = {}
             tool_call.metadata["request_id"] = request_id
+            # Store bundle_id in metadata for later matching
+            if is_bundle:
+                tool_call.metadata["bundle_id"] = bundle_id
 
             # Check if this tool needs coordinate resolution
             if self._needs_coordinate_resolution(tool_call):

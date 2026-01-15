@@ -19,7 +19,7 @@ class VisionService:
     Service for managing the InternVL vision model.
     
     Provides a singleton instance of the InternVL model that is initialized
-    at server startup, enabling fast first-time use in predict_click tool.
+    at server startup, enabling fast first-time use in mouse_control tool with find_coordinates_by="prediction".
     """
 
     def __init__(self, model_name: Optional[str] = None):

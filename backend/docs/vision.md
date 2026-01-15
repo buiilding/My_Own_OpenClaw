@@ -22,12 +22,12 @@ The backend provides vision capabilities through **InternVL** for UI grounding a
 
 ### Usage
 
-Used by `predict_click` tool for vision-based element detection:
+Used by `mouse_control` tool with `find_coordinates_by="prediction"` for vision-based element detection:
 
 ```python
 # Tool uses vision service to predict coordinates
 vision_service = ctx.services.get("vision_service")
-coordinates = await vision_service.predict_click(
+coordinates = await vision_service.predict_click_coordinates(
     screenshot=screenshot_data,
     instruction="Click on the login button"
 )
@@ -48,7 +48,7 @@ coordinates = await vision_service.predict_click(
 
 - **Text Detection**: Extracts text from screenshots
 - **Proactive Analysis**: Automatically triggered on screenshots
-- **Tool Integration**: Used by `click_ocr_element` tool
+- **Tool Integration**: Used by `mouse_control` tool with `find_coordinates_by="ocr"` for OCR-based coordinate resolution
 
 ### Architecture
 
@@ -64,16 +64,21 @@ coordinates = await vision_service.predict_click(
 
 **Location**: `backend/src/api/handlers/tool_result_handler.py`
 
+**Critical Behavior**: When a screenshot arrives at the backend, proactive OCR is **immediately activated** and runs **asynchronously** without blocking any other operations (LLM coordination, LLM response generation, tool result processing).
+
 When backend receives a screenshot:
 
 1. Screenshot stored in session (`latest_screenshot`)
 2. OCR completion event cleared (signals OCR in progress)
-3. OCR plugin triggered asynchronously in background thread
-4. OCR results stored in session (`latest_ocr_results`)
-5. OCR completion event set (signals OCR complete)
-6. Results available for subsequent tool calls
+3. OCR plugin triggered asynchronously in background thread via `asyncio.create_task()` (non-blocking)
+4. OCR runs in separate thread using `asyncio.to_thread()` (doesn't block event loop)
+5. OCR results stored in session (`latest_ocr_results`)
+6. OCR completion event set (signals OCR complete)
+7. Results available for subsequent tool calls
 
 **Synchronization**: The `ocr_completion_event` (`asyncio.Event`) ensures that tools requiring OCR results wait for proactive OCR to complete before using `latest_ocr_results`.
+
+**Tool Waiting Behavior**: If an LLM response includes a click tool with `find_coordinates_by="ocr"`, the tool **waits for OCR completion** via `ocr_completion_event` before extracting text coordinates. The `OcrCoordinator.get_ocr_results()` method blocks on `await session.ocr_completion_event.wait()` until proactive OCR completes, ensuring the tool uses the updated OCR list with the latest results.
 
 ### OCR Flow
 
@@ -94,9 +99,10 @@ When backend receives a screenshot:
 ```
 
 **Key Benefits**:
+- **Immediate Activation**: OCR starts as soon as screenshot arrives, no delay
 - **Non-blocking**: OCR doesn't delay tool result processing or LLM communication
-- **Parallelism**: LLM can generate responses while OCR processes in background
-- **Synchronization**: Tools can wait for OCR completion when needed
+- **Parallelism**: LLM can generate responses while OCR processes in background (LLM response generation is NOT blocked by OCR)
+- **Synchronization**: Tools that need OCR results wait for completion before extracting coordinates (ensures they use the latest OCR list)
 
 ### OCR Result Format
 
@@ -167,27 +173,30 @@ The `ToolPreparer` handles coordinate resolution for `mouse_control` tools using
 - **Base64 Encoding**: Screenshots encoded as base64 strings
 - **Data URL Format**: `data:image/png;base64,...`
 - **PNG Format**: Standard PNG format
+- **Color Format**: Screenshots are converted from BGR (Blue-Green-Red) to RGB format before encoding. The frontend uses nut-js which returns BGR pixel data by default, and converts it to RGB using the `toRGB()` method (or manual channel swapping as fallback) to ensure correct color representation for the LLM.
 
 ## Vision Tool Integration
 
-### predict_click Tool
+### mouse_control Tool with Vision (find_coordinates_by="prediction")
 
 Uses InternVL to predict click coordinates:
 
-1. Receives screenshot and instruction
-2. Uses vision service to predict coordinates
-3. Returns predicted coordinates
-4. Tool execution uses coordinates
+1. LLM calls `mouse_control` with `find_coordinates_by="prediction"` and `description` parameter
+2. ToolPreparer intercepts and ensures screenshot is available
+3. Uses vision service to predict coordinates from screenshot and description
+4. Rewrites tool call to use manual coordinates (x, y)
+5. Frontend executes mouse action at predicted coordinates
 
-### click_ocr_element Tool
+### mouse_control Tool with OCR (find_coordinates_by="ocr")
 
 Uses OCR to find elements by text:
 
-1. Receives screenshot and text to find
-2. Uses OCR results (proactive or on-demand)
-3. Finds matching text element
-4. Returns coordinates
-5. Tool execution uses coordinates
+1. LLM calls `mouse_control` with `find_coordinates_by="ocr"` and `ocr_text` parameter
+2. ToolPreparer intercepts and waits for proactive OCR to complete
+3. Searches OCR results for matching text (fuzzy matching)
+4. Calculates center coordinates of matching bounding box
+5. Rewrites tool call to use manual coordinates (x, y)
+6. Frontend executes mouse action at OCR-resolved coordinates
 
 ## GPU Memory Management
 
