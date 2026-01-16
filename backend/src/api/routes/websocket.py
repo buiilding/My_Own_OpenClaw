@@ -12,8 +12,13 @@ from typing import Dict, Any, Union
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from pydantic import ValidationError as PydanticValidationError, TypeAdapter
 
-from backend.src.api.deps import get_session_manager, SessionManager
-from backend.src.api.handlers import get_handler_registry
+from backend.src.api.deps import (
+    get_handler_registry,
+    get_session_manager,
+    HandlerRegistryDep,
+    SessionManager,
+)
+from backend.src.api.handlers.base import MessageHandlerRegistry
 from backend.src.api.schema import IncomingMessage, HandshakeMessage
 from backend.src.core.validation import ValidationError
 
@@ -40,7 +45,8 @@ class SafeWebSocket:
 @router.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
-    session_manager: SessionManager = Depends(get_session_manager)
+    session_manager: SessionManager = Depends(get_session_manager),
+    handler_registry: HandlerRegistryDep = Depends(get_handler_registry),
 ):
     await websocket.accept()
     safe_ws = SafeWebSocket(websocket)
@@ -93,7 +99,8 @@ async def websocket_endpoint(
                     # Route message based on validated type
                     # We spawn a task to avoid blocking the receiving loop.
                     # This is essential for handlers that wait for other messages (like tool-result).
-                    asyncio.create_task(handle_message(safe_ws, validated_msg, session_manager, user_id))
+                    # Handler registry will be injected when handle_message is called
+                    asyncio.create_task(handle_message(safe_ws, validated_msg, handler_registry, user_id))
                     
                 except PydanticValidationError as e:
                     # Validation failed - send error
@@ -117,7 +124,7 @@ async def websocket_endpoint(
 async def handle_message(
     websocket: Union[WebSocket, SafeWebSocket], 
     message: IncomingMessage, 
-    session_manager: SessionManager,
+    handler_registry: MessageHandlerRegistry,
     user_id: str
 ):
     """
@@ -126,7 +133,7 @@ async def handle_message(
     Args:
         websocket: WebSocket connection
         message: Validated Pydantic message object
-        session_manager: Session manager instance
+        handler_registry: Message handler registry instance
         user_id: User ID from connection context
     """
     msg_id = message.id
@@ -134,7 +141,6 @@ async def handle_message(
 
     try:
         # Use handler registry to route message based on validated type
-        handler_registry = get_handler_registry()
         # Convert Pydantic model to dict for handler (handlers still expect dict for now)
         # TODO: Refactor handlers to accept typed messages in future phase
         message_dict = message.model_dump()

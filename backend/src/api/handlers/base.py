@@ -191,29 +191,4 @@ class MessageHandlerRegistry:
         return list(self._handlers.keys())
 
 
-# Global handler registry instance
-_handler_registry: Optional[MessageHandlerRegistry] = None
-
-
-def get_handler_registry() -> MessageHandlerRegistry:
-    """
-    Get the global handler registry instance.
-    
-    Returns:
-        MessageHandlerRegistry instance
-    """
-    global _handler_registry
-    if _handler_registry is None:
-        _handler_registry = MessageHandlerRegistry()
-    return _handler_registry
-
-
-def initialize_handler_registry() -> MessageHandlerRegistry:
-    """
-    Initialize the global handler registry.
-    
-    Returns:
-        Initialized MessageHandlerRegistry instance
-    """
-    return get_handler_registry()
 

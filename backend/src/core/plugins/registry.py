@@ -7,7 +7,7 @@ import logging
 from typing import Any, Dict, List, Optional, TypeVar
 
 from backend.src.agent.plugins.interface import AgentPlugin
-from backend.src.core.plugin_config import PluginConfigManager, get_plugin_config_manager
+from backend.src.core.plugin_config import PluginConfigManager
 from backend.src.core.plugins.lifecycle import PluginLifecycleManager
 from backend.src.core.plugins.metadata import PluginConfig
 from backend.src.core.plugins.state_manager import PluginStateManager
@@ -25,11 +25,16 @@ class PluginRegistry:
     and discovery are handled by separate services.
     """
 
-    def __init__(self, use_config_manager: bool = True):
+    def __init__(
+        self,
+        plugin_config_manager: PluginConfigManager = None,
+        use_config_manager: bool = True,
+    ):
         """
         Initialize the plugin registry.
 
         Args:
+            plugin_config_manager: Optional PluginConfigManager instance (created if None and use_config_manager is True)
             use_config_manager: If True, use PluginConfigManager for persistence
         """
         self._plugins: Dict[str, AgentPlugin] = {}
@@ -37,7 +42,13 @@ class PluginRegistry:
 
         # Initialize managers
         self.state_manager = PluginStateManager()
-        self.config_manager = get_plugin_config_manager() if use_config_manager else None
+        if use_config_manager:
+            if plugin_config_manager is None:
+                # Fallback: create new instance (should be provided via DI)
+                plugin_config_manager = PluginConfigManager()
+            self.config_manager = plugin_config_manager
+        else:
+            self.config_manager = None
         self.lifecycle_manager = PluginLifecycleManager(self)
 
     def set_container(self, container: Any) -> None:

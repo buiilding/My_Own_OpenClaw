@@ -30,9 +30,13 @@ class ContainerInitializer:
         Perform async initialization of container components.
 
         This includes:
+        - Configuration service initialization
         - Vision service initialization (for fast first-time use)
         - Setting vision service in context factory
         """
+        # Initialize configuration service (loads config and makes it available)
+        await self._initialize_config_service()
+
         # Initialize vision service (pre-loads InternVL model for fast first-time use)
         await self._initialize_vision_service()
 
@@ -41,6 +45,27 @@ class ContainerInitializer:
             self.container.context_factory.set_vision_service(self.container.vision_service)
 
         logger.info("Container initialization complete")
+
+    async def _initialize_config_service(self) -> None:
+        """
+        Initialize the configuration service by loading configuration.
+        
+        This ensures ConfigurationService is ready to use after container initialization.
+        """
+        try:
+            # Get config service from DI container
+            config_service = self.container._di_container.core.config_service()
+            
+            if config_service is None:
+                logger.warning("Configuration service not available in DI container")
+                return
+
+            # Initialize the service (loads config)
+            config_service.initialize()
+            logger.info("Configuration service initialized successfully")
+
+        except Exception as e:
+            logger.error(f"Failed to initialize configuration service: {e}", exc_info=True)
 
     async def _initialize_vision_service(self) -> None:
         """

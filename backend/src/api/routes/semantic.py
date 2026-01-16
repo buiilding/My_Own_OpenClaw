@@ -12,7 +12,6 @@ from pydantic import BaseModel
 
 from backend.src.api.deps import get_container, ContainerDep
 from backend.src.core.config import AppConfig
-from backend.src.core.config.user_config_manager import get_user_config_manager
 from backend.src.core.config.manager import load_api_key_for_provider
 from backend.src.llm.llm_client import get_llm_client
 
@@ -59,7 +58,7 @@ async def summarize_conversations(
     try:
         # Get user-specific config merged with global config
         global_config = container.config
-        user_config_manager = get_user_config_manager()
+        user_config_manager = container.user_config_manager
         user_config = user_config_manager.load_user_config(request.user_id)
         
         # Build merged config: global + user overrides

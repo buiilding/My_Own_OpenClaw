@@ -165,19 +165,4 @@ class PluginConfigManager:
         return self._config.copy()
 
 
-# Global plugin config manager instance
-_plugin_config_manager: Optional[PluginConfigManager] = None
-
-
-def get_plugin_config_manager() -> PluginConfigManager:
-    """
-    Get the global plugin config manager instance.
-    
-    Returns:
-        PluginConfigManager instance
-    """
-    global _plugin_config_manager
-    if _plugin_config_manager is None:
-        _plugin_config_manager = PluginConfigManager()
-    return _plugin_config_manager
 

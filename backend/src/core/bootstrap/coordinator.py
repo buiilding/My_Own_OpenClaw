@@ -13,7 +13,6 @@ from backend.src.api.deps import set_container
 from backend.src.core.bootstrap.handler_initializer import HandlerInitializer
 from backend.src.core.bootstrap.plugin_initializer import PluginInitializer
 from backend.src.core.config import ConfigManager, get_config_manager
-from backend.src.core.config_service import initialize_config_service
 from backend.src.core.container import Container
 
 logger = logging.getLogger(__name__)
@@ -77,8 +76,7 @@ class InitializationCoordinator:
         logger.info("Phase 1: Initializing configuration...")
 
         self.config_manager = config_manager or get_config_manager()
-        self.config_service = initialize_config_service(self.config_manager)
-        logger.info("ConfigurationService initialized.")
+        logger.info("Configuration initialized.")
 
     async def _initialize_container(self) -> None:
         """Phase 2: Initialize container."""
@@ -95,17 +93,17 @@ class InitializationCoordinator:
         """Phase 3: Initialize services (SessionManager, Handlers)."""
         logger.info("Phase 3: Initializing services...")
 
-        # Create session manager
-        self.session_manager = SessionManager(self.container)
-        self.container._session_manager = self.session_manager
+        # Get session manager from container (created lazily via property)
+        self.session_manager = self.container.session_manager
 
         # Subscribe SessionManager to config changes
-        self.config_service.subscribe(self.session_manager)
+        config_service = self.container.config_service
+        config_service.subscribe(self.session_manager)
         logger.info("SessionManager initialized and subscribed to config changes.")
 
-        # Initialize handlers
+        # Initialize handlers (now managed by DI container)
         self.handler_initializer = HandlerInitializer()
-        await self.handler_initializer.initialize(self.session_manager)
+        await self.handler_initializer.initialize(self.container)
         logger.info("WebSocket message handlers initialized.")
 
     async def _initialize_plugins(self) -> Any:

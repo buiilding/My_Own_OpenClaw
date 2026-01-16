@@ -6,7 +6,7 @@ Coordinates plugin discovery and registration using PluginDiscoverer instances.
 import logging
 from typing import List
 
-from backend.src.core.plugin_config import PluginConfigManager, get_plugin_config_manager
+from backend.src.core.plugin_config import PluginConfigManager
 from backend.src.core.plugins.discovery import PluginDiscoverer
 from backend.src.core.plugins.registry import PluginRegistry
 from backend.src.core.plugins.state_manager import PluginStateManager

@@ -52,17 +52,24 @@ class QueryMessageHandler(MessageHandler):
     - Response formatting for WebSocket transport
     """
 
-    def __init__(self, session_manager: SessionManager):
+    def __init__(
+        self,
+        session_manager: SessionManager,
+        tts_manager: TTSManager,
+        response_formatter: ResponseFormatter,
+    ):
         """
         Initialize the query handler.
 
         Args:
             session_manager: Session manager for handling agent sessions
                 and WebSocket connections
+            tts_manager: TTS manager for text-to-speech handling
+            response_formatter: Response formatter for WebSocket messages
         """
         self.session_manager = session_manager
-        self.tts_manager = TTSManager()
-        self.response_formatter = ResponseFormatter()
+        self.tts_manager = tts_manager
+        self.response_formatter = response_formatter
 
     def validate_message(self, data: Dict[str, Any]) -> bool:
         """Validate query message structure."""

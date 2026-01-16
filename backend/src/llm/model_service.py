@@ -9,7 +9,7 @@ Responsible for discovering and aggregating available LLM models from:
 import logging
 from typing import Dict, List
 
-from backend.src.core.config import AppConfig, get_config_manager
+from backend.src.core.config import AppConfig
 from backend.src.llm.models_config import ONLINE_MODELS, ONLINE_THINKING_MODELS, LOCAL_VISION_MODELS
 from backend.src.llm.providers.local import OllamaProvider, LMStudioProvider
 
@@ -120,13 +120,4 @@ class ModelService:
         }
 
 
-# Global instance accessor for convenience, matching old pattern but via service
-_model_service = None
-
-def get_model_service() -> ModelService:
-    global _model_service
-    if _model_service is None:
-        config = get_config_manager().get_config()
-        _model_service = ModelService(config)
-    return _model_service
 
