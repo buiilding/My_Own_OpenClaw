@@ -5,12 +5,14 @@ Handles user query messages and streams responses back to the client.
 """
 import logging
 import time
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 from fastapi import WebSocket
 
-from backend.src.api.deps import SessionManager
 from backend.src.api.handlers.base import MessageHandler
+
+if TYPE_CHECKING:
+    from backend.src.agent.core.session_manager import SessionManager
 from backend.src.api.handlers.response_formatter import ResponseFormatter
 from backend.src.api.handlers.tts_manager import TTSManager
 from backend.src.api.schema import QueryMessage
@@ -54,7 +56,7 @@ class QueryMessageHandler(MessageHandler):
 
     def __init__(
         self,
-        session_manager: SessionManager,
+        session_manager: "SessionManager",
         tts_manager: TTSManager,
         response_formatter: ResponseFormatter,
     ):

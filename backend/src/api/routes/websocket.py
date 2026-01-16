@@ -13,10 +13,8 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from pydantic import ValidationError as PydanticValidationError, TypeAdapter
 
 from backend.src.api.deps import (
-    get_handler_registry,
-    get_session_manager,
     HandlerRegistryDep,
-    SessionManager,
+    SessionManagerDep,
 )
 from backend.src.api.handlers.base import MessageHandlerRegistry
 from backend.src.api.schema import IncomingMessage, HandshakeMessage
@@ -45,8 +43,8 @@ class SafeWebSocket:
 @router.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
-    session_manager: SessionManager = Depends(get_session_manager),
-    handler_registry: HandlerRegistryDep = Depends(get_handler_registry),
+    session_manager: SessionManagerDep,
+    handler_registry: HandlerRegistryDep,
 ):
     await websocket.accept()
     safe_ws = SafeWebSocket(websocket)
