@@ -17,16 +17,11 @@ from backend.src.api.handlers.response_formatter import ResponseFormatter
 from backend.src.api.handlers.tts_manager import TTSManager
 from backend.src.api.schema import QueryMessage
 from backend.src.core.events import (
-    AgentStreamingEvent,
-    StreamingEvent,
     ChunkEvent,
     ToolCallEvent,
     ToolOutputEvent,
     ThinkingEvent,
-    ErrorEvent,
-    StreamingCompleteEvent,
 )
-from backend.src.core.types import StreamingEventType
 from backend.src.core.validation import (
     ValidationError,
     validate_message,
@@ -137,13 +132,6 @@ class QueryMessageHandler(MessageHandler):
                     # Handle TTS with function call filtering
                     # We want to block function call JSON from being spoken
                     
-                    # Convert typed event to dict for compatibility
-                    if isinstance(event, StreamingEvent):
-                        event_dict = event.to_dict()
-                    else:
-                        # Backward compatibility with dict events
-                        event_dict = event
-                    
                     # Reset detection state on new interaction phases
                     if isinstance(event, (ToolCallEvent, ToolOutputEvent, ThinkingEvent)):
                         is_potential_tool_call = None
@@ -184,7 +172,7 @@ class QueryMessageHandler(MessageHandler):
                         # except for the ones we handled above for reset
                         await self.tts_manager.process_event(tts_service, event)
 
-                    # Format event (formatter handles both typed and dict events)
+                    # Format event
                     response = self.response_formatter.format(event, msg_id)
                     if response:
                         await websocket.send_json(response)
