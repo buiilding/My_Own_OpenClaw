@@ -150,13 +150,3 @@ class UserConfigManager:
         return merged
 
 
-# Global user config manager instance
-_user_config_manager: Optional[UserConfigManager] = None
-
-
-def get_user_config_manager() -> UserConfigManager:
-    """Get the global user config manager instance."""
-    global _user_config_manager
-    if _user_config_manager is None:
-        _user_config_manager = UserConfigManager()
-    return _user_config_manager

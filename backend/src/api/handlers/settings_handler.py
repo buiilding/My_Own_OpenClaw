@@ -11,21 +11,36 @@ from backend.src.api.handlers.base import MessageHandler
 from backend.src.api.schema import LoadSettingsMessage, UpdateSettingsMessage
 from backend.src.api.deps import SessionManager
 from backend.src.core.config import AppConfig
-from backend.src.core.config_service import get_config_service
-from backend.src.core.config.user_config_manager import get_user_config_manager
+from backend.src.core.config_service import ConfigurationService
+from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.config.manager import load_api_key_for_provider
 from backend.src.core.validation import (
     validate_message, 
     validate_settings_update, 
     ValidationError
 )
-from backend.src.llm.model_service import get_model_service
+from backend.src.llm.model_service import ModelService
 
 logger = logging.getLogger(__name__)
 
 
 class LoadSettingsHandler(MessageHandler):
     """Handler for load-settings messages."""
+    
+    def __init__(
+        self,
+        config_service: ConfigurationService,
+        user_config_manager: UserConfigManager,
+    ):
+        """
+        Initialize the load settings handler.
+
+        Args:
+            config_service: Configuration service instance
+            user_config_manager: User configuration manager instance
+        """
+        self.config_service = config_service
+        self.user_config_manager = user_config_manager
     
     def validate_message(self, data: Dict[str, Any]) -> bool:
         """Validate load-settings message structure."""
@@ -51,15 +66,13 @@ class LoadSettingsHandler(MessageHandler):
         """
         try:
             validated = validate_message(data, "load-settings", LoadSettingsMessage)
-            config_service = get_config_service()
             
             # Get global config
-            global_config = config_service.get_config()
+            global_config = self.config_service.get_config()
             global_config_dict = global_config.model_dump(exclude={"api_key"})
             
             # Merge with user-specific config (user config overrides global)
-            user_config_manager = get_user_config_manager()
-            merged_config_dict = user_config_manager.merge_with_global_config(
+            merged_config_dict = self.user_config_manager.merge_with_global_config(
                 user_id, global_config_dict
             )
             
@@ -86,14 +99,23 @@ class LoadSettingsHandler(MessageHandler):
 class UpdateSettingsHandler(MessageHandler):
     """Handler for update-settings messages."""
     
-    def __init__(self, session_manager: SessionManager):
+    def __init__(
+        self,
+        session_manager: SessionManager,
+        config_service: ConfigurationService,
+        user_config_manager: UserConfigManager,
+    ):
         """
         Initialize the update settings handler.
         
         Args:
             session_manager: Session manager instance
+            config_service: Configuration service instance
+            user_config_manager: User configuration manager instance
         """
         self.session_manager = session_manager
+        self.config_service = config_service
+        self.user_config_manager = user_config_manager
     
     def validate_message(self, data: Dict[str, Any]) -> bool:
         """Validate update-settings message structure."""
@@ -124,19 +146,17 @@ class UpdateSettingsHandler(MessageHandler):
             # Validate settings update payload
             new_config_data = validate_settings_update(validated.payload)
             
-            config_service = get_config_service()
-            global_config = config_service.get_config()
+            global_config = self.config_service.get_config()
             
             # Get user-specific config to merge with updates
-            user_config_manager = get_user_config_manager()
-            user_config = user_config_manager.load_user_config(user_id)
+            user_config = self.user_config_manager.load_user_config(user_id)
             
             # Merge: user config + new updates (updates override existing user config)
             # Only frontend-managed fields should be in user_config and new_config_data
             merged_user_config = {**user_config, **new_config_data}
             
             # Save user-specific config (only frontend-managed fields - filters automatically)
-            user_config_manager.save_user_config(user_id, merged_user_config)
+            self.user_config_manager.save_user_config(user_id, merged_user_config)
             
             # Build complete config for this user: global + user-specific overrides
             complete_config_dict = {**global_config.model_dump(), **merged_user_config}
@@ -183,6 +203,15 @@ class UpdateSettingsHandler(MessageHandler):
 class ListModelsHandler(MessageHandler):
     """Handler for list-models messages."""
     
+    def __init__(self, model_service: ModelService):
+        """
+        Initialize the list models handler.
+
+        Args:
+            model_service: Model service instance
+        """
+        self.model_service = model_service
+    
     def validate_message(self, data: Dict[str, Any]) -> bool:
         """Validate list-models message structure."""
         try:
@@ -209,7 +238,7 @@ class ListModelsHandler(MessageHandler):
         try:
             from backend.src.api.schema import ListModelsMessage
             validated = validate_message(data, "list-models", ListModelsMessage)
-            models = await get_model_service().get_all_models()
+            models = await self.model_service.get_all_models()
             await websocket.send_json({
                 "type": "models-listed",
                 "id": validated.id,

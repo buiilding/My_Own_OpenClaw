@@ -15,10 +15,7 @@ from backend.src.core.config_subscription_manager import (
     ConfigSubscriptionManager,
 )
 from backend.src.core.events import ConfigChanged
-from backend.src.core.plugin_config import (
-    PluginConfigManager,
-    get_plugin_config_manager,
-)
+from backend.src.core.plugin_config import PluginConfigManager
 
 logger = logging.getLogger(__name__)
 
@@ -52,9 +49,7 @@ class ConfigurationService:
         self._config: Optional[AppConfig] = None
         self._subscription_manager = ConfigSubscriptionManager()
         self._event_bus = event_bus
-        self._plugin_config_manager = (
-            plugin_config_manager or get_plugin_config_manager()
-        )
+        self._plugin_config_manager = plugin_config_manager
 
     def initialize(self) -> AppConfig:
         """
@@ -244,50 +239,3 @@ class ConfigurationService:
         return self.get_config()
 
 
-# Global configuration service instance
-_config_service: Optional[ConfigurationService] = None
-
-
-def get_config_service() -> ConfigurationService:
-    """
-    Get the global configuration service instance.
-
-    Returns:
-        ConfigurationService instance
-
-    Raises:
-        RuntimeError: If service has not been initialized
-    """
-    global _config_service
-    if _config_service is None:
-        raise RuntimeError(
-            "ConfigurationService not initialized. "
-            "Call initialize_config_service() first."
-        )
-    return _config_service
-
-
-def initialize_config_service(
-    config_manager: Optional[ConfigManager] = None,
-) -> ConfigurationService:
-    """
-    Initialize the global configuration service.
-
-    Args:
-        config_manager: Optional ConfigManager instance (uses global if None)
-
-    Returns:
-        Initialized ConfigurationService instance
-    """
-    global _config_service
-
-    if config_manager is None:
-        from backend.src.core.config import get_config_manager
-
-        config_manager = get_config_manager()
-
-    _config_service = ConfigurationService(config_manager)
-    _config_service.initialize()
-
-    logger.info("Global ConfigurationService initialized")
-    return _config_service

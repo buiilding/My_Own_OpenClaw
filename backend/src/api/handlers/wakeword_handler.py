@@ -32,15 +32,16 @@ class WakewordHandler(MessageHandler):
     4. Prepares for continuous listening
     """
 
-    def __init__(self, config: AppConfig):
+    def __init__(self, tts_manager: TTSManager, config: AppConfig):
         """
         Initialize the wakeword handler.
 
         Args:
+            tts_manager: TTS manager for text-to-speech handling
             config: Application configuration instance
         """
+        self.tts_manager = tts_manager
         self.config = config
-        self.tts_manager = TTSManager()
 
     def validate_message(self, data: Dict[str, Any]) -> bool:
         """Validate wakeword message structure."""

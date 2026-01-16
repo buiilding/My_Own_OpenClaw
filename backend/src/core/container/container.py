@@ -10,6 +10,7 @@ from typing import Any, Optional
 from dependency_injector import containers, providers
 
 from backend.src.core.config import AppConfig, ConfigManager, get_config_manager
+from backend.src.core.container.api_container import ApiContainer
 from backend.src.core.container.config_updater import ContainerConfigUpdater
 from backend.src.core.container.core_container import CoreContainer
 from backend.src.core.container.initializer import ContainerInitializer
@@ -65,12 +66,18 @@ class ApplicationContainer(containers.DeclarativeContainer):
         config=core.config,
     )
 
+    # API container (will be created and wired in Container facade)
+    # Note: Created in Container.__init__ to avoid circular dependency with session_manager
+
     # Expose commonly used providers at top level for convenience
     config_manager = core.config_manager
     config = core.config
     llm_client = core.llm_client
     tts_service = core.tts_service
     vision_service = core.vision_service
+    config_service = core.config_service
+    user_config_manager = core.user_config_manager
+    model_service = core.model_service
 
     agent_factory = tools.agent_factory
     tool_registry = tools.tool_registry
@@ -121,11 +128,22 @@ class Container:
         # Vision service (from core container)
         self.vision_service = self._di_container.core.vision_service()
 
+        # Core services (from core container)
+        self.config_service = self._di_container.core.config_service()
+        self.user_config_manager = self._di_container.core.user_config_manager()
+        self.model_service = self._di_container.core.model_service()
+
         # Plugin registry (set after bootstrap initialization)
         self._plugin_registry: Optional[Any] = None
 
         # Session factory (created lazily when plugin_registry is set)
         self._session_factory: Optional[AgentSessionFactory] = None
+
+        # Session manager (created lazily after container is fully initialized)
+        self._session_manager: Optional[Any] = None
+
+        # API container (created after session_manager is available)
+        self._api_container: Optional[Any] = None
 
         # Initialize specialized handlers
         self._initializer = ContainerInitializer(self)
@@ -202,3 +220,51 @@ class Container:
         return self._session_factory.create_session(
             user_id=user_id, session_id=session_id, config=config
         )
+
+    @property
+    def session_manager(self):
+        """
+        Get the session manager instance.
+        
+        Creates SessionManager lazily on first access with all dependencies injected.
+        """
+        if self._session_manager is None:
+            from backend.src.agent.core.session_manager import SessionManager
+            
+            self._session_manager = SessionManager(
+                config=self.config,
+                create_agent_session_func=self.create_agent_session,
+                user_config_manager=self.user_config_manager,
+            )
+        return self._session_manager
+
+    @property
+    def handler_registry(self):
+        """
+        Get the message handler registry.
+        
+        Creates ApiContainer and handler registry lazily on first access.
+        """
+        if self._api_container is None:
+            from dependency_injector import providers
+            
+            self._api_container = ApiContainer()
+            
+            # Wire dependencies from core container
+            self._api_container.config.override(
+                providers.Singleton(lambda: self.config)
+            )
+            self._api_container.config_service.override(
+                providers.Singleton(lambda: self.config_service)
+            )
+            self._api_container.user_config_manager.override(
+                providers.Singleton(lambda: self.user_config_manager)
+            )
+            self._api_container.model_service.override(
+                providers.Singleton(lambda: self.model_service)
+            )
+            self._api_container.session_manager.override(
+                providers.Singleton(lambda: self.session_manager)
+            )
+        
+        return self._api_container.handler_registry()

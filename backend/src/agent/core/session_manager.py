@@ -11,10 +11,9 @@ from typing import Dict, Optional
 
 from backend.src.agent.core.core import AgentSession
 from backend.src.core.config import AppConfig
-from backend.src.core.config.user_config_manager import get_user_config_manager
+from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.config.manager import load_api_key_for_provider
 from backend.src.core.config_subscription_manager import ConfigSubscriber
-from backend.src.core.container import Container
 
 logger = logging.getLogger(__name__)
 
@@ -104,14 +103,23 @@ class SessionManager(ConfigSubscriber):
     Thread-safe: Uses per-user locks to prevent race conditions during session creation.
     """
 
-    def __init__(self, container: Container):
+    def __init__(
+        self,
+        config: AppConfig,
+        create_agent_session_func,
+        user_config_manager: UserConfigManager,
+    ):
         """
         Initialize the session manager.
         
         Args:
-            container: Container instance for creating sessions
+            config: Global application configuration
+            create_agent_session_func: Function to create agent sessions (takes user_id, config)
+            user_config_manager: User configuration manager for per-user config
         """
-        self.container = container
+        self.config = config
+        self.create_agent_session = create_agent_session_func
+        self.user_config_manager = user_config_manager
         self.active_sessions: Dict[str, AgentSession] = {}
         # Per-user locks to prevent race conditions during session creation
         self._user_locks: Dict[str, asyncio.Lock] = {}
@@ -167,18 +175,17 @@ class SessionManager(ConfigSubscriber):
             logger.info(f"Creating new session for user {user_id}")
             
             try:
-                # Get global config from container
-                global_config = self.container.config
+                # Get global config
+                global_config = self.config
                 
                 # Merge with user-specific config
-                user_config_manager = get_user_config_manager()
-                user_config = user_config_manager.load_user_config(user_id)
+                user_config = self.user_config_manager.load_user_config(user_id)
                 
                 # Merge configs (handles special cases like TTS)
                 merged_config = _merge_user_config(global_config, user_config)
                 
-                # Create session with merged config directly (no container mutation needed)
-                session = self.container.create_agent_session(
+                # Create session with merged config
+                session = self.create_agent_session(
                     user_id=user_id, config=merged_config
                 )
                 self.active_sessions[user_id] = session

@@ -44,6 +44,23 @@ class ContainerConfigUpdater:
         # Update container's config
         self.container.config = updated_config
 
+        # Update config service (will notify subscribers)
+        config_service = self.container.config_service
+        if config_service:
+            # Config service will handle notification via its update_config method
+            # We update it directly here to avoid async call
+            config_service._config = updated_config
+
+        # Update model service (recreate with new config)
+        # ModelService stores config in __init__, so we need to recreate it
+        from backend.src.llm.model_service import ModelService
+        self.container.model_service = self.container._di_container.core.model_service.override(
+            providers.Singleton(
+                ModelService,
+                config=providers.Singleton(lambda: updated_config),
+            )
+        )()
+
         # Update tool registry config
         if self.container.tool_registry:
             self.container.tool_registry.config = updated_config

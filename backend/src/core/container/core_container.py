@@ -9,11 +9,15 @@ from dependency_injector import containers, providers
 
 from backend.src.core.bus import EventBus
 from backend.src.core.config import ConfigManager
+from backend.src.core.config_service import ConfigurationService
+from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.container.factories import (
     _create_tts_service,
     _create_vision_service,
 )
+from backend.src.core.plugin_config import PluginConfigManager
 from backend.src.llm.llm_client import get_llm_client
+from backend.src.llm.model_service import ModelService
 
 logger = logging.getLogger(__name__)
 
@@ -57,5 +61,25 @@ class CoreContainer(containers.DeclarativeContainer):
     # Vision Service (initialized asynchronously during container initialization)
     vision_service = providers.Singleton(
         _create_vision_service,
+        config=config,
+    )
+
+    # Plugin Config Manager (manages plugin-specific configuration)
+    plugin_config_manager = providers.Singleton(PluginConfigManager)
+
+    # Configuration Service (wraps ConfigManager with change notifications)
+    config_service = providers.Singleton(
+        ConfigurationService,
+        config_manager=config_manager,
+        event_bus=event_bus,
+        plugin_config_manager=plugin_config_manager,
+    )
+
+    # User Config Manager (manages per-user configuration)
+    user_config_manager = providers.Singleton(UserConfigManager)
+
+    # Model Service (discovers and aggregates LLM models)
+    model_service = providers.Singleton(
+        ModelService,
         config=config,
     )
