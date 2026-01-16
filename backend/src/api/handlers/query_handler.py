@@ -14,14 +14,11 @@ from backend.src.api.handlers.base import MessageHandler
 if TYPE_CHECKING:
     from backend.src.agent.core.session_manager import SessionManager
 from backend.src.api.handlers.response_formatter import ResponseFormatter
+from backend.src.api.handlers.stream_pipeline import StreamPipeline
+from backend.src.api.handlers.transport import WebSocketTransportSender
 from backend.src.api.handlers.tts_manager import TTSManager
+from backend.src.api.handlers.tts_processor import TTSProcessor
 from backend.src.api.schema import QueryMessage
-from backend.src.core.events import (
-    ChunkEvent,
-    ToolCallEvent,
-    ToolOutputEvent,
-    ThinkingEvent,
-)
 from backend.src.core.validation import (
     ValidationError,
     validate_message,
@@ -116,10 +113,12 @@ class QueryMessageHandler(MessageHandler):
                     tts_service, websocket, msg_id
                 )
 
-            # State to track if current response stream is a function call
-            # None = unknown (buffer start), True = is tool call, False = is not tool call
-            is_potential_tool_call = None
-            stream_buffer = ""
+            # Create pipeline
+            # INVARIANT: One pipeline per query. Never reused.
+            # This prevents accidental reuse bugs and keeps state isolated per query.
+            transport = WebSocketTransportSender(websocket)
+            tts_processor = TTSProcessor(self.tts_manager)
+            pipeline = StreamPipeline(tts_processor, self.response_formatter, transport)
 
             # Process query and stream responses
             # Frontend now sends complete message content
@@ -129,60 +128,15 @@ class QueryMessageHandler(MessageHandler):
                     query_text,
                     message_content=message_content,
                 ):
-                    # Handle TTS with function call filtering
-                    # We want to block function call JSON from being spoken
-                    
-                    # Reset detection state on new interaction phases
-                    if isinstance(event, (ToolCallEvent, ToolOutputEvent, ThinkingEvent)):
-                        is_potential_tool_call = None
-                        stream_buffer = ""
-                    
-                    if isinstance(event, ChunkEvent):
-                        content = event.content
-                        
-                        if is_potential_tool_call is None:
-                            # Buffer beginning of stream to detect content type
-                            stream_buffer += content
-                            stripped = stream_buffer.lstrip()
-                            
-                            if len(stripped) > 0:
-                                if stripped.startswith("{") or stripped.startswith("`"):
-                                    # Starts with JSON brace or code block -> likely tool call
-                                    is_potential_tool_call = True
-                                    # Do NOT send to TTS
-                                else:
-                                    # Starts with normal text
-                                    is_potential_tool_call = False
-                                    # Flush buffered text to TTS
-                                    if tts_service:
-                                        await self.tts_manager.process_event(
-                                            tts_service, 
-                                            ChunkEvent(content=stream_buffer)
-                                        )
-                            # If still empty/whitespace, continue buffering
-                        
-                        elif is_potential_tool_call is False:
-                            # Known text stream, pass through to TTS
-                            await self.tts_manager.process_event(tts_service, event)
-                        
-                        # If is_potential_tool_call is True, we drop the chunks for TTS
-                        
-                    else:
-                        # For non-chunk events, pass through if needed (usually ignored by tts_manager)
-                        # except for the ones we handled above for reset
-                        await self.tts_manager.process_event(tts_service, event)
-
-                    # Format event
-                    response = self.response_formatter.format(event, msg_id)
-                    if response:
-                        await websocket.send_json(response)
+                    # Process events through pipeline (msg_id passed per call, not stored)
+                    await pipeline.process(event, tts_service, msg_id)
 
                 # Flush TTS buffer
                 if tts_service:
                     await tts_service.flush()
 
                 # Send final complete message
-                await websocket.send_json(
+                await transport.send(
                     {"type": "streaming-complete", "id": msg_id, "payload": {}}
                 )
                 
@@ -209,7 +163,14 @@ class QueryMessageHandler(MessageHandler):
             )
 
     async def _send_error(self, websocket: WebSocket, msg_id: str | None, message: str):
-        """Send error response."""
+        """
+        Send error response.
+        
+        Args:
+            websocket: WebSocket connection
+            msg_id: Message ID (optional)
+            message: Error message
+        """
         await websocket.send_json(
             {"type": "error", "id": msg_id, "payload": {"message": message}}
         )
