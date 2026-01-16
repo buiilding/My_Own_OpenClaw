@@ -10,7 +10,6 @@ from backend.src.api.handlers.base import (
     get_handler_registry,
     initialize_handler_registry,
 )
-from backend.src.api.handlers.ping_handler import PingMessageHandler
 from backend.src.api.handlers.query_handler import QueryMessageHandler
 from backend.src.api.handlers.settings_handler import (
     ListModelsHandler,
@@ -26,7 +25,6 @@ __all__ = [
     "get_handler_registry",
     "initialize_handler_registry",
     "QueryMessageHandler",
-    "PingMessageHandler",
     "LoadSettingsHandler",
     "UpdateSettingsHandler",
     "ListModelsHandler",
@@ -52,7 +50,6 @@ def initialize_handlers(session_manager) -> MessageHandlerRegistry:
     config_service = get_config_service()
 
     # Register handlers
-    registry.register("ping", PingMessageHandler())
     registry.register("query", QueryMessageHandler(session_manager))
     registry.register("load-settings", LoadSettingsHandler())
     registry.register("update-settings", UpdateSettingsHandler(session_manager))

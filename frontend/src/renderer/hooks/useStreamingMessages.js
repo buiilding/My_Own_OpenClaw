@@ -10,17 +10,6 @@ import { useState, useCallback, useMemo } from 'react';
  * @returns {Object} - Object containing message handlers
  */
 export function useStreamingMessages(setMessages, setIsSending, setThinkingStatus) {
-  const handlePongResponse = useCallback((data) => {
-    const newMessage = {
-      id: crypto.randomUUID(),
-      text: data.payload.text || JSON.stringify(data.payload),
-      sender: 'assistant',
-      type: 'llm-text',
-    };
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-    setIsSending(false);
-  }, [setMessages, setIsSending]);
-
   const handleLlmThought = useCallback((data) => {
     // Accumulate thinking tokens for display
     setThinkingStatus((prevStatus) => {
@@ -230,7 +219,6 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
   }, [setMessages, setIsSending, setThinkingStatus]);
 
   return useMemo(() => ({
-    handlePongResponse,
     handleLlmThought,
     handleStreamingResponse,
     handleStreamingComplete,
@@ -242,7 +230,6 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
     handleAssistantMessageFull,
     handleToolSchemas,
   }), [
-    handlePongResponse,
     handleLlmThought,
     handleStreamingResponse,
     handleStreamingComplete,

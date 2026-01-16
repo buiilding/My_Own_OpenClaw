@@ -722,7 +722,6 @@ The frontend only manages 5 configuration fields that can be changed dynamically
 **Purpose**: Manages streaming message responses from backend.
 
 **Key Functions**:
-- `handlePongResponse(data)`: Handles simple responses
 - `handleLlmThought(data)`: Accumulates thinking tokens (keeps last 5000 chars)
 - `handleStreamingResponse(data)`: Appends streaming chunks to last message
 - `handleStreamingComplete()`: Marks streaming as complete
@@ -990,7 +989,7 @@ The frontend only manages 5 configuration fields that can be changed dynamically
 **Types Defined**:
 - `ClientSchema`: Root schema type
 - `Incoming`: Union of incoming message types
-- `PingMessage`, `QueryMessage`, `LoadSettingsMessage`, etc.: Individual message types
+- `QueryMessage`, `LoadSettingsMessage`, etc.: Individual message types
 - `ErrorResponse`, `StreamingResponse`, `ToolCallMessage`, etc.: Response types
 
 **Usage**: Provides type safety for backend communication (though currently not enforced in JavaScript code).

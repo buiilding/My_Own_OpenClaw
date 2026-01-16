@@ -497,10 +497,6 @@ export function ChatProvider({ children }) {
   useEffect(() => {
     const removeListener = window.ipc.on('from-backend', (data) => {
       switch (data.type) {
-        case 'pong':
-        case 'response':
-          streamingHandlers.handlePongResponse(data);
-          break;
         case 'llm-thought':
           streamingHandlers.handleLlmThought(data);
           break;
