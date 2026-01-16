@@ -8,7 +8,7 @@ import logging
 import base64
 from typing import Any, Dict, List, Optional
 
-from backend.src.agent.plugins.interface import AgentPlugin, PluginResult
+from backend.src.agent.plugins.interface import AgentPlugin
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +67,148 @@ class OCRPlugin(AgentPlugin):
         self.enabled = enabled
         self._ocr_engine = None
         self.use_cuda = False  # Track if we're using CUDA or CPU
+
+    def _detect_gpu_memory(self) -> Optional[float]:
+        """
+        Detect GPU memory in GB.
+        
+        Returns:
+            GPU memory in GB, or None if detection fails
+        """
+        try:
+            import torch
+            if torch.cuda.is_available():
+                gpu_memory_gb = torch.cuda.get_device_properties(0).total_memory / (1024 ** 3)
+                return gpu_memory_gb
+        except (ImportError, Exception):
+            pass
+        return None
+
+    def _detect_cpu_cores(self) -> int:
+        """
+        Detect number of physical CPU cores.
+        
+        Returns:
+            Number of physical CPU cores, or 4 as fallback
+        """
+        try:
+            import os
+            # Try to get physical cores
+            if hasattr(os, 'cpu_count'):
+                # On some systems, this returns physical cores
+                cores = os.cpu_count()
+                if cores:
+                    # Use physical cores, but leave some for system
+                    return max(4, cores - 1)
+        except Exception:
+            pass
+        return 4  # Safe fallback
+
+    def _build_ocr_params(self, use_cuda: bool) -> Dict[str, Any]:
+        """
+        Build optimized OCR parameters with all configs explicitly set.
+        
+        Safe optimizations applied:
+        - Skip classification (use_cls: False) - screenshots are usually upright
+        - Optimized batch sizes based on GPU memory
+        - Optimized thread counts based on CPU cores
+        
+        All other parameters use RapidOCR defaults.
+        
+        Args:
+            use_cuda: Whether to use CUDA
+            
+        Returns:
+            Dictionary of OCR parameters
+        """
+        # Detect hardware
+        gpu_memory_gb = self._detect_gpu_memory() if use_cuda else None
+        cpu_cores = self._detect_cpu_cores()
+        
+        # Determine batch sizes based on GPU memory
+        if use_cuda and gpu_memory_gb:
+            if gpu_memory_gb >= 16:
+                rec_batch_num = 12
+                cls_batch_num = 8
+            elif gpu_memory_gb >= 12:
+                rec_batch_num = 10
+                cls_batch_num = 6
+            elif gpu_memory_gb >= 8:
+                rec_batch_num = 8
+                cls_batch_num = 6
+            else:
+                rec_batch_num = 6
+                cls_batch_num = 4
+        else:
+            # CPU or unknown GPU memory - use conservative values
+            rec_batch_num = 6
+            cls_batch_num = 4
+        
+        # Thread optimization
+        intra_op_threads = cpu_cores
+        inter_op_threads = min(4, max(2, cpu_cores // 2))
+        
+        # Build comprehensive OCR parameters
+        # All parameters explicitly set, with safe optimizations
+        ocr_params = {
+            # Global settings
+            "Global.use_det": True,  # Default: enable detection
+            "Global.use_cls": False,  # OPTIMIZATION: Skip classification (screenshots are upright)
+            "Global.use_rec": True,  # Default: enable recognition
+            "Global.text_score": 0.5,  # Default: text score threshold
+            "Global.max_side_len": 2000,  # Default: max side length
+            "Global.min_side_len": 30,  # Default: min side length
+            
+            # Engine configuration
+            "EngineConfig.onnxruntime.use_cuda": use_cuda,
+            "EngineConfig.onnxruntime.intra_op_num_threads": intra_op_threads,  # OPTIMIZATION: Based on CPU cores
+            "EngineConfig.onnxruntime.inter_op_num_threads": inter_op_threads,  # OPTIMIZATION: Based on CPU cores
+            
+            # Detection settings (all defaults)
+            "Det.limit_side_len": 736,  # Default
+            "Det.limit_type": "min",  # Default
+            "Det.thresh": 0.3,  # Default
+            "Det.box_thresh": 0.5,  # Default (keeping for accuracy)
+            "Det.max_candidates": 1000,  # Default (keeping for accuracy)
+            "Det.unclip_ratio": 1.6,  # Default
+            "Det.score_mode": "default",  # Default (not "fast" to preserve accuracy)
+            
+            # Classification settings (disabled, but parameters still needed)
+            "Cls.cls_batch_num": cls_batch_num,  # OPTIMIZATION: Based on GPU memory
+            "Cls.cls_thresh": 0.9,  # Default
+            
+            # Recognition settings
+            "Rec.rec_batch_num": rec_batch_num,  # OPTIMIZATION: Based on GPU memory (12 for 16GB)
+        }
+        
+        # Log detected hardware and applied optimizations
+        if use_cuda and gpu_memory_gb:
+            logger.info(
+                f"[OCR] Hardware detected: GPU {gpu_memory_gb:.1f}GB VRAM, "
+                f"{cpu_cores} CPU cores. Using batch sizes: rec={rec_batch_num}, cls={cls_batch_num}"
+            )
+        else:
+            logger.info(
+                f"[OCR] Hardware detected: {cpu_cores} CPU cores. "
+                f"Using batch sizes: rec={rec_batch_num}, cls={cls_batch_num}"
+            )
+        
+        # Log all OCR configuration parameters
+        logger.info("[OCR] Configuration parameters:")
+        logger.info(f"  Global: use_det={ocr_params['Global.use_det']}, use_cls={ocr_params['Global.use_cls']}, "
+                   f"use_rec={ocr_params['Global.use_rec']}, text_score={ocr_params['Global.text_score']}, "
+                   f"max_side_len={ocr_params['Global.max_side_len']}, min_side_len={ocr_params['Global.min_side_len']}")
+        logger.info(f"  Engine: use_cuda={ocr_params['EngineConfig.onnxruntime.use_cuda']}, "
+                   f"intra_op_threads={ocr_params['EngineConfig.onnxruntime.intra_op_num_threads']}, "
+                   f"inter_op_threads={ocr_params['EngineConfig.onnxruntime.inter_op_num_threads']}")
+        logger.info(f"  Detection: limit_side_len={ocr_params['Det.limit_side_len']}, "
+                   f"thresh={ocr_params['Det.thresh']}, box_thresh={ocr_params['Det.box_thresh']}, "
+                   f"max_candidates={ocr_params['Det.max_candidates']}, score_mode={ocr_params['Det.score_mode']}")
+        logger.info(f"  Classification: cls_batch_num={ocr_params['Cls.cls_batch_num']}, "
+                   f"cls_thresh={ocr_params['Cls.cls_thresh']}")
+        logger.info(f"  Recognition: rec_batch_num={ocr_params['Rec.rec_batch_num']}")
+        
+        return ocr_params
 
     def _extract_screenshot_data(self, result: Any) -> Optional[str]:
         """
@@ -145,23 +287,19 @@ class OCRPlugin(AgentPlugin):
                 # Fallback: Initialize OCR engine if somehow not initialized at startup
                 logger.warning("OCR engine not initialized at startup, initializing now (this should not happen)")
                 try:
-                    ocr_params = {
-                        "EngineConfig.onnxruntime.use_cuda": True,
-                    }
+                    ocr_params = self._build_ocr_params(use_cuda=True)
                     self._ocr_engine = RapidOCR(params=ocr_params)
                     self.use_cuda = True
                     logger.info("Initialized RapidOCR engine with CUDA support (lazy initialization)")
-                    logger.info(f"[OCR] Using CUDA device for OCR processing")
+                    logger.info("[OCR] Using CUDA device for OCR processing")
                 except Exception as e:
                     # Try CPU fallback if CUDA init fails
                     logger.debug(f"CUDA initialization failed during lazy init, trying CPU: {e}")
-                    ocr_params = {
-                        "EngineConfig.onnxruntime.use_cuda": False,
-                    }
+                    ocr_params = self._build_ocr_params(use_cuda=False)
                     self._ocr_engine = RapidOCR(params=ocr_params)
                     self.use_cuda = False
                     logger.info("Initialized RapidOCR engine with CPU (lazy initialization fallback)")
-                    logger.info(f"[OCR] Using CPU device for OCR processing (CUDA unavailable)")
+                    logger.info("[OCR] Using CPU device for OCR processing (CUDA unavailable)")
 
             # Decode base64 to bytes
             try:
@@ -207,9 +345,7 @@ class OCRPlugin(AgentPlugin):
                     )
                     try:
                         # Reload OCR engine with CPU
-                        ocr_params = {
-                            "EngineConfig.onnxruntime.use_cuda": False,
-                        }
+                        ocr_params = self._build_ocr_params(use_cuda=False)
                         self._ocr_engine = RapidOCR(params=ocr_params)
                         self.use_cuda = False
                         logger.warning("OCR engine reloaded with CPU (CUDA memory exhausted) - retrying analysis")
@@ -323,20 +459,18 @@ class OCRPlugin(AgentPlugin):
                     import torch
                     cuda_available = torch.cuda.is_available()
                     if cuda_available:
-                        logger.info(f"[OCR] CUDA is available, attempting to use GPU")
+                        logger.info("[OCR] CUDA is available, attempting to use GPU")
                     else:
-                        logger.info(f"[OCR] CUDA is not available, will use CPU")
+                        logger.info("[OCR] CUDA is not available, will use CPU")
                 except ImportError:
                     logger.debug("[OCR] PyTorch not available, cannot check CUDA status")
                 
                 try:
-                    ocr_params = {
-                        "EngineConfig.onnxruntime.use_cuda": True,
-                    }
+                    ocr_params = self._build_ocr_params(use_cuda=True)
                     self._ocr_engine = RapidOCR(params=ocr_params)
                     self.use_cuda = True
                     logger.info("OCR plugin initialized and ready with CUDA support")
-                    logger.info(f"[OCR] Using CUDA device for OCR processing")
+                    logger.info("[OCR] Using CUDA device for OCR processing")
                 except Exception as e:
                     # If CUDA fails (any CUDA/CUDNN error), try CPU fallback
                     error_msg = str(e)
@@ -368,13 +502,11 @@ class OCRPlugin(AgentPlugin):
                             f"Falling back to CPU. Error: {error_msg[:200]}"
                         )
                         try:
-                            ocr_params = {
-                                "EngineConfig.onnxruntime.use_cuda": False,
-                            }
+                            ocr_params = self._build_ocr_params(use_cuda=False)
                             self._ocr_engine = RapidOCR(params=ocr_params)
                             self.use_cuda = False
                             logger.info("OCR plugin initialized with CPU fallback")
-                            logger.info(f"[OCR] Using CPU device for OCR processing (CUDA initialization failed)")
+                            logger.info("[OCR] Using CPU device for OCR processing (CUDA initialization failed)")
                         except Exception as cpu_error:
                             logger.error(f"OCR CPU initialization also failed: {cpu_error}", exc_info=True)
                             self._ocr_engine = None
