@@ -4,13 +4,15 @@ Settings Message Handlers.
 Handles settings-related messages (load, update).
 """
 import logging
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 from fastapi import WebSocket
 
 from backend.src.api.handlers.base import MessageHandler
 from backend.src.api.schema import LoadSettingsMessage, UpdateSettingsMessage
-from backend.src.api.deps import SessionManager
 from backend.src.core.config import AppConfig
+
+if TYPE_CHECKING:
+    from backend.src.agent.core.session_manager import SessionManager
 from backend.src.core.config_service import ConfigurationService
 from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.config.manager import load_api_key_for_provider
@@ -101,7 +103,7 @@ class UpdateSettingsHandler(MessageHandler):
     
     def __init__(
         self,
-        session_manager: SessionManager,
+        session_manager: "SessionManager",
         config_service: ConfigurationService,
         user_config_manager: UserConfigManager,
     ):
