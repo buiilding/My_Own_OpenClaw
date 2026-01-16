@@ -126,8 +126,9 @@ class OCRPlugin(AgentPlugin):
         cpu_cores = self._detect_cpu_cores()
         
         # Determine batch sizes based on GPU memory
+        # Note: 16GB GPUs often report ~15.9GB due to reserved memory, so we use >= 15.5
         if use_cuda and gpu_memory_gb:
-            if gpu_memory_gb >= 16:
+            if gpu_memory_gb >= 15.5:
                 rec_batch_num = 12
                 cls_batch_num = 8
             elif gpu_memory_gb >= 12:
