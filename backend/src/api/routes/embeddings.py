@@ -5,6 +5,7 @@ REST endpoints for embedding operations used by the frontend memory system.
 """
 
 import logging
+import time
 from typing import Dict, Any, List
 
 from fastapi import APIRouter, HTTPException, Depends
@@ -50,6 +51,7 @@ async def generate_embedding(
     Raises:
         HTTPException: If embedding generation fails
     """
+    embedding_start_time = time.perf_counter()
     try:
         # Get the embedding provider from container
         embedding_provider = container.embedder
@@ -61,11 +63,12 @@ async def generate_embedding(
 
         # Generate embedding
         embedding = embedding_provider.embed_text(request.text)
+        embedding_time = time.perf_counter() - embedding_start_time
 
         # Convert to list for JSON serialization
         embedding_list = embedding.tolist() if hasattr(embedding, 'tolist') else list(embedding)
 
-        logger.debug(f"Generated embedding for text (length: {len(request.text)} chars) using model: {request.model_name}")
+        logger.info(f"[Timing] Embedding generation completed in {embedding_time:.3f}s (length: {len(request.text)} chars, model: {request.model_name})")
 
         return EmbeddingResponse(
             embedding=embedding_list,
@@ -74,7 +77,8 @@ async def generate_embedding(
         )
 
     except Exception as e:
-        logger.error(f"Failed to generate embedding: {e}", exc_info=True)
+        embedding_time = time.perf_counter() - embedding_start_time
+        logger.error(f"[Timing] Embedding generation failed after {embedding_time:.3f}s: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Embedding generation failed: {str(e)}"
