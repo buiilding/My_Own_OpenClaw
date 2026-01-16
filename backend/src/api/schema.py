@@ -14,9 +14,6 @@ class BaseMessage(BaseModel):
     user_id: str = "default_user"
 
 # Incoming Messages
-class PingMessage(BaseMessage):
-    type: Literal["ping"]
-
 class QueryPayload(BaseModel):
     text: str  # Original query text (for reference)
     content: Optional[str] = None  # Complete message content (system state + memories + query)
@@ -55,7 +52,6 @@ class HandshakeMessage(BaseModel):
 
 # Union type for parsing
 IncomingMessage = Union[
-    PingMessage,
     QueryMessage,
     LoadSettingsMessage,
     ListModelsMessage,
