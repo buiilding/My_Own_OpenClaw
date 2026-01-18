@@ -15,6 +15,11 @@ from backend.src.core.services.tts_service import TTSService
 
 logger = logging.getLogger(__name__)
 
+# Constants
+TTS_FLUSH_WAIT_TIME = 1.0  # Seconds to wait for TTS service to finish processing after flush
+AUDIO_TASK_TIMEOUT = 5.0  # Seconds to wait for audio streaming task to complete
+AUDIO_TASK_CANCELLATION_WAIT = 0.5  # Seconds to wait for audio task cancellation to propagate
+
 
 class TTSManager:
     """
@@ -89,21 +94,21 @@ class TTSManager:
             # Give TTS service time to finish processing remaining text
             # NOTE: This is a best-effort wait. The TTS service should handle
             # shutdown gracefully even if processing isn't complete.
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(TTS_FLUSH_WAIT_TIME)
             await tts_service.shutdown()
 
         if audio_task:
             # Wait for any remaining audio to be sent
             try:
                 # Give it more time to finish streaming remaining chunks
-                await asyncio.wait_for(audio_task, timeout=5.0)
+                await asyncio.wait_for(audio_task, timeout=AUDIO_TASK_TIMEOUT)
             except (asyncio.TimeoutError, asyncio.CancelledError):
                 # Task already cancelled or timed out - ensure it's cancelled
                 if not audio_task.done():
                     audio_task.cancel()
                 # Wait briefly for cancellation to propagate
                 try:
-                    await asyncio.wait_for(audio_task, timeout=0.5)
+                    await asyncio.wait_for(audio_task, timeout=AUDIO_TASK_CANCELLATION_WAIT)
                 except (asyncio.TimeoutError, asyncio.CancelledError):
                     pass
 

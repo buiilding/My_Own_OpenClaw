@@ -273,6 +273,7 @@ class ResponseFormatter:
     Formats agent events into WebSocket response messages.
     
     Uses strategy pattern with individual formatter classes for each event type.
+    Uses O(1) dispatch table for efficient event type routing.
     """
 
     def __init__(self):
@@ -294,6 +295,25 @@ class ResponseFormatter:
             StreamingEventType.BUNDLE_START.value: BundleStartEventFormatter(),
             StreamingEventType.BUNDLE_END.value: BundleEndEventFormatter(),
         }
+        
+        # Dispatch table: event class -> formatter key (for O(1) lookup)
+        self._event_type_map: Dict[type, str] = {
+            ThinkingEvent: StreamingEventType.THINKING.value,
+            ChunkEvent: StreamingEventType.CHUNK.value,
+            ErrorEvent: StreamingEventType.ERROR.value,
+            StreamingCompleteEvent: StreamingEventType.STREAMING_COMPLETE.value,
+            ToolCallEvent: StreamingEventType.TOOL_CALL.value,
+            ToolOutputEvent: StreamingEventType.TOOL_OUTPUT.value,
+            SystemPromptEvent: StreamingEventType.SYSTEM_PROMPT.value,
+            ToolSchemasEvent: StreamingEventType.TOOL_SCHEMAS.value,
+            UserMessageFullEvent: StreamingEventType.USER_MESSAGE_FULL.value,
+            AssistantMessageFullEvent: StreamingEventType.ASSISTANT_MESSAGE_FULL.value,
+            TokenCountEvent: StreamingEventType.TOKEN_COUNT.value,
+            RequestScreenshotEvent: StreamingEventType.REQUEST_SCREENSHOT.value,
+            MemoryStoreEvent: StreamingEventType.MEMORY_STORE.value,
+            BundleStartEvent: StreamingEventType.BUNDLE_START.value,
+            BundleEndEvent: StreamingEventType.BUNDLE_END.value,
+        }
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -306,39 +326,13 @@ class ResponseFormatter:
         Returns:
             Formatted response dictionary or None if event type not recognized
         """
-        # Use isinstance checks for type-safe dispatch
-        if isinstance(event, ThinkingEvent):
-            return self._formatters[StreamingEventType.THINKING.value].format(event, msg_id)
-        elif isinstance(event, ChunkEvent):
-            return self._formatters[StreamingEventType.CHUNK.value].format(event, msg_id)
-        elif isinstance(event, ErrorEvent):
-            return self._formatters[StreamingEventType.ERROR.value].format(event, msg_id)
-        elif isinstance(event, StreamingCompleteEvent):
-            return self._formatters[StreamingEventType.STREAMING_COMPLETE.value].format(event, msg_id)
-        elif isinstance(event, ToolCallEvent):
-            return self._formatters[StreamingEventType.TOOL_CALL.value].format(event, msg_id)
-        elif isinstance(event, ToolOutputEvent):
-            return self._formatters[StreamingEventType.TOOL_OUTPUT.value].format(event, msg_id)
-        elif isinstance(event, SystemPromptEvent):
-            return self._formatters[StreamingEventType.SYSTEM_PROMPT.value].format(event, msg_id)
-        elif isinstance(event, ToolSchemasEvent):
-            return self._formatters[StreamingEventType.TOOL_SCHEMAS.value].format(event, msg_id)
-        elif isinstance(event, UserMessageFullEvent):
-            return self._formatters[StreamingEventType.USER_MESSAGE_FULL.value].format(event, msg_id)
-        elif isinstance(event, AssistantMessageFullEvent):
-            return self._formatters[StreamingEventType.ASSISTANT_MESSAGE_FULL.value].format(event, msg_id)
-        elif isinstance(event, TokenCountEvent):
-            return self._formatters[StreamingEventType.TOKEN_COUNT.value].format(event, msg_id)
-        elif isinstance(event, RequestScreenshotEvent):
-            return self._formatters[StreamingEventType.REQUEST_SCREENSHOT.value].format(event, msg_id)
-        elif isinstance(event, MemoryStoreEvent):
-            return self._formatters[StreamingEventType.MEMORY_STORE.value].format(event, msg_id)
-        elif isinstance(event, BundleStartEvent):
-            return self._formatters[StreamingEventType.BUNDLE_START.value].format(event, msg_id)
-        elif isinstance(event, BundleEndEvent):
-            return self._formatters[StreamingEventType.BUNDLE_END.value].format(event, msg_id)
-        elif isinstance(event, dict):
-            # Backward compatibility with dict events
+        # O(1) dispatch for typed events using dispatch table
+        event_type = self._event_type_map.get(type(event))
+        if event_type:
+            return self._formatters[event_type].format(event, msg_id)
+        
+        # Backward compatibility with dict events
+        if isinstance(event, dict):
             event_type = event.get("type")
             formatter = self._formatters.get(event_type)
             if formatter:

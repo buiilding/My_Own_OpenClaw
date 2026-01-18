@@ -142,21 +142,14 @@ class MessageHandlerRegistry:
             Exception: If handler execution fails
         """
         # Run middleware
-        # NOTE: Middleware errors are logged but processing continues.
-        # This allows non-critical middleware (e.g., logging, metrics) to fail
-        # without breaking message processing. Critical middleware (e.g., auth)
-        # should raise exceptions that propagate to the handler layer.
+        # Middleware exceptions propagate to caller. Non-critical middleware (e.g., logging, metrics)
+        # should catch and handle their own exceptions internally if they don't want to block processing.
+        # Critical middleware (e.g., auth) should raise exceptions that will stop message processing.
         for middleware in self._middleware:
-            try:
-                result = middleware(data, websocket)
-                # Check if result is awaitable (coroutine)
-                if hasattr(result, '__await__'):
-                    await result
-            except Exception as e:
-                logger.error(f"Error in middleware: {e}", exc_info=True)
-                # Continue processing even if middleware fails
-                # If middleware needs to block processing, it should raise an exception
-                # that propagates up (not caught here)
+            result = middleware(data, websocket)
+            # Check if result is awaitable (coroutine)
+            if hasattr(result, '__await__'):
+                await result
         
         # Get handler
         handler = self._handlers.get(message_type)

@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 _container: Container | None = None
 
 
-def set_container(container: Container) -> None:
+def set_container(container: Container, force: bool = False) -> None:
     """
     Set the app-lifespan-scoped container instance.
     
@@ -28,14 +28,20 @@ def set_container(container: Container) -> None:
     
     Args:
         container: Application container instance
+        force: If True, allow override of existing container (for testing/simulation).
+               If False, raises RuntimeError if container is already set.
         
     Raises:
-        RuntimeError: If container is already set (prevents accidental re-initialization)
+        RuntimeError: If container is already set and force=False
     """
     global _container
-    if _container is not None:
-        logger.warning("Container already set - this should only happen once at startup")
-        # Allow override for testing, but log warning
+    if _container is not None and not force:
+        raise RuntimeError(
+            "Container already set. This should only happen once at startup. "
+            "Use force=True only for testing/simulation scenarios."
+        )
+    if _container is not None and force:
+        logger.warning("Container override forced - this should only happen in testing/simulation")
     _container = container
     logger.debug("Container set for app-lifespan scope")
 
