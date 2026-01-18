@@ -57,8 +57,25 @@ class ModelService:
     def get_all_online_models(self) -> List[Dict[str, str]]:
         """
         Return all online models (both thinking and non-thinking).
+        
+        Deduplicates models that appear in both lists, preferring the thinking version.
         """
-        all_models = self.get_online_models() + self.get_thinking_models()
+        online_models = self.get_online_models()
+        thinking_models = self.get_thinking_models()
+        
+        # Create a set of model IDs from thinking models to check for duplicates
+        thinking_model_ids = {
+            (m["provider"], m["id"]) for m in thinking_models
+        }
+        
+        # Filter out duplicates from online_models (keep thinking versions)
+        unique_online_models = [
+            m for m in online_models
+            if (m["provider"], m["id"]) not in thinking_model_ids
+        ]
+        
+        # Combine unique online models with thinking models
+        all_models = unique_online_models + thinking_models
         
         # Sort by provider first, then by thinking status
         all_models.sort(key=lambda m: (
@@ -86,26 +103,51 @@ class ModelService:
     async def get_local_models(self) -> List[Dict[str, str]]:
         """
         Fetch available models from local providers (Ollama, LM Studio).
+        
+        Returns:
+            List of available local models. If a provider fails, it logs a warning
+            but continues to try other providers. Returns empty list if all providers fail.
         """
         local_models = []
+        provider_failures = []
         
-        # Check if Ollama is enabled/configured? 
-        # For now, we just try to list if the provider class exists.
-        # The previous implementation tried both regardless of explicit enable flag (it just failed silently).
-        
-        # Ollama
+        # Try Ollama
         try:
             ollama = OllamaProvider(self.config)
-            local_models.extend(await ollama.list_models())
+            models = await ollama.list_models()
+            local_models.extend(models)
+            logger.debug(f"Successfully listed {len(models)} Ollama models")
         except Exception as e:
-            logger.debug(f"Failed to list Ollama models: {e}")
+            provider_failures.append(("Ollama", str(e)))
+            logger.warning(
+                f"Failed to list Ollama models: {e}",
+                exc_info=logger.isEnabledFor(logging.DEBUG)
+            )
 
-        # LM Studio
+        # Try LM Studio
         try:
             lmstudio = LMStudioProvider(self.config)
-            local_models.extend(await lmstudio.list_models())
+            models = await lmstudio.list_models()
+            local_models.extend(models)
+            logger.debug(f"Successfully listed {len(models)} LM Studio models")
         except Exception as e:
-            logger.debug(f"Failed to list LM Studio models: {e}")
+            provider_failures.append(("LM Studio", str(e)))
+            logger.warning(
+                f"Failed to list LM Studio models: {e}",
+                exc_info=logger.isEnabledFor(logging.DEBUG)
+            )
+
+        # Log summary if all providers failed
+        if provider_failures and not local_models:
+            logger.warning(
+                f"All local providers failed to list models. "
+                f"Failures: {', '.join(f'{name}: {error}' for name, error in provider_failures)}"
+            )
+        elif provider_failures:
+            logger.info(
+                f"Some local providers failed, but found {len(local_models)} models. "
+                f"Failures: {', '.join(f'{name}' for name, _ in provider_failures)}"
+            )
 
         return local_models
 

@@ -14,6 +14,7 @@ from backend.src.core.events import StreamingEvent
 from backend.src.core.exceptions import LLMAPIError, LLMRateLimitError
 from backend.src.core.types import LLMMessage
 from backend.src.llm.providers import get_provider
+from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
 
@@ -46,14 +47,35 @@ class LiteLLMClient(LLMClient):
     """
     A simple orchestrator that delegates all real work to the provider layer.
     This client is now truly abstract and provider-agnostic.
+    
+    Caches provider instances to avoid recreating them on every request.
     """
 
     def __init__(self, cfg: AppConfig):
         self.config = cfg
+        self._provider: Optional[LLMProvider] = None
+        self._provider_name: Optional[str] = None
+
+    def _get_provider(self) -> LLMProvider:
+        """
+        Get the provider instance, caching it if the provider name hasn't changed.
+        
+        Returns:
+            The appropriate LLM provider instance
+        """
+        current_provider_name = self.config.model_provider or "default"
+        
+        # Recreate provider if provider name changed or not yet cached
+        if self._provider is None or self._provider_name != current_provider_name:
+            self._provider = get_provider(self.config, current_provider_name)
+            self._provider_name = current_provider_name
+            logger.debug(f"Cached provider: {current_provider_name}")
+        
+        return self._provider
 
     async def get_completion(self, model: str, messages: List[LLMMessage]) -> str:
         """Delegates getting a completion to the appropriate provider."""
-        provider = get_provider(self.config, self.config.model_provider)
+        provider = self._get_provider()
         response = await provider.get_completion(model, messages)
         return response["content"]
 
@@ -61,7 +83,7 @@ class LiteLLMClient(LLMClient):
         self, model: str, messages: List[LLMMessage]
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Delegates getting a streaming completion to the appropriate provider."""
-        provider = get_provider(self.config, self.config.model_provider)
+        provider = self._get_provider()
         async for event in provider.get_completion_stream(model, messages):
             yield event
 

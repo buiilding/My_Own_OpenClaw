@@ -15,10 +15,8 @@ ONLINE_MODELS: Dict[str, List[str]] = {
     ],
     "anthropic": [
         "claude-3-haiku-20240307",  # Claude 3 Haiku (confirmed working)
-        "claude-sonnet-4-20250522",  # Claude Sonnet 4 (non-thinking)
-        "claude-sonnet-4-5-20250929",  # Claude Sonnet 4.5 (non-thinking)
-        "claude-haiku-4-5-20251001",  # Claude Haiku 4.5 (non-thinking)
-        "claude-haiku-4-5",  # Claude Haiku 4.5 alternative format (non-thinking)
+        # Note: Claude 4.x models that support thinking are in ONLINE_THINKING_MODELS
+        # to avoid duplicates. They can still be used without thinking tokens if needed.
     ],
     "gemini": [
         "gemini-2.0-flash-lite",  # previous generation lightweight
