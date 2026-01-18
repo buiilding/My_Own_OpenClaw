@@ -2,11 +2,12 @@
 FastAPI dependencies for dependency injection.
 Uses dependency-injector for proper DI instead of global state.
 """
-from typing import Annotated, Any
+from typing import Annotated
 from fastapi import Depends, HTTPException
 
-from backend.src.core.container import Container
 from backend.src.agent.core.session_manager import SessionManager
+from backend.src.api.handlers.base import MessageHandlerRegistry
+from backend.src.core.container import Container
 
 
 # Global container instance (set during app startup)
@@ -50,16 +51,16 @@ async def get_session_manager(container: Container = Depends(get_container)) -> 
     return container.session_manager
 
 
-async def get_handler_registry(container: Container = Depends(get_container)):
+async def get_handler_registry(container: Container = Depends(get_container)) -> MessageHandlerRegistry:
     """
     Get the message handler registry from the container.
     
     Args:
         container: Application container (injected)
-        
+    
     Returns:
         MessageHandlerRegistry instance
-        
+    
     Raises:
         HTTPException: If handler registry is not available
     """
@@ -69,4 +70,4 @@ async def get_handler_registry(container: Container = Depends(get_container)):
 # Type aliases for FastAPI dependencies
 ContainerDep = Annotated[Container, Depends(get_container)]
 SessionManagerDep = Annotated[SessionManager, Depends(get_session_manager)]
-HandlerRegistryDep = Annotated[Any, Depends(get_handler_registry)]
+HandlerRegistryDep = Annotated[MessageHandlerRegistry, Depends(get_handler_registry)]

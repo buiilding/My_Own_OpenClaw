@@ -5,7 +5,7 @@ Handles settings-related messages (load, update).
 """
 import logging
 from typing import TYPE_CHECKING, Any, Dict
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 
 from backend.src.api.handlers.base import MessageHandler
 from backend.src.api.handlers.transport import WebSocketTransportSender
@@ -83,24 +83,33 @@ class LoadSettingsHandler(MessageHandler):
                 user_id, global_config_dict
             )
             
-            await transport.send({
-                "type": "settings-loaded",
-                "id": validated.id,
-                "payload": merged_config_dict
-            })
+            try:
+                await transport.send({
+                    "type": "settings-loaded",
+                    "id": validated.id,
+                    "payload": merged_config_dict
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send settings-loaded to closed connection: {send_error}")
         except ValidationError as e:
-            await transport.send({
-                "type": "error",
-                "id": data.get("id"),
-                "payload": {"message": f"Invalid load-settings message: {e.message}"}
-            })
+            try:
+                await transport.send({
+                    "type": "error",
+                    "id": data.get("id"),
+                    "payload": {"message": f"Invalid load-settings message: {e.message}"}
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send error to closed connection: {send_error}")
         except Exception as e:
             logger.error(f"Error loading settings: {e}", exc_info=True)
-            await transport.send({
-                "type": "error",
-                "id": data.get("id"),
-                "payload": {"message": f"Failed to load settings: {str(e)}"}
-            })
+            try:
+                await transport.send({
+                    "type": "error",
+                    "id": data.get("id"),
+                    "payload": {"message": f"Failed to load settings: {str(e)}"}
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send error to closed connection: {send_error}")
 
 
 class UpdateSettingsHandler(MessageHandler):
@@ -171,25 +180,34 @@ class UpdateSettingsHandler(MessageHandler):
             # Update only this user's session, not all sessions
             await self.session_manager.update_user_session_config(user_id, validated_config)
             
-            await transport.send({
-                "type": "settings-updated",
-                "id": msg_id,
-                "payload": {"message": "Settings updated successfully"}
-            })
+            try:
+                await transport.send({
+                    "type": "settings-updated",
+                    "id": msg_id,
+                    "payload": {"message": "Settings updated successfully"}
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send settings-updated to closed connection: {send_error}")
         
         except ValidationError as e:
-            await transport.send({
-                "type": "error",
-                "id": msg_id,
-                "payload": {"message": f"Invalid update-settings message: {e.message}"}
-            })
+            try:
+                await transport.send({
+                    "type": "error",
+                    "id": msg_id,
+                    "payload": {"message": f"Invalid update-settings message: {e.message}"}
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send error to closed connection: {send_error}")
         except Exception as e:
             logger.error(f"Failed to update settings: {e}", exc_info=True)
-            await transport.send({
-                "type": "error",
-                "id": msg_id,
-                "payload": {"message": f"Failed to update settings: {str(e)}"}
-            })
+            try:
+                await transport.send({
+                    "type": "error",
+                    "id": msg_id,
+                    "payload": {"message": f"Failed to update settings: {str(e)}"}
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send error to closed connection: {send_error}")
 
 
 class ListModelsHandler(MessageHandler):
@@ -231,22 +249,31 @@ class ListModelsHandler(MessageHandler):
         try:
             validated = validate_message(data, "list-models", ListModelsMessage)
             models = await self.model_service.get_all_models()
-            await transport.send({
-                "type": "models-listed",
-                "id": validated.id,
-                "payload": models
-            })
+            try:
+                await transport.send({
+                    "type": "models-listed",
+                    "id": validated.id,
+                    "payload": models
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send models-listed to closed connection: {send_error}")
         except ValidationError as e:
-            await transport.send({
-                "type": "error",
-                "id": data.get("id"),
-                "payload": {"message": f"Invalid list-models message: {e.message}"}
-            })
+            try:
+                await transport.send({
+                    "type": "error",
+                    "id": data.get("id"),
+                    "payload": {"message": f"Invalid list-models message: {e.message}"}
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send error to closed connection: {send_error}")
         except Exception as e:
             logger.error(f"Error listing models: {e}", exc_info=True)
-            await transport.send({
-                "type": "error",
-                "id": data.get("id"),
-                "payload": {"message": f"Failed to list models: {str(e)}"}
-            })
+            try:
+                await transport.send({
+                    "type": "error",
+                    "id": data.get("id"),
+                    "payload": {"message": f"Failed to list models: {str(e)}"}
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send error to closed connection: {send_error}")
 

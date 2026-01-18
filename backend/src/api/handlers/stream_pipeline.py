@@ -6,6 +6,8 @@ Orchestrates event processing through composable stages.
 import logging
 from typing import Optional
 
+from fastapi import WebSocketDisconnect
+
 from backend.src.api.handlers.response_formatter import ResponseFormatter
 from backend.src.api.handlers.transport import TransportSender
 from backend.src.api.handlers.tts_processor import TTSProcessor
@@ -79,4 +81,11 @@ class StreamPipeline:
         response = self.response_formatter.format(event, msg_id)
         if response:
             # Stage 3: Send via transport
-            await self.transport_sender.send(response)
+            # If connection is closed, log and re-raise to allow query handler to stop streaming
+            try:
+                await self.transport_sender.send(response)
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
+                # Connection closed - log and re-raise to stop streaming
+                # Query handler will catch and handle appropriately
+                logger.debug(f"Transport send failed (connection closed), stopping stream: {e}")
+                raise
