@@ -7,7 +7,7 @@ import asyncio
 import logging
 from typing import Any, Dict, Optional, Union
 
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 
 from backend.src.core.config import AppConfig
 from backend.src.core.events import StreamingEvent, ChunkEvent
@@ -111,8 +111,13 @@ class TTSManager:
         """
         try:
             async for audio_chunk in tts_service.stream_audio():
-                await websocket.send_json(
-                    {"type": "audio-chunk", "id": msg_id, "payload": audio_chunk}
-                )
+                try:
+                    await websocket.send_json(
+                        {"type": "audio-chunk", "id": msg_id, "payload": audio_chunk}
+                    )
+                except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
+                    # Connection closed - stop streaming
+                    logger.debug(f"TTS audio streaming stopped due to closed connection: {e}")
+                    break
         except Exception as e:
             logger.error(f"Error streaming audio: {e}", exc_info=True)

@@ -3,10 +3,13 @@ Transport Abstraction for Query Handler.
 
 Provides a thin abstraction for sending messages, primarily for testability.
 """
+import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
+
+logger = logging.getLogger(__name__)
 
 
 class TransportSender(ABC):
@@ -51,7 +54,19 @@ class WebSocketTransportSender(TransportSender):
         """
         Send a message via WebSocket.
         
+        Handles connection errors gracefully - if connection is closed, logs and raises
+        to allow caller to handle appropriately.
+        
         Args:
             message: Message dictionary to send
+            
+        Raises:
+            WebSocketDisconnect: If connection is closed
+            RuntimeError: If connection error occurs
+            ConnectionError: If connection error occurs
         """
-        await self.websocket.send_json(message)
+        try:
+            await self.websocket.send_json(message)
+        except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
+            logger.debug(f"Failed to send message via transport to closed connection: {e}")
+            raise
