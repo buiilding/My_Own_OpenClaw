@@ -60,10 +60,19 @@ class ThinkingEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        content = event_dict.get("content")
+        
+        if content is None:
+            logger.warning(
+                f"ThinkingEvent missing required field 'content'. "
+                f"Skipping format (msg_id={msg_id})"
+            )
+            return None
+        
         return {
             "type": "llm-thought",
             "id": msg_id,
-            "payload": {"status": event_dict["content"]},
+            "payload": {"status": content},
         }
 
 
@@ -72,10 +81,19 @@ class ChunkEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        content = event_dict.get("content")
+        
+        if content is None:
+            logger.warning(
+                f"ChunkEvent missing required field 'content'. "
+                f"Skipping format (msg_id={msg_id})"
+            )
+            return None
+        
         return {
             "type": "streaming-response",
             "id": msg_id,
-            "payload": {"text": event_dict["content"]},
+            "payload": {"text": content},
         }
 
 
@@ -103,10 +121,32 @@ class ToolCallEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        
+        # Validate required fields
+        tool_name = event_dict.get("tool_name")
+        parameters = event_dict.get("parameters")
+        raw_call = event_dict.get("raw_call")
+        
+        if not tool_name or not parameters or not raw_call:
+            # Missing required fields - log warning and skip formatting
+            missing_fields = []
+            if not tool_name:
+                missing_fields.append("tool_name")
+            if not parameters:
+                missing_fields.append("parameters")
+            if not raw_call:
+                missing_fields.append("raw_call")
+            
+            logger.warning(
+                f"ToolCallEvent missing required fields: {missing_fields}. "
+                f"Skipping format (msg_id={msg_id})"
+            )
+            return None
+        
         payload = {
-            "tool_name": event_dict.get("tool_name"),
-            "parameters": event_dict.get("parameters"),
-            "raw_call": event_dict.get("raw_call"),
+            "tool_name": tool_name,
+            "parameters": parameters,
+            "raw_call": raw_call,
         }
         # Include request_id if present (for remote tools to match results)
         if event_dict.get("request_id"):
@@ -124,14 +164,36 @@ class ToolOutputEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        
+        # Validate required fields
+        tool_name = event_dict.get("tool_name")
+        success = event_dict.get("success")
+        output = event_dict.get("output")
+        
+        if tool_name is None or success is None or output is None:
+            # Missing required fields - log warning and skip formatting
+            missing_fields = []
+            if tool_name is None:
+                missing_fields.append("tool_name")
+            if success is None:
+                missing_fields.append("success")
+            if output is None:
+                missing_fields.append("output")
+            
+            logger.warning(
+                f"ToolOutputEvent missing required fields: {missing_fields}. "
+                f"Skipping format (msg_id={msg_id})"
+            )
+            return None
+        
         return {
             "type": "tool-output",
             "id": msg_id,
             "payload": {
-                "tool_name": event_dict.get("tool_name"),
-                "success": event_dict.get("success"),
+                "tool_name": tool_name,
+                "success": success,
                 "execution_time": event_dict.get("execution_time"),
-                "output": event_dict.get("output"),
+                "output": output,
                 "error": event_dict.get("error"),
                 "screenshot": event_dict.get("screenshot"),
                 "metadata": event_dict.get("metadata"),
@@ -188,11 +250,20 @@ class AssistantMessageFullEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        content = event_dict.get("content")
+        
+        if content is None:
+            logger.warning(
+                f"AssistantMessageFullEvent missing required field 'content'. "
+                f"Skipping format (msg_id={msg_id})"
+            )
+            return None
+        
         return {
             "type": "assistant-message-full",
             "id": msg_id,
             "payload": {
-                "content": event_dict.get("content"),
+                "content": content,
             },
         }
 
@@ -219,11 +290,20 @@ class RequestScreenshotEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        request_id = event_dict.get("request_id")
+        
+        if not request_id:
+            logger.warning(
+                f"RequestScreenshotEvent missing required field 'request_id'. "
+                f"Skipping format (msg_id={msg_id})"
+            )
+            return None
+        
         return {
             "type": "request-screenshot",
             "id": msg_id,
             "payload": {
-                "request_id": event_dict.get("request_id"),
+                "request_id": request_id,
             },
         }
 
