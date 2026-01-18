@@ -23,7 +23,7 @@ import logging
 import re
 from typing import List, Dict, Any, Optional, Union, TYPE_CHECKING
 
-from backend.src.llm.prompts import SYSTEM_PROMPT
+from backend.src.llm.prompts import get_system_prompt
 from backend.src.llm.prompt_metadata import PromptMetadata, UserMessageMetadata
 from backend.src.tools.registry import ToolRegistry
 from backend.src.core.messages import (
@@ -56,7 +56,7 @@ class PromptConstructor:
         self,
         tool_registry: ToolRegistry,
         config: Optional["AppConfig"] = None,
-        system_prompt: str = SYSTEM_PROMPT,
+        system_prompt: Optional[str] = None,
     ):
         """
         Initialize the prompt constructor.
@@ -64,11 +64,13 @@ class PromptConstructor:
         Args:
             tool_registry: Registry of available tools
             config: Application configuration (required for security limits)
-            system_prompt: Optional custom system prompt (defaults to global SYSTEM_PROMPT)
+            system_prompt: Optional custom system prompt. If None, loads from PromptManager
+                          (assumes PromptManager.initialize() was called at startup)
         """
         self.tool_registry = tool_registry
         self.config = config
-        self.system_prompt = system_prompt
+        # Load system prompt at runtime (not import time) to avoid crashes
+        self.system_prompt = system_prompt or get_system_prompt()
         self.metrics = get_metrics("prompt_constructor")
         
         # Get security limits from config or use defaults

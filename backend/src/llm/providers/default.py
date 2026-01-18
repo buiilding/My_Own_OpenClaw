@@ -1,6 +1,5 @@
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
-from backend.src.core.config import AppConfig
 from backend.src.core.types import LLMMessage
 from backend.src.llm.providers.gemini import GeminiProvider
 
@@ -11,36 +10,13 @@ class DefaultProvider(GeminiProvider):
     Inherits from GeminiProvider as a safe, feature-rich default.
     """
 
-    def __init__(self, cfg: AppConfig):
-        super().__init__(cfg)
-        # Do NOT modify self.config here as it is frozen
-
-    def _build_request_params(self, model: str, messages: List[LLMMessage]) -> dict:
-        # We want to behave like Gemini, but we can't rely on config.model_provider
-        # being "gemini". So we explicitly fetch the gemini config.
-
-        provider_name = "gemini"
-        provider_config = self.config.llm_providers.get_provider_config(provider_name)
-
-        params = {
-            "model": self._get_full_model_string(model),
-            "messages": messages,
-            "api_key": self.config.api_key,
-            "base_url": self._get_base_url(provider_config),
-            "timeout": self.config.llm_timeout,
-        }
-
-        # Add Gemini-specific thinking params if applicable
-        from backend.src.llm.models_config import ONLINE_THINKING_MODELS
-
-        if (
-            provider_name in ONLINE_THINKING_MODELS
-            and model in ONLINE_THINKING_MODELS[provider_name]
-        ):
-            # Disable thinking tokens for Gemini models
-            params["thinking"] = {"type": "disabled", "budget_tokens": 0}
-
-        return params
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        timeout: float = 60.0,
+    ):
+        super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
 
     def _get_full_model_string(self, model_id: str) -> str:
         # Default behavior: assume it's a Gemini model if unspecified

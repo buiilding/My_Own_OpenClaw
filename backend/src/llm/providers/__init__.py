@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from backend.src.core.config import AppConfig
 from backend.src.llm.providers.anthropic import AnthropicProvider
@@ -14,16 +14,69 @@ from backend.src.llm.providers.openrouter import OpenRouterProvider
 def create_provider_factory(
     cfg: AppConfig,
 ) -> Dict[str, LLMProvider]:
-    """Creates a factory of provider instances."""
+    """
+    Creates a factory of provider instances.
+    
+    Extracts only the required primitives from config, decoupling providers
+    from the global config structure (Law of Demeter compliance).
+    """
+    # Extract common values
+    api_key = cfg.api_key
+    timeout = float(cfg.llm_timeout)
+    
+    # Extract provider-specific configs safely
+    ollama_config = cfg.llm_providers.ollama if cfg.llm_providers else None
+    ollama_base_url = ollama_config.base_url if ollama_config else "http://localhost:11434/v1"
+    
+    lmstudio_config = cfg.llm_providers.lmstudio if cfg.llm_providers else None
+    lmstudio_base_url = lmstudio_config.base_url if lmstudio_config else "http://localhost:1234/v1"
+    
+    openrouter_config = cfg.llm_providers.openrouter if cfg.llm_providers else None
+    openrouter_base_url = (
+        getattr(openrouter_config, "base_url", None)
+        if openrouter_config
+        else None
+    )
+    
     return {
-        "openai": OpenAIProvider(cfg),
-        "gemini": GeminiProvider(cfg),
-        "anthropic": AnthropicProvider(cfg),
-        "ollama": OllamaProvider(cfg),
-        "openrouter": OpenRouterProvider(cfg),
-        "mistral": MistralProvider(cfg),
-        "lmstudio": LMStudioProvider(cfg),
-        "default": DefaultProvider(cfg),
+        "openai": OpenAIProvider(
+            api_key=api_key,
+            base_url=None,
+            timeout=timeout,
+        ),
+        "gemini": GeminiProvider(
+            api_key=api_key,
+            base_url=None,
+            timeout=timeout,
+        ),
+        "anthropic": AnthropicProvider(
+            api_key=api_key,
+            base_url=None,
+            timeout=timeout,
+        ),
+        "ollama": OllamaProvider(
+            base_url=ollama_base_url,
+            timeout=timeout,
+        ),
+        "openrouter": OpenRouterProvider(
+            api_key=api_key,
+            base_url=openrouter_base_url,
+            timeout=timeout,
+        ),
+        "mistral": MistralProvider(
+            api_key=api_key,
+            base_url=None,
+            timeout=timeout,
+        ),
+        "lmstudio": LMStudioProvider(
+            base_url=lmstudio_base_url,
+            timeout=timeout,
+        ),
+        "default": DefaultProvider(
+            api_key=api_key,
+            base_url=None,
+            timeout=timeout,
+        ),
     }
 
 

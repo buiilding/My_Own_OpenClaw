@@ -78,6 +78,15 @@ class InitializationCoordinator:
         self.config_manager = config_manager or get_config_manager()
         logger.info("Configuration initialized.")
 
+        # Initialize PromptManager (fail fast if system prompt file is missing)
+        from backend.src.llm.prompts import PromptManager
+        try:
+            PromptManager().initialize()
+            logger.info("System prompt loaded successfully.")
+        except RuntimeError as e:
+            logger.critical(f"Failed to load system prompt: {e}")
+            raise
+
     async def _initialize_container(self) -> None:
         """Phase 2: Initialize container."""
         logger.info("Phase 2: Initializing container...")
