@@ -8,17 +8,17 @@ import logging
 from dependency_injector import containers, providers
 
 from backend.src.agent.core.session_manager import SessionManager
-from backend.src.api.handlers.base import MessageHandlerRegistry
-from backend.src.api.handlers.query_handler import QueryMessageHandler
-from backend.src.api.handlers.response_formatter import ResponseFormatter
-from backend.src.api.handlers.settings_handler import (
+from backend.src.api.core.base import MessageHandlerRegistry
+from backend.src.api.handlers.query import QueryMessageHandler
+from backend.src.api.query.formatter import ResponseFormatter
+from backend.src.api.handlers.settings import (
     ListModelsHandler,
     LoadSettingsHandler,
     UpdateSettingsHandler,
 )
-from backend.src.api.handlers.tts_manager import TTSManager
-from backend.src.api.handlers.tool_result_handler import ToolResultHandler
-from backend.src.api.handlers.wakeword_handler import WakewordHandler
+from backend.src.api.tts.manager import TTSManager
+from backend.src.api.handlers.tool_result import ToolResultHandler
+from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.core.config import AppConfig
 from backend.src.core.config_service import ConfigurationService
 from backend.src.core.config.user_config_manager import UserConfigManager
