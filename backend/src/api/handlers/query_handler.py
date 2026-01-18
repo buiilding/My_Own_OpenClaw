@@ -7,7 +7,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any, Dict
 
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 
 from backend.src.api.handlers.base import MessageHandler
 
@@ -136,9 +136,12 @@ class QueryMessageHandler(MessageHandler):
                     await tts_service.flush()
 
                 # Send final complete message
-                await transport.send(
-                    {"type": "streaming-complete", "id": msg_id, "payload": {}}
-                )
+                try:
+                    await transport.send(
+                        {"type": "streaming-complete", "id": msg_id, "payload": {}}
+                    )
+                except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                    logger.debug(f"Failed to send streaming-complete to closed connection: {send_error}")
                 
                 query_total_time = time.perf_counter() - query_start_time
                 logger.info(f"[Timing] Query processing completed in {query_total_time:.3f}s (user_id={user_id})")
@@ -166,14 +169,20 @@ class QueryMessageHandler(MessageHandler):
         """
         Send error response.
         
+        Handles connection errors gracefully - if connection is closed, logs and returns silently.
+        
         Args:
             websocket: WebSocket connection
             msg_id: Message ID (optional)
             message: Error message
         """
-        transport = WebSocketTransportSender(websocket)
-        await transport.send({
-            "type": "error",
-            "id": msg_id,
-            "payload": {"message": message}
-        })
+        try:
+            transport = WebSocketTransportSender(websocket)
+            await transport.send({
+                "type": "error",
+                "id": msg_id,
+                "payload": {"message": message}
+            })
+        except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
+            # Connection closed - this is expected in some cases, log at debug level
+            logger.debug(f"Failed to send error message to closed connection: {e}")
