@@ -22,8 +22,8 @@ import json
 import logging
 from typing import List, Dict, Any, Optional, Union, TYPE_CHECKING
 
-from backend.src.llm.prompts import get_system_prompt
-from backend.src.llm.prompt_metadata import PromptMetadata, UserMessageMetadata
+from backend.src.llm.prompts.prompts import get_system_prompt
+from backend.src.llm.prompts.prompt_metadata import PromptMetadata, UserMessageMetadata
 from backend.src.tools.registry import ToolRegistry
 from backend.src.core.messages import (
     MessageRole,

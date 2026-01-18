@@ -23,7 +23,7 @@ from backend.src.services.token_service import get_token_service
 if TYPE_CHECKING:
     from backend.src.agent.core.core import AgentSession
     from backend.src.agent.core.state import ConversationHistory
-    from backend.src.llm.llm_client import LLMClient
+    from backend.src.llm.client import LLMClient
 
 logger = logging.getLogger(__name__)
 

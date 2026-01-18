@@ -15,7 +15,7 @@ from backend.src.api.deps import ContainerDep
 from backend.src.core.config import AppConfig
 from backend.src.core.config.manager import load_api_key_for_provider
 from backend.src.core.types import LLMMessage
-from backend.src.llm.llm_client import get_llm_client
+from backend.src.llm.client import get_llm_client
 
 router = APIRouter(prefix="/api/semantic", tags=["semantic"])
 logger = logging.getLogger(__name__)

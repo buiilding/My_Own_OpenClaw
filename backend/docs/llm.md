@@ -157,7 +157,7 @@ All providers support streaming:
 ### Basic Usage
 
 ```python
-from backend.src.llm.llm_client import get_llm_client
+from backend.src.llm.client import get_llm_client
 
 llm_client = get_llm_client(config)
 
@@ -169,7 +169,7 @@ async for chunk in llm_client.stream_completion(messages):
 ### With Tool Schemas
 
 ```python
-from backend.src.llm.prompt_constructor import PromptConstructor
+from backend.src.llm.prompts import PromptConstructor
 
 prompt_builder = PromptConstructor(config)
 prompt, tool_schemas = prompt_builder.build_prompt(

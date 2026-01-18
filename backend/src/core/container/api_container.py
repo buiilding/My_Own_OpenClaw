@@ -23,7 +23,7 @@ from backend.src.core.config import AppConfig
 from backend.src.core.config_service import ConfigurationService
 from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.services.wakeword_service import WakewordService
-from backend.src.llm.model_service import ModelService
+from backend.src.llm.models import ModelService
 
 logger = logging.getLogger(__name__)
 

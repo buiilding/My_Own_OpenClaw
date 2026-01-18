@@ -26,9 +26,9 @@ from backend.src.core.events import (
 )
 from backend.src.core.messages import MessageType
 from backend.src.core.plugins.registry import PluginRegistry
-from backend.src.llm.llm_client import LLMClient
+from backend.src.llm.client import LLMClient
 from backend.src.llm.parser import ResponseParser
-from backend.src.llm.prompt_constructor import PromptConstructor
+from backend.src.llm.prompts import PromptConstructor
 from backend.src.tools.orchestrator import ToolOrchestrator
 
 if TYPE_CHECKING:
