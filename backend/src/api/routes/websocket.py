@@ -24,9 +24,9 @@ Error Handling:
 import json
 import logging
 import asyncio
-from typing import Dict, Any, Union
+from typing import Any, Union
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError as PydanticValidationError, TypeAdapter
 
 from backend.src.api.deps import (
@@ -35,7 +35,6 @@ from backend.src.api.deps import (
 )
 from backend.src.api.handlers.base import MessageHandlerRegistry
 from backend.src.api.schema import IncomingMessage, HandshakeMessage
-from backend.src.core.validation import ValidationError
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
