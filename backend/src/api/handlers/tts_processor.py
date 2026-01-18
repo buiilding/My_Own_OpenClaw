@@ -127,7 +127,9 @@ class TTSProcessor:
                 if stripped.startswith("{") or stripped.startswith("`"):
                     # Starts with JSON brace or code block -> likely tool call
                     self._is_tool_call_context = True
+                    # Clear buffer to prevent memory accumulation of tool call content
                     # Do NOT send to TTS (filter tool calls from speech)
+                    self._stream_buffer = ""
                 else:
                     # Starts with normal text
                     self._is_tool_call_context = False
@@ -136,6 +138,8 @@ class TTSProcessor:
                         tts_service, 
                         ChunkEvent(content=self._stream_buffer)
                     )
+                    # Clear buffer after flushing
+                    self._stream_buffer = ""
             # If still empty/whitespace, continue buffering
         
         elif self._is_tool_call_context is False:

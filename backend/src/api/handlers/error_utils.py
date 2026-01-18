@@ -27,7 +27,7 @@ SILENT FAILURE PREVENTION:
   expected when clients disconnect and are logged at debug level
 """
 import logging
-from typing import Optional
+from typing import Optional, Union, Any
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 
 async def send_error_response(
-    websocket: WebSocket,
+    websocket: Union[WebSocket, Any],
     msg_id: Optional[str],
     message: str,
     error_type: str = "error"
@@ -45,17 +45,21 @@ async def send_error_response(
     """
     Send standardized error response to WebSocket client.
     
+    Accepts SafeWebSocket or raw WebSocket. SafeWebSocket is preferred to ensure
+    thread-safe serialization of writes.
+    
     Handles connection errors gracefully - if connection is closed, logs at
     debug level and returns silently. This is expected behavior when clients
     disconnect during request processing.
     
     Args:
-        websocket: WebSocket connection
+        websocket: WebSocket connection (SafeWebSocket or WebSocket)
         msg_id: Message ID from original request (optional)
         message: Error message to send
         error_type: Error message type (default: "error")
     """
     try:
+        # WebSocketTransportSender now accepts SafeWebSocket for thread-safe writes
         transport = WebSocketTransportSender(websocket)
         await transport.send({
             "type": error_type,
@@ -69,7 +73,7 @@ async def send_error_response(
 
 
 async def send_success_response(
-    websocket: WebSocket,
+    websocket: Union[WebSocket, Any],
     msg_id: str,
     response_type: str,
     payload: dict
@@ -77,16 +81,20 @@ async def send_success_response(
     """
     Send standardized success response to WebSocket client.
     
+    Accepts SafeWebSocket or raw WebSocket. SafeWebSocket is preferred to ensure
+    thread-safe serialization of writes.
+    
     Handles connection errors gracefully - if connection is closed, logs at
     debug level and returns silently.
     
     Args:
-        websocket: WebSocket connection
+        websocket: WebSocket connection (SafeWebSocket or WebSocket)
         msg_id: Message ID from original request
         response_type: Response message type (e.g., "settings-updated")
         payload: Response payload dictionary
     """
     try:
+        # WebSocketTransportSender now accepts SafeWebSocket for thread-safe writes
         transport = WebSocketTransportSender(websocket)
         await transport.send({
             "type": response_type,
