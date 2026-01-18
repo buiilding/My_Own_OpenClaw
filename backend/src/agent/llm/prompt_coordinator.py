@@ -9,6 +9,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
+from backend.src.core.exceptions import TrustBoundaryError
 from backend.src.core.types import LLMMessage
 from backend.src.llm.prompt_metadata import PromptMetadata
 
@@ -62,10 +63,15 @@ class PromptCoordinator:
         if iteration == 1:
             # First iteration: build full prompt with metadata
             prompt_build_start = time.perf_counter()
-            prompt, tool_schemas, prompt_metadata = self.prompt_builder.build_prompt(
-                stored_messages=self.history,
-                include_tools=True,
-            )
+            try:
+                prompt, tool_schemas, prompt_metadata = self.prompt_builder.build_prompt(
+                    stored_messages=self.history,
+                    include_tools=True,
+                )
+            except TrustBoundaryError as e:
+                logger.error(f"Trust boundary violation in prompt constructor: {e}", exc_info=True)
+                # Re-raise to be handled by caller
+                raise
             prompt_build_time = time.perf_counter() - prompt_build_start
             logger.info(f"[Timing] Prompt building took {prompt_build_time:.3f}s (iteration={iteration})")
             # Cache tool schemas and metadata for subsequent iterations
