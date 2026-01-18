@@ -20,7 +20,6 @@ eliminating circular parsing patterns and preserving data integrity.
 """
 import json
 import logging
-import re
 from typing import List, Dict, Any, Optional, Union, TYPE_CHECKING
 
 from backend.src.llm.prompts import get_system_prompt
@@ -237,56 +236,72 @@ class PromptConstructor:
         """
         Extract XML tag content with size limits.
         
-        SECURITY: Uses regex with size limits to prevent DoS.
-        Escapes tag_name to prevent regex injection.
+        SECURITY: Uses efficient string operations with size limits to prevent DoS.
+        More efficient than regex for large inputs while maintaining security.
         """
         # SECURITY: Limit search to reasonable size
         max_search_size = min(len(content), self.limits.max_message_content_size)
         search_content = content[:max_search_size]
         
-        # SECURITY: Escape tag_name to prevent regex injection
-        escaped_tag = re.escape(tag_name)
+        # Find opening tag
+        open_tag = f"<{tag_name}"
+        open_pos = search_content.find(open_tag)
+        if open_pos == -1:
+            return ""
         
-        # Use regex to find XML tag (more robust than str.find)
-        # SECURITY: Add size limit to match to prevent excessive memory usage
-        max_size = self.limits.max_message_content_size
-        pattern = f"<{escaped_tag}[^>]*>.{{0,{max_size}}}?</{escaped_tag}>"
-        match = re.search(pattern, search_content, re.DOTALL)
+        # Find closing bracket of opening tag
+        open_tag_end = search_content.find(">", open_pos)
+        if open_tag_end == -1:
+            return ""
         
-        if match:
-            extracted = match.group(0)
-            # SECURITY: Check extracted size (double-check even with pattern limit)
-            if len(extracted) > self.limits.max_message_content_size:
-                return ""  # Too large, reject
-            return extracted
+        # Find closing tag (search from after opening tag)
+        close_tag = f"</{tag_name}>"
+        close_pos = search_content.find(close_tag, open_tag_end + 1)
+        if close_pos == -1:
+            return ""
         
-        return ""
+        # Extract full tag including content
+        extracted = search_content[open_pos:close_pos + len(close_tag)]
+        
+        # SECURITY: Validate extracted size
+        if len(extracted) > self.limits.max_message_content_size:
+            return ""  # Too large, reject
+        
+        return extracted
     
     def _extract_xml_tag_content(self, content: str, tag_name: str) -> Optional[str]:
         """
         Extract content inside XML tag.
         
-        SECURITY: Uses regex with size limits.
-        Escapes tag_name to prevent regex injection.
+        SECURITY: Uses efficient string operations with size limits.
+        More efficient than regex for large inputs while maintaining security.
         """
         # SECURITY: Limit search to reasonable size
         max_search_size = min(len(content), self.limits.max_message_content_size)
         search_content = content[:max_search_size]
         
-        # SECURITY: Escape tag_name to prevent regex injection
-        escaped_tag = re.escape(tag_name)
+        # Find opening tag
+        open_tag = f"<{tag_name}"
+        open_pos = search_content.find(open_tag)
+        if open_pos == -1:
+            return None
         
-        # Use regex to find tag content
-        # SECURITY: Add size limit to capture group to prevent excessive memory usage
-        max_size = self.limits.max_message_content_size
-        pattern = f"<{escaped_tag}[^>]*>(.{{0,{max_size}}}?)</{escaped_tag}>"
-        match = re.search(pattern, search_content, re.DOTALL)
+        # Find closing bracket of opening tag
+        open_tag_end = search_content.find(">", open_pos)
+        if open_tag_end == -1:
+            return None
         
-        if match:
-            extracted = match.group(1)
-            # SECURITY: Check extracted size (double-check even with pattern limit)
-            if len(extracted) > self.limits.max_message_content_size:
-                return None  # Too large, reject
-            return extracted.strip()
+        # Find closing tag (search from after opening tag)
+        close_tag = f"</{tag_name}>"
+        close_pos = search_content.find(close_tag, open_tag_end + 1)
+        if close_pos == -1:
+            return None
         
-        return None
+        # Extract content between tags
+        extracted = search_content[open_tag_end + 1:close_pos]
+        
+        # SECURITY: Validate extracted size
+        if len(extracted) > self.limits.max_message_content_size:
+            return None  # Too large, reject
+        
+        return extracted.strip()

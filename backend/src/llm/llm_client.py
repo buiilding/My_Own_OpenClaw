@@ -11,7 +11,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from backend.src.core.config import AppConfig
 from backend.src.core.events import StreamingEvent
-from backend.src.core.exceptions import LLMAPIError, LLMRateLimitError
+from backend.src.core.exceptions import LLMAPIError
 from backend.src.core.types import LLMMessage
 from backend.src.llm.providers import get_provider
 from backend.src.llm.providers.base import LLMProvider
@@ -40,7 +40,7 @@ class LLMClient(ABC):
         """
         Gets a streaming completion from the LLM, yielding StreamingEvent objects.
         """
-        yield
+        pass
 
 
 class LiteLLMClient(LLMClient):

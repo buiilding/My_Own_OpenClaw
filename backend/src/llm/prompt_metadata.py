@@ -5,7 +5,7 @@ This module provides structured metadata about prompts constructed for LLM inter
 replacing dictionary-based metadata with type-safe dataclasses.
 """
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -22,6 +22,6 @@ class UserMessageMetadata:
 class PromptMetadata:
     """Structured metadata about a constructed prompt."""
     system_prompt: str
-    tool_schemas: Optional[Dict[str, Any]] = None
+    tool_schemas: Optional[List[Dict[str, Any]]] = None
     user_message_metadata: Optional[UserMessageMetadata] = None
 

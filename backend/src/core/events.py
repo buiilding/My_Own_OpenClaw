@@ -155,7 +155,7 @@ class SystemPromptEvent(StreamingEvent):
 @dataclass
 class ToolSchemasEvent(StreamingEvent):
     """Event emitted with tool schemas passed to LLM as API parameter."""
-    tool_schemas: Dict[str, Any]
+    tool_schemas: List[Dict[str, Any]]
 
     def __post_init__(self):
         self.type = StreamingEventType.TOOL_SCHEMAS

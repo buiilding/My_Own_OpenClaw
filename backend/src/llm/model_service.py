@@ -11,7 +11,8 @@ from typing import Dict, List
 
 from backend.src.core.config import AppConfig
 from backend.src.llm.models_config import ONLINE_MODELS, ONLINE_THINKING_MODELS, LOCAL_VISION_MODELS
-from backend.src.llm.providers.local import OllamaProvider, LMStudioProvider
+from backend.src.llm.providers import create_provider_factory
+from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
 
@@ -100,30 +101,13 @@ class ModelService:
                 )
         return vision_models
 
-    def _safe_timeout_conversion(self, default: float = 60.0) -> float:
-        """
-        Safely convert config timeout to float with validation.
-        
-        Args:
-            default: Default timeout if conversion fails or value is invalid
-            
-        Returns:
-            Validated timeout as float (ensures positive value)
-        """
-        try:
-            timeout = float(self.config.llm_timeout)
-            # Enforce minimum safety floor (1 second) and maximum reasonable limit (1 hour)
-            if timeout < 1.0:
-                return default
-            if timeout > 3600.0:
-                return 3600.0
-            return timeout
-        except (TypeError, ValueError, AttributeError):
-            return default
-
     async def get_local_models(self) -> List[Dict[str, str]]:
         """
         Fetch available models from local providers (Ollama, LM Studio).
+        
+        Uses the provider factory to ensure consistent provider instantiation
+        and benefit from caching. This prevents duplicate provider instances
+        and ensures configuration consistency.
         
         Returns:
             List of available local models. If a provider fails, it logs a warning
@@ -132,51 +116,40 @@ class ModelService:
         local_models = []
         provider_failures = []
         
-        # Centralized safe timeout conversion
-        config_timeout = self._safe_timeout_conversion()
-        # Use longer timeout for listing models vs inference
-        # Listing can trigger model loading/swapping in some backends (e.g., Ollama)
-        list_timeout = max(config_timeout, 10.0)
+        # Get provider factory (cached, uses same instances as rest of system)
+        factory = create_provider_factory(self.config)
         
         # Try Ollama
-        try:
-            # Extract base_url from config to match provider constructor signature
-            ollama_config = self.config.llm_providers.ollama if self.config.llm_providers else None
-            ollama_base_url = ollama_config.base_url if ollama_config else "http://localhost:11434/v1"
-            
-            ollama = OllamaProvider(
-                base_url=ollama_base_url,
-                timeout=list_timeout
-            )
-            models = await ollama.list_models()
-            local_models.extend(models)
-            logger.debug(f"Successfully listed {len(models)} Ollama models")
-        except Exception as e:
-            provider_failures.append(("Ollama", str(e)))
-            logger.warning(
-                f"Failed to list Ollama models: {e}",
-                exc_info=logger.isEnabledFor(logging.DEBUG)
-            )
+        ollama_provider = factory.get("ollama")
+        if ollama_provider:
+            try:
+                models = await ollama_provider.list_models()
+                local_models.extend(models)
+                logger.debug(f"Successfully listed {len(models)} Ollama models")
+            except Exception as e:
+                provider_failures.append(("Ollama", str(e)))
+                logger.warning(
+                    f"Failed to list Ollama models: {e}",
+                    exc_info=logger.isEnabledFor(logging.DEBUG)
+                )
+        else:
+            logger.debug("Ollama provider not configured or unavailable")
 
         # Try LM Studio
-        try:
-            # Extract base_url from config to match provider constructor signature
-            lmstudio_config = self.config.llm_providers.lmstudio if self.config.llm_providers else None
-            lmstudio_base_url = lmstudio_config.base_url if lmstudio_config else "http://localhost:1234/v1"
-            
-            lmstudio = LMStudioProvider(
-                base_url=lmstudio_base_url,
-                timeout=list_timeout
-            )
-            models = await lmstudio.list_models()
-            local_models.extend(models)
-            logger.debug(f"Successfully listed {len(models)} LM Studio models")
-        except Exception as e:
-            provider_failures.append(("LM Studio", str(e)))
-            logger.warning(
-                f"Failed to list LM Studio models: {e}",
-                exc_info=logger.isEnabledFor(logging.DEBUG)
-            )
+        lmstudio_provider = factory.get("lmstudio")
+        if lmstudio_provider:
+            try:
+                models = await lmstudio_provider.list_models()
+                local_models.extend(models)
+                logger.debug(f"Successfully listed {len(models)} LM Studio models")
+            except Exception as e:
+                provider_failures.append(("LM Studio", str(e)))
+                logger.warning(
+                    f"Failed to list LM Studio models: {e}",
+                    exc_info=logger.isEnabledFor(logging.DEBUG)
+                )
+        else:
+            logger.debug("LM Studio provider not configured or unavailable")
 
         # Log summary if all providers failed
         if provider_failures and not local_models:
