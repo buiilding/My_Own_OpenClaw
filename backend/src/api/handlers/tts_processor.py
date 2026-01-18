@@ -34,6 +34,9 @@ from backend.src.core.services.tts_service import TTSService
 
 logger = logging.getLogger(__name__)
 
+# Constants
+MAX_BUFFER_SIZE = 1024  # 1KB - maximum buffer size to prevent unbounded memory growth during detection
+
 
 class TTSProcessor:
     """
@@ -121,6 +124,23 @@ class TTSProcessor:
         if self._is_tool_call_context is None:
             # Unknown content type - buffer and detect
             self._stream_buffer += chunk.content
+            
+            # Safety: Enforce buffer limit to prevent unbounded memory growth
+            # If buffer exceeds limit, force decision to treat as normal text
+            if len(self._stream_buffer) > MAX_BUFFER_SIZE:
+                logger.warning(
+                    f"TTS buffer exceeded limit ({MAX_BUFFER_SIZE} bytes), "
+                    "forcing decision to treat as normal text"
+                )
+                self._is_tool_call_context = False
+                # Flush buffered text to TTS
+                await self.tts_manager.process_event(
+                    tts_service,
+                    ChunkEvent(content=self._stream_buffer)
+                )
+                self._stream_buffer = ""
+                return
+            
             stripped = self._stream_buffer.lstrip()
             
             if len(stripped) > 0:
