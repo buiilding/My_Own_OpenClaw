@@ -176,13 +176,5 @@ class QueryMessageHandler(MessageHandler):
             msg_id: Message ID (optional)
             message: Error message
         """
-        try:
-            transport = WebSocketTransportSender(websocket)
-            await transport.send({
-                "type": "error",
-                "id": msg_id,
-                "payload": {"message": message}
-            })
-        except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-            # Connection closed - this is expected in some cases, log at debug level
-            logger.debug(f"Failed to send error message to closed connection: {e}")
+        from backend.src.api.handlers.error_utils import send_error_response
+        await send_error_response(websocket, msg_id, message)

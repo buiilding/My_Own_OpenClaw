@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Dict
 from fastapi import WebSocket, WebSocketDisconnect
 
 from backend.src.api.handlers.base import MessageHandler
-from backend.src.api.handlers.transport import WebSocketTransportSender
+from backend.src.api.handlers.error_utils import send_error_response, send_success_response
 from backend.src.api.schema import (
     LoadSettingsMessage,
     ListModelsMessage,
@@ -69,8 +69,6 @@ class LoadSettingsHandler(MessageHandler):
             websocket: WebSocket connection
             user_id: User ID from connection context
         """
-        transport = WebSocketTransportSender(websocket)
-        
         try:
             validated = validate_message(data, "load-settings", LoadSettingsMessage)
             
@@ -83,33 +81,28 @@ class LoadSettingsHandler(MessageHandler):
                 user_id, global_config_dict
             )
             
-            try:
-                await transport.send({
-                    "type": "settings-loaded",
-                    "id": validated.id,
-                    "payload": merged_config_dict
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send settings-loaded to closed connection: {send_error}")
+            # Send success response using canonical utility
+            await send_success_response(
+                websocket,
+                validated.id,
+                "settings-loaded",
+                merged_config_dict
+            )
         except ValidationError as e:
-            try:
-                await transport.send({
-                    "type": "error",
-                    "id": data.get("id"),
-                    "payload": {"message": f"Invalid load-settings message: {e.message}"}
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send error to closed connection: {send_error}")
+            # Validation error - send using canonical utility
+            await send_error_response(
+                websocket,
+                data.get("id"),
+                f"Invalid load-settings message: {e.message}"
+            )
         except Exception as e:
+            # Unexpected error - log and send using canonical utility
             logger.error(f"Error loading settings: {e}", exc_info=True)
-            try:
-                await transport.send({
-                    "type": "error",
-                    "id": data.get("id"),
-                    "payload": {"message": f"Failed to load settings: {str(e)}"}
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send error to closed connection: {send_error}")
+            await send_error_response(
+                websocket,
+                data.get("id"),
+                f"Failed to load settings: {str(e)}"
+            )
 
 
 class UpdateSettingsHandler(MessageHandler):
@@ -156,7 +149,6 @@ class UpdateSettingsHandler(MessageHandler):
             user_id: User ID from connection context
         """
         msg_id = data.get("id")
-        transport = WebSocketTransportSender(websocket)
         
         try:
             validated = validate_message(data, "update-settings", UpdateSettingsMessage)
@@ -180,34 +172,29 @@ class UpdateSettingsHandler(MessageHandler):
             # Update only this user's session, not all sessions
             await self.session_manager.update_user_session_config(user_id, validated_config)
             
-            try:
-                await transport.send({
-                    "type": "settings-updated",
-                    "id": msg_id,
-                    "payload": {"message": "Settings updated successfully"}
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send settings-updated to closed connection: {send_error}")
+            # Send success response using canonical utility
+            await send_success_response(
+                websocket,
+                msg_id,
+                "settings-updated",
+                {"message": "Settings updated successfully"}
+            )
         
         except ValidationError as e:
-            try:
-                await transport.send({
-                    "type": "error",
-                    "id": msg_id,
-                    "payload": {"message": f"Invalid update-settings message: {e.message}"}
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send error to closed connection: {send_error}")
+            # Validation error - send using canonical utility
+            await send_error_response(
+                websocket,
+                msg_id,
+                f"Invalid update-settings message: {e.message}"
+            )
         except Exception as e:
+            # Unexpected error - log and send using canonical utility
             logger.error(f"Failed to update settings: {e}", exc_info=True)
-            try:
-                await transport.send({
-                    "type": "error",
-                    "id": msg_id,
-                    "payload": {"message": f"Failed to update settings: {str(e)}"}
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send error to closed connection: {send_error}")
+            await send_error_response(
+                websocket,
+                msg_id,
+                f"Failed to update settings: {str(e)}"
+            )
 
 
 class ListModelsHandler(MessageHandler):
@@ -244,36 +231,30 @@ class ListModelsHandler(MessageHandler):
             websocket: WebSocket connection
             user_id: User ID from connection context
         """
-        transport = WebSocketTransportSender(websocket)
-        
         try:
             validated = validate_message(data, "list-models", ListModelsMessage)
             models = await self.model_service.get_all_models()
-            try:
-                await transport.send({
-                    "type": "models-listed",
-                    "id": validated.id,
-                    "payload": models
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send models-listed to closed connection: {send_error}")
+            
+            # Send success response using canonical utility
+            await send_success_response(
+                websocket,
+                validated.id,
+                "models-listed",
+                models
+            )
         except ValidationError as e:
-            try:
-                await transport.send({
-                    "type": "error",
-                    "id": data.get("id"),
-                    "payload": {"message": f"Invalid list-models message: {e.message}"}
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send error to closed connection: {send_error}")
+            # Validation error - send using canonical utility
+            await send_error_response(
+                websocket,
+                data.get("id"),
+                f"Invalid list-models message: {e.message}"
+            )
         except Exception as e:
+            # Unexpected error - log and send using canonical utility
             logger.error(f"Error listing models: {e}", exc_info=True)
-            try:
-                await transport.send({
-                    "type": "error",
-                    "id": data.get("id"),
-                    "payload": {"message": f"Failed to list models: {str(e)}"}
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send error to closed connection: {send_error}")
+            await send_error_response(
+                websocket,
+                data.get("id"),
+                f"Failed to list models: {str(e)}"
+            )
 
