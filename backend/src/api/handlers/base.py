@@ -142,6 +142,10 @@ class MessageHandlerRegistry:
             Exception: If handler execution fails
         """
         # Run middleware
+        # NOTE: Middleware errors are logged but processing continues.
+        # This allows non-critical middleware (e.g., logging, metrics) to fail
+        # without breaking message processing. Critical middleware (e.g., auth)
+        # should raise exceptions that propagate to the handler layer.
         for middleware in self._middleware:
             try:
                 result = middleware(data, websocket)
@@ -151,6 +155,8 @@ class MessageHandlerRegistry:
             except Exception as e:
                 logger.error(f"Error in middleware: {e}", exc_info=True)
                 # Continue processing even if middleware fails
+                # If middleware needs to block processing, it should raise an exception
+                # that propagates up (not caught here)
         
         # Get handler
         handler = self._handlers.get(message_type)

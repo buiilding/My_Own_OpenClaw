@@ -135,13 +135,14 @@ class QueryMessageHandler(MessageHandler):
                 if tts_service:
                     await tts_service.flush()
 
-                # Send final complete message
-                try:
-                    await transport.send(
-                        {"type": "streaming-complete", "id": msg_id, "payload": {}}
-                    )
-                except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                    logger.debug(f"Failed to send streaming-complete to closed connection: {send_error}")
+                # Send final complete message using canonical utility
+                from backend.src.api.handlers.error_utils import send_success_response
+                await send_success_response(
+                    websocket,
+                    msg_id,
+                    "streaming-complete",
+                    {}
+                )
                 
                 query_total_time = time.perf_counter() - query_start_time
                 logger.info(f"[Timing] Query processing completed in {query_total_time:.3f}s (user_id={user_id})")
