@@ -23,6 +23,9 @@ from backend.src.core.validation import ValidationError
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+# Create TypeAdapter once at module level for performance
+_INCOMING_MESSAGE_ADAPTER = TypeAdapter(IncomingMessage)
+
 class SafeWebSocket:
     """Wrapper for WebSocket to ensure thread-safe/coroutine-safe sending."""
     def __init__(self, websocket: WebSocket):
@@ -30,12 +33,22 @@ class SafeWebSocket:
         self._lock = asyncio.Lock()
 
     async def send_json(self, data: Any, **kwargs):
+        """Send JSON data with error handling for closed connections."""
         async with self._lock:
-            await self._websocket.send_json(data, **kwargs)
+            try:
+                await self._websocket.send_json(data, **kwargs)
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
+                logger.debug(f"Failed to send JSON to closed connection: {e}")
+                raise
 
     async def send_text(self, data: str, **kwargs):
+        """Send text data with error handling for closed connections."""
         async with self._lock:
-            await self._websocket.send_text(data, **kwargs)
+            try:
+                await self._websocket.send_text(data, **kwargs)
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
+                logger.debug(f"Failed to send text to closed connection: {e}")
+                raise
 
     def __getattr__(self, name):
         return getattr(self._websocket, name)
@@ -49,6 +62,13 @@ async def websocket_endpoint(
     await websocket.accept()
     safe_ws = SafeWebSocket(websocket)
     user_id = "default_user"
+    
+    # Track active tasks for this connection to cancel on disconnect
+    active_tasks: set[asyncio.Task] = set()
+    
+    def task_done_callback(task: asyncio.Task):
+        """Remove task from active set when done."""
+        active_tasks.discard(task)
     
     # Handshake
     try:
@@ -88,17 +108,18 @@ async def websocket_endpoint(
                 
                 # Validate and parse message using Pydantic
                 try:
-                    # Use TypeAdapter to validate Union type
-                    adapter = TypeAdapter(IncomingMessage)
-                    validated_msg = adapter.validate_python(json_data)
+                    # Use pre-created TypeAdapter for performance
+                    validated_msg = _INCOMING_MESSAGE_ADAPTER.validate_python(json_data)
                     # Set user_id from connection context
                     validated_msg.user_id = user_id
                     
                     # Route message based on validated type
                     # We spawn a task to avoid blocking the receiving loop.
                     # This is essential for handlers that wait for other messages (like tool-result).
-                    # Handler registry will be injected when handle_message is called
-                    asyncio.create_task(handle_message(safe_ws, validated_msg, handler_registry, user_id))
+                    # Track task to cancel on disconnect
+                    task = asyncio.create_task(handle_message(safe_ws, validated_msg, handler_registry, user_id))
+                    active_tasks.add(task)
+                    task.add_done_callback(task_done_callback)
                     
                 except PydanticValidationError as e:
                     # Validation failed - send error
@@ -117,6 +138,13 @@ async def websocket_endpoint(
                 
     except WebSocketDisconnect:
         logger.info(f"Client {user_id} disconnected")
+        # Cancel all active tasks for this connection
+        for task in active_tasks:
+            if not task.done():
+                task.cancel()
+        # Wait briefly for tasks to cancel (non-blocking)
+        if active_tasks:
+            await asyncio.gather(*active_tasks, return_exceptions=True)
         await session_manager.end_session(user_id)
 
 async def handle_message(
@@ -151,20 +179,33 @@ async def handle_message(
         logger.error(f"Unexpected error handling message: {e}", exc_info=True)
         await send_error(websocket, msg_id, f"Internal error: {str(e)}")
 
-async def send_error(websocket: WebSocket, msg_id: str | None, message: str):
+async def send_error(websocket: Union[WebSocket, SafeWebSocket], msg_id: str | None, message: str):
     """
     Send error response to WebSocket client.
     
+    Handles connection errors gracefully - if connection is closed, logs and returns silently.
+    
     Args:
-        websocket: WebSocket connection
+        websocket: WebSocket connection (WebSocket or SafeWebSocket)
         msg_id: Message ID (optional)
         message: Error message
     """
-    await websocket.send_json({
-        "type": "error",
-        "id": msg_id,
-        "payload": {"message": message}
-    })
+    try:
+        if isinstance(websocket, SafeWebSocket):
+            await websocket.send_json({
+                "type": "error",
+                "id": msg_id,
+                "payload": {"message": message}
+            })
+        else:
+            await websocket.send_json({
+                "type": "error",
+                "id": msg_id,
+                "payload": {"message": message}
+            })
+    except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
+        # Connection closed - this is expected in some cases, log at debug level
+        logger.debug(f"Failed to send error message to closed connection: {e}")
 
 # Legacy handlers removed - now handled by MessageHandlerRegistry (Phase 1)
 # See backend/src/api/handlers/ for handler implementations
