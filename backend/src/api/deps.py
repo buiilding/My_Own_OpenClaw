@@ -6,6 +6,7 @@ The container is set once during application startup and remains valid for the
 entire application lifetime.
 """
 import logging
+import threading
 from typing import Annotated
 from fastapi import Depends, HTTPException
 
@@ -16,7 +17,10 @@ from backend.src.core.container import Container
 logger = logging.getLogger(__name__)
 
 # App-lifespan-scoped container instance (set once during startup)
+# Thread-safe initialization lock ensures visibility guarantees
 _container: Container | None = None
+_container_lock = threading.Lock()
+_container_initialized = False
 
 
 def set_container(container: Container, force: bool = False) -> None:
@@ -26,6 +30,9 @@ def set_container(container: Container, force: bool = False) -> None:
     Called once during application startup. The container remains valid for the
     entire application lifetime and is shared across all requests.
     
+    Thread-safe: Uses lock to ensure visibility guarantees and prevent race conditions
+    during initialization (though initialization should happen single-threaded at startup).
+    
     Args:
         container: Application container instance
         force: If True, allow override of existing container (for testing/simulation).
@@ -34,16 +41,20 @@ def set_container(container: Container, force: bool = False) -> None:
     Raises:
         RuntimeError: If container is already set and force=False
     """
-    global _container
-    if _container is not None and not force:
-        raise RuntimeError(
-            "Container already set. This should only happen once at startup. "
-            "Use force=True only for testing/simulation scenarios."
-        )
-    if _container is not None and force:
-        logger.warning("Container override forced - this should only happen in testing/simulation")
-    _container = container
-    logger.debug("Container set for app-lifespan scope")
+    global _container, _container_initialized
+    
+    with _container_lock:
+        if _container is not None and not force:
+            raise RuntimeError(
+                "Container already set. This should only happen once at startup. "
+                "Use force=True only for testing/simulation scenarios."
+            )
+        if _container is not None and force:
+            logger.warning("Container override forced - this should only happen in testing/simulation")
+        
+        _container = container
+        _container_initialized = True
+        logger.debug("Container set for app-lifespan scope")
 
 
 async def get_container() -> Container:
@@ -54,19 +65,26 @@ async def get_container() -> Container:
     entire application lifetime. This is not request-scoped - all requests
     share the same container instance.
     
+    Thread-safe: Uses lock to ensure visibility guarantees when checking initialization.
+    
     Returns:
         Container instance
         
     Raises:
         HTTPException: If container is not initialized (503 Service Unavailable)
     """
-    if _container is None:
-        logger.error("Container accessed before initialization - application not ready")
-        raise HTTPException(
-            status_code=503,
-            detail="Application not initialized. Container not available."
-        )
-    return _container
+    # Use lock to ensure visibility of _container_initialized flag
+    with _container_lock:
+        if not _container_initialized or _container is None:
+            logger.error("Container accessed before initialization - application not ready")
+            raise HTTPException(
+                status_code=503,
+                detail="Application not initialized. Container not available."
+            )
+        # Return reference after lock release is safe - container is immutable after init
+        container = _container
+    
+    return container
 
 
 async def get_session_manager(container: Container = Depends(get_container)) -> SessionManager:

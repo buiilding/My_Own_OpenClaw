@@ -25,7 +25,7 @@ class MessageHandler(ABC):
     async def handle(
         self, 
         data: Dict[str, Any], 
-        websocket: WebSocket,
+        websocket: Union[WebSocket, Any],
         user_id: str
     ) -> None:
         """
@@ -33,7 +33,10 @@ class MessageHandler(ABC):
         
         Args:
             data: Message data dictionary
-            websocket: WebSocket connection
+            websocket: WebSocket connection (SafeWebSocket or WebSocket).
+                      SafeWebSocket is preferred for thread-safe writes.
+                      SafeWebSocket delegates attribute access via __getattr__,
+                      so handlers accessing websocket attributes will work.
             user_id: User ID from connection context
             
         Raises:
@@ -125,7 +128,7 @@ class MessageHandlerRegistry:
         self, 
         message_type: str,
         data: Dict[str, Any],
-        websocket: WebSocket,
+        websocket: Union[WebSocket, Any],
         user_id: str
     ) -> None:
         """
@@ -134,7 +137,8 @@ class MessageHandlerRegistry:
         Args:
             message_type: Type of message
             data: Message data dictionary
-            websocket: WebSocket connection
+            websocket: WebSocket connection (SafeWebSocket or WebSocket).
+                      SafeWebSocket is preferred for thread-safe writes.
             user_id: User ID from connection context
             
         Raises:
@@ -142,14 +146,25 @@ class MessageHandlerRegistry:
             Exception: If handler execution fails
         """
         # Run middleware
-        # Middleware exceptions propagate to caller. Non-critical middleware (e.g., logging, metrics)
-        # should catch and handle their own exceptions internally if they don't want to block processing.
+        # CRITICAL: Middleware exceptions MUST propagate to caller to prevent fail-open security vulnerabilities.
+        # If authentication or rate limiting middleware fails, the handler must NOT execute.
+        # Non-critical middleware (e.g., logging, metrics) should catch and handle their own
+        # exceptions internally if they don't want to block processing.
         # Critical middleware (e.g., auth) should raise exceptions that will stop message processing.
         for middleware in self._middleware:
-            result = middleware(data, websocket)
-            # Check if result is awaitable (coroutine)
-            if hasattr(result, '__await__'):
-                await result
+            try:
+                result = middleware(data, websocket)
+                # Check if result is awaitable (coroutine)
+                if hasattr(result, '__await__'):
+                    await result
+            except Exception as e:
+                # Log middleware failure but propagate exception to prevent handler execution
+                # This ensures fail-closed behavior for security-critical middleware
+                logger.error(
+                    f"Middleware failed for message type '{message_type}': {e}",
+                    exc_info=True
+                )
+                raise
         
         # Get handler
         handler = self._handlers.get(message_type)

@@ -11,7 +11,7 @@ from typing import Dict, Any, List
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
-from backend.src.api.deps import get_container, ContainerDep
+from backend.src.api.deps import ContainerDep
 from backend.src.core.config import AppConfig
 from backend.src.core.config.manager import load_api_key_for_provider
 from backend.src.llm.llm_client import get_llm_client

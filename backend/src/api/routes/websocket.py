@@ -214,6 +214,7 @@ async def websocket_endpoint(
                     # Route message based on validated type
                     # We spawn a task to avoid blocking the receiving loop.
                     # This is essential for handlers that wait for other messages (like tool-result).
+                    # Pass SafeWebSocket to ensure thread-safe writes across concurrent handlers
                     # Track task to cancel on disconnect
                     task = asyncio.create_task(handle_message(safe_ws, validated_msg, handler_registry, user_id))
                     await add_task(task)
@@ -261,7 +262,7 @@ async def websocket_endpoint(
         await session_manager.end_session(user_id)
 
 async def handle_message(
-    websocket: Union[WebSocket, SafeWebSocket], 
+    websocket: SafeWebSocket, 
     message: IncomingMessage, 
     handler_registry: MessageHandlerRegistry,
     user_id: str
@@ -270,7 +271,7 @@ async def handle_message(
     Handle incoming WebSocket message using handler registry with type-based routing.
     
     Args:
-        websocket: WebSocket connection
+        websocket: SafeWebSocket connection (thread-safe wrapper)
         message: Validated Pydantic message object
         handler_registry: Message handler registry instance
         user_id: User ID from connection context
@@ -283,6 +284,7 @@ async def handle_message(
         # Convert Pydantic model to dict for handler (handlers still expect dict for now)
         # TODO: Refactor handlers to accept typed messages in future phase
         message_dict = message.model_dump()
+        # Pass SafeWebSocket to handlers to ensure thread-safe writes
         await handler_registry.handle(msg_type, message_dict, websocket, user_id)
     
     except ValueError as e:
@@ -292,7 +294,7 @@ async def handle_message(
         logger.error(f"Unexpected error handling message: {e}", exc_info=True)
         await send_error(websocket, msg_id, f"Internal error: {str(e)}")
 
-async def send_error(websocket: Union[WebSocket, SafeWebSocket], msg_id: str | None, message: str):
+async def send_error(websocket: SafeWebSocket, msg_id: str | None, message: str):
     """
     Send error response to WebSocket client.
     
@@ -300,15 +302,13 @@ async def send_error(websocket: Union[WebSocket, SafeWebSocket], msg_id: str | N
     This is the ONLY way errors should be sent from the WebSocket route layer.
     
     Args:
-        websocket: WebSocket connection (WebSocket or SafeWebSocket)
+        websocket: SafeWebSocket connection (thread-safe wrapper)
         msg_id: Message ID (optional)
         message: Error message
     """
     from backend.src.api.handlers.error_utils import send_error_response
-    # SafeWebSocket is a wrapper, but send_error_response expects WebSocket
-    # Use public method to get underlying websocket
-    actual_ws = websocket.get_websocket() if isinstance(websocket, SafeWebSocket) else websocket
-    await send_error_response(actual_ws, msg_id, message)
+    # send_error_response now accepts SafeWebSocket directly for thread-safe writes
+    await send_error_response(websocket, msg_id, message)
 
 # Legacy handlers removed - now handled by MessageHandlerRegistry (Phase 1)
 # See backend/src/api/handlers/ for handler implementations
