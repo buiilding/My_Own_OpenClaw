@@ -37,7 +37,7 @@ class EmbeddingRequest(BaseModel):
     """Request model for embedding generation."""
     # FIX: Add constraints to prevent DoS
     text: str = Field(..., min_length=1, max_length=8192, description="Text to embed")
-    model_name: str = "default"  # Optional model specification
+    model_name: str = Field(default="default", min_length=1, max_length=128, description="Model name for embedding generation")
 
 
 class EmbeddingResponse(BaseModel):

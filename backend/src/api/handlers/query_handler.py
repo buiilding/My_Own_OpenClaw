@@ -85,11 +85,11 @@ class QueryMessageHandler(MessageHandler):
         tts_service = None
         audio_task = None
 
-        try:
-            # Type assertion - message is already validated as QueryMessage
-            validated: QueryMessage = message  # type: ignore
-            msg_id = validated.id
+        # Type assertion - message is already validated as QueryMessage
+        validated: QueryMessage = message  # type: ignore
+        msg_id = validated.id
 
+        try:
             # Validate and sanitize query text
             try:
                 query_text = validate_query_text(validated.payload.text)
@@ -153,15 +153,14 @@ class QueryMessageHandler(MessageHandler):
                     audio_task.cancel()
                 await self.tts_manager.cleanup(tts_service, audio_task)
 
-        except ValidationError as e:
-            await self._send_error(
-                websocket, message.id, f"Invalid query message: {e.message}"
-            )
         except Exception as e:
+            # Catch any errors during setup (session creation, TTS initialization, etc.)
             # Full details logged server-side, sanitized message sent to client
-            await self._send_error(
-                websocket, message.id, None, exception=e
-            )
+            await self._send_error(websocket, msg_id, None, exception=e)
+            # Ensure cleanup even if setup fails
+            if audio_task and not audio_task.done():
+                audio_task.cancel()
+            await self.tts_manager.cleanup(tts_service, audio_task)
 
     async def _send_error(
         self, 

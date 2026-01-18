@@ -170,6 +170,9 @@ FACTS:
             success=True
         )
         
+    except HTTPException:
+        # Re-raise HTTPExceptions to preserve status codes (e.g., 503 Service Unavailable)
+        raise
     except Exception as e:
         logger.error(f"Failed to summarize conversations: {e}", exc_info=True)
         # Sanitize error message to prevent information leakage

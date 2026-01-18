@@ -48,6 +48,7 @@ _INCOMING_MESSAGE_ADAPTER = TypeAdapter(IncomingMessage)
 MAX_MESSAGE_SIZE = 10 * 1024 * 1024  # 10MB - maximum message size to prevent memory exhaustion attacks
 TASK_CANCELLATION_TIMEOUT = 5.0  # Seconds to wait for tasks to cancel on disconnect
 MAX_CONCURRENT_TASKS = 50  # FIX #1: Maximum concurrent tasks per connection to prevent DoS
+WEBSOCKET_RECEIVE_TIMEOUT = 300.0  # 5 minutes - timeout for receive operations to prevent resource exhaustion
 
 
 class SafeWebSocket:
@@ -149,18 +150,37 @@ async def websocket_endpoint(
     active_tasks: set[asyncio.Task] = set()
     tasks_lock = asyncio.Lock()
     
+    async def _remove_task_safely(task: asyncio.Task) -> None:
+        """
+        Remove task from active set with lock protection.
+        
+        This coroutine is scheduled from the task_done_callback to ensure
+        thread-safe removal that doesn't race with disconnect cleanup iteration.
+        """
+        async with tasks_lock:
+            active_tasks.discard(task)
+    
     def task_done_callback(task: asyncio.Task):
         """
         Remove task from active set when done.
         
         NOTE: This callback runs synchronously from the task's context.
-        Set operations are atomic in Python (GIL-protected), so direct
-        removal is safe. The lock is only needed for iteration during
-        disconnect cleanup.
+        To prevent race conditions with disconnect cleanup iteration, we schedule
+        a coroutine to remove the task with proper lock protection.
         """
-        # Direct removal is safe - set operations are atomic
-        # Lock is only needed when iterating during disconnect
-        active_tasks.discard(task)
+        # Schedule removal with lock protection to prevent race with iteration
+        # The callback runs in the task's context (same event loop), so we can schedule
+        try:
+            # Get the running event loop (should be available since callback runs from task)
+            loop = asyncio.get_running_loop()
+            # Schedule the async removal function as a task
+            # This ensures the lock is properly acquired before modifying the set
+            loop.create_task(_remove_task_safely(task))
+        except RuntimeError:
+            # Edge case: no running loop (shouldn't happen in normal operation)
+            # Fall back to direct removal - this is safe for single operations
+            # but may race with iteration (acceptable in shutdown scenarios)
+            active_tasks.discard(task)
     
     # Handshake - FIX: Strict validation, reject default_user and empty user_id
     try:
@@ -201,7 +221,26 @@ async def websocket_endpoint(
     # Main Loop
     try:
         while True:
-            data = await websocket.receive_text()
+            # Add timeout to prevent resource exhaustion (Slowloris attack vector)
+            # Clients that never send data will timeout and be disconnected
+            try:
+                data = await asyncio.wait_for(
+                    websocket.receive_text(),
+                    timeout=WEBSOCKET_RECEIVE_TIMEOUT
+                )
+            except asyncio.TimeoutError:
+                logger.info(f"Connection timeout for user {user_id} (no data received in {WEBSOCKET_RECEIVE_TIMEOUT}s)")
+                try:
+                    await safe_ws.close(code=1008, reason="Connection timeout - no data received")
+                except Exception:
+                    pass  # Connection may already be closed
+                finally:
+                    # Clean up session on timeout to prevent orphaned sessions
+                    try:
+                        await session_manager.end_session(user_id)
+                    except Exception as e:
+                        logger.error(f"Error ending session on timeout for user {user_id}: {e}", exc_info=True)
+                break
             
             # Validate message size before processing
             if len(data) > MAX_MESSAGE_SIZE:
@@ -283,7 +322,11 @@ async def websocket_endpoint(
         if zombies:
             logger.error(f"Orphaned {len(zombies)} tasks after disconnect cleanup for user {user_id}")
         
-        await session_manager.end_session(user_id)
+        # Clean up session - handle exceptions to prevent cleanup failure
+        try:
+            await session_manager.end_session(user_id)
+        except Exception as e:
+            logger.error(f"Error ending session on disconnect for user {user_id}: {e}", exc_info=True)
 
 async def handle_message(
     websocket: SafeWebSocket, 

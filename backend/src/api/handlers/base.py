@@ -169,9 +169,9 @@ class MessageHandlerRegistry:
         # Get handler
         handler = self._handlers.get(message_type)
         if not handler:
+            # Don't leak internal handler list in error message (security)
             raise ValueError(
-                f"No handler registered for message type: {message_type}. "
-                f"Available handlers: {list(self._handlers.keys())}"
+                f"No handler registered for message type: {message_type}"
             )
         
         # Validate message
