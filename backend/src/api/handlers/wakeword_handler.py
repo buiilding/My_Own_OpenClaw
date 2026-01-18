@@ -6,17 +6,15 @@ Handles wakeword detection and activation messages.
 import logging
 from typing import Any, Dict
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocketDisconnect
 
 from backend.src.api.handlers.base import MessageHandler
 from backend.src.api.handlers.error_utils import send_error_response, send_success_response
+from backend.src.api.handlers.transport import WebSocketSender
 from backend.src.api.handlers.tts_manager import TTSManager
-from backend.src.api.schema import WakewordDetectedMessage
+from backend.src.api.schema import BaseMessage, WakewordDetectedMessage
 from backend.src.core.services.wakeword_service import WakewordService
-from backend.src.core.validation import (
-    validate_message,
-    ValidationError
-)
+from backend.src.core.validation import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -43,16 +41,12 @@ class WakewordHandler(MessageHandler):
         self.tts_manager = tts_manager
         self.wakeword_service = wakeword_service
 
-    def validate_message(self, data: Dict[str, Any]) -> bool:
+    def validate_message(self, message: BaseMessage) -> bool:
         """Validate wakeword message structure."""
-        try:
-            validate_message(data, "wakeword-detected", WakewordDetectedMessage)
-            return True
-        except ValidationError:
-            return False
+        return isinstance(message, WakewordDetectedMessage)
 
     async def handle(
-        self, data: Dict[str, Any], websocket: WebSocket, user_id: str
+        self, message: BaseMessage, websocket: WebSocketSender, user_id: str
     ) -> None:
         """
         Handle wakeword detection.
@@ -60,16 +54,16 @@ class WakewordHandler(MessageHandler):
         Activates voice/speech modes, sends greeting, and generates TTS if enabled.
 
         Args:
-            data: Message data dictionary
-            websocket: WebSocket connection
+            message: Validated WakewordDetectedMessage Pydantic model
+            websocket: WebSocketSender (thread-safe protocol implementation)
             user_id: User ID from connection context
         """
         tts_service = None
         audio_task = None
         
         try:
-            # Validate message
-            validated = validate_message(data, "wakeword-detected", WakewordDetectedMessage)
+            # Type assertion - message is already validated as WakewordDetectedMessage
+            validated: WakewordDetectedMessage = message  # type: ignore
             msg_id = validated.id
 
             # Get greeting from service (policy extracted)
@@ -111,16 +105,16 @@ class WakewordHandler(MessageHandler):
             # Validation error - send using canonical utility
             await send_error_response(
                 websocket,
-                data.get("id"),
+                message.id,
                 f"Invalid wakeword message: {e.message}"
             )
         except Exception as e:
-            # Unexpected error - log and send using canonical utility
-            logger.error(f"Error in wakeword handler: {e}", exc_info=True)
+            # Unexpected error - send sanitized error to prevent information leakage
             await send_error_response(
                 websocket,
-                data.get("id"),
-                f"Wakeword error: {str(e)}"
+                message.id,
+                None,
+                exception=e
             )
         finally:
             # Clean up TTS
