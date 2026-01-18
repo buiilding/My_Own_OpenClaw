@@ -10,6 +10,35 @@ from backend.src.llm.providers.mistral import MistralProvider
 from backend.src.llm.providers.openai import OpenAIProvider
 from backend.src.llm.providers.openrouter import OpenRouterProvider
 
+# Module-level cache for provider factories to prevent recreation on every call
+# Key: hash of config values that affect provider initialization
+# Value: Dict[str, LLMProvider] factory
+_provider_factory_cache: Dict[int, Dict[str, LLMProvider]] = {}
+
+
+def _get_config_cache_key(cfg: AppConfig) -> int:
+    """
+    Generate a cache key from config values that affect provider initialization.
+    
+    Since AppConfig is frozen (immutable), we can use a hash of relevant values
+    to cache factories per config state.
+    """
+    # Build a tuple of config values that affect provider initialization
+    ollama_url = cfg.llm_providers.ollama.base_url if cfg.llm_providers else "http://localhost:11434/v1"
+    lmstudio_url = cfg.llm_providers.lmstudio.base_url if cfg.llm_providers else "http://localhost:1234/v1"
+    openrouter_url = getattr(cfg.llm_providers.openrouter, "base_url", None) if cfg.llm_providers else None
+    
+    cache_tuple = (
+        cfg.api_key,
+        cfg.llm_timeout,
+        ollama_url,
+        lmstudio_url,
+        openrouter_url,
+    )
+    
+    # Use hash of tuple for cache key
+    return hash(cache_tuple)
+
 
 def create_provider_factory(
     cfg: AppConfig,
@@ -17,9 +46,18 @@ def create_provider_factory(
     """
     Creates a factory of provider instances.
     
+    CACHED: Factory instances are cached per config state to prevent
+    recreation on every request. This is critical for performance as
+    provider initialization creates HTTP clients and connection pools.
+    
     Extracts only the required primitives from config, decoupling providers
     from the global config structure (Law of Demeter compliance).
     """
+    # Check cache first
+    cache_key = _get_config_cache_key(cfg)
+    if cache_key in _provider_factory_cache:
+        return _provider_factory_cache[cache_key]
+    
     # Extract common values
     api_key = cfg.api_key
     timeout = float(cfg.llm_timeout)
@@ -38,7 +76,7 @@ def create_provider_factory(
         else None
     )
     
-    return {
+    factory = {
         "openai": OpenAIProvider(
             api_key=api_key,
             base_url=None,
@@ -78,10 +116,26 @@ def create_provider_factory(
             timeout=timeout,
         ),
     }
+    
+    # Cache the factory
+    _provider_factory_cache[cache_key] = factory
+    return factory
 
 
 def get_provider(cfg: AppConfig, provider_name: str) -> LLMProvider:
-    """Gets a provider instance from the factory."""
+    """
+    Gets a provider instance from the cached factory.
+    
+    Raises:
+        ValueError: If provider_name is invalid and not in factory
+    """
     factory = create_provider_factory(cfg)
     safe_provider_name = provider_name or "default"
-    return factory.get(safe_provider_name, factory["default"])
+    
+    if safe_provider_name not in factory:
+        raise ValueError(
+            f"Unknown provider: '{safe_provider_name}'. "
+            f"Available providers: {', '.join(factory.keys())}"
+        )
+    
+    return factory[safe_provider_name]
