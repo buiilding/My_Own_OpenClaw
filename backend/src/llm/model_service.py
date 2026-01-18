@@ -113,7 +113,15 @@ class ModelService:
         
         # Try Ollama
         try:
-            ollama = OllamaProvider(self.config)
+            # Extract base_url and timeout from config to match provider constructor signature
+            ollama_config = self.config.llm_providers.ollama if self.config.llm_providers else None
+            ollama_base_url = ollama_config.base_url if ollama_config else "http://localhost:11434/v1"
+            timeout = float(self.config.llm_timeout)
+            
+            ollama = OllamaProvider(
+                base_url=ollama_base_url,
+                timeout=timeout
+            )
             models = await ollama.list_models()
             local_models.extend(models)
             logger.debug(f"Successfully listed {len(models)} Ollama models")
@@ -126,7 +134,15 @@ class ModelService:
 
         # Try LM Studio
         try:
-            lmstudio = LMStudioProvider(self.config)
+            # Extract base_url and timeout from config to match provider constructor signature
+            lmstudio_config = self.config.llm_providers.lmstudio if self.config.llm_providers else None
+            lmstudio_base_url = lmstudio_config.base_url if lmstudio_config else "http://localhost:1234/v1"
+            timeout = float(self.config.llm_timeout)
+            
+            lmstudio = LMStudioProvider(
+                base_url=lmstudio_base_url,
+                timeout=timeout
+            )
             models = await lmstudio.list_models()
             local_models.extend(models)
             logger.debug(f"Successfully listed {len(models)} LM Studio models")

@@ -74,10 +74,38 @@ class LiteLLMClient(LLMClient):
         return self._provider
 
     async def get_completion(self, model: str, messages: List[LLMMessage]) -> str:
-        """Delegates getting a completion to the appropriate provider."""
+        """
+        Delegates getting a completion to the appropriate provider.
+        
+        Extracts content from normalized response with validation.
+        
+        Raises:
+            LLMAPIError: If response structure is invalid
+        """
         provider = self._get_provider()
         response = await provider.get_completion(model, messages)
-        return response["content"]
+        
+        # Validate response structure (TypedDict guarantees type hints but not runtime structure)
+        if not isinstance(response, dict):
+            raise LLMAPIError(
+                f"Invalid response type from provider: expected dict, got {type(response).__name__}",
+                model=model
+            )
+        
+        if "content" not in response:
+            raise LLMAPIError(
+                f"Invalid response structure from provider: missing 'content' key. Keys: {list(response.keys())}",
+                model=model
+            )
+        
+        content = response["content"]
+        if not isinstance(content, str):
+            raise LLMAPIError(
+                f"Invalid content type from provider: expected str, got {type(content).__name__}",
+                model=model
+            )
+        
+        return content
 
     async def get_completion_stream(
         self, model: str, messages: List[LLMMessage]

@@ -100,7 +100,7 @@ class LLMProvider(ABC):
         Returns:
             List of model dictionaries with 'id', 'provider', and 'display_name'.
         """
-        return []
+        pass
 
     def _build_request_params(
         self,
