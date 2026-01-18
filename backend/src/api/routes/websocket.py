@@ -34,7 +34,7 @@ from backend.src.api.deps import (
     SessionManagerDep,
 )
 from backend.src.api.handlers.base import MessageHandlerRegistry
-from backend.src.api.handlers.error_utils import send_error_response
+from backend.src.api.handlers.error_utils import send_error_response, sanitize_error_message
 from backend.src.api.handlers.transport import WebSocketSender
 from backend.src.api.schema import IncomingMessage, HandshakeMessage
 
@@ -47,6 +47,7 @@ _INCOMING_MESSAGE_ADAPTER = TypeAdapter(IncomingMessage)
 # Constants
 MAX_MESSAGE_SIZE = 10 * 1024 * 1024  # 10MB - maximum message size to prevent memory exhaustion attacks
 TASK_CANCELLATION_TIMEOUT = 5.0  # Seconds to wait for tasks to cancel on disconnect
+MAX_CONCURRENT_TASKS = 50  # FIX #1: Maximum concurrent tasks per connection to prevent DoS
 
 
 class SafeWebSocket:
@@ -222,6 +223,13 @@ async def websocket_endpoint(
                     # Set user_id from connection context using model_copy to avoid mutation
                     validated_msg = validated_msg.model_copy(update={"user_id": user_id})
                     
+                    # FIX #1: Concurrency Limit - Prevent DoS via task explosion
+                    async with tasks_lock:
+                        if len(active_tasks) >= MAX_CONCURRENT_TASKS:
+                            logger.warning(f"User {user_id} exceeded max concurrent tasks ({MAX_CONCURRENT_TASKS})")
+                            await send_error(safe_ws, json_data.get("id"), "Too many concurrent requests. Please wait.")
+                            continue
+                    
                     # Route message based on validated type
                     # We spawn a task to avoid blocking the receiving loop.
                     # This is essential for handlers that wait for other messages (like tool-result).
@@ -250,25 +258,29 @@ async def websocket_endpoint(
                 
     except WebSocketDisconnect:
         logger.info(f"Client {user_id} disconnected")
-        # Cancel all active tasks for this connection
-        # Get snapshot of tasks with lock to avoid race condition
+        # FIX #2: Robust Cleanup - Cancel all active tasks for this connection
+        # Get snapshot of pending tasks with lock to avoid race condition
         async with tasks_lock:
-            tasks_to_cancel = list(active_tasks)
+            pending = [t for t in active_tasks if not t.done()]
         
-        for task in tasks_to_cancel:
-            if not task.done():
-                task.cancel()
+        # Cancel all pending tasks
+        for task in pending:
+            task.cancel()
         
-        # Wait for tasks to cancel with timeout
-        # This prevents hanging if tasks don't cancel cleanly
-        if tasks_to_cancel:
+        # Wait for handlers to react to CancelledError
+        if pending:
             try:
                 await asyncio.wait_for(
-                    asyncio.gather(*tasks_to_cancel, return_exceptions=True),
+                    asyncio.gather(*pending, return_exceptions=True),
                     timeout=TASK_CANCELLATION_TIMEOUT
                 )
             except asyncio.TimeoutError:
-                logger.warning(f"Timeout waiting for {len(tasks_to_cancel)} tasks to cancel on disconnect")
+                logger.warning(f"Timeout waiting for {len(pending)} tasks to cancel on disconnect")
+        
+        # Force check for zombies (tasks that didn't respond to cancellation)
+        zombies = [t for t in pending if not t.done()]
+        if zombies:
+            logger.error(f"Orphaned {len(zombies)} tasks after disconnect cleanup for user {user_id}")
         
         await session_manager.end_session(user_id)
 
@@ -297,10 +309,19 @@ async def handle_message(
     
     except ValueError as e:
         # Handler not found or validation error - safe to expose
-        await send_error(websocket, msg_id, str(e))
+        # FIX #4: Ensure logging even if send fails
+        try:
+            await send_error(websocket, msg_id, str(e))
+        except Exception as send_err:
+            logger.warning(f"Failed to send error response to user {user_id} (msg_id={msg_id}): {send_err}", exc_info=True)
     except Exception as e:
         # Unexpected error - send sanitized error to prevent information leakage
-        await send_error(websocket, msg_id, None, exception=e)
+        # FIX #4: Ensure logging even if send fails
+        try:
+            sanitized_msg = sanitize_error_message(e)
+            await send_error(websocket, msg_id, sanitized_msg)
+        except Exception as send_err:
+            logger.error(f"Failed to send critical error response to user {user_id} (msg_id={msg_id}): {send_err}", exc_info=True)
 
 async def send_error(
     websocket: SafeWebSocket, 
