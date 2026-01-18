@@ -98,9 +98,11 @@ async def generate_embedding(
     except Exception as e:
         embedding_time = time.perf_counter() - embedding_start_time
         logger.error(f"[Timing] Embedding generation failed after {embedding_time:.3f}s: {e}", exc_info=True)
+        # Sanitize error message to prevent information leakage
+        # Full details are logged server-side above
         raise HTTPException(
             status_code=500,
-            detail=f"Embedding generation failed: {str(e)}"
+            detail="Embedding generation failed: An internal error occurred"
         )
 
 
@@ -133,8 +135,9 @@ async def health_check(
         }
 
     except Exception as e:
-        logger.error(f"Embeddings health check failed: {e}")
+        logger.error(f"Embeddings health check failed: {e}", exc_info=True)
+        # Sanitize error to prevent information leakage
         return {
             "status": "unhealthy",
-            "error": str(e)
+            "message": "Health check failed"
         }

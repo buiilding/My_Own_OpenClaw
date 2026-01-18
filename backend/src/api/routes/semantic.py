@@ -6,7 +6,7 @@ REST endpoints for semantic memory summarization operations.
 
 import logging
 import re
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from backend.src.api.deps import ContainerDep
 from backend.src.core.config import AppConfig
 from backend.src.core.config.manager import load_api_key_for_provider
+from backend.src.core.types import LLMMessage
 from backend.src.llm.llm_client import get_llm_client
 
 router = APIRouter(prefix="/api/semantic", tags=["semantic"])
@@ -113,8 +114,6 @@ FACTS:
 """
         
         # Call LLM for summarization
-        from backend.src.core.types import LLMMessage
-        
         messages: List[LLMMessage] = [
             {
                 "role": "user",
@@ -149,9 +148,11 @@ FACTS:
         
     except Exception as e:
         logger.error(f"Failed to summarize conversations: {e}", exc_info=True)
+        # Sanitize error message to prevent information leakage
+        # Full details are logged server-side above
         raise HTTPException(
             status_code=500,
-            detail=f"Summarization failed: {str(e)}"
+            detail="Summarization failed: An internal error occurred"
         )
 
 
@@ -179,14 +180,15 @@ async def health_check(
         }
         
     except Exception as e:
-        logger.error(f"Semantic health check failed: {e}")
+        logger.error(f"Semantic health check failed: {e}", exc_info=True)
+        # Sanitize error to prevent information leakage
         return {
             "status": "unhealthy",
-            "error": str(e)
+            "message": "Health check failed"
         }
 
 
-def _parse_summarization_response(response_text: str) -> tuple[str, List[str]]:
+def _parse_summarization_response(response_text: str) -> Tuple[str, List[str]]:
     """
     Parse LLM summarization response to extract summary and facts.
     

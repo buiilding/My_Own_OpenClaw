@@ -32,10 +32,9 @@ SILENT FAILURE PREVENTION:
   expected when clients disconnect and are logged at debug level
 """
 import logging
-from typing import Optional, Union, Any
+from typing import Optional, Any
 
 from fastapi import WebSocketDisconnect
-from typing import Union, Any
 
 from backend.src.core.validation import ValidationError
 from backend.src.api.handlers.transport import WebSocketSender, WebSocketTransportSender
