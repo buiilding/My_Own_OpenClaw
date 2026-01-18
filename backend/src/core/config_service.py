@@ -10,6 +10,7 @@ from typing import Any, Dict, Optional
 
 from backend.src.core.bus import EventBus
 from backend.src.core.config import AppConfig, ConfigManager
+from backend.src.core.config.manager import get_config_dir
 from backend.src.core.config_subscription_manager import (
     ConfigSubscriber,
     ConfigSubscriptionManager,
@@ -237,5 +238,61 @@ class ConfigurationService:
             Current AppConfig instance
         """
         return self.get_config()
+    
+    def get_default_tts_model_path(self) -> Optional[str]:
+        """
+        Get default TTS model path if none is configured.
+        
+        Policy: Default TTS model path for Piper TTS.
+        This policy is centralized here so it can be configured or changed
+        without modifying handler code.
+        
+        Returns:
+            Default TTS model path, or None if no default
+        """
+        config_dir = get_config_dir()
+        return str(config_dir / "tts_models" / "piper" / "en_GB-jenny_dioco-medium.onnx")
+    
+    def build_user_config(self, user_config: Dict[str, Any]) -> AppConfig:
+        """
+        Build complete user configuration by merging global config with user overrides.
+        
+        Applies configuration policies:
+        - tts_enabled is always True (hardcoded policy, not configurable)
+        - Sets default TTS model path if needed
+        - Loads API keys for selected provider
+        
+        This method centralizes config building logic to avoid duplication
+        between handlers and session managers.
+        
+        Args:
+            user_config: User-specific configuration overrides (dict)
+            
+        Returns:
+            Complete AppConfig instance with policies applied and API keys loaded
+        """
+        from backend.src.core.config.manager import load_api_key_for_provider
+        
+        global_config = self.get_config()
+        
+        # Merge: user config overrides global
+        complete_config_dict = {**global_config.model_dump(), **user_config}
+        
+        # Policy: tts_enabled is always True (hardcoded, not configurable)
+        # speech_mode_enabled controls whether TTS is actually used
+        complete_config_dict["tts_enabled"] = True
+        
+        # Set default TTS model path if TTS is enabled and path is not set
+        tts_will_be_enabled = complete_config_dict.get("tts_enabled", global_config.tts_enabled)
+        if tts_will_be_enabled:
+            if not complete_config_dict.get("tts_model_path") and not global_config.tts_model_path:
+                complete_config_dict["tts_model_path"] = self.get_default_tts_model_path()
+        
+        validated_config = AppConfig(**complete_config_dict)
+        
+        # Load API key for the selected provider
+        validated_config = load_api_key_for_provider(validated_config)
+        
+        return validated_config
 
 

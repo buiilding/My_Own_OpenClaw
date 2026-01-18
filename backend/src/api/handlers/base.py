@@ -6,7 +6,8 @@ for WebSocket message handling.
 """
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Awaitable
+from typing import Any, Callable, Dict, Optional, Union
 from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
@@ -64,7 +65,7 @@ class MessageHandlerRegistry:
     def __init__(self):
         """Initialize the handler registry."""
         self._handlers: Dict[str, MessageHandler] = {}
-        self._middleware: list[Callable[[Dict, WebSocket], None]] = []
+        self._middleware: list[Callable[[Dict[str, Any], WebSocket], Union[None, Awaitable[None]]]] = []
     
     def register(
         self, 
@@ -108,13 +109,14 @@ class MessageHandlerRegistry:
     
     def add_middleware(
         self, 
-        middleware: Callable[[Dict[str, Any], WebSocket], None]
+        middleware: Callable[[Dict[str, Any], WebSocket], Union[None, Awaitable[None]]]
     ) -> None:
         """
         Add middleware that runs before all handlers.
         
         Args:
-            middleware: Middleware function that receives (data, websocket)
+            middleware: Middleware function that receives (data, websocket).
+                Can be either sync (returns None) or async (returns Awaitable[None]).
         """
         self._middleware.append(middleware)
         logger.debug(f"Added middleware: {middleware}")
@@ -142,7 +144,10 @@ class MessageHandlerRegistry:
         # Run middleware
         for middleware in self._middleware:
             try:
-                await middleware(data, websocket)
+                result = middleware(data, websocket)
+                # Check if result is awaitable (coroutine)
+                if hasattr(result, '__await__'):
+                    await result
             except Exception as e:
                 logger.error(f"Error in middleware: {e}", exc_info=True)
                 # Continue processing even if middleware fails
