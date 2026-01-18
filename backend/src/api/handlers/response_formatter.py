@@ -60,10 +60,19 @@ class ThinkingEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        content = event_dict.get("content")
+        
+        if content is None:
+            logger.warning(
+                f"ThinkingEvent missing required field 'content'. "
+                f"Skipping format (msg_id={msg_id})"
+            )
+            return None
+        
         return {
             "type": "llm-thought",
             "id": msg_id,
-            "payload": {"status": event_dict["content"]},
+            "payload": {"status": content},
         }
 
 
@@ -72,10 +81,19 @@ class ChunkEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        content = event_dict.get("content")
+        
+        if content is None:
+            logger.warning(
+                f"ChunkEvent missing required field 'content'. "
+                f"Skipping format (msg_id={msg_id})"
+            )
+            return None
+        
         return {
             "type": "streaming-response",
             "id": msg_id,
-            "payload": {"text": event_dict["content"]},
+            "payload": {"text": content},
         }
 
 
@@ -84,10 +102,15 @@ class ErrorEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        # FIX: Map content to 'message' to match ErrorPayload schema
+        # schema.py: class ErrorPayload(BaseModel): message: str; content: Optional[str]
         return {
             "type": "error",
             "id": msg_id,
-            "payload": {"content": event_dict.get("content", "Error")},
+            "payload": {
+                "message": event_dict.get("content", "An unexpected error occurred"),
+                "content": event_dict.get("details")  # Map extra details if available
+            },
         }
 
 
@@ -103,10 +126,32 @@ class ToolCallEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        
+        # Validate required fields
+        tool_name = event_dict.get("tool_name")
+        parameters = event_dict.get("parameters")
+        raw_call = event_dict.get("raw_call")
+        
+        if not tool_name or not parameters or not raw_call:
+            # Missing required fields - log warning and skip formatting
+            missing_fields = []
+            if not tool_name:
+                missing_fields.append("tool_name")
+            if not parameters:
+                missing_fields.append("parameters")
+            if not raw_call:
+                missing_fields.append("raw_call")
+            
+            logger.warning(
+                f"ToolCallEvent missing required fields: {missing_fields}. "
+                f"Skipping format (msg_id={msg_id})"
+            )
+            return None
+        
         payload = {
-            "tool_name": event_dict.get("tool_name"),
-            "parameters": event_dict.get("parameters"),
-            "raw_call": event_dict.get("raw_call"),
+            "tool_name": tool_name,
+            "parameters": parameters,
+            "raw_call": raw_call,
         }
         # Include request_id if present (for remote tools to match results)
         if event_dict.get("request_id"):
@@ -124,14 +169,36 @@ class ToolOutputEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        
+        # Validate required fields
+        tool_name = event_dict.get("tool_name")
+        success = event_dict.get("success")
+        output = event_dict.get("output")
+        
+        if tool_name is None or success is None or output is None:
+            # Missing required fields - log warning and skip formatting
+            missing_fields = []
+            if tool_name is None:
+                missing_fields.append("tool_name")
+            if success is None:
+                missing_fields.append("success")
+            if output is None:
+                missing_fields.append("output")
+            
+            logger.warning(
+                f"ToolOutputEvent missing required fields: {missing_fields}. "
+                f"Skipping format (msg_id={msg_id})"
+            )
+            return None
+        
         return {
             "type": "tool-output",
             "id": msg_id,
             "payload": {
-                "tool_name": event_dict.get("tool_name"),
-                "success": event_dict.get("success"),
+                "tool_name": tool_name,
+                "success": success,
                 "execution_time": event_dict.get("execution_time"),
-                "output": event_dict.get("output"),
+                "output": output,
                 "error": event_dict.get("error"),
                 "screenshot": event_dict.get("screenshot"),
                 "metadata": event_dict.get("metadata"),
@@ -188,11 +255,20 @@ class AssistantMessageFullEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        content = event_dict.get("content")
+        
+        if content is None:
+            logger.warning(
+                f"AssistantMessageFullEvent missing required field 'content'. "
+                f"Skipping format (msg_id={msg_id})"
+            )
+            return None
+        
         return {
             "type": "assistant-message-full",
             "id": msg_id,
             "payload": {
-                "content": event_dict.get("content"),
+                "content": content,
             },
         }
 
@@ -219,11 +295,20 @@ class RequestScreenshotEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        request_id = event_dict.get("request_id")
+        
+        if not request_id:
+            logger.warning(
+                f"RequestScreenshotEvent missing required field 'request_id'. "
+                f"Skipping format (msg_id={msg_id})"
+            )
+            return None
+        
         return {
             "type": "request-screenshot",
             "id": msg_id,
             "payload": {
-                "request_id": event_dict.get("request_id"),
+                "request_id": request_id,
             },
         }
 
@@ -233,6 +318,11 @@ class MemoryStoreEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        user_id = event_dict.get("user_id")
+        # FIX #2: Reject default_user - security policy violation
+        if not user_id or user_id == "default_user":
+            logger.warning(f"MemoryStoreEvent missing or invalid user_id (msg_id={msg_id}), skipping")
+            return None
         return {
             "type": "memory-store",
             "id": msg_id,
@@ -240,7 +330,7 @@ class MemoryStoreEventFormatter(EventFormatter):
                 "user_query": event_dict.get("user_query"),
                 "assistant_response": event_dict.get("assistant_response"),
                 "memory_type": event_dict.get("memory_type"),
-                "user_id": event_dict.get("user_id", "default_user"),
+                "user_id": user_id,
                 "session_id": event_dict.get("session_id"),  # Track conversation window
             },
         }
@@ -273,6 +363,7 @@ class ResponseFormatter:
     Formats agent events into WebSocket response messages.
     
     Uses strategy pattern with individual formatter classes for each event type.
+    Uses O(1) dispatch table for efficient event type routing.
     """
 
     def __init__(self):
@@ -294,6 +385,25 @@ class ResponseFormatter:
             StreamingEventType.BUNDLE_START.value: BundleStartEventFormatter(),
             StreamingEventType.BUNDLE_END.value: BundleEndEventFormatter(),
         }
+        
+        # Dispatch table: event class -> formatter key (for O(1) lookup)
+        self._event_type_map: Dict[type, str] = {
+            ThinkingEvent: StreamingEventType.THINKING.value,
+            ChunkEvent: StreamingEventType.CHUNK.value,
+            ErrorEvent: StreamingEventType.ERROR.value,
+            StreamingCompleteEvent: StreamingEventType.STREAMING_COMPLETE.value,
+            ToolCallEvent: StreamingEventType.TOOL_CALL.value,
+            ToolOutputEvent: StreamingEventType.TOOL_OUTPUT.value,
+            SystemPromptEvent: StreamingEventType.SYSTEM_PROMPT.value,
+            ToolSchemasEvent: StreamingEventType.TOOL_SCHEMAS.value,
+            UserMessageFullEvent: StreamingEventType.USER_MESSAGE_FULL.value,
+            AssistantMessageFullEvent: StreamingEventType.ASSISTANT_MESSAGE_FULL.value,
+            TokenCountEvent: StreamingEventType.TOKEN_COUNT.value,
+            RequestScreenshotEvent: StreamingEventType.REQUEST_SCREENSHOT.value,
+            MemoryStoreEvent: StreamingEventType.MEMORY_STORE.value,
+            BundleStartEvent: StreamingEventType.BUNDLE_START.value,
+            BundleEndEvent: StreamingEventType.BUNDLE_END.value,
+        }
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -306,39 +416,13 @@ class ResponseFormatter:
         Returns:
             Formatted response dictionary or None if event type not recognized
         """
-        # Use isinstance checks for type-safe dispatch
-        if isinstance(event, ThinkingEvent):
-            return self._formatters[StreamingEventType.THINKING.value].format(event, msg_id)
-        elif isinstance(event, ChunkEvent):
-            return self._formatters[StreamingEventType.CHUNK.value].format(event, msg_id)
-        elif isinstance(event, ErrorEvent):
-            return self._formatters[StreamingEventType.ERROR.value].format(event, msg_id)
-        elif isinstance(event, StreamingCompleteEvent):
-            return self._formatters[StreamingEventType.STREAMING_COMPLETE.value].format(event, msg_id)
-        elif isinstance(event, ToolCallEvent):
-            return self._formatters[StreamingEventType.TOOL_CALL.value].format(event, msg_id)
-        elif isinstance(event, ToolOutputEvent):
-            return self._formatters[StreamingEventType.TOOL_OUTPUT.value].format(event, msg_id)
-        elif isinstance(event, SystemPromptEvent):
-            return self._formatters[StreamingEventType.SYSTEM_PROMPT.value].format(event, msg_id)
-        elif isinstance(event, ToolSchemasEvent):
-            return self._formatters[StreamingEventType.TOOL_SCHEMAS.value].format(event, msg_id)
-        elif isinstance(event, UserMessageFullEvent):
-            return self._formatters[StreamingEventType.USER_MESSAGE_FULL.value].format(event, msg_id)
-        elif isinstance(event, AssistantMessageFullEvent):
-            return self._formatters[StreamingEventType.ASSISTANT_MESSAGE_FULL.value].format(event, msg_id)
-        elif isinstance(event, TokenCountEvent):
-            return self._formatters[StreamingEventType.TOKEN_COUNT.value].format(event, msg_id)
-        elif isinstance(event, RequestScreenshotEvent):
-            return self._formatters[StreamingEventType.REQUEST_SCREENSHOT.value].format(event, msg_id)
-        elif isinstance(event, MemoryStoreEvent):
-            return self._formatters[StreamingEventType.MEMORY_STORE.value].format(event, msg_id)
-        elif isinstance(event, BundleStartEvent):
-            return self._formatters[StreamingEventType.BUNDLE_START.value].format(event, msg_id)
-        elif isinstance(event, BundleEndEvent):
-            return self._formatters[StreamingEventType.BUNDLE_END.value].format(event, msg_id)
-        elif isinstance(event, dict):
-            # Backward compatibility with dict events
+        # O(1) dispatch for typed events using dispatch table
+        event_type = self._event_type_map.get(type(event))
+        if event_type:
+            return self._formatters[event_type].format(event, msg_id)
+        
+        # Backward compatibility with dict events
+        if isinstance(event, dict):
             event_type = event.get("type")
             formatter = self._formatters.get(event_type)
             if formatter:

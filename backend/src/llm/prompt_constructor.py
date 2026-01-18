@@ -32,12 +32,6 @@ from backend.src.core.messages import (
     content_to_message_content,
 )
 from backend.src.core.types import LLMMessage
-from backend.src.core.exceptions import InputSizeLimitError
-from backend.src.core.observability.trust_boundary_metrics import get_metrics
-
-if TYPE_CHECKING:
-    from backend.src.core.config import AppConfig
-
 # system_monitor removed - frontend handles system state
 
 logger = logging.getLogger(__name__)
@@ -120,62 +114,7 @@ class PromptConstructor:
             prompt_messages = stored_messages.get_history()
         else:
             # Fallback: empty history if stored_messages not available
-            if stored_messages is not None:
-                logger.warning(
-                    f"stored_messages provided but missing 'get_history' method. "
-                    f"Type: {type(stored_messages).__name__}. Using empty history."
-                )
             prompt_messages = []
-        
-        # SECURITY: Check history size limit
-        if len(prompt_messages) > self.limits.max_message_history_size:
-            self.metrics.record_size_violation(
-                actual_size=len(prompt_messages),
-                max_size=self.limits.max_message_history_size,
-                boundary_name=boundary_name,
-                metadata={"check": "message_history_size"},
-            )
-            raise InputSizeLimitError(
-                f"Message history size {len(prompt_messages)} exceeds maximum {self.limits.max_message_history_size}",
-                actual_size=len(prompt_messages),
-                max_size=self.limits.max_message_history_size,
-                boundary_name=boundary_name,
-            )
-        
-        # SECURITY: Check individual message content sizes and calculate total
-        total_prompt_size = len(self.system_prompt)
-        for msg in prompt_messages:
-            # Calculate message size
-            msg_size = self._calculate_message_size(msg)
-            if msg_size > self.limits.max_message_content_size:
-                self.metrics.record_size_violation(
-                    actual_size=msg_size,
-                    max_size=self.limits.max_message_content_size,
-                    boundary_name=boundary_name,
-                    metadata={"check": "message_content_size"},
-                )
-                raise InputSizeLimitError(
-                    f"Message content size {msg_size} exceeds maximum {self.limits.max_message_content_size}",
-                    actual_size=msg_size,
-                    max_size=self.limits.max_message_content_size,
-                    boundary_name=boundary_name,
-                )
-            total_prompt_size += msg_size
-        
-        # SECURITY: Check total prompt size
-        if total_prompt_size > self.limits.max_prompt_size:
-            self.metrics.record_size_violation(
-                actual_size=total_prompt_size,
-                max_size=self.limits.max_prompt_size,
-                boundary_name=boundary_name,
-                metadata={"check": "total_prompt_size"},
-            )
-            raise InputSizeLimitError(
-                f"Total prompt size {total_prompt_size} exceeds maximum {self.limits.max_prompt_size}",
-                actual_size=total_prompt_size,
-                max_size=self.limits.max_prompt_size,
-                boundary_name=boundary_name,
-            )
 
         # Build metadata for transparency events
         user_message_metadata = None
@@ -205,14 +144,19 @@ class PromptConstructor:
                 context_xml = ""
                 active_window = "Unknown"
                 if full_content:
-                    # SECURITY: Use proper XML extraction with size limits
-                    context_xml = self._extract_xml_tag(full_content, "system_context")
+                    # Try to extract context XML from the message content
+                    if "<system_context>" in full_content:
+                        start_idx = full_content.find("<system_context>")
+                        end_idx = full_content.find("</system_context>") + len("</system_context>")
+                        if end_idx > start_idx:
+                            context_xml = full_content[start_idx:end_idx]
                     
-                    # Extract active window from context XML or full content
-                    if context_xml:
-                        active_window = self._extract_xml_tag_content(context_xml, "active_window") or "Unknown"
-                    else:
-                        active_window = self._extract_xml_tag_content(full_content, "active_window") or "Unknown"
+                    # Try to extract active window from context XML
+                    if "<active_window>" in full_content:
+                        a_start = full_content.find("<active_window>") + len("<active_window>")
+                        a_end = full_content.find("</active_window>")
+                        if a_end > a_start:
+                            active_window = full_content[a_start:a_end]
                 
                 user_message_metadata = UserMessageMetadata(
                     original_query=user_query,

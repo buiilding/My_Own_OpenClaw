@@ -5,24 +5,53 @@ REST endpoints for semantic memory summarization operations.
 """
 
 import logging
-from typing import Dict, Any, List
+import re
+from typing import Dict, Any, List, Tuple
 
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
-from backend.src.api.deps import get_container, ContainerDep
+from backend.src.api.deps import ContainerDep
 from backend.src.core.config import AppConfig
 from backend.src.core.config.manager import load_api_key_for_provider
+from backend.src.core.types import LLMMessage
 from backend.src.llm.llm_client import get_llm_client
 
 router = APIRouter(prefix="/api/semantic", tags=["semantic"])
 logger = logging.getLogger(__name__)
 
+# Constants
+FALLBACK_SUMMARY_LENGTH = 500  # Characters to use for fallback summary if parsing fails
+
 
 class SummarizeRequest(BaseModel):
     """Request model for semantic summarization."""
-    conversations: List[str]  # List of conversation texts to summarize
-    user_id: str = "default_user"
+    # FIX: Add constraints to prevent DoS
+    conversations: List[str] = Field(
+        ..., 
+        min_items=1, 
+        max_items=100, 
+        description="List of conversation texts to summarize (max 100 items)"
+    )  # Each conversation string validated below
+    user_id: str = Field(..., min_length=1, description="User ID (required, cannot be default_user)")
+    
+    @field_validator('conversations')
+    @classmethod
+    def validate_conversation_lengths(cls, v: List[str]) -> List[str]:
+        """Validate each conversation string length."""
+        max_length = 32768  # 32KB per conversation
+        for i, conv in enumerate(v):
+            if len(conv) > max_length:
+                raise ValueError(f"Conversation {i} exceeds maximum length of {max_length} characters")
+        return v
+    
+    @field_validator('user_id')
+    @classmethod
+    def validate_user_id(cls, v: str) -> str:
+        """Reject default_user as a security measure."""
+        if v == "default_user" or not v.strip():
+            raise ValueError("user_id cannot be 'default_user' or empty")
+        return v
 
 
 class SummarizeResponse(BaseModel):
@@ -109,8 +138,6 @@ FACTS:
 """
         
         # Call LLM for summarization
-        from backend.src.core.types import LLMMessage
-        
         messages: List[LLMMessage] = [
             {
                 "role": "user",
@@ -120,34 +147,20 @@ FACTS:
         
         response_text = await llm_client.get_completion(model, messages)
         
-        # Parse response
-        summary = ""
-        facts = []
+        # Parse response using regex for robust extraction
+        summary, facts = _parse_summarization_response(response_text)
         
-        lines = response_text.split("\n")
-        in_facts_section = False
-        
-        for line in lines:
-            line = line.strip()
-            if line.startswith("SUMMARY:"):
-                summary = line.replace("SUMMARY:", "").strip()
-            elif line.startswith("FACTS:"):
-                in_facts_section = True
-            elif in_facts_section and line.startswith("-"):
-                fact = line[1:].strip()
-                if fact:
-                    facts.append(fact)
-        
-        # If parsing failed, use the whole response as summary
+        # Validate parsed results
         if not summary:
-            summary = response_text[:500]  # First 500 chars
+            logger.warning(f"Failed to extract summary from LLM response, using fallback")
+            summary = response_text[:FALLBACK_SUMMARY_LENGTH].strip()
+            if not summary:
+                summary = "Summary extraction failed"
+        
         if not facts:
-            # Try to extract facts from the response
-            for line in lines:
-                if line.strip().startswith("-"):
-                    fact = line.strip()[1:].strip()
-                    if fact:
-                        facts.append(fact)
+            logger.warning(f"Failed to extract facts from LLM response")
+            # Try fallback extraction: look for any bullet points in the response
+            facts = _extract_fallback_facts(response_text)
         
         logger.info(f"Summarized {len(request.conversations)} conversations into {len(facts)} facts for user {request.user_id}")
         
@@ -157,11 +170,16 @@ FACTS:
             success=True
         )
         
+    except HTTPException:
+        # Re-raise HTTPExceptions to preserve status codes (e.g., 503 Service Unavailable)
+        raise
     except Exception as e:
         logger.error(f"Failed to summarize conversations: {e}", exc_info=True)
+        # Sanitize error message to prevent information leakage
+        # Full details are logged server-side above
         raise HTTPException(
             status_code=500,
-            detail=f"Summarization failed: {str(e)}"
+            detail="Summarization failed: An internal error occurred"
         )
 
 
@@ -189,8 +207,85 @@ async def health_check(
         }
         
     except Exception as e:
-        logger.error(f"Semantic health check failed: {e}")
+        logger.error(f"Semantic health check failed: {e}", exc_info=True)
+        # Sanitize error to prevent information leakage
         return {
             "status": "unhealthy",
-            "error": str(e)
+            "message": "Health check failed"
         }
+
+
+def _parse_summarization_response(response_text: str) -> Tuple[str, List[str]]:
+    """
+    Parse LLM summarization response to extract summary and facts.
+    
+    Uses regex patterns to robustly extract structured content from LLM responses.
+    Handles variations in formatting (whitespace, case, punctuation).
+    
+    Args:
+        response_text: Raw LLM response text
+        
+    Returns:
+        Tuple of (summary, facts_list)
+    """
+    summary = ""
+    facts = []
+    
+    # Pattern for SUMMARY: line (case-insensitive, allows whitespace variations)
+    summary_pattern = re.compile(r'SUMMARY:\s*(.+?)(?:\n|$)', re.IGNORECASE | re.DOTALL)
+    summary_match = summary_pattern.search(response_text)
+    if summary_match:
+        summary = summary_match.group(1).strip()
+    
+    # Pattern for FACTS: section (case-insensitive)
+    # Matches "FACTS:" followed by bullet points (lines starting with "-" or "*")
+    facts_section_pattern = re.compile(
+        r'FACTS:\s*\n((?:[-*]\s*.+?(?:\n|$))+)',
+        re.IGNORECASE | re.MULTILINE
+    )
+    facts_match = facts_section_pattern.search(response_text)
+    
+    if facts_match:
+        # Extract individual facts from the matched section
+        facts_text = facts_match.group(1)
+        # Match lines starting with "-" or "*" followed by fact text
+        fact_line_pattern = re.compile(r'[-*]\s*(.+?)(?:\n|$)', re.MULTILINE)
+        for match in fact_line_pattern.finditer(facts_text):
+            fact = match.group(1).strip()
+            if fact:
+                facts.append(fact)
+    else:
+        # Fallback: look for any bullet points after "FACTS:" marker
+        facts_marker_pattern = re.compile(r'FACTS:\s*\n', re.IGNORECASE)
+        marker_match = facts_marker_pattern.search(response_text)
+        if marker_match:
+            # Extract everything after FACTS: marker
+            after_marker = response_text[marker_match.end():]
+            fact_line_pattern = re.compile(r'[-*]\s*(.+?)(?:\n|$)', re.MULTILINE)
+            for match in fact_line_pattern.finditer(after_marker):
+                fact = match.group(1).strip()
+                if fact:
+                    facts.append(fact)
+    
+    return summary, facts
+
+
+def _extract_fallback_facts(response_text: str) -> List[str]:
+    """
+    Fallback fact extraction: find any bullet points in the response.
+    
+    Used when structured parsing fails. Less reliable but better than nothing.
+    
+    Args:
+        response_text: Raw LLM response text
+        
+    Returns:
+        List of extracted facts
+    """
+    facts = []
+    fact_line_pattern = re.compile(r'[-*]\s*(.+?)(?:\n|$)', re.MULTILINE)
+    for match in fact_line_pattern.finditer(response_text):
+        fact = match.group(1).strip()
+        if fact and len(fact) > 3:  # Filter out very short matches (likely false positives)
+            facts.append(fact)
+    return facts

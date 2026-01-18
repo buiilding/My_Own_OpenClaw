@@ -77,9 +77,41 @@ class GeminiProvider(LLMProvider):
             if thinking_content:
                 yield ThinkingEvent(content=thinking_content)
 
-            content = getattr(delta, "content", None)
-            if content:
-                yield ChunkEvent(content=content)
+                content = getattr(delta, "content", None)
+                if content:
+                    yield ChunkEvent(content=content)
+        except litellm_exceptions.RateLimitError as e:
+            logger.error(f"Error streaming from Gemini: {e}", exc_info=True)
+            raise LLMRateLimitError("Gemini rate limit exceeded", model=model, cause=e)
+        except litellm_exceptions.ServiceUnavailableError as e:
+            # ServiceUnavailableError can wrap RateLimitError in the exception chain
+            # Check if the underlying exception is a RateLimitError
+            is_rate_limit = False
+            current_exc = e
+            while current_exc is not None:
+                if isinstance(current_exc, litellm_exceptions.RateLimitError):
+                    is_rate_limit = True
+                    break
+                # Check error message for rate limit indicators
+                error_str = str(current_exc).lower()
+                if "rate limit" in error_str or "429" in error_str or "resource exhausted" in error_str:
+                    is_rate_limit = True
+                    break
+                # Traverse exception chain
+                current_exc = getattr(current_exc, "__cause__", None) or getattr(current_exc, "__context__", None)
+            
+            if is_rate_limit:
+                logger.error(f"Error streaming from Gemini (rate limit): {e}", exc_info=True)
+                raise LLMRateLimitError("Gemini rate limit exceeded", model=model, cause=e)
+            else:
+                logger.error(f"Error streaming from Gemini (service unavailable): {e}", exc_info=True)
+                raise LLMAPIError("Gemini service unavailable", model=model, cause=e)
+        except litellm_exceptions.APIError as e:
+            logger.error(f"Error streaming from Gemini: {e}", exc_info=True)
+            raise LLMAPIError("Gemini API error", model=model, cause=e)
+        except Exception as e:
+            logger.error(f"Error streaming from Gemini: {e}", exc_info=True)
+            raise LLMError("An unexpected error occurred with Gemini", model=model, cause=e)
 
     async def list_models(self) -> List[Dict[str, str]]:
         """Lists available Gemini models."""
