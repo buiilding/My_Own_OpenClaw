@@ -48,30 +48,25 @@ class LiteLLMClient(LLMClient):
     A simple orchestrator that delegates all real work to the provider layer.
     This client is now truly abstract and provider-agnostic.
     
-    Caches provider instances to avoid recreating them on every request.
+    Stateless: Always fetches provider from factory. The factory handles caching
+    of provider instances based on config values, ensuring freshness if config changes.
     """
 
     def __init__(self, cfg: AppConfig):
         self.config = cfg
-        self._provider: Optional[LLMProvider] = None
-        self._provider_name: Optional[str] = None
 
     def _get_provider(self) -> LLMProvider:
         """
-        Get the provider instance, caching it if the provider name hasn't changed.
+        Always fetch from the factory. The factory handles caching/hashing of config values.
         
         Returns:
             The appropriate LLM provider instance
+            
+        Raises:
+            ValueError: If no provider is configured or available
         """
-        current_provider_name = self.config.model_provider or "default"
-        
-        # Recreate provider if provider name changed or not yet cached
-        if self._provider is None or self._provider_name != current_provider_name:
-            self._provider = get_provider(self.config, current_provider_name)
-            self._provider_name = current_provider_name
-            logger.debug(f"Cached provider: {current_provider_name}")
-        
-        return self._provider
+        provider_name = self.config.model_provider
+        return get_provider(self.config, provider_name)
 
     async def get_completion(self, model: str, messages: List[LLMMessage]) -> str:
         """

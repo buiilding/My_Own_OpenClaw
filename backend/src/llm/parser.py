@@ -150,7 +150,7 @@ class ResponseParser:
         self.metrics = get_metrics("response_parser")
         
         # Get security limits from config or use defaults
-        if config and hasattr(config, "security_limits"):
+        if config:
             self.limits = config.security_limits
         else:
             # Fallback to defaults if config not provided (for backward compatibility)
@@ -571,8 +571,13 @@ class ResponseParser:
         # This check is guaranteed to run since tool_registry is required
         valid_tool_names = self.tool_registry.get_tool_names()
         if tool_name not in valid_tool_names:
+            # Show all tools if list is small, otherwise show first 10 and count
+            if len(valid_tool_names) <= 15:
+                tools_display = ", ".join(sorted(valid_tool_names))
+            else:
+                tools_display = f"{', '.join(sorted(valid_tool_names)[:10])}... (and {len(valid_tool_names) - 10} more)"
             validation_errors.append(
-                f"Tool name '{tool_name}' is not in whitelist. Valid tools: {valid_tool_names[:10]}..."
+                f"Tool name '{tool_name}' is not in whitelist. Valid tools ({len(valid_tool_names)}): {tools_display}"
             )
         
         # Validate parameter count

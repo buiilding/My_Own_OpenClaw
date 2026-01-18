@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator, Dict, List, Optional
 import logging
+import re
 
 import litellm
 from litellm import exceptions as litellm_exceptions
@@ -129,3 +130,50 @@ class LLMProvider(ABC):
     def _get_full_model_string(self, model_id: str) -> str:
         """Constructs the full model string required by LiteLLM."""
         pass
+
+    def _extract_thinking_content(self, delta: Any) -> Optional[str]:
+        """
+        Extracts reasoning/thinking content from a LiteLLM delta.
+        
+        Shared implementation for Anthropic, Gemini, and other providers that support
+        thinking tokens. Handles multiple formats:
+        - Object attributes (reasoning_content, thinking, reasoning, thought)
+        - Dictionary values
+        - XML tags in content
+        
+        Args:
+            delta: LiteLLM delta object or dictionary
+            
+        Returns:
+            Extracted thinking content as string, or None if not found
+        """
+        # 1. Handle object attributes (Anthropic/Gemini SDKs)
+        content = (
+            getattr(delta, "reasoning_content", None)
+            or getattr(delta, "thinking", None)
+            or getattr(delta, "reasoning", None)
+            or getattr(delta, "thought", None)
+        )
+        
+        # 2. Handle dictionary format
+        if not content and isinstance(delta, dict):
+            content = (
+                delta.get("reasoning_content")
+                or delta.get("thinking")
+                or delta.get("reasoning")
+                or delta.get("thought")
+            )
+        
+        # 3. If content is a string, check for XML tags
+        if isinstance(content, str):
+            # Check for <thinking> tags (simplified regex - matches existing logic)
+            match = re.search(r"<thinking>(.*?)</thinking>", content, re.DOTALL)
+            if match:
+                return match.group(1)
+            return content
+        
+        # 4. If content is a dict, extract text/content
+        if isinstance(content, dict):
+            return content.get("text") or content.get("content")
+        
+        return None

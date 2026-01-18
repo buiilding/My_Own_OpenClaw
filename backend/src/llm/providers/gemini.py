@@ -101,17 +101,3 @@ class GeminiProvider(LLMProvider):
         if model_id.startswith("gemini/"):
             return model_id
         return f"gemini/{model_id}"
-
-    def _extract_thinking_content(self, delta: Any) -> Optional[str]:
-        """Extracts reasoning/thinking content from a LiteLLM delta."""
-        content = (
-            getattr(delta, "reasoning_content", None)
-            or getattr(delta, "thinking", None)
-            or getattr(delta, "reasoning", None)
-            or getattr(delta, "thought", None)
-        )
-        if isinstance(content, str):
-            return content
-        if isinstance(content, dict):
-            return content.get("text") or content.get("content")
-        return None

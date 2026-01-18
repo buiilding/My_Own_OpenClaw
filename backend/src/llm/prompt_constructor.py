@@ -74,7 +74,7 @@ class PromptConstructor:
         self.metrics = get_metrics("prompt_constructor")
         
         # Get security limits from config or use defaults
-        if config and hasattr(config, "security_limits"):
+        if config:
             self.limits = config.security_limits
         else:
             # Fallback to defaults if config not provided (for backward compatibility)

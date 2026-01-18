@@ -47,6 +47,14 @@ class PromptManager:
         try:
             with open(prompt_file_path, "r", encoding="utf-8") as f:
                 template = f.read()
+            
+            # Validate file is not empty
+            if not template or not template.strip():
+                raise RuntimeError(
+                    f"CRITICAL: System prompt file is empty: {prompt_file_path}. "
+                    "Application cannot start without a valid system prompt."
+                )
+            
             # Replace placeholders
             current_os = platform.system()
             self._system_prompt = template.replace("{os}", current_os)

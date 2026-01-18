@@ -118,18 +118,35 @@ class OllamaProvider(LocalLLMProvider):
         return "Ollama"
 
     async def list_models(self) -> List[Dict[str, str]]:
-        """Fetch models from Ollama."""
+        """
+        Fetch models from Ollama.
+        
+        Uses the provider's configured timeout instead of a hardcoded value.
+        Listing models can trigger model loading/swapping in Ollama, so a longer
+        timeout is often needed compared to inference requests.
+        """
         models = []
         # base_url is guaranteed to be a string (validated in __init__)
         # Handle the fact that config base_url usually ends in /v1 but api/tags is at root
         base_url = self.base_url
+        # Safely remove /v1 suffix if present
         if base_url.endswith("/v1"):
-            base_url = base_url[:-3]
+            base_url = base_url.removesuffix("/v1")
+            # Handle edge case where base_url was exactly "/v1" - use default localhost
+            if not base_url or base_url == "/":
+                base_url = "http://localhost:11434"
+        
+        # Ensure we have a valid base URL before constructing the endpoint
+        if not base_url or base_url == "/":
+            logger.warning("Invalid Ollama base_url, cannot list models")
+            return models
         
         url = f"{base_url.rstrip('/')}/api/tags"
         
         try:
-            async with httpx.AsyncClient(timeout=2.0) as client:
+            # Use provider's configured timeout instead of hardcoded 2.0
+            # This allows for longer timeouts when models need to be loaded into VRAM
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(url)
                 if response.status_code == 200:
                     data = response.json()
@@ -178,14 +195,20 @@ class LMStudioProvider(LocalLLMProvider):
         return "LMStudio"
 
     async def list_models(self) -> List[Dict[str, str]]:
-        """Fetch models from LM Studio."""
+        """
+        Fetch models from LM Studio.
+        
+        Uses the provider's configured timeout instead of a hardcoded value.
+        Listing models can take longer if the backend is under load.
+        """
         models = []
         # base_url is guaranteed to be a string (validated in __init__)
         # Config base_url usually includes /v1, which is what we want for /models
         url = f"{self.base_url.rstrip('/')}/models"
         
         try:
-            async with httpx.AsyncClient(timeout=2.0) as client:
+            # Use provider's configured timeout instead of hardcoded 2.0
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(url)
                 if response.status_code == 200:
                     data = response.json()

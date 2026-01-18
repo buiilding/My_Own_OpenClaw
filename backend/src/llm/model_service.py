@@ -100,6 +100,27 @@ class ModelService:
                 )
         return vision_models
 
+    def _safe_timeout_conversion(self, default: float = 60.0) -> float:
+        """
+        Safely convert config timeout to float with validation.
+        
+        Args:
+            default: Default timeout if conversion fails or value is invalid
+            
+        Returns:
+            Validated timeout as float (ensures positive value)
+        """
+        try:
+            timeout = float(self.config.llm_timeout)
+            # Enforce minimum safety floor (1 second) and maximum reasonable limit (1 hour)
+            if timeout < 1.0:
+                return default
+            if timeout > 3600.0:
+                return 3600.0
+            return timeout
+        except (TypeError, ValueError, AttributeError):
+            return default
+
     async def get_local_models(self) -> List[Dict[str, str]]:
         """
         Fetch available models from local providers (Ollama, LM Studio).
@@ -111,16 +132,21 @@ class ModelService:
         local_models = []
         provider_failures = []
         
+        # Centralized safe timeout conversion
+        config_timeout = self._safe_timeout_conversion()
+        # Use longer timeout for listing models vs inference
+        # Listing can trigger model loading/swapping in some backends (e.g., Ollama)
+        list_timeout = max(config_timeout, 10.0)
+        
         # Try Ollama
         try:
-            # Extract base_url and timeout from config to match provider constructor signature
+            # Extract base_url from config to match provider constructor signature
             ollama_config = self.config.llm_providers.ollama if self.config.llm_providers else None
             ollama_base_url = ollama_config.base_url if ollama_config else "http://localhost:11434/v1"
-            timeout = float(self.config.llm_timeout)
             
             ollama = OllamaProvider(
                 base_url=ollama_base_url,
-                timeout=timeout
+                timeout=list_timeout
             )
             models = await ollama.list_models()
             local_models.extend(models)
@@ -134,14 +160,13 @@ class ModelService:
 
         # Try LM Studio
         try:
-            # Extract base_url and timeout from config to match provider constructor signature
+            # Extract base_url from config to match provider constructor signature
             lmstudio_config = self.config.llm_providers.lmstudio if self.config.llm_providers else None
             lmstudio_base_url = lmstudio_config.base_url if lmstudio_config else "http://localhost:1234/v1"
-            timeout = float(self.config.llm_timeout)
             
             lmstudio = LMStudioProvider(
                 base_url=lmstudio_base_url,
-                timeout=timeout
+                timeout=list_timeout
             )
             models = await lmstudio.list_models()
             local_models.extend(models)
