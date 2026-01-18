@@ -6,12 +6,16 @@
 const { ipcMain, BrowserWindow } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
+const { getSystemState } = require('./system_state.cjs');
+const { searchMemory } = require('./memory_service_bridge.cjs');
 
-const BACKEND_URL = "ws://127.0.0.1:8765/ws";
+const BACKEND_PORT = process.env.BACKEND_PORT || 8765;
+const BACKEND_URL = `ws://127.0.0.1:${BACKEND_PORT}/ws`;
 let ws = null;
 let mainWindow = null;
 let isConnected = false;
 let reconnectInterval = 5000; // 5 seconds
+let isFirstQuery = true; // Track if this is the first user query in the session
 
 function log(message) {
   // Only log important events, not every message
@@ -37,6 +41,7 @@ function connect() {
 
   ws.on('open', () => {
     isConnected = true;
+    isFirstQuery = true; // Reset on new connection (new session)
     log('Successfully connected to Python backend.');
     mainWindow?.webContents.send('ipc-status', { isConnected: true });
 
@@ -119,13 +124,195 @@ function initializeIpc(win) {
   mainWindow = win;
   connect();
 
-  ipcMain.on('to-backend', (event, { type, payload }) => {
+  ipcMain.on('to-backend', async (event, { type, payload }) => {
     // Only log important message types
     if (type === 'query' || type === 'wakeword-detected') {
       log(`Received ${type} from renderer`);
     }
+
+    // Build complete user message content with system state and memories
+    // System context MUST be retrieved - never skip it
+    if (type === 'query') {
+      try {
+        log('Building complete user message with system state and memories...');
+        
+        // Determine context type: 'initial' for first query, 'sequential' for subsequent
+        const contextType = isFirstQuery ? 'initial' : 'sequential';
+        isFirstQuery = false; // Mark that we've sent at least one query
+        
+        // Start memory search first since it's slower (needs backend API call + FAISS search)
+        // Then start system state in parallel - both run concurrently
+        const memoryPromise = searchMemory(payload.text, 'default_user', 5, null).catch(err => {
+          log(`Memory search failed: ${err.message}`);
+          return { success: false, data: { memories: { episodic: [], semantic: [] } } };
+        }); // Start memory search immediately
+        const statePromise = getSystemState().then(state => {
+          // Format system state as XML based on context type
+          if (contextType === 'initial') {
+            return formatInitialStateXml(state);
+          } else {
+            return formatSequentialStateXml(state);
+          }
+        }).catch(err => {
+          log(`System state failed: ${err.message}`);
+          return formatFallbackStateXml();
+        }); // Start system state immediately (parallel)
+        
+        // Wait for both to complete - system context is REQUIRED, memories are optional
+        const [stateResponse, memoryResponse] = await Promise.allSettled([
+          statePromise,   // REQUIRED - must complete
+          memoryPromise   // Optional - can fail
+        ]);
+
+        // Build message content parts
+        const parts = [];
+
+        // 1. System state XML (REQUIRED - must be present)
+        let systemStateXml = null;
+        if (stateResponse.status === 'fulfilled' && stateResponse.value) {
+          systemStateXml = stateResponse.value;
+          parts.push(systemStateXml.trim());
+          log('System state added to message');
+        } else {
+          // System context is REQUIRED - log error but continue with fallback
+          const errorMsg = stateResponse.status === 'rejected' 
+            ? stateResponse.reason?.message || 'Unknown error'
+            : 'No system state data in response';
+          log(`ERROR: System state enrichment failed: ${errorMsg}`);
+          // Add minimal fallback system context
+          systemStateXml = formatFallbackStateXml();
+          parts.push(systemStateXml);
+          log('Using fallback system context');
+        }
+
+        // 2. Memory sections
+        let memories = null;
+        // Response structure: { success: true, data: { memories: {...} } }
+        const responseData = memoryResponse.status === 'fulfilled' ? memoryResponse.value : null;
+        if (responseData?.success && responseData?.data?.memories) {
+          memories = responseData.data.memories;
+          log(`Memory response received - episodic: ${memories.episodic?.length || 0}, semantic: ${memories.semantic?.length || 0}`);
+          
+          // Add episodic memory section
+          if (memories.episodic && memories.episodic.length > 0) {
+            const episodicText = memories.episodic.map(m => `- ${m}`).join('\n');
+            parts.push(`<episodic_memory>\n${episodicText}\n</episodic_memory>`);
+          } else {
+            parts.push('<episodic_memory>\nNone\n</episodic_memory>');
+          }
+          
+          // Add semantic memory section
+          if (memories.semantic && memories.semantic.length > 0) {
+            const semanticText = memories.semantic.map(m => `- ${m}`).join('\n');
+            parts.push(`<semantic_memory>\n${semanticText}\n</semantic_memory>`);
+          } else {
+            parts.push('<semantic_memory>\nNone\n</semantic_memory>');
+          }
+          
+          log('Memories added to message');
+        } else {
+          // Log why memories weren't added
+          if (memoryResponse.status === 'rejected') {
+            log(`Memory enrichment failed: ${memoryResponse.reason?.message || 'Unknown error'}`);
+          } else if (memoryResponse.status === 'fulfilled') {
+            const data = memoryResponse.value;
+            log(`Memory response structure: success=${data?.success}, hasData=${!!data?.data}, hasMemories=${!!data?.data?.memories}`);
+            if (data && !data.data?.memories) {
+              log(`Memory data keys: ${Object.keys(data).join(', ')}`);
+              if (data.data) {
+                log(`Memory data keys: ${Object.keys(data.data).join(', ')}`);
+              }
+            }
+          } else {
+            log(`Memory response status: ${memoryResponse.status}`);
+          }
+          // Add empty memory sections if search failed
+          parts.push('<episodic_memory>\nNone\n</episodic_memory>');
+          parts.push('<semantic_memory>\nNone\n</semantic_memory>');
+        }
+
+        // 3. User query
+        parts.push(`<user_query>\n${payload.text}\n</user_query>`);
+
+        // Build complete content
+        const completeContent = parts.join('\n\n');
+        
+        // Replace payload with complete content
+        payload.content = completeContent;
+        payload.text = payload.text; // Keep original text for reference
+        
+        log('Complete user message built successfully');
+      } catch (error) {
+        log(`ERROR: Failed to build user message: ${error.message}`);
+        // Fallback: include minimal system context even on error
+        const fallbackContext = formatFallbackStateXml();
+        payload.content = `${fallbackContext}\n\n<user_query>\n${payload.text}\n</user_query>`;
+        log('Using fallback system context in error handler');
+      }
+    }
+
+    // System context is now pre-formatted in llm_content by ChatContext.jsx
+    // No need to extract or add system_context here - backend expects pre-formatted messages
+    
     sendMessageToBackend(type, payload);
   });
+}
+
+/**
+ * Format system state as initial XML (with all windows and stats)
+ */
+function formatInitialStateXml(state) {
+  const windows = state.windows || [];
+  const windowsXml = windows.map(w => `        <window>${w}</window>`).join('\n');
+  const stats = state.stats || {};
+  
+  return `<system_context>
+    <os_state>
+        <active_window>${state.active_window || 'Unknown'}</active_window>
+        <mouse_position>${state.mouse_position || 'Unknown'}</mouse_position>
+        <clipboard_preview>${state.clipboard || '<empty>'}</clipboard_preview>
+        <screen_resolution>${state.screen_resolution || 'Unknown'}</screen_resolution>
+        <time>${state.time || new Date().toISOString()}</time>
+        <internet_status>${state.internet || 'Unknown'}</internet_status>
+        <all_open_windows>
+${windowsXml}
+        </all_open_windows>
+        <system_stats>
+            <cpu_percent>${stats.cpu_percent || 0}%</cpu_percent>
+            <memory_percent>${stats.memory_percent || 0}%</memory_percent>
+            <battery_percent>${stats.battery_percent || 'N/A'}</battery_percent>
+            <battery_charging>${stats.battery_charging || 'N/A'}</battery_charging>
+        </system_stats>
+    </os_state>
+</system_context>`;
+}
+
+/**
+ * Format system state as sequential XML (minimal)
+ */
+function formatSequentialStateXml(state) {
+  return `<system_context>
+    <os_state>
+        <active_window>${state.active_window || 'Unknown'}</active_window>
+        <mouse_position>${state.mouse_position || 'Unknown'}</mouse_position>
+        <time>${state.time || new Date().toISOString()}</time>
+        <clipboard_preview>${state.clipboard || '<empty>'}</clipboard_preview>
+    </os_state>
+</system_context>`;
+}
+
+/**
+ * Format fallback system state XML
+ */
+function formatFallbackStateXml() {
+  const fallbackTime = new Date().toISOString();
+  return `<system_context>
+    <os_state>
+        <active_window>Unknown</active_window>
+        <mouse_position>Unknown</mouse_position>
+        <time>${fallbackTime}</time>
+    </os_state>
+</system_context>`;
 }
 
 module.exports = {

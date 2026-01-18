@@ -4,15 +4,15 @@ Wakeword Message Handler.
 Handles wakeword detection and activation messages.
 """
 import logging
-import random
 from typing import Any, Dict
 
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 
 from backend.src.api.handlers.base import MessageHandler
+from backend.src.api.handlers.transport import WebSocketTransportSender
 from backend.src.api.handlers.tts_manager import TTSManager
 from backend.src.api.schema import WakewordDetectedMessage
-from backend.src.core.config import AppConfig
+from backend.src.core.services.wakeword_service import WakewordService
 from backend.src.core.validation import (
     validate_message,
     ValidationError
@@ -32,15 +32,16 @@ class WakewordHandler(MessageHandler):
     4. Prepares for continuous listening
     """
 
-    def __init__(self, config: AppConfig):
+    def __init__(self, tts_manager: TTSManager, wakeword_service: WakewordService):
         """
         Initialize the wakeword handler.
 
         Args:
-            config: Application configuration instance
+            tts_manager: TTS manager for text-to-speech handling
+            wakeword_service: Wakeword service for greeting selection and activation logic
         """
-        self.config = config
-        self.tts_manager = TTSManager()
+        self.tts_manager = tts_manager
+        self.wakeword_service = wakeword_service
 
     def validate_message(self, data: Dict[str, Any]) -> bool:
         """Validate wakeword message structure."""
@@ -66,42 +67,46 @@ class WakewordHandler(MessageHandler):
         tts_service = None
         audio_task = None
 
+        transport = WebSocketTransportSender(websocket)
+        
         try:
             # Validate message
             validated = validate_message(data, "wakeword-detected", WakewordDetectedMessage)
             msg_id = validated.id
 
-            # Select random greeting
-            greetings = self.config.wakeword_greetings
-            greeting = random.choice(greetings) if greetings else "Hello! I'm listening."
+            # Get greeting from service (policy extracted)
+            greeting = self.wakeword_service.select_greeting()
 
             # Initialize TTS if speech mode is enabled
-            tts_service = await self.tts_manager.initialize_if_enabled(self.config)
+            # Get config from wakeword service (it has access to config)
+            config = self.wakeword_service.config
+            tts_service = await self.tts_manager.initialize_if_enabled(config)
             if tts_service:
                 audio_task = await self.tts_manager.start_streaming_task(
                     tts_service, websocket, msg_id
                 )
 
-            # Send wakeword activation response
-            await websocket.send_json({
-                "type": "wakeword-activated",
-                "id": msg_id,
-                "payload": {
-                    "voice_mode_enabled": True,
-                    "speech_mode_enabled": self.config.speech_mode_enabled,
-                    "greeting": greeting,
-                    "status": "listening"
-                }
-            })
+            # Send responses via transport
+            activation_payload = self.wakeword_service.get_activation_payload(greeting)
+            try:
+                await transport.send({
+                    "type": "wakeword-activated",
+                    "id": msg_id,
+                    "payload": activation_payload
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send wakeword-activated to closed connection: {send_error}")
 
-            # Send greeting message for display
-            await websocket.send_json({
-                "type": "wakeword-greeting",
-                "id": msg_id,
-                "payload": {
-                    "text": greeting
-                }
-            })
+            try:
+                await transport.send({
+                    "type": "wakeword-greeting",
+                    "id": msg_id,
+                    "payload": {
+                        "text": greeting
+                    }
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send wakeword-greeting to closed connection: {send_error}")
 
             # Generate TTS for greeting if speech mode enabled
             if tts_service:
@@ -111,18 +116,24 @@ class WakewordHandler(MessageHandler):
             logger.info(f"Wakeword activated for user {user_id} with greeting: {greeting}")
 
         except ValidationError as e:
-            await websocket.send_json({
-                "type": "error",
-                "id": data.get("id"),
-                "payload": {"message": f"Invalid wakeword message: {e.message}"}
-            })
+            try:
+                await transport.send({
+                    "type": "error",
+                    "id": data.get("id"),
+                    "payload": {"message": f"Invalid wakeword message: {e.message}"}
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send error to closed connection: {send_error}")
         except Exception as e:
             logger.error(f"Error in wakeword handler: {e}", exc_info=True)
-            await websocket.send_json({
-                "type": "error",
-                "id": data.get("id"),
-                "payload": {"message": f"Wakeword error: {str(e)}"}
-            })
+            try:
+                await transport.send({
+                    "type": "error",
+                    "id": data.get("id"),
+                    "payload": {"message": f"Wakeword error: {str(e)}"}
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send error to closed connection: {send_error}")
         finally:
             # Clean up TTS
             await self.tts_manager.cleanup(tts_service, audio_task)

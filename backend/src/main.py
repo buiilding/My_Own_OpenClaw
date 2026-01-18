@@ -11,13 +11,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.src.api.routes import websocket
-from backend.src.core.bootstrap import Bootstrap
-from backend.src.core.shutdown import Shutdown
+from backend.src.api.routes import websocket, embeddings, semantic
+from backend.src.core.bootstrap.coordinator import InitializationCoordinator
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.DEBUG, format="%(name)s - %(levelname)s - %(message)s"
 )
 
 # Disable noisy debug logs from specific libraries
@@ -27,6 +26,9 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.getLogger("aiosqlite").setLevel(logging.WARNING)
+logging.getLogger("PIL").setLevel(logging.WARNING)
+logging.getLogger("PIL.PngImagePlugin").setLevel(logging.WARNING)
+logging.getLogger("Pillow").setLevel(logging.WARNING)
 
 # Disable system prompt content logging
 logging.getLogger("backend.src.llm.prompt_constructor").setLevel(logging.INFO)
@@ -37,17 +39,15 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    bootstrap = Bootstrap()
-    _, session_manager, plugin_registry = await bootstrap.startup(app)
-
-    # Start background tasks
-    task = asyncio.create_task(session_manager.run_summarization_periodically())
+    coordinator = InitializationCoordinator()
+    _, session_manager, plugin_registry = await coordinator.initialize(app)
 
     yield
 
     # Shutdown
-    shutdown = Shutdown()
-    await shutdown.shutdown(plugin_registry, task)
+    logger.info("Shutting down...")
+    await plugin_registry.shutdown_all_plugins()
+    logger.info("Shutdown complete.")
 
 
 app = FastAPI(title="Desktop Assistant", lifespan=lifespan)
@@ -63,6 +63,8 @@ app.add_middleware(
 
 # Routes
 app.include_router(websocket.router)
+app.include_router(embeddings.router)
+app.include_router(semantic.router)
 
 if __name__ == "__main__":
     import uvicorn

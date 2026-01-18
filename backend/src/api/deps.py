@@ -5,8 +5,9 @@ Uses dependency-injector for proper DI instead of global state.
 from typing import Annotated
 from fastapi import Depends, HTTPException
 
+from backend.src.agent.core.session_manager import SessionManager
+from backend.src.api.handlers.base import MessageHandlerRegistry
 from backend.src.core.container import Container
-from backend.src.agent.session_manager import SessionManager
 
 
 # Global container instance (set during app startup)
@@ -47,14 +48,26 @@ async def get_session_manager(container: Container = Depends(get_container)) -> 
     Raises:
         HTTPException: If session manager is not available
     """
-    # Session manager is created during startup and stored in container
-    # For now, we'll create it on-demand if needed
-    # In the future, this should be provided by the DI container
-    if not hasattr(container, '_session_manager'):
-        container._session_manager = SessionManager(container)
-    return container._session_manager
+    return container.session_manager
+
+
+async def get_handler_registry(container: Container = Depends(get_container)) -> MessageHandlerRegistry:
+    """
+    Get the message handler registry from the container.
+    
+    Args:
+        container: Application container (injected)
+    
+    Returns:
+        MessageHandlerRegistry instance
+    
+    Raises:
+        HTTPException: If handler registry is not available
+    """
+    return container.handler_registry
 
 
 # Type aliases for FastAPI dependencies
 ContainerDep = Annotated[Container, Depends(get_container)]
 SessionManagerDep = Annotated[SessionManager, Depends(get_session_manager)]
+HandlerRegistryDep = Annotated[MessageHandlerRegistry, Depends(get_handler_registry)]

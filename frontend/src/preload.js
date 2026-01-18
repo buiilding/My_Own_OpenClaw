@@ -18,6 +18,19 @@ contextBridge.exposeInMainWorld('ipc', {
       ipcRenderer.send(channel, data);
     }
   },
+  // Invoke async handlers (returns Promise)
+  invoke: (channel, data) => {
+    const validChannels = [
+      'execute-tool',
+      'get-system-state',
+      'store-memory',
+      'search-memory',
+    ];
+    if (validChannels.includes(channel)) {
+      return ipcRenderer.invoke(channel, data);
+    }
+    return Promise.reject(new Error(`Invalid invoke channel: ${channel}`));
+  },
   // Receive messages from main process
   on: (channel, func) => {
     const validChannels = [

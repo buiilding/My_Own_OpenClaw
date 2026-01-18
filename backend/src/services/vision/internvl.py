@@ -253,6 +253,8 @@ class InternVLModel:
         Predict click coordinates using the InternVL model.
         Based on CoAct-1's InternVL grounding implementation.
         """
+        import time
+        vision_prediction_start = time.perf_counter()
         try:
             logger.info(f"Starting InternVL prediction for instruction: {instruction}")
             logger.info(
@@ -391,12 +393,15 @@ class InternVLModel:
 
             x_norm, y_norm = point
             x_px, y_px = scale_norm_to_pixels(x_norm, y_norm, width, height)
+            vision_prediction_time = time.perf_counter() - vision_prediction_start
+            logger.info(f"[Timing] Vision model prediction completed in {vision_prediction_time:.3f}s (coordinates=({x_px}, {y_px}))")
             logger.info(f"Final pixel coordinates: ({x_px}, {y_px})")
             return (x_px, y_px)
 
         except Exception as e:
             import traceback
-
+            vision_prediction_time = time.perf_counter() - vision_prediction_start
+            logger.error(f"[Timing] Vision model prediction failed after {vision_prediction_time:.3f}s: {e}")
             logger.error(f"InternVL prediction failed: {e}")
             logger.error(f"Full traceback: {traceback.format_exc()}")
             try:

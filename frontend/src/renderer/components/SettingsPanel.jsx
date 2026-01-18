@@ -69,12 +69,11 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
   useEffect(() => {
     if (!config || availableModels.local.length === 0 && availableModels.online.length === 0) return;
 
+    // Only send the 5 fields that frontend manages - don't spread the full config
     const updatedConfig = {
-      ...config,
       model_mode: modelMode,
       selected_model_id: selectedModelId,
       model_provider: selectedProvider,
-      // Explicitly include voice_mode_enabled to persist it
       voice_mode_enabled: voiceModeEnabled,
       speech_mode_enabled: speechModeEnabled,
     };

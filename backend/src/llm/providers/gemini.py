@@ -4,7 +4,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 import litellm
 from litellm import exceptions as litellm_exceptions
 
-from backend.src.core.events import ChunkEvent, ErrorEvent, StreamingEvent, ThinkingEvent
+from backend.src.core.events import ChunkEvent, StreamingEvent, ThinkingEvent
 from backend.src.core.exceptions import (
     LLMAPIError,
     LLMError,
@@ -22,6 +22,19 @@ logger = logging.getLogger(__name__)
 
 class GeminiProvider(LLMProvider):
     """Provider for Google Gemini models."""
+
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        timeout: float = 60.0,
+    ):
+        super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
+
+    def _validate_dependencies(self) -> None:
+        """Gemini requires an API key."""
+        if not self.api_key:
+            raise ValueError("GeminiProvider requires an 'api_key'.")
 
     async def get_completion(
         self, model: str, messages: List[LLMMessage]
@@ -45,28 +58,28 @@ class GeminiProvider(LLMProvider):
         except Exception as e:
             raise LLMError("An unexpected error occurred with Gemini", model=model, cause=e)
 
-    async def get_completion_stream(
+    async def _stream_internal(
         self, model: str, messages: List[LLMMessage]
     ) -> AsyncGenerator[StreamingEvent, None]:
+        """
+        Internal streaming implementation. Exceptions bubble up to base class.
+        Base class handles ServiceUnavailableError as APIError.
+        """
         params = self._build_request_params(model, messages)
         params["stream"] = True
-        try:
-            stream = await litellm.acompletion(**params)
-            async for chunk in stream:
-                if not chunk or not chunk.choices or not chunk.choices[0].delta:
-                    continue
+        stream = await litellm.acompletion(**params)
+        async for chunk in stream:
+            if not chunk or not chunk.choices or not chunk.choices[0].delta:
+                continue
 
-                delta = chunk.choices[0].delta
-                thinking_content = self._extract_thinking_content(delta)
-                if thinking_content:
-                    yield ThinkingEvent(content=thinking_content)
+            delta = chunk.choices[0].delta
+            thinking_content = self._extract_thinking_content(delta)
+            if thinking_content:
+                yield ThinkingEvent(content=thinking_content)
 
-                content = getattr(delta, "content", None)
-                if content:
-                    yield ChunkEvent(content=content)
-        except Exception as e:
-            logger.error(f"Error streaming from Gemini: {e}")
-            yield ErrorEvent(content=str(e))
+            content = getattr(delta, "content", None)
+            if content:
+                yield ChunkEvent(content=content)
 
     async def list_models(self) -> List[Dict[str, str]]:
         """Lists available Gemini models."""
@@ -88,22 +101,3 @@ class GeminiProvider(LLMProvider):
         if model_id.startswith("gemini/"):
             return model_id
         return f"gemini/{model_id}"
-
-    def _get_base_url(self, provider_config: Any) -> Optional[str]:
-        return None
-
-    def _extract_thinking_content(self, delta: Any) -> Optional[str]:
-        """Extracts reasoning/thinking content from a LiteLLM delta."""
-        # This is the brittle logic you pointed out. It now lives here,
-        # isolated from the client.
-        content = (
-            getattr(delta, "reasoning_content", None)
-            or getattr(delta, "thinking", None)
-            or getattr(delta, "reasoning", None)
-            or getattr(delta, "thought", None)
-        )
-        if isinstance(content, str):
-            return content
-        if isinstance(content, dict):
-            return content.get("text") or content.get("content")
-        return None

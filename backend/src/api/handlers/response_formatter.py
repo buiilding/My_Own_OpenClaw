@@ -21,6 +21,10 @@ from backend.src.core.events import (
     UserMessageFullEvent,
     AssistantMessageFullEvent,
     TokenCountEvent,
+    RequestScreenshotEvent,
+    MemoryStoreEvent,
+    BundleStartEvent,
+    BundleEndEvent,
 )
 from backend.src.core.types import StreamingEventType
 
@@ -99,14 +103,19 @@ class ToolCallEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        payload = {
+            "tool_name": event_dict.get("tool_name"),
+            "parameters": event_dict.get("parameters"),
+            "raw_call": event_dict.get("raw_call"),
+        }
+        # Include request_id if present (for remote tools to match results)
+        if event_dict.get("request_id"):
+            payload["request_id"] = event_dict.get("request_id")
+        
         return {
             "type": "tool-call",
             "id": msg_id,
-            "payload": {
-                "tool_name": event_dict.get("tool_name"),
-                "parameters": event_dict.get("parameters"),
-                "raw_call": event_dict.get("raw_call"),
-            },
+            "payload": payload,
         }
 
 
@@ -205,6 +214,60 @@ class TokenCountEventFormatter(EventFormatter):
         }
 
 
+class RequestScreenshotEventFormatter(EventFormatter):
+    """Formatter for request screenshot events."""
+
+    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
+        event_dict = self._get_event_dict(event)
+        return {
+            "type": "request-screenshot",
+            "id": msg_id,
+            "payload": {
+                "request_id": event_dict.get("request_id"),
+            },
+        }
+
+
+class MemoryStoreEventFormatter(EventFormatter):
+    """Formatter for memory store events."""
+
+    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
+        event_dict = self._get_event_dict(event)
+        return {
+            "type": "memory-store",
+            "id": msg_id,
+            "payload": {
+                "user_query": event_dict.get("user_query"),
+                "assistant_response": event_dict.get("assistant_response"),
+                "memory_type": event_dict.get("memory_type"),
+                "user_id": event_dict.get("user_id", "default_user"),
+                "session_id": event_dict.get("session_id"),  # Track conversation window
+            },
+        }
+
+
+class BundleStartEventFormatter(EventFormatter):
+    """Formatter for bundle start events."""
+
+    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
+        return {
+            "type": "bundle_start",
+            "id": msg_id,
+            "payload": {},
+        }
+
+
+class BundleEndEventFormatter(EventFormatter):
+    """Formatter for bundle end events."""
+
+    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
+        return {
+            "type": "bundle_end",
+            "id": msg_id,
+            "payload": {},
+        }
+
+
 class ResponseFormatter:
     """
     Formats agent events into WebSocket response messages.
@@ -226,6 +289,10 @@ class ResponseFormatter:
             StreamingEventType.USER_MESSAGE_FULL.value: UserMessageFullEventFormatter(),
             StreamingEventType.ASSISTANT_MESSAGE_FULL.value: AssistantMessageFullEventFormatter(),
             StreamingEventType.TOKEN_COUNT.value: TokenCountEventFormatter(),
+            StreamingEventType.REQUEST_SCREENSHOT.value: RequestScreenshotEventFormatter(),
+            StreamingEventType.MEMORY_STORE.value: MemoryStoreEventFormatter(),
+            StreamingEventType.BUNDLE_START.value: BundleStartEventFormatter(),
+            StreamingEventType.BUNDLE_END.value: BundleEndEventFormatter(),
         }
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
@@ -262,6 +329,14 @@ class ResponseFormatter:
             return self._formatters[StreamingEventType.ASSISTANT_MESSAGE_FULL.value].format(event, msg_id)
         elif isinstance(event, TokenCountEvent):
             return self._formatters[StreamingEventType.TOKEN_COUNT.value].format(event, msg_id)
+        elif isinstance(event, RequestScreenshotEvent):
+            return self._formatters[StreamingEventType.REQUEST_SCREENSHOT.value].format(event, msg_id)
+        elif isinstance(event, MemoryStoreEvent):
+            return self._formatters[StreamingEventType.MEMORY_STORE.value].format(event, msg_id)
+        elif isinstance(event, BundleStartEvent):
+            return self._formatters[StreamingEventType.BUNDLE_START.value].format(event, msg_id)
+        elif isinstance(event, BundleEndEvent):
+            return self._formatters[StreamingEventType.BUNDLE_END.value].format(event, msg_id)
         elif isinstance(event, dict):
             # Backward compatibility with dict events
             event_type = event.get("type")

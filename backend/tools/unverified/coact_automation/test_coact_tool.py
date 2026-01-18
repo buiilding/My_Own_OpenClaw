@@ -15,7 +15,7 @@ from pathlib import Path
 # Add backend/src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "src"))
 
-from backend.src.core.bootstrap import Bootstrap
+from backend.src.core.bootstrap.coordinator import InitializationCoordinator
 # CoAct1Args will be imported from the loaded tool instance
 
 # Configure logging
@@ -54,8 +54,8 @@ async def test_coact_tool():
     from fastapi import FastAPI
     app = FastAPI()
     
-    bootstrap = Bootstrap()
-    container, session_manager, plugin_registry = await bootstrap.startup(app)
+    coordinator = InitializationCoordinator()
+    container, session_manager, plugin_registry = await coordinator.initialize(app)
     
     logger.info("✓ Container initialized")
     logger.info(f"  - Core tools loaded: {len(container.tool_registry.tools)}")

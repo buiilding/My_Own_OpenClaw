@@ -38,6 +38,23 @@ def get_config_dir() -> Path:
     raise ValueError(f"Unsupported OS: {os.name}")
 
 
+def _set_default_tts_model_path(config: AppConfig) -> AppConfig:
+    """
+    Set default TTS model path if it's not already set.
+    
+    Args:
+        config: Current AppConfig instance
+        
+    Returns:
+        AppConfig with default TTS model path set if it was null
+    """
+    if config.tts_model_path is None:
+        default_path = "/home/peter/.config/DesktopAssistant/tts_models/piper/en_GB-jenny_dioco-medium.onnx"
+        logger.info(f"Setting default TTS model path: {default_path}")
+        return config.model_copy(update={"tts_model_path": default_path})
+    return config
+
+
 def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
     """
     Loads the API key for the currently selected provider from environment variables.
@@ -83,8 +100,8 @@ def save_settings_to_file(cfg: AppConfig) -> None:
     config_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        # Exclude the runtime-only api_key field from being saved
-        config_to_save = cfg.model_dump(exclude={"api_key"})
+        # Exclude the runtime-only api_key field and tts_enabled (hardcoded to True)
+        config_to_save = cfg.model_dump(exclude={"api_key", "tts_enabled"})
         with open(config_file, "w", encoding="utf-8") as f:
             yaml.dump(config_to_save, f, default_flow_style=False, sort_keys=False)
         logger.info("Successfully saved settings to %s", config_file)
@@ -105,17 +122,36 @@ def load_settings_from_file() -> AppConfig:
     if not config_file.exists():
         logger.info("Config file not found. Creating a default one.")
         default_config = AppConfig()
+        # Set default TTS model path
+        default_config = _set_default_tts_model_path(default_config)
         save_settings_to_file(default_config)
         return load_api_key_for_provider(default_config)
 
     try:
         with open(config_file, "r", encoding="utf-8") as f:
             config_data = yaml.safe_load(f) or {}
+        
+        # Always set tts_enabled to True (hardcoded, ignore config file value)
+        # This ensures tts_enabled is only changeable by modifying the default in code
+        if "tts_enabled" in config_data:
+            del config_data["tts_enabled"]
+        
         app_config = AppConfig(**config_data)
+        # Force tts_enabled to True after loading (in case default was overridden)
+        if not app_config.tts_enabled:
+            app_config = app_config.model_copy(update={"tts_enabled": True})
     except (yaml.YAMLError, ValidationError, TypeError) as e:
         logger.error("Failed to load or validate config file: %s", e, exc_info=True)
         logger.warning("Falling back to default configuration.")
         app_config = AppConfig()
+
+    # Set default TTS model path if not set
+    tts_path_was_none = app_config.tts_model_path is None
+    app_config = _set_default_tts_model_path(app_config)
+    
+    # Save config if TTS model path was updated (was None, now set)
+    if tts_path_was_none and app_config.tts_model_path is not None:
+        save_settings_to_file(app_config)
 
     # Load API key for the selected provider (returns new instance)
     return load_api_key_for_provider(app_config)
@@ -174,6 +210,10 @@ class ConfigManager:
         Returns:
             Updated config with API key loaded
         """
+        # Force tts_enabled to True (hardcoded, not configurable)
+        if not new_config.tts_enabled:
+            new_config = new_config.model_copy(update={"tts_enabled": True})
+        
         # Load API key for new config
         updated_config = load_api_key_for_provider(new_config)
         
@@ -193,9 +233,12 @@ class ConfigManager:
         Reload configuration from file.
         
         Returns:
-            Reloaded AppConfig instance
+            Reloaded AppConfig instance (with tts_enabled forced to True)
         """
         self._config = load_settings_from_file()
+        # Ensure tts_enabled is True after reload
+        if not self._config.tts_enabled:
+            self._config = self._config.model_copy(update={"tts_enabled": True})
         logger.info("Configuration reloaded from file")
         
         return self._config

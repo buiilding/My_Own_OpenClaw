@@ -5,8 +5,7 @@ Handles WebSocket message handler initialization.
 """
 import logging
 
-from backend.src.agent.session_manager import SessionManager
-from backend.src.api.handlers import initialize_handlers
+from backend.src.core.container import Container
 
 logger = logging.getLogger(__name__)
 
@@ -15,15 +14,17 @@ class HandlerInitializer:
     """
     Initializes WebSocket message handlers.
 
-    Handles registration of all message handlers with the handler registry.
+    Handlers are now managed by the DI container (ApiContainer),
+    so this initializer just ensures the handler registry is created.
     """
 
-    async def initialize(self, session_manager: SessionManager) -> None:
+    async def initialize(self, container: Container) -> None:
         """
-        Initialize and register all WebSocket message handlers.
+        Initialize handler registry from container.
 
         Args:
-            session_manager: SessionManager instance for handlers
+            container: Container instance with handler registry
         """
-        initialize_handlers(session_manager)
-        logger.info("WebSocket message handlers initialized.")
+        # Access handler registry to trigger lazy creation
+        _ = container.handler_registry
+        logger.info("WebSocket message handlers initialized via DI container.")

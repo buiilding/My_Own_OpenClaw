@@ -42,11 +42,6 @@ class ConfigInterface(Protocol):
         ...
     
     @property
-    def memory_db_path(self) -> Optional[str]:
-        """Path to memory database."""
-        ...
-    
-    @property
     def embedding_model(self) -> str:
         """Embedding model name."""
         ...
@@ -54,11 +49,6 @@ class ConfigInterface(Protocol):
     @property
     def summarization_interval(self) -> int:
         """Memory summarization interval in seconds."""
-        ...
-    
-    @property
-    def screenshot_delay_after_action(self) -> float:
-        """Delay before screenshot after computer actions."""
         ...
     
     @property

@@ -6,7 +6,7 @@ Coordinates plugin discovery and registration using PluginDiscoverer instances.
 import logging
 from typing import List
 
-from backend.src.core.plugins.config_manager import PluginConfigManager
+from backend.src.core.plugin_config import PluginConfigManager
 from backend.src.core.plugins.discovery import PluginDiscoverer
 from backend.src.core.plugins.registry import PluginRegistry
 from backend.src.core.plugins.state_manager import PluginStateManager
@@ -71,7 +71,7 @@ class PluginDiscoveryService:
                         # Load config from config manager if available
                         saved_enabled = auto_enable
                         saved_priority = 100
-                        saved_config = self.config_manager.load_plugin_config(
+                        saved_config = self.config_manager.get_plugin_config(
                             plugin_name
                         )
                         if saved_config:

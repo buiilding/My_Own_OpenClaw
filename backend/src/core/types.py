@@ -45,6 +45,10 @@ class StreamingEventType(str, Enum):
     FULL_RESPONSE = "full_response"
     TOKEN_COUNT = "token_count"
     CONTENT = "content"  # Used internally by LLM client
+    REQUEST_SCREENSHOT = "request-screenshot"
+    MEMORY_STORE = "memory-store"
+    BUNDLE_START = "bundle_start"
+    BUNDLE_END = "bundle_end"
 
 
 class ContentType(str, Enum):
@@ -192,12 +196,6 @@ class NormalizedLLMResponse(TypedDict):
 
     content: str
     # Future additions could include token counts, stop reason, etc.
-
-
-# --- Deprecated ---
-# StreamingEvent is now defined in backend.src.core.events as a dataclass hierarchy
-# This type alias is kept for backward compatibility during migration
-StreamingEvent = Dict[str, Any]  # Fixed: any -> Any (capitalized)
 
 
 # ============================================================================

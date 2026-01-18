@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { ApiClient } from '../api/client';
 import { useSettingsManagement } from '../hooks/useSettingsManagement';
+import { filterFrontendConfig } from '../utils/configFilter';
 
 const AppContext = createContext();
 
@@ -59,8 +60,11 @@ export function AppProvider({ children }) {
     // Store the original config in case we need to revert
     configBeforeSave.current = config;
 
+    // Filter config to only include fields that frontend manages
+    const filteredConfig = filterFrontendConfig(newConfig);
+
     // Optimistically update the state and set status to saving
-    setConfig(newConfig);
+    setConfig(filteredConfig);
     setSaveStatus('saving');
 
     // Fallback timeout in case backend never responds
@@ -72,7 +76,8 @@ export function AppProvider({ children }) {
       }
     }, 10000); // 10 second timeout
 
-    ApiClient.updateSettings(newConfig);
+    // Only send the filtered config to backend
+    ApiClient.updateSettings(filteredConfig);
   }, [config, saveStatus]);
 
   const value = {

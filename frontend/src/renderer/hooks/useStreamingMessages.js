@@ -10,17 +10,6 @@ import { useState, useCallback, useMemo } from 'react';
  * @returns {Object} - Object containing message handlers
  */
 export function useStreamingMessages(setMessages, setIsSending, setThinkingStatus) {
-  const handlePongResponse = useCallback((data) => {
-    const newMessage = {
-      id: crypto.randomUUID(),
-      text: data.payload.text || JSON.stringify(data.payload),
-      sender: 'assistant',
-      type: 'llm-text',
-    };
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-    setIsSending(false);
-  }, [setMessages, setIsSending]);
-
   const handleLlmThought = useCallback((data) => {
     // Accumulate thinking tokens for display
     setThinkingStatus((prevStatus) => {
@@ -81,8 +70,11 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
       ? `Error: ${data.payload.error}`
       : (data.payload.output || 'No output');
 
+    // Always generate a unique ID for React keys
+    // data.id might be reused or duplicated, so we can't rely on it for uniqueness
+    const messageId = crypto.randomUUID();
     const newMessage = {
-      id: crypto.randomUUID(),
+      id: messageId, // Always unique for React keys
       text: outputText,
       sender: 'assistant',
       type: 'tool-output',
@@ -91,8 +83,18 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
       toolName: data.payload.tool_name,
       executionTime: data.payload.execution_time,
       success: data.payload.success,
+      correlationId: data.id || data.payload?.request_id, // Store correlation ID separately if needed
     };
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    
+    // Safeguard: Check for duplicate IDs (shouldn't happen with UUID, but defensive)
+    setMessages((prevMessages) => {
+      const exists = prevMessages.some(msg => msg.id === messageId);
+      if (exists) {
+        console.warn('[useStreamingMessages] Duplicate message ID detected, generating new one:', messageId);
+        newMessage.id = crypto.randomUUID();
+      }
+      return [...prevMessages, newMessage];
+    });
   }, [setMessages]);
 
   const handleSystemPrompt = useCallback((data) => {
@@ -217,7 +219,6 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
   }, [setMessages, setIsSending, setThinkingStatus]);
 
   return useMemo(() => ({
-    handlePongResponse,
     handleLlmThought,
     handleStreamingResponse,
     handleStreamingComplete,
@@ -229,7 +230,6 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
     handleAssistantMessageFull,
     handleToolSchemas,
   }), [
-    handlePongResponse,
     handleLlmThought,
     handleStreamingResponse,
     handleStreamingComplete,

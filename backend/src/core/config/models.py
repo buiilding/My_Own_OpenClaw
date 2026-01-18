@@ -79,6 +79,28 @@ class Preferences(BaseModel):
     theme: str = "dark"
 
 
+class SecurityLimits(BaseModel):
+    """Security limits for trust boundaries."""
+    
+    # Parser limits
+    max_response_size: int = Field(default=10 * 1024 * 1024, description="Max LLM response size (10MB)")
+    max_json_size: int = Field(default=1 * 1024 * 1024, description="Max JSON object size (1MB)")
+    max_json_nesting_depth: int = Field(default=100, description="Max JSON nesting depth")
+    max_tool_name_length: int = Field(default=256, description="Max tool name length")
+    max_parameter_count: int = Field(default=100, description="Max parameters per tool call")
+    max_parameter_value_size: int = Field(default=64 * 1024, description="Max parameter value size (64KB)")
+    max_tool_calls_per_response: int = Field(default=50, description="Max tool calls per response")
+    
+    # Parser timeouts
+    parse_timeout_seconds: float = Field(default=5.0, description="Parser timeout (seconds)")
+    json_load_timeout_seconds: float = Field(default=2.0, description="JSON load timeout (seconds)")
+    
+    # Prompt constructor limits
+    max_message_history_size: int = Field(default=1000, description="Max messages in history")
+    max_message_content_size: int = Field(default=1 * 1024 * 1024, description="Max message content size (1MB)")
+    max_prompt_size: int = Field(default=50 * 1024 * 1024, description="Max total prompt size (50MB)")
+
+
 class AppConfig(BaseModel):
     """Main application configuration model (immutable)."""
 
@@ -96,45 +118,23 @@ class AppConfig(BaseModel):
     query_timeout: int = 600  # New field for query timeout
     debug_litellm: bool = False  # Enable LiteLLM debug logging
 
-    # Shell Tool Settings
-    allowed_shell_commands: List[str] = Field(
-        default_factory=lambda: [
-            "echo",
-            "pwd",
-            "whoami",
-            "date",
-            "ls",
-            "dir",
-            "cat",
-            "type",
-        ]
-    )
-
     # Provider Configurations
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
 
     # Memory System Settings
     memory_enabled: bool = True
-    memory_db_path: Optional[str] = None  # Defaults to config_dir/memory
     embedding_model: str = "all-MiniLM-L6-v2"
-    summarization_interval: int = 3600  # seconds
-    memory_summarization_batch_size: int = 10  # Number of interactions per batch
-    memory_summarization_limit: int = 1000  # Max memories to fetch for summarization
 
     # Agent Execution Settings
     max_history_length: int = 1000  # Maximum conversation history messages
     max_agent_iterations: int = 1000  # Maximum tool execution iterations per query (high limit to effectively remove constraint)
 
     # Tool Execution Settings
-    shell_timeout: float = 30.0  # Shell command timeout in seconds
-    search_file_timeout: float = 5.0  # File search timeout in seconds
-    marketplace_search_limit: int = 5  # Marketplace search result limit
-    model_registry_timeout: float = 2.0  # Model registry API timeout in seconds
-
-    # Computer/Screenshot Settings
-    screenshot_delay_after_action: float = (
-        2.0  # seconds to wait before screenshot after computer actions
-    )
+    # This section is largely redundant as tools execute on the frontend
+    # but kept for backend-specific tool configurations if any
+    
+    # Vision Model Settings
+    vision_model_name: Optional[str] = "OpenGVLab/InternVL3_5-2B"  # Defaults to "OpenGVLab/InternVL3_5-4B" if None
     
     # Voice Mode Settings
     voice_mode_enabled: bool = False
@@ -151,13 +151,17 @@ class AppConfig(BaseModel):
     ])
 
     # TTS Settings
-    tts_enabled: bool = False
+    # tts_enabled is always True by default (hardcoded, not configurable via config file)
+    # Only changeable by modifying this default value in code
+    tts_enabled: bool = True
     tts_model_path: Optional[str] = None
-    tts_use_cuda: bool = False
     speech_mode_enabled: bool = False
 
     # This field is populated at runtime, not loaded from config file
     api_key: Optional[str] = None
+
+    # Security limits
+    security_limits: SecurityLimits = Field(default_factory=SecurityLimits)
 
     @property
     def llm_model(self) -> str:

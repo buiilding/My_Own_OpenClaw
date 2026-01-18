@@ -121,6 +121,7 @@ class ToolCallEvent(StreamingEvent):
     tool_name: str
     parameters: Dict[str, Any]
     raw_call: str
+    request_id: Optional[str] = None  # For remote tools, the request_id to match results
     
     def __post_init__(self):
         self.type = StreamingEventType.TOOL_CALL
@@ -154,7 +155,7 @@ class SystemPromptEvent(StreamingEvent):
 @dataclass
 class ToolSchemasEvent(StreamingEvent):
     """Event emitted with tool schemas passed to LLM as API parameter."""
-    tool_schemas: Dict[str, Any]
+    tool_schemas: List[Dict[str, Any]]
 
     def __post_init__(self):
         self.type = StreamingEventType.TOOL_SCHEMAS
@@ -200,6 +201,44 @@ class TokenCountEvent(StreamingEvent):
         self.type = StreamingEventType.TOKEN_COUNT
 
 
+@dataclass
+class RequestScreenshotEvent(StreamingEvent):
+    """Event emitted when the backend needs a screenshot (hidden from UI)."""
+    request_id: str
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.REQUEST_SCREENSHOT
+
+
+@dataclass
+class MemoryStoreEvent(StreamingEvent):
+    """Event emitted to trigger frontend memory storage after interaction completes."""
+    user_query: str
+    assistant_response: str
+    memory_type: str  # "episodic" or "semantic"
+    user_id: str = "default_user"
+    session_id: Optional[str] = None  # Session/conversation identifier for grouping
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.MEMORY_STORE
+
+
+@dataclass
+class BundleStartEvent(StreamingEvent):
+    """Event emitted when a bundle of tools starts."""
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.BUNDLE_START
+
+
+@dataclass
+class BundleEndEvent(StreamingEvent):
+    """Event emitted when a bundle of tools ends."""
+    
+    def __post_init__(self):
+        self.type = StreamingEventType.BUNDLE_END
+
+
 # Union type for all event types
 AgentStreamingEvent = Union[
     ThinkingEvent,
@@ -209,7 +248,12 @@ AgentStreamingEvent = Union[
     ToolCallEvent,
     ToolOutputEvent,
     SystemPromptEvent,
+    ToolSchemasEvent,
     UserMessageFullEvent,
     AssistantMessageFullEvent,
     FullResponseEvent,
+    RequestScreenshotEvent,
+    MemoryStoreEvent,
+    BundleStartEvent,
+    BundleEndEvent,
 ]

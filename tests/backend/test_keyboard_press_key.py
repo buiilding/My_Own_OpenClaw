@@ -20,6 +20,7 @@ from backend.src.tools.registry import ToolRegistry
 from backend.src.core.config import get_config_manager
 from backend.src.core.container import Container
 from backend.src.core.services.context_factory import ContextFactory
+from test_parser_helpers import create_test_parser
 
 # Configure logging for the test
 logging.basicConfig(
@@ -67,7 +68,7 @@ async def run_ctrl_l_test():
         print(f"LLM Response: {llm_response}")
 
         # Parse the response
-        parser = ResponseParser()
+        parser = create_test_parser(tool_names=["keyboard_control"])
         parsed_response = parser.parse_response(llm_response)
 
         if not parsed_response.has_tool_calls:
