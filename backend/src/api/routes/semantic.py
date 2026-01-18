@@ -9,7 +9,7 @@ import re
 from typing import Dict, Any, List, Tuple
 
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 from backend.src.api.deps import ContainerDep
 from backend.src.core.config import AppConfig
@@ -26,8 +26,32 @@ FALLBACK_SUMMARY_LENGTH = 500  # Characters to use for fallback summary if parsi
 
 class SummarizeRequest(BaseModel):
     """Request model for semantic summarization."""
-    conversations: List[str]  # List of conversation texts to summarize
-    user_id: str = "default_user"
+    # FIX: Add constraints to prevent DoS
+    conversations: List[str] = Field(
+        ..., 
+        min_items=1, 
+        max_items=100, 
+        description="List of conversation texts to summarize (max 100 items)"
+    )  # Each conversation string validated below
+    user_id: str = Field(..., min_length=1, description="User ID (required, cannot be default_user)")
+    
+    @field_validator('conversations')
+    @classmethod
+    def validate_conversation_lengths(cls, v: List[str]) -> List[str]:
+        """Validate each conversation string length."""
+        max_length = 32768  # 32KB per conversation
+        for i, conv in enumerate(v):
+            if len(conv) > max_length:
+                raise ValueError(f"Conversation {i} exceeds maximum length of {max_length} characters")
+        return v
+    
+    @field_validator('user_id')
+    @classmethod
+    def validate_user_id(cls, v: str) -> str:
+        """Reject default_user as a security measure."""
+        if v == "default_user" or not v.strip():
+            raise ValueError("user_id cannot be 'default_user' or empty")
+        return v
 
 
 class SummarizeResponse(BaseModel):

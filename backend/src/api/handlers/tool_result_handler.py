@@ -5,7 +5,7 @@ Handles tool-result messages from the frontend by delegating to AgentSession.
 The handler is a pure coordinator - all tool result processing logic lives in the session.
 """
 import logging
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from fastapi import WebSocketDisconnect
 

@@ -48,7 +48,8 @@ class ToolResultMessage(BaseMessage):
 class HandshakeMessage(BaseModel):
     """Handshake message sent at WebSocket connection start."""
     type: Literal["handshake"]
-    user_id: str = "default_user"
+    # FIX: Remove default value. Client MUST provide identity.
+    user_id: str
 
 # Union type for parsing
 IncomingMessage = Union[

@@ -5,7 +5,7 @@ Handles user query messages and streams responses back to the client.
 """
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from fastapi import WebSocketDisconnect
 

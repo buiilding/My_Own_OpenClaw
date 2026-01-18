@@ -102,10 +102,15 @@ class ErrorEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        # FIX: Map content to 'message' to match ErrorPayload schema
+        # schema.py: class ErrorPayload(BaseModel): message: str; content: Optional[str]
         return {
             "type": "error",
             "id": msg_id,
-            "payload": {"content": event_dict.get("content", "Error")},
+            "payload": {
+                "message": event_dict.get("content", "An unexpected error occurred"),
+                "content": event_dict.get("details")  # Map extra details if available
+            },
         }
 
 
