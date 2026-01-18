@@ -29,7 +29,7 @@ async def main():
     # Use lazy imports to avoid circular dependencies
     # Import components only when needed, after path is set
     from backend.src.core.container import Container  # noqa: E402
-    from backend.src.llm.prompt_constructor import PromptConstructor  # noqa: E402
+    from backend.src.llm.prompts import PromptConstructor  # noqa: E402
 
     # Initialize container (this initializes the tool registry)
     container = Container()

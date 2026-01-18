@@ -17,9 +17,9 @@ from backend.src.core.bus import EventBus
 from backend.src.core.config import AppConfig
 from backend.src.core.events import InteractionCompleted
 from backend.src.core.plugins.registry import PluginRegistry
-from backend.src.llm.llm_client import LLMClient, get_llm_client
+from backend.src.llm.client import LLMClient, get_llm_client
 from backend.src.llm.parser import ResponseParser
-from backend.src.llm.prompt_constructor import PromptConstructor
+from backend.src.llm.prompts import PromptConstructor
 from backend.src.tools.registry import ToolRegistry
 
 if TYPE_CHECKING:

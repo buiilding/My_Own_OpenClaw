@@ -11,7 +11,7 @@ from typing import AsyncGenerator, List
 
 from backend.src.core.config import AppConfig
 from backend.src.core.events import ChunkEvent, StreamingEvent
-from backend.src.llm.llm_client import LLMClient
+from backend.src.llm.client import LLMClient
 from backend.src.core.types import LLMMessage
 
 logger = logging.getLogger(__name__)

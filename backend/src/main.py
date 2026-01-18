@@ -31,7 +31,7 @@ logging.getLogger("PIL.PngImagePlugin").setLevel(logging.WARNING)
 logging.getLogger("Pillow").setLevel(logging.WARNING)
 
 # Disable system prompt content logging
-logging.getLogger("backend.src.llm.prompt_constructor").setLevel(logging.INFO)
+logging.getLogger("backend.src.llm.prompts.prompt_constructor").setLevel(logging.INFO)
 
 logger = logging.getLogger(__name__)
 

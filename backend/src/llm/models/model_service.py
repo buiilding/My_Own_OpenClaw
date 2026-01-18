@@ -10,9 +10,14 @@ import logging
 from typing import Dict, List
 
 from backend.src.core.config import AppConfig
-from backend.src.llm.models_config import ONLINE_MODELS, ONLINE_THINKING_MODELS, LOCAL_VISION_MODELS
-from backend.src.llm.providers import create_provider_factory
-from backend.src.llm.providers.base import LLMProvider
+from backend.src.llm.models.models_config import ONLINE_MODELS, ONLINE_THINKING_MODELS, LOCAL_VISION_MODELS
+
+# Lazy import to avoid circular dependency
+# providers imports models.models_config, so we import providers lazily
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +118,9 @@ class ModelService:
             List of available local models. If a provider fails, it logs a warning
             but continues to try other providers. Returns empty list if all providers fail.
         """
+        # Lazy import to avoid circular dependency
+        from backend.src.llm.providers import create_provider_factory
+        
         local_models = []
         provider_failures = []
         

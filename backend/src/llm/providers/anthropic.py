@@ -14,7 +14,7 @@ from backend.src.core.types import (
     LLMMessage,
     NormalizedLLMResponse,
 )
-from backend.src.llm.models_config import ONLINE_THINKING_MODELS
+from backend.src.llm.models.models_config import ONLINE_THINKING_MODELS
 from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
