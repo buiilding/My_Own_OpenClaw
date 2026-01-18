@@ -9,7 +9,7 @@ from typing import Any, Dict
 from fastapi import WebSocket, WebSocketDisconnect
 
 from backend.src.api.handlers.base import MessageHandler
-from backend.src.api.handlers.transport import WebSocketTransportSender
+from backend.src.api.handlers.error_utils import send_error_response, send_success_response
 from backend.src.api.handlers.tts_manager import TTSManager
 from backend.src.api.schema import WakewordDetectedMessage
 from backend.src.core.services.wakeword_service import WakewordService
@@ -66,8 +66,6 @@ class WakewordHandler(MessageHandler):
         """
         tts_service = None
         audio_task = None
-
-        transport = WebSocketTransportSender(websocket)
         
         try:
             # Validate message
@@ -86,27 +84,21 @@ class WakewordHandler(MessageHandler):
                     tts_service, websocket, msg_id
                 )
 
-            # Send responses via transport
+            # Send responses using canonical utilities
             activation_payload = self.wakeword_service.get_activation_payload(greeting)
-            try:
-                await transport.send({
-                    "type": "wakeword-activated",
-                    "id": msg_id,
-                    "payload": activation_payload
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send wakeword-activated to closed connection: {send_error}")
+            await send_success_response(
+                websocket,
+                msg_id,
+                "wakeword-activated",
+                activation_payload
+            )
 
-            try:
-                await transport.send({
-                    "type": "wakeword-greeting",
-                    "id": msg_id,
-                    "payload": {
-                        "text": greeting
-                    }
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send wakeword-greeting to closed connection: {send_error}")
+            await send_success_response(
+                websocket,
+                msg_id,
+                "wakeword-greeting",
+                {"text": greeting}
+            )
 
             # Generate TTS for greeting if speech mode enabled
             if tts_service:
@@ -116,24 +108,20 @@ class WakewordHandler(MessageHandler):
             logger.info(f"Wakeword activated for user {user_id} with greeting: {greeting}")
 
         except ValidationError as e:
-            try:
-                await transport.send({
-                    "type": "error",
-                    "id": data.get("id"),
-                    "payload": {"message": f"Invalid wakeword message: {e.message}"}
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send error to closed connection: {send_error}")
+            # Validation error - send using canonical utility
+            await send_error_response(
+                websocket,
+                data.get("id"),
+                f"Invalid wakeword message: {e.message}"
+            )
         except Exception as e:
+            # Unexpected error - log and send using canonical utility
             logger.error(f"Error in wakeword handler: {e}", exc_info=True)
-            try:
-                await transport.send({
-                    "type": "error",
-                    "id": data.get("id"),
-                    "payload": {"message": f"Wakeword error: {str(e)}"}
-                })
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                logger.debug(f"Failed to send error to closed connection: {send_error}")
+            await send_error_response(
+                websocket,
+                data.get("id"),
+                f"Wakeword error: {str(e)}"
+            )
         finally:
             # Clean up TTS
             await self.tts_manager.cleanup(tts_service, audio_task)
