@@ -5,37 +5,39 @@ This module provides handlers for different WebSocket message types,
 organized using the registry pattern for easy extensibility.
 
 Handler Architecture:
-- base.py: MessageHandler base class and MessageHandlerRegistry
+- core.base: MessageHandler base class and MessageHandlerRegistry
 - Each handler implements MessageHandler.handle() method
 - Handlers are stateless singletons (state in SessionManager/AgentSession)
 - Registry routes messages by type to appropriate handler
 
 Handler Responsibilities:
-- query_handler.py: User query processing (main agent interaction)
-- settings_handler.py: Configuration management (load/update/list models)
-- tool_result_handler.py: Frontend tool execution results
-- wakeword_handler.py: Wakeword detection and activation
-- response_formatter.py: Formats agent events to WebSocket messages
-- stream_pipeline.py: Orchestrates event processing pipeline
-- tts_manager.py: TTS lifecycle management
-- tts_processor.py: TTS event filtering (removes tool calls from speech)
-- transport.py: Transport abstraction (testing seam)
-- error_utils.py: Standardized error handling utilities
+- query.py: User query processing (main agent interaction)
+- settings.py: Configuration management (load/update/list models)
+- tool_result.py: Frontend tool execution results
+- wakeword.py: Wakeword detection and activation
+
+Related Components:
+- query.formatter: Formats agent events to WebSocket messages
+- query.pipeline: Orchestrates event processing pipeline
+- tts.manager: TTS lifecycle management
+- tts.processor: TTS event filtering (removes tool calls from speech)
+- core.transport: Transport abstraction (testing seam)
+- core.errors: Standardized error handling utilities
 
 Handlers are registered in ApiContainer and accessed via MessageHandlerRegistry.
 """
-from backend.src.api.handlers.base import (
+from backend.src.api.core.base import (
     MessageHandler,
     MessageHandlerRegistry,
 )
-from backend.src.api.handlers.query_handler import QueryMessageHandler
-from backend.src.api.handlers.settings_handler import (
+from backend.src.api.handlers.query import QueryMessageHandler
+from backend.src.api.handlers.settings import (
     ListModelsHandler,
     LoadSettingsHandler,
     UpdateSettingsHandler,
 )
-from backend.src.api.handlers.wakeword_handler import WakewordHandler
-from backend.src.api.handlers.tool_result_handler import ToolResultHandler
+from backend.src.api.handlers.wakeword import WakewordHandler
+from backend.src.api.handlers.tool_result import ToolResultHandler
 
 __all__ = [
     "MessageHandler",

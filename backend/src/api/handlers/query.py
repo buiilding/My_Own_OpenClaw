@@ -9,16 +9,16 @@ from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from fastapi import WebSocketDisconnect
 
-from backend.src.api.handlers.base import MessageHandler
+from backend.src.api.core.base import MessageHandler
 
 if TYPE_CHECKING:
     from backend.src.agent.core.session_manager import SessionManager
-from backend.src.api.handlers.error_utils import send_error_response, send_success_response
-from backend.src.api.handlers.response_formatter import ResponseFormatter
-from backend.src.api.handlers.stream_pipeline import StreamPipeline
-from backend.src.api.handlers.transport import WebSocketSender, WebSocketTransportSender
-from backend.src.api.handlers.tts_manager import TTSManager
-from backend.src.api.handlers.tts_processor import TTSProcessor
+from backend.src.api.core.errors import send_error_response, send_success_response
+from backend.src.api.query.formatter import ResponseFormatter
+from backend.src.api.query.pipeline import StreamPipeline
+from backend.src.api.core.transport import WebSocketSender, WebSocketTransportSender
+from backend.src.api.tts.manager import TTSManager
+from backend.src.api.tts.processor import TTSProcessor
 from backend.src.api.schema import BaseMessage, QueryMessage
 from backend.src.core.validation import (
     ValidationError,

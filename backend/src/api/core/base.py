@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Awaitable
 from typing import Any, Callable, Dict, Optional, Union
 
-from backend.src.api.handlers.transport import WebSocketSender
+from backend.src.api.core.transport import WebSocketSender
 from backend.src.api.schema import BaseMessage, IncomingMessage
 
 logger = logging.getLogger(__name__)
