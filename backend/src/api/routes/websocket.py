@@ -218,6 +218,43 @@ async def websocket_endpoint(
             logger.debug(f"Error closing WebSocket after handshake error: {close_error}")
         return
 
+    # Helper function to perform cleanup (used for both disconnect and error cases)
+    async def _cleanup_connection() -> None:
+        """
+        Clean up connection resources: cancel tasks and end session.
+        
+        This is called on both normal disconnect and unexpected errors to ensure
+        resources are always cleaned up, preventing leaks.
+        """
+        # Get snapshot of pending tasks with lock to avoid race condition
+        async with tasks_lock:
+            pending = [t for t in active_tasks if not t.done()]
+        
+        # Cancel all pending tasks
+        for task in pending:
+            task.cancel()
+        
+        # Wait for handlers to react to CancelledError
+        if pending:
+            try:
+                await asyncio.wait_for(
+                    asyncio.gather(*pending, return_exceptions=True),
+                    timeout=TASK_CANCELLATION_TIMEOUT
+                )
+            except asyncio.TimeoutError:
+                logger.warning(f"Timeout waiting for {len(pending)} tasks to cancel")
+        
+        # Force check for zombies (tasks that didn't respond to cancellation)
+        zombies = [t for t in pending if not t.done()]
+        if zombies:
+            logger.error(f"Orphaned {len(zombies)} tasks after cleanup for user {user_id}")
+        
+        # Clean up session - handle exceptions to prevent cleanup failure
+        try:
+            await session_manager.end_session(user_id)
+        except Exception as e:
+            logger.error(f"Error ending session for user {user_id}: {e}", exc_info=True)
+
     # Main Loop
     try:
         while True:
@@ -236,10 +273,7 @@ async def websocket_endpoint(
                     pass  # Connection may already be closed
                 finally:
                     # Clean up session on timeout to prevent orphaned sessions
-                    try:
-                        await session_manager.end_session(user_id)
-                    except Exception as e:
-                        logger.error(f"Error ending session on timeout for user {user_id}: {e}", exc_info=True)
+                    await _cleanup_connection()
                 break
             
             # Validate message size before processing
@@ -298,35 +332,14 @@ async def websocket_endpoint(
                 
     except WebSocketDisconnect:
         logger.info(f"Client {user_id} disconnected")
-        # FIX #2: Robust Cleanup - Cancel all active tasks for this connection
-        # Get snapshot of pending tasks with lock to avoid race condition
-        async with tasks_lock:
-            pending = [t for t in active_tasks if not t.done()]
-        
-        # Cancel all pending tasks
-        for task in pending:
-            task.cancel()
-        
-        # Wait for handlers to react to CancelledError
-        if pending:
-            try:
-                await asyncio.wait_for(
-                    asyncio.gather(*pending, return_exceptions=True),
-                    timeout=TASK_CANCELLATION_TIMEOUT
-                )
-            except asyncio.TimeoutError:
-                logger.warning(f"Timeout waiting for {len(pending)} tasks to cancel on disconnect")
-        
-        # Force check for zombies (tasks that didn't respond to cancellation)
-        zombies = [t for t in pending if not t.done()]
-        if zombies:
-            logger.error(f"Orphaned {len(zombies)} tasks after disconnect cleanup for user {user_id}")
-        
-        # Clean up session - handle exceptions to prevent cleanup failure
-        try:
-            await session_manager.end_session(user_id)
-        except Exception as e:
-            logger.error(f"Error ending session on disconnect for user {user_id}: {e}", exc_info=True)
+        await _cleanup_connection()
+    except Exception as e:
+        # Handle unexpected exceptions (e.g., KeyboardInterrupt, SystemError) to ensure cleanup
+        # This prevents resource leaks when unexpected errors occur
+        logger.error(f"Unexpected error in WebSocket loop for user {user_id}: {e}", exc_info=True)
+        await _cleanup_connection()
+        # Re-raise to let FastAPI handle it appropriately
+        raise
 
 async def handle_message(
     websocket: SafeWebSocket, 
