@@ -20,13 +20,34 @@ def _get_config_cache_key(cfg: AppConfig) -> int:
     """
     Generate a cache key from config values that affect provider initialization.
     
+    SECURITY: Safely accesses optional config sections to prevent AttributeError crashes.
+    CANONICALIZATION: Uses explicit defaults to ensure cache keys match provider initialization.
+    
     Since AppConfig is frozen (immutable), we can use a hash of relevant values
     to cache factories per config state.
     """
     # Build a tuple of config values that affect provider initialization
-    ollama_url = cfg.llm_providers.ollama.base_url if cfg.llm_providers else "http://localhost:11434/v1"
-    lmstudio_url = cfg.llm_providers.lmstudio.base_url if cfg.llm_providers else "http://localhost:1234/v1"
-    openrouter_url = getattr(cfg.llm_providers.openrouter, "base_url", None) if cfg.llm_providers else None
+    # Must use the same logic as create_provider_factory() to ensure cache key matches provider state
+    
+    providers = cfg.llm_providers
+    
+    # Ollama (Default: http://localhost:11434/v1)
+    if providers and providers.ollama and providers.ollama.base_url:
+        ollama_url = providers.ollama.base_url
+    else:
+        ollama_url = "http://localhost:11434/v1"
+    
+    # LM Studio (Default: http://localhost:1234/v1)
+    if providers and providers.lmstudio and providers.lmstudio.base_url:
+        lmstudio_url = providers.lmstudio.base_url
+    else:
+        lmstudio_url = "http://localhost:1234/v1"
+    
+    # OpenRouter (Default: https://openrouter.ai/api/v1 - matches OpenRouterProvider.__init__)
+    if providers and providers.openrouter and providers.openrouter.base_url:
+        openrouter_url = providers.openrouter.base_url
+    else:
+        openrouter_url = "https://openrouter.ai/api/v1"
     
     cache_tuple = (
         cfg.api_key,
@@ -63,18 +84,27 @@ def create_provider_factory(
     timeout = float(cfg.llm_timeout)
     
     # Extract provider-specific configs safely
-    ollama_config = cfg.llm_providers.ollama if cfg.llm_providers else None
-    ollama_base_url = ollama_config.base_url if ollama_config else "http://localhost:11434/v1"
+    # MUST use the same logic as _get_config_cache_key() to ensure cache key matches provider state
+    providers = cfg.llm_providers
     
-    lmstudio_config = cfg.llm_providers.lmstudio if cfg.llm_providers else None
-    lmstudio_base_url = lmstudio_config.base_url if lmstudio_config else "http://localhost:1234/v1"
+    # Ollama (Default: http://localhost:11434/v1)
+    if providers and providers.ollama and providers.ollama.base_url:
+        ollama_base_url = providers.ollama.base_url
+    else:
+        ollama_base_url = "http://localhost:11434/v1"
     
-    openrouter_config = cfg.llm_providers.openrouter if cfg.llm_providers else None
-    openrouter_base_url = (
-        getattr(openrouter_config, "base_url", None)
-        if openrouter_config
-        else None
-    )
+    # LM Studio (Default: http://localhost:1234/v1)
+    if providers and providers.lmstudio and providers.lmstudio.base_url:
+        lmstudio_base_url = providers.lmstudio.base_url
+    else:
+        lmstudio_base_url = "http://localhost:1234/v1"
+    
+    # OpenRouter (Default: https://openrouter.ai/api/v1 - matches OpenRouterProvider.__init__)
+    # Note: OpenRouterProvider sets this default in __init__ if None, so we must canonicalize here
+    if providers and providers.openrouter and providers.openrouter.base_url:
+        openrouter_base_url = providers.openrouter.base_url
+    else:
+        openrouter_base_url = "https://openrouter.ai/api/v1"
     
     factory = {
         "openai": OpenAIProvider(
