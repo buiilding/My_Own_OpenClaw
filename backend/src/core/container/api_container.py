@@ -22,6 +22,7 @@ from backend.src.api.handlers.wakeword_handler import WakewordHandler
 from backend.src.core.config import AppConfig
 from backend.src.core.config_service import ConfigurationService
 from backend.src.core.config.user_config_manager import UserConfigManager
+from backend.src.core.services.wakeword_service import WakewordService
 from backend.src.llm.model_service import ModelService
 
 logger = logging.getLogger(__name__)
@@ -51,6 +52,12 @@ class ApiContainer(containers.DeclarativeContainer):
     # Response Formatter (stateless utility)
     response_formatter = providers.Singleton(ResponseFormatter)
 
+    # Wakeword Service (policy service)
+    wakeword_service = providers.Singleton(
+        WakewordService,
+        config=config,
+    )
+
     # Message Handlers
     query_handler = providers.Singleton(
         QueryMessageHandler,
@@ -67,7 +74,7 @@ class ApiContainer(containers.DeclarativeContainer):
     wakeword_handler = providers.Singleton(
         WakewordHandler,
         tts_manager=tts_manager,
-        config=config,
+        wakeword_service=wakeword_service,
     )
 
     load_settings_handler = providers.Singleton(

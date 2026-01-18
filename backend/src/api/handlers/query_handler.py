@@ -171,6 +171,9 @@ class QueryMessageHandler(MessageHandler):
             msg_id: Message ID (optional)
             message: Error message
         """
-        await websocket.send_json(
-            {"type": "error", "id": msg_id, "payload": {"message": message}}
-        )
+        transport = WebSocketTransportSender(websocket)
+        await transport.send({
+            "type": "error",
+            "id": msg_id,
+            "payload": {"message": message}
+        })

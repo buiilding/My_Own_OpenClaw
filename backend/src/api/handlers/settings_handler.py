@@ -8,14 +8,17 @@ from typing import TYPE_CHECKING, Any, Dict
 from fastapi import WebSocket
 
 from backend.src.api.handlers.base import MessageHandler
-from backend.src.api.schema import LoadSettingsMessage, UpdateSettingsMessage
-from backend.src.core.config import AppConfig
+from backend.src.api.handlers.transport import WebSocketTransportSender
+from backend.src.api.schema import (
+    LoadSettingsMessage,
+    ListModelsMessage,
+    UpdateSettingsMessage,
+)
 
 if TYPE_CHECKING:
     from backend.src.agent.core.session_manager import SessionManager
 from backend.src.core.config_service import ConfigurationService
 from backend.src.core.config.user_config_manager import UserConfigManager
-from backend.src.core.config.manager import load_api_key_for_provider
 from backend.src.core.validation import (
     validate_message, 
     validate_settings_update, 
@@ -66,6 +69,8 @@ class LoadSettingsHandler(MessageHandler):
             websocket: WebSocket connection
             user_id: User ID from connection context
         """
+        transport = WebSocketTransportSender(websocket)
+        
         try:
             validated = validate_message(data, "load-settings", LoadSettingsMessage)
             
@@ -78,20 +83,20 @@ class LoadSettingsHandler(MessageHandler):
                 user_id, global_config_dict
             )
             
-            await websocket.send_json({
+            await transport.send({
                 "type": "settings-loaded",
                 "id": validated.id,
                 "payload": merged_config_dict
             })
         except ValidationError as e:
-            await websocket.send_json({
+            await transport.send({
                 "type": "error",
                 "id": data.get("id"),
                 "payload": {"message": f"Invalid load-settings message: {e.message}"}
             })
         except Exception as e:
             logger.error(f"Error loading settings: {e}", exc_info=True)
-            await websocket.send_json({
+            await transport.send({
                 "type": "error",
                 "id": data.get("id"),
                 "payload": {"message": f"Failed to load settings: {str(e)}"}
@@ -142,13 +147,13 @@ class UpdateSettingsHandler(MessageHandler):
             user_id: User ID from connection context
         """
         msg_id = data.get("id")
+        transport = WebSocketTransportSender(websocket)
+        
         try:
             validated = validate_message(data, "update-settings", UpdateSettingsMessage)
             
             # Validate settings update payload
             new_config_data = validate_settings_update(validated.payload)
-            
-            global_config = self.config_service.get_config()
             
             # Get user-specific config to merge with updates
             user_config = self.user_config_manager.load_user_config(user_id)
@@ -160,42 +165,27 @@ class UpdateSettingsHandler(MessageHandler):
             # Save user-specific config (only frontend-managed fields - filters automatically)
             self.user_config_manager.save_user_config(user_id, merged_user_config)
             
-            # Build complete config for this user: global + user-specific overrides
-            complete_config_dict = {**global_config.model_dump(), **merged_user_config}
-            
-            # tts_enabled is always True (hardcoded, not configurable)
-            # speech_mode_enabled controls whether TTS is actually used
-            complete_config_dict["tts_enabled"] = True
-            
-            # Set default TTS model path if TTS is enabled and path is not set
-            tts_will_be_enabled = complete_config_dict.get("tts_enabled", global_config.tts_enabled)
-            if tts_will_be_enabled:
-                if not complete_config_dict.get("tts_model_path") and not global_config.tts_model_path:
-                    complete_config_dict["tts_model_path"] = "/home/peter/.config/DesktopAssistant/tts_models/piper/en_GB-jenny_dioco-medium.onnx"
-            
-            validated_config = AppConfig(**complete_config_dict)
-            
-            # Load API key for the selected provider
-            validated_config = load_api_key_for_provider(validated_config)
+            # Build complete config with policies applied (delegates to service)
+            validated_config = self.config_service.build_user_config(merged_user_config)
             
             # Update only this user's session, not all sessions
             await self.session_manager.update_user_session_config(user_id, validated_config)
             
-            await websocket.send_json({
+            await transport.send({
                 "type": "settings-updated",
                 "id": msg_id,
                 "payload": {"message": "Settings updated successfully"}
             })
         
         except ValidationError as e:
-            await websocket.send_json({
+            await transport.send({
                 "type": "error",
                 "id": msg_id,
                 "payload": {"message": f"Invalid update-settings message: {e.message}"}
             })
         except Exception as e:
             logger.error(f"Failed to update settings: {e}", exc_info=True)
-            await websocket.send_json({
+            await transport.send({
                 "type": "error",
                 "id": msg_id,
                 "payload": {"message": f"Failed to update settings: {str(e)}"}
@@ -217,7 +207,6 @@ class ListModelsHandler(MessageHandler):
     def validate_message(self, data: Dict[str, Any]) -> bool:
         """Validate list-models message structure."""
         try:
-            from backend.src.api.schema import ListModelsMessage
             validate_message(data, "list-models", ListModelsMessage)
             return True
         except ValidationError:
@@ -237,24 +226,25 @@ class ListModelsHandler(MessageHandler):
             websocket: WebSocket connection
             user_id: User ID from connection context
         """
+        transport = WebSocketTransportSender(websocket)
+        
         try:
-            from backend.src.api.schema import ListModelsMessage
             validated = validate_message(data, "list-models", ListModelsMessage)
             models = await self.model_service.get_all_models()
-            await websocket.send_json({
+            await transport.send({
                 "type": "models-listed",
                 "id": validated.id,
                 "payload": models
             })
         except ValidationError as e:
-            await websocket.send_json({
+            await transport.send({
                 "type": "error",
                 "id": data.get("id"),
                 "payload": {"message": f"Invalid list-models message: {e.message}"}
             })
         except Exception as e:
             logger.error(f"Error listing models: {e}", exc_info=True)
-            await websocket.send_json({
+            await transport.send({
                 "type": "error",
                 "id": data.get("id"),
                 "payload": {"message": f"Failed to list models: {str(e)}"}
