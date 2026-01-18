@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from backend.src.llm.parser import ResponseParser
+from test_parser_helpers import create_test_parser
 
 def test_parser():
-    parser = ResponseParser()
+    parser = create_test_parser()
 
     # Test 1: Pure JSON format (what AI is producing)
     pure_json_response = '{"functionCall": {"name": "write_file", "args": {"file_path": "config.py", "content": "test"}}}'

@@ -45,9 +45,13 @@ async def main():
     # Initialize container (without vision service)
     await container.initialize()
 
-    # Get tool registry and create prompt constructor
+    # Get tool registry and config, create prompt constructor
     tool_registry = container.tool_registry
-    prompt_constructor = PromptConstructor(tool_registry=tool_registry)
+    config = container.config()
+    prompt_constructor = PromptConstructor(
+        tool_registry=tool_registry,
+        config=config,
+    )
 
     # Create a minimal history for prompt building (empty since we only want the system message)
     from backend.src.agent.state import ConversationHistory  # noqa: E402

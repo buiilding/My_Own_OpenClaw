@@ -88,10 +88,16 @@ class AgentSession:
             self.tool_orchestrator = ToolOrchestrator(self.tool_registry, self.cfg)
         else:
             self.tool_orchestrator = tool_orchestrator
-        self.response_parser = ResponseParser()
+        self.response_parser = ResponseParser(
+            config=self.cfg,
+            tool_registry=self.tool_registry,
+        )
 
         # Initialize state management
-        self.prompt_builder = PromptConstructor(self.tool_registry)
+        self.prompt_builder = PromptConstructor(
+            tool_registry=self.tool_registry,
+            config=self.cfg,
+        )
         self.history = ConversationHistory(
             max_length=None,  # Disable pruning
             system_prompt=self.prompt_builder.system_prompt

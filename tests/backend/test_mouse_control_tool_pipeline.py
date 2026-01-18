@@ -34,6 +34,7 @@ from backend.src.tools.registry import ToolRegistry
 from backend.src.core.config import get_config_manager
 from backend.src.core.container import Container
 from backend.src.core.services.context_factory import ContextFactory
+from test_parser_helpers import create_test_parser
 
 # Configure logging for the test
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -199,7 +200,7 @@ async def run_mouse_test(action: str, find_coordinates_by: str = "manual", x: Op
 
     # Step 2: Parse the Response
     print("\n📋 STEP 2: Parsing LLM Response")
-    parser = ResponseParser()
+    parser = create_test_parser(tool_names=["mouse_control"])
     parsed_response = parser.parse_response(llm_response)
 
     print(f"Parsed Response:")

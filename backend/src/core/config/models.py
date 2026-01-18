@@ -79,6 +79,28 @@ class Preferences(BaseModel):
     theme: str = "dark"
 
 
+class SecurityLimits(BaseModel):
+    """Security limits for trust boundaries."""
+    
+    # Parser limits
+    max_response_size: int = Field(default=10 * 1024 * 1024, description="Max LLM response size (10MB)")
+    max_json_size: int = Field(default=1 * 1024 * 1024, description="Max JSON object size (1MB)")
+    max_json_nesting_depth: int = Field(default=100, description="Max JSON nesting depth")
+    max_tool_name_length: int = Field(default=256, description="Max tool name length")
+    max_parameter_count: int = Field(default=100, description="Max parameters per tool call")
+    max_parameter_value_size: int = Field(default=64 * 1024, description="Max parameter value size (64KB)")
+    max_tool_calls_per_response: int = Field(default=50, description="Max tool calls per response")
+    
+    # Parser timeouts
+    parse_timeout_seconds: float = Field(default=5.0, description="Parser timeout (seconds)")
+    json_load_timeout_seconds: float = Field(default=2.0, description="JSON load timeout (seconds)")
+    
+    # Prompt constructor limits
+    max_message_history_size: int = Field(default=1000, description="Max messages in history")
+    max_message_content_size: int = Field(default=1 * 1024 * 1024, description="Max message content size (1MB)")
+    max_prompt_size: int = Field(default=50 * 1024 * 1024, description="Max total prompt size (50MB)")
+
+
 class AppConfig(BaseModel):
     """Main application configuration model (immutable)."""
 
@@ -137,6 +159,9 @@ class AppConfig(BaseModel):
 
     # This field is populated at runtime, not loaded from config file
     api_key: Optional[str] = None
+
+    # Security limits
+    security_limits: SecurityLimits = Field(default_factory=SecurityLimits)
 
     @property
     def llm_model(self) -> str:

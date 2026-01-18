@@ -1,12 +1,27 @@
 """
 Prompt Constructor for constructing LLM prompts with tool schemas and images.
 
+SECURITY: This module is a TRUST BOUNDARY.
+- All inputs are treated as HOSTILE/UNTRUSTED
+- Size limits are enforced on message history and content
+- Security violations raise hard errors (no soft fallbacks)
+- Failures propagate immediately to prevent silent bypasses
+- All violations are tracked via observability hooks for abuse detection
+
+Trust Boundary: Message History → LLM Prompt
+
+OBSERVABILITY: All violations are logged with structured metrics:
+- Size limit violations (actual_size, max_size, ratio)
+- History size violations
+- Content size violations
+
 This module handles the construction of prompts using structured Prompt objects,
 eliminating circular parsing patterns and preserving data integrity.
 """
 import json
 import logging
-from typing import List, Dict, Any, Optional, Union
+import re
+from typing import List, Dict, Any, Optional, Union, TYPE_CHECKING
 
 from backend.src.llm.prompts import SYSTEM_PROMPT
 from backend.src.llm.prompt_metadata import PromptMetadata, UserMessageMetadata
@@ -18,6 +33,12 @@ from backend.src.core.messages import (
     content_to_message_content,
 )
 from backend.src.core.types import LLMMessage
+from backend.src.core.exceptions import InputSizeLimitError
+from backend.src.core.observability.trust_boundary_metrics import get_metrics
+
+if TYPE_CHECKING:
+    from backend.src.core.config import AppConfig
+
 # system_monitor removed - frontend handles system state
 
 logger = logging.getLogger(__name__)
@@ -26,18 +47,37 @@ logger = logging.getLogger(__name__)
 class PromptConstructor:
     """
     Constructs prompts for LLM interactions, including system prompts, tool schemas, and images.
+    
+    SECURITY: This is a trust boundary. All inputs are validated with size limits.
+    Violations raise hard errors.
     """
 
-    def __init__(self, tool_registry: ToolRegistry, system_prompt: str = SYSTEM_PROMPT):
+    def __init__(
+        self,
+        tool_registry: ToolRegistry,
+        config: Optional["AppConfig"] = None,
+        system_prompt: str = SYSTEM_PROMPT,
+    ):
         """
         Initialize the prompt constructor.
 
         Args:
             tool_registry: Registry of available tools
+            config: Application configuration (required for security limits)
             system_prompt: Optional custom system prompt (defaults to global SYSTEM_PROMPT)
         """
         self.tool_registry = tool_registry
+        self.config = config
         self.system_prompt = system_prompt
+        self.metrics = get_metrics("prompt_constructor")
+        
+        # Get security limits from config or use defaults
+        if config and hasattr(config, "security_limits"):
+            self.limits = config.security_limits
+        else:
+            # Fallback to defaults if config not provided (for backward compatibility)
+            from backend.src.core.config.models import SecurityLimits
+            self.limits = SecurityLimits()
 
     def build_prompt(
         self,
@@ -46,6 +86,11 @@ class PromptConstructor:
     ) -> tuple[List[LLMMessage], List[Dict[str, Any]], PromptMetadata]:
         """
         Constructs the full prompt from stored history.
+
+        SECURITY: This is a trust boundary. All inputs are validated with:
+        - History size limits (max_message_history_size)
+        - Message content size limits (max_message_content_size)
+        - Total prompt size limits (max_prompt_size)
 
         Gets conversation history and returns tool schemas as separate parameters
         for the LLM API call (tools parameter and messages parameter).
@@ -56,7 +101,12 @@ class PromptConstructor:
 
         Returns:
             Tuple of (List of LLMMessage dicts ready to send to LLM, List of tool schemas for LLM API, PromptMetadata object)
+            
+        Raises:
+            InputSizeLimitError: If any size limit is exceeded
         """
+        boundary_name = "prompt_constructor"
+        
         # Get tool schemas if needed
         tool_schemas = []
         if include_tools:
@@ -68,6 +118,56 @@ class PromptConstructor:
         else:
             # Fallback: empty history if stored_messages not available
             prompt_messages = []
+        
+        # SECURITY: Check history size limit
+        if len(prompt_messages) > self.limits.max_message_history_size:
+            self.metrics.record_size_violation(
+                actual_size=len(prompt_messages),
+                max_size=self.limits.max_message_history_size,
+                boundary_name=boundary_name,
+                metadata={"check": "message_history_size"},
+            )
+            raise InputSizeLimitError(
+                f"Message history size {len(prompt_messages)} exceeds maximum {self.limits.max_message_history_size}",
+                actual_size=len(prompt_messages),
+                max_size=self.limits.max_message_history_size,
+                boundary_name=boundary_name,
+            )
+        
+        # SECURITY: Check individual message content sizes and calculate total
+        total_prompt_size = len(self.system_prompt)
+        for msg in prompt_messages:
+            # Calculate message size
+            msg_size = self._calculate_message_size(msg)
+            if msg_size > self.limits.max_message_content_size:
+                self.metrics.record_size_violation(
+                    actual_size=msg_size,
+                    max_size=self.limits.max_message_content_size,
+                    boundary_name=boundary_name,
+                    metadata={"check": "message_content_size"},
+                )
+                raise InputSizeLimitError(
+                    f"Message content size {msg_size} exceeds maximum {self.limits.max_message_content_size}",
+                    actual_size=msg_size,
+                    max_size=self.limits.max_message_content_size,
+                    boundary_name=boundary_name,
+                )
+            total_prompt_size += msg_size
+        
+        # SECURITY: Check total prompt size
+        if total_prompt_size > self.limits.max_prompt_size:
+            self.metrics.record_size_violation(
+                actual_size=total_prompt_size,
+                max_size=self.limits.max_prompt_size,
+                boundary_name=boundary_name,
+                metadata={"check": "total_prompt_size"},
+            )
+            raise InputSizeLimitError(
+                f"Total prompt size {total_prompt_size} exceeds maximum {self.limits.max_prompt_size}",
+                actual_size=total_prompt_size,
+                max_size=self.limits.max_prompt_size,
+                boundary_name=boundary_name,
+            )
 
         # Build metadata for transparency events
         user_message_metadata = None
@@ -97,19 +197,14 @@ class PromptConstructor:
                 context_xml = ""
                 active_window = "Unknown"
                 if full_content:
-                    # Try to extract context XML from the message content
-                    if "<system_context>" in full_content:
-                        start_idx = full_content.find("<system_context>")
-                        end_idx = full_content.find("</system_context>") + len("</system_context>")
-                        if end_idx > start_idx:
-                            context_xml = full_content[start_idx:end_idx]
+                    # SECURITY: Use proper XML extraction with size limits
+                    context_xml = self._extract_xml_tag(full_content, "system_context")
                     
-                    # Try to extract active window from context XML
-                    if "<active_window>" in full_content:
-                        a_start = full_content.find("<active_window>") + len("<active_window>")
-                        a_end = full_content.find("</active_window>")
-                        if a_end > a_start:
-                            active_window = full_content[a_start:a_end]
+                    # Extract active window from context XML or full content
+                    if context_xml:
+                        active_window = self._extract_xml_tag_content(context_xml, "active_window") or "Unknown"
+                    else:
+                        active_window = self._extract_xml_tag_content(full_content, "active_window") or "Unknown"
                 
                 user_message_metadata = UserMessageMetadata(
                     original_query=user_query,
@@ -126,3 +221,70 @@ class PromptConstructor:
         )
 
         return prompt_messages, tool_schemas, metadata
+    
+    def _calculate_message_size(self, msg: Dict[str, Any]) -> int:
+        """Calculate the size of a message in bytes."""
+        try:
+            # Serialize message to JSON to get accurate size
+            return len(json.dumps(msg, ensure_ascii=False))
+        except (TypeError, ValueError):
+            # Fallback: estimate size from string representation
+            return len(str(msg))
+    
+    def _extract_xml_tag(self, content: str, tag_name: str) -> str:
+        """
+        Extract XML tag content with size limits.
+        
+        SECURITY: Uses regex with size limits to prevent DoS.
+        Escapes tag_name to prevent regex injection.
+        """
+        # SECURITY: Limit search to reasonable size
+        max_search_size = min(len(content), self.limits.max_message_content_size)
+        search_content = content[:max_search_size]
+        
+        # SECURITY: Escape tag_name to prevent regex injection
+        escaped_tag = re.escape(tag_name)
+        
+        # Use regex to find XML tag (more robust than str.find)
+        # SECURITY: Add size limit to match to prevent excessive memory usage
+        max_size = self.limits.max_message_content_size
+        pattern = f"<{escaped_tag}[^>]*>.{{0,{max_size}}}?</{escaped_tag}>"
+        match = re.search(pattern, search_content, re.DOTALL)
+        
+        if match:
+            extracted = match.group(0)
+            # SECURITY: Check extracted size (double-check even with pattern limit)
+            if len(extracted) > self.limits.max_message_content_size:
+                return ""  # Too large, reject
+            return extracted
+        
+        return ""
+    
+    def _extract_xml_tag_content(self, content: str, tag_name: str) -> Optional[str]:
+        """
+        Extract content inside XML tag.
+        
+        SECURITY: Uses regex with size limits.
+        Escapes tag_name to prevent regex injection.
+        """
+        # SECURITY: Limit search to reasonable size
+        max_search_size = min(len(content), self.limits.max_message_content_size)
+        search_content = content[:max_search_size]
+        
+        # SECURITY: Escape tag_name to prevent regex injection
+        escaped_tag = re.escape(tag_name)
+        
+        # Use regex to find tag content
+        # SECURITY: Add size limit to capture group to prevent excessive memory usage
+        max_size = self.limits.max_message_content_size
+        pattern = f"<{escaped_tag}[^>]*>(.{{0,{max_size}}}?)</{escaped_tag}>"
+        match = re.search(pattern, search_content, re.DOTALL)
+        
+        if match:
+            extracted = match.group(1)
+            # SECURITY: Check extracted size (double-check even with pattern limit)
+            if len(extracted) > self.limits.max_message_content_size:
+                return None  # Too large, reject
+            return extracted.strip()
+        
+        return None

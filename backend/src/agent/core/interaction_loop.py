@@ -12,7 +12,10 @@ from backend.src.core.events import (
     AgentStreamingEvent,
     FullResponseEvent,
 )
-from backend.src.core.exceptions import LLMRateLimitError
+from backend.src.core.exceptions import (
+    LLMRateLimitError,
+    TrustBoundaryError,
+)
 
 if TYPE_CHECKING:
     from backend.src.agent.core.core import AgentSession
@@ -73,9 +76,17 @@ class InteractionLoop:
             iteration += 1
 
             # Step 1: Get prompt (delegated to PromptCoordinator)
-            prompt, tool_schemas, prompt_metadata = self.prompt_coordinator.get_prompt(
-                iteration
-            )
+            try:
+                prompt, tool_schemas, prompt_metadata = self.prompt_coordinator.get_prompt(
+                    iteration
+                )
+            except TrustBoundaryError as e:
+                logger.error(f"Trust boundary violation in prompt coordinator: {e}", exc_info=True)
+                async for event in self.event_presenter.present_error(
+                    "Security error: Failed to build prompt. Please try again."
+                ):
+                    yield event
+                return
 
             # Present prompt metadata events (only on first iteration)
             if iteration == 1 and prompt_metadata:
@@ -110,7 +121,22 @@ class InteractionLoop:
                 return
 
             # Step 3: Parse response
-            parsed_response = self.response_parser.parse_response(llm_response_text)
+            try:
+                parsed_response = self.response_parser.parse_response(llm_response_text)
+            except TrustBoundaryError as e:
+                logger.error(f"Trust boundary violation in parser: {e}", exc_info=True)
+                async for event in self.event_presenter.present_error(
+                    "Security error: Failed to parse LLM response. Please try again."
+                ):
+                    yield event
+                return
+            except Exception as e:
+                logger.error(f"Unexpected parser error: {e}", exc_info=True)
+                async for event in self.event_presenter.present_error(
+                    f"Parser error: {str(e)}"
+                ):
+                    yield event
+                return
 
             # Present assistant message event
             async for event in self.event_presenter.present_assistant_message(

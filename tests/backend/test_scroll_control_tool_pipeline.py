@@ -31,6 +31,7 @@ from backend.src.tools.registry import ToolRegistry
 from backend.src.core.config import get_config_manager
 from backend.src.core.container import Container
 from backend.src.core.services.context_factory import ContextFactory
+from test_parser_helpers import create_test_parser
 
 # Configure logging for the test
 logging.basicConfig(
@@ -118,7 +119,7 @@ async def run_scroll_test(action: str, x: int = None, y: int = None, clicks: int
 
     # Step 2: Parse the Response
     print("\n📋 STEP 2: Parsing LLM Response")
-    parser = ResponseParser()
+    parser = create_test_parser(tool_names=["scroll_control"])
     parsed_response = parser.parse_response(llm_response)
 
     print(f"Parsed Response:")
