@@ -142,7 +142,6 @@ async def websocket_endpoint(
 ):
     safe_ws = SafeWebSocket(websocket)
     await safe_ws.accept()
-    user_id = "default_user"
     
     # Track active tasks for this connection to cancel on disconnect
     # Use lock to prevent race conditions when multiple tasks modify the set concurrently
@@ -167,23 +166,38 @@ async def websocket_endpoint(
         # Lock is only needed when iterating during disconnect
         active_tasks.discard(task)
     
-    # Handshake
+    # Handshake - FIX: Strict validation, reject default_user and empty user_id
     try:
-        handshake_data = await websocket.receive_json()
+        raw_data = await websocket.receive_text()
+        handshake_data = json.loads(raw_data)
         handshake_msg = HandshakeMessage.model_validate(handshake_data)
         user_id = handshake_msg.user_id
+        
+        # FIX: Strict rejection. Do not fallback to default_user.
+        if not user_id or user_id == "default_user":
+            logger.warning(f"Invalid user_id in handshake: {user_id}")
+            await safe_ws.close(code=4003)  # Forbidden
+            return
+            
         logger.info(f"Handshake successful for user {user_id}")
     except PydanticValidationError as e:
         logger.warning(f"Handshake validation failed: {e}")
         try:
-            await safe_ws.close(code=1008)
+            await safe_ws.close(code=1008)  # Policy Violation
         except Exception as close_error:
             logger.debug(f"Error closing WebSocket after handshake validation failure: {close_error}")
+        return
+    except json.JSONDecodeError as e:
+        logger.warning(f"Handshake JSON decode failed: {e}")
+        try:
+            await safe_ws.close(code=1008)  # Policy Violation
+        except Exception as close_error:
+            logger.debug(f"Error closing WebSocket after handshake JSON error: {close_error}")
         return
     except Exception as e:
         logger.error(f"Handshake error: {e}")
         try:
-            await safe_ws.close(code=1008)
+            await safe_ws.close(code=1008)  # Policy Violation
         except Exception as close_error:
             logger.debug(f"Error closing WebSocket after handshake error: {close_error}")
         return

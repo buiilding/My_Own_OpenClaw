@@ -9,7 +9,7 @@ import time
 from typing import Dict, Any, List
 
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.src.api.deps import ContainerDep
 
@@ -35,7 +35,8 @@ def _embedding_to_list(embedding) -> List[float]:
 
 class EmbeddingRequest(BaseModel):
     """Request model for embedding generation."""
-    text: str
+    # FIX: Add constraints to prevent DoS
+    text: str = Field(..., min_length=1, max_length=8192, description="Text to embed")
     model_name: str = "default"  # Optional model specification
 
 

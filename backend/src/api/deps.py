@@ -65,7 +65,8 @@ async def get_container() -> Container:
     entire application lifetime. This is not request-scoped - all requests
     share the same container instance.
     
-    Thread-safe: Uses lock to ensure visibility guarantees when checking initialization.
+    Thread-safe: Uses double-checked locking pattern to minimize lock contention
+    after initialization. Fast path (no lock) for normal operation.
     
     Returns:
         Container instance
@@ -73,18 +74,20 @@ async def get_container() -> Container:
     Raises:
         HTTPException: If container is not initialized (503 Service Unavailable)
     """
-    # Use lock to ensure visibility of _container_initialized flag
+    # FIX: Optimization - Check without lock first (read-only is thread-safe in Python)
+    # After initialization, _container is set and never changes, so this is safe
+    if _container is not None:
+        return _container
+        
+    # Fallback to lock only during initialization phase
     with _container_lock:
-        if not _container_initialized or _container is None:
+        if _container is None:
             logger.error("Container accessed before initialization - application not ready")
             raise HTTPException(
                 status_code=503,
                 detail="Application not initialized. Container not available."
             )
-        # Return reference after lock release is safe - container is immutable after init
-        container = _container
-    
-    return container
+        return _container
 
 
 async def get_session_manager(container: Container = Depends(get_container)) -> SessionManager:
