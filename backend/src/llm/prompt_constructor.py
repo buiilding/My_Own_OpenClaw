@@ -32,6 +32,7 @@ from backend.src.core.messages import (
     content_to_message_content,
 )
 from backend.src.core.types import LLMMessage
+from backend.src.core.observability.trust_boundary_metrics import get_metrics
 # system_monitor removed - frontend handles system state
 
 logger = logging.getLogger(__name__)
