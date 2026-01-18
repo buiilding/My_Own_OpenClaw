@@ -16,8 +16,8 @@ from backend.src.core.container.factories import (
     _create_vision_service,
 )
 from backend.src.core.plugin_config import PluginConfigManager
-from backend.src.llm.llm_client import get_llm_client
-from backend.src.llm.model_service import ModelService
+from backend.src.llm.client import get_llm_client
+from backend.src.llm.models import ModelService
 
 logger = logging.getLogger(__name__)
 
