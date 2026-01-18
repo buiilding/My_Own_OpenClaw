@@ -13,6 +13,7 @@ from backend.src.api.handlers.base import MessageHandler
 
 if TYPE_CHECKING:
     from backend.src.agent.core.session_manager import SessionManager
+from backend.src.api.handlers.error_utils import send_success_response
 from backend.src.api.handlers.response_formatter import ResponseFormatter
 from backend.src.api.handlers.stream_pipeline import StreamPipeline
 from backend.src.api.handlers.transport import WebSocketTransportSender
@@ -136,7 +137,6 @@ class QueryMessageHandler(MessageHandler):
                     await tts_service.flush()
 
                 # Send final complete message using canonical utility
-                from backend.src.api.handlers.error_utils import send_success_response
                 await send_success_response(
                     websocket,
                     msg_id,
@@ -154,6 +154,9 @@ class QueryMessageHandler(MessageHandler):
                 await self._send_error(websocket, msg_id, str(e))
             finally:
                 # Clean up TTS
+                # Ensure audio_task is cancelled if handler task is cancelled
+                if audio_task and not audio_task.done():
+                    audio_task.cancel()
                 await self.tts_manager.cleanup(tts_service, audio_task)
 
         except ValidationError as e:
