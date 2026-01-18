@@ -5,7 +5,7 @@ Handles tool-result messages from the frontend by delegating to AgentSession.
 The handler is a pure coordinator - all tool result processing logic lives in the session.
 """
 import logging
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 from fastapi import WebSocket, WebSocketDisconnect
 
@@ -13,6 +13,9 @@ from backend.src.api.handlers.base import MessageHandler
 from backend.src.api.handlers.transport import WebSocketTransportSender
 from backend.src.api.schema import ToolResultMessage
 from backend.src.core.validation import ValidationError, validate_message
+
+if TYPE_CHECKING:
+    from backend.src.agent.core.session_manager import SessionManager
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +28,7 @@ class ToolResultHandler(MessageHandler):
     The handler no longer knows about session internals - it just routes messages.
     """
     
-    def __init__(self, session_manager):
+    def __init__(self, session_manager: "SessionManager"):
         """
         Initialize the tool result handler.
         
