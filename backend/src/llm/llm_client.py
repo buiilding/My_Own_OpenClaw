@@ -7,13 +7,16 @@ different Large Language Models (LLMs) through the LiteLLM library.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional, TYPE_CHECKING
 
 from backend.src.core.config import AppConfig
 from backend.src.core.events import StreamingEvent, ErrorEvent
 from backend.src.core.exceptions import LLMAPIError
 from backend.src.core.types import LLMMessage
 from backend.src.llm.providers import get_provider
+
+if TYPE_CHECKING:
+    from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +56,7 @@ class LiteLLMClient(LLMClient):
     def __init__(self, cfg: AppConfig):
         self.config = cfg
 
-    def _get_provider(self) -> LLMProvider:
+    def _get_provider(self) -> "LLMProvider":
         """
         Always fetch from the factory. The factory handles caching/hashing of config values.
         

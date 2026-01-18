@@ -299,4 +299,86 @@ class SessionError(BaseAppError):
         self.user_id = user_id
 
 
+# ============================================================================
+# Trust Boundary Errors (Security)
+# ============================================================================
+
+class InputSizeLimitError(BaseAppError):
+    """Raised when input exceeds size limits in trust boundaries."""
+    
+    def __init__(
+        self,
+        message: str,
+        actual_size: Optional[int] = None,
+        max_size: Optional[int] = None,
+        boundary_name: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        cause: Optional[Exception] = None,
+    ):
+        super().__init__(
+            message=message,
+            error_code="INPUT_SIZE_LIMIT_ERROR",
+            metadata={
+                **(metadata or {}),
+                "actual_size": actual_size,
+                "max_size": max_size,
+                "boundary_name": boundary_name,
+            } if any([actual_size, max_size, boundary_name]) else metadata,
+            cause=cause,
+        )
+        self.actual_size = actual_size
+        self.max_size = max_size
+        self.boundary_name = boundary_name
+
+
+class ParseTimeoutError(BaseAppError):
+    """Raised when parsing exceeds timeout in trust boundaries."""
+    
+    def __init__(
+        self,
+        message: str,
+        timeout_seconds: Optional[float] = None,
+        boundary_name: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        cause: Optional[Exception] = None,
+    ):
+        super().__init__(
+            message=message,
+            error_code="PARSE_TIMEOUT_ERROR",
+            metadata={
+                **(metadata or {}),
+                "timeout_seconds": timeout_seconds,
+                "boundary_name": boundary_name,
+            } if any([timeout_seconds, boundary_name]) else metadata,
+            cause=cause,
+        )
+        self.timeout_seconds = timeout_seconds
+        self.boundary_name = boundary_name
+
+
+class ParseValidationError(BaseAppError):
+    """Raised when parsed data fails validation in trust boundaries."""
+    
+    def __init__(
+        self,
+        message: str,
+        validation_errors: Optional[List[str]] = None,
+        boundary_name: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        cause: Optional[Exception] = None,
+    ):
+        super().__init__(
+            message=message,
+            error_code="PARSE_VALIDATION_ERROR",
+            metadata={
+                **(metadata or {}),
+                "validation_errors": validation_errors,
+                "boundary_name": boundary_name,
+            } if any([validation_errors, boundary_name]) else metadata,
+            cause=cause,
+        )
+        self.validation_errors = validation_errors or []
+        self.boundary_name = boundary_name
+
+
 
