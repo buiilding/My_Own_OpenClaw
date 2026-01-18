@@ -6,9 +6,9 @@ Handles settings-related messages (load, update).
 import logging
 from typing import TYPE_CHECKING, Any, Dict
 
-from backend.src.api.handlers.base import MessageHandler
-from backend.src.api.handlers.error_utils import send_error_response, send_success_response
-from backend.src.api.handlers.transport import WebSocketSender
+from backend.src.api.core.base import MessageHandler
+from backend.src.api.core.errors import send_error_response, send_success_response
+from backend.src.api.core.transport import WebSocketSender
 from backend.src.api.schema import (
     BaseMessage,
     LoadSettingsMessage,

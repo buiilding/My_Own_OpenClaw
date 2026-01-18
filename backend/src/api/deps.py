@@ -11,7 +11,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException
 
 from backend.src.agent.core.session_manager import SessionManager
-from backend.src.api.handlers.base import MessageHandlerRegistry
+from backend.src.api.core.base import MessageHandlerRegistry
 from backend.src.core.container import Container
 
 logger = logging.getLogger(__name__)

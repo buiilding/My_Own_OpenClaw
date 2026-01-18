@@ -37,7 +37,7 @@ from typing import Optional, Any
 from fastapi import WebSocketDisconnect
 
 from backend.src.core.validation import ValidationError
-from backend.src.api.handlers.transport import WebSocketSender, WebSocketTransportSender
+from backend.src.api.core.transport import WebSocketSender, WebSocketTransportSender
 
 logger = logging.getLogger(__name__)
 

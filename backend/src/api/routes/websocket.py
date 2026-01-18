@@ -33,9 +33,9 @@ from backend.src.api.deps import (
     HandlerRegistryDep,
     SessionManagerDep,
 )
-from backend.src.api.handlers.base import MessageHandlerRegistry
-from backend.src.api.handlers.error_utils import send_error_response, sanitize_error_message
-from backend.src.api.handlers.transport import WebSocketSender
+from backend.src.api.core.base import MessageHandlerRegistry
+from backend.src.api.core.errors import send_error_response, sanitize_error_message
+from backend.src.api.core.transport import WebSocketSender
 from backend.src.api.schema import IncomingMessage, HandshakeMessage
 
 router = APIRouter()
