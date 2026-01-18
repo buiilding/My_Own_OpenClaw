@@ -7,7 +7,7 @@ The handler is a pure coordinator - all tool result processing logic lives in th
 import logging
 from typing import Any, Dict
 
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 
 from backend.src.api.handlers.base import MessageHandler
 from backend.src.api.handlers.transport import WebSocketTransportSender
@@ -73,17 +73,23 @@ class ToolResultHandler(MessageHandler):
         """
         Send error response to client.
         
+        Handles connection errors gracefully - if connection is closed, logs and returns silently.
+        
         Args:
             websocket: WebSocket connection
             msg_id: Message ID (optional)
             message: Error message
         """
-        transport = WebSocketTransportSender(websocket)
-        await transport.send({
-            "type": "error",
-            "id": msg_id,
-            "payload": {"message": message}
-        })
+        try:
+            transport = WebSocketTransportSender(websocket)
+            await transport.send({
+                "type": "error",
+                "id": msg_id,
+                "payload": {"message": message}
+            })
+        except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
+            # Connection closed - this is expected in some cases, log at debug level
+            logger.debug(f"Failed to send error message to closed connection: {e}")
     
     async def handle(
         self,
