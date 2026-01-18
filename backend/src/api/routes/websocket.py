@@ -42,6 +42,10 @@ logger = logging.getLogger(__name__)
 # Create TypeAdapter once at module level for performance
 _INCOMING_MESSAGE_ADAPTER = TypeAdapter(IncomingMessage)
 
+# Constants
+MAX_MESSAGE_SIZE = 10 * 1024 * 1024  # 10MB - maximum message size to prevent memory exhaustion attacks
+TASK_CANCELLATION_TIMEOUT = 5.0  # Seconds to wait for tasks to cancel on disconnect
+
 class SafeWebSocket:
     """
     Thread-safe/coroutine-safe WebSocket wrapper.
@@ -108,6 +112,19 @@ class SafeWebSocket:
                 logger.debug(f"Failed to send text to closed connection: {e}")
                 raise
 
+    def get_websocket(self) -> WebSocket:
+        """
+        Get the underlying WebSocket instance.
+        
+        This method provides safe access to the underlying WebSocket for cases
+        where the raw WebSocket is needed (e.g., passing to functions that expect
+        WebSocket rather than SafeWebSocket).
+        
+        Returns:
+            The underlying WebSocket instance
+        """
+        return self._websocket
+    
     def __getattr__(self, name):
         """Delegate attribute access to underlying WebSocket."""
         return getattr(self._websocket, name)
@@ -175,9 +192,6 @@ async def websocket_endpoint(
         return
 
     # Main Loop
-    # Maximum message size: 10MB to prevent memory exhaustion attacks
-    MAX_MESSAGE_SIZE = 10 * 1024 * 1024  # 10MB
-    
     try:
         while True:
             data = await websocket.receive_text()
@@ -233,13 +247,13 @@ async def websocket_endpoint(
             if not task.done():
                 task.cancel()
         
-        # Wait for tasks to cancel with timeout (5 seconds max)
+        # Wait for tasks to cancel with timeout
         # This prevents hanging if tasks don't cancel cleanly
         if tasks_to_cancel:
             try:
                 await asyncio.wait_for(
                     asyncio.gather(*tasks_to_cancel, return_exceptions=True),
-                    timeout=5.0
+                    timeout=TASK_CANCELLATION_TIMEOUT
                 )
             except asyncio.TimeoutError:
                 logger.warning(f"Timeout waiting for {len(tasks_to_cancel)} tasks to cancel on disconnect")
@@ -292,8 +306,8 @@ async def send_error(websocket: Union[WebSocket, SafeWebSocket], msg_id: str | N
     """
     from backend.src.api.handlers.error_utils import send_error_response
     # SafeWebSocket is a wrapper, but send_error_response expects WebSocket
-    # Extract underlying websocket if needed
-    actual_ws = websocket._websocket if isinstance(websocket, SafeWebSocket) else websocket
+    # Use public method to get underlying websocket
+    actual_ws = websocket.get_websocket() if isinstance(websocket, SafeWebSocket) else websocket
     await send_error_response(actual_ws, msg_id, message)
 
 # Legacy handlers removed - now handled by MessageHandlerRegistry (Phase 1)

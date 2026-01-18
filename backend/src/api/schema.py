@@ -11,7 +11,7 @@ class BaseMessage(BaseModel):
     id: str
     type: str
     payload: Dict[str, Any] = Field(default_factory=dict)
-    user_id: str = "default_user"
+    user_id: str  # Required - must be set from connection context (no default to catch bugs)
 
 # Incoming Messages
 class QueryPayload(BaseModel):

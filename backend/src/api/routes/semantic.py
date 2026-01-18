@@ -5,6 +5,7 @@ REST endpoints for semantic memory summarization operations.
 """
 
 import logging
+import re
 from typing import Dict, Any, List
 
 from fastapi import APIRouter, HTTPException, Depends
@@ -17,6 +18,9 @@ from backend.src.llm.llm_client import get_llm_client
 
 router = APIRouter(prefix="/api/semantic", tags=["semantic"])
 logger = logging.getLogger(__name__)
+
+# Constants
+FALLBACK_SUMMARY_LENGTH = 500  # Characters to use for fallback summary if parsing fails
 
 
 class SummarizeRequest(BaseModel):
@@ -120,34 +124,20 @@ FACTS:
         
         response_text = await llm_client.get_completion(model, messages)
         
-        # Parse response
-        summary = ""
-        facts = []
+        # Parse response using regex for robust extraction
+        summary, facts = _parse_summarization_response(response_text)
         
-        lines = response_text.split("\n")
-        in_facts_section = False
-        
-        for line in lines:
-            line = line.strip()
-            if line.startswith("SUMMARY:"):
-                summary = line.replace("SUMMARY:", "").strip()
-            elif line.startswith("FACTS:"):
-                in_facts_section = True
-            elif in_facts_section and line.startswith("-"):
-                fact = line[1:].strip()
-                if fact:
-                    facts.append(fact)
-        
-        # If parsing failed, use the whole response as summary
+        # Validate parsed results
         if not summary:
-            summary = response_text[:500]  # First 500 chars
+            logger.warning(f"Failed to extract summary from LLM response, using fallback")
+            summary = response_text[:FALLBACK_SUMMARY_LENGTH].strip()
+            if not summary:
+                summary = "Summary extraction failed"
+        
         if not facts:
-            # Try to extract facts from the response
-            for line in lines:
-                if line.strip().startswith("-"):
-                    fact = line.strip()[1:].strip()
-                    if fact:
-                        facts.append(fact)
+            logger.warning(f"Failed to extract facts from LLM response")
+            # Try fallback extraction: look for any bullet points in the response
+            facts = _extract_fallback_facts(response_text)
         
         logger.info(f"Summarized {len(request.conversations)} conversations into {len(facts)} facts for user {request.user_id}")
         
@@ -194,3 +184,79 @@ async def health_check(
             "status": "unhealthy",
             "error": str(e)
         }
+
+
+def _parse_summarization_response(response_text: str) -> tuple[str, List[str]]:
+    """
+    Parse LLM summarization response to extract summary and facts.
+    
+    Uses regex patterns to robustly extract structured content from LLM responses.
+    Handles variations in formatting (whitespace, case, punctuation).
+    
+    Args:
+        response_text: Raw LLM response text
+        
+    Returns:
+        Tuple of (summary, facts_list)
+    """
+    summary = ""
+    facts = []
+    
+    # Pattern for SUMMARY: line (case-insensitive, allows whitespace variations)
+    summary_pattern = re.compile(r'SUMMARY:\s*(.+?)(?:\n|$)', re.IGNORECASE | re.DOTALL)
+    summary_match = summary_pattern.search(response_text)
+    if summary_match:
+        summary = summary_match.group(1).strip()
+    
+    # Pattern for FACTS: section (case-insensitive)
+    # Matches "FACTS:" followed by bullet points (lines starting with "-" or "*")
+    facts_section_pattern = re.compile(
+        r'FACTS:\s*\n((?:[-*]\s*.+?(?:\n|$))+)',
+        re.IGNORECASE | re.MULTILINE
+    )
+    facts_match = facts_section_pattern.search(response_text)
+    
+    if facts_match:
+        # Extract individual facts from the matched section
+        facts_text = facts_match.group(1)
+        # Match lines starting with "-" or "*" followed by fact text
+        fact_line_pattern = re.compile(r'[-*]\s*(.+?)(?:\n|$)', re.MULTILINE)
+        for match in fact_line_pattern.finditer(facts_text):
+            fact = match.group(1).strip()
+            if fact:
+                facts.append(fact)
+    else:
+        # Fallback: look for any bullet points after "FACTS:" marker
+        facts_marker_pattern = re.compile(r'FACTS:\s*\n', re.IGNORECASE)
+        marker_match = facts_marker_pattern.search(response_text)
+        if marker_match:
+            # Extract everything after FACTS: marker
+            after_marker = response_text[marker_match.end():]
+            fact_line_pattern = re.compile(r'[-*]\s*(.+?)(?:\n|$)', re.MULTILINE)
+            for match in fact_line_pattern.finditer(after_marker):
+                fact = match.group(1).strip()
+                if fact:
+                    facts.append(fact)
+    
+    return summary, facts
+
+
+def _extract_fallback_facts(response_text: str) -> List[str]:
+    """
+    Fallback fact extraction: find any bullet points in the response.
+    
+    Used when structured parsing fails. Less reliable but better than nothing.
+    
+    Args:
+        response_text: Raw LLM response text
+        
+    Returns:
+        List of extracted facts
+    """
+    facts = []
+    fact_line_pattern = re.compile(r'[-*]\s*(.+?)(?:\n|$)', re.MULTILINE)
+    for match in fact_line_pattern.finditer(response_text):
+        fact = match.group(1).strip()
+        if fact and len(fact) > 3:  # Filter out very short matches (likely false positives)
+            facts.append(fact)
+    return facts

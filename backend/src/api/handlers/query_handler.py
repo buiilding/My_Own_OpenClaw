@@ -150,7 +150,6 @@ class QueryMessageHandler(MessageHandler):
             except Exception as e:
                 query_total_time = time.perf_counter() - query_start_time
                 logger.error(f"[Timing] Query processing failed after {query_total_time:.3f}s: {e}", exc_info=True)
-                logger.error(f"Error in query processing: {e}", exc_info=True)
                 await self._send_error(websocket, msg_id, str(e))
             finally:
                 # Clean up TTS
