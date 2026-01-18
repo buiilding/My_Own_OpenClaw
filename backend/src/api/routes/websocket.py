@@ -182,19 +182,13 @@ async def websocket_endpoint(
             # but may race with iteration (acceptable in shutdown scenarios)
             active_tasks.discard(task)
     
-    # Handshake - FIX: Strict validation, reject default_user and empty user_id
+    # Handshake - user_id validation handled by Pydantic model
     try:
         raw_data = await websocket.receive_text()
         handshake_data = json.loads(raw_data)
         handshake_msg = HandshakeMessage.model_validate(handshake_data)
         user_id = handshake_msg.user_id
         
-        # FIX: Strict rejection. Do not fallback to default_user.
-        if not user_id or user_id == "default_user":
-            logger.warning(f"Invalid user_id in handshake: {user_id}")
-            await safe_ws.close(code=4003)  # Forbidden
-            return
-            
         logger.info(f"Handshake successful for user {user_id}")
     except PydanticValidationError as e:
         logger.warning(f"Handshake validation failed: {e}")
@@ -284,12 +278,14 @@ async def websocket_endpoint(
             try:
                 json_data = json.loads(data)
                 
+                # Inject user_id from connection context BEFORE validation
+                # BaseMessage requires user_id, but it comes from connection context, not client JSON
+                json_data["user_id"] = user_id
+                
                 # Validate and parse message using Pydantic
                 try:
                     # Use pre-created TypeAdapter for performance
                     validated_msg = _INCOMING_MESSAGE_ADAPTER.validate_python(json_data)
-                    # Set user_id from connection context using model_copy to avoid mutation
-                    validated_msg = validated_msg.model_copy(update={"user_id": user_id})
                     
                     # FIX #1: Concurrency Limit - Prevent DoS via task explosion
                     # Check concurrency limit and create task atomically to prevent race condition

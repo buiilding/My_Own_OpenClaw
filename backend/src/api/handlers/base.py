@@ -67,8 +67,8 @@ class MessageHandlerRegistry:
     def __init__(self):
         """Initialize the handler registry."""
         self._handlers: Dict[str, MessageHandler] = {}
-        # Middleware still uses dict for backward compatibility if needed
-        self._middleware: list[Callable[[Dict[str, Any], WebSocketSender], Union[None, Awaitable[None]]]] = []
+        # Middleware receives typed Pydantic models for type safety
+        self._middleware: list[Callable[[IncomingMessage, WebSocketSender], Union[None, Awaitable[None]]]] = []
     
     def register(
         self, 
@@ -112,14 +112,15 @@ class MessageHandlerRegistry:
     
     def add_middleware(
         self, 
-        middleware: Callable[[Dict[str, Any], WebSocketSender], Union[None, Awaitable[None]]]
+        middleware: Callable[[IncomingMessage, WebSocketSender], Union[None, Awaitable[None]]]
     ) -> None:
         """
         Add middleware that runs before all handlers.
         
         Args:
-            middleware: Middleware function that receives (data, websocket).
+            middleware: Middleware function that receives (message, websocket).
                 Can be either sync (returns None) or async (returns Awaitable[None]).
+                Receives typed IncomingMessage for type safety.
         """
         self._middleware.append(middleware)
         logger.debug(f"Added middleware: {middleware}")
@@ -144,16 +145,15 @@ class MessageHandlerRegistry:
             ValueError: If no handler is registered for the message type
             Exception: If handler execution fails
         """
-        # Run middleware (convert to dict for middleware backward compatibility)
+        # Run middleware with typed Pydantic models for type safety
         # CRITICAL: Middleware exceptions MUST propagate to caller to prevent fail-open security vulnerabilities.
         # If authentication or rate limiting middleware fails, the handler must NOT execute.
         # Non-critical middleware (e.g., logging, metrics) should catch and handle their own
         # exceptions internally if they don't want to block processing.
         # Critical middleware (e.g., auth) should raise exceptions that will stop message processing.
-        message_dict = message.model_dump()  # Convert for middleware only
         for middleware in self._middleware:
             try:
-                result = middleware(message_dict, websocket)
+                result = middleware(message, websocket)
                 # Check if result is awaitable (coroutine)
                 if hasattr(result, '__await__'):
                     await result
