@@ -318,6 +318,11 @@ class MemoryStoreEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        user_id = event_dict.get("user_id")
+        # FIX #2: Reject default_user - security policy violation
+        if not user_id or user_id == "default_user":
+            logger.warning(f"MemoryStoreEvent missing or invalid user_id (msg_id={msg_id}), skipping")
+            return None
         return {
             "type": "memory-store",
             "id": msg_id,
@@ -325,7 +330,7 @@ class MemoryStoreEventFormatter(EventFormatter):
                 "user_query": event_dict.get("user_query"),
                 "assistant_response": event_dict.get("assistant_response"),
                 "memory_type": event_dict.get("memory_type"),
-                "user_id": event_dict.get("user_id", "default_user"),
+                "user_id": user_id,
                 "session_id": event_dict.get("session_id"),  # Track conversation window
             },
         }

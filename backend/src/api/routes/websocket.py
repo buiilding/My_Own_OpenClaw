@@ -149,11 +149,6 @@ async def websocket_endpoint(
     active_tasks: set[asyncio.Task] = set()
     tasks_lock = asyncio.Lock()
     
-    async def add_task(task: asyncio.Task):
-        """Add task to active set with proper locking."""
-        async with tasks_lock:
-            active_tasks.add(task)
-    
     def task_done_callback(task: asyncio.Task):
         """
         Remove task from active set when done.
@@ -224,20 +219,26 @@ async def websocket_endpoint(
                     validated_msg = validated_msg.model_copy(update={"user_id": user_id})
                     
                     # FIX #1: Concurrency Limit - Prevent DoS via task explosion
+                    # Check concurrency limit and create task atomically to prevent race condition
+                    msg_id_for_error = None
+                    task = None
                     async with tasks_lock:
                         if len(active_tasks) >= MAX_CONCURRENT_TASKS:
-                            logger.warning(f"User {user_id} exceeded max concurrent tasks ({MAX_CONCURRENT_TASKS})")
-                            await send_error(safe_ws, json_data.get("id"), "Too many concurrent requests. Please wait.")
-                            continue
+                            # Mark for error, release lock before I/O
+                            msg_id_for_error = json_data.get("id")
+                        else:
+                            # Create task and add to set atomically within lock
+                            task = asyncio.create_task(handle_message(safe_ws, validated_msg, handler_registry, user_id))
+                            active_tasks.add(task)
+                            task.add_done_callback(task_done_callback)
                     
-                    # Route message based on validated type
-                    # We spawn a task to avoid blocking the receiving loop.
-                    # This is essential for handlers that wait for other messages (like tool-result).
-                    # Pass SafeWebSocket to ensure thread-safe writes across concurrent handlers
-                    # Track task to cancel on disconnect
-                    task = asyncio.create_task(handle_message(safe_ws, validated_msg, handler_registry, user_id))
-                    await add_task(task)
-                    task.add_done_callback(task_done_callback)
+                    # Send error outside lock to avoid blocking (if limit exceeded)
+                    if msg_id_for_error is not None:
+                        logger.warning(f"User {user_id} exceeded max concurrent tasks ({MAX_CONCURRENT_TASKS})")
+                        await send_error(safe_ws, msg_id_for_error, "Too many concurrent requests. Please wait.")
+                        continue
+                    
+                    # Task already created and added above - continue to next message
                     
                 except PydanticValidationError as e:
                     # Validation failed - send error using canonical utility
