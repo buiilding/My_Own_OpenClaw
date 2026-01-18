@@ -5,14 +5,15 @@ Handles tool-result messages from the frontend by delegating to AgentSession.
 The handler is a pure coordinator - all tool result processing logic lives in the session.
 """
 import logging
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocketDisconnect
 
 from backend.src.api.handlers.base import MessageHandler
-from backend.src.api.handlers.transport import WebSocketTransportSender
-from backend.src.api.schema import ToolResultMessage
-from backend.src.core.validation import ValidationError, validate_message
+from backend.src.api.handlers.error_utils import send_error_response
+from backend.src.api.handlers.transport import WebSocketSender
+from backend.src.api.schema import BaseMessage, ToolResultMessage
+from backend.src.core.validation import ValidationError
 
 if TYPE_CHECKING:
     from backend.src.agent.core.session_manager import SessionManager
@@ -37,13 +38,9 @@ class ToolResultHandler(MessageHandler):
         """
         self.session_manager = session_manager
     
-    def validate_message(self, data: Dict[str, Any]) -> bool:
+    def validate_message(self, message: BaseMessage) -> bool:
         """Validate tool-result message structure."""
-        try:
-            validate_message(data, "tool-result", ToolResultMessage)
-            return True
-        except ValidationError:
-            return False
+        return isinstance(message, ToolResultMessage)
     
     def _validate_metadata(self, metadata: Any) -> Dict[str, Any]:
         """
@@ -72,32 +69,23 @@ class ToolResultHandler(MessageHandler):
         
         return validated
     
-    async def _send_error(self, websocket: WebSocket, msg_id: str | None, message: str) -> None:
+    async def _send_error(self, websocket: WebSocketSender, msg_id: Optional[str], message: str) -> None:
         """
         Send error response to client.
         
         Handles connection errors gracefully - if connection is closed, logs and returns silently.
         
         Args:
-            websocket: WebSocket connection
+            websocket: WebSocketSender (thread-safe protocol implementation)
             msg_id: Message ID (optional)
             message: Error message
         """
-        try:
-            transport = WebSocketTransportSender(websocket)
-            await transport.send({
-                "type": "error",
-                "id": msg_id,
-                "payload": {"message": message}
-            })
-        except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-            # Connection closed - this is expected in some cases, log at debug level
-            logger.debug(f"Failed to send error message to closed connection: {e}")
+        await send_error_response(websocket, msg_id, message)
     
     async def handle(
         self,
-        data: Dict[str, Any],
-        websocket: WebSocket,
+        message: BaseMessage,
+        websocket: WebSocketSender,
         user_id: str
     ) -> None:
         """
@@ -111,21 +99,12 @@ class ToolResultHandler(MessageHandler):
         Handler is done - session handles everything internally.
         
         Args:
-            data: Message data with payload containing tool result
+            message: Validated ToolResultMessage Pydantic model
             websocket: WebSocket connection
             user_id: User ID from connection context
         """
-        # Validate message structure first (protocol violation check)
-        try:
-            validated = validate_message(data, "tool-result", ToolResultMessage)
-        except ValidationError as e:
-            # Protocol violation - send error to client
-            await self._send_error(
-                websocket, 
-                data.get("id"), 
-                f"Invalid tool-result message: {e.message}"
-            )
-            return
+        # Type assertion - message is already validated as ToolResultMessage
+        validated: ToolResultMessage = message  # type: ignore
         
         payload = validated.payload
         request_id = payload.request_id
@@ -141,8 +120,10 @@ class ToolResultHandler(MessageHandler):
             return
         
         # Validate and sanitize metadata before passing to domain layer
-        # Metadata is not in ToolResultPayload schema, so extract from original data
-        raw_payload = data.get("payload", {})
+        # Metadata is not in ToolResultPayload schema, so extract from model dump
+        # This preserves backward compatibility for metadata extraction
+        message_dict = validated.model_dump()
+        raw_payload = message_dict.get("payload", {})
         metadata = self._validate_metadata(raw_payload.get("metadata", {}))
         
         # Delegate to session (handler no longer knows about internals)

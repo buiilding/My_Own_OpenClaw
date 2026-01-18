@@ -14,7 +14,6 @@ from backend.src.core.events import StreamingEvent, ErrorEvent
 from backend.src.core.exceptions import LLMAPIError
 from backend.src.core.types import LLMMessage
 from backend.src.llm.providers import get_provider
-from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
 

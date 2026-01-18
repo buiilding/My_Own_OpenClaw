@@ -7,13 +7,17 @@ import asyncio
 import logging
 from typing import Any, Dict, Optional, Union
 
-from fastapi import WebSocket, WebSocketDisconnect
-
+from backend.src.api.handlers.transport import WebSocketSender
 from backend.src.core.config import AppConfig
 from backend.src.core.events import StreamingEvent, ChunkEvent
 from backend.src.core.services.tts_service import TTSService
 
 logger = logging.getLogger(__name__)
+
+# Constants
+TTS_FLUSH_WAIT_TIME = 1.0  # Seconds to wait for TTS service to finish processing after flush
+AUDIO_TASK_TIMEOUT = 5.0  # Seconds to wait for audio streaming task to complete
+AUDIO_TASK_CANCELLATION_WAIT = 0.5  # Seconds to wait for audio task cancellation to propagate
 
 
 class TTSManager:
@@ -38,14 +42,17 @@ class TTSManager:
         return None
 
     async def start_streaming_task(
-        self, tts_service: TTSService, websocket: WebSocket, msg_id: str
+        self, 
+        tts_service: TTSService, 
+        websocket: WebSocketSender,  # Fixes Point #7: Uses Protocol
+        msg_id: str
     ) -> asyncio.Task:
         """
         Start background task to stream audio chunks to WebSocket.
 
         Args:
             tts_service: TTS service instance
-            websocket: WebSocket connection
+            websocket: WebSocketSender (thread-safe protocol implementation)
             msg_id: Message ID for responses
 
         Returns:
@@ -83,30 +90,43 @@ class TTSManager:
             tts_service: TTS service instance (may be None)
             audio_task: Audio streaming task (may be None)
         """
-        if tts_service:
-            # Flush any remaining TTS text and wait for processing
-            await tts_service.flush()
-            # Give TTS service time to finish processing remaining text
-            await asyncio.sleep(1.0)
-            await tts_service.shutdown()
-
-        if audio_task:
-            # Wait for any remaining audio to be sent
-            try:
-                # Give it more time to finish streaming remaining chunks
-                await asyncio.wait_for(audio_task, timeout=5.0)
-            except (asyncio.TimeoutError, asyncio.CancelledError):
-                audio_task.cancel()
+        # FIX #3: Ensure audio_task cleanup runs even if TTS service operations fail
+        try:
+            if tts_service:
+                # Flush any remaining TTS text and wait for processing
+                await tts_service.flush()
+                # Give TTS service time to finish processing remaining text
+                # NOTE: This is a best-effort wait. The TTS service should handle
+                # shutdown gracefully even if processing isn't complete.
+                await asyncio.sleep(TTS_FLUSH_WAIT_TIME)
+                await tts_service.shutdown()
+        except Exception as e:
+            # Log TTS cleanup failure but continue to audio_task cleanup
+            logger.error(f"Error during TTS service cleanup: {e}", exc_info=True)
+        finally:
+            # Always clean up the streaming task, even if TTS cleanup failed
+            if audio_task:
+                if not audio_task.done():
+                    audio_task.cancel()
+                try:
+                    # Wait briefly for cancellation to propagate
+                    await asyncio.wait_for(audio_task, timeout=AUDIO_TASK_CANCELLATION_WAIT)
+                except (asyncio.TimeoutError, asyncio.CancelledError):
+                    pass
 
     async def _stream_audio(
-        self, tts_service: TTSService, websocket: WebSocket, msg_id: str
+        self, tts_service: TTSService, websocket: WebSocketSender, msg_id: str
     ) -> None:
         """
         Stream audio chunks from TTS service to WebSocket.
+        
+        Fixes Point #1: Uses WebSocketSender protocol.
+        Since SafeWebSocket implements this protocol using a Lock,
+        this is now thread-safe relative to the main handler loop.
 
         Args:
             tts_service: TTS service instance
-            websocket: WebSocket connection
+            websocket: WebSocketSender (thread-safe protocol implementation)
             msg_id: Message ID for responses
         """
         try:
@@ -115,9 +135,9 @@ class TTSManager:
                     await websocket.send_json(
                         {"type": "audio-chunk", "id": msg_id, "payload": audio_chunk}
                     )
-                except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-                    # Connection closed - stop streaming
-                    logger.debug(f"TTS audio streaming stopped due to closed connection: {e}")
+                except (RuntimeError, ConnectionError):
+                    # Protocol implementations raise these on disconnection
+                    logger.debug("TTS streaming stopped: connection closed")
                     break
         except Exception as e:
             logger.error(f"Error streaming audio: {e}", exc_info=True)

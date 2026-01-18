@@ -66,8 +66,8 @@ async def lifespan(app: FastAPI):
             # Initialize container normally (including vision service)
             await self.container.initialize()
             
-            # Set container in DI system
-            set_container(self.container)
+            # Set container in DI system (force=True since parent class may have already set it)
+            set_container(self.container, force=True)
             logger.info("Container initialized (simulation mode).")
     
     coordinator = SimulationInitializationCoordinator()

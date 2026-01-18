@@ -4,14 +4,48 @@ API Schema Definitions.
 This module defines Pydantic models for all WebSocket message types used in the API,
 including incoming messages (query, settings updates) and outgoing responses.
 """
+import re
 from typing import Any, Dict, Literal, Optional, Union
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+# Constants for validation
+MAX_MSG_ID_LENGTH = 128  # Maximum length for message IDs
+MSG_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_-]+$')  # Alphanumeric, underscore, hyphen only
 
 class BaseMessage(BaseModel):
     id: str
     type: str
     payload: Dict[str, Any] = Field(default_factory=dict)
-    user_id: str = "default_user"
+    user_id: str  # Required - must be set from connection context (no default to catch bugs)
+    
+    @field_validator('id')
+    @classmethod
+    def validate_msg_id(cls, v: str) -> str:
+        """
+        Validate message ID format and length.
+        
+        Security: Prevents injection of malformed IDs and limits length to prevent DoS.
+        """
+        if not v or not v.strip():
+            raise ValueError("Message ID cannot be empty or whitespace-only")
+        v = v.strip()
+        if len(v) > MAX_MSG_ID_LENGTH:
+            raise ValueError(f"Message ID exceeds maximum length of {MAX_MSG_ID_LENGTH} characters")
+        if not MSG_ID_PATTERN.match(v):
+            raise ValueError("Message ID must contain only alphanumeric characters, underscores, and hyphens")
+        return v
+    
+    @field_validator('user_id')
+    @classmethod
+    def validate_user_id(cls, v: str) -> str:
+        """
+        Validate user_id to reject empty strings, whitespace-only, and 'default_user'.
+        
+        Security: Prevents security bypass and invalid state propagation.
+        """
+        if not v or not v.strip() or v == "default_user":
+            raise ValueError("user_id cannot be empty, whitespace-only, or 'default_user'")
+        return v.strip()
 
 # Incoming Messages
 class QueryPayload(BaseModel):
@@ -48,7 +82,8 @@ class ToolResultMessage(BaseMessage):
 class HandshakeMessage(BaseModel):
     """Handshake message sent at WebSocket connection start."""
     type: Literal["handshake"]
-    user_id: str = "default_user"
+    # FIX: Remove default value. Client MUST provide identity.
+    user_id: str
 
 # Union type for parsing
 IncomingMessage = Union[

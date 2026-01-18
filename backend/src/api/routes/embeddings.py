@@ -9,18 +9,35 @@ import time
 from typing import Dict, Any, List
 
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from backend.src.api.deps import get_container, ContainerDep
+from backend.src.api.deps import ContainerDep
 
 router = APIRouter(prefix="/api/embeddings", tags=["embeddings"])
 logger = logging.getLogger(__name__)
 
 
+def _embedding_to_list(embedding) -> List[float]:
+    """
+    Convert embedding to list, handling numpy arrays and other iterables.
+    
+    Args:
+        embedding: Embedding vector (numpy array, list, or other iterable)
+        
+    Returns:
+        List of floats representing the embedding vector
+    """
+    try:
+        return embedding.tolist()
+    except AttributeError:
+        return list(embedding)
+
+
 class EmbeddingRequest(BaseModel):
     """Request model for embedding generation."""
-    text: str
-    model_name: str = "default"  # Optional model specification
+    # FIX: Add constraints to prevent DoS
+    text: str = Field(..., min_length=1, max_length=8192, description="Text to embed")
+    model_name: str = Field(default="default", min_length=1, max_length=128, description="Model name for embedding generation")
 
 
 class EmbeddingResponse(BaseModel):
@@ -66,7 +83,7 @@ async def generate_embedding(
         embedding_time = time.perf_counter() - embedding_start_time
 
         # Convert to list for JSON serialization
-        embedding_list = embedding.tolist() if hasattr(embedding, 'tolist') else list(embedding)
+        embedding_list = _embedding_to_list(embedding)
 
         logger.info(f"[Timing] Embedding generation completed in {embedding_time:.3f}s (length: {len(request.text)} chars, model: {request.model_name})")
 
@@ -76,12 +93,17 @@ async def generate_embedding(
             dimension=len(embedding_list)
         )
 
+    except HTTPException:
+        # Re-raise HTTPExceptions to preserve status codes (e.g., 503 Service Unavailable)
+        raise
     except Exception as e:
         embedding_time = time.perf_counter() - embedding_start_time
         logger.error(f"[Timing] Embedding generation failed after {embedding_time:.3f}s: {e}", exc_info=True)
+        # Sanitize error message to prevent information leakage
+        # Full details are logged server-side above
         raise HTTPException(
             status_code=500,
-            detail=f"Embedding generation failed: {str(e)}"
+            detail="Embedding generation failed: An internal error occurred"
         )
 
 
@@ -105,7 +127,7 @@ async def health_check(
 
         # Try a simple embedding to verify functionality
         test_embedding = embedding_provider.embed_text("test")
-        dimension = len(test_embedding.tolist() if hasattr(test_embedding, 'tolist') else list(test_embedding))
+        dimension = len(_embedding_to_list(test_embedding))
 
         return {
             "status": "healthy",
@@ -114,8 +136,9 @@ async def health_check(
         }
 
     except Exception as e:
-        logger.error(f"Embeddings health check failed: {e}")
+        logger.error(f"Embeddings health check failed: {e}", exc_info=True)
+        # Sanitize error to prevent information leakage
         return {
             "status": "unhealthy",
-            "error": str(e)
+            "message": "Health check failed"
         }

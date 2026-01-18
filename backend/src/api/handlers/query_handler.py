@@ -5,23 +5,23 @@ Handles user query messages and streams responses back to the client.
 """
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocketDisconnect
 
 from backend.src.api.handlers.base import MessageHandler
 
 if TYPE_CHECKING:
     from backend.src.agent.core.session_manager import SessionManager
+from backend.src.api.handlers.error_utils import send_error_response, send_success_response
 from backend.src.api.handlers.response_formatter import ResponseFormatter
 from backend.src.api.handlers.stream_pipeline import StreamPipeline
-from backend.src.api.handlers.transport import WebSocketTransportSender
+from backend.src.api.handlers.transport import WebSocketSender, WebSocketTransportSender
 from backend.src.api.handlers.tts_manager import TTSManager
 from backend.src.api.handlers.tts_processor import TTSProcessor
-from backend.src.api.schema import QueryMessage
+from backend.src.api.schema import BaseMessage, QueryMessage
 from backend.src.core.validation import (
     ValidationError,
-    validate_message,
     validate_query_text,
 )
 
@@ -65,22 +65,18 @@ class QueryMessageHandler(MessageHandler):
         self.tts_manager = tts_manager
         self.response_formatter = response_formatter
 
-    def validate_message(self, data: Dict[str, Any]) -> bool:
+    def validate_message(self, message: BaseMessage) -> bool:
         """Validate query message structure."""
-        try:
-            validate_message(data, "query", QueryMessage)
-            return True
-        except ValidationError:
-            return False
+        return isinstance(message, QueryMessage)
 
     async def handle(
-        self, data: Dict[str, Any], websocket: WebSocket, user_id: str
+        self, message: BaseMessage, websocket: WebSocketSender, user_id: str
     ) -> None:
         """
         Handle a query message.
 
         Args:
-            data: Message data dictionary
+            message: Validated QueryMessage Pydantic model
             websocket: WebSocket connection
             user_id: User ID from connection context
         """
@@ -89,11 +85,11 @@ class QueryMessageHandler(MessageHandler):
         tts_service = None
         audio_task = None
 
-        try:
-            # Validate message
-            validated = validate_message(data, "query", QueryMessage)
-            msg_id = validated.id
+        # Type assertion - message is already validated as QueryMessage
+        validated: QueryMessage = message  # type: ignore
+        msg_id = validated.id
 
+        try:
             # Validate and sanitize query text
             try:
                 query_text = validate_query_text(validated.payload.text)
@@ -135,54 +131,56 @@ class QueryMessageHandler(MessageHandler):
                 if tts_service:
                     await tts_service.flush()
 
-                # Send final complete message
-                try:
-                    await transport.send(
-                        {"type": "streaming-complete", "id": msg_id, "payload": {}}
-                    )
-                except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
-                    logger.debug(f"Failed to send streaming-complete to closed connection: {send_error}")
+                # Send final complete message using canonical utility
+                await send_success_response(
+                    websocket,
+                    msg_id,
+                    "streaming-complete",
+                    {}
+                )
                 
                 query_total_time = time.perf_counter() - query_start_time
                 logger.info(f"[Timing] Query processing completed in {query_total_time:.3f}s (user_id={user_id})")
 
             except Exception as e:
                 query_total_time = time.perf_counter() - query_start_time
-                logger.error(f"[Timing] Query processing failed after {query_total_time:.3f}s: {e}", exc_info=True)
-                logger.error(f"Error in query processing: {e}", exc_info=True)
-                await self._send_error(websocket, msg_id, str(e))
+                # Full details logged server-side, sanitized message sent to client
+                await self._send_error(websocket, msg_id, None, exception=e)
             finally:
                 # Clean up TTS
+                # Ensure audio_task is cancelled if handler task is cancelled
+                if audio_task and not audio_task.done():
+                    audio_task.cancel()
                 await self.tts_manager.cleanup(tts_service, audio_task)
 
-        except ValidationError as e:
-            await self._send_error(
-                websocket, data.get("id"), f"Invalid query message: {e.message}"
-            )
         except Exception as e:
-            logger.error(f"Unexpected error in query handler: {e}", exc_info=True)
-            await self._send_error(
-                websocket, data.get("id"), f"Internal error: {str(e)}"
-            )
+            # Catch any errors during setup (session creation, TTS initialization, etc.)
+            # Full details logged server-side, sanitized message sent to client
+            await self._send_error(websocket, msg_id, None, exception=e)
+            # Ensure cleanup even if setup fails
+            if audio_task and not audio_task.done():
+                audio_task.cancel()
+            await self.tts_manager.cleanup(tts_service, audio_task)
 
-    async def _send_error(self, websocket: WebSocket, msg_id: str | None, message: str):
+    async def _send_error(
+        self, 
+        websocket: WebSocketSender, 
+        msg_id: Optional[str], 
+        message: Optional[str] = None,
+        exception: Optional[Exception] = None
+    ):
         """
         Send error response.
+        
+        Security: If exception is provided, message is sanitized to prevent information leakage.
+        Full exception details are logged server-side.
         
         Handles connection errors gracefully - if connection is closed, logs and returns silently.
         
         Args:
-            websocket: WebSocket connection
+            websocket: WebSocketSender (thread-safe protocol implementation)
             msg_id: Message ID (optional)
-            message: Error message
+            message: Error message (optional, used if exception is None)
+            exception: Optional exception to sanitize. If provided, message is ignored.
         """
-        try:
-            transport = WebSocketTransportSender(websocket)
-            await transport.send({
-                "type": "error",
-                "id": msg_id,
-                "payload": {"message": message}
-            })
-        except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-            # Connection closed - this is expected in some cases, log at debug level
-            logger.debug(f"Failed to send error message to closed connection: {e}")
+        await send_error_response(websocket, msg_id, message or "", exception=exception)
