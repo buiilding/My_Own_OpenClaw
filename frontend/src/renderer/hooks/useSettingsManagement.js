@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { filterFrontendConfig } from '../utils/configFilter';
 
 /**
  * Custom hook for managing settings loading and updating.
@@ -19,7 +20,9 @@ export function useSettingsManagement(
   saveTimeoutId
 ) {
   const handleSettingsLoaded = useCallback((data) => {
-    setConfig(data.payload);
+    // Filter config to only include fields that frontend manages
+    const filteredConfig = filterFrontendConfig(data.payload);
+    setConfig(filteredConfig);
     // Request available models when settings are loaded
     window.ipc.send('to-backend', { type: 'list-models' });
   }, [setConfig]);

@@ -1,0 +1,4 @@
+pip uninstall -y onnxruntime onnxruntime-gpu
+rm -rf $CONDA_PREFIX/lib/python3.11/site-packages/onnxruntime*
+for windows: Remove-Item -Recurse -Force "$env:CONDA_PREFIX\Lib\site-packages\onnxruntime*"
+pip install --force-reinstall --no-cache-dir onnxruntime-gpu

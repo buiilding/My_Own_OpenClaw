@@ -124,9 +124,7 @@ if __name__ == "__main__":
             
             audio_chunks_received += 1
             if audio_chunks_received == 1:
-                print(f"[Python] Received first audio chunk: {length} bytes ({length // 2} samples)", file=sys.stderr, flush=True)
-            elif audio_chunks_received % 50 == 0:
-                print(f"[Python] Processed {audio_chunks_received} audio chunks", file=sys.stderr, flush=True)
+                print(f"[Wakeword] Active - listening for wakeword", file=sys.stderr, flush=True)
             
             # Process audio chunk
             result = process_audio_chunk(audio_data)

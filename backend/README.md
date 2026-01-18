@@ -80,7 +80,32 @@ See `backend/src/core/config.py` for the complete `AppConfig` model with all ava
 ```
 backend/
 ├── src/                    # Application source code
-│   ├── agent/             # Agent domain (sessions, executor)
+│   ├── agent/             # Agent domain (organized into subpackages)
+│   │   ├── core/          # Core agent state & execution
+│   │   │   ├── core.py    # AgentSession
+│   │   │   ├── executor.py  # AgentExecutor
+│   │   │   ├── interaction_loop.py  # InteractionLoop
+│   │   │   ├── state.py   # ConversationHistory
+│   │   │   └── session_manager.py  # SessionManager
+│   │   ├── llm/           # LLM interaction, prompts, events
+│   │   │   ├── prompt_coordinator.py
+│   │   │   ├── llm_interaction_handler.py
+│   │   │   └── event_presenter.py
+│   │   ├── tools/         # Tool orchestration & preparation
+│   │   │   ├── tool_executor.py
+│   │   │   ├── tool_preparer.py
+│   │   │   ├── result_transformer.py
+│   │   │   ├── screenshot_manager.py
+│   │   │   ├── ocr_coordinator.py
+│   │   │   ├── vision_service_provider.py
+│   │   │   ├── synthetic_result_factory.py
+│   │   │   └── resolvers/  # Coordinate resolution
+│   │   ├── history/       # Agent memory & state mutation
+│   │   │   └── history_committer.py
+│   │   └── plugins/      # Plugin system
+│   │       ├── manager.py
+│   │       ├── interface.py
+│   │       └── ocr_plugin.py
 │   ├── tools/             # Tools domain (registry, loader, tools)
 │   ├── memory/            # Memory domain (storage, retrieval)
 │   ├── llm/               # LLM domain (client, prompts)

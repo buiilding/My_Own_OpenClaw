@@ -1,46 +1,44 @@
 """
 Tool Orchestrator for the Desktop Assistant.
 
-This module coordinates tool execution, manages tool results,
-and provides streaming updates during tool operations.
+This module coordinates tool execution requests, especially those involving
+coordinate resolution for visual tools, and manages the communication with 
+frontend tools.
 """
 
-import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional, Tuple
 
+
+def _short_id(request_id: str, length: int = 15) -> str:
+    """Truncate request_id to specified length for logging."""
+    return request_id[:length] if request_id else "unknown"
+
 if TYPE_CHECKING:
-    from backend.src.agent.core import AgentSession
+    from backend.src.agent.core.core import AgentSession
 
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.core.services.context_factory import ContextFactory
 from backend.src.llm.parser import ParsedResponse, ParsedToolCall
-from backend.src.tools.execution.batch_executor import BatchExecutor
-from backend.src.tools.execution.engine import ToolExecutionEngine
-from backend.src.tools.execution.progress_tracker import ProgressTracker
-from backend.src.tools.execution.strategies import create_execution_chain
-from backend.src.tools.execution.summary import create_execution_summary
-from backend.src.tools.execution.types import OrchestrationResult, ToolExecutionResult
 from backend.src.tools.registry import ToolRegistry
-from backend.src.tools.validation.validator import ToolValidator
 
 logger = logging.getLogger(__name__)
 
 
 class ToolOrchestrator:
     """
-    Orchestrates the execution of multiple tool calls from LLM responses.
-
-    Manages tool execution order, error handling, result aggregation,
-    and provides real-time progress updates.
+    Orchestrates tool execution requests.
+    
+    Refactored to handle the new architecture where tool execution
+    happens on the frontend. This class now primarily manages tool 
+    discovery and coordinate resolution before tools are sent to the frontend.
     """
 
     def __init__(
         self,
         tool_registry: ToolRegistry,
         config: Any,
-        security_policy: Optional[Any] = None,
         context_factory: Optional[ContextFactory] = None,
     ):
         """
@@ -49,14 +47,10 @@ class ToolOrchestrator:
         Args:
             tool_registry: Registry of available tools
             config: Application configuration
-            security_policy: SecurityPolicy instance (creates default if not provided)
-            context_factory: Optional ContextFactory instance (uses registry's factory if not provided)
+            context_factory: Optional ContextFactory instance
         """
-        from backend.src.core.security import SecurityPolicy
-        
         self.tool_registry = tool_registry
         self.config = config
-        self._execution_lock = asyncio.Lock()
 
         # Use registry's context factory if not provided
         if context_factory is None:
@@ -64,152 +58,98 @@ class ToolOrchestrator:
         else:
             self.context_factory = context_factory
 
-        # SecurityPolicy is required - create default if not provided
-        if security_policy is None:
-            security_policy = SecurityPolicy(tool_registry=tool_registry)
-
-        # Initialize execution strategy chain
-        execution_strategy = create_execution_chain(
-            tool_registry=tool_registry, security_policy=security_policy
-        )
-
-        # Initialize execution engine
-        self.execution_engine = ToolExecutionEngine(
-            tool_registry=tool_registry,
-            context_factory=self.context_factory,
-            execution_strategy=execution_strategy,
-        )
-
-        # Initialize progress tracker and batch executor
-        self.progress_tracker = ProgressTracker(self, config)
-        self.batch_executor = BatchExecutor(self, config)
-
-        # Initialize validator
-        self.validator = ToolValidator(tool_registry)
-
     async def execute_tools_from_response(
         self,
         parsed_response: ParsedResponse,
         user_id: str = "default_user",
         session_id: str = "default_session",
         session_ref: Optional["AgentSession"] = None,
-    ) -> OrchestrationResult:
+    ) -> Any:
         """
-        Execute all tool calls from a parsed LLM response.
-
-        Args:
-            parsed_response: Parsed response containing tool calls
-
-        Returns:
-            OrchestrationResult with execution results
+        Execute all tool calls from a parsed LLM response by waiting for frontend results.
+        
+        NOTE: In the new architecture, actual execution happens on the frontend.
+        This method waits for the results to be returned via the ToolResultHandler.
         """
-        if not parsed_response.has_tool_calls:
-            return OrchestrationResult(
-                tool_results=[],
-                total_execution_time=0.0,
-                all_successful=True,
-                summary="No tool calls to execute",
-            )
+        import asyncio
+        from types import SimpleNamespace
+        from backend.src.core.interfaces.tool import ToolResult
+        
+        if not session_ref:
+            logger.error("session_ref is required for execute_tools_from_response")
+            return SimpleNamespace(tool_results=[])
 
-        start_time = time.time()
+        results = []
+        for tool_call in parsed_response.tool_calls:
+            request_id = tool_call.metadata.get('request_id')
+            if not request_id:
+                logger.warning(f"Tool call {tool_call.tool_name} missing request_id in metadata")
+                # Fallback to placeholder if no request_id (shouldn't happen with ToolPreparer)
+                results.append(SimpleNamespace(
+                    tool_call=tool_call,
+                    result=ToolResult(
+                        success=True,
+                        llm_content=f"Tool {tool_call.tool_name} executing on frontend...",
+                        data={"status": "pending_frontend_execution"}
+                    ),
+                    success=True,
+                    execution_time=0,
+                    context=None
+                ))
+                continue
 
-        async with self._execution_lock:
-            results = []
-
-            # Execute tools sequentially (for now)
-            # TODO: Add parallel execution for independent tools
-            for tool_call in parsed_response.tool_calls:
+            # Initialize session attributes if needed
+            if not hasattr(session_ref, '_pending_tool_results'):
+                session_ref._pending_tool_results = {}
+            if not hasattr(session_ref, '_tool_result_futures'):
+                session_ref._tool_result_futures = {}
+            
+            # Create future FIRST to avoid race condition where result arrives
+            # between checking _pending_tool_results and creating the future
+            future = asyncio.Future()
+            session_ref._tool_result_futures[request_id] = future
+            
+            # Check if result already exists (may have arrived before we created the future)
+            # This handles the race condition where frontend executes tool very quickly
+            if request_id in session_ref._pending_tool_results:
+                tool_result = session_ref._pending_tool_results.pop(request_id)
+                # Resolve the future immediately so any code waiting on it gets the result
+                if not future.done():
+                    future.set_result(tool_result)
+                logger.info(f"Found already completed result for request_id {_short_id(request_id)}")
+            else:
+                # Result not yet available, wait for it
                 try:
-                    execution_result = await self.execution_engine.execute(
-                        tool_call,
-                        user_id=user_id,
-                        session_id=session_id,
-                        session_ref=session_ref,
-                    )
-                    results.append(execution_result)
-
-                    # Log execution result
-                    logger.info(
-                        f"Tool {tool_call.tool_name} executed in {execution_result.execution_time:.2f}s "
-                        f"with {'success' if execution_result.success else 'failure'}"
-                    )
-
-                except Exception as e:
-                    # Don't log full exception context to avoid logging screenshot data in traceback
-                    logger.error(
-                        f"Failed to execute tool {tool_call.tool_name}: {e}",
-                        exc_info=False,
-                    )
-
-                    # Create error result
-                    error_result = ToolExecutionResult(
-                        tool_call=tool_call,
-                        result=ToolResult(
-                            success=False,
-                            error=f"Tool execution failed: {str(e)}",
-                            llm_content=f"Error executing {tool_call.tool_name}: {str(e)}",
-                            return_display=f"Tool execution failed: {str(e)}",
-                        ),
-                        execution_time=0.0,
+                    import time
+                    wait_start = time.perf_counter()
+                    logger.info(f"Waiting for frontend tool result (request_id={_short_id(request_id)})...")
+                    # Wait for the result with a timeout
+                    tool_result = await asyncio.wait_for(future, timeout=120.0) # 2 min timeout for tools
+                    wait_time = time.perf_counter() - wait_start
+                    logger.info(f"[Timing] Tool orchestrator wait completed in {wait_time:.3f}s (request_id={_short_id(request_id)}, tool={tool_call.tool_name})")
+                    logger.info(f"Received result for request_id {_short_id(request_id)}")
+                except asyncio.TimeoutError:
+                    logger.error(f"Timed out waiting for tool {tool_call.tool_name} (request_id={_short_id(request_id)})")
+                    tool_result = ToolResult(
                         success=False,
+                        error=f"Timed out waiting for tool {tool_call.tool_name} execution on frontend.",
+                        llm_content=f"Error: Tool {tool_call.tool_name} timed out on frontend."
                     )
-                    results.append(error_result)
-
-            total_time = time.time() - start_time
-
-            # Aggregate results (inlined from ResultAggregator)
-            all_successful = all(result.success for result in results)
-            summary = create_execution_summary(results, total_time)
-
-            return OrchestrationResult(
-                tool_results=results,
-                total_execution_time=total_time,
-                all_successful=all_successful,
-                summary=summary,
-            )
-
-    async def execute_single_tool(
-        self, tool_name: str, parameters: Dict[str, Any]
-    ) -> ToolResult:
-        """
-        Execute a single tool by name with given parameters.
-
-        Args:
-            tool_name: Name of the tool to execute
-            parameters: Tool parameters
-
-        Returns:
-            Tool execution result
-        """
-        tool_call = ParsedToolCall(
-            tool_name=tool_name,
-            parameters=parameters,
-            raw_call=f"{tool_name}({parameters})",
-            confidence=1.0,
-        )
-
-        execution_result = await self.execution_engine.execute(tool_call)
-        return execution_result.result
-
-    async def execute_tools_with_progress(
-        self,
-        parsed_response: ParsedResponse,
-        progress_callback: Optional[callable] = None,
-    ) -> AsyncGenerator[Dict[str, Any], None]:
-        """
-        Execute tools with progress updates.
-
-        Args:
-            parsed_response: Parsed response with tool calls
-            progress_callback: Optional callback for progress updates
-
-        Yields:
-            Progress updates and final results
-        """
-        async for event in self.progress_tracker.execute_tools_with_progress(
-            parsed_response, progress_callback
-        ):
-            yield event
+                finally:
+                    # Clean up future
+                    if request_id in session_ref._tool_result_futures:
+                        del session_ref._tool_result_futures[request_id]
+            
+            # Create a result object compatible with InteractionLoop's expectations
+            results.append(SimpleNamespace(
+                tool_call=tool_call,
+                result=tool_result,
+                success=tool_result.success,
+                execution_time=0.1, # Dummy execution time
+                context=None
+            ))
+            
+        return SimpleNamespace(tool_results=results)
 
     def get_available_tools(self) -> List[Dict[str, Any]]:
         """
@@ -224,30 +164,3 @@ class ToolOrchestrator:
             if capabilities:
                 tools.append(capabilities)
         return tools
-
-    def validate_tool_call(self, tool_call: ParsedToolCall) -> Tuple[bool, str]:
-        """
-        Validate a tool call before execution.
-
-        Args:
-            tool_call: The tool call to validate
-
-        Returns:
-            Tuple of (is_valid, error_message)
-        """
-        return self.validator.validate_tool_call(tool_call)
-
-    async def execute_tools_batch(
-        self, tool_calls: List[ParsedToolCall], max_concurrent: int = 3
-    ) -> List[ToolExecutionResult]:
-        """
-        Execute multiple tool calls in parallel batches.
-
-        Args:
-            tool_calls: List of tool calls to execute
-            max_concurrent: Maximum number of concurrent executions
-
-        Returns:
-            List of execution results
-        """
-        return await self.batch_executor.execute_tools_batch(tool_calls, max_concurrent)

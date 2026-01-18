@@ -10,9 +10,9 @@ from typing import Any, Optional
 from dependency_injector import containers, providers
 
 from backend.src.core.config import AppConfig, ConfigManager, get_config_manager
+from backend.src.core.container.api_container import ApiContainer
 from backend.src.core.container.config_updater import ContainerConfigUpdater
 from backend.src.core.container.core_container import CoreContainer
-from backend.src.core.container.factories import _create_tool_instantiator
 from backend.src.core.container.initializer import ContainerInitializer
 from backend.src.core.container.memory_container import MemoryContainer
 from backend.src.core.container.session_factory import AgentSessionFactory
@@ -54,11 +54,10 @@ class ApplicationContainer(containers.DeclarativeContainer):
     # Core container (provides config, services, LLM, TTS)
     core = providers.Container(CoreContainer)
 
-    # Tool container (wired to core for config and services)
+    # Tool container (wired to core for config)
     tools = providers.Container(
         ToolContainer,
         config=core.config,
-        service_container=core.service_container,
     )
 
     # Memory container (wired to core for config)
@@ -67,24 +66,25 @@ class ApplicationContainer(containers.DeclarativeContainer):
         config=core.config,
     )
 
+    # API container (will be created and wired in Container facade)
+    # Note: Created in Container.__init__ to avoid circular dependency with session_manager
+
     # Expose commonly used providers at top level for convenience
     config_manager = core.config_manager
     config = core.config
-    service_container = core.service_container
     llm_client = core.llm_client
     tts_service = core.tts_service
     vision_service = core.vision_service
+    config_service = core.config_service
+    user_config_manager = core.user_config_manager
+    model_service = core.model_service
 
-    tool_instantiator = tools.tool_instantiator
-    tool_loader = tools.tool_loader
     agent_factory = tools.agent_factory
     tool_registry = tools.tool_registry
     context_factory = tools.context_factory
-    tool_search_engine = tools.tool_search_engine
     tool_orchestrator = tools.tool_orchestrator
 
     embedder = memory.embedder
-    memory_store = memory.memory_store
 
 
 class Container:
@@ -117,35 +117,21 @@ class Container:
         # Load config at initialization
         self.config = self._di_container.config()
 
-        # Initialize service layer
-        self.service_container = self._di_container.service_container()
-
         # Initialize tool system (all dependencies properly wired via DI)
-        # The DI container handles the dependency order automatically:
-        # instantiator -> loader -> registry -> search_engine
-        # Then we wire search_engine back into instantiator via DI override
         self.tool_registry = self._di_container.tool_registry()
         self.context_factory = self._di_container.context_factory()
-        self.tool_search_engine = self._di_container.tool_search_engine()
         self.agent_factory = self._di_container.agent_factory()
 
-        # Properly wire search_engine into instantiator via DI (no manual assignment)
-        # This completes the dependency cycle using proper DI patterns
-        self._di_container.tools.tool_instantiator.override(
-            providers.Singleton(
-                lambda: _create_tool_instantiator(self.tool_search_engine)
-            )
-        )
-
-        # Get tool_loader (will use updated instantiator with search_engine)
-        self.tool_loader = self._di_container.tool_loader()
-
         # Initialize memory system
-        self.memory_store = self._di_container.memory_store()
         self.embedder = self._di_container.embedder()
 
         # Vision service (from core container)
         self.vision_service = self._di_container.core.vision_service()
+
+        # Core services (from core container)
+        self.config_service = self._di_container.core.config_service()
+        self.user_config_manager = self._di_container.core.user_config_manager()
+        self.model_service = self._di_container.core.model_service()
 
         # Plugin registry (set after bootstrap initialization)
         self._plugin_registry: Optional[Any] = None
@@ -153,9 +139,20 @@ class Container:
         # Session factory (created lazily when plugin_registry is set)
         self._session_factory: Optional[AgentSessionFactory] = None
 
+        # Session manager (created lazily after container is fully initialized)
+        self._session_manager: Optional[Any] = None
+
+        # API container (created after session_manager is available)
+        self._api_container: Optional[Any] = None
+
         # Initialize specialized handlers
         self._initializer = ContainerInitializer(self)
         self._config_updater = ContainerConfigUpdater(self)
+
+    @property
+    def llm_client(self):
+        """Get the LLM client from the DI container."""
+        return self._di_container.llm_client()
 
     @property
     def plugin_registry(self) -> Optional[Any]:
@@ -189,7 +186,10 @@ class Container:
         self._config_updater.update_config(config)
 
     def create_agent_session(
-        self, user_id: str = "default_user", session_id: Optional[str] = None
+        self,
+        user_id: str = "default_user",
+        session_id: Optional[str] = None,
+        config: Optional[Any] = None,  # AppConfig - lazy import to avoid circular dependency
     ) -> Any:  # AgentSession - lazy import to avoid circular dependency
         """
         Create a new AgentSession with all dependencies injected.
@@ -200,6 +200,8 @@ class Container:
         Args:
             user_id: User identifier
             session_id: Optional session identifier (generated if not provided)
+            config: Optional configuration override. If provided, uses this instead of container's config.
+                    This allows creating sessions with user-specific config without mutating container state.
 
         Returns:
             Initialized AgentSession
@@ -208,8 +210,6 @@ class Container:
         if self._session_factory is None:
             self._session_factory = AgentSessionFactory(
                 config=self.config,
-                memory_store=self.memory_store,
-                embedder=self.embedder,
                 tool_registry=self.tool_registry,
                 plugin_registry=self._plugin_registry,
                 llm_client_factory=lambda: self._di_container.llm_client(),
@@ -218,5 +218,53 @@ class Container:
             )
 
         return self._session_factory.create_session(
-            user_id=user_id, session_id=session_id
+            user_id=user_id, session_id=session_id, config=config
         )
+
+    @property
+    def session_manager(self):
+        """
+        Get the session manager instance.
+        
+        Creates SessionManager lazily on first access with all dependencies injected.
+        """
+        if self._session_manager is None:
+            from backend.src.agent.core.session_manager import SessionManager
+            
+            self._session_manager = SessionManager(
+                config=self.config,
+                create_agent_session_func=self.create_agent_session,
+                user_config_manager=self.user_config_manager,
+            )
+        return self._session_manager
+
+    @property
+    def handler_registry(self):
+        """
+        Get the message handler registry.
+        
+        Creates ApiContainer and handler registry lazily on first access.
+        """
+        if self._api_container is None:
+            from dependency_injector import providers
+            
+            self._api_container = ApiContainer()
+            
+            # Wire dependencies from core container
+            self._api_container.config.override(
+                providers.Singleton(lambda: self.config)
+            )
+            self._api_container.config_service.override(
+                providers.Singleton(lambda: self.config_service)
+            )
+            self._api_container.user_config_manager.override(
+                providers.Singleton(lambda: self.user_config_manager)
+            )
+            self._api_container.model_service.override(
+                providers.Singleton(lambda: self.model_service)
+            )
+            self._api_container.session_manager.override(
+                providers.Singleton(lambda: self.session_manager)
+            )
+        
+        return self._api_container.handler_registry()

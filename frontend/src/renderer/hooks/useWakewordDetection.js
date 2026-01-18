@@ -75,9 +75,6 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
     }
     
     sentChunkCountRef.current++;
-    if (sentChunkCountRef.current === 1) {
-      console.log(`[Wakeword] Sending first chunk to main process: ${audioData.buffer.byteLength} bytes`);
-    }
     
     // Convert Int16Array to ArrayBuffer for transmission
     const buffer = audioData.buffer;
@@ -132,11 +129,6 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
         const int16Data = float32ToInt16(inputData);
         
         processedChunkCount++;
-        if (processedChunkCount === 1) {
-          console.log(`[Wakeword] Processing first audio chunk: ${int16Data.length} samples`);
-        } else if (processedChunkCount % 50 === 0) {
-          console.log(`[Wakeword] Processed ${processedChunkCount} audio chunks`);
-        }
         
         // Send to main process
         sendAudioChunk(int16Data);
@@ -147,7 +139,6 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
       scriptNode.connect(audioContext.destination);
 
       isCapturingRef.current = true;
-      console.log(`[Wakeword] Audio capture started - Sample rate: ${sampleRate}Hz, Chunk size: ${chunkSize} samples`);
     } catch (err) {
       console.error('[Wakeword] Error starting audio capture:', err);
       setError(`Audio capture failed: ${err.message}`);

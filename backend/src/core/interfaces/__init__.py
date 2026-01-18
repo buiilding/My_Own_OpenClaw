@@ -1,5 +1,4 @@
 from .llm import LLMClientInterface
-from .memory import MemoryManagerInterface, MemoryStoreInterface
 from .tool import Kind, ToolContext, ToolInterface, ToolResult
 
 __all__ = [
@@ -7,7 +6,5 @@ __all__ = [
     "ToolResult",
     "ToolContext",
     "Kind",
-    "MemoryStoreInterface",
-    "MemoryManagerInterface",
     "LLMClientInterface",
 ]

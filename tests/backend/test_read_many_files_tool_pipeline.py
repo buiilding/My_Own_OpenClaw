@@ -25,6 +25,7 @@ from backend.src.tools.registry import ToolRegistry
 from backend.src.core.config import get_config_manager
 from backend.src.core.container import Container
 from backend.src.core.services.context_factory import ContextFactory
+from test_parser_helpers import create_test_parser
 
 # Configure logging for the test
 logging.basicConfig(
@@ -53,7 +54,7 @@ async def test_read_many_files_tool_pipeline():
 
     # Step 2: Parse the Response
     print("\n📋 STEP 2: Parsing LLM Response")
-    parser = ResponseParser()
+    parser = create_test_parser(tool_names=["read_many_files"])
     parsed_response = parser.parse_response(llm_response)
 
     print(f"Parsed Response:")

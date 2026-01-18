@@ -6,12 +6,15 @@
 export const ApiClient = {
   /**
    * Send a user query to the backend
-   * @param {string} text 
+   * @param {string} text
    */
-  sendQuery: (text) => {
+  sendQuery: async (text) => {
+    // System state and memories are automatically added by ipc.cjs
     window.ipc.send('to-backend', {
       type: 'query',
-      payload: { text }
+      payload: {
+        text
+      }
     });
   },
 

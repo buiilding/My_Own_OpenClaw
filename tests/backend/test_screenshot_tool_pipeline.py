@@ -29,6 +29,7 @@ from backend.src.tools.registry import ToolRegistry
 from backend.src.core.config import get_config_manager
 from backend.src.core.container import Container
 from backend.src.core.services.context_factory import ContextFactory
+from test_parser_helpers import create_test_parser
 
 # Configure logging for the test
 logging.basicConfig(
@@ -74,7 +75,7 @@ async def run_screenshot_test(expect_success: bool = True, verify_response: bool
 
     # Step 2: Parse the Response
     print("\n📋 STEP 2: Parsing LLM Response")
-    parser = ResponseParser()
+    parser = create_test_parser(tool_names=["screenshot"])
     parsed_response = parser.parse_response(llm_response)
 
     print(f"Parsed Response:")

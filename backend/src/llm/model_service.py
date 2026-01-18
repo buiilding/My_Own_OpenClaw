@@ -9,9 +9,10 @@ Responsible for discovering and aggregating available LLM models from:
 import logging
 from typing import Dict, List
 
-from backend.src.core.config import AppConfig, get_config_manager
+from backend.src.core.config import AppConfig
 from backend.src.llm.models_config import ONLINE_MODELS, ONLINE_THINKING_MODELS, LOCAL_VISION_MODELS
-from backend.src.llm.providers.local import OllamaProvider, LMStudioProvider
+from backend.src.llm.providers import create_provider_factory
+from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
 
@@ -57,8 +58,25 @@ class ModelService:
     def get_all_online_models(self) -> List[Dict[str, str]]:
         """
         Return all online models (both thinking and non-thinking).
+        
+        Deduplicates models that appear in both lists, preferring the thinking version.
         """
-        all_models = self.get_online_models() + self.get_thinking_models()
+        online_models = self.get_online_models()
+        thinking_models = self.get_thinking_models()
+        
+        # Create a set of model IDs from thinking models to check for duplicates
+        thinking_model_ids = {
+            (m["provider"], m["id"]) for m in thinking_models
+        }
+        
+        # Filter out duplicates from online_models (keep thinking versions)
+        unique_online_models = [
+            m for m in online_models
+            if (m["provider"], m["id"]) not in thinking_model_ids
+        ]
+        
+        # Combine unique online models with thinking models
+        all_models = unique_online_models + thinking_models
         
         # Sort by provider first, then by thinking status
         all_models.sort(key=lambda m: (
@@ -76,7 +94,7 @@ class ModelService:
             for model_id in models:
                 vision_models.append(
                     {
-                        "id": f"{provider}/{model_id}",
+                        "id": model_id,
                         "provider": provider,
                         "display_name": f"{provider}/{model_id}",
                     }
@@ -86,26 +104,64 @@ class ModelService:
     async def get_local_models(self) -> List[Dict[str, str]]:
         """
         Fetch available models from local providers (Ollama, LM Studio).
+        
+        Uses the provider factory to ensure consistent provider instantiation
+        and benefit from caching. This prevents duplicate provider instances
+        and ensures configuration consistency.
+        
+        Returns:
+            List of available local models. If a provider fails, it logs a warning
+            but continues to try other providers. Returns empty list if all providers fail.
         """
         local_models = []
+        provider_failures = []
         
-        # Check if Ollama is enabled/configured? 
-        # For now, we just try to list if the provider class exists.
-        # The previous implementation tried both regardless of explicit enable flag (it just failed silently).
+        # Get provider factory (cached, uses same instances as rest of system)
+        factory = create_provider_factory(self.config)
         
-        # Ollama
-        try:
-            ollama = OllamaProvider(self.config)
-            local_models.extend(await ollama.list_models())
-        except Exception as e:
-            logger.debug(f"Failed to list Ollama models: {e}")
+        # Try Ollama
+        ollama_provider = factory.get("ollama")
+        if ollama_provider:
+            try:
+                models = await ollama_provider.list_models()
+                local_models.extend(models)
+                logger.debug(f"Successfully listed {len(models)} Ollama models")
+            except Exception as e:
+                provider_failures.append(("Ollama", str(e)))
+                logger.warning(
+                    f"Failed to list Ollama models: {e}",
+                    exc_info=logger.isEnabledFor(logging.DEBUG)
+                )
+        else:
+            logger.debug("Ollama provider not configured or unavailable")
 
-        # LM Studio
-        try:
-            lmstudio = LMStudioProvider(self.config)
-            local_models.extend(await lmstudio.list_models())
-        except Exception as e:
-            logger.debug(f"Failed to list LM Studio models: {e}")
+        # Try LM Studio
+        lmstudio_provider = factory.get("lmstudio")
+        if lmstudio_provider:
+            try:
+                models = await lmstudio_provider.list_models()
+                local_models.extend(models)
+                logger.debug(f"Successfully listed {len(models)} LM Studio models")
+            except Exception as e:
+                provider_failures.append(("LM Studio", str(e)))
+                logger.warning(
+                    f"Failed to list LM Studio models: {e}",
+                    exc_info=logger.isEnabledFor(logging.DEBUG)
+                )
+        else:
+            logger.debug("LM Studio provider not configured or unavailable")
+
+        # Log summary if all providers failed
+        if provider_failures and not local_models:
+            logger.warning(
+                f"All local providers failed to list models. "
+                f"Failures: {', '.join(f'{name}: {error}' for name, error in provider_failures)}"
+            )
+        elif provider_failures:
+            logger.info(
+                f"Some local providers failed, but found {len(local_models)} models. "
+                f"Failures: {', '.join(f'{name}' for name, _ in provider_failures)}"
+            )
 
         return local_models
 
@@ -120,13 +176,4 @@ class ModelService:
         }
 
 
-# Global instance accessor for convenience, matching old pattern but via service
-_model_service = None
-
-def get_model_service() -> ModelService:
-    global _model_service
-    if _model_service is None:
-        config = get_config_manager().get_config()
-        _model_service = ModelService(config)
-    return _model_service
 

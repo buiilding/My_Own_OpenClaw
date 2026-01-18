@@ -43,7 +43,8 @@ class SentenceTransformerProvider(EmbeddingProvider):
             cache_manager.embeddings.set(cache_key, embedding)
             return embedding
         else:
-            return self.model.encode(text, convert_to_numpy=True)
+            embedding = self.model.encode(text, convert_to_numpy=True)
+            return embedding
 
     def embed_batch(self, texts: List[str]) -> List[np.ndarray]:
         """Generate embeddings for a batch of texts."""

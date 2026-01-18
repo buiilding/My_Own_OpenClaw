@@ -3,7 +3,6 @@ Plugin Manager for Agent Execution.
 
 This module provides the PluginManager class that orchestrates plugin execution
 during agent operations. It integrates with the PluginRegistry for plugin discovery
-and lifecycle management. Enhanced with Phase 3 features including automatic discovery
 and lifecycle management.
 """
 import logging
@@ -46,117 +45,6 @@ class PluginManager:
         """Get the list of plugins to execute."""
         return self.plugin_registry.get_enabled_plugins()
 
-    async def on_instruction(self, instruction: str) -> Optional[PluginResult]:
-        """
-        Execute on_instruction hooks for all enabled plugins.
-
-        Args:
-            instruction: The user's instruction/query
-
-        Returns:
-            PluginResult if a plugin requests execution stop, None otherwise
-        """
-        final_result = PluginResult()
-
-        for plugin in self._get_plugins():
-            if not hasattr(plugin, "on_instruction"):
-                continue
-
-            try:
-                result = await plugin.on_instruction(instruction)
-                if result:
-                    # Merge content if provided
-                    if result.content:
-                        final_result.content = (
-                            (final_result.content or "") + "\n" + result.content
-                        ).strip()
-
-                    # Stop execution if requested
-                    if result.stop_execution:
-                        logger.info(f"Plugin {plugin.name} requested execution stop")
-                        return result
-
-                    # Merge artifacts
-                    if result.artifacts:
-                        if not final_result.artifacts:
-                            final_result.artifacts = {}
-                        final_result.artifacts.update(result.artifacts)
-
-            except Exception as e:
-                logger.error(
-                    f"Error in plugin {plugin.name}.on_instruction: {e}", exc_info=True
-                )
-
-        return final_result if final_result.content or final_result.artifacts else None
-
-    async def on_llm_response(self, response_text: str) -> Optional[PluginResult]:
-        """
-        Execute on_llm_response hooks for all enabled plugins.
-
-        Args:
-            response_text: The LLM's response text
-
-        Returns:
-            PluginResult if plugins modify the response, None otherwise
-        """
-        final_result = PluginResult()
-
-        for plugin in self._get_plugins():
-            if not hasattr(plugin, "on_llm_response"):
-                continue
-
-            try:
-                result = await plugin.on_llm_response(response_text)
-                if result:
-                    # Merge content (plugins can modify response)
-                    if result.content:
-                        final_result.content = result.content
-
-                    if result.stop_execution:
-                        return result
-
-                    if result.artifacts:
-                        if not final_result.artifacts:
-                            final_result.artifacts = {}
-                        final_result.artifacts.update(result.artifacts)
-
-            except Exception as e:
-                logger.error(
-                    f"Error in plugin {plugin.name}.on_llm_response: {e}", exc_info=True
-                )
-
-        return final_result if final_result.content or final_result.artifacts else None
-
-    async def on_tool_start(
-        self, tool_name: str, args: Dict[str, Any]
-    ) -> Optional[PluginResult]:
-        """
-        Execute on_tool_start hooks for all enabled plugins.
-
-        Args:
-            tool_name: Name of the tool being executed
-            args: Arguments passed to the tool
-
-        Returns:
-            PluginResult if a plugin requests execution stop, None otherwise
-        """
-        for plugin in self._get_plugins():
-            if not hasattr(plugin, "on_tool_start"):
-                continue
-
-            try:
-                result = await plugin.on_tool_start(tool_name, args)
-                if result and result.stop_execution:
-                    logger.info(f"Plugin {plugin.name} requested tool execution stop")
-                    return result
-
-            except Exception as e:
-                logger.error(
-                    f"Error in plugin {plugin.name}.on_tool_start: {e}", exc_info=True
-                )
-
-        return None
-
     async def on_tool_end(self, tool_name: str, result: Any) -> Optional[PluginResult]:
         """
         Execute on_tool_end hooks for all enabled plugins.
@@ -185,18 +73,3 @@ class PluginManager:
                 )
 
         return PluginResult(artifacts=final_artifacts) if final_artifacts else None
-
-    # Phase 3: Enhanced lifecycle methods
-
-    async def initialize_all(self) -> int:
-        """
-        Initialize all enabled plugins.
-
-        Returns:
-            Number of plugins initialized
-        """
-        return await self.plugin_registry.initialize_all_plugins()
-
-    async def shutdown_all(self) -> None:
-        """Shutdown all plugins."""
-        await self.plugin_registry.shutdown_all_plugins()

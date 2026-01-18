@@ -43,8 +43,9 @@ class PluginInitializer:
 
         plugin_dirs = [builtin_plugins_dir, external_plugins_dir]
 
-        # Create plugin registry instance
-        plugin_registry = PluginRegistry()
+        # Create plugin registry instance with PluginConfigManager from container
+        plugin_config_manager = container._di_container.core.plugin_config_manager()
+        plugin_registry = PluginRegistry(plugin_config_manager=plugin_config_manager)
 
         # Inject container into registry for plugin dependencies
         plugin_registry.set_container(container)

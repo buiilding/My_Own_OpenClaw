@@ -14,11 +14,9 @@ class BaseMessage(BaseModel):
     user_id: str = "default_user"
 
 # Incoming Messages
-class PingMessage(BaseMessage):
-    type: Literal["ping"]
-
 class QueryPayload(BaseModel):
-    text: str
+    text: str  # Original query text (for reference)
+    content: Optional[str] = None  # Complete message content (system state + memories + query)
 
 class QueryMessage(BaseMessage):
     type: Literal["query"]
@@ -37,6 +35,16 @@ class UpdateSettingsMessage(BaseMessage):
 class WakewordDetectedMessage(BaseMessage):
     type: Literal["wakeword-detected"]
 
+class ToolResultPayload(BaseModel):
+    request_id: str
+    success: bool
+    data: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+
+class ToolResultMessage(BaseMessage):
+    type: Literal["tool-result"]
+    payload: ToolResultPayload
+
 class HandshakeMessage(BaseModel):
     """Handshake message sent at WebSocket connection start."""
     type: Literal["handshake"]
@@ -44,12 +52,12 @@ class HandshakeMessage(BaseModel):
 
 # Union type for parsing
 IncomingMessage = Union[
-    PingMessage,
     QueryMessage,
     LoadSettingsMessage,
     ListModelsMessage,
     UpdateSettingsMessage,
-    WakewordDetectedMessage
+    WakewordDetectedMessage,
+    ToolResultMessage
 ]
 
 # Outgoing Messages
@@ -129,7 +137,7 @@ class SystemPromptMessage(BaseMessage):
 
 class UserMessageFullMetadata(BaseModel):
     original_query: str
-    context_type: str  # "initial" or "full"
+    context_type: str  # "initial" or "sequential"
     injected_context: str
     active_window: str
 

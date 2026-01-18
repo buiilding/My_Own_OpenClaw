@@ -5,7 +5,7 @@ All custom exceptions should inherit from BaseAppError to ensure
 consistent error handling and logging throughout the system.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 
 class BaseAppError(Exception):
@@ -300,13 +300,91 @@ class SessionError(BaseAppError):
 
 
 # ============================================================================
-# Backward Compatibility Aliases
+# Security / Trust Boundary Errors
 # ============================================================================
 
-# For backward compatibility, keep old exception names
-# These will be deprecated in favor of the new hierarchy
+class TrustBoundaryError(BaseAppError):
+    """Base exception for trust boundary violations."""
+    
+    def __init__(
+        self,
+        message: str,
+        boundary_name: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        cause: Optional[Exception] = None,
+    ):
+        super().__init__(
+            message=message,
+            error_code="TRUST_BOUNDARY_ERROR",
+            metadata={**(metadata or {}), "boundary_name": boundary_name} if boundary_name else metadata,
+            cause=cause,
+        )
+        self.boundary_name = boundary_name
 
-# LLM exceptions (keep for backward compatibility)
-APIError = LLMAPIError
-RateLimitError = LLMRateLimitError
+
+class InputSizeLimitError(TrustBoundaryError):
+    """Raised when input exceeds size limits."""
+    
+    def __init__(
+        self,
+        message: str,
+        actual_size: int,
+        max_size: int,
+        boundary_name: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        cause: Optional[Exception] = None,
+    ):
+        super().__init__(
+            message=message,
+            boundary_name=boundary_name,
+            metadata={**(metadata or {}), "actual_size": actual_size, "max_size": max_size},
+            cause=cause,
+        )
+        self.error_code = "INPUT_SIZE_LIMIT_ERROR"
+        self.actual_size = actual_size
+        self.max_size = max_size
+
+
+class ParseTimeoutError(TrustBoundaryError):
+    """Raised when parsing operation exceeds timeout."""
+    
+    def __init__(
+        self,
+        message: str,
+        timeout_seconds: float,
+        boundary_name: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        cause: Optional[Exception] = None,
+    ):
+        super().__init__(
+            message=message,
+            boundary_name=boundary_name,
+            metadata={**(metadata or {}), "timeout_seconds": timeout_seconds},
+            cause=cause,
+        )
+        self.error_code = "PARSE_TIMEOUT_ERROR"
+        self.timeout_seconds = timeout_seconds
+
+
+class ParseValidationError(TrustBoundaryError):
+    """Raised when parsed data fails validation."""
+    
+    def __init__(
+        self,
+        message: str,
+        validation_errors: Optional[List[str]] = None,
+        boundary_name: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        cause: Optional[Exception] = None,
+    ):
+        super().__init__(
+            message=message,
+            boundary_name=boundary_name,
+            metadata={**(metadata or {}), "validation_errors": validation_errors or []},
+            cause=cause,
+        )
+        self.error_code = "PARSE_VALIDATION_ERROR"
+        self.validation_errors = validation_errors or []
+
+
 

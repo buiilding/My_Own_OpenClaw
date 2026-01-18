@@ -45,17 +45,20 @@ async def main():
     # Initialize container (without vision service)
     await container.initialize()
 
-    # Get tool registry and create prompt constructor
+    # Get tool registry and config, create prompt constructor
     tool_registry = container.tool_registry
-    prompt_constructor = PromptConstructor(tool_registry=tool_registry)
+    config = container.config()
+    prompt_constructor = PromptConstructor(
+        tool_registry=tool_registry,
+        config=config,
+    )
 
     # Create a minimal history for prompt building (empty since we only want the system message)
     from backend.src.agent.state import ConversationHistory  # noqa: E402
     history = ConversationHistory()
 
     # Build prompt with tools included (this is how it's sent to the LLM on first message)
-    prompt_messages, prompt_metadata = prompt_constructor.build_prompt(
-        history=[],  # Unused - history comes from stored_messages
+    prompt_messages, tool_schemas, prompt_metadata = prompt_constructor.build_prompt(
         stored_messages=history,  # Pass history object
         include_tools=True  # This includes tool schemas at the start
     )

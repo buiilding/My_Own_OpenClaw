@@ -79,10 +79,17 @@ class ToolResult:
             elif kwargs.get("data"):
                 data = kwargs["data"]
                 if isinstance(data, dict):
-                    # Try common output fields
-                    kwargs["llm_content"] = (
-                        str(data.get("output", data.get("screenshot", data)))
-                    )
+                    # Try common output fields, but exclude screenshot (handled separately in multimodal format)
+                    # Screenshots should never be in text content - they're sent as image_url in multimodal messages
+                    output_content = data.get("output") or data.get("message") or data.get("llm_content")
+                    if output_content:
+                        kwargs["llm_content"] = str(output_content)
+                    elif "screenshot" not in data:
+                        # Only use data dict if it doesn't contain screenshot
+                        kwargs["llm_content"] = str(data)
+                    else:
+                        # If only screenshot is present, use a generic message
+                        kwargs["llm_content"] = "Tool executed successfully"
                 else:
                     kwargs["llm_content"] = str(data)
         
@@ -95,37 +102,48 @@ class ToolResult:
     def format_for_history(
         self,
         tool_name: str,
-        system_context: Optional[str] = None,
-        screenshot_indicator: Optional[str] = None,
     ) -> str:
         """
-        Format result for conversation history.
+        Get pre-formatted message for conversation history.
+        
+        Frontend tools should pre-format messages with system context XML embedded in llm_content.
+        However, the backend accepts whatever the frontend sends - no validation is performed.
+        The frontend is responsible for formatting correctly.
+        
+        For error results (synthetic results), simple error messages without system context are acceptable.
         
         Args:
-            tool_name: Name of the tool that produced this result
-            system_context: Optional system context XML (e.g., from system_monitor)
-            screenshot_indicator: Optional screenshot indicator text
+            tool_name: Name of the tool that produced this result (for error messages only)
             
         Returns:
-            Formatted message string for history
+            Pre-formatted message string for history (llm_content as-is, no validation)
+            
+        Raises:
+            ValueError: If llm_content is missing entirely
         """
-        parts = [f"{tool_name} output:"]
+        # If marked as pre-formatted, use llm_content as-is (no validation)
+        if self.metadata and self.metadata.get("is_preformatted"):
+            if self.llm_content:
+                return self.llm_content
+            # Fallback to error message if llm_content missing
+            if self.error:
+                return f"Error: {self.error}"
+            return f"Tool {tool_name} executed"
         
-        if self.success:
-            content = self.llm_content or self.return_display or str(self.data or "No output")
-            parts.append(content)
-            parts.append("status: successful")
-        else:
-            parts.append(f"error: {self.error}")
-            parts.append("status: failed")
+        # Not pre-formatted - use llm_content if available, otherwise generate from error/data
+        if self.llm_content:
+            return self.llm_content
         
-        if system_context:
-            parts.append(system_context)
+        if self.error:
+            return f"Error: {self.error}"
         
-        if screenshot_indicator:
-            parts.append(screenshot_indicator)
+        # Last resort: generate from data
+        if self.data:
+            if isinstance(self.data, dict):
+                return str(self.data.get("output") or self.data.get("message") or self.data)
+            return str(self.data)
         
-        return "\n".join(parts)
+        return f"Tool {tool_name} executed"
 
 @dataclass
 class ToolContext:

@@ -18,8 +18,6 @@ from backend.src.core.security.policy import (
     ResourceLimits,
     SecurityPolicy,
     ToolExecutionAudit,
-    check_tool_execution_permission,
-    audit_tool_execution,
 )
 
 __all__ = [
@@ -32,6 +30,4 @@ __all__ = [
     "ResourceLimits",
     "SecurityPolicy",
     "ToolExecutionAudit",
-    "check_tool_execution_permission",
-    "audit_tool_execution",
 ]

@@ -1,12 +1,12 @@
 import logging
 from abc import abstractmethod
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import AsyncGenerator, Dict, List, Optional
 
 import httpx
 import litellm
 from litellm import exceptions as litellm_exceptions
 
-from backend.src.core.events import ChunkEvent, ErrorEvent, StreamingEvent
+from backend.src.core.events import ChunkEvent, StreamingEvent
 from backend.src.core.exceptions import (
     LLMAPIError,
     LLMError,
@@ -19,6 +19,11 @@ from backend.src.core.types import (
 from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
+
+# Placeholder API key for local providers that require it for LiteLLM compatibility
+# Local providers (Ollama, LM Studio) don't use real API keys, but LiteLLM may
+# require a non-None value for certain API compatibility checks
+LOCAL_PROVIDER_PLACEHOLDER_API_KEY = "placeholder"
 
 
 class LocalLLMProvider(LLMProvider):
@@ -35,71 +40,118 @@ class LocalLLMProvider(LLMProvider):
                 or not response.choices
                 or not response.choices[0].message
             ):
-                raise LLMAPIError(f"Invalid response from {self._provider_name()}", model=model)
+                raise LLMAPIError(
+                    f"Invalid response from {self._provider_name()}",
+                    model=model
+                )
             content = response.choices[0].message.content or ""
             return {"content": content}
         except litellm_exceptions.RateLimitError as e:
-            raise LLMRateLimitError(f"{self._provider_name()} rate limit exceeded", model=model, cause=e)
+            raise LLMRateLimitError(
+                f"{self._provider_name()} rate limit exceeded",
+                model=model,
+                cause=e
+            )
         except litellm_exceptions.APIError as e:
-            raise LLMAPIError(f"{self._provider_name()} API error", model=model, cause=e)
+            raise LLMAPIError(
+                f"{self._provider_name()} API error",
+                model=model,
+                cause=e
+            )
         except Exception as e:
-            raise LLMError(f"An unexpected error occurred with {self._provider_name()}", model=model, cause=e)
+            raise LLMError(
+                f"An unexpected error occurred with {self._provider_name()}",
+                model=model,
+                cause=e
+            )
 
-    async def get_completion_stream(
+    async def _stream_internal(
         self, model: str, messages: List[LLMMessage]
     ) -> AsyncGenerator[StreamingEvent, None]:
+        """
+        Internal streaming implementation for local providers.
+        Exceptions bubble up to base class for uniform error handling.
+        """
         params = self._build_request_params(model, messages)
         params["stream"] = True
-        try:
-            stream = await litellm.acompletion(**params)
-            async for chunk in stream:
-                if chunk and chunk.choices and chunk.choices[0].delta:
-                    content = chunk.choices[0].delta.content
-                    if content:
-                        yield ChunkEvent(content=content)
-        except Exception as e:
-            logger.error(f"Error streaming from {self._provider_name()}: {e}")
-            yield ErrorEvent(content=str(e))
+        stream = await litellm.acompletion(**params)
+        async for chunk in stream:
+            if chunk and chunk.choices and chunk.choices[0].delta:
+                content = chunk.choices[0].delta.content
+                if content:
+                    yield ChunkEvent(content=content)
 
     def _build_request_params(self, model: str, messages: List[LLMMessage]) -> dict:
         params = super()._build_request_params(model, messages)
         # Local models often need to be told they are compatible with OpenAI's API
         params["custom_llm_provider"] = "openai"
         if not params.get("api_key"):
-            params["api_key"] = "placeholder"
+            params["api_key"] = LOCAL_PROVIDER_PLACEHOLDER_API_KEY
         return params
 
     @abstractmethod
     def _provider_name(self) -> str:
+        """Return the provider name for error messages."""
         pass
 
 
 class OllamaProvider(LocalLLMProvider):
     """Provider for Ollama models."""
 
+    def __init__(self, base_url: str, timeout: float = 60.0):
+        """
+        Initialize Ollama provider.
+        
+        Args:
+            base_url: Base URL for Ollama API (e.g., "http://localhost:11434")
+            timeout: Request timeout in seconds
+        """
+        # API key is not needed for Ollama
+        super().__init__(api_key=None, base_url=base_url, timeout=timeout)
+
+    def _validate_dependencies(self) -> None:
+        """Validate that base_url is provided."""
+        if not self.base_url:
+            raise ValueError("OllamaProvider requires a valid 'base_url'.")
+
     def _get_full_model_string(self, model_id: str) -> str:
         if model_id.startswith("ollama/"):
             return model_id
         return f"ollama/{model_id}"
 
-    def _get_base_url(self, provider_config: Any) -> Optional[str]:
-        return getattr(provider_config, "base_url", None)
-
     def _provider_name(self) -> str:
         return "Ollama"
 
     async def list_models(self) -> List[Dict[str, str]]:
-        """Fetch models from Ollama."""
+        """
+        Fetch models from Ollama.
+        
+        Uses the provider's configured timeout instead of a hardcoded value.
+        Listing models can trigger model loading/swapping in Ollama, so a longer
+        timeout is often needed compared to inference requests.
+        """
         models = []
-        base_url = self.config.llm_providers.ollama.base_url
+        # base_url is guaranteed to be a string (validated in __init__)
         # Handle the fact that config base_url usually ends in /v1 but api/tags is at root
+        base_url = self.base_url
+        # Safely remove /v1 suffix if present
         if base_url.endswith("/v1"):
-            base_url = base_url[:-3]
+            base_url = base_url.removesuffix("/v1")
+            # Handle edge case where base_url was exactly "/v1" - use default localhost
+            if not base_url or base_url == "/":
+                base_url = "http://localhost:11434"
+        
+        # Ensure we have a valid base URL before constructing the endpoint
+        if not base_url or base_url == "/":
+            logger.warning("Invalid Ollama base_url, cannot list models")
+            return models
         
         url = f"{base_url.rstrip('/')}/api/tags"
         
         try:
-            async with httpx.AsyncClient(timeout=2.0) as client:
+            # Use provider's configured timeout instead of hardcoded 2.0
+            # This allows for longer timeouts when models need to be loaded into VRAM
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(url)
                 if response.status_code == 200:
                     data = response.json()
@@ -123,26 +175,45 @@ class OllamaProvider(LocalLLMProvider):
 class LMStudioProvider(LocalLLMProvider):
     """Provider for LMStudio models."""
 
+    def __init__(self, base_url: str, timeout: float = 60.0):
+        """
+        Initialize LMStudio provider.
+        
+        Args:
+            base_url: Base URL for LMStudio API (e.g., "http://localhost:1234/v1")
+            timeout: Request timeout in seconds
+        """
+        # API key is not needed for LMStudio
+        super().__init__(api_key=None, base_url=base_url, timeout=timeout)
+
+    def _validate_dependencies(self) -> None:
+        """Validate that base_url is provided."""
+        if not self.base_url:
+            raise ValueError("LMStudioProvider requires a valid 'base_url'.")
+
     def _get_full_model_string(self, model_id: str) -> str:
         if model_id.startswith("lmstudio/"):
             return model_id
         return f"lmstudio/{model_id}"
 
-    def _get_base_url(self, provider_config: Any) -> Optional[str]:
-        return getattr(provider_config, "base_url", None)
-
     def _provider_name(self) -> str:
         return "LMStudio"
 
     async def list_models(self) -> List[Dict[str, str]]:
-        """Fetch models from LM Studio."""
+        """
+        Fetch models from LM Studio.
+        
+        Uses the provider's configured timeout instead of a hardcoded value.
+        Listing models can take longer if the backend is under load.
+        """
         models = []
-        base_url = self.config.llm_providers.lmstudio.base_url
+        # base_url is guaranteed to be a string (validated in __init__)
         # Config base_url usually includes /v1, which is what we want for /models
-        url = f"{base_url.rstrip('/')}/models"
+        url = f"{self.base_url.rstrip('/')}/models"
         
         try:
-            async with httpx.AsyncClient(timeout=2.0) as client:
+            # Use provider's configured timeout instead of hardcoded 2.0
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(url)
                 if response.status_code == 200:
                     data = response.json()

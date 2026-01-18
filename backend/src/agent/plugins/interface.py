@@ -34,18 +34,6 @@ class AgentPlugin(Protocol):
         """
         ...
 
-    async def on_instruction(self, instruction: str) -> Optional[PluginResult]:
-        """Called when a new user query is received."""
-        ...
-
-    async def on_llm_response(self, response_text: str) -> Optional[PluginResult]:
-        """Called when the LLM generates a text response."""
-        ...
-
-    async def on_tool_start(self, tool_name: str, args: Dict[str, Any]) -> Optional[PluginResult]:
-        """Called before a tool is executed."""
-        ...
-
     async def on_tool_end(self, tool_name: str, result: Any) -> Optional[PluginResult]:
         """
         Called after a tool finishes execution.
