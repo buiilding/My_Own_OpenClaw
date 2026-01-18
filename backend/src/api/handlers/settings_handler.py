@@ -5,7 +5,7 @@ Handles settings-related messages (load, update).
 """
 import logging
 from typing import TYPE_CHECKING, Any, Dict
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket
 
 from backend.src.api.handlers.base import MessageHandler
 from backend.src.api.handlers.error_utils import send_error_response, send_success_response

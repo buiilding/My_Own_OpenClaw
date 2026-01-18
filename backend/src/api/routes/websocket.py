@@ -124,10 +124,26 @@ async def websocket_endpoint(
     user_id = "default_user"
     
     # Track active tasks for this connection to cancel on disconnect
+    # Use lock to prevent race conditions when multiple tasks modify the set concurrently
     active_tasks: set[asyncio.Task] = set()
+    tasks_lock = asyncio.Lock()
+    
+    async def add_task(task: asyncio.Task):
+        """Add task to active set with proper locking."""
+        async with tasks_lock:
+            active_tasks.add(task)
     
     def task_done_callback(task: asyncio.Task):
-        """Remove task from active set when done."""
+        """
+        Remove task from active set when done.
+        
+        NOTE: This callback runs synchronously from the task's context.
+        Set operations are atomic in Python (GIL-protected), so direct
+        removal is safe. The lock is only needed for iteration during
+        disconnect cleanup.
+        """
+        # Direct removal is safe - set operations are atomic
+        # Lock is only needed when iterating during disconnect
         active_tasks.discard(task)
     
     # Handshake
@@ -160,9 +176,18 @@ async def websocket_endpoint(
         return
 
     # Main Loop
+    # Maximum message size: 10MB to prevent memory exhaustion attacks
+    MAX_MESSAGE_SIZE = 10 * 1024 * 1024  # 10MB
+    
     try:
         while True:
             data = await websocket.receive_text()
+            
+            # Validate message size before processing
+            if len(data) > MAX_MESSAGE_SIZE:
+                await send_error(safe_ws, None, f"Message too large: {len(data)} bytes (max: {MAX_MESSAGE_SIZE} bytes)")
+                continue
+            
             try:
                 json_data = json.loads(data)
                 
@@ -170,15 +195,15 @@ async def websocket_endpoint(
                 try:
                     # Use pre-created TypeAdapter for performance
                     validated_msg = _INCOMING_MESSAGE_ADAPTER.validate_python(json_data)
-                    # Set user_id from connection context
-                    validated_msg.user_id = user_id
+                    # Set user_id from connection context using model_copy to avoid mutation
+                    validated_msg = validated_msg.model_copy(update={"user_id": user_id})
                     
                     # Route message based on validated type
                     # We spawn a task to avoid blocking the receiving loop.
                     # This is essential for handlers that wait for other messages (like tool-result).
                     # Track task to cancel on disconnect
                     task = asyncio.create_task(handle_message(safe_ws, validated_msg, handler_registry, user_id))
-                    active_tasks.add(task)
+                    await add_task(task)
                     task.add_done_callback(task_done_callback)
                     
                 except PydanticValidationError as e:
@@ -201,12 +226,25 @@ async def websocket_endpoint(
     except WebSocketDisconnect:
         logger.info(f"Client {user_id} disconnected")
         # Cancel all active tasks for this connection
-        for task in active_tasks:
+        # Get snapshot of tasks with lock to avoid race condition
+        async with tasks_lock:
+            tasks_to_cancel = list(active_tasks)
+        
+        for task in tasks_to_cancel:
             if not task.done():
                 task.cancel()
-        # Wait briefly for tasks to cancel (non-blocking)
-        if active_tasks:
-            await asyncio.gather(*active_tasks, return_exceptions=True)
+        
+        # Wait for tasks to cancel with timeout (5 seconds max)
+        # This prevents hanging if tasks don't cancel cleanly
+        if tasks_to_cancel:
+            try:
+                await asyncio.wait_for(
+                    asyncio.gather(*tasks_to_cancel, return_exceptions=True),
+                    timeout=5.0
+                )
+            except asyncio.TimeoutError:
+                logger.warning(f"Timeout waiting for {len(tasks_to_cancel)} tasks to cancel on disconnect")
+        
         await session_manager.end_session(user_id)
 
 async def handle_message(
