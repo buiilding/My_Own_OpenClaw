@@ -123,21 +123,26 @@ class ResponseParser:
 
     def __init__(
         self,
-        config: Optional[AppConfig] = None,
-        tool_registry: Optional["ToolRegistry"] = None,
+        config: AppConfig,
+        tool_registry: "ToolRegistry",
         schema: Optional[ToolCallSchema] = None,
     ):
         """
         Initialize the response parser.
         
         Args:
-            config: Application configuration (required for security limits)
+            config: Application configuration (REQUIRED for security limits)
             tool_registry: Tool registry for validating tool names (REQUIRED for security)
             schema: Optional ToolCallSchema configuration (defaults to custom format)
         
         Raises:
-            ValueError: If tool_registry is None (security requirement)
+            ValueError: If config or tool_registry is None (security requirement)
         """
+        if config is None:
+            raise ValueError(
+                "config is required for ResponseParser. "
+                "Cannot enforce security limits without configuration (security requirement)."
+            )
         if tool_registry is None:
             raise ValueError(
                 "tool_registry is required for ResponseParser. "
@@ -148,14 +153,7 @@ class ResponseParser:
         self.tool_registry = tool_registry
         self.schema = schema or ToolCallSchema()
         self.metrics = get_metrics("response_parser")
-        
-        # Get security limits from config or use defaults
-        if config:
-            self.limits = config.security_limits
-        else:
-            # Fallback to defaults if config not provided (for backward compatibility)
-            from backend.src.core.config.models import SecurityLimits
-            self.limits = SecurityLimits()
+        self.limits = config.security_limits
 
     def parse_response(self, response: str) -> ParsedResponse:
         """
@@ -200,7 +198,7 @@ class ResponseParser:
         
         # SECURITY: Wrap parsing with timeout checking
         import time
-        start_time = time.time()
+        start_time = time.monotonic()
         timeout = self.limits.parse_timeout_seconds
         
         try:
@@ -237,7 +235,7 @@ class ResponseParser:
 
         for strategy in parsing_strategies:
             # Check timeout before each strategy
-            if time.time() - start_time > timeout:
+            if time.monotonic() - start_time > timeout:
                 raise TimeoutError("Parse timeout exceeded")
             
             calls, remaining_text = strategy(response, start_time, timeout)
@@ -368,7 +366,7 @@ class ResponseParser:
             iterations += 1
             
             # SECURITY: Check timeout periodically
-            if time.time() - start_time > timeout:
+            if time.monotonic() - start_time > timeout:
                 raise TimeoutError("Parse timeout exceeded")
             
             # Look for opening brace followed by root key
@@ -453,7 +451,7 @@ class ResponseParser:
             iterations += 1
             
             # SECURITY: Check timeout periodically
-            if time.time() - start_time > timeout:
+            if time.monotonic() - start_time > timeout:
                 return ""
             
             # SECURITY: Check size limit during extraction
@@ -507,7 +505,7 @@ class ResponseParser:
         import time
         
         # Check timeout
-        if time.time() - start_time > timeout:
+        if time.monotonic() - start_time > timeout:
             raise TimeoutError("JSON load timeout exceeded")
         
         # Use custom decoder to limit depth

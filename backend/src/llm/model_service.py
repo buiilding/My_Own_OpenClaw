@@ -94,7 +94,7 @@ class ModelService:
             for model_id in models:
                 vision_models.append(
                     {
-                        "id": f"{provider}/{model_id}",
+                        "id": model_id,
                         "provider": provider,
                         "display_name": f"{provider}/{model_id}",
                     }

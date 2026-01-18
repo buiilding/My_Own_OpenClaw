@@ -40,7 +40,6 @@ class LLMClient(ABC):
         """
         Gets a streaming completion from the LLM, yielding StreamingEvent objects.
         """
-        pass
 
 
 class LiteLLMClient(LLMClient):

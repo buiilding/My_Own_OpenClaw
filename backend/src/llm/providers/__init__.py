@@ -105,8 +105,8 @@ def _create_cached_provider_factory(
                 base_url=None,
                 timeout=timeout,
             )
-        except ValueError:
-            pass  # Missing required dependencies
+        except ValueError as e:
+            logger.debug(f"OpenAI provider initialization failed: {e}")
         
         try:
             factory["gemini"] = GeminiProvider(
@@ -114,8 +114,8 @@ def _create_cached_provider_factory(
                 base_url=None,
                 timeout=timeout,
             )
-        except ValueError:
-            pass
+        except ValueError as e:
+            logger.debug(f"Gemini provider initialization failed: {e}")
         
         try:
             factory["anthropic"] = AnthropicProvider(
@@ -123,8 +123,8 @@ def _create_cached_provider_factory(
                 base_url=None,
                 timeout=timeout,
             )
-        except ValueError:
-            pass
+        except ValueError as e:
+            logger.debug(f"Anthropic provider initialization failed: {e}")
         
         try:
             factory["openrouter"] = OpenRouterProvider(
@@ -132,8 +132,8 @@ def _create_cached_provider_factory(
                 base_url=openrouter_url,
                 timeout=timeout,
             )
-        except ValueError:
-            pass
+        except ValueError as e:
+            logger.debug(f"OpenRouter provider initialization failed: {e}")
         
         try:
             factory["mistral"] = MistralProvider(
@@ -141,8 +141,8 @@ def _create_cached_provider_factory(
                 base_url=None,
                 timeout=timeout,
             )
-        except ValueError:
-            pass
+        except ValueError as e:
+            logger.debug(f"Mistral provider initialization failed: {e}")
     
     # Local providers don't require API keys (but may fail at runtime if not running)
     try:
@@ -150,16 +150,16 @@ def _create_cached_provider_factory(
             base_url=ollama_url,
             timeout=timeout,
         )
-    except ValueError:
-        pass
+    except ValueError as e:
+        logger.debug(f"Ollama provider initialization failed: {e}")
     
     try:
         factory["lmstudio"] = LMStudioProvider(
             base_url=lmstudio_url,
             timeout=timeout,
         )
-    except ValueError:
-        pass
+    except ValueError as e:
+        logger.debug(f"LM Studio provider initialization failed: {e}")
     
     return factory
 

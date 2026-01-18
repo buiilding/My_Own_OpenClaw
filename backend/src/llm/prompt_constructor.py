@@ -54,7 +54,7 @@ class PromptConstructor:
     def __init__(
         self,
         tool_registry: ToolRegistry,
-        config: Optional["AppConfig"] = None,
+        config: "AppConfig",
         system_prompt: Optional[str] = None,
     ):
         """
@@ -62,23 +62,25 @@ class PromptConstructor:
 
         Args:
             tool_registry: Registry of available tools
-            config: Application configuration (required for security limits)
+            config: Application configuration (REQUIRED for security limits)
             system_prompt: Optional custom system prompt. If None, loads from PromptManager
                           (assumes PromptManager.initialize() was called at startup)
+        
+        Raises:
+            ValueError: If config is None (security requirement)
         """
+        if config is None:
+            raise ValueError(
+                "config is required for PromptConstructor. "
+                "Cannot enforce security limits without configuration (security requirement)."
+            )
+        
         self.tool_registry = tool_registry
         self.config = config
         # Load system prompt at runtime (not import time) to avoid crashes
         self.system_prompt = system_prompt or get_system_prompt()
         self.metrics = get_metrics("prompt_constructor")
-        
-        # Get security limits from config or use defaults
-        if config:
-            self.limits = config.security_limits
-        else:
-            # Fallback to defaults if config not provided (for backward compatibility)
-            from backend.src.core.config.models import SecurityLimits
-            self.limits = SecurityLimits()
+        self.limits = config.security_limits
 
     def build_prompt(
         self,

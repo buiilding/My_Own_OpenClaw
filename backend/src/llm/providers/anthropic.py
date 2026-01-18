@@ -19,6 +19,9 @@ from backend.src.llm.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
 
+# Default thinking token budget for Anthropic models that support thinking tokens
+DEFAULT_THINKING_TOKEN_BUDGET = 16384
+
 
 class AnthropicProvider(LLMProvider):
     """Provider for Anthropic models."""
@@ -86,7 +89,7 @@ class AnthropicProvider(LLMProvider):
             provider_name in ONLINE_THINKING_MODELS
             and model in ONLINE_THINKING_MODELS[provider_name]
         ):
-            params["thinking"] = {"type": "enabled", "budget_tokens": 16384}
+            params["thinking"] = {"type": "enabled", "budget_tokens": DEFAULT_THINKING_TOKEN_BUDGET}
         return params
 
     def _get_full_model_string(self, model_id: str) -> str:
