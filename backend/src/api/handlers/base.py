@@ -10,6 +10,11 @@ from collections.abc import Awaitable
 from typing import Any, Callable, Dict, Optional, Union
 from fastapi import WebSocket
 
+from backend.src.api.handlers.transport import WebSocketSender
+
+from backend.src.api.handlers.transport import WebSocketSender
+from backend.src.api.schema import BaseMessage, IncomingMessage
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,19 +29,16 @@ class MessageHandler(ABC):
     @abstractmethod
     async def handle(
         self, 
-        data: Dict[str, Any], 
-        websocket: Union[WebSocket, Any],
+        message: BaseMessage, 
+        websocket: WebSocketSender,
         user_id: str
     ) -> None:
         """
         Handle a WebSocket message.
         
         Args:
-            data: Message data dictionary
-            websocket: WebSocket connection (SafeWebSocket or WebSocket).
-                      SafeWebSocket is preferred for thread-safe writes.
-                      SafeWebSocket delegates attribute access via __getattr__,
-                      so handlers accessing websocket attributes will work.
+            message: Validated Pydantic message model (BaseMessage or subclass)
+            websocket: WebSocketSender (thread-safe protocol implementation)
             user_id: User ID from connection context
             
         Raises:
@@ -44,12 +46,12 @@ class MessageHandler(ABC):
         """
         pass
     
-    def validate_message(self, data: Dict[str, Any]) -> bool:
+    def validate_message(self, message: BaseMessage) -> bool:
         """
         Validate message data (optional override).
         
         Args:
-            data: Message data dictionary
+            message: Pydantic message model to validate
             
         Returns:
             True if message is valid, False otherwise
@@ -68,7 +70,8 @@ class MessageHandlerRegistry:
     def __init__(self):
         """Initialize the handler registry."""
         self._handlers: Dict[str, MessageHandler] = {}
-        self._middleware: list[Callable[[Dict[str, Any], WebSocket], Union[None, Awaitable[None]]]] = []
+        # Middleware still uses dict for backward compatibility if needed
+        self._middleware: list[Callable[[Dict[str, Any], WebSocketSender], Union[None, Awaitable[None]]]] = []
     
     def register(
         self, 
@@ -112,7 +115,7 @@ class MessageHandlerRegistry:
     
     def add_middleware(
         self, 
-        middleware: Callable[[Dict[str, Any], WebSocket], Union[None, Awaitable[None]]]
+        middleware: Callable[[Dict[str, Any], WebSocketSender], Union[None, Awaitable[None]]]
     ) -> None:
         """
         Add middleware that runs before all handlers.
@@ -127,33 +130,33 @@ class MessageHandlerRegistry:
     async def handle(
         self, 
         message_type: str,
-        data: Dict[str, Any],
-        websocket: Union[WebSocket, Any],
+        message: IncomingMessage,
+        websocket: WebSocketSender,
         user_id: str
     ) -> None:
         """
         Route message to appropriate handler.
         
         Args:
-            message_type: Type of message
-            data: Message data dictionary
-            websocket: WebSocket connection (SafeWebSocket or WebSocket).
-                      SafeWebSocket is preferred for thread-safe writes.
+            message_type: Type of message (must match message.type)
+            message: Validated Pydantic message model (IncomingMessage)
+            websocket: WebSocketSender (thread-safe protocol implementation)
             user_id: User ID from connection context
             
         Raises:
             ValueError: If no handler is registered for the message type
             Exception: If handler execution fails
         """
-        # Run middleware
+        # Run middleware (convert to dict for middleware backward compatibility)
         # CRITICAL: Middleware exceptions MUST propagate to caller to prevent fail-open security vulnerabilities.
         # If authentication or rate limiting middleware fails, the handler must NOT execute.
         # Non-critical middleware (e.g., logging, metrics) should catch and handle their own
         # exceptions internally if they don't want to block processing.
         # Critical middleware (e.g., auth) should raise exceptions that will stop message processing.
+        message_dict = message.model_dump()  # Convert for middleware only
         for middleware in self._middleware:
             try:
-                result = middleware(data, websocket)
+                result = middleware(message_dict, websocket)
                 # Check if result is awaitable (coroutine)
                 if hasattr(result, '__await__'):
                     await result
@@ -175,12 +178,12 @@ class MessageHandlerRegistry:
             )
         
         # Validate message
-        if not handler.validate_message(data):
+        if not handler.validate_message(message):
             raise ValueError(f"Invalid message data for type: {message_type}")
         
-        # Execute handler
+        # Execute handler with typed message
         try:
-            await handler.handle(data, websocket, user_id)
+            await handler.handle(message, websocket, user_id)
         except Exception as e:
             logger.error(
                 f"Error in handler for message type '{message_type}': {e}",

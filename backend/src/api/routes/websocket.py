@@ -24,7 +24,7 @@ Error Handling:
 import json
 import logging
 import asyncio
-from typing import Any, Union
+from typing import Any, Optional, Set
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError as PydanticValidationError, TypeAdapter
@@ -34,6 +34,8 @@ from backend.src.api.deps import (
     SessionManagerDep,
 )
 from backend.src.api.handlers.base import MessageHandlerRegistry
+from backend.src.api.handlers.error_utils import send_error_response
+from backend.src.api.handlers.transport import WebSocketSender
 from backend.src.api.schema import IncomingMessage, HandshakeMessage
 
 router = APIRouter()
@@ -46,9 +48,10 @@ _INCOMING_MESSAGE_ADAPTER = TypeAdapter(IncomingMessage)
 MAX_MESSAGE_SIZE = 10 * 1024 * 1024  # 10MB - maximum message size to prevent memory exhaustion attacks
 TASK_CANCELLATION_TIMEOUT = 5.0  # Seconds to wait for tasks to cancel on disconnect
 
+
 class SafeWebSocket:
     """
-    Thread-safe/coroutine-safe WebSocket wrapper.
+    Thread-safe WebSocket wrapper implementing WebSocketSender Protocol.
     
     WebSocket operations in FastAPI/Starlette are not safe for concurrent access.
     This wrapper serializes all send operations using an asyncio.Lock to prevent
@@ -59,9 +62,10 @@ class SafeWebSocket:
     - Background tasks (e.g., TTS audio streaming) may send while handlers send
     - Without serialization, concurrent sends can corrupt the WebSocket protocol
     
-    Performance impact is minimal since WebSocket sends are I/O-bound and the lock
-    is held only during the actual send operation.
+    Implements WebSocketSender Protocol to ensure type safety and enforce
+    thread-safe usage throughout the codebase.
     """
+    
     def __init__(self, websocket: WebSocket):
         """
         Initialize the safe WebSocket wrapper.
@@ -72,62 +76,63 @@ class SafeWebSocket:
         self._websocket = websocket
         self._lock = asyncio.Lock()
 
-    async def send_json(self, data: Any, **kwargs):
+    async def send_json(self, data: Any, mode: str = "text") -> None:
         """
-        Send JSON data with serialized access and error handling.
+        Thread-safe JSON send.
         
         Args:
             data: JSON-serializable data to send
-            **kwargs: Additional arguments passed to underlying send_json
+            mode: Send mode (default: "text")
             
         Raises:
-            WebSocketDisconnect: If connection is closed
             RuntimeError: If connection error occurs
             ConnectionError: If connection error occurs
         """
         async with self._lock:
             try:
-                await self._websocket.send_json(data, **kwargs)
+                await self._websocket.send_json(data, mode=mode)
             except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-                logger.debug(f"Failed to send JSON to closed connection: {e}")
+                logger.debug(f"Send failed (connection closed): {e}")
+                # We raise to let the caller know the stream is dead
                 raise
 
-    async def send_text(self, data: str, **kwargs):
+    async def send_text(self, data: str) -> None:
         """
-        Send text data with serialized access and error handling.
+        Thread-safe text send.
         
         Args:
             data: Text data to send
-            **kwargs: Additional arguments passed to underlying send_text
             
         Raises:
-            WebSocketDisconnect: If connection is closed
             RuntimeError: If connection error occurs
             ConnectionError: If connection error occurs
         """
         async with self._lock:
             try:
-                await self._websocket.send_text(data, **kwargs)
+                await self._websocket.send_text(data)
             except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-                logger.debug(f"Failed to send text to closed connection: {e}")
+                logger.debug(f"Send failed (connection closed): {e}")
                 raise
 
-    def get_websocket(self) -> WebSocket:
+    async def close(self, code: int = 1000, reason: Optional[str] = None) -> None:
         """
-        Get the underlying WebSocket instance.
+        Thread-safe close.
         
-        This method provides safe access to the underlying WebSocket for cases
-        where the raw WebSocket is needed (e.g., passing to functions that expect
-        WebSocket rather than SafeWebSocket).
-        
-        Returns:
-            The underlying WebSocket instance
+        Args:
+            code: Close code (default: 1000)
+            reason: Optional close reason
         """
-        return self._websocket
-    
-    def __getattr__(self, name):
-        """Delegate attribute access to underlying WebSocket."""
-        return getattr(self._websocket, name)
+        async with self._lock:
+            try:
+                await self._websocket.close(code=code, reason=reason)
+            except Exception as e:
+                logger.debug(f"Close failed (already closed): {e}")
+
+    async def accept(self) -> None:
+        """
+        Accept connection (usually called before locking matters).
+        """
+        await self._websocket.accept()
 
 @router.websocket("/ws")
 async def websocket_endpoint(
@@ -135,8 +140,8 @@ async def websocket_endpoint(
     session_manager: SessionManagerDep,
     handler_registry: HandlerRegistryDep,
 ):
-    await websocket.accept()
     safe_ws = SafeWebSocket(websocket)
+    await safe_ws.accept()
     user_id = "default_user"
     
     # Track active tasks for this connection to cancel on disconnect
@@ -171,24 +176,16 @@ async def websocket_endpoint(
     except PydanticValidationError as e:
         logger.warning(f"Handshake validation failed: {e}")
         try:
-            await websocket.close(code=1008)
-        except AttributeError as close_error:
-            # Ignore AttributeError during WebSocket cleanup (websockets library internal issue)
-            if "transfer_data_task" not in str(close_error):
-                logger.warning(f"Error closing WebSocket after handshake validation failure: {close_error}")
+            await safe_ws.close(code=1008)
         except Exception as close_error:
-            logger.warning(f"Error closing WebSocket after handshake validation failure: {close_error}")
+            logger.debug(f"Error closing WebSocket after handshake validation failure: {close_error}")
         return
     except Exception as e:
         logger.error(f"Handshake error: {e}")
         try:
-            await websocket.close(code=1008)
-        except AttributeError as close_error:
-            # Ignore AttributeError during WebSocket cleanup (websockets library internal issue)
-            if "transfer_data_task" not in str(close_error):
-                logger.warning(f"Error closing WebSocket after handshake error: {close_error}")
+            await safe_ws.close(code=1008)
         except Exception as close_error:
-            logger.warning(f"Error closing WebSocket after handshake error: {close_error}")
+            logger.debug(f"Error closing WebSocket after handshake error: {close_error}")
         return
 
     # Main Loop
@@ -233,9 +230,9 @@ async def websocket_endpoint(
                 # Malformed JSON - send error using canonical utility
                 await send_error(safe_ws, None, "Malformed JSON")
             except Exception as e:
-                # Unexpected error - log and send error using canonical utility
-                logger.error(f"Error processing message: {e}", exc_info=True)
-                await send_error(safe_ws, None, str(e))
+                # Unexpected error - send sanitized error to prevent information leakage
+                # Full details are logged server-side via send_error
+                await send_error(safe_ws, None, None, exception=e)
                 
     except WebSocketDisconnect:
         logger.info(f"Client {user_id} disconnected")
@@ -281,34 +278,39 @@ async def handle_message(
 
     try:
         # Use handler registry to route message based on validated type
-        # Convert Pydantic model to dict for handler (handlers still expect dict for now)
-        # TODO: Refactor handlers to accept typed messages in future phase
-        message_dict = message.model_dump()
-        # Pass SafeWebSocket to handlers to ensure thread-safe writes
-        await handler_registry.handle(msg_type, message_dict, websocket, user_id)
+        # Pass typed Pydantic model directly to handlers (type-safe)
+        await handler_registry.handle(msg_type, message, websocket, user_id)
     
     except ValueError as e:
-        # Handler not found or validation error
+        # Handler not found or validation error - safe to expose
         await send_error(websocket, msg_id, str(e))
     except Exception as e:
-        logger.error(f"Unexpected error handling message: {e}", exc_info=True)
-        await send_error(websocket, msg_id, f"Internal error: {str(e)}")
+        # Unexpected error - send sanitized error to prevent information leakage
+        await send_error(websocket, msg_id, None, exception=e)
 
-async def send_error(websocket: SafeWebSocket, msg_id: str | None, message: str):
+async def send_error(
+    websocket: SafeWebSocket, 
+    msg_id: Optional[str], 
+    message: Optional[str] = None,
+    exception: Optional[Exception] = None
+):
     """
     Send error response to WebSocket client.
     
     Delegates to error_utils.send_error_response to ensure canonical error payload shape.
     This is the ONLY way errors should be sent from the WebSocket route layer.
     
+    Security: If exception is provided, message is sanitized to prevent information leakage.
+    Full exception details are logged server-side.
+    
     Args:
         websocket: SafeWebSocket connection (thread-safe wrapper)
         msg_id: Message ID (optional)
-        message: Error message
+        message: Error message (optional, used if exception is None)
+        exception: Optional exception to sanitize. If provided, message is ignored.
     """
-    from backend.src.api.handlers.error_utils import send_error_response
     # send_error_response now accepts SafeWebSocket directly for thread-safe writes
-    await send_error_response(websocket, msg_id, message)
+    await send_error_response(websocket, msg_id, message or "", exception=exception)
 
 # Legacy handlers removed - now handled by MessageHandlerRegistry (Phase 1)
 # See backend/src/api/handlers/ for handler implementations

@@ -7,8 +7,7 @@ import asyncio
 import logging
 from typing import Any, Dict, Optional, Union
 
-from fastapi import WebSocket, WebSocketDisconnect
-
+from backend.src.api.handlers.transport import WebSocketSender
 from backend.src.core.config import AppConfig
 from backend.src.core.events import StreamingEvent, ChunkEvent
 from backend.src.core.services.tts_service import TTSService
@@ -43,14 +42,17 @@ class TTSManager:
         return None
 
     async def start_streaming_task(
-        self, tts_service: TTSService, websocket: WebSocket, msg_id: str
+        self, 
+        tts_service: TTSService, 
+        websocket: WebSocketSender,  # Fixes Point #7: Uses Protocol
+        msg_id: str
     ) -> asyncio.Task:
         """
         Start background task to stream audio chunks to WebSocket.
 
         Args:
             tts_service: TTS service instance
-            websocket: WebSocket connection
+            websocket: WebSocketSender (thread-safe protocol implementation)
             msg_id: Message ID for responses
 
         Returns:
@@ -113,14 +115,18 @@ class TTSManager:
                     pass
 
     async def _stream_audio(
-        self, tts_service: TTSService, websocket: WebSocket, msg_id: str
+        self, tts_service: TTSService, websocket: WebSocketSender, msg_id: str
     ) -> None:
         """
         Stream audio chunks from TTS service to WebSocket.
+        
+        Fixes Point #1: Uses WebSocketSender protocol.
+        Since SafeWebSocket implements this protocol using a Lock,
+        this is now thread-safe relative to the main handler loop.
 
         Args:
             tts_service: TTS service instance
-            websocket: WebSocket connection
+            websocket: WebSocketSender (thread-safe protocol implementation)
             msg_id: Message ID for responses
         """
         try:
@@ -129,9 +135,9 @@ class TTSManager:
                     await websocket.send_json(
                         {"type": "audio-chunk", "id": msg_id, "payload": audio_chunk}
                     )
-                except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-                    # Connection closed - stop streaming
-                    logger.debug(f"TTS audio streaming stopped due to closed connection: {e}")
+                except (RuntimeError, ConnectionError):
+                    # Protocol implementations raise these on disconnection
+                    logger.debug("TTS streaming stopped: connection closed")
                     break
         except Exception as e:
             logger.error(f"Error streaming audio: {e}", exc_info=True)

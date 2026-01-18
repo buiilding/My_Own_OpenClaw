@@ -9,7 +9,9 @@ from fastapi import WebSocket
 
 from backend.src.api.handlers.base import MessageHandler
 from backend.src.api.handlers.error_utils import send_error_response, send_success_response
+from backend.src.api.handlers.transport import WebSocketSender
 from backend.src.api.schema import (
+    BaseMessage,
     LoadSettingsMessage,
     ListModelsMessage,
     UpdateSettingsMessage,
@@ -20,7 +22,6 @@ if TYPE_CHECKING:
 from backend.src.core.config_service import ConfigurationService
 from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.validation import (
-    validate_message, 
     validate_settings_update, 
     ValidationError
 )
@@ -47,30 +48,27 @@ class LoadSettingsHandler(MessageHandler):
         self.config_service = config_service
         self.user_config_manager = user_config_manager
     
-    def validate_message(self, data: Dict[str, Any]) -> bool:
+    def validate_message(self, message: BaseMessage) -> bool:
         """Validate load-settings message structure."""
-        try:
-            validate_message(data, "load-settings", LoadSettingsMessage)
-            return True
-        except ValidationError:
-            return False
+        return isinstance(message, LoadSettingsMessage)
     
     async def handle(
         self, 
-        data: Dict[str, Any], 
-        websocket: WebSocket,
+        message: BaseMessage, 
+        websocket: WebSocketSender,
         user_id: str
     ) -> None:
         """
         Handle a load-settings message.
         
         Args:
-            data: Message data dictionary
-            websocket: WebSocket connection
+            message: Validated LoadSettingsMessage Pydantic model
+            websocket: WebSocketSender (thread-safe protocol implementation)
             user_id: User ID from connection context
         """
         try:
-            validated = validate_message(data, "load-settings", LoadSettingsMessage)
+            # Type assertion - message is already validated as LoadSettingsMessage
+            validated: LoadSettingsMessage = message  # type: ignore
             
             # Get global config
             global_config = self.config_service.get_config()
@@ -92,16 +90,16 @@ class LoadSettingsHandler(MessageHandler):
             # Validation error - send using canonical utility
             await send_error_response(
                 websocket,
-                data.get("id"),
+                message.id,
                 f"Invalid load-settings message: {e.message}"
             )
         except Exception as e:
-            # Unexpected error - log and send using canonical utility
-            logger.error(f"Error loading settings: {e}", exc_info=True)
+            # Unexpected error - send sanitized error to prevent information leakage
             await send_error_response(
                 websocket,
-                data.get("id"),
-                f"Failed to load settings: {str(e)}"
+                message.id,
+                None,
+                exception=e
             )
 
 
@@ -126,32 +124,27 @@ class UpdateSettingsHandler(MessageHandler):
         self.config_service = config_service
         self.user_config_manager = user_config_manager
     
-    def validate_message(self, data: Dict[str, Any]) -> bool:
+    def validate_message(self, message: BaseMessage) -> bool:
         """Validate update-settings message structure."""
-        try:
-            validate_message(data, "update-settings", UpdateSettingsMessage)
-            return True
-        except ValidationError:
-            return False
+        return isinstance(message, UpdateSettingsMessage)
     
     async def handle(
         self, 
-        data: Dict[str, Any], 
-        websocket: WebSocket,
+        message: BaseMessage, 
+        websocket: WebSocketSender,
         user_id: str
     ) -> None:
         """
         Handle an update-settings message.
         
         Args:
-            data: Message data dictionary
-            websocket: WebSocket connection
+            message: Validated UpdateSettingsMessage Pydantic model
+            websocket: WebSocketSender (thread-safe protocol implementation)
             user_id: User ID from connection context
         """
-        msg_id = data.get("id")
-        
         try:
-            validated = validate_message(data, "update-settings", UpdateSettingsMessage)
+            # Type assertion - message is already validated as UpdateSettingsMessage
+            validated: UpdateSettingsMessage = message  # type: ignore
             
             # Validate settings update payload
             new_config_data = validate_settings_update(validated.payload)
@@ -175,7 +168,7 @@ class UpdateSettingsHandler(MessageHandler):
             # Send success response using canonical utility
             await send_success_response(
                 websocket,
-                msg_id,
+                validated.id,
                 "settings-updated",
                 {"message": "Settings updated successfully"}
             )
@@ -184,16 +177,16 @@ class UpdateSettingsHandler(MessageHandler):
             # Validation error - send using canonical utility
             await send_error_response(
                 websocket,
-                msg_id,
+                message.id,
                 f"Invalid update-settings message: {e.message}"
             )
         except Exception as e:
-            # Unexpected error - log and send using canonical utility
-            logger.error(f"Failed to update settings: {e}", exc_info=True)
+            # Unexpected error - send sanitized error to prevent information leakage
             await send_error_response(
                 websocket,
-                msg_id,
-                f"Failed to update settings: {str(e)}"
+                message.id,
+                None,
+                exception=e
             )
 
 
@@ -209,30 +202,27 @@ class ListModelsHandler(MessageHandler):
         """
         self.model_service = model_service
     
-    def validate_message(self, data: Dict[str, Any]) -> bool:
+    def validate_message(self, message: BaseMessage) -> bool:
         """Validate list-models message structure."""
-        try:
-            validate_message(data, "list-models", ListModelsMessage)
-            return True
-        except ValidationError:
-            return False
+        return isinstance(message, ListModelsMessage)
     
     async def handle(
         self, 
-        data: Dict[str, Any], 
-        websocket: WebSocket,
+        message: BaseMessage, 
+        websocket: WebSocketSender,
         user_id: str
     ) -> None:
         """
         Handle a list-models message.
         
         Args:
-            data: Message data dictionary
-            websocket: WebSocket connection
+            message: Validated ListModelsMessage Pydantic model
+            websocket: WebSocketSender (thread-safe protocol implementation)
             user_id: User ID from connection context
         """
         try:
-            validated = validate_message(data, "list-models", ListModelsMessage)
+            # Type assertion - message is already validated as ListModelsMessage
+            validated: ListModelsMessage = message  # type: ignore
             models = await self.model_service.get_all_models()
             
             # Send success response using canonical utility
@@ -246,15 +236,15 @@ class ListModelsHandler(MessageHandler):
             # Validation error - send using canonical utility
             await send_error_response(
                 websocket,
-                data.get("id"),
+                message.id,
                 f"Invalid list-models message: {e.message}"
             )
         except Exception as e:
-            # Unexpected error - log and send using canonical utility
-            logger.error(f"Error listing models: {e}", exc_info=True)
+            # Unexpected error - send sanitized error to prevent information leakage
             await send_error_response(
                 websocket,
-                data.get("id"),
-                f"Failed to list models: {str(e)}"
+                message.id,
+                None,
+                exception=e
             )
 
