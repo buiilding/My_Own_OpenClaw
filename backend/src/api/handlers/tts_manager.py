@@ -90,26 +90,26 @@ class TTSManager:
             tts_service: TTS service instance (may be None)
             audio_task: Audio streaming task (may be None)
         """
-        if tts_service:
-            # Flush any remaining TTS text and wait for processing
-            await tts_service.flush()
-            # Give TTS service time to finish processing remaining text
-            # NOTE: This is a best-effort wait. The TTS service should handle
-            # shutdown gracefully even if processing isn't complete.
-            await asyncio.sleep(TTS_FLUSH_WAIT_TIME)
-            await tts_service.shutdown()
-
-        if audio_task:
-            # Wait for any remaining audio to be sent
-            try:
-                # Give it more time to finish streaming remaining chunks
-                await asyncio.wait_for(audio_task, timeout=AUDIO_TASK_TIMEOUT)
-            except (asyncio.TimeoutError, asyncio.CancelledError):
-                # Task already cancelled or timed out - ensure it's cancelled
+        # FIX #3: Ensure audio_task cleanup runs even if TTS service operations fail
+        try:
+            if tts_service:
+                # Flush any remaining TTS text and wait for processing
+                await tts_service.flush()
+                # Give TTS service time to finish processing remaining text
+                # NOTE: This is a best-effort wait. The TTS service should handle
+                # shutdown gracefully even if processing isn't complete.
+                await asyncio.sleep(TTS_FLUSH_WAIT_TIME)
+                await tts_service.shutdown()
+        except Exception as e:
+            # Log TTS cleanup failure but continue to audio_task cleanup
+            logger.error(f"Error during TTS service cleanup: {e}", exc_info=True)
+        finally:
+            # Always clean up the streaming task, even if TTS cleanup failed
+            if audio_task:
                 if not audio_task.done():
                     audio_task.cancel()
-                # Wait briefly for cancellation to propagate
                 try:
+                    # Wait briefly for cancellation to propagate
                     await asyncio.wait_for(audio_task, timeout=AUDIO_TASK_CANCELLATION_WAIT)
                 except (asyncio.TimeoutError, asyncio.CancelledError):
                     pass
