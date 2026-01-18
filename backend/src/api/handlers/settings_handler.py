@@ -65,8 +65,6 @@ class LoadSettingsHandler(MessageHandler):
             websocket: WebSocketSender (thread-safe protocol implementation)
             user_id: User ID from connection context
         """
-        transport = WebSocketTransportSender(websocket)
-        
         try:
             # Type assertion - message is already validated as LoadSettingsMessage
             validated: LoadSettingsMessage = message  # type: ignore
@@ -221,8 +219,6 @@ class ListModelsHandler(MessageHandler):
             websocket: WebSocketSender (thread-safe protocol implementation)
             user_id: User ID from connection context
         """
-        transport = WebSocketTransportSender(websocket)
-        
         try:
             # Type assertion - message is already validated as ListModelsMessage
             validated: ListModelsMessage = message  # type: ignore

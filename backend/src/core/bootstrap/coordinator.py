@@ -76,6 +76,11 @@ class InitializationCoordinator:
         logger.info("Phase 1: Initializing configuration...")
 
         self.config_manager = config_manager or get_config_manager()
+        
+        # Initialize PromptManager (required for PromptConstructor)
+        from backend.src.llm.prompts import PromptManager
+        PromptManager().initialize()
+        
         logger.info("Configuration initialized.")
 
     async def _initialize_container(self) -> None:

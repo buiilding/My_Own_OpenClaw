@@ -39,6 +39,7 @@ class OpenRouterConfig(BaseModel):
 
     model: str = "openrouter/auto"
     api_key_env: str = "OPENROUTER_API_KEY"
+    base_url: str = "https://openrouter.ai/api/v1"
 
 
 class MistralConfig(BaseModel):
