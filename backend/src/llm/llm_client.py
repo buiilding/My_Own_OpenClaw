@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 from backend.src.core.config import AppConfig
-from backend.src.core.events import StreamingEvent
+from backend.src.core.events import StreamingEvent, ErrorEvent
 from backend.src.core.exceptions import LLMAPIError
 from backend.src.core.types import LLMMessage
 from backend.src.llm.providers import get_provider
@@ -104,8 +104,21 @@ class LiteLLMClient(LLMClient):
     async def get_completion_stream(
         self, model: str, messages: List[LLMMessage]
     ) -> AsyncGenerator[StreamingEvent, None]:
-        """Delegates getting a streaming completion to the appropriate provider."""
-        provider = self._get_provider()
+        """
+        Delegates getting a streaming completion to the appropriate provider.
+        
+        Catches exceptions from provider initialization and yields ErrorEvent
+        for consistency with base class error handling pattern.
+        """
+        try:
+            provider = self._get_provider()
+        except ValueError as e:
+            # Provider not configured or unavailable
+            logger.error(f"Provider initialization failed: {e}")
+            yield ErrorEvent(content=f"LLM provider error: {str(e)}")
+            return
+        
+        # Provider's get_completion_stream handles its own exceptions and yields ErrorEvent
         async for event in provider.get_completion_stream(model, messages):
             yield event
 

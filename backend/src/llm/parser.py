@@ -178,6 +178,20 @@ class ResponseParser:
         """
         boundary_name = "response_parser"
         
+        # SECURITY: Validate input type and None
+        if response is None:
+            raise ValueError(
+                "response cannot be None. Trust boundary requires valid string input.",
+            )
+        if not isinstance(response, str):
+            raise TypeError(
+                f"response must be str, got {type(response).__name__}. "
+                "Trust boundary requires string input.",
+            )
+        
+        # Empty responses are valid (no tool calls, empty text content)
+        # They will pass size checks (0 bytes) and return empty ParsedResponse
+        
         # SECURITY: Check input size limit first
         response_size = len(response)
         if response_size > self.limits.max_response_size:

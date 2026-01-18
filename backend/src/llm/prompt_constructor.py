@@ -120,6 +120,11 @@ class PromptConstructor:
             prompt_messages = stored_messages.get_history()
         else:
             # Fallback: empty history if stored_messages not available
+            if stored_messages is not None:
+                logger.warning(
+                    f"stored_messages provided but missing 'get_history' method. "
+                    f"Type: {type(stored_messages).__name__}. Using empty history."
+                )
             prompt_messages = []
         
         # SECURITY: Check history size limit

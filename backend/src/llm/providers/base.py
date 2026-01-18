@@ -53,7 +53,17 @@ class LLMProvider(ABC):
     async def get_completion(
         self, model: str, messages: List[LLMMessage]
     ) -> NormalizedLLMResponse:
-        """Gets a completion from the LLM and returns a normalized response."""
+        """
+        Gets a completion from the LLM and returns a normalized response.
+        
+        NOTE: Error handling differs from streaming:
+        - Non-streaming (this method): Raises exceptions (LLMAPIError, LLMRateLimitError, LLMError)
+        - Streaming (get_completion_stream): Catches exceptions and yields ErrorEvent
+        
+        This design allows callers to handle errors differently:
+        - Non-streaming: Use try/except for control flow
+        - Streaming: Process error events in the event stream
+        """
         pass
 
     async def get_completion_stream(
@@ -64,6 +74,10 @@ class LLMProvider(ABC):
         
         All providers must yield events, never raise exceptions.
         This ensures Liskov Substitution Principle compliance.
+        
+        Errors are converted to ErrorEvent and yielded in the stream,
+        allowing callers to handle errors as part of the event flow
+        rather than via exception handling.
         """
         try:
             async for event in self._stream_internal(model, messages):
@@ -113,10 +127,21 @@ class LLMProvider(ABC):
         Helper to construct the basic request parameters for LiteLLM.
         
         Args:
-            model: Model identifier
+            model: Model identifier (must be non-empty string)
             messages: List of messages
             model_string: Optional pre-formatted model string (if None, uses _get_full_model_string)
+        
+        Raises:
+            ValueError: If model is None or empty
         """
+        # Validate model parameter
+        if model is None:
+            raise ValueError("model parameter cannot be None")
+        if not isinstance(model, str):
+            raise TypeError(f"model must be str, got {type(model).__name__}")
+        if not model.strip():
+            raise ValueError("model parameter cannot be empty or whitespace-only")
+        
         params = {
             "model": model_string or self._get_full_model_string(model),
             "messages": messages,
@@ -128,7 +153,19 @@ class LLMProvider(ABC):
 
     @abstractmethod
     def _get_full_model_string(self, model_id: str) -> str:
-        """Constructs the full model string required by LiteLLM."""
+        """
+        Constructs the full model string required by LiteLLM.
+        
+        Args:
+            model_id: Model identifier (guaranteed to be non-empty string by caller)
+        
+        Returns:
+            Full model string for LiteLLM (e.g., "anthropic/claude-3-opus")
+        
+        Note:
+            model_id is validated by _build_request_params before this is called.
+            Subclasses can assume model_id is a valid non-empty string.
+        """
         pass
 
     def _extract_thinking_content(self, delta: Any) -> Optional[str]:
