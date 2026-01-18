@@ -87,6 +87,8 @@ class TTSManager:
             # Flush any remaining TTS text and wait for processing
             await tts_service.flush()
             # Give TTS service time to finish processing remaining text
+            # NOTE: This is a best-effort wait. The TTS service should handle
+            # shutdown gracefully even if processing isn't complete.
             await asyncio.sleep(1.0)
             await tts_service.shutdown()
 
@@ -96,7 +98,14 @@ class TTSManager:
                 # Give it more time to finish streaming remaining chunks
                 await asyncio.wait_for(audio_task, timeout=5.0)
             except (asyncio.TimeoutError, asyncio.CancelledError):
-                audio_task.cancel()
+                # Task already cancelled or timed out - ensure it's cancelled
+                if not audio_task.done():
+                    audio_task.cancel()
+                # Wait briefly for cancellation to propagate
+                try:
+                    await asyncio.wait_for(audio_task, timeout=0.5)
+                except (asyncio.TimeoutError, asyncio.CancelledError):
+                    pass
 
     async def _stream_audio(
         self, tts_service: TTSService, websocket: WebSocket, msg_id: str

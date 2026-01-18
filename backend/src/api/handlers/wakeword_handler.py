@@ -124,6 +124,9 @@ class WakewordHandler(MessageHandler):
             )
         finally:
             # Clean up TTS
+            # Ensure audio_task is cancelled if handler task is cancelled
+            if audio_task and not audio_task.done():
+                audio_task.cancel()
             await self.tts_manager.cleanup(tts_service, audio_task)
 
 
