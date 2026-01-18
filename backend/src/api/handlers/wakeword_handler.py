@@ -6,7 +6,7 @@ Handles wakeword detection and activation messages.
 import logging
 from typing import Any, Dict
 
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 
 from backend.src.api.handlers.base import MessageHandler
 from backend.src.api.handlers.transport import WebSocketTransportSender
@@ -88,19 +88,25 @@ class WakewordHandler(MessageHandler):
 
             # Send responses via transport
             activation_payload = self.wakeword_service.get_activation_payload(greeting)
-            await transport.send({
-                "type": "wakeword-activated",
-                "id": msg_id,
-                "payload": activation_payload
-            })
+            try:
+                await transport.send({
+                    "type": "wakeword-activated",
+                    "id": msg_id,
+                    "payload": activation_payload
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send wakeword-activated to closed connection: {send_error}")
 
-            await transport.send({
-                "type": "wakeword-greeting",
-                "id": msg_id,
-                "payload": {
-                    "text": greeting
-                }
-            })
+            try:
+                await transport.send({
+                    "type": "wakeword-greeting",
+                    "id": msg_id,
+                    "payload": {
+                        "text": greeting
+                    }
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send wakeword-greeting to closed connection: {send_error}")
 
             # Generate TTS for greeting if speech mode enabled
             if tts_service:
@@ -110,18 +116,24 @@ class WakewordHandler(MessageHandler):
             logger.info(f"Wakeword activated for user {user_id} with greeting: {greeting}")
 
         except ValidationError as e:
-            await transport.send({
-                "type": "error",
-                "id": data.get("id"),
-                "payload": {"message": f"Invalid wakeword message: {e.message}"}
-            })
+            try:
+                await transport.send({
+                    "type": "error",
+                    "id": data.get("id"),
+                    "payload": {"message": f"Invalid wakeword message: {e.message}"}
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send error to closed connection: {send_error}")
         except Exception as e:
             logger.error(f"Error in wakeword handler: {e}", exc_info=True)
-            await transport.send({
-                "type": "error",
-                "id": data.get("id"),
-                "payload": {"message": f"Wakeword error: {str(e)}"}
-            })
+            try:
+                await transport.send({
+                    "type": "error",
+                    "id": data.get("id"),
+                    "payload": {"message": f"Wakeword error: {str(e)}"}
+                })
+            except (WebSocketDisconnect, RuntimeError, ConnectionError) as send_error:
+                logger.debug(f"Failed to send error to closed connection: {send_error}")
         finally:
             # Clean up TTS
             await self.tts_manager.cleanup(tts_service, audio_task)
