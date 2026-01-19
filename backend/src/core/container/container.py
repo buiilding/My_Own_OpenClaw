@@ -174,7 +174,7 @@ class Container:
         """
         await self._initializer.initialize()
 
-    def update_config(self, config: AppConfig):
+    async def update_config(self, config: AppConfig):
         """
         Update configuration for the container and its dependencies.
 
@@ -183,7 +183,7 @@ class Container:
         Args:
             config: New configuration instance
         """
-        self._config_updater.update_config(config)
+        await self._config_updater.update_config(config)
 
     def create_agent_session(
         self,

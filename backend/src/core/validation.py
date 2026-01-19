@@ -4,7 +4,7 @@ Centralized Validation Framework for the Desktop Assistant.
 Provides Pydantic-based validation for all API inputs with consistent error handling.
 """
 import logging
-from typing import Any, Dict, Optional, Type, TypeVar
+from typing import Any, Callable, Dict, Optional, Type, TypeVar
 from pydantic import BaseModel, ValidationError as PydanticValidationError
 from backend.src.core.config import AppConfig
 
@@ -108,7 +108,7 @@ def validate_field(
     field_name: str,
     expected_type: Type,
     required: bool = True,
-    validator: Optional[callable] = None
+    validator: Optional[Callable[[Any], Any]] = None
 ) -> Any:
     """
     Validate a single field value.

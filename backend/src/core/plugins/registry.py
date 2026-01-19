@@ -7,7 +7,7 @@ import logging
 from typing import Any, Dict, List, Optional, TypeVar
 
 from backend.src.agent.plugins.interface import AgentPlugin
-from backend.src.core.plugin_config import PluginConfigManager
+from backend.src.core.plugins.config import PluginConfigManager
 from backend.src.core.plugins.lifecycle import PluginLifecycleManager
 from backend.src.core.plugins.metadata import PluginConfig
 from backend.src.core.plugins.state_manager import PluginStateManager

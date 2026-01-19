@@ -24,7 +24,7 @@ from backend.src.core.validation import (
     validate_settings_update, 
     ValidationError
 )
-from backend.src.llm.model_service import ModelService
+from backend.src.llm.models.model_service import ModelService
 
 logger = logging.getLogger(__name__)
 

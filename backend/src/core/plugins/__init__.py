@@ -3,7 +3,7 @@ Plugin System Package.
 
 Provides plugin registry, discovery, metadata, and lifecycle management.
 """
-from backend.src.core.plugin_config import PluginConfigManager
+from backend.src.core.plugins.config import PluginConfigManager
 from backend.src.core.plugins.discovery import (
     EntryPointPluginDiscoverer,
     FilesystemPluginDiscoverer,

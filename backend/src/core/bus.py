@@ -6,6 +6,7 @@ and middleware capabilities for decoupling components.
 """
 import asyncio
 import logging
+import threading
 import time
 from typing import Callable, Dict, List, Optional, Type, Union, Awaitable
 
@@ -64,6 +65,7 @@ class EventBus:
         self._middleware: List[Callable[[Event], Awaitable[None]]] = []
         self.enable_error_recovery = enable_error_recovery
         self._event_stats: Dict[str, int] = {}
+        self._lock = threading.RLock()  # Reentrant lock for thread safety
     
     def subscribe(
         self,
@@ -75,29 +77,38 @@ class EventBus:
         """
         Subscribe a handler to an event type.
         
+        Thread-safe: Uses lock to prevent race conditions during subscription.
+        
         Args:
             event_type: The type of event to subscribe to
             handler: Handler function (sync or async)
             priority: Execution priority (lower = higher priority, default: 100)
             filter_func: Optional function to filter events before calling handler
         """
-        if event_type not in self._subscribers:
-            self._subscribers[event_type] = []
-        
-        wrapper = EventHandlerWrapper(handler, priority, filter_func)
-        self._subscribers[event_type].append(wrapper)
-        
-        # Sort by priority (lower = higher priority)
-        self._subscribers[event_type].sort(key=lambda w: w.priority)
-        
-        logger.debug(
-            f"Subscribed {handler} to {event_type.__name__} "
-            f"(priority: {priority})"
-        )
+        with self._lock:
+            if event_type not in self._subscribers:
+                self._subscribers[event_type] = []
+            
+            wrapper = EventHandlerWrapper(handler, priority, filter_func)
+            self._subscribers[event_type].append(wrapper)
+            
+            # Sort by priority (lower = higher priority)
+            self._subscribers[event_type].sort(key=lambda w: w.priority)
+            
+            logger.debug(
+                f"Subscribed {handler} to {event_type.__name__} "
+                f"(priority: {priority})"
+            )
     
     def unsubscribe(self, event_type: Type[Event], handler: EventHandler) -> bool:
         """
         Unsubscribe a handler from an event type.
+        
+        Thread-safe: Uses lock to prevent race conditions during unsubscription.
+        
+        Note: If the same handler is subscribed multiple times, only the first
+        occurrence is removed. This matches typical usage patterns where handlers
+        are subscribed once per event type.
         
         Args:
             event_type: The event type
@@ -106,33 +117,38 @@ class EventBus:
         Returns:
             True if handler was found and removed, False otherwise
         """
-        if event_type not in self._subscribers:
+        with self._lock:
+            if event_type not in self._subscribers:
+                return False
+            
+            handlers = self._subscribers[event_type]
+            for i, wrapper in enumerate(handlers):
+                if wrapper.handler == handler:
+                    del handlers[i]
+                    logger.debug(f"Unsubscribed {handler} from {event_type.__name__}")
+                    return True
+            
             return False
-        
-        original_count = len(self._subscribers[event_type])
-        self._subscribers[event_type] = [
-            w for w in self._subscribers[event_type] if w.handler != handler
-        ]
-        
-        removed = len(self._subscribers[event_type]) < original_count
-        if removed:
-            logger.debug(f"Unsubscribed {handler} from {event_type.__name__}")
-        
-        return removed
     
     def add_middleware(self, middleware: Callable[[Event], Awaitable[None]]) -> None:
         """
         Add middleware that runs before all handlers.
         
+        Thread-safe: Uses lock to prevent race conditions.
+        
         Args:
             middleware: Async function that receives the event
         """
-        self._middleware.append(middleware)
-        logger.debug(f"Added middleware: {middleware}")
+        with self._lock:
+            self._middleware.append(middleware)
+            logger.debug(f"Added middleware: {middleware}")
     
     async def publish(self, event: Event) -> None:
         """
         Publish an event to all subscribers.
+        
+        Thread-safe: Copies handler list to prevent race conditions if handlers
+        are added/removed during iteration.
         
         Args:
             event: The event to publish
@@ -144,20 +160,24 @@ class EventBus:
         event_type = type(event)
         event_name = event_type.__name__
         
-        # Update statistics
-        self._event_stats[event_name] = self._event_stats.get(event_name, 0) + 1
+        # Update statistics (use lock for thread safety)
+        with self._lock:
+            self._event_stats[event_name] = self._event_stats.get(event_name, 0) + 1
         
-        # Run middleware
-        for middleware in self._middleware:
+        # Run middleware (copy list to prevent mutation during iteration)
+        with self._lock:
+            middleware_copy = list(self._middleware)
+        for middleware in middleware_copy:
             try:
                 await middleware(event)
             except Exception as e:
                 logger.error(f"Error in middleware for {event_name}: {e}", exc_info=True)
                 if not self.enable_error_recovery:
-                    raise
+                    return  # Stop processing if error recovery is disabled
         
-        # Get handlers for this event type
-        handlers = self._subscribers.get(event_type, [])
+        # Get handlers for this event type (copy list to prevent mutation during iteration)
+        with self._lock:
+            handlers = list(self._subscribers.get(event_type, []))
         
         if not handlers:
             logger.debug(f"No handlers for {event_name}")
@@ -175,7 +195,7 @@ class EventBus:
                     exc_info=True
                 )
                 if not self.enable_error_recovery:
-                    raise
+                    return  # Stop processing remaining handlers if error recovery is disabled
     
     def get_stats(self) -> Dict[str, int]:
         """Get event publishing statistics."""
