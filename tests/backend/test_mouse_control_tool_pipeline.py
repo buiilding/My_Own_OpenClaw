@@ -201,7 +201,7 @@ async def run_mouse_test(action: str, find_coordinates_by: str = "manual", x: Op
     # Step 2: Parse the Response
     print("\n📋 STEP 2: Parsing LLM Response")
     parser = create_test_parser(tool_names=["mouse_control"])
-    parsed_response = parser.parse_response(llm_response)
+        parsed_response = await parser.parse_response(llm_response)
 
     print(f"Parsed Response:")
     print(f"  - Has tool calls: {parsed_response.has_tool_calls}")

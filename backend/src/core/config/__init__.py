@@ -14,6 +14,7 @@ from backend.src.core.config.models import (
     MistralConfig,
     LMStudioConfig,
     Preferences,
+    OCRConfig,
 )
 from backend.src.core.config.manager import (
     ConfigManager,
@@ -37,6 +38,7 @@ __all__ = [
     "MistralConfig",
     "LMStudioConfig",
     "Preferences",
+    "OCRConfig",
     "ConfigManager",
     "get_config_manager",
     "get_config_dir",

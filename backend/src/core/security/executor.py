@@ -44,10 +44,14 @@ class ProcessSandboxedExecutor(ToolExecutor):
     - Side effects on global state (if any) won't persist.
     """
     async def execute(self, tool: Tool, args: Any, context: ToolContext) -> Any:
-        # TODO: Implement multiprocessing.Process wrapper
-        # For now, falls back to direct execution but logs a warning/placeholder
-        logger.warning(f"ProcessSandboxedExecutor not fully implemented. Executing {tool.name} directly.")
-        return await tool.run(args, context)
+        # SECURITY: Do not silently fall back to insecure execution
+        # Raise error to prevent usage in insecure contexts
+        raise NotImplementedError(
+            f"ProcessSandboxedExecutor is not fully implemented. "
+            f"Cannot execute {tool.name} in sandbox. "
+            f"Use DirectToolExecutor if sandboxing is not required, "
+            f"or implement process isolation before using this executor."
+        )
 
 _global_executor: ToolExecutor = DirectToolExecutor()
 

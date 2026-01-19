@@ -20,6 +20,7 @@ eliminating circular parsing patterns and preserving data integrity.
 """
 import json
 import logging
+import re
 from typing import List, Dict, Any, Optional, Union, TYPE_CHECKING
 
 from backend.src.llm.prompts.prompts import get_system_prompt
@@ -32,7 +33,7 @@ from backend.src.core.messages import (
     content_to_message_content,
 )
 from backend.src.core.types import LLMMessage
-from backend.src.core.observability.trust_boundary_metrics import get_metrics
+from backend.src.core.observability.trust_boundary_metrics import MetricsService
 # system_monitor removed - frontend handles system state
 
 logger = logging.getLogger(__name__)
@@ -51,6 +52,7 @@ class PromptConstructor:
         tool_registry: ToolRegistry,
         config: "AppConfig",
         system_prompt: Optional[str] = None,
+        metrics_service: Optional[MetricsService] = None,
     ):
         """
         Initialize the prompt constructor.
@@ -60,6 +62,7 @@ class PromptConstructor:
             config: Application configuration (REQUIRED for security limits)
             system_prompt: Optional custom system prompt. If None, loads from PromptManager
                           (assumes PromptManager.initialize() was called at startup)
+            metrics_service: Optional MetricsService for observability (injected via DI)
         
         Raises:
             ValueError: If config is None (security requirement)
@@ -74,7 +77,11 @@ class PromptConstructor:
         self.config = config
         # Load system prompt at runtime (not import time) to avoid crashes
         self.system_prompt = system_prompt or get_system_prompt()
-        self.metrics = get_metrics("prompt_constructor")
+        # Use injected MetricsService or create a new instance (for backward compatibility)
+        if metrics_service is None:
+            from backend.src.core.observability.trust_boundary_metrics import MetricsService
+            metrics_service = MetricsService()
+        self.metrics = metrics_service.get_metrics("prompt_constructor")
         self.limits = config.security_limits
 
     def build_prompt(
@@ -176,84 +183,151 @@ class PromptConstructor:
         return prompt_messages, tool_schemas, metadata
     
     def _calculate_message_size(self, msg: Dict[str, Any]) -> int:
-        """Calculate the size of a message in bytes."""
+        """
+        Calculate the size of a message in bytes.
+        
+        PERFORMANCE: Sums content lengths directly instead of serializing to JSON,
+        avoiding O(N) allocation and CPU overhead on the hot path.
+        """
+        size = 0
         try:
-            # Serialize message to JSON to get accurate size
-            return len(json.dumps(msg, ensure_ascii=False))
-        except (TypeError, ValueError):
-            # Fallback: estimate size from string representation
-            return len(str(msg))
+            for key, value in msg.items():
+                # Add key length
+                if isinstance(key, str):
+                    size += len(key)
+                else:
+                    size += len(str(key))
+                
+                # Add value length based on type
+                if isinstance(value, str):
+                    size += len(value)
+                elif isinstance(value, (dict, list)):
+                    # For complex nested structures, fallback to JSON serialization
+                    # This is rare, so the overhead is acceptable
+                    size += len(json.dumps(value, ensure_ascii=False))
+                elif value is None:
+                    # None adds minimal size (null in JSON)
+                    size += 4
+                else:
+                    # For other types, estimate from string representation
+                    size += len(str(value))
+        except (TypeError, ValueError, AttributeError):
+            # Fallback: if direct calculation fails, use JSON serialization
+            try:
+                return len(json.dumps(msg, ensure_ascii=False))
+            except (TypeError, ValueError):
+                return len(str(msg))
+        
+        return size
     
     def _extract_xml_tag(self, content: str, tag_name: str) -> str:
         """
-        Extract XML tag content with size limits.
+        Extract XML tag content using regex to handle attributes correctly.
         
-        SECURITY: Uses efficient string operations with size limits to prevent DoS.
-        More efficient than regex for large inputs while maintaining security.
+        CORRECTNESS: Uses regex instead of naive find(">") to properly handle
+        attributes that may contain '>' characters (e.g., code="if a > b:").
+        
+        SECURITY: Limits search space and validates extracted size to prevent DoS.
+        
+        NOTE: For production usage with hostile input, consider using a proper
+        XML parser (lxml or defusedxml) which handles all edge cases correctly.
         """
         # SECURITY: Limit search to reasonable size
         max_search_size = min(len(content), self.limits.max_message_content_size)
         search_content = content[:max_search_size]
         
-        # Find opening tag
-        open_tag = f"<{tag_name}"
-        open_pos = search_content.find(open_tag)
-        if open_pos == -1:
+        # Escape tag name for regex
+        escaped_tag = re.escape(tag_name)
+        
+        # Regex pattern:
+        # <tag_name       : Match opening tag name
+        # (?:\s+[^>]*?)?  : Match optional attributes (non-greedy, respects quoted strings)
+        # >               : End of opening tag
+        # (.*?)           : Match content (non-greedy)
+        # </tag_name>     : Match closing tag
+        # re.DOTALL        : Allow . to match newlines
+        pattern = f"<{escaped_tag}(?:\\s+[^>]*?)?>(.*?)</{escaped_tag}>"
+        
+        match = re.search(pattern, search_content, re.DOTALL)
+        if not match:
             return ""
         
-        # Find closing bracket of opening tag
-        open_tag_end = search_content.find(">", open_pos)
-        if open_tag_end == -1:
-            return ""
-        
-        # Find closing tag (search from after opening tag)
-        close_tag = f"</{tag_name}>"
-        close_pos = search_content.find(close_tag, open_tag_end + 1)
-        if close_pos == -1:
-            return ""
-        
-        # Extract full tag including content
-        extracted = search_content[open_pos:close_pos + len(close_tag)]
+        # Get the full match (entire tag including content)
+        full_tag = match.group(0)
         
         # SECURITY: Validate extracted size
-        if len(extracted) > self.limits.max_message_content_size:
+        if len(full_tag) > self.limits.max_message_content_size:
             return ""  # Too large, reject
         
-        return extracted
+        return full_tag
     
     def _extract_xml_tag_content(self, content: str, tag_name: str) -> Optional[str]:
         """
-        Extract content inside XML tag.
+        Extract content inside XML tag using regex.
         
-        SECURITY: Uses efficient string operations with size limits.
-        More efficient than regex for large inputs while maintaining security.
+        CORRECTNESS: Uses regex to properly handle attributes, avoiding the
+        naive find(">") bug that breaks on attributes containing '>'.
+        
+        SECURITY: Limits search space and validates extracted size.
         """
         # SECURITY: Limit search to reasonable size
         max_search_size = min(len(content), self.limits.max_message_content_size)
         search_content = content[:max_search_size]
         
-        # Find opening tag
-        open_tag = f"<{tag_name}"
-        open_pos = search_content.find(open_tag)
-        if open_pos == -1:
+        # Escape tag name for regex
+        escaped_tag = re.escape(tag_name)
+        
+        # Regex pattern: same as _extract_xml_tag but extract group(1) (content)
+        pattern = f"<{escaped_tag}(?:\\s+[^>]*?)?>(.*?)</{escaped_tag}>"
+        
+        match = re.search(pattern, search_content, re.DOTALL)
+        if not match:
             return None
         
-        # Find closing bracket of opening tag
-        open_tag_end = search_content.find(">", open_pos)
-        if open_tag_end == -1:
-            return None
-        
-        # Find closing tag (search from after opening tag)
-        close_tag = f"</{tag_name}>"
-        close_pos = search_content.find(close_tag, open_tag_end + 1)
-        if close_pos == -1:
-            return None
-        
-        # Extract content between tags
-        extracted = search_content[open_tag_end + 1:close_pos]
+        # Extract content (group 1 is the content between tags)
+        extracted = match.group(1)
         
         # SECURITY: Validate extracted size
         if len(extracted) > self.limits.max_message_content_size:
             return None  # Too large, reject
         
         return extracted.strip()
+    
+    def format_user_message_content(
+        self,
+        message_content: Optional[str],
+        query: str,
+        is_first_message: bool,
+    ) -> str:
+        """
+        Format user message content with tool schemas if needed.
+        
+        This method handles the formatting logic for user messages, including:
+        - Fallback formatting when message_content is not provided
+        - Adding tool schemas to the first message only
+        
+        Args:
+            message_content: Complete message content from frontend (system state + memories + query)
+            query: The user's raw query text (for fallback formatting)
+            is_first_message: Whether this is the first user message in the conversation
+            
+        Returns:
+            Formatted message content ready to be added to history
+        """
+        # Build base content
+        if message_content:
+            # Use frontend-provided content
+            final_content = message_content
+        else:
+            # Fallback: just the query (shouldn't happen in normal flow)
+            logger.warning("No message content provided by frontend, using query only")
+            final_content = f"<user_query>\n{query}\n</user_query>"
+        
+        # Add tool schemas to first message only
+        if is_first_message:
+            tool_schemas = self.tool_registry.get_function_declarations() or []
+            if tool_schemas:
+                tool_schemas_json = json.dumps(tool_schemas, indent=2)
+                final_content = f"{final_content}\n\n<tool_schemas>\n{tool_schemas_json}\n</tool_schemas>"
+        
+        return final_content

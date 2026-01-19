@@ -7,9 +7,12 @@ This module provides typed dataclass-based events for:
 """
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 
 from backend.src.core.types import StreamingEventType
+
+if TYPE_CHECKING:
+    from backend.src.core.config import AppConfig
 
 
 # ============================================================================
@@ -40,8 +43,8 @@ class InteractionCompleted(Event):
 @dataclass
 class ConfigChanged(Event):
     """Event fired when configuration is updated."""
-    old_config: Dict[str, Any]
-    new_config: Dict[str, Any]
+    old_config: "AppConfig"
+    new_config: "AppConfig"
     timestamp: Optional[float] = None
     
     def __post_init__(self):

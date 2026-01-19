@@ -78,8 +78,8 @@ async def generate_embedding(
                 detail="Embedding service not available"
             )
 
-        # Generate embedding
-        embedding = embedding_provider.embed_text(request.text)
+        # Generate embedding (async method offloads blocking operations)
+        embedding = await embedding_provider.embed_text(request.text)
         embedding_time = time.perf_counter() - embedding_start_time
 
         # Convert to list for JSON serialization
@@ -126,7 +126,7 @@ async def health_check(
             }
 
         # Try a simple embedding to verify functionality
-        test_embedding = embedding_provider.embed_text("test")
+        test_embedding = await embedding_provider.embed_text("test")
         dimension = len(_embedding_to_list(test_embedding))
 
         return {

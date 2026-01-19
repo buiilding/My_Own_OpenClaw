@@ -36,11 +36,35 @@ class GPUMemoryManager:
     
     @staticmethod
     def clear_pytorch_cache() -> None:
-        """Clear PyTorch CUDA cache to free up GPU memory.
-        
-        NOTE: This method is kept for backward compatibility but is no longer
-        called automatically. GPU memory is managed by PyTorch automatically.
         """
+        Clear PyTorch CUDA cache to free up GPU memory.
+        
+        WARNING: This method should ONLY be used for:
+        - OOM (Out of Memory) recovery
+        - Model unloading/uninitialization
+        - Explicit memory management during shutdown
+        
+        PERFORMANCE: Calling this routinely causes GPU cache thrashing:
+        - Forces PyTorch to release cached memory back to OS
+        - Next inference triggers expensive cudaMalloc calls
+        - Significantly slows down subsequent operations
+        
+        PyTorch manages GPU memory automatically and efficiently. Only call
+        this when you explicitly need to free memory (e.g., before loading
+        a different model or after OOM errors).
+        
+        NOTE: This method is kept for backward compatibility but should
+        be avoided in normal operation.
+        """
+        import warnings
+        warnings.warn(
+            "clear_pytorch_cache() should only be used for OOM recovery or model unloading. "
+            "Routine use causes GPU cache thrashing and performance degradation. "
+            "PyTorch manages GPU memory automatically.",
+            UserWarning,
+            stacklevel=2
+        )
+        
         if not TORCH_AVAILABLE:
             return
         
@@ -48,7 +72,7 @@ class GPUMemoryManager:
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
                 # Removed synchronize() call - it was blocking and unnecessary
-                logger.debug("Cleared PyTorch CUDA cache")
+                logger.debug("Cleared PyTorch CUDA cache (warning: may cause performance degradation)")
         except Exception as e:
             logger.debug(f"Failed to clear PyTorch CUDA cache: {e}")
     

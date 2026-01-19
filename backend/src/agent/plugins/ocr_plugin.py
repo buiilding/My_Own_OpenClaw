@@ -6,6 +6,7 @@ Tools can use the perform_ocr() method to analyze screenshots.
 """
 import logging
 import base64
+import threading
 from typing import Any, Dict, List, Optional
 
 from backend.src.agent.plugins.interface import AgentPlugin
@@ -67,6 +68,8 @@ class OCRPlugin(AgentPlugin):
         self.enabled = enabled
         self._ocr_engine = None
         self.use_cuda = False  # Track if we're using CUDA or CPU
+        self._init_lock = threading.Lock()  # Thread safety for engine initialization
+        self._ocr_config = None  # OCRConfig from AppConfig (set during initialize)
 
     def _detect_gpu_memory(self) -> Optional[float]:
         """
@@ -108,12 +111,11 @@ class OCRPlugin(AgentPlugin):
         """
         Build optimized OCR parameters with all configs explicitly set.
         
+        Uses OCRConfig from AppConfig if available, otherwise uses defaults.
         Safe optimizations applied:
         - Skip classification (use_cls: False) - screenshots are usually upright
         - Optimized batch sizes based on GPU memory
         - Optimized thread counts based on CPU cores
-        
-        All other parameters use RapidOCR defaults.
         
         Args:
             use_cuda: Whether to use CUDA
@@ -121,65 +123,72 @@ class OCRPlugin(AgentPlugin):
         Returns:
             Dictionary of OCR parameters
         """
+        # Get config (use defaults if not set)
+        config = self._ocr_config
+        if config is None:
+            from backend.src.core.config.models import OCRConfig
+            config = OCRConfig()  # Use defaults
+        
         # Detect hardware
         gpu_memory_gb = self._detect_gpu_memory() if use_cuda else None
         cpu_cores = self._detect_cpu_cores()
         
-        # Determine batch sizes based on GPU memory
-        # Note: 16GB GPUs often report ~15.9GB due to reserved memory, so we use >= 15.5
+        # Determine batch sizes based on GPU memory (from config)
+        rec_batch_num = 6  # Default
+        cls_batch_num = 4  # Default
         if use_cuda and gpu_memory_gb:
-            if gpu_memory_gb >= 15.5:
-                rec_batch_num = 24
-                cls_batch_num = 10
-            elif gpu_memory_gb >= 12:
-                rec_batch_num = 10
-                cls_batch_num = 6
-            elif gpu_memory_gb >= 8:
-                rec_batch_num = 8
-                cls_batch_num = 6
-            else:
-                rec_batch_num = 6
-                cls_batch_num = 4
+            # Use thresholds from config
+            for min_gpu, rec_batch, cls_batch in config.batch_size_thresholds:
+                if gpu_memory_gb >= min_gpu:
+                    rec_batch_num = rec_batch
+                    cls_batch_num = cls_batch
+                    break
         else:
-            # CPU or unknown GPU memory - use conservative values
-            rec_batch_num = 6
-            cls_batch_num = 4
+            # CPU or unknown GPU memory - use lowest threshold
+            if config.batch_size_thresholds:
+                _, rec_batch_num, cls_batch_num = config.batch_size_thresholds[-1]
         
-        # Thread optimization
-        intra_op_threads = cpu_cores
-        inter_op_threads = min(4, max(2, cpu_cores // 2))
+        # Thread optimization (from config)
+        if config.use_cpu_cores_for_threads:
+            intra_op_threads = cpu_cores
+            inter_op_threads = min(
+                config.inter_op_threads_max,
+                max(config.inter_op_threads_min, cpu_cores // 2)
+            )
+        else:
+            intra_op_threads = cpu_cores
+            inter_op_threads = min(4, max(2, cpu_cores // 2))
         
-        # Build comprehensive OCR parameters
-        # All parameters explicitly set, with safe optimizations
+        # Build comprehensive OCR parameters from config
         ocr_params = {
-            # Global settings
-            "Global.use_det": True,  # Default: enable detection
-            "Global.use_cls": False,  # OPTIMIZATION: Skip classification (screenshots are upright)
-            "Global.use_rec": True,  # Default: enable recognition
-            "Global.text_score": 0.5,  # Default: text score threshold
-            "Global.max_side_len": 2000,  # Default: max side length
-            "Global.min_side_len": 30,  # Default: min side length
+            # Global settings (from config)
+            "Global.use_det": config.use_detection,
+            "Global.use_cls": config.use_classification,
+            "Global.use_rec": config.use_recognition,
+            "Global.text_score": config.text_score_threshold,
+            "Global.max_side_len": config.max_side_len,
+            "Global.min_side_len": config.min_side_len,
             
             # Engine configuration
             "EngineConfig.onnxruntime.use_cuda": use_cuda,
-            "EngineConfig.onnxruntime.intra_op_num_threads": intra_op_threads,  # OPTIMIZATION: Based on CPU cores
-            "EngineConfig.onnxruntime.inter_op_num_threads": inter_op_threads,  # OPTIMIZATION: Based on CPU cores
+            "EngineConfig.onnxruntime.intra_op_num_threads": intra_op_threads,
+            "EngineConfig.onnxruntime.inter_op_num_threads": inter_op_threads,
             
-            # Detection settings (all defaults)
-            "Det.limit_side_len": 736,  # Default
-            "Det.limit_type": "min",  # Default
-            "Det.thresh": 0.3,  # Default
-            "Det.box_thresh": 0.5,  # Default (keeping for accuracy)
-            "Det.max_candidates": 1000,  # Default (keeping for accuracy)
-            "Det.unclip_ratio": 1.6,  # Default
-            "Det.score_mode": "default",  # Default (not "fast" to preserve accuracy)
+            # Detection settings (from config)
+            "Det.limit_side_len": config.det_limit_side_len,
+            "Det.limit_type": config.det_limit_type,
+            "Det.thresh": config.det_thresh,
+            "Det.box_thresh": config.det_box_thresh,
+            "Det.max_candidates": config.det_max_candidates,
+            "Det.unclip_ratio": config.det_unclip_ratio,
+            "Det.score_mode": config.det_score_mode,
             
-            # Classification settings (disabled, but parameters still needed)
-            "Cls.cls_batch_num": cls_batch_num,  # OPTIMIZATION: Based on GPU memory
-            "Cls.cls_thresh": 0.9,  # Default
+            # Classification settings (from config)
+            "Cls.cls_batch_num": cls_batch_num,
+            "Cls.cls_thresh": config.cls_thresh,
             
-            # Recognition settings
-            "Rec.rec_batch_num": rec_batch_num,  # OPTIMIZATION: Based on GPU memory (12 for 16GB)
+            # Recognition settings (from config)
+            "Rec.rec_batch_num": rec_batch_num,
         }
         
         # Log detected hardware and applied optimizations
@@ -280,27 +289,33 @@ class OCRPlugin(AgentPlugin):
         try:
             # OCR engine should already be initialized at startup via initialize()
             # This is just a safety check (should never happen in normal operation)
+            # Use lock to prevent race conditions when multiple threads try to initialize
             if self._ocr_engine is None:
-                if not OCR_AVAILABLE:
-                    logger.warning("OCR requested but rapidocr not available")
-                    return None
-                
-                # Fallback: Initialize OCR engine if somehow not initialized at startup
-                logger.warning("OCR engine not initialized at startup, initializing now (this should not happen)")
-                try:
-                    ocr_params = self._build_ocr_params(use_cuda=True)
-                    self._ocr_engine = RapidOCR(params=ocr_params)
-                    self.use_cuda = True
-                    logger.info("Initialized RapidOCR engine with CUDA support (lazy initialization)")
-                    logger.info("[OCR] Using CUDA device for OCR processing")
-                except Exception as e:
-                    # Try CPU fallback if CUDA init fails
-                    logger.debug(f"CUDA initialization failed during lazy init, trying CPU: {e}")
-                    ocr_params = self._build_ocr_params(use_cuda=False)
-                    self._ocr_engine = RapidOCR(params=ocr_params)
-                    self.use_cuda = False
-                    logger.info("Initialized RapidOCR engine with CPU (lazy initialization fallback)")
-                    logger.info("[OCR] Using CPU device for OCR processing (CUDA unavailable)")
+                with self._init_lock:
+                    # Double-check after acquiring lock (another thread may have initialized)
+                    if self._ocr_engine is not None:
+                        # Another thread initialized it, we're good
+                        pass
+                    elif not OCR_AVAILABLE:
+                        logger.warning("OCR requested but rapidocr not available")
+                        return None
+                    else:
+                        # Fallback: Initialize OCR engine if somehow not initialized at startup
+                        logger.warning("OCR engine not initialized at startup, initializing now (this should not happen)")
+                        try:
+                            ocr_params = self._build_ocr_params(use_cuda=True)
+                            self._ocr_engine = RapidOCR(params=ocr_params)
+                            self.use_cuda = True
+                            logger.info("Initialized RapidOCR engine with CUDA support (lazy initialization)")
+                            logger.info("[OCR] Using CUDA device for OCR processing")
+                        except Exception as e:
+                            # Try CPU fallback if CUDA init fails
+                            logger.debug(f"CUDA initialization failed during lazy init, trying CPU: {e}")
+                            ocr_params = self._build_ocr_params(use_cuda=False)
+                            self._ocr_engine = RapidOCR(params=ocr_params)
+                            self.use_cuda = False
+                            logger.info("Initialized RapidOCR engine with CPU (lazy initialization fallback)")
+                            logger.info("[OCR] Using CPU device for OCR processing (CUDA unavailable)")
 
             # Decode base64 to bytes
             try:
@@ -446,8 +461,21 @@ class OCRPlugin(AgentPlugin):
             logger.error(f"OCR analysis failed: {e}", exc_info=True)
             return None
 
-    async def initialize(self, config: Optional[Dict[str, Any]] = None):
-        """Initialize the plugin (optional lifecycle method)."""
+    async def initialize(self, config: Optional[Dict[str, Any]] = None, container: Optional[Any] = None):
+        """
+        Initialize the plugin (optional lifecycle method).
+        
+        Args:
+            config: Optional plugin config dict (legacy, not used)
+            container: Optional DI container (used to get AppConfig)
+        """
+        # Get OCRConfig from container if available
+        if container and hasattr(container, 'config'):
+            app_config = container.config
+            if hasattr(app_config, 'ocr_config'):
+                self._ocr_config = app_config.ocr_config
+                logger.info("OCR plugin loaded configuration from AppConfig")
+        
         if not OCR_AVAILABLE:
             error_msg = f"OCR plugin initialized but rapidocr is not available. Error: {OCR_IMPORT_ERROR}"
             logger.warning(error_msg)

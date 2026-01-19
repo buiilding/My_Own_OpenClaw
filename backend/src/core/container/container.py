@@ -60,10 +60,11 @@ class ApplicationContainer(containers.DeclarativeContainer):
         config=core.config,
     )
 
-    # Memory container (wired to core for config)
+    # Memory container (wired to core for config and cache_manager)
     memory = providers.Container(
         MemoryContainer,
         config=core.config,
+        cache_manager=core.cache_manager,
     )
 
     # API container (will be created and wired in Container facade)
@@ -141,6 +142,10 @@ class Container:
 
         # Session manager (created lazily after container is fully initialized)
         self._session_manager: Optional[Any] = None
+        # CONTAINER LOCK INITIALIZATION RACE FIX: Initialize lock in __init__ to prevent race condition
+        # when multiple threads access session_manager property simultaneously
+        import threading
+        self._session_manager_lock = threading.Lock()
 
         # API container (created after session_manager is available)
         self._api_container: Optional[Any] = None
@@ -174,7 +179,7 @@ class Container:
         """
         await self._initializer.initialize()
 
-    def update_config(self, config: AppConfig):
+    async def update_config(self, config: AppConfig):
         """
         Update configuration for the container and its dependencies.
 
@@ -183,7 +188,7 @@ class Container:
         Args:
             config: New configuration instance
         """
-        self._config_updater.update_config(config)
+        await self._config_updater.update_config(config)
 
     def create_agent_session(
         self,
@@ -215,6 +220,7 @@ class Container:
                 llm_client_factory=lambda: self._di_container.llm_client(),
                 tool_orchestrator_factory=lambda: self._di_container.tool_orchestrator(),
                 event_bus=self._di_container.core.event_bus(),
+                metrics_service=self._di_container.core.metrics_service(),
             )
 
         return self._session_factory.create_session(
@@ -227,15 +233,26 @@ class Container:
         Get the session manager instance.
         
         Creates SessionManager lazily on first access with all dependencies injected.
+        
+        THREAD SAFETY: Uses double-checked locking pattern to prevent race conditions
+        when multiple threads access this property simultaneously during startup.
+        Without this, multiple SessionManager instances could be created, causing
+        session state to be split across instances and leading to "lost" sessions.
         """
         if self._session_manager is None:
-            from backend.src.agent.core.session_manager import SessionManager
-            
-            self._session_manager = SessionManager(
-                config=self.config,
-                create_agent_session_func=self.create_agent_session,
-                user_config_manager=self.user_config_manager,
-            )
+            # CONTAINER LOCK INITIALIZATION RACE FIX: Lock is initialized in __init__,
+            # so we can safely use it here without race condition
+            # Double-checked locking pattern for thread-safe lazy initialization
+            with self._session_manager_lock:
+                # Check again after acquiring lock (another thread may have created it)
+                if self._session_manager is None:
+                    from backend.src.agent.core.session_manager import SessionManager
+                    
+                    self._session_manager = SessionManager(
+                        config=self.config,
+                        create_agent_session_func=self.create_agent_session,
+                        user_config_manager=self.user_config_manager,
+                    )
         return self._session_manager
 
     @property

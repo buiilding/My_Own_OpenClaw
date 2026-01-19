@@ -40,6 +40,9 @@ class ContainerInitializer:
         # Initialize vision service (pre-loads InternVL model for fast first-time use)
         await self._initialize_vision_service()
 
+        # Initialize embedder (loads SentenceTransformer model in thread pool)
+        await self._initialize_embedder()
+
         # Set vision service in context factory so tools can access it
         if self.container.vision_service is not None:
             self.container.context_factory.set_vision_service(self.container.vision_service)
@@ -97,3 +100,31 @@ class ContainerInitializer:
             logger.warning(f"Vision service dependencies not available: {e}")
         except Exception as e:
             logger.error(f"Failed to initialize vision service: {e}", exc_info=True)
+
+    async def _initialize_embedder(self) -> None:
+        """
+        Initialize the embedder to pre-load the SentenceTransformer model.
+        
+        This enables fast first-time use in memory operations without waiting
+        for model initialization during embedding generation. Model loading is
+        offloaded to a thread pool to prevent blocking application startup.
+        """
+        try:
+            # Get embedder from DI container
+            embedder = self.container.embedder
+            
+            if embedder is None:
+                logger.debug("Embedder not available (memory may be disabled)")
+                return
+
+            # Check if embedder has initialize method (SentenceTransformerProvider)
+            if hasattr(embedder, 'initialize'):
+                await embedder.initialize()
+                logger.info("Embedder initialized successfully")
+            else:
+                logger.debug("Embedder does not require async initialization")
+
+        except ImportError as e:
+            logger.warning(f"Embedder dependencies not available: {e}")
+        except Exception as e:
+            logger.error(f"Failed to initialize embedder: {e}", exc_info=True)

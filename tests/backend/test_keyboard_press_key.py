@@ -69,7 +69,7 @@ async def run_ctrl_l_test():
 
         # Parse the response
         parser = create_test_parser(tool_names=["keyboard_control"])
-        parsed_response = parser.parse_response(llm_response)
+        parsed_response = await parser.parse_response(llm_response)
 
         if not parsed_response.has_tool_calls:
             print("❌ No tool calls found in response")

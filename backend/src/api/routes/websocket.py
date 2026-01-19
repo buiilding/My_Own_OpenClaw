@@ -44,25 +44,26 @@ logger = logging.getLogger(__name__)
 # Create TypeAdapter once at module level for performance
 _INCOMING_MESSAGE_ADAPTER = TypeAdapter(IncomingMessage)
 
-# Constants
+# DEPRECATED: These constants are now in AppConfig
+# Kept for backward compatibility during migration
+# TODO: Remove after all references are updated to use config
 MAX_MESSAGE_SIZE = 10 * 1024 * 1024  # 10MB - maximum message size to prevent memory exhaustion attacks
 TASK_CANCELLATION_TIMEOUT = 5.0  # Seconds to wait for tasks to cancel on disconnect
-MAX_CONCURRENT_TASKS = 50  # FIX #1: Maximum concurrent tasks per connection to prevent DoS
-WEBSOCKET_RECEIVE_TIMEOUT = 300.0  # 5 minutes - timeout for receive operations to prevent resource exhaustion
+MAX_CONCURRENT_TASKS = 50  # Maximum concurrent tasks per connection to prevent DoS
+WEBSOCKET_RECEIVE_TIMEOUT = 3600.0  # 1 hour - timeout for receive operations
 
 
 class SafeWebSocket:
     """
     Thread-safe WebSocket wrapper implementing WebSocketSender Protocol.
     
-    WebSocket operations in FastAPI/Starlette are not safe for concurrent access.
-    This wrapper serializes all send operations using an asyncio.Lock to prevent
-    race conditions when multiple coroutines attempt to send simultaneously.
+    PERFORMANCE FIX: Uses queue-based sender instead of lock to decouple message
+    generation from network latency. This prevents slow network I/O from blocking
+    other coroutines trying to send messages.
     
-    The lock is necessary because:
-    - Multiple handlers may send responses concurrently
-    - Background tasks (e.g., TTS audio streaming) may send while handlers send
-    - Without serialization, concurrent sends can corrupt the WebSocket protocol
+    WebSocket operations in FastAPI/Starlette are not safe for concurrent access.
+    This wrapper uses a single sender task that pulls from a queue, ensuring
+    serialized writes while allowing concurrent message enqueueing.
     
     Implements WebSocketSender Protocol to ensure type safety and enforce
     thread-safe usage throughout the codebase.
@@ -76,11 +77,65 @@ class SafeWebSocket:
             websocket: Underlying WebSocket connection
         """
         self._websocket = websocket
-        self._lock = asyncio.Lock()
+        # PERFORMANCE FIX: Use unbounded queue to decouple senders from network I/O
+        self._send_queue: asyncio.Queue = asyncio.Queue()
+        self._sender_task: Optional[asyncio.Task] = None
+        self._closed = False
+        self._close_event = asyncio.Event()
 
+    async def _sender_loop(self) -> None:
+        """
+        Background task that pulls messages from queue and sends them.
+        
+        This decouples message generation (fast) from network I/O (slow),
+        allowing multiple coroutines to enqueue messages concurrently without
+        blocking each other.
+        """
+        try:
+            while not self._closed:
+                try:
+                    # Get message from queue (with timeout to check closed flag)
+                    try:
+                        msg_type, data, mode, future = await asyncio.wait_for(
+                            self._send_queue.get(),
+                            timeout=0.1
+                        )
+                    except asyncio.TimeoutError:
+                        continue
+                    
+                    # Send the message
+                    try:
+                        if msg_type == "json":
+                            await self._websocket.send_json(data, mode=mode)
+                        elif msg_type == "text":
+                            await self._websocket.send_text(data)
+                        elif msg_type == "close":
+                            await self._websocket.close(code=data, reason=mode)
+                            break
+                        
+                        # Signal completion
+                        if future is not None:
+                            future.set_result(None)
+                    
+                    except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
+                        logger.debug(f"Send failed (connection closed): {e}")
+                        # Signal error to waiting coroutine
+                        if future is not None:
+                            future.set_exception(e)
+                        break
+                
+                except Exception as e:
+                    logger.error(f"Error in sender loop: {e}", exc_info=True)
+                    if future is not None:
+                        future.set_exception(e)
+                    break
+        
+        finally:
+            self._close_event.set()
+    
     async def send_json(self, data: Any, mode: str = "text") -> None:
         """
-        Thread-safe JSON send.
+        Thread-safe JSON send (non-blocking enqueue).
         
         Args:
             data: JSON-serializable data to send
@@ -90,17 +145,23 @@ class SafeWebSocket:
             RuntimeError: If connection error occurs
             ConnectionError: If connection error occurs
         """
-        async with self._lock:
-            try:
-                await self._websocket.send_json(data, mode=mode)
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-                logger.debug(f"Send failed (connection closed): {e}")
-                # We raise to let the caller know the stream is dead
-                raise
+        if self._closed:
+            raise RuntimeError("WebSocket is closed")
+        
+        # Start sender task if not already started
+        if self._sender_task is None:
+            self._sender_task = asyncio.create_task(self._sender_loop())
+        
+        # Create future to wait for completion
+        future = asyncio.Future()
+        await self._send_queue.put(("json", data, mode, future))
+        
+        # Wait for send to complete (or error)
+        await future
 
     async def send_text(self, data: str) -> None:
         """
-        Thread-safe text send.
+        Thread-safe text send (non-blocking enqueue).
         
         Args:
             data: Text data to send
@@ -109,12 +170,19 @@ class SafeWebSocket:
             RuntimeError: If connection error occurs
             ConnectionError: If connection error occurs
         """
-        async with self._lock:
-            try:
-                await self._websocket.send_text(data)
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-                logger.debug(f"Send failed (connection closed): {e}")
-                raise
+        if self._closed:
+            raise RuntimeError("WebSocket is closed")
+        
+        # Start sender task if not already started
+        if self._sender_task is None:
+            self._sender_task = asyncio.create_task(self._sender_loop())
+        
+        # Create future to wait for completion
+        future = asyncio.Future()
+        await self._send_queue.put(("text", data, None, future))
+        
+        # Wait for send to complete (or error)
+        await future
 
     async def close(self, code: int = 1000, reason: Optional[str] = None) -> None:
         """
@@ -124,7 +192,25 @@ class SafeWebSocket:
             code: Close code (default: 1000)
             reason: Optional close reason
         """
-        async with self._lock:
+        if self._closed:
+            return
+        
+        self._closed = True
+        
+        # Enqueue close message
+        if self._sender_task is not None:
+            await self._send_queue.put(("close", code, reason, None))
+            # Wait for sender to finish
+            await self._close_event.wait()
+            # Cancel sender task if still running
+            if not self._sender_task.done():
+                self._sender_task.cancel()
+                try:
+                    await self._sender_task
+                except asyncio.CancelledError:
+                    pass
+        else:
+            # No sender task, close directly
             try:
                 await self._websocket.close(code=code, reason=reason)
             except Exception as e:
@@ -144,6 +230,13 @@ async def websocket_endpoint(
 ):
     safe_ws = SafeWebSocket(websocket)
     await safe_ws.accept()
+    
+    # Get config values (moved from hardcoded constants to AppConfig)
+    config = session_manager.config
+    max_message_size = config.websocket_max_message_size
+    max_concurrent_tasks = config.websocket_max_concurrent_tasks
+    websocket_receive_timeout = config.websocket_receive_timeout
+    task_cancellation_timeout = config.websocket_task_cancellation_timeout
     
     # Track active tasks for this connection to cancel on disconnect
     # Use lock to prevent race conditions when multiple tasks modify the set concurrently
@@ -177,15 +270,22 @@ async def websocket_endpoint(
             # This ensures the lock is properly acquired before modifying the set
             loop.create_task(_remove_task_safely(task))
         except RuntimeError:
-            # Edge case: no running loop (shouldn't happen in normal operation)
-            # Fall back to direct removal - this is safe for single operations
-            # but may race with iteration (acceptable in shutdown scenarios)
-            active_tasks.discard(task)
+            # SHUTDOWN CRASH FIX: During shutdown, loop may be closed/closing.
+            # Fallback discard must be protected to prevent "Set changed size during iteration"
+            # errors if _cleanup_connection is iterating. Wrap in try/except to handle
+            # any RuntimeError from set mutation during iteration.
+            try:
+                active_tasks.discard(task)
+            except RuntimeError:
+                # Set is being iterated - ignore (cleanup will handle it)
+                pass
     
     # Handshake - user_id validation handled by Pydantic model
     try:
         raw_data = await websocket.receive_text()
-        handshake_data = json.loads(raw_data)
+        # CRITICAL FIX #5: Offload JSON parsing to thread pool (handshake is typically small, but consistent)
+        loop = asyncio.get_running_loop()
+        handshake_data = await loop.run_in_executor(None, json.loads, raw_data)
         handshake_msg = HandshakeMessage.model_validate(handshake_data)
         user_id = handshake_msg.user_id
         
@@ -233,7 +333,7 @@ async def websocket_endpoint(
             try:
                 await asyncio.wait_for(
                     asyncio.gather(*pending, return_exceptions=True),
-                    timeout=TASK_CANCELLATION_TIMEOUT
+                    timeout=task_cancellation_timeout
                 )
             except asyncio.TimeoutError:
                 logger.warning(f"Timeout waiting for {len(pending)} tasks to cancel")
@@ -257,10 +357,10 @@ async def websocket_endpoint(
             try:
                 data = await asyncio.wait_for(
                     websocket.receive_text(),
-                    timeout=WEBSOCKET_RECEIVE_TIMEOUT
+                    timeout=websocket_receive_timeout
                 )
             except asyncio.TimeoutError:
-                logger.info(f"Connection timeout for user {user_id} (no data received in {WEBSOCKET_RECEIVE_TIMEOUT}s)")
+                logger.info(f"Connection timeout for user {user_id} (no data received in {websocket_receive_timeout}s)")
                 try:
                     await safe_ws.close(code=1008, reason="Connection timeout - no data received")
                 except Exception:
@@ -270,13 +370,29 @@ async def websocket_endpoint(
                     await _cleanup_connection()
                 break
             
-            # Validate message size before processing
-            if len(data) > MAX_MESSAGE_SIZE:
-                await send_error(safe_ws, None, f"Message too large: {len(data)} bytes (max: {MAX_MESSAGE_SIZE} bytes)")
+            # SECURITY: Validate message size after receiving
+            # CRITICAL: This check happens AFTER the entire frame is read into memory.
+            # For true DoS protection, the ASGI server (e.g., Uvicorn) MUST be configured
+            # with --ws-max-size to reject oversized frames at the protocol level BEFORE
+            # they are read into Python memory. This application-level check is a secondary
+            # defense but cannot prevent OOM if a malicious client sends a 1GB payload.
+            # 
+            # Example Uvicorn configuration:
+            #   uvicorn.run(..., ws_max_size=10 * 1024 * 1024)  # 10MB
+            #
+            # Without protocol-level protection, a 1GB frame will cause OOM before this
+            # check executes, potentially crashing the worker process.
+            if len(data) > max_message_size:
+                await send_error(safe_ws, None, f"Message too large: {len(data)} bytes (max: {max_message_size} bytes)")
                 continue
             
             try:
-                json_data = json.loads(data)
+                # PERFORMANCE: Offload large JSON parsing to thread pool
+                # With max_message_size (default 10MB), parsing can block the event loop
+                # for 50-200ms, causing jitter for all other connected clients
+                # (e.g., stalling audio streams)
+                loop = asyncio.get_running_loop()
+                json_data = await loop.run_in_executor(None, json.loads, data)
                 
                 # Inject user_id from connection context BEFORE validation
                 # BaseMessage requires user_id, but it comes from connection context, not client JSON
@@ -287,12 +403,12 @@ async def websocket_endpoint(
                     # Use pre-created TypeAdapter for performance
                     validated_msg = _INCOMING_MESSAGE_ADAPTER.validate_python(json_data)
                     
-                    # FIX #1: Concurrency Limit - Prevent DoS via task explosion
+                    # Concurrency Limit - Prevent DoS via task explosion
                     # Check concurrency limit and create task atomically to prevent race condition
                     msg_id_for_error = None
                     task = None
                     async with tasks_lock:
-                        if len(active_tasks) >= MAX_CONCURRENT_TASKS:
+                        if len(active_tasks) >= max_concurrent_tasks:
                             # Mark for error, release lock before I/O
                             msg_id_for_error = json_data.get("id")
                         else:
@@ -303,7 +419,7 @@ async def websocket_endpoint(
                     
                     # Send error outside lock to avoid blocking (if limit exceeded)
                     if msg_id_for_error is not None:
-                        logger.warning(f"User {user_id} exceeded max concurrent tasks ({MAX_CONCURRENT_TASKS})")
+                        logger.warning(f"User {user_id} exceeded max concurrent tasks ({max_concurrent_tasks})")
                         await send_error(safe_ws, msg_id_for_error, "Too many concurrent requests. Please wait.")
                         continue
                     
@@ -345,6 +461,16 @@ async def handle_message(
 ):
     """
     Handle incoming WebSocket message using handler registry with type-based routing.
+    
+    RELIABILITY: This function is executed as a tracked task. If handlers spawn
+    background sub-tasks (e.g., via asyncio.create_task()), they MUST be:
+    1. Attached to the AgentSession for cleanup in session.cleanup(), OR
+    2. Tracked in a session-scoped task registry, OR
+    3. Created with a cancellation token that can be triggered on disconnect.
+    
+    Untracked sub-tasks will continue running after WebSocket disconnect, causing
+    resource leaks and potential security issues (e.g., processing requests for
+    disconnected users).
     
     Args:
         websocket: SafeWebSocket connection (thread-safe wrapper)

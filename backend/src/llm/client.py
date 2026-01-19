@@ -49,11 +49,22 @@ class LiteLLMClient(LLMClient):
     A simple orchestrator that delegates all real work to the provider layer.
     This client is now truly abstract and provider-agnostic.
     
+    CONFIGURATION DRIFT: This client stores the AppConfig object passed at creation.
+    When configuration is updated at runtime (e.g., API key change), the client must
+    be recreated with the new config. AgentSession.update_config() handles this by
+    calling get_llm_client(new_config) to create a fresh client instance.
+    
     Stateless: Always fetches provider from factory. The factory handles caching
     of provider instances based on config values, ensuring freshness if config changes.
     """
 
     def __init__(self, cfg: AppConfig):
+        """
+        Initialize the LLM client with configuration.
+        
+        NOTE: This client holds a reference to the config object. If config is updated
+        at runtime, a new client instance must be created (see AgentSession.update_config).
+        """
         self.config = cfg
 
     def _get_provider(self) -> "LLMProvider":
