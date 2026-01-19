@@ -6,6 +6,7 @@ This module handles loading and saving of application configuration.
 import logging
 import os
 import platform
+import threading
 from pathlib import Path
 from typing import Optional
 
@@ -22,20 +23,46 @@ CONFIG_FILE_NAME = "config.yaml"
 
 
 def get_config_dir() -> Path:
-    """Gets the application's configuration directory based on OS."""
+    """
+    Gets the application's configuration directory based on OS.
+    
+    Returns:
+        Path to configuration directory
+        
+    Raises:
+        ValueError: If OS is unsupported or required environment variables are missing
+        OSError: If home directory cannot be determined
+    """
     if os.name == "nt":  # Windows
         appdata = os.getenv("APPDATA")
         if not appdata:
             raise ValueError("APPDATA environment variable is not set on Windows")
-        return Path(appdata) / APP_NAME
+        config_path = Path(appdata) / APP_NAME
+        return config_path
 
     if os.name == "posix":
+        try:
+            home_dir = Path.home()
+        except (RuntimeError, OSError) as e:
+            raise OSError(f"Cannot determine home directory: {e}") from e
+        
         if platform.system() == "Darwin":  # macOS
-            return Path.home() / "Library" / "Application Support" / APP_NAME
+            return home_dir / "Library" / "Application Support" / APP_NAME
         # Linux and other Unix-like
-        return Path.home() / ".config" / APP_NAME
+        return home_dir / ".config" / APP_NAME
 
     raise ValueError(f"Unsupported OS: {os.name}")
+
+
+def get_default_tts_model_path() -> str:
+    """
+    Get the default TTS model path.
+    
+    Returns:
+        Default TTS model path string
+    """
+    config_dir = get_config_dir()
+    return str(config_dir / "tts_models" / "piper" / "en_GB-jenny_dioco-medium.onnx")
 
 
 def _set_default_tts_model_path(config: AppConfig) -> AppConfig:
@@ -49,7 +76,7 @@ def _set_default_tts_model_path(config: AppConfig) -> AppConfig:
         AppConfig with default TTS model path set if it was null
     """
     if config.tts_model_path is None:
-        default_path = "/home/peter/.config/DesktopAssistant/tts_models/piper/en_GB-jenny_dioco-medium.onnx"
+        default_path = get_default_tts_model_path()
         logger.info(f"Setting default TTS model path: {default_path}")
         return config.model_copy(update={"tts_model_path": default_path})
     return config
@@ -94,10 +121,35 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
 
 
 def save_settings_to_file(cfg: AppConfig) -> None:
-    """Saves the application configuration to a YAML file."""
-    config_dir = get_config_dir()
+    """
+    Saves the application configuration to a YAML file.
+    
+    Args:
+        cfg: AppConfig instance to save
+        
+    Raises:
+        ValueError: If cfg is None
+        OSError: If directory creation or file write fails
+        yaml.YAMLError: If YAML serialization fails
+    """
+    if cfg is None:
+        raise ValueError("Cannot save None configuration")
+    
+    try:
+        config_dir = get_config_dir()
+    except (ValueError, OSError) as e:
+        logger.error("Failed to get config directory: %s", e, exc_info=True)
+        raise
+    
     config_file = config_dir / CONFIG_FILE_NAME
-    config_dir.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        config_dir.mkdir(parents=True, exist_ok=True)
+    except (OSError, PermissionError) as e:
+        logger.error(
+            "Failed to create config directory %s: %s", config_dir, e, exc_info=True
+        )
+        raise OSError(f"Cannot create config directory: {e}") from e
 
     try:
         # Exclude the runtime-only api_key field and tts_enabled (hardcoded to True)
@@ -105,7 +157,7 @@ def save_settings_to_file(cfg: AppConfig) -> None:
         with open(config_file, "w", encoding="utf-8") as f:
             yaml.dump(config_to_save, f, default_flow_style=False, sort_keys=False)
         logger.info("Successfully saved settings to %s", config_file)
-    except (yaml.YAMLError, OSError) as e:
+    except (yaml.YAMLError, OSError, PermissionError) as e:
         logger.error("Failed to save settings to file: %s", e, exc_info=True)
         raise
 
@@ -121,11 +173,21 @@ def load_settings_from_file() -> AppConfig:
 
     if not config_file.exists():
         logger.info("Config file not found. Creating a default one.")
-        default_config = AppConfig()
-        # Set default TTS model path
-        default_config = _set_default_tts_model_path(default_config)
-        save_settings_to_file(default_config)
-        return load_api_key_for_provider(default_config)
+        try:
+            default_config = AppConfig()
+            # Set default TTS model path
+            default_config = _set_default_tts_model_path(default_config)
+            save_settings_to_file(default_config)
+            return load_api_key_for_provider(default_config)
+        except Exception as e:
+            logger.error(
+                "Failed to create default config file: %s", e, exc_info=True
+            )
+            # Return default config even if save fails (non-critical)
+            # The config will be saved on next update
+            default_config = AppConfig()
+            default_config = _set_default_tts_model_path(default_config)
+            return load_api_key_for_provider(default_config)
 
     try:
         with open(config_file, "r", encoding="utf-8") as f:
@@ -151,7 +213,13 @@ def load_settings_from_file() -> AppConfig:
     
     # Save config if TTS model path was updated (was None, now set)
     if tts_path_was_none and app_config.tts_model_path is not None:
-        save_settings_to_file(app_config)
+        try:
+            save_settings_to_file(app_config)
+        except Exception as e:
+            # Non-critical: log warning but continue with in-memory config
+            logger.warning(
+                "Failed to save config after setting default TTS path: %s", e
+            )
 
     # Load API key for the selected provider (returns new instance)
     return load_api_key_for_provider(app_config)
@@ -167,27 +235,52 @@ class ConfigManager:
         """Initialize the config manager."""
         self._config: Optional[AppConfig] = None
         self._config_file_path: Optional[Path] = None
+        self._lock = threading.RLock()  # Reentrant lock for thread safety
     
     def load_config(self) -> AppConfig:
         """
         Load configuration from file (called once at startup).
         
+        Thread-safe: Uses lock to prevent race conditions during concurrent loads.
+        
         Returns:
             Loaded AppConfig instance
+            
+        Raises:
+            RuntimeError: If config cannot be loaded
         """
-        if self._config is not None:
-            logger.debug("Config already loaded. Returning existing config.")
+        with self._lock:
+            if self._config is not None:
+                logger.debug("Config already loaded. Returning existing config.")
+                return self._config
+            
+            try:
+                config_dir = get_config_dir()
+                self._config_file_path = config_dir / CONFIG_FILE_NAME
+            except (ValueError, OSError) as e:
+                logger.error("Failed to get config directory: %s", e, exc_info=True)
+                raise RuntimeError(f"Cannot determine config directory: {e}") from e
+            
+            try:
+                self._config = load_settings_from_file()
+            except Exception as e:
+                logger.error("Failed to load config from file: %s", e, exc_info=True)
+                # Reset state on failure
+                self._config = None
+                self._config_file_path = None
+                raise RuntimeError(f"Failed to load configuration: {e}") from e
+            
+            if self._config is None:
+                raise RuntimeError("load_settings_from_file returned None")
+            
+            logger.info(f"Configuration loaded from {self._config_file_path}")
             return self._config
-        
-        config_dir = get_config_dir()
-        self._config_file_path = config_dir / CONFIG_FILE_NAME
-        self._config = load_settings_from_file()
-        logger.info(f"Configuration loaded from {self._config_file_path}")
-        return self._config
     
     def get_config(self) -> AppConfig:
         """
         Get the current configuration.
+        
+        Thread-safe: Uses lock for consistent reads.
         
         Returns:
             Current AppConfig instance
@@ -195,21 +288,34 @@ class ConfigManager:
         Raises:
             RuntimeError: If config has not been loaded
         """
-        if self._config is None:
-            raise RuntimeError("Config not loaded. Call load_config() first.")
-        return self._config
+        with self._lock:
+            if self._config is None:
+                raise RuntimeError("Config not loaded. Call load_config() first.")
+            return self._config
     
     def update_config(self, new_config: AppConfig) -> AppConfig:
         """
         Update configuration and save to file.
-        Publishes config change event.
+        
+        Note: This method does NOT publish config change events. Use ConfigurationService
+        for change notifications. This method only updates the file and cache.
+        
+        Thread-safe: Uses lock to prevent race conditions.
         
         Args:
-            new_config: New configuration instance
+            new_config: New configuration instance. Must not be None.
             
         Returns:
             Updated config with API key loaded
+            
+        Raises:
+            ValueError: If new_config is None
+            OSError: If file save fails
+            yaml.YAMLError: If YAML serialization fails
         """
+        if new_config is None:
+            raise ValueError("Cannot update config with None value")
+        
         # Force tts_enabled to True (hardcoded, not configurable)
         if not new_config.tts_enabled:
             new_config = new_config.model_copy(update={"tts_enabled": True})
@@ -217,14 +323,24 @@ class ConfigManager:
         # Load API key for new config
         updated_config = load_api_key_for_provider(new_config)
         
-        # Save to file
-        save_settings_to_file(updated_config)
+        # Validate updated config
+        if updated_config is None:
+            raise ValueError("load_api_key_for_provider returned None")
         
-        # Update cached config
-        self._config = updated_config
+        # Save to file first (fail fast if save fails)
+        # This ensures file and cache stay in sync
+        try:
+            save_settings_to_file(updated_config)
+        except Exception as e:
+            logger.error("Failed to save config file during update: %s", e, exc_info=True)
+            # Don't update cache if save failed - keep old config
+            raise
         
-        # Publish config change event (async, will be handled by event bus subscribers)
-        logger.info("Configuration updated")
+        # Update cached config only after successful save
+        with self._lock:
+            self._config = updated_config
+        
+        logger.info("Configuration updated and saved to file")
         
         return updated_config
     
@@ -232,16 +348,46 @@ class ConfigManager:
         """
         Reload configuration from file.
         
+        Thread-safe: Uses lock to prevent race conditions.
+        
+        WARNING: This method should typically be called through ConfigurationService
+        to ensure subscribers are notified. Direct calls bypass the notification system.
+        
         Returns:
             Reloaded AppConfig instance (with tts_enabled forced to True)
+            
+        Raises:
+            RuntimeError: If config file cannot be loaded
         """
-        self._config = load_settings_from_file()
-        # Ensure tts_enabled is True after reload
-        if not self._config.tts_enabled:
-            self._config = self._config.model_copy(update={"tts_enabled": True})
-        logger.info("Configuration reloaded from file")
+        try:
+            reloaded_config = load_settings_from_file()
+        except Exception as e:
+            logger.error("Failed to reload config from file: %s", e, exc_info=True)
+            raise RuntimeError(f"Failed to reload configuration: {e}") from e
         
-        return self._config
+        if reloaded_config is None:
+            raise RuntimeError("load_settings_from_file returned None")
+        
+        # Ensure tts_enabled is True after reload
+        if not reloaded_config.tts_enabled:
+            reloaded_config = reloaded_config.model_copy(update={"tts_enabled": True})
+        
+        # Update both config and file path
+        with self._lock:
+            # Update file path in case it changed
+            try:
+                config_dir = get_config_dir()
+                self._config_file_path = config_dir / CONFIG_FILE_NAME
+            except Exception as e:
+                logger.warning(
+                    "Failed to update config file path during reload: %s", e
+                )
+                # Continue with reload even if path update fails
+            
+            self._config = reloaded_config
+        
+        logger.info("Configuration reloaded from file")
+        return reloaded_config
 
 
 # Global config manager instance

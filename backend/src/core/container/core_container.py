@@ -9,13 +9,13 @@ from dependency_injector import containers, providers
 
 from backend.src.core.bus import EventBus
 from backend.src.core.config import ConfigManager
-from backend.src.core.config_service import ConfigurationService
+from backend.src.core.config.service import ConfigurationService
 from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.container.factories import (
     _create_tts_service,
     _create_vision_service,
 )
-from backend.src.core.plugin_config import PluginConfigManager
+from backend.src.core.plugins.config import PluginConfigManager
 from backend.src.llm.client import get_llm_client
 from backend.src.llm.models import ModelService
 
