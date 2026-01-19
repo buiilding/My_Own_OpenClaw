@@ -34,6 +34,7 @@ class AgentSessionFactory:
         llm_client_factory: Any,  # Callable that returns LLMClient
         tool_orchestrator_factory: Any,  # Callable that returns ToolOrchestrator
         event_bus: Any,  # EventBus instance
+        metrics_service: Optional[Any] = None,  # MetricsService instance (optional for backward compatibility)
     ):
         """
         Initialize the session factory.
@@ -45,6 +46,7 @@ class AgentSessionFactory:
             llm_client_factory: Factory function that creates LLMClient instances
             tool_orchestrator_factory: Factory function that creates ToolOrchestrator instances
             event_bus: EventBus instance for event communication
+            metrics_service: Optional MetricsService instance for observability
         """
         self.config = config
         self.tool_registry = tool_registry
@@ -52,6 +54,7 @@ class AgentSessionFactory:
         self.llm_client_factory = llm_client_factory
         self.tool_orchestrator_factory = tool_orchestrator_factory
         self.event_bus = event_bus
+        self.metrics_service = metrics_service
 
     def create_session(
         self,
@@ -103,6 +106,7 @@ class AgentSessionFactory:
             llm_client=llm_client,
             tool_orchestrator=tool_orchestrator,
             event_bus=self.event_bus,
+            metrics_service=self.metrics_service,
             user_id=user_id,
             session_id=session_id,
         )

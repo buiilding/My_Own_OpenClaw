@@ -6,6 +6,7 @@ to prevent import-time crashes and ensure fail-fast behavior.
 """
 
 import platform
+import threading
 from pathlib import Path
 from typing import Optional
 
@@ -15,20 +16,29 @@ class PromptManager:
     Singleton that loads prompts at startup and fails fast if missing.
     
     Prevents import-time crashes by deferring initialization until explicitly called.
+    
+    THREAD-SAFETY: Uses a lock to prevent race conditions during initialization
+    in multi-threaded contexts (e.g., concurrent request handling).
     """
     
     _instance: Optional['PromptManager'] = None
     _system_prompt: Optional[str] = None
+    _lock = threading.Lock()  # Protects initialization
     
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
+            with cls._lock:
+                # Double-check pattern to prevent race condition
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
         return cls._instance
     
     def initialize(self, prompt_file_path: Optional[Path] = None) -> None:
         """
         Load system prompt at startup. Raises exception if file is missing.
         Should be called during application initialization.
+        
+        THREAD-SAFETY: Uses lock to prevent concurrent initialization race conditions.
         
         Args:
             prompt_file_path: Optional path to prompt file. Defaults to system_prompt.txt
@@ -37,8 +47,15 @@ class PromptManager:
         Raises:
             RuntimeError: If the prompt file cannot be loaded (missing, permission error, etc.)
         """
+        # Fast path: already initialized (no lock needed for read)
         if self._system_prompt is not None:
             return  # Already initialized
+        
+        # Slow path: need to initialize (acquire lock)
+        with self._lock:
+            # Double-check pattern: another thread may have initialized while we waited
+            if self._system_prompt is not None:
+                return  # Already initialized by another thread
         
         if prompt_file_path is None:
             # Default to file in the same directory

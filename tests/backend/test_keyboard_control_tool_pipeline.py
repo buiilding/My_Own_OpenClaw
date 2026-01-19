@@ -131,7 +131,7 @@ async def run_keyboard_test(action: str, text: str = None, key: str = None, keys
     # Step 2: Parse the Response
     print("\n📋 STEP 2: Parsing LLM Response")
     parser = create_test_parser(tool_names=["keyboard_control"])
-    parsed_response = parser.parse_response(llm_response)
+    parsed_response = await parser.parse_response(llm_response)
 
     print(f"Parsed Response:")
     print(f"  - Has tool calls: {parsed_response.has_tool_calls}")

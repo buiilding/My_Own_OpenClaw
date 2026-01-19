@@ -70,6 +70,11 @@ class ContainerConfigUpdater:
             # Re-create embedder
             self._reinitialize_embedder(updated_config)
 
+        # CRITICAL FIX: Invalidate session factory to force recreation with new config
+        # AgentSessionFactory holds a reference to the old AppConfig in self.config
+        # Without invalidation, new sessions will use stale configuration/credentials
+        self.container._session_factory = None
+
         logger.info("Container configuration updated")
 
     def _reinitialize_embedder(self, config: AppConfig) -> None:

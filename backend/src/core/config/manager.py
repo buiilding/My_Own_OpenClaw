@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Optional
 
 import yaml
+from filelock import FileLock, Timeout
 from pydantic import ValidationError
 
 from backend.src.core.config.models import AppConfig
@@ -124,6 +125,8 @@ def save_settings_to_file(cfg: AppConfig) -> None:
     """
     Saves the application configuration to a YAML file.
     
+    Thread-safe: Uses file locking to prevent race conditions during concurrent writes.
+    
     Args:
         cfg: AppConfig instance to save
         
@@ -142,6 +145,7 @@ def save_settings_to_file(cfg: AppConfig) -> None:
         raise
     
     config_file = config_dir / CONFIG_FILE_NAME
+    lock_file = config_file.with_suffix(config_file.suffix + ".lock")
     
     try:
         config_dir.mkdir(parents=True, exist_ok=True)
@@ -151,12 +155,18 @@ def save_settings_to_file(cfg: AppConfig) -> None:
         )
         raise OSError(f"Cannot create config directory: {e}") from e
 
+    # Use file lock to prevent concurrent writes (race conditions)
+    lock = FileLock(lock_file, timeout=10.0)  # 10 second timeout
     try:
-        # Exclude the runtime-only api_key field and tts_enabled (hardcoded to True)
-        config_to_save = cfg.model_dump(exclude={"api_key", "tts_enabled"})
-        with open(config_file, "w", encoding="utf-8") as f:
-            yaml.dump(config_to_save, f, default_flow_style=False, sort_keys=False)
-        logger.info("Successfully saved settings to %s", config_file)
+        with lock:
+            # Exclude the runtime-only api_key field and tts_enabled (hardcoded to True)
+            config_to_save = cfg.model_dump(exclude={"api_key", "tts_enabled"})
+            with open(config_file, "w", encoding="utf-8") as f:
+                yaml.dump(config_to_save, f, default_flow_style=False, sort_keys=False)
+            logger.info("Successfully saved settings to %s", config_file)
+    except Timeout:
+        logger.error("Failed to acquire lock for config file: timeout after 10s")
+        raise OSError("Config file is locked by another process") from None
     except (yaml.YAMLError, OSError, PermissionError) as e:
         logger.error("Failed to save settings to file: %s", e, exc_info=True)
         raise

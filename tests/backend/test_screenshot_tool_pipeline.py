@@ -76,7 +76,7 @@ async def run_screenshot_test(expect_success: bool = True, verify_response: bool
     # Step 2: Parse the Response
     print("\n📋 STEP 2: Parsing LLM Response")
     parser = create_test_parser(tool_names=["screenshot"])
-    parsed_response = parser.parse_response(llm_response)
+    parsed_response = await parser.parse_response(llm_response)
 
     print(f"Parsed Response:")
     print(f"  - Has tool calls: {parsed_response.has_tool_calls}")

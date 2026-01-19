@@ -208,12 +208,13 @@ class ToolPreparer:
                     # Frontend expects a tool call event before any output event to maintain
                     # the request/response state machine. Without this, frontend receives
                     # an output for a tool it never saw, causing JavaScript errors.
+                    # Note: ToolCallEvent doesn't support metadata field, so we just yield
+                    # the event with the original parameters (coordinate resolution failed).
                     yield ToolCallEvent(
                         tool_name=tool_call.tool_name,
                         parameters=tool_call.parameters,  # Use original parameters (coordinate resolution failed)
                         raw_call=tool_call.raw_call,
                         request_id=request_id,
-                        metadata={"coordinate_resolution_failed": True},  # Mark as failed
                     )
 
                     # Yield ToolOutputEvent for backend-side failure
