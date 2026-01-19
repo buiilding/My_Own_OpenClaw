@@ -4,7 +4,7 @@ Centralized Validation Framework for the Desktop Assistant.
 Provides Pydantic-based validation for all API inputs with consistent error handling.
 """
 import logging
-from typing import Any, Dict, Optional, Type, TypeVar
+from typing import Any, Callable, Dict, Optional, Type, TypeVar
 from pydantic import BaseModel, ValidationError as PydanticValidationError
 from backend.src.core.config import AppConfig
 
@@ -108,7 +108,7 @@ def validate_field(
     field_name: str,
     expected_type: Type,
     required: bool = True,
-    validator: Optional[callable] = None
+    validator: Optional[Callable[[Any], Any]] = None
 ) -> Any:
     """
     Validate a single field value.
@@ -198,6 +198,27 @@ def validate_query_text(text: str) -> str:
         raise ValidationError("Query text cannot be empty")
     
     return text.strip()
+
+
+def validate_user_id(user_id: str) -> str:
+    """
+    Validate user_id to reject empty strings, whitespace-only, and 'default_user'.
+    
+    This is a shared utility to ensure consistent security enforcement across
+    all endpoints that accept user_id. Prevents security bypass and invalid state propagation.
+    
+    Args:
+        user_id: User ID to validate
+        
+    Returns:
+        Validated and stripped user_id
+        
+    Raises:
+        ValidationError: If user_id is invalid
+    """
+    if not user_id or not user_id.strip() or user_id == "default_user":
+        raise ValidationError("user_id cannot be empty, whitespace-only, or 'default_user'")
+    return user_id.strip()
 
 
 def validate_settings_update(settings: Dict[str, Any]) -> Dict[str, Any]:

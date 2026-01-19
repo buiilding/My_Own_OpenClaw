@@ -127,8 +127,11 @@ class QueryMessageHandler(MessageHandler):
                     # Process events through pipeline (msg_id passed per call, not stored)
                     await pipeline.process(event, tts_service, msg_id)
 
-                # Flush TTS buffer
+                # TTS STREAMING RACE FIX: Wait for all pending TTS tasks before flush
+                # This ensures all TTS processing completes before inserting the end-of-stream
+                # sentinel, preventing audio loss where the last chunk is cut off
                 if tts_service:
+                    await pipeline.wait_for_pending_tts()
                     await tts_service.flush()
 
                 # Send final complete message using canonical utility
@@ -146,18 +149,16 @@ class QueryMessageHandler(MessageHandler):
                 query_total_time = time.perf_counter() - query_start_time
                 # Full details logged server-side, sanitized message sent to client
                 await self._send_error(websocket, msg_id, None, exception=e)
-            finally:
-                # Clean up TTS
-                # Ensure audio_task is cancelled if handler task is cancelled
-                if audio_task and not audio_task.done():
-                    audio_task.cancel()
-                await self.tts_manager.cleanup(tts_service, audio_task)
 
         except Exception as e:
             # Catch any errors during setup (session creation, TTS initialization, etc.)
             # Full details logged server-side, sanitized message sent to client
             await self._send_error(websocket, msg_id, None, exception=e)
-            # Ensure cleanup even if setup fails
+        
+        finally:
+            # DOUBLE CLEANUP FIX: Single cleanup point to prevent double-freeing resources
+            # This ensures cleanup runs exactly once, regardless of where exceptions occur
+            # (setup errors, processing errors, or normal completion)
             if audio_task and not audio_task.done():
                 audio_task.cancel()
             await self.tts_manager.cleanup(tts_service, audio_task)

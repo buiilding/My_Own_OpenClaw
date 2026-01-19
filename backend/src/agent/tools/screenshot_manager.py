@@ -47,7 +47,7 @@ class ScreenshotManager:
         Get screenshot from session or request hidden screenshot if missing.
         
         Yields RequestScreenshotEvent if hidden screenshot is needed.
-        Sets session.latest_screenshot when screenshot is received.
+        Screenshot is stored in session with a unique ID to prevent race conditions.
         
         Args:
             session: Agent session with screenshot state
@@ -58,19 +58,28 @@ class ScreenshotManager:
         Raises:
             ValueError: If timeout waiting for hidden screenshot
         """
-        screenshot_data = session.latest_screenshot
-        
-        if screenshot_data:
-            # Screenshot already available - no events to yield
-            return
+        # Check if we have a current screenshot
+        current_screenshot_id = session._current_screenshot_id
+        if current_screenshot_id:
+            screenshot_data = session.get_screenshot(current_screenshot_id)
+            if screenshot_data:
+                # Screenshot already available - no events to yield
+                return
         
         # Request hidden screenshot
         screenshot_wait_start = time.perf_counter()
         logger.info("No screenshot in session, requesting hidden screenshot...")
         
         hidden_request_id = str(uuid.uuid4())
+        # SCREENSHOT REQUEST RACE FIX: Use request_id-based Future mapping to support
+        # concurrent screenshot requests. Each request gets its own Future, preventing
+        # race conditions where one request overwrites another's waiter.
+        screenshot_future = asyncio.Future()
+        session._pending_screenshots[hidden_request_id] = screenshot_future
+        
+        # Legacy support: Also set single waiter for backward compatibility
         session.hidden_screenshot_request_id = hidden_request_id
-        session.screenshot_waiter = asyncio.Future()
+        session.screenshot_waiter = screenshot_future
         
         # Yield request event
         yield RequestScreenshotEvent(request_id=hidden_request_id)
@@ -78,20 +87,36 @@ class ScreenshotManager:
         # Wait for result (with timeout)
         try:
             logger.info(f"Waiting for hidden screenshot result (id={_short_id(hidden_request_id)})...")
-            screenshot_data = await asyncio.wait_for(
-                session.screenshot_waiter, timeout=self.timeout
+            result = await asyncio.wait_for(
+                screenshot_future, timeout=self.timeout
             )
             screenshot_wait_time = time.perf_counter() - screenshot_wait_start
             logger.info(f"[Timing] Hidden screenshot received in {screenshot_wait_time:.3f}s (id={_short_id(hidden_request_id)})")
-            logger.info(f"Received hidden screenshot result (id={_short_id(hidden_request_id)})")
-            # Update session with received screenshot
-            session.latest_screenshot = screenshot_data
+            
+            # Result is now a tuple (screenshot_id, screenshot_data) from _handle_screenshot_waiter
+            if isinstance(result, tuple) and len(result) == 2:
+                screenshot_id, screenshot_data = result
+                logger.info(f"Received hidden screenshot result (id={_short_id(hidden_request_id)}, screenshot_id={screenshot_id[:8]})")
+                # Screenshot is already stored in session by _handle_screenshot_waiter
+            else:
+                # Legacy format (just screenshot_data) - generate ID and store
+                screenshot_data = result
+                screenshot_id = session._generate_screenshot_id(screenshot_data)
+                session._screenshots[screenshot_id] = screenshot_data
+                session._current_screenshot_id = screenshot_id
+                logger.info(f"Stored legacy screenshot with ID {screenshot_id[:8]}")
         except asyncio.TimeoutError:
             screenshot_wait_time = time.perf_counter() - screenshot_wait_start
             logger.error(f"[Timing] Hidden screenshot timeout after {screenshot_wait_time:.3f}s")
             logger.error(
                 f"Timed out waiting for hidden screenshot (id={_short_id(hidden_request_id)}) after {self.timeout}s"
             )
+            # SCREENSHOT REQUEST RACE FIX: Clean up pending screenshot entry on timeout
+            session._pending_screenshots.pop(hidden_request_id, None)
+            # Legacy cleanup
+            if session.hidden_screenshot_request_id == hidden_request_id:
+                session.screenshot_waiter = None
+                session.hidden_screenshot_request_id = None
             raise ValueError(
                 f"Failed to acquire screenshot for coordinate resolution (timeout after {self.timeout}s)"
             )

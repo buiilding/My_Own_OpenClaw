@@ -8,6 +8,8 @@ import re
 from typing import Any, Dict, Literal, Optional, Union
 from pydantic import BaseModel, Field, field_validator
 
+from backend.src.core.validation import ValidationError, validate_user_id
+
 # Constants for validation
 MAX_MSG_ID_LENGTH = 128  # Maximum length for message IDs
 MSG_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_-]+$')  # Alphanumeric, underscore, hyphen only
@@ -37,15 +39,17 @@ class BaseMessage(BaseModel):
     
     @field_validator('user_id')
     @classmethod
-    def validate_user_id(cls, v: str) -> str:
+    def validate_user_id_field(cls, v: str) -> str:
         """
         Validate user_id to reject empty strings, whitespace-only, and 'default_user'.
         
         Security: Prevents security bypass and invalid state propagation.
+        Uses shared validation utility for consistency.
         """
-        if not v or not v.strip() or v == "default_user":
-            raise ValueError("user_id cannot be empty, whitespace-only, or 'default_user'")
-        return v.strip()
+        try:
+            return validate_user_id(v)
+        except ValidationError as e:
+            raise ValueError(e.message) from e
 
 # Incoming Messages
 class QueryPayload(BaseModel):

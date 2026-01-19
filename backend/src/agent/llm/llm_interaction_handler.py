@@ -5,7 +5,7 @@ Handles LLM streaming, text aggregation, and token counting.
 """
 import logging
 import time
-from typing import TYPE_CHECKING, AsyncGenerator, List, NamedTuple, Optional
+from typing import TYPE_CHECKING, AsyncGenerator, List, NamedTuple
 
 from backend.src.core.events import (
     AgentStreamingEvent,
@@ -119,8 +119,8 @@ class LLMInteractionHandler:
             # Streaming complete - yield full response
             yield FullResponseEvent(content=full_text)
             
-            # Count tokens for the conversation
-            token_counts = self._count_tokens(prompt, full_text)
+            # Count tokens for the conversation (now async to prevent blocking)
+            token_counts = await self._count_tokens(prompt, full_text)
             yield TokenCountEvent(
                 input_tokens=token_counts.input_tokens,
                 output_tokens=token_counts.output_tokens,
@@ -139,11 +139,22 @@ class LLMInteractionHandler:
             yield ErrorEvent(content=f"LLM error: {str(e)}")
             raise
 
-    def _count_tokens(
+    async def _count_tokens(
         self, prompt: List[LLMMessage], full_text: str
     ) -> TokenCounts:
         """
         Counts tokens for input, output, and total conversation.
+        
+        ACCURACY FIX: Uses token_service.count_tokens() for output instead of
+        hardcoded heuristic. The previous `len(full_text) // 4` heuristic was
+        inaccurate for:
+        - Code (different token density due to whitespace/symbols)
+        - Non-English languages (CJK characters map 1 char to 1-2 tokens, causing
+          400-800% underestimation)
+        
+        BLOCKING TOKEN COUNTING FIX: Offloads token counting to thread pool to prevent
+        event loop blocking. Token counting (encoding) is CPU-intensive and can take
+        50-500ms for large prompts, causing jitter for all concurrent operations.
         
         Args:
             prompt: Input messages sent to LLM
@@ -152,20 +163,35 @@ class LLMInteractionHandler:
         Returns:
             TokenCounts named tuple with all token counts
         """
+        import asyncio
         model_id = self.session.cfg.selected_model_id
         token_service = get_token_service()
+        loop = asyncio.get_running_loop()
 
+        # BLOCKING TOKEN COUNTING FIX: Offload token counting to thread pool
+        # This prevents blocking the event loop during CPU-intensive encoding operations
         # Count tokens in the input messages (prompt)
-        input_tokens = token_service.count_tokens(prompt, model_id)
-
-        # Estimate output tokens (rough approximation based on character count)
-        # This could be improved if the LLM provider returns actual output tokens
-        output_tokens = len(full_text) // 4  # Rough approximation
-
-        # Count total conversation tokens
-        conversation_tokens = token_service.count_tokens(
-            self.session.history.get_history(), model_id
+        input_tokens = await loop.run_in_executor(
+            None, token_service.count_tokens, prompt, model_id
         )
+
+        # ACCURACY FIX: Use token_service for output tokens instead of heuristic
+        # This ensures accurate counting for code, non-English languages, and
+        # special characters. The previous `len(full_text) // 4` was inaccurate
+        # for CJK characters (400-800% underestimation) and code (variable density).
+        # Convert full_text to LLM message format for token counting
+        output_message: LLMMessage = {
+            "role": "assistant",
+            "content": full_text
+        }
+        # BLOCKING TOKEN COUNTING FIX: Offload output token counting to thread pool
+        output_tokens = await loop.run_in_executor(
+            None, token_service.count_tokens, [output_message], model_id
+        )
+
+        # Count total conversation tokens (uses cached count to avoid O(N^2) re-encoding)
+        # This is already fast (O(1) cache lookup), so no need to offload
+        conversation_tokens = self.session.history.get_token_count(model_id)
 
         return TokenCounts(
             input_tokens=input_tokens,

@@ -15,7 +15,9 @@ from backend.src.core.services.tts_service import TTSService
 logger = logging.getLogger(__name__)
 
 # Constants
-TTS_FLUSH_WAIT_TIME = 1.0  # Seconds to wait for TTS service to finish processing after flush
+TTS_FLUSH_WAIT_TIME = 0.5  # Seconds to wait for TTS service to finish processing after flush
+# REDUCED from 1.0s to 0.5s - hardcoded latency was adding unnecessary delay to every query
+# The TTS service flush() already includes a 0.5s wait, so this additional wait is minimal
 AUDIO_TASK_TIMEOUT = 5.0  # Seconds to wait for audio streaming task to complete
 AUDIO_TASK_CANCELLATION_WAIT = 0.5  # Seconds to wait for audio task cancellation to propagate
 

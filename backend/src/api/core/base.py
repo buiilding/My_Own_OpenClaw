@@ -135,6 +135,15 @@ class MessageHandlerRegistry:
         """
         Route message to appropriate handler.
         
+        RELIABILITY: Handlers that spawn background sub-tasks (e.g., via asyncio.create_task())
+        MUST track those tasks for cleanup. Options:
+        1. Attach tasks to AgentSession (accessible via session_manager.get_session(user_id))
+        2. Use a session-scoped task registry
+        3. Pass a cancellation token that can be triggered on WebSocket disconnect
+        
+        Untracked sub-tasks will continue running after disconnect, causing resource leaks
+        and potential security issues (processing requests for disconnected users).
+        
         Args:
             message_type: Type of message (must match message.type)
             message: Validated Pydantic message model (IncomingMessage)

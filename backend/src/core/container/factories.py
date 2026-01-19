@@ -55,16 +55,26 @@ def _create_tool_orchestrator(tool_registry, config: AppConfig, context_factory)
     return ToolOrchestrator(tool_registry, config, context_factory=context_factory)
 
 
-def _create_embedder(config: AppConfig) -> Optional[EmbeddingProvider]:
-    """Create embedding provider if memory is enabled."""
+def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProvider]:
+    """
+    Create embedding provider if memory is enabled.
+    
+    Args:
+        config: Application configuration
+        cache_manager: CacheManager instance (injected via DI)
+    """
     if not config.memory_enabled:
         return None
 
     try:
         from backend.src.memory.embeddings import SentenceTransformerProvider
 
+        # Create provider without loading model (deferred to async initialize())
+        # CacheManager is injected via DI to avoid global state dependency
         return SentenceTransformerProvider(
-            model_name=config.embedding_model, device="cuda"
+            model_name=config.embedding_model,
+            device="cuda",
+            cache_manager=cache_manager,
         )
     except ImportError as e:
         logger.error(f"Failed to initialize embedding provider: {e}")

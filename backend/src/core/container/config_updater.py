@@ -30,26 +30,25 @@ class ContainerConfigUpdater:
         """
         self.container = container
 
-    def update_config(self, config: AppConfig) -> None:
+    async def update_config(self, config: AppConfig) -> None:
         """
         Update configuration for the container and its dependencies.
 
         Args:
             config: New configuration instance
         """
-        # Update config manager
-        config_manager = self.container._di_container.config_manager()
-        updated_config = config_manager.update_config(config)
+        # Update config service first (handles ConfigManager update and notifications)
+        # This ensures all subscribers are notified and EventBus events are published
+        config_service = self.container.config_service
+        if config_service:
+            updated_config = await config_service.update_config(config)
+        else:
+            # Fallback if config_service is not available
+            config_manager = self.container._di_container.config_manager()
+            updated_config = config_manager.update_config(config)
 
         # Update container's config
         self.container.config = updated_config
-
-        # Update config service (will notify subscribers)
-        config_service = self.container.config_service
-        if config_service:
-            # Config service will handle notification via its update_config method
-            # We update it directly here to avoid async call
-            config_service._config = updated_config
 
         # Update model service (recreate with new config)
         # ModelService stores config in __init__, so we need to recreate it
@@ -70,6 +69,11 @@ class ContainerConfigUpdater:
         if updated_config.memory_enabled and not self.container.embedder:
             # Re-create embedder
             self._reinitialize_embedder(updated_config)
+
+        # CRITICAL FIX: Invalidate session factory to force recreation with new config
+        # AgentSessionFactory holds a reference to the old AppConfig in self.config
+        # Without invalidation, new sessions will use stale configuration/credentials
+        self.container._session_factory = None
 
         logger.info("Container configuration updated")
 

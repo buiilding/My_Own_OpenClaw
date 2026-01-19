@@ -5,6 +5,7 @@ This module manages the conversation history, including pruning to prevent
 context window overflow.
 """
 
+import copy
 import logging
 from typing import List, Optional
 
@@ -36,6 +37,11 @@ class ConversationHistory:
         self._llm_history_cache: List[LLMMessage] = []
         self.max_length = max_length
         self.system_prompt: Optional[str] = system_prompt
+        
+        # Running token count to avoid O(N^2) re-encoding on every turn
+        # Updated incrementally when messages are added
+        self._cached_token_count: Optional[int] = None
+        self._cached_token_count_model: Optional[str] = None  # Model ID for which count is cached
 
         # If max_length is None, disable pruning
         if self.max_length is None:
@@ -54,9 +60,13 @@ class ConversationHistory:
         Content includes context XML, memory sections, and user query.
         For the first message only, tool schemas are embedded in content as a <tool_schemas> XML section.
 
+        MEMORY DOS PROTECTION: Image data is stored only for recent messages (last 5 turns).
+        Older messages have image_data cleared to prevent unbounded memory growth from
+        large base64-encoded images. Text content is preserved for context.
+
         Args:
             content: Message content (context + memory + query, WITH tool schemas for first message only)
-            image_data: Optional base64 image data
+            image_data: Optional base64 image data (will be cleared after 5 turns to prevent memory DoS)
             episodic_memory: Optional list of episodic memory strings (structured data)
             semantic_memory: Optional list of semantic memory strings (structured data)
             user_query_raw: Optional raw user query text (structured data)
@@ -74,7 +84,12 @@ class ConversationHistory:
         # Convert and append to LLM cache immediately (O(1) per message)
         llm_msg = stored_msg.to_llm_message()
         self._llm_history_cache.append(llm_msg)
+        # Invalidate token count cache (new message added)
+        self._cached_token_count = None
+        self._cached_token_count_model = None
         self._prune_if_needed()
+        # MEMORY DOS PROTECTION: Clear image data from old messages (keep last 5 turns)
+        self._clear_old_image_data()
 
     def add_tool_output(self, message: str, image_data: Optional[str] = None) -> None:
         """
@@ -101,11 +116,60 @@ class ConversationHistory:
             message_type=MessageType.TOOL_OUTPUT,
             image_data=image_data  # Screenshots are stored here and included in LLM history
         )
-        self.history.append(stored_msg)
-        # Convert and append to LLM cache immediately (O(1) per message)
+        
+        # INCREMENTAL TOKEN COUNT: If cache is valid, count new message before pruning
+        # This avoids O(N) re-counting when multiple tools are called in sequence
+        new_message_token_count = None
+        cache_was_valid = (
+            self._cached_token_count is not None 
+            and self._cached_token_count_model is not None
+        )
+        
+        # Convert to LLM format once (used for both token counting and cache)
         llm_msg = stored_msg.to_llm_message()
+        
+        if cache_was_valid:
+            # Count tokens for the new message only (O(1) operation)
+            from backend.src.services.token_service import get_token_service
+            token_service = get_token_service()
+            new_message_token_count = token_service.count_message_tokens(
+                llm_msg, 
+                self._cached_token_count_model
+            )
+        
+        # Store history length before pruning to detect if pruning occurred
+        history_length_before = len(self.history)
+        
+        self.history.append(stored_msg)
+        # Append to LLM cache immediately (O(1) per message)
         self._llm_history_cache.append(llm_msg)
+        
+        # Prune if needed (this may invalidate cache if pruning occurs)
         self._prune_if_needed()
+        
+        # INCREMENTAL UPDATE: If cache was valid and no pruning occurred, update incrementally
+        # If pruning occurred, _prune_if_needed already invalidated the cache
+        history_length_after = len(self.history)
+        if (
+            cache_was_valid 
+            and history_length_before + 1 == history_length_after  # No pruning occurred
+            and new_message_token_count is not None
+        ):
+            # Incrementally update cache instead of invalidating
+            self._cached_token_count += new_message_token_count
+            logger.debug(
+                f"Incrementally updated token count cache: +{new_message_token_count} tokens "
+                f"(total: {self._cached_token_count})"
+            )
+        elif cache_was_valid and history_length_before + 1 != history_length_after:
+            # Pruning occurred, cache already invalidated by _prune_if_needed
+            logger.debug("Token count cache invalidated due to history pruning")
+        
+        # MEMORY SPIKE FIX: Clear old image data after adding tool output to prevent
+        # unbounded memory growth during tool loops. Tool outputs can include large
+        # screenshots (5-10MB each), and without cleanup, memory spikes during multi-tool
+        # execution can cause OOM crashes before the next user message triggers cleanup.
+        self._clear_old_image_data()
 
     def add_assistant_message(self, message: str) -> None:
         """
@@ -124,6 +188,9 @@ class ConversationHistory:
         # Convert and append to LLM cache immediately (O(1) per message)
         llm_msg = stored_msg.to_llm_message()
         self._llm_history_cache.append(llm_msg)
+        # Invalidate token count cache (new message added)
+        self._cached_token_count = None
+        self._cached_token_count_model = None
         self._prune_if_needed()
 
     def get_history(self) -> List[LLMMessage]:
@@ -133,6 +200,10 @@ class ConversationHistory:
         Returns cached LLM format (O(1) instead of O(n) conversion).
         Includes system prompt if stored. Tool outputs with screenshots are automatically
         converted to multimodal format (text + image) for LLM consumption.
+
+        DATA INTEGRITY: Returns deep copies of messages to prevent mutable state leakage.
+        If a consumer modifies a message (e.g., PII scrubbing, logging), the internal
+        cache remains unchanged.
 
         Returns:
             List of LLMMessage dicts ready for LLM consumption.
@@ -148,8 +219,12 @@ class ConversationHistory:
                 "content": self.system_prompt
             })
 
-        # Return cached LLM format (O(1) instead of O(n) conversion)
-        messages.extend(self._llm_history_cache)
+        # DATA INTEGRITY: Return deep copies to prevent mutable state leakage
+        # If a consumer modifies a message dict (e.g., msg["content"] = "REDACTED"),
+        # the internal _llm_history_cache remains unchanged.
+        # Deep copy is necessary because LLMMessage can contain nested structures
+        # (e.g., multimodal content with lists of dicts).
+        messages.extend(copy.deepcopy(msg) for msg in self._llm_history_cache)
 
         return messages
     
@@ -179,10 +254,41 @@ class ConversationHistory:
                 return msg
         return None
 
+    def get_token_count(self, model_id: str) -> int:
+        """
+        Get token count for the conversation history.
+        
+        Maintains a running count to avoid O(N^2) re-encoding on every turn.
+        Cache is invalidated when messages are added or history is cleared.
+        
+        Args:
+            model_id: Model ID for token counting (cache is per-model)
+            
+        Returns:
+            Token count for the conversation history
+        """
+        from backend.src.services.token_service import get_token_service
+        
+        # Return cached count if available and for the same model
+        if self._cached_token_count is not None and self._cached_token_count_model == model_id:
+            return self._cached_token_count
+        
+        # Compute token count (O(N) operation)
+        token_service = get_token_service()
+        count = token_service.count_tokens(self.get_history(), model_id)
+        
+        # Cache the result
+        self._cached_token_count = count
+        self._cached_token_count_model = model_id
+        
+        return count
+
     def clear(self) -> None:
         """Clear all conversation history."""
         self.history = []
         self._llm_history_cache = []
+        self._cached_token_count = None
+        self._cached_token_count_model = None
         # Note: system_prompt is preserved on clear
 
     def _prune_if_needed(self) -> None:
@@ -192,5 +298,40 @@ class ConversationHistory:
             removed_count = len(self.history) - self.max_length
             self.history = self.history[-self.max_length :]
             self._llm_history_cache = self._llm_history_cache[-self.max_length :]
+            # Invalidate token count cache (history changed)
+            self._cached_token_count = None
+            self._cached_token_count_model = None
             logger.debug(f"Pruned conversation history to {self.max_length} messages (removed {removed_count})")
+    
+    def _clear_old_image_data(self, keep_recent_turns: int = 5) -> None:
+        """
+        Clear image_data from messages older than keep_recent_turns to prevent memory DoS.
+        
+        MEMORY DOS PROTECTION: Base64-encoded images can be large (e.g., 4K screenshots ~10MB).
+        This method clears image_data from old messages while preserving text content,
+        preventing unbounded memory growth in long-running sessions.
+        
+        Args:
+            keep_recent_turns: Number of recent turns to keep image data (default: 5)
+        """
+        if len(self.history) <= keep_recent_turns:
+            return  # Not enough messages to clear
+        
+        # Clear image_data from messages older than keep_recent_turns
+        # Keep text content for context, but drop large image payloads
+        cleared_count = 0
+        for i in range(len(self.history) - keep_recent_turns):
+            msg = self.history[i]
+            if msg.image_data:
+                # Clear image data but preserve text content
+                msg.image_data = None
+                cleared_count += 1
+                # Rebuild LLM cache entry without image (text-only)
+                self._llm_history_cache[i] = msg.to_llm_message()
+        
+        if cleared_count > 0:
+            logger.debug(
+                f"Cleared image data from {cleared_count} old messages "
+                f"(keeping last {keep_recent_turns} turns) to prevent memory DoS"
+            )
 

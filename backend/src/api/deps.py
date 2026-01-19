@@ -65,9 +65,10 @@ async def get_container() -> Container:
     entire application lifetime. This is not request-scoped - all requests
     share the same container instance.
     
-    Thread-safe: Always acquires lock to ensure visibility guarantees and
-    prevent race conditions. After initialization, the lock contention is
-    minimal since initialization happens single-threaded at startup.
+    CRITICAL FIX #3: Removed blocking threading.Lock from async function.
+    Variable assignment/reading of _container is atomic in Python (CPython GIL).
+    For a read-mostly singleton initialized at startup, a lock in the getter
+    blocks the entire asyncio event loop, creating latency spikes.
     
     Returns:
         Container instance
@@ -75,17 +76,18 @@ async def get_container() -> Container:
     Raises:
         HTTPException: If container is not initialized (503 Service Unavailable)
     """
-    # Always lock to ensure visibility and prevent race conditions
-    # Reading _container without synchronization is not guaranteed to be visible
-    # across threads in all Python implementations or under all conditions
-    with _container_lock:
-        if _container is None:
-            logger.error("Container accessed before initialization - application not ready")
-            raise HTTPException(
-                status_code=503,
-                detail="Application not initialized. Container not available."
-            )
-        return _container
+    # CRITICAL FIX #3: Removed blocking lock - variable reads are atomic in Python
+    # The container is set once at startup (single-threaded), so race conditions
+    # are not possible during normal operation. Even if a race occurred, the worst
+    # case is returning None (caught below) or the old container (acceptable during
+    # the brief initialization window).
+    if _container is None:
+        logger.error("Container accessed before initialization - application not ready")
+        raise HTTPException(
+            status_code=503,
+            detail="Application not initialized. Container not available."
+        )
+    return _container
 
 
 async def get_session_manager(container: Container = Depends(get_container)) -> SessionManager:

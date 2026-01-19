@@ -7,7 +7,7 @@ Handles OCR plugin access and synchronization.
 import asyncio
 import logging
 import time
-from typing import List, Dict, Any, TYPE_CHECKING
+from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from backend.src.agent.core.core import AgentSession
@@ -24,21 +24,30 @@ class OcrCoordinator:
     """
 
     async def get_ocr_results(
-        self, session: "AgentSession", screenshot_data: str
+        self, session: "AgentSession", screenshot_data: str, screenshot_id: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
         Get OCR results, waiting for proactive OCR if needed.
         
+        Verifies that OCR results match the specific screenshot being used to prevent
+        race conditions where OCR results from a different screenshot are returned.
+        
         Args:
             session: Agent session with OCR state
             screenshot_data: Base64-encoded screenshot (for fallback OCR)
+            screenshot_id: Optional screenshot ID. If provided, verifies OCR results match this screenshot.
+                          If None, uses current screenshot ID.
             
         Returns:
             List of OCR results with text and bbox
             
         Raises:
-            ValueError: If OCR plugin unavailable or OCR fails
+            ValueError: If OCR plugin unavailable, OCR fails, or screenshot ID mismatch
         """
+        # Determine which screenshot_id to use
+        if screenshot_id is None:
+            screenshot_id = session._current_screenshot_id
+        
         # Wait for proactive OCR to complete if it's still running
         # This ensures we use the latest OCR results from the current screenshot
         # Proactive OCR is triggered automatically by ToolResultHandler when screenshots arrive
@@ -49,18 +58,44 @@ class OcrCoordinator:
         else:
             # Event exists - wait for it (OCR might be in progress)
             # This is the synchronization point: we wait here until proactive OCR completes
+            # PROACTIVE OCR DEADLOCK FIX: Add timeout to prevent infinite hang if OCR worker fails
             logger.info("Waiting for proactive OCR to complete...")
-            await session.ocr_completion_event.wait()
-            ocr_wait_time = time.perf_counter() - ocr_wait_start
-            logger.info(f"[Timing] Proactive OCR wait completed in {ocr_wait_time:.3f}s")
-            logger.info("Proactive OCR completed, proceeding with coordinate resolution")
+            try:
+                # Wait up to 5 seconds for proactive OCR
+                # If timeout expires, fall through to on-demand OCR
+                await asyncio.wait_for(session.ocr_completion_event.wait(), timeout=5.0)
+                ocr_wait_time = time.perf_counter() - ocr_wait_start
+                logger.info(f"[Timing] Proactive OCR wait completed in {ocr_wait_time:.3f}s")
+                logger.info("Proactive OCR completed, proceeding with coordinate resolution")
+            except asyncio.TimeoutError:
+                ocr_wait_time = time.perf_counter() - ocr_wait_start
+                logger.warning(
+                    f"[Timing] Proactive OCR wait timed out after {ocr_wait_time:.3f}s. "
+                    f"OCR worker may have failed. Falling back to on-demand OCR."
+                )
+                # Event not set - OCR worker likely failed or crashed
+                # Fall through to on-demand OCR below
 
-        # Get OCR results (use cached if available, otherwise run it)
-        ocr_results = session.latest_ocr_results
+        # Get OCR results for the specific screenshot_id
+        ocr_results = None
+        if screenshot_id:
+            ocr_results = session.get_ocr_results(screenshot_id)
+            if ocr_results:
+                logger.info(f"Using cached OCR results for screenshot {screenshot_id[:8]}")
+        
+        # Verify screenshot_id still matches current screenshot (race condition check)
+        if screenshot_id and session._current_screenshot_id != screenshot_id:
+            logger.warning(
+                f"Screenshot ID mismatch: requested {screenshot_id[:8]}, "
+                f"current is {session._current_screenshot_id[:8] if session._current_screenshot_id else 'None'}. "
+                f"OCR results may be stale."
+            )
+            # Clear stale results and re-run OCR
+            ocr_results = None
 
-        # If no results yet (proactive OCR disabled or failed), run it now
+        # If no results yet (proactive OCR disabled, failed, or screenshot changed), run it now
         if not ocr_results:
-            logger.info("OCR results not cached, running OCR now...")
+            logger.info(f"OCR results not cached for screenshot {screenshot_id[:8] if screenshot_id else 'unknown'}, running OCR now...")
             ocr_exec_start = time.perf_counter()
 
             ocr_plugin = None
@@ -77,7 +112,16 @@ class OcrCoordinator:
             ocr_results = await ocr_plugin.perform_ocr(screenshot_data)
             ocr_exec_time = time.perf_counter() - ocr_exec_start
             logger.info(f"[Timing] OCR execution took {ocr_exec_time:.3f}s (found {len(ocr_results) if ocr_results else 0} results)")
-            session.latest_ocr_results = ocr_results
+            
+            # Store results keyed by screenshot_id
+            if screenshot_id:
+                # MEMORY LEAK FIX: Store with LRU eviction
+                session._store_ocr_results_with_eviction(screenshot_id, ocr_results)
+            else:
+                # Fallback: use current screenshot_id if available
+                if session._current_screenshot_id:
+                    # MEMORY LEAK FIX: Store with LRU eviction
+                    session._store_ocr_results_with_eviction(session._current_screenshot_id, ocr_results)
 
         if not ocr_results:
             raise ValueError("OCR analysis returned no results")

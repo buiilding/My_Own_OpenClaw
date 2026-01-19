@@ -4,6 +4,7 @@ InternVL Vision Model Handler.
 Provides InternVL model for vision-language tasks like UI grounding.
 Based on CoAct-1's implementation, adapted for desktop assistant.
 """
+import asyncio
 import base64
 import logging
 from io import BytesIO
@@ -53,6 +54,8 @@ class InternVLModel:
         self.model = None
         self.tokenizer = None
         self.trust_remote_code = trust_remote_code
+        self._model_dtype = None  # Store model dtype for tensor casting
+        self._inference_lock = asyncio.Lock()  # Serialize inference requests
         self._load()
 
     def _load(self):
@@ -75,16 +78,18 @@ class InternVLModel:
 
             # Try device_map with auto device placement (like Coact-1)
             try:
+                model_dtype = torch.bfloat16
                 self.model = AutoModel.from_pretrained(
                     self.model_name,
-                    dtype=torch.bfloat16,
+                    dtype=model_dtype,
                     low_cpu_mem_usage=True,
                     use_flash_attn=use_flash_attn,
                     device_map="auto",  # Let accelerate decide device placement
                     trust_remote_code=self.trust_remote_code,
                 ).eval()
+                self._model_dtype = model_dtype
                 logger.info(
-                    f"Loaded InternVL model with device_map: {self.model_name} on {self.model.device}"
+                    f"Loaded InternVL model with device_map: {self.model_name} on {self.model.device} with dtype {model_dtype}"
                 )
             except Exception as device_map_error:
                 logger.warning(
@@ -106,6 +111,7 @@ class InternVLModel:
                         .to(device)
                         .eval()
                     )
+                    self._model_dtype = dtype
                     logger.info(
                         f"Loaded InternVL model on {device} with {dtype}: {self.model_name}"
                     )
@@ -115,10 +121,11 @@ class InternVLModel:
                     )
                     # CPU fallback as last resort
                     try:
+                        cpu_dtype = torch.float32
                         self.model = (
                             AutoModel.from_pretrained(
                                 self.model_name,
-                                dtype=torch.float32,
+                                dtype=cpu_dtype,
                                 low_cpu_mem_usage=True,
                                 use_flash_attn=False,
                                 trust_remote_code=self.trust_remote_code,
@@ -126,8 +133,9 @@ class InternVLModel:
                             .to("cpu")
                             .eval()
                         )
+                        self._model_dtype = cpu_dtype
                         logger.info(
-                            f"Loaded InternVL model on CPU (fallback): {self.model_name}"
+                            f"Loaded InternVL model on CPU (fallback): {self.model_name} with dtype {cpu_dtype}"
                         )
                     except Exception as cpu_error:
                         logger.error(
@@ -252,11 +260,44 @@ class InternVLModel:
         """
         Predict click coordinates using the InternVL model.
         Based on CoAct-1's InternVL grounding implementation.
+        
+        PERFORMANCE: Offloads blocking CPU/GPU operations to thread pool to prevent
+        event loop blocking. All synchronous operations (image decoding, PIL processing,
+        model inference) are executed in a separate thread.
+        
+        CONCURRENCY: Uses lock to serialize inference requests, preventing race conditions
+        when multiple concurrent requests access the shared model instance.
         """
+        async with self._inference_lock:
+            loop = asyncio.get_running_loop()
+            # Offload the synchronous, blocking work to a thread pool
+            return await loop.run_in_executor(
+                None,
+                self._predict_sync,
+                image_b64,
+                instruction
+            )
+
+    def _predict_sync(
+        self, image_b64: str, instruction: str
+    ) -> Optional[Tuple[int, int]]:
+        """
+        Synchronous implementation of prediction logic.
+        
+        This method contains all blocking operations (base64 decoding, PIL processing,
+        model inference) that must run off the event loop.
+        """
+        import hashlib
         import time
         vision_prediction_start = time.perf_counter()
         try:
-            logger.info(f"Starting InternVL prediction for instruction: {instruction}")
+            # SECURITY: Sanitize instruction in logs to prevent PII leakage
+            # Truncate to first 50 chars and append hash for identification
+            instruction_preview = instruction[:50] if len(instruction) > 50 else instruction
+            instruction_hash = hashlib.sha256(instruction.encode()).hexdigest()[:8]
+            logger.info(
+                f"Starting InternVL prediction for instruction (preview: {instruction_preview}..., hash: {instruction_hash})"
+            )
             logger.info(
                 f"Model device: {self.model.device}, CUDA available: {torch.cuda.is_available()}"
             )
@@ -272,7 +313,8 @@ class InternVLModel:
                 f"Please provide the bounding box coordinate of the UI element this user instruction describes: <ref>{instruction}</ref>. "
                 f"Answer in the format of [[x1, y1, x2, y2]]"
             )
-            logger.info(f"Grounding prompt: {grounding_prompt}")
+            # SECURITY: Don't log the full grounding prompt as it contains the instruction
+            logger.debug("Grounding prompt prepared (instruction sanitized in logs)")
 
             # Convert image to pixel values using CoAct-1 method
             pixel_values, num_patches_list = self._images_to_pixel_values(
@@ -286,8 +328,20 @@ class InternVLModel:
                 logger.error("Failed to process image into pixel values")
                 return None
 
-            # Convert to bfloat16 and move to device (like CoAct-1)
-            pixel_values = pixel_values.to(torch.bfloat16).to(self.model.device)
+            # Convert to model dtype and move to device
+            # CORRECTNESS: Use model's actual dtype instead of hardcoded bfloat16
+            # to match the dtype used during model loading (bfloat16, float16, or float32)
+            model_dtype = self._model_dtype
+            if model_dtype is None:
+                # Fallback: infer dtype from model parameters if not stored
+                try:
+                    model_dtype = next(self.model.parameters()).dtype
+                except (StopIteration, AttributeError):
+                    # Last resort: use bfloat16 (most common case)
+                    model_dtype = torch.bfloat16
+                    logger.warning("Could not determine model dtype, defaulting to bfloat16")
+            
+            pixel_values = pixel_values.to(model_dtype).to(self.model.device)
 
             # Use InternVL's chat interface (like CoAct-1)
             logger.info("Using InternVL chat interface for generation")

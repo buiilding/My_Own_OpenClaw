@@ -169,33 +169,58 @@ class BoundaryViolationMetrics:
             self.violation_details.clear()
 
 
-# Global metrics registry
-_boundary_metrics: Dict[str, BoundaryViolationMetrics] = defaultdict(
-    lambda: BoundaryViolationMetrics()
-)
-_metrics_lock = Lock()
+class MetricsService:
+    """
+    Service for managing trust boundary violation metrics.
+    
+    Encapsulates metrics registry to enable proper dependency injection
+    and test isolation. Replaces module-level globals.
+    """
+    
+    def __init__(self):
+        """Initialize the metrics service."""
+        self._boundary_metrics: Dict[str, BoundaryViolationMetrics] = defaultdict(
+            lambda: BoundaryViolationMetrics()
+        )
+        self._metrics_lock = Lock()
+    
+    def get_metrics(self, boundary_name: str) -> BoundaryViolationMetrics:
+        """
+        Get metrics instance for a boundary.
+        
+        Args:
+            boundary_name: Name of the trust boundary
+            
+        Returns:
+            BoundaryViolationMetrics instance for the boundary
+        """
+        with self._metrics_lock:
+            metrics = self._boundary_metrics[boundary_name]
+            if not metrics.boundary_name or metrics.boundary_name == "unknown":
+                metrics.boundary_name = boundary_name
+            return metrics
+    
+    def get_all_metrics(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Get statistics for all boundaries.
+        
+        Returns:
+            Dictionary mapping boundary names to their statistics
+        """
+        with self._metrics_lock:
+            return {
+                name: metrics.get_stats()
+                for name, metrics in self._boundary_metrics.items()
+            }
+    
+    def reset_all_metrics(self) -> None:
+        """
+        Reset all metrics (for testing).
+        
+        Clears all boundary metrics to enable clean test isolation.
+        """
+        with self._metrics_lock:
+            for metrics in self._boundary_metrics.values():
+                metrics.reset()
 
 
-def get_metrics(boundary_name: str) -> BoundaryViolationMetrics:
-    """Get metrics instance for a boundary."""
-    with _metrics_lock:
-        metrics = _boundary_metrics[boundary_name]
-        if not metrics.boundary_name or metrics.boundary_name == "unknown":
-            metrics.boundary_name = boundary_name
-        return metrics
-
-
-def get_all_metrics() -> Dict[str, Dict[str, Any]]:
-    """Get statistics for all boundaries."""
-    with _metrics_lock:
-        return {
-            name: metrics.get_stats()
-            for name, metrics in _boundary_metrics.items()
-        }
-
-
-def reset_all_metrics() -> None:
-    """Reset all metrics (for testing)."""
-    with _metrics_lock:
-        for metrics in _boundary_metrics.values():
-            metrics.reset()

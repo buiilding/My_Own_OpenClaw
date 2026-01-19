@@ -15,6 +15,7 @@ from backend.src.api.deps import ContainerDep
 from backend.src.core.config import AppConfig
 from backend.src.core.config.manager import load_api_key_for_provider
 from backend.src.core.types import LLMMessage
+from backend.src.core.validation import ValidationError, validate_user_id
 from backend.src.llm.client import get_llm_client
 
 router = APIRouter(prefix="/api/semantic", tags=["semantic"])
@@ -22,6 +23,14 @@ logger = logging.getLogger(__name__)
 
 # Constants
 FALLBACK_SUMMARY_LENGTH = 500  # Characters to use for fallback summary if parsing fails
+
+# INEFFICIENCY #4: AppConfig re-instantiation on every request
+# Pydantic validation adds 10-50ms overhead per request for high-throughput endpoints.
+# Proper fix requires implementing LRU cache keyed by (user_id, user_config_hash)
+# with cache invalidation on user config changes. This requires refactoring to pass
+# user_config_manager or implementing a config cache service.
+# For now, we accept this overhead as user configs may change frequently and
+# the semantic endpoint is not expected to be high-throughput.
 
 
 class SummarizeRequest(BaseModel):
@@ -47,11 +56,16 @@ class SummarizeRequest(BaseModel):
     
     @field_validator('user_id')
     @classmethod
-    def validate_user_id(cls, v: str) -> str:
-        """Reject default_user as a security measure."""
-        if v == "default_user" or not v.strip():
-            raise ValueError("user_id cannot be 'default_user' or empty")
-        return v
+    def validate_user_id_field(cls, v: str) -> str:
+        """
+        Validate user_id using shared utility for consistency.
+        
+        Security: Prevents security bypass and invalid state propagation.
+        """
+        try:
+            return validate_user_id(v)
+        except ValidationError as e:
+            raise ValueError(e.message) from e
 
 
 class SummarizeResponse(BaseModel):
@@ -91,13 +105,18 @@ async def summarize_conversations(
         user_config = user_config_manager.load_user_config(request.user_id)
         
         # Build merged config: global + user overrides
+        # INEFFICIENCY #4: AppConfig instantiation and validation on every request
+        # This involves Pydantic validation which can be expensive (10-50ms per request).
+        # Note: load_api_key_for_provider only reads env vars (os.getenv), not disk, so
+        # the bottleneck is Pydantic validation, not IO. Proper fix requires LRU cache
+        # keyed by (user_id, user_config_hash) with automatic invalidation on config changes.
         if user_config:
             merged_config_dict = {**global_config.model_dump(), **user_config}
             merged_config = AppConfig(**merged_config_dict)
-            # Load API key for the selected provider
+            # Load API key for the selected provider (reads env vars, not disk)
             merged_config = load_api_key_for_provider(merged_config)
         else:
-            # No user-specific config, use global config
+            # No user-specific config, use global config (already has API key loaded)
             merged_config = global_config
         
         # Create LLM client with user's merged config
@@ -231,8 +250,13 @@ def _parse_summarization_response(response_text: str) -> Tuple[str, List[str]]:
     summary = ""
     facts = []
     
-    # Pattern for SUMMARY: line (case-insensitive, allows whitespace variations)
-    summary_pattern = re.compile(r'SUMMARY:\s*(.+?)(?:\n|$)', re.IGNORECASE | re.DOTALL)
+    # CRITICAL FIX #2: More permissive regex for SUMMARY extraction
+    # Handles common LLM variations: "SUMMARY:", "**Summary**", "## Summary", "Summary"
+    # Pattern: Optional markdown formatting, optional colon, capture rest of line/paragraph
+    summary_pattern = re.compile(
+        r'(?:\*\*|##\s*)?SUMMARY:?\s*(.+?)(?:\n\n|\nFACTS:|$)',
+        re.IGNORECASE | re.DOTALL
+    )
     summary_match = summary_pattern.search(response_text)
     if summary_match:
         summary = summary_match.group(1).strip()

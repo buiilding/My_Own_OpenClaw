@@ -22,9 +22,11 @@ class MemoryContainer(containers.DeclarativeContainer):
 
     # Wiring - these will be provided by parent container
     config = providers.Dependency()
+    cache_manager = providers.Dependency()
 
     # Memory System Components
     embedder = providers.Singleton(
-        lambda cfg: _create_embedder(cfg),
+        lambda cfg, cm: _create_embedder(cfg, cm),
         cfg=config,
+        cm=cache_manager,
     )

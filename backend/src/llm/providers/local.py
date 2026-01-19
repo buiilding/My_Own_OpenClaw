@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import weakref
 from abc import abstractmethod
 from typing import AsyncGenerator, Dict, List, Optional
 
@@ -28,6 +30,107 @@ LOCAL_PROVIDER_PLACEHOLDER_API_KEY = "placeholder"
 
 class LocalLLMProvider(LLMProvider):
     """Base provider for local LLMs like Ollama and LMStudio."""
+
+    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None, timeout: float = 60.0):
+        """
+        Initialize local provider with shared HTTP client.
+        
+        PERFORMANCE: Creates a shared httpx.AsyncClient to enable connection
+        pooling and keep-alive, preventing connection churn on repeated requests.
+        
+        RESOURCE MANAGEMENT: Registers a finalizer to ensure HTTP clients are
+        closed when providers are evicted from cache and garbage collected.
+        """
+        super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
+        self._http_client: Optional[httpx.AsyncClient] = None
+        self._http_client_loop: Optional[asyncio.AbstractEventLoop] = None
+        # Register finalizer to clean up HTTP client on garbage collection
+        # The finalizer will be called when 'self' is about to be garbage collected
+        weakref.finalize(self, LocalLLMProvider._cleanup_http_client_finalizer, weakref.ref(self))
+
+    async def _get_http_client(self) -> httpx.AsyncClient:
+        """
+        Get or create shared HTTP client for this provider instance.
+        
+        PERFORMANCE: Reuses a single client to enable connection pooling
+        and keep-alive, reducing latency and preventing file descriptor exhaustion.
+        """
+        if self._http_client is None:
+            self._http_client = httpx.AsyncClient(timeout=self.timeout)
+            # Store event loop for cleanup finalizer
+            try:
+                self._http_client_loop = asyncio.get_running_loop()
+            except RuntimeError:
+                # No running loop, finalizer will handle cleanup if possible
+                self._http_client_loop = None
+        return self._http_client
+
+    async def _close_http_client(self) -> None:
+        """Close the shared HTTP client if it exists."""
+        if self._http_client is not None:
+            await self._http_client.aclose()
+            self._http_client = None
+            self._http_client_loop = None
+
+    @staticmethod
+    def _cleanup_http_client_finalizer(provider_weakref: weakref.ref) -> None:
+        """
+        Synchronous cleanup callback for weakref.finalize.
+        
+        Schedules async cleanup on the stored event loop to close HTTP clients
+        when providers are evicted from cache and garbage collected.
+        
+        This prevents resource leaks (TCP connections, file descriptors) when
+        lru_cache evicts provider instances.
+        
+        Args:
+            provider_weakref: Weak reference to the provider instance
+        """
+        provider = provider_weakref()
+        if provider is None:
+            return
+        
+        client = provider._http_client
+        if client is None:
+            return
+        
+        # Try to get the event loop
+        loop = provider._http_client_loop
+        if loop is None:
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                # No event loop available, log warning
+                logger.warning(
+                    "Could not clean up HTTP client: no event loop available. Resource leak possible."
+                )
+                return
+        
+        # Schedule async cleanup on the loop
+        if loop.is_running():
+            # Create a task to close the client
+            async def cleanup():
+                try:
+                    await client.aclose()
+                except Exception as e:
+                    logger.debug(f"Error closing HTTP client in finalizer: {e}")
+            
+            # Schedule cleanup task (fire and forget)
+            try:
+                loop.create_task(cleanup())
+            except RuntimeError:
+                # Loop is closing, can't schedule tasks
+                logger.debug("Could not schedule HTTP client cleanup: event loop is closing")
+        else:
+            # Loop is not running, try to run cleanup synchronously
+            # This is a fallback but may not work if loop is closed
+            try:
+                if loop.is_closed():
+                    logger.debug("Event loop is closed, cannot clean up HTTP client")
+                    return
+                loop.run_until_complete(client.aclose())
+            except Exception as e:
+                logger.debug(f"Error running HTTP client cleanup: {e}")
 
     async def get_completion(
         self, model: str, messages: List[LLMMessage]
@@ -126,6 +229,9 @@ class OllamaProvider(LocalLLMProvider):
         """
         Fetch models from Ollama.
         
+        PERFORMANCE: Uses shared HTTP client to enable connection pooling
+        and keep-alive, preventing connection churn on repeated calls.
+        
         Uses the provider's configured timeout instead of a hardcoded value.
         Listing models can trigger model loading/swapping in Ollama, so a longer
         timeout is often needed compared to inference requests.
@@ -149,23 +255,22 @@ class OllamaProvider(LocalLLMProvider):
         url = f"{base_url.rstrip('/')}/api/tags"
         
         try:
-            # Use provider's configured timeout instead of hardcoded 2.0
-            # This allows for longer timeouts when models need to be loaded into VRAM
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url)
-                if response.status_code == 200:
-                    data = response.json()
-                    if "models" in data:
-                        for model in data["models"]:
-                            model_name = model.get("name", "")
-                            if model_name:
-                                models.append({
-                                    "id": model_name,
-                                    "provider": "ollama",
-                                    "display_name": model_name,
-                                })
-                else:
-                    logger.warning(f"Ollama list models failed: {response.status_code}")
+            # Use shared HTTP client for connection pooling
+            client = await self._get_http_client()
+            response = await client.get(url)
+            if response.status_code == 200:
+                data = response.json()
+                if "models" in data:
+                    for model in data["models"]:
+                        model_name = model.get("name", "")
+                        if model_name:
+                            models.append({
+                                "id": model_name,
+                                "provider": "ollama",
+                                "display_name": model_name,
+                            })
+            else:
+                logger.warning(f"Ollama list models failed: {response.status_code}")
         except Exception as e:
             logger.warning(f"Error listing Ollama models: {e}")
             
@@ -203,6 +308,9 @@ class LMStudioProvider(LocalLLMProvider):
         """
         Fetch models from LM Studio.
         
+        PERFORMANCE: Uses shared HTTP client to enable connection pooling
+        and keep-alive, preventing connection churn on repeated calls.
+        
         Uses the provider's configured timeout instead of a hardcoded value.
         Listing models can take longer if the backend is under load.
         """
@@ -212,20 +320,20 @@ class LMStudioProvider(LocalLLMProvider):
         url = f"{self.base_url.rstrip('/')}/models"
         
         try:
-            # Use provider's configured timeout instead of hardcoded 2.0
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url)
-                if response.status_code == 200:
-                    data = response.json()
-                    if "data" in data:
-                        for model in data["data"]:
-                            model_id = model.get("id", "")
-                            if model_id:
-                                models.append({
-                                    "id": model_id,
-                                    "provider": "lmstudio",
-                                    "display_name": model_id,
-                                })
+            # Use shared HTTP client for connection pooling
+            client = await self._get_http_client()
+            response = await client.get(url)
+            if response.status_code == 200:
+                data = response.json()
+                if "data" in data:
+                    for model in data["data"]:
+                        model_id = model.get("id", "")
+                        if model_id:
+                            models.append({
+                                "id": model_id,
+                                "provider": "lmstudio",
+                                "display_name": model_id,
+                            })
                 else:
                     logger.warning(f"LM Studio list models failed: {response.status_code}")
         except Exception as e:

@@ -5,18 +5,21 @@ This module provides a centralized configuration service with change notificatio
 and type-safe access. It wraps ConfigManager and provides a cleaner interface
 for components that need to react to configuration changes.
 """
+import asyncio
 import logging
-from typing import Any, Dict, Optional
+import threading
+from typing import Any, Callable, Dict, Optional
+
+from pydantic import ValidationError as PydanticValidationError
 
 from backend.src.core.bus import EventBus
-from backend.src.core.config import AppConfig, ConfigManager
-from backend.src.core.config.manager import get_config_dir
-from backend.src.core.config_subscription_manager import (
+from backend.src.core.config import AppConfig, ConfigManager, get_config_dir
+from backend.src.core.config.subscription_manager import (
     ConfigSubscriber,
     ConfigSubscriptionManager,
 )
 from backend.src.core.events import ConfigChanged
-from backend.src.core.plugin_config import PluginConfigManager
+from backend.src.core.plugins.config import PluginConfigManager
 
 logger = logging.getLogger(__name__)
 
@@ -50,19 +53,23 @@ class ConfigurationService:
         self._config: Optional[AppConfig] = None
         self._subscription_manager = ConfigSubscriptionManager()
         self._event_bus = event_bus
-        self._plugin_config_manager = plugin_config_manager
+        self._plugin_config_manager = plugin_config_manager or PluginConfigManager()
+        self._lock = threading.RLock()  # Reentrant lock for thread-safe config updates
 
     def initialize(self) -> AppConfig:
         """
         Initialize the service by loading configuration.
 
+        Thread-safe: Uses lock to prevent race conditions during concurrent initialization.
+
         Returns:
             Loaded AppConfig instance
         """
-        if self._config is None:
-            self._config = self._config_manager.load_config()
-            logger.info("ConfigurationService initialized")
-        return self._config
+        with self._lock:
+            if self._config is None:
+                self._config = self._config_manager.load_config()
+                logger.info("ConfigurationService initialized")
+            return self._config
 
     def get_config(self) -> AppConfig:
         """
@@ -92,7 +99,7 @@ class ConfigurationService:
         self._subscription_manager.subscribe(subscriber)
 
     def subscribe_callback(
-        self, callback: Any  # Callable[[AppConfig, AppConfig], None]
+        self, callback: Callable[[AppConfig, AppConfig], None]
     ) -> None:
         """
         Subscribe a callback function to configuration changes.
@@ -122,22 +129,31 @@ class ConfigurationService:
         """
         Update configuration and notify subscribers.
 
+        Thread-safe: Uses lock to prevent race conditions during concurrent updates.
+
         Args:
             new_config: New configuration instance
 
         Returns:
             Updated config with API key loaded
         """
-        if self._config is None:
-            raise RuntimeError("ConfigurationService not initialized")
+        with self._lock:
+            if self._config is None:
+                raise RuntimeError("ConfigurationService not initialized")
 
-        old_config = self._config
+            old_config = self._config
 
-        # Update via config manager (handles file saving, API key loading)
-        updated_config = self._config_manager.update_config(new_config)
-        self._config = updated_config
+        # Run blocking I/O operations in thread pool to avoid blocking event loop
+        loop = asyncio.get_running_loop()
+        updated_config = await loop.run_in_executor(
+            None, self._config_manager.update_config, new_config
+        )
+        
+        with self._lock:
+            self._config = updated_config
 
-        # Notify subscribers via subscription manager
+        # Notify subscribers outside lock to avoid deadlocks
+        # (subscribers may need to acquire other locks)
         await self._subscription_manager.notify_subscribers(old_config, updated_config)
 
         # Publish event for event bus subscribers
@@ -152,6 +168,8 @@ class ConfigurationService:
         """
         Get configuration value by dot path (e.g., 'llm.model_mode').
 
+        Thread-safe: Uses lock to ensure consistent reads.
+
         Args:
             path: Dot-separated path to config value
             default: Default value if path not found
@@ -165,12 +183,17 @@ class ConfigurationService:
             >>> service.get_config_value('memory.enabled', False)
             True
         """
-        if self._config is None:
-            raise RuntimeError("ConfigurationService not initialized")
-
+        with self._lock:
+            if self._config is None:
+                raise RuntimeError("ConfigurationService not initialized")
+            
+            # Get reference to config while holding lock
+            config = self._config
+        
+        # Access config attributes outside lock (AppConfig is immutable)
         try:
             parts = path.split(".")
-            value = self._config
+            value = config
 
             for part in parts:
                 if not hasattr(value, part):
@@ -189,19 +212,28 @@ class ConfigurationService:
         """
         Reload configuration from file and notify subscribers.
 
+        Thread-safe: Uses lock to prevent race conditions during concurrent reloads.
+
         Returns:
             Reloaded AppConfig instance
         """
-        if self._config is None:
-            raise RuntimeError("ConfigurationService not initialized")
+        with self._lock:
+            if self._config is None:
+                raise RuntimeError("ConfigurationService not initialized")
 
-        old_config = self._config
+            old_config = self._config
 
-        # Reload via config manager
-        reloaded_config = self._config_manager.reload_config()
-        self._config = reloaded_config
+        # Run blocking I/O operations in thread pool to avoid blocking event loop
+        loop = asyncio.get_running_loop()
+        reloaded_config = await loop.run_in_executor(
+            None, self._config_manager.reload_config
+        )
+        
+        with self._lock:
+            self._config = reloaded_config
 
-        # Notify subscribers via subscription manager
+        # Notify subscribers outside lock to avoid deadlocks
+        # (subscribers may need to acquire other locks)
         await self._subscription_manager.notify_subscribers(old_config, reloaded_config)
 
         logger.info("Configuration reloaded and subscribers notified")
@@ -239,7 +271,7 @@ class ConfigurationService:
         """
         return self.get_config()
     
-    def get_default_tts_model_path(self) -> Optional[str]:
+    def get_default_tts_model_path(self) -> str:
         """
         Get default TTS model path if none is configured.
         
@@ -248,19 +280,22 @@ class ConfigurationService:
         without modifying handler code.
         
         Returns:
-            Default TTS model path, or None if no default
+            Default TTS model path
         """
-        config_dir = get_config_dir()
-        return str(config_dir / "tts_models" / "piper" / "en_GB-jenny_dioco-medium.onnx")
+        from backend.src.core.config.manager import get_default_tts_model_path as _get_default_tts_model_path
+        return _get_default_tts_model_path()
     
     def build_user_config(self, user_config: Dict[str, Any]) -> AppConfig:
         """
         Build complete user configuration by merging global config with user overrides.
         
         Applies configuration policies:
-        - tts_enabled is always True (hardcoded policy, not configurable)
-        - Sets default TTS model path if needed
+        - Sets default TTS model path if TTS is enabled and path is not set
         - Loads API keys for selected provider
+        
+        CONFIGURATION: Respects tts_enabled from config (removed hardcoded override).
+        Users can now disable TTS for headless/silent mode operation.
+        speech_mode_enabled controls whether TTS is actually used during interactions.
         
         This method centralizes config building logic to avoid duplication
         between handlers and session managers.
@@ -278,17 +313,22 @@ class ConfigurationService:
         # Merge: user config overrides global
         complete_config_dict = {**global_config.model_dump(), **user_config}
         
-        # Policy: tts_enabled is always True (hardcoded, not configurable)
-        # speech_mode_enabled controls whether TTS is actually used
-        complete_config_dict["tts_enabled"] = True
-        
         # Set default TTS model path if TTS is enabled and path is not set
         tts_will_be_enabled = complete_config_dict.get("tts_enabled", global_config.tts_enabled)
         if tts_will_be_enabled:
             if not complete_config_dict.get("tts_model_path") and not global_config.tts_model_path:
                 complete_config_dict["tts_model_path"] = self.get_default_tts_model_path()
         
-        validated_config = AppConfig(**complete_config_dict)
+        try:
+            validated_config = AppConfig(**complete_config_dict)
+        except PydanticValidationError as e:
+            error_details = {}
+            for error in e.errors():
+                field = ".".join(str(loc) for loc in error["loc"])
+                error_details[field] = error["msg"]
+            raise ValueError(
+                f"Invalid configuration: {error_details}"
+            ) from e
         
         # Load API key for the selected provider
         validated_config = load_api_key_for_provider(validated_config)

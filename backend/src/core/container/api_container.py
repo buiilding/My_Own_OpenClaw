@@ -20,7 +20,7 @@ from backend.src.api.tts.manager import TTSManager
 from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.core.config import AppConfig
-from backend.src.core.config_service import ConfigurationService
+from backend.src.core.config.service import ConfigurationService
 from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.services.wakeword_service import WakewordService
 from backend.src.llm.models import ModelService

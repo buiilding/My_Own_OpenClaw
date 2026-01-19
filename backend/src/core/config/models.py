@@ -3,7 +3,7 @@ Configuration Models.
 
 This module contains Pydantic models for the application configuration.
 """
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Tuple
 from pydantic import BaseModel, ConfigDict, Field
 
 class OpenAIConfig(BaseModel):
@@ -102,6 +102,47 @@ class SecurityLimits(BaseModel):
     max_prompt_size: int = Field(default=50 * 1024 * 1024, description="Max total prompt size (50MB)")
 
 
+class OCRConfig(BaseModel):
+    """Configuration for OCR plugin."""
+    
+    # Batch size thresholds based on GPU memory (GB)
+    # Format: (min_gpu_memory_gb, rec_batch_num, cls_batch_num)
+    batch_size_thresholds: List[Tuple[float, int, int]] = Field(
+        default_factory=lambda: [
+            (15.5, 24, 10),  # >= 15.5GB: rec=24, cls=10
+            (12.0, 10, 6),   # >= 12GB: rec=10, cls=6
+            (8.0, 8, 6),     # >= 8GB: rec=8, cls=6
+            (0.0, 6, 4),     # < 8GB or CPU: rec=6, cls=4
+        ],
+        description="GPU memory thresholds and corresponding batch sizes"
+    )
+    
+    # Global OCR settings
+    use_detection: bool = Field(default=True, description="Enable text detection")
+    use_classification: bool = Field(default=False, description="Enable text classification (disabled for screenshots)")
+    use_recognition: bool = Field(default=True, description="Enable text recognition")
+    text_score_threshold: float = Field(default=0.5, description="Text score threshold")
+    max_side_len: int = Field(default=2000, description="Max side length")
+    min_side_len: int = Field(default=30, description="Min side length")
+    
+    # Detection settings
+    det_limit_side_len: int = Field(default=736, description="Detection limit side length")
+    det_limit_type: str = Field(default="min", description="Detection limit type")
+    det_thresh: float = Field(default=0.3, description="Detection threshold")
+    det_box_thresh: float = Field(default=0.5, description="Detection box threshold")
+    det_max_candidates: int = Field(default=1000, description="Max detection candidates")
+    det_unclip_ratio: float = Field(default=1.6, description="Detection unclip ratio")
+    det_score_mode: str = Field(default="default", description="Detection score mode")
+    
+    # Classification settings (disabled but parameters needed)
+    cls_thresh: float = Field(default=0.9, description="Classification threshold")
+    
+    # Thread optimization
+    use_cpu_cores_for_threads: bool = Field(default=True, description="Use CPU cores for thread optimization")
+    inter_op_threads_max: int = Field(default=4, description="Max inter-op threads")
+    inter_op_threads_min: int = Field(default=2, description="Min inter-op threads")
+
+
 class AppConfig(BaseModel):
     """Main application configuration model (immutable)."""
 
@@ -163,6 +204,27 @@ class AppConfig(BaseModel):
 
     # Security limits
     security_limits: SecurityLimits = Field(default_factory=SecurityLimits)
+    
+    # OCR configuration
+    ocr_config: OCRConfig = Field(default_factory=OCRConfig)
+    
+    # WebSocket Settings
+    websocket_max_message_size: int = Field(
+        default=10 * 1024 * 1024,  # 10MB
+        description="Maximum WebSocket message size to prevent memory exhaustion attacks"
+    )
+    websocket_max_concurrent_tasks: int = Field(
+        default=50,
+        description="Maximum concurrent tasks per WebSocket connection to prevent DoS"
+    )
+    websocket_receive_timeout: float = Field(
+        default=3600.0,  # 1 hour
+        description="Timeout for WebSocket receive operations (seconds)"
+    )
+    websocket_task_cancellation_timeout: float = Field(
+        default=5.0,
+        description="Timeout for waiting for tasks to cancel on disconnect (seconds)"
+    )
 
     @property
     def llm_model(self) -> str:

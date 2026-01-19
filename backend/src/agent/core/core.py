@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional
 
 from backend.src.agent.core.executor import AgentExecutor
 from backend.src.agent.core.state import ConversationHistory
+from backend.src.agent.core.tool_result_handler import ToolResultHandler
 from backend.src.core.bus import EventBus
 from backend.src.core.config import AppConfig
 from backend.src.core.events import InteractionCompleted
@@ -60,6 +61,7 @@ class AgentSession:
         llm_client: Optional[LLMClient] = None,
         tool_orchestrator: Optional[ToolOrchestrator] = None,
         event_bus: Optional[EventBus] = None,
+        metrics_service: Optional[Any] = None,  # MetricsService (optional for backward compatibility)
         user_id: str = "default_user",
         session_id: Optional[str] = None,
     ) -> None:
@@ -88,10 +90,15 @@ class AgentSession:
             self.tool_orchestrator = ToolOrchestrator(self.tool_registry, self.cfg)
         else:
             self.tool_orchestrator = tool_orchestrator
-        self.response_parser = ResponseParser(self.cfg, self.tool_registry)
+        
+        self.response_parser = ResponseParser(
+            self.cfg, self.tool_registry, metrics_service=metrics_service
+        )
 
         # Initialize state management
-        self.prompt_builder = PromptConstructor(self.tool_registry, self.cfg)
+        self.prompt_builder = PromptConstructor(
+            self.tool_registry, self.cfg, metrics_service=metrics_service
+        )
         self.history = ConversationHistory(
             max_length=None,  # Disable pruning
             system_prompt=self.prompt_builder.system_prompt
@@ -117,12 +124,27 @@ class AgentSession:
             event_bus=self.event_bus,
         )
 
+        # Initialize Tool Result Handler (extracted to reduce god object complexity)
+        self.tool_result_handler = ToolResultHandler(self)
+
         # Subscribe to events
         self.event_bus.subscribe(InteractionCompleted, self._on_interaction_completed)
 
         # Session-scoped state for computer use
-        self.latest_screenshot: Optional[str] = None
-        self.latest_ocr_results: Optional[list[dict]] = None
+        # Screenshots are keyed by unique ID to prevent race conditions
+        # Each screenshot gets a unique ID (hash or timestamp) to ensure OCR results match
+        # MEMORY LEAK FIX: Use OrderedDict to implement LRU eviction for screenshots
+        # This prevents unbounded memory growth during long sessions with many tool executions
+        from collections import OrderedDict
+        self._screenshots: OrderedDict[str, str] = OrderedDict()  # screenshot_id -> base64_data
+        self._max_screenshots: int = 10  # Keep last 10 screenshots (LRU eviction)
+        self._current_screenshot_id: Optional[str] = None  # ID of the most recent screenshot
+        self._ocr_results_by_screenshot: OrderedDict[str, list[dict]] = OrderedDict()  # screenshot_id -> OCR results
+        self._max_ocr_results: int = 10  # Keep last 10 OCR result sets (LRU eviction)
+        # SCREENSHOT REQUEST RACE FIX: Use dict to track multiple concurrent screenshot requests
+        # Maps request_id -> Future to prevent race conditions when multiple tools request screenshots
+        self._pending_screenshots: Dict[str, asyncio.Future] = {}
+        # Legacy single waiter (deprecated, kept for backward compatibility during migration)
         self.screenshot_waiter: Optional[asyncio.Future] = None
         self.hidden_screenshot_request_id: Optional[str] = None
         self._tool_result_futures: Dict[str, asyncio.Future] = {}
@@ -134,6 +156,173 @@ class AgentSession:
         self.ocr_completion_event = asyncio.Event()
         self.ocr_completion_event.set()  # Set initially (no OCR running)
 
+    def get_screenshot(self, screenshot_id: Optional[str] = None) -> Optional[str]:
+        """
+        Get screenshot data by ID.
+        
+        MEMORY LEAK FIX: Updates LRU order when accessing screenshots.
+        
+        Args:
+            screenshot_id: Optional screenshot ID. If None, returns current screenshot.
+            
+        Returns:
+            Base64-encoded screenshot data or None if not found
+        """
+        if screenshot_id is None:
+            screenshot_id = self._current_screenshot_id
+        if screenshot_id and screenshot_id in self._screenshots:
+            # MEMORY LEAK FIX: Move to end (most recently used) for LRU
+            self._screenshots.move_to_end(screenshot_id)
+            return self._screenshots[screenshot_id]
+        return None
+    
+    def get_ocr_results(self, screenshot_id: Optional[str] = None) -> Optional[list[dict]]:
+        """
+        Get OCR results by screenshot ID.
+        
+        MEMORY LEAK FIX: Updates LRU order when accessing OCR results.
+        
+        Args:
+            screenshot_id: Optional screenshot ID. If None, returns OCR for current screenshot.
+            
+        Returns:
+            List of OCR results or None if not found
+        """
+        if screenshot_id is None:
+            screenshot_id = self._current_screenshot_id
+        if screenshot_id and screenshot_id in self._ocr_results_by_screenshot:
+            # MEMORY LEAK FIX: Move to end (most recently used) for LRU
+            self._ocr_results_by_screenshot.move_to_end(screenshot_id)
+            return self._ocr_results_by_screenshot[screenshot_id]
+        return None
+    
+    @property
+    def latest_screenshot(self) -> Optional[str]:
+        """Legacy property: Returns current screenshot (deprecated, use get_screenshot instead)."""
+        return self.get_screenshot()
+    
+    @property
+    def latest_ocr_results(self) -> Optional[list[dict]]:
+        """Legacy property: Returns OCR for current screenshot (deprecated, use get_ocr_results instead)."""
+        return self.get_ocr_results()
+    
+    def get_current_screenshot_id(self) -> Optional[str]:
+        """
+        Get the ID of the current screenshot.
+        
+        ENCAPSULATION: Public method to access current screenshot ID without
+        exposing private implementation details. This allows ToolPreparer and
+        other components to access screenshot state without tight coupling.
+        
+        Returns:
+            Current screenshot ID or None if no screenshot is available
+        """
+        return self._current_screenshot_id
+    
+    def _store_screenshot_with_eviction(self, screenshot_id: str, screenshot_data: str) -> None:
+        """
+        Store screenshot with LRU eviction.
+        
+        MEMORY LEAK FIX: Implements LRU eviction to prevent unbounded memory growth.
+        Keeps only the most recently used screenshots (up to _max_screenshots).
+        
+        Args:
+            screenshot_id: Unique ID for the screenshot
+            screenshot_data: Base64-encoded screenshot data
+        """
+        # Add or update screenshot (moves to end if already exists)
+        self._screenshots[screenshot_id] = screenshot_data
+        self._screenshots.move_to_end(screenshot_id)
+        
+        # Evict oldest if over limit
+        while len(self._screenshots) > self._max_screenshots:
+            oldest_id, _ = self._screenshots.popitem(last=False)
+            # Also remove associated OCR results
+            self._ocr_results_by_screenshot.pop(oldest_id, None)
+            logger.debug(f"Evicted old screenshot {oldest_id[:8]} (LRU cache limit reached)")
+    
+    def _store_ocr_results_with_eviction(self, screenshot_id: str, ocr_results: list[dict]) -> None:
+        """
+        Store OCR results with LRU eviction.
+        
+        MEMORY LEAK FIX: Implements LRU eviction to prevent unbounded memory growth.
+        Keeps only the most recently used OCR result sets (up to _max_ocr_results).
+        
+        Args:
+            screenshot_id: Unique ID for the screenshot
+            ocr_results: List of OCR results
+        """
+        # Add or update OCR results (moves to end if already exists)
+        self._ocr_results_by_screenshot[screenshot_id] = ocr_results
+        self._ocr_results_by_screenshot.move_to_end(screenshot_id)
+        
+        # Evict oldest if over limit
+        while len(self._ocr_results_by_screenshot) > self._max_ocr_results:
+            oldest_id, _ = self._ocr_results_by_screenshot.popitem(last=False)
+            logger.debug(f"Evicted old OCR results for screenshot {oldest_id[:8]} (LRU cache limit reached)")
+    
+    def register_pending_tool_result(self, request_id: str, result: Any) -> None:
+        """
+        Register a pending tool result in the session.
+        
+        ENCAPSULATION: Public method to register tool results without exposing
+        private implementation details. This allows ToolPreparer and other
+        components to store results without tight coupling to internal storage.
+        
+        Args:
+            request_id: Request ID for the tool result
+            result: Tool result to store
+        """
+        self._pending_tool_results[request_id] = result
+    
+    def register_prepared_tool_call(self, request_id: str, prepared_call: Any) -> None:
+        """
+        Register a prepared tool call in the session.
+        
+        ENCAPSULATION: Public method to register prepared tool calls without
+        exposing private implementation details. This allows ToolPreparer to
+        store prepared calls without tight coupling to internal storage.
+        
+        Args:
+            request_id: Request ID for the tool call
+            prepared_call: Prepared tool call to store
+        """
+        if not hasattr(self, "_prepared_tool_calls"):
+            self._prepared_tool_calls = {}
+        self._prepared_tool_calls[request_id] = prepared_call
+    
+    def get_prepared_tool_call(self, request_id: str) -> Optional[Any]:
+        """
+        Get a prepared tool call by request ID.
+        
+        ENCAPSULATION: Public method to retrieve prepared tool calls without
+        exposing private implementation details. This allows ToolOrchestrator
+        to access prepared calls without tight coupling to internal storage.
+        
+        Args:
+            request_id: Request ID for the tool call
+            
+        Returns:
+            Prepared tool call or None if not found
+        """
+        if not hasattr(self, "_prepared_tool_calls"):
+            return None
+        return self._prepared_tool_calls.get(request_id)
+    
+    def remove_prepared_tool_call(self, request_id: str) -> None:
+        """
+        Remove a prepared tool call from the session.
+        
+        ENCAPSULATION: Public method to remove prepared tool calls without
+        exposing private implementation details. This allows cleanup code
+        to remove calls without tight coupling to internal storage.
+        
+        Args:
+            request_id: Request ID for the tool call to remove
+        """
+        if hasattr(self, "_prepared_tool_calls") and request_id in self._prepared_tool_calls:
+            del self._prepared_tool_calls[request_id]
+
     async def _on_interaction_completed(self, event: InteractionCompleted) -> None:
         """Handle interaction completed event."""
         # Only handle events for this session
@@ -144,12 +333,25 @@ class AgentSession:
         # Memory storage is now handled by the frontend
 
     async def update_config(self, new_cfg: AppConfig) -> None:
-        """Updates the agent's configuration and re-initializes dependencies."""
+        """
+        Updates the agent's configuration and re-initializes dependencies.
+        
+        STALE CONFIGURATION FIX: Propagates LLM client updates through the entire
+        dependency chain: AgentSession -> AgentExecutor -> InteractionLoop -> LLMInteractionHandler.
+        Without this, LLMInteractionHandler holds a stale reference to the old LLM client,
+        causing settings updates (API keys, models) to not take effect until restart.
+        """
         async with self._lock:
             self.cfg = new_cfg
             # Re-initialize LLM client with new config
             self.llm_client = get_llm_client(self.cfg)
             self.executor.llm_client = self.llm_client
+            # STALE CONFIGURATION FIX: Update LLMInteractionHandler's reference
+            # This ensures settings updates (API keys, models) take effect immediately
+            if hasattr(self.executor, 'interaction_loop') and self.executor.interaction_loop:
+                if hasattr(self.executor.interaction_loop, 'llm_handler') and self.executor.interaction_loop.llm_handler:
+                    self.executor.interaction_loop.llm_handler.llm_client = self.llm_client
+                    logger.debug("Updated LLMInteractionHandler with new LLM client")
 
     async def process_query(
         self, 
@@ -191,16 +393,7 @@ class AgentSession:
         """
         Process a tool result from the frontend.
         
-        Public entry point that delegates to internal methods.
-        This method should be small and delegate to:
-        - _handle_bundled_results() for bundles
-        - _handle_individual_result() for single results
-        - _handle_screenshot_waiter() for hidden screenshots
-        - _maybe_trigger_ocr() for OCR policy
-        
-        This method encapsulates all session state mutation that was
-        previously done by ToolResultHandler. Handlers should call this
-        method instead of mutating session internals directly.
+        Delegates to ToolResultHandler to reduce god object complexity.
         
         Args:
             request_id: Request ID for the tool result
@@ -209,265 +402,65 @@ class AgentSession:
             error: Error message if execution failed
             metadata: Additional metadata
         """
-        # Route to appropriate handler based on result type
-        if isinstance(result_data, dict) and result_data.get("bundled"):
-            await self._handle_bundled_results(result_data, request_id)
-            return
-        
-        # Handle hidden screenshot requests
-        if self._is_screenshot_waiter_request(request_id):
-            await self._handle_screenshot_waiter(request_id, result_data)
-            return
-        
-        # Handle individual tool result
-        await self._handle_individual_result(request_id, success, result_data, error, metadata)
-    
-    def _is_screenshot_waiter_request(self, request_id: str) -> bool:
-        """
-        Check if request_id matches active screenshot waiter.
-        
-        Args:
-            request_id: Request ID to check
-            
-        Returns:
-            True if this is a hidden screenshot request
-        """
-        return (
-            self.screenshot_waiter is not None and
-            not self.screenshot_waiter.done() and
-            self.hidden_screenshot_request_id == request_id
+        await self.tool_result_handler.process_frontend_tool_result(
+            request_id, success, result_data, error, metadata
         )
     
-    async def _handle_screenshot_waiter(
-        self,
-        request_id: str,
-        result_data: Optional[Dict[str, Any]]
-    ) -> None:
+    async def cleanup(self) -> None:
         """
-        Handle hidden screenshot request - resolves waiter and returns early.
+        Clean up session resources.
         
-        Args:
-            request_id: Request ID for the screenshot
-            result_data: Result data (may contain screenshot)
+        RESOURCE MANAGEMENT: Explicitly releases resources held by the session
+        to prevent memory leaks and ensure proper cleanup even if garbage collection
+        is delayed or prevented by circular references.
+        
+        This method should be called before the session is removed from active_sessions
+        to ensure resources are freed immediately rather than waiting for GC.
         """
-        screenshot_data = None
-        if isinstance(result_data, dict) and "screenshot" in result_data:
-            screenshot_data = result_data["screenshot"]
+        logger.debug(f"Cleaning up session {self.session_id} for user {self.user_id}")
         
-        if screenshot_data:
-            self.screenshot_waiter.set_result(screenshot_data)
-            logger.info(f"Resolved hidden screenshot waiter for request {request_id[:15]}")
-        else:
-            self.screenshot_waiter.set_exception(ValueError("No screenshot data in result"))
-            logger.warning(f"Hidden screenshot request {request_id[:15]} returned no data")
-        
-        # Reset waiter state
-        self.screenshot_waiter = None
-        self.hidden_screenshot_request_id = None
-    
-    async def _handle_individual_result(
-        self,
-        request_id: str,
-        success: bool,
-        result_data: Optional[Dict[str, Any]],
-        error: Optional[str],
-        metadata: Dict[str, Any]
-    ) -> None:
-        """
-        Handle individual tool result - stores result and resolves futures.
-        
-        Args:
-            request_id: Request ID for the tool result
-            success: Whether tool execution succeeded
-            result_data: Tool result data
-            error: Error message if execution failed
-            metadata: Additional metadata
-        """
-        from backend.src.core.interfaces.tool import ToolResult
-        
-        # Convert frontend result to ToolResult format
-        # Frontend pre-formats messages with system context XML and sets is_preformatted flag
-        if isinstance(result_data, dict) and result_data.get("is_preformatted"):
-            metadata["is_preformatted"] = True
-        
-        tool_result = ToolResult.from_dict({
-            "success": success,
-            "data": result_data,
-            "error": error,
-            "metadata": metadata,
-        })
-        
-        # Extract screenshot data for logging and OCR
-        screenshot_data = None
-        if isinstance(tool_result.data, dict) and "screenshot" in tool_result.data:
-            screenshot_data = tool_result.data["screenshot"]
-            logger.debug("Tool result includes screenshot data")
-        
-        # Update screenshot and trigger OCR if present
-        if screenshot_data:
-            self.latest_screenshot = screenshot_data
-            await self._maybe_trigger_ocr(screenshot_data, request_id)
-        
-        # Store the tool result in session for tool execution to pick up
-        self._pending_tool_results[request_id] = tool_result
-        
-        # Resolve any waiting futures for this request_id
-        if request_id in self._tool_result_futures:
-            future = self._tool_result_futures.get(request_id)
-            if future and not future.done():
-                future.set_result(tool_result)
-                logger.info(f"Resolved tool result future for request_id {request_id[:15]}")
-    
-    async def _handle_bundled_results(
-        self,
-        bundle_data: Dict[str, Any],
-        bundle_request_id: str
-    ) -> None:
-        """
-        Handle bundled tool results - stores individual results and creates combined result.
-        
-        Each tool result is pre-formatted with system context XML by the frontend.
-        Individual results are stored for orchestrator matching, but a combined result
-        is also created for single-message history storage.
-        
-        Args:
-            bundle_data: The data dict from the bundle result (contains 'tools' array, 'combined_llm_content', and 'screenshot')
-            bundle_request_id: The request_id of the bundle (for logging)
-        """
-        from backend.src.core.interfaces.tool import ToolResult
-        
-        tools = bundle_data.get("tools", [])
-        bundle_screenshot = bundle_data.get("screenshot")
-        combined_llm_content = bundle_data.get("combined_llm_content")
-        
-        logger.info(f"Processing bundle result: {len(tools)} tools, has_screenshot={bundle_screenshot is not None}, has_combined_content={combined_llm_content is not None}")
-        
-        # Process screenshot if present (update session and trigger OCR)
-        if bundle_screenshot:
-            self.latest_screenshot = bundle_screenshot
-            logger.debug("Bundle result includes screenshot data")
-            await self._maybe_trigger_ocr(bundle_screenshot, bundle_request_id)
-        
-        # Store individual tool results for orchestrator matching (still needed for request_id resolution)
-        for tool_result_data in tools:
-            tool_request_id = tool_result_data.get("request_id")
-            if not tool_request_id:
-                logger.warning(f"Tool result in bundle missing request_id: {tool_result_data}")
-                continue
+        try:
+            # Unsubscribe from event bus to prevent memory leaks
+            if hasattr(self, 'event_bus') and self.event_bus:
+                self.event_bus.unsubscribe(InteractionCompleted, self._on_interaction_completed)
             
-            tool_name = tool_result_data.get("tool_name", "unknown")
-            tool_success = tool_result_data.get("success", False)
-            tool_data = tool_result_data.get("data")
-            tool_error = tool_result_data.get("error")
+            # Shutdown response parser (may have thread pool executor)
+            if hasattr(self, 'response_parser') and self.response_parser:
+                self.response_parser.shutdown()
             
-            # Create ToolResult for this individual tool (for orchestrator matching)
-            tool_metadata = {}
-            if isinstance(tool_data, dict) and tool_data.get("is_preformatted"):
-                tool_metadata["is_preformatted"] = True
+            # Clear session-scoped state to free memory
+            if hasattr(self, '_screenshots'):
+                self._screenshots.clear()
+            if hasattr(self, '_ocr_results_by_screenshot'):
+                self._ocr_results_by_screenshot.clear()
+            if hasattr(self, '_tool_result_futures'):
+                # Cancel any pending futures
+                for future in self._tool_result_futures.values():
+                    if not future.done():
+                        future.cancel()
+                self._tool_result_futures.clear()
+            if hasattr(self, '_pending_tool_results'):
+                self._pending_tool_results.clear()
+            if hasattr(self, '_bundled_results'):
+                self._bundled_results.clear()
             
-            # Include screenshot in tool result data if present
-            if bundle_screenshot and isinstance(tool_data, dict):
-                tool_data = tool_data.copy()
-                tool_data["screenshot"] = bundle_screenshot
+            # SCREENSHOT REQUEST RACE FIX: Cancel all pending screenshot requests
+            for request_id, future in list(self._pending_screenshots.items()):
+                if not future.done():
+                    future.cancel()
+                del self._pending_screenshots[request_id]
             
-            tool_result = ToolResult.from_dict({
-                "success": tool_success,
-                "data": tool_data,
-                "error": tool_error,
-                "metadata": tool_metadata,
-            })
+            # Legacy cleanup: Clear single waiter if it exists
+            if hasattr(self, 'screenshot_waiter') and self.screenshot_waiter:
+                if not self.screenshot_waiter.done():
+                    self.screenshot_waiter.cancel()
+                self.screenshot_waiter = None
+                self.hidden_screenshot_request_id = None
             
-            logger.debug(
-                f"Storing bundled tool result for orchestrator: request_id={tool_request_id[:15]}, "
-                f"tool={tool_name}, success={tool_success}"
+            logger.debug(f"Session {self.session_id} cleanup completed")
+        except Exception as e:
+            logger.error(
+                f"Error during session cleanup for {self.session_id}: {e}",
+                exc_info=True
             )
-            
-            # Store in pending results (for orchestrator to match by request_id)
-            self._pending_tool_results[tool_request_id] = tool_result
-            
-            # Resolve waiting future for this tool's request_id
-            if tool_request_id in self._tool_result_futures:
-                future = self._tool_result_futures.get(tool_request_id)
-                if future and not future.done():
-                    future.set_result(tool_result)
-                    logger.info(f"Resolved bundled tool result future for request_id {tool_request_id[:15]} (tool: {tool_name})")
-                else:
-                    logger.debug(f"Future for {tool_request_id[:15]} already done or missing")
-            else:
-                logger.debug(f"No waiting future for bundled tool request_id {tool_request_id[:15]}")
-        
-        # Create combined bundled result for history (single message instead of multiple)
-        if combined_llm_content:
-            # Create a combined ToolResult for the entire bundle
-            combined_data = {
-                "bundled": True,
-                "tool_count": len(tools),
-                "screenshot": bundle_screenshot,
-            }
-            
-            combined_result = ToolResult.from_dict({
-                "success": all(t.get("success", False) for t in tools),
-                "data": combined_data,
-                "error": None,
-                "metadata": {
-                    "is_preformatted": True,
-                    "is_bundled": True,
-                    "bundle_request_id": bundle_request_id,
-                },
-                "llm_content": combined_llm_content,
-            })
-            
-            # Store combined result for history processing
-            # Use bundle_request_id (from frontend) as the key
-            # Note: This bundle_request_id is the frontend's correlationId, which is different
-            # from the bundle_id generated in ToolPreparer. We'll match by checking if
-            # we have multiple tool results and finding the bundled result.
-            self._bundled_results[bundle_request_id] = combined_result
-            logger.info(f"Stored combined bundled result for history (bundle_id={bundle_request_id[:15]})")
-        else:
-            logger.warning(f"Bundle result missing combined_llm_content, cannot create combined history message")
-        
-        logger.info(f"Finished processing bundle result {bundle_request_id[:15]}")
-    
-    async def _maybe_trigger_ocr(
-        self,
-        screenshot_data: str,
-        request_id: str
-    ) -> None:
-        """
-        Trigger proactive OCR if screenshot is present.
-        
-        NOTE: OCR triggering policy may evolve. If OCR rules change frequently,
-        consider injecting an OcrPolicyService to decide when to trigger.
-        For now, this remains a domain invariant (screenshot → trigger OCR).
-        
-        This is a non-blocking operation that runs OCR in the background.
-        Tools that need OCR results will wait for ocr_completion_event.
-        
-        Args:
-            screenshot_data: Base64-encoded screenshot data
-            request_id: Request ID for logging purposes
-        """
-        async def run_ocr_task():
-            try:
-                # Clear OCR completion event before starting new OCR
-                self.ocr_completion_event.clear()
-                
-                # Get OCR plugin from session registry
-                ocr_plugin = None
-                if self.executor and self.executor.plugin_manager:
-                    ocr_plugin = self.executor.plugin_manager.plugin_registry.get_plugin("ocr_analysis")
-                
-                if ocr_plugin and ocr_plugin.enabled:
-                    # perform_ocr is now properly async and handles GPU cache management internally in a thread
-                    results = await ocr_plugin.perform_ocr(screenshot_data)
-                    if results:
-                        self.latest_ocr_results = results
-                        logger.info(f"Proactive OCR completed for request {request_id[:15]}")
-            except Exception as e:
-                logger.error(f"Proactive OCR failed: {e}")
-            finally:
-                # Always set the event, even if OCR failed, to unblock waiting tools
-                self.ocr_completion_event.set()
-        
-        asyncio.create_task(run_ocr_task())
+            # Don't re-raise - cleanup should be best-effort

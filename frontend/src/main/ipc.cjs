@@ -3,12 +3,10 @@
  * renderer process, and the Python backend.
  */
 
-const { ipcMain, BrowserWindow, app } = require('electron');
+const { ipcMain, BrowserWindow } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const os = require('os');
-const fs = require('fs');
-const path = require('path');
 const { getSystemState } = require('./system_state.cjs');
 const { searchMemory } = require('./memory_service_bridge.cjs');
 
@@ -19,7 +17,7 @@ let mainWindow = null;
 let isConnected = false;
 let reconnectInterval = 5000; // 5 seconds
 let isFirstQuery = true; // Track if this is the first user query in the session
-let currentUserId = null; // Cached user_id for this session
+let currentUserId = null; // Store user_id after successful handshake
 
 function log(message) {
   // Only log important events, not every message
@@ -32,57 +30,21 @@ function logDebug(message) {
 }
 
 /**
- * Get or generate a valid user_id for this installation.
- * 
- * The backend rejects 'default_user' for security reasons, so we generate
- * a persistent identifier based on OS username and hostname, stored in userData.
- * 
- * @returns {string} Valid user_id (not 'default_user', not empty, not whitespace-only)
+ * Generate a valid user_id from system username or fallback to UUID-based ID.
+ * Backend rejects 'default_user', empty, or whitespace-only values.
  */
-function getUserId() {
-  if (currentUserId) {
-    return currentUserId;
-  }
-  
-  const userDataPath = app.getPath('userData');
-  const userIdFile = path.join(userDataPath, 'user_id.json');
-  
+function generateUserId() {
   try {
-    // Try to load existing user_id
-    if (fs.existsSync(userIdFile)) {
-      const data = JSON.parse(fs.readFileSync(userIdFile, 'utf8'));
-      if (data.user_id && data.user_id.trim() && data.user_id !== 'default_user') {
-        currentUserId = data.user_id.trim();
-        return currentUserId;
-      }
+    const username = os.userInfo().username;
+    if (username && username.trim() && username !== 'default_user') {
+      // Sanitize username to match backend validation pattern (alphanumeric, underscore, hyphen)
+      return username.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 128);
     }
   } catch (error) {
-    log(`Failed to load user_id from file: ${error.message}`);
+    log(`Failed to get system username: ${error.message}`);
   }
-  
-  // Generate new user_id from OS username and hostname
-  const username = os.userInfo().username || 'user';
-  const hostname = os.hostname() || 'host';
-  // Sanitize: remove invalid characters, ensure it's not 'default_user'
-  let generatedId = `${username}_${hostname}`.toLowerCase()
-    .replace(/[^a-z0-9_-]/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_|_$/g, '');
-  
-  // Ensure it's not 'default_user' or empty
-  if (!generatedId || generatedId === 'default_user') {
-    generatedId = `user_${Date.now()}`;
-  }
-  
-  // Store for persistence
-  try {
-    fs.writeFileSync(userIdFile, JSON.stringify({ user_id: generatedId }, null, 2), 'utf8');
-  } catch (error) {
-    log(`Failed to save user_id to file: ${error.message}`);
-  }
-  
-  currentUserId = generatedId;
-  return currentUserId;
+  // Fallback: generate UUID-based user_id (backend accepts alphanumeric, underscore, hyphen)
+  return `user_${uuidv4().replace(/-/g, '_')}`;
 }
 
 function connect() {
@@ -103,13 +65,17 @@ function connect() {
     log('Successfully connected to Python backend.');
     mainWindow?.webContents.send('ipc-status', { isConnected: true });
 
+    // Generate valid user_id (backend rejects 'default_user', empty, or whitespace-only)
+    currentUserId = generateUserId();
+    
     // Send handshake message as required by the backend server
     const handshakeMessage = {
       type: 'handshake',
-      user_id: getUserId(),
+      user_id: currentUserId,
     };
     try {
       ws.send(JSON.stringify(handshakeMessage));
+      log(`Handshake sent with user_id: ${currentUserId}`);
     } catch (error) {
       log(`Error sending handshake: ${error}`);
     }
@@ -148,7 +114,7 @@ function connect() {
 /**
  * Sends a structured message to the Python backend via WebSocket.
  *
- * @param {string} type - The message type (e.g., 'query', 'load-settings').
+ * @param {string} type - The message type (e.g., 'query').
  * @param {object} payload - The JSON object payload for the message.
  */
 function sendMessageToBackend(type, payload) {
@@ -157,11 +123,16 @@ function sendMessageToBackend(type, payload) {
     return;
   }
 
+  if (!currentUserId) {
+    log('Cannot send message: user_id not set (handshake may have failed).');
+    return;
+  }
+
   const message = {
     id: uuidv4(),
     type,
     payload: payload || {},
-    user_id: getUserId(), // Include user_id explicitly (backend also injects it, but this ensures consistency)
+    user_id: currentUserId,
     timestamp: new Date().toISOString(),
   };
 
@@ -201,7 +172,8 @@ function initializeIpc(win) {
         
         // Start memory search first since it's slower (needs backend API call + FAISS search)
         // Then start system state in parallel - both run concurrently
-        const memoryPromise = searchMemory(payload.text, getUserId(), 5, null).catch(err => {
+        const userId = currentUserId || generateUserId();
+        const memoryPromise = searchMemory(payload.text, userId, 5, null).catch(err => {
           log(`Memory search failed: ${err.message}`);
           return { success: false, data: { memories: { episodic: [], semantic: [] } } };
         }); // Start memory search immediately

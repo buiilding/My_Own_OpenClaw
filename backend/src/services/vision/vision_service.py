@@ -33,45 +33,52 @@ class VisionService:
         self._model: Optional[InternVLModel] = None
         self._initialized = False
         self._initialization_error: Optional[str] = None
+        # RACE CONDITION FIX: Lock to serialize initialization/unload operations
+        # Prevents double initialization (double VRAM usage) and init/unload conflicts
+        self._lock = asyncio.Lock()
 
     async def initialize(self) -> bool:
         """
         Initialize the InternVL model.
         
         This should be called during server startup to pre-load the model.
+        Thread-safe: Uses lock to prevent concurrent initialization (double VRAM usage).
         
         Returns:
             True if initialization successful, False otherwise
         """
-        if self._initialized:
-            return True
+        # RACE CONDITION FIX: Acquire lock to serialize initialization
+        async with self._lock:
+            # Double-check after acquiring lock (another coroutine may have initialized)
+            if self._initialized:
+                return True
 
-        if not VISION_MODELS_AVAILABLE:
-            self._initialization_error = "Vision model dependencies not available"
-            logger.warning(self._initialization_error)
-            return False
+            if not VISION_MODELS_AVAILABLE:
+                self._initialization_error = "Vision model dependencies not available"
+                logger.warning(self._initialization_error)
+                return False
 
-        try:
-            logger.info(f"Initializing vision service with model: {self.model_name}")
-            
-            # Initialize InternVL model in thread pool to avoid blocking event loop
-            # Model loading is synchronous and CPU/IO intensive
-            loop = asyncio.get_event_loop()
-            self._model = await loop.run_in_executor(
-                None,
-                lambda: InternVLModel(
-                    model_name=self.model_name, device="auto", trust_remote_code=True
+            try:
+                logger.info(f"Initializing vision service with model: {self.model_name}")
+                
+                # Initialize InternVL model in thread pool to avoid blocking event loop
+                # Model loading is synchronous and CPU/IO intensive
+                loop = asyncio.get_event_loop()
+                self._model = await loop.run_in_executor(
+                    None,
+                    lambda: InternVLModel(
+                        model_name=self.model_name, device="auto", trust_remote_code=True
+                    )
                 )
-            )
-            
-            self._initialized = True
-            logger.info(f"Vision service initialized successfully with model: {self.model_name}")
-            return True
+                
+                self._initialized = True
+                logger.info(f"Vision service initialized successfully with model: {self.model_name}")
+                return True
 
-        except Exception as e:
-            self._initialization_error = str(e)
-            logger.error(f"Failed to initialize vision service: {e}", exc_info=True)
-            return False
+            except Exception as e:
+                self._initialization_error = str(e)
+                logger.error(f"Failed to initialize vision service: {e}", exc_info=True)
+                return False
 
     @property
     def model(self) -> Optional[InternVLModel]:
@@ -93,3 +100,48 @@ class VisionService:
         """Get the initialization error message if initialization failed."""
         return self._initialization_error
 
+    async def unload_model(self) -> bool:
+        """
+        Unload the InternVL model to free VRAM/system RAM.
+        
+        This is useful when the vision system is not actively being used,
+        allowing other applications or models to use the freed memory.
+        Thread-safe: Uses lock to prevent conflicts with concurrent initialization.
+        
+        Returns:
+            True if model was unloaded, False if no model was loaded
+        """
+        # RACE CONDITION FIX: Acquire lock to serialize with initialization
+        async with self._lock:
+            # Double-check after acquiring lock (initialization may have completed)
+            if not self._initialized or self._model is None:
+                return False
+            
+            try:
+                logger.info(f"Unloading vision model: {self.model_name}")
+                
+                # Delete model reference and trigger garbage collection
+                # PyTorch will free GPU memory when the model object is deleted
+                del self._model
+                self._model = None
+                self._initialized = False
+                
+                # Force garbage collection to free memory immediately
+                import gc
+                gc.collect()
+                
+                # If CUDA is available, empty cache to free GPU memory
+                try:
+                    import torch
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                        logger.info("CUDA cache cleared")
+                except ImportError:
+                    pass  # torch not available, skip cache clearing
+                
+                logger.info(f"Vision model unloaded successfully: {self.model_name}")
+                return True
+                
+            except Exception as e:
+                logger.error(f"Failed to unload vision model: {e}", exc_info=True)
+                return False

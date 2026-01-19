@@ -103,7 +103,7 @@ async def run_replace_test(temp_file_path: str, old_string: str, new_string: str
     # Step 2: Parse the Response
     print("\n📋 STEP 2: Parsing LLM Response")
     parser = create_test_parser(tool_names=["replace"])
-    parsed_response = parser.parse_response(llm_response)
+    parsed_response = await parser.parse_response(llm_response)
 
     print(f"Parsed Response:")
     print(f"  - Has tool calls: {parsed_response.has_tool_calls}")

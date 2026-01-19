@@ -135,7 +135,7 @@ async def run_write_file_test(file_path: str, content: str, expect_success: bool
     # Step 2: Parse the Response
     print("\n📋 STEP 2: Parsing LLM Response")
     parser = create_test_parser(tool_names=["write_file"])
-    parsed_response = parser.parse_response(llm_response)
+    parsed_response = await parser.parse_response(llm_response)
 
     print(f"Parsed Response:")
     print(f"  - Has tool calls: {parsed_response.has_tool_calls}")
