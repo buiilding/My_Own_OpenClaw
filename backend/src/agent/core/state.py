@@ -164,6 +164,12 @@ class ConversationHistory:
         elif cache_was_valid and history_length_before + 1 != history_length_after:
             # Pruning occurred, cache already invalidated by _prune_if_needed
             logger.debug("Token count cache invalidated due to history pruning")
+        
+        # MEMORY SPIKE FIX: Clear old image data after adding tool output to prevent
+        # unbounded memory growth during tool loops. Tool outputs can include large
+        # screenshots (5-10MB each), and without cleanup, memory spikes during multi-tool
+        # execution can cause OOM crashes before the next user message triggers cleanup.
+        self._clear_old_image_data()
 
     def add_assistant_message(self, message: str) -> None:
         """
