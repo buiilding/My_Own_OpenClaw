@@ -3,7 +3,9 @@ Initialization Coordinator.
 
 Coordinates the initialization phases of the application startup process.
 """
+import asyncio
 import logging
+import threading
 from typing import List, Optional, Tuple
 
 from fastapi import FastAPI
@@ -48,7 +50,10 @@ class InitializationCoordinator:
         self.handler_initializer: Optional[HandlerInitializer] = None
         self._initialized_phases: List[str] = []
         self._is_initialized: bool = False
-        self._initialization_lock: Optional[object] = None  # Will be set to asyncio.Lock on first use
+        # INITIALIZATION RACE FIX: Use threading.Lock to protect asyncio.Lock creation
+        # This prevents race condition when initialize() is called from multiple threads
+        self._lock_creation_lock = threading.Lock()
+        self._initialization_lock: Optional[asyncio.Lock] = None
 
     @property
     def is_initialized(self) -> bool:
@@ -86,10 +91,21 @@ class InitializationCoordinator:
                 "Check is_initialized property before calling initialize()."
             )
 
-        # Lazy import to avoid circular dependencies
-        import asyncio
+        # INITIALIZATION RACE FIX: Use threading.Lock to protect asyncio.Lock creation
+        # This ensures only one thread creates the asyncio.Lock, preventing race conditions
+        # when initialize() is called concurrently from different threads
         if self._initialization_lock is None:
-            self._initialization_lock = asyncio.Lock()
+            with self._lock_creation_lock:
+                # Double-check after acquiring threading lock
+                if self._initialization_lock is None:
+                    # Get or create event loop for this thread
+                    try:
+                        loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        # No event loop running - create new one (shouldn't happen in normal usage)
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                    self._initialization_lock = asyncio.Lock()
 
         async with self._initialization_lock:
             # Double-check after acquiring lock
@@ -130,7 +146,7 @@ class InitializationCoordinator:
                 else:
                     original_error = InitializationError(
                         f"Initialization failed at phase '{self._initialized_phases[-1] if self._initialized_phases else 'unknown'}': {str(e)}"
-                    ) from e
+                    )
 
                 logger.error(
                     f"Initialization failed at phase: {self._initialized_phases[-1] if self._initialized_phases else 'unknown'}",

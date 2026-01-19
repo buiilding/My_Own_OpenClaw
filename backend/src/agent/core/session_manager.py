@@ -6,6 +6,7 @@ and cleanup.
 """
 import asyncio
 import logging
+import time
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -141,6 +142,8 @@ class SessionManager(ConfigSubscriber):
         config: AppConfig,
         create_agent_session_func,
         user_config_manager: UserConfigManager,
+        session_ttl_hours: float = 24.0,
+        reaper_interval_seconds: float = 3600.0,
     ):
         """
         Initialize the session manager.
@@ -149,15 +152,24 @@ class SessionManager(ConfigSubscriber):
             config: Global application configuration
             create_agent_session_func: Function to create agent sessions (takes user_id, config)
             user_config_manager: User configuration manager for per-user config
+            session_ttl_hours: Hours of inactivity before session expires (default: 24)
+            reaper_interval_seconds: Seconds between reaper runs (default: 3600 = 1 hour)
         """
         self.config = config
         self.create_agent_session = create_agent_session_func
         self.user_config_manager = user_config_manager
         self.active_sessions: Dict[str, AgentSession] = {}
+        # Track last activity time for each session (for TTL expiry)
+        self._session_last_activity: Dict[str, float] = {}
         # Per-user locks to prevent race conditions during session creation
         self._user_locks: Dict[str, asyncio.Lock] = {}
         # Lock for managing user_locks dictionary itself
         self._locks_lock = asyncio.Lock()
+        # Session expiry configuration
+        self.session_ttl_seconds = session_ttl_hours * 3600.0
+        self.reaper_interval_seconds = reaper_interval_seconds
+        self._reaper_task: Optional[asyncio.Task] = None
+        self._shutdown_event = asyncio.Event()
 
     async def _get_user_lock(self, user_id: str) -> asyncio.Lock:
         """
@@ -212,7 +224,7 @@ class SessionManager(ConfigSubscriber):
                 global_config = self.config
                 
                 # Merge with user-specific config
-                user_config = self.user_config_manager.load_user_config(user_id)
+                user_config = await self.user_config_manager.load_user_config(user_id)
                 
                 # Merge configs (handles special cases like TTS)
                 merged_config = _merge_user_config(global_config, user_config)
@@ -222,6 +234,8 @@ class SessionManager(ConfigSubscriber):
                     user_id=user_id, config=merged_config
                 )
                 self.active_sessions[user_id] = session
+                # MEMORY LEAK FIX: Track last activity time for TTL expiry
+                self._session_last_activity[user_id] = time.time()
                 logger.info(f"Successfully created session for user {user_id}")
                 return session
             except Exception as e:
@@ -235,12 +249,17 @@ class SessionManager(ConfigSubscriber):
         """
         Retrieves an active session for a user.
         
+        Updates last activity time to prevent expiry of active sessions.
+        
         Args:
             user_id: User identifier
             
         Returns:
             AgentSession if exists, None otherwise
         """
+        if user_id in self.active_sessions:
+            # MEMORY LEAK FIX: Update last activity time on access
+            self._session_last_activity[user_id] = time.time()
         return self.active_sessions.get(user_id)
 
     async def end_session(self, user_id: str):
@@ -280,6 +299,9 @@ class SessionManager(ConfigSubscriber):
             finally:
                 # Always remove from cache, even if cleanup fails
                 del self.active_sessions[user_id]
+                # MEMORY LEAK FIX: Remove activity tracking
+                if user_id in self._session_last_activity:
+                    del self._session_last_activity[user_id]
                 
                 # Clean up lock if no longer needed
                 async with self._locks_lock:
@@ -290,27 +312,55 @@ class SessionManager(ConfigSubscriber):
         """
         Updates the configuration for all active sessions.
         
+        Thread-safe: Acquires per-user locks to prevent race conditions with
+        end_session during cleanup. This ensures update_config doesn't run on
+        a session that's being destroyed.
+        
         Args:
             config: New configuration to apply
         """
-        # Update container config for future sessions
-        self.container.update_config(config)
+        # Update container config for future sessions (if container exists)
+        if hasattr(self, 'container'):
+            self.container.update_config(config)
 
-        # Update all active sessions
+        # RACE CONDITION FIX: Acquire user locks before updating to prevent
+        # conflicts with end_session which also holds the lock during cleanup
         errors = []
         for user_id, session in list(self.active_sessions.items()):
-            try:
-                await session.update_config(config)
-            except Exception as e:
-                logger.error(
-                    f"Error updating config for user {user_id}'s session: {e}",
-                    exc_info=True,
-                )
-                errors.append((user_id, e))
+            # Acquire the user lock to serialize with end_session
+            user_lock = await self._get_user_lock(user_id)
+            async with user_lock:
+                # Double-check session still exists (may have been removed while waiting)
+                if user_id not in self.active_sessions:
+                    continue
+                
+                try:
+                    await session.update_config(config)
+                except Exception as e:
+                    logger.error(
+                        f"Error updating config for user {user_id}'s session: {e}",
+                        exc_info=True,
+                    )
+                    errors.append((user_id, e))
         
         if errors:
             logger.warning(f"Failed to update config for {len(errors)} session(s)")
 
+    async def on_config_changed(
+        self, old_config: AppConfig, new_config: AppConfig
+    ) -> None:
+        """
+        Handle configuration changes (implements ConfigSubscriber protocol).
+
+        This method is called automatically by ConfigurationService when config changes.
+
+        Args:
+            old_config: Previous configuration
+            new_config: New configuration
+        """
+        logger.info("SessionManager received config change notification")
+        await self.update_all_sessions_config(new_config)
+    
     async def update_user_session_config(self, user_id: str, config: AppConfig):
         """
         Updates the configuration for a specific user's session.
@@ -335,18 +385,3 @@ class SessionManager(ConfigSubscriber):
                 f"No active session for user {user_id}, "
                 "config will be applied on next session creation"
             )
-
-    async def on_config_changed(
-        self, old_config: AppConfig, new_config: AppConfig
-    ) -> None:
-        """
-        Handle configuration changes (implements ConfigSubscriber protocol).
-
-        This method is called automatically by ConfigurationService when config changes.
-
-        Args:
-            old_config: Previous configuration
-            new_config: New configuration
-        """
-        logger.info("SessionManager received config change notification")
-        await self.update_all_sessions_config(new_config)

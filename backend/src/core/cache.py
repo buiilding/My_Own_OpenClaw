@@ -7,10 +7,12 @@ Provides in-memory caching with TTL support for:
 - LLM client instances
 - Other frequently accessed data
 """
+import asyncio
 import hashlib
 import logging
 import threading
 import time
+from collections import OrderedDict
 from typing import Any, Dict, Optional, TypeVar, Callable, Awaitable
 from dataclasses import dataclass, field
 
@@ -30,34 +32,49 @@ class CacheEntry:
 
 class Cache:
     """
-    Simple in-memory cache with TTL support.
+    In-memory cache with TTL support and LRU eviction.
     
     Thread-safe: Uses RLock for all operations to prevent race conditions.
+    Prevents deadlocks by using separate synchronization primitives for sync and async operations.
     
-    Note: This cache has no size limit. For production use with many unique keys,
-    consider adding size limits or LRU eviction to prevent unbounded memory growth.
-    For distributed systems, consider using Redis or similar distributed cache.
+    Features:
+    - TTL-based expiration
+    - LRU eviction when max_size is reached
+    - Negative caching for errors (configurable TTL)
+    - Separate sync/async coordination to prevent deadlocks
     """
     
-    def __init__(self, default_ttl: float = 3600.0):
+    def __init__(
+        self,
+        default_ttl: float = 3600.0,
+        max_size: Optional[int] = None,
+        error_ttl: float = 5.0
+    ):
         """
         Initialize the cache.
         
         Args:
             default_ttl: Default time-to-live in seconds (default: 1 hour)
+            max_size: Maximum number of entries (None = unlimited, default: None)
+            error_ttl: TTL for cached errors in seconds (default: 5.0)
         """
-        self._cache: Dict[str, CacheEntry] = {}
+        self._cache: OrderedDict[str, CacheEntry] = OrderedDict()
         self.default_ttl = default_ttl
+        self.error_ttl = error_ttl
+        self.max_size = max_size
         self._hits = 0
         self._misses = 0
         self._lock = threading.RLock()  # Reentrant lock for thread safety
-        self._computing: Dict[str, threading.Event] = {}  # Track ongoing computations
+        # Separate sync and async coordination to prevent deadlocks
+        self._computing_sync: Dict[str, threading.Event] = {}  # For sync operations
+        self._computing_async: Dict[str, asyncio.Event] = {}  # For async operations
     
     def get(self, key: str) -> Optional[Any]:
         """
         Get a value from the cache.
         
         Thread-safe: Uses lock to prevent race conditions.
+        Updates LRU order on access.
         
         Args:
             key: Cache key
@@ -82,6 +99,9 @@ class Cache:
                 self._misses += 1
                 return None
             
+            # Update LRU order (move to end)
+            self._cache.move_to_end(key)
+            
             self._hits += 1
             # THUNDERING HERD FIX: If this is a cached error, raise it
             # This propagates the exception to all waiters instead of allowing retries
@@ -94,6 +114,7 @@ class Cache:
         Set a value in the cache.
         
         Thread-safe: Uses lock to prevent race conditions.
+        Evicts LRU entries if max_size is exceeded.
         
         Args:
             key: Cache key
@@ -104,10 +125,26 @@ class Cache:
         expires_at = time.time() + ttl
         
         with self._lock:
+            # Check if key already exists (affects whether we need to evict)
+            key_exists = key in self._cache
+            
+            # Remove existing entry if present (to update LRU order)
+            if key_exists:
+                del self._cache[key]
+            
+            # Evict LRU entries if max_size would be exceeded
+            # Only need to evict if adding a new key (not replacing existing)
+            if not key_exists and self.max_size is not None and len(self._cache) >= self.max_size:
+                # Remove oldest entry (first in OrderedDict)
+                if self._cache:
+                    self._cache.popitem(last=False)
+            
             self._cache[key] = CacheEntry(
                 value=value,
                 expires_at=expires_at
             )
+            # Move to end (most recently used)
+            self._cache.move_to_end(key)
     
     def delete(self, key: str) -> bool:
         """
@@ -205,14 +242,14 @@ class Cache:
         event = None
         should_compute = False
         with self._lock:
-            if key in self._computing:
+            if key in self._computing_sync:
                 # Another thread is computing, wait for it
-                event = self._computing[key]
+                event = self._computing_sync[key]
                 should_compute = False
             else:
                 # Mark that we're computing this value
                 event = threading.Event()
-                self._computing[key] = event
+                self._computing_sync[key] = event
                 should_compute = True
         
         if not should_compute:
@@ -231,13 +268,13 @@ class Cache:
                 raise
             # If still not found (expired), compute ourselves
             with self._lock:
-                if key not in self._computing:
+                if key not in self._computing_sync:
                     event = threading.Event()
-                    self._computing[key] = event
+                    self._computing_sync[key] = event
                     should_compute = True
                 else:
                     # Another thread started, wait again
-                    event = self._computing[key]
+                    event = self._computing_sync[key]
                     if not event.is_set():
                         event.wait()
                         try:
@@ -248,9 +285,9 @@ class Cache:
                             # Cached error - propagate instead of retrying
                             raise
                     # If still not found, we compute
-                    if key not in self._computing:
+                    if key not in self._computing_sync:
                         event = threading.Event()
-                        self._computing[key] = event
+                        self._computing_sync[key] = event
                         should_compute = True
         
         if should_compute:
@@ -263,26 +300,28 @@ class Cache:
             except Exception as e:
                 # THUNDERING HERD FIX: Store exception for propagation to waiters
                 # This prevents all waiters from immediately retrying when computation fails
-                computation_error = e
-                # Negative caching: Cache the exception for a short TTL (5 seconds)
+                # Negative caching: Cache the exception for a short TTL
                 # This prevents thundering herd on persistent failures (e.g., backend service down)
                 # Waiters will receive the exception instead of retrying immediately
-                import time
-                error_ttl = 5.0  # Short TTL for errors to allow recovery
                 error_entry = CacheEntry(
                     value=e,  # Store exception as value (callers must check type)
-                    expires_at=time.time() + error_ttl,
+                    expires_at=time.time() + self.error_ttl,
                     is_error=True  # Mark as error entry
                 )
                 with self._lock:
+                    # Evict LRU entries if max_size exceeded
+                    if self.max_size is not None and len(self._cache) >= self.max_size:
+                        if self._cache:
+                            self._cache.popitem(last=False)
                     self._cache[key] = error_entry
+                    self._cache.move_to_end(key)
                 # Re-raise to propagate to caller
                 raise
             finally:
                 # Always cleanup, even if computation fails
                 with self._lock:
-                    if key in self._computing and self._computing[key] is event:
-                        del self._computing[key]
+                    if key in self._computing_sync and self._computing_sync[key] is event:
+                        del self._computing_sync[key]
                     if event is not None:
                         event.set()
         else:
@@ -299,8 +338,8 @@ class Cache:
         Get value from cache or compute it asynchronously if not found.
         
         Thread-safe: Prevents duplicate computations when multiple coroutines
-        request the same key simultaneously. Uses the same synchronization mechanism
-        as get_or_compute for consistency.
+        request the same key simultaneously. Uses asyncio.Event to prevent deadlocks
+        when called from the event loop thread.
         
         Args:
             key: Cache key
@@ -311,50 +350,119 @@ class Cache:
             Cached or computed value
         """
         # Try to get from cache first
-        value = self.get(key)
-        if value is not None:
-            return value
-        
-        # Check if another coroutine is already computing this value
-        event = None
-        with self._lock:
-            if key in self._computing:
-                # Wait for the other coroutine to finish computing
-                event = self._computing[key]
-            else:
-                # Mark that we're computing this value
-                event = threading.Event()
-                self._computing[key] = event
-        
-        if event is not None and event.is_set():
-            # Another coroutine was computing, wait for it
-            # Note: threading.Event.wait() is blocking, but in async context
-            # we should use asyncio.sleep to yield control
-            import asyncio
-            while not event.is_set():
-                await asyncio.sleep(0.01)  # Yield control while waiting
-            # Try to get the value again
+        try:
             value = self.get(key)
             if value is not None:
                 return value
-            # If still not found, we'll compute it ourselves
-            with self._lock:
-                if key not in self._computing:
-                    event = threading.Event()
-                    self._computing[key] = event
+        except Exception as e:
+            # Cached error - propagate to caller
+            raise
         
-        # Compute the value (outside lock to allow other operations)
-        try:
-            value = await compute_func()
-            self.set(key, value, ttl)
-            return value
-        finally:
-            # Always cleanup, even if computation fails
+        # Check if another coroutine is already computing this value
+        event = None
+        should_compute = False
+        with self._lock:
+            if key in self._computing_async:
+                # Wait for the other coroutine to finish computing
+                event = self._computing_async[key]
+                should_compute = False
+            else:
+                # Mark that we're computing this value
+                # Create asyncio.Event in the event loop context
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    # No event loop running, create new one (shouldn't happen in normal usage)
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                event = asyncio.Event()
+                self._computing_async[key] = event
+                should_compute = True
+        
+        if not should_compute:
+            # Wait for the other coroutine to finish (non-blocking for event loop)
+            await event.wait()
+            # Try to get the value again after waiting
+            try:
+                value = self.get(key)
+                if value is not None:
+                    return value
+            except Exception as e:
+                # Cached error - propagate to caller instead of retrying
+                raise
+            # If still not found (expired), compute ourselves
             with self._lock:
-                if key in self._computing and self._computing[key] is event:
-                    del self._computing[key]
-                if event is not None:
-                    event.set()
+                if key not in self._computing_async:
+                    try:
+                        loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                    event = asyncio.Event()
+                    self._computing_async[key] = event
+                    should_compute = True
+                else:
+                    # Another coroutine started, wait again
+                    event = self._computing_async[key]
+                    if not event.is_set():
+                        await event.wait()
+                        try:
+                            value = self.get(key)
+                            if value is not None:
+                                return value
+                        except Exception as e:
+                            # Cached error - propagate instead of retrying
+                            raise
+                    # If still not found, we compute
+                    if key not in self._computing_async:
+                        try:
+                            loop = asyncio.get_running_loop()
+                        except RuntimeError:
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                        event = asyncio.Event()
+                        self._computing_async[key] = event
+                        should_compute = True
+        
+        if should_compute:
+            # Compute the value (outside lock to allow other operations)
+            try:
+                value = await compute_func()
+                self.set(key, value, ttl)
+                return value
+            except Exception as e:
+                # THUNDERING HERD FIX: Store exception for propagation to waiters
+                # Negative caching: Cache the exception for a short TTL
+                error_entry = CacheEntry(
+                    value=e,
+                    expires_at=time.time() + self.error_ttl,
+                    is_error=True
+                )
+                with self._lock:
+                    # Evict LRU entries if max_size exceeded
+                    if self.max_size is not None and len(self._cache) >= self.max_size:
+                        if self._cache:
+                            self._cache.popitem(last=False)
+                    self._cache[key] = error_entry
+                    self._cache.move_to_end(key)
+                # Re-raise to propagate to caller
+                raise
+            finally:
+                # Always cleanup, even if computation fails
+                with self._lock:
+                    if key in self._computing_async and self._computing_async[key] is event:
+                        del self._computing_async[key]
+                    if event is not None:
+                        event.set()
+        else:
+            # Fallback: should not reach here, but handle gracefully
+            try:
+                value = self.get(key)
+                if value is not None:
+                    return value
+            except Exception as e:
+                raise
+            return await compute_func()
 
 
 class CacheManager:

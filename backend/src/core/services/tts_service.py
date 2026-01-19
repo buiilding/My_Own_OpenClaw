@@ -29,6 +29,10 @@ class TTSService:
         self.running = False
         self.loop = None
         self.use_cuda = True  # Track whether we're using CUDA or CPU
+        # PERMANENT CPU TRAP FIX: Track when we switched to CPU and last retry attempt
+        self._cuda_fallback_time: Optional[float] = None  # Timestamp when switched to CPU
+        self._cuda_retry_interval = 300.0  # Retry CUDA every 5 minutes
+        self._cuda_retry_task: Optional[asyncio.Task] = None
 
         # Queues
         self.input_queue = queue.Queue()  # Sentences to synthesize
@@ -73,6 +77,10 @@ class TTSService:
             logger.info(
                 f"TTS Service initialized with model: {self.config.tts_model_path}"
             )
+            
+            # PERMANENT CPU TRAP FIX: Start CUDA retry task if we're in CPU mode
+            if not self.use_cuda:
+                self._start_cuda_retry_task()
         except Exception as e:
             logger.error(f"Failed to initialize TTS Service: {e}", exc_info=True)
 
@@ -220,15 +228,95 @@ class TTSService:
         """
         Reload TTS model with CPU fallback.
         
+        PERMANENT CPU TRAP FIX: Records timestamp when switching to CPU and starts
+        retry task to periodically attempt CUDA reload.
+        
         Raises:
             Exception: If reload fails
         """
+        import time
         from piper import PiperVoice
         self.voice = PiperVoice.load(
             self.config.tts_model_path, use_cuda=False
         )
         self.use_cuda = False
+        self._cuda_fallback_time = time.time()
         logger.debug("TTS model reloaded with CPU")
+        
+        # Start retry task if not already running
+        if self.loop and not self._cuda_retry_task:
+            self._start_cuda_retry_task()
+    
+    def _start_cuda_retry_task(self) -> None:
+        """
+        Start background task to periodically retry CUDA initialization.
+        
+        PERMANENT CPU TRAP FIX: After switching to CPU due to transient GPU errors,
+        this task periodically attempts to reload with CUDA to recover performance.
+        """
+        if not self.loop:
+            return
+        
+        async def _cuda_retry_loop():
+            """Background task that periodically attempts CUDA reload."""
+            while self.running and not self.use_cuda:
+                try:
+                    # Wait for retry interval
+                    await asyncio.sleep(self._cuda_retry_interval)
+                    
+                    if not self.running or self.use_cuda:
+                        break
+                    
+                    # Check if enough time has passed since fallback
+                    import time
+                    if self._cuda_fallback_time is None:
+                        break
+                    
+                    elapsed = time.time() - self._cuda_fallback_time
+                    if elapsed < self._cuda_retry_interval:
+                        continue
+                    
+                    logger.info("Attempting to reload TTS model with CUDA after CPU fallback...")
+                    
+                    # Try to reload with CUDA in executor
+                    try:
+                        await self.loop.run_in_executor(None, self._try_reload_cuda)
+                        if self.use_cuda:
+                            logger.info("TTS successfully reloaded with CUDA - performance restored")
+                            self._cuda_fallback_time = None
+                            break
+                    except Exception as e:
+                        logger.debug(f"CUDA retry failed (will retry later): {e}")
+                
+                except asyncio.CancelledError:
+                    break
+                except Exception as e:
+                    logger.error(f"Error in CUDA retry loop: {e}", exc_info=True)
+        
+        self._cuda_retry_task = self.loop.create_task(_cuda_retry_loop())
+    
+    def _try_reload_cuda(self) -> None:
+        """
+        Attempt to reload TTS model with CUDA.
+        
+        Called from executor thread to avoid blocking event loop.
+        """
+        from piper import PiperVoice
+        try:
+            self.voice = PiperVoice.load(
+                self.config.tts_model_path, use_cuda=True
+            )
+            self.use_cuda = True
+            logger.info("TTS model reloaded with CUDA successfully")
+        except Exception as e:
+            # Still a CUDA error - keep using CPU
+            if self._is_cuda_error(e):
+                logger.debug(f"CUDA reload still failing: {e}")
+                raise
+            else:
+                # Non-CUDA error - unexpected, but keep using CPU
+                logger.warning(f"Unexpected error during CUDA reload: {e}")
+                raise
 
     def _synthesize_with_fallback(self, text: str) -> bool:
         """
@@ -353,6 +441,15 @@ class TTSService:
     async def shutdown(self):
         """Shutdown the service."""
         self.running = False
+        
+        # PERMANENT CPU TRAP FIX: Cancel CUDA retry task
+        if self._cuda_retry_task:
+            self._cuda_retry_task.cancel()
+            try:
+                await self._cuda_retry_task
+            except asyncio.CancelledError:
+                pass
+        
         self.input_queue.put(None)
         if self.worker_thread:
             # We can't join the thread if we are in the loop calling this,
@@ -406,11 +503,16 @@ class TTSService:
                 )
                 self.input_queue.put(forced_sentence)
             
-            # Keep remaining text (will be processed in next call)
+            # TTS BUFFER STALL FIX: Process remaining text immediately instead of returning.
+            # The remaining text may contain complete sentences that should be processed now,
+            # not wait for more text to arrive. This prevents text from getting stuck in buffer.
             remaining_after_split = buffer[split_pos:].strip()
             self.buffer_parts.clear()
             if remaining_after_split:
                 self.buffer_parts.append(remaining_after_split)
+                # Recursively process remaining text to check for delimiters
+                # This ensures complete sentences in the remainder are processed immediately
+                self._process_buffer()
             return
         
         # Clear buffer parts - we'll rebuild with remaining text

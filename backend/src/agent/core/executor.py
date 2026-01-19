@@ -4,6 +4,7 @@ Agent Executor - Core execution loop for the agent.
 This module implements the main agent execution loop that processes user queries,
 manages tool execution, handles LLM streaming, and coordinates memory operations.
 """
+import asyncio
 import logging
 from typing import TYPE_CHECKING, AsyncGenerator, Optional
 
@@ -189,12 +190,15 @@ class AgentExecutor:
                         yield memory_event
                     except GeneratorExit:
                         # Client disconnected before we could yield the event
-                        # Fallback: Publish to event bus as a side-effect to ensure it's handled
+                        # FRAGILE ASYNC CLEANUP FIX: Use fire-and-forget task to ensure
+                        # critical cleanup (memory storage) runs even if parent task is cancelled.
+                        # If we await here, cancellation can interrupt the await and lose the event.
                         logger.warning(
                             f"Client disconnected before MemoryStoreEvent could be yielded. "
-                            f"Publishing to event bus as fallback."
+                            f"Publishing to event bus as fallback (fire-and-forget)."
                         )
-                        await self.event_bus.publish(memory_event)
+                        # Create fire-and-forget task to ensure it runs even if we're cancelled
+                        asyncio.create_task(self.event_bus.publish(memory_event))
                 except Exception as e:
                     # Log but don't re-raise - we're in finally block
                     logger.error(

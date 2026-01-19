@@ -74,7 +74,7 @@ class LoadSettingsHandler(MessageHandler):
             global_config_dict = global_config.model_dump(exclude={"api_key"})
             
             # Merge with user-specific config (user config overrides global)
-            merged_config_dict = self.user_config_manager.merge_with_global_config(
+            merged_config_dict = await self.user_config_manager.merge_with_global_config(
                 user_id, global_config_dict
             )
             
@@ -149,24 +149,14 @@ class UpdateSettingsHandler(MessageHandler):
             new_config_data = validate_settings_update(validated.payload)
             
             # Get user-specific config to merge with updates
-            user_config = self.user_config_manager.load_user_config(user_id)
+            user_config = await self.user_config_manager.load_user_config(user_id)
             
             # Merge: user config + new updates (updates override existing user config)
             # Only frontend-managed fields should be in user_config and new_config_data
             merged_user_config = {**user_config, **new_config_data}
             
             # Save user-specific config (only frontend-managed fields - filters automatically)
-            # BLOCKING I/O FIX: Offload file I/O to thread pool to prevent event loop blocking
-            # Configuration saving involves writing to disk (JSON/YAML), which blocks the
-            # event loop and causes jitter for all active WebSocket connections.
-            import asyncio
-            loop = asyncio.get_running_loop()
-            await loop.run_in_executor(
-                None,
-                self.user_config_manager.save_user_config,
-                user_id,
-                merged_user_config
-            )
+            await self.user_config_manager.save_user_config(user_id, merged_user_config)
             
             # Build complete config with policies applied (delegates to service)
             validated_config = self.config_service.build_user_config(merged_user_config)

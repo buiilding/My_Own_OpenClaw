@@ -118,6 +118,9 @@ class EventBus:
         self.enable_error_recovery = enable_error_recovery
         self._event_stats: Dict[str, int] = {}
         self._lock = threading.RLock()  # Reentrant lock for thread safety
+        # Cache for sorted handler lists per event type (MRO tuple as key)
+        # Invalidated on subscribe/unsubscribe to avoid repeated sorting
+        self._handler_cache: Dict[tuple, List[EventHandlerWrapper]] = {}
     
     def subscribe(
         self,
@@ -130,6 +133,7 @@ class EventBus:
         Subscribe a handler to an event type.
         
         Thread-safe: Uses lock to prevent race conditions during subscription.
+        Invalidates handler cache for affected event types.
         
         Args:
             event_type: The type of event to subscribe to
@@ -147,6 +151,10 @@ class EventBus:
             # Sort by priority (lower = higher priority)
             self._subscribers[event_type].sort(key=lambda w: w.priority)
             
+            # Invalidate handler cache for all event types that inherit from this one
+            # (since MRO-based handler resolution may include this type)
+            self._invalidate_handler_cache()
+            
             logger.debug(
                 f"Subscribed {handler} to {event_type.__name__} "
                 f"(priority: {priority})"
@@ -157,6 +165,7 @@ class EventBus:
         Unsubscribe a handler from an event type.
         
         Thread-safe: Uses lock to prevent race conditions during unsubscription.
+        Invalidates handler cache for affected event types.
         
         Note: If the same handler is subscribed multiple times, only the first
         occurrence is removed. This matches typical usage patterns where handlers
@@ -177,6 +186,8 @@ class EventBus:
             for i, wrapper in enumerate(handlers):
                 if wrapper.handler == handler:
                     del handlers[i]
+                    # Invalidate handler cache
+                    self._invalidate_handler_cache()
                     logger.debug(f"Unsubscribed {handler} from {event_type.__name__}")
                     return True
             
@@ -222,6 +233,35 @@ class EventBus:
         )
         self.add_global_listener(middleware)
     
+    def _invalidate_handler_cache(self) -> None:
+        """Invalidate the handler cache (called on subscribe/unsubscribe)."""
+        self._handler_cache.clear()
+    
+    def _get_cached_handlers(self, event_type: Type[Event]) -> Optional[List[EventHandlerWrapper]]:
+        """
+        Get cached sorted handlers for an event type.
+        
+        Args:
+            event_type: The event type
+            
+        Returns:
+            Cached handler list if available, None otherwise
+        """
+        # Use MRO tuple as cache key (handlers depend on inheritance hierarchy)
+        mro_key = tuple(cls for cls in event_type.__mro__ if cls is not object)
+        return self._handler_cache.get(mro_key)
+    
+    def _cache_handlers(self, event_type: Type[Event], handlers: List[EventHandlerWrapper]) -> None:
+        """
+        Cache sorted handlers for an event type.
+        
+        Args:
+            event_type: The event type
+            handlers: Sorted handler list to cache
+        """
+        mro_key = tuple(cls for cls in event_type.__mro__ if cls is not object)
+        self._handler_cache[mro_key] = handlers
+    
     async def publish(self, event: Event) -> None:
         """
         Publish an event to all subscribers.
@@ -265,30 +305,40 @@ class EventBus:
         # This ensures that subscribers to parent classes receive child events.
         # For example, if someone subscribes to StreamingEvent, they will receive
         # ThinkingEvent, ToolCallEvent, etc.
-        handlers = []
-        with self._lock:
-            # Iterate over MRO to find all matching subscribers
-            for cls in event_type.__mro__:
-                # Skip object base class
-                if cls is object:
-                    continue
-                # Check if this class (or any parent) has subscribers
-                if cls in self._subscribers:
-                    handlers.extend(self._subscribers[cls])
         
-        # Remove duplicates while preserving order (handlers may be subscribed to multiple levels)
-        # Use handler object identity to deduplicate
-        seen = set()
-        unique_handlers = []
-        for handler in handlers:
-            handler_id = id(handler)
-            if handler_id not in seen:
-                seen.add(handler_id)
-                unique_handlers.append(handler)
+        # Check cache first to avoid repeated sorting
+        unique_handlers = self._get_cached_handlers(event_type)
         
-        # Sort by priority (lower = higher priority) to maintain execution order
-        # across handlers from different MRO levels
-        unique_handlers.sort(key=lambda w: w.priority)
+        if unique_handlers is None:
+            # Cache miss: compute handler list
+            handlers = []
+            with self._lock:
+                # Iterate over MRO to find all matching subscribers
+                for cls in event_type.__mro__:
+                    # Skip object base class
+                    if cls is object:
+                        continue
+                    # Check if this class (or any parent) has subscribers
+                    if cls in self._subscribers:
+                        handlers.extend(self._subscribers[cls])
+            
+            # Remove duplicates while preserving order (handlers may be subscribed to multiple levels)
+            # Use handler object identity to deduplicate
+            seen = set()
+            unique_handlers = []
+            for handler in handlers:
+                handler_id = id(handler)
+                if handler_id not in seen:
+                    seen.add(handler_id)
+                    unique_handlers.append(handler)
+            
+            # Sort by priority (lower = higher priority) to maintain execution order
+            # across handlers from different MRO levels
+            unique_handlers.sort(key=lambda w: w.priority)
+            
+            # Cache the result
+            with self._lock:
+                self._cache_handlers(event_type, unique_handlers)
         
         if not unique_handlers:
             logger.debug(f"No handlers for {event_name} (checked MRO: {[cls.__name__ for cls in event_type.__mro__ if cls is not object]})")
@@ -299,14 +349,20 @@ class EventBus:
         # Execute handlers in priority order
         # MEMORY MANAGEMENT: Filter out dead handlers (from weak references) during iteration
         active_handlers = [w for w in unique_handlers if w.is_alive()]
-        if len(active_handlers) < len(handlers):
+        if len(active_handlers) < len(unique_handlers):
             # Some handlers were garbage collected, clean them up
+            # Only clean the specific event types that were actually checked (from MRO)
             with self._lock:
-                # Remove dead handlers from the subscriber list
-                for event_type_key, handler_list in self._subscribers.items():
-                    self._subscribers[event_type_key] = [
-                        w for w in handler_list if w.is_alive()
-                    ]
+                # Invalidate cache since handlers changed
+                self._invalidate_handler_cache()
+                # Only clean event types that were in the MRO (not all event types)
+                for cls in event_type.__mro__:
+                    if cls is object:
+                        continue
+                    if cls in self._subscribers:
+                        self._subscribers[cls] = [
+                            w for w in self._subscribers[cls] if w.is_alive()
+                        ]
         
         for wrapper in active_handlers:
             try:

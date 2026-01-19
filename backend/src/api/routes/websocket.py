@@ -57,14 +57,13 @@ class SafeWebSocket:
     """
     Thread-safe WebSocket wrapper implementing WebSocketSender Protocol.
     
-    WebSocket operations in FastAPI/Starlette are not safe for concurrent access.
-    This wrapper serializes all send operations using an asyncio.Lock to prevent
-    race conditions when multiple coroutines attempt to send simultaneously.
+    PERFORMANCE FIX: Uses queue-based sender instead of lock to decouple message
+    generation from network latency. This prevents slow network I/O from blocking
+    other coroutines trying to send messages.
     
-    The lock is necessary because:
-    - Multiple handlers may send responses concurrently
-    - Background tasks (e.g., TTS audio streaming) may send while handlers send
-    - Without serialization, concurrent sends can corrupt the WebSocket protocol
+    WebSocket operations in FastAPI/Starlette are not safe for concurrent access.
+    This wrapper uses a single sender task that pulls from a queue, ensuring
+    serialized writes while allowing concurrent message enqueueing.
     
     Implements WebSocketSender Protocol to ensure type safety and enforce
     thread-safe usage throughout the codebase.
@@ -78,11 +77,65 @@ class SafeWebSocket:
             websocket: Underlying WebSocket connection
         """
         self._websocket = websocket
-        self._lock = asyncio.Lock()
+        # PERFORMANCE FIX: Use unbounded queue to decouple senders from network I/O
+        self._send_queue: asyncio.Queue = asyncio.Queue()
+        self._sender_task: Optional[asyncio.Task] = None
+        self._closed = False
+        self._close_event = asyncio.Event()
 
+    async def _sender_loop(self) -> None:
+        """
+        Background task that pulls messages from queue and sends them.
+        
+        This decouples message generation (fast) from network I/O (slow),
+        allowing multiple coroutines to enqueue messages concurrently without
+        blocking each other.
+        """
+        try:
+            while not self._closed:
+                try:
+                    # Get message from queue (with timeout to check closed flag)
+                    try:
+                        msg_type, data, mode, future = await asyncio.wait_for(
+                            self._send_queue.get(),
+                            timeout=0.1
+                        )
+                    except asyncio.TimeoutError:
+                        continue
+                    
+                    # Send the message
+                    try:
+                        if msg_type == "json":
+                            await self._websocket.send_json(data, mode=mode)
+                        elif msg_type == "text":
+                            await self._websocket.send_text(data)
+                        elif msg_type == "close":
+                            await self._websocket.close(code=data, reason=mode)
+                            break
+                        
+                        # Signal completion
+                        if future is not None:
+                            future.set_result(None)
+                    
+                    except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
+                        logger.debug(f"Send failed (connection closed): {e}")
+                        # Signal error to waiting coroutine
+                        if future is not None:
+                            future.set_exception(e)
+                        break
+                
+                except Exception as e:
+                    logger.error(f"Error in sender loop: {e}", exc_info=True)
+                    if future is not None:
+                        future.set_exception(e)
+                    break
+        
+        finally:
+            self._close_event.set()
+    
     async def send_json(self, data: Any, mode: str = "text") -> None:
         """
-        Thread-safe JSON send.
+        Thread-safe JSON send (non-blocking enqueue).
         
         Args:
             data: JSON-serializable data to send
@@ -92,17 +145,23 @@ class SafeWebSocket:
             RuntimeError: If connection error occurs
             ConnectionError: If connection error occurs
         """
-        async with self._lock:
-            try:
-                await self._websocket.send_json(data, mode=mode)
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-                logger.debug(f"Send failed (connection closed): {e}")
-                # We raise to let the caller know the stream is dead
-                raise
+        if self._closed:
+            raise RuntimeError("WebSocket is closed")
+        
+        # Start sender task if not already started
+        if self._sender_task is None:
+            self._sender_task = asyncio.create_task(self._sender_loop())
+        
+        # Create future to wait for completion
+        future = asyncio.Future()
+        await self._send_queue.put(("json", data, mode, future))
+        
+        # Wait for send to complete (or error)
+        await future
 
     async def send_text(self, data: str) -> None:
         """
-        Thread-safe text send.
+        Thread-safe text send (non-blocking enqueue).
         
         Args:
             data: Text data to send
@@ -111,12 +170,19 @@ class SafeWebSocket:
             RuntimeError: If connection error occurs
             ConnectionError: If connection error occurs
         """
-        async with self._lock:
-            try:
-                await self._websocket.send_text(data)
-            except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-                logger.debug(f"Send failed (connection closed): {e}")
-                raise
+        if self._closed:
+            raise RuntimeError("WebSocket is closed")
+        
+        # Start sender task if not already started
+        if self._sender_task is None:
+            self._sender_task = asyncio.create_task(self._sender_loop())
+        
+        # Create future to wait for completion
+        future = asyncio.Future()
+        await self._send_queue.put(("text", data, None, future))
+        
+        # Wait for send to complete (or error)
+        await future
 
     async def close(self, code: int = 1000, reason: Optional[str] = None) -> None:
         """
@@ -126,7 +192,25 @@ class SafeWebSocket:
             code: Close code (default: 1000)
             reason: Optional close reason
         """
-        async with self._lock:
+        if self._closed:
+            return
+        
+        self._closed = True
+        
+        # Enqueue close message
+        if self._sender_task is not None:
+            await self._send_queue.put(("close", code, reason, None))
+            # Wait for sender to finish
+            await self._close_event.wait()
+            # Cancel sender task if still running
+            if not self._sender_task.done():
+                self._sender_task.cancel()
+                try:
+                    await self._sender_task
+                except asyncio.CancelledError:
+                    pass
+        else:
+            # No sender task, close directly
             try:
                 await self._websocket.close(code=code, reason=reason)
             except Exception as e:
@@ -186,10 +270,15 @@ async def websocket_endpoint(
             # This ensures the lock is properly acquired before modifying the set
             loop.create_task(_remove_task_safely(task))
         except RuntimeError:
-            # Edge case: no running loop (shouldn't happen in normal operation)
-            # Fall back to direct removal - this is safe for single operations
-            # but may race with iteration (acceptable in shutdown scenarios)
-            active_tasks.discard(task)
+            # SHUTDOWN CRASH FIX: During shutdown, loop may be closed/closing.
+            # Fallback discard must be protected to prevent "Set changed size during iteration"
+            # errors if _cleanup_connection is iterating. Wrap in try/except to handle
+            # any RuntimeError from set mutation during iteration.
+            try:
+                active_tasks.discard(task)
+            except RuntimeError:
+                # Set is being iterated - ignore (cleanup will handle it)
+                pass
     
     # Handshake - user_id validation handled by Pydantic model
     try:

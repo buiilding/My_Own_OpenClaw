@@ -142,6 +142,10 @@ class Container:
 
         # Session manager (created lazily after container is fully initialized)
         self._session_manager: Optional[Any] = None
+        # CONTAINER LOCK INITIALIZATION RACE FIX: Initialize lock in __init__ to prevent race condition
+        # when multiple threads access session_manager property simultaneously
+        import threading
+        self._session_manager_lock = threading.Lock()
 
         # API container (created after session_manager is available)
         self._api_container: Optional[Any] = None
@@ -236,11 +240,9 @@ class Container:
         session state to be split across instances and leading to "lost" sessions.
         """
         if self._session_manager is None:
+            # CONTAINER LOCK INITIALIZATION RACE FIX: Lock is initialized in __init__,
+            # so we can safely use it here without race condition
             # Double-checked locking pattern for thread-safe lazy initialization
-            import threading
-            if not hasattr(self, '_session_manager_lock'):
-                self._session_manager_lock = threading.Lock()
-            
             with self._session_manager_lock:
                 # Check again after acquiring lock (another thread may have created it)
                 if self._session_manager is None:

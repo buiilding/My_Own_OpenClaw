@@ -4,6 +4,7 @@ Security Boundaries for Tool Execution.
 Provides permission checking, resource limits, and audit logging for tool execution.
 """
 import logging
+import threading
 import time
 from collections import deque
 from dataclasses import dataclass
@@ -68,36 +69,77 @@ class ToolExecutionAudit:
         # even when tools are called with large Base64 images or text blocks.
         self.parameters = self._sanitize_parameters(self.parameters)
     
-    def _sanitize_parameters(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def _sanitize_parameters(self, params: Dict[str, Any], visited: Optional[Set[int]] = None, depth: int = 0) -> Dict[str, Any]:
         """
         Sanitize parameters to prevent unbounded memory growth.
         
         - Excludes keys known to contain large data (images, screenshots, content)
         - Truncates string values to MAX_PARAM_VALUE_SIZE
         - Preserves structure for other parameter types
+        - RECURSIVE SANITIZATION CRASH FIX: Detects cycles to prevent infinite recursion
         
         Args:
             params: Original parameters dictionary
+            visited: Set of object IDs already visited (for cycle detection)
+            depth: Current recursion depth (for safety limit)
             
         Returns:
             Sanitized parameters dictionary with bounded memory usage
         """
+        # RECURSIVE SANITIZATION CRASH FIX: Cycle detection and depth limit
+        # Prevents infinite recursion from cyclic references (e.g., param['self'] = param)
+        MAX_RECURSION_DEPTH = 10  # Safety limit for deeply nested structures
+        if depth > MAX_RECURSION_DEPTH:
+            return {"[ERROR]": "Maximum recursion depth exceeded - structure too deeply nested"}
+        
+        if visited is None:
+            visited = set()
+        
+        # Track this dict's ID to detect cycles
+        params_id = id(params)
+        if params_id in visited:
+            return {"[CYCLE]": "Circular reference detected - skipping to prevent infinite recursion"}
+        visited.add(params_id)
+        
         sanitized = {}
-        for key, value in params.items():
-            # Exclude keys known to contain large data
-            if key.lower() in self.EXCLUDED_PARAM_KEYS:
-                sanitized[key] = f"[EXCLUDED: {type(value).__name__}, size={len(str(value))} bytes]"
-                continue
-            
-            # Truncate large string values
-            if isinstance(value, str):
-                if len(value) > self.MAX_PARAM_VALUE_SIZE:
-                    sanitized[key] = value[:self.MAX_PARAM_VALUE_SIZE] + f"... [TRUNCATED: {len(value)} bytes]"
+        try:
+            for key, value in params.items():
+                # Exclude keys known to contain large data
+                if key.lower() in self.EXCLUDED_PARAM_KEYS:
+                    sanitized[key] = f"[EXCLUDED: {type(value).__name__}, size={len(str(value))} bytes]"
+                    continue
+                
+                # Truncate large string values
+                if isinstance(value, str):
+                    if len(value) > self.MAX_PARAM_VALUE_SIZE:
+                        sanitized[key] = value[:self.MAX_PARAM_VALUE_SIZE] + f"... [TRUNCATED: {len(value)} bytes]"
+                    else:
+                        sanitized[key] = value
+                elif isinstance(value, dict):
+                    # RECURSIVE SANITIZATION CRASH FIX: Pass visited set and depth to detect cycles
+                    sanitized[key] = self._sanitize_parameters(value, visited, depth + 1)
+                elif isinstance(value, list):
+                    # Truncate lists if they contain large strings
+                    sanitized_list = []
+                    for item in value[:10]:  # Limit to first 10 items
+                        if isinstance(item, str) and len(item) > self.MAX_PARAM_VALUE_SIZE:
+                            sanitized_list.append(item[:self.MAX_PARAM_VALUE_SIZE] + f"... [TRUNCATED]")
+                        elif isinstance(item, dict):
+                            # RECURSIVE SANITIZATION CRASH FIX: Handle dicts in lists with cycle detection
+                            sanitized_list.append(self._sanitize_parameters(item, visited, depth + 1))
+                        else:
+                            sanitized_list.append(item)
+                    if len(value) > 10:
+                        sanitized_list.append(f"... [TRUNCATED: {len(value)} items]")
+                    sanitized[key] = sanitized_list
                 else:
+                    # Preserve other types as-is
                     sanitized[key] = value
-            elif isinstance(value, dict):
-                # Recursively sanitize nested dictionaries
-                sanitized[key] = self._sanitize_parameters(value)
+        finally:
+            # Remove from visited set when done (allows same object to appear in different branches)
+            visited.discard(params_id)
+        
+        return sanitized
             elif isinstance(value, list):
                 # Truncate lists if they contain large strings
                 sanitized_list = []
@@ -135,6 +177,9 @@ class SecurityPolicy:
         self.max_audit_log_size = 1000
         # Use deque for O(1) append/pop operations instead of O(N) list slicing
         self.audit_log: deque = deque(maxlen=self.max_audit_log_size)
+        # AUDIT LOG RACE FIX: Protect deque access with lock to prevent "deque mutated during iteration"
+        # While deque.append() is thread-safe, iteration (list(deque)) is not safe against concurrent mutation
+        self._audit_log_lock = threading.RLock()
         self.tool_registry = tool_registry
     
     def check_permission(
@@ -246,11 +291,15 @@ class SecurityPolicy:
         """
         Log tool execution for audit purposes.
         
+        Thread-safe: Uses lock to protect deque access.
+        
         Args:
             audit: Audit log entry
         """
-        # Deque automatically handles eviction when maxlen is reached (O(1) operation)
-        self.audit_log.append(audit)
+        # AUDIT LOG RACE FIX: Protect append with lock to prevent race with iteration
+        with self._audit_log_lock:
+            # Deque automatically handles eviction when maxlen is reached (O(1) operation)
+            self.audit_log.append(audit)
         
         # Log to logger
         status = "SUCCESS" if audit.success else "FAILED"
@@ -272,6 +321,8 @@ class SecurityPolicy:
         """
         Get audit log entries.
         
+        Thread-safe: Uses lock to protect deque iteration from concurrent mutation.
+        
         Args:
             tool_name: Filter by tool name (optional)
             user_id: Filter by user ID (optional)
@@ -280,8 +331,11 @@ class SecurityPolicy:
         Returns:
             List of audit log entries
         """
-        # Convert deque to list for filtering (deque doesn't support list comprehension directly)
-        entries = list(self.audit_log)
+        # AUDIT LOG RACE FIX: Copy deque to list inside lock to prevent "deque mutated during iteration"
+        # This ensures thread-safe iteration even if log_execution() is called concurrently
+        with self._audit_log_lock:
+            # Convert deque to list for filtering (deque doesn't support list comprehension directly)
+            entries = list(self.audit_log)
         
         if tool_name:
             entries = [e for e in entries if e.tool_name == tool_name]

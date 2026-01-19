@@ -166,17 +166,11 @@ class InteractionLoop:
             self.session.history.add_assistant_message(llm_response_text)
 
             # Execute tools (yields execution-time events)
+            # SESSION STATE LEAK FIX: Use finally block to ensure cleanup runs even if
+            # execute() raises an exception or client disconnects (GeneratorExit)
             try:
                 async for event in self.tool_executor.execute(parsed_response):
                     yield event
-
-                # Process tool results for history storage (for LLM context)
-                # Note: Frontend displays tool results immediately after execution.
-                # Backend only processes results for conversation history, not for display.
-                # ToolOutputEvent is only emitted for backend-side failures (e.g., coordinate resolution)
-                # which are already yielded by ToolPreparer during tool preparation.
-                await self.tool_executor.process_results(parsed_response)
-
             except Exception as e:
                 logger.error(f"Critical tool execution error: {e}", exc_info=True)
                 error_msg = f"Tool execution error: {str(e)}"
@@ -187,6 +181,24 @@ class InteractionLoop:
                     f"[System Error: {error_msg}]"
                 )
                 break
+            finally:
+                # SESSION STATE LEAK FIX: Always process results for cleanup, even if
+                # execute() failed or client disconnected. This prevents tool state
+                # (request_ids, pending results, prepared calls) from leaking in session.
+                # Process tool results for history storage (for LLM context)
+                # Note: Frontend displays tool results immediately after execution.
+                # Backend only processes results for conversation history, not for display.
+                # ToolOutputEvent is only emitted for backend-side failures (e.g., coordinate resolution)
+                # which are already yielded by ToolPreparer during tool preparation.
+                try:
+                    await self.tool_executor.process_results(parsed_response)
+                except Exception as cleanup_error:
+                    # Log but don't re-raise - we're in finally block and don't want to
+                    # mask the original exception if one occurred
+                    logger.error(
+                        f"Error during tool result cleanup: {cleanup_error}",
+                        exc_info=True
+                    )
 
         # Max iterations reached
         if iteration >= max_iterations and not in_extra_turn_after_final_tools:

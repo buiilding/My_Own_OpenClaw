@@ -133,7 +133,15 @@ class ToolExecutor:
                 return
         
         # Process individual results (non-bundled or bundled result not found)
-        processed_request_ids = set()
+        # MEMORY LEAK FIX: Extract ALL request_ids BEFORE processing to ensure cleanup
+        # even if transform or commit raises an exception on any result
+        all_request_ids = set()
+        for result in orchestration_result.tool_results:
+            if hasattr(result.tool_call, 'metadata') and result.tool_call.metadata:
+                request_id = result.tool_call.metadata.get('request_id')
+                if request_id:
+                    all_request_ids.add(request_id)
+        
         try:
             for result in orchestration_result.tool_results:
                 # Transform: pure computation (plugins, artifacts, formatting for history)
@@ -143,21 +151,14 @@ class ToolExecutor:
 
                 # Commit: state mutation (history update for LLM context)
                 self.history_committer.commit(processed)
-                
-                # Track processed request_ids for cleanup
-                # MEMORY LEAK FIX: Track request_id BEFORE processing to ensure cleanup
-                # even if transform or commit raises an exception
-                if hasattr(result.tool_call, 'metadata') and result.tool_call.metadata:
-                    request_id = result.tool_call.metadata.get('request_id')
-                    if request_id:
-                        processed_request_ids.add(request_id)
         finally:
             # MEMORY LEAK FIX: Cleanup in finally block to ensure removal even if
             # transform or commit raises an exception. This prevents tool results
             # from leaking memory in long-running sessions.
-            # Cleanup: Remove processed tool results and futures to prevent memory leak
-            # This is critical for long-running sessions with many tool executions
-            for request_id in processed_request_ids:
+            # Cleanup ALL request_ids that were involved in this turn, regardless of
+            # whether processing succeeded or failed. This is critical for long-running
+            # sessions with many tool executions.
+            for request_id in all_request_ids:
                 # Remove from pending results (already processed)
                 if request_id in self.session._pending_tool_results:
                     del self.session._pending_tool_results[request_id]
