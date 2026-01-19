@@ -75,6 +75,8 @@ class TTSProcessor:
         self.tts_manager = tts_manager
         self._is_tool_call_context = None  # State machine
         self._stream_buffer = ""
+        self._suppression_type = None  # 'code' or 'json' when suppressing
+        self._json_brace_depth = 0  # Track brace depth for JSON suppression
     
     async def process_event(
         self, 
@@ -230,3 +232,6 @@ class TTSProcessor:
         """Reset the state machine state."""
         self._is_tool_call_context = None
         self._stream_buffer = ""
+        self._suppression_type = None
+        self._json_brace_depth = 0
+
