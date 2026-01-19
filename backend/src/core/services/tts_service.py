@@ -560,7 +560,12 @@ class TTSService:
             self.buffer_parts.append(remaining)
 
     async def flush(self):
-        """Flush any remaining text in the buffer."""
+        """
+        Flush any remaining text in the buffer.
+        
+        PREMATURE TTS FLUSH FIX: Clears _processing_complete before waiting to ensure
+        we wait for the flushed text to be processed, not a previous completion signal.
+        """
         with self._buffer_lock:
             # Get any remaining text
             text = "".join(self.buffer_parts).strip()
@@ -573,9 +578,14 @@ class TTSService:
             
             self.buffer_parts.clear()
         
-        # CRITICAL FIX #3: Wait for queue to process instead of fixed sleep
-        # The worker thread will signal completion via _processing_complete event
+        # PREMATURE TTS FLUSH FIX: Clear completion event before waiting
+        # This ensures we wait for the flushed text to be processed, not a previous
+        # completion signal that was already set. Without this, if the event was set
+        # from a previous operation, wait() returns immediately and shutdown() is called
+        # before the flushed text is synthesized, causing audio truncation.
         if self._processing_complete:
+            # Clear the event to ensure we wait for new completion signal
+            self._processing_complete.clear()
             # Wait for queue to drain (with timeout to prevent hanging)
             try:
                 await asyncio.wait_for(

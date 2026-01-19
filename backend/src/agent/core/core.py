@@ -133,9 +133,14 @@ class AgentSession:
         # Session-scoped state for computer use
         # Screenshots are keyed by unique ID to prevent race conditions
         # Each screenshot gets a unique ID (hash or timestamp) to ensure OCR results match
-        self._screenshots: Dict[str, str] = {}  # screenshot_id -> base64_data
+        # MEMORY LEAK FIX: Use OrderedDict to implement LRU eviction for screenshots
+        # This prevents unbounded memory growth during long sessions with many tool executions
+        from collections import OrderedDict
+        self._screenshots: OrderedDict[str, str] = OrderedDict()  # screenshot_id -> base64_data
+        self._max_screenshots: int = 10  # Keep last 10 screenshots (LRU eviction)
         self._current_screenshot_id: Optional[str] = None  # ID of the most recent screenshot
-        self._ocr_results_by_screenshot: Dict[str, list[dict]] = {}  # screenshot_id -> OCR results
+        self._ocr_results_by_screenshot: OrderedDict[str, list[dict]] = OrderedDict()  # screenshot_id -> OCR results
+        self._max_ocr_results: int = 10  # Keep last 10 OCR result sets (LRU eviction)
         # SCREENSHOT REQUEST RACE FIX: Use dict to track multiple concurrent screenshot requests
         # Maps request_id -> Future to prevent race conditions when multiple tools request screenshots
         self._pending_screenshots: Dict[str, asyncio.Future] = {}
@@ -155,6 +160,8 @@ class AgentSession:
         """
         Get screenshot data by ID.
         
+        MEMORY LEAK FIX: Updates LRU order when accessing screenshots.
+        
         Args:
             screenshot_id: Optional screenshot ID. If None, returns current screenshot.
             
@@ -163,13 +170,17 @@ class AgentSession:
         """
         if screenshot_id is None:
             screenshot_id = self._current_screenshot_id
-        if screenshot_id:
-            return self._screenshots.get(screenshot_id)
+        if screenshot_id and screenshot_id in self._screenshots:
+            # MEMORY LEAK FIX: Move to end (most recently used) for LRU
+            self._screenshots.move_to_end(screenshot_id)
+            return self._screenshots[screenshot_id]
         return None
     
     def get_ocr_results(self, screenshot_id: Optional[str] = None) -> Optional[list[dict]]:
         """
         Get OCR results by screenshot ID.
+        
+        MEMORY LEAK FIX: Updates LRU order when accessing OCR results.
         
         Args:
             screenshot_id: Optional screenshot ID. If None, returns OCR for current screenshot.
@@ -179,8 +190,10 @@ class AgentSession:
         """
         if screenshot_id is None:
             screenshot_id = self._current_screenshot_id
-        if screenshot_id:
-            return self._ocr_results_by_screenshot.get(screenshot_id)
+        if screenshot_id and screenshot_id in self._ocr_results_by_screenshot:
+            # MEMORY LEAK FIX: Move to end (most recently used) for LRU
+            self._ocr_results_by_screenshot.move_to_end(screenshot_id)
+            return self._ocr_results_by_screenshot[screenshot_id]
         return None
     
     @property
@@ -205,6 +218,48 @@ class AgentSession:
             Current screenshot ID or None if no screenshot is available
         """
         return self._current_screenshot_id
+    
+    def _store_screenshot_with_eviction(self, screenshot_id: str, screenshot_data: str) -> None:
+        """
+        Store screenshot with LRU eviction.
+        
+        MEMORY LEAK FIX: Implements LRU eviction to prevent unbounded memory growth.
+        Keeps only the most recently used screenshots (up to _max_screenshots).
+        
+        Args:
+            screenshot_id: Unique ID for the screenshot
+            screenshot_data: Base64-encoded screenshot data
+        """
+        # Add or update screenshot (moves to end if already exists)
+        self._screenshots[screenshot_id] = screenshot_data
+        self._screenshots.move_to_end(screenshot_id)
+        
+        # Evict oldest if over limit
+        while len(self._screenshots) > self._max_screenshots:
+            oldest_id, _ = self._screenshots.popitem(last=False)
+            # Also remove associated OCR results
+            self._ocr_results_by_screenshot.pop(oldest_id, None)
+            logger.debug(f"Evicted old screenshot {oldest_id[:8]} (LRU cache limit reached)")
+    
+    def _store_ocr_results_with_eviction(self, screenshot_id: str, ocr_results: list[dict]) -> None:
+        """
+        Store OCR results with LRU eviction.
+        
+        MEMORY LEAK FIX: Implements LRU eviction to prevent unbounded memory growth.
+        Keeps only the most recently used OCR result sets (up to _max_ocr_results).
+        
+        Args:
+            screenshot_id: Unique ID for the screenshot
+            ocr_results: List of OCR results
+        """
+        # Add or update OCR results (moves to end if already exists)
+        self._ocr_results_by_screenshot[screenshot_id] = ocr_results
+        self._ocr_results_by_screenshot.move_to_end(screenshot_id)
+        
+        # Evict oldest if over limit
+        while len(self._ocr_results_by_screenshot) > self._max_ocr_results:
+            oldest_id, _ = self._ocr_results_by_screenshot.popitem(last=False)
+            logger.debug(f"Evicted old OCR results for screenshot {oldest_id[:8]} (LRU cache limit reached)")
     
     def register_pending_tool_result(self, request_id: str, result: Any) -> None:
         """
@@ -278,12 +333,25 @@ class AgentSession:
         # Memory storage is now handled by the frontend
 
     async def update_config(self, new_cfg: AppConfig) -> None:
-        """Updates the agent's configuration and re-initializes dependencies."""
+        """
+        Updates the agent's configuration and re-initializes dependencies.
+        
+        STALE CONFIGURATION FIX: Propagates LLM client updates through the entire
+        dependency chain: AgentSession -> AgentExecutor -> InteractionLoop -> LLMInteractionHandler.
+        Without this, LLMInteractionHandler holds a stale reference to the old LLM client,
+        causing settings updates (API keys, models) to not take effect until restart.
+        """
         async with self._lock:
             self.cfg = new_cfg
             # Re-initialize LLM client with new config
             self.llm_client = get_llm_client(self.cfg)
             self.executor.llm_client = self.llm_client
+            # STALE CONFIGURATION FIX: Update LLMInteractionHandler's reference
+            # This ensures settings updates (API keys, models) take effect immediately
+            if hasattr(self.executor, 'interaction_loop') and self.executor.interaction_loop:
+                if hasattr(self.executor.interaction_loop, 'llm_handler') and self.executor.interaction_loop.llm_handler:
+                    self.executor.interaction_loop.llm_handler.llm_client = self.llm_client
+                    logger.debug("Updated LLMInteractionHandler with new LLM client")
 
     async def process_query(
         self, 

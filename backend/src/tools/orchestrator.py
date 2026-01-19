@@ -105,6 +105,34 @@ class ToolOrchestrator:
             if session_ref:
                 prepared_call = session_ref.get_prepared_tool_call(request_id)
             
+            # STALE SCREEN EXECUTION FIX: Verify screenshot is still valid before execution
+            # If the screen changed since coordinate resolution, the coordinates might point
+            # to the wrong UI element, causing dangerous unintended actions.
+            if prepared_call and session_ref:
+                resolution_screenshot_id = prepared_call.metadata.get("coordinate_resolution_screenshot_id") if prepared_call.metadata else None
+                current_screenshot_id = session_ref.get_current_screenshot_id()
+                
+                if resolution_screenshot_id and current_screenshot_id and resolution_screenshot_id != current_screenshot_id:
+                    logger.warning(
+                        f"[request_id={_short_id(request_id)}] STALE SCREEN DETECTED: "
+                        f"Coordinates were resolved using screenshot {resolution_screenshot_id[:8]}, "
+                        f"but current screenshot is {current_screenshot_id[:8]}. "
+                        f"Screen changed before execution - tool will fail to prevent dangerous actions."
+                    )
+                    # Fail the tool to prevent executing on wrong screen
+                    results.append(SimpleNamespace(
+                        tool_call=tool_call,
+                        result=ToolResult(
+                            success=False,
+                            error="Screen changed before tool execution. Coordinates are no longer valid.",
+                            llm_content="Error: The screen state changed after coordinate resolution. Please try again."
+                        ),
+                        success=False,
+                        execution_time=0,
+                        context=None
+                    ))
+                    continue
+            
             # Use prepared call if available, otherwise fall back to original
             # The prepared call has the same structure but with resolved coordinates
             effective_tool_call = prepared_call.to_parsed_call() if prepared_call else tool_call

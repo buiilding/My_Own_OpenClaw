@@ -323,14 +323,21 @@ class EventBus:
                         handlers.extend(self._subscribers[cls])
             
             # Remove duplicates while preserving order (handlers may be subscribed to multiple levels)
-            # Use handler object identity to deduplicate
+            # DUPLICATE EVENT DELIVERY FIX: Deduplicate by underlying handler identity, not wrapper identity
+            # If the same handler is subscribed to both ParentEvent and ChildEvent, it gets two different
+            # wrapper objects, but we want to execute the handler only once per event.
             seen = set()
             unique_handlers = []
-            for handler in handlers:
+            for wrapper in handlers:
+                # Get the underlying handler (may be None if weak reference is dead)
+                handler = wrapper.handler
+                if handler is None:
+                    continue  # Skip dead handlers
+                # Use handler identity for deduplication, not wrapper identity
                 handler_id = id(handler)
                 if handler_id not in seen:
                     seen.add(handler_id)
-                    unique_handlers.append(handler)
+                    unique_handlers.append(wrapper)
             
             # Sort by priority (lower = higher priority) to maintain execution order
             # across handlers from different MRO levels

@@ -177,8 +177,13 @@ class ToolPreparer:
 
                     # 5. Rewrite prepared tool call to manual mode (immutable - no mutation of original)
                     self._rewrite_to_manual(prepared_call, x, y)
+                    # STALE SCREEN EXECUTION FIX: Store screenshot_id used for coordinate resolution
+                    # This allows verification before execution to prevent clicks on wrong UI elements
+                    if not prepared_call.metadata:
+                        prepared_call.metadata = {}
+                    prepared_call.metadata["coordinate_resolution_screenshot_id"] = screenshot_id
                     logger.info(
-                        f"[request_id={_short_id(request_id)}] Resolved coordinates for {tool_call.tool_name}: ({x}, {y})"
+                        f"[request_id={_short_id(request_id)}] Resolved coordinates for {tool_call.tool_name}: ({x}, {y}) using screenshot {screenshot_id[:8]}"
                     )
                     
                     tool_prep_time = time.perf_counter() - tool_prep_start_time
@@ -199,6 +204,18 @@ class ToolPreparer:
                     # ENCAPSULATION: Use public method instead of accessing private member
                     session.register_pending_tool_result(request_id, synthetic_result)
 
+                    # PROTOCOL VIOLATION FIX: Yield ToolCallEvent before ToolOutputEvent
+                    # Frontend expects a tool call event before any output event to maintain
+                    # the request/response state machine. Without this, frontend receives
+                    # an output for a tool it never saw, causing JavaScript errors.
+                    yield ToolCallEvent(
+                        tool_name=tool_call.tool_name,
+                        parameters=tool_call.parameters,  # Use original parameters (coordinate resolution failed)
+                        raw_call=tool_call.raw_call,
+                        request_id=request_id,
+                        metadata={"coordinate_resolution_failed": True},  # Mark as failed
+                    )
+
                     # Yield ToolOutputEvent for backend-side failure
                     # This is the ONLY case where backend emits ToolOutputEvent:
                     # - Tool never reached frontend (coordinate resolution failed)
@@ -214,7 +231,7 @@ class ToolPreparer:
                         metadata={"coordinate_resolution_failed": True, "request_id": request_id},
                     )
 
-                    # Skip yielding ToolCallEvent - don't send invalid tool to frontend
+                    # Skip further processing - tool failed during preparation
                     # The orchestrator will still process this tool call from parsed_response.tool_calls
                     # and find the synthetic result in _pending_tool_results for history storage.
                     continue

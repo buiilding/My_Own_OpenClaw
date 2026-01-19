@@ -124,7 +124,8 @@ class ToolResultHandler:
             if screenshot_data:
                 # Store screenshot with ID and return tuple (screenshot_id, screenshot_data)
                 screenshot_id = self._generate_screenshot_id(screenshot_data)
-                self.session._screenshots[screenshot_id] = screenshot_data
+                # MEMORY LEAK FIX: Add with LRU eviction
+                self.session._store_screenshot_with_eviction(screenshot_id, screenshot_data)
                 self.session._current_screenshot_id = screenshot_id
                 # Return tuple so ScreenshotManager can access screenshot_id
                 screenshot_future.set_result((screenshot_id, screenshot_data))
@@ -179,7 +180,8 @@ class ToolResultHandler:
         # Update screenshot and trigger OCR if present
         if screenshot_data:
             screenshot_id = self._generate_screenshot_id(screenshot_data)
-            self.session._screenshots[screenshot_id] = screenshot_data
+            # MEMORY LEAK FIX: Add with LRU eviction
+            self.session._store_screenshot_with_eviction(screenshot_id, screenshot_data)
             self.session._current_screenshot_id = screenshot_id
             await self._maybe_trigger_ocr(screenshot_data, screenshot_id, request_id)
         
@@ -220,7 +222,8 @@ class ToolResultHandler:
         # Process screenshot if present (update session and trigger OCR)
         if bundle_screenshot:
             screenshot_id = self._generate_screenshot_id(bundle_screenshot)
-            self.session._screenshots[screenshot_id] = bundle_screenshot
+            # MEMORY LEAK FIX: Add with LRU eviction
+            self.session._store_screenshot_with_eviction(screenshot_id, bundle_screenshot)
             self.session._current_screenshot_id = screenshot_id
             logger.debug("Bundle result includes screenshot data")
             await self._maybe_trigger_ocr(bundle_screenshot, screenshot_id, bundle_request_id)
@@ -346,7 +349,8 @@ class ToolResultHandler:
                         # This prevents race conditions where a new screenshot arrives
                         # while OCR is processing the old one
                         if self.session._current_screenshot_id == screenshot_id:
-                            self.session._ocr_results_by_screenshot[screenshot_id] = results
+                            # MEMORY LEAK FIX: Store with LRU eviction
+                            self.session._store_ocr_results_with_eviction(screenshot_id, results)
                             logger.info(f"Proactive OCR completed for screenshot {screenshot_id[:8]} (request {request_id[:15]})")
                         else:
                             logger.debug(f"OCR completed for outdated screenshot {screenshot_id[:8]}, ignoring results")

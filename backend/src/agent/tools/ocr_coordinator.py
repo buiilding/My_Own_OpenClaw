@@ -58,11 +58,23 @@ class OcrCoordinator:
         else:
             # Event exists - wait for it (OCR might be in progress)
             # This is the synchronization point: we wait here until proactive OCR completes
+            # PROACTIVE OCR DEADLOCK FIX: Add timeout to prevent infinite hang if OCR worker fails
             logger.info("Waiting for proactive OCR to complete...")
-            await session.ocr_completion_event.wait()
-            ocr_wait_time = time.perf_counter() - ocr_wait_start
-            logger.info(f"[Timing] Proactive OCR wait completed in {ocr_wait_time:.3f}s")
-            logger.info("Proactive OCR completed, proceeding with coordinate resolution")
+            try:
+                # Wait up to 5 seconds for proactive OCR
+                # If timeout expires, fall through to on-demand OCR
+                await asyncio.wait_for(session.ocr_completion_event.wait(), timeout=5.0)
+                ocr_wait_time = time.perf_counter() - ocr_wait_start
+                logger.info(f"[Timing] Proactive OCR wait completed in {ocr_wait_time:.3f}s")
+                logger.info("Proactive OCR completed, proceeding with coordinate resolution")
+            except asyncio.TimeoutError:
+                ocr_wait_time = time.perf_counter() - ocr_wait_start
+                logger.warning(
+                    f"[Timing] Proactive OCR wait timed out after {ocr_wait_time:.3f}s. "
+                    f"OCR worker may have failed. Falling back to on-demand OCR."
+                )
+                # Event not set - OCR worker likely failed or crashed
+                # Fall through to on-demand OCR below
 
         # Get OCR results for the specific screenshot_id
         ocr_results = None
@@ -103,11 +115,13 @@ class OcrCoordinator:
             
             # Store results keyed by screenshot_id
             if screenshot_id:
-                session._ocr_results_by_screenshot[screenshot_id] = ocr_results
+                # MEMORY LEAK FIX: Store with LRU eviction
+                session._store_ocr_results_with_eviction(screenshot_id, ocr_results)
             else:
                 # Fallback: use current screenshot_id if available
                 if session._current_screenshot_id:
-                    session._ocr_results_by_screenshot[session._current_screenshot_id] = ocr_results
+                    # MEMORY LEAK FIX: Store with LRU eviction
+                    session._store_ocr_results_with_eviction(session._current_screenshot_id, ocr_results)
 
         if not ocr_results:
             raise ValueError("OCR analysis returned no results")

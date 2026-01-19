@@ -3,10 +3,8 @@ Wakeword Message Handler.
 
 Handles wakeword detection and activation messages.
 """
+import asyncio
 import logging
-from typing import Any, Dict
-
-from fastapi import WebSocketDisconnect
 
 from backend.src.api.core.base import MessageHandler
 from backend.src.api.core.errors import send_error_response, send_success_response
@@ -95,9 +93,28 @@ class WakewordHandler(MessageHandler):
             )
 
             # Generate TTS for greeting if speech mode enabled
+            # CRITICAL FIX #3: Wait for audio completion using proper async method
             if tts_service:
                 await tts_service.process_text(greeting)
                 await tts_service.flush()
+                
+                # Wait for TTS processing to complete (replaces busy-wait polling)
+                # This ensures the greeting is fully processed before cleanup
+                await tts_service.wait_until_finished(timeout=10.0)
+                
+                # WAKEWORD AUDIO CUT-OFF FIX: Wait for audio_task to finish sending all chunks
+                # wait_until_finished() only waits for TTS generation, not WebSocket transmission.
+                # On slow networks, audio_task might still be sending chunks when we reach finally.
+                # We must wait for audio_task to complete before cancelling to prevent truncation.
+                if audio_task and not audio_task.done():
+                    try:
+                        # Wait for audio_task to complete (with timeout to prevent hanging)
+                        await asyncio.wait_for(audio_task, timeout=5.0)
+                        logger.debug("Audio streaming task completed successfully")
+                    except asyncio.TimeoutError:
+                        logger.warning("Audio streaming task timeout - may still be sending chunks")
+                    except Exception as e:
+                        logger.debug(f"Audio streaming task error (expected on disconnect): {e}")
 
             logger.info(f"Wakeword activated for user {user_id} with greeting: {greeting}")
 
@@ -118,7 +135,9 @@ class WakewordHandler(MessageHandler):
             )
         finally:
             # Clean up TTS
-            # Ensure audio_task is cancelled if handler task is cancelled
+            # WAKEWORD AUDIO CUT-OFF FIX: Only cancel audio_task if it's not already done.
+            # If we waited for it above, it should be done by now. This prevents cancelling
+            # a task that's still sending the last audio chunks on slow networks.
             if audio_task and not audio_task.done():
                 audio_task.cancel()
             await self.tts_manager.cleanup(tts_service, audio_task)

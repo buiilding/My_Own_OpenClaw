@@ -45,27 +45,35 @@ class SentenceTransformerProvider(EmbeddingProvider):
         self._dimension: Optional[int] = None
         self._use_cache = True  # Enable caching by default
         self._initialized = False
+        # RACE CONDITION FIX: Lock to prevent concurrent model loading (OOM risk)
+        self._init_lock = asyncio.Lock()
 
     async def initialize(self) -> None:
         """
         Async initialization: Load the model in a thread pool to avoid blocking startup.
         
+        RACE CONDITION FIX: Uses asyncio.Lock to ensure only one concurrent call
+        loads the model, preventing double allocation and OOM crashes.
+        
         This method must be called before using embed_text or embed_batch.
         """
-        if self._initialized:
-            return
-        
-        logger.info(f"Loading embedding model: {self._model_name} on {self._device}")
-        loop = asyncio.get_running_loop()
-        
-        # Offload model loading to thread pool
-        self.model = await loop.run_in_executor(
-            None,
-            lambda: SentenceTransformer(self._model_name, device=self._device)
-        )
-        self._dimension = self.model.get_sentence_embedding_dimension()
-        self._initialized = True
-        logger.info(f"Embedding model loaded: dimension={self._dimension}")
+        # RACE CONDITION FIX: Serialize initialization to prevent double model loading
+        async with self._init_lock:
+            # Double-check after acquiring lock (another call may have initialized)
+            if self._initialized:
+                return
+            
+            logger.info(f"Loading embedding model: {self._model_name} on {self._device}")
+            loop = asyncio.get_running_loop()
+            
+            # Offload model loading to thread pool
+            self.model = await loop.run_in_executor(
+                None,
+                lambda: SentenceTransformer(self._model_name, device=self._device)
+            )
+            self._dimension = self.model.get_sentence_embedding_dimension()
+            self._initialized = True
+            logger.info(f"Embedding model loaded: dimension={self._dimension}")
 
     def _ensure_initialized(self) -> None:
         """Ensure model is initialized, raising error if not."""

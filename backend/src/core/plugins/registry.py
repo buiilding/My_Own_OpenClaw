@@ -87,6 +87,45 @@ class PluginRegistry:
                 logger.warning(
                     f"Plugin '{plugin_name}' is already registered. Overwriting."
                 )
+                # RESOURCE LEAK FIX: Shutdown old plugin instance before overwriting
+                # This prevents zombie resources (background threads, file handles, network listeners)
+                old_plugin = self._plugins[plugin_name]
+                
+                # Attempt to shutdown the old plugin
+                # Note: register() is sync, but shutdown_plugin() is async.
+                # We handle this by:
+                # 1. Calling sync shutdown() directly if available
+                # 2. Removing from initialized set so it won't be included in async shutdown_all
+                # 3. The async shutdown will be handled by lifecycle manager if needed
+                import inspect
+                if hasattr(old_plugin, "shutdown") and callable(old_plugin.shutdown):
+                    if inspect.iscoroutinefunction(old_plugin.shutdown):
+                        # Async shutdown - can't await in sync context
+                        # Remove from initialized set so lifecycle manager won't try to shutdown it again
+                        # The old plugin will be overwritten, but its async shutdown can't be called here.
+                        # This is a limitation of having sync register() with async plugin shutdown.
+                        # The proper fix would be to make register() async, but that's a breaking change.
+                        logger.warning(
+                            f"Plugin '{plugin_name}' has async shutdown but register() is sync. "
+                            f"Old plugin will be overwritten without proper async cleanup. "
+                            f"Consider making register() async or ensuring plugins use sync shutdown()."
+                        )
+                        # Remove from initialized set to prevent double-shutdown
+                        self.state_manager.remove_plugin(plugin_name)
+                    else:
+                        # Sync shutdown - can call directly
+                        try:
+                            old_plugin.shutdown()
+                            logger.debug(f"Shutdown old plugin '{plugin_name}' (sync)")
+                            # Remove from initialized set
+                            self.state_manager.remove_plugin(plugin_name)
+                        except Exception as e:
+                            logger.error(
+                                f"Error shutting down old plugin '{plugin_name}': {e}",
+                                exc_info=True
+                            )
+                            # Still remove from initialized set even if shutdown failed
+                            self.state_manager.remove_plugin(plugin_name)
 
             self._plugins[plugin_name] = plugin
 
