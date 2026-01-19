@@ -12,15 +12,6 @@ async function captureScreenshot(args, skipAutoCapture) {
   try {
     const nutjs = await loadNutJs();
     const { screen } = nutjs;
-    
-    if (!screen) {
-      throw new Error('screen export not found in nut-js module');
-    }
-    
-    if (typeof screen.grab !== 'function') {
-      throw new Error('screen.grab is not a function');
-    }
-    
     const screenshot = await screen.grab();
     
     // nut-js returns pixel data in BGR format by default

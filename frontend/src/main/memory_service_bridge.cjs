@@ -8,10 +8,8 @@
 
 const { spawn } = require('child_process');
 const path = require('path');
-const { ipcMain, app } = require('electron');
+const { ipcMain } = require('electron');
 const { v4: uuidv4 } = require('uuid');
-const os = require('os');
-const fs = require('fs');
 
 let pythonProcess = null;
 let isPythonReady = false;
@@ -174,63 +172,9 @@ function sendRequest(type, payload, requestId) {
 }
 
 /**
- * Normalize user_id to ensure it's valid (not 'default_user', not empty, not whitespace-only).
- * If invalid, generates a persistent user_id based on OS username and hostname.
- * 
- * @param {string} user_id - User ID to normalize
- * @returns {string} Valid user_id
- */
-function normalizeUserId(user_id) {
-  // If user_id is valid, return it
-  if (user_id && user_id.trim() && user_id !== 'default_user') {
-    return user_id.trim();
-  }
-  
-  // Generate persistent user_id (same logic as ipc.cjs)
-  const userDataPath = app.getPath('userData');
-  const userIdFile = path.join(userDataPath, 'user_id.json');
-  
-  try {
-    // Try to load existing user_id
-    if (fs.existsSync(userIdFile)) {
-      const data = JSON.parse(fs.readFileSync(userIdFile, 'utf8'));
-      if (data.user_id && data.user_id.trim() && data.user_id !== 'default_user') {
-        return data.user_id.trim();
-      }
-    }
-  } catch (error) {
-    console.log(`[MemoryService] Failed to load user_id from file: ${error.message}`);
-  }
-  
-  // Generate new user_id from OS username and hostname
-  const username = os.userInfo().username || 'user';
-  const hostname = os.hostname() || 'host';
-  let generatedId = `${username}_${hostname}`.toLowerCase()
-    .replace(/[^a-z0-9_-]/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_|_$/g, '');
-  
-  // Ensure it's not 'default_user' or empty
-  if (!generatedId || generatedId === 'default_user') {
-    generatedId = `user_${Date.now()}`;
-  }
-  
-  // Store for persistence
-  try {
-    fs.writeFileSync(userIdFile, JSON.stringify({ user_id: generatedId }, null, 2), 'utf8');
-  } catch (error) {
-    console.log(`[MemoryService] Failed to save user_id to file: ${error.message}`);
-  }
-  
-  return generatedId;
-}
-
-/**
  * Search memories
  */
-async function searchMemory(query, user_id, limit = 5, memory_type = null) {
-  // Normalize user_id to ensure it's valid
-  const validUserId = normalizeUserId(user_id);
+async function searchMemory(query, user_id = 'default_user', limit = 5, memory_type = null) {
   const requestId = `memory-search-${uuidv4()}`;
 
   return new Promise((resolve, reject) => {
@@ -254,7 +198,7 @@ async function searchMemory(query, user_id, limit = 5, memory_type = null) {
 
     const sent = sendRequest('search', {
       query,
-      user_id: validUserId,
+      user_id,
       limit,
       memory_type,
     }, requestId);
@@ -336,9 +280,7 @@ function initializeMemoryServiceBridge() {
   // Handle memory search requests
   ipcMain.handle('search-memory', async (event, { query, user_id, limit, memory_type }) => {
     try {
-      // Normalize user_id to ensure it's valid
-      const validUserId = normalizeUserId(user_id);
-      const result = await searchMemory(query, validUserId, limit, memory_type);
+      const result = await searchMemory(query, user_id, limit, memory_type);
       return result;
     } catch (error) {
       return {
