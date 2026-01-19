@@ -6,19 +6,17 @@ and code blocks from being spoken aloud.
 
 ARCHITECTURAL NOTE:
 This is a transitional component that compensates for missing event semantics
-upstream. The heuristic detection (checking for '`') is a protocol smell
+upstream. The heuristic detection (checking for '`' and '{') is a protocol smell
 that should be eliminated when ChunkEvent gains metadata about content type
 (e.g., ChunkEvent(kind="code")).
 
 Current behavior:
 - Detects code blocks by checking if chunk starts with '`' (code block marker)
+- Detects JSON by checking if chunk starts with '{' (JSON object marker)
 - Buffers chunks until content type can be determined
-- Filters code block chunks from TTS (doesn't send to TTS service)
+- Filters code block and JSON chunks from TTS (doesn't send to TTS service)
 - Passes through normal text chunks to TTS
 - Tool call JSON suppression is handled by ToolCallEvent upstream (reliable)
-
-CRITICAL FIX: Removed JSON ('{') detection to prevent "JSON trap" where
-suppression never exits. JSON detection is too brittle without a parser.
 
 Future improvement:
 - Replace heuristic detection with explicit event metadata
@@ -45,21 +43,17 @@ MAX_BUFFER_SIZE = 4096  # 4KB - maximum buffer size to prevent unbounded memory 
 
 class TTSProcessor:
     """
-    Processes events for TTS with code block filtering.
+    Processes events for TTS with code block and JSON filtering.
     
-    Filters code blocks from TTS output using heuristic detection.
+    Filters code blocks and JSON from TTS output using heuristic detection.
     Tool call JSON suppression is handled by ToolCallEvent upstream.
     
     State Machine:
     - None: Unknown content type (buffering to detect)
     - False: Normal text (pass through to TTS)
-    - True: Code block (filter from TTS)
+    - True: Code block or JSON (filter from TTS)
     
     The state resets on explicit tool boundaries (ToolCallEvent, ToolOutputEvent).
-    
-    CRITICAL FIX: Only detects code blocks (```), not JSON ({). JSON detection
-    caused "JSON trap" where suppression never exits. ToolCallEvent handles
-    tool call suppression reliably upstream.
     
     Args:
         tts_manager: TTS manager for text-to-speech handling
@@ -75,6 +69,8 @@ class TTSProcessor:
         self.tts_manager = tts_manager
         self._is_tool_call_context = None  # State machine
         self._stream_buffer = ""
+        self._suppression_type = None  # 'code' or 'json' when suppressing
+        self._json_brace_depth = 0  # Track brace depth for JSON suppression
     
     async def process_event(
         self, 
@@ -126,28 +122,60 @@ class TTSProcessor:
         if not content:
             return
         
-        # 1. IF SUPPRESSING (Tool/Code Context)
+        # 1. IF SUPPRESSING (Tool/Code/JSON Context)
         if self._is_tool_call_context is True:
-            # Look for exit marker (```) anywhere in the chunk
-            exit_marker = "```"
-            marker_idx = content.find(exit_marker)
-            
-            if marker_idx != -1:
-                # CRITICAL FIX #1: Split at exit marker
-                # Content before marker is suppressed (code), content after is text
-                post_exit = content[marker_idx + len(exit_marker):]
+            if self._suppression_type == 'code':
+                # Look for code block exit marker (```)
+                code_exit_marker = "```"
+                exit_idx = content.find(code_exit_marker)
                 
-                # Exit suppression state
-                self._is_tool_call_context = False
-                logger.debug("TTS: Code block exit detected, resuming audio output")
+                if exit_idx != -1:
+                    # Split at exit marker
+                    post_exit = content[exit_idx + len(code_exit_marker):]
+                    
+                    # Exit suppression state
+                    self._is_tool_call_context = False
+                    self._suppression_type = None
+                    logger.debug("TTS: Code block exit detected, resuming audio output")
+                    
+                    # Process the text after the exit marker
+                    if post_exit:
+                        await self._process_chunk(ChunkEvent(content=post_exit), tts_service)
+                    return
+                else:
+                    # No exit marker, drop entire chunk (still in suppression)
+                    return
+                    
+            elif self._suppression_type == 'json':
+                # Track brace depth to properly handle nested JSON
+                # Process character by character to track depth accurately
+                for i, char in enumerate(content):
+                    if char == '{':
+                        self._json_brace_depth += 1
+                    elif char == '}':
+                        self._json_brace_depth -= 1
+                        if self._json_brace_depth == 0:
+                            # JSON object complete, exit suppression
+                            post_exit = content[i + 1:]
+                            
+                            # Exit suppression state
+                            self._is_tool_call_context = False
+                            self._suppression_type = None
+                            self._json_brace_depth = 0
+                            logger.debug("TTS: JSON exit detected (brace depth 0), resuming audio output")
+                            
+                            # Process the text after the closing brace
+                            if post_exit:
+                                await self._process_chunk(ChunkEvent(content=post_exit), tts_service)
+                            return
                 
-                # CRITICAL FIX #1: Process the text after the exit marker
-                # This prevents data loss when code blocks end mid-chunk
-                if post_exit:
-                    await self._process_chunk(ChunkEvent(content=post_exit), tts_service)
+                # No exit found, drop entire chunk (still in suppression)
                 return
             else:
-                # No exit marker, drop entire chunk (still in suppression)
+                # Unknown suppression type, reset state
+                self._is_tool_call_context = False
+                self._suppression_type = None
+                self._json_brace_depth = 0
                 return
         
         # 2. IF BUFFERING (Indeterminate State)
@@ -173,18 +201,22 @@ class TTSProcessor:
                 # Still whitespace, keep buffering
                 return
             
-            # CRITICAL FIX #1: Only detect code blocks (```), NOT JSON ({)
-            # JSON detection is too brittle - it causes "JSON trap" where suppression
-            # never exits (JSON ends with '}', not '```'). ToolCallEvent upstream
-            # handles tool call suppression reliably, so we don't need heuristic JSON detection.
+            # Detect code blocks (```) or JSON ({)
             if stripped.startswith("`"):
                 # Starts with code block marker
                 self._is_tool_call_context = True
+                self._suppression_type = 'code'
                 self._stream_buffer = ""  # Drop buffer (contains code content)
+            elif stripped.startswith("{"):
+                # Starts with JSON object marker
+                self._is_tool_call_context = True
+                self._suppression_type = 'json'
+                self._json_brace_depth = 1  # We found the opening brace
+                self._stream_buffer = ""  # Drop buffer (contains JSON content)
             else:
-                # Starts with text (including JSON-like text - let it speak)
-                # If it's actual tool call JSON, ToolCallEvent will suppress it upstream
+                # Starts with text
                 self._is_tool_call_context = False
+                self._suppression_type = None
                 # Flush buffered text
                 await self.tts_manager.process_event(
                     tts_service,
@@ -195,15 +227,36 @@ class TTSProcessor:
         
         # 3. IF TEXT MODE (Pass-through with scanning)
         elif self._is_tool_call_context is False:
-            # CRITICAL FIX #2: Scan entire chunk for entry markers, not just startswith
-            # This prevents code leakage when chunks contain "text\n```code"
+            # Scan entire chunk for entry markers, not just startswith
+            # This prevents code/JSON leakage when chunks contain "text\n```code" or "text\n{json}"
             
-            # Look for code block marker (```) anywhere in the chunk
+            # Look for code block marker (```) or JSON marker ({) anywhere in the chunk
             code_marker = "```"
-            marker_idx = content.find(code_marker)
+            json_marker = "{"
+            
+            code_marker_idx = content.find(code_marker)
+            json_marker_idx = content.find(json_marker)
+            
+            # Determine which marker appears first (or if either appears)
+            marker_idx = -1
+            marker = None
+            if code_marker_idx != -1 and json_marker_idx != -1:
+                # Both found, use the earlier one
+                if code_marker_idx < json_marker_idx:
+                    marker_idx = code_marker_idx
+                    marker = code_marker
+                else:
+                    marker_idx = json_marker_idx
+                    marker = json_marker
+            elif code_marker_idx != -1:
+                marker_idx = code_marker_idx
+                marker = code_marker
+            elif json_marker_idx != -1:
+                marker_idx = json_marker_idx
+                marker = json_marker
             
             if marker_idx != -1:
-                # Found code block marker mid-chunk
+                # Found marker mid-chunk
                 pre_marker = content[:marker_idx]
                 post_marker = content[marker_idx:]
                 
@@ -216,10 +269,16 @@ class TTSProcessor:
                 
                 # Enter suppression state
                 self._is_tool_call_context = True
-                logger.debug("TTS: Code block entry detected mid-chunk, entering suppression")
+                if marker == code_marker:
+                    self._suppression_type = 'code'
+                    logger.debug("TTS: Code block entry detected mid-chunk, entering suppression")
+                else:
+                    self._suppression_type = 'json'
+                    self._json_brace_depth = 1  # We found the opening brace
+                    logger.debug("TTS: JSON entry detected mid-chunk, entering suppression")
                 
-                # CRITICAL FIX #2: Process the part after marker (may contain code or immediate exit)
-                # This handles cases like "text\n```\nmore text" where exit is in same chunk
+                # Process the part after marker (may contain code/JSON or immediate exit)
+                # This handles cases like "text\n```\nmore text" or "text\n{json}" where exit is in same chunk
                 if post_marker:
                     await self._process_chunk(ChunkEvent(content=post_marker), tts_service)
             else:
@@ -230,3 +289,6 @@ class TTSProcessor:
         """Reset the state machine state."""
         self._is_tool_call_context = None
         self._stream_buffer = ""
+        self._suppression_type = None
+        self._json_brace_depth = 0
+
