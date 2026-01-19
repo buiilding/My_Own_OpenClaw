@@ -13,7 +13,7 @@ from backend.src.agent.core.core import AgentSession
 from backend.src.core.config import AppConfig
 from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.config.manager import load_api_key_for_provider
-from backend.src.core.config_subscription_manager import ConfigSubscriber
+from backend.src.core.config.subscription_manager import ConfigSubscriber
 
 logger = logging.getLogger(__name__)
 

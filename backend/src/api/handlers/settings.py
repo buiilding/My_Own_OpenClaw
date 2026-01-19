@@ -18,7 +18,7 @@ from backend.src.api.schema import (
 
 if TYPE_CHECKING:
     from backend.src.agent.core.session_manager import SessionManager
-from backend.src.core.config_service import ConfigurationService
+from backend.src.core.config.service import ConfigurationService
 from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.validation import (
     validate_settings_update, 
