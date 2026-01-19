@@ -123,7 +123,7 @@ class ToolExecutionAudit:
                     sanitized_list = []
                     for item in value[:10]:  # Limit to first 10 items
                         if isinstance(item, str) and len(item) > self.MAX_PARAM_VALUE_SIZE:
-                            sanitized_list.append(item[:self.MAX_PARAM_VALUE_SIZE] + f"... [TRUNCATED]")
+                            sanitized_list.append(item[:self.MAX_PARAM_VALUE_SIZE] + "... [TRUNCATED]")
                         elif isinstance(item, dict):
                             # RECURSIVE SANITIZATION CRASH FIX: Handle dicts in lists with cycle detection
                             sanitized_list.append(self._sanitize_parameters(item, visited, depth + 1))
@@ -138,22 +138,6 @@ class ToolExecutionAudit:
         finally:
             # Remove from visited set when done (allows same object to appear in different branches)
             visited.discard(params_id)
-        
-        return sanitized
-            elif isinstance(value, list):
-                # Truncate lists if they contain large strings
-                sanitized_list = []
-                for item in value[:10]:  # Limit to first 10 items
-                    if isinstance(item, str) and len(item) > self.MAX_PARAM_VALUE_SIZE:
-                        sanitized_list.append(item[:self.MAX_PARAM_VALUE_SIZE] + f"... [TRUNCATED]")
-                    else:
-                        sanitized_list.append(item)
-                if len(value) > 10:
-                    sanitized_list.append(f"... [TRUNCATED: {len(value)} items]")
-                sanitized[key] = sanitized_list
-            else:
-                # Preserve other types as-is
-                sanitized[key] = value
         
         return sanitized
 
