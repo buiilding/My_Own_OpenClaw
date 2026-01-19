@@ -77,6 +77,39 @@ function MessageList({ messages, thinkingStatus }) {
       );
     }
 
+    // User messages with screenshots
+    if (msg.sender === 'user' && msg.screenshot) {
+      return (
+        <div className="user-message-container">
+          <div className="message-content">{msg.text}</div>
+          <div className="user-screenshot-container" style={{
+            marginTop: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            overflow: 'hidden'
+          }}>
+            <div className="user-screenshot-header" style={{
+              backgroundColor: '#f0f0f0',
+              padding: '6px 12px',
+              fontSize: '12px',
+              fontWeight: '600',
+              color: '#666'
+            }}>📸 Screenshot</div>
+            <img
+              src={`data:image/png;base64,${msg.screenshot}`}
+              alt="User message screenshot"
+              className="user-screenshot-image"
+              style={{ 
+                maxWidth: '100%', 
+                maxHeight: '400px', 
+                display: 'block'
+              }}
+            />
+          </div>
+        </div>
+      );
+    }
+
     return <div className="message-content">{msg.text}</div>;
   };
 

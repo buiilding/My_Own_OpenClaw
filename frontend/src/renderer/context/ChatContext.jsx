@@ -666,10 +666,41 @@ export function ChatProvider({ children }) {
 
   const sendMessage = useCallback(async (text) => {
     stopPlayback();
-    setMessages((prev) => [...prev, { id: crypto.randomUUID(), text, sender: 'user' }]);
+    
+    // Take screenshot before sending message
+    let screenshot = null;
+    try {
+      const screenshotResult = await window.ipc.invoke('execute-tool', {
+        toolName: 'screenshot',
+        args: {
+          explanation: 'User message screenshot',
+          expectation: 'Current screen state'
+        },
+        skipAutoCapture: false
+      });
+      
+      if (screenshotResult.success && screenshotResult.data?.screenshot) {
+        screenshot = screenshotResult.data.screenshot;
+      }
+    } catch (error) {
+      console.error('[ChatContext] Failed to capture screenshot:', error);
+      // Continue without screenshot if capture fails
+    }
+    
+    // Create user message with screenshot for UI display
+    const userMessage = {
+      id: crypto.randomUUID(),
+      text,
+      sender: 'user',
+      screenshot: screenshot  // Include screenshot for UI display
+    };
+    
+    setMessages((prev) => [...prev, userMessage]);
     setIsSending(true);
     setThinkingStatus(null);
-    await ApiClient.sendQuery(text);
+    
+    // Send query with screenshot to backend
+    await ApiClient.sendQuery(text, screenshot);
   }, [stopPlayback]);
 
   const value = {

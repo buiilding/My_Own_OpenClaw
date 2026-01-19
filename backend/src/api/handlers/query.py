@@ -119,9 +119,11 @@ class QueryMessageHandler(MessageHandler):
             # Process query and stream responses
             # Frontend now sends complete message content
             message_content = validated.payload.content
+            image_data = validated.payload.image_data  # Optional screenshot data
             try:
                 async for event in agent_instance.process_query(
                     query_text,
+                    image_data=image_data,
                     message_content=message_content,
                 ):
                     # Process events through pipeline (msg_id passed per call, not stored)
