@@ -44,11 +44,13 @@ logger = logging.getLogger(__name__)
 # Create TypeAdapter once at module level for performance
 _INCOMING_MESSAGE_ADAPTER = TypeAdapter(IncomingMessage)
 
-# Constants
+# DEPRECATED: These constants are now in AppConfig
+# Kept for backward compatibility during migration
+# TODO: Remove after all references are updated to use config
 MAX_MESSAGE_SIZE = 10 * 1024 * 1024  # 10MB - maximum message size to prevent memory exhaustion attacks
 TASK_CANCELLATION_TIMEOUT = 5.0  # Seconds to wait for tasks to cancel on disconnect
-MAX_CONCURRENT_TASKS = 50  # FIX #1: Maximum concurrent tasks per connection to prevent DoS
-WEBSOCKET_RECEIVE_TIMEOUT = 300.0  # 5 minutes - timeout for receive operations to prevent resource exhaustion
+MAX_CONCURRENT_TASKS = 50  # Maximum concurrent tasks per connection to prevent DoS
+WEBSOCKET_RECEIVE_TIMEOUT = 3600.0  # 1 hour - timeout for receive operations
 
 
 class SafeWebSocket:
@@ -145,6 +147,13 @@ async def websocket_endpoint(
     safe_ws = SafeWebSocket(websocket)
     await safe_ws.accept()
     
+    # Get config values (moved from hardcoded constants to AppConfig)
+    config = session_manager.config
+    max_message_size = config.websocket_max_message_size
+    max_concurrent_tasks = config.websocket_max_concurrent_tasks
+    websocket_receive_timeout = config.websocket_receive_timeout
+    task_cancellation_timeout = config.websocket_task_cancellation_timeout
+    
     # Track active tasks for this connection to cancel on disconnect
     # Use lock to prevent race conditions when multiple tasks modify the set concurrently
     active_tasks: set[asyncio.Task] = set()
@@ -185,7 +194,9 @@ async def websocket_endpoint(
     # Handshake - user_id validation handled by Pydantic model
     try:
         raw_data = await websocket.receive_text()
-        handshake_data = json.loads(raw_data)
+        # CRITICAL FIX #5: Offload JSON parsing to thread pool (handshake is typically small, but consistent)
+        loop = asyncio.get_running_loop()
+        handshake_data = await loop.run_in_executor(None, json.loads, raw_data)
         handshake_msg = HandshakeMessage.model_validate(handshake_data)
         user_id = handshake_msg.user_id
         
@@ -233,7 +244,7 @@ async def websocket_endpoint(
             try:
                 await asyncio.wait_for(
                     asyncio.gather(*pending, return_exceptions=True),
-                    timeout=TASK_CANCELLATION_TIMEOUT
+                    timeout=task_cancellation_timeout
                 )
             except asyncio.TimeoutError:
                 logger.warning(f"Timeout waiting for {len(pending)} tasks to cancel")
@@ -257,10 +268,10 @@ async def websocket_endpoint(
             try:
                 data = await asyncio.wait_for(
                     websocket.receive_text(),
-                    timeout=WEBSOCKET_RECEIVE_TIMEOUT
+                    timeout=websocket_receive_timeout
                 )
             except asyncio.TimeoutError:
-                logger.info(f"Connection timeout for user {user_id} (no data received in {WEBSOCKET_RECEIVE_TIMEOUT}s)")
+                logger.info(f"Connection timeout for user {user_id} (no data received in {websocket_receive_timeout}s)")
                 try:
                     await safe_ws.close(code=1008, reason="Connection timeout - no data received")
                 except Exception:
@@ -270,13 +281,29 @@ async def websocket_endpoint(
                     await _cleanup_connection()
                 break
             
-            # Validate message size before processing
-            if len(data) > MAX_MESSAGE_SIZE:
-                await send_error(safe_ws, None, f"Message too large: {len(data)} bytes (max: {MAX_MESSAGE_SIZE} bytes)")
+            # SECURITY: Validate message size after receiving
+            # CRITICAL: This check happens AFTER the entire frame is read into memory.
+            # For true DoS protection, the ASGI server (e.g., Uvicorn) MUST be configured
+            # with --ws-max-size to reject oversized frames at the protocol level BEFORE
+            # they are read into Python memory. This application-level check is a secondary
+            # defense but cannot prevent OOM if a malicious client sends a 1GB payload.
+            # 
+            # Example Uvicorn configuration:
+            #   uvicorn.run(..., ws_max_size=10 * 1024 * 1024)  # 10MB
+            #
+            # Without protocol-level protection, a 1GB frame will cause OOM before this
+            # check executes, potentially crashing the worker process.
+            if len(data) > max_message_size:
+                await send_error(safe_ws, None, f"Message too large: {len(data)} bytes (max: {max_message_size} bytes)")
                 continue
             
             try:
-                json_data = json.loads(data)
+                # PERFORMANCE: Offload large JSON parsing to thread pool
+                # With max_message_size (default 10MB), parsing can block the event loop
+                # for 50-200ms, causing jitter for all other connected clients
+                # (e.g., stalling audio streams)
+                loop = asyncio.get_running_loop()
+                json_data = await loop.run_in_executor(None, json.loads, data)
                 
                 # Inject user_id from connection context BEFORE validation
                 # BaseMessage requires user_id, but it comes from connection context, not client JSON
@@ -287,12 +314,12 @@ async def websocket_endpoint(
                     # Use pre-created TypeAdapter for performance
                     validated_msg = _INCOMING_MESSAGE_ADAPTER.validate_python(json_data)
                     
-                    # FIX #1: Concurrency Limit - Prevent DoS via task explosion
+                    # Concurrency Limit - Prevent DoS via task explosion
                     # Check concurrency limit and create task atomically to prevent race condition
                     msg_id_for_error = None
                     task = None
                     async with tasks_lock:
-                        if len(active_tasks) >= MAX_CONCURRENT_TASKS:
+                        if len(active_tasks) >= max_concurrent_tasks:
                             # Mark for error, release lock before I/O
                             msg_id_for_error = json_data.get("id")
                         else:
@@ -303,7 +330,7 @@ async def websocket_endpoint(
                     
                     # Send error outside lock to avoid blocking (if limit exceeded)
                     if msg_id_for_error is not None:
-                        logger.warning(f"User {user_id} exceeded max concurrent tasks ({MAX_CONCURRENT_TASKS})")
+                        logger.warning(f"User {user_id} exceeded max concurrent tasks ({max_concurrent_tasks})")
                         await send_error(safe_ws, msg_id_for_error, "Too many concurrent requests. Please wait.")
                         continue
                     
@@ -345,6 +372,16 @@ async def handle_message(
 ):
     """
     Handle incoming WebSocket message using handler registry with type-based routing.
+    
+    RELIABILITY: This function is executed as a tracked task. If handlers spawn
+    background sub-tasks (e.g., via asyncio.create_task()), they MUST be:
+    1. Attached to the AgentSession for cleanup in session.cleanup(), OR
+    2. Tracked in a session-scoped task registry, OR
+    3. Created with a cancellation token that can be triggered on disconnect.
+    
+    Untracked sub-tasks will continue running after WebSocket disconnect, causing
+    resource leaks and potential security issues (e.g., processing requests for
+    disconnected users).
     
     Args:
         websocket: SafeWebSocket connection (thread-safe wrapper)

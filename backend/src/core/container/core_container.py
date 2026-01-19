@@ -15,6 +15,7 @@ from backend.src.core.container.factories import (
     _create_tts_service,
     _create_vision_service,
 )
+from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.plugins.config import PluginConfigManager
 from backend.src.llm.client import get_llm_client
 from backend.src.llm.models import ModelService
@@ -82,4 +83,12 @@ class CoreContainer(containers.DeclarativeContainer):
     model_service = providers.Singleton(
         ModelService,
         config=config,
+    )
+
+    # Metrics Service (trust boundary violation metrics)
+    metrics_service = providers.Singleton(MetricsService)
+
+    # Cache Manager (centralized caching for embeddings, tool schemas, etc.)
+    cache_manager = providers.Singleton(
+        lambda: __import__("backend.src.core.cache", fromlist=["CacheManager"]).CacheManager()
     )

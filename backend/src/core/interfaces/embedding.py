@@ -14,10 +14,13 @@ class EmbeddingProvider(ABC):
     """
     Abstract interface for embedding generation.
     Decouples the memory store from specific embedding libraries (e.g., SentenceTransformer, OpenAI).
+    
+    All methods are async to allow offloading blocking operations (e.g., model inference)
+    to thread pools, preventing asyncio event loop blocking.
     """
 
     @abstractmethod
-    def embed_text(self, text: str) -> np.ndarray:
+    async def embed_text(self, text: str) -> np.ndarray:
         """
         Embed a single text string into a vector.
 
@@ -30,7 +33,7 @@ class EmbeddingProvider(ABC):
         pass
 
     @abstractmethod
-    def embed_batch(self, texts: List[str]) -> List[np.ndarray]:
+    async def embed_batch(self, texts: List[str]) -> List[np.ndarray]:
         """
         Embed a batch of texts.
 

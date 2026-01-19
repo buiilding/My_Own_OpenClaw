@@ -24,6 +24,14 @@ def _recursive_merge(base: dict, override: dict) -> dict:
     
     Values from override take precedence, but nested dicts are merged recursively.
     
+    CONFIGURATION MERGE STRATEGY:
+    - Lists: REPLACE by default (override replaces base). This allows users to
+      disable default list-based settings (e.g., plugins, middleware) by specifying
+      a smaller list in their config. If additive behavior is desired, use a special
+      marker (e.g., "__extend__": true) in the override dict.
+    - Dicts: Merge recursively (override values take precedence)
+    - Other types: Replace (override takes precedence)
+    
     Args:
         base: Base dictionary
         override: Dictionary with overrides
@@ -33,9 +41,34 @@ def _recursive_merge(base: dict, override: dict) -> dict:
     """
     result = base.copy()
     for key, value in override.items():
-        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-            result[key] = _recursive_merge(result[key], value)
+        # Skip special marker keys
+        if key.startswith("__") and key.endswith("__"):
+            continue
+            
+        if key in result:
+            # Handle nested dictionaries
+            if isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = _recursive_merge(result[key], value)
+            # Handle lists: REPLACE by default to allow disabling default items
+            # If override dict has "__extend__": true for this key, use additive merge
+            elif isinstance(result[key], list) and isinstance(value, list):
+                extend_key = f"__extend_{key}__"
+                if override.get(extend_key, False):
+                    # Additive merge: combine and deduplicate while preserving order
+                    merged_list = list(result[key])
+                    for item in value:
+                        if item not in merged_list:
+                            merged_list.append(item)
+                    result[key] = merged_list
+                else:
+                    # Replace merge: override list replaces base list
+                    # This allows users to disable default plugins/settings
+                    result[key] = value
+            else:
+                # Replace non-dict, non-list values
+                result[key] = value
         else:
+            # New key, add it
             result[key] = value
     return result
 
@@ -79,9 +112,9 @@ def _merge_user_config(global_config: AppConfig, user_config: Optional[dict]) ->
         global_config.model_dump(), user_config
     )
     
-    # tts_enabled is always True (hardcoded, not configurable)
-    # speech_mode_enabled controls whether TTS is actually used
-    complete_config_dict["tts_enabled"] = True
+    # CONFIGURATION: Respect tts_enabled from config (removed hardcoded override)
+    # Users can now disable TTS for headless/silent mode operation
+    # speech_mode_enabled controls whether TTS is actually used during interactions
     
     # Set default TTS model path if TTS is enabled and path is not set
     tts_will_be_enabled = complete_config_dict.get("tts_enabled", global_config.tts_enabled)
@@ -231,14 +264,14 @@ class SessionManager(ConfigSubscriber):
             
             logger.info(f"Ending session for user {user_id}")
             
+            session = self.active_sessions[user_id]
+            
             try:
-                # Future: If AgentSession has cleanup() method, call it here
-                # Example:
-                #   session = self.active_sessions[user_id]
-                #   await session.cleanup()
-                # Currently AgentSession doesn't have explicit cleanup,
-                # but this is where it would be called if added
-                pass
+                # RESOURCE MANAGEMENT: Explicitly cleanup session resources
+                # This prevents memory leaks by releasing resources immediately
+                # rather than waiting for garbage collection (which may never happen
+                # if there are circular references)
+                await session.cleanup()
             except Exception as e:
                 logger.error(
                     f"Error during session cleanup for user {user_id}: {e}",

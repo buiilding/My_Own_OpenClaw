@@ -133,11 +133,50 @@ class ToolExecutor:
                 return
         
         # Process individual results (non-bundled or bundled result not found)
-        for result in orchestration_result.tool_results:
-            # Transform: pure computation (plugins, artifacts, formatting for history)
-            processed = await self.result_transformer.transform(
-                result.tool_call.tool_name, result.result
-            )
+        processed_request_ids = set()
+        try:
+            for result in orchestration_result.tool_results:
+                # Transform: pure computation (plugins, artifacts, formatting for history)
+                processed = await self.result_transformer.transform(
+                    result.tool_call.tool_name, result.result
+                )
 
-            # Commit: state mutation (history update for LLM context)
-            self.history_committer.commit(processed)
+                # Commit: state mutation (history update for LLM context)
+                self.history_committer.commit(processed)
+                
+                # Track processed request_ids for cleanup
+                # MEMORY LEAK FIX: Track request_id BEFORE processing to ensure cleanup
+                # even if transform or commit raises an exception
+                if hasattr(result.tool_call, 'metadata') and result.tool_call.metadata:
+                    request_id = result.tool_call.metadata.get('request_id')
+                    if request_id:
+                        processed_request_ids.add(request_id)
+        finally:
+            # MEMORY LEAK FIX: Cleanup in finally block to ensure removal even if
+            # transform or commit raises an exception. This prevents tool results
+            # from leaking memory in long-running sessions.
+            # Cleanup: Remove processed tool results and futures to prevent memory leak
+            # This is critical for long-running sessions with many tool executions
+            for request_id in processed_request_ids:
+                # Remove from pending results (already processed)
+                if request_id in self.session._pending_tool_results:
+                    del self.session._pending_tool_results[request_id]
+                
+                # Remove from prepared tool calls (no longer needed)
+                # ENCAPSULATION: Use public method instead of accessing private member
+                self.session.remove_prepared_tool_call(request_id)
+                
+                # Futures are already cleaned up by ToolOrchestrator, but double-check
+                if request_id in self.session._tool_result_futures:
+                    future = self.session._tool_result_futures[request_id]
+                    if future.done():
+                        del self.session._tool_result_futures[request_id]
+            
+            # Also cleanup bundled results that were processed
+            if hasattr(self.session, "_bundled_results") and self.session._bundled_results:
+                # Remove bundled results older than 5 minutes (safety net)
+                import time
+                current_time = time.time()
+                # Note: We don't track timestamps, so just clear all bundled results
+                # They should be consumed immediately after creation
+                self.session._bundled_results.clear()

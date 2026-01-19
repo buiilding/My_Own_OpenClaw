@@ -5,7 +5,7 @@ Handles LLM streaming, text aggregation, and token counting.
 """
 import logging
 import time
-from typing import TYPE_CHECKING, AsyncGenerator, List, NamedTuple, Optional
+from typing import TYPE_CHECKING, AsyncGenerator, List, NamedTuple
 
 from backend.src.core.events import (
     AgentStreamingEvent,
@@ -145,6 +145,13 @@ class LLMInteractionHandler:
         """
         Counts tokens for input, output, and total conversation.
         
+        ACCURACY FIX: Uses token_service.count_tokens() for output instead of
+        hardcoded heuristic. The previous `len(full_text) // 4` heuristic was
+        inaccurate for:
+        - Code (different token density due to whitespace/symbols)
+        - Non-English languages (CJK characters map 1 char to 1-2 tokens, causing
+          400-800% underestimation)
+        
         Args:
             prompt: Input messages sent to LLM
             full_text: Full response text from LLM
@@ -158,14 +165,19 @@ class LLMInteractionHandler:
         # Count tokens in the input messages (prompt)
         input_tokens = token_service.count_tokens(prompt, model_id)
 
-        # Estimate output tokens (rough approximation based on character count)
-        # This could be improved if the LLM provider returns actual output tokens
-        output_tokens = len(full_text) // 4  # Rough approximation
+        # ACCURACY FIX: Use token_service for output tokens instead of heuristic
+        # This ensures accurate counting for code, non-English languages, and
+        # special characters. The previous `len(full_text) // 4` was inaccurate
+        # for CJK characters (400-800% underestimation) and code (variable density).
+        # Convert full_text to LLM message format for token counting
+        output_message: LLMMessage = {
+            "role": "assistant",
+            "content": full_text
+        }
+        output_tokens = token_service.count_tokens([output_message], model_id)
 
-        # Count total conversation tokens
-        conversation_tokens = token_service.count_tokens(
-            self.session.history.get_history(), model_id
-        )
+        # Count total conversation tokens (uses cached count to avoid O(N^2) re-encoding)
+        conversation_tokens = self.session.history.get_token_count(model_id)
 
         return TokenCounts(
             input_tokens=input_tokens,

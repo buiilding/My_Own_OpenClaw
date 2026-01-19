@@ -4,8 +4,9 @@ Embedding Provider Implementation.
 This module provides the SentenceTransformer-based embedding provider for generating
 vector embeddings of text. Includes caching to avoid recomputing embeddings for the same text.
 """
+import asyncio
 import logging
-from typing import List
+from typing import List, Optional
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
@@ -17,48 +18,117 @@ class SentenceTransformerProvider(EmbeddingProvider):
     """
     Local embedding provider using SentenceTransformers.
     Uses caching to avoid recomputing embeddings for the same text.
+    
+    CRITICAL: Model loading is deferred to async initialize() to prevent blocking
+    application startup. All embedding operations are offloaded to thread pool
+    to prevent blocking the asyncio event loop.
     """
 
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2", device: str = "cpu"):
-        logger.info(f"Loading embedding model: {model_name} on {device}")
-        self.model = SentenceTransformer(model_name, device=device)
-        self._dimension = self.model.get_sentence_embedding_dimension()
+    def __init__(
+        self,
+        model_name: str = "all-MiniLM-L6-v2",
+        device: str = "cpu",
+        cache_manager=None,
+    ):
+        """
+        Initialize the embedding provider.
+        
+        Args:
+            model_name: Name of the SentenceTransformer model to load
+            device: Device to run model on ("cpu" or "cuda")
+            cache_manager: Optional CacheManager instance (injected via DI)
+        """
+        self._model_name = model_name
+        self._device = device
+        self._cache_manager = cache_manager
+        self.model: Optional[SentenceTransformer] = None
+        self._dimension: Optional[int] = None
         self._use_cache = True  # Enable caching by default
+        self._initialized = False
 
-    def embed_text(self, text: str) -> np.ndarray:
-        """Generate embedding for text, using cache if available."""
-        if self._use_cache:
-            from backend.src.core.cache import cache_manager
-            
-            cache_key = cache_manager.get_embedding_key(text)
-            cached_embedding = cache_manager.embeddings.get(cache_key)
+    async def initialize(self) -> None:
+        """
+        Async initialization: Load the model in a thread pool to avoid blocking startup.
+        
+        This method must be called before using embed_text or embed_batch.
+        """
+        if self._initialized:
+            return
+        
+        logger.info(f"Loading embedding model: {self._model_name} on {self._device}")
+        loop = asyncio.get_running_loop()
+        
+        # Offload model loading to thread pool
+        self.model = await loop.run_in_executor(
+            None,
+            lambda: SentenceTransformer(self._model_name, device=self._device)
+        )
+        self._dimension = self.model.get_sentence_embedding_dimension()
+        self._initialized = True
+        logger.info(f"Embedding model loaded: dimension={self._dimension}")
+
+    def _ensure_initialized(self) -> None:
+        """Ensure model is initialized, raising error if not."""
+        if not self._initialized or self.model is None:
+            raise RuntimeError(
+                "SentenceTransformerProvider not initialized. "
+                "Call await provider.initialize() before using embed methods."
+            )
+
+    async def embed_text(self, text: str) -> np.ndarray:
+        """
+        Generate embedding for text, using cache if available.
+        
+        CRITICAL: Blocking model.encode() is offloaded to thread pool to prevent
+        freezing the asyncio event loop.
+        """
+        self._ensure_initialized()
+        
+        loop = asyncio.get_running_loop()
+        
+        if self._use_cache and self._cache_manager:
+            cache_key = self._cache_manager.get_embedding_key(text)
+            cached_embedding = self._cache_manager.embeddings.get(cache_key)
             
             if cached_embedding is not None:
                 return cached_embedding
             
-            # Generate embedding
-            embedding = self.model.encode(text, convert_to_numpy=True)
+            # Offload blocking encode operation to thread pool
+            embedding = await loop.run_in_executor(
+                None,
+                lambda: self.model.encode(text, convert_to_numpy=True)
+            )
             
             # Cache it
-            cache_manager.embeddings.set(cache_key, embedding)
+            self._cache_manager.embeddings.set(cache_key, embedding)
             return embedding
         else:
-            embedding = self.model.encode(text, convert_to_numpy=True)
-            return embedding
+            # Offload blocking encode operation to thread pool
+            return await loop.run_in_executor(
+                None,
+                lambda: self.model.encode(text, convert_to_numpy=True)
+            )
 
-    def embed_batch(self, texts: List[str]) -> List[np.ndarray]:
-        """Generate embeddings for a batch of texts."""
-        if self._use_cache:
-            from backend.src.core.cache import cache_manager
-            
+    async def embed_batch(self, texts: List[str]) -> List[np.ndarray]:
+        """
+        Generate embeddings for a batch of texts.
+        
+        CRITICAL: Blocking model.encode() is offloaded to thread pool to prevent
+        freezing the asyncio event loop.
+        """
+        self._ensure_initialized()
+        
+        loop = asyncio.get_running_loop()
+        
+        if self._use_cache and self._cache_manager:
             embeddings = []
             texts_to_encode = []
             indices_to_encode = []
             
             # Check cache for each text
             for i, text in enumerate(texts):
-                cache_key = cache_manager.get_embedding_key(text)
-                cached_embedding = cache_manager.embeddings.get(cache_key)
+                cache_key = self._cache_manager.get_embedding_key(text)
+                cached_embedding = self._cache_manager.embeddings.get(cache_key)
                 
                 if cached_embedding is not None:
                     embeddings.append((i, cached_embedding))
@@ -68,12 +138,16 @@ class SentenceTransformerProvider(EmbeddingProvider):
             
             # Generate embeddings for uncached texts
             if texts_to_encode:
-                new_embeddings = self.model.encode(texts_to_encode, convert_to_numpy=True)
+                # Offload blocking encode operation to thread pool
+                new_embeddings = await loop.run_in_executor(
+                    None,
+                    lambda: self.model.encode(texts_to_encode, convert_to_numpy=True)
+                )
                 
                 # Cache new embeddings
                 for text, embedding in zip(texts_to_encode, new_embeddings):
-                    cache_key = cache_manager.get_embedding_key(text)
-                    cache_manager.embeddings.set(cache_key, embedding)
+                    cache_key = self._cache_manager.get_embedding_key(text)
+                    self._cache_manager.embeddings.set(cache_key, embedding)
                 
                 # Add to results
                 for idx, embedding in zip(indices_to_encode, new_embeddings):
@@ -83,10 +157,20 @@ class SentenceTransformerProvider(EmbeddingProvider):
             embeddings.sort(key=lambda x: x[0])
             return [emb for _, emb in embeddings]
         else:
-            embeddings = self.model.encode(texts, convert_to_numpy=True)
+            # Offload blocking encode operation to thread pool
+            embeddings = await loop.run_in_executor(
+                None,
+                lambda: self.model.encode(texts, convert_to_numpy=True)
+            )
             return [e for e in embeddings]
 
     @property
     def dimension(self) -> int:
+        """Returns the dimension of the embeddings."""
+        if self._dimension is None:
+            raise RuntimeError(
+                "Dimension not available. Model not initialized. "
+                "Call await provider.initialize() first."
+            )
         return self._dimension
 

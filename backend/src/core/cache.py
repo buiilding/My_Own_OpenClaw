@@ -25,6 +25,7 @@ class CacheEntry:
     value: Any
     expires_at: float
     created_at: float = field(default_factory=time.time)
+    is_error: bool = False  # True if value is an exception (negative caching)
 
 
 class Cache:
@@ -63,6 +64,10 @@ class Cache:
             
         Returns:
             Cached value if found and not expired, None otherwise
+            If entry is an error (negative caching), raises the cached exception
+            
+        Raises:
+            Exception: If the cached entry is an error (negative caching)
         """
         with self._lock:
             entry = self._cache.get(key)
@@ -78,6 +83,10 @@ class Cache:
                 return None
             
             self._hits += 1
+            # THUNDERING HERD FIX: If this is a cached error, raise it
+            # This propagates the exception to all waiters instead of allowing retries
+            if entry.is_error:
+                raise entry.value
             return entry.value
     
     def set(self, key: str, value: Any, ttl: Optional[float] = None) -> None:
@@ -210,10 +219,17 @@ class Cache:
             # Wait for the other thread to finish
             event.wait()
             # Try to get the value again after waiting
-            value = self.get(key)
-            if value is not None:
-                return value
-            # If still not found (computation failed or expired), compute ourselves
+            # THUNDERING HERD FIX: get() will raise if it's a cached error
+            # This propagates the exception to all waiters, preventing retry storms
+            try:
+                value = self.get(key)
+                if value is not None:
+                    return value
+            except Exception as e:
+                # Cached error - propagate to caller instead of retrying
+                # This prevents thundering herd on persistent failures
+                raise
+            # If still not found (expired), compute ourselves
             with self._lock:
                 if key not in self._computing:
                     event = threading.Event()
@@ -224,9 +240,13 @@ class Cache:
                     event = self._computing[key]
                     if not event.is_set():
                         event.wait()
-                        value = self.get(key)
-                        if value is not None:
-                            return value
+                        try:
+                            value = self.get(key)
+                            if value is not None:
+                                return value
+                        except Exception as e:
+                            # Cached error - propagate instead of retrying
+                            raise
                     # If still not found, we compute
                     if key not in self._computing:
                         event = threading.Event()
@@ -235,10 +255,29 @@ class Cache:
         
         if should_compute:
             # Compute the value (outside lock to allow other operations)
+            computation_error = None
             try:
                 value = compute_func()
                 self.set(key, value, ttl)
                 return value
+            except Exception as e:
+                # THUNDERING HERD FIX: Store exception for propagation to waiters
+                # This prevents all waiters from immediately retrying when computation fails
+                computation_error = e
+                # Negative caching: Cache the exception for a short TTL (5 seconds)
+                # This prevents thundering herd on persistent failures (e.g., backend service down)
+                # Waiters will receive the exception instead of retrying immediately
+                import time
+                error_ttl = 5.0  # Short TTL for errors to allow recovery
+                error_entry = CacheEntry(
+                    value=e,  # Store exception as value (callers must check type)
+                    expires_at=time.time() + error_ttl,
+                    is_error=True  # Mark as error entry
+                )
+                with self._lock:
+                    self._cache[key] = error_entry
+                # Re-raise to propagate to caller
+                raise
             finally:
                 # Always cleanup, even if computation fails
                 with self._lock:

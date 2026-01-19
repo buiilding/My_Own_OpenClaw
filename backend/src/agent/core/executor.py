@@ -4,7 +4,6 @@ Agent Executor - Core execution loop for the agent.
 This module implements the main agent execution loop that processes user queries,
 manages tool execution, handles LLM streaming, and coordinates memory operations.
 """
-import json
 import logging
 from typing import TYPE_CHECKING, AsyncGenerator, Optional
 
@@ -95,11 +94,17 @@ class AgentExecutor:
         ocr_coordinator = OcrCoordinator()
         synthetic_result_factory = SyntheticResultFactory()
         
+        # Get vision service for ToolPreparer (inject directly to avoid circular dependency)
+        vision_service = None
+        if self.tool_orchestrator and self.tool_orchestrator.context_factory:
+            vision_service = self.tool_orchestrator.context_factory.vision_service
+        
         tool_preparer = ToolPreparer(
             screenshot_manager=screenshot_manager,
             coordinate_resolver=coordinate_resolver,
             ocr_coordinator=ocr_coordinator,
             synthetic_result_factory=synthetic_result_factory,
+            vision_service=vision_service,  # Inject directly instead of using provider
         )
         
         tool_executor = ToolExecutor(
@@ -136,27 +141,15 @@ class AgentExecutor:
             image_data: Optional base64-encoded image data for multimodal queries
             message_content: Complete message content from frontend (system state + memories + query)
         """
-        # 1. Get tool schemas for first message only
-        tool_schemas = None
+        # 1. Format user message content (delegated to PromptConstructor)
         is_first_message = self._is_first_user_message()
-        if is_first_message:
-            tool_schemas = self.prompt_builder.tool_registry.get_function_declarations() or []
+        final_content = self.prompt_builder.format_user_message_content(
+            message_content=message_content,
+            query=query,
+            is_first_message=is_first_message,
+        )
 
-        # 2. Build final content: frontend content + tool schemas (if first message)
-        if message_content:
-            # Use frontend-provided content
-            final_content = message_content
-        else:
-            # Fallback: just the query (shouldn't happen in normal flow)
-            logger.warning("No message content provided by frontend, using query only")
-            final_content = f"<user_query>\n{query}\n</user_query>"
-
-        # 3. Add tool schemas to first message only
-        if tool_schemas and is_first_message:
-            tool_schemas_json = json.dumps(tool_schemas, indent=2)
-            final_content = f"{final_content}\n\n<tool_schemas>\n{tool_schemas_json}\n</tool_schemas>"
-
-        # 4. Add user message to history (backend appends for continual interaction)
+        # 2. Add user message to history (backend appends for continual interaction)
         self.session.history.add_user_message(
             content=final_content,
             user_query_raw=query,
@@ -165,32 +158,60 @@ class AgentExecutor:
 
         # 5. Execute Main Loop
         final_response = None
-        async for event in self.interaction_loop.run_loop():
-            yield event
-            # Capture final response from StreamingCompleteEvent
-            if isinstance(event, StreamingCompleteEvent) and event.final_response:
-                final_response = event.final_response
-
-        # 5. Finalization (Events)
-        if final_response:
-            await self._publish_completion_event(query, final_response)
-            # Emit memory store event for frontend to store the interaction
-            # Currently only episodic memory is automatically stored
-            # Semantic memory can be stored manually via the memory tool
-            memory_event = MemoryStoreEvent(
-                user_query=query,
-                assistant_response=final_response,
-                memory_type="episodic",  # Store interactions as episodic memory
-                user_id=self.session.user_id,
-                session_id=self.session.session_id,  # Track conversation window
-            )
-            yield memory_event
+        try:
+            async for event in self.interaction_loop.run_loop():
+                yield event
+                # Capture final response from StreamingCompleteEvent
+                if isinstance(event, StreamingCompleteEvent) and event.final_response:
+                    final_response = event.final_response
+        finally:
+            # RELIABILITY: Ensure side-effects run even if client disconnects/cancels
+            # Critical business logic (event publishing, memory storage) must execute
+            # even if the generator is closed early (GeneratorExit)
+            if final_response:
+                try:
+                    # Publish completion event (side-effect, doesn't require yielding)
+                    await self._publish_completion_event(query, final_response)
+                    
+                    # Emit memory store event for frontend to store the interaction
+                    # Currently only episodic memory is automatically stored
+                    # Semantic memory can be stored manually via the memory tool
+                    memory_event = MemoryStoreEvent(
+                        user_query=query,
+                        assistant_response=final_response,
+                        memory_type="episodic",  # Store interactions as episodic memory
+                        user_id=self.session.user_id,
+                        session_id=self.session.session_id,  # Track conversation window
+                    )
+                    
+                    # Try to yield the memory event, but handle GeneratorExit gracefully
+                    try:
+                        yield memory_event
+                    except GeneratorExit:
+                        # Client disconnected before we could yield the event
+                        # Fallback: Publish to event bus as a side-effect to ensure it's handled
+                        logger.warning(
+                            f"Client disconnected before MemoryStoreEvent could be yielded. "
+                            f"Publishing to event bus as fallback."
+                        )
+                        await self.event_bus.publish(memory_event)
+                except Exception as e:
+                    # Log but don't re-raise - we're in finally block
+                    logger.error(
+                        f"Error during finalization after interaction loop: {e}",
+                        exc_info=True
+                    )
 
     def _is_first_user_message(self) -> bool:
-        """Check if this is the first user message in the conversation."""
-        stored_messages = self.session.history.get_stored_messages()
-        user_query_count = sum(1 for msg in stored_messages if msg.message_type == MessageType.USER_QUERY)
-        return user_query_count == 0
+        """
+        Check if this is the first user message in the conversation.
+        
+        PERFORMANCE: Uses O(1) length check instead of O(N) scan through all messages.
+        This avoids unnecessary latency as conversation history grows.
+        """
+        # O(1) check: if history is empty, this is the first message
+        # Access internal history list directly to avoid creating a copy
+        return len(self.session.history.history) == 0
 
     async def _publish_completion_event(self, query: str, response: str):
         """Publishes the InteractionCompleted event."""

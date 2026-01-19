@@ -5,6 +5,7 @@ This module provides a centralized configuration service with change notificatio
 and type-safe access. It wraps ConfigManager and provides a cleaner interface
 for components that need to react to configuration changes.
 """
+import asyncio
 import logging
 import threading
 from typing import Any, Callable, Dict, Optional
@@ -142,8 +143,13 @@ class ConfigurationService:
 
             old_config = self._config
 
-            # Update via config manager (handles file saving, API key loading)
-            updated_config = self._config_manager.update_config(new_config)
+        # Run blocking I/O operations in thread pool to avoid blocking event loop
+        loop = asyncio.get_running_loop()
+        updated_config = await loop.run_in_executor(
+            None, self._config_manager.update_config, new_config
+        )
+        
+        with self._lock:
             self._config = updated_config
 
         # Notify subscribers outside lock to avoid deadlocks
@@ -217,8 +223,13 @@ class ConfigurationService:
 
             old_config = self._config
 
-            # Reload via config manager
-            reloaded_config = self._config_manager.reload_config()
+        # Run blocking I/O operations in thread pool to avoid blocking event loop
+        loop = asyncio.get_running_loop()
+        reloaded_config = await loop.run_in_executor(
+            None, self._config_manager.reload_config
+        )
+        
+        with self._lock:
             self._config = reloaded_config
 
         # Notify subscribers outside lock to avoid deadlocks
@@ -279,9 +290,12 @@ class ConfigurationService:
         Build complete user configuration by merging global config with user overrides.
         
         Applies configuration policies:
-        - tts_enabled is always True (hardcoded policy, not configurable)
-        - Sets default TTS model path if needed
+        - Sets default TTS model path if TTS is enabled and path is not set
         - Loads API keys for selected provider
+        
+        CONFIGURATION: Respects tts_enabled from config (removed hardcoded override).
+        Users can now disable TTS for headless/silent mode operation.
+        speech_mode_enabled controls whether TTS is actually used during interactions.
         
         This method centralizes config building logic to avoid duplication
         between handlers and session managers.
@@ -298,10 +312,6 @@ class ConfigurationService:
         
         # Merge: user config overrides global
         complete_config_dict = {**global_config.model_dump(), **user_config}
-        
-        # Policy: tts_enabled is always True (hardcoded, not configurable)
-        # speech_mode_enabled controls whether TTS is actually used
-        complete_config_dict["tts_enabled"] = True
         
         # Set default TTS model path if TTS is enabled and path is not set
         tts_will_be_enabled = complete_config_dict.get("tts_enabled", global_config.tts_enabled)

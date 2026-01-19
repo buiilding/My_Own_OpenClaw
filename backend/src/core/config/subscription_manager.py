@@ -4,6 +4,7 @@ Configuration Subscription Manager.
 Handles subscription management for configuration change notifications.
 Separates subscriber management from configuration data access.
 """
+import asyncio
 import logging
 import threading
 from typing import Any, Callable, List, Protocol
@@ -123,8 +124,42 @@ class ConfigSubscriptionManager:
                 )
 
         # Notify callback subscribers
+        # PERFORMANCE: Offload synchronous callbacks to thread pool to prevent
+        # blocking the event loop. If a callback performs I/O or heavy computation,
+        # it will block a worker thread instead of the entire application.
+        loop = asyncio.get_running_loop()
         for callback in callbacks_copy:
             try:
-                callback(old_config, new_config)
+                # Execute synchronous callbacks in thread pool
+                loop.run_in_executor(
+                    None,
+                    self._safe_callback_exec,
+                    callback,
+                    old_config,
+                    new_config
+                )
             except Exception as e:
-                logger.error(f"Error in config change callback: {e}", exc_info=True)
+                # This catches scheduling errors, not callback errors
+                logger.error(f"Error scheduling config change callback: {e}", exc_info=True)
+    
+    def _safe_callback_exec(
+        self,
+        callback: Callable[[AppConfig, AppConfig], None],
+        old_config: AppConfig,
+        new_config: AppConfig
+    ) -> None:
+        """
+        Helper to execute callback safely in thread pool.
+        
+        Catches exceptions inside the thread to prevent thread pool errors
+        from propagating to the event loop.
+        
+        Args:
+            callback: Callback function to execute
+            old_config: Previous configuration
+            new_config: New configuration
+        """
+        try:
+            callback(old_config, new_config)
+        except Exception as e:
+            logger.error(f"Error in config change callback: {e}", exc_info=True)

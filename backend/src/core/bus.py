@@ -4,10 +4,10 @@ Enhanced Event Bus for the Desktop Assistant.
 Provides a robust event bus with priority support, filtering, error handling,
 and middleware capabilities for decoupling components.
 """
-import asyncio
+import inspect
 import logging
 import threading
-import time
+import weakref
 from typing import Callable, Dict, List, Optional, Type, Union, Awaitable
 
 from .events import Event
@@ -18,7 +18,12 @@ EventHandler = Union[Callable[[Event], None], Callable[[Event], Awaitable[None]]
 
 
 class EventHandlerWrapper:
-    """Wrapper for event handlers with metadata."""
+    """
+    Wrapper for event handlers with metadata.
+    
+    MEMORY MANAGEMENT: Uses weak references for bound methods to prevent memory leaks.
+    If a handler object is garbage collected, the wrapper becomes inactive.
+    """
     
     def __init__(
         self,
@@ -26,19 +31,66 @@ class EventHandlerWrapper:
         priority: int = 100,
         filter_func: Optional[Callable[[Event], bool]] = None
     ):
-        self.handler = handler
+        # MEMORY MANAGEMENT: Use weak reference for bound methods to prevent leaks
+        # For unbound functions, store directly (they don't hold object references)
+        if inspect.ismethod(handler):
+            # Bound method - use WeakMethod to allow GC of the object
+            self._handler_ref = weakref.WeakMethod(handler)
+            self._is_weak = True
+        else:
+            # Unbound function or callable - store directly
+            self._handler = handler
+            self._is_weak = False
+        
         self.priority = priority  # Lower = higher priority
         self.filter_func = filter_func
     
+    @property
+    def handler(self) -> Optional[EventHandler]:
+        """
+        Get the handler, resolving weak reference if needed.
+        
+        Returns:
+            Handler if still alive, None if object was garbage collected
+        """
+        if self._is_weak:
+            return self._handler_ref()
+        return self._handler
+    
+    def is_alive(self) -> bool:
+        """Check if the handler is still alive (for weak references)."""
+        if self._is_weak:
+            return self._handler_ref() is not None
+        return True
+    
     async def call(self, event: Event) -> None:
-        """Call the handler if it passes the filter."""
+        """
+        Call the handler if it passes the filter.
+        
+        CORRECTNESS: Uses inspect.isawaitable on the result to properly handle
+        async functions wrapped in functools.partial or async callable objects.
+        This prevents silent failures where async handlers return coroutines
+        that are never awaited.
+        
+        MEMORY MANAGEMENT: Checks if handler is still alive (for weak references)
+        before calling to handle cases where the object was garbage collected.
+        """
         if self.filter_func and not self.filter_func(event):
             return
         
-        if asyncio.iscoroutinefunction(self.handler):
-            await self.handler(event)
-        else:
-            self.handler(event)
+        # MEMORY MANAGEMENT: Check if handler is still alive (weak reference may be dead)
+        handler = self.handler
+        if handler is None:
+            # Handler object was garbage collected, skip silently
+            return
+        
+        # Call the handler first
+        result = handler(event)
+        
+        # If it returned an awaitable (coroutine), await it.
+        # This handles async def, async partials, and async callables.
+        if inspect.isawaitable(result):
+            await result
 
 
 class EventBus:
@@ -49,7 +101,7 @@ class EventBus:
     - Priority-based handler execution
     - Event filtering
     - Error handling and recovery
-    - Middleware support
+    - Global listeners (run before all handlers)
     - Both sync and async handlers
     """
     
@@ -62,7 +114,7 @@ class EventBus:
                                   even if one fails
         """
         self._subscribers: Dict[Type[Event], List[EventHandlerWrapper]] = {}
-        self._middleware: List[Callable[[Event], Awaitable[None]]] = []
+        self._global_listeners: List[Callable[[Event], Awaitable[Optional[bool]]]] = []
         self.enable_error_recovery = enable_error_recovery
         self._event_stats: Dict[str, int] = {}
         self._lock = threading.RLock()  # Reentrant lock for thread safety
@@ -130,33 +182,62 @@ class EventBus:
             
             return False
     
-    def add_middleware(self, middleware: Callable[[Event], Awaitable[None]]) -> None:
+    def add_global_listener(
+        self, 
+        listener: Callable[[Event], Awaitable[Optional[bool]]]
+    ) -> None:
         """
-        Add middleware that runs before all handlers.
+        Add a global listener that runs before all handlers.
+        
+        DESIGN: These are "before-all-handlers" listeners with blocking capability.
+        Listeners can return False to prevent event propagation to handlers.
+        This provides basic event filtering/veto capability.
+        
+        For true middleware pattern (onion architecture with pre/post processing),
+        consider refactoring to pass a 'next' callable.
         
         Thread-safe: Uses lock to prevent race conditions.
         
         Args:
-            middleware: Async function that receives the event
+            listener: Async function that receives the event.
+                     Returns True/None to continue, False to block propagation.
         """
         with self._lock:
-            self._middleware.append(middleware)
-            logger.debug(f"Added middleware: {middleware}")
+            self._global_listeners.append(listener)
+            logger.debug(f"Added global listener: {listener}")
+    
+    def add_middleware(self, middleware: Callable[[Event], Awaitable[Optional[bool]]]) -> None:
+        """
+        Deprecated: Use add_global_listener instead.
+        
+        This method is kept for backward compatibility but will be removed
+        in a future version. The current implementation is not true middleware
+        (onion architecture) but rather "before-all-handlers" listeners.
+        """
+        import warnings
+        warnings.warn(
+            "add_middleware is deprecated. Use add_global_listener instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        self.add_global_listener(middleware)
     
     async def publish(self, event: Event) -> None:
         """
         Publish an event to all subscribers.
         
+        POLYMORPHISM: Respects inheritance hierarchy by checking all classes in
+        the event's MRO (Method Resolution Order). If a handler subscribes to a
+        parent class (e.g., StreamingEvent), it will receive events from child
+        classes (e.g., ThinkingEvent, ToolCallEvent).
+        
         Thread-safe: Copies handler list to prevent race conditions if handlers
         are added/removed during iteration.
         
         Args:
-            event: The event to publish
+            event: The event to publish (timestamp is set in Event.__init__)
         """
-        # Set timestamp if not set
-        if not event.timestamp:
-            event.timestamp = time.time()
-        
+        # Timestamp is set in Event.__init__, no mutation needed
         event_type = type(event)
         event_name = event_type.__name__
         
@@ -164,29 +245,70 @@ class EventBus:
         with self._lock:
             self._event_stats[event_name] = self._event_stats.get(event_name, 0) + 1
         
-        # Run middleware (copy list to prevent mutation during iteration)
+        # Run global listeners (copy list to prevent mutation during iteration)
+        # DESIGN: Listeners can block event propagation by returning False
         with self._lock:
-            middleware_copy = list(self._middleware)
-        for middleware in middleware_copy:
+            listeners_copy = list(self._global_listeners)
+        for listener in listeners_copy:
             try:
-                await middleware(event)
+                result = await listener(event)
+                # If listener returns False, block event propagation
+                if result is False:
+                    logger.debug(f"Event {event_name} blocked by global listener {listener}")
+                    return
             except Exception as e:
-                logger.error(f"Error in middleware for {event_name}: {e}", exc_info=True)
+                logger.error(f"Error in global listener for {event_name}: {e}", exc_info=True)
                 if not self.enable_error_recovery:
                     return  # Stop processing if error recovery is disabled
         
-        # Get handlers for this event type (copy list to prevent mutation during iteration)
+        # POLYMORPHISM: Collect handlers for all classes in the event's MRO
+        # This ensures that subscribers to parent classes receive child events.
+        # For example, if someone subscribes to StreamingEvent, they will receive
+        # ThinkingEvent, ToolCallEvent, etc.
+        handlers = []
         with self._lock:
-            handlers = list(self._subscribers.get(event_type, []))
+            # Iterate over MRO to find all matching subscribers
+            for cls in event_type.__mro__:
+                # Skip object base class
+                if cls is object:
+                    continue
+                # Check if this class (or any parent) has subscribers
+                if cls in self._subscribers:
+                    handlers.extend(self._subscribers[cls])
         
-        if not handlers:
-            logger.debug(f"No handlers for {event_name}")
+        # Remove duplicates while preserving order (handlers may be subscribed to multiple levels)
+        # Use handler object identity to deduplicate
+        seen = set()
+        unique_handlers = []
+        for handler in handlers:
+            handler_id = id(handler)
+            if handler_id not in seen:
+                seen.add(handler_id)
+                unique_handlers.append(handler)
+        
+        # Sort by priority (lower = higher priority) to maintain execution order
+        # across handlers from different MRO levels
+        unique_handlers.sort(key=lambda w: w.priority)
+        
+        if not unique_handlers:
+            logger.debug(f"No handlers for {event_name} (checked MRO: {[cls.__name__ for cls in event_type.__mro__ if cls is not object]})")
             return
         
-        logger.debug(f"Publishing {event_name} to {len(handlers)} handlers")
+        logger.debug(f"Publishing {event_name} to {len(unique_handlers)} handlers")
         
         # Execute handlers in priority order
-        for wrapper in handlers:
+        # MEMORY MANAGEMENT: Filter out dead handlers (from weak references) during iteration
+        active_handlers = [w for w in unique_handlers if w.is_alive()]
+        if len(active_handlers) < len(handlers):
+            # Some handlers were garbage collected, clean them up
+            with self._lock:
+                # Remove dead handlers from the subscriber list
+                for event_type_key, handler_list in self._subscribers.items():
+                    self._subscribers[event_type_key] = [
+                        w for w in handler_list if w.is_alive()
+                    ]
+        
+        for wrapper in active_handlers:
             try:
                 await wrapper.call(event)
             except Exception as e:
@@ -198,12 +320,22 @@ class EventBus:
                     return  # Stop processing remaining handlers if error recovery is disabled
     
     def get_stats(self) -> Dict[str, int]:
-        """Get event publishing statistics."""
-        return self._event_stats.copy()
+        """
+        Get event publishing statistics.
+        
+        Thread-safe: Uses lock to prevent race conditions during dictionary copy.
+        """
+        with self._lock:
+            return self._event_stats.copy()
     
     def clear_stats(self) -> None:
-        """Clear event statistics."""
-        self._event_stats.clear()
+        """
+        Clear event statistics.
+        
+        Thread-safe: Uses lock to prevent race conditions during dictionary clear.
+        """
+        with self._lock:
+            self._event_stats.clear()
     
     def get_subscriber_count(self, event_type: Type[Event]) -> int:
         """Get the number of subscribers for an event type."""

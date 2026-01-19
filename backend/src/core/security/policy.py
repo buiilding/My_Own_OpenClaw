@@ -5,6 +5,7 @@ Provides permission checking, resource limits, and audit logging for tool execut
 """
 import logging
 import time
+from collections import deque
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
@@ -36,7 +37,14 @@ class ResourceLimits:
 
 @dataclass
 class ToolExecutionAudit:
-    """Audit log entry for tool execution."""
+    """
+    Audit log entry for tool execution.
+    
+    MEMORY DOS PROTECTION: Large parameter values (e.g., Base64 images, large text)
+    are truncated to prevent unbounded memory growth in the audit log. While the
+    deque is capped at 1000 entries, the content of those entries must also be
+    bounded to prevent gigabytes of RAM consumption.
+    """
     tool_name: str
     user_id: str
     session_id: str
@@ -46,9 +54,66 @@ class ToolExecutionAudit:
     error: Optional[str] = None
     timestamp: float = None
     
+    # Maximum size for string values in parameters (bytes)
+    MAX_PARAM_VALUE_SIZE = 1024  # 1KB per parameter value
+    # Keys to exclude entirely (too large to store)
+    EXCLUDED_PARAM_KEYS = {"image", "screenshot", "content", "data"}
+    
     def __post_init__(self):
         if self.timestamp is None:
             self.timestamp = time.time()
+        
+        # MEMORY DOS PROTECTION: Truncate large parameter values and exclude large keys
+        # This ensures fixed memory usage per audit entry, preventing unbounded growth
+        # even when tools are called with large Base64 images or text blocks.
+        self.parameters = self._sanitize_parameters(self.parameters)
+    
+    def _sanitize_parameters(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Sanitize parameters to prevent unbounded memory growth.
+        
+        - Excludes keys known to contain large data (images, screenshots, content)
+        - Truncates string values to MAX_PARAM_VALUE_SIZE
+        - Preserves structure for other parameter types
+        
+        Args:
+            params: Original parameters dictionary
+            
+        Returns:
+            Sanitized parameters dictionary with bounded memory usage
+        """
+        sanitized = {}
+        for key, value in params.items():
+            # Exclude keys known to contain large data
+            if key.lower() in self.EXCLUDED_PARAM_KEYS:
+                sanitized[key] = f"[EXCLUDED: {type(value).__name__}, size={len(str(value))} bytes]"
+                continue
+            
+            # Truncate large string values
+            if isinstance(value, str):
+                if len(value) > self.MAX_PARAM_VALUE_SIZE:
+                    sanitized[key] = value[:self.MAX_PARAM_VALUE_SIZE] + f"... [TRUNCATED: {len(value)} bytes]"
+                else:
+                    sanitized[key] = value
+            elif isinstance(value, dict):
+                # Recursively sanitize nested dictionaries
+                sanitized[key] = self._sanitize_parameters(value)
+            elif isinstance(value, list):
+                # Truncate lists if they contain large strings
+                sanitized_list = []
+                for item in value[:10]:  # Limit to first 10 items
+                    if isinstance(item, str) and len(item) > self.MAX_PARAM_VALUE_SIZE:
+                        sanitized_list.append(item[:self.MAX_PARAM_VALUE_SIZE] + f"... [TRUNCATED]")
+                    else:
+                        sanitized_list.append(item)
+                if len(value) > 10:
+                    sanitized_list.append(f"... [TRUNCATED: {len(value)} items]")
+                sanitized[key] = sanitized_list
+            else:
+                # Preserve other types as-is
+                sanitized[key] = value
+        
+        return sanitized
 
 
 class SecurityPolicy:
@@ -67,8 +132,9 @@ class SecurityPolicy:
         self.required_permissions: Dict[str, Set[Permission]] = {}
         self.blocked_tools: Set[str] = set()
         self.blocked_paths: List[str] = []
-        self.audit_log: List[ToolExecutionAudit] = []
         self.max_audit_log_size = 1000
+        # Use deque for O(1) append/pop operations instead of O(N) list slicing
+        self.audit_log: deque = deque(maxlen=self.max_audit_log_size)
         self.tool_registry = tool_registry
     
     def check_permission(
@@ -109,19 +175,25 @@ class SecurityPolicy:
         if not required:
             required = self.required_permissions.get(tool_name, set())
         
-        # If still no permissions found, log warning and allow (tools should declare permissions)
+        # SECURITY: Fail-closed - if tool doesn't declare permissions, deny access
         if not required:
-            logger.warning(
-                f"Tool '{tool_name}' does not declare required_permissions. "
-                "All tools should explicitly declare their permissions. "
-                "Defaulting to no permissions required (allow)."
+            logger.error(
+                f"Security Audit: Tool '{tool_name}' attempted action '{permission}' "
+                "but has NO defined permissions. Action DENIED. "
+                "All tools must explicitly declare their permissions."
             )
+            return False
         
-        # Check if permission is in required set
+        # SECURITY: Fail-closed - if tool declares permissions, only allow declared actions
+        # If a tool declares SOME permissions but attempts an undeclared action, deny it
         if permission not in required:
-            # Permission not required, allow
-            return True
+            logger.warning(
+                f"Security Violation: Tool '{tool_name}' attempted action '{permission}' "
+                f"which is NOT in its declared required_permissions {required}. Action DENIED."
+            )
+            return False
         
+        # Permission is in required set - grant access
         # For now, all required permissions are granted
         # In production, implement user/role-based permission checking
         return True
@@ -177,11 +249,8 @@ class SecurityPolicy:
         Args:
             audit: Audit log entry
         """
+        # Deque automatically handles eviction when maxlen is reached (O(1) operation)
         self.audit_log.append(audit)
-        
-        # Trim log if too large
-        if len(self.audit_log) > self.max_audit_log_size:
-            self.audit_log = self.audit_log[-self.max_audit_log_size:]
         
         # Log to logger
         status = "SUCCESS" if audit.success else "FAILED"
@@ -211,7 +280,8 @@ class SecurityPolicy:
         Returns:
             List of audit log entries
         """
-        entries = self.audit_log
+        # Convert deque to list for filtering (deque doesn't support list comprehension directly)
+        entries = list(self.audit_log)
         
         if tool_name:
             entries = [e for e in entries if e.tool_name == tool_name]

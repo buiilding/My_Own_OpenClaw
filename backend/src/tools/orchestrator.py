@@ -81,7 +81,7 @@ class ToolOrchestrator:
 
         results = []
         for tool_call in parsed_response.tool_calls:
-            request_id = tool_call.metadata.get('request_id')
+            request_id = tool_call.metadata.get('request_id') if hasattr(tool_call, 'metadata') else None
             if not request_id:
                 logger.warning(f"Tool call {tool_call.tool_name} missing request_id in metadata")
                 # Fallback to placeholder if no request_id (shouldn't happen with ToolPreparer)
@@ -97,6 +97,17 @@ class ToolOrchestrator:
                     context=None
                 ))
                 continue
+            
+            # Use prepared tool call if available (avoids using mutated original)
+            # Prepared tool calls have resolved coordinates and are immutable
+            # ENCAPSULATION: Use public method instead of accessing private member
+            prepared_call = None
+            if session_ref:
+                prepared_call = session_ref.get_prepared_tool_call(request_id)
+            
+            # Use prepared call if available, otherwise fall back to original
+            # The prepared call has the same structure but with resolved coordinates
+            effective_tool_call = prepared_call.to_parsed_call() if prepared_call else tool_call
 
             # Initialize session attributes if needed
             if not hasattr(session_ref, '_pending_tool_results'):
@@ -141,8 +152,9 @@ class ToolOrchestrator:
                         del session_ref._tool_result_futures[request_id]
             
             # Create a result object compatible with InteractionLoop's expectations
+            # Use effective_tool_call (prepared if available, original otherwise)
             results.append(SimpleNamespace(
-                tool_call=tool_call,
+                tool_call=effective_tool_call,
                 result=tool_result,
                 success=tool_result.success,
                 execution_time=0.1, # Dummy execution time

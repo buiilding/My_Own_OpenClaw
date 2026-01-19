@@ -14,7 +14,15 @@ logger = logging.getLogger(__name__)
 
 
 class TokenService:
-    """Service for counting tokens in conversation messages."""
+    """
+    Service for counting tokens in conversation messages.
+    
+    PERFORMANCE NOTE: Message list conversion happens on every call. For large
+    contexts, consider caching converted message lists if the same messages
+    are counted multiple times. litellm.token_counter should handle tokenizer
+    caching internally, but this cannot be verified without inspecting litellm
+    source code.
+    """
 
     @staticmethod
     def count_tokens(messages, model: str = "gpt-3.5-turbo") -> int:
@@ -30,20 +38,21 @@ class TokenService:
         """
         try:
             # Convert messages to the format expected by litellm
-            # Handle both dict and object formats, preserving multimodal content
-            litellm_messages = []
-            for msg in messages:
-                if isinstance(msg, dict):
-                    # Dict format - preserve as-is for multimodal support
-                    litellm_messages.append(msg)
-                else:
-                    # Object format - convert to dict
-                    litellm_messages.append({
-                        "role": msg.role,
-                        "content": msg.content
-                    })
+            # PERFORMANCE: List comprehension is slightly faster than append loop
+            # For large contexts (100+ messages), this allocation overhead is
+            # acceptable given that token counting is typically O(N) in message length.
+            # If the same messages are counted repeatedly, consider caching the
+            # converted list at a higher level (e.g., in ConversationHistory).
+            litellm_messages = [
+                msg if isinstance(msg, dict) else {"role": msg.role, "content": msg.content}
+                for msg in messages
+            ]
 
             # Use litellm's token counter with image token counting enabled
+            # NOTE: litellm.token_counter should cache tokenizer instances internally
+            # per model, but this behavior cannot be verified without inspecting
+            # litellm source code. If token counting becomes a bottleneck, consider
+            # using tiktoken directly with explicit tokenizer caching.
             token_count = litellm.token_counter(
                 model=model,
                 messages=litellm_messages,

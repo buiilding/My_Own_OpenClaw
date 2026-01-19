@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from backend.src.agent.core.core import AgentSession
     from backend.src.core.interfaces.vision import IVisionService
 
+from backend.src.agent.tools.prepared_tool_call import PreparedToolCall
 from backend.src.agent.tools.resolvers.coordinate_resolvers import CoordinateResolver
 from backend.src.agent.tools.ocr_coordinator import OcrCoordinator
 from backend.src.agent.tools.screenshot_manager import ScreenshotManager
@@ -51,6 +52,7 @@ class ToolPreparer:
         coordinate_resolver: CoordinateResolver,
         ocr_coordinator: OcrCoordinator,
         synthetic_result_factory: SyntheticResultFactory,
+        vision_service: Optional["IVisionService"] = None,
         vision_service_provider: Optional[Callable[["AgentSession"], Optional["IVisionService"]]] = None,
     ):
         """
@@ -61,13 +63,15 @@ class ToolPreparer:
             coordinate_resolver: Resolver for coordinate resolution
             ocr_coordinator: Coordinator for OCR result acquisition
             synthetic_result_factory: Factory for synthetic error results
-            vision_service_provider: Callable to get vision service from session.
+            vision_service: Optional vision service instance (injected directly to avoid circular dependency)
+            vision_service_provider: Optional callable to get vision service from session (fallback).
                                     Defaults to VisionServiceProvider.get_vision_service.
         """
         self.screenshot_manager = screenshot_manager
         self.coordinate_resolver = coordinate_resolver
         self.ocr_coordinator = ocr_coordinator
         self.synthetic_result_factory = synthetic_result_factory
+        self.vision_service = vision_service  # Injected directly (preferred)
         self.vision_service_provider = vision_service_provider or VisionServiceProvider.get_vision_service
 
     async def prepare_tools(
@@ -110,6 +114,12 @@ class ToolPreparer:
             if is_bundle:
                 tool_call.metadata["bundle_id"] = bundle_id
 
+            # Create prepared tool call (immutable copy to avoid mutation)
+            prepared_call = PreparedToolCall.from_parsed_call(tool_call)
+            prepared_call.metadata["request_id"] = request_id
+            if is_bundle:
+                prepared_call.metadata["bundle_id"] = bundle_id
+
             # Check if this tool needs coordinate resolution
             if self._needs_coordinate_resolution(tool_call):
                 try:
@@ -124,16 +134,19 @@ class ToolPreparer:
                         logger.info(f"[Timing] Screenshot acquisition took {screenshot_time:.3f}s (request_id={_short_id(request_id)})")
                     
                     # After screenshot manager completes, check if we have screenshot
-                    screenshot_data = session.latest_screenshot
-                    if not screenshot_data:
+                    # ENCAPSULATION: Use public method instead of accessing private member
+                    screenshot_id = session.get_current_screenshot_id()
+                    screenshot_data = session.get_screenshot(screenshot_id)
+                    if not screenshot_data or not screenshot_id:
                         raise ValueError("No screenshot data available for coordinate resolution")
 
                     # 2. Get OCR results if needed (for OCR method)
+                    # Pass screenshot_id to ensure OCR results match this specific screenshot
                     ocr_results = None
                     if tool_call.parameters.get("find_coordinates_by") == CoordinateFindingMethod.OCR:
                         ocr_start_time = time.perf_counter()
                         ocr_results = await self.ocr_coordinator.get_ocr_results(
-                            session, screenshot_data
+                            session, screenshot_data, screenshot_id
                         )
                         ocr_time = time.perf_counter() - ocr_start_time
                         logger.info(f"[Timing] OCR results retrieval took {ocr_time:.3f}s (request_id={_short_id(request_id)}, found {len(ocr_results) if ocr_results else 0} results)")
@@ -142,10 +155,13 @@ class ToolPreparer:
                         )
 
                     # 3. Get vision service if needed (for Vision method)
-                    # Use provider to decouple from session hierarchy
+                    # Use injected service if available, otherwise fall back to provider
                     vision_service = None
                     if tool_call.parameters.get("find_coordinates_by") == CoordinateFindingMethod.PREDICTION:
-                        vision_service = self.vision_service_provider(session)
+                        vision_service = self.vision_service  # Use injected service (preferred)
+                        if not vision_service:
+                            # Fallback to provider (for backward compatibility)
+                            vision_service = self.vision_service_provider(session)
                         if not vision_service:
                             logger.warning(
                                 f"[request_id={request_id}] Vision service unavailable for coordinate resolution"
@@ -159,8 +175,8 @@ class ToolPreparer:
                     coord_resolve_time = time.perf_counter() - coord_resolve_start_time
                     logger.info(f"[Timing] Coordinate resolution took {coord_resolve_time:.3f}s (request_id={_short_id(request_id)}, method={tool_call.parameters.get('find_coordinates_by')})")
 
-                    # 5. Rewrite tool call to manual mode
-                    self._rewrite_to_manual(tool_call, x, y)
+                    # 5. Rewrite prepared tool call to manual mode (immutable - no mutation of original)
+                    self._rewrite_to_manual(prepared_call, x, y)
                     logger.info(
                         f"[request_id={_short_id(request_id)}] Resolved coordinates for {tool_call.tool_name}: ({x}, {y})"
                     )
@@ -180,9 +196,8 @@ class ToolPreparer:
                     # Store in pending results so orchestrator can find it immediately
                     # Note: Synthetic results are stored here so ToolOrchestrator can find them
                     # when processing tool_calls from parsed_response.
-                    if not hasattr(session, "_pending_tool_results"):
-                        session._pending_tool_results = {}
-                    session._pending_tool_results[request_id] = synthetic_result
+                    # ENCAPSULATION: Use public method instead of accessing private member
+                    session.register_pending_tool_result(request_id, synthetic_result)
 
                     # Yield ToolOutputEvent for backend-side failure
                     # This is the ONLY case where backend emits ToolOutputEvent:
@@ -204,11 +219,15 @@ class ToolPreparer:
                     # and find the synthetic result in _pending_tool_results for history storage.
                     continue
 
-            # Yield the (possibly modified) event
+            # Store prepared tool call in session for ToolOrchestrator to use
+            # ENCAPSULATION: Use public method instead of accessing private member
+            session.register_prepared_tool_call(request_id, prepared_call)
+            
+            # Yield the prepared tool call event (uses prepared parameters, not mutated original)
             yield ToolCallEvent(
-                tool_name=tool_call.tool_name,
-                parameters=tool_call.parameters,
-                raw_call=tool_call.raw_call,
+                tool_name=prepared_call.tool_name,
+                parameters=prepared_call.parameters,
+                raw_call=prepared_call.raw_call,
                 request_id=request_id,
             )
 
@@ -228,20 +247,21 @@ class ToolPreparer:
         method = tool_call.parameters.get("find_coordinates_by")
         return method in [CoordinateFindingMethod.OCR, CoordinateFindingMethod.PREDICTION]
 
-    def _rewrite_to_manual(self, tool_call: ParsedToolCall, x: int, y: int):
+    def _rewrite_to_manual(self, prepared_call: PreparedToolCall, x: int, y: int):
         """
-        Rewrite the tool call parameters to use manual coordinates.
+        Rewrite the prepared tool call parameters to use manual coordinates.
         
+        Modifies the prepared call's parameters (immutable - original ParsedToolCall unchanged).
         Removes backend-only fields (find_coordinates_by, ocr_text, description) since
         the frontend MouseControlArgs schema only accepts x, y coordinates.
         """
         # Set manual coordinates
-        tool_call.parameters["x"] = x
-        tool_call.parameters["y"] = y
+        prepared_call.parameters["x"] = x
+        prepared_call.parameters["y"] = y
 
         # Remove backend-only fields that frontend doesn't understand
         # Frontend schema only accepts x, y, action, and action-specific fields
-        tool_call.parameters.pop("find_coordinates_by", None)
-        tool_call.parameters.pop("ocr_text", None)
-        tool_call.parameters.pop("description", None)
-        tool_call.parameters.pop("model_name", None)
+        prepared_call.parameters.pop("find_coordinates_by", None)
+        prepared_call.parameters.pop("ocr_text", None)
+        prepared_call.parameters.pop("description", None)
+        prepared_call.parameters.pop("model_name", None)

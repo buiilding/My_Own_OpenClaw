@@ -156,7 +156,17 @@ class UpdateSettingsHandler(MessageHandler):
             merged_user_config = {**user_config, **new_config_data}
             
             # Save user-specific config (only frontend-managed fields - filters automatically)
-            self.user_config_manager.save_user_config(user_id, merged_user_config)
+            # BLOCKING I/O FIX: Offload file I/O to thread pool to prevent event loop blocking
+            # Configuration saving involves writing to disk (JSON/YAML), which blocks the
+            # event loop and causes jitter for all active WebSocket connections.
+            import asyncio
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(
+                None,
+                self.user_config_manager.save_user_config,
+                user_id,
+                merged_user_config
+            )
             
             # Build complete config with policies applied (delegates to service)
             validated_config = self.config_service.build_user_config(merged_user_config)
