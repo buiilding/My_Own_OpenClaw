@@ -15,7 +15,7 @@ export const ApiClient = {
       type: 'query',
       payload: {
         text,
-        image_data: screenshot  // Optional screenshot data
+        screenshot: screenshot  // Optional screenshot data
       }
     });
   },

@@ -4,8 +4,6 @@ Tool Result Handler.
 Handles tool result processing from the frontend.
 Extracted from AgentSession to reduce god object complexity.
 """
-import asyncio
-import hashlib
 import logging
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
@@ -122,14 +120,19 @@ class ToolResultHandler:
         
         if screenshot_future and not screenshot_future.done():
             if screenshot_data:
-                # Store screenshot with ID and return tuple (screenshot_id, screenshot_data)
-                screenshot_id = self._generate_screenshot_id(screenshot_data)
-                # MEMORY LEAK FIX: Add with LRU eviction
-                self.session._store_screenshot_with_eviction(screenshot_id, screenshot_data)
-                self.session._current_screenshot_id = screenshot_id
-                # Return tuple so ScreenshotManager can access screenshot_id
-                screenshot_future.set_result((screenshot_id, screenshot_data))
-                logger.info(f"Resolved hidden screenshot waiter for request {request_id[:15]} (screenshot_id={screenshot_id[:8]})")
+                # Use ScreenshotManager to process screenshot (centralized logic)
+                screenshot_manager = self._get_screenshot_manager()
+                if screenshot_manager:
+                    screenshot_id = await screenshot_manager.process_screenshot(
+                        self.session, screenshot_data, request_id
+                    )
+                    # Return tuple so ScreenshotManager can access screenshot_id
+                    screenshot_future.set_result((screenshot_id, screenshot_data))
+                    logger.info(f"Resolved hidden screenshot waiter for request {request_id[:15]} (screenshot_id={screenshot_id[:8]})")
+                else:
+                    # Fallback if executor not initialized yet
+                    logger.warning("ScreenshotManager not available, using fallback")
+                    screenshot_future.set_exception(ValueError("ScreenshotManager not initialized"))
             else:
                 screenshot_future.set_exception(ValueError("No screenshot data in result"))
                 logger.warning(f"Hidden screenshot request {request_id[:15]} returned no data")
@@ -177,13 +180,11 @@ class ToolResultHandler:
             screenshot_data = tool_result.data["screenshot"]
             logger.debug("Tool result includes screenshot data")
         
-        # Update screenshot and trigger OCR if present
+        # Process screenshot if present (store as current, trigger OCR)
         if screenshot_data:
-            screenshot_id = self._generate_screenshot_id(screenshot_data)
-            # MEMORY LEAK FIX: Add with LRU eviction
-            self.session._store_screenshot_with_eviction(screenshot_id, screenshot_data)
-            self.session._current_screenshot_id = screenshot_id
-            await self._maybe_trigger_ocr(screenshot_data, screenshot_id, request_id)
+            screenshot_manager = self._get_screenshot_manager()
+            if screenshot_manager:
+                await screenshot_manager.process_screenshot(self.session, screenshot_data, request_id)
         
         # Store the tool result in session for tool execution to pick up
         self.session._pending_tool_results[request_id] = tool_result
@@ -219,14 +220,12 @@ class ToolResultHandler:
         
         logger.info(f"Processing bundle result: {len(tools)} tools, has_screenshot={bundle_screenshot is not None}, has_combined_content={combined_llm_content is not None}")
         
-        # Process screenshot if present (update session and trigger OCR)
+        # Process screenshot if present (store as current, trigger OCR)
         if bundle_screenshot:
-            screenshot_id = self._generate_screenshot_id(bundle_screenshot)
-            # MEMORY LEAK FIX: Add with LRU eviction
-            self.session._store_screenshot_with_eviction(screenshot_id, bundle_screenshot)
-            self.session._current_screenshot_id = screenshot_id
             logger.debug("Bundle result includes screenshot data")
-            await self._maybe_trigger_ocr(bundle_screenshot, screenshot_id, bundle_request_id)
+            screenshot_manager = self._get_screenshot_manager()
+            if screenshot_manager:
+                await screenshot_manager.process_screenshot(self.session, bundle_screenshot, bundle_request_id)
         
         # Store individual tool results for orchestrator matching (still needed for request_id resolution)
         for tool_result_data in tools:
@@ -302,77 +301,17 @@ class ToolResultHandler:
             self.session._bundled_results[bundle_request_id] = combined_result
             logger.info(f"Stored combined bundled result for history (bundle_id={bundle_request_id[:15]})")
         else:
-            logger.warning(f"Bundle result missing combined_llm_content, cannot create combined history message")
+            logger.warning("Bundle result missing combined_llm_content, cannot create combined history message")
         
         logger.info(f"Finished processing bundle result {bundle_request_id[:15]}")
     
-    async def _maybe_trigger_ocr(
-        self,
-        screenshot_data: str,
-        screenshot_id: str,
-        request_id: str
-    ) -> None:
+    def _get_screenshot_manager(self):
         """
-        Trigger proactive OCR if screenshot is present.
+        Get ScreenshotManager from executor.
         
-        NOTE: OCR triggering policy may evolve. If OCR rules change frequently,
-        consider injecting an OcrPolicyService to decide when to trigger.
-        For now, this remains a domain invariant (screenshot → trigger OCR).
-        
-        This is a non-blocking operation that runs OCR in the background.
-        Tools that need OCR results will wait for ocr_completion_event.
-        
-        OCR results are stored keyed by screenshot_id to prevent race conditions.
-        If a new screenshot arrives while OCR is processing, the old OCR task
-        will complete but its results will be ignored (not overwriting new results).
-        
-        Args:
-            screenshot_data: Base64-encoded screenshot data
-            screenshot_id: Unique ID for this screenshot (for race condition prevention)
-            request_id: Request ID for logging purposes
-        """
-        async def run_ocr_task():
-            try:
-                # Clear OCR completion event before starting new OCR
-                self.session.ocr_completion_event.clear()
-                
-                # Get OCR plugin from session registry
-                ocr_plugin = None
-                if self.session.executor and self.session.executor.plugin_manager:
-                    ocr_plugin = self.session.executor.plugin_manager.plugin_registry.get_plugin("ocr_analysis")
-                
-                if ocr_plugin and ocr_plugin.enabled:
-                    # perform_ocr is now properly async and handles GPU cache management internally in a thread
-                    results = await ocr_plugin.perform_ocr(screenshot_data)
-                    if results:
-                        # Only store results if this screenshot_id is still current
-                        # This prevents race conditions where a new screenshot arrives
-                        # while OCR is processing the old one
-                        if self.session._current_screenshot_id == screenshot_id:
-                            # MEMORY LEAK FIX: Store with LRU eviction
-                            self.session._store_ocr_results_with_eviction(screenshot_id, results)
-                            logger.info(f"Proactive OCR completed for screenshot {screenshot_id[:8]} (request {request_id[:15]})")
-                        else:
-                            logger.debug(f"OCR completed for outdated screenshot {screenshot_id[:8]}, ignoring results")
-            except Exception as e:
-                logger.error(f"Proactive OCR failed: {e}")
-            finally:
-                # Always set the event, even if OCR failed, to unblock waiting tools
-                self.session.ocr_completion_event.set()
-        
-        asyncio.create_task(run_ocr_task())
-    
-    def _generate_screenshot_id(self, screenshot_data: str) -> str:
-        """
-        Generate a unique ID for a screenshot based on its content hash.
-        
-        Args:
-            screenshot_data: Base64-encoded screenshot data
-            
         Returns:
-            Unique screenshot ID (SHA256 hash of first 1KB for performance)
+            ScreenshotManager instance or None if executor not initialized
         """
-        # Use hash of first 1KB for performance (screenshots are large)
-        # This is sufficient to uniquely identify different screenshots
-        sample = screenshot_data[:1024] if len(screenshot_data) > 1024 else screenshot_data
-        return hashlib.sha256(sample.encode('utf-8')).hexdigest()[:16]  # 16 chars is sufficient
+        if self.session.executor and hasattr(self.session.executor, 'screenshot_manager'):
+            return self.session.executor.screenshot_manager
+        return None

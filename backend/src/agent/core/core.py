@@ -131,16 +131,11 @@ class AgentSession:
         self.event_bus.subscribe(InteractionCompleted, self._on_interaction_completed)
 
         # Session-scoped state for computer use
-        # Screenshots are keyed by unique ID to prevent race conditions
-        # Each screenshot gets a unique ID (hash or timestamp) to ensure OCR results match
-        # MEMORY LEAK FIX: Use OrderedDict to implement LRU eviction for screenshots
-        # This prevents unbounded memory growth during long sessions with many tool executions
-        from collections import OrderedDict
-        self._screenshots: OrderedDict[str, str] = OrderedDict()  # screenshot_id -> base64_data
-        self._max_screenshots: int = 10  # Keep last 10 screenshots (LRU eviction)
-        self._current_screenshot_id: Optional[str] = None  # ID of the most recent screenshot
-        self._ocr_results_by_screenshot: OrderedDict[str, list[dict]] = OrderedDict()  # screenshot_id -> OCR results
-        self._max_ocr_results: int = 10  # Keep last 10 OCR result sets (LRU eviction)
+        # SIMPLIFIED: Only keep current screenshot and OCR results (previous screenshots are obsolete)
+        # For desktop automation, only the current state matters - old screenshots can't be interacted with
+        self._current_screenshot: Optional[str] = None  # Base64-encoded screenshot data
+        self._current_screenshot_id: Optional[str] = None  # ID of the current screenshot
+        self._current_ocr_results: Optional[list[dict]] = None  # OCR results for current screenshot
         # SCREENSHOT REQUEST RACE FIX: Use dict to track multiple concurrent screenshot requests
         # Maps request_id -> Future to prevent race conditions when multiple tools request screenshots
         self._pending_screenshots: Dict[str, asyncio.Future] = {}
@@ -158,43 +153,33 @@ class AgentSession:
 
     def get_screenshot(self, screenshot_id: Optional[str] = None) -> Optional[str]:
         """
-        Get screenshot data by ID.
+        Get current screenshot data.
         
-        MEMORY LEAK FIX: Updates LRU order when accessing screenshots.
+        SIMPLIFIED: Only current screenshot is stored. Previous screenshots are discarded.
+        screenshot_id parameter is ignored (kept for API compatibility).
         
         Args:
-            screenshot_id: Optional screenshot ID. If None, returns current screenshot.
+            screenshot_id: Ignored (kept for backward compatibility)
             
         Returns:
-            Base64-encoded screenshot data or None if not found
+            Base64-encoded screenshot data or None if no current screenshot
         """
-        if screenshot_id is None:
-            screenshot_id = self._current_screenshot_id
-        if screenshot_id and screenshot_id in self._screenshots:
-            # MEMORY LEAK FIX: Move to end (most recently used) for LRU
-            self._screenshots.move_to_end(screenshot_id)
-            return self._screenshots[screenshot_id]
-        return None
+        return self._current_screenshot
     
     def get_ocr_results(self, screenshot_id: Optional[str] = None) -> Optional[list[dict]]:
         """
-        Get OCR results by screenshot ID.
+        Get OCR results for current screenshot.
         
-        MEMORY LEAK FIX: Updates LRU order when accessing OCR results.
+        SIMPLIFIED: Only current OCR results are stored. Previous results are discarded.
+        screenshot_id parameter is ignored (kept for API compatibility).
         
         Args:
-            screenshot_id: Optional screenshot ID. If None, returns OCR for current screenshot.
+            screenshot_id: Ignored (kept for backward compatibility)
             
         Returns:
-            List of OCR results or None if not found
+            List of OCR results or None if no current OCR results
         """
-        if screenshot_id is None:
-            screenshot_id = self._current_screenshot_id
-        if screenshot_id and screenshot_id in self._ocr_results_by_screenshot:
-            # MEMORY LEAK FIX: Move to end (most recently used) for LRU
-            self._ocr_results_by_screenshot.move_to_end(screenshot_id)
-            return self._ocr_results_by_screenshot[screenshot_id]
-        return None
+        return self._current_ocr_results
     
     @property
     def latest_screenshot(self) -> Optional[str]:
@@ -219,47 +204,30 @@ class AgentSession:
         """
         return self._current_screenshot_id
     
-    def _store_screenshot_with_eviction(self, screenshot_id: str, screenshot_data: str) -> None:
+    def set_current_screenshot(self, screenshot_id: str, screenshot_data: str) -> None:
         """
-        Store screenshot with LRU eviction.
+        Set the current screenshot, discarding any previous screenshot.
         
-        MEMORY LEAK FIX: Implements LRU eviction to prevent unbounded memory growth.
-        Keeps only the most recently used screenshots (up to _max_screenshots).
+        SIMPLIFIED: Only current screenshot is kept. Previous screenshots are obsolete
+        for desktop automation (can't interact with past state).
         
         Args:
             screenshot_id: Unique ID for the screenshot
             screenshot_data: Base64-encoded screenshot data
         """
-        # Add or update screenshot (moves to end if already exists)
-        self._screenshots[screenshot_id] = screenshot_data
-        self._screenshots.move_to_end(screenshot_id)
-        
-        # Evict oldest if over limit
-        while len(self._screenshots) > self._max_screenshots:
-            oldest_id, _ = self._screenshots.popitem(last=False)
-            # Also remove associated OCR results
-            self._ocr_results_by_screenshot.pop(oldest_id, None)
-            logger.debug(f"Evicted old screenshot {oldest_id[:8]} (LRU cache limit reached)")
+        self._current_screenshot = screenshot_data
+        self._current_screenshot_id = screenshot_id
+        # Discard old OCR results when screenshot changes
+        self._current_ocr_results = None
     
-    def _store_ocr_results_with_eviction(self, screenshot_id: str, ocr_results: list[dict]) -> None:
+    def set_current_ocr_results(self, ocr_results: list[dict]) -> None:
         """
-        Store OCR results with LRU eviction.
-        
-        MEMORY LEAK FIX: Implements LRU eviction to prevent unbounded memory growth.
-        Keeps only the most recently used OCR result sets (up to _max_ocr_results).
+        Set OCR results for the current screenshot.
         
         Args:
-            screenshot_id: Unique ID for the screenshot
             ocr_results: List of OCR results
         """
-        # Add or update OCR results (moves to end if already exists)
-        self._ocr_results_by_screenshot[screenshot_id] = ocr_results
-        self._ocr_results_by_screenshot.move_to_end(screenshot_id)
-        
-        # Evict oldest if over limit
-        while len(self._ocr_results_by_screenshot) > self._max_ocr_results:
-            oldest_id, _ = self._ocr_results_by_screenshot.popitem(last=False)
-            logger.debug(f"Evicted old OCR results for screenshot {oldest_id[:8]} (LRU cache limit reached)")
+        self._current_ocr_results = ocr_results
     
     def register_pending_tool_result(self, request_id: str, result: Any) -> None:
         """

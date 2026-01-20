@@ -229,11 +229,51 @@ export function ChatProvider({ children }) {
       const shortId = correlationId ? correlationId.substring(0, 15) : 'unknown';
       console.log(`[Timing] Tool execution completed: ${toolName} took ${executionTime.toFixed(3)}s (request_id=${shortId})`);
       
+      // Check if this is a computer-use tool that should have a screenshot
+      const computerUseTools = ['mouse_control', 'keyboard_control', 'scroll_control', 'screenshot', 'wait', 'switch_tab'];
+      const isComputerUseTool = computerUseTools.includes(toolName);
+      let screenshot = result.data?.screenshot || null;
+      let systemState = result.data?.system_state || null;
+      
+      // Capture screenshot and system state for computer-use tools if not already present
+      if (isComputerUseTool && !skipAutoCapture && !screenshot) {
+        console.log(`[ChatContext] Capturing screenshot for individual computer-use tool: ${toolName}`);
+        await new Promise(r => setTimeout(r, 2000)); // Small delay for UI to update
+        
+        try {
+          const [stateResult, screenshotResult] = await Promise.all([
+            window.ipc.invoke('get-system-state'),
+            window.ipc.invoke('execute-tool', {
+              toolName: 'screenshot',
+              args: {
+                explanation: `Screenshot after ${toolName}`,
+                expectation: 'State after tool execution'
+              },
+              skipAutoCapture: false
+            })
+          ]);
+          
+          systemState = stateResult;
+          screenshot = screenshotResult.success ? screenshotResult.data?.screenshot : null;
+          
+          // Add screenshot to result data
+          if (screenshot) {
+            result.data = {
+              ...result.data,
+              screenshot: screenshot,
+              system_state: systemState
+            };
+          }
+        } catch (err) {
+          console.error(`[ChatContext] Failed to capture screenshot for ${toolName}:`, err);
+        }
+      }
+      
       // Format complete message with system context XML (used for both display and backend)
       const formattedMessage = formatToolOutputMessage(
         toolName,
         result,
-        result.data?.system_state
+        systemState || result.data?.system_state
       );
       
       // Display formatted message in UI (includes system context XML)
@@ -347,7 +387,7 @@ export function ChatProvider({ children }) {
       
       // Check if any tool in bundle is a computer-use tool
       const hasComputerUseTool = bundle.some(tool => {
-        const computerUseTools = ['mouse_control', 'keyboard_control', 'scroll_control', 'screenshot'];
+        const computerUseTools = ['mouse_control', 'keyboard_control', 'scroll_control', 'screenshot', 'wait', 'switch_tab'];
         return computerUseTools.includes(tool.toolName);
       });
       

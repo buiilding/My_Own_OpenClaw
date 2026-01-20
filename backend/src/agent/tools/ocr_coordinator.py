@@ -76,26 +76,25 @@ class OcrCoordinator:
                 # Event not set - OCR worker likely failed or crashed
                 # Fall through to on-demand OCR below
 
-        # Get OCR results for the specific screenshot_id
-        ocr_results = None
-        if screenshot_id:
-            ocr_results = session.get_ocr_results(screenshot_id)
-            if ocr_results:
-                logger.info(f"Using cached OCR results for screenshot {screenshot_id[:8]}")
-        
-        # Verify screenshot_id still matches current screenshot (race condition check)
+        # SIMPLIFIED: Get OCR results for current screenshot only
+        # Verify screenshot_id matches current screenshot (if provided)
         if screenshot_id and session._current_screenshot_id != screenshot_id:
             logger.warning(
                 f"Screenshot ID mismatch: requested {screenshot_id[:8]}, "
                 f"current is {session._current_screenshot_id[:8] if session._current_screenshot_id else 'None'}. "
                 f"OCR results may be stale."
             )
-            # Clear stale results and re-run OCR
+            # Screenshot changed - clear results and re-run OCR
             ocr_results = None
+        else:
+            # Get OCR results for current screenshot
+            ocr_results = session.get_ocr_results()
+            if ocr_results:
+                logger.info(f"Using cached OCR results for current screenshot {session._current_screenshot_id[:8] if session._current_screenshot_id else 'unknown'}")
 
         # If no results yet (proactive OCR disabled, failed, or screenshot changed), run it now
         if not ocr_results:
-            logger.info(f"OCR results not cached for screenshot {screenshot_id[:8] if screenshot_id else 'unknown'}, running OCR now...")
+            logger.info("OCR results not cached for current screenshot, running OCR now...")
             ocr_exec_start = time.perf_counter()
 
             ocr_plugin = None
@@ -113,15 +112,8 @@ class OcrCoordinator:
             ocr_exec_time = time.perf_counter() - ocr_exec_start
             logger.info(f"[Timing] OCR execution took {ocr_exec_time:.3f}s (found {len(ocr_results) if ocr_results else 0} results)")
             
-            # Store results keyed by screenshot_id
-            if screenshot_id:
-                # MEMORY LEAK FIX: Store with LRU eviction
-                session._store_ocr_results_with_eviction(screenshot_id, ocr_results)
-            else:
-                # Fallback: use current screenshot_id if available
-                if session._current_screenshot_id:
-                    # MEMORY LEAK FIX: Store with LRU eviction
-                    session._store_ocr_results_with_eviction(session._current_screenshot_id, ocr_results)
+            # SIMPLIFIED: Store results for current screenshot only
+            session.set_current_ocr_results(ocr_results)
 
         if not ocr_results:
             raise ValueError("OCR analysis returned no results")

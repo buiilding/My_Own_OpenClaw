@@ -52,7 +52,7 @@ function startWakewordService(mainWindow) {
     return;
   }
 
-  const pythonScript = path.join(__dirname, 'wakeword_service.py');
+  const pythonScript = path.join(__dirname, 'python', 'wakeword_service.py');
   const pythonExe = getPythonPath();
 
   console.log(`[Wakeword] Starting Python service: ${pythonExe} ${pythonScript}`);

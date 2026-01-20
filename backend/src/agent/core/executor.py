@@ -88,7 +88,7 @@ class AgentExecutor:
         from backend.src.agent.tools.screenshot_manager import ScreenshotManager
         from backend.src.agent.tools.synthetic_result_factory import SyntheticResultFactory
         
-        screenshot_manager = ScreenshotManager()
+        self.screenshot_manager = ScreenshotManager()  # Store for use in process_query
         ocr_resolver = OcrResolver()
         vision_resolver = VisionResolver()
         coordinate_resolver = CoordinateResolver(ocr_resolver, vision_resolver)
@@ -101,7 +101,7 @@ class AgentExecutor:
             vision_service = self.tool_orchestrator.context_factory.vision_service
         
         tool_preparer = ToolPreparer(
-            screenshot_manager=screenshot_manager,
+            screenshot_manager=self.screenshot_manager,
             coordinate_resolver=coordinate_resolver,
             ocr_coordinator=ocr_coordinator,
             synthetic_result_factory=synthetic_result_factory,
@@ -131,7 +131,7 @@ class AgentExecutor:
     async def process_query(
         self, 
         query: str, 
-        image_data: Optional[str] = None,
+        screenshot: Optional[str] = None,
         message_content: Optional[str] = None,
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
@@ -139,7 +139,7 @@ class AgentExecutor:
         
         Args:
             query: The user's query text (for reference)
-            image_data: Optional base64-encoded image data for multimodal queries
+            screenshot: Optional base64-encoded screenshot data for multimodal queries
             message_content: Complete message content from frontend (system state + memories + query)
         """
         # 1. Format user message content (delegated to PromptConstructor)
@@ -154,8 +154,14 @@ class AgentExecutor:
         self.session.history.add_user_message(
             content=final_content,
             user_query_raw=query,
-            image_data=image_data
+            image_data=screenshot  # History still uses image_data internally
         )
+
+        # 3. Process user message screenshot if present (store as current, trigger OCR)
+        if screenshot:
+            # Use a synthetic request_id for user messages (not from tool execution)
+            user_request_id = f"user_msg_{self.session.session_id[:8]}"
+            await self.screenshot_manager.process_screenshot(self.session, screenshot, user_request_id)
 
         # 5. Execute Main Loop
         final_response = None

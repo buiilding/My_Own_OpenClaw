@@ -7,8 +7,7 @@ const { ipcMain, BrowserWindow } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const os = require('os');
-const { getSystemState } = require('./system_state.cjs');
-const { searchMemory } = require('./memory_service_bridge.cjs');
+const { getSystemState, searchMemory } = require('./local_backend_bridge.cjs');
 
 const BACKEND_PORT = process.env.BACKEND_PORT || 8765;
 const BACKEND_URL = `ws://127.0.0.1:${BACKEND_PORT}/ws`;
@@ -304,7 +303,6 @@ function formatInitialStateXml(state) {
         <clipboard_preview>${state.clipboard || '<empty>'}</clipboard_preview>
         <screen_resolution>${state.screen_resolution || 'Unknown'}</screen_resolution>
         <time>${state.time || new Date().toISOString()}</time>
-        <internet_status>${state.internet || 'Unknown'}</internet_status>
         <all_open_windows>
 ${windowsXml}
         </all_open_windows>

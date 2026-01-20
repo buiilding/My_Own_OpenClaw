@@ -189,14 +189,14 @@ SIMULATION_RESPONSES = [
                 "name": "scroll_control",
                 "args": {
                     "action": "scroll_down",
-                    "clicks": 30,
+                    "clicks": 50,
                     "explanation": "Scrolling down the page to see more search results.",
                     "expectation": "The page should scroll down, revealing more product listings."
                 }
             }
         })
     },
-    # Iteration 11: Click "pink shoes" using Vision model
+    # Iteration 11: Click "Black Water Shoes Snorkeling Swim Shoes Quick Dry" using Vision model
     {
         "response": json.dumps({
             "functionCall": {
@@ -204,16 +204,16 @@ SIMULATION_RESPONSES = [
                 "args": {
                     "action": "click",
                     "find_coordinates_by": "prediction",
-                    "description": "pink shoes",
-                    "explanation": "Clicking on 'pink shoes' found via vision model.",
-                    "expectation": "The UI should respond to clicking on 'pink shoes'."
+                    "description": "Black Water Shoes Snorkeling Swim Shoes Quick Dry",
+                    "explanation": "Clicking on 'Black Water Shoes Snorkeling Swim Shoes Quick Dry' found via vision model.",
+                    "expectation": "The UI should respond to clicking on 'Black Water Shoes Snorkeling Swim Shoes Quick Dry'."
                 }
             }
         })
     },
     # Final iteration: No more tools, return final response
     {
-        "response": "I've successfully navigated to Amazon, searched for shoes, sorted them by price, and clicked on pink shoes. The task is complete."
+        "response": "I've successfully navigated to Amazon, searched for shoes, sorted them by price, and clicked on Black Water Shoes Snorkeling Swim Shoes Quick Dry. The task is complete."
     },
 ]
 

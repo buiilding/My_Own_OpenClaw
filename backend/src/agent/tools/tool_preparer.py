@@ -134,14 +134,13 @@ class ToolPreparer:
                         logger.info(f"[Timing] Screenshot acquisition took {screenshot_time:.3f}s (request_id={_short_id(request_id)})")
                     
                     # After screenshot manager completes, check if we have screenshot
-                    # ENCAPSULATION: Use public method instead of accessing private member
+                    screenshot_data = session.get_screenshot()
                     screenshot_id = session.get_current_screenshot_id()
-                    screenshot_data = session.get_screenshot(screenshot_id)
                     if not screenshot_data or not screenshot_id:
                         raise ValueError("No screenshot data available for coordinate resolution")
 
                     # 2. Get OCR results if needed (for OCR method)
-                    # Pass screenshot_id to ensure OCR results match this specific screenshot
+                    # SIMPLIFIED: Only current screenshot OCR results are available
                     ocr_results = None
                     if tool_call.parameters.get("find_coordinates_by") == CoordinateFindingMethod.OCR:
                         ocr_start_time = time.perf_counter()
