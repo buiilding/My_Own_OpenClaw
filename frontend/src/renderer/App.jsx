@@ -2,8 +2,9 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ChatInterface from './components/ChatInterface';
 import MainLayout from './components/MainLayout';
 import SettingsPanel from './components/SettingsPanel';
+import CompactOverlay from './components/CompactOverlay';
 import { AppProvider, useAppContext } from './context/AppContext';
-import { ChatProvider } from './context/ChatContext';
+import { ChatProvider, useChatContext } from './context/ChatContext';
 import './styles/ChatInterface.css';
 import './styles/MainLayout.css';
 import './styles/accessibility.css';
@@ -13,7 +14,23 @@ import './styles/accessibility.css';
  */
 function AppContent() {
   const { config, availableModels, updateConfig, saveStatus } = useAppContext();
+  const { mode, isAgentActive, toolCallsForOverlay, thinkingStatus } = useChatContext();
 
+  // Debug logging
+  console.log('[AppContent] Mode:', mode, 'isAgentActive:', isAgentActive, 'toolCalls:', toolCallsForOverlay.length);
+
+  // Show compact overlay in agent mode when active
+  if (mode === 'agent' && isAgentActive) {
+    console.log('[AppContent] Rendering CompactOverlay');
+    return (
+      <CompactOverlay 
+        toolCalls={toolCallsForOverlay} 
+        thinkingStatus={thinkingStatus} 
+      />
+    );
+  }
+
+  // Normal chat UI
   return (
     <MainLayout
       chat={<ChatInterface />}

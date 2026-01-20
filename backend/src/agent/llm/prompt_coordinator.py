@@ -31,6 +31,7 @@ class PromptCoordinator:
         self,
         prompt_constructor: "PromptConstructor",
         history: "ConversationHistory",
+        session: Optional[Any] = None,  # AgentSession (optional for backward compatibility)
     ):
         """
         Initialize the prompt coordinator.
@@ -38,9 +39,11 @@ class PromptCoordinator:
         Args:
             prompt_constructor: Constructor for building prompts
             history: Conversation history manager
+            session: Agent session for accessing mode (optional)
         """
         self.prompt_builder = prompt_constructor
         self.history = history
+        self.session = session
         self._cached_tool_schemas: Optional[List[Dict[str, Any]]] = None
         self._cached_metadata: Optional[PromptMetadata] = None
 
@@ -61,10 +64,13 @@ class PromptCoordinator:
         """
         if iteration == 1:
             # First iteration: build full prompt with metadata
+            # Get mode from session
+            mode = getattr(self.session, 'current_mode', 'agent') if self.session else 'agent'
             prompt_build_start = time.perf_counter()
             prompt, tool_schemas, prompt_metadata = self.prompt_builder.build_prompt(
                 stored_messages=self.history,
                 include_tools=True,
+                mode=mode,  # Pass mode
             )
             prompt_build_time = time.perf_counter() - prompt_build_start
             logger.info(f"[Timing] Prompt building took {prompt_build_time:.3f}s (iteration={iteration})")

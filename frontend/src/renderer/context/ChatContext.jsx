@@ -144,6 +144,11 @@ export function ChatProvider({ children }) {
   const [thinkingStatus, setThinkingStatus] = useState(null);
   const [tokenCounts, setTokenCounts] = useState(null);
   
+  // Mode state
+  const [mode, setMode] = useState('chat'); // 'chat' or 'agent'
+  const [isAgentActive, setIsAgentActive] = useState(false);
+  const [toolCallsForOverlay, setToolCallsForOverlay] = useState([]);
+  
   // Track hidden tool calls (e.g. background screenshots) to avoid UI updates
   const hiddenToolCalls = useRef(new Set());
   
@@ -525,6 +530,51 @@ export function ChatProvider({ children }) {
   const executeToolBundleRef = useRef(executeToolBundle);
   const displayToolResultRef = useRef(displayToolResult);
   
+  // Shift+Tab toggle handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Only trigger if Shift+Tab is pressed
+      // Check both shiftKey and key to handle different keyboard layouts
+      if (e.shiftKey && (e.key === 'Tab' || e.keyCode === 9)) {
+        // Prevent default Tab behavior (focus navigation)
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const newMode = mode === 'chat' ? 'agent' : 'chat';
+        setMode(newMode);
+        console.log(`[ChatContext] Mode switched to: ${newMode}`);
+        
+        // If toggling away from agent mode while active, restore UI
+        if (newMode === 'chat' && isAgentActive) {
+          setIsAgentActive(false);
+          setToolCallsForOverlay([]);
+          window.ipc.send('transform-to-chat-ui', {});
+        }
+      }
+    };
+    
+    // Add listener to both window and document to catch events
+    // Use capture phase to catch events before they're handled by input fields
+    window.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('keydown', handleKeyDown, true);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [mode, isAgentActive]);
+
+  // Listen for emergency reset from main process
+  useEffect(() => {
+    const removeListener = window.ipc.on('force-mode-reset', () => {
+      console.log('[ChatContext] Force mode reset received');
+      setMode('chat');
+      setIsAgentActive(false);
+      setToolCallsForOverlay([]);
+    });
+    return removeListener;
+  }, []);
+
   // Update refs when callbacks change
   useEffect(() => {
     executeToolRef.current = executeTool;
@@ -544,7 +594,15 @@ export function ChatProvider({ children }) {
           streamingHandlers.handleStreamingResponse(data);
           break;
         case 'streaming-complete':
+        case 'error':  // Handle errors to restore UI
           streamingHandlers.handleStreamingComplete();
+          
+          // Restore UI when agent loop completes or errors
+          if (mode === 'agent' && isAgentActive) {
+            setToolCallsForOverlay([]);
+            setIsAgentActive(false);
+            window.ipc.send('transform-to-chat-ui', {});
+          }
           break;
         case 'bundle_start':
           console.log('[ChatContext] Bundle start received - entering bundle mode');
@@ -563,9 +621,41 @@ export function ChatProvider({ children }) {
           break;
         case 'tool-call':
           streamingHandlers.handleToolCall(data);
+          
+          // Extract explanation and add to overlay tracking
+          const explanation = data.payload.parameters?.explanation || null;
+          // Use correlation_id or request_id for uniqueness, fallback to combination of id + timestamp
+          const toolCallCorrelationId = data.payload.correlation_id || data.payload.request_id || data.id;
+          const uniqueId = toolCallCorrelationId 
+            ? `${toolCallCorrelationId}-${Date.now()}` 
+            : `${data.id || 'unknown'}-${Date.now()}-${Math.random()}`;
+          
+          const toolCallForOverlay = {
+            id: uniqueId,
+            toolName: data.payload.tool_name,
+            explanation: explanation,
+            timestamp: Date.now(),
+          };
+          
+          // Only add if not already present (prevent duplicates)
+          setToolCallsForOverlay(prev => {
+            // Check if this tool call already exists
+            const exists = prev.some(call => 
+              call.id === uniqueId || 
+              (call.toolName === toolCallForOverlay.toolName && 
+               Math.abs(call.timestamp - toolCallForOverlay.timestamp) < 100) // Same tool within 100ms
+            );
+            if (exists) {
+              console.log('[ChatContext] Duplicate tool call detected, skipping:', uniqueId);
+              return prev;
+            }
+            return [...prev, toolCallForOverlay];
+          });
+          
           // Execute tool on frontend when tool-call is received
           if (data.payload && data.payload.tool_name && data.payload.parameters) {
-            const correlationId = data.payload.correlation_id || data.payload.request_id || data.id || crypto.randomUUID();
+            // Reuse toolCallCorrelationId from above, or generate new one if not set
+            const toolCorrelationId = toolCallCorrelationId || crypto.randomUUID();
             
             if (isBundling.current) {
                 // Add to bundle
@@ -573,14 +663,14 @@ export function ChatProvider({ children }) {
                 toolBundle.current.push({
                     toolName: data.payload.tool_name,
                     args: data.payload.parameters,
-                    correlationId: correlationId
+                    correlationId: toolCorrelationId
                 });
             } else {
                 // Execute immediately (stateless) - use ref to avoid stale closure
                 executeToolRef.current(
                   data.payload.tool_name,
                   data.payload.parameters,
-                  correlationId,
+                  toolCorrelationId,
                   false // Don't skip auto-capture for individual tools
                 ).catch(err => {
                   console.error('[ChatContext] Failed to execute tool:', err);
@@ -702,10 +792,17 @@ export function ChatProvider({ children }) {
       }
     });
     return removeListener;
-  }, [streamingHandlers, enqueueAudio]); // Removed executeTool, executeToolBundle, displayToolResult - using refs instead
+  }, [streamingHandlers, enqueueAudio, mode, isAgentActive]); // Include mode and isAgentActive for UI transformation logic
 
   const sendMessage = useCallback(async (text) => {
     stopPlayback();
+    
+    // TRANSFORM IMMEDIATELY if in agent mode
+    if (mode === 'agent') {
+      console.log('[ChatContext] Setting isAgentActive to true and transforming UI');
+      setIsAgentActive(true);
+      window.ipc.send('transform-to-agent-ui', {});
+    }
     
     // Take screenshot before sending message
     let screenshot = null;
@@ -739,9 +836,9 @@ export function ChatProvider({ children }) {
     setIsSending(true);
     setThinkingStatus(null);
     
-    // Send query with screenshot to backend
-    await ApiClient.sendQuery(text, screenshot);
-  }, [stopPlayback]);
+    // Send query with screenshot and mode to backend
+    await ApiClient.sendQuery(text, screenshot, mode);
+  }, [stopPlayback, mode]);
 
   const value = {
     messages,
@@ -749,7 +846,10 @@ export function ChatProvider({ children }) {
     thinkingStatus,
     tokenCounts,
     sendMessage,
-    stopPlayback
+    stopPlayback,
+    mode,  // Export mode
+    isAgentActive,  // Export agent active state
+    toolCallsForOverlay,  // Export tool calls for overlay
   };
 
   return (

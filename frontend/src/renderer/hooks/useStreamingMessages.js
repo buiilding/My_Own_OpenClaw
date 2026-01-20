@@ -53,6 +53,9 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
   }, [setIsSending, setMessages]);
 
   const handleToolCall = useCallback((data) => {
+    // Extract explanation from parameters (LLM always includes it per backend schema)
+    const explanation = data.payload.parameters?.explanation || null;
+    
     const newMessage = {
       id: crypto.randomUUID(),
       text: data.payload.raw_call || JSON.stringify({
@@ -61,6 +64,8 @@ export function useStreamingMessages(setMessages, setIsSending, setThinkingStatu
       }, null, 2),
       sender: 'assistant',
       type: 'tool-call',
+      toolName: data.payload.tool_name,
+      explanation: explanation,  // Extract and store explanation
     };
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   }, [setMessages]);

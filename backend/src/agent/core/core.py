@@ -326,6 +326,7 @@ class AgentSession:
         query: str, 
         image_data: Optional[str] = None,
         message_content: Optional[str] = None,
+        mode: str = "agent",  # Add mode parameter
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Processes a user query and yields status updates and response chunks.
@@ -334,7 +335,10 @@ class AgentSession:
             query: The user's query text (for reference)
             image_data: Optional base64-encoded image data for multimodal queries
             message_content: Complete message content from frontend (system state + memories + query)
+            mode: "chat" or "agent" mode
         """
+        # Store mode in session for prompt construction
+        self.current_mode = mode
         async with self._lock:
             if not self.cfg.selected_model_id:
                 yield {
@@ -345,8 +349,9 @@ class AgentSession:
 
             async for event in self.executor.process_query(
                 query, 
-                image_data=image_data, 
+                screenshot=image_data,  # Map image_data to screenshot parameter
                 message_content=message_content,
+                mode=mode,  # Pass mode
             ):
                 yield event
     

@@ -57,6 +57,15 @@ function MessageInput({ onSendMessage, isSending, voiceModeEnabled }) {
     }
   };
 
+  const handleKeyDown = (e) => {
+    // Allow Shift+Tab to bubble up for mode toggle
+    // Don't prevent default here - let it bubble to window listener
+    if (e.shiftKey && (e.key === 'Tab' || e.keyCode === 9)) {
+      // Let the event bubble to the window listener in ChatContext
+      return;
+    }
+  };
+
   return (
     <>
       <VoiceStatus 
@@ -75,6 +84,7 @@ function MessageInput({ onSendMessage, isSending, voiceModeEnabled }) {
           value={inputValue}
           onChange={handleInputChange}
           onPaste={handlePaste}
+          onKeyDown={handleKeyDown}
           placeholder={voiceModeEnabled ? "Type your message or speak..." : "Type your message..."}
           disabled={isSending}
           className="message-input"

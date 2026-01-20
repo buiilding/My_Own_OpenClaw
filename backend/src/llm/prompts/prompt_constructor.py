@@ -21,6 +21,7 @@ eliminating circular parsing patterns and preserving data integrity.
 import json
 import logging
 import re
+from pathlib import Path
 from typing import List, Dict, Any, Optional, Union, TYPE_CHECKING
 
 from backend.src.llm.prompts.prompts import get_system_prompt
@@ -77,6 +78,8 @@ class PromptConstructor:
         self.config = config
         # Load system prompt at runtime (not import time) to avoid crashes
         self.system_prompt = system_prompt or get_system_prompt()
+        # Load chat mode prompt
+        self.chat_mode_prompt = self._load_chat_mode_prompt()
         # Use injected MetricsService or create a new instance (for backward compatibility)
         if metrics_service is None:
             from backend.src.core.observability.trust_boundary_metrics import MetricsService
@@ -88,6 +91,7 @@ class PromptConstructor:
         self,
         stored_messages: Optional[Union[List[StoredMessage], Any]] = None,
         include_tools: bool = True,
+        mode: str = "agent",  # Add mode parameter
     ) -> tuple[List[LLMMessage], List[Dict[str, Any]], PromptMetadata]:
         """
         Constructs the full prompt from stored history.
@@ -103,6 +107,7 @@ class PromptConstructor:
         Args:
             stored_messages: ConversationHistory instance - provides conversation history
             include_tools: Whether to include tool schemas (always True)
+            mode: "chat" or "agent" mode
 
         Returns:
             Tuple of (List of LLMMessage dicts ready to send to LLM, List of tool schemas for LLM API, PromptMetadata object)
@@ -111,6 +116,13 @@ class PromptConstructor:
             InputSizeLimitError: If any size limit is exceeded
         """
         boundary_name = "prompt_constructor"
+        
+        # Use chat mode prompt if in chat mode
+        if mode == "chat":
+            system_prompt = self.chat_mode_prompt
+            include_tools = False  # Never include tools in chat mode
+        else:
+            system_prompt = self.system_prompt
         
         # Get tool schemas if needed
         tool_schemas = []
@@ -175,12 +187,22 @@ class PromptConstructor:
                 )
 
         metadata = PromptMetadata(
-            system_prompt=self.system_prompt,
+            system_prompt=system_prompt,
             tool_schemas=tool_schemas,
             user_message_metadata=user_message_metadata,
         )
 
         return prompt_messages, tool_schemas, metadata
+    
+    def _load_chat_mode_prompt(self) -> str:
+        """Load chat mode system prompt."""
+        chat_prompt_path = Path(__file__).parent / "chat_mode_prompt.txt"
+        try:
+            with open(chat_prompt_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except FileNotFoundError:
+            logger.warning(f"Chat mode prompt not found: {chat_prompt_path}, using default")
+            return "You are a conversational AI assistant. You cannot execute tools in chat mode."
     
     def _calculate_message_size(self, msg: Dict[str, Any]) -> int:
         """

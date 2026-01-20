@@ -67,6 +67,7 @@ class AgentExecutor:
         prompt_coordinator = PromptCoordinator(
             prompt_constructor=prompt_constructor,
             history=session.history,
+            session=session,  # Pass session for mode access
         )
         
         llm_handler = LLMInteractionHandler(
@@ -133,6 +134,7 @@ class AgentExecutor:
         query: str, 
         screenshot: Optional[str] = None,
         message_content: Optional[str] = None,
+        mode: str = "agent",  # Add mode parameter
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
         Processes a user query and yields status updates and response chunks.
@@ -141,7 +143,10 @@ class AgentExecutor:
             query: The user's query text (for reference)
             screenshot: Optional base64-encoded screenshot data for multimodal queries
             message_content: Complete message content from frontend (system state + memories + query)
+            mode: "chat" or "agent" mode
         """
+        # Store mode in session for prompt construction
+        self.session.current_mode = mode
         # 1. Format user message content (delegated to PromptConstructor)
         is_first_message = self._is_first_user_message()
         final_content = self.prompt_builder.format_user_message_content(

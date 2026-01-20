@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import MessageList from './chat/MessageList';
 import MessageInput from './chat/MessageInput';
 import TokenCountDisplay from './TokenCountDisplay';
+import ModeIndicator from './ModeIndicator';
 import { useChatContext } from '../context/ChatContext';
 import { useAppContext } from '../context/AppContext';
 import { useWakewordDetection } from '../hooks/useWakewordDetection';
@@ -34,6 +35,7 @@ function ChatInterface() {
 
   return (
     <div className="chat-container">
+      <ModeIndicator />
       <MessageList messages={messages} thinkingStatus={thinkingStatus} />
       <MessageInput 
         onSendMessage={sendMessage} 
