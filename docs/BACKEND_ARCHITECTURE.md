@@ -377,10 +377,11 @@ BaseException
 
 ### Data Security
 
-- **Local Storage**: All data stored locally
+- **Local Memory Storage**: Conversation history and memory stored and searched locally
+- **LLM API Access**: User input and screenshots sent to LLM providers via internet APIs (required for AI functionality)
 - **Encryption**: Sensitive data encrypted at rest
 - **Access Control**: User-based isolation
-- **No Cloud Sync**: Everything runs locally
+- **No Cloud Sync**: Memory and conversation data are not synced to cloud services
 
 ## Performance Optimizations
 

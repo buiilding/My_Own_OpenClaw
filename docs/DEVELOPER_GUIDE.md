@@ -371,8 +371,9 @@ class ToolExecutor(Protocol):
 ### Data Security
 
 - Encrypt sensitive data
-- Store data locally
-- No cloud sync by default
+- Store memory and conversation history locally
+- Note: User input and screenshots must be sent to LLM providers via internet APIs (required for AI functionality)
+- No cloud sync of memory/conversation data by default
 
 ## Contributing
 
