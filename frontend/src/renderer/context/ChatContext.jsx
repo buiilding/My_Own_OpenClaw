@@ -707,7 +707,16 @@ export function ChatProvider({ children }) {
   const sendMessage = useCallback(async (text) => {
     stopPlayback();
     
-    // Take screenshot before sending message
+    // Minimize window after 2 seconds delay (if visible/focused and not already minimized)
+    // This happens BEFORE screenshot so the chat window isn't in the screenshot
+    try {
+      await window.ipc.invoke('minimize-window-delayed');
+    } catch (error) {
+      console.error('[ChatContext] Failed to minimize window:', error);
+      // Continue even if minimize fails
+    }
+    
+    // Take screenshot after window is minimized
     let screenshot = null;
     try {
       const screenshotResult = await window.ipc.invoke('execute-tool', {

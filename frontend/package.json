@@ -1,7 +1,7 @@
 {
   "name": "desktop-assistant-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "main": "src/main/index.cjs",
   "scripts": {
@@ -11,11 +11,9 @@
     "preview": "vite preview",
     "electron": "electron .",
     "test": "jest",
-    "test:nutjs": "node src/main/test_nutjs.cjs",
     "test:shell": "node src/main/test_shell.cjs"
   },
   "dependencies": {
-    "@nut-tree/nut-js": "link:",
     "clipboardy": "^3.0.0",
     "node-window-manager": "^2.2.4",
     "pngjs": "^7.0.0",
