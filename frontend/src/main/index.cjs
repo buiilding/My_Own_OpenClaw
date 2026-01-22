@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage, globalShortcut, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 const { initializeIpc } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
@@ -85,78 +85,9 @@ function createTray() {
   });
 }
 
-function transformToAgentUI() {
-  if (!mainWindow) {
-    console.log('[Main] transformToAgentUI: mainWindow is null');
-    return;
-  }
-  
-  console.log('[Main] Transforming window to agent UI...');
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width } = primaryDisplay.workAreaSize;
-  
-  // Resize to compact overlay
-  mainWindow.setSize(350, 600);
-  mainWindow.setPosition(width - 350, 0);
-  console.log(`[Main] Window resized to 350x600, positioned at (${width - 350}, 0)`);
-  
-  // Enable click-through (except for specific elements)
-  mainWindow.setIgnoreMouseEvents(true, { forward: true });
-  console.log('[Main] Click-through enabled');
-  
-  // Enable screenshot exclusion
-  mainWindow.setContentProtection(true);
-  console.log('[Main] Content protection enabled');
-  
-  // Keep on top
-  mainWindow.setAlwaysOnTop(true);
-  console.log('[Main] Always on top enabled');
-  
-  // Ensure window is visible and focused
-  mainWindow.show();
-  mainWindow.focus();
-  mainWindow.moveTop(); // Bring to front
-  console.log('[Main] Window shown, focused, and brought to front');
-}
-
-function transformToChatUI() {
-  if (!mainWindow) return;
-  
-  // Restore normal size
-  mainWindow.setSize(1000, 700);
-  mainWindow.center();
-  
-  // Disable click-through
-  mainWindow.setIgnoreMouseEvents(false);
-  
-  // Disable screenshot exclusion
-  mainWindow.setContentProtection(false);
-  
-  // Disable always on top
-  mainWindow.setAlwaysOnTop(false);
-}
-
 app.whenReady().then(() => {
   createWindow();
   createTray();
-  
-  // Emergency Escape Hatch: Shift+Esc
-  globalShortcut.register('Shift+Escape', () => {
-    console.log('[Main] Emergency restore triggered');
-    transformToChatUI();
-    mainWindow?.webContents.send('force-mode-reset');
-  });
-  
-  // IPC handlers for window transformation
-  ipcMain.on('transform-to-agent-ui', () => {
-    console.log('[Main] Received transform-to-agent-ui request');
-    transformToAgentUI();
-    console.log('[Main] Window transformed to agent UI');
-  });
-  
-  ipcMain.on('transform-to-chat-ui', () => {
-    transformToChatUI();
-  });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

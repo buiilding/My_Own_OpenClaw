@@ -120,14 +120,11 @@ class QueryMessageHandler(MessageHandler):
             # Frontend now sends complete message content
             message_content = validated.payload.content
             screenshot = validated.payload.screenshot  # Optional screenshot data
-            # Extract mode from payload
-            mode = validated.payload.mode if hasattr(validated.payload, 'mode') else "agent"
             try:
                 async for event in agent_instance.process_query(
                     query_text,
                     image_data=screenshot,
                     message_content=message_content,
-                    mode=mode,  # Pass mode
                 ):
                     # Process events through pipeline (msg_id passed per call, not stored)
                     await pipeline.process(event, tts_service, msg_id)

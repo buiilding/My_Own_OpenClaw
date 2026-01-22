@@ -16,6 +16,19 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 
 **Long-term Vision**: Scale from a single assistant to teams of virtual employees - spawn multiple OS instances with parallel agents working together to handle complex, distributed tasks simultaneously.
 
+## 🚀 Future Vision & Strategic Roadmap
+
+> **Note**: The capabilities described below are **planned features** that have not yet been implemented. They represent our strategic vision and roadmap for future development.
+
+### 🔄 Multi-Agent Orchestration Across Machines (Planned)
+**Future Architectural Moat**: Our roadmap includes designing the architecture to support multiple assistants working in parallel across different machines. This distributed multi-agent orchestration capability would be **extremely difficult to replicate** - it requires deep architectural planning, coordination protocols, and resource management that cannot be retrofitted into single-agent systems. When implemented, this would position Desktop Assistant as the foundation for enterprise-scale automation where teams of virtual employees can collaborate across environments, handle distributed workflows, and coordinate complex multi-machine tasks simultaneously.
+
+### 🧠 Adaptive AI Workflows with Real-Time Learning (Planned)
+**Future Product Stickiness**: Our vision includes AI workflows that learn and adapt from user behavior in real time, going beyond basic "click-and-run" automation tools. The planned system would remember your habits, workflow patterns, and preferences, automatically optimizing its behavior to match how you work. This would create a **sticky, personalized experience** that becomes more valuable over time - the more you use it, the better it understands you. This adaptive intelligence would transform the assistant from a tool into a true digital colleague that evolves with your needs.
+
+### 👥 Customizable Enterprise Agents (Planned)
+**Future Enterprise Scalability**: Our roadmap includes enabling each employee to have a tailored assistant that interacts with tools differently based on their role, preferences, and workflow. Enterprise teams would be able to deploy customized agent configurations - a developer's assistant might prioritize code editing and terminal operations, while a designer's assistant focuses on UI automation and asset management. This **role-based customization** would enable organizations to scale AI assistance across entire teams while maintaining individual productivity optimization.
+
 ## ✨ Key Capabilities
 
 ### 🧠 Intelligent Memory System
@@ -52,6 +65,26 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 - **Scalable Architecture**: Designed for future expansion
 
 ### 🔮 Future Capabilities (Planned)
+
+#### Multi-Agent Orchestration (Planned - Strategic Priority)
+- **Distributed Agent Coordination**: Multiple assistants working in parallel across different machines with intelligent task distribution and resource management (not yet implemented)
+- **Cross-Machine Workflows**: Agents on different machines coordinate to handle complex, distributed tasks that span multiple environments (planned)
+- **Orchestration Layer**: Central coordination system managing agent teams, workload balancing, and inter-agent communication (future development)
+- **Future Architectural Advantage**: When implemented, this multi-agent capability would be built into the core architecture, making it extremely difficult for competitors to replicate
+
+#### Adaptive Learning & Workflows (Planned)
+- **Real-Time Behavior Adaptation**: AI workflows that learn and adapt from user behavior patterns in real time, not just static automation scripts (planned feature)
+- **Habit Recognition**: System automatically recognizes and learns from user habits, workflow patterns, and preferences (future capability)
+- **Intelligent Automation**: Workflows that evolve and optimize themselves based on what works best for each individual user (roadmap item)
+- **Future Product Stickiness**: Would create a personalized experience that becomes more valuable over time, differentiating from basic automation tools
+
+#### Enterprise Customization (Planned)
+- **Role-Based Agent Configurations**: Each employee would have a tailored assistant optimized for their specific role and workflow (planned feature)
+- **Customizable Tool Interactions**: Agents would interact with tools differently based on user role, preferences, and organizational needs (future capability)
+- **Team-Wide Deployment**: Organizations would be able to deploy customized agent configurations across entire teams while maintaining individual optimization (roadmap item)
+- **Future Enterprise Scalability**: Would enable scaling AI assistance from individual users to entire organizations with role-specific customization
+
+#### Core Feature Enhancements
 - **Agent Skills**: Rigorous procedures for specific tasks to address inconsistent agent behavior - providing reliable, repeatable workflows for common to medium-complexity tasks
 - **Subagents**: Specialized agent instances for domain-specific tasks and workflows
 - **User Rules**: Customizable rules and preferences that guide agent behavior and decision-making
@@ -171,8 +204,18 @@ Customizable rules and preferences that guide agent behavior and decision-making
 #### External MCPs (Model Context Protocol)
 Integration with external MCP servers to extend capabilities and enable integration with external tools and services, expanding the assistant's functionality beyond built-in tools.
 
-#### Virtual Employees
-The ability to spawn multiple operating system instances (virtual machines or containers) with multiple agents working in parallel, creating teams of virtual employees. These distributed agent teams can handle complex, multi-faceted tasks simultaneously, with coordination and resource management across instances. This enables scaling from a single assistant to a full team of virtual workers operating across different environments.
+#### Virtual Employees & Multi-Agent Orchestration (Planned)
+The planned ability to spawn multiple operating system instances (virtual machines or containers) with multiple agents working in parallel, creating teams of virtual employees. These distributed agent teams would handle complex, multi-faceted tasks simultaneously, with coordination and resource management across instances. This would enable scaling from a single assistant to a full team of virtual workers operating across different environments.
+
+**Future Strategic Advantage**: When implemented, multi-agent orchestration across machines would be an architectural capability that is extremely difficult to replicate. The system would be designed from the ground up to support distributed agent coordination, making this a core competitive differentiator for enterprise-scale automation.
+
+#### Adaptive AI Workflows (Planned)
+Planned AI workflows that learn and adapt from user behavior in real time, creating a sticky product experience. The system would remember habits, workflow patterns, and preferences, automatically optimizing behavior to match individual work styles. This adaptive intelligence would transform the assistant from a basic automation tool into a true digital colleague that evolves with user needs.
+
+**Future Product Stickiness**: Unlike static "click-and-run" automation, the planned adaptive learning would create increasing value over time, making the product more valuable the longer it's used.
+
+#### Customizable Enterprise Agents (Planned)
+The planned capability for each employee to have a tailored assistant that interacts with tools differently based on their role, preferences, and workflow. Enterprise teams would be able to deploy customized agent configurations - developers would get code-focused assistants, designers would get UI-focused assistants, etc. This role-based customization would enable organizations to scale AI assistance across entire teams while maintaining individual productivity optimization.
 
 ## 🛡️ Privacy & Security
 

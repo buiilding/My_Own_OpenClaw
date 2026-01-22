@@ -13,8 +13,6 @@ contextBridge.exposeInMainWorld('ipc', {
       'wakeword-audio-chunk',
       'wakeword-enable',
       'wakeword-disable',
-      'transform-to-agent-ui',  // Add new channels
-      'transform-to-chat-ui',
     ];
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data);
@@ -41,7 +39,6 @@ contextBridge.exposeInMainWorld('ipc', {
       'log',
       'wakeword-detected',
       'wakeword-status',
-      'force-mode-reset',  // Add new channel
     ];
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender`

@@ -309,10 +309,39 @@ BaseException
 - Single-machine execution
 
 ### Future Scalability
-- Multi-user support
-- Distributed execution
-- Cloud sync (optional)
-- Horizontal scaling
+
+> **Note**: The capabilities described below are **planned features** that have not yet been implemented. They represent our strategic vision for future architectural enhancements.
+
+#### Multi-Agent Orchestration (Planned - Strategic Priority)
+The future architecture would be designed to support **multi-agent orchestration across machines** - a capability that would be extremely difficult to replicate and represents a core competitive advantage:
+
+- **Distributed Agent Coordination**: Multiple assistants working in parallel across different machines with intelligent task distribution (planned)
+- **Cross-Machine Workflows**: Agents coordinating to handle complex, distributed tasks spanning multiple environments (future capability)
+- **Orchestration Layer**: Central coordination system managing agent teams, workload balancing, and inter-agent communication (roadmap item)
+- **Resource Management**: Intelligent allocation and balancing of computational resources across distributed agent instances (planned)
+- **Future Architectural Moat**: When implemented, this multi-agent capability would be built into the core architecture from the ground up, requiring deep architectural planning that cannot be retrofitted
+
+#### Adaptive Learning Architecture (Planned)
+The future system architecture would support **real-time adaptive learning** that creates product stickiness:
+
+- **Behavior Pattern Recognition**: Architecture designed to capture and learn from user behavior patterns in real time (planned)
+- **Workflow Optimization**: System automatically optimizing workflows based on what works best for each user (future capability)
+- **Habit Memory**: Enhanced persistent memory system that learns and adapts to individual user habits and preferences (roadmap item)
+- **Future Sticky Product Experience**: Unlike static automation, the planned adaptive intelligence would create increasing value over time
+
+#### Enterprise Customization (Planned)
+Future architecture would support **customizable agents for enterprise teams**:
+
+- **Role-Based Agent Configurations**: Architecture allowing each employee to have a tailored assistant optimized for their specific role (planned)
+- **Customizable Tool Interactions**: Agents interacting with tools differently based on user role, preferences, and organizational needs (future capability)
+- **Team-Wide Deployment**: System designed to support deployment of customized agent configurations across entire organizations (roadmap item)
+- **Scalable Personalization**: Maintaining individual productivity optimization while scaling to enterprise-level deployment (planned)
+
+#### General Scalability Features (Planned)
+- Multi-user support (planned)
+- Distributed execution (planned)
+- Cloud sync (optional, planned)
+- Horizontal scaling (planned)
 
 ## Monitoring & Observability
 

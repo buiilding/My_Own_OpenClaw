@@ -127,29 +127,6 @@ class InteractionLoop:
             ):
                 yield event
 
-            # CHAT MODE: Block tool calls
-            if self.session.current_mode == "chat" and parsed_response.has_tool_calls:
-                logger.warning(f"Tool call blocked in chat mode: {parsed_response.tool_calls}")
-                
-                # Send notice to LLM
-                notice = (
-                    "You attempted to call a tool, but you are in CHAT MODE. "
-                    "Tool execution is disabled. Please provide a conversational response instead. "
-                    "If the user needs tool execution, they must switch to Agent Mode."
-                )
-                
-                # Add notice to history as assistant message
-                self.session.history.add_assistant_message(notice)
-                
-                # Present error to frontend
-                async for event in self.event_presenter.present_error(notice):
-                    yield event
-                
-                # Force completion (no tool execution)
-                async for event in self.event_presenter.present_completion(notice):
-                    yield event
-                return
-
             # Step 4: Decision - final answer or tools?
             if not parsed_response.has_tool_calls:
                 # Final answer - update history and present completion

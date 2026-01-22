@@ -8,16 +8,14 @@ export const ApiClient = {
    * Send a user query to the backend
    * @param {string} text
    * @param {string|null} screenshot - Optional base64-encoded screenshot data
-   * @param {string} mode - "chat" or "agent" mode
    */
-  sendQuery: async (text, screenshot = null, mode = 'agent') => {
+  sendQuery: async (text, screenshot = null) => {
     // System state and memories are automatically added by ipc.cjs
     window.ipc.send('to-backend', {
       type: 'query',
       payload: {
         text,
-        screenshot: screenshot,  // Optional screenshot data
-        mode: mode,  // Include mode in payload
+        screenshot: screenshot  // Optional screenshot data
       }
     });
   },
