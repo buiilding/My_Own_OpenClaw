@@ -91,13 +91,31 @@ class LocalMemoryStore:
 
         # Load or create FAISS indices
         if self.episodic_index_path.exists():
-            self.episodic_index = faiss.read_index(str(self.episodic_index_path))
+            try:
+                self.episodic_index = faiss.read_index(str(self.episodic_index_path))
+            except Exception as e:
+                logger.warning(f"Failed to read episodic FAISS index (corrupted?): {e}. Will recreate it.")
+                # Delete corrupted index file
+                try:
+                    self.episodic_index_path.unlink()
+                except Exception as del_err:
+                    logger.error(f"Failed to delete corrupted episodic index: {del_err}")
+                self.episodic_index = None
         else:
             # We'll determine dimension during first embedding
             self.episodic_index = None
 
         if self.semantic_index_path.exists():
-            self.semantic_index = faiss.read_index(str(self.semantic_index_path))
+            try:
+                self.semantic_index = faiss.read_index(str(self.semantic_index_path))
+            except Exception as e:
+                logger.warning(f"Failed to read semantic FAISS index (corrupted?): {e}. Will recreate it.")
+                # Delete corrupted index file
+                try:
+                    self.semantic_index_path.unlink()
+                except Exception as del_err:
+                    logger.error(f"Failed to delete corrupted semantic index: {del_err}")
+                self.semantic_index = None
         else:
             self.semantic_index = None
 
@@ -114,13 +132,31 @@ class LocalMemoryStore:
 
         # Load or create FAISS indices (blocking ops)
         if self.episodic_index_path.exists():
-            self.episodic_index = await loop.run_in_executor(executor, faiss.read_index, str(self.episodic_index_path))
+            try:
+                self.episodic_index = await loop.run_in_executor(executor, faiss.read_index, str(self.episodic_index_path))
+            except Exception as e:
+                logger.warning(f"Failed to read episodic FAISS index (corrupted?): {e}. Will recreate it.")
+                # Delete corrupted index file
+                try:
+                    self.episodic_index_path.unlink()
+                except Exception as del_err:
+                    logger.error(f"Failed to delete corrupted episodic index: {del_err}")
+                self.episodic_index = None
         else:
             # We'll determine dimension during first embedding
             self.episodic_index = None
 
         if self.semantic_index_path.exists():
-            self.semantic_index = await loop.run_in_executor(executor, faiss.read_index, str(self.semantic_index_path))
+            try:
+                self.semantic_index = await loop.run_in_executor(executor, faiss.read_index, str(self.semantic_index_path))
+            except Exception as e:
+                logger.warning(f"Failed to read semantic FAISS index (corrupted?): {e}. Will recreate it.")
+                # Delete corrupted index file
+                try:
+                    self.semantic_index_path.unlink()
+                except Exception as del_err:
+                    logger.error(f"Failed to delete corrupted semantic index: {del_err}")
+                self.semantic_index = None
         else:
             self.semantic_index = None
 
