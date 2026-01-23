@@ -38,15 +38,26 @@ function getRawIpc(): RawIpcInterface {
 /**
  * Typed IPC Bridge class.
  * Provides type-safe methods for IPC communication.
+ * 
+ * Note: Channel validation is already performed in preload.js for security.
+ * Runtime validation here is redundant in production but kept for development type safety.
  */
 export class IpcBridge {
+  // Pre-compute channel sets for O(1) lookup instead of O(n) array search
+  // Only validate in development to avoid production overhead
+  private static readonly SEND_CHANNEL_SET = new Set(Object.values(SEND_CHANNELS));
+  private static readonly INVOKE_CHANNEL_SET = new Set(Object.values(INVOKE_CHANNELS));
+  private static readonly ON_CHANNEL_SET = new Set(Object.values(ON_CHANNELS));
+  private static readonly IS_DEV = import.meta.env.DEV;
+
   /**
    * Send a message to the main process (one-way, no response)
    * @param channel - Valid send channel name
    * @param data - Data to send
    */
   static send(channel: SendChannel, data: any): void {
-    if (!Object.values(SEND_CHANNELS).includes(channel)) {
+    // Skip validation in production - preload.js already validates for security
+    if (IpcBridge.IS_DEV && !IpcBridge.SEND_CHANNEL_SET.has(channel)) {
       throw new Error(`Invalid send channel: ${channel}`);
     }
     getRawIpc().send(channel, data);
@@ -59,7 +70,8 @@ export class IpcBridge {
    * @returns Promise resolving to the handler's response
    */
   static async invoke<T = any>(channel: InvokeChannel, data?: any): Promise<T> {
-    if (!Object.values(INVOKE_CHANNELS).includes(channel)) {
+    // Skip validation in production - preload.js already validates for security
+    if (IpcBridge.IS_DEV && !IpcBridge.INVOKE_CHANNEL_SET.has(channel)) {
       throw new Error(`Invalid invoke channel: ${channel}`);
     }
     return getRawIpc().invoke(channel, data);
@@ -72,7 +84,8 @@ export class IpcBridge {
    * @returns Cleanup function to unsubscribe
    */
   static on(channel: OnChannel, handler: (...args: any[]) => void): () => void {
-    if (!Object.values(ON_CHANNELS).includes(channel)) {
+    // Skip validation in production - preload.js already validates for security
+    if (IpcBridge.IS_DEV && !IpcBridge.ON_CHANNEL_SET.has(channel)) {
       throw new Error(`Invalid on channel: ${channel}`);
     }
     return getRawIpc().on(channel, handler);
@@ -84,7 +97,8 @@ export class IpcBridge {
    * @param handler - Function to handle the message
    */
   static once(channel: OnChannel, handler: (...args: any[]) => void): void {
-    if (!Object.values(ON_CHANNELS).includes(channel)) {
+    // Skip validation in production - preload.js already validates for security
+    if (IpcBridge.IS_DEV && !IpcBridge.ON_CHANNEL_SET.has(channel)) {
       throw new Error(`Invalid on channel: ${channel}`);
     }
     getRawIpc().once(channel, handler);

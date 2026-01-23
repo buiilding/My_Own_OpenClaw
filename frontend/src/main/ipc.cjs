@@ -19,8 +19,10 @@ let isFirstQuery = true; // Track if this is the first user query in the session
 let currentUserId = null; // Store user_id after successful handshake
 
 function log(message) {
-  // Only log important events, not every message
-  console.log(`[IPC Bridge] ${message}`);
+  // Only log in development - production logging adds overhead
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[IPC Bridge] ${message}`);
+  }
 }
 
 function logDebug(message) {

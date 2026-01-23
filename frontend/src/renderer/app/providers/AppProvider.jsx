@@ -26,8 +26,11 @@ export function AppProvider({ children }) {
 
   // Listen for settings-related backend events
   useEffect(() => {
-    // Initial load
-    ApiClient.loadSettings();
+    // Defer settings load to next tick to allow initial render to complete
+    // This prevents blocking the UI during startup
+    const timeoutId = setTimeout(() => {
+      ApiClient.loadSettings();
+    }, 0);
 
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data) => {
        switch (data.type) {
@@ -49,7 +52,10 @@ export function AppProvider({ children }) {
            break;
        }
     });
-    return removeListener;
+    return () => {
+      clearTimeout(timeoutId);
+      removeListener();
+    };
   }, [settingsHandlers]);
 
   const updateConfig = useCallback((newConfig) => {
