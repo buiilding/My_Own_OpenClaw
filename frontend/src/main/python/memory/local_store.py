@@ -47,6 +47,7 @@ class LocalMemoryStore:
         # Determine memory directory
         if db_path is None:
             # Use platform-specific user data directory
+            # Frontend has its own data folder, separate from backend config
             import platformdirs
             app_name = "desktop-assistant"
             db_path = platformdirs.user_data_dir(app_name)
@@ -58,7 +59,14 @@ class LocalMemoryStore:
             else:
                 memory_dir = db_path_obj
 
-        memory_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            memory_dir.mkdir(parents=True, exist_ok=True)
+            if not memory_dir.exists():
+                raise OSError(f"Failed to create memory directory: {memory_dir}")
+            logger.info(f"Memory directory: {memory_dir} (exists: {memory_dir.exists()})")
+        except OSError as e:
+            logger.error(f"Failed to create memory directory {memory_dir}: {e}", exc_info=True)
+            raise
 
         self.memory_dir = memory_dir
         self.embedder = RemoteEmbeddingClient()
