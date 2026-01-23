@@ -100,4 +100,3 @@ TransparencySection.propTypes = {
 };
 
 export default TransparencySection;
-

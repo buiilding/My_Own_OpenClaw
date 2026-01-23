@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import '../styles/SettingsPanel.css';
+import '../../../styles/SettingsPanel.css';
 
 /**
  * A feedback component to show the status of the save operation.

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import '../styles/TokenCountDisplay.css';
+import '../../../styles/TokenCountDisplay.css';
 
 function TokenCountDisplay({ tokenCounts }) {
   if (!tokenCounts) {

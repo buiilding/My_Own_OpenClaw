@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { IpcBridge, SEND_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
 /**
  * Custom hook for wakeword detection using openWakeWord.
@@ -11,9 +12,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
  * @param {Object} options - Configuration options
  * @returns {Object} - Wakeword detection state and controls
  */
-export function useWakewordDetection(enabled, onWakewordDetected, options = {}) {
+export function useWakewordDetection(
+  enabled: boolean,
+  onWakewordDetected?: (data: { model: string; confidence: number; score?: number }) => void,
+  options: { sampleRate?: number; chunkSize?: number; threshold?: number } = {}
+) {
   // Validate and fix chunkSize - must be power of 2 for ScriptProcessor
-  const getValidChunkSize = (size) => {
+  const getValidChunkSize = (size: number) => {
     const validSizes = [256, 512, 1024, 1280, 2048, 4096, 8192, 16384];
     // Find closest valid size
     return validSizes.reduce((prev, curr) =>
@@ -34,12 +39,12 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
   }
 
   const [isReady, setIsReady] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   
-  const mediaStreamRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const sourceNodeRef = useRef(null);
-  const scriptNodeRef = useRef(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const scriptNodeRef = useRef<ScriptProcessorNode | null>(null);
   const isCapturingRef = useRef(false);
   const lastDetectionRef = useRef(0);
   const cooldownPeriod = 2000; // 2 seconds cooldown between detections
@@ -51,7 +56,7 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
   }, [onWakewordDetected]);
 
   // Convert Float32Array to Int16Array (16-bit PCM)
-  const float32ToInt16 = useCallback((float32Array) => {
+  const float32ToInt16 = useCallback((float32Array: Float32Array) => {
     const int16Array = new Int16Array(float32Array.length);
     for (let i = 0; i < float32Array.length; i++) {
       const s = Math.max(-1, Math.min(1, float32Array[i]));
@@ -62,14 +67,7 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
 
   let sentChunkCountRef = useRef(0);
   // Send audio chunk to main process via IPC
-  const sendAudioChunk = useCallback((audioData) => {
-    if (!window.ipc) {
-      if (sentChunkCountRef.current === 0) {
-        console.error('[Wakeword] IPC not available');
-      }
-      return;
-    }
-    
+  const sendAudioChunk = useCallback((audioData: Int16Array) => {
     if (!isCapturingRef.current) {
       return;
     }
@@ -78,7 +76,7 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
     
     // Convert Int16Array to ArrayBuffer for transmission
     const buffer = audioData.buffer;
-    window.ipc.send('wakeword-audio-chunk', buffer);
+    IpcBridge.send(SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK, buffer);
   }, []);
 
   // Start audio capture
@@ -102,7 +100,7 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
       mediaStreamRef.current = stream;
 
       // Create audio context
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)({
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
         sampleRate: sampleRate
       });
       audioContextRef.current = audioContext;
@@ -139,7 +137,7 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
       scriptNode.connect(audioContext.destination);
 
       isCapturingRef.current = true;
-    } catch (err) {
+    } catch (err: any) {
       console.error('[Wakeword] Error starting audio capture:', err);
       setError(`Audio capture failed: ${err.message}`);
       isCapturingRef.current = false;
@@ -181,12 +179,7 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
 
   // Handle wakeword detection from main process
   useEffect(() => {
-    if (!window.ipc) {
-      setError('IPC not available');
-      return;
-    }
-
-    const unsubscribe = window.ipc.on('wakeword-detected', (data) => {
+    const unsubscribe = IpcBridge.on(ON_CHANNELS.WAKEWORD_DETECTED, (data: any) => {
       const now = Date.now();
       
       // Cooldown check to prevent multiple rapid detections
@@ -207,11 +200,7 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
         console.log(`[Wakeword] *** DETECTED *** ${data.model} (confidence: ${data.confidence.toFixed(4)})`);
         
         // Immediately disable wakeword processing to prevent buffered chunks from triggering again
-        // The parent component will handle enabling voice mode, which will disable wakeword
-        // But we also send disable signal here to clear buffers immediately
-        if (window.ipc) {
-          window.ipc.send('wakeword-disable');
-        }
+        IpcBridge.send(SEND_CHANNELS.WAKEWORD_DISABLE);
         
         if (onWakewordDetectedRef.current) {
           onWakewordDetectedRef.current({
@@ -228,7 +217,7 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
     });
 
     // Listen for wakeword service status - only log when state actually changes
-    const statusUnsubscribe = window.ipc.on('wakeword-status', (status) => {
+    const statusUnsubscribe = IpcBridge.on(ON_CHANNELS.WAKEWORD_STATUS, (status: any) => {
       setIsReady(prevReady => {
         if (prevReady !== status.ready) {
           console.log(`[Wakeword] Service status: ready=${status.ready}, error=${status.error || 'none'}`);
@@ -244,14 +233,13 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
     });
 
     // Enable wakeword detection in main process (this will trigger status response)
-    // Only send once on mount, not on every re-render
-    window.ipc.send('wakeword-enable');
+    IpcBridge.send(SEND_CHANNELS.WAKEWORD_ENABLE);
 
     return () => {
       unsubscribe?.();
       statusUnsubscribe?.();
     };
-  }, [threshold]); // Removed onWakewordDetected from dependencies - using ref instead
+  }, [threshold]);
 
   // Start/stop audio capture based on enabled state
   useEffect(() => {
@@ -262,9 +250,7 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
         // Reset cooldown when re-enabling to prevent old buffered chunks from triggering
         lastDetectionRef.current = Date.now();
         // Send enable signal to main process to clear buffers
-        if (window.ipc) {
-          window.ipc.send('wakeword-enable');
-        }
+        IpcBridge.send(SEND_CHANNELS.WAKEWORD_ENABLE);
         startAudioCapture();
       }
     } else {
@@ -275,9 +261,7 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
           // Reset cooldown when disabled to prevent immediate re-triggering when re-enabled
           lastDetectionRef.current = Date.now();
           // Send disable signal to main process to clear buffers
-          if (window.ipc) {
-            window.ipc.send('wakeword-disable');
-          }
+          IpcBridge.send(SEND_CHANNELS.WAKEWORD_DISABLE);
         } else if (!isReady) {
           console.log('[Wakeword] Service not ready, stopping audio capture');
         }
@@ -303,5 +287,3 @@ export function useWakewordDetection(enabled, onWakewordDetected, options = {}) 
     isCapturing: isCapturingRef.current,
   };
 }
-
-

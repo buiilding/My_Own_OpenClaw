@@ -10,18 +10,18 @@ import { useState, useEffect, useRef, useCallback } from 'react';
  * @param {string} gatewayUrl - Nova-Voice Gateway WebSocket URL (default: ws://localhost:5026)
  * @returns {Object} - Voice mode state and controls
  */
-export function useVoiceMode(enabled, onTranscriptionUpdate, onUtteranceEnd, gatewayUrl = 'ws://localhost:5026') {
+export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: string, isFinal: boolean) => void, onUtteranceEnd?: () => void, gatewayUrl: string = 'ws://localhost:5026') {
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [error, setError] = useState(null);
-  const [clientId, setClientId] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [clientId, setClientId] = useState<string | null>(null);
 
-  const websocketRef = useRef(null);
-  const mediaStreamRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const sourceNodeRef = useRef(null);
-  const scriptNodeRef = useRef(null);
-  const reconnectTimeoutRef = useRef(null);
+  const websocketRef = useRef<WebSocket | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const scriptNodeRef = useRef<ScriptProcessorNode | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const isRecordingRef = useRef(false);
 
@@ -29,7 +29,7 @@ export function useVoiceMode(enabled, onTranscriptionUpdate, onUtteranceEnd, gat
   const RECONNECT_DELAY_BASE = 1000; // Start with 1 second
 
   // Convert Float32Array to Int16Array for transmission
-  const float32ToInt16 = useCallback((float32Array) => {
+  const float32ToInt16 = useCallback((float32Array: Float32Array) => {
     const int16Array = new Int16Array(float32Array.length);
     for (let i = 0; i < float32Array.length; i++) {
       const s = Math.max(-1, Math.min(1, float32Array[i]));
@@ -39,7 +39,7 @@ export function useVoiceMode(enabled, onTranscriptionUpdate, onUtteranceEnd, gat
   }, []);
 
   // Format audio chunk for Nova-Voice Gateway
-  const formatAudioMessage = useCallback((audioData) => {
+  const formatAudioMessage = useCallback((audioData: Int16Array) => {
     const metadata = { sampleRate: 16000 };
     const metadataJson = JSON.stringify(metadata);
     const metadataLength = new Uint32Array([metadataJson.length]);
@@ -86,7 +86,7 @@ export function useVoiceMode(enabled, onTranscriptionUpdate, onUtteranceEnd, gat
             return;
           }
 
-          const data = JSON.parse(event.data);
+          const data = JSON.parse(event.data as string);
 
           switch (data.type) {
             case 'status':
@@ -143,7 +143,7 @@ export function useVoiceMode(enabled, onTranscriptionUpdate, onUtteranceEnd, gat
           
           reconnectTimeoutRef.current = setTimeout(() => {
             connectWebSocket();
-          }, delay);
+          }, delay) as any;
         } else if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
           setError('Failed to connect to voice gateway after multiple attempts');
         }
@@ -175,7 +175,7 @@ export function useVoiceMode(enabled, onTranscriptionUpdate, onUtteranceEnd, gat
       mediaStreamRef.current = stream;
 
       // Create audio context
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)({
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
         sampleRate: 16000
       });
       audioContextRef.current = audioContext;
@@ -217,7 +217,7 @@ export function useVoiceMode(enabled, onTranscriptionUpdate, onUtteranceEnd, gat
       isRecordingRef.current = true;
       setIsRecording(true);
       console.log('[VoiceMode] Audio capture started');
-    } catch (err) {
+    } catch (err: any) {
       console.error('[VoiceMode] Error starting audio capture:', err);
       setError(`Audio capture failed: ${err.message}`);
       setIsRecording(false);
@@ -318,4 +318,3 @@ export function useVoiceMode(enabled, onTranscriptionUpdate, onUtteranceEnd, gat
     clientId,
   };
 }
-

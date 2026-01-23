@@ -1,12 +1,12 @@
-import ErrorBoundary from './components/ErrorBoundary';
-import ChatInterface from './components/ChatInterface';
-import MainLayout from './components/MainLayout';
-import SettingsPanel from './components/SettingsPanel';
-import { AppProvider, useAppContext } from './context/AppContext';
-import { ChatProvider } from './context/ChatContext';
-import './styles/ChatInterface.css';
-import './styles/MainLayout.css';
-import './styles/accessibility.css';
+import ErrorBoundary from '../components/ErrorBoundary';
+import ChatInterface from '../features/chat/components/ChatInterface';
+import MainLayout from '../components/MainLayout';
+import SettingsPanel from '../features/settings/components/SettingsPanel';
+import { AppProvider, useAppContext } from './providers/AppProvider';
+import { ChatProvider } from './providers/ChatProvider';
+import '../styles/ChatInterface.css';
+import '../styles/MainLayout.css';
+import '../styles/accessibility.css';
 
 /**
  * Content wrapper that has access to AppContext

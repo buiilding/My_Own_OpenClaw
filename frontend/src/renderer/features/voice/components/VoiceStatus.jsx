@@ -47,4 +47,3 @@ VoiceStatus.propTypes = {
 };
 
 export default VoiceStatus;
-

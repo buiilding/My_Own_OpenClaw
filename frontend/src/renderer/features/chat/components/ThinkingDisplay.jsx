@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import '../styles/ThinkingDisplay.css';
+import '../../../styles/ThinkingDisplay.css';
 
 /**
  * A component to display the agent's current thinking status.

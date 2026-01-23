@@ -1,7 +1,10 @@
 /**
  * Typed API Client for backend communication.
+ * Uses typed IPC bridge instead of direct window.ipc calls.
  * Mirrors backend/src/api/schema.py
  */
+
+import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
 
 export const ApiClient = {
   /**
@@ -9,9 +12,9 @@ export const ApiClient = {
    * @param {string} text
    * @param {string|null} screenshot - Optional base64-encoded screenshot data
    */
-  sendQuery: async (text, screenshot = null) => {
+  sendQuery: async (text: string, screenshot: string | null = null): Promise<void> => {
     // System state and memories are automatically added by ipc.cjs
-    window.ipc.send('to-backend', {
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
       type: 'query',
       payload: {
         text,
@@ -24,8 +27,8 @@ export const ApiClient = {
    * Update application settings
    * @param {object} settings 
    */
-  updateSettings: (settings) => {
-    window.ipc.send('to-backend', {
+  updateSettings: (settings: Record<string, any>): void => {
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
       type: 'update-settings',
       payload: settings
     });
@@ -34,8 +37,8 @@ export const ApiClient = {
   /**
    * Request a list of available LLM models
    */
-  listModels: () => {
-    window.ipc.send('to-backend', {
+  listModels: (): void => {
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
       type: 'list-models'
     });
   },
@@ -43,8 +46,8 @@ export const ApiClient = {
   /**
    * Request current settings
    */
-  loadSettings: () => {
-    window.ipc.send('to-backend', {
+  loadSettings: (): void => {
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
       type: 'load-settings'
     });
   },
@@ -52,11 +55,10 @@ export const ApiClient = {
   /**
    * Notify backend that wakeword was detected
    */
-  wakewordDetected: () => {
-    window.ipc.send('to-backend', {
+  wakewordDetected: (): void => {
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
       type: 'wakeword-detected',
       payload: {}
     });
   }
 };
-

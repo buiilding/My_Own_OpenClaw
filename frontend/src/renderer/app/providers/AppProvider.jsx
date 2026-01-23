@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import { ApiClient } from '../api/client';
-import { useSettingsManagement } from '../hooks/useSettingsManagement';
-import { filterFrontendConfig } from '../utils/configFilter';
+import { ApiClient } from '../../infrastructure/api/client';
+import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
+import { filterFrontendConfig } from '../../utils/configFilter';
+import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
 
 const AppContext = createContext();
 
@@ -28,7 +29,7 @@ export function AppProvider({ children }) {
     // Initial load
     ApiClient.loadSettings();
 
-    const removeListener = window.ipc.on('from-backend', (data) => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data) => {
        switch (data.type) {
          case 'settings-loaded':
            settingsHandlers.handleSettingsLoaded(data);
@@ -40,7 +41,7 @@ export function AppProvider({ children }) {
            settingsHandlers.handleSettingsUpdated();
            break;
          case 'error':
-           if (data.payload.message?.includes('Failed to update settings')) {
+           if (data.payload?.message?.includes('Failed to update settings')) {
              settingsHandlers.handleSettingsError(data);
            }
            break;
@@ -103,4 +104,3 @@ export const useAppContext = () => {
   }
   return context;
 };
-

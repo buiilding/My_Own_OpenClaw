@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import ThinkingDisplay from '../ThinkingDisplay';
+import ThinkingDisplay from './ThinkingDisplay';
 import TransparencySection from './TransparencySection';
-import '../../styles/ThinkingDisplay.css';
+import '../../../styles/ThinkingDisplay.css';
 
 function MessageList({ messages, thinkingStatus }) {
   const messagesEndRef = useRef(null);
@@ -207,4 +207,3 @@ MessageList.propTypes = {
 };
 
 export default MessageList;
-

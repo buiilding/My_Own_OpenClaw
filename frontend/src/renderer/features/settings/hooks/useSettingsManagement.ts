@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
-import { filterFrontendConfig } from '../utils/configFilter';
+import { filterFrontendConfig } from '../../../utils/configFilter';
+import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
 /**
  * Custom hook for managing settings loading and updating.
@@ -13,33 +14,37 @@ import { filterFrontendConfig } from '../utils/configFilter';
  * @returns {Object} - Object containing settings handlers
  */
 export function useSettingsManagement(
-  setConfig,
-  setAvailableModels,
-  setSaveStatus,
-  configBeforeSave,
-  saveTimeoutId
+  setConfig: (config: any) => void,
+  setAvailableModels: (models: any) => void,
+  setSaveStatus: (status: string) => void,
+  configBeforeSave: React.MutableRefObject<any>,
+  saveTimeoutId: React.MutableRefObject<NodeJS.Timeout | null>
 ) {
-  const handleSettingsLoaded = useCallback((data) => {
+  const handleSettingsLoaded = useCallback((data: any) => {
     // Filter config to only include fields that frontend manages
     const filteredConfig = filterFrontendConfig(data.payload);
     setConfig(filteredConfig);
     // Request available models when settings are loaded
-    window.ipc.send('to-backend', { type: 'list-models' });
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
   }, [setConfig]);
 
-  const handleModelsListed = useCallback((data) => {
+  const handleModelsListed = useCallback((data: any) => {
     setAvailableModels(data.payload);
   }, [setAvailableModels]);
 
   const handleSettingsUpdated = useCallback(() => {
-    clearTimeout(saveTimeoutId.current);
+    if (saveTimeoutId.current) {
+      clearTimeout(saveTimeoutId.current);
+    }
     setSaveStatus('success');
     setTimeout(() => setSaveStatus('idle'), 3000);
   }, [setSaveStatus, saveTimeoutId]);
 
-  const handleSettingsError = useCallback((data) => {
-    if (data.payload.message?.includes('Failed to update settings')) {
-      clearTimeout(saveTimeoutId.current);
+  const handleSettingsError = useCallback((data: any) => {
+    if (data.payload?.message?.includes('Failed to update settings')) {
+      if (saveTimeoutId.current) {
+        clearTimeout(saveTimeoutId.current);
+      }
       setSaveStatus('error');
       // Revert to the old config on failure
       if (configBeforeSave.current) {

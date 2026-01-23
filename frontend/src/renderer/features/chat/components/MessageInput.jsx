@@ -1,8 +1,8 @@
 import { useRef, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { useTranscription } from '../../hooks/useTranscription';
-import { useVoiceMode } from '../../hooks/useVoiceMode';
-import VoiceStatus from './VoiceStatus';
+import { useTranscription } from '../hooks/useTranscription';
+import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
+import VoiceStatus from '../../voice/components/VoiceStatus';
 
 function MessageInput({ onSendMessage, isSending, voiceModeEnabled }) {
   const inputRef = useRef(null);
@@ -94,4 +94,3 @@ MessageInput.propTypes = {
 };
 
 export default MessageInput;
-

@@ -5,7 +5,7 @@ import { useState, useRef, useCallback } from 'react';
  * Handles the complex logic of inserting transcription text into the input field
  * and managing cursor positions/replacements.
  */
-export function useTranscription(initialValue = '') {
+export function useTranscription(initialValue: string = '') {
   const [inputValue, setInputValue] = useState(initialValue);
   
   // Track transcription region boundaries for chunk replacement
@@ -19,7 +19,7 @@ export function useTranscription(initialValue = '') {
     hasTranscriptionRef.current = false;
   }, []);
 
-  const updateTranscription = useCallback((transcriptionText) => {
+  const updateTranscription = useCallback((transcriptionText: string) => {
     if (!transcriptionText) return;
 
     setInputValue((currentValue) => {
@@ -45,7 +45,7 @@ export function useTranscription(initialValue = '') {
     });
   }, []);
 
-  const handleInputChange = useCallback((e) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     const cursorPosition = e.target.selectionStart;
     
@@ -56,11 +56,11 @@ export function useTranscription(initialValue = '') {
         const newLength = newValue.length;
         const diff = newLength - oldLength;
         
-        if (cursorPosition <= transcriptionStartRef.current) {
+        if (cursorPosition !== null && cursorPosition <= transcriptionStartRef.current) {
           // User typed before transcription - shift transcription forward
           transcriptionStartRef.current += diff;
           transcriptionEndRef.current += diff;
-        } else if (cursorPosition >= transcriptionEndRef.current) {
+        } else if (cursorPosition !== null && cursorPosition >= transcriptionEndRef.current) {
           // User typed after transcription - keep boundaries
         } else {
           // User typed within transcription - invalidate transcription region
@@ -73,23 +73,23 @@ export function useTranscription(initialValue = '') {
     });
   }, []);
 
-  const handlePaste = useCallback((e) => {
+  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
     const pastedText = e.clipboardData.getData('text');
     if (!pastedText) return;
 
-    const input = e.target;
+    const input = e.target as HTMLInputElement;
     const cursorPosition = input.selectionStart;
     
     setInputValue((currentValue) => {
-      const before = currentValue.substring(0, cursorPosition);
-      const after = currentValue.substring(input.selectionEnd || cursorPosition);
+      const before = currentValue.substring(0, cursorPosition || 0);
+      const after = currentValue.substring(input.selectionEnd || cursorPosition || 0);
       const newValue = before + pastedText + after;
       
       if (hasTranscriptionRef.current) {
-        if (cursorPosition <= transcriptionStartRef.current) {
+        if (cursorPosition !== null && cursorPosition <= transcriptionStartRef.current) {
           transcriptionStartRef.current += pastedText.length;
           transcriptionEndRef.current += pastedText.length;
-        } else if (cursorPosition >= transcriptionEndRef.current) {
+        } else if (cursorPosition !== null && cursorPosition >= transcriptionEndRef.current) {
           // No change
         } else {
           hasTranscriptionRef.current = false;
@@ -100,7 +100,7 @@ export function useTranscription(initialValue = '') {
       
       // Set cursor position after pasted text
       setTimeout(() => {
-        const newCursorPosition = cursorPosition + pastedText.length;
+        const newCursorPosition = (cursorPosition || 0) + pastedText.length;
         input.setSelectionRange(newCursorPosition, newCursorPosition);
       }, 0);
       
