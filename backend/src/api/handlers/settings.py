@@ -155,8 +155,12 @@ class UpdateSettingsHandler(MessageHandler):
             # Only frontend-managed fields should be in user_config and new_config_data
             merged_user_config = {**user_config, **new_config_data}
             
-            # Save user-specific config (only frontend-managed fields - filters automatically)
-            await self.user_config_manager.save_user_config(user_id, merged_user_config)
+            # Only save if config actually changed (prevent infinite save loops)
+            if merged_user_config != user_config:
+                # Save user-specific config (only frontend-managed fields - filters automatically)
+                await self.user_config_manager.save_user_config(user_id, merged_user_config)
+            else:
+                logger.debug(f"User config for {user_id} unchanged, skipping save")
             
             # Build complete config with policies applied (delegates to service)
             validated_config = self.config_service.build_user_config(merged_user_config)
