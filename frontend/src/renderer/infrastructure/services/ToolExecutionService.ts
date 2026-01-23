@@ -132,8 +132,18 @@ export class ToolExecutionService {
         await new Promise(r => setTimeout(r, 2000)); // Small delay for UI to update
 
         try {
+          const combinedStartTime = performance.now();
+          const systemStateStartTime = performance.now();
+          const screenshotStartTime = performance.now();
+          
+          console.log('[Timing] Starting parallel system state and screenshot capture...');
+          
           const [stateResult, screenshotResult] = await Promise.all([
-            IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE),
+            IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE).then(result => {
+              const systemStateTime = (performance.now() - systemStateStartTime) / 1000;
+              console.log(`[Timing] Get system state completed: took ${systemStateTime.toFixed(3)}s`);
+              return result;
+            }),
             IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
               toolName: 'screenshot',
               args: {
@@ -141,8 +151,15 @@ export class ToolExecutionService {
                 expectation: 'State after tool execution'
               },
               skipAutoCapture: false
+            }).then(result => {
+              const screenshotTime = (performance.now() - screenshotStartTime) / 1000;
+              console.log(`[Timing] Screenshot capture completed: took ${screenshotTime.toFixed(3)}s`);
+              return result;
             })
           ]);
+
+          const combinedTime = (performance.now() - combinedStartTime) / 1000;
+          console.log(`[Timing] Combined system state + screenshot (parallel): took ${combinedTime.toFixed(3)}s`);
 
           systemState = stateResult;
           screenshot = screenshotResult.success ? screenshotResult.data?.screenshot : null;
@@ -325,9 +342,19 @@ export class ToolExecutionService {
         await new Promise(r => setTimeout(r, 2000)); // 2s delay for UI to update
 
         try {
+          const combinedStartTime = performance.now();
+          const systemStateStartTime = performance.now();
+          const screenshotStartTime = performance.now();
+          
+          console.log('[Timing] Starting parallel system state and screenshot capture...');
+          
           // Get system state and screenshot in parallel
           const [stateResult, screenshotResult] = await Promise.all([
-            IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE),
+            IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE).then(result => {
+              const systemStateTime = (performance.now() - systemStateStartTime) / 1000;
+              console.log(`[Timing] Get system state completed: took ${systemStateTime.toFixed(3)}s`);
+              return result;
+            }),
             IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
               toolName: 'screenshot',
               args: {
@@ -335,8 +362,15 @@ export class ToolExecutionService {
                 expectation: 'State after bundle'
               },
               skipAutoCapture: false // Don't skip for final screenshot
+            }).then(result => {
+              const screenshotTime = (performance.now() - screenshotStartTime) / 1000;
+              console.log(`[Timing] Screenshot capture completed: took ${screenshotTime.toFixed(3)}s`);
+              return result;
             })
           ]);
+
+          const combinedTime = (performance.now() - combinedStartTime) / 1000;
+          console.log(`[Timing] Combined system state + screenshot (parallel): took ${combinedTime.toFixed(3)}s`);
 
           systemState = stateResult;
           screenshot = screenshotResult.success && screenshotResult.data && typeof screenshotResult.data === 'object'
