@@ -14,21 +14,10 @@ export function ChatProvider({ children }) {
   useChatStream();
   useToolRunner();
 
-  // Get store values
-  const messages = useChatStore((state) => state.messages);
-  const isSending = useChatStore((state) => state.isSending);
-  const thinkingStatus = useChatStore((state) => state.thinkingStatus);
-  const tokenCounts = useChatStore((state) => state.tokenCounts);
-
-  const value = {
-    messages,
-    isSending,
-    thinkingStatus,
-    tokenCounts,
-  };
-
+  // No need to subscribe to store here - components can subscribe directly
+  // This avoids double subscriptions and improves performance
   return (
-    <ChatContext.Provider value={value}>
+    <ChatContext.Provider value={null}>
       {children}
     </ChatContext.Provider>
   );

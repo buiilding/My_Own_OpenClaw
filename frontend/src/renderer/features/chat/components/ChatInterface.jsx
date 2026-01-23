@@ -4,8 +4,6 @@ import MessageInput from './MessageInput';
 import TokenCountDisplay from './TokenCountDisplay';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
-import { useChatStream } from '../hooks/useChatStream';
-import { useToolRunner } from '../hooks/useToolRunner';
 import { useWakewordDetection } from '../../voice/hooks/useWakewordDetection';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { useAppContext } from '../../../app/providers/AppProvider';
@@ -34,10 +32,6 @@ function ChatInterface() {
       audioPlayerRef.current?.cleanup();
     };
   }, []);
-
-  // Set up streaming and tool execution
-  useChatStream();
-  useToolRunner();
 
   // Audio chunk handler
   useEffect(() => {

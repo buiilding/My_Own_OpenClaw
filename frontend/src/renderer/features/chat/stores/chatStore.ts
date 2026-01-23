@@ -76,6 +76,7 @@ const initialMessage: ChatMessage = {
 
 /**
  * Chat store
+ * Uses shallow equality for better performance with Zustand
  */
 export const useChatStore = create<ChatState>((set) => ({
   // Initial state

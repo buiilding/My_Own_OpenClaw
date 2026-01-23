@@ -14,7 +14,6 @@ import { useChatStore, type ChatMessage } from '../stores/chatStore';
  */
 export function useChatStream() {
   const {
-    messages,
     addMessage,
     updateMessage,
     setIsSending,
@@ -24,18 +23,20 @@ export function useChatStream() {
 
   const handleLlmThought = useCallback((data: any) => {
     // Accumulate thinking tokens for display
-    setThinkingStatus((prevStatus) => {
-      const newChunk = data.payload?.status || '';
-      const updated = (prevStatus || '') + newChunk;
-      // Keep last 5000 characters to show substantial thinking content
-      return updated.length > 5000 ? updated.slice(-5000) : updated;
-    });
+    const newChunk = data.payload?.status || '';
+    const currentStatus = useChatStore.getState().thinkingStatus || '';
+    const updated = currentStatus + newChunk;
+    // Keep last 5000 characters to show substantial thinking content
+    const finalStatus = updated.length > 5000 ? updated.slice(-5000) : updated;
+    setThinkingStatus(finalStatus);
   }, [setThinkingStatus]);
 
   const handleStreamingResponse = useCallback((data: any) => {
     setIsSending(false); // We've got the first chunk, so we're not "sending" anymore
     // Don't clear thinking status - keep it visible so users can see reasoning tokens
 
+    // Get current messages from store (not from dependency)
+    const messages = useChatStore.getState().messages;
     const lastMessage = messages[messages.length - 1];
     if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete && lastMessage.type === 'llm-text') {
       // Append chunk to the last message if it's a streaming LLM text message
@@ -54,7 +55,7 @@ export function useChatStream() {
       };
       addMessage(newMessage);
     }
-  }, [messages, addMessage, updateMessage, setIsSending]);
+  }, [addMessage, updateMessage, setIsSending]);
 
   const handleToolCall = useCallback((data: any) => {
     const newMessage: ChatMessage = {
@@ -95,6 +96,7 @@ export function useChatStream() {
   const handleSystemPrompt = useCallback((data: any) => {
     // Store system prompt data - will be linked to last user message
     // Find the last user message and attach system prompt to it
+    const messages = useChatStore.getState().messages;
     const lastUserMessageIndex = messages.findLastIndex(msg => msg.sender === 'user');
     if (lastUserMessageIndex >= 0) {
       const lastUserMessage = messages[lastUserMessageIndex];
@@ -105,10 +107,11 @@ export function useChatStream() {
         },
       });
     }
-  }, [messages, updateMessage]);
+  }, [updateMessage]);
 
   const handleUserMessageFull = useCallback((data: any) => {
     // Update the last user message with full transparency data
+    const messages = useChatStore.getState().messages;
     const lastUserMessageIndex = messages.findLastIndex(msg => msg.sender === 'user');
     if (lastUserMessageIndex >= 0) {
       const lastUserMessage = messages[lastUserMessageIndex];
@@ -119,10 +122,11 @@ export function useChatStream() {
         },
       });
     }
-  }, [messages, updateMessage]);
+  }, [updateMessage]);
 
   const handleAssistantMessageFull = useCallback((data: any) => {
     // Update the last assistant message with full transparency data
+    const messages = useChatStore.getState().messages;
     const lastAssistantMessageIndex = messages.findLastIndex(msg => msg.sender === 'assistant');
     if (lastAssistantMessageIndex >= 0) {
       const lastAssistantMessage = messages[lastAssistantMessageIndex];
@@ -132,27 +136,29 @@ export function useChatStream() {
         },
       });
     }
-  }, [messages, updateMessage]);
+  }, [updateMessage]);
 
   const handleToolSchemas = useCallback((data: any) => {
     // Store tool schemas data - attach only to the first user message
+    const messages = useChatStore.getState().messages;
     const firstUserMessage = messages.find(msg => msg.sender === 'user');
     if (firstUserMessage) {
       updateMessage(firstUserMessage.id, {
         toolSchemas: data.payload?.tool_schemas,
       });
     }
-  }, [messages, updateMessage]);
+  }, [updateMessage]);
 
   const handleStreamingComplete = useCallback(() => {
     // Don't clear thinking status - keep it visible so users can review reasoning tokens
     setIsSending(false); // Always unblock UI when streaming completes
     
+    const messages = useChatStore.getState().messages;
     const lastMessage = messages[messages.length - 1];
     if (lastMessage && lastMessage.sender === 'assistant') {
       updateMessage(lastMessage.id, { isComplete: true });
     }
-  }, [messages, updateMessage, setIsSending]);
+  }, [updateMessage, setIsSending]);
 
   const handleError = useCallback((data: any) => {
     // Display error message and unblock UI
