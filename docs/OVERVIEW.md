@@ -43,7 +43,7 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 - **OCR-Enhanced UI**: `mouse_control` tool with `find_coordinates_by="ocr"` for clicking on text elements detected via optical character recognition from screenshots
 - **Vision-Language Models**: `mouse_control` tool with `find_coordinates_by="prediction"` using InternVL to analyze screenshots and intelligently detect UI elements
 - **Multi-Step Automation**: Complex workflows across applications, all driven by visual understanding of screen states
-- **Visual Feedback**: Automatic screenshots captured before and after every computer interaction for continuous visual context
+- **Visual Feedback**: Screenshots captured for every user message and after computer-use tool execution to maintain visual context
 
 ### 🛠️ Tool System
 - **Verified Tools**: Tools loaded from secure verified directory
@@ -169,7 +169,7 @@ Multi-provider LLM support with CUDA acceleration for embeddings and vision. Sup
 - [x] Vision-First Navigation: Primarily uses screenshots to navigate and understand the computer interface
 - [x] OCR-Enhanced UI Automation: Text detection from screenshots for precise UI interaction
 - [x] Vision-Language UI Control: AI-powered visual understanding of screen elements from screenshots
-- [x] Automatic Screenshot Capture: Continuous visual context through screenshots before and after interactions
+- [x] Strategic Screenshot Capture: Visual context provided through user message screenshots and post-tool execution captures
 - [x] File System Tools
 - [x] Terminal Integration
 

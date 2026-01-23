@@ -94,7 +94,7 @@ Desktop Assistant is built as a distributed system with a clear separation betwe
 ```
 1. User types message in UI
    ↓
-2. Frontend captures screenshot (if needed)
+2. Frontend captures screenshot (always, for visual context)
    ↓
 3. Message sent via IPC → Main Process
    ↓
@@ -126,6 +126,36 @@ Desktop Assistant is built as a distributed system with a clear separation betwe
     ↓
 17. UI updates in real-time
 ```
+
+### Screenshot Capture Strategy
+
+Screenshots are captured strategically at key points to provide visual context for AI decision-making. The system captures screenshots in the following scenarios:
+
+#### User Message Screenshots
+- **Timing**: Captured for every user message
+- **Purpose**: Provides initial visual context showing the current screen state before any AI action
+- **Location**: `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
+- **Storage**: Included in user query payload sent to backend
+
+#### Tool Result Screenshots
+- **Timing**: Automatically captured after computer-use tool execution (mouse_control, keyboard_control, scroll_control, etc.)
+- **Purpose**: Shows the result state after tool execution for verification and continued context
+- **Location**: `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
+- **Storage**: Attached to tool result data sent back to backend
+
+#### LLM-Requested Screenshots
+- **Timing**: When the LLM explicitly calls the `screenshot` tool
+- **Purpose**: AI-driven capture when the model determines it needs current visual information
+- **Location**: Standard tool execution flow
+- **Storage**: Returned as tool result data
+
+#### Hidden Screenshots
+- **Timing**: Requested by backend when preparing coordinate-based tools that need visual context
+- **Purpose**: Ensures up-to-date screenshot is available before coordinate resolution
+- **Location**: `backend/src/agent/tools/screenshot_manager.py`
+- **Storage**: Stored in session state for tool preparation
+
+**Important**: Screenshots are NOT captured continuously or on a timer - they are only taken when explicitly requested by the system or when providing context for user/AI interactions. This balances the need for visual context with performance considerations.
 
 ### Tool Execution Flow
 
