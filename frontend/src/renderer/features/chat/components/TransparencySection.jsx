@@ -38,27 +38,27 @@ function TransparencySection({ title, content, metadata, type = 'text' }) {
 
   return (
     <div className="transparency-section">
-      <button
-        className="transparency-header"
-        onClick={() => setIsExpanded(!isExpanded)}
-        type="button"
-      >
-        <span className="transparency-title">
-          {isExpanded ? '▼' : '▶'} {title}
-        </span>
+      <div className="transparency-header-container" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button
+          className="transparency-header"
+          onClick={() => setIsExpanded(!isExpanded)}
+          type="button"
+          style={{ flex: 1 }}
+        >
+          <span className="transparency-title">
+            {isExpanded ? '▼' : '▶'} {title}
+          </span>
+        </button>
         {isExpanded && (
           <button
             className="transparency-copy-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCopy();
-            }}
+            onClick={handleCopy}
             type="button"
           >
             Copy
           </button>
         )}
-      </button>
+      </div>
       {isExpanded && (
         <div className="transparency-body">
           {metadata && (
