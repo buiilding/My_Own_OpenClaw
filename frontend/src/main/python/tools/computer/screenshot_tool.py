@@ -1,5 +1,6 @@
 """
 Screenshot Tool - Python implementation using pyautogui and PIL.
+Optimized for speed using JPEG compression.
 """
 
 import asyncio
@@ -13,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Capture screenshot.
+    Capture screenshot with optimized JPEG compression for faster encoding.
     
     Args:
         args: Dictionary (unused, but kept for interface consistency)
         
     Returns:
-        Dictionary with success status and screenshot data (base64 PNG)
+        Dictionary with success status and screenshot data (base64 JPEG)
     """
     try:
         import pyautogui
@@ -29,9 +30,21 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             # Capture screenshot
             screenshot = pyautogui.screenshot()
             
-            # Convert to PNG bytes
+            # Convert to RGB if needed (JPEG requires RGB)
+            if screenshot.mode != 'RGB':
+                screenshot = screenshot.convert('RGB')
+            
+            # Convert to JPEG bytes with optimized settings
+            # Quality 85 provides good balance: fast encoding, small size, acceptable quality
+            # optimize=False speeds up encoding significantly
             img_buffer = io.BytesIO()
-            screenshot.save(img_buffer, format="PNG")
+            screenshot.save(
+                img_buffer,
+                format="JPEG",
+                quality=85,
+                optimize=False,
+                progressive=False
+            )
             img_bytes = img_buffer.getvalue()
             
             # Encode to base64
@@ -49,7 +62,7 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             "success": True,
             "data": {
                 "screenshot": base64_data,
-                "compression": "png",
+                "compression": "jpeg",
                 "size": size,
                 "llm_content": "Screenshot captured successfully.",
                 "return_display": "Screenshot captured",
