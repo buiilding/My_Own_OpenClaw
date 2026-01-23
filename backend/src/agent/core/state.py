@@ -201,9 +201,9 @@ class ConversationHistory:
         Includes system prompt if stored. Tool outputs with screenshots are automatically
         converted to multimodal format (text + image) for LLM consumption.
 
-        DATA INTEGRITY: Returns deep copies of messages to prevent mutable state leakage.
-        If a consumer modifies a message (e.g., PII scrubbing, logging), the internal
-        cache remains unchanged.
+        READ-ONLY CONTRACT: This method returns the internal cache directly for performance.
+        Consumers MUST NOT mutate the returned messages. Use get_history_mutable() if
+        mutation is required (e.g., for PII scrubbing or logging modifications).
 
         Returns:
             List of LLMMessage dicts ready for LLM consumption.
@@ -219,11 +219,33 @@ class ConversationHistory:
                 "content": self.system_prompt
             })
 
-        # DATA INTEGRITY: Return deep copies to prevent mutable state leakage
-        # If a consumer modifies a message dict (e.g., msg["content"] = "REDACTED"),
-        # the internal _llm_history_cache remains unchanged.
-        # Deep copy is necessary because LLMMessage can contain nested structures
-        # (e.g., multimodal content with lists of dicts).
+        # PERFORMANCE OPTIMIZATION: Return cache directly (read-only by contract)
+        # This eliminates deep copy overhead on the hot path. If mutation is needed,
+        # use get_history_mutable() instead.
+        messages.extend(self._llm_history_cache)
+
+        return messages
+
+    def get_history_mutable(self) -> List[LLMMessage]:
+        """
+        Get a mutable copy of the current conversation history in LLM format.
+
+        Use this method when you need to modify the returned messages (e.g., PII scrubbing,
+        logging modifications). For read-only access, use get_history() which is faster.
+
+        Returns:
+            Deep-copied List of LLMMessage dicts. Safe to mutate.
+        """
+        messages: List[LLMMessage] = []
+
+        # Include system prompt first if stored
+        if self.system_prompt:
+            messages.append({
+                "role": MessageRole.SYSTEM.value,
+                "content": self.system_prompt
+            })
+
+        # Return deep copies to prevent mutable state leakage
         messages.extend(copy.deepcopy(msg) for msg in self._llm_history_cache)
 
         return messages
