@@ -55,6 +55,16 @@ Send a user query with optional screenshot.
 - `tool-output`: Tool execution results
 - `llm-thought`: Thinking tokens (Gemini)
 - `streaming-complete`: End of stream
+- `bundle_start`: Start of tool bundle
+- `bundle_end`: End of tool bundle
+- `request-screenshot`: Request hidden screenshot
+- `memory-store`: Request to store memory
+- `wakeword-greeting`: Wakeword detection greeting
+- `system-prompt`: System prompt for transparency
+- `user-message-full`: Full user message for transparency
+- `assistant-message-full`: Full assistant message for transparency
+- `tool-schemas`: Tool schemas for transparency
+- `token-count`: Token usage information
 
 **Example**:
 ```json
@@ -192,6 +202,26 @@ Send tool execution result from frontend.
       "time": "2025-01-20T10:00:00Z"
     }
   },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### Wakeword Detected Message
+
+Notify backend that wakeword was detected.
+
+**Type**: `wakeword-detected`
+
+**Payload**: `{}`
+
+**Response**: `wakeword-greeting` (optional)
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174005",
+  "type": "wakeword-detected",
+  "payload": {},
   "timestamp": "2025-01-20T10:00:00Z"
 }
 ```
@@ -481,6 +511,298 @@ Response to list-models request.
         "provider": "anthropic"
       }
     ]
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### Bundle Start Message
+
+Indicates the start of a tool bundle (multiple tools to be executed together).
+
+**Type**: `bundle_start`
+
+**Payload**:
+```json
+{
+  "correlation_id": "bundle-123"
+}
+```
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174014",
+  "type": "bundle_start",
+  "payload": {
+    "correlation_id": "bundle-123"
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### Bundle End Message
+
+Indicates the end of a tool bundle. Frontend should execute all accumulated tools together.
+
+**Type**: `bundle_end`
+
+**Payload**:
+```json
+{
+  "correlation_id": "bundle-123"
+}
+```
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174015",
+  "type": "bundle_end",
+  "payload": {
+    "correlation_id": "bundle-123"
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### Request Screenshot Message
+
+Backend requests a hidden screenshot for coordinate calculation (not displayed in UI).
+
+**Type**: `request-screenshot`
+
+**Payload**:
+```json
+{
+  "request_id": "screenshot-req-123",
+  "correlation_id": "screenshot-req-123"
+}
+```
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174016",
+  "type": "request-screenshot",
+  "payload": {
+    "request_id": "screenshot-req-123",
+    "correlation_id": "screenshot-req-123"
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### Memory Store Message
+
+Request to store memory in the local memory system.
+
+**Type**: `memory-store`
+
+**Payload**:
+```json
+{
+  "user_query": "User's query text",
+  "assistant_response": "Assistant's response",
+  "memory_type": "episodic", // or "semantic"
+  "user_id": "default_user",
+  "session_id": "session-123" // Optional
+}
+```
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174017",
+  "type": "memory-store",
+  "payload": {
+    "user_query": "What's the weather?",
+    "assistant_response": "It's sunny today.",
+    "memory_type": "episodic",
+    "user_id": "default_user",
+    "session_id": "session-123"
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### Wakeword Greeting Message
+
+Greeting message sent when wakeword is detected.
+
+**Type**: `wakeword-greeting`
+
+**Payload**:
+```json
+{
+  "text": "Hello! I'm listening."
+}
+```
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174018",
+  "type": "wakeword-greeting",
+  "payload": {
+    "text": "Hello! I'm listening."
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### System Prompt Message
+
+System prompt sent to frontend for transparency display.
+
+**Type**: `system-prompt`
+
+**Payload**:
+```json
+{
+  "content": "You are a helpful assistant...",
+  "tool_schemas": { ... } // Optional
+}
+```
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174019",
+  "type": "system-prompt",
+  "payload": {
+    "content": "You are a helpful assistant...",
+    "tool_schemas": {
+      "mouse_control": { ... }
+    }
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### User Message Full Message
+
+Full user message content for transparency display.
+
+**Type**: `user-message-full`
+
+**Payload**:
+```json
+{
+  "content": "Full user message with context XML...",
+  "metadata": {
+    "has_screenshot": true,
+    "has_memory": true
+  }
+}
+```
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174020",
+  "type": "user-message-full",
+  "payload": {
+    "content": "<system_context>...</system_context><user_query>Click submit</user_query>",
+    "metadata": {
+      "has_screenshot": true,
+      "has_memory": true
+    }
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### Assistant Message Full Message
+
+Full assistant message content for transparency display.
+
+**Type**: `assistant-message-full`
+
+**Payload**:
+```json
+{
+  "content": "Full assistant response..."
+}
+```
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174021",
+  "type": "assistant-message-full",
+  "payload": {
+    "content": "I'll help you click the submit button..."
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### Tool Schemas Message
+
+Tool schemas sent to frontend for transparency display (first message only).
+
+**Type**: `tool-schemas`
+
+**Payload**:
+```json
+{
+  "tool_schemas": {
+    "mouse_control": {
+      "type": "object",
+      "properties": { ... }
+    },
+    "keyboard_control": { ... }
+  }
+}
+```
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174022",
+  "type": "tool-schemas",
+  "payload": {
+    "tool_schemas": {
+      "mouse_control": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": ["click", "double_click", "right_click"]
+          }
+        }
+      }
+    }
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### Token Count Message
+
+Token usage information for the current interaction.
+
+**Type**: `token-count`
+
+**Payload**:
+```json
+{
+  "prompt_tokens": 150,
+  "completion_tokens": 50,
+  "total_tokens": 200
+}
+```
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174023",
+  "type": "token-count",
+  "payload": {
+    "prompt_tokens": 150,
+    "completion_tokens": 50,
+    "total_tokens": 200
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }

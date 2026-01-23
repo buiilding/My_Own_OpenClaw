@@ -85,10 +85,17 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 - Whitelists allowed channels
 - Provides secure IPC bridge
 
+**IPC Bridge** (`src/renderer/infrastructure/ipc/bridge.ts`):
+- Type-safe IPC abstraction layer
+- Channel validation (development only)
+- O(1) channel lookup using Set data structures
+- Provides IpcBridge.send(), IpcBridge.invoke(), IpcBridge.on()
+
 **Main Process** (`src/main/ipc.cjs`):
 - Handles IPC message routing
 - Manages WebSocket connection
 - Forwards messages between renderer and backend
+- Builds complete user messages with system state and memories
 
 ## WebSocket Communication
 
@@ -205,31 +212,37 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 ```
 1. User types message in UI
    ↓
-2. ChatContext.sendMessage()
+2. useChatMessageSender hook handles message
    ↓
-3. Screenshot captured (if needed)
+3. Screenshot captured (always for visual context)
    ↓
-4. window.ipc.send('to-backend', { type: 'query', payload: {...} })
+4. IpcBridge.send('to-backend', { type: 'query', payload: {...} })
    ↓
 5. Main process receives IPC message
    ↓
-6. Main process sends WebSocket message to backend
+6. Main process builds complete message with system state and memories
    ↓
-7. Backend validates message (schema.py)
+7. Main process sends WebSocket message to backend
    ↓
-8. QueryHandler processes message
+8. Backend validates message (schema.py)
    ↓
-9. AgentSession.process_query()
+9. QueryHandler processes message
    ↓
-10. LLM generates response
+10. AgentSession.process_query()
     ↓
-11. Backend streams response chunks
+11. LLM generates response
     ↓
-12. Main process receives WebSocket messages
+12. Backend streams response chunks
     ↓
-13. Main process forwards to renderer via IPC
+13. Main process receives WebSocket messages
     ↓
-14. Renderer updates UI with streaming response
+14. Main process forwards to renderer via IPC
+    ↓
+15. useChatStream hook processes events
+    ↓
+16. Chat store updated via Zustand
+    ↓
+17. UI updates with streaming response
 ```
 
 ### Tool Execution Flow
@@ -243,21 +256,29 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
    ↓
 4. Main process forwards to renderer via IPC
    ↓
-5. Renderer displays tool call in UI
+5. useToolRunner hook receives tool-call event
    ↓
-6. Main process sends tool request to Python sidecar
+6. ToolExecutionService.executeTool() called
    ↓
-7. Python sidecar executes tool
+7. Tool sent to Python sidecar via IpcBridge.invoke()
    ↓
-8. Python sidecar captures screenshot (if needed)
+8. Python sidecar executes tool
    ↓
-9. Python sidecar sends result to main process
+9. ToolExecutionService captures screenshot (if computer-use tool)
    ↓
-10. Main process sends tool-result to backend via WebSocket
+10. ToolExecutionService captures system state
     ↓
-11. Backend processes result
+11. MessageFormatter formats result
     ↓
-12. Agent continues with next step
+12. Result displayed in UI via callback
+    ↓
+13. Result sent to backend via IpcBridge.send()
+    ↓
+14. Main process sends tool-result to backend via WebSocket
+    ↓
+15. Backend processes result (centralized storage)
+    ↓
+16. Agent continues with next step
 ```
 
 ### Settings Update Flow
@@ -265,25 +286,29 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 ```
 1. User changes setting in SettingsPanel
    ↓
-2. AppContext.updateConfig()
+2. AppConfigContext.updateConfig() (optimistic update)
    ↓
-3. window.ipc.send('to-backend', { type: 'update-settings', payload: {...} })
+3. AppStatusContext.setSaving() (status update)
    ↓
-4. Main process receives IPC message
+4. IpcBridge.send('to-backend', { type: 'update-settings', payload: {...} })
    ↓
-5. Main process sends WebSocket message to backend
+5. Main process receives IPC message
    ↓
-6. Backend validates and saves settings
+6. Main process sends WebSocket message to backend
    ↓
-7. Backend sends settings-updated response
+7. Backend validates and saves settings
    ↓
-8. Main process receives WebSocket message
+8. Backend sends settings-updated response
    ↓
-9. Main process forwards to renderer via IPC
+9. Main process receives WebSocket message
    ↓
-10. AppContext handles settings-updated event
+10. Main process forwards to renderer via IPC
     ↓
-11. UI updates with success status
+11. AppStatusContext handles settings-updated event
+    ↓
+12. AppStatusContext.setSaveStatus('success')
+    ↓
+13. UI updates with success status
 ```
 
 ## Error Handling

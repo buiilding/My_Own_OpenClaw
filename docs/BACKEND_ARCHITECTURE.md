@@ -79,12 +79,18 @@ The main agent class for orchestrating tasks with tool support.
 - Stream responses back to clients
 - Persist conversation memory
 - Handle session lifecycle events
+- Use centralized tool result storage
 
 **Key Methods**:
 - `process_query()`: Process user query and yield events
 - `update_config()`: Update configuration at runtime
 - `get_screenshot()`: Get current screenshot
 - `get_current_screenshot_id()`: Get screenshot ID
+
+**Tool Result Storage**:
+- Uses centralized `ToolResultStorage` class for managing pending results
+- Automatic TTL-based cleanup (5 minutes) to prevent memory leaks
+- Weak references for futures to allow garbage collection
 
 #### AgentExecutor (`agent/core/executor.py`)
 
@@ -113,6 +119,30 @@ Main interaction loop for agent reasoning.
 **Key Methods**:
 - `run_loop()`: Main interaction loop
 - `_handle_tool_results()`: Process tool execution results
+
+#### ToolResultStorage (`agent/core/tool_result_storage.py`)
+
+Centralized storage for tool execution results.
+
+**Responsibilities**:
+- Manage pending tool results
+- Manage tool result futures for async waiting
+- Manage bundled results
+- Automatic TTL-based cleanup (5 minutes default)
+- Memory leak prevention with weak references
+
+**Key Methods**:
+- `store_pending_result()`: Store pending result
+- `get_pending_result()`: Retrieve pending result
+- `create_result_future()`: Create future for async waiting
+- `set_result()`: Set result and resolve future
+- `store_bundled_result()`: Store bundled result
+- `cleanup_old_results()`: Clean up expired results
+
+**Performance Features**:
+- Weak references for futures to allow garbage collection
+- Automatic cleanup prevents memory leaks in long-running sessions
+- Single source of truth for all tool result storage
 
 ### Tool System
 
@@ -155,11 +185,17 @@ Prepares tool calls for execution.
 - Coordinate OCR processing
 - Resolve coordinates for visual tools
 - Prepare tool calls with metadata
+- Use shallow copy optimization for PreparedToolCall creation
 
 **Key Methods**:
 - `prepare_tool_calls()`: Prepare tool calls from parsed response
 - `_ensure_screenshot()`: Ensure screenshot is available
 - `_resolve_coordinates()`: Resolve coordinates for tools
+
+**Performance Optimizations**:
+- Shallow copy instead of deep copy for PreparedToolCall parameters
+- Parameters are typically simple values (str, int, bool, float)
+- Reduces overhead per tool call, especially in multi-tool scenarios
 
 ### LLM System
 
@@ -222,6 +258,31 @@ Converts text to vector representations.
 - `encode_text()`: Encode single text
 - `encode_batch()`: Encode multiple texts
 - `similarity()`: Calculate similarity
+
+### Conversation History
+
+#### ConversationHistory (`agent/core/state.py`)
+
+Manages conversation history with automatic pruning and performance optimizations.
+
+**Responsibilities**:
+- Store conversation messages in structured format
+- Maintain cached LLM format for O(1) retrieval
+- Automatic pruning to prevent context window overflow
+- Memory DoS protection (image data cleared after 5 turns)
+
+**Key Methods**:
+- `add_user_message()`: Add user message with context
+- `add_tool_output()`: Add tool execution result
+- `add_assistant_message()`: Add assistant response
+- `get_llm_history()`: Get history in LLM format (O(1) access)
+- `get_token_count()`: Get approximate token count
+
+**Performance Optimizations**:
+- **O(1) LLM Format Access**: Cached conversion instead of O(n) iteration
+- **Incremental Updates**: LLM cache updated incrementally when messages added
+- **Shallow Copy API**: Optional API for direct access without deep copying
+- **Memory Protection**: Image data automatically cleared from old messages
 
 ### API Layer
 
@@ -391,6 +452,8 @@ BaseException
 - **Embedding Cache**: Avoid re-computing embeddings
 - **Tool Schema Cache**: Cached tool definitions
 - **Query Result Cache**: Frequent queries cached
+- **Conversation History Cache**: O(1) LLM format access via cached conversion
+- **Tool Result Storage**: Centralized storage with TTL-based cleanup
 
 ### Parallelization
 

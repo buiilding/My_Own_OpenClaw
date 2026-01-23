@@ -46,18 +46,42 @@ frontend/
 │   │   ├── index.cjs      # Electron main entry
 │   │   ├── ipc.cjs        # IPC bridge
 │   │   ├── wakeword_bridge.cjs  # Wakeword service bridge
+│   │   ├── local_backend_bridge.cjs  # Local backend bridge
 │   │   └── python/        # Python sidecar
-│   │       ├── runner.py  # Main Python process
+│   │       ├── local_backend.py  # Local backend service
+│   │       ├── memory_service.py  # Memory service
 │   │       ├── core/      # Core utilities
-│   │       └── tools/     # Tool implementations
+│   │       ├── tools/     # Tool implementations
+│   │       └── memory/    # Memory storage
 │   ├── preload.js         # Preload script (IPC bridge)
 │   ├── renderer/          # Renderer process (React)
-│   │   ├── main.jsx       # React entry point
-│   │   ├── App.jsx        # Root component
-│   │   ├── components/    # React components
-│   │   ├── context/       # Context providers
-│   │   ├── hooks/         # Custom hooks
-│   │   ├── api/           # API client
+│   │   ├── app/           # App-level components
+│   │   │   ├── App.jsx    # Root component
+│   │   │   ├── main.jsx   # React entry point
+│   │   │   └── providers/ # Context providers
+│   │   │       ├── AppProvider.jsx  # Main app provider
+│   │   │       ├── AppConfigContext.jsx  # Config context
+│   │   │       ├── AppStatusContext.jsx   # Status context
+│   │   │       └── ChatProvider.jsx  # Chat provider
+│   │   ├── components/    # Shared React components
+│   │   │   ├── ErrorBoundary.jsx
+│   │   │   └── MainLayout.jsx
+│   │   ├── features/      # Feature-based modules
+│   │   │   ├── chat/      # Chat feature
+│   │   │   │   ├── components/  # Chat components
+│   │   │   │   ├── hooks/       # Chat hooks
+│   │   │   │   └── stores/      # Zustand store
+│   │   │   ├── settings/  # Settings feature
+│   │   │   │   ├── components/
+│   │   │   │   └── hooks/
+│   │   │   └── voice/     # Voice feature
+│   │   │       ├── components/
+│   │   │       └── hooks/
+│   │   ├── infrastructure/ # Infrastructure layer
+│   │   │   ├── api/       # API client
+│   │   │   ├── ipc/       # IPC bridge abstraction
+│   │   │   ├── services/  # Business logic services
+│   │   │   └── audio/     # Audio services
 │   │   ├── utils/         # Utilities
 │   │   └── styles/        # CSS styles
 │   └── types/             # TypeScript types
@@ -78,16 +102,18 @@ The renderer process runs in a browser-like environment and contains the React U
 ```
 App
 ├── ErrorBoundary
-└── AppProvider
+└── AppProvider (AppConfigProvider + AppStatusProvider)
     └── ChatProvider
         └── MainLayout
             ├── Sidebar
             ├── ChatInterface
             │   ├── MessageList
-            │   │   └── ThinkingDisplay
-            │   └── MessageInput
-            │       └── VoiceStatus
-            └── SettingsPanel
+            │   │   ├── ThinkingDisplay
+            │   │   └── TokenCountDisplay
+            │   ├── MessageInput
+            │   │   └── VoiceStatus
+            │   └── TransparencySection
+            └── SettingsPanel (lazy loaded)
 ```
 
 #### Key Components
@@ -119,44 +145,73 @@ App
 
 #### Context Providers
 
-**AppContext** (`context/AppContext.jsx`)
-- Global application state
+**AppProvider** (`app/providers/AppProvider.jsx`)
+- Combines AppConfigProvider and AppStatusProvider
+- Maintains backward compatibility with legacy `useAppContext()` hook
+- Coordinates between config and status contexts
+
+**AppConfigContext** (`app/providers/AppConfigContext.jsx`)
+- Application configuration (infrequently changing)
 - Settings management
 - Model list management
 - Wakeword state
+- Optimized to avoid unnecessary re-renders
 
-**ChatContext** (`context/ChatContext.jsx`)
-- Chat-specific state
-- Message management
-- Streaming state
-- Audio playback
+**AppStatusContext** (`app/providers/AppStatusContext.jsx`)
+- Transient application status (frequently changing)
+- Settings save status (idle, saving, success, error)
+- Separated from config to prevent unnecessary re-renders
+
+**ChatProvider** (`app/providers/ChatProvider.jsx`)
+- Thin wrapper that sets up chat hooks
+- Initializes `useChatStream()` and `useToolRunner()`
+- Provides access to chat store via Zustand
 
 #### Custom Hooks
 
-**useStreamingMessages**
-- Manages streaming message responses
+**Chat Feature Hooks** (`features/chat/hooks/`)
+
+**useChatMessageSender** (`useChatMessageSender.ts`)
+- Handles sending user messages
+- Screenshot capture coordination
+- Message formatting and transmission
+
+**useChatStream** (`useChatStream.ts`)
+- Manages streaming message responses from backend
 - Handles LLM thought tokens
 - Tool call/output handling
+- Message completion states
+- Token count updates
 
-**useVoiceMode**
+**useToolRunner** (`useToolRunner.ts`)
+- Connects UI to ToolExecutionService
+- Handles tool execution events
+- Manages tool bundling
+- Updates chat store with tool results
+
+**useTranscription** (`useTranscription.ts`)
+- Input field state management
+- Transcription text insertion
+- Smart replacement logic
+
+**Settings Feature Hooks** (`features/settings/hooks/`)
+
+**useSettingsManagement** (`useSettingsManagement.ts`)
+- Settings loading and saving
+- Model list management
+- IPC event handling
+
+**Voice Feature Hooks** (`features/voice/hooks/`)
+
+**useVoiceMode** (`useVoiceMode.ts`)
 - Voice input mode management
 - WebSocket connection to Nova-Voice Gateway
 - Audio capture and transcription
 
-**useWakewordDetection**
+**useWakewordDetection** (`useWakewordDetection.ts`)
 - Wakeword detection via openWakeWord
 - Audio capture and processing
 - IPC communication with main process
-
-**useAudioPlayer**
-- TTS audio playback queue
-- Sequential playback management
-- Audio format conversion
-
-**useTranscription**
-- Input field state management
-- Transcription text insertion
-- Smart replacement logic
 
 ### Main Process (Node.js)
 
@@ -228,23 +283,29 @@ The Python sidecar handles tool execution and system state capture.
 ```
 1. User types message in MessageInput
    ↓
-2. sendMessage() called in ChatContext
+2. useChatMessageSender hook handles message
    ↓
-3. Screenshot captured (if needed)
+3. Screenshot captured (always for visual context)
    ↓
-4. Message sent via window.ipc.send('to-backend')
+4. Message sent via IpcBridge.send('to-backend')
    ↓
 5. Main process receives via IPC
    ↓
-6. Main process forwards to backend via WebSocket
+6. Main process builds complete message with system state and memories
    ↓
-7. Backend processes and streams response
+7. Main process forwards to backend via WebSocket
    ↓
-8. Main process receives WebSocket messages
+8. Backend processes and streams response
    ↓
-9. Main process forwards to renderer via IPC
+9. Main process receives WebSocket messages
    ↓
-10. Renderer updates UI with streaming response
+10. Main process forwards to renderer via IPC
+    ↓
+11. useChatStream hook processes streaming events
+    ↓
+12. Chat store updated with messages
+    ↓
+13. UI updates via Zustand subscriptions
 ```
 
 ### Tool Execution Flow
@@ -256,38 +317,65 @@ The Python sidecar handles tool execution and system state capture.
    ↓
 3. Main process forwards to renderer via IPC
    ↓
-4. Renderer displays tool call in UI
+4. useToolRunner hook receives tool-call event
    ↓
-5. Main process sends tool request to Python sidecar
+5. ToolExecutionService.executeTool() called
    ↓
-6. Python sidecar executes tool
+6. Tool sent to Python sidecar via IPC invoke
    ↓
-7. Python sidecar captures screenshot (if needed)
+7. Python sidecar executes tool
    ↓
-8. Python sidecar sends result to main process
+8. ToolExecutionService captures screenshot (if computer-use tool)
    ↓
-9. Main process sends result to backend via WebSocket
+9. ToolExecutionService captures system state
    ↓
-10. Backend processes result and continues
+10. ToolExecutionService formats result with MessageFormatter
+    ↓
+11. Result displayed in UI via callback
+    ↓
+12. Result sent to backend via WebSocket
+    ↓
+13. Backend processes result and continues
+```
+
+### Tool Bundling Flow
+
+```
+1. Backend sends bundle_start message
+   ↓
+2. useToolRunner enters bundle mode
+   ↓
+3. Multiple tool-call messages accumulated
+   ↓
+4. Backend sends bundle_end message
+   ↓
+5. ToolExecutionService.executeToolBundle() called
+   ↓
+6. Tools executed in parallel via Python sidecar
+   ↓
+7. Results aggregated and formatted
+   ↓
+8. Bundled result displayed in UI
+   ↓
+9. Results sent to backend
 ```
 
 ## State Management
 
-### Context API
+### Hybrid State Management
 
-The frontend uses React Context API for state management:
+The frontend uses a hybrid approach combining React Context API and Zustand:
 
-**AppContext**:
-- `config`: Application configuration
-- `saveStatus`: Settings save status
-- `availableModels`: Available LLM models
-- `wakewordEnabled`: Wakeword detection state
+**Context API** (for app-level, infrequently changing state):
+- **AppConfigContext**: Application configuration, models, wakeword state
+- **AppStatusContext**: Transient status (save status)
+- Split contexts prevent unnecessary re-renders when only status changes
 
-**ChatContext**:
-- `messages`: Chat messages array
-- `isSending`: Sending state
-- `thinkingStatus`: LLM thinking tokens
-- `tokenCounts`: Token usage counts
+**Zustand Store** (for chat state):
+- **chatStore** (`features/chat/stores/chatStore.ts`): Chat messages, sending state, thinking status, token counts
+- Pure state management with no business logic
+- O(1) access time with shallow equality checks
+- Components subscribe directly to store slices
 
 ### State Flow
 
@@ -296,16 +384,25 @@ User Action
   ↓
 Component Event Handler
   ↓
-Context Update
+Service/Hook (business logic)
   ↓
-Component Re-render
+Store/Context Update
+  ↓
+Component Re-render (only subscribed components)
   ↓
 UI Update
 ```
 
-## API Client
+### Performance Optimizations
 
-### API Client (`api/client.js`)
+- **Split Contexts**: AppConfigContext and AppStatusContext separated to prevent re-renders
+- **Zustand Store**: Direct subscriptions to store slices, no context propagation overhead
+- **Lazy Loading**: SettingsPanel loaded lazily to improve initial render time
+- **Stable IPC Listeners**: IPC callbacks use refs to maintain stable identity
+
+## Infrastructure Layer
+
+### API Client (`infrastructure/api/client.ts`)
 
 Typed API client for backend communication.
 
@@ -315,6 +412,44 @@ Typed API client for backend communication.
 - `listModels()`: Request available models
 - `loadSettings()`: Request current settings
 - `wakewordDetected()`: Notify wakeword detection
+
+### IPC Bridge (`infrastructure/ipc/bridge.ts`)
+
+Type-safe IPC bridge abstraction with channel validation.
+
+**Features**:
+- Type-safe channel constants (SEND_CHANNELS, INVOKE_CHANNELS, ON_CHANNELS)
+- Runtime validation in development
+- Preload.js security validation in production
+- O(1) channel lookup using Set data structures
+
+**Methods**:
+- `IpcBridge.send(channel, data)`: Send one-way message
+- `IpcBridge.invoke(channel, data)`: Invoke async handler
+- `IpcBridge.on(channel, handler)`: Subscribe to messages
+- `IpcBridge.once(channel, handler)`: One-time subscription
+
+### Services (`infrastructure/services/`)
+
+**ToolExecutionService** (`ToolExecutionService.ts`):
+- Handles tool execution and bundling
+- Automatic screenshot capture for computer-use tools
+- System state capture and formatting
+- Callback-based architecture for UI updates
+- Pure infrastructure code (no React dependencies)
+
+**MessageFormatter** (`MessageFormatter.ts`):
+- Pure functions for formatting tool output messages
+- System context XML formatting
+- Tool result formatting
+- Bundle result formatting
+- No side effects, no React dependencies
+
+**PlayerService** (`infrastructure/audio/PlayerService.ts`):
+- TTS audio playback queue
+- Sequential playback management
+- Audio format conversion
+- Callback-based architecture
 
 ## Security
 

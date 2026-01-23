@@ -39,9 +39,15 @@ The Tool System enables the Desktop Assistant to interact with the computer thro
 │              ↕ stdin/stdout                      │
 │  ┌───────────────────────────────────────────┐  │
 │  │  Python Sidecar                           │  │
-│  │  - ToolDispatcher                         │  │
 │  │  - Tool Execution                         │  │
 │  │  - System State Capture                    │  │
+│  └───────────────────────────────────────────┘  │
+│              ↕ IPC (IpcBridge)                     │
+│  ┌───────────────────────────────────────────┐  │
+│  │  Renderer Process (React)                  │  │
+│  │  - useToolRunner Hook                      │  │
+│  │  - ToolExecutionService                    │  │
+│  │  - MessageFormatter                        │  │
 │  └───────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────┘
 ```
@@ -100,19 +106,25 @@ LLM generates tool call in response format:
 **ToolOrchestrator** (`tools/orchestrator.py`) coordinates execution:
 
 1. Sends tool call to frontend via WebSocket
-2. Frontend routes to Python sidecar
-3. Python sidecar executes tool
-4. Result captured with screenshot
-5. Result sent back to backend
+2. **useToolRunner** hook receives tool-call event
+3. **ToolExecutionService** (`infrastructure/services/ToolExecutionService.ts`) handles execution:
+   - Routes tool to Python sidecar via IPC invoke
+   - Python sidecar executes tool
+   - Automatically captures screenshot (if computer-use tool)
+   - Captures system state
+   - Formats result with MessageFormatter
+4. Result displayed in UI via callback
+5. Result sent back to backend via WebSocket
 
 ### 4. Result Processing
 
 **ToolResultHandler** (`agent/core/tool_result_handler.py`) processes results:
 
 1. Receives tool result from frontend
-2. Processes screenshot and OCR
-3. Updates conversation history
-4. Continues agent interaction
+2. Stores result in centralized **ToolResultStorage** (with TTL-based cleanup)
+3. Processes screenshot and OCR
+4. Updates conversation history (O(1) access via cached LLM format)
+5. Continues agent interaction
 
 ## Tool Development
 
@@ -240,11 +252,11 @@ For tools using vision models:
 
 ### Screenshot Lifecycle
 
-1. **User Message**: Screenshot captured before sending
-2. **Tool Execution**: Screenshot captured after tool execution
-3. **Hidden Screenshots**: Screenshot requested by backend if needed
-4. **OCR Processing**: Screenshot processed for OCR
-5. **Storage**: Screenshot stored in session with unique ID
+1. **User Message**: Screenshot captured before sending (via useChatMessageSender)
+2. **Tool Execution**: Screenshot automatically captured after computer-use tool execution (via ToolExecutionService)
+3. **Hidden Screenshots**: Screenshot requested by backend if needed (via request-screenshot message)
+4. **OCR Processing**: Screenshot processed for OCR (backend)
+5. **Storage**: Screenshot stored in session with unique ID (backend)
 
 ### ScreenshotManager
 

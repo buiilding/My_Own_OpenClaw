@@ -88,5 +88,19 @@ See [Contributing Guide](CONTRIBUTING.md) for guidelines on improving documentat
 
 ---
 
-**Last Updated**: January 2025  
+**Last Updated**: January 2026  
 **Version**: 1.0.0
+
+## Recent Updates
+
+### Frontend Refactor (January 2026)
+- **Feature-Based Architecture**: Reorganized into feature modules (chat, settings, voice)
+- **Split Contexts**: AppConfigContext and AppStatusContext for better performance
+- **Zustand Store**: Chat state managed via Zustand for efficient updates
+- **Infrastructure Layer**: New service layer (ToolExecutionService, MessageFormatter, IpcBridge)
+- **New Hooks**: useChatStream, useToolRunner, useChatMessageSender
+
+### Backend Optimizations (January 2026)
+- **Centralized Tool Result Storage**: ToolResultStorage class with TTL-based cleanup
+- **Conversation History Optimization**: O(1) LLM format access via cached conversion
+- **Shallow Copy Optimization**: PreparedToolCall uses shallow copy for better performance

@@ -32,13 +32,45 @@ frontend/src/
 ├── main/              # Main process (Electron)
 │   ├── index.cjs      # Electron entry
 │   ├── ipc.cjs        # IPC bridge
+│   ├── wakeword_bridge.cjs  # Wakeword service bridge
+│   ├── local_backend_bridge.cjs  # Local backend bridge
 │   └── python/        # Python sidecar
+│       ├── local_backend.py  # Local backend service
+│       ├── memory_service.py  # Memory service
+│       ├── core/      # Core utilities
+│       ├── tools/     # Tool implementations
+│       └── memory/    # Memory storage
 ├── preload.js         # Preload script
 ├── renderer/          # Renderer process (React)
-│   ├── components/    # React components
-│   ├── context/       # Context providers
-│   ├── hooks/         # Custom hooks
-│   └── api/           # API client
+│   ├── app/           # App-level components
+│   │   ├── App.jsx    # Root component
+│   │   ├── main.jsx   # React entry point
+│   │   └── providers/ # Context providers
+│   │       ├── AppProvider.jsx  # Main app provider
+│   │       ├── AppConfigContext.jsx  # Config context
+│   │       ├── AppStatusContext.jsx  # Status context
+│   │       └── ChatProvider.jsx  # Chat provider
+│   ├── components/    # Shared React components
+│   │   ├── ErrorBoundary.jsx
+│   │   └── MainLayout.jsx
+│   ├── features/      # Feature-based modules
+│   │   ├── chat/      # Chat feature
+│   │   │   ├── components/  # Chat components
+│   │   │   ├── hooks/       # Chat hooks
+│   │   │   └── stores/      # Zustand store
+│   │   ├── settings/  # Settings feature
+│   │   │   ├── components/
+│   │   │   └── hooks/
+│   │   └── voice/     # Voice feature
+│   │       ├── components/
+│   │       └── hooks/
+│   ├── infrastructure/ # Infrastructure layer
+│   │   ├── api/       # API client
+│   │   ├── ipc/       # IPC bridge abstraction
+│   │   ├── services/  # Business logic services
+│   │   └── audio/     # Audio services
+│   ├── utils/         # Utilities
+│   └── styles/        # CSS styles
 └── types/             # TypeScript types
 ```
 
@@ -275,6 +307,32 @@ class ToolExecutor(Protocol):
         ...
 ```
 
+### Frontend Architecture Patterns
+
+**Split Contexts for Performance**:
+- AppConfigContext: Infrequently changing state (config, models)
+- AppStatusContext: Frequently changing state (save status)
+- Prevents unnecessary re-renders when only status changes
+
+**Zustand Store for Chat State**:
+```typescript
+import { useChatStore } from '../features/chat/stores/chatStore';
+
+// Direct subscription to store slice
+const messages = useChatStore((state) => state.messages);
+const addMessage = useChatStore((state) => state.addMessage);
+```
+
+**Infrastructure Layer**:
+- Pure services (no React dependencies)
+- Callback-based architecture for UI updates
+- Type-safe IPC bridge with channel validation
+
+**Feature-Based Organization**:
+- Features are self-contained modules
+- Each feature has components, hooks, and stores
+- Infrastructure layer shared across features
+
 ## Extension Points
 
 ### Adding a New Tool
@@ -341,6 +399,8 @@ class ToolExecutor(Protocol):
 - **LLM Client Caching**: Provider instances cached
 - **Embedding Cache**: Avoid re-computing embeddings
 - **Tool Schema Cache**: Cached tool definitions
+- **Conversation History Cache**: O(1) LLM format access via cached conversion
+- **Tool Result Storage**: Centralized storage with TTL-based cleanup (5 minutes)
 
 ### Parallelization
 
@@ -353,6 +413,21 @@ class ToolExecutor(Protocol):
 - **CUDA Support**: GPU-accelerated embeddings
 - **OCR Acceleration**: GPU-accelerated OCR processing
 - **Vision Models**: GPU-accelerated vision inference
+
+### Frontend Performance
+
+- **Split Contexts**: AppConfigContext and AppStatusContext separated to prevent unnecessary re-renders
+- **Zustand Store**: Direct subscriptions to store slices, no context propagation overhead
+- **Lazy Loading**: SettingsPanel loaded lazily to improve initial render time
+- **Stable IPC Listeners**: IPC callbacks use refs to maintain stable identity
+- **O(1) Channel Lookup**: IPC bridge uses Set data structures for fast channel validation
+
+### Backend Performance
+
+- **Shallow Copy Optimization**: PreparedToolCall uses shallow copy instead of deep copy for parameters
+- **O(1) History Access**: ConversationHistory maintains cached LLM format for instant retrieval
+- **Memory Protection**: Image data automatically cleared from old messages (last 5 turns)
+- **Centralized Storage**: ToolResultStorage provides single source of truth with automatic cleanup
 
 ## Security Best Practices
 

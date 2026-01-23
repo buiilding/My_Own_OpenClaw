@@ -14,7 +14,7 @@ Desktop Assistant is built as a distributed system with a clear separation betwe
 │  │  - ChatInterface                                     │  │
 │  │  - SettingsPanel                                    │  │
 │  │  - MessageList                                       │  │
-│  │  - Context Providers (AppContext, ChatContext)      │  │
+│  │  - Context Providers (AppConfigContext, AppStatusContext, ChatProvider)      │  │
 │  └──────────────────────────────────────────────────────┘  │
 │                          ↕ IPC                              │
 │  ┌──────────────────────────────────────────────────────┐  │
@@ -55,9 +55,11 @@ Desktop Assistant is built as a distributed system with a clear separation betwe
 ### Frontend Architecture
 
 #### Renderer Process (React)
-- **Components**: React components for UI rendering
-- **Context**: Global state management (AppContext, ChatContext)
-- **Hooks**: Custom hooks for streaming, voice, wakeword, audio
+- **Components**: React components organized by feature (chat, settings, voice)
+- **Context**: Split contexts for performance (AppConfigContext, AppStatusContext, ChatProvider)
+- **State Management**: Zustand store for chat state, Context API for app config
+- **Hooks**: Feature-specific hooks (useChatStream, useToolRunner, useChatMessageSender)
+- **Infrastructure**: Service layer (ToolExecutionService, MessageFormatter, IpcBridge)
 - **API Client**: Typed API client for backend communication
 
 #### Main Process (Node.js)
@@ -94,37 +96,47 @@ Desktop Assistant is built as a distributed system with a clear separation betwe
 ```
 1. User types message in UI
    ↓
-2. Frontend captures screenshot (always, for visual context)
+2. useChatMessageSender hook handles message
    ↓
-3. Message sent via IPC → Main Process
+3. Frontend captures screenshot (always, for visual context)
    ↓
-4. Main Process → WebSocket → Backend
+4. Message sent via IpcBridge → Main Process
    ↓
-5. Backend validates message (schema.py)
+5. Main Process builds complete message with system state and memories
    ↓
-6. Message routed to QueryHandler
+6. Main Process → WebSocket → Backend
    ↓
-7. AgentSession.process_query()
+7. Backend validates message (schema.py)
    ↓
-8. PromptConstructor formats message
+8. Message routed to QueryHandler
    ↓
-9. LLM generates response with tool calls
+9. AgentSession.process_query()
    ↓
-10. ToolPreparer prepares tool calls
+10. PromptConstructor formats message
     ↓
-11. Tools sent to frontend for execution
+11. LLM generates response with tool calls
     ↓
-12. Frontend executes tools (Python sidecar)
+12. ToolPreparer prepares tool calls
     ↓
-13. Results sent back to backend
+13. Tools sent to frontend for execution
     ↓
-14. ToolResultHandler processes results
+14. useToolRunner hook receives tool-call
     ↓
-15. Agent continues or completes
+15. ToolExecutionService executes tool (Python sidecar)
     ↓
-16. Response streamed back to frontend
+16. ToolExecutionService captures screenshot and system state
     ↓
-17. UI updates in real-time
+17. Results sent back to backend
+    ↓
+18. ToolResultHandler processes results (centralized storage)
+    ↓
+19. Agent continues or completes
+    ↓
+20. Response streamed back to frontend
+    ↓
+21. useChatStream hook processes events
+    ↓
+22. Chat store updated, UI updates in real-time
 ```
 
 ### Screenshot Capture Strategy
@@ -164,29 +176,37 @@ Screenshots are captured strategically at key points to provide visual context f
    ↓
 2. ToolPreparer checks if screenshot needed
    ↓
-3. ScreenshotManager acquires screenshot
+3. ScreenshotManager acquires screenshot (if needed)
    ↓
 4. OCRCoordinator runs OCR (if needed)
    ↓
 5. CoordinateResolver resolves coordinates
    ↓
-6. Tool call prepared with coordinates
+6. Tool call prepared with coordinates (shallow copy optimization)
    ↓
 7. Tool sent to frontend via WebSocket
    ↓
-8. Frontend dispatches to Python sidecar
+8. useToolRunner hook receives tool-call event
    ↓
-9. Python sidecar executes tool
+9. ToolExecutionService.executeTool() called
    ↓
-10. Result captured with screenshot
+10. Tool dispatched to Python sidecar via IPC
     ↓
-11. Result sent back to backend
+11. Python sidecar executes tool
     ↓
-12. ToolResultHandler processes result
+12. ToolExecutionService captures screenshot (if computer-use tool)
     ↓
-13. Result added to conversation history
+13. ToolExecutionService captures system state
     ↓
-14. Agent continues with next step
+14. MessageFormatter formats result
+    ↓
+15. Result sent back to backend via WebSocket
+    ↓
+16. ToolResultHandler processes result (centralized storage)
+    ↓
+17. Result added to conversation history (O(1) access)
+    ↓
+18. Agent continues with next step
 ```
 
 ## Communication Protocols
@@ -283,6 +303,8 @@ PluginRegistry
 - **Embedding Cache**: Avoid re-computing embeddings
 - **Tool Schema Cache**: Cached tool definitions
 - **Query Result Cache**: Frequent queries cached
+- **Conversation History Cache**: O(1) LLM format access via cached conversion
+- **Tool Result Storage**: Centralized storage with TTL-based cleanup
 
 ### Parallelization
 - **Async I/O**: All I/O operations async
