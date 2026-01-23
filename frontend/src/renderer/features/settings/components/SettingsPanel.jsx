@@ -41,98 +41,108 @@ SaveStatusFeedback.propTypes = {
  * @param {string} props.saveStatus - The current status of the save operation.
  */
 function SettingsPanel({ config, availableModels = { local: [], online: [] }, onConfigChange, saveStatus = 'idle' }) {
-  const [modelMode, setModelMode] = useState('online');
-  const [selectedModelId, setSelectedModelId] = useState('');
-  const [selectedProvider, setSelectedProvider] = useState('');
   const [modelResetWarning, setModelResetWarning] = useState('');
-  // Default to undefined so we can distinguish between "not loaded" and "false"
-  const [voiceModeEnabled, setVoiceModeEnabled] = useState(false);
-  const [speechModeEnabled, setSpeechModeEnabled] = useState(false);
 
-  useEffect(() => {
-    if (config) {
-      setModelMode(config.model_mode || 'online');
-      setSelectedModelId(config.selected_model_id || '');
-      setSelectedProvider(config.model_provider || '');
-      // Only update local state if config has the value
-      if (config.voice_mode_enabled !== undefined) {
-        setVoiceModeEnabled(config.voice_mode_enabled);
-      }
-      if (config.speech_mode_enabled !== undefined) {
-        setSpeechModeEnabled(config.speech_mode_enabled);
-      }
-    }
-  }, [config]);
-
-  // This effect is now responsible for reporting changes up to the parent component.
-  // Only update config after availableModels are loaded to prevent invalid model selections
-  useEffect(() => {
-    if (!config || availableModels.local.length === 0 && availableModels.online.length === 0) return;
-
-    // Only send the 5 fields that frontend manages - don't spread the full config
-    const updatedConfig = {
-      model_mode: modelMode,
-      selected_model_id: selectedModelId,
-      model_provider: selectedProvider,
-      voice_mode_enabled: voiceModeEnabled,
-      speech_mode_enabled: speechModeEnabled,
-    };
-
-    // To prevent sending a save request for every single character change in the
-    // username input, we'll only call onConfigChange if the config has actually changed.
-    // We check specific fields to avoid false positives/negatives
-    const hasChanged = 
-      updatedConfig.model_mode !== config.model_mode ||
-      updatedConfig.selected_model_id !== config.selected_model_id ||
-      updatedConfig.model_provider !== config.model_provider ||
-      updatedConfig.voice_mode_enabled !== config.voice_mode_enabled ||
-      updatedConfig.speech_mode_enabled !== config.speech_mode_enabled;
-
-    if (hasChanged) {
-      onConfigChange(updatedConfig);
-    }
-  }, [modelMode, selectedModelId, selectedProvider, voiceModeEnabled, speechModeEnabled, config, onConfigChange, availableModels]);
-
-  const isSaving = saveStatus === 'saving';
+  // Fully controlled component: derive all values from config prop
+  // No local state for form values - eliminates sync issues
+  const modelMode = config?.model_mode || 'online';
+  const selectedModelId = config?.selected_model_id || '';
+  const selectedProvider = config?.model_provider || '';
+  const voiceModeEnabled = config?.voice_mode_enabled ?? false;
+  const speechModeEnabled = config?.speech_mode_enabled ?? false;
 
   // Get the current list of models based on mode
   const currentModels = modelMode === 'local'
     ? availableModels.local
     : availableModels.online;
 
-  // Find the selected model to get its provider if not set, but only after models are loaded
+  // Handle user input changes - call onConfigChange immediately
+  const handleModelModeChange = (newMode) => {
+    onConfigChange({
+      model_mode: newMode,
+      selected_model_id: '', // Reset when switching modes
+      model_provider: '',
+      voice_mode_enabled: voiceModeEnabled,
+      speech_mode_enabled: speechModeEnabled,
+    });
+  };
+
+  const handleModelChange = (newModelId) => {
+    const model = currentModels.find(m => m.id === newModelId);
+    onConfigChange({
+      model_mode: modelMode,
+      selected_model_id: newModelId,
+      model_provider: model?.provider || '',
+      voice_mode_enabled: voiceModeEnabled,
+      speech_mode_enabled: speechModeEnabled,
+    });
+  };
+
+  const handleVoiceModeToggle = (enabled) => {
+    onConfigChange({
+      model_mode: modelMode,
+      selected_model_id: selectedModelId,
+      model_provider: selectedProvider,
+      voice_mode_enabled: enabled,
+      speech_mode_enabled: speechModeEnabled,
+    });
+  };
+
+  const handleSpeechModeToggle = (enabled) => {
+    onConfigChange({
+      model_mode: modelMode,
+      selected_model_id: selectedModelId,
+      model_provider: selectedProvider,
+      voice_mode_enabled: voiceModeEnabled,
+      speech_mode_enabled: enabled,
+    });
+  };
+
+  const isSaving = saveStatus === 'saving';
+
+  // Validate selected model exists and auto-fix if needed
   useEffect(() => {
-    // Only validate after availableModels are loaded
     if (availableModels.local.length === 0 && availableModels.online.length === 0) return;
+    if (!selectedModelId || !config) return;
 
-    if (selectedModelId && currentModels.length > 0) {
-      const model = currentModels.find(m => m.id === selectedModelId);
-      if (model) {
-        // Model exists, update provider if needed
-        if (model.provider !== selectedProvider) {
-          setSelectedProvider(model.provider);
-        }
+    const model = currentModels.find(m => m.id === selectedModelId);
+    if (!model) {
+      // Model doesn't exist - reset to first available or empty
+      const warningMsg = `Selected model "${selectedModelId}" is not available. Resetting to default.`;
+      console.warn(warningMsg);
+      setModelResetWarning(warningMsg);
+
+      if (currentModels.length > 0) {
+        const defaultModel = currentModels[0];
+        onConfigChange({
+          model_mode: modelMode,
+          selected_model_id: defaultModel.id,
+          model_provider: defaultModel.provider,
+          voice_mode_enabled: voiceModeEnabled,
+          speech_mode_enabled: speechModeEnabled,
+        });
       } else {
-        // Model doesn't exist in available models, reset to first available model
-        const warningMsg = `Selected model "${selectedModelId}" is not available. Resetting to default.`;
-        console.warn(warningMsg);
-        setModelResetWarning(warningMsg);
-
-        if (currentModels.length > 0) {
-          const defaultModel = currentModels[0];
-          setSelectedModelId(defaultModel.id);
-          setSelectedProvider(defaultModel.provider);
-        } else {
-          // No models available, reset to empty
-          setSelectedModelId('');
-          setSelectedProvider('');
-        }
-
-        // Clear warning after 5 seconds
-        setTimeout(() => setModelResetWarning(''), 5000);
+        onConfigChange({
+          model_mode: modelMode,
+          selected_model_id: '',
+          model_provider: '',
+          voice_mode_enabled: voiceModeEnabled,
+          speech_mode_enabled: speechModeEnabled,
+        });
       }
+
+      setTimeout(() => setModelResetWarning(''), 5000);
+    } else if (model.provider !== selectedProvider) {
+      // Auto-update provider if model exists but provider doesn't match
+      onConfigChange({
+        model_mode: modelMode,
+        selected_model_id: selectedModelId,
+        model_provider: model.provider,
+        voice_mode_enabled: voiceModeEnabled,
+        speech_mode_enabled: speechModeEnabled,
+      });
     }
-  }, [selectedModelId, currentModels, selectedProvider, availableModels]);
+  }, [selectedModelId, currentModels, selectedProvider, availableModels, config, modelMode, voiceModeEnabled, speechModeEnabled, onConfigChange]);
 
   if (!config) {
     return <div>Loading settings...</div>;
@@ -164,12 +174,7 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
                 name="model-mode"
                 value="online"
                 checked={modelMode === 'online'}
-                onChange={(e) => {
-                  setModelMode(e.target.value);
-                  // Reset selection when switching modes
-                  setSelectedModelId('');
-                  setSelectedProvider('');
-                }}
+                onChange={(e) => handleModelModeChange(e.target.value)}
                 disabled={isSaving}
               />
               <span>Online (Cloud)</span>
@@ -180,12 +185,7 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
                 name="model-mode"
                 value="local"
                 checked={modelMode === 'local'}
-                onChange={(e) => {
-                  setModelMode(e.target.value);
-                  // Reset selection when switching modes
-                  setSelectedModelId('');
-                  setSelectedProvider('');
-                }}
+                onChange={(e) => handleModelModeChange(e.target.value)}
                 disabled={isSaving}
               />
               <span>Local</span>
@@ -207,13 +207,7 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
             <select
               id="model-select"
               value={selectedModelId}
-              onChange={(e) => {
-                const model = currentModels.find(m => m.id === e.target.value);
-                setSelectedModelId(e.target.value);
-                if (model) {
-                  setSelectedProvider(model.provider);
-                }
-              }}
+              onChange={(e) => handleModelChange(e.target.value)}
               disabled={isSaving}
             >
               <option value="">-- Select a model --</option>
@@ -247,7 +241,7 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
                 type="checkbox"
                 id="voice-mode-toggle"
                 checked={voiceModeEnabled}
-                onChange={(e) => setVoiceModeEnabled(e.target.checked)}
+                onChange={(e) => handleVoiceModeToggle(e.target.checked)}
                 disabled={isSaving}
                 className="toggle-input"
               />
@@ -264,7 +258,7 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
                 type="checkbox"
                 id="speech-mode-toggle"
                 checked={speechModeEnabled}
-                onChange={(e) => setSpeechModeEnabled(e.target.checked)}
+                onChange={(e) => handleSpeechModeToggle(e.target.checked)}
                 disabled={isSaving}
                 className="toggle-input"
               />

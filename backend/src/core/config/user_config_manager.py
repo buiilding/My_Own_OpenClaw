@@ -225,39 +225,35 @@ class UserConfigManager:
         lock_file = merged_path.with_suffix(merged_path.suffix + ".lock")
         
         def _save_sync():
-            """Synchronous file I/O (runs in executor)."""
+            """Synchronous file I/O with locking (runs in executor)."""
+            # FileLock must be created and used in the same thread (executor thread)
+            lock = FileLock(lock_file, timeout=10.0)
             try:
-                # Compute global config hash
-                global_hash = self._compute_global_config_hash(global_config)
-                
-                # Save metadata
-                metadata = {"global_config_hash": global_hash}
-                with open(meta_path, "w", encoding="utf-8") as f:
-                    json.dump(metadata, f, indent=2)
-                
-                # Save merged config (exclude api_key)
-                config_to_save = {k: v for k, v in merged_config.items() if k != "api_key"}
-                with open(merged_path, "w", encoding="utf-8") as f:
-                    yaml.dump(config_to_save, f, default_flow_style=False, sort_keys=False)
-                
-                logger.debug(f"Saved merged config cache for user {user_id}")
+                with lock:
+                    # Compute global config hash
+                    global_hash = self._compute_global_config_hash(global_config)
+                    
+                    # Save metadata
+                    metadata = {"global_config_hash": global_hash}
+                    with open(meta_path, "w", encoding="utf-8") as f:
+                        json.dump(metadata, f, indent=2)
+                    
+                    # Save merged config (exclude api_key)
+                    config_to_save = {k: v for k, v in merged_config.items() if k != "api_key"}
+                    with open(merged_path, "w", encoding="utf-8") as f:
+                        yaml.dump(config_to_save, f, default_flow_style=False, sort_keys=False)
+                    
+                    logger.debug(f"Saved merged config cache for user {user_id}")
+            except Timeout:
+                logger.error(f"Failed to acquire lock for merged config cache {merged_path}: timeout after 10s")
+                raise OSError("Merged config cache file is locked by another process") from None
             except (yaml.YAMLError, OSError, json.JSONDecodeError) as e:
                 logger.error(f"Failed to save merged config cache for {user_id}: {e}", exc_info=True)
                 raise
         
-        # Use file lock to prevent concurrent writes
-        lock = FileLock(lock_file, timeout=10.0)
-        try:
-            with lock:
-                # Run blocking I/O in executor even within lock (lock prevents concurrent access)
-                loop = asyncio.get_running_loop()
-                await loop.run_in_executor(None, _save_sync)
-        except Timeout:
-            logger.error(f"Failed to acquire lock for merged config cache {merged_path}: timeout after 10s")
-            raise OSError("Merged config cache file is locked by another process") from None
-        except Exception as e:
-            logger.error(f"Failed to save merged config cache for {user_id}: {e}", exc_info=True)
-            raise
+        # Offload blocking I/O (including file locking) to thread pool
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, _save_sync)
     
     async def load_merged_config_cache(
         self, user_id: str, global_config: Dict[str, Any]
