@@ -77,7 +77,6 @@ class ApplicationContainer(containers.DeclarativeContainer):
     tts_service = core.tts_service
     vision_service = core.vision_service
     config_service = core.config_service
-    user_config_manager = core.user_config_manager
     model_service = core.model_service
 
     agent_factory = tools.agent_factory
@@ -131,7 +130,6 @@ class Container:
 
         # Core services (from core container)
         self.config_service = self._di_container.core.config_service()
-        self.user_config_manager = self._di_container.core.user_config_manager()
         self.model_service = self._di_container.core.model_service()
 
         # Plugin registry (set after bootstrap initialization)
@@ -213,11 +211,26 @@ class Container:
         """
         # Create or get session factory
         if self._session_factory is None:
+            # Create LLM client factory that accepts optional config parameter
+            # For simulation mode: Use the stored mock factory (if available)
+            # For normal mode: Create LLM client directly with session config
+            def llm_client_factory(session_config=None):
+                if session_config is not None:
+                    # Check if we have a mock factory (simulation mode)
+                    if hasattr(self, '_mock_llm_factory') and self._mock_llm_factory:
+                        return self._mock_llm_factory(session_config)
+                    # Normal mode: create directly with session config
+                    from backend.src.llm.client import get_llm_client
+                    return get_llm_client(session_config)
+                else:
+                    # Use DI container's factory (respects simulation mode overrides)
+                    return self._di_container.llm_client()
+            
             self._session_factory = AgentSessionFactory(
                 config=self.config,
                 tool_registry=self.tool_registry,
                 plugin_registry=self._plugin_registry,
-                llm_client_factory=lambda: self._di_container.llm_client(),
+                llm_client_factory=llm_client_factory,
                 tool_orchestrator_factory=lambda: self._di_container.tool_orchestrator(),
                 event_bus=self._di_container.core.event_bus(),
                 metrics_service=self._di_container.core.metrics_service(),
@@ -251,7 +264,6 @@ class Container:
                     self._session_manager = SessionManager(
                         config=self.config,
                         create_agent_session_func=self.create_agent_session,
-                        user_config_manager=self.user_config_manager,
                     )
         return self._session_manager
 
@@ -273,9 +285,6 @@ class Container:
             )
             self._api_container.config_service.override(
                 providers.Singleton(lambda: self.config_service)
-            )
-            self._api_container.user_config_manager.override(
-                providers.Singleton(lambda: self.user_config_manager)
             )
             self._api_container.model_service.override(
                 providers.Singleton(lambda: self.model_service)

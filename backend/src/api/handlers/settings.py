@@ -11,15 +11,12 @@ from backend.src.api.core.errors import send_error_response, send_success_respon
 from backend.src.api.core.transport import WebSocketSender
 from backend.src.api.schema import (
     BaseMessage,
-    LoadSettingsMessage,
     ListModelsMessage,
-    UpdateSettingsMessage,
 )
 
 if TYPE_CHECKING:
     from backend.src.agent.core.session_manager import SessionManager
 from backend.src.core.config.service import ConfigurationService
-from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.validation import (
     validate_settings_update, 
     ValidationError
@@ -27,192 +24,6 @@ from backend.src.core.validation import (
 from backend.src.llm.models.model_service import ModelService
 
 logger = logging.getLogger(__name__)
-
-
-class LoadSettingsHandler(MessageHandler):
-    """Handler for load-settings messages."""
-    
-    def __init__(
-        self,
-        config_service: ConfigurationService,
-        user_config_manager: UserConfigManager,
-    ):
-        """
-        Initialize the load settings handler.
-
-        Args:
-            config_service: Configuration service instance
-            user_config_manager: User configuration manager instance
-        """
-        self.config_service = config_service
-        self.user_config_manager = user_config_manager
-    
-    def validate_message(self, message: BaseMessage) -> bool:
-        """Validate load-settings message structure."""
-        return isinstance(message, LoadSettingsMessage)
-    
-    async def handle(
-        self, 
-        message: BaseMessage, 
-        websocket: WebSocketSender,
-        user_id: str
-    ) -> None:
-        """
-        Handle a load-settings message.
-        
-        Args:
-            message: Validated LoadSettingsMessage Pydantic model
-            websocket: WebSocketSender (thread-safe protocol implementation)
-            user_id: User ID from connection context
-        """
-        try:
-            # Type assertion - message is already validated as LoadSettingsMessage
-            validated: LoadSettingsMessage = message  # type: ignore
-            
-            # Get global config
-            global_config = self.config_service.get_config()
-            global_config_dict = global_config.model_dump(exclude={"api_key"})
-            
-            # Merge with user-specific config (user config overrides global)
-            # This will use cached merged config if available and valid
-            merged_config_dict = await self.user_config_manager.merge_with_global_config(
-                user_id, global_config_dict
-            )
-            
-            # Only send frontend-managed fields back to frontend (not full merged config)
-            # Frontend doesn't need to see backend-only fields
-            from backend.src.core.config.user_config_manager import FRONTEND_MANAGED_FIELDS
-            frontend_config = {
-                key: value
-                for key, value in merged_config_dict.items()
-                if key in FRONTEND_MANAGED_FIELDS
-            }
-            
-            # Send success response using canonical utility
-            await send_success_response(
-                websocket,
-                validated.id,
-                "settings-loaded",
-                frontend_config
-            )
-        except ValidationError as e:
-            # Validation error - send using canonical utility
-            await send_error_response(
-                websocket,
-                message.id,
-                f"Invalid load-settings message: {e.message}"
-            )
-        except Exception as e:
-            # Unexpected error - send sanitized error to prevent information leakage
-            await send_error_response(
-                websocket,
-                message.id,
-                None,
-                exception=e
-            )
-
-
-class UpdateSettingsHandler(MessageHandler):
-    """Handler for update-settings messages."""
-    
-    def __init__(
-        self,
-        session_manager: "SessionManager",
-        config_service: ConfigurationService,
-        user_config_manager: UserConfigManager,
-    ):
-        """
-        Initialize the update settings handler.
-        
-        Args:
-            session_manager: Session manager instance
-            config_service: Configuration service instance
-            user_config_manager: User configuration manager instance
-        """
-        self.session_manager = session_manager
-        self.config_service = config_service
-        self.user_config_manager = user_config_manager
-    
-    def validate_message(self, message: BaseMessage) -> bool:
-        """Validate update-settings message structure."""
-        return isinstance(message, UpdateSettingsMessage)
-    
-    async def handle(
-        self, 
-        message: BaseMessage, 
-        websocket: WebSocketSender,
-        user_id: str
-    ) -> None:
-        """
-        Handle an update-settings message.
-        
-        Args:
-            message: Validated UpdateSettingsMessage Pydantic model
-            websocket: WebSocketSender (thread-safe protocol implementation)
-            user_id: User ID from connection context
-        """
-        try:
-            # Type assertion - message is already validated as UpdateSettingsMessage
-            validated: UpdateSettingsMessage = message  # type: ignore
-            
-            # Validate settings update payload
-            new_config_data = validate_settings_update(validated.payload)
-            
-            # Get user-specific config to merge with updates
-            user_config = await self.user_config_manager.load_user_config(user_id)
-            
-            # Merge: user config + new updates (updates override existing user config)
-            # Only frontend-managed fields should be in user_config and new_config_data
-            merged_user_config = {**user_config, **new_config_data}
-            
-            # Only save if config actually changed (prevent infinite save loops)
-            if merged_user_config != user_config:
-                # Save user-specific config (only frontend-managed fields - filters automatically)
-                await self.user_config_manager.save_user_config(user_id, merged_user_config)
-            else:
-                logger.debug(f"User config for {user_id} unchanged, skipping save")
-            
-            # Build complete config with policies applied (delegates to service)
-            validated_config = self.config_service.build_user_config(merged_user_config)
-            
-            # Save merged config cache for faster future loads
-            global_config = self.config_service.get_config()
-            global_config_dict = global_config.model_dump(exclude={"api_key"})
-            merged_config_dict = validated_config.model_dump(exclude={"api_key"})
-            try:
-                await self.user_config_manager.save_merged_config_cache(
-                    user_id, merged_config_dict, global_config_dict
-                )
-            except Exception as e:
-                # Non-critical: log warning but continue (cache is for performance only)
-                logger.warning(f"Failed to save merged config cache for {user_id}: {e}")
-            
-            # Update only this user's session, not all sessions
-            await self.session_manager.update_user_session_config(user_id, validated_config)
-            
-            # Send success response using canonical utility
-            await send_success_response(
-                websocket,
-                validated.id,
-                "settings-updated",
-                {"message": "Settings updated successfully"}
-            )
-        
-        except ValidationError as e:
-            # Validation error - send using canonical utility
-            await send_error_response(
-                websocket,
-                message.id,
-                f"Invalid update-settings message: {e.message}"
-            )
-        except Exception as e:
-            # Unexpected error - send sanitized error to prevent information leakage
-            await send_error_response(
-                websocket,
-                message.id,
-                None,
-                exception=e
-            )
 
 
 class ListModelsHandler(MessageHandler):
@@ -272,4 +83,3 @@ class ListModelsHandler(MessageHandler):
                 None,
                 exception=e
             )
-

@@ -95,14 +95,21 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
         return cfg.model_copy(update={"api_key": None})
 
     provider_name = cfg.model_provider
+    logger.info(
+        f"[API Key Load] Loading API key for provider='{provider_name}', "
+        f"model_mode='{cfg.model_mode}', selected_model_id='{cfg.selected_model_id}'"
+    )
     api_key_env_var = None
 
     try:
         provider_config = cfg.llm_providers.get_provider_config(provider_name)
         api_key_env_var = getattr(provider_config, "api_key_env", None)
-    except ValueError:
+        logger.info(
+            f"[API Key Load] Provider config found: api_key_env='{api_key_env_var}'"
+        )
+    except ValueError as e:
         logger.warning(
-            "No config found for provider '%s' when loading API key.", provider_name
+            f"[API Key Load] No config found for provider '{provider_name}' when loading API key: {e}"
         )
         return cfg.model_copy(update={"api_key": None})
 
@@ -110,14 +117,16 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
         api_key = os.getenv(api_key_env_var)
         if not api_key:
             logger.warning(
-                "Environment variable '%s' for provider '%s' is not set.",
-                api_key_env_var,
-                provider_name,
+                f"[API Key Load] Environment variable '{api_key_env_var}' for provider '{provider_name}' is not set."
+            )
+        else:
+            logger.info(
+                f"[API Key Load] API key loaded for provider '{provider_name}' from '{api_key_env_var}'"
             )
         return cfg.model_copy(update={"api_key": api_key})
     else:
         # This case is for local models like Ollama that don't require an API key
-        logger.info("No API key environment variable for provider '%s'.", provider_name)
+        logger.info(f"[API Key Load] No API key environment variable for provider '{provider_name}'.")
         return cfg.model_copy(update={"api_key": None})
 
 

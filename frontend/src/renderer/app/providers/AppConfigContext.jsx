@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import { ApiClient } from '../../infrastructure/api/client';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
 import { filterFrontendConfig } from '../../utils/configFilter';
-import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 
 /**
  * AppConfigContext - Manages application configuration and capabilities.
@@ -18,64 +18,44 @@ import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
 const AppConfigContext = createContext();
 
 export function AppConfigProvider({ children }) {
-  const [config, setConfig] = useState(null);
+  // Load from localStorage immediately on mount (optimistic state - zero latency)
+  const [config, setConfig] = useState(() => {
+    const storedConfig = loadConfigFromStorage();
+    return storedConfig;
+  });
   const [availableModels, setAvailableModels] = useState({ local: [], online: [] });
   const [wakewordEnabled, setWakewordEnabled] = useState(true);
-  
-  const configBeforeSave = useRef(null);
-  const saveTimeoutId = useRef(null);
-  
-  // Callback to notify status context about save status changes
-  // Set by AppProvider coordination layer
-  const onSaveStatusChangeRef = useRef(null);
 
-  // Use existing hook logic for settings management
+  // Use existing hook logic for settings management (only for model listing now)
   const settingsHandlers = useSettingsManagement(
     setConfig,
     setAvailableModels,
-    // saveStatus is handled by AppStatusContext, pass no-op here
-    () => {},
-    configBeforeSave,
-    saveTimeoutId
+    () => {}, // saveStatus no-op
+    null, // configBeforeSave not needed
+    null, // saveTimeoutId not needed
+    null  // lastSaveTimestamp not needed
   );
 
-  // Store handlers in ref for stable IPC listener
-  // This ensures the IPC listener callback never changes
-  const handlersRef = useRef(settingsHandlers);
+  const handlersRef = React.useRef(settingsHandlers);
   useEffect(() => {
     handlersRef.current = settingsHandlers;
   }, [settingsHandlers]);
 
-  // IPC event handler with stable identity
-  // This callback never changes, ensuring listener lifecycle is correct
   const onBackendEvent = useCallback((data) => {
     switch (data.type) {
-      case 'settings-loaded':
-        handlersRef.current.handleSettingsLoaded(data);
-        break;
       case 'models-listed':
         handlersRef.current.handleModelsListed(data);
-        break;
-      case 'settings-updated':
-        // Config update is handled by AppStatusContext via its own IPC listener
-        // No action needed here - config is already optimistically updated
-        break;
-      case 'error':
-        if (data.payload?.message?.includes('Failed to update settings')) {
-          handlersRef.current.handleSettingsError(data);
-        }
         break;
       default:
         break;
     }
-  }, []); // Empty deps - callback never changes
+  }, []);
 
-  // Listen for settings-related backend events
   useEffect(() => {
-    // Defer settings load to next tick to allow initial render to complete
-    // This prevents blocking the UI during startup
+    // Request models list on mount (no config sync needed - frontend manages config)
     const timeoutId = setTimeout(() => {
-      ApiClient.loadSettings();
+      console.log('[Config] Requesting available models...');
+      IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
     }, 0);
 
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, onBackendEvent);
@@ -87,49 +67,39 @@ export function AppConfigProvider({ children }) {
   }, [onBackendEvent]);
 
   const updateConfig = useCallback((newConfig) => {
-    // Store the original config in case we need to revert
-    configBeforeSave.current = config;
-
     // Filter config to only include fields that frontend manages
     const filteredConfig = filterFrontendConfig(newConfig);
-
-    // Optimistically update the state
+    
+    // Check if anything actually changed
+    let hasChanges = false;
+    for (const key in filteredConfig) {
+      if (filteredConfig[key] !== config?.[key]) {
+        hasChanges = true;
+        break;
+      }
+    }
+    
+    // If nothing changed, skip
+    if (!hasChanges) {
+      console.log('[Settings Update] No changes detected, skipping save');
+      return;
+    }
+    
+    console.log('[Settings Update] Updating config and saving to localStorage...');
+    // Update state immediately
     setConfig(filteredConfig);
     
-    // Notify status context that save is starting
-    if (onSaveStatusChangeRef.current) {
-      onSaveStatusChangeRef.current('saving');
-    }
-
-    // Fallback timeout in case backend never responds
-    saveTimeoutId.current = setTimeout(() => {
-      // Revert on timeout
-      if (configBeforeSave.current) {
-        setConfig(configBeforeSave.current);
-        configBeforeSave.current = null;
-      }
-      if (onSaveStatusChangeRef.current) {
-        onSaveStatusChangeRef.current('error');
-      }
-    }, 10000); // 10 second timeout
-
-    // Only send the filtered config to backend
-    ApiClient.updateSettings(filteredConfig);
+    // Save to localStorage immediately (frontend-only storage)
+    saveConfigToStorage(filteredConfig, Date.now());
+    console.log('[Settings Update] Config saved to localStorage');
   }, [config]);
-  
-  // Expose method to register save status callback
-  // This is called by AppProvider coordination layer
-  const registerSaveStatusCallback = useCallback((callback) => {
-    onSaveStatusChangeRef.current = callback;
-  }, []);
 
   const value = {
     config,
     availableModels,
     wakewordEnabled,
     setWakewordEnabled,
-    updateConfig,
-    registerSaveStatusCallback
+    updateConfig
   };
 
   return (

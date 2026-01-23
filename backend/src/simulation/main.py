@@ -76,12 +76,19 @@ async def lifespan(app: FastAPI):
     # CRITICAL: Override LLM client factory to use MockLLMClient
     # This intercepts all LLM calls and returns hardcoded responses
     # Override the provider in the DI container
+    # Note: The factory accepts an optional config parameter for session-specific configs
+    # but always uses MockLLMClient regardless of the config
+    def mock_llm_client_factory(session_config=None):
+        """Factory that always returns MockLLMClient, accepting optional session config."""
+        # Use session config if provided, otherwise use global config
+        cfg = session_config if session_config is not None else container._di_container.core.config()
+        return get_mock_llm_client(cfg)
+    
     container._di_container.core.llm_client.override(
-        providers.Factory(
-            lambda cfg: get_mock_llm_client(cfg),
-            cfg=container._di_container.core.config,
-        )
+        providers.Factory(mock_llm_client_factory)
     )
+    # Store reference to mock factory so container can use it directly
+    container._mock_llm_factory = mock_llm_client_factory
     logger.info("LLM client factory overridden to use MockLLMClient")
     
     # Reset session factory so it will be recreated with MockLLMClient on next session creation

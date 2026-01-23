@@ -56,6 +56,7 @@ class QueryPayload(BaseModel):
     text: str  # Original query text (for reference)
     content: Optional[str] = None  # Complete message content (system state + memories + query)
     screenshot: Optional[str] = None  # Base64-encoded screenshot data for user messages
+    config: Optional[Dict[str, Any]] = None  # Generic config dictionary from frontend (allows any config fields)
 
 class QueryMessage(BaseMessage):
     type: Literal["query"]
@@ -63,6 +64,7 @@ class QueryMessage(BaseMessage):
 
 class LoadSettingsMessage(BaseMessage):
     type: Literal["load-settings"]
+    payload: Dict[str, Any] = Field(default_factory=dict)  # Optional: can include client_version
 
 class ListModelsMessage(BaseMessage):
     type: Literal["list-models"]

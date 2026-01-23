@@ -33,8 +33,6 @@ from backend.src.api.core.base import (
 from backend.src.api.handlers.query import QueryMessageHandler
 from backend.src.api.handlers.settings import (
     ListModelsHandler,
-    LoadSettingsHandler,
-    UpdateSettingsHandler,
 )
 from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.api.handlers.tool_result import ToolResultHandler
@@ -43,8 +41,6 @@ __all__ = [
     "MessageHandler",
     "MessageHandlerRegistry",
     "QueryMessageHandler",
-    "LoadSettingsHandler",
-    "UpdateSettingsHandler",
     "ListModelsHandler",
     "WakewordHandler",
     "ToolResultHandler",

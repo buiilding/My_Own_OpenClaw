@@ -8,70 +8,14 @@ import asyncio
 import logging
 import time
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from backend.src.agent.core.core import AgentSession
 from backend.src.core.config import AppConfig
-from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.config.manager import load_api_key_for_provider
 from backend.src.core.config.subscription_manager import ConfigSubscriber
 
 logger = logging.getLogger(__name__)
-
-
-def _recursive_merge(base: dict, override: dict) -> dict:
-    """
-    Recursively merge two dictionaries.
-    
-    Values from override take precedence, but nested dicts are merged recursively.
-    
-    CONFIGURATION MERGE STRATEGY:
-    - Lists: REPLACE by default (override replaces base). This allows users to
-      disable default list-based settings (e.g., plugins, middleware) by specifying
-      a smaller list in their config. If additive behavior is desired, use a special
-      marker (e.g., "__extend__": true) in the override dict.
-    - Dicts: Merge recursively (override values take precedence)
-    - Other types: Replace (override takes precedence)
-    
-    Args:
-        base: Base dictionary
-        override: Dictionary with overrides
-        
-    Returns:
-        Merged dictionary
-    """
-    result = base.copy()
-    for key, value in override.items():
-        # Skip special marker keys
-        if key.startswith("__") and key.endswith("__"):
-            continue
-            
-        if key in result:
-            # Handle nested dictionaries
-            if isinstance(result[key], dict) and isinstance(value, dict):
-                result[key] = _recursive_merge(result[key], value)
-            # Handle lists: REPLACE by default to allow disabling default items
-            # If override dict has "__extend__": true for this key, use additive merge
-            elif isinstance(result[key], list) and isinstance(value, list):
-                extend_key = f"__extend_{key}__"
-                if override.get(extend_key, False):
-                    # Additive merge: combine and deduplicate while preserving order
-                    merged_list = list(result[key])
-                    for item in value:
-                        if item not in merged_list:
-                            merged_list.append(item)
-                    result[key] = merged_list
-                else:
-                    # Replace merge: override list replaces base list
-                    # This allows users to disable default plugins/settings
-                    result[key] = value
-            else:
-                # Replace non-dict, non-list values
-                result[key] = value
-        else:
-            # New key, add it
-            result[key] = value
-    return result
 
 
 def _get_default_tts_model_path() -> str:
@@ -92,44 +36,6 @@ def _get_default_tts_model_path() -> str:
     )
 
 
-def _merge_user_config(global_config: AppConfig, user_config: Optional[dict]) -> AppConfig:
-    """
-    Merge user-specific config with global config.
-    
-    Handles special cases like TTS settings and API key loading.
-    
-    Args:
-        global_config: Global application configuration
-        user_config: Optional user-specific configuration overrides
-        
-    Returns:
-        Merged AppConfig instance with API keys loaded
-    """
-    if not user_config:
-        return global_config
-    
-    # Recursive merge: user overrides global, nested dicts merged
-    complete_config_dict = _recursive_merge(
-        global_config.model_dump(), user_config
-    )
-    
-    # CONFIGURATION: Respect tts_enabled from config (removed hardcoded override)
-    # Users can now disable TTS for headless/silent mode operation
-    # speech_mode_enabled controls whether TTS is actually used during interactions
-    
-    # Set default TTS model path if TTS is enabled and path is not set
-    tts_will_be_enabled = complete_config_dict.get("tts_enabled", global_config.tts_enabled)
-    if tts_will_be_enabled:
-        if not complete_config_dict.get("tts_model_path") and not global_config.tts_model_path:
-            complete_config_dict["tts_model_path"] = _get_default_tts_model_path()
-    
-    user_merged_config = AppConfig(**complete_config_dict)
-    # Load API key for the selected provider
-    user_merged_config = load_api_key_for_provider(user_merged_config)
-    
-    return user_merged_config
-
-
 class SessionManager(ConfigSubscriber):
     """
     Manages the lifecycle of user sessions.
@@ -141,7 +47,6 @@ class SessionManager(ConfigSubscriber):
         self,
         config: AppConfig,
         create_agent_session_func,
-        user_config_manager: UserConfigManager,
         session_ttl_hours: float = 24.0,
         reaper_interval_seconds: float = 3600.0,
     ):
@@ -151,13 +56,11 @@ class SessionManager(ConfigSubscriber):
         Args:
             config: Global application configuration
             create_agent_session_func: Function to create agent sessions (takes user_id, config)
-            user_config_manager: User configuration manager for per-user config
             session_ttl_hours: Hours of inactivity before session expires (default: 24)
             reaper_interval_seconds: Seconds between reaper runs (default: 3600 = 1 hour)
         """
         self.config = config
         self.create_agent_session = create_agent_session_func
-        self.user_config_manager = user_config_manager
         self.active_sessions: Dict[str, AgentSession] = {}
         # Track last activity time for each session (for TTL expiry)
         self._session_last_activity: Dict[str, float] = {}
@@ -188,17 +91,65 @@ class SessionManager(ConfigSubscriber):
                 self._user_locks[user_id] = asyncio.Lock()
             return self._user_locks[user_id]
 
-    async def get_or_create_session(self, user_id: str) -> AgentSession:
+    async def _apply_query_config_to_session(self, user_id: str, query_config: Dict[str, Any]) -> None:
+        """
+        Apply query config to an existing session.
+        
+        Args:
+            user_id: User identifier
+            query_config: Config dictionary from query payload
+        """
+        if user_id not in self.active_sessions:
+            return
+        
+        session = self.active_sessions[user_id]
+        config_dict = session.cfg.model_dump()
+        
+        logger.debug(
+            f"[Session Config] Updating existing session (user_id={user_id}): "
+            f"current model_provider={config_dict.get('model_provider')}, "
+            f"current selected_model_id={config_dict.get('selected_model_id')}"
+        )
+        
+        # Override session config with any keys present in query_config
+        for key, value in query_config.items():
+            if value is not None:
+                old_value = config_dict.get(key)
+                config_dict[key] = value
+                if old_value != value:
+                    logger.info(
+                        f"[Session Config] Updated {key}: {old_value} → {value} (user_id={user_id})"
+                    )
+        
+        # Load API key for provider if model_provider changed
+        updated_config = AppConfig(**config_dict)
+        updated_config = load_api_key_for_provider(updated_config)
+        
+        logger.info(
+            f"[Session Config] Session updated (user_id={user_id}): "
+            f"model_provider={updated_config.model_provider}, "
+            f"selected_model_id={updated_config.selected_model_id}"
+        )
+        
+        # Update session config
+        await session.update_config(updated_config)
+
+    async def get_or_create_session(
+        self, 
+        user_id: str, 
+        query_config: Optional[Dict[str, Any]] = None
+    ) -> AgentSession:
         """
         Retrieves an existing session or creates a new one if it doesn't exist.
         
         Thread-safe: Uses per-user locks to prevent race conditions when multiple
         async tasks try to create a session for the same user concurrently.
         
-        When creating a new session, merges user-specific config with global config.
+        When creating a new session, applies query config to global config.
         
         Args:
             user_id: User identifier
+            query_config: Optional config dictionary from query payload (overrides global config)
             
         Returns:
             AgentSession instance for the user
@@ -206,8 +157,10 @@ class SessionManager(ConfigSubscriber):
         Raises:
             RuntimeError: If session creation fails
         """
-        # Fast path: session already exists
+        # If session exists, update config from query if provided
         if user_id in self.active_sessions:
+            if query_config:
+                await self._apply_query_config_to_session(user_id, query_config)
             return self.active_sessions[user_id]
         
         # Slow path: need to create session (with lock to prevent races)
@@ -215,23 +168,59 @@ class SessionManager(ConfigSubscriber):
         async with user_lock:
             # Double-check: another task might have created it while we waited
             if user_id in self.active_sessions:
+                if query_config:
+                    await self._apply_query_config_to_session(user_id, query_config)
                 return self.active_sessions[user_id]
             
             logger.info(f"Creating new session for user {user_id}")
             
             try:
-                # Get global config
-                global_config = self.config
+                # Start with global config
+                config_dict = self.config.model_dump()
                 
-                # Merge with user-specific config
-                user_config = await self.user_config_manager.load_user_config(user_id)
+                logger.debug(
+                    f"[Session Config] Starting with global config (user_id={user_id}): "
+                    f"model_mode={config_dict.get('model_mode')}, "
+                    f"model_provider={config_dict.get('model_provider')}, "
+                    f"selected_model_id={config_dict.get('selected_model_id')}"
+                )
                 
-                # Merge configs (handles special cases like TTS)
-                merged_config = _merge_user_config(global_config, user_config)
+                # Override global config with any keys present in query_config
+                if query_config:
+                    logger.debug(
+                        f"[Session Config] Applying query config overrides (user_id={user_id}): "
+                        f"{list(query_config.keys())}"
+                    )
+                    for key, value in query_config.items():
+                        if value is not None:
+                            old_value = config_dict.get(key)
+                            config_dict[key] = value
+                            if old_value != value:
+                                logger.debug(
+                                    f"[Session Config] Override {key}: {old_value} → {value} (user_id={user_id})"
+                                )
                 
-                # Create session with merged config
+                # Set default TTS model path if TTS is enabled and path is not set
+                tts_will_be_enabled = config_dict.get("tts_enabled", self.config.tts_enabled)
+                if tts_will_be_enabled:
+                    if not config_dict.get("tts_model_path") and not self.config.tts_model_path:
+                        config_dict["tts_model_path"] = _get_default_tts_model_path()
+                
+                # Load API key for provider (if model_provider is in config)
+                session_config = AppConfig(**config_dict)
+                session_config = load_api_key_for_provider(session_config)
+                
+                logger.info(
+                    f"[Session Config] Final session config (user_id={user_id}): "
+                    f"model_mode={session_config.model_mode}, "
+                    f"model_provider={session_config.model_provider}, "
+                    f"selected_model_id={session_config.selected_model_id}, "
+                    f"speech_mode_enabled={session_config.speech_mode_enabled}"
+                )
+                
+                # Create session with config
                 session = self.create_agent_session(
-                    user_id=user_id, config=merged_config
+                    user_id=user_id, config=session_config
                 )
                 self.active_sessions[user_id] = session
                 # MEMORY LEAK FIX: Track last activity time for TTL expiry
@@ -361,27 +350,3 @@ class SessionManager(ConfigSubscriber):
         logger.info("SessionManager received config change notification")
         await self.update_all_sessions_config(new_config)
     
-    async def update_user_session_config(self, user_id: str, config: AppConfig):
-        """
-        Updates the configuration for a specific user's session.
-        
-        Args:
-            user_id: User identifier
-            config: Configuration to apply to this user's session
-        """
-        # Only update the specific user's session if it exists
-        if user_id in self.active_sessions:
-            logger.info(f"Updating config for user {user_id}'s session")
-            try:
-                await self.active_sessions[user_id].update_config(config)
-            except Exception as e:
-                logger.error(
-                    f"Error updating config for user {user_id}'s session: {e}",
-                    exc_info=True,
-                )
-                raise
-        else:
-            logger.debug(
-                f"No active session for user {user_id}, "
-                "config will be applied on next session creation"
-            )

@@ -317,9 +317,22 @@ class AgentSession:
         causing settings updates (API keys, models) to not take effect until restart.
         """
         async with self._lock:
+            old_provider = self.cfg.model_provider
+            old_model = self.cfg.selected_model_id
             self.cfg = new_cfg
+            
+            logger.info(
+                f"[AgentSession] Updating config: "
+                f"model_provider {old_provider} → {new_cfg.model_provider}, "
+                f"selected_model_id {old_model} → {new_cfg.selected_model_id}"
+            )
+            
             # Re-initialize LLM client with new config
             self.llm_client = get_llm_client(self.cfg)
+            logger.info(
+                f"[AgentSession] LLM client recreated with provider={new_cfg.model_provider}, "
+                f"model={new_cfg.selected_model_id}"
+            )
             self.executor.llm_client = self.llm_client
             # STALE CONFIGURATION FIX: Update LLMInteractionHandler's reference
             # This ensures settings updates (API keys, models) take effect immediately

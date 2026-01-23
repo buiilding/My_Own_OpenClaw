@@ -78,6 +78,11 @@ class LiteLLMClient(LLMClient):
             ValueError: If no provider is configured or available
         """
         provider_name = self.config.model_provider
+        logger.info(
+            f"[LLM Client] Getting provider: provider_name='{provider_name}', "
+            f"selected_model_id='{self.config.selected_model_id}', "
+            f"api_key={'set' if self.config.api_key else 'not set'}"
+        )
         return get_provider(self.config, provider_name)
 
     async def get_completion(self, model: str, messages: List[LLMMessage]) -> str:

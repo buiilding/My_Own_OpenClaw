@@ -3,44 +3,14 @@ import PropTypes from 'prop-types';
 import '../../../styles/SettingsPanel.css';
 
 /**
- * A feedback component to show the status of the save operation.
- */
-const SaveStatusFeedback = ({ status }) => {
-  if (status === 'idle') return null;
-
-  const messages = {
-    saving: 'Saving...',
-    success: 'Settings saved successfully!',
-    error: 'Error: Could not save settings.',
-  };
-
-  const colors = {
-    saving: '#3b82f6', // blue-500
-    success: '#22c55e', // green-500
-    error: '#ef4444', // red-500
-  };
-
-  return (
-    <div className="save-status" style={{ color: colors[status] }} role="status" aria-live="polite">
-      {messages[status]}
-    </div>
-  );
-};
-
-SaveStatusFeedback.propTypes = {
-  status: PropTypes.oneOf(['idle', 'saving', 'success', 'error']).isRequired,
-};
-
-/**
  * A panel for displaying and editing application settings.
  *
  * @param {object} props - The component's props.
  * @param {object} props.config - The current application configuration.
  * @param {object} props.availableModels - Object with 'local' and 'online' arrays of model objects.
  * @param {Function} props.onConfigChange - Callback function to save updated settings.
- * @param {string} props.saveStatus - The current status of the save operation.
  */
-function SettingsPanel({ config, availableModels = { local: [], online: [] }, onConfigChange, saveStatus = 'idle' }) {
+function SettingsPanel({ config, availableModels = { local: [], online: [] }, onConfigChange }) {
   const [modelResetWarning, setModelResetWarning] = useState('');
 
   // Fully controlled component: derive all values from config prop
@@ -98,7 +68,6 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
     });
   };
 
-  const isSaving = saveStatus === 'saving';
 
   // Validate selected model exists and auto-fix if needed
   useEffect(() => {
@@ -175,7 +144,6 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
                 value="online"
                 checked={modelMode === 'online'}
                 onChange={(e) => handleModelModeChange(e.target.value)}
-                disabled={isSaving}
               />
               <span>Online (Cloud)</span>
             </label>
@@ -186,7 +154,6 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
                 value="local"
                 checked={modelMode === 'local'}
                 onChange={(e) => handleModelModeChange(e.target.value)}
-                disabled={isSaving}
               />
               <span>Local</span>
             </label>
@@ -208,7 +175,6 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
               id="model-select"
               value={selectedModelId}
               onChange={(e) => handleModelChange(e.target.value)}
-              disabled={isSaving}
             >
               <option value="">-- Select a model --</option>
               {currentModels.map((model, index) => {
@@ -242,7 +208,6 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
                 id="voice-mode-toggle"
                 checked={voiceModeEnabled}
                 onChange={(e) => handleVoiceModeToggle(e.target.checked)}
-                disabled={isSaving}
                 className="toggle-input"
               />
               <span className="toggle-slider"></span>
@@ -259,7 +224,6 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
                 id="speech-mode-toggle"
                 checked={speechModeEnabled}
                 onChange={(e) => handleSpeechModeToggle(e.target.checked)}
-                disabled={isSaving}
                 className="toggle-input"
               />
               <span className="toggle-slider"></span>
@@ -297,7 +261,6 @@ SettingsPanel.propTypes = {
     ),
   }),
   onConfigChange: PropTypes.func.isRequired,
-  saveStatus: PropTypes.oneOf(['idle', 'saving', 'success', 'error']),
 };
 
 export default SettingsPanel;

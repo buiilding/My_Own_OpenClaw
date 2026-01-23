@@ -1,75 +1,32 @@
 import { useCallback, useMemo } from 'react';
-import { filterFrontendConfig } from '../../../utils/configFilter';
-import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
 /**
- * Custom hook for managing settings loading and updating.
- * Handles config loading, model fetching, and settings updates with error handling.
+ * Custom hook for managing settings-related backend events.
+ * Currently only handles model listing (config is frontend-only now).
  *
- * Note: saveStatus is now managed by AppStatusContext, so setSaveStatus is optional.
- * If provided, it will be called for backward compatibility, but the primary
- * save status management happens via IPC events in AppStatusContext.
- *
- * @param {Function} setConfig - Function to update config state
+ * @param {Function} setConfig - Function to update config state (unused, kept for compatibility)
  * @param {Function} setAvailableModels - Function to update available models state
- * @param {Function} setSaveStatus - Optional function to update save status (for backward compat)
- * @param {Object} configBeforeSave - Ref to store config before save attempt
- * @param {Object} saveTimeoutId - Ref to store timeout ID
+ * @param {Function} setSaveStatus - Optional function (unused, kept for compatibility)
+ * @param {any} configBeforeSave - Unused (kept for compatibility)
+ * @param {any} saveTimeoutId - Unused (kept for compatibility)
+ * @param {any} lastSaveTimestamp - Unused (kept for compatibility)
  * @returns {Object} - Object containing settings handlers
  */
 export function useSettingsManagement(
   setConfig: (config: any) => void,
   setAvailableModels: (models: any) => void,
-  setSaveStatus: (status: string) => void = () => {}, // Optional, defaults to no-op
-  configBeforeSave: React.MutableRefObject<any>,
-  saveTimeoutId: React.MutableRefObject<NodeJS.Timeout | null>
+  setSaveStatus: (status: string) => void = () => {},
+  configBeforeSave: any = null,
+  saveTimeoutId: any = null,
+  lastSaveTimestamp: any = null
 ) {
-  const handleSettingsLoaded = useCallback((data: any) => {
-    // Filter config to only include fields that frontend manages
-    const filteredConfig = filterFrontendConfig(data.payload);
-    setConfig(filteredConfig);
-    // Request available models when settings are loaded
-    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
-  }, [setConfig]);
-
   const handleModelsListed = useCallback((data: any) => {
     setAvailableModels(data.payload);
   }, [setAvailableModels]);
 
-  const handleSettingsUpdated = useCallback(() => {
-    if (saveTimeoutId.current) {
-      clearTimeout(saveTimeoutId.current);
-    }
-    // Save status is now managed by AppStatusContext via IPC events
-    // This callback is kept for backward compatibility but may not be called
-    setSaveStatus('success');
-    setTimeout(() => setSaveStatus('idle'), 3000);
-  }, [setSaveStatus, saveTimeoutId]);
-
-  const handleSettingsError = useCallback((data: any) => {
-    if (data.payload?.message?.includes('Failed to update settings')) {
-      if (saveTimeoutId.current) {
-        clearTimeout(saveTimeoutId.current);
-      }
-      setSaveStatus('error');
-      // Revert to the old config on failure
-      if (configBeforeSave.current) {
-        setConfig(configBeforeSave.current);
-        configBeforeSave.current = null;
-      }
-      setTimeout(() => setSaveStatus('idle'), 3000);
-    }
-  }, [setSaveStatus, configBeforeSave, saveTimeoutId, setConfig]);
-
   return useMemo(() => ({
-    handleSettingsLoaded,
     handleModelsListed,
-    handleSettingsUpdated,
-    handleSettingsError,
   }), [
-    handleSettingsLoaded,
-    handleModelsListed,
-    handleSettingsUpdated,
-    handleSettingsError
+    handleModelsListed
   ]);
 }

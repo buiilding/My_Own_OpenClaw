@@ -18,7 +18,6 @@ function AppContent() {
   // Use split contexts for better performance
   // Components only re-render when their specific context changes
   const { config, availableModels, updateConfig } = useAppConfigContext();
-  const { saveStatus } = useAppStatusContext();
 
   return (
     <MainLayout
@@ -29,7 +28,6 @@ function AppContent() {
             config={config}
             availableModels={availableModels}
             onConfigChange={updateConfig}
-            saveStatus={saveStatus}
           />
         </Suspense>
       }

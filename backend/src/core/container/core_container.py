@@ -10,7 +10,6 @@ from dependency_injector import containers, providers
 from backend.src.core.bus import EventBus
 from backend.src.core.config import ConfigManager
 from backend.src.core.config.service import ConfigurationService
-from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.container.factories import (
     _create_tts_service,
     _create_vision_service,
@@ -76,8 +75,6 @@ class CoreContainer(containers.DeclarativeContainer):
         plugin_config_manager=plugin_config_manager,
     )
 
-    # User Config Manager (manages per-user configuration)
-    user_config_manager = providers.Singleton(UserConfigManager)
 
     # Model Service (discovers and aggregates LLM models)
     model_service = providers.Singleton(

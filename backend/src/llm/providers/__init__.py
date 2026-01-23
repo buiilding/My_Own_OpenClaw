@@ -220,13 +220,26 @@ def get_provider(cfg: AppConfig, provider_name: str) -> LLMProvider:
     # Normalize provider name
     name = provider_name.lower().strip() if provider_name else ""
     
+    logger.info(
+        f"[Provider Selection] Requested provider='{provider_name}' (normalized='{name}'), "
+        f"config.model_provider='{cfg.model_provider}', "
+        f"config.api_key={'set' if cfg.api_key else 'not set'}, "
+        f"available_providers={list(factory.keys())}"
+    )
+    
     # If provider name specified, return it or raise
     if name:
         if name in factory:
+            logger.info(f"[Provider Selection] Using provider '{name}'")
             return factory[name]
         
         # Provider not available
         available_names = list(factory.keys())
+        logger.error(
+            f"[Provider Selection] Provider '{provider_name}' not available. "
+            f"Requested='{name}', Available={available_names}, "
+            f"Config provider='{cfg.model_provider}', API key={'set' if cfg.api_key else 'not set'}"
+        )
         raise ValueError(
             f"LLM Provider '{provider_name}' is not configured or invalid. "
             f"Available providers: {available_names if available_names else 'none'}. "

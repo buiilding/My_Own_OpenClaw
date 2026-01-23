@@ -97,8 +97,36 @@ class QueryMessageHandler(MessageHandler):
                 await self._send_error(websocket, msg_id, f"Invalid query: {e.message}")
                 return
 
-            # Get or create agent session
-            agent_instance = await self.session_manager.get_or_create_session(user_id)
+            # Extract config dictionary from query payload (can contain any config fields)
+            query_config = validated.payload.config
+            
+            # Log received config for debugging
+            if query_config:
+                logger.info(
+                    f"[Query Config] Received config from frontend (user_id={user_id}): "
+                    f"model_mode={query_config.get('model_mode')}, "
+                    f"model_provider={query_config.get('model_provider')}, "
+                    f"selected_model_id={query_config.get('selected_model_id')}, "
+                    f"speech_mode_enabled={query_config.get('speech_mode_enabled')}, "
+                    f"voice_mode_enabled={query_config.get('voice_mode_enabled')}, "
+                    f"all_keys={list(query_config.keys())}"
+                )
+            else:
+                logger.info(f"[Query Config] No config received from frontend (user_id={user_id}), using global config")
+
+            # Get or create agent session with config from query
+            agent_instance = await self.session_manager.get_or_create_session(
+                user_id, query_config=query_config
+            )
+            
+            # Log what config was actually applied to the session
+            logger.info(
+                f"[Query Config] Session config applied (user_id={user_id}): "
+                f"model_mode={agent_instance.cfg.model_mode}, "
+                f"model_provider={agent_instance.cfg.model_provider}, "
+                f"selected_model_id={agent_instance.cfg.selected_model_id}, "
+                f"speech_mode_enabled={agent_instance.cfg.speech_mode_enabled}"
+            )
 
             # Initialize TTS if enabled in config
             tts_service = await self.tts_manager.initialize_if_enabled(
