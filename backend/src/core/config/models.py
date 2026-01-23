@@ -3,7 +3,7 @@ Configuration Models.
 
 This module contains Pydantic models for the application configuration.
 """
-from typing import List, Literal, Optional, Tuple
+from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 class OpenAIConfig(BaseModel):
@@ -106,13 +106,13 @@ class OCRConfig(BaseModel):
     """Configuration for OCR plugin."""
     
     # Batch size thresholds based on GPU memory (GB)
-    # Format: (min_gpu_memory_gb, rec_batch_num, cls_batch_num)
-    batch_size_thresholds: List[Tuple[float, int, int]] = Field(
+    # Format: [min_gpu_memory_gb, rec_batch_num, cls_batch_num]
+    batch_size_thresholds: List[List[float | int]] = Field(
         default_factory=lambda: [
-            (15.5, 24, 10),  # >= 15.5GB: rec=24, cls=10
-            (12.0, 10, 6),   # >= 12GB: rec=10, cls=6
-            (8.0, 8, 6),     # >= 8GB: rec=8, cls=6
-            (0.0, 6, 4),     # < 8GB or CPU: rec=6, cls=4
+            [15.5, 24, 10],  # >= 15.5GB: rec=24, cls=10
+            [12.0, 10, 6],   # >= 12GB: rec=10, cls=6
+            [8.0, 8, 6],     # >= 8GB: rec=8, cls=6
+            [0.0, 6, 4],     # < 8GB or CPU: rec=6, cls=4
         ],
         description="GPU memory thresholds and corresponding batch sizes"
     )
