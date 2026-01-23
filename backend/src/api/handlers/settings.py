@@ -74,16 +74,26 @@ class LoadSettingsHandler(MessageHandler):
             global_config_dict = global_config.model_dump(exclude={"api_key"})
             
             # Merge with user-specific config (user config overrides global)
+            # This will use cached merged config if available and valid
             merged_config_dict = await self.user_config_manager.merge_with_global_config(
                 user_id, global_config_dict
             )
+            
+            # Only send frontend-managed fields back to frontend (not full merged config)
+            # Frontend doesn't need to see backend-only fields
+            from backend.src.core.config.user_config_manager import FRONTEND_MANAGED_FIELDS
+            frontend_config = {
+                key: value
+                for key, value in merged_config_dict.items()
+                if key in FRONTEND_MANAGED_FIELDS
+            }
             
             # Send success response using canonical utility
             await send_success_response(
                 websocket,
                 validated.id,
                 "settings-loaded",
-                merged_config_dict
+                frontend_config
             )
         except ValidationError as e:
             # Validation error - send using canonical utility
@@ -165,8 +175,17 @@ class UpdateSettingsHandler(MessageHandler):
             # Build complete config with policies applied (delegates to service)
             validated_config = self.config_service.build_user_config(merged_user_config)
             
-            # Note: Cache will be updated automatically on next load via merge_with_global_config
-            # We don't save cache here to avoid lock contention with concurrent load operations
+            # Save merged config cache for faster future loads
+            global_config = self.config_service.get_config()
+            global_config_dict = global_config.model_dump(exclude={"api_key"})
+            merged_config_dict = validated_config.model_dump(exclude={"api_key"})
+            try:
+                await self.user_config_manager.save_merged_config_cache(
+                    user_id, merged_config_dict, global_config_dict
+                )
+            except Exception as e:
+                # Non-critical: log warning but continue (cache is for performance only)
+                logger.warning(f"Failed to save merged config cache for {user_id}: {e}")
             
             # Update only this user's session, not all sessions
             await self.session_manager.update_user_session_config(user_id, validated_config)

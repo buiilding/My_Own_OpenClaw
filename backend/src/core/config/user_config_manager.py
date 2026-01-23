@@ -11,7 +11,7 @@ Only the 5 frontend-managed fields are stored per user:
 
 All other config fields remain global/shared.
 
-Also caches merged config (global + user) to avoid re-merging on every connection.
+Also manages cached merged config for performance (avoids merging on every load).
 """
 import asyncio
 import hashlib
@@ -38,6 +38,7 @@ FRONTEND_MANAGED_FIELDS = {
 
 USER_CONFIG_FILE_NAME = "config.yaml"
 MERGED_CONFIG_FILE_NAME = "merged_config.yaml"
+MERGED_CONFIG_META_FILE_NAME = "merged_config.meta.json"
 
 
 class UserConfigManager:
@@ -71,19 +72,19 @@ class UserConfigManager:
         user_dir.mkdir(parents=True, exist_ok=True)
         return user_dir / MERGED_CONFIG_FILE_NAME
     
+    def _get_merged_config_meta_path(self, user_id: str) -> Path:
+        """Get the merged config metadata file path (stores global config hash)."""
+        users_dir = self._get_users_dir()
+        user_dir = users_dir / user_id
+        user_dir.mkdir(parents=True, exist_ok=True)
+        return user_dir / MERGED_CONFIG_META_FILE_NAME
+    
     def _compute_global_config_hash(self, global_config: Dict[str, Any]) -> str:
-        """
-        Compute a hash of the global config to detect when it changes.
-        
-        Args:
-            global_config: Global configuration dictionary
-            
-        Returns:
-            SHA256 hash of the global config (as hex string)
-        """
-        # Sort keys for consistent hashing
-        config_json = json.dumps(global_config, sort_keys=True, default=str)
-        return hashlib.sha256(config_json.encode('utf-8')).hexdigest()
+        """Compute hash of global config to detect changes."""
+        # Exclude api_key and other runtime-only fields
+        config_to_hash = {k: v for k, v in global_config.items() if k != "api_key"}
+        config_json = json.dumps(config_to_hash, sort_keys=True)
+        return hashlib.sha256(config_json.encode()).hexdigest()
 
     async def load_user_config(self, user_id: str) -> Dict[str, Any]:
         """
@@ -161,6 +162,7 @@ class UserConfigManager:
         Only saves the frontend-managed fields. Other fields are ignored.
         
         Thread-safe: Uses file locking to prevent race conditions during concurrent writes.
+        Uses async executor to avoid blocking the event loop.
 
         Args:
             user_id: User identifier
@@ -180,122 +182,132 @@ class UserConfigManager:
             logger.debug(f"No frontend-managed fields to save for user {user_id}")
             return
 
-        # Use file lock to prevent concurrent writes (race conditions)
-        lock = FileLock(lock_file, timeout=10.0)  # 10 second timeout
-        try:
-            with lock:
-                # Load existing user config to merge (inside lock to prevent read-modify-write race)
-                # Use sync version since we're in a file lock context (blocking I/O is acceptable here)
-                existing_config = self._load_user_config_sync(user_id)
-                merged_config = {**existing_config, **filtered_updates}
-
-                config_path.parent.mkdir(parents=True, exist_ok=True)
-                with open(config_path, "w", encoding="utf-8") as f:
-                    yaml.dump(merged_config, f, default_flow_style=False, sort_keys=False)
-                logger.info(f"Saved user config for {user_id}: {filtered_updates}")
-        except Timeout:
-            logger.error(f"Failed to acquire lock for user config file {config_path}: timeout after 10s")
-            raise OSError("User config file is locked by another process") from None
-        except (yaml.YAMLError, OSError) as e:
-            logger.error(f"Failed to save user config for {user_id}: {e}", exc_info=True)
-            raise
-
-    async def load_merged_config(self, user_id: str, global_config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """
-        Load cached merged config if it exists and is still valid.
-        
-        The cached config is valid if the global config hash matches.
-        
-        Args:
-            user_id: User identifier
-            global_config: Current global configuration dictionary
-            
-        Returns:
-            Cached merged config dict if valid, None if cache is invalid or missing
-        """
-        merged_config_path = self._get_merged_config_path(user_id)
-        
-        if not merged_config_path.exists():
-            return None
-        
-        def _load_sync() -> Optional[Dict[str, Any]]:
-            """Synchronous file I/O (runs in executor)."""
+        def _save_sync():
+            """Synchronous file I/O with locking (runs in executor)."""
+            # Use file lock to prevent concurrent writes (race conditions)
+            lock = FileLock(lock_file, timeout=10.0)  # 10 second timeout
             try:
-                with open(merged_config_path, "r", encoding="utf-8") as f:
-                    cached_data = yaml.safe_load(f) or {}
-                
-                # Check if cache has required fields
-                if "merged_config" not in cached_data or "global_config_hash" not in cached_data:
-                    logger.debug(f"Invalid merged config cache for user {user_id}, missing required fields")
-                    return None
-                
-                # Verify global config hash matches
-                current_hash = self._compute_global_config_hash(global_config)
-                cached_hash = cached_data.get("global_config_hash")
-                
-                if cached_hash != current_hash:
-                    logger.debug(
-                        f"Merged config cache for user {user_id} is stale "
-                        f"(global config changed: {cached_hash[:8]} -> {current_hash[:8]})"
-                    )
-                    return None
-                
-                logger.debug("Loaded cached merged config for user %s", user_id)
-                return cached_data.get("merged_config")
-            except (yaml.YAMLError, OSError, KeyError) as e:
-                logger.debug(f"Failed to load merged config cache for user {user_id}: {e}")
-                return None
+                with lock:
+                    # Load existing user config to merge (inside lock to prevent read-modify-write race)
+                    existing_config = self._load_user_config_sync(user_id)
+                    merged_config = {**existing_config, **filtered_updates}
+
+                    config_path.parent.mkdir(parents=True, exist_ok=True)
+                    with open(config_path, "w", encoding="utf-8") as f:
+                        yaml.dump(merged_config, f, default_flow_style=False, sort_keys=False)
+                    logger.info(f"Saved user config for {user_id}: {filtered_updates}")
+            except Timeout:
+                logger.error(f"Failed to acquire lock for user config file {config_path}: timeout after 10s")
+                raise OSError("User config file is locked by another process") from None
+            except (yaml.YAMLError, OSError) as e:
+                logger.error(f"Failed to save user config for {user_id}: {e}", exc_info=True)
+                raise
         
-        # PERFORMANCE FIX: Offload blocking I/O to thread pool
+        # Offload blocking I/O (including file locking) to thread pool
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, _load_sync)
-    
-    async def save_merged_config(
+        await loop.run_in_executor(None, _save_sync)
+
+    async def save_merged_config_cache(
         self, user_id: str, merged_config: Dict[str, Any], global_config: Dict[str, Any]
     ) -> None:
         """
-        Save merged config to cache file with global config hash for validation.
+        Save merged config cache for faster loading.
+        
+        Also saves metadata with global config hash to detect when cache is stale.
         
         Args:
             user_id: User identifier
             merged_config: Complete merged configuration dictionary
             global_config: Global configuration dictionary (for hash computation)
         """
-        merged_config_path = self._get_merged_config_path(user_id)
-        lock_file = merged_config_path.with_suffix(merged_config_path.suffix + ".lock")
+        merged_path = self._get_merged_config_path(user_id)
+        meta_path = self._get_merged_config_meta_path(user_id)
+        lock_file = merged_path.with_suffix(merged_path.suffix + ".lock")
         
-        global_config_hash = self._compute_global_config_hash(global_config)
-        
-        cache_data = {
-            "global_config_hash": global_config_hash,
-            "merged_config": merged_config,
-        }
+        def _save_sync():
+            """Synchronous file I/O (runs in executor)."""
+            try:
+                # Compute global config hash
+                global_hash = self._compute_global_config_hash(global_config)
+                
+                # Save metadata
+                metadata = {"global_config_hash": global_hash}
+                with open(meta_path, "w", encoding="utf-8") as f:
+                    json.dump(metadata, f, indent=2)
+                
+                # Save merged config (exclude api_key)
+                config_to_save = {k: v for k, v in merged_config.items() if k != "api_key"}
+                with open(merged_path, "w", encoding="utf-8") as f:
+                    yaml.dump(config_to_save, f, default_flow_style=False, sort_keys=False)
+                
+                logger.debug(f"Saved merged config cache for user {user_id}")
+            except (yaml.YAMLError, OSError, json.JSONDecodeError) as e:
+                logger.error(f"Failed to save merged config cache for {user_id}: {e}", exc_info=True)
+                raise
         
         # Use file lock to prevent concurrent writes
-        # Note: FileLock is blocking, so we run the entire operation in executor
-        def _save_with_lock() -> None:
-            """Synchronous save operation with file lock (runs in executor)."""
-            lock = FileLock(lock_file, timeout=2.0)  # Shorter timeout to avoid long waits
-            try:
-                with lock:
-                    merged_config_path.parent.mkdir(parents=True, exist_ok=True)
-                    with open(merged_config_path, "w", encoding="utf-8") as f:
-                        yaml.dump(cache_data, f, default_flow_style=False, sort_keys=False)
-                    logger.debug(f"Saved merged config cache for user {user_id}")
-            except Timeout:
-                logger.debug(f"Failed to acquire lock for merged config cache {merged_config_path}: timeout")
-                # Non-critical, continue without caching
-            except (yaml.YAMLError, OSError) as e:
-                logger.debug(f"Failed to save merged config cache for user {user_id}: {e}")
-                # Non-critical error, don't raise
-        
-        # PERFORMANCE FIX: Offload blocking I/O (including file lock) to thread pool
-        loop = asyncio.get_running_loop()
+        lock = FileLock(lock_file, timeout=10.0)
         try:
-            await loop.run_in_executor(None, _save_with_lock)
+            with lock:
+                # Run blocking I/O in executor even within lock (lock prevents concurrent access)
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(None, _save_sync)
+        except Timeout:
+            logger.error(f"Failed to acquire lock for merged config cache {merged_path}: timeout after 10s")
+            raise OSError("Merged config cache file is locked by another process") from None
         except Exception as e:
-            logger.debug(f"Failed to save merged config cache for user {user_id}: {e}")
-            # Non-critical error, don't raise
+            logger.error(f"Failed to save merged config cache for {user_id}: {e}", exc_info=True)
+            raise
+    
+    async def load_merged_config_cache(
+        self, user_id: str, global_config: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Load cached merged config if it's still valid (global config hasn't changed).
+        
+        Args:
+            user_id: User identifier
+            global_config: Current global configuration dictionary (for validation)
+            
+        Returns:
+            Cached merged config dict if valid, None if cache is stale or missing
+        """
+        merged_path = self._get_merged_config_path(user_id)
+        meta_path = self._get_merged_config_meta_path(user_id)
+        
+        if not merged_path.exists() or not meta_path.exists():
+            return None
+        
+        def _load_sync() -> Optional[Dict[str, Any]]:
+            """Synchronous file I/O (runs in executor)."""
+            try:
+                # Load metadata
+                with open(meta_path, "r", encoding="utf-8") as f:
+                    metadata = json.load(f)
+                
+                cached_hash = metadata.get("global_config_hash")
+                if not cached_hash:
+                    return None
+                
+                # Check if global config has changed
+                current_hash = self._compute_global_config_hash(global_config)
+                if cached_hash != current_hash:
+                    logger.debug(f"Merged config cache for {user_id} is stale (global config changed)")
+                    return None
+                
+                # Load cached merged config
+                with open(merged_path, "r", encoding="utf-8") as f:
+                    cached_config = yaml.safe_load(f) or {}
+                
+                logger.debug(f"Loaded valid merged config cache for user {user_id}")
+                return cached_config
+            except (yaml.YAMLError, OSError, json.JSONDecodeError) as e:
+                logger.debug(f"Failed to load merged config cache for {user_id}: {e}")
+                return None
+        
+        # Offload blocking I/O to thread pool
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, _load_sync)
     
     async def merge_with_global_config(
         self, user_id: str, global_config: Dict[str, Any]
@@ -305,7 +317,7 @@ class UserConfigManager:
 
         User config overrides global config for frontend-managed fields.
         
-        Uses cached merged config if available and valid to avoid re-merging.
+        First tries to load from cache, falls back to merging if cache is stale.
 
         Args:
             user_id: User identifier
@@ -314,23 +326,17 @@ class UserConfigManager:
         Returns:
             Merged configuration dictionary
         """
-        # Try to load cached merged config first
-        cached_merged = await self.load_merged_config(user_id, global_config)
-        if cached_merged is not None:
-            return cached_merged
+        # Try to load from cache first
+        cached_config = await self.load_merged_config_cache(user_id, global_config)
+        if cached_config is not None:
+            return cached_config
         
-        # Cache miss or invalid - merge from scratch
+        # Cache miss or stale - merge from scratch
         user_config = await self.load_user_config(user_id)
 
         # Start with global config, then override with user-specific values
         merged = {**global_config}
         merged.update(user_config)
-        
-        # Save to cache for next time (non-blocking, errors are logged but not raised)
-        try:
-            await self.save_merged_config(user_id, merged, global_config)
-        except Exception as e:
-            logger.debug(f"Failed to cache merged config for user {user_id}: {e}")
 
         return merged
 
