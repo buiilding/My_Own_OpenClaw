@@ -13,7 +13,7 @@ from typing import Any, Callable, Dict, Optional
 from pydantic import ValidationError as PydanticValidationError
 
 from backend.src.core.bus import EventBus
-from backend.src.core.config import AppConfig, ConfigManager, get_config_dir
+from backend.src.core.config import AppConfig, ConfigManager
 from backend.src.core.config.subscription_manager import (
     ConfigSubscriber,
     ConfigSubscriptionManager,

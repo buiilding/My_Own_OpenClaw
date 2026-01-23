@@ -19,12 +19,9 @@ from backend.src.core.config.models import (
 from backend.src.core.config.manager import (
     ConfigManager,
     get_config_manager,
-    get_config_dir,
     load_settings_from_file,
-    save_settings_to_file,
     load_api_key_for_provider,
-    APP_NAME,
-    CONFIG_FILE_NAME,
+    get_default_tts_model_path,
 )
 
 __all__ = [
@@ -41,10 +38,7 @@ __all__ = [
     "OCRConfig",
     "ConfigManager",
     "get_config_manager",
-    "get_config_dir",
     "load_settings_from_file",
-    "save_settings_to_file",
     "load_api_key_for_provider",
-    "APP_NAME",
-    "CONFIG_FILE_NAME",
+    "get_default_tts_model_path",
 ]

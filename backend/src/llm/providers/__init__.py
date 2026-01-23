@@ -243,7 +243,7 @@ def get_provider(cfg: AppConfig, provider_name: str) -> LLMProvider:
         raise ValueError(
             f"LLM Provider '{provider_name}' is not configured or invalid. "
             f"Available providers: {available_names if available_names else 'none'}. "
-            "Check your config.yaml and API keys."
+            "Check your app_config.py and API keys."
         )
     
     # No provider name specified - try to use first available
@@ -257,7 +257,7 @@ def get_provider(cfg: AppConfig, provider_name: str) -> LLMProvider:
     # No providers configured at all - fail fast
     raise ValueError(
         "No LLM provider configured. "
-        "Please set 'model_provider' in your config.yaml and ensure you have "
+        "Please set 'model_provider' in app_config.py and ensure you have "
         "the required API keys or local providers running. "
         "Available provider types: openai, anthropic, gemini, mistral, openrouter, ollama, lmstudio"
     )
