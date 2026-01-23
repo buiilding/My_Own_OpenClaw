@@ -13,7 +13,7 @@ import { useChatStore, type ChatMessage } from '../stores/chatStore';
  * Handles screenshot capture, window minimization, and message sending.
  */
 export function useChatMessageSender(stopPlayback?: () => void) {
-  const { addMessage, setIsSending, setThinkingStatus } = useChatStore();
+  const { addMessage, updateMessage, setIsSending, setThinkingStatus } = useChatStore();
 
   const sendMessage = useCallback(async (text: string) => {
     // Stop audio playback if provided
@@ -21,8 +21,22 @@ export function useChatMessageSender(stopPlayback?: () => void) {
       stopPlayback();
     }
     
+    // Create user message immediately (without screenshot) for instant UI display
+    const userMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      text,
+      sender: 'user',
+      screenshot: null  // Will be updated after screenshot capture
+    };
+    
+    // Display message immediately
+    addMessage(userMessage);
+    setIsSending(true);
+    setThinkingStatus(null);
+    
     // Minimize window after 2 seconds delay (if visible/focused and not already minimized)
-    // This happens BEFORE screenshot so the chat window isn't in the screenshot
+    // This happens AFTER message display so user sees their message immediately
+    // The delay ensures the chat window isn't in the screenshot
     try {
       await IpcBridge.invoke(INVOKE_CHANNELS.MINIMIZE_WINDOW_DELAYED);
     } catch (error) {
@@ -50,21 +64,12 @@ export function useChatMessageSender(stopPlayback?: () => void) {
       // Continue without screenshot if capture fails
     }
     
-    // Create user message with screenshot for UI display
-    const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text,
-      sender: 'user',
-      screenshot: screenshot  // Include screenshot for UI display
-    };
-    
-    addMessage(userMessage);
-    setIsSending(true);
-    setThinkingStatus(null);
+    // Update message with screenshot
+    updateMessage(userMessage.id, { screenshot });
     
     // Send query with screenshot to backend
     await ApiClient.sendQuery(text, screenshot);
-  }, [addMessage, setIsSending, setThinkingStatus, stopPlayback]);
+  }, [addMessage, updateMessage, setIsSending, setThinkingStatus, stopPlayback]);
 
   return { sendMessage };
 }
