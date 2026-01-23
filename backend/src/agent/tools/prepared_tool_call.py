@@ -34,15 +34,26 @@ class PreparedToolCall:
             
         Returns:
             PreparedToolCall with copied parameters
+            
+        Note: Uses shallow copy for parameters since they are typically simple
+        values (strings, numbers, booleans). If nested structures are present,
+        they should be immutable or not mutated after creation.
         """
-        # Deep copy parameters to avoid mutation
-        import copy
+        # Shallow copy parameters to avoid mutation of the original
+        # Parameters are typically simple values (str, int, bool, float)
+        # Nested structures should be immutable or not mutated
+        parameters = dict(parsed_call.parameters) if parsed_call.parameters else {}
+        
+        # Metadata may contain nested structures, but typically just has request_id
+        # Use shallow copy for performance (metadata is usually flat)
+        metadata = dict(getattr(parsed_call, "metadata", None) or {})
+        
         return cls(
             original_call=parsed_call,
             tool_name=parsed_call.tool_name,
-            parameters=copy.deepcopy(parsed_call.parameters),
+            parameters=parameters,
             raw_call=parsed_call.raw_call,
-            metadata=copy.deepcopy(getattr(parsed_call, "metadata", None) or {}),
+            metadata=metadata,
         )
     
     def to_parsed_call(self) -> ParsedToolCall:

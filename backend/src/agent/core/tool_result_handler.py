@@ -186,15 +186,11 @@ class ToolResultHandler:
             if screenshot_manager:
                 await screenshot_manager.process_screenshot(self.session, screenshot_data, request_id)
         
-        # Store the tool result in session for tool execution to pick up
-        self.session._pending_tool_results[request_id] = tool_result
+        # Store the tool result using centralized storage
+        self.session._tool_result_storage.store_pending_result(request_id, tool_result)
         
         # Resolve any waiting futures for this request_id
-        if request_id in self.session._tool_result_futures:
-            future = self.session._tool_result_futures.get(request_id)
-            if future and not future.done():
-                future.set_result(tool_result)
-                logger.info(f"Resolved tool result future for request_id {request_id[:15]}")
+        self.session._tool_result_storage.resolve_result_future(request_id, tool_result)
     
     async def _handle_bundled_results(
         self,
@@ -261,17 +257,13 @@ class ToolResultHandler:
                 f"tool={tool_name}, success={tool_success}"
             )
             
-            # Store in pending results (for orchestrator to match by request_id)
-            self.session._pending_tool_results[tool_request_id] = tool_result
+            # Store in pending results using centralized storage
+            self.session._tool_result_storage.store_pending_result(tool_request_id, tool_result)
             
             # Resolve waiting future for this tool's request_id
-            if tool_request_id in self.session._tool_result_futures:
-                future = self.session._tool_result_futures.get(tool_request_id)
-                if future and not future.done():
-                    future.set_result(tool_result)
-                    logger.info(f"Resolved bundled tool result future for request_id {tool_request_id[:15]} (tool: {tool_name})")
-                else:
-                    logger.debug(f"Future for {tool_request_id[:15]} already done or missing")
+            resolved = self.session._tool_result_storage.resolve_result_future(tool_request_id, tool_result)
+            if resolved:
+                logger.info(f"Resolved bundled tool result future for request_id {tool_request_id[:15]} (tool: {tool_name})")
             else:
                 logger.debug(f"No waiting future for bundled tool request_id {tool_request_id[:15]}")
         
@@ -296,9 +288,8 @@ class ToolResultHandler:
                 "llm_content": combined_llm_content,
             })
             
-            # Store combined result for history processing
-            # Use bundle_request_id (from frontend) as the key
-            self.session._bundled_results[bundle_request_id] = combined_result
+            # Store combined result using centralized storage
+            self.session._tool_result_storage.store_bundled_result(bundle_request_id, combined_result)
             logger.info(f"Stored combined bundled result for history (bundle_id={bundle_request_id[:15]})")
         else:
             logger.warning("Bundle result missing combined_llm_content, cannot create combined history message")

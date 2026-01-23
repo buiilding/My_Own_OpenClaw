@@ -144,15 +144,18 @@ class ToolOrchestrator:
                 session_ref._tool_result_futures = {}
             
             # Create future FIRST to avoid race condition where result arrives
-            # between checking _pending_tool_results and creating the future
-            future = asyncio.Future()
+            # between checking storage and creating the future
+            # Use centralized storage for futures
+            future = session_ref._tool_result_storage.create_result_future(request_id)
+            # Also maintain legacy dict for backward compatibility
             session_ref._tool_result_futures[request_id] = future
             
             # Check if result already exists (may have arrived before we created the future)
             # This handles the race condition where frontend executes tool very quickly
-            if request_id in session_ref._pending_tool_results:
-                tool_result = session_ref._pending_tool_results.pop(request_id)
-                # Resolve the future immediately so any code waiting on it gets the result
+            tool_result = session_ref._tool_result_storage.get_pending_result(request_id)
+            if tool_result:
+                # Remove from storage and resolve the future immediately
+                session_ref._tool_result_storage.remove_pending_result(request_id)
                 if not future.done():
                     future.set_result(tool_result)
                 logger.info(f"Found already completed result for request_id {_short_id(request_id)}")
@@ -177,6 +180,9 @@ class ToolOrchestrator:
                 finally:
                     # Clean up future
                     if request_id in session_ref._tool_result_futures:
+                        # Use centralized storage for cleanup
+                        session_ref._tool_result_storage.remove_result_future(request_id)
+                        # Also clean up legacy dict
                         del session_ref._tool_result_futures[request_id]
             
             # Create a result object compatible with InteractionLoop's expectations

@@ -142,10 +142,16 @@ class AgentSession:
         # Legacy single waiter (deprecated, kept for backward compatibility during migration)
         self.screenshot_waiter: Optional[asyncio.Future] = None
         self.hidden_screenshot_request_id: Optional[str] = None
-        self._tool_result_futures: Dict[str, asyncio.Future] = {}
-        # Tool result storage (initialized here to avoid lazy initialization)
-        self._pending_tool_results: Dict[str, Any] = {}
-        self._bundled_results: Dict[str, Any] = {}
+        
+        # CENTRALIZED TOOL RESULT STORAGE: Single source of truth for all tool results
+        from backend.src.agent.core.tool_result_storage import ToolResultStorage
+        self._tool_result_storage = ToolResultStorage(cleanup_ttl_seconds=300)
+        
+        # Legacy accessors for backward compatibility (delegate to storage)
+        # These will be removed once all code is migrated
+        self._tool_result_futures: Dict[str, asyncio.Future] = {}  # Deprecated
+        self._pending_tool_results: Dict[str, Any] = {}  # Deprecated
+        self._bundled_results: Dict[str, Any] = {}  # Deprecated
         # Initialize event as set (no OCR in progress initially)
         # When OCR starts, event is cleared; when OCR completes, event is set
         self.ocr_completion_event = asyncio.Event()
@@ -241,7 +247,8 @@ class AgentSession:
             request_id: Request ID for the tool result
             result: Tool result to store
         """
-        self._pending_tool_results[request_id] = result
+        # Use centralized storage
+        self._tool_result_storage.store_pending_result(request_id, result)
     
     def register_prepared_tool_call(self, request_id: str, prepared_call: Any) -> None:
         """
@@ -401,6 +408,11 @@ class AgentSession:
                 self._screenshots.clear()
             if hasattr(self, '_ocr_results_by_screenshot'):
                 self._ocr_results_by_screenshot.clear()
+            # Use centralized storage for cleanup
+            if hasattr(self, '_tool_result_storage'):
+                self._tool_result_storage.clear_all()
+            
+            # Legacy cleanup (for backward compatibility during migration)
             if hasattr(self, '_tool_result_futures'):
                 # Cancel any pending futures
                 for future in self._tool_result_futures.values():

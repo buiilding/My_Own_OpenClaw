@@ -111,17 +111,18 @@ class ToolExecutor:
             # Since bundles are processed sequentially, the most recent bundled result
             # should correspond to these tool results
             bundled_result = None
-            if hasattr(self.session, '_bundled_results') and self.session._bundled_results:
-                # Get the first (most recent) bundled result
-                # In practice, there should only be one active bundle at a time
-                for bundle_id, bresult in self.session._bundled_results.items():
-                    bundle_metadata = bresult.metadata or {}
-                    if bundle_metadata.get("is_bundled"):
-                        bundled_result = bresult
-                        logger.info(f"Found bundled result for history (bundle_id={bundle_id[:15] if bundle_id else 'unknown'}, {len(orchestration_result.tool_results)} tools)")
-                        # Remove from storage after use
-                        del self.session._bundled_results[bundle_id]
-                        break
+            # Try to find bundled result from centralized storage
+            # Look for bundle_id in tool call metadata
+            for result in orchestration_result.tool_results:
+                if hasattr(result.tool_call, 'metadata') and result.tool_call.metadata:
+                    bundle_id = result.tool_call.metadata.get('bundle_id')
+                    if bundle_id:
+                        bundled_result = self.session._tool_result_storage.get_bundled_result(bundle_id)
+                        if bundled_result:
+                            logger.info(f"Found bundled result for history (bundle_id={bundle_id[:15]}, {len(orchestration_result.tool_results)} tools)")
+                            # Remove from storage after use
+                            self.session._tool_result_storage.remove_bundled_result(bundle_id)
+                            break
             
             if bundled_result:
                 # Use combined bundled result for history (single message)
@@ -158,26 +159,17 @@ class ToolExecutor:
             # Cleanup ALL request_ids that were involved in this turn, regardless of
             # whether processing succeeded or failed. This is critical for long-running
             # sessions with many tool executions.
+            
+            # Use centralized storage for cleanup
+            cleaned_count = self.session._tool_result_storage.cleanup_request_ids(all_request_ids)
+            if cleaned_count > 0:
+                logger.debug(f"Cleaned up {cleaned_count} tool results after processing")
+            
+            # Remove prepared tool calls (no longer needed)
             for request_id in all_request_ids:
-                # Remove from pending results (already processed)
-                if request_id in self.session._pending_tool_results:
-                    del self.session._pending_tool_results[request_id]
-                
-                # Remove from prepared tool calls (no longer needed)
                 # ENCAPSULATION: Use public method instead of accessing private member
                 self.session.remove_prepared_tool_call(request_id)
-                
-                # Futures are already cleaned up by ToolOrchestrator, but double-check
-                if request_id in self.session._tool_result_futures:
-                    future = self.session._tool_result_futures[request_id]
-                    if future.done():
-                        del self.session._tool_result_futures[request_id]
             
-            # Also cleanup bundled results that were processed
-            if hasattr(self.session, "_bundled_results") and self.session._bundled_results:
-                # Remove bundled results older than 5 minutes (safety net)
-                import time
-                current_time = time.time()
-                # Note: We don't track timestamps, so just clear all bundled results
-                # They should be consumed immediately after creation
-                self.session._bundled_results.clear()
+            # Periodic cleanup of old results (TTL-based)
+            # This is a safety net for results that weren't properly cleaned up
+            self.session._tool_result_storage.cleanup_old_results(max_age_seconds=300)
