@@ -6,7 +6,7 @@ import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useWakewordDetection } from '../../voice/hooks/useWakewordDetection';
 import { ApiClient } from '../../../infrastructure/api/client';
-import { useAppContext } from '../../../app/providers/AppProvider';
+import { useAppConfigContext } from '../../../app/providers/AppProvider';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { useEffect, useRef } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
@@ -21,7 +21,9 @@ function ChatInterface() {
   const isSending = useChatStore((state) => state.isSending);
   const thinkingStatus = useChatStore((state) => state.thinkingStatus);
   const tokenCounts = useChatStore((state) => state.tokenCounts);
-  const { config, wakewordEnabled, updateConfig } = useAppContext();
+  // Use AppConfigContext directly for better performance
+  // This avoids re-renders when saveStatus changes in AppStatusContext
+  const { config, wakewordEnabled, updateConfig } = useAppConfigContext();
   
   // Audio player service
   const audioPlayerRef = useRef(null);

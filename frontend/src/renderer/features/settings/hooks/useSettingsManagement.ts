@@ -6,9 +6,13 @@ import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
  * Custom hook for managing settings loading and updating.
  * Handles config loading, model fetching, and settings updates with error handling.
  *
+ * Note: saveStatus is now managed by AppStatusContext, so setSaveStatus is optional.
+ * If provided, it will be called for backward compatibility, but the primary
+ * save status management happens via IPC events in AppStatusContext.
+ *
  * @param {Function} setConfig - Function to update config state
  * @param {Function} setAvailableModels - Function to update available models state
- * @param {Function} setSaveStatus - Function to update save status state
+ * @param {Function} setSaveStatus - Optional function to update save status (for backward compat)
  * @param {Object} configBeforeSave - Ref to store config before save attempt
  * @param {Object} saveTimeoutId - Ref to store timeout ID
  * @returns {Object} - Object containing settings handlers
@@ -16,7 +20,7 @@ import { IpcBridge, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 export function useSettingsManagement(
   setConfig: (config: any) => void,
   setAvailableModels: (models: any) => void,
-  setSaveStatus: (status: string) => void,
+  setSaveStatus: (status: string) => void = () => {}, // Optional, defaults to no-op
   configBeforeSave: React.MutableRefObject<any>,
   saveTimeoutId: React.MutableRefObject<NodeJS.Timeout | null>
 ) {
@@ -36,6 +40,8 @@ export function useSettingsManagement(
     if (saveTimeoutId.current) {
       clearTimeout(saveTimeoutId.current);
     }
+    // Save status is now managed by AppStatusContext via IPC events
+    // This callback is kept for backward compatibility but may not be called
     setSaveStatus('success');
     setTimeout(() => setSaveStatus('idle'), 3000);
   }, [setSaveStatus, saveTimeoutId]);

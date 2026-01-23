@@ -1,112 +1,57 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import { ApiClient } from '../../infrastructure/api/client';
-import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
-import { filterFrontendConfig } from '../../utils/configFilter';
-import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
+import React, { useEffect } from 'react';
+import { AppConfigProvider, useAppConfigContext } from './AppConfigContext';
+import { AppStatusProvider, useAppStatusContext } from './AppStatusContext';
 
-const AppContext = createContext();
-
-export function AppProvider({ children }) {
-  const [config, setConfig] = useState(null);
-  const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, success, error
-  const [availableModels, setAvailableModels] = useState({ local: [], online: [] });
-  const [wakewordEnabled, setWakewordEnabled] = useState(true);
+/**
+ * Internal component that coordinates between AppConfigContext and AppStatusContext.
+ * This ensures that when config is saved, the status context is notified.
+ */
+function AppContextCoordinator({ children }) {
+  const configContext = useAppConfigContext();
+  const statusContext = useAppStatusContext();
   
-  const configBeforeSave = useRef(null);
-  const saveTimeoutId = useRef(null);
-
-  // Use existing hook logic for settings management
-  const settingsHandlers = useSettingsManagement(
-    setConfig,
-    setAvailableModels,
-    setSaveStatus,
-    configBeforeSave,
-    saveTimeoutId
-  );
-
-  // Listen for settings-related backend events
+  // Register save status callback when contexts are available
   useEffect(() => {
-    // Defer settings load to next tick to allow initial render to complete
-    // This prevents blocking the UI during startup
-    const timeoutId = setTimeout(() => {
-      ApiClient.loadSettings();
-    }, 0);
-
-    const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data) => {
-       switch (data.type) {
-         case 'settings-loaded':
-           settingsHandlers.handleSettingsLoaded(data);
-           break;
-         case 'models-listed':
-           settingsHandlers.handleModelsListed(data);
-           break;
-         case 'settings-updated':
-           settingsHandlers.handleSettingsUpdated();
-           break;
-         case 'error':
-           if (data.payload?.message?.includes('Failed to update settings')) {
-             settingsHandlers.handleSettingsError(data);
-           }
-           break;
-         default:
-           break;
-       }
-    });
-    return () => {
-      clearTimeout(timeoutId);
-      removeListener();
-    };
-  }, [settingsHandlers]);
-
-  const updateConfig = useCallback((newConfig) => {
-    // Prevent concurrent saves
-    if (saveStatus === 'saving') {
-      return;
+    if (configContext.registerSaveStatusCallback) {
+      configContext.registerSaveStatusCallback(statusContext.setSaving);
     }
+  }, [configContext, statusContext]);
+  
+  return <>{children}</>;
+}
 
-    // Store the original config in case we need to revert
-    configBeforeSave.current = config;
-
-    // Filter config to only include fields that frontend manages
-    const filteredConfig = filterFrontendConfig(newConfig);
-
-    // Optimistically update the state and set status to saving
-    setConfig(filteredConfig);
-    setSaveStatus('saving');
-
-    // Fallback timeout in case backend never responds
-    saveTimeoutId.current = setTimeout(() => {
-      setSaveStatus('error');
-      if (configBeforeSave.current) {
-        setConfig(configBeforeSave.current);
-        configBeforeSave.current = null;
-      }
-    }, 10000); // 10 second timeout
-
-    // Only send the filtered config to backend
-    ApiClient.updateSettings(filteredConfig);
-  }, [config, saveStatus]);
-
-  const value = {
-    config,
-    saveStatus,
-    availableModels,
-    wakewordEnabled,
-    setWakewordEnabled,
-    updateConfig
-  };
-
+/**
+ * AppProvider - Combines AppConfigProvider and AppStatusProvider.
+ * 
+ * This maintains backward compatibility while using split contexts internally.
+ * Components can use useAppConfigContext() and useAppStatusContext() directly
+ * for better performance, or use the legacy useAppContext() for convenience.
+ */
+export function AppProvider({ children }) {
   return (
-    <AppContext.Provider value={value}>
-      {children}
-    </AppContext.Provider>
+    <AppConfigProvider>
+      <AppStatusProvider>
+        <AppContextCoordinator>
+          {children}
+        </AppContextCoordinator>
+      </AppStatusProvider>
+    </AppConfigProvider>
   );
 }
 
+// Re-export for convenience
+export { useAppConfigContext } from './AppConfigContext';
+export { useAppStatusContext } from './AppStatusContext';
+
+// Legacy hook for backward compatibility
+// This combines both contexts but causes re-renders when either changes
+// Prefer using useAppConfigContext() and useAppStatusContext() separately
 export const useAppContext = () => {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useAppContext must be used within an AppProvider');
-  }
-  return context;
+  const config = useAppConfigContext();
+  const status = useAppStatusContext();
+  
+  return {
+    ...config,
+    saveStatus: status.saveStatus
+  };
 };

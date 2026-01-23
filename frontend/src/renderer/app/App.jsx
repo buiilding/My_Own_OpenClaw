@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import ErrorBoundary from '../components/ErrorBoundary';
 import ChatInterface from '../features/chat/components/ChatInterface';
 import MainLayout from '../components/MainLayout';
-import { AppProvider, useAppContext } from './providers/AppProvider';
+import { AppProvider, useAppConfigContext, useAppStatusContext } from './providers/AppProvider';
 import { ChatProvider } from './providers/ChatProvider';
 import '../styles/ChatInterface.css';
 import '../styles/MainLayout.css';
@@ -15,7 +15,10 @@ const SettingsPanel = lazy(() => import('../features/settings/components/Setting
  * Content wrapper that has access to AppContext
  */
 function AppContent() {
-  const { config, availableModels, updateConfig, saveStatus } = useAppContext();
+  // Use split contexts for better performance
+  // Components only re-render when their specific context changes
+  const { config, availableModels, updateConfig } = useAppConfigContext();
+  const { saveStatus } = useAppStatusContext();
 
   return (
     <MainLayout
