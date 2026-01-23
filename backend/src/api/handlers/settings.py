@@ -165,19 +165,8 @@ class UpdateSettingsHandler(MessageHandler):
             # Build complete config with policies applied (delegates to service)
             validated_config = self.config_service.build_user_config(merged_user_config)
             
-            # Cache the merged config for faster loading on next connection
-            # Get global config dict (excluding api_key which is runtime-only)
-            global_config = self.config_service.get_config()
-            global_config_dict = global_config.model_dump(exclude={"api_key"})
-            # Get the merged config dict (before API key loading, which is runtime-only)
-            merged_config_dict = validated_config.model_dump(exclude={"api_key"})
-            try:
-                await self.user_config_manager.save_merged_config(
-                    user_id, merged_config_dict, global_config_dict
-                )
-            except Exception as e:
-                logger.debug(f"Failed to cache merged config for user {user_id}: {e}")
-                # Non-critical, continue without caching
+            # Note: Cache will be updated automatically on next load via merge_with_global_config
+            # We don't save cache here to avoid lock contention with concurrent load operations
             
             # Update only this user's session, not all sessions
             await self.session_manager.update_user_session_config(user_id, validated_config)

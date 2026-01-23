@@ -271,29 +271,30 @@ class UserConfigManager:
             "merged_config": merged_config,
         }
         
-        def _save_sync() -> None:
-            """Synchronous file I/O (runs in executor)."""
+        # Use file lock to prevent concurrent writes
+        # Note: FileLock is blocking, so we run the entire operation in executor
+        def _save_with_lock() -> None:
+            """Synchronous save operation with file lock (runs in executor)."""
+            lock = FileLock(lock_file, timeout=2.0)  # Shorter timeout to avoid long waits
             try:
-                merged_config_path.parent.mkdir(parents=True, exist_ok=True)
-                with open(merged_config_path, "w", encoding="utf-8") as f:
-                    yaml.dump(cache_data, f, default_flow_style=False, sort_keys=False)
-                logger.debug(f"Saved merged config cache for user {user_id}")
+                with lock:
+                    merged_config_path.parent.mkdir(parents=True, exist_ok=True)
+                    with open(merged_config_path, "w", encoding="utf-8") as f:
+                        yaml.dump(cache_data, f, default_flow_style=False, sort_keys=False)
+                    logger.debug(f"Saved merged config cache for user {user_id}")
+            except Timeout:
+                logger.debug(f"Failed to acquire lock for merged config cache {merged_config_path}: timeout")
+                # Non-critical, continue without caching
             except (yaml.YAMLError, OSError) as e:
-                logger.warning(f"Failed to save merged config cache for user {user_id}: {e}")
+                logger.debug(f"Failed to save merged config cache for user {user_id}: {e}")
                 # Non-critical error, don't raise
         
-        # Use file lock to prevent concurrent writes
-        lock = FileLock(lock_file, timeout=10.0)
+        # PERFORMANCE FIX: Offload blocking I/O (including file lock) to thread pool
+        loop = asyncio.get_running_loop()
         try:
-            with lock:
-                # PERFORMANCE FIX: Offload blocking I/O to thread pool
-                loop = asyncio.get_running_loop()
-                await loop.run_in_executor(None, _save_sync)
-        except Timeout:
-            logger.warning(f"Failed to acquire lock for merged config cache {merged_config_path}: timeout")
-            # Non-critical, continue without caching
+            await loop.run_in_executor(None, _save_with_lock)
         except Exception as e:
-            logger.warning(f"Failed to save merged config cache for user {user_id}: {e}")
+            logger.debug(f"Failed to save merged config cache for user {user_id}: {e}")
             # Non-critical error, don't raise
     
     async def merge_with_global_config(
