@@ -56,7 +56,7 @@ class ScreenshotManager:
             ValueError: If timeout waiting for hidden screenshot
         """
         # Check if we have a current screenshot
-        current_screenshot_id = session._current_screenshot_id
+        current_screenshot_id = session.get_current_screenshot_id()
         if current_screenshot_id:
             screenshot_data = session.get_screenshot(current_screenshot_id)
             if screenshot_data:
@@ -188,7 +188,7 @@ class ScreenshotManager:
                         # Only store results if this screenshot_id is still current
                         # This prevents race conditions where a new screenshot arrives
                         # while OCR is processing the old one
-                        if session._current_screenshot_id == screenshot_id:
+                        if session.get_current_screenshot_id() == screenshot_id:
                             session.set_current_ocr_results(results)
                             logger.info(f"Proactive OCR completed for screenshot {screenshot_id[:8]} (request {short_id(request_id)})")
                         else:

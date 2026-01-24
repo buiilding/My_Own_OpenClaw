@@ -202,9 +202,9 @@ SIMULATION_RESPONSES = [
                 "args": {
                     "action": "click",
                     "find_coordinates_by": "prediction",
-                    "description": "Black Water Shoes Snorkeling Swim Shoes Quick Dry",
-                    "explanation": "Clicking on 'Black Water Shoes Snorkeling Swim Shoes Quick Dry' found via vision model.",
-                    "expectation": "The UI should respond to clicking on 'Black Water Shoes Snorkeling Swim Shoes Quick Dry'.",
+                    "description": "The cheapest pair of shoes on the list",
+                    "explanation": "Clicking on the cheapest pair of shoes on the list found via vision model.",
+                    "expectation": "The UI should respond to clicking on the cheapest pair of shoes on the list.",
                     "wait": 2.0
                 }
             }

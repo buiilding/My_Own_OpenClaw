@@ -46,7 +46,7 @@ class OcrCoordinator:
         """
         # Determine which screenshot_id to use
         if screenshot_id is None:
-            screenshot_id = session._current_screenshot_id
+            screenshot_id = session.get_current_screenshot_id()
         
         # Wait for proactive OCR to complete if it's still running
         # This ensures we use the latest OCR results from the current screenshot
@@ -78,10 +78,11 @@ class OcrCoordinator:
 
         # SIMPLIFIED: Get OCR results for current screenshot only
         # Verify screenshot_id matches current screenshot (if provided)
-        if screenshot_id and session._current_screenshot_id != screenshot_id:
+        current_screenshot_id = session.get_current_screenshot_id()
+        if screenshot_id and current_screenshot_id != screenshot_id:
             logger.warning(
                 f"Screenshot ID mismatch: requested {screenshot_id[:8]}, "
-                f"current is {session._current_screenshot_id[:8] if session._current_screenshot_id else 'None'}. "
+                f"current is {current_screenshot_id[:8] if current_screenshot_id else 'None'}. "
                 f"OCR results may be stale."
             )
             # Screenshot changed - clear results and re-run OCR
@@ -90,7 +91,7 @@ class OcrCoordinator:
             # Get OCR results for current screenshot
             ocr_results = session.get_ocr_results()
             if ocr_results:
-                logger.info(f"Using cached OCR results for current screenshot {session._current_screenshot_id[:8] if session._current_screenshot_id else 'unknown'}")
+                logger.info(f"Using cached OCR results for current screenshot {current_screenshot_id[:8] if current_screenshot_id else 'unknown'}")
 
         # If no results yet (proactive OCR disabled, failed, or screenshot changed), run it now
         if not ocr_results:

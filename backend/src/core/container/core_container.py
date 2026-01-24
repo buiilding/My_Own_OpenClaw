@@ -8,6 +8,7 @@ import logging
 from dependency_injector import containers, providers
 
 from backend.src.core.infrastructure.bus import EventBus
+from backend.src.core.infrastructure.cache import CacheManager
 from backend.src.core.config import ConfigManager
 from backend.src.core.config.service import ConfigurationService
 from backend.src.core.container.factories import (
@@ -86,6 +87,4 @@ class CoreContainer(containers.DeclarativeContainer):
     metrics_service = providers.Singleton(MetricsService)
 
     # Cache Manager (centralized caching for embeddings, tool schemas, etc.)
-    cache_manager = providers.Singleton(
-        lambda: __import__("backend.src.core.cache", fromlist=["CacheManager"]).CacheManager()
-    )
+    cache_manager = providers.Singleton(CacheManager)

@@ -133,6 +133,9 @@ class AgentSession:
         from backend.src.agent.tools.waiting.storage import ToolResultStorage
         
         # Initialize handler components
+        # Initialize storage first (needed by router)
+        self._tool_result_storage = ToolResultStorage(cleanup_ttl_seconds=300)
+        
         tool_result_receiver = ToolResultReceiver(self)
         # Get screenshot_manager from executor (created during executor initialization)
         screenshot_manager = self.executor.screenshot_manager if hasattr(self.executor, 'screenshot_manager') else None
@@ -165,9 +168,6 @@ class AgentSession:
         # Legacy single waiter (deprecated, kept for backward compatibility during migration)
         self.screenshot_waiter: Optional[asyncio.Future] = None
         self.hidden_screenshot_request_id: Optional[str] = None
-        
-        # CENTRALIZED TOOL RESULT STORAGE: Single source of truth for all tool results
-        self._tool_result_storage = ToolResultStorage(cleanup_ttl_seconds=300)
         
         # Extract prepared tool call storage to reduce complexity
         self._prepared_tool_call_storage = PreparedToolCallStorage()
