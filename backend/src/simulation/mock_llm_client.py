@@ -66,6 +66,7 @@ SIMULATION_RESPONSES = [
             "functionCall": {
                 "name": "wait",
                 "args": {
+                    "seconds": 2.0,
                     "explanation": "Waiting for Chrome to start loading before taking a screenshot.",
                     "expectation": "Chrome should be starting up and loading its initial page."
                 }
@@ -82,7 +83,8 @@ SIMULATION_RESPONSES = [
                     "find_coordinates_by": "ocr",
                     "ocr_text": "Search Google or type a URL",
                     "explanation": "Clicking on the text 'Search Google or type a URL' found via OCR.",
-                    "expectation": "The UI should respond to clicking on 'Search Google or type a URL'."
+                    "expectation": "The UI should respond to clicking on 'Search Google or type a URL'.",
+                    "wait": 2.0
                 }
             }
         })
@@ -97,7 +99,8 @@ SIMULATION_RESPONSES = [
                     "action": "type",
                     "text": "amazon.com",
                     "explanation": "Typing 'amazon.com' into the browser address bar.",
-                    "expectation": "The text 'amazon.com' should appear in the address bar."
+                    "expectation": "The text 'amazon.com' should appear in the address bar.",
+                    "wait": 2.0
                 }
             }
         }) + "\n" + json.dumps({
@@ -107,7 +110,8 @@ SIMULATION_RESPONSES = [
                     "action": "press",
                     "key": "enter",
                     "explanation": "Pressing Enter to navigate to amazon.com.",
-                    "expectation": "The browser should navigate to the Amazon website."
+                    "expectation": "The browser should navigate to the Amazon website.",
+                    "wait": 2.0
                 }
             }
         })
@@ -122,7 +126,8 @@ SIMULATION_RESPONSES = [
                     "find_coordinates_by": "ocr",
                     "ocr_text": "Search Amazon",
                     "explanation": "Clicking on the text 'Search Amazon' found via OCR.",
-                    "expectation": "The UI should respond to clicking on 'Search Amazon'."
+                    "expectation": "The UI should respond to clicking on 'Search Amazon'.",
+                    "wait": 2.0
                 }
             }
         })
@@ -137,7 +142,8 @@ SIMULATION_RESPONSES = [
                     "action": "type",
                     "text": "shoes",
                     "explanation": "Typing 'shoes' into the Amazon search box.",
-                    "expectation": "The text 'shoes' should appear in the search box."
+                    "expectation": "The text 'shoes' should appear in the search box.",
+                    "wait": 2.0
                 }
             }
         }) + "\n" + json.dumps({
@@ -147,7 +153,8 @@ SIMULATION_RESPONSES = [
                     "action": "press",
                     "key": "enter",
                     "explanation": "Pressing Enter to search for shoes on Amazon.",
-                    "expectation": "Amazon should display search results for shoes."
+                    "expectation": "Amazon should display search results for shoes.",
+                    "wait": 2.0
                 }
             }
         })
@@ -162,7 +169,8 @@ SIMULATION_RESPONSES = [
                     "find_coordinates_by": "ocr",
                     "ocr_text": "Sort by: Featured",
                     "explanation": "Clicking on the text 'Sort by: Featured' found via OCR.",
-                    "expectation": "The UI should respond to clicking on 'Sort by: Featured'."
+                    "expectation": "The UI should respond to clicking on 'Sort by: Featured'.",
+                    "wait": 2.0
                 }
             }
         })
@@ -177,7 +185,8 @@ SIMULATION_RESPONSES = [
                     "find_coordinates_by": "ocr",
                     "ocr_text": "Price: Low to High",
                     "explanation": "Clicking on the text 'Price: Low to High' found via OCR.",
-                    "expectation": "The UI should respond to clicking on 'Price: Low to High'."
+                    "expectation": "The UI should respond to clicking on 'Price: Low to High'.",
+                    "wait": 2.0
                 }
             }
         })
@@ -191,7 +200,8 @@ SIMULATION_RESPONSES = [
                     "action": "scroll_down",
                     "clicks": 50,
                     "explanation": "Scrolling down the page to see more search results.",
-                    "expectation": "The page should scroll down, revealing more product listings."
+                    "expectation": "The page should scroll down, revealing more product listings.",
+                    "wait": 2.0
                 }
             }
         })
@@ -206,7 +216,8 @@ SIMULATION_RESPONSES = [
                     "find_coordinates_by": "prediction",
                     "description": "Black Water Shoes Snorkeling Swim Shoes Quick Dry",
                     "explanation": "Clicking on 'Black Water Shoes Snorkeling Swim Shoes Quick Dry' found via vision model.",
-                    "expectation": "The UI should respond to clicking on 'Black Water Shoes Snorkeling Swim Shoes Quick Dry'."
+                    "expectation": "The UI should respond to clicking on 'Black Water Shoes Snorkeling Swim Shoes Quick Dry'.",
+                    "wait": 2.0
                 }
             }
         })
