@@ -6,7 +6,7 @@ Formats and emits all frontend/UI events for the agent interaction loop.
 import logging
 from typing import AsyncGenerator, Optional
 
-from backend.src.core.events import (
+from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
     AssistantMessageFullEvent,
     ErrorEvent,

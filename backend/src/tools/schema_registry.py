@@ -7,7 +7,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from backend.src.sdk.tool import Tool as SDKTool
-from backend.src.core.cache import cache_manager
+from backend.src.core.infrastructure.cache import cache_manager
 
 logger = logging.getLogger(__name__)
 

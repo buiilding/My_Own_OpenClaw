@@ -4,11 +4,11 @@ Pydantic schemas for computer control tools.
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 
-from backend.src.core.types import (
-    MouseAction,
+from backend.src.core.types.enums import (
     CoordinateFindingMethod,
+    KeyboardAction,
+    MouseAction,
     ScrollDirection as ScrollDirectionEnum,
-    KeyboardAction
 )
 
 # --- Mouse Tool Schemas ---

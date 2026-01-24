@@ -11,7 +11,7 @@ from typing import AsyncGenerator, Optional, Tuple, TYPE_CHECKING
 from backend.src.agent.tools.coordinate_resolution_helper import resolve_coordinates
 from backend.src.agent.tools.logging_utils import short_id
 from backend.src.agent.tools.prepared_tool_call import PreparedToolCall
-from backend.src.core.events import AgentStreamingEvent
+from backend.src.core.events.streaming_events import AgentStreamingEvent
 from backend.src.llm.parser import ParsedToolCall
 
 if TYPE_CHECKING:

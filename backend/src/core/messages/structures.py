@@ -1,7 +1,7 @@
 """
-Message structures and helpers for conversation history.
+Message structures for conversation history.
 
-This module provides structured message types and utilities for handling
+This module provides structured message types for handling
 multimodal content and message parsing.
 """
 import time
@@ -9,13 +9,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
-from backend.src.core.types import (
-    ContentType,
-    LLMMessage,
-    MessageRole,
-    MessageType,
-    MultimodalContent,
-)
+from backend.src.core.types.enums import ContentType, MessageRole, MessageType
+from backend.src.core.types.schemas import LLMMessage, MultimodalContent
 
 
 @dataclass
@@ -136,36 +131,3 @@ class ImageContent(MessageContent):
     
     def get_image_urls(self) -> List[str]:
         return [self.image_url]
-
-
-def content_to_message_content(content: Union[str, MultimodalContent]) -> MessageContent:
-    """
-    Convert raw LLMMessage content to MessageContent object.
-    
-    Args:
-        content: Raw content from LLMMessage (str or MultimodalContent)
-        
-    Returns:
-        MessageContent instance
-    """
-    if isinstance(content, str):
-        return TextContent(content)
-    elif isinstance(content, list):
-        text_parts = []
-        image_urls = []
-        for part in content:
-            if isinstance(part, dict):
-                if part.get("type") == ContentType.TEXT.value:
-                    text_parts.append(part.get("text", ""))
-                elif part.get("type") == ContentType.IMAGE_URL.value:
-                    image_url_dict = part.get("image_url", {})
-                    if isinstance(image_url_dict, dict):
-                        url = image_url_dict.get("url")
-                        if url:
-                            image_urls.append(url)
-        
-        text = " ".join(text_parts)
-        if image_urls:
-            return ImageContent(text, image_urls[0])  # Use first image
-        return TextContent(text)
-    return TextContent(str(content))

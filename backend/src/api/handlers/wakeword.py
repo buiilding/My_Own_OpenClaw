@@ -12,7 +12,7 @@ from backend.src.api.core.transport import WebSocketSender
 from backend.src.api.tts.manager import TTSManager
 from backend.src.api.schema import BaseMessage, WakewordDetectedMessage
 from backend.src.core.services.wakeword_service import WakewordService
-from backend.src.core.validation import ValidationError
+from backend.src.core.validation.validators import ValidationError
 
 logger = logging.getLogger(__name__)
 

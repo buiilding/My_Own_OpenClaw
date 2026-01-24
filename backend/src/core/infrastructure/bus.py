@@ -10,7 +10,7 @@ import threading
 import weakref
 from typing import Callable, Dict, List, Optional, Type, Union, Awaitable
 
-from .events import Event
+from backend.src.core.events.base import Event
 
 logger = logging.getLogger(__name__)
 

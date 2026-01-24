@@ -22,13 +22,13 @@ from backend.src.agent.tools.ocr_coordinator import OcrCoordinator
 from backend.src.agent.tools.screenshot_manager import ScreenshotManager
 from backend.src.agent.tools.synthetic_result_factory import SyntheticResultFactory
 from backend.src.agent.tools.vision_service_provider import VisionServiceProvider
-from backend.src.core.events import (
+from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
     ToolBundleEvent,
     ToolCallEvent,
     ToolOutputEvent,
 )
-from backend.src.core.types import CoordinateFindingMethod
+from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
 
 logger = logging.getLogger(__name__)

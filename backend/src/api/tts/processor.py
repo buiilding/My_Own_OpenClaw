@@ -26,7 +26,7 @@ import logging
 from typing import Optional
 
 from backend.src.api.tts.manager import TTSManager
-from backend.src.core.events import (
+from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
     ChunkEvent,
     ToolCallEvent,

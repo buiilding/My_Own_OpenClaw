@@ -7,7 +7,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, AsyncGenerator, List, NamedTuple
 
-from backend.src.core.events import (
+from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
     ChunkEvent,
     ErrorEvent,
@@ -16,8 +16,8 @@ from backend.src.core.events import (
     ThinkingEvent,
     TokenCountEvent,
 )
-from backend.src.core.exceptions import LLMRateLimitError
-from backend.src.core.types import LLMMessage
+from backend.src.core.infrastructure.exceptions import LLMRateLimitError
+from backend.src.core.types.schemas import LLMMessage
 from backend.src.services.token_service import get_token_service
 
 if TYPE_CHECKING:

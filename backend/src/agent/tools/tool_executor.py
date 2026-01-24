@@ -10,7 +10,7 @@ from backend.src.agent.history.history_committer import HistoryCommitter
 from backend.src.agent.tools.bundle_detection import is_atomic_bundle_from_results
 from backend.src.agent.tools.result_transformer import ResultTransformer
 from backend.src.agent.tools.tool_preparer import ToolPreparer
-from backend.src.core.events import AgentStreamingEvent, ThinkingEvent
+from backend.src.core.events.streaming_events import AgentStreamingEvent, ThinkingEvent
 from backend.src.llm.parser import ParsedResponse
 
 if TYPE_CHECKING:

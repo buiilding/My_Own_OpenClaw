@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional
 from backend.src.agent.core.core import AgentSession
 from backend.src.core.config import AppConfig
 from backend.src.core.config.manager import load_api_key_for_provider, get_default_tts_model_path
-from backend.src.core.config.subscription_manager import ConfigSubscriber
+from backend.src.core.config.subscriptions import ConfigSubscriber
 
 logger = logging.getLogger(__name__)
 

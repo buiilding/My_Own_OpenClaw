@@ -9,7 +9,7 @@ import time
 from typing import Optional, Tuple, TYPE_CHECKING
 
 from backend.src.agent.tools.logging_utils import short_id
-from backend.src.core.types import CoordinateFindingMethod
+from backend.src.core.types.enums import CoordinateFindingMethod
 
 if TYPE_CHECKING:
     from backend.src.agent.core.core import AgentSession

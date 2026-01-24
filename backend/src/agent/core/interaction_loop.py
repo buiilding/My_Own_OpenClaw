@@ -8,11 +8,11 @@ All content, I/O, and presentation is delegated to specialized components.
 import logging
 from typing import TYPE_CHECKING, AsyncGenerator
 
-from backend.src.core.events import (
+from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
     FullResponseEvent,
 )
-from backend.src.core.exceptions import LLMRateLimitError
+from backend.src.core.infrastructure.exceptions import LLMRateLimitError
 
 if TYPE_CHECKING:
     from backend.src.agent.core.core import AgentSession

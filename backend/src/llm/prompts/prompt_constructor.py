@@ -26,13 +26,10 @@ from typing import List, Dict, Any, Optional, Union, TYPE_CHECKING
 from backend.src.llm.prompts.prompts import get_system_prompt
 from backend.src.llm.prompts.prompt_metadata import PromptMetadata, UserMessageMetadata
 from backend.src.tools.registry import ToolRegistry
-from backend.src.core.messages import (
-    MessageRole,
-    MessageType,
-    StoredMessage,
-    content_to_message_content,
-)
-from backend.src.core.types import LLMMessage
+from backend.src.core.messages.converters import content_to_message_content
+from backend.src.core.messages.structures import StoredMessage
+from backend.src.core.types.enums import MessageRole, MessageType
+from backend.src.core.types.schemas import LLMMessage
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 # system_monitor removed - frontend handles system state
 

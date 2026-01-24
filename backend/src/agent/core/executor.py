@@ -25,12 +25,12 @@ from backend.src.agent.tools.screenshot_manager import ScreenshotManager
 from backend.src.agent.tools.synthetic_result_factory import SyntheticResultFactory
 from backend.src.agent.tools.tool_executor import ToolExecutor
 from backend.src.agent.tools.tool_preparer import ToolPreparer
-from backend.src.core.bus import EventBus
-from backend.src.core.events import (
+from backend.src.core.infrastructure.bus import EventBus
+from backend.src.core.events.bus_events import InteractionCompleted
+from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
-    InteractionCompleted,
-    StreamingCompleteEvent,
     MemoryStoreEvent,
+    StreamingCompleteEvent,
 )
 from backend.src.core.plugins.registry import PluginRegistry
 from backend.src.llm.client import LLMClient

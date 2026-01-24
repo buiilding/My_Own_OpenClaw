@@ -7,25 +7,25 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional, Union
 
-from backend.src.core.events import (
+from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
-    StreamingEvent,
-    ThinkingEvent,
+    AssistantMessageFullEvent,
     ChunkEvent,
     ErrorEvent,
+    MemoryStoreEvent,
+    RequestScreenshotEvent,
     StreamingCompleteEvent,
+    StreamingEvent,
+    SystemPromptEvent,
+    ThinkingEvent,
+    TokenCountEvent,
+    ToolBundleEvent,
     ToolCallEvent,
     ToolOutputEvent,
-    SystemPromptEvent,
     ToolSchemasEvent,
     UserMessageFullEvent,
-    AssistantMessageFullEvent,
-    TokenCountEvent,
-    RequestScreenshotEvent,
-    MemoryStoreEvent,
-    ToolBundleEvent,
 )
-from backend.src.core.types import StreamingEventType
+from backend.src.core.types.enums import StreamingEventType
 
 logger = logging.getLogger(__name__)
 

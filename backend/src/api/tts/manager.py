@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional, Union
 
 from backend.src.api.core.transport import WebSocketSender
 from backend.src.core.config import AppConfig
-from backend.src.core.events import StreamingEvent, ChunkEvent
+from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent
 from backend.src.core.services.tts_service import TTSService
 
 logger = logging.getLogger(__name__)
