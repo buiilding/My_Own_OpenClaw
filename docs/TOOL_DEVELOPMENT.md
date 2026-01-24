@@ -299,34 +299,87 @@ This automatically generates JSON Schema:
 
 ## Tool Execution Context
 
-### ToolContext
+### ToolContext (`sdk/context.py`)
 
-Tools receive a `ToolContext` object:
+Tools receive a `ToolContext` object that combines Identity (User/Session) with Runtime Capabilities.
 
+**Structure**:
 ```python
+@dataclass
 class ToolContext:
-    config: AppConfig  # Application configuration
-    session: Optional[AgentSession]  # Agent session (for backend tools)
-    tool_registry: ToolRegistry  # Tool registry
-    # Additional services injected via ContextFactory
+    user: UserContext      # Identity: Who is performing the action?
+    session: SessionContext  # Identity: In what context is this happening?
+    runtime: ExecutionRuntime  # Capabilities: What can the tool do?
 ```
+
+**UserContext**:
+- `user_id`: User identifier
+- `username`: Optional username
+- `permissions`: List of user permissions
+
+**SessionContext**:
+- `session_id`: Session identifier
+- `created_at`: Session creation timestamp
+- `metadata`: Dictionary for session-specific metadata
+
+**ExecutionRuntime**:
+- `workspace_root`: Workspace root directory
+- `services`: Dictionary of available services
+- Properties: `agents` (AgentFactory), `file_service`
+
+**Shortcuts** (for backward compatibility):
+- `workspace_root`: Direct access to runtime.workspace_root
+- `services`: Direct access to runtime.services
+- `agents`: Direct access to runtime.agents
+- `is_interactive`: Always True
 
 ### Using Context
 
 ```python
 async def run(self, args: MyToolArgs, ctx: ToolContext) -> ToolResult:
-    # Access configuration
-    config = ctx.config
-    timeout = config.llm_timeout
+    # Access user identity
+    user_id = ctx.user.user_id
+    permissions = ctx.user.permissions
     
-    # Access session (backend tools only)
-    if ctx.session:
-        user_id = ctx.session.user_id
+    # Access session context
+    session_id = ctx.session.session_id
+    metadata = ctx.session.metadata
     
-    # Access tool registry
-    other_tool = ctx.tool_registry.get_tool("other_tool")
+    # Access runtime capabilities
+    workspace = ctx.workspace_root
+    agent_factory = ctx.agents  # AgentFactory for creating sub-agents
+    
+    # Access services
+    file_service = ctx.runtime.file_service
     
     # ...
+```
+
+### SDK Exceptions (`sdk/errors.py`)
+
+SDK-specific exception classes for tool development.
+
+**Exception Hierarchy**:
+- `SDKError`: Base exception for all SDK errors
+- `ToolExecutionError`: Raised when a tool fails to execute
+  - `retryable`: Boolean indicating if error is retryable
+- `ConfigurationError`: Raised when a tool is misconfigured
+
+**Usage**:
+```python
+from backend.src.sdk.errors import ToolExecutionError
+
+async def run(self, args: MyToolArgs, ctx: ToolContext) -> ToolResult:
+    try:
+        # Tool execution
+        result = await do_work(args)
+        return ToolResult(success=True, content=result)
+    except SomeError as e:
+        # Raise SDK exception
+        raise ToolExecutionError(
+            message=f"Tool execution failed: {str(e)}",
+            retryable=True
+        ) from e
 ```
 
 ## Tool Result Format

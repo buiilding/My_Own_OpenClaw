@@ -92,13 +92,13 @@ $env:OPENAI_API_KEY = "your-api-key-here"
 export OPENAI_API_KEY="your-api-key-here"
 ```
 
-#### Create Configuration File
+#### Configuration File
 
-The configuration file is automatically created on first run at:
+**Note**: The application uses Python-based configuration, not YAML files.
 
-- **Windows**: `%APPDATA%\DesktopAssistant\config.yaml`
-- **macOS**: `~/Library/Application Support/DesktopAssistant/config.yaml`
-- **Linux**: `~/.config/DesktopAssistant/config.yaml`
+Configuration is defined in `backend/src/core/config/app_config.py` as the `APP_CONFIG` instance. Changes require editing the Python file and restarting the application.
+
+API keys are loaded from environment variables (see above).
 
 ## Optional: GPU Support
 

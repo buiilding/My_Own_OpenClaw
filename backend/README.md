@@ -31,14 +31,11 @@ $env:ANTHROPIC_API_KEY = "your-api-key-here"
 # For other providers, see config.py for environment variable names
 ```
 
-3. **Create configuration file:**
+3. **Configuration:**
 
-The application will automatically create a config file at:
-- **Windows**: `%APPDATA%\DesktopAssistant\config.yaml`
-- **macOS**: `~/Library/Application Support/DesktopAssistant/config.yaml`
-- **Linux**: `~/.config/DesktopAssistant/config.yaml`
+The application uses Python-based configuration defined in `backend/src/core/config/app_config.py` as the `APP_CONFIG` instance. To change settings, edit this file and restart the application.
 
-You can also create/edit this file manually. See `backend/src/core/config.py` for available configuration options.
+API keys are loaded from environment variables (see step 2 above). See `backend/src/core/config/models.py` for all available configuration options.
 
 ## Running the Application
 

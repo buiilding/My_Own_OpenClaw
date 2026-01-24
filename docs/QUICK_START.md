@@ -75,11 +75,11 @@ npm run electron
 
 ### Initial Setup
 
-On first run, the application will create a configuration file at:
+**Note**: The application uses Python-based configuration, not YAML files.
 
-- **Windows**: `%APPDATA%\DesktopAssistant\config.yaml`
-- **macOS**: `~/Library/Application Support/DesktopAssistant/config.yaml`
-- **Linux**: `~/.config/DesktopAssistant/config.yaml`
+Configuration is defined in `backend/src/core/config/app_config.py`. To change settings, edit this file and restart the application.
+
+API keys are loaded from environment variables (see above).
 
 ### Setting Up Your LLM Provider
 

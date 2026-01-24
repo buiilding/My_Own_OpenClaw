@@ -38,6 +38,9 @@ Desktop Assistant uses a WebSocket-based API for real-time communication between
     "model_name": "default"
   }
   ```
+- **Constraints**:
+  - Text length: 1-8192 characters
+  - Model name: 1-128 characters
 - **Response**:
   ```json
   {
@@ -47,6 +50,11 @@ Desktop Assistant uses a WebSocket-based API for real-time communication between
   }
   ```
 - **Implementation**: `backend/src/api/routes/embeddings.py`
+- **Features**:
+  - Async embedding generation (offloaded to thread pool)
+  - Timing logs for performance monitoring
+  - Error handling with sanitized error messages
+  - Supports numpy arrays and lists
 
 **GET `/health`** - Health Check
 - **Purpose**: Check embeddings service health
@@ -58,6 +66,10 @@ Desktop Assistant uses a WebSocket-based API for real-time communication between
     "dimension": 384
   }
   ```
+- **Features**:
+  - Tests embedding generation with "test" string
+  - Returns model name and dimension if healthy
+  - Returns "unhealthy" status if service unavailable
 
 #### Semantic Memory API
 
@@ -75,7 +87,7 @@ Desktop Assistant uses a WebSocket-based API for real-time communication between
 - **Constraints**:
   - Max 100 conversations per request
   - Max 32KB per conversation
-  - User ID required (cannot be "default_user")
+  - User ID required (cannot be "default_user" or empty)
 - **Response**:
   ```json
   {
@@ -90,6 +102,9 @@ Desktop Assistant uses a WebSocket-based API for real-time communication between
   - Extracts key facts about user
   - Extracts important context
   - Robust regex parsing with fallback extraction
+  - Uses user's selected LLM model from config
+  - Structured prompt for consistent extraction
+  - Fallback summary if parsing fails (500 chars)
 
 **GET `/health`** - Health Check
 - **Purpose**: Check semantic summarization service health

@@ -92,7 +92,7 @@ See [Contributing Guide](CONTRIBUTING.md) for guidelines on improving documentat
 ---
 
 **Last Updated**: January 2026  
-**Version**: 1.5.0
+**Version**: 1.9.0
 
 ## Recent Updates
 
@@ -126,6 +126,68 @@ See [Contributing Guide](CONTRIBUTING.md) for guidelines on improving documentat
   - Corrected tool registration process for both backend and frontend
   - Fixed examples to match actual implementation (run() method, ToolResult format)
   - Updated schema documentation to use Pydantic instead of manual JSON Schema
+- **Enhanced Event Bus Documentation**:
+  - Added comprehensive EventBus documentation with priority support, filtering, and memory management
+  - Documented EventHandlerWrapper with weak reference handling
+  - Added usage examples and thread safety details
+- **Enhanced Exception Hierarchy Documentation**:
+  - Documented all exception categories (Configuration, LLM, Tool, Memory, Session, Trust Boundary)
+  - Added error codes and metadata details for each exception type
+- **Enhanced Validation Framework Documentation**:
+  - Documented all validation functions (validate_message, validate_dict, validate_field, etc.)
+  - Added security features (sanitization, length limits)
+  - Added usage examples
+- **Enhanced Container Documentation**:
+  - Added detailed provider lists for all containers (CoreContainer, ToolContainer, MemoryContainer, ApiContainer)
+  - Documented ContainerInitializer, ContainerConfigUpdater, ContainerFactories, AgentSessionFactory
+  - Added dependency injection details
+- **Enhanced API Core Documentation**:
+  - Documented MessageHandler and MessageHandlerRegistry
+  - Documented error handling utilities (send_error_response, send_success_response, sanitize_error_message)
+  - Documented transport abstractions (WebSocketSender Protocol, TransportSender)
+- **Enhanced Message Structures Documentation**:
+  - Documented StoredMessage, MessageContent, and type definitions
+  - Added details on multimodal message conversion
+- **Fixed Configuration Documentation**:
+  - Updated INSTALLATION.md, QUICK_START.md, and backend/README.md to reflect Python-based configuration (not YAML)
+- **Enhanced SDK Documentation**:
+  - Documented ToolContext structure (UserContext, SessionContext, ExecutionRuntime)
+  - Documented SDK exceptions (SDKError, ToolExecutionError, ConfigurationError)
+  - Added context usage examples
+- **Enhanced Plugin System Documentation**:
+  - Documented PluginConfigManager with configuration loading details
+  - Enhanced Plugin Discovery documentation (EntryPointPluginDiscoverer, FilesystemPluginDiscoverer)
+  - Enhanced Plugin Lifecycle Manager documentation
+  - Added Plugin State Manager documentation
+  - Added Plugin Metadata documentation (PluginConfig, PluginMetadata)
+  - Documented Plugin Discovery Service
+- **Enhanced Frontend Infrastructure Documentation**:
+  - Documented ToolExecutionService with detailed methods and features
+  - Documented MessageFormatter with formatting functions
+  - Documented PlayerService with audio playback management
+  - Documented IPC Bridge with channel types and security features
+  - Documented frontend utilities (configFilter, configStorage)
+  - Enhanced React components documentation (all feature components)
+  - Enhanced custom hooks documentation (useChatStream, useChatMessageSender, useTranscription, useVoiceMode, useWakewordDetection)
+  - Enhanced state management documentation (ChatStore interface, Context providers)
+- **Enhanced Python Sidecar Documentation**:
+  - Documented LocalBackend service with all methods and initialization
+  - Documented core utilities (ipc_protocol, system_state, thread_pool, remote_embedding_client)
+  - Documented platform-specific code (Windows, macOS, Linux window managers)
+  - Documented ToolRegistry with registration and execution flow
+  - Documented ToolResult and Tool Schemas structures
+  - Documented memory_service wrapper
+- **Enhanced API Reference Documentation**:
+  - Added detailed constraints and features for Embeddings API
+  - Added detailed constraints and features for Semantic Memory API
+- **Enhanced Testing Documentation**:
+  - Added comprehensive test structure with all test files
+  - Added test infrastructure details (pytest, mocking strategy)
+  - Added frontend testing documentation (Jest, React Testing Library)
+- **Enhanced Backend Architecture Documentation**:
+  - Added Simulation Backend documentation (testing mode with MockLLMClient)
+  - Enhanced Transport Abstractions documentation (WebSocketSender Protocol, thread safety)
+  - Enhanced Type Definitions documentation (all enums and TypedDicts)
 - **Enhanced Backend Architecture**:
   - Added comprehensive documentation for all core services
   - Documented dependency injection container structure and composition

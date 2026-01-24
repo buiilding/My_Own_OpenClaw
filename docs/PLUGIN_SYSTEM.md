@@ -208,46 +208,152 @@ async def handle_event(
 
 ### Configuration Format
 
-Plugins can have their own configuration:
+Plugins use Python-based configuration in `backend/src/core/plugins/plugin_config.py`:
 
-```yaml
-plugins:
-  my_plugin:
-    enabled: true
-    setting1: "value1"
-    setting2: 123
+```python
+PLUGIN_CONFIG: Dict[str, Dict[str, Any]] = {
+    "my_plugin": {
+        "enabled": True,
+        "priority": 100,
+        "config": {
+            "setting1": "value1",
+            "setting2": 123
+        }
+    }
+}
 ```
+
+**Configuration Fields**:
+- `enabled`: Whether plugin is enabled (default: True)
+- `priority`: Execution priority (lower = higher priority, default: 100)
+- `config`: Custom plugin-specific configuration dictionary
+
+**Note**: Changes require application restart to take effect.
+
+### PluginConfigManager (`core/plugins/config.py`)
+
+Manages plugin configuration loaded from Python config file.
+
+**Responsibilities**:
+- Load plugin configuration from `plugin_config.PLUGIN_CONFIG`
+- Check if plugins are enabled
+- Get plugin priorities
+- Get plugin custom configs
+- Set runtime-only config (not persisted)
+
+**Key Methods**:
+- `is_enabled(plugin_name)`: Check if plugin is enabled
+- `get_priority(plugin_name, default)`: Get plugin priority
+- `get_config(plugin_name)`: Get plugin custom config
+- `set_plugin_config(plugin_name, enabled, priority, config)`: Set runtime config (not persisted)
 
 ### Accessing Configuration
 
 ```python
+from backend.src.core.plugins.config import PluginConfigManager
+
 class MyPlugin(Plugin):
-    def __init__(self, config: dict):
-        self.config = config
-        self.enabled = config.get("enabled", True)
-        self.setting1 = config.get("setting1", "default")
+    def __init__(self, config_manager: PluginConfigManager):
+        self.config_manager = config_manager
+        self.enabled = config_manager.is_enabled("my_plugin")
+        self.priority = config_manager.get_priority("my_plugin")
+        self.custom_config = config_manager.get_config("my_plugin")
 ```
 
 ## Plugin Lifecycle
 
-### Initialization
+### Plugin Discovery (`core/plugins/discovery.py`)
 
-1. Plugin registered
-2. `initialize()` called
-3. Resources setup
-4. Event handlers registered
+Discovers plugins from various sources.
 
-### Runtime
+**Discovery Mechanisms**:
+- **EntryPointPluginDiscoverer**: Discovers plugins via setuptools entry points
+  - Entry point group: `desktop_assistant.plugins`
+  - Validates entry points before loading
+  - Handles different importlib.metadata APIs across Python versions
+- **FilesystemPluginDiscoverer**: Discovers plugins from filesystem directories
+  - Uses AST parsing to inspect files statically (security)
+  - Prevents arbitrary code execution during discovery
+  - Only imports files containing valid plugin classes
 
-1. Events received
+**Discovery Flow**:
+1. Scan entry points for registered plugins
+2. Scan filesystem plugin directory
+3. Validate discovered plugins
+4. Return list of plugin classes
+
+### Plugin Lifecycle Manager (`core/plugins/lifecycle.py`)
+
+Manages plugin initialization and shutdown.
+
+**Responsibilities**:
+- Initialize plugins (call `initialize()` if exists)
+- Inject container into plugins that need it
+- Shutdown plugins (call `shutdown()` if exists)
+- Track initialized plugins
+
+**Key Methods**:
+- `initialize_plugin(plugin)`: Initialize a plugin (injects container if available)
+- `shutdown_plugin(plugin)`: Shutdown a plugin
+- `initialize_all_plugins()`: Initialize all enabled plugins
+- `shutdown_all_plugins()`: Shutdown all plugins
+
+**Initialization**:
+1. Plugin registered in PluginRegistry
+2. `initialize()` called (if exists)
+3. Container injected if plugin accepts it
+4. Resources setup
+5. Event handlers registered
+
+**Runtime**:
+1. Events received via EventBus
 2. `handle_event()` called
 3. Plugin processes events
 
-### Shutdown
-
-1. `shutdown()` called
+**Shutdown**:
+1. `shutdown()` called (if exists)
 2. Resources cleaned up
 3. Event handlers unregistered
+
+### Plugin State Manager (`core/plugins/state_manager.py`)
+
+Manages plugin enable/disable state and metadata.
+
+**Responsibilities**:
+- Track plugin metadata
+- Manage plugin configurations
+- Enable/disable plugins
+- Track enabled plugin list
+
+**Key Methods**:
+- `set_metadata(plugin_name, metadata)`: Set plugin metadata
+- `get_metadata(plugin_name)`: Get plugin metadata
+- `set_config(plugin_name, config)`: Set plugin config
+- `get_config(plugin_name)`: Get plugin config
+- `enable_plugin(plugin_name)`: Enable a plugin
+- `disable_plugin(plugin_name)`: Disable a plugin
+- `is_enabled(plugin_name)`: Check if plugin is enabled
+- `get_enabled_plugin_names()`: Get list of enabled plugins
+
+### Plugin Metadata (`core/plugins/metadata.py`)
+
+Data structures for plugin configuration and metadata.
+
+**PluginConfig**:
+- `enabled`: Enable/disable state
+- `priority`: Execution priority
+- `config`: Custom configuration dictionary
+- `dependencies`: List of plugin dependencies
+
+**PluginMetadata**:
+- `name`: Plugin name
+- `version`: Plugin version
+- `author`: Plugin author
+- `description`: Plugin description
+- `source`: Discovery source ("entry_point", "filesystem", "manual")
+- `config`: PluginConfig instance
+- `dependencies`: List of dependencies
+- `module_path`: Optional module path
 
 ## Best Practices
 

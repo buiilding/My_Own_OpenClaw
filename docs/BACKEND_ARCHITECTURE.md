@@ -62,6 +62,10 @@ backend/src/
 │   ├── tool.py        # Base Tool class
 │   ├── context.py     # Context classes
 │   └── errors.py      # SDK exceptions
+├── simulation/        # Simulation backend (testing mode)
+│   ├── main.py        # Simulation entry point
+│   ├── mock_llm_client.py  # Mock LLM client
+│   └── coordinate_resolver.py  # Coordinate resolver re-exports
 └── main.py            # Application entry point
 ```
 
@@ -380,41 +384,155 @@ Converts text to vector representations.
 
 #### ConversationHistory (`agent/core/state.py`)
 
-Manages conversation history with automatic pruning and performance optimizations.
+Manages conversation history with automatic pruning and O(1) LLM format access.
 
 **Responsibilities**:
-- Store conversation messages in structured format
-- Maintain cached LLM format for O(1) retrieval
+- Store messages in structured StoredMessage format
+- Maintain cached LLMMessage format for O(1) retrieval
 - Automatic pruning to prevent context window overflow
-- Memory DoS protection (image data cleared after 5 turns)
+- Incremental token count updates
+- Memory DoS protection (clears old image data)
 
 **Key Methods**:
-- `add_user_message()`: Add user message with context
+- `add_user_message()`: Add user message with context XML, memory, and query
 - `add_tool_output()`: Add tool execution result
 - `add_assistant_message()`: Add assistant response
-- `get_llm_history()`: Get history in LLM format (O(1) access)
-- `get_token_count()`: Get approximate token count
+- `get_llm_history()`: Get history in LLM format (O(1) via cache)
+- `get_token_count()`: Get token count (incremental updates)
 
-**Performance Optimizations**:
-- **O(1) LLM Format Access**: Cached conversion instead of O(n) iteration
-- **Incremental Updates**: LLM cache updated incrementally when messages added
-- **Shallow Copy API**: Optional API for direct access without deep copying
-- **Memory Protection**: Image data automatically cleared from old messages
+**Features**:
+- **O(1) LLM Format Access**: Cached conversion prevents O(n) re-encoding
+- **Incremental Token Counting**: Updates count incrementally instead of re-counting entire history
+- **Memory DoS Protection**: Clears image_data from messages older than 5 turns
+- **Structured Storage**: Uses StoredMessage dataclass for type safety
+
+#### Message Structures (`core/messages.py`)
+
+Structured message types for conversation history.
+
+**StoredMessage**:
+- Structured representation of messages in conversation history
+- Fields: `role`, `content`, `message_type`, `timestamp`, `image_data`
+- Structured components: `user_query_raw`, `episodic_memory`, `semantic_memory`, `injected_context`
+- Method: `to_llm_message()` - Converts to LLMMessage format (multimodal if image_data present)
+
+**MessageContent** (Abstract Base Class):
+- `TextContent`: Text-only message content
+- `ImageContent`: Multimodal content with text and image
+- Methods: `to_llm_format()`, `get_text()`, `has_image()`, `get_image_urls()`
+
+**Type Definitions** (`core/types.py`):
+- Comprehensive type definitions for the entire application
+- Provides type safety and IDE support throughout codebase
+
+**Enums**:
+- `MessageRole`: USER, ASSISTANT, SYSTEM, TOOL
+- `MessageType`: USER_QUERY, TOOL_OUTPUT, ASSISTANT_RESPONSE
+- `StreamingEventType`: THINKING, CHUNK, ERROR, STREAMING_COMPLETE, TOOL_CALL, TOOL_OUTPUT, SYSTEM_PROMPT, TOOL_SCHEMAS, USER_MESSAGE_FULL, ASSISTANT_MESSAGE_FULL, FULL_RESPONSE, TOKEN_COUNT, CONTENT, REQUEST_SCREENSHOT, MEMORY_STORE, TOOL_BUNDLE
+- `ContentType`: TEXT, IMAGE_URL
+- `MouseAction`: CLICK, DOUBLE_CLICK, RIGHT_CLICK, MOVE, DRAG, SCROLL
+- `KeyboardAction`: TYPE, PRESS, HOTKEY
+- `CoordinateFindingMethod`: MANUAL, OCR, PREDICTION
+- `ScrollDirection`: VERTICAL, HORIZONTAL
+- `MemoryType`: EPISODIC, SEMANTIC
+
+**TypedDicts**:
+- `TextContent`: Text content in multimodal messages
+- `ImageContent`: Image content in multimodal messages
+- `MultimodalContent`: Union of TextContent and ImageContent
+- `LLMMessage`: Standard LLM message format (role, content)
+- `ContentChunk`: Single chunk from streaming LLM response
+- `ThinkingChunk`: Event emitted during LLM thinking/reasoning
+- `ToolCallChunk`: Event emitted when a tool is called
+- `ErrorChunk`: Event emitted when an error occurs
+- `SystemPromptChunk`: Event emitted with full system prompt
+- `UserMessageFullChunk`: Event emitted with full user message including injected context
+- `AssistantMessageFullChunk`: Event emitted with complete assistant response
+- `StreamingChunk`: Union of all streaming chunk types
+- `NormalizedLLMResponse`: Dictionary representation of normalized LLM response
+- `ToolResultDict`: Dictionary representation of tool execution result
+- `ProviderConfigDict`: Dictionary representation of LLM provider configuration
+- `MemoryItem`: Dictionary representation of memory item
+- `EpisodicMemory`: Dictionary representation of episodic memory
+- `WebSocketMessage`: WebSocket message format
+- `PluginResultDict`: Dictionary representation of plugin result
+- `ToolParameterSchema`: JSON schema for tool parameter
+- `ToolSchema`: JSON schema for tool
+
+**Type Aliases**:
+- `JSONDict`: Generic dictionary type (Dict[str, Any])
+- `StringDict`: String dictionary type (Dict[str, str])
 
 ### API Layer
 
 #### WebSocket Routes (`api/routes/websocket.py`)
 
-Handles WebSocket connections.
+Handles WebSocket connections and message routing.
 
 **Responsibilities**:
 - Manage WebSocket connections
-- Route messages to handlers
-- Handle connection lifecycle
-- Thread-safe message sending
+- Route messages to handlers via MessageHandlerRegistry
+- Handle connection lifecycle (handshake, message loop, disconnect)
+- Thread-safe message sending via SafeWebSocket
+- Task tracking and cancellation on disconnect
 
 **Key Classes**:
-- `SafeWebSocket`: Thread-safe WebSocket wrapper
+- `SafeWebSocket`: Thread-safe WebSocket wrapper with queue-based sender
+  - Uses queue to decouple message generation from network I/O
+  - Prevents slow network I/O from blocking other coroutines
+  - Implements WebSocketSender Protocol for type safety
+
+**Connection Lifecycle**:
+1. Client connects → handshake (user_id exchange)
+2. Message loop → receive, validate, route to handler
+3. Handler processes → may spawn background tasks (TTS streaming)
+4. Client disconnects → cleanup tasks, end session
+
+**Message Processing**:
+- Messages validated via Pydantic (schema.py)
+- Each message spawns a task to avoid blocking receive loop
+- Tasks tracked and cancelled on disconnect
+- SafeWebSocket wrapper ensures thread-safe sending
+
+#### API Core Utilities (`api/core/`)
+
+Base classes, transport abstractions, and error handling utilities.
+
+**MessageHandler** (`api/core/base.py`):
+- Abstract base class for all WebSocket message handlers
+- Methods: `handle()`, `validate_message()`
+- All handlers must inherit and implement handle method
+
+**MessageHandlerRegistry** (`api/core/base.py`):
+- Centralized registry for routing messages to handlers
+- Methods: `register()`, `unregister()`, `handle()`, `add_middleware()`
+- Middleware support (runs before all handlers)
+- Type-safe message routing with Pydantic validation
+
+**Error Handling** (`api/core/errors.py`):
+- `send_error_response()`: Send standardized error response
+- `send_success_response()`: Send standardized success response
+- `sanitize_error_message()`: Sanitize exceptions for client (prevents information leakage)
+- Security: Full exception details logged server-side, sanitized messages sent to client
+
+**Transport Abstractions** (`api/core/transport.py`):
+- `WebSocketSender` Protocol: Thread-safe interface for WebSocket operations
+  - Protocol defining thread-safe WebSocket operations
+  - Methods: `send_json()`, `send_text()`, `close()`
+  - Implemented by `SafeWebSocket` for thread-safe message sending
+  - Used by TTSManager and other components that need thread-safe WebSocket access
+- `TransportSender` ABC: Abstract base class for transport senders (testing seam)
+  - Abstract base class for transport senders
+  - Used for testing seams and future transport flexibility
+  - Currently only WebSocket transport exists
+- `WebSocketTransportSender`: WebSocket implementation of TransportSender
+  - Wraps a WebSocketSender (Protocol) to send messages
+  - Relies on Protocol's send_json, which must be thread-safe
+  - Used by error handling utilities for standardized message sending
+- **Features**:
+  - Type safety: Protocol ensures all implementations are thread-safe
+  - Decoupling: Logic decoupled from specific WebSocket implementations
+  - Testing: TransportSender ABC provides testing seams
 
 #### Message Handlers (`api/handlers/`)
 
@@ -758,39 +876,150 @@ ApplicationContainer
 - Event bus for decoupled communication
 - Configuration service with change notifications
 - Model service for LLM model management
+- Metrics service for trust boundary violations
+- Cache manager for centralized caching
+- Plugin config manager for plugin configuration
+
+**Providers**:
+- `config_manager`: Singleton ConfigManager
+- `config`: Singleton AppConfig (loaded from config_manager)
+- `event_bus`: Singleton EventBus
+- `llm_client`: Factory (creates per-config)
+- `tts_service`: Singleton TTSService
+- `vision_service`: Singleton VisionService
+- `config_service`: Singleton ConfigurationService
+- `model_service`: Singleton ModelService
+- `metrics_service`: Singleton MetricsService
+- `cache_manager`: Singleton CacheManager
+- `plugin_config_manager`: Singleton PluginConfigManager
 
 **ToolContainer** (`core/container/tool_container.py`):
 - Tool system (registry, orchestrator)
 - Context factory for tool execution contexts
 - Agent factory for sub-agent creation
 
+**Providers**:
+- `agent_factory`: Singleton AgentFactory
+- `tool_registry_and_factory`: Singleton tuple (ToolRegistry, ContextFactory) - resolves circular dependency
+- `tool_registry`: Singleton ToolRegistry (extracted from tuple)
+- `context_factory`: Singleton ContextFactory (extracted from tuple)
+- `tool_orchestrator`: Factory ToolOrchestrator
+
 **MemoryContainer** (`core/container/memory_container.py`):
-- Memory system (embeddings, storage, retrieval)
+- Memory system (embeddings only - storage handled by frontend)
 - Wired to core container for config and cache
+
+**Providers**:
+- `embedder`: Singleton EmbeddingProvider (SentenceTransformerProvider if memory enabled)
 
 **ApiContainer** (`core/container/api_container.py`):
 - API layer (message handlers, handler registry)
 - Created lazily after session manager is available
 - Wired to core container for dependencies
 
+**Dependencies** (injected from parent):
+- `config`: AppConfig
+- `session_manager`: SessionManager
+- `config_service`: ConfigurationService
+- `model_service`: ModelService
+
+**Providers**:
+- `tts_manager`: Singleton TTSManager
+- `response_formatter`: Singleton ResponseFormatter
+- `wakeword_service`: Singleton WakewordService
+- `query_handler`: Singleton QueryMessageHandler
+- `tool_result_handler`: Singleton ToolResultHandler
+- `wakeword_handler`: Singleton WakewordHandler
+- `list_models_handler`: Singleton ListModelsHandler
+- `handler_registry`: Singleton MessageHandlerRegistry (registers all handlers)
+
 ### Container Initialization
 
 **Container Initializer** (`core/container/initializer.py`):
 - Handles async initialization of container components
-- Initializes vision service (async model loading)
-- Sets up service dependencies
-- Manages initialization order
+- Initializes configuration service (loads config)
+- Initializes vision service (async model loading for fast first-time use)
+- Initializes embedder (pre-loads SentenceTransformer model)
+- Sets vision service in context factory for tool access
+- Manages initialization order and error handling
 
 **Container Config Updater** (`core/container/config_updater.py`):
 - Handles runtime configuration updates
-- Updates all dependent services
-- Maintains consistency across components
+- Updates configuration service (triggers subscriber notifications)
+- Updates model service (recreates with new config)
+- Updates tool registry config
+- Re-initializes embedder if memory enabled status changed
+- Invalidates session factory to force recreation with new config
+- Maintains consistency across all components
+
+**Container Factories** (`core/container/factories.py`):
+- Factory functions for creating application components
+- `_create_agent_factory()`: Creates AgentFactory
+- `_create_tool_registry_with_factory()`: Creates ToolRegistry and ContextFactory together (resolves circular dependency)
+- `_create_tool_orchestrator()`: Creates ToolOrchestrator
+- `_create_embedder()`: Creates embedding provider if memory enabled
+- `_create_tts_service()`: Creates TTSService
+- `_create_vision_service()`: Creates VisionService with configured model
+
+**Agent Session Factory** (`core/container/session_factory.py`):
+- Factory for creating AgentSession instances with all dependencies
+- Handles dependency injection for session creation
+- Creates LLM client with session-specific config
+- Creates ToolOrchestrator for session
+- Validates plugin registry is initialized
+- Separates session creation logic from Container class
 
 ## Event System
 
 ### Event Bus (`core/bus.py`)
 
-Central event bus for component communication.
+Enhanced event bus for decoupled component communication with priority support, filtering, and error handling.
+
+**Responsibilities**:
+- Decouple components via event-driven architecture
+- Priority-based handler execution
+- Event filtering and middleware support
+- Memory management with weak references
+- Thread-safe operations
+
+**Key Features**:
+- **Priority Support**: Handlers execute in priority order (lower = higher priority)
+- **Event Filtering**: Optional filter functions to conditionally process events
+- **Polymorphism**: Respects inheritance hierarchy (MRO-based handler resolution)
+- **Memory Management**: Uses weak references for bound methods to prevent memory leaks
+- **Error Recovery**: Continues processing other handlers even if one fails
+- **Global Listeners**: "Before-all-handlers" listeners with blocking capability
+- **Handler Caching**: Caches sorted handler lists per event type for performance
+
+**Key Methods**:
+- `subscribe(event_type, handler, priority, filter_func)`: Subscribe handler to event type
+- `unsubscribe(event_type, handler)`: Unsubscribe handler
+- `publish(event)`: Publish event to all subscribers
+- `add_global_listener(listener)`: Add global listener (runs before all handlers)
+- `get_stats()`: Get event publishing statistics
+- `get_subscriber_count(event_type)`: Get number of subscribers for event type
+
+**Event Handler Wrapper**:
+- `EventHandlerWrapper`: Wraps handlers with metadata (priority, filter)
+- Uses weak references for bound methods to allow garbage collection
+- Checks handler liveness before calling (for weak references)
+
+**Usage**:
+```python
+from backend.src.core.bus import EventBus
+from backend.src.core.events import InteractionCompleted
+
+event_bus = EventBus()
+
+# Subscribe to events
+async def handle_interaction(event: InteractionCompleted):
+    print(f"Interaction {event.session_id} completed")
+
+event_bus.subscribe(InteractionCompleted, handle_interaction, priority=50)
+
+# Publish event
+await event_bus.publish(InteractionCompleted(session_id="session123"))
+```
 
 **Event Types**:
 - `InteractionCompleted`: Interaction finished
@@ -798,10 +1027,10 @@ Central event bus for component communication.
 - `MemoryStored`: Memory item stored
 - `ErrorOccurred`: Error event
 
-**Usage**:
-```python
-event_bus.emit(InteractionCompleted(session_id=...))
-```
+**Thread Safety**:
+- All operations use `RLock` for thread safety
+- Handler lists are copied during iteration to prevent race conditions
+- Statistics tracking is thread-safe
 
 ## Plugin System
 
@@ -877,27 +1106,38 @@ Base interface for plugins.
 - Configuration managed by `PluginConfigManager`
 - Plugins can access container for dependency injection
 
+### Plugin Discovery Service (`core/plugins/discovery_service.py`)
+
+Orchestrates plugin discovery from multiple sources.
+
+**Responsibilities**:
+- Coordinate multiple discovery mechanisms
+- Aggregate discovered plugins
+- Handle discovery errors gracefully
+- Return unified list of plugin classes
+
+**Discovery Sources**:
+- Entry points (setuptools)
+- Filesystem directories
+- Manual registration
+
 ## Error Handling
 
 ### Exception Hierarchy
 
-```
-BaseException
-├── DesktopAssistantException
-│   ├── LLMAPIError
-│   ├── ToolExecutionError
-│   ├── ConfigurationError
-│   ├── ValidationError
-│   └── MemoryError
-```
+See detailed exception hierarchy documentation above in the "Exception Hierarchy" section.
 
 ### Error Handling Flow
 
 1. Error occurs in component
-2. Caught and wrapped in domain exception
-3. Logged with context
-4. Sanitized message sent to frontend
-5. User-friendly error displayed
+2. Caught and wrapped in domain exception (BaseAppError subclass)
+3. Error logged with full context (server-side)
+4. Sanitized error message sent to frontend (prevents information leakage)
+5. User-friendly error displayed in UI
+
+### Validation Framework
+
+See detailed validation framework documentation above in the "Validation Framework" section.
 
 ## Security
 
@@ -1030,20 +1270,87 @@ Constructs LLM prompts with tool schemas and images, enforcing security limits.
 - Validates image data size
 - Limits tool schema size
 
+## Simulation Backend
+
+### Overview
+
+The simulation backend (`backend/src/simulation/`) is a testing/simulation mode that runs the exact same backend flow as production, but intercepts LLM calls and returns hardcoded responses. This allows testing the complete system without actual LLM API calls.
+
+### Architecture
+
+**SimulationInitializationCoordinator** (`simulation/main.py`):
+- Extends `InitializationCoordinator` from main backend
+- Overrides LLM client factory to use `MockLLMClient`
+- All other services work identically to production (vision, TTS, tools, etc.)
+
+**MockLLMClient** (`simulation/mock_llm_client.py`):
+- Intercepts all LLM calls and returns hardcoded responses
+- Uses `SIMULATION_RESPONSES` list to return predefined tool calls
+- Platform-aware (adjusts commands for Windows, macOS, Linux)
+- Returns responses in the same format as real LLM (JSON with functionCall)
+
+**Simulation Sequence**:
+- Each step in `SIMULATION_RESPONSES` represents one LLM iteration
+- Responses include tool calls with explanations and expectations
+- Supports tool bundling (multiple tool calls in sequence)
+- Platform-specific commands (e.g., Chrome opening command varies by OS)
+
+### Usage
+
+**Running Simulation Backend**:
+```bash
+cd backend
+python -m src.simulation.main
+```
+
+Or using uvicorn:
+```bash
+cd backend
+uvicorn src.simulation.main:app --host 0.0.0.0 --port 8765 --reload
+```
+
+**Features**:
+- Same WebSocket API as production backend
+- Same REST endpoints (embeddings, semantic)
+- Same tool execution flow
+- Same session management
+- Only difference: LLM calls return hardcoded responses
+
+**Use Cases**:
+- Testing complete system flow without LLM API costs
+- Debugging tool execution pipelines
+- Testing frontend integration
+- Reproducible testing scenarios
+
 ## Testing
 
 ### Test Structure
 
 ```
 tests/backend/
-├── test_agent_system.py
-├── test_tool_execution.py
-├── test_llm_integration.py
-├── test_parser_helpers.py
-├── test_query_handler_pipeline.py
-├── test_llm_parser.py
-├── test_system_monitor.py
-├── test_*_tool_pipeline.py  # Tool-specific integration tests
+├── test_agent_system.py          # Agent system tests
+├── test_tool_execution.py          # Tool execution tests
+├── test_llm_integration.py        # LLM integration tests
+├── test_parser_helpers.py         # Parser utility tests
+├── test_query_handler_pipeline.py # Query handler pipeline tests
+├── test_llm_parser.py             # LLM response parser tests
+├── test_system_monitor.py         # System monitoring tests
+├── test_*_tool_pipeline.py       # Tool-specific integration tests
+│   ├── test_mouse_control_tool_pipeline.py
+│   ├── test_keyboard_control_tool_pipeline.py
+│   ├── test_read_file_tool_pipeline.py
+│   ├── test_write_file_tool_pipeline.py
+│   ├── test_screenshot_tool_pipeline.py
+│   ├── test_list_directory_tool_pipeline.py
+│   ├── test_search_file_content_tool_pipeline.py
+│   ├── test_replace_tool_pipeline.py
+│   ├── test_glob_tool_pipeline.py
+│   ├── test_read_many_files_tool_pipeline.py
+│   ├── test_run_shell_command_tool_pipeline.py
+│   ├── test_get_open_windows_tool_pipeline.py
+│   ├── test_get_system_stats_tool_pipeline.py
+│   ├── test_scroll_control_tool_pipeline.py
+│   └── ...
 └── ...
 ```
 
@@ -1053,6 +1360,25 @@ tests/backend/
 - **Integration Tests**: Component interactions (tool pipelines, query handler)
 - **Pipeline Tests**: End-to-end tool execution flows
 - **Mocking**: External dependencies mocked (LLM clients, file system)
+
+### Test Infrastructure
+
+**Test Framework**: pytest with asyncio support
+
+**Test Categories**:
+- **Unit Tests**: Test individual functions/classes in isolation
+- **Integration Tests**: Test component interactions
+- **Pipeline Tests**: Test complete tool execution pipelines (end-to-end)
+
+**Mocking Strategy**:
+- LLM clients mocked to avoid API calls
+- File system operations mocked where appropriate
+- External services mocked (embeddings, vision)
+
+**Test Utilities**:
+- Async test support via `pytest.mark.asyncio`
+- Mock fixtures for common dependencies
+- Test data fixtures for consistent test data
 
 ### Test Categories
 

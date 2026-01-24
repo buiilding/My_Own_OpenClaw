@@ -97,6 +97,86 @@ frontend/
 
 The renderer process runs in a browser-like environment and contains the React UI.
 
+#### Root Component
+
+**App** (`app/App.jsx`):
+- Root component with context providers
+- ErrorBoundary wrapper for error handling
+- Lazy loading for SettingsPanel (code splitting)
+- Context providers: AppProvider, ChatProvider
+
+**AppContent**:
+- Content wrapper with access to AppConfigContext
+- Renders MainLayout with ChatInterface and SettingsPanel
+- Uses split contexts for performance (only re-renders when specific context changes)
+
+#### Shared Components (`components/`)
+
+**ErrorBoundary** (`ErrorBoundary.jsx`):
+- React error boundary for catching component errors
+- Displays error UI with retry option
+- Logs errors for debugging
+- Prevents entire app crash on component errors
+
+**MainLayout** (`MainLayout.jsx`):
+- Main application layout
+- Chat interface and settings panel layout
+- Responsive design
+- Window management integration
+
+#### Chat Feature Components (`features/chat/components/`)
+
+**ChatInterface** (`ChatInterface.jsx`):
+- Main chat interface component
+- Integrates MessageList, MessageInput, ThinkingDisplay, TokenCountDisplay, TransparencySection
+- Manages chat state via hooks (useChatStream, useChatMessageSender, useToolRunner)
+- Handles voice mode integration
+
+**MessageInput** (`MessageInput.jsx`):
+- Text input for user messages
+- Voice mode integration (transcription)
+- Screenshot capture support
+- Send button and keyboard shortcuts (Enter to send, Shift+Enter for newline)
+
+**MessageList** (`MessageList.jsx`):
+- Displays chat messages
+- Scrolls to bottom on new messages
+- Message type rendering (user, assistant, tool-call, tool-output, error)
+- Screenshot display support
+
+**ThinkingDisplay** (`ThinkingDisplay.jsx`):
+- Displays LLM thinking/reasoning tokens (Gemini models)
+- Real-time thinking status updates
+- Auto-hides when thinking completes
+
+**TokenCountDisplay** (`TokenCountDisplay.jsx`):
+- Displays token usage information
+- Shows prompt_tokens, completion_tokens, total_tokens
+- Updates in real-time during streaming
+
+**TransparencySection** (`TransparencySection.jsx`):
+- Displays transparency information (system prompt, tool schemas, full messages)
+- Collapsible sections for each transparency type
+- System prompt display
+- Tool schemas display
+- Full user/assistant message display
+
+#### Settings Feature Components (`features/settings/components/`)
+
+**SettingsPanel** (`SettingsPanel.jsx`):
+- Settings configuration panel
+- Model selection (mode, provider, model)
+- Voice mode toggle
+- Speech mode toggle
+- Fully controlled component (derives all values from config prop)
+
+#### Voice Feature Components (`features/voice/components/`)
+
+**VoiceStatus** (`VoiceStatus.jsx`):
+- Displays voice mode status
+- Wakeword detection status
+- Connection status indicators
+
 #### Component Hierarchy
 
 ```
@@ -229,10 +309,16 @@ App
 - Cursor position management
 
 **Key Features**:
-- Transcription region tracking (start/end positions)
-- Smart replacement: Replaces existing transcription region
-- User input handling: Invalidates transcription if user types within region
-- Paste handling: Updates transcription boundaries on paste
+- **Transcription Region Tracking**: Tracks start/end positions of transcription text
+- **Smart Replacement**: Replaces existing transcription region when new transcription arrives
+- **User Input Handling**: Invalidates transcription if user types within region
+- **Paste Handling**: Updates transcription boundaries on paste
+- **Cursor Management**: Maintains cursor position after transcription insertion
+
+**Methods**:
+- `insertTranscription(text)`: Insert transcription text with smart replacement
+- `handleInputChange(event)`: Handle user input (invalidates transcription if within region)
+- `handlePaste(event)`: Handle paste events (updates boundaries)
 
 **Settings Feature Hooks** (`features/settings/hooks/`)
 
@@ -251,12 +337,17 @@ App
 - Utterance end detection (silence detection)
 
 **Key Features**:
-- Audio capture: 16kHz, mono, echo cancellation, noise suppression
-- Float32 to Int16 conversion for transmission
-- Audio message formatting for Nova-Voice Gateway
-- Real-time transcription updates
-- Utterance end callback (triggers auto-send)
-- Connection state management
+- **Audio Capture**: 16kHz, mono, echo cancellation, noise suppression
+- **Format Conversion**: Float32 to Int16 conversion for transmission
+- **Message Formatting**: Audio message formatting for Nova-Voice Gateway
+- **Real-time Transcription**: Updates transcription in real-time
+- **Utterance End**: Callback triggers auto-send on silence detection
+- **Connection Management**: Automatic reconnection with exponential backoff
+
+**Methods**:
+- `startVoiceMode()`: Start voice mode and connect to gateway
+- `stopVoiceMode()`: Stop voice mode and disconnect
+- `sendAudioChunk(chunk)`: Send audio chunk to gateway
 
 **useWakewordDetection** (`useWakewordDetection.ts`)
 - Wakeword detection via openWakeWord (Python subprocess)
@@ -266,12 +357,18 @@ App
 - Chunk size validation (must be power of 2)
 
 **Key Features**:
-- Audio capture: 16kHz, mono, echo cancellation, noise suppression, auto gain control
-- Float32 to Int16 conversion
-- Audio chunk transmission via IPC (`wakeword-audio-chunk`)
-- Detection threshold (default: 0.5)
-- Service status monitoring
-- Automatic disable on detection (prevents buffered chunks from re-triggering)
+- **Audio Capture**: 16kHz, mono, echo cancellation, noise suppression, auto gain control
+- **Format Conversion**: Float32 to Int16 conversion
+- **IPC Communication**: Audio chunk transmission via IPC (`wakeword-audio-chunk`)
+- **Detection Threshold**: Default 0.5 (configurable)
+- **Service Status**: Monitors wakeword service status
+- **Auto-Disable**: Automatically disables on detection (prevents buffered chunks from re-triggering)
+- **Cooldown**: 2-second cooldown prevents rapid re-detections
+
+**Methods**:
+- `enableWakeword()`: Enable wakeword detection
+- `disableWakeword()`: Disable wakeword detection
+- `isEnabled()`: Check if wakeword detection is enabled
 
 ### Main Process (Node.js)
 
@@ -286,11 +383,12 @@ The main process manages the application lifecycle and IPC communication.
 - Application lifecycle (quit handling, cleanup)
 - Window minimize handler (delayed minimization)
 
-**Features**:
-- Hardware acceleration disabled (prevents GPU crashes)
-- Window hides to tray on close (doesn't quit)
-- Tray icon with context menu (Show App, Quit)
-- Subprocess cleanup on quit (local backend, wakeword service)
+**Key Features**:
+- **Hardware Acceleration**: Disabled (prevents GPU crashes)
+- **Window Behavior**: Hides to tray on close (doesn't quit)
+- **System Tray**: Tray icon with context menu (Show App, Quit)
+- **Subprocess Management**: Spawns and manages local backend and wakeword service
+- **Cleanup**: Cleans up subprocesses on quit
 
 **ipc.cjs**
 - IPC bridge between renderer and main
@@ -309,12 +407,28 @@ The main process manages the application lifecycle and IPC communication.
 - **Auto-Reconnect**: Reconnects on disconnect with 5s interval
 - **Message Transformation**: Adds user_id, timestamp, system state, memories
 
+**IPC Handlers**:
+- `to-backend`: Forwards messages to backend WebSocket
+- `from-backend`: Forwards WebSocket messages to renderer
+- `execute-tool`: Executes tool via local backend bridge
+- `get-system-state`: Gets system state via local backend bridge
+- `store-memory`: Stores memory via local backend bridge
+- `search-memory`: Searches memory via local backend bridge
+- `minimize-window-delayed`: Minimizes window after 2s delay
+
 **wakeword_bridge.cjs**
 - Python wakeword service management (subprocess)
 - Audio chunk forwarding (binary protocol)
 - Detection result handling
 - Service status management
 - Buffer clearing on enable/disable
+
+**Key Features**:
+- **Binary Protocol**: 4-byte length prefix + audio data over stdin
+- **Status Monitoring**: Parses JSON status messages from stderr
+- **Model Download**: Handles model download status messages
+- **Error Filtering**: Filters harmless graphics driver warnings
+- **Process Lifecycle**: Spawns and manages Python subprocess
 
 **local_backend_bridge.cjs**
 - Python local backend service management (subprocess)
@@ -330,6 +444,13 @@ The main process manages the application lifecycle and IPC communication.
 - **Request Tracking**: Maps request IDs to callbacks
 - **Error Handling**: Graceful degradation on process failures
 - **Python Path Caching**: Caches Python executable path
+- **Method Support**: `execute_tool`, `get_system_state`, `search_memory`, `store_memory`, `ping`, `get_status`
+
+**test_shell.cjs**
+- Test script for shell tool functionality
+- Tests Google Chrome command execution
+- Platform-specific command variations (Windows, macOS, Linux)
+- Colored terminal output for test results
 
 #### IPC Channels
 
@@ -535,15 +656,36 @@ The Python sidecar handles tool execution and system state capture.
 The frontend uses a hybrid approach combining React Context API and Zustand:
 
 **Context API** (for app-level, infrequently changing state):
-- **AppConfigContext**: Application configuration, models, wakeword state
-  - Loads from localStorage immediately (optimistic state, zero latency)
-  - Manages available models list
-  - Handles config updates and persistence
-  - Filters config to frontend-managed fields only
-- **AppStatusContext**: Transient status (save status)
-  - Settings save status (idle, saving, success, error)
-  - Auto-resets to idle after 3 seconds
-  - Separated from config to prevent unnecessary re-renders
+
+**AppProvider** (`app/providers/AppProvider.jsx`):
+- Main app provider that composes AppConfigContext and AppStatusContext
+- Provides unified access to app-level state
+- Exports hooks: `useAppConfigContext()`, `useAppStatusContext()`
+
+**AppConfigContext** (`app/providers/AppConfigContext.jsx`):
+- Application configuration, models, wakeword state
+- Loads from localStorage immediately (optimistic state, zero latency)
+- Manages available models list
+- Handles config updates and persistence
+- Filters config to frontend-managed fields only
+
+**Key Features**:
+- **Optimistic State**: Loads from localStorage immediately (zero latency)
+- **Config Filtering**: Only manages frontend-managed fields (model_mode, model_provider, selected_model_id, voice_mode_enabled, speech_mode_enabled)
+- **Model Management**: Requests and manages available models list
+- **Persistence**: Saves config to localStorage on updates
+- **Change Detection**: Skips save if no changes detected
+
+**AppStatusContext** (`app/providers/AppStatusContext.jsx`):
+- Transient status (save status)
+- Settings save status (idle, saving, success, error)
+- Auto-resets to idle after 3 seconds
+- Separated from config to prevent unnecessary re-renders
+
+**ChatProvider** (`app/providers/ChatProvider.jsx`):
+- Chat-specific context provider
+- Manages chat-related state
+- Provides chat-related utilities
 
 **Zustand Store** (for chat state):
 - **chatStore** (`features/chat/stores/chatStore.ts`): Chat messages, sending state, thinking status, token counts
@@ -557,14 +699,37 @@ The frontend uses a hybrid approach combining React Context API and Zustand:
 - `thinkingStatus`: String for LLM thinking tokens
 - `tokenCounts`: TokenCounts object (prompt_tokens, completion_tokens, total_tokens)
 
+**ChatMessage Interface**:
+- `id`: Unique message identifier
+- `text`: Message text content
+- `sender`: 'user' | 'assistant'
+- `type`: Optional message type ('llm-text' | 'tool-call' | 'tool-output' | 'error')
+- `isComplete`: Boolean flag for streaming completion
+- `screenshot`: Optional base64-encoded screenshot
+- `toolMetadata`: Optional tool execution metadata
+- `toolName`: Optional tool name
+- `executionTime`: Optional execution time in seconds
+- `success`: Optional success flag
+- `correlationId`: Optional correlation ID
+- `timestamp`: Optional ISO timestamp
+- `systemPrompt`: Optional system prompt for transparency
+- `toolSchemas`: Optional tool schemas for transparency
+- `fullUserMessage`: Optional full user message for transparency
+- `fullAssistantMessage`: Optional full assistant message for transparency
+
 **ChatStore Actions**:
 - `addMessage(message)`: Add new message
-- `updateMessage(id, updates)`: Update existing message
+- `updateMessage(id, updates)`: Update existing message (partial updates)
 - `setMessages(messages)`: Replace all messages
 - `setIsSending(isSending)`: Update sending state
-- `setThinkingStatus(status)`: Update thinking status
-- `setTokenCounts(counts)`: Update token counts
+- `setThinkingStatus(status)`: Update thinking status (null to clear)
+- `setTokenCounts(counts)`: Update token counts (null to clear)
 - `clearMessages()`: Clear all messages (resets to initial message)
+
+**Performance Features**:
+- **Shallow Equality**: Zustand uses shallow equality for performance
+- **Direct Subscriptions**: Components subscribe directly to store slices
+- **O(1) Access**: Direct property access (no context propagation overhead)
 
 ### State Flow
 
@@ -595,14 +760,36 @@ UI Update
 
 ### API Client (`infrastructure/api/client.ts`)
 
-Typed API client for backend communication.
+Typed API client for backend communication using typed IPC bridge.
 
 **Methods**:
-- `sendQuery(text, screenshot)`: Send user query
-- `updateSettings(settings)`: Update settings
+- `sendQuery(text, screenshot, config)`: Send user query with optional screenshot and config
 - `listModels()`: Request available models
-- `loadSettings()`: Request current settings
 - `wakewordDetected()`: Notify wakeword detection
+
+**Features**:
+- Uses IpcBridge for type-safe IPC communication
+- Mirrors backend message schema
+- Optional config dictionary for per-query model selection
+
+### Utilities (`renderer/utils/`)
+
+**configFilter.js**:
+- `filterFrontendConfig(config)`: Filters config to only frontend-managed fields
+- `isFrontendConfigOnly(config)`: Checks if config only contains frontend-managed fields
+- **Frontend-Managed Fields**: `model_mode`, `model_provider`, `selected_model_id`, `voice_mode_enabled`, `speech_mode_enabled`
+
+**configStorage.js**:
+- `loadConfigFromStorage()`: Load config from localStorage (optimistic state)
+- `saveConfigToStorage(config, version)`: Save config to localStorage
+- `getConfigVersion()`: Get stored config version timestamp
+- `clearConfigStorage()`: Clear stored configuration
+
+**Features**:
+- **Optimistic State**: Loads from localStorage immediately (zero latency)
+- **Version Tracking**: Tracks config version with timestamps
+- **Error Recovery**: Handles corrupted localStorage data gracefully
+- **Validation**: Validates config format before saving/loading
 
 ### IPC Bridge (`infrastructure/ipc/bridge.ts`)
 
@@ -614,15 +801,39 @@ Type-safe IPC bridge abstraction with channel validation.
 - Preload.js security validation in production
 - O(1) channel lookup using Set data structures
 
-**Methods**:
-- `IpcBridge.send(channel, data)`: Send one-way message
-- `IpcBridge.invoke(channel, data)`: Invoke async handler
-- `IpcBridge.on(channel, handler)`: Subscribe to messages
-- `IpcBridge.once(channel, handler)`: One-time subscription
+**IpcBridge Object**:
+- `send(channel, data)`: Send one-way message (no response)
+- `invoke(channel, data)`: Invoke async handler (returns Promise)
+- `on(channel, handler)`: Subscribe to messages (returns unsubscribe function)
+- `once(channel, handler)`: One-time subscription (auto-unsubscribes after first message)
+
+**Channel Types** (`infrastructure/ipc/channels.ts`):
+- **SEND_CHANNELS**: One-way messages (renderer → main)
+  - `TO_BACKEND`: Messages to backend
+  - `WAKEWORD_AUDIO_CHUNK`: Audio data (ArrayBuffer)
+  - `WAKEWORD_ENABLE`: Enable wakeword detection
+  - `WAKEWORD_DISABLE`: Disable wakeword detection
+- **INVOKE_CHANNELS**: Async invocations (renderer → main, with response)
+  - `EXECUTE_TOOL`: Execute tool via Python sidecar
+  - `GET_SYSTEM_STATE`: Get current system state
+  - `STORE_MEMORY`: Store memory in local store
+  - `SEARCH_MEMORY`: Search local memory
+  - `MINIMIZE_WINDOW_DELAYED`: Minimize window after 2s delay
+- **ON_CHANNELS**: Event listeners (main → renderer)
+  - `FROM_BACKEND`: Messages from backend
+  - `IPC_STATUS`: WebSocket connection status
+  - `LOG`: Log messages from main process
+  - `WAKEWORD_DETECTED`: Wakeword detection event
+  - `WAKEWORD_STATUS`: Wakeword service status
+
+**Security**:
+- Channels whitelisted in preload.js
+- Runtime validation in development mode
+- Type-safe channel constants prevent typos
 
 ### Services (`infrastructure/services/`)
 
-**ToolExecutionService** (`ToolExecutionService.ts`):
+**ToolExecutionService** (`infrastructure/services/ToolExecutionService.ts`):
 - Handles tool execution and bundling
 - Automatic screenshot capture for computer-use tools:
   - Individual tools: Screenshot captured **once** after tool execution
@@ -632,18 +843,51 @@ Type-safe IPC bridge abstraction with channel validation.
 - Callback-based architecture for UI updates
 - Pure infrastructure code (no React dependencies)
 
-**MessageFormatter** (`MessageFormatter.ts`):
+**Key Methods**:
+- `executeTool(toolName, args, callbacks)`: Execute single tool
+- `executeToolBundle(tools, bundleId, callbacks)`: Execute atomic bundle (sequential, fail-fast)
+- `captureSystemStateAndScreenshot(callbacks)`: Capture system state and screenshot (2s delay, parallel)
+- `_executeToolViaIPC(toolName, args, skipAutoCapture)`: Execute tool via IPC invoke
+
+**Features**:
+- **Atomic Bundling**: Tools in bundle execute sequentially, fail-fast on error
+- **Screenshot Optimization**: Single screenshot capture per bundle (not per tool)
+- **Error Handling**: Graceful error handling with callback notifications
+- **State Capture**: Parallel system state and screenshot capture for efficiency
+
+**MessageFormatter** (`infrastructure/services/MessageFormatter.ts`):
 - Pure functions for formatting tool output messages
 - System context XML formatting
 - Tool result formatting
 - Bundle result formatting
 - No side effects, no React dependencies
 
+**Key Functions**:
+- `formatSystemContext(systemState)`: Format system state as XML
+- `formatToolResult(toolName, result, systemState, screenshot)`: Format single tool result
+- `formatBundleResult(bundleId, stepResults, systemState, screenshot)`: Format bundle result
+- `formatToolOutputMessage(...)`: Format complete tool output message
+
 **PlayerService** (`infrastructure/audio/PlayerService.ts`):
 - TTS audio playback queue
 - Sequential playback management
 - Audio format conversion
 - Callback-based architecture
+
+**Key Methods**:
+- `playAudio(audioData, format, callback)`: Queue audio for playback
+  - `audioData`: Base64-encoded audio data
+  - `format`: Audio format ("wav" or "mp3")
+  - `callback`: Optional callback when playback completes
+- `stop()`: Stop current playback and clear queue
+- `isPlaying()`: Check if audio is currently playing
+
+**Features**:
+- **Queue Management**: Sequential playback queue (one audio at a time)
+- **Format Support**: Handles base64-encoded audio (WAV, MP3)
+- **Playback Control**: Stop and clear queue functionality
+- **Audio Element**: Uses HTML5 Audio element for playback
+- **Error Handling**: Handles playback errors gracefully
 
 ## Security
 
@@ -703,18 +947,42 @@ Type-safe IPC bridge abstraction with channel validation.
 
 ```
 tests/frontend/
-├── App.spec.jsx
-├── ChatInterface.spec.jsx
-├── MainLayout.spec.jsx
-└── SettingsPanel.spec.jsx
+├── App.spec.jsx              # Root App component tests
+├── ChatInterface.spec.jsx    # Chat interface tests
+├── MainLayout.spec.jsx       # Main layout tests
+├── SettingsPanel.spec.jsx    # Settings panel tests
+├── ThinkingDisplay.spec.jsx  # Thinking display tests
+├── ErrorBoundary.spec.jsx    # Error boundary tests
+└── __mocks__/
+    └── styleMock.js          # CSS module mock
 ```
 
 ### Testing Tools
 
-- **Jest**: Test runner
-- **React Testing Library**: Component testing
-- **jsdom**: DOM environment
-- **Babel**: JavaScript transpilation
+- **Jest**: Test runner with jsdom environment
+- **React Testing Library**: Component testing utilities
+- **jsdom**: DOM environment for browser-like testing
+- **Babel**: JavaScript transpilation (via babel.config.cjs)
+- **@testing-library/jest-dom**: Custom Jest matchers for DOM
+
+### Test Configuration
+
+**jest.config.cjs**:
+- Test environment: jsdom
+- Module name mapping for CSS imports
+- Transform patterns for JS/JSX files
+- Coverage collection
+
+**jest.setup.js**:
+- Global test setup
+- Custom matchers from @testing-library/jest-dom
+
+### Testing Patterns
+
+- **Component Testing**: Test component rendering and interactions
+- **Hook Testing**: Test custom hooks in isolation
+- **Integration Testing**: Test component interactions
+- **Mocking**: Mock IPC bridge, WebSocket, and external services
 
 ## Development Workflow
 
