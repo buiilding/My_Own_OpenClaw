@@ -55,20 +55,8 @@ SIMULATION_RESPONSES = [
                 "args": {
                     "command": _chrome_command,
                     "run_in_background": True,
-                    "explanation": "Opening Google Chrome browser in the background to start the navigation flow."
-                }
-            }
-        })
-    },
-    # Iteration 2: Wait for Chrome to load
-    {
-        "response": json.dumps({
-            "functionCall": {
-                "name": "wait",
-                "args": {
-                    "seconds": 2.0,
-                    "explanation": "Waiting for Chrome to start loading before taking a screenshot.",
-                    "expectation": "Chrome should be starting up and loading its initial page."
+                    "explanation": "Opening Google Chrome browser in the background to start the navigation flow.",
+                    "wait": 2.0
                 }
             }
         })

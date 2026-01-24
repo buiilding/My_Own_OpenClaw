@@ -5,7 +5,7 @@ Handles tool result processing from the frontend.
 Extracted from AgentSession to reduce god object complexity.
 """
 import logging
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from backend.src.agent.core.core import AgentSession

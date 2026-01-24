@@ -5,7 +5,7 @@ This module defines Pydantic models for all WebSocket message types used in the 
 including incoming messages (query, settings updates) and outgoing responses.
 """
 import re
-from typing import Any, Dict, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field, field_validator
 
 from backend.src.core.validation import ValidationError, validate_user_id
