@@ -99,6 +99,62 @@ export class ToolExecutionService {
   }
 
   /**
+   * Capture system state and screenshot after tool execution.
+   * This is called ONCE after individual tool execution or ONCE after all bundled tools.
+   * 
+   * @param context - Context string for logging (e.g., "after keyboard_control" or "after bundle")
+   * @returns Object with systemState and screenshot, or null if capture failed
+   */
+  private async captureSystemStateAndScreenshot(context: string): Promise<{ systemState: SystemState | null; screenshot: string | null }> {
+    console.log(`[ToolExecutionService] Capturing system state and screenshot ${context}...`);
+    
+    // 2 second delay for UI to update before capturing
+    await new Promise(r => setTimeout(r, 2000));
+
+    try {
+      const combinedStartTime = performance.now();
+      const systemStateStartTime = performance.now();
+      const screenshotStartTime = performance.now();
+      
+      console.log('[Timing] Starting parallel system state and screenshot capture...');
+      
+      // Get system state and screenshot in parallel
+      const [stateResult, screenshotResult] = await Promise.all([
+        IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE).then(result => {
+          const systemStateTime = (performance.now() - systemStateStartTime) / 1000;
+          console.log(`[Timing] Get system state completed: took ${systemStateTime.toFixed(3)}s`);
+          return result;
+        }),
+        IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
+          toolName: 'screenshot',
+          args: {
+            explanation: `Screenshot ${context}`,
+            expectation: `State ${context}`
+          },
+          skipAutoCapture: false
+        }).then(result => {
+          const screenshotTime = (performance.now() - screenshotStartTime) / 1000;
+          console.log(`[Timing] Screenshot capture completed: took ${screenshotTime.toFixed(3)}s`);
+          return result;
+        })
+      ]);
+
+      const combinedTime = (performance.now() - combinedStartTime) / 1000;
+      console.log(`[Timing] Combined system state + screenshot (parallel): took ${combinedTime.toFixed(3)}s`);
+
+      const systemState = stateResult;
+      const screenshot = screenshotResult.success && screenshotResult.data && typeof screenshotResult.data === 'object'
+        ? screenshotResult.data.screenshot || null
+        : null;
+
+      return { systemState, screenshot };
+    } catch (err) {
+      console.error(`[ToolExecutionService] Failed to capture system state/screenshot ${context}:`, err);
+      return { systemState: null, screenshot: null };
+    }
+  }
+
+  /**
    * Execute a single tool
    */
   async executeTool(
@@ -126,54 +182,19 @@ export class ToolExecutionService {
       let screenshot = result.data?.screenshot || null;
       let systemState: SystemState | null = result.data?.system_state || null;
 
-      // Capture screenshot and system state for computer-use tools if not already present
+      // Capture screenshot and system state ONCE after individual tool execution if needed
       if (isComputerUseTool && !options.skipAutoCapture && !screenshot) {
-        console.log(`[ToolExecutionService] Capturing screenshot for individual computer-use tool: ${toolName}`);
-        await new Promise(r => setTimeout(r, 2000)); // Small delay for UI to update
+        const captureResult = await this.captureSystemStateAndScreenshot(`after ${toolName}`);
+        systemState = captureResult.systemState;
+        screenshot = captureResult.screenshot;
 
-        try {
-          const combinedStartTime = performance.now();
-          const systemStateStartTime = performance.now();
-          const screenshotStartTime = performance.now();
-          
-          console.log('[Timing] Starting parallel system state and screenshot capture...');
-          
-          const [stateResult, screenshotResult] = await Promise.all([
-            IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE).then(result => {
-              const systemStateTime = (performance.now() - systemStateStartTime) / 1000;
-              console.log(`[Timing] Get system state completed: took ${systemStateTime.toFixed(3)}s`);
-              return result;
-            }),
-            IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
-              toolName: 'screenshot',
-              args: {
-                explanation: `Screenshot after ${toolName}`,
-                expectation: 'State after tool execution'
-              },
-              skipAutoCapture: false
-            }).then(result => {
-              const screenshotTime = (performance.now() - screenshotStartTime) / 1000;
-              console.log(`[Timing] Screenshot capture completed: took ${screenshotTime.toFixed(3)}s`);
-              return result;
-            })
-          ]);
-
-          const combinedTime = (performance.now() - combinedStartTime) / 1000;
-          console.log(`[Timing] Combined system state + screenshot (parallel): took ${combinedTime.toFixed(3)}s`);
-
-          systemState = stateResult;
-          screenshot = screenshotResult.success ? screenshotResult.data?.screenshot : null;
-
-          // Add screenshot to result data
-          if (screenshot && result.data && typeof result.data === 'object') {
-            result.data = {
-              ...result.data,
-              screenshot: screenshot,
-              system_state: systemState
-            };
-          }
-        } catch (err) {
-          console.error(`[ToolExecutionService] Failed to capture screenshot for ${toolName}:`, err);
+        // Add screenshot to result data
+        if (screenshot && result.data && typeof result.data === 'object') {
+          result.data = {
+            ...result.data,
+            screenshot: screenshot,
+            system_state: systemState
+          };
         }
       }
 
@@ -333,56 +354,25 @@ export class ToolExecutionService {
         COMPUTER_USE_TOOLS.includes(tool.toolName)
       );
 
-      // Get system state and screenshot ONCE at bundle end
+      // Get system state and screenshot ONCE after all bundled tools execute
       let systemState: SystemState | null = null;
       let screenshot: string | null = null;
 
       if (hasComputerUseTool) {
-        console.log('[ToolExecutionService] Getting system state and screenshot (computer-use tool detected)...');
-        await new Promise(r => setTimeout(r, 2000)); // 2s delay for UI to update
-
-        try {
-          const combinedStartTime = performance.now();
-          const systemStateStartTime = performance.now();
-          const screenshotStartTime = performance.now();
-          
-          console.log('[Timing] Starting parallel system state and screenshot capture...');
-          
-          // Get system state and screenshot in parallel
-          const [stateResult, screenshotResult] = await Promise.all([
-            IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE).then(result => {
-              const systemStateTime = (performance.now() - systemStateStartTime) / 1000;
-              console.log(`[Timing] Get system state completed: took ${systemStateTime.toFixed(3)}s`);
-              return result;
-            }),
-            IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
-              toolName: 'screenshot',
-              args: {
-                explanation: 'Bundle end screenshot',
-                expectation: 'State after bundle'
-              },
-              skipAutoCapture: false // Don't skip for final screenshot
-            }).then(result => {
-              const screenshotTime = (performance.now() - screenshotStartTime) / 1000;
-              console.log(`[Timing] Screenshot capture completed: took ${screenshotTime.toFixed(3)}s`);
-              return result;
-            })
-          ]);
-
-          const combinedTime = (performance.now() - combinedStartTime) / 1000;
-          console.log(`[Timing] Combined system state + screenshot (parallel): took ${combinedTime.toFixed(3)}s`);
-
-          systemState = stateResult;
-          screenshot = screenshotResult.success && screenshotResult.data && typeof screenshotResult.data === 'object'
-            ? screenshotResult.data.screenshot || null
-            : null;
-        } catch (err) {
-          console.error('[ToolExecutionService] Failed to get system state/screenshot:', err);
-        }
+        const captureResult = await this.captureSystemStateAndScreenshot('after bundle execution');
+        systemState = captureResult.systemState;
+        screenshot = captureResult.screenshot;
       } else {
         console.log('[ToolExecutionService] Skipping system state/screenshot (no computer-use tools in bundle)');
       }
 
+      // Calculate execution time BEFORE formatting (formatting is overhead, not execution time)
+      const bundleExecutionTime = (performance.now() - bundleStartTime) / 1000;
+      console.log(`[Timing] Bundle execution completed: ${bundle.length} tools took ${bundleExecutionTime.toFixed(3)}s (bundle_id=${correlationId})`);
+
+      // Time formatting operations separately
+      const formattingStartTime = performance.now();
+      
       // Format combined bundled message for display and backend
       const combinedFormattedMessage = formatBundledToolOutputMessage(
         results.map(r => ({
@@ -396,11 +386,14 @@ export class ToolExecutionService {
         screenshot
       );
 
-      // Prepare bundle result
+      const formattingTime = (performance.now() - formattingStartTime) / 1000;
+      console.log(`[Timing] Message formatting took ${formattingTime.toFixed(3)}s`);
+
+      // Prepare bundle result (use pre-calculated execution time, not including formatting overhead)
       const bundleResult: BundleExecutionResult = {
         correlationId,
         results,
-        totalTime: (performance.now() - bundleStartTime) / 1000,
+        totalTime: bundleExecutionTime,
         formattedMessage: combinedFormattedMessage,
         screenshot,
         systemState
@@ -438,8 +431,6 @@ export class ToolExecutionService {
 
       // Send bundled result to backend
       if (this.callbacks.sendToBackend) {
-        const bundleTotalTime = (performance.now() - bundleStartTime) / 1000;
-        console.log(`[Timing] Bundle execution completed: ${bundle.length} tools took ${bundleTotalTime.toFixed(3)}s (bundle_id=${correlationId})`);
         console.log('[ToolExecutionService] Sending bundled result');
 
         this.callbacks.sendToBackend({

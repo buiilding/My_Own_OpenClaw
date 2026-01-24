@@ -12,28 +12,12 @@ from typing import Any, Dict, Optional
 
 from backend.src.agent.core.core import AgentSession
 from backend.src.core.config import AppConfig
-from backend.src.core.config.manager import load_api_key_for_provider
+from backend.src.core.config.manager import load_api_key_for_provider, get_default_tts_model_path
 from backend.src.core.config.subscription_manager import ConfigSubscriber
 
 logger = logging.getLogger(__name__)
 
 
-def _get_default_tts_model_path() -> str:
-    """
-    Get default TTS model path, cross-platform compatible.
-    
-    Returns:
-        Default TTS model path based on user's home directory
-    """
-    home = Path.home()
-    return str(
-        home
-        / ".config"
-        / "DesktopAssistant"
-        / "tts_models"
-        / "piper"
-        / "en_GB-jenny_dioco-medium.onnx"
-    )
 
 
 class SessionManager(ConfigSubscriber):
@@ -204,7 +188,7 @@ class SessionManager(ConfigSubscriber):
                 tts_will_be_enabled = config_dict.get("tts_enabled", self.config.tts_enabled)
                 if tts_will_be_enabled:
                     if not config_dict.get("tts_model_path") and not self.config.tts_model_path:
-                        config_dict["tts_model_path"] = _get_default_tts_model_path()
+                        config_dict["tts_model_path"] = get_default_tts_model_path()
                 
                 # Load API key for provider (if model_provider is in config)
                 session_config = AppConfig(**config_dict)

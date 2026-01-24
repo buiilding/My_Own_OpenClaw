@@ -6,27 +6,8 @@ Edit this file to change application settings.
 
 Note: Changes require application restart to take effect.
 """
-import os
-from pathlib import Path
-
 from backend.src.core.config.models import AppConfig, LLMProviders, OCRConfig, SecurityLimits
-
-# Default TTS model path
-def _get_default_tts_model_path() -> str:
-    """Get default TTS model path based on OS."""
-    if os.name == "nt":  # Windows
-        appdata = os.getenv("APPDATA")
-        if appdata:
-            return str(Path(appdata) / "DesktopAssistant" / "tts_models" / "piper" / "en_GB-jenny_dioco-medium.onnx")
-    elif os.name == "posix":
-        home_dir = Path.home()
-        import platform
-        if platform.system() == "Darwin":  # macOS
-            return str(home_dir / "Library" / "Application Support" / "DesktopAssistant" / "tts_models" / "piper" / "en_GB-jenny_dioco-medium.onnx")
-        else:  # Linux
-            return str(home_dir / ".config" / "DesktopAssistant" / "tts_models" / "piper" / "en_GB-jenny_dioco-medium.onnx")
-    # Fallback
-    return str(Path.home() / ".config" / "DesktopAssistant" / "tts_models" / "piper" / "en_GB-jenny_dioco-medium.onnx")
+from backend.src.core.config.manager import get_default_tts_model_path
 
 
 # Default application configuration
@@ -70,7 +51,7 @@ APP_CONFIG = AppConfig(
     
     # TTS Settings
     tts_enabled=True,
-    tts_model_path=_get_default_tts_model_path(),
+    tts_model_path=get_default_tts_model_path(),
     speech_mode_enabled=False,
     
     # Security limits
