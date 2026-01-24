@@ -327,19 +327,32 @@ class ToolPreparer:
                     # Skip further processing - tool failed during preparation
                     # The orchestrator will still process this tool call from parsed_response.tool_calls
                     # and find the synthetic result in _pending_tool_results for history storage.
-                    continue
-
-            # Store prepared tool call in session for ToolOrchestrator to use
-            # ENCAPSULATION: Use public method instead of accessing private member
-            session.register_prepared_tool_call(request_id, prepared_call)
-            
-            # Yield the prepared tool call event (uses prepared parameters, not mutated original)
-            yield ToolCallEvent(
-                tool_name=prepared_call.tool_name,
-                parameters=prepared_call.parameters,
-                raw_call=prepared_call.raw_call,
-                request_id=request_id,
-            )
+                    # Don't yield ToolCallEvent here since we already yielded it above with the error
+                else:
+                    # Coordinate resolution succeeded - continue with normal processing
+                    # Store prepared tool call in session for ToolOrchestrator to use
+                    # ENCAPSULATION: Use public method instead of accessing private member
+                    session.register_prepared_tool_call(request_id, prepared_call)
+                    
+                    # Yield the prepared tool call event (uses prepared parameters, not mutated original)
+                    yield ToolCallEvent(
+                        tool_name=prepared_call.tool_name,
+                        parameters=prepared_call.parameters,
+                        raw_call=prepared_call.raw_call,
+                        request_id=request_id,
+                    )
+            else:
+                # Tool doesn't need coordinate resolution - proceed directly
+                # Store prepared tool call in session for ToolOrchestrator to use
+                session.register_prepared_tool_call(request_id, prepared_call)
+                
+                # Yield the prepared tool call event
+                yield ToolCallEvent(
+                    tool_name=prepared_call.tool_name,
+                    parameters=prepared_call.parameters,
+                    raw_call=prepared_call.raw_call,
+                    request_id=request_id,
+                )
         
         preparation_total_time = time.perf_counter() - preparation_start_time
         logger.info(f"[Timing] Tool preparation completed: {len(tool_calls)} tool(s) in {preparation_total_time:.3f}s")
