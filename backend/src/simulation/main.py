@@ -58,7 +58,7 @@ async def lifespan(app: FastAPI):
             """Initialize container for simulation mode."""
             logger.info("Phase 2: Initializing container (simulation mode)...")
             
-            from backend.src.core.container.container import Container
+            from backend.src.core.container.facade import Container
             from backend.src.api.deps import set_container
             
             self.container = Container()

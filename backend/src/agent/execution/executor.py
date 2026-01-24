@@ -28,14 +28,14 @@ from backend.src.agent.tools.processing import (
     ToolProcessingCoordinator,
     ToolResultProcessor,
 )
-from backend.src.agent.tools.sending import ToolPreparer, ToolSender
+from backend.src.agent.tools.sending import ToolPreparer
 from backend.src.agent.tools.waiting import ToolResultWaiter
-from backend.src.core.bus import EventBus
+from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.events import (
     AgentStreamingEvent,
     InteractionCompleted,
-    StreamingCompleteEvent,
     MemoryStoreEvent,
+    StreamingCompleteEvent,
 )
 from backend.src.core.plugins.registry import PluginRegistry
 from backend.src.llm.client import LLMClient
@@ -112,7 +112,6 @@ class AgentExecutor:
         )
         
         # Tool lifecycle components
-        tool_sender = ToolSender(preparer=tool_preparer)
         tool_result_waiter = ToolResultWaiter(backend_tool_orchestrator=tool_orchestrator)
         tool_result_processor = ToolResultProcessor(
             result_transformer=result_transformer,

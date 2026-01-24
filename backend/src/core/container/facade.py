@@ -1,90 +1,22 @@
 """
-Dependency Injection Container using dependency-injector library.
+Container Facade for backward compatibility.
 
-This module handles the initialization and wiring of application components
-using proper dependency injection patterns with container composition.
+This module provides a thin facade around ApplicationContainer for backward compatibility.
 """
 import logging
+import threading
 from typing import Any, Optional
 
-from dependency_injector import containers, providers
+from dependency_injector import providers
 
 from backend.src.core.config import AppConfig, ConfigManager, get_config_manager
 from backend.src.core.container.api_container import ApiContainer
+from backend.src.core.container.application import ApplicationContainer
 from backend.src.core.container.config_updater import ContainerConfigUpdater
-from backend.src.core.container.core_container import CoreContainer
 from backend.src.core.container.initializer import ContainerInitializer
-from backend.src.core.container.memory_container import MemoryContainer
 from backend.src.core.container.session_factory import AgentSessionFactory
-from backend.src.core.container.tool_container import ToolContainer
 
 logger = logging.getLogger(__name__)
-
-
-class ApplicationContainer(containers.DeclarativeContainer):
-    """
-    Main application container using dependency injection composition.
-
-    This container orchestrates the entire application's dependency graph using
-    domain-driven design principles. It composes specialized containers for
-    different functional areas, providing clean separation of concerns and
-    improved testability.
-
-    Container Composition:
-    - CoreContainer: Foundation services (config, LLM, TTS, core services)
-    - ToolContainer: Tool system (registry, orchestrator, loaders)
-    - MemoryContainer: Memory system (embeddings, storage, retrieval)
-
-    Key Benefits:
-    - Clear dependency boundaries between domains
-    - Easy testing through container overrides
-    - Runtime reconfiguration capabilities
-    - Lazy initialization of expensive resources
-    - Centralized dependency management
-
-    Usage:
-        container = ApplicationContainer()
-        await container.initialize()
-
-        # Access components
-        agent = container.agent_session_factory("user123")
-        llm_client = container.core.llm_client()
-    """
-
-    # Core container (provides config, services, LLM, TTS)
-    core = providers.Container(CoreContainer)
-
-    # Tool container (wired to core for config)
-    tools = providers.Container(
-        ToolContainer,
-        config=core.config,
-    )
-
-    # Memory container (wired to core for config and cache_manager)
-    memory = providers.Container(
-        MemoryContainer,
-        config=core.config,
-        cache_manager=core.cache_manager,
-    )
-
-    # API container (will be created and wired in Container facade)
-    # Note: Created in Container.__init__ to avoid circular dependency with session_manager
-
-    # Expose commonly used providers at top level for convenience
-    config_manager = core.config_manager
-    config = core.config
-    llm_client = core.llm_client
-    tts_service = core.tts_service
-    vision_service = core.vision_service
-    config_service = core.config_service
-    model_service = core.model_service
-
-    agent_factory = tools.agent_factory
-    tool_registry = tools.tool_registry
-    context_factory = tools.context_factory
-    tool_orchestrator = tools.tool_orchestrator
-
-    embedder = memory.embedder
 
 
 class Container:
@@ -142,7 +74,6 @@ class Container:
         self._session_manager: Optional[Any] = None
         # CONTAINER LOCK INITIALIZATION RACE FIX: Initialize lock in __init__ to prevent race condition
         # when multiple threads access session_manager property simultaneously
-        import threading
         self._session_manager_lock = threading.Lock()
 
         # API container (created after session_manager is available)
@@ -275,8 +206,6 @@ class Container:
         Creates ApiContainer and handler registry lazily on first access.
         """
         if self._api_container is None:
-            from dependency_injector import providers
-            
             self._api_container = ApiContainer()
             
             # Wire dependencies from core container

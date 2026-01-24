@@ -8,7 +8,7 @@ import re
 from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field, field_validator
 
-from backend.src.core.validation import ValidationError, validate_user_id
+from backend.src.core.validation.validators import ValidationError, validate_user_id
 
 # Constants for validation
 MAX_MSG_ID_LENGTH = 128  # Maximum length for message IDs

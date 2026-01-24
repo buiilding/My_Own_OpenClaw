@@ -10,9 +10,9 @@ from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator, Dict, List, Optional, TYPE_CHECKING
 
 from backend.src.core.config import AppConfig
-from backend.src.core.events import StreamingEvent, ErrorEvent
-from backend.src.core.exceptions import LLMAPIError
-from backend.src.core.types import LLMMessage
+from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
+from backend.src.core.infrastructure.exceptions import LLMAPIError
+from backend.src.core.types.schemas import LLMMessage
 from backend.src.llm.providers import get_provider
 
 if TYPE_CHECKING:

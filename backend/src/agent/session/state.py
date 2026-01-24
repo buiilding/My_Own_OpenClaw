@@ -9,8 +9,9 @@ import copy
 import logging
 from typing import List, Optional
 
-from backend.src.core.messages import MessageRole, MessageType, StoredMessage
-from backend.src.core.types import LLMMessage
+from backend.src.core.messages.structures import StoredMessage
+from backend.src.core.types.enums import MessageRole, MessageType
+from backend.src.core.types.schemas import LLMMessage
 
 logger = logging.getLogger(__name__)
 

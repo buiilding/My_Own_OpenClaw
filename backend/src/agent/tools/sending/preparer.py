@@ -21,13 +21,14 @@ from backend.src.agent.tools.shared.logging_utils import short_id
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
     from backend.src.core.interfaces.vision import IVisionService
-from backend.src.core.events import (
+
+from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
     ToolBundleEvent,
     ToolCallEvent,
     ToolOutputEvent,
 )
-from backend.src.core.types import CoordinateFindingMethod
+from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
 
 logger = logging.getLogger(__name__)

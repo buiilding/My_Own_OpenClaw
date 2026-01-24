@@ -14,8 +14,8 @@ from pydantic import BaseModel, Field, field_validator
 from backend.src.api.deps import ContainerDep
 from backend.src.core.config import AppConfig
 from backend.src.core.config.manager import load_api_key_for_provider
-from backend.src.core.types import LLMMessage
-from backend.src.core.validation import ValidationError, validate_user_id
+from backend.src.core.types.schemas import LLMMessage
+from backend.src.core.validation.validators import ValidationError, validate_user_id
 from backend.src.llm.client import get_llm_client
 
 router = APIRouter(prefix="/api/semantic", tags=["semantic"])

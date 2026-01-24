@@ -6,16 +6,16 @@ Extracts final response text from agent session execution.
 import logging
 from typing import TYPE_CHECKING
 
-from backend.src.core.events import (
-    StreamingEvent,
+from backend.src.core.events.streaming_events import (
     ChunkEvent,
+    ErrorEvent,
     FullResponseEvent,
+    StreamingCompleteEvent,
+    StreamingEvent,
     ToolCallEvent,
     ToolOutputEvent,
-    StreamingCompleteEvent,
-    ErrorEvent,
 )
-from backend.src.core.types import ContentType
+from backend.src.core.types.enums import ContentType
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession

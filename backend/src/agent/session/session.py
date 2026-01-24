@@ -16,9 +16,9 @@ from backend.src.agent.tools.preparation.screenshot.state import ScreenshotState
 from backend.src.agent.tools.preparation.storage.prepared_call_storage import PreparedToolCallStorage
 from backend.src.agent.tools.waiting import ToolResultHandler
 from backend.src.agent.session.state import ConversationHistory
-from backend.src.core.bus import EventBus
+from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.config import AppConfig
-from backend.src.core.events import InteractionCompleted
+from backend.src.core.events.bus_events import InteractionCompleted
 from backend.src.core.plugins.registry import PluginRegistry
 from backend.src.llm.client import LLMClient, get_llm_client
 from backend.src.llm.parser import ResponseParser
@@ -167,7 +167,6 @@ class AgentSession:
         self.hidden_screenshot_request_id: Optional[str] = None
         
         # CENTRALIZED TOOL RESULT STORAGE: Single source of truth for all tool results
-        from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
         self._tool_result_storage = ToolResultStorage(cleanup_ttl_seconds=300)
         
         # Extract prepared tool call storage to reduce complexity

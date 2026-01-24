@@ -9,7 +9,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
-from backend.src.core.types import LLMMessage
+from backend.src.core.types.schemas import LLMMessage
 from backend.src.llm.prompts import PromptMetadata
 
 if TYPE_CHECKING:

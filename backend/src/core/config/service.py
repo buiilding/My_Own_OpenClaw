@@ -12,13 +12,13 @@ from typing import Any, Callable, Dict, Optional
 
 from pydantic import ValidationError as PydanticValidationError
 
-from backend.src.core.bus import EventBus
+from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.config import AppConfig, ConfigManager
-from backend.src.core.config.subscription_manager import (
+from backend.src.core.config.subscriptions import (
     ConfigSubscriber,
     ConfigSubscriptionManager,
 )
-from backend.src.core.events import ConfigChanged
+from backend.src.core.events.bus_events import ConfigChanged
 from backend.src.core.plugins.config import PluginConfigManager
 
 logger = logging.getLogger(__name__)
@@ -282,7 +282,7 @@ class ConfigurationService:
         Returns:
             Default TTS model path
         """
-        from backend.src.core.config.manager import get_default_tts_model_path as _get_default_tts_model_path
+        from backend.src.core.config.loader import get_default_tts_model_path as _get_default_tts_model_path
         return _get_default_tts_model_path()
     
     def build_user_config(self, user_config: Dict[str, Any]) -> AppConfig:
@@ -306,7 +306,7 @@ class ConfigurationService:
         Returns:
             Complete AppConfig instance with policies applied and API keys loaded
         """
-        from backend.src.core.config.manager import load_api_key_for_provider
+        from backend.src.core.config.loader import load_api_key_for_provider
         
         global_config = self.get_config()
         

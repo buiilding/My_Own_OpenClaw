@@ -21,7 +21,7 @@ from backend.src.api.transport.sender import WebSocketTransportSender
 from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.processing.tts.processor import TTSProcessor
 from backend.src.api.schema import BaseMessage, QueryMessage
-from backend.src.core.validation import (
+from backend.src.core.validation.validators import (
     ValidationError,
     validate_query_text,
 )

@@ -30,7 +30,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from backend.src.core.config import AppConfig
-from backend.src.core.exceptions import (
+from backend.src.core.infrastructure.exceptions import (
     InputSizeLimitError,
     ParseTimeoutError,
     ParseValidationError,

@@ -12,7 +12,7 @@ import uuid
 from typing import TYPE_CHECKING, AsyncGenerator
 
 from backend.src.agent.tools.shared.logging_utils import short_id
-from backend.src.core.events import AgentStreamingEvent, RequestScreenshotEvent
+from backend.src.core.events.streaming_events import AgentStreamingEvent, RequestScreenshotEvent
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession

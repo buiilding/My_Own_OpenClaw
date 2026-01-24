@@ -12,7 +12,7 @@ from fastapi import WebSocketDisconnect
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.transport.sender import TransportSender
 from backend.src.api.processing.tts.processor import TTSProcessor
-from backend.src.core.events import AgentStreamingEvent
+from backend.src.core.events.streaming_events import AgentStreamingEvent
 from backend.src.core.services.tts_service import TTSService
 
 logger = logging.getLogger(__name__)

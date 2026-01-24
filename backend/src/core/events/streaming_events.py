@@ -1,60 +1,12 @@
 """
-Structured Event System for Agent Streaming and Event Bus.
+Streaming Events.
 
-This module provides typed dataclass-based events for:
-1. Agent streaming events (for WebSocket communication)
-2. Event bus events (for internal component communication)
+This module provides streaming events for agent interaction loop and WebSocket communication.
 """
-import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Union
 
-from backend.src.core.types import StreamingEventType
-
-if TYPE_CHECKING:
-    from backend.src.core.config import AppConfig
-
-
-# ============================================================================
-# Event Bus Events (for internal component communication)
-# ============================================================================
-
-class Event:
-    """Base class for all event bus events."""
-    def __init__(self, timestamp: Optional[float] = None):
-        """Initialize event with optional timestamp."""
-        self.timestamp = timestamp if timestamp is not None else time.time()
-
-
-@dataclass
-class InteractionCompleted(Event):
-    """Event fired when a conversation turn completes."""
-    session_id: str
-    user_id: str
-    user_message: str
-    assistant_response: str
-    timestamp: Optional[float] = None
-    
-    def __post_init__(self):
-        """Initialize parent and set timestamp."""
-        super().__init__(self.timestamp)
-
-
-@dataclass
-class ConfigChanged(Event):
-    """Event fired when configuration is updated."""
-    old_config: "AppConfig"
-    new_config: "AppConfig"
-    timestamp: Optional[float] = None
-    
-    def __post_init__(self):
-        """Initialize parent and set timestamp."""
-        super().__init__(self.timestamp)
-
-
-# ============================================================================
-# Streaming Events (for agent interaction loop and WebSocket communication)
-# ============================================================================
+from backend.src.core.types.enums import StreamingEventType
 
 
 @dataclass
