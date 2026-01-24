@@ -6,16 +6,16 @@ Handles settings-related messages (load, update).
 import logging
 from typing import TYPE_CHECKING, Any, Dict
 
-from backend.src.api.core.base import MessageHandler
-from backend.src.api.core.errors import send_error_response, send_success_response
-from backend.src.api.core.transport import WebSocketSender
+from backend.src.api.infrastructure.handler import MessageHandler
+from backend.src.api.infrastructure.errors import send_error_response, send_success_response
+from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.schema import (
     BaseMessage,
     ListModelsMessage,
 )
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.session_manager import SessionManager
+    from backend.src.agent.session.manager import SessionManager
 from backend.src.core.config.service import ConfigurationService
 from backend.src.core.validation.validators import (
     ValidationError,

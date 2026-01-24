@@ -18,7 +18,7 @@ from backend.src.core.events.streaming_events import (
 from backend.src.core.types.enums import ContentType
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
+    from backend.src.agent.session.session import AgentSession
 
 logger = logging.getLogger(__name__)
 

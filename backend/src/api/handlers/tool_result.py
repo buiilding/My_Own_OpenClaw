@@ -9,14 +9,14 @@ from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from fastapi import WebSocketDisconnect
 
-from backend.src.api.core.base import MessageHandler
-from backend.src.api.core.errors import send_error_response
-from backend.src.api.core.transport import WebSocketSender
+from backend.src.api.infrastructure.handler import MessageHandler
+from backend.src.api.infrastructure.errors import send_error_response
+from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.schema import BaseMessage, ToolResultMessage, ToolBundleResultMessage
 from backend.src.core.validation.validators import ValidationError
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.session_manager import SessionManager
+    from backend.src.agent.session.manager import SessionManager
 
 logger = logging.getLogger(__name__)
 

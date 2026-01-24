@@ -8,8 +8,8 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.state import ConversationHistory
-    from backend.src.agent.tools.result_transformer import ProcessedToolResult
+    from backend.src.agent.session.state import ConversationHistory
+    from backend.src.agent.tools.processing.transformer import ProcessedToolResult
 
 logger = logging.getLogger(__name__)
 
