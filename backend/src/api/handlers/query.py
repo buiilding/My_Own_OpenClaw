@@ -12,7 +12,7 @@ from fastapi import WebSocketDisconnect
 from backend.src.api.core.base import MessageHandler
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.session_manager import SessionManager
+    from backend.src.agent.session.manager import SessionManager
 from backend.src.api.core.errors import send_error_response, send_success_response
 from backend.src.api.query.formatter import ResponseFormatter
 from backend.src.api.query.pipeline import StreamPipeline

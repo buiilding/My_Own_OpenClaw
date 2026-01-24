@@ -7,8 +7,8 @@ import logging
 from typing import Callable, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from backend.src.agent.session.session import AgentSession
     from backend.src.core.interfaces.vision import IVisionService
-    from backend.src.agent.core.core import AgentSession
 
 logger = logging.getLogger(__name__)
 

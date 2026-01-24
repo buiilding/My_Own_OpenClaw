@@ -1,29 +1,75 @@
-"""Tool orchestration and preparation."""
+"""Tool orchestration and lifecycle."""
 
-from backend.src.agent.tools.ocr_coordinator import OcrCoordinator
-from backend.src.agent.tools.result_transformer import ResultTransformer
-from backend.src.agent.tools.screenshot_manager import ScreenshotManager
-from backend.src.agent.tools.synthetic_result_factory import SyntheticResultFactory
-from backend.src.agent.tools.tool_executor import ToolExecutor
-from backend.src.agent.tools.tool_preparer import ToolPreparer
-from backend.src.agent.tools.vision_service_provider import VisionServiceProvider
+# High-level orchestrator
+from backend.src.agent.tools.orchestrator import ToolOrchestrator
 
-# Resolvers subpackage
-from backend.src.agent.tools.resolvers.coordinate_resolvers import (
+# Preparation phase
+from backend.src.agent.tools.preparation.coordinate_resolution import (
     CoordinateResolver,
-    OcrResolver,
-    VisionResolver,
+    OcrCoordinateResolver,
+    VisionCoordinateResolver,
+)
+from backend.src.agent.tools.preparation.helpers import VisionServiceProvider
+from backend.src.agent.tools.preparation.ocr import OcrCoordinator
+from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
+from backend.src.agent.tools.preparation.storage import PreparedToolCallStorage
+
+# Sending phase
+from backend.src.agent.tools.sending import ToolPreparer, ToolSender
+
+# Waiting phase
+from backend.src.agent.tools.waiting import (
+    ToolResultHandler,
+    ToolResultReceiver,
+    ToolResultRouter,
+    ToolResultWaiter,
+)
+from backend.src.agent.tools.waiting.storage import ToolResultStorage
+
+# Processing phase
+from backend.src.agent.tools.processing import (
+    ResultTransformer,
+    SyntheticResultFactory,
+    ToolProcessingCoordinator,
+    ToolResultProcessor,
+)
+
+# Shared utilities
+from backend.src.agent.tools.shared import (
+    BundleResultFormatter,
+    is_atomic_bundle,
+    is_atomic_bundle_from_results,
+    short_id,
 )
 
 __all__ = [
+    # Orchestrator
+    "ToolOrchestrator",
+    # Preparation
     "CoordinateResolver",
+    "OcrCoordinateResolver",
+    "VisionCoordinateResolver",
     "OcrCoordinator",
-    "OcrResolver",
-    "ResultTransformer",
     "ScreenshotManager",
-    "SyntheticResultFactory",
-    "ToolExecutor",
-    "ToolPreparer",
-    "VisionResolver",
+    "PreparedToolCallStorage",
     "VisionServiceProvider",
+    # Sending
+    "ToolPreparer",
+    "ToolSender",
+    # Waiting
+    "ToolResultHandler",
+    "ToolResultReceiver",
+    "ToolResultRouter",
+    "ToolResultWaiter",
+    "ToolResultStorage",
+    # Processing
+    "ToolProcessingCoordinator",
+    "ToolResultProcessor",
+    "ResultTransformer",
+    "SyntheticResultFactory",
+    # Shared
+    "BundleResultFormatter",
+    "is_atomic_bundle",
+    "is_atomic_bundle_from_results",
+    "short_id",
 ]

@@ -10,13 +10,13 @@ import time
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, List
 
-from backend.src.agent.tools.logging_utils import short_id
+from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.llm.parser import ParsedToolCall
 from backend.src.tools.result_helpers import create_tool_result_object
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
+    from backend.src.agent.session.session import AgentSession
 
 logger = logging.getLogger(__name__)
 

@@ -8,17 +8,17 @@ import logging
 import time
 from typing import AsyncGenerator, Optional, Tuple, TYPE_CHECKING
 
-from backend.src.agent.tools.coordinate_resolution_helper import resolve_coordinates
-from backend.src.agent.tools.logging_utils import short_id
-from backend.src.agent.tools.prepared_tool_call import PreparedToolCall
+from backend.src.agent.tools.preparation.helpers.coordinate_resolution_helper import resolve_coordinates
+from backend.src.agent.tools.preparation.prepared_tool_call import PreparedToolCall
+from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.events import AgentStreamingEvent
 from backend.src.llm.parser import ParsedToolCall
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
-    from backend.src.agent.tools.ocr_coordinator import OcrCoordinator
-    from backend.src.agent.tools.resolvers.coordinate_resolvers import CoordinateResolver
-    from backend.src.agent.tools.screenshot_manager import ScreenshotManager
+    from backend.src.agent.session.session import AgentSession
+    from backend.src.agent.tools.preparation.coordinate_resolution import CoordinateResolver
+    from backend.src.agent.tools.preparation.ocr import OcrCoordinator
+    from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
     from backend.src.core.interfaces.vision import IVisionService
 
 logger = logging.getLogger(__name__)

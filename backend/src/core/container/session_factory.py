@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Optional
 from backend.src.core.config import AppConfig
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
+    from backend.src.agent.session.session import AgentSession
     from backend.src.core.plugins.registry import PluginRegistry
     from backend.src.tools.registry import ToolRegistry
 
@@ -104,7 +104,7 @@ class AgentSessionFactory:
             )
 
         # Create AgentSession
-        from backend.src.agent.core.core import AgentSession
+        from backend.src.agent.session.session import AgentSession
 
         session = AgentSession(
             cfg=session_config,

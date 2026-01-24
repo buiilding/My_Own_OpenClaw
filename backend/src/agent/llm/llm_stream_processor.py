@@ -1,5 +1,5 @@
 """
-LLM Interaction Handler.
+LLM Stream Processor.
 
 Handles LLM streaming, text aggregation, and token counting.
 """
@@ -21,8 +21,8 @@ from backend.src.core.types import LLMMessage
 from backend.src.services.token_service import get_token_service
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
-    from backend.src.agent.core.state import ConversationHistory
+    from backend.src.agent.session.session import AgentSession
+    from backend.src.agent.session.state import ConversationHistory
     from backend.src.llm.client import LLMClient
 
 logger = logging.getLogger(__name__)
@@ -36,9 +36,9 @@ class TokenCounts(NamedTuple):
     conversation_tokens: int
 
 
-class LLMInteractionHandler:
+class LLMStreamProcessor:
     """
-    Handles LLM streaming and token counting.
+    Processes LLM streaming and token counting.
     
     Responsibility: LLM streaming, text aggregation, and token counting.
     Yields streaming events directly for real-time updates.

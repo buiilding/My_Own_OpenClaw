@@ -8,7 +8,7 @@ import logging
 from typing import List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
+    from backend.src.agent.session.session import AgentSession
 
 logger = logging.getLogger(__name__)
 

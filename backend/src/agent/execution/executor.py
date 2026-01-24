@@ -9,22 +9,27 @@ import logging
 from typing import TYPE_CHECKING, AsyncGenerator, Optional
 
 from backend.src.agent.history.history_committer import HistoryCommitter
-from backend.src.agent.core.interaction_loop import InteractionLoop
+from backend.src.agent.execution.interaction_loop import InteractionLoop
+from backend.src.agent.llm.conversation_context import ConversationContext
 from backend.src.agent.llm.event_presenter import EventPresenter
-from backend.src.agent.llm.llm_interaction_handler import LLMInteractionHandler
-from backend.src.agent.llm.prompt_coordinator import PromptCoordinator
+from backend.src.agent.llm.llm_stream_processor import LLMStreamProcessor
 from backend.src.agent.plugins.manager import PluginManager
-from backend.src.agent.tools.ocr_coordinator import OcrCoordinator
-from backend.src.agent.tools.resolvers.coordinate_resolvers import (
+from backend.src.agent.tools.orchestrator import ToolOrchestrator as AgentToolOrchestrator
+from backend.src.agent.tools.preparation.coordinate_resolution import (
     CoordinateResolver,
-    OcrResolver,
-    VisionResolver,
+    OcrCoordinateResolver,
+    VisionCoordinateResolver,
 )
-from backend.src.agent.tools.result_transformer import ResultTransformer
-from backend.src.agent.tools.screenshot_manager import ScreenshotManager
-from backend.src.agent.tools.synthetic_result_factory import SyntheticResultFactory
-from backend.src.agent.tools.tool_executor import ToolExecutor
-from backend.src.agent.tools.tool_preparer import ToolPreparer
+from backend.src.agent.tools.preparation.ocr import OcrCoordinator
+from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
+from backend.src.agent.tools.processing import (
+    ResultTransformer,
+    SyntheticResultFactory,
+    ToolProcessingCoordinator,
+    ToolResultProcessor,
+)
+from backend.src.agent.tools.sending import ToolPreparer, ToolSender
+from backend.src.agent.tools.waiting import ToolResultWaiter
 from backend.src.core.bus import EventBus
 from backend.src.core.events import (
     AgentStreamingEvent,
@@ -39,7 +44,7 @@ from backend.src.llm.prompts import PromptConstructor
 from backend.src.tools.orchestrator import ToolOrchestrator
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
+    from backend.src.agent.session.session import AgentSession
 
 logger = logging.getLogger(__name__)
 
@@ -71,12 +76,12 @@ class AgentExecutor:
         self.plugin_manager = PluginManager(plugin_registry)
 
         # Initialize specialized components for SRP
-        prompt_coordinator = PromptCoordinator(
+        conversation_context = ConversationContext(
             prompt_constructor=prompt_constructor,
             history=session.history,
         )
         
-        llm_handler = LLMInteractionHandler(
+        llm_stream_processor = LLMStreamProcessor(
             llm_client=llm_client,
             session=session,
         )
@@ -87,9 +92,9 @@ class AgentExecutor:
         
         # Tool preparation: split into specialized components
         self.screenshot_manager = ScreenshotManager()  # Store for use in process_query
-        ocr_resolver = OcrResolver()
-        vision_resolver = VisionResolver()
-        coordinate_resolver = CoordinateResolver(ocr_resolver, vision_resolver)
+        ocr_coordinate_resolver = OcrCoordinateResolver()
+        vision_coordinate_resolver = VisionCoordinateResolver()
+        coordinate_resolver = CoordinateResolver(ocr_coordinate_resolver, vision_coordinate_resolver)
         ocr_coordinator = OcrCoordinator()
         synthetic_result_factory = SyntheticResultFactory()
         
@@ -106,12 +111,20 @@ class AgentExecutor:
             vision_service=vision_service,  # Inject directly instead of using provider
         )
         
-        tool_executor = ToolExecutor(
-            tool_orchestrator=tool_orchestrator,
-            tool_preparer=tool_preparer,
+        # Tool lifecycle components
+        tool_sender = ToolSender(preparer=tool_preparer)
+        tool_result_waiter = ToolResultWaiter(backend_tool_orchestrator=tool_orchestrator)
+        tool_result_processor = ToolResultProcessor(
             result_transformer=result_transformer,
             history_committer=history_committer,
-            session=session,
+        )
+        tool_processing_coordinator = ToolProcessingCoordinator(processor=tool_result_processor)
+        
+        # High-level orchestrator
+        agent_tool_orchestrator = AgentToolOrchestrator(
+            tool_preparer=tool_preparer,
+            tool_result_waiter=tool_result_waiter,
+            tool_processing_coordinator=tool_processing_coordinator,
         )
         
         event_presenter = EventPresenter()
@@ -119,10 +132,10 @@ class AgentExecutor:
         # Initialize InteractionLoop with all components
         self.interaction_loop = InteractionLoop(
             session=session,
-            prompt_coordinator=prompt_coordinator,
-            llm_handler=llm_handler,
+            prompt_coordinator=conversation_context,
+            llm_handler=llm_stream_processor,
             response_parser=response_parser,
-            tool_executor=tool_executor,
+            tool_executor=agent_tool_orchestrator,
             event_presenter=event_presenter,
         )
 

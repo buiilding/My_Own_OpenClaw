@@ -259,7 +259,7 @@ class Container:
             with self._session_manager_lock:
                 # Check again after acquiring lock (another thread may have created it)
                 if self._session_manager is None:
-                    from backend.src.agent.core.session_manager import SessionManager
+                    from backend.src.agent.session.manager import SessionManager
                     
                     self._session_manager = SessionManager(
                         config=self.config,
