@@ -46,6 +46,10 @@ class MouseControlArgs(BaseModel):
         ...,
         description="One sentence describing what you expect to see in the screenshot after this mouse action executes."
     )
+    wait: float = Field(
+        ...,
+        description="Delay in seconds before taking a screenshot after tool execution."
+    )
 
     @model_validator(mode='after')
     def validate_conditional_fields(self):
@@ -83,6 +87,10 @@ class KeyboardControlArgs(BaseModel):
     expectation: str = Field(
         ...,
         description="One sentence describing what you expect to see in the screenshot after this keyboard action executes."
+    )
+    wait: float = Field(
+        ...,
+        description="Delay in seconds before taking a screenshot after tool execution."
     )
 
 
@@ -123,6 +131,10 @@ class ScrollControlArgs(BaseModel):
         ...,
         description="One sentence describing what you expect to see in the screenshot after this scroll action executes."
     )
+    wait: float = Field(
+        ...,
+        description="Delay in seconds before taking a screenshot after tool execution."
+    )
 
 
 # --- Switch Tab Tool Schemas ---
@@ -143,6 +155,10 @@ class SwitchTabArgs(BaseModel):
         ...,
         description="One sentence describing what you expect to see in the screenshot after switching to this tab."
     )
+    wait: float = Field(
+        ...,
+        description="Delay in seconds before taking a screenshot after tool execution."
+    )
 
 
 # --- Wait Tool Schemas ---
@@ -151,6 +167,10 @@ class WaitToolArgs(BaseModel):
     """Arguments for wait tool."""
     model_config = ConfigDict(extra='forbid')
 
+    seconds: float = Field(
+        ...,
+        description="Number of seconds to wait before capturing a screenshot."
+    )
     explanation: str = Field(
         ...,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."

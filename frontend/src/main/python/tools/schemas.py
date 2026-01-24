@@ -29,6 +29,10 @@ class MouseControlArgs(BaseModel):
         None,
         description="One sentence describing what you expect to see in the screenshot after this mouse action executes."
     )
+    wait: Optional[float] = Field(
+        2.0,
+        description="Delay in seconds before taking a screenshot after tool execution."
+    )
     
     @model_validator(mode='after')
     def validate_coordinates(self):
@@ -57,6 +61,10 @@ class KeyboardControlArgs(BaseModel):
     expectation: Optional[str] = Field(
         None,
         description="One sentence describing what you expect to see in the screenshot after this keyboard action executes."
+    )
+    wait: Optional[float] = Field(
+        2.0,
+        description="Delay in seconds before taking a screenshot after tool execution."
     )
     
     @model_validator(mode='after')
@@ -107,6 +115,10 @@ class ScrollControlArgs(BaseModel):
     expectation: Optional[str] = Field(
         None,
         description="One sentence describing what you expect to see in the screenshot after this scroll action executes."
+    )
+    wait: Optional[float] = Field(
+        2.0,
+        description="Delay in seconds before taking a screenshot after tool execution."
     )
     
     @model_validator(mode='after')
@@ -184,6 +196,10 @@ class SwitchTabArgs(BaseModel):
         None,
         description="One sentence describing what you expect to see in the screenshot after switching to this tab."
     )
+    wait: Optional[float] = Field(
+        2.0,
+        description="Delay in seconds before taking a screenshot after tool execution."
+    )
 
 
 class GetOpenWindowsArgs(BaseModel):
@@ -211,6 +227,10 @@ class WaitToolArgs(BaseModel):
     """Arguments for wait tool."""
     model_config = ConfigDict(extra='ignore')
     
+    seconds: Optional[float] = Field(
+        1.0,
+        description="Number of seconds to wait before capturing a screenshot."
+    )
     explanation: Optional[str] = Field(
         None,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."

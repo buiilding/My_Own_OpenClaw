@@ -103,13 +103,14 @@ export class ToolExecutionService {
    * This is called ONCE after individual tool execution or ONCE after all bundled tools.
    * 
    * @param context - Context string for logging (e.g., "after keyboard_control" or "after bundle")
+   * @param waitSeconds - Optional delay in milliseconds before capturing (defaults to 2000ms)
    * @returns Object with systemState and screenshot, or null if capture failed
    */
-  private async captureSystemStateAndScreenshot(context: string): Promise<{ systemState: SystemState | null; screenshot: string | null }> {
+  private async captureSystemStateAndScreenshot(context: string, waitSeconds: number = 2000): Promise<{ systemState: SystemState | null; screenshot: string | null }> {
     console.log(`[ToolExecutionService] Capturing system state and screenshot ${context}...`);
     
-    // 2 second delay for UI to update before capturing
-    await new Promise(r => setTimeout(r, 2000));
+    // Wait for specified delay (default 2 seconds) for UI to update before capturing
+    await new Promise(r => setTimeout(r, waitSeconds));
 
     try {
       const combinedStartTime = performance.now();
@@ -184,7 +185,13 @@ export class ToolExecutionService {
 
       // Capture screenshot and system state ONCE after individual tool execution if needed
       if (isComputerUseTool && !options.skipAutoCapture && !screenshot) {
-        const captureResult = await this.captureSystemStateAndScreenshot(`after ${toolName}`);
+        // Extract wait parameter from tool args (convert seconds to milliseconds)
+        // Default to 2000ms (2 seconds) if not provided
+        const waitSeconds = args && typeof args === 'object' && typeof args.wait === 'number'
+          ? args.wait * 1000
+          : 2000;
+        
+        const captureResult = await this.captureSystemStateAndScreenshot(`after ${toolName}`, waitSeconds);
         systemState = captureResult.systemState;
         screenshot = captureResult.screenshot;
 
@@ -365,7 +372,23 @@ export class ToolExecutionService {
       let screenshot: string | null = null;
 
       if (hasComputerUseTool) {
-        const captureResult = await this.captureSystemStateAndScreenshot('after bundle execution');
+        // Extract wait parameter from the last computer-use tool in bundle (or max wait value)
+        // Default to 2000ms (2 seconds) if not provided
+        let waitSeconds = 2000;
+        const computerUseTools = bundle.filter(tool => COMPUTER_USE_TOOLS.includes(tool.toolName));
+        if (computerUseTools.length > 0) {
+          // Use the wait value from the last computer-use tool, or find the maximum
+          const waitValues = computerUseTools
+            .map(tool => tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number' ? tool.args.wait : null)
+            .filter((w): w is number => w !== null);
+          
+          if (waitValues.length > 0) {
+            // Use the maximum wait value from all computer-use tools in the bundle
+            waitSeconds = Math.max(...waitValues) * 1000;
+          }
+        }
+        
+        const captureResult = await this.captureSystemStateAndScreenshot('after bundle execution', waitSeconds);
         systemState = captureResult.systemState;
         screenshot = captureResult.screenshot;
       } else {

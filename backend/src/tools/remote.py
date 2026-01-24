@@ -388,7 +388,7 @@ class RemoteWaitTool(Tool[WaitToolArgs], RemoteToolBase):
 
     name = "wait"
     description = (
-        "Wait for 1 second, then capture a screenshot of the current screen state. "
+        "Wait for a specified number of seconds, then capture a screenshot of the current screen state. "
         "Useful for waiting for UI changes, animations, page loads, or async operations to complete. "
         "After execution, returns a status message and a screenshot image."
     )
