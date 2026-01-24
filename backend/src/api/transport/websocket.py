@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 
-from backend.src.api.core.transport import WebSocketSender
+from backend.src.api.transport.protocol import WebSocketSender
 
 logger = logging.getLogger(__name__)
 
