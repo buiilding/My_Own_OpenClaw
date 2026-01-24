@@ -4,102 +4,174 @@
 
 The Memory System provides comprehensive memory capabilities for Desktop Assistant, enabling persistent context, semantic search, and intelligent information retrieval across conversations.
 
-> **Note**: For detailed memory system documentation, see the [Memory System README](../backend/src/memory/README.md) in the backend source code.
+**Architecture Note**: The memory system is split between frontend and backend:
+- **Backend**: Provides embedding generation service (REST API)
+- **Frontend**: Handles storage, retrieval, and schema management (Python sidecar with SQLite + FAISS)
 
 ## Quick Reference
 
 ### Key Features
 
-- **Episodic Memory**: Records of user interactions and agent actions
-- **Semantic Memory**: Vector-based storage for meaning-based retrieval
-- **Working Memory**: Current conversation context and state
-- **Declarative Memory**: Factual knowledge and learned information
+- **Episodic Memory**: Records of user interactions and agent actions (stored in frontend)
+- **Semantic Memory**: Vector-based storage for meaning-based retrieval (stored in frontend)
+- **Working Memory**: Current conversation context and state (managed by AgentSession)
+- **Embedding Service**: Backend provides embeddings via REST API for frontend memory system
 
 ### Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Memory        │    │   Vector        │    │   Storage       │
-│   Manager       │◄──►│   Embeddings    │◄──►│   Backend       │
-│                 │    │                 │    │                 │
-│ • Query         │    │ • Text to       │    │ • SQLite        │
-│ • Store         │    │   Vectors       │    │ • FAISS         │
-│ • Retrieve      │    │ • Similarity    │    │ • File-based    │
-│ • Maintenance   │    │ • Caching       │    │ • Async I/O     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    Frontend (Python Sidecar)                │
+│  ┌─────────────────┐    ┌─────────────────┐                │
+│  │   Local Memory  │    │   Vector        │                │
+│  │   Store         │◄──►│   Storage       │                │
+│  │                 │    │                 │                │
+│  │ • SQLite        │    │ • FAISS         │                │
+│  │ • Episodic      │    │ • Similarity    │                │
+│  │ • Semantic      │    │ • Search        │                │
+│  └─────────────────┘    └─────────────────┘                │
+│              ↕ HTTP REST API                                 │
+└─────────────────────────────────────────────────────────────┘
+              ↕
+┌─────────────────────────────────────────────────────────────┐
+│                    Backend (FastAPI)                       │
+│  ┌─────────────────┐                                       │
+│  │   Embeddings    │                                       │
+│  │   Service       │                                       │
+│  │                 │                                       │
+│  │ • Sentence      │                                       │
+│  │   Transformers  │                                       │
+│  │ • Text to       │                                       │
+│  │   Vectors       │                                       │
+│  │ • Caching       │                                       │
+│  └─────────────────┘                                       │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Configuration
 
-```yaml
-memory:
-  enabled: true
-  storage_type: "sqlite"  # sqlite, faiss, hybrid
-  max_history_length: 1000
-  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
-  similarity_threshold: 0.7
-  cleanup_interval_hours: 24
-  max_memory_items: 50000
+#### Backend Configuration
 
+Backend embedding service configuration:
+
+```python
+# backend/src/core/config/models.py
 embeddings:
-  model_name: "sentence-transformers/all-MiniLM-L6-v2"
-  device: "cuda"  # cuda or cpu
-  cache_size: 1000
+  model_name: "sentence-transformers/all-MiniLM-L6-v2"  # Default model
+  device: "cuda"  # or "cpu"
+  cache_size: 1000  # Managed by CacheManager
   batch_size: 32
+```
+
+#### Frontend Configuration
+
+Frontend memory store configuration (Python sidecar):
+
+```python
+# Frontend memory store uses SQLite + FAISS
+# Configuration managed in local_store.py
+# Database path: User data directory
+# FAISS index: Stored alongside SQLite database
 ```
 
 ### Usage
 
+#### Backend: Embedding Generation
+
+The backend provides a REST API for embedding generation:
+
 ```python
-from backend.src.memory import MemoryManager
+# Frontend calls: POST /api/embeddings/
+{
+    "text": "User preference: prefers dark mode",
+    "model_name": "default"
+}
 
-# Initialize memory system
-memory = MemoryManager()
+# Response:
+{
+    "embedding": [0.123, 0.456, ...],
+    "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+    "dimension": 384
+}
+```
 
-# Store an interaction
-await memory.store_interaction(Interaction(...))
+#### Frontend: Memory Storage and Retrieval
 
-# Retrieve relevant memories
-relevant = await memory.retrieve_relevant(
-    query="weather information",
-    limit=5
+The frontend Python sidecar handles all memory operations:
+
+```python
+# Frontend Python sidecar (local_store.py)
+from memory.local_store import LocalMemoryStore
+
+# Initialize memory store
+memory_store = LocalMemoryStore()
+
+# Add episodic memory (calls backend for embedding)
+await memory_store.add_episodic(
+    content="User asked about weather",
+    metadata={"timestamp": "2026-01-24"}
 )
 
-# Search for similar content
-similar = await memory.search_similar(
-    text="Tell me about the forecast",
-    threshold=0.8
+# Add semantic memory
+await memory_store.add_semantic(
+    content="User prefers dark mode",
+    metadata={"type": "preference"}
+)
+
+# Search memories
+results = await memory_store.search(
+    query="user preferences",
+    limit=5
 )
 ```
 
 ## Components
 
-### Memory Manager
+### Backend: Embeddings Service (`backend/src/memory/embeddings.py`)
 
-Central orchestrator for all memory operations.
+The backend provides embedding generation via REST API. The actual implementation uses `SentenceTransformerProvider`.
 
-**Key Methods**:
-- `store_interaction()`: Store user-agent interaction
-- `retrieve_relevant()`: Get semantically relevant memories
-- `search_similar()`: Vector similarity search
-- `cleanup_old_entries()`: Remove old entries
-
-### Embeddings Service
-
-Converts text to vector representations using sentence transformers.
+**Responsibilities**:
+- Generate embeddings for text using SentenceTransformers
+- Provide REST API endpoint (`/api/embeddings/`)
+- Cache embeddings to avoid recomputation
+- Support GPU/CPU execution
 
 **Key Methods**:
-- `encode_text()`: Encode single text
-- `encode_batch()`: Encode multiple texts
-- `similarity()`: Calculate similarity
+- `embed_text()`: Generate embedding for single text
+- `embed_batch()`: Generate embeddings for multiple texts (batch processing)
 
-### Storage Backend
+**Implementation Details**:
+- **Model**: Uses SentenceTransformers (default: `all-MiniLM-L6-v2`)
+- **Device**: Supports CPU and CUDA (GPU)
+- **Caching**: Integrates with CacheManager to cache embeddings
+- **Thread Safety**: Model loading protected with asyncio.Lock
+- **Async**: All blocking operations offloaded to thread pool
 
-Multiple storage options:
+**REST API**:
+- `POST /api/embeddings/`: Generate embedding for text
+- `GET /api/embeddings/health`: Health check
 
-- **SQLite**: Primary storage for conversation history
-- **FAISS**: High-performance vector similarity search
-- **Hybrid**: Combines both for optimal performance
+### Frontend: Local Memory Store (`frontend/src/main/python/memory/local_store.py`)
+
+The frontend Python sidecar handles all memory storage and retrieval.
+
+**Responsibilities**:
+- Store episodic and semantic memories locally
+- Perform vector similarity search using FAISS
+- Manage SQLite database for metadata
+- Call backend embedding API for vector generation
+
+**Key Methods**:
+- `add_episodic()`: Store episodic memory
+- `add_semantic()`: Store semantic memory
+- `search()`: Search memories by similarity
+- `stats()`: Get memory statistics
+
+**Storage**:
+- **SQLite**: Stores metadata and episodic memories
+- **FAISS**: Vector index for semantic search
+- **Remote Embedding Client**: Calls backend `/api/embeddings/` endpoint
 
 ## Integration
 
@@ -165,23 +237,38 @@ Multiple storage options:
 
 ## API Reference
 
-### MemoryManager Methods
+### Backend Embeddings API
+
+| Endpoint | Method | Description | Request | Response |
+|----------|--------|-------------|---------|----------|
+| `/api/embeddings/` | POST | Generate embedding | `{"text": str, "model_name": str}` | `{"embedding": List[float], "model_name": str, "dimension": int}` |
+| `/api/embeddings/health` | GET | Health check | - | `{"status": str, "model_name": str, "dimension": int}` |
+
+### Frontend Memory Store (Python Sidecar)
 
 | Method | Description | Parameters | Returns |
 |--------|-------------|------------|---------|
-| `store_interaction()` | Store user-agent interaction | `interaction: Interaction` | `None` |
-| `retrieve_relevant()` | Get semantically relevant memories | `query: str, limit: int` | `List[MemoryItem]` |
-| `search_similar()` | Vector similarity search | `text: str, threshold: float` | `List[MemoryItem]` |
-| `cleanup_old_entries()` | Remove old memory entries | `older_than_days: int` | `int` (deleted count) |
-| `health_check()` | System health status | - | `Dict[str, Any]` |
+| `add_episodic()` | Store episodic memory | `content: str, metadata: dict` | `None` |
+| `add_semantic()` | Store semantic memory | `content: str, metadata: dict` | `None` |
+| `search()` | Search memories | `query: str, limit: int` | `List[dict]` |
+| `stats()` | Get statistics | - | `dict` |
+
+### Backend Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `model_name` | str | `"all-MiniLM-L6-v2"` | Sentence transformer model |
+| `device` | str | `"cpu"` | Device for model execution ("cpu" or "cuda") |
+| `cache_size` | int | `1000` | Embedding cache size (managed by CacheManager) |
+| `batch_size` | int | `32` | Batch size for batch encoding |
 
 ## Further Reading
 
 For complete documentation, see:
-- [Memory System README](../backend/src/memory/README.md) - Complete memory system documentation
-- [Configuration Guide](CONFIGURATION.md) - Memory configuration options
+- [Python Sidecar Documentation](PYTHON_SIDECAR.md) - Frontend memory operations
+- [API Reference](API_REFERENCE.md) - Embeddings API endpoints
 - [Backend Architecture](BACKEND_ARCHITECTURE.md) - System architecture details
 
 ---
 
-The memory system provides the foundation for persistent, intelligent context management in Desktop Assistant, enabling truly personalized and continuity-aware interactions.
+**Note**: The backend's role in memory is primarily limited to embedding generation. Storage, retrieval, and schema management are handled by the frontend Python sidecar. See [Python Sidecar Documentation](PYTHON_SIDECAR.md) for details on frontend memory operations.

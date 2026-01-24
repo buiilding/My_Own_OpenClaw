@@ -1,7 +1,7 @@
 {
   "name": "desktop-assistant-frontend",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.5",
   "type": "module",
   "main": "src/main/index.cjs",
   "scripts": {

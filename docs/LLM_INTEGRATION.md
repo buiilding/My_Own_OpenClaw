@@ -32,25 +32,56 @@ Desktop Assistant supports multiple LLM providers through a unified interface. T
 │      LiteLLMClient (Implementation)     │
 │  - Delegates to provider layer           │
 │  - Handles streaming                     │
+│  - Validates response structure          │
+│  - Config stored for provider selection  │
 └─────────────────────────────────────────┘
               ↕
 ┌─────────────────────────────────────────┐
-│      Provider Factory                   │
+│      Provider Factory (Cached)         │
+│  - create_provider_factory()            │
+│  - LRU cache (maxsize=16)                │
+│  - get_provider() - gets from factory   │
 │  - Caches provider instances            │
-│  - Manages provider lifecycle           │
 └─────────────────────────────────────────┘
               ↕
 ┌─────────────────────────────────────────┐
 │      LLMProvider (Base)                  │
 │  - OpenAIProvider                        │
 │  - AnthropicProvider                     │
-│  - GoogleProvider                        │
+│  - GeminiProvider                        │
 │  - OllamaProvider                        │
 │  - OpenRouterProvider                    │
-│  - MistralProvider                       │
+│  - MistralProvider                      │
 │  - LMStudioProvider                      │
 └─────────────────────────────────────────┘
 ```
+
+### LiteLLMClient
+
+**Implementation**: `llm/client.py`
+
+**Features**:
+- Provider-agnostic abstraction
+- Stateless: Always fetches provider from factory
+- Response validation (structure, content type)
+- Error handling (yields ErrorEvent for streaming)
+
+**Configuration Drift**: Client stores AppConfig reference. When config updates at runtime, new client instance must be created (handled by `AgentSession.update_config()`).
+
+### Provider Factory
+
+**Implementation**: `llm/providers/__init__.py`
+
+**Features**:
+- **Caching**: LRU cache (maxsize=16) prevents provider recreation
+- **Hashable Keys**: Uses primitives (api_key, timeout, URLs) for cache keys
+- **Safe Timeout Conversion**: Validates timeout values (1s-3600s range)
+- **Fail-Fast**: Clear error messages if provider not configured
+
+**Provider Creation**:
+- Cloud providers: Require API key
+- Local providers: No API key required (may fail at runtime if not running)
+- Graceful degradation: Logs warnings, continues with available providers
 
 ## Configuration
 
@@ -132,9 +163,30 @@ messages = [
 
 ## Provider Details
 
+### Provider Base Class
+
+All providers inherit from `LLMProvider` base class (`llm/providers/base.py`):
+
+**Abstract Methods**:
+- `_validate_dependencies()`: Validate required dependencies
+- `get_completion()`: Get non-streaming completion
+- `_stream_internal()`: Internal streaming implementation
+- `list_models()`: List available models
+- `_get_full_model_string()`: Construct full model string for LiteLLM
+
+**Shared Features**:
+- Uniform error handling (rate limits, API errors)
+- Thinking token extraction (Anthropic, Gemini)
+- Model string construction
+- Request parameter building
+
+**Error Handling**:
+- Non-streaming: Raises exceptions (LLMAPIError, LLMRateLimitError, LLMError)
+- Streaming: Yields ErrorEvent (never raises exceptions)
+
 ### OpenAI
 
-**Models**: `gpt-4o`, `gpt-4-turbo`, `gpt-3.5-turbo`
+**Models**: `gpt-4o`, `gpt-4-turbo`, `gpt-3.5-turbo`, `gpt-5`, `gpt-5-mini`, `gpt-4.1`
 
 **Configuration**:
 ```yaml
@@ -149,10 +201,15 @@ providers:
 - Function calling support
 - Streaming responses
 - Token usage tracking
+- Direct model ID (no prefix needed)
+
+**Implementation**: `llm/providers/openai.py`
 
 ### Anthropic
 
-**Models**: `claude-3-opus`, `claude-3-sonnet`, `claude-3-haiku`
+**Models**: 
+- Non-thinking: `claude-3-haiku-20240307`
+- Thinking: `claude-3-7-sonnet-20250219`, `claude-sonnet-4-20250522`, `claude-sonnet-4-5-20250929`, `claude-haiku-4-5-20251001`
 
 **Configuration**:
 ```yaml
@@ -164,12 +221,17 @@ providers:
 
 **Features**:
 - Long context windows
-- Thinking tokens (reasoning)
+- Thinking tokens (reasoning) - enabled for thinking models
 - Streaming responses
+- Default thinking token budget: 16384 tokens
 
-### Google
+**Implementation**: `llm/providers/anthropic.py`
 
-**Models**: `gemini-2.5-flash`, `gemini-pro`
+### Google (Gemini)
+
+**Models**: 
+- Non-thinking: `gemini-2.0-flash-lite`, `gemini-2.0-flash-exp`, `gemini-2.0-flash`, `computer-use-preview`
+- Thinking: `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.5-flash-lite`
 
 **Configuration**:
 ```yaml
@@ -180,9 +242,12 @@ providers:
 ```
 
 **Features**:
-- Multimodal support
+- Multimodal support (text + images)
 - Function calling
 - Streaming responses
+- Thinking tokens (disabled by default, can be enabled)
+
+**Implementation**: `llm/providers/gemini.py`
 
 ### Ollama
 
@@ -247,25 +312,28 @@ providers:
 
 ### LM Studio
 
-**Models**: Any model supported by LM Studio
+**Models**: Any model supported by LM Studio (discovered dynamically)
 
 **Configuration**:
 ```yaml
 providers:
   lm_studio:
-    base_url: "http://localhost:1234"
+    base_url: "http://localhost:1234/v1"
     timeout: 60
 ```
 
 **Setup**:
 1. Install LM Studio
 2. Load model
-3. Start local server
+3. Start local server on port 1234
 
 **Features**:
 - Local execution
 - No API key required
 - GPU acceleration
+- Dynamic model discovery
+
+**Implementation**: `llm/providers/local.py` (LMStudioProvider)
 
 ## Streaming
 
@@ -374,6 +442,66 @@ client2 = get_llm_client(config)
 - **Request Batching**: Batch requests when possible
 - **Streaming**: Use streaming for better UX
 - **Caching**: Cache provider instances
+
+## Model Service
+
+### Overview
+
+The Model Service (`llm/models/model_service.py`) discovers and aggregates available LLM models from static configuration and dynamic provider discovery.
+
+### Methods
+
+- `get_online_models()`: Return curated list of popular online models (non-thinking)
+- `get_thinking_models()`: Return curated list of models that support thinking tokens
+- `get_all_online_models()`: Return all online models (deduplicated, thinking preferred)
+- `get_vision_models()`: Return curated list of local vision models
+- `get_local_models()`: Fetch available models from local providers (Ollama, LM Studio)
+- `get_all_models()`: Fetch all available models (local, online, vision)
+
+### Model Configuration
+
+**Static Configuration** (`llm/models/models_config.py`):
+- `ONLINE_MODELS`: Curated registry of popular online models
+- `ONLINE_THINKING_MODELS`: Models that support thinking tokens
+- `LOCAL_VISION_MODELS`: Local HuggingFace vision models
+
+**Model Discovery**:
+- Online models: Static configuration (no API calls)
+- Local models: Dynamic discovery via provider `list_models()` method
+- Vision models: Static configuration
+
+## Response Parser
+
+### Overview
+
+The Response Parser (`llm/parser.py`) parses LLM responses to detect and extract tool calls.
+
+**Security**: This is a trust boundary. All inputs validated with size limits, timeouts, and strict validation.
+
+### Features
+
+- **Robust JSON Extraction**: Bracket-matching JSON extraction (not regex)
+- **Configurable Schema**: Supports different JSON schemas via `ToolCallSchema`
+- **Default Format**: `{"functionCall": {"name": "...", "args": {...}}}`
+- **Timeout Protection**: Parse timeout (5 seconds default)
+- **Size Limits**: Max response size (10MB), max JSON size (1MB)
+- **Validation**: Tool name validation against registry
+
+### ParsedResponse
+
+**Fields**:
+- `original_response`: Original LLM response text
+- `tool_calls`: List of ParsedToolCall objects
+- `text_content`: Non-tool-call content
+- `has_tool_calls`: Boolean flag
+
+### ParsedToolCall
+
+**Fields**:
+- `tool_name`: Name of tool
+- `parameters`: Tool parameters dictionary
+- `raw_call`: Raw tool call string
+- `confidence`: Parse confidence (0.0-1.0)
 
 ## Testing
 

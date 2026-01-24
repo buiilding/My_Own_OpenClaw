@@ -21,11 +21,14 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Memory System**](MEMORY_SYSTEM.md) - Memory management and retrieval
 - [**LLM Integration**](LLM_INTEGRATION.md) - LLM providers and configuration
 - [**Plugin System**](PLUGIN_SYSTEM.md) - Plugin architecture and development
+- [**Services**](SERVICES.md) - Core services (Vision, TTS, Wakeword, Context Factory, Agent Factory, GPU Memory Manager)
+- [**Event System**](EVENT_SYSTEM.md) - Event types, event bus, and event processing pipeline
 
 ### Development Guides
 - [**Developer Guide**](DEVELOPER_GUIDE.md) - Comprehensive development guide
 - [**Tool Development Guide**](TOOL_DEVELOPMENT.md) - Creating custom tools
 - [**API Reference**](API_REFERENCE.md) - Complete API documentation
+- [**Python Sidecar**](PYTHON_SIDECAR.md) - Python sidecar architecture and tools
 - [**Extension Points**](EXTENSION_POINTS.md) - How to extend the system
 
 ### Configuration & Deployment
@@ -89,9 +92,74 @@ See [Contributing Guide](CONTRIBUTING.md) for guidelines on improving documentat
 ---
 
 **Last Updated**: January 2026  
-**Version**: 1.0.0
+**Version**: 1.5.0
 
 ## Recent Updates
+
+### Comprehensive Documentation Update (January 2026)
+- **New Documentation Files**:
+  - [Services Documentation](SERVICES.md) - Complete documentation for all core services (Vision, TTS, Wakeword, Context Factory, Agent Factory, GPU Memory Manager, Token Service)
+  - [Python Sidecar Documentation](PYTHON_SIDECAR.md) - Python sidecar architecture, tool execution, and built-in tools
+  - [Event System Documentation](EVENT_SYSTEM.md) - Event types, event bus, and event processing pipeline
+- **Enhanced Message Handlers Documentation**:
+  - Detailed documentation for QueryMessageHandler, ListModelsHandler, ToolResultHandler, WakewordHandler
+  - Handler architecture, processing flows, and integration points
+  - Metadata validation and security features
+- **Enhanced TTS Processing Documentation**:
+  - TTSManager lifecycle management and audio streaming
+  - TTSProcessor code block and JSON filtering with state machine
+  - Heuristic detection and content type switching
+- **Enhanced Prompt System Documentation**:
+  - PromptManager singleton pattern and thread-safe initialization
+  - System prompt structure and placeholders
+  - PromptConstructor security limits and validation
+- **Enhanced Testing Infrastructure Documentation**:
+  - Test structure and categories (unit, integration, pipeline)
+  - Tool pipeline tests, parser tests, and system tests
+- **Fixed Memory System Documentation**:
+  - Corrected architecture to reflect actual implementation (backend provides embeddings API, frontend handles storage)
+  - Updated components section to match actual code (SentenceTransformerProvider, LocalMemoryStore)
+  - Fixed usage examples to reflect frontend/backend split
+  - Updated API reference to match actual REST endpoints
+- **Fixed Tool Development Guide**:
+  - Updated to use actual SDK pattern (Pydantic models, Tool base class, RemoteToolBase mixin)
+  - Corrected tool registration process for both backend and frontend
+  - Fixed examples to match actual implementation (run() method, ToolResult format)
+  - Updated schema documentation to use Pydantic instead of manual JSON Schema
+- **Enhanced Backend Architecture**:
+  - Added comprehensive documentation for all core services
+  - Documented dependency injection container structure and composition
+  - Documented bootstrap system and initialization phases
+  - Documented plugin discovery and lifecycle management
+  - Documented security system (executor, policy, trust boundary metrics)
+  - Documented observability and metrics system
+  - Documented coordinate resolvers (OCR, Vision)
+  - Documented result transformers and bundle formatters
+  - Documented prompt coordination and LLM interaction handling
+  - Documented caching system and validation framework
+- **Enhanced Frontend Architecture**:
+  - Documented all custom hooks (useChatStream, useToolRunner, useChatMessageSender, useTranscription, useVoiceMode, useWakewordDetection)
+  - Documented IPC infrastructure (channels, bridge, client)
+  - Documented frontend services (ToolExecutionService, MessageFormatter, PlayerService)
+  - Documented context providers (AppConfigContext, AppStatusContext, ChatProvider)
+  - Documented Zustand chat store
+  - Documented main process modules (ipc.cjs, wakeword_bridge.cjs, local_backend_bridge.cjs)
+  - Documented Python sidecar components (JSON-RPC protocol, system state, memory store, tool registry)
+- **Enhanced API Reference**:
+  - Added REST API endpoints (Embeddings, Semantic Memory)
+  - Documented WebSocket implementation details
+- **Enhanced Tool System**:
+  - Documented coordinate resolvers with implementation details
+  - Documented result transformers and bundle formatters
+  - Documented OcrCoordinator with proactive OCR details
+- **Enhanced LLM Integration**:
+  - Documented all provider implementations
+  - Documented Model Service and model discovery
+  - Documented Response Parser with security details
+- **Enhanced Configuration**:
+  - Documented Python-based configuration system
+  - Documented all configuration options with defaults
+  - Documented configuration subscriptions and validation
 
 ### Frontend Refactor (January 2026)
 - **Feature-Based Architecture**: Reorganized into feature modules (chat, settings, voice)

@@ -65,11 +65,14 @@ Most tools are executed on the frontend Python sidecar:
 
 ### Backend Tools
 
-Some tools execute on the backend:
+Most tools are remote tools (stubs) that execute on the frontend. The backend primarily provides:
 
-- **Memory Tools**: Memory search and storage
-- **LLM Tools**: LLM-related operations
-- **Plugin Tools**: Plugin-provided tools
+- **Remote Tool Stubs**: Schema definitions for frontend tools (see `backend/src/tools/remote.py`)
+- **Tool Registry**: Tool discovery and schema management
+- **Tool Orchestration**: Coordinate resolution and tool preparation
+- **Plugin Tools**: Plugin-provided tools (if any plugins register tools)
+
+**Note**: Memory operations are handled by the frontend Python sidecar, not backend tools. The backend provides embedding generation via REST API, but memory storage and retrieval are frontend responsibilities.
 
 ## Tool Execution Flow
 
@@ -125,6 +128,35 @@ LLM generates tool call in response format:
 3. Processes screenshot and OCR
 4. Updates conversation history (O(1) access via cached LLM format)
 5. Continues agent interaction
+
+**ResultTransformer** (`agent/tools/result_transformer.py`) transforms raw tool results:
+
+- **Pure Function**: No side effects, no state mutation, no history access
+- **Responsibility**: Pure data transformation only
+- **Invariant**: Must remain side-effect free (no session access, no history mutation, no IO, no events)
+
+**Key Methods**:
+- `transform(tool_name, tool_result)`: Transform raw result into ProcessedToolResult
+- `_extract_screenshot_data()`: Extract screenshot from tool result or plugin artifacts
+
+**ProcessedToolResult**:
+- `tool_name`: Name of the tool
+- `formatted_message`: Pre-formatted message for history
+- `screenshot_data`: Optional screenshot data
+- `success`: Success status
+- `error`: Error message if failed
+- `artifacts`: Optional artifacts dictionary
+
+**BundleResultFormatter** (`agent/tools/bundle_result_formatter.py`) formats bundle results:
+
+- **Purpose**: Converts atomic bundle results into single cohesive narrative
+- **Method**: `format(bundle_result, system_state)`
+- **Features**:
+  - Eliminates redundant XML blocks
+  - Provides cleaner context for LLM
+  - Formats step-by-step narrative
+  - Includes system state XML
+  - Handles success, partial_failure, and failure statuses
 
 ## Tool Development
 
@@ -204,6 +236,8 @@ Tools are automatically registered:
 
 ## Coordinate Resolution
 
+Coordinate resolution is handled by pure resolver classes in `agent/tools/resolvers/coordinate_resolvers.py`. These are pure functions with no side effects, making them fully testable.
+
 ### OCR-Based Resolution
 
 For tools requiring coordinate resolution via OCR:
@@ -214,17 +248,30 @@ For tools requiring coordinate resolution via OCR:
     "arguments": {
         "action": "click",
         "find_coordinates_by": "ocr",
-        "target_text": "Submit Button"
+        "ocr_text": "Submit Button"
     }
 }
 ```
 
+**OcrResolver** (`resolvers/coordinate_resolvers.py`):
+- **Pure Function**: No side effects, deterministic output
+- **Method**: `resolve(text, ocr_results, threshold=0.8)`
+- **Algorithm**: Uses `difflib.SequenceMatcher` for fuzzy text matching
+- **Threshold**: Default 0.8 similarity score (configurable)
+- **Returns**: Tuple of (x, y) center coordinates from bounding box
+
 **Flow**:
 1. Screenshot captured
-2. OCR runs on screenshot
-3. Text searched in OCR results
-4. Coordinates extracted
-5. Tool call prepared with coordinates
+2. OCR runs on screenshot (via `OcrCoordinator`)
+3. `OcrResolver.resolve()` searches OCR results for matching text
+4. Best match found using similarity scoring
+5. Coordinates extracted from bounding box center
+6. Tool call prepared with coordinates
+
+**Error Handling**:
+- Raises `ValueError` if OCR results empty
+- Raises `ValueError` if text not found or match score below threshold
+- Logs timing information for performance monitoring
 
 ### Vision-Based Resolution
 
@@ -236,17 +283,58 @@ For tools using vision models:
     "arguments": {
         "action": "click",
         "find_coordinates_by": "prediction",
-        "target_description": "Submit button"
+        "description": "Submit button"
     }
 }
 ```
 
+**VisionResolver** (`resolvers/coordinate_resolvers.py`):
+- **Pure Function**: No side effects, deterministic output
+- **Method**: `resolve(description, screenshot_data, vision_service)`
+- **Model**: Uses InternVL model via VisionService
+- **Returns**: Tuple of (x, y) coordinates from model prediction
+
 **Flow**:
 1. Screenshot captured
-2. Vision model analyzes screenshot
-3. Element detected and localized
-4. Coordinates extracted
-5. Tool call prepared with coordinates
+2. `VisionResolver.resolve()` called with description and screenshot
+3. InternVL model analyzes screenshot and description
+4. Model predicts click coordinates
+5. Coordinates returned
+6. Tool call prepared with coordinates
+
+**Error Handling**:
+- Raises `ValueError` if description missing
+- Raises `ValueError` if vision service unavailable or not initialized
+- Raises `ValueError` if model cannot identify element
+- Logs timing information for performance monitoring
+
+### CoordinateResolver
+
+**CoordinateResolver** (`resolvers/coordinate_resolvers.py`):
+- Routes coordinate resolution to OCR or Vision methods
+- **Pure Function**: No side effects, deterministic output
+- **Method**: `resolve(tool_call, screenshot_data, ocr_results, vision_service)`
+
+**Usage**:
+```python
+resolver = CoordinateResolver(
+    ocr_resolver=OcrResolver(),
+    vision_resolver=VisionResolver()
+)
+
+coordinates = await resolver.resolve(
+    tool_call=parsed_tool_call,
+    screenshot_data=screenshot_base64,
+    ocr_results=ocr_results,  # For OCR method
+    vision_service=vision_service  # For Vision method
+)
+```
+
+**Features**:
+- Automatic method detection from tool call parameters
+- Parameter validation before resolution
+- Clear error messages for missing parameters
+- Supports both OCR and Vision methods
 
 ## Screenshot Management
 

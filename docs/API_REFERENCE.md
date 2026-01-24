@@ -4,13 +4,102 @@
 
 Desktop Assistant uses a WebSocket-based API for real-time communication between the frontend and backend. All messages follow a consistent format with type-based routing.
 
-## WebSocket Endpoint
+## API Endpoints
+
+### WebSocket Endpoint
 
 **URL**: `ws://127.0.0.1:8765/ws`
 
 **Protocol**: WebSocket (RFC 6455)
 
 **Connection**: Persistent connection, auto-reconnect on disconnect
+
+**Implementation**: `backend/src/api/routes/websocket.py`
+
+**Features**:
+- Thread-safe message sending via `SafeWebSocket` wrapper
+- Queue-based sender to decouple message generation from network I/O
+- Task tracking and cancellation on disconnect
+- Message validation via Pydantic
+- Connection lifecycle management
+
+### REST Endpoints
+
+#### Embeddings API
+
+**Base URL**: `http://127.0.0.1:8765/api/embeddings`
+
+**POST `/`** - Generate Embeddings
+- **Purpose**: Generate embeddings for text (used by frontend memory system)
+- **Request Body**:
+  ```json
+  {
+    "text": "Text to embed (1-8192 chars)",
+    "model_name": "default"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "embedding": [0.123, 0.456, ...],
+    "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+    "dimension": 384
+  }
+  ```
+- **Implementation**: `backend/src/api/routes/embeddings.py`
+
+**GET `/health`** - Health Check
+- **Purpose**: Check embeddings service health
+- **Response**:
+  ```json
+  {
+    "status": "healthy",
+    "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+    "dimension": 384
+  }
+  ```
+
+#### Semantic Memory API
+
+**Base URL**: `http://127.0.0.1:8765/api/semantic`
+
+**POST `/summarize`** - Summarize Conversations
+- **Purpose**: Summarize conversations and extract semantic information (facts, preferences)
+- **Request Body**:
+  ```json
+  {
+    "conversations": ["conversation text 1", "conversation text 2"],
+    "user_id": "user123"
+  }
+  ```
+- **Constraints**:
+  - Max 100 conversations per request
+  - Max 32KB per conversation
+  - User ID required (cannot be "default_user")
+- **Response**:
+  ```json
+  {
+    "summary": "Brief summary of conversations",
+    "facts": ["Fact 1", "Fact 2", "Fact 3"],
+    "success": true
+  }
+  ```
+- **Implementation**: `backend/src/api/routes/semantic.py`
+- **Features**:
+  - Extracts user preferences
+  - Extracts key facts about user
+  - Extracts important context
+  - Robust regex parsing with fallback extraction
+
+**GET `/health`** - Health Check
+- **Purpose**: Check semantic summarization service health
+- **Response**:
+  ```json
+  {
+    "status": "healthy",
+    "message": "Semantic summarization service ready"
+  }
+  ```
 
 ## Message Format
 

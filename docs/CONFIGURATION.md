@@ -4,27 +4,92 @@
 
 Desktop Assistant uses a YAML configuration file for application settings. The configuration is stored per-user and can be updated at runtime.
 
-## Configuration File Location
+## Configuration System
 
-The configuration file is automatically created on first run:
+Desktop Assistant uses a Python-based configuration system (`backend/src/core/config/app_config.py`) that is loaded at startup. Configuration is stored in code, not YAML files.
 
-- **Windows**: `%APPDATA%\DesktopAssistant\config.yaml`
-- **macOS**: `~/Library/Application Support/DesktopAssistant/config.yaml`
-- **Linux**: `~/.config/DesktopAssistant/config.yaml`
+### Configuration File Location
+
+Configuration is stored in Python code:
+- **Location**: `backend/src/core/config/app_config.py`
+- **Variable**: `APP_CONFIG` (AppConfig instance)
+- **Note**: Changes require application restart to take effect
+
+### Configuration Loading
+
+**ConfigManager** (`core/config/manager.py`):
+- Loads configuration from Python module
+- Handles API key loading from environment variables
+- Provides default TTS model path
+- Thread-safe configuration access
+
+**ConfigurationService** (`core/config/service.py`):
+- Wraps ConfigManager with change notifications
+- Manages configuration subscribers
+- Publishes ConfigChanged events
+- Provides type-safe access
+
+**Default Configuration** (`core/config/app_config.py`):
+- Default values for all settings
+- Provider configurations
+- Security limits
+- OCR configuration
 
 ## Configuration Structure
 
 ### Root Configuration
 
-```yaml
-# Application Configuration
-app_name: "Desktop Assistant"
-version: "1.0.0"
+Configuration is defined in Python (`backend/src/core/config/app_config.py`):
 
-# LLM Configuration
-model_provider: "openai"  # openai, anthropic, google, ollama, openrouter, mistral, lm_studio
-model_mode: "online"  # online or local
-selected_model_id: "gpt-4o"
+```python
+APP_CONFIG = AppConfig(
+    # LLM Configuration
+    model_provider="openai",  # openai, anthropic, gemini, ollama, openrouter, mistral, lm_studio
+    model_mode="online",  # online or local
+    selected_model_id="gpt-4o",
+    llm_timeout=300,  # seconds
+    query_timeout=600,  # seconds
+    debug_litellm=False,
+    
+    # Provider Configurations
+    llm_providers=LLMProviders(),
+    
+    # Memory System Settings
+    memory_enabled=True,
+    embedding_model="all-MiniLM-L6-v2",
+    
+    # Agent Execution Settings
+    max_history_length=1000,
+    max_agent_iterations=1000,
+    
+    # Vision Model Settings
+    vision_model_name="OpenGVLab/InternVL3_5-2B",
+    
+    # Voice Mode Settings
+    voice_mode_enabled=False,
+    
+    # Wakeword Settings
+    wakeword_enabled=True,
+    wakeword_phrase="hey jarvis",
+    wakeword_greetings=[...],
+    
+    # TTS Settings
+    tts_enabled=True,
+    tts_model_path=None,  # Auto-set to default if None
+    speech_mode_enabled=False,
+    
+    # Security Limits
+    security_limits=SecurityLimits(),
+    
+    # OCR Configuration
+    ocr_config=OCRConfig(),
+    
+    # WebSocket Settings
+    websocket_max_message_size=10 * 1024 * 1024,  # 10MB
+    websocket_max_concurrent_tasks=50,
+    websocket_receive_timeout=3600.0,  # 1 hour
+    websocket_task_cancellation_timeout=5.0,
+)
 
 # Provider-specific configurations
 providers:
@@ -220,36 +285,38 @@ Each provider has specific configuration options:
 
 ### OCR Configuration
 
-**enabled**: Enable/disable OCR
-- Default: `true`
-
-**provider**: OCR provider
-- Options: `rapidocr`
-- Default: `rapidocr`
-
-**device**: Device for OCR
-- Options: `cuda`, `cpu`
-- Default: `cuda` (if available)
-
-**confidence_threshold**: Minimum confidence threshold
-- Range: `0.0` to `1.0`
-- Default: `0.5`
+**OCRConfig** (`ocr_config`):
+- **Batch Size Thresholds**: GPU memory-based batch sizes
+  - Format: `[min_gpu_memory_gb, rec_batch_num, cls_batch_num]`
+  - Default: `[[15.5, 24, 10], [12.0, 10, 6], [8.0, 8, 6], [0.0, 6, 4]]`
+- **Global OCR Settings**:
+  - `use_detection`: Enable text detection (default: `True`)
+  - `use_classification`: Enable text classification (default: `False` - disabled for screenshots)
+  - `use_recognition`: Enable text recognition (default: `True`)
+  - `text_score_threshold`: Text score threshold (default: `0.5`)
+  - `max_side_len`: Max side length (default: `2000`)
+  - `min_side_len`: Min side length (default: `30`)
+- **Detection Settings**:
+  - `det_limit_side_len`: Detection limit side length (default: `736`)
+  - `det_limit_type`: Detection limit type (default: `"min"`)
+  - `det_thresh`: Detection threshold (default: `0.3`)
+  - `det_box_thresh`: Detection box threshold (default: `0.5`)
+  - `det_max_candidates`: Max detection candidates (default: `1000`)
+  - `det_unclip_ratio`: Detection unclip ratio (default: `1.6`)
+  - `det_score_mode`: Detection score mode (default: `"default"`)
+- **Classification Settings**:
+  - `cls_thresh`: Classification threshold (default: `0.9`)
+- **Thread Optimization**:
+  - `use_cpu_cores_for_threads`: Use CPU cores for thread optimization (default: `True`)
+  - `inter_op_threads_max`: Max inter-op threads (default: `4`)
+  - `inter_op_threads_min`: Min inter-op threads (default: `2`)
 
 ### Vision Configuration
 
-**enabled**: Enable/disable vision models
-- Default: `true`
-
-**provider**: Vision provider
-- Options: `internvl`
-- Default: `internvl`
-
-**device**: Device for vision models
-- Options: `cuda`, `cpu`
-- Default: `cuda` (if available)
-
-**model_name**: Vision model name
-- Default: `OpenGVLab/internvl2_1-6b`
+**vision_model_name**: Vision model name
+- Default: `"OpenGVLab/InternVL3_5-2B"`
+- Options: `"OpenGVLab/InternVL3_5-4B"`, `"OpenGVLab/InternVL2_5-8B"`, etc.
+- If `None`, defaults to `"OpenGVLab/InternVL3_5-4B"`
 
 ### Tool Configuration
 
@@ -269,21 +336,26 @@ Each provider has specific configuration options:
 
 ### Voice Configuration
 
-**wakeword_enabled**: Enable wakeword detection
-- Default: `true`
-
 **voice_mode_enabled**: Enable voice input mode
-- Default: `false`
+- Default: `False`
 
-**speech_mode_enabled**: Enable text-to-speech output
-- Default: `false`
+**wakeword_enabled**: Enable wakeword detection
+- Default: `True`
 
-**wakeword_model**: Wakeword model name
-- Default: `hey_jarvis`
+**wakeword_phrase**: Wakeword phrase
+- Default: `"hey jarvis"`
 
-**wakeword_threshold**: Wakeword detection threshold
-- Range: `0.0` to `1.0`
-- Default: `0.5`
+**wakeword_greetings**: List of greeting messages
+- Default: `["Hello! I'm listening.", "Hi there! How can I help you?", ...]`
+
+**tts_enabled**: Enable text-to-speech (hardcoded to `True`, not configurable)
+- Default: `True`
+
+**tts_model_path**: TTS model path (auto-set to default if `None`)
+- Default: Platform-specific default path (see `get_default_tts_model_path()`)
+
+**speech_mode_enabled**: Enable text-to-speech output during interactions
+- Default: `False`
 
 ### Performance Configuration
 
@@ -301,17 +373,28 @@ Each provider has specific configuration options:
 
 ### Security Configuration
 
-**enable_audit_logging**: Enable audit logging
-- Default: `true`
+**SecurityLimits** (`security_limits`):
+- **Parser Limits**:
+  - `max_response_size`: Max LLM response size (default: 10MB)
+  - `max_json_size`: Max JSON object size (default: 1MB)
+  - `max_json_nesting_depth`: Max JSON nesting depth (default: 100)
+  - `max_tool_name_length`: Max tool name length (default: 256)
+  - `max_parameter_count`: Max parameters per tool call (default: 100)
+  - `max_parameter_value_size`: Max parameter value size (default: 64KB)
+  - `max_tool_calls_per_response`: Max tool calls per response (default: 50)
+- **Parser Timeouts**:
+  - `parse_timeout_seconds`: Parser timeout (default: 5.0 seconds)
+  - `json_load_timeout_seconds`: JSON load timeout (default: 2.0 seconds)
+- **Prompt Constructor Limits**:
+  - `max_message_history_size`: Max messages in history (default: 1000)
+  - `max_message_content_size`: Max message content size (default: 1MB)
+  - `max_prompt_size`: Max total prompt size (default: 50MB)
 
-**max_message_size**: Maximum message size in bytes
-- Default: `10485760` (10MB)
-
-**rate_limit_enabled**: Enable rate limiting
-- Default: `true`
-
-**max_concurrent_tasks**: Maximum concurrent tasks per connection
-- Default: `50`
+**WebSocket Settings**:
+- `websocket_max_message_size`: Maximum message size (default: 10MB)
+- `websocket_max_concurrent_tasks`: Maximum concurrent tasks per connection (default: 50)
+- `websocket_receive_timeout`: Receive timeout (default: 3600.0 seconds / 1 hour)
+- `websocket_task_cancellation_timeout`: Task cancellation timeout (default: 5.0 seconds)
 
 ## Frontend-Managed Configuration
 
@@ -348,16 +431,34 @@ Configuration can be updated at runtime:
 
 1. **Via UI**: Settings Panel updates frontend-managed fields
 2. **Via API**: `update-settings` message updates configuration
-3. **Via File**: Edit config file directly (requires restart)
+3. **Via Code**: Edit `backend/src/core/config/app_config.py` (requires restart)
 
 ### Configuration Validation
 
 Configuration is validated on load:
 
+- **Pydantic Validation**: All values validated via Pydantic models
 - **Type Checking**: All values type-checked
 - **Range Validation**: Numeric ranges validated
 - **Required Fields**: Required fields checked
-- **Schema Validation**: Schema validation applied
+- **Immutable Config**: AppConfig is frozen (immutable) to prevent accidental mutation
+
+### Configuration Subscriptions
+
+Components can subscribe to configuration changes:
+
+```python
+from backend.src.core.config.service import ConfigurationService
+
+# Subscribe to config changes
+config_service.subscribe(subscriber)  # Protocol-based
+config_service.subscribe_callback(callback)  # Function-based
+
+# ConfigChanged events published to EventBus
+```
+
+**ConfigSubscriber Protocol**:
+- `on_config_changed(old_config, new_config)`: Called when config changes
 
 ## Configuration Examples
 

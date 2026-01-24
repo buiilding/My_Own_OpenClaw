@@ -172,46 +172,106 @@ App
 **Chat Feature Hooks** (`features/chat/hooks/`)
 
 **useChatMessageSender** (`useChatMessageSender.ts`)
-- Handles sending user messages
-- Screenshot capture coordination
-- Message formatting and transmission
+- Handles sending user messages with screenshot capture
+- Window minimization coordination (2s delay)
+- Screenshot capture after window minimize
+- Message formatting and transmission via ApiClient
+- Config merging and sending to backend
+
+**Key Features**:
+- Creates user message immediately for instant UI display
+- Minimizes window after 2s delay (ensures chat window not in screenshot)
+- Captures screenshot after window minimize
+- Updates message with screenshot
+- Sends query with screenshot and config to backend
 
 **useChatStream** (`useChatStream.ts`)
 - Manages streaming message responses from backend
-- Handles LLM thought tokens
+- Handles LLM thought tokens (accumulates, keeps last 5000 chars)
+- Streaming chunk handling (appends to last message or creates new)
 - Tool call/output handling
 - Message completion states
 - Token count updates
+- Transparency events (system prompt, user message full, assistant message full, tool schemas)
+
+**Event Handlers**:
+- `llm-thought`: Accumulates thinking tokens
+- `streaming-response`: Appends chunks to streaming message
+- `streaming-complete`: Marks message as complete
+- `tool-call`: Creates tool call message
+- `tool-output`: Creates tool output message
+- `system-prompt`: Attaches to last user message
+- `user-message-full`: Updates last user message with full content
+- `assistant-message-full`: Updates last assistant message with full content
+- `tool-schemas`: Attaches to first user message
+- `token-count`: Updates token counts
+- `error`: Displays error message
 
 **useToolRunner** (`useToolRunner.ts`)
 - Connects UI to ToolExecutionService
-- Handles tool execution events
-- Manages tool bundling
+- Handles tool execution events from backend
+- Manages tool bundling (atomic bundles)
 - Updates chat store with tool results
+- Handles memory storage requests
+- Handles hidden screenshot requests
+
+**Event Handlers**:
+- `tool-bundle`: Executes atomic bundle directly
+- `tool-call`: Executes individual tool
+- `memory-store`: Stores memory via IPC
+- `request-screenshot`: Captures hidden screenshot for coordinate calculation
 
 **useTranscription** (`useTranscription.ts`)
 - Input field state management
-- Transcription text insertion
-- Smart replacement logic
+- Transcription text insertion with smart replacement
+- Tracks transcription region boundaries
+- Handles user typing/pasting within transcription region
+- Cursor position management
+
+**Key Features**:
+- Transcription region tracking (start/end positions)
+- Smart replacement: Replaces existing transcription region
+- User input handling: Invalidates transcription if user types within region
+- Paste handling: Updates transcription boundaries on paste
 
 **Settings Feature Hooks** (`features/settings/hooks/`)
 
 **useSettingsManagement** (`useSettingsManagement.ts`)
-- Settings loading and saving
+- Settings loading and saving (legacy, kept for compatibility)
 - Model list management
-- IPC event handling
+- IPC event handling for `models-listed` events
 
 **Voice Feature Hooks** (`features/voice/hooks/`)
 
 **useVoiceMode** (`useVoiceMode.ts`)
 - Voice input mode management
-- WebSocket connection to Nova-Voice Gateway
+- WebSocket connection to Nova-Voice Gateway (`ws://localhost:5026`)
 - Audio capture and transcription
+- Automatic reconnection with exponential backoff (max 5 attempts)
+- Utterance end detection (silence detection)
+
+**Key Features**:
+- Audio capture: 16kHz, mono, echo cancellation, noise suppression
+- Float32 to Int16 conversion for transmission
+- Audio message formatting for Nova-Voice Gateway
+- Real-time transcription updates
+- Utterance end callback (triggers auto-send)
+- Connection state management
 
 **useWakewordDetection** (`useWakewordDetection.ts`)
-- Wakeword detection via openWakeWord
+- Wakeword detection via openWakeWord (Python subprocess)
 - Audio capture and processing
 - IPC communication with main process
+- Cooldown period (2 seconds) to prevent multiple rapid detections
+- Chunk size validation (must be power of 2)
+
+**Key Features**:
+- Audio capture: 16kHz, mono, echo cancellation, noise suppression, auto gain control
+- Float32 to Int16 conversion
+- Audio chunk transmission via IPC (`wakeword-audio-chunk`)
+- Detection threshold (default: 0.5)
+- Service status monitoring
+- Automatic disable on detection (prevents buffered chunks from re-triggering)
 
 ### Main Process (Node.js)
 
@@ -221,35 +281,77 @@ The main process manages the application lifecycle and IPC communication.
 
 **index.cjs**
 - Electron main entry point
-- Window management
-- System tray
-- Application lifecycle
+- Window management (BrowserWindow)
+- System tray (Tray with context menu)
+- Application lifecycle (quit handling, cleanup)
+- Window minimize handler (delayed minimization)
+
+**Features**:
+- Hardware acceleration disabled (prevents GPU crashes)
+- Window hides to tray on close (doesn't quit)
+- Tray icon with context menu (Show App, Quit)
+- Subprocess cleanup on quit (local backend, wakeword service)
 
 **ipc.cjs**
 - IPC bridge between renderer and main
-- WebSocket client to backend
-- Message routing
+- WebSocket client to backend (`ws://127.0.0.1:8765/ws`)
+- Message routing and transformation
 - System state management
+- Memory search integration
+- User ID generation (from system username or UUID)
+
+**Key Features**:
+- **Handshake**: Sends user_id on WebSocket connection
+- **User ID Generation**: From system username (sanitized) or UUID fallback
+- **Context Building**: Builds complete user message with system state and memories
+- **Parallel Operations**: Memory search and system state captured in parallel
+- **Context Types**: Initial (first query) vs Sequential (subsequent queries)
+- **Auto-Reconnect**: Reconnects on disconnect with 5s interval
+- **Message Transformation**: Adds user_id, timestamp, system state, memories
 
 **wakeword_bridge.cjs**
-- Python wakeword service management
-- Audio chunk forwarding
+- Python wakeword service management (subprocess)
+- Audio chunk forwarding (binary protocol)
 - Detection result handling
 - Service status management
+- Buffer clearing on enable/disable
+
+**local_backend_bridge.cjs**
+- Python local backend service management (subprocess)
+- JSON-RPC 2.0 protocol over stdin/stdout
+- Request/response handling with pending request tracking
+- Readiness checking (ping with exponential backoff)
+- Python path detection (conda, system python)
+- Process lifecycle management
+
+**Key Features**:
+- **JSON-RPC Protocol**: Full JSON-RPC 2.0 implementation
+- **Readiness Check**: Pings backend until ready (max 10 attempts, exponential backoff)
+- **Request Tracking**: Maps request IDs to callbacks
+- **Error Handling**: Graceful degradation on process failures
+- **Python Path Caching**: Caches Python executable path
 
 #### IPC Channels
 
-**Renderer → Main**:
+**SEND_CHANNELS** (Renderer → Main, one-way):
 - `to-backend`: Messages to backend
-- `wakeword-audio-chunk`: Audio data
-- `wakeword-enable`: Enable wakeword
-- `wakeword-disable`: Disable wakeword
+- `wakeword-audio-chunk`: Audio data (ArrayBuffer)
+- `wakeword-enable`: Enable wakeword detection
+- `wakeword-disable`: Disable wakeword detection
 
-**Main → Renderer**:
+**INVOKE_CHANNELS** (Renderer → Main, async with response):
+- `execute-tool`: Execute tool via Python sidecar
+- `get-system-state`: Get current system state
+- `store-memory`: Store memory in local store
+- `search-memory`: Search local memory
+- `minimize-window-delayed`: Minimize window after 2s delay
+
+**ON_CHANNELS** (Main → Renderer, event listeners):
 - `from-backend`: Messages from backend
-- `ipc-status`: Connection status
-- `wakeword-detected`: Wakeword detection
-- `wakeword-status`: Service status
+- `ipc-status`: WebSocket connection status
+- `log`: Log messages from main process
+- `wakeword-detected`: Wakeword detection event
+- `wakeword-status`: Wakeword service status
 
 ### Python Sidecar
 
@@ -257,24 +359,71 @@ The Python sidecar handles tool execution and system state capture.
 
 #### Key Modules
 
-**runner.py**
+**local_backend.py**
 - Main Python process entry
-- Message processing from stdin
-- Tool execution routing
-- System state requests
+- JSON-RPC 2.0 protocol handler
+- Tool registry initialization
+- Local memory store initialization
+- Method registration (execute_tool, get_system_state, search_memory, store_memory, ping, get_status)
 
-**core/dispatcher.py**
-- Tool dispatcher
-- Tool discovery and loading
-- Automatic screenshot capture
-- Result formatting
+**Key Features**:
+- **JSON-RPC Protocol**: Full JSON-RPC 2.0 implementation (`core/ipc_protocol.py`)
+- **Tool Registry**: Centralized tool management with Pydantic validation
+- **Memory Store**: Local SQLite + FAISS memory storage
+- **Async Operations**: All operations are async
+- **Error Handling**: Graceful error responses
+
+**core/ipc_protocol.py**
+- JSON-RPC 2.0 protocol implementation
+- Request/response handling
+- Method registration and routing
+- Error code definitions (PARSE_ERROR, INVALID_REQUEST, METHOD_NOT_FOUND, INVALID_PARAMS, INTERNAL_ERROR)
+- Async method support
 
 **core/system_state.py**
-- System state capture
-- Active window detection
-- Mouse position
-- Clipboard preview
-- System statistics
+- System state capture (cross-platform)
+- Active window detection (Windows: win32gui, macOS: AppKit, Linux: xdotool)
+- Mouse position (pyautogui)
+- Clipboard preview (pyperclip, truncated to 100 chars)
+- Screen resolution (pyautogui)
+- Open windows list (WindowManager)
+- System statistics (psutil: CPU, memory, battery)
+
+**Key Features**:
+- **Parallel Operations**: All state components captured in parallel (asyncio.gather)
+- **Cross-Platform**: Windows, macOS, Linux support
+- **Error Isolation**: Individual component failures don't block others
+- **Thread Pool**: Blocking operations run in thread pool
+
+**memory/local_store.py**
+- Local memory storage (SQLite + FAISS)
+- Separate databases for episodic and semantic memory
+- Remote embedding client (calls backend API)
+- Vector search with FAISS
+- TTL-based cleanup
+- Watermark state tracking
+
+**Key Features**:
+- **Remote Embeddings**: Uses RemoteEmbeddingClient (calls backend `/api/embeddings`)
+- **Separate Indices**: Episodic and semantic memories have separate FAISS indices
+- **Vector Mapping**: Maps FAISS vector IDs to memory IDs
+- **Async Operations**: All database operations are async (aiosqlite)
+- **Error Recovery**: Handles corrupted FAISS indices gracefully
+
+**tools/memory/memory_tool.py**
+- Memory management tool (FrontendTool)
+- Operations: add, search, stats
+- Integrates with LocalMemoryStore
+- Pydantic validation for arguments
+
+**wakeword_service.py**
+- Wakeword detection service (subprocess)
+- openWakeWord model loading (hey_jarvis)
+- Audio chunk processing (16-bit PCM)
+- Binary protocol over stdin/stdout
+- Detection threshold: 0.5
+- Model download on first run
+- TFLite/ONNX fallback support
 
 ## Communication Flow
 
@@ -284,28 +433,45 @@ The Python sidecar handles tool execution and system state capture.
 1. User types message in MessageInput
    ↓
 2. useChatMessageSender hook handles message
+   - Creates user message immediately (instant UI display)
+   - Sets isSending=true
    ↓
-3. Screenshot captured (always for visual context)
+3. Window minimized after 2s delay (if visible/focused)
    ↓
-4. Message sent via IpcBridge.send('to-backend')
+4. Screenshot captured after window minimize
    ↓
-5. Main process receives via IPC
+5. Message updated with screenshot
    ↓
-6. Main process builds complete message with system state and memories
+6. Message sent via ApiClient.sendQuery() → IpcBridge.send('to-backend')
    ↓
-7. Main process forwards to backend via WebSocket
+7. Main process (ipc.cjs) receives via IPC
    ↓
-8. Backend processes and streams response
+8. Main process builds complete message:
+   - Determines context type (initial vs sequential)
+   - Starts memory search (parallel, optional)
+   - Starts system state capture (parallel, required)
+   - Waits for both (Promise.allSettled)
+   - Formats system state XML (initial vs sequential format)
+   - Builds complete message with system context and memories
    ↓
-9. Main process receives WebSocket messages
+9. Main process forwards to backend via WebSocket
    ↓
-10. Main process forwards to renderer via IPC
+10. Backend processes and streams response
     ↓
-11. useChatStream hook processes streaming events
+11. Main process receives WebSocket messages
     ↓
-12. Chat store updated with messages
+12. Main process forwards to renderer via IPC ('from-backend')
     ↓
-13. UI updates via Zustand subscriptions
+13. useChatStream hook processes streaming events
+    - LLM thoughts: Accumulates in thinkingStatus
+    - Streaming chunks: Appends to last message or creates new
+    - Tool calls: Creates tool call message
+    - Tool outputs: Creates tool output message
+    - Completion: Marks message as complete
+    ↓
+14. Chat store updated with messages
+    ↓
+15. UI updates via Zustand subscriptions
 ```
 
 ### Tool Execution Flow
@@ -370,14 +536,35 @@ The frontend uses a hybrid approach combining React Context API and Zustand:
 
 **Context API** (for app-level, infrequently changing state):
 - **AppConfigContext**: Application configuration, models, wakeword state
+  - Loads from localStorage immediately (optimistic state, zero latency)
+  - Manages available models list
+  - Handles config updates and persistence
+  - Filters config to frontend-managed fields only
 - **AppStatusContext**: Transient status (save status)
-- Split contexts prevent unnecessary re-renders when only status changes
+  - Settings save status (idle, saving, success, error)
+  - Auto-resets to idle after 3 seconds
+  - Separated from config to prevent unnecessary re-renders
 
 **Zustand Store** (for chat state):
 - **chatStore** (`features/chat/stores/chatStore.ts`): Chat messages, sending state, thinking status, token counts
 - Pure state management with no business logic
 - O(1) access time with shallow equality checks
 - Components subscribe directly to store slices
+
+**ChatStore State**:
+- `messages`: Array of ChatMessage objects
+- `isSending`: Boolean flag for sending state
+- `thinkingStatus`: String for LLM thinking tokens
+- `tokenCounts`: TokenCounts object (prompt_tokens, completion_tokens, total_tokens)
+
+**ChatStore Actions**:
+- `addMessage(message)`: Add new message
+- `updateMessage(id, updates)`: Update existing message
+- `setMessages(messages)`: Replace all messages
+- `setIsSending(isSending)`: Update sending state
+- `setThinkingStatus(status)`: Update thinking status
+- `setTokenCounts(counts)`: Update token counts
+- `clearMessages()`: Clear all messages (resets to initial message)
 
 ### State Flow
 
@@ -401,6 +588,8 @@ UI Update
 - **Zustand Store**: Direct subscriptions to store slices, no context propagation overhead
 - **Lazy Loading**: SettingsPanel loaded lazily to improve initial render time
 - **Stable IPC Listeners**: IPC callbacks use refs to maintain stable identity
+- **Optimistic State**: Config loaded from localStorage immediately (zero latency)
+- **Shallow Equality**: Zustand uses shallow equality for performance
 
 ## Infrastructure Layer
 
@@ -460,16 +649,24 @@ Type-safe IPC bridge abstraction with channel validation.
 
 ### IPC Security
 
-- **Context Isolation**: Renderer isolated from Node.js
-- **Preload Script**: Secure IPC bridge
-- **Whitelisted Channels**: Only allowed channels exposed
-- **No Node Integration**: Renderer has no Node.js access
+- **Context Isolation**: Renderer isolated from Node.js (`contextIsolation: true`)
+- **Preload Script**: Secure IPC bridge via `contextBridge.exposeInMainWorld()`
+- **Whitelisted Channels**: Only allowed channels exposed in preload.js
+- **No Node Integration**: Renderer has no Node.js access (`nodeIntegration: false`)
+- **Channel Validation**: Runtime validation in development, preload.js validation in production
 
 ### Content Security
 
 - **CSP Headers**: Content Security Policy enforced
 - **No Inline Scripts**: All scripts from files
 - **HTTPS Only**: All external resources over HTTPS
+
+### Data Security
+
+- **Local Storage**: Config stored in localStorage (frontend-only)
+- **No Sensitive Data**: No API keys or sensitive data in frontend
+- **User ID Generation**: System username or UUID (never 'default_user')
+- **Input Validation**: Pydantic validation in Python sidecar
 
 ## Performance
 
@@ -536,21 +733,178 @@ tests/frontend/
 
 ### Custom Components
 
-1. Create component in `components/`
+1. Create component in `components/` or feature-specific `components/` directory
 2. Add to component hierarchy
 3. Style with CSS modules
+4. Use TypeScript for type safety
 
 ### Custom Hooks
 
-1. Create hook in `hooks/`
+1. Create hook in feature-specific `hooks/` directory
 2. Export hook function
 3. Use in components
+4. Follow React hooks rules
 
 ### Custom Tools
 
-1. Create tool in `src/main/python/tools/`
-2. Register in dispatcher
-3. Tool automatically available
+1. Create tool in `frontend/src/main/python/tools/`
+2. Inherit from `FrontendTool` base class
+3. Define Pydantic schema for arguments
+4. Register in `tools/registry.py` (TOOL_SCHEMAS dict)
+5. Tool automatically available via JSON-RPC
+
+### Custom IPC Channels
+
+1. Add channel constant to `infrastructure/ipc/channels.ts`
+2. Add to preload.js whitelist
+3. Add handler in main process (ipc.cjs or bridge files)
+4. Use IpcBridge in renderer
+
+## Python Sidecar Details
+
+### JSON-RPC Protocol
+
+**Protocol**: JSON-RPC 2.0 over stdin/stdout
+
+**Request Format**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "request-id",
+  "method": "execute_tool",
+  "params": {
+    "tool_name": "mouse_control",
+    "args": { "action": "click", "x": 100, "y": 200 }
+  }
+}
+```
+
+**Response Format**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "request-id",
+  "result": {
+    "success": true,
+    "data": { ... }
+  }
+}
+```
+
+**Error Format**:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "request-id",
+  "error": {
+    "code": -32603,
+    "message": "Internal error",
+    "data": { ... }
+  }
+}
+```
+
+### Local Memory Store
+
+**Architecture**:
+- Separate SQLite databases for episodic and semantic memory
+- Separate FAISS indices for each memory type
+- Remote embedding client (calls backend `/api/embeddings`)
+- Vector ID mapping (FAISS vector ID ↔ memory ID)
+
+**Operations**:
+- `add(content, user_id, metadata)`: Add memory
+- `search(query, user_id, filters, limit)`: Search memories
+- `get_stats(user_id)`: Get memory statistics
+- `close()`: Close database connections
+
+**Features**:
+- Async operations (aiosqlite)
+- TTL-based cleanup
+- Watermark state tracking for semanticization
+- Error recovery (handles corrupted FAISS indices)
+
+### Wakeword Service
+
+**Protocol**: Binary protocol over stdin/stdout
+
+**Message Format**:
+- 4 bytes: Message length (little-endian)
+- N bytes: Audio data (16-bit PCM) or reset signal (length=0)
+
+**Response Format**:
+- 4 bytes: Response length (little-endian)
+- N bytes: JSON response
+
+**Features**:
+- Model download on first run (hey_jarvis)
+- TFLite/ONNX fallback support
+- Detection threshold: 0.5
+- Confidence logging (all scores > 0.05)
+- Model reset support (clear internal buffers)
+- Binary protocol for efficient audio transmission
+
+#### Tool System
+
+**ToolRegistry** (`tools/registry.py`):
+- Centralized tool management
+- Pydantic schema validation
+- Tool execution routing
+- Error handling
+
+**Tool Registration**:
+- Tools registered in `_register_tools()` method
+- Each tool has corresponding Pydantic schema in `TOOL_SCHEMAS`
+- Graceful degradation: Tools that fail to import are logged but don't crash
+
+**Tool Execution Flow**:
+1. Request received via JSON-RPC
+2. Tool name validated against registry
+3. Arguments validated against Pydantic schema
+4. Tool function called with validated args
+5. Result converted to ToolResult and returned
+
+**Tool Categories**:
+- **Computer Tools**: mouse_control, keyboard_control, screenshot, scroll_control
+- **Filesystem Tools**: read_file, write_file, list_directory, replace, search_file_content, glob, read_many_files
+- **System Tools**: run_shell_command, switch_tab, get_open_windows, get_system_stats, wait
+- **Memory Tool**: memory (add, search, stats operations)
+
+**Tool Schemas** (`tools/schemas.py`):
+- Pydantic models for all tool arguments
+- Type validation and constraints
+- Custom validators for action-specific fields
+- Examples: MouseControlArgs, KeyboardControlArgs, ScreenshotToolArgs, etc.
+
+**Tool Result** (`tools/result.py`):
+- `ToolResult`: Standardized result structure
+  - `success`: Boolean
+  - `data`: Optional dictionary
+  - `error`: Optional error message
+  - `to_dict()`: Convert to dictionary for JSON-RPC
+  - `success_result(data)`: Factory method for success
+  - `error_result(error)`: Factory method for error
+
+#### Remote Embedding Client
+
+**RemoteEmbeddingClient** (`core/remote_embedding_client.py`):
+- HTTP client for backend embedding API
+- Calls `POST /api/embeddings/` endpoint
+- Converts response to numpy array
+- Health check support (`GET /api/embeddings/health`)
+- Async operations (aiohttp)
+
+**Key Methods**:
+- `embed_text(text)`: Generate embedding (returns numpy array)
+- `health_check()`: Check service health
+- `initialize()`: Initialize HTTP session
+- `close()`: Close HTTP session
+
+**Features**:
+- 30-second timeout for embedding requests
+- 5-second timeout for health checks
+- Error handling with detailed error messages
+- Default dimension: 384 (common for embedding models)
 
 ---
 

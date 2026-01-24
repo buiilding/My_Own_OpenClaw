@@ -9,173 +9,237 @@ This guide explains how to create custom tools for Desktop Assistant. Tools enab
 ### Tool Types
 
 **Remote Tools** (Frontend Execution):
-- Executed on Python sidecar
-- Access to system resources
-- Automatic screenshot capture
+- Executed on Python sidecar (`frontend/src/main/python/tools/`)
+- Access to system resources (mouse, keyboard, filesystem)
+- Automatic screenshot capture for computer-use tools
+- Defined by backend stubs (for LLM schema) and frontend implementations
 
 **Backend Tools**:
-- Executed on backend
-- Access to backend services
-- Memory and LLM integration
+- Executed on backend server
+- Access to backend services (memory, LLM clients, plugins)
+- Use SDK Tool base class with Pydantic schemas
 
 ## Creating a Remote Tool
 
-### Step 1: Create Backend Stub
+Remote tools execute on the frontend Python sidecar. They require both a backend stub (for schema) and a frontend implementation.
 
-Create a tool stub in `backend/src/tools/remote.py`:
+### Step 1: Create Pydantic Schema
+
+Create a schema file in `backend/src/tools/<domain>/schemas.py` (e.g., `computer/schemas.py`, `filesystem/schemas.py`):
 
 ```python
-from backend.src.tools.remote import RemoteTool
-from backend.src.sdk.context import ToolContext
-from backend.src.core.interfaces.tool import ToolResult
+from pydantic import BaseModel, Field
 
-class MyRemoteTool(RemoteTool):
-    name = "my_remote_tool"
-    description = "Description of my remote tool"
-    
-    def get_schema(self) -> dict:
-        return {
-            "type": "object",
-            "properties": {
-                "param1": {
-                    "type": "string",
-                    "description": "Parameter 1 description"
-                },
-                "param2": {
-                    "type": "integer",
-                    "description": "Parameter 2 description"
-                }
-            },
-            "required": ["param1"]
-        }
+class MyToolArgs(BaseModel):
+    """Arguments for my remote tool."""
+    param1: str = Field(..., description="Parameter 1 description")
+    param2: int = Field(default=0, description="Parameter 2 description")
 ```
 
-### Step 2: Create Frontend Implementation
+### Step 2: Create Backend Stub
 
-Create tool implementation in `frontend/src/main/python/tools/my_tool.py`:
+Add a remote tool stub in `backend/src/tools/remote.py`:
+
+```python
+from backend.src.sdk.tool import Tool
+from backend.src.tools.remote import RemoteToolBase, RemoteToolResult
+from backend.src.tools.categorization import ToolDomain
+from backend.src.tools.my_domain.schemas import MyToolArgs
+
+class RemoteMyTool(Tool[MyToolArgs], RemoteToolBase):
+    """
+    Remote my tool.
+    
+    Delegates execution to frontend Python sidecar.
+    """
+    
+    name = "my_remote_tool"
+    description = "Description of my remote tool"
+    args_model = MyToolArgs
+    category = ToolDomain.OTHER  # or appropriate domain (COMPUTER, FILESYSTEM, SYSTEM)
+    
+    async def execute_remote(self, args: MyToolArgs, ctx: ToolContext) -> RemoteToolResult:
+        """Prepare tool call for remote execution."""
+        request_id = self._get_request_id(ctx)
+        args_dict = args.model_dump()
+        
+        return RemoteToolResult(
+            tool_name="my_remote_tool",
+            args=args_dict,
+            request_id=request_id
+        )
+```
+
+Then add it to the `REMOTE_TOOLS` dictionary at the bottom of `remote.py`:
+
+```python
+REMOTE_TOOLS = {
+    # ... existing tools
+    "my_remote_tool": RemoteMyTool,
+}
+```
+
+The tool will be automatically registered when `ToolRegistry._register_remote_tools()` is called.
+
+### Step 3: Create Frontend Implementation
+
+Create tool implementation in `frontend/src/main/python/tools/<domain>/my_tool.py`:
 
 ```python
 """
 My Remote Tool - Frontend implementation.
 """
-import asyncio
 import logging
 from typing import Dict, Any
 
+from tools.result import ToolResult
+from tools.schemas import MyToolArgs
+
 logger = logging.getLogger(__name__)
 
-async def execute_my_remote_tool(args: Dict[str, Any]) -> Dict[str, Any]:
+async def execute_my_remote_tool(args: Dict[str, Any]) -> ToolResult:
     """
     Execute my remote tool.
     
     Args:
-        args: Tool arguments
+        args: Tool arguments (validated by Pydantic schema)
         
     Returns:
-        Tool execution result
+        ToolResult with success status and data
     """
     try:
-        param1 = args.get("param1")
-        param2 = args.get("param2", 0)
+        # Validate args using Pydantic schema
+        validated_args = MyToolArgs(**args)
         
         # Tool execution logic
+        param1 = validated_args.param1
+        param2 = validated_args.param2
+        
         result = f"Processed {param1} with {param2}"
         
-        return {
-            "success": True,
-            "data": {
-                "llm_content": f"My tool executed: {result}",
-                "return_display": "Success",
-                "result": result
-            }
-        }
+        return ToolResult(
+            success=True,
+            llm_content=f"My tool executed: {result}",
+            return_display="Success",
+            result=result
+        )
     except Exception as e:
         logger.error(f"My tool failed: {e}", exc_info=True)
-        return {
-            "success": False,
-            "error": f"My tool failed: {str(e)}"
-        }
+        return ToolResult(
+            success=False,
+            error=f"My tool failed: {str(e)}"
+        )
 ```
 
-### Step 3: Register Tool
+### Step 4: Register Tool in Frontend
 
-Register tool in `frontend/src/main/python/core/dispatcher.py`:
+Add the tool to `frontend/src/main/python/tools/registry.py`:
 
+1. Import the schema in the `TOOL_SCHEMAS` dictionary:
 ```python
-from frontend.src.main.python.tools.my_tool import execute_my_remote_tool
+from tools.schemas import (
+    # ... existing imports
+    MyToolArgs,
+)
 
-TOOL_REGISTRY = {
-    "my_remote_tool": execute_my_remote_tool,
-    # ... other tools
+TOOL_SCHEMAS: Dict[str, Type[BaseModel]] = {
+    # ... existing tools
+    "my_remote_tool": MyToolArgs,
 }
+```
+
+2. Register the execution function in `_register_tools()`:
+```python
+def _register_tools(self):
+    # ... existing registrations
+    
+    try:
+        from tools.my_domain.my_tool import execute_my_remote_tool
+        self.tools["my_remote_tool"] = execute_my_remote_tool
+    except ImportError as e:
+        logger.warning(f"Failed to import my_tool: {e}")
 ```
 
 ## Creating a Backend Tool
 
-### Step 1: Create Tool Class
+Backend tools execute directly on the backend server. They have access to backend services like memory, LLM clients, and plugins.
 
-Create tool class in `backend/src/tools/`:
+### Step 1: Create Pydantic Schema
+
+Create a schema file in `backend/src/tools/<domain>/schemas.py`:
+
+```python
+from pydantic import BaseModel, Field
+
+class MyBackendToolArgs(BaseModel):
+    """Arguments for my backend tool."""
+    query: str = Field(..., description="Search query")
+    limit: int = Field(default=10, description="Result limit")
+```
+
+### Step 2: Create Tool Class
+
+Create tool class in `backend/src/tools/<domain>/my_backend_tool.py`:
 
 ```python
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
 from backend.src.core.interfaces.tool import ToolResult
+from backend.src.tools.categorization import ToolDomain
+from backend.src.tools.my_domain.schemas import MyBackendToolArgs
 
-class MyBackendTool(Tool):
+class MyBackendTool(Tool[MyBackendToolArgs]):
+    """
+    My backend tool.
+    
+    Executes on the backend server.
+    """
+    
     name = "my_backend_tool"
     description = "Description of my backend tool"
+    args_model = MyBackendToolArgs
+    category = ToolDomain.OTHER
     
-    def get_schema(self) -> dict:
-        return {
-            "type": "object",
-            "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "Search query"
-                }
-            },
-            "required": ["query"]
-        }
-    
-    async def execute(
+    async def run(
         self,
-        args: dict,
-        context: ToolContext
+        args: MyBackendToolArgs,
+        ctx: ToolContext
     ) -> ToolResult:
         """
         Execute my backend tool.
         
         Args:
-            args: Tool arguments
-            context: Tool execution context
+            args: Validated tool arguments (Pydantic model)
+            ctx: Tool execution context (access to session, config, etc.)
             
         Returns:
-            Tool execution result
+            ToolResult with success status and data
         """
-        query = args.get("query")
-        
         # Tool execution logic
-        result = await self._process_query(query, context)
+        query = args.query
+        limit = args.limit
+        
+        # Access backend services via context
+        # config = ctx.config
+        # session = ctx.session
+        
+        result = f"Searched for: {query} (limit: {limit})"
         
         return ToolResult(
             success=True,
-            llm_content=f"Found results for: {query}",
-            data={"results": result}
+            content=result,
+            metadata={"query": query, "limit": limit}
         )
-    
-    async def _process_query(self, query: str, context: ToolContext) -> list:
-        """Process search query."""
-        # Implementation
-        return []
 ```
 
-### Step 2: Register Tool
+### Step 3: Register Tool
 
-Register tool in tool registry:
+Register the tool in `backend/src/tools/registry.py`:
 
 ```python
-from backend.src.tools.my_backend_tool import MyBackendTool
+from backend.src.tools.my_domain.my_backend_tool import MyBackendTool
 
+# In ToolRegistry.__init__ or a registration method:
 tool_registry.register_tool(MyBackendTool())
 ```
 
@@ -183,8 +247,23 @@ tool_registry.register_tool(MyBackendTool())
 
 ### Schema Format
 
-Tool schemas follow JSON Schema format:
+Tool schemas use Pydantic models, which automatically generate JSON Schema:
 
+```python
+from pydantic import BaseModel, Field
+from typing import Literal
+
+class MouseControlArgs(BaseModel):
+    """Arguments for mouse control tool."""
+    action: Literal["click", "double_click", "right_click"] = Field(
+        ..., 
+        description="Mouse action to perform"
+    )
+    x: int = Field(..., description="X coordinate", ge=0)
+    y: int = Field(..., description="Y coordinate", ge=0)
+```
+
+This automatically generates JSON Schema:
 ```json
 {
   "type": "object",
@@ -205,17 +284,18 @@ Tool schemas follow JSON Schema format:
       "minimum": 0
     }
   },
-  "required": ["action"]
+  "required": ["action", "x", "y"]
 }
 ```
 
 ### Schema Best Practices
 
-1. **Clear Descriptions**: Provide clear parameter descriptions
-2. **Type Validation**: Use appropriate types
-3. **Required Fields**: Mark required fields
-4. **Enums**: Use enums for limited options
-5. **Constraints**: Add min/max constraints where appropriate
+1. **Use Pydantic Models**: Define schemas as Pydantic `BaseModel` classes
+2. **Clear Descriptions**: Provide clear parameter descriptions using `Field(..., description="...")`
+3. **Type Validation**: Use appropriate types (str, int, bool, Literal for enums)
+4. **Required Fields**: Use `Field(...)` for required fields, `Field(default=...)` for optional
+5. **Constraints**: Add constraints using `ge`, `le`, `min_length`, `max_length`, etc.
+6. **Enums**: Use `Literal` for limited options
 
 ## Tool Execution Context
 
@@ -225,28 +305,28 @@ Tools receive a `ToolContext` object:
 
 ```python
 class ToolContext:
-    user_id: str
-    session_id: str
-    tool_registry: ToolRegistry
-    memory_manager: Optional[MemoryManager]
-    config: AppConfig
+    config: AppConfig  # Application configuration
+    session: Optional[AgentSession]  # Agent session (for backend tools)
+    tool_registry: ToolRegistry  # Tool registry
+    # Additional services injected via ContextFactory
 ```
 
 ### Using Context
 
 ```python
-async def execute(self, args: dict, context: ToolContext) -> ToolResult:
-    # Access user ID
-    user_id = context.user_id
+async def run(self, args: MyToolArgs, ctx: ToolContext) -> ToolResult:
+    # Access configuration
+    config = ctx.config
+    timeout = config.llm_timeout
     
-    # Access memory
-    if context.memory_manager:
-        memories = await context.memory_manager.search(args["query"])
+    # Access session (backend tools only)
+    if ctx.session:
+        user_id = ctx.session.user_id
     
-    # Access config
-    timeout = context.config.tools.timeout
+    # Access tool registry
+    other_tool = ctx.tool_registry.get_tool("other_tool")
     
-    ...
+    # ...
 ```
 
 ## Tool Result Format
@@ -254,13 +334,12 @@ async def execute(self, args: dict, context: ToolContext) -> ToolResult:
 ### Success Result
 
 ```python
+from backend.src.core.interfaces.tool import ToolResult
+
 ToolResult(
     success=True,
-    llm_content="Tool executed successfully",
-    data={
-        "result": "...",
-        "metadata": {...}
-    }
+    content="Tool executed successfully",  # Main content for LLM
+    metadata={"result": "...", "additional": "data"}  # Optional metadata
 )
 ```
 
@@ -269,24 +348,28 @@ ToolResult(
 ```python
 ToolResult(
     success=False,
-    llm_content="Tool execution failed: error message",
-    data={
-        "error": "error message",
-        "error_code": "ERROR_CODE"
-    }
+    content="Tool execution failed: error message",  # Error message for LLM
+    error="error message",  # Optional error details
+    metadata={"error_code": "ERROR_CODE"}  # Optional error metadata
+)
+```
+
+### Frontend Tool Result
+
+Frontend tools return `ToolResult` objects (from `tools.result`):
+
+```python
+from tools.result import ToolResult
+
+ToolResult(
+    success=True,
+    llm_content="Tool executed successfully",  # Content for LLM
+    return_display="Success",  # Display message for UI
+    result="..."  # Optional result data
 )
 ```
 
 ## Automatic Screenshot Capture
-
-### Enabling Automatic Capture
-
-For remote tools, enable automatic screenshot capture:
-
-```python
-# In tool schema or metadata
-auto_capture_image = "screenshot"
-```
 
 ### Screenshot Capture Behavior
 
@@ -305,13 +388,12 @@ Both use the same helper method (`captureSystemStateAndScreenshot`) which:
 Screenshots are automatically included in tool results:
 
 ```python
-return {
-    "success": True,
-    "data": {
-        "llm_content": "Tool executed",
-        "screenshot": "base64-encoded-screenshot"  # Automatic
-    }
-}
+# Frontend tool automatically includes screenshot
+return ToolResult(
+    success=True,
+    llm_content="Tool executed",
+    # Screenshot is automatically added by ToolExecutionService
+)
 ```
 
 ## Tool Testing
@@ -322,19 +404,18 @@ return {
 import pytest
 from backend.src.tools.my_tool import MyTool
 from backend.src.sdk.context import ToolContext
+from backend.src.tools.my_domain.schemas import MyToolArgs
 
 @pytest.mark.asyncio
 async def test_my_tool():
     tool = MyTool()
     context = ToolContext(...)
     
-    result = await tool.execute(
-        {"param1": "value"},
-        context
-    )
+    args = MyToolArgs(param1="value", param2=10)
+    result = await tool.run(args, context)
     
     assert result.success
-    assert "value" in result.llm_content
+    assert "value" in result.content
 ```
 
 ### Integration Testing
@@ -355,116 +436,124 @@ async def test_tool_execution_flow():
 - Always handle exceptions
 - Return meaningful error messages
 - Log errors for debugging
+- Use `ToolResult` with `success=False` for errors
 
 ### Performance
 
 - Use async/await for I/O operations
 - Batch operations when possible
 - Cache expensive computations
+- Offload blocking operations to thread pool
 
 ### Security
 
-- Validate all inputs
+- Validate all inputs using Pydantic schemas
 - Sanitize user data
 - Set resource limits
+- Use type-safe argument models
 
 ### Documentation
 
-- Document tool purpose
-- Document parameters
-- Provide examples
+- Document tool purpose in class docstring
+- Document parameters in Pydantic Field descriptions
+- Provide examples in docstrings
+- Use clear, descriptive names
 
 ## Examples
 
-### Example: File Reading Tool
+### Example: Remote File Reading Tool
 
+**Backend Stub** (`backend/src/tools/remote.py`):
 ```python
-class ReadFileTool(Tool):
+class RemoteReadFileTool(Tool[ReadFileArgs], RemoteToolBase):
     name = "read_file"
     description = "Read file contents"
+    args_model = ReadFileArgs
+    category = ToolDomain.FILESYSTEM
     
-    def get_schema(self) -> dict:
-        return {
-            "type": "object",
-            "properties": {
-                "file_path": {
-                    "type": "string",
-                    "description": "Path to file"
-                }
-            },
-            "required": ["file_path"]
-        }
-    
-    async def execute(self, args: dict, context: ToolContext) -> ToolResult:
-        file_path = args["file_path"]
-        
-        try:
-            with open(file_path, "r") as f:
-                content = f.read()
-            
-            return ToolResult(
-                success=True,
-                llm_content=f"Read file: {file_path}",
-                data={"content": content}
-            )
-        except Exception as e:
-            return ToolResult(
-                success=False,
-                llm_content=f"Failed to read file: {str(e)}",
-                data={"error": str(e)}
-            )
+    async def execute_remote(self, args: ReadFileArgs, ctx: ToolContext) -> RemoteToolResult:
+        request_id = self._get_request_id(ctx)
+        return RemoteToolResult(
+            tool_name="read_file",
+            args=args.model_dump(),
+            request_id=request_id
+        )
 ```
 
-### Example: API Call Tool
+**Frontend Implementation** (`frontend/src/main/python/tools/filesystem/read_file_tool.py`):
+```python
+async def read_file(args: Dict[str, Any]) -> ToolResult:
+    try:
+        validated_args = ReadFileArgs(**args)
+        file_path = validated_args.file_path
+        
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        
+        return ToolResult(
+            success=True,
+            llm_content=f"Read file: {file_path}\n\n{content}",
+            return_display=f"Read {file_path}",
+            result=content
+        )
+    except Exception as e:
+        return ToolResult(
+            success=False,
+            error=f"Failed to read file: {str(e)}"
+        )
+```
+
+### Example: Backend Memory Search Tool
 
 ```python
-class APICallTool(Tool):
-    name = "api_call"
-    description = "Make API call"
+class MemorySearchTool(Tool[MemorySearchArgs]):
+    name = "memory_search"
+    description = "Search memory for relevant information"
+    args_model = MemorySearchArgs
+    category = ToolDomain.MEMORY
     
-    async def execute(self, args: dict, context: ToolContext) -> ToolResult:
-        import aiohttp
+    async def run(self, args: MemorySearchArgs, ctx: ToolContext) -> ToolResult:
+        query = args.query
+        limit = args.limit
         
-        url = args["url"]
-        method = args.get("method", "GET")
+        # Access memory service via context
+        # (implementation depends on how memory is accessed)
         
-        async with aiohttp.ClientSession() as session:
-            async with session.request(method, url) as response:
-                data = await response.json()
-                
-                return ToolResult(
-                    success=True,
-                    llm_content=f"API call successful",
-                    data={"response": data}
-                )
+        results = []  # Search memory
+        
+        return ToolResult(
+            success=True,
+            content=f"Found {len(results)} results for: {query}",
+            metadata={"results": results}
+        )
 ```
 
 ## Troubleshooting
 
 ### Tool Not Executing
 
-1. Check tool registration
-2. Verify tool schema
-3. Check tool name matches
-4. Review error logs
+1. Check tool registration in `ToolRegistry`
+2. Verify tool schema matches implementation
+3. Check tool name matches between backend and frontend
+4. Review error logs for validation errors
 
 ### Tool Execution Errors
 
-1. Check error messages
-2. Verify input validation
+1. Check error messages in tool result
+2. Verify Pydantic schema validation
 3. Review tool implementation
-4. Check resource limits
+4. Check resource limits and permissions
 
 ### Tool Not Appearing
 
-1. Check tool registration
-2. Verify tool schema
-3. Restart application
-4. Check tool registry
+1. Check tool registration in both backend and frontend
+2. Verify tool schema is valid Pydantic model
+3. Restart application to reload registrations
+4. Check tool registry logs for registration errors
 
 ---
 
 For more information, see:
-- [Tool System](TOOL_SYSTEM.md)
-- [API Reference](API_REFERENCE.md)
-- [Developer Guide](DEVELOPER_GUIDE.md)
+- [Tool System](TOOL_SYSTEM.md) - Tool system architecture
+- [API Reference](API_REFERENCE.md) - WebSocket API details
+- [Developer Guide](DEVELOPER_GUIDE.md) - General development guide
