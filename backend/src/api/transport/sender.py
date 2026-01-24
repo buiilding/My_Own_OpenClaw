@@ -1,35 +1,12 @@
 """
-Transport Abstractions.
+Transport Sender Implementation.
 
-Defines the protocol for sending messages to clients, decoupling logic
-from specific WebSocket implementations and ensuring type safety.
+Abstract base class and WebSocket implementation for transport senders.
 """
-import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Protocol, runtime_checkable
+from typing import Any, Dict
 
-logger = logging.getLogger(__name__)
-
-# Fixes Point #6: Strict Protocol instead of Any
-@runtime_checkable
-class WebSocketSender(Protocol):
-    """
-    Protocol defining the thread-safe interface for WebSocket operations.
-    
-    Consumers (like TTSManager) should type-hint against this, not raw WebSocket.
-    This ensures all send operations go through thread-safe implementations.
-    """
-    async def send_json(self, data: Any, mode: str = "text") -> None:
-        """Send JSON data safely."""
-        ...
-
-    async def send_text(self, data: str) -> None:
-        """Send text data safely."""
-        ...
-
-    async def close(self, code: int = 1000, reason: Optional[str] = None) -> None:
-        """Close connection safely."""
-        ...
+from backend.src.api.transport.protocol import WebSocketSender
 
 
 class TransportSender(ABC):

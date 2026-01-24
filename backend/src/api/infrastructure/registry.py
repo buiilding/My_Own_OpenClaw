@@ -1,59 +1,17 @@
 """
-Base Handler Classes for WebSocket Messages.
+Message Handler Registry.
 
-This module defines the base handler interface and registry pattern
-for WebSocket message handling.
+Provides centralized registration and routing of WebSocket message handlers.
 """
 import logging
-from abc import ABC, abstractmethod
 from collections.abc import Awaitable
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Callable, Optional, Union
 
-from backend.src.api.core.transport import WebSocketSender
+from backend.src.api.infrastructure.handler import MessageHandler
 from backend.src.api.schema import BaseMessage, IncomingMessage
+from backend.src.api.transport.protocol import WebSocketSender
 
 logger = logging.getLogger(__name__)
-
-
-class MessageHandler(ABC):
-    """
-    Base class for WebSocket message handlers.
-    
-    All message handlers must inherit from this class and implement
-    the handle method.
-    """
-    
-    @abstractmethod
-    async def handle(
-        self, 
-        message: BaseMessage, 
-        websocket: WebSocketSender,
-        user_id: str
-    ) -> None:
-        """
-        Handle a WebSocket message.
-        
-        Args:
-            message: Validated Pydantic message model (BaseMessage or subclass)
-            websocket: WebSocketSender (thread-safe protocol implementation)
-            user_id: User ID from connection context
-            
-        Raises:
-            Exception: If message handling fails
-        """
-        pass
-    
-    def validate_message(self, message: BaseMessage) -> bool:
-        """
-        Validate message data (optional override).
-        
-        Args:
-            message: Pydantic message model to validate
-            
-        Returns:
-            True if message is valid, False otherwise
-        """
-        return True
 
 
 class MessageHandlerRegistry:
@@ -66,7 +24,7 @@ class MessageHandlerRegistry:
     
     def __init__(self):
         """Initialize the handler registry."""
-        self._handlers: Dict[str, MessageHandler] = {}
+        self._handlers: dict[str, MessageHandler] = {}
         # Middleware receives typed Pydantic models for type safety
         self._middleware: list[Callable[[IncomingMessage, WebSocketSender], Union[None, Awaitable[None]]]] = []
     
@@ -217,6 +175,3 @@ class MessageHandlerRegistry:
             List of registered message type strings
         """
         return list(self._handlers.keys())
-
-
-

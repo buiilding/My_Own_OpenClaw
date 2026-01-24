@@ -6,10 +6,10 @@ Handles wakeword detection and activation messages.
 import asyncio
 import logging
 
-from backend.src.api.core.base import MessageHandler
-from backend.src.api.core.errors import send_error_response, send_success_response
-from backend.src.api.core.transport import WebSocketSender
-from backend.src.api.tts.manager import TTSManager
+from backend.src.api.infrastructure.handler import MessageHandler
+from backend.src.api.infrastructure.errors import send_error_response, send_success_response
+from backend.src.api.transport.protocol import WebSocketSender
+from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.schema import BaseMessage, WakewordDetectedMessage
 from backend.src.core.services.wakeword_service import WakewordService
 from backend.src.core.validation import ValidationError

@@ -9,9 +9,9 @@ from typing import Optional, Set
 
 from fastapi import WebSocketDisconnect
 
-from backend.src.api.query.formatter import ResponseFormatter
-from backend.src.api.core.transport import TransportSender
-from backend.src.api.tts.processor import TTSProcessor
+from backend.src.api.processing.formatter import ResponseFormatter
+from backend.src.api.transport.sender import TransportSender
+from backend.src.api.processing.tts.processor import TTSProcessor
 from backend.src.core.events import AgentStreamingEvent
 from backend.src.core.services.tts_service import TTSService
 
