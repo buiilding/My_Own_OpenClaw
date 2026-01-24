@@ -245,7 +245,6 @@ class ToolOrchestrator:
             else:
                 # Result not yet available, wait for it
                 try:
-                    import time
                     wait_start = time.perf_counter()
                     logger.info(f"Waiting for frontend tool result (request_id={_short_id(request_id)})...")
                     # Wait for the result with a timeout

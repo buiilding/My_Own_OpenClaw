@@ -107,25 +107,15 @@ export class ToolExecutionService {
    * @returns Object with systemState and screenshot, or null if capture failed
    */
   private async captureSystemStateAndScreenshot(context: string, waitSeconds: number = 2000): Promise<{ systemState: SystemState | null; screenshot: string | null }> {
-    console.log(`[ToolExecutionService] Capturing system state and screenshot ${context}...`);
-    
     // Wait for specified delay (default 2 seconds) for UI to update before capturing
     await new Promise(r => setTimeout(r, waitSeconds));
 
     try {
-      const combinedStartTime = performance.now();
-      const systemStateStartTime = performance.now();
-      const screenshotStartTime = performance.now();
-      
-      console.log('[Timing] Starting parallel system state and screenshot capture...');
+      const captureStartTime = performance.now();
       
       // Get system state and screenshot in parallel
       const [stateResult, screenshotResult] = await Promise.all([
-        IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE).then(result => {
-          const systemStateTime = (performance.now() - systemStateStartTime) / 1000;
-          console.log(`[Timing] Get system state completed: took ${systemStateTime.toFixed(3)}s`);
-          return result;
-        }),
+        IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE),
         IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
           toolName: 'screenshot',
           args: {
@@ -133,15 +123,8 @@ export class ToolExecutionService {
             expectation: `State ${context}`
           },
           skipAutoCapture: false
-        }).then(result => {
-          const screenshotTime = (performance.now() - screenshotStartTime) / 1000;
-          console.log(`[Timing] Screenshot capture completed: took ${screenshotTime.toFixed(3)}s`);
-          return result;
         })
       ]);
-
-      const combinedTime = (performance.now() - combinedStartTime) / 1000;
-      console.log(`[Timing] Combined system state + screenshot (parallel): took ${combinedTime.toFixed(3)}s`);
 
       const systemState = stateResult;
       const screenshot = screenshotResult.success && screenshotResult.data && typeof screenshotResult.data === 'object'
@@ -163,20 +146,19 @@ export class ToolExecutionService {
     args: any,
     options: ToolExecutionOptions
   ): Promise<ToolExecutionResult> {
-    const startTime = performance.now();
+    const totalStartTime = performance.now();
     const shortId = options.correlationId ? options.correlationId.substring(0, 15) : 'unknown';
     console.log(`[Timing] Tool execution started: ${toolName} (request_id=${shortId})`);
 
     try {
       // Execute tool via IPC
+      const toolInvokeStartTime = performance.now();
       const result: ToolResult = await IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {
         toolName,
         args,
         skipAutoCapture: options.skipAutoCapture || false
       });
-
-      const executionTime = (performance.now() - startTime) / 1000;
-      console.log(`[Timing] Tool execution completed: ${toolName} took ${executionTime.toFixed(3)}s (request_id=${shortId})`);
+      const toolInvokeTime = (performance.now() - toolInvokeStartTime) / 1000;
 
       // Check if this is a computer-use tool that should have a screenshot
       // run_shell_command is conditionally a computer-use tool if wait parameter is provided
@@ -187,6 +169,8 @@ export class ToolExecutionService {
       
       let screenshot: string | null = null;
       let systemState: SystemState | null = null;
+      let waitDelay = 0;
+      let captureTime = 0;
       
       // Safely extract screenshot and system_state from result.data
       if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
@@ -197,12 +181,21 @@ export class ToolExecutionService {
       // Capture screenshot and system state ONCE after individual tool execution if needed
       if (isComputerUseTool && !options.skipAutoCapture && !screenshot) {
         // Extract wait parameter from tool args (convert seconds to milliseconds)
+        // For wait tool, use the 'seconds' parameter; for other tools, use 'wait' parameter
         // Default to 2000ms (2 seconds) if not provided
-        const waitSeconds = args && typeof args === 'object' && typeof args.wait === 'number'
-          ? args.wait * 1000
-          : 2000;
+        let waitSeconds = 2000;
+        if (toolName === 'wait' && args && typeof args === 'object' && typeof args.seconds === 'number') {
+          // Wait tool: use 'seconds' parameter
+          waitSeconds = args.seconds * 1000;
+        } else if (args && typeof args === 'object' && typeof args.wait === 'number') {
+          // Other computer-use tools: use 'wait' parameter
+          waitSeconds = args.wait * 1000;
+        }
         
+        waitDelay = waitSeconds / 1000; // Convert back to seconds for logging
+        const captureStartTime = performance.now();
         const captureResult = await this.captureSystemStateAndScreenshot(`after ${toolName}`, waitSeconds);
+        captureTime = (performance.now() - captureStartTime) / 1000;
         systemState = captureResult.systemState;
         screenshot = captureResult.screenshot;
 
@@ -227,11 +220,11 @@ export class ToolExecutionService {
         finalSystemState
       );
 
-      // Prepare result
+      // Prepare result (executionTime will be calculated after sending to backend)
       const executionResult: ToolExecutionResult = {
         toolName,
         result,
-        executionTime,
+        executionTime: 0, // Will be set after backend send
         correlationId: options.correlationId,
         formattedMessage,
         screenshot,
@@ -262,10 +255,29 @@ export class ToolExecutionService {
         });
       }
 
+      // Calculate total execution time AFTER sending to backend (execution is complete when backend receives result)
+      // This includes: tool IPC + wait delay + screenshot capture + formatting + backend send
+      const totalExecutionTime = (performance.now() - totalStartTime) / 1000;
+      executionResult.executionTime = totalExecutionTime;
+      
+      // Log detailed timing breakdown
+      if (isComputerUseTool && !options.skipAutoCapture) {
+        console.log(
+          `[Timing] Tool execution completed: ${toolName} took ${totalExecutionTime.toFixed(3)}s total ` +
+          `(IPC: ${toolInvokeTime.toFixed(3)}s, wait: ${waitDelay.toFixed(3)}s, capture: ${captureTime.toFixed(3)}s) ` +
+          `(request_id=${shortId})`
+        );
+      } else {
+        console.log(
+          `[Timing] Tool execution completed: ${toolName} took ${totalExecutionTime.toFixed(3)}s ` +
+          `(IPC: ${toolInvokeTime.toFixed(3)}s) (request_id=${shortId})`
+        );
+      }
+
       return executionResult;
     } catch (error: any) {
-      const executionTime = (performance.now() - startTime) / 1000;
-      console.error(`[ToolExecutionService] Tool execution failed: ${error.message}`);
+      const errorExecutionTime = (performance.now() - totalStartTime) / 1000;
+      console.error(`[ToolExecutionService] Tool execution failed: ${error.message} (took ${errorExecutionTime.toFixed(3)}s)`);
 
       // Format error message with system context XML
       const errorFormattedMessage = formatToolOutputMessage(
@@ -278,7 +290,7 @@ export class ToolExecutionService {
       const errorResult: ToolExecutionResult = {
         toolName,
         result: { success: false, error: error.message, data: null },
-        executionTime,
+        executionTime: errorExecutionTime,
         correlationId: options.correlationId,
         formattedMessage: errorFormattedMessage,
         screenshot: null,
@@ -327,6 +339,7 @@ export class ToolExecutionService {
 
     try {
       // Execute all tools sequentially with skipAutoCapture (FAIL-FAST: stop on first error)
+      const toolExecutionTimes: Array<{ tool: string; time: number }> = [];
       for (let i = 0; i < bundle.length; i++) {
         const tool = bundle[i];
         const toolStartTime = performance.now();
@@ -342,7 +355,8 @@ export class ToolExecutionService {
           });
 
           const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
-          console.log(`[Timing] Bundled tool execution: ${tool.toolName} took ${toolExecutionTime.toFixed(3)}s`);
+          toolExecutionTimes.push({ tool: tool.toolName, time: toolExecutionTime });
+          console.log(`[Timing] Bundled tool IPC: ${tool.toolName} took ${toolExecutionTime.toFixed(3)}s`);
 
           // Extract output for step result
           const output = result.data && typeof result.data === 'object' && result.data.output
@@ -364,7 +378,8 @@ export class ToolExecutionService {
           }
         } catch (err: any) {
           const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
-          console.error('[ToolExecutionService] Bundle tool execution failed:', err);
+          toolExecutionTimes.push({ tool: tool.toolName, time: toolExecutionTime });
+          console.error(`[ToolExecutionService] Bundle tool execution failed: ${tool.toolName} (took ${toolExecutionTime.toFixed(3)}s):`, err);
 
           stepResults.push({
             tool: tool.toolName,
@@ -389,6 +404,8 @@ export class ToolExecutionService {
       // Get system state and screenshot ONCE after all bundled tools execute
       let systemState: SystemState | null = null;
       let screenshot: string | null = null;
+      let waitDelay = 0;
+      let captureTime = 0;
 
       if (hasComputerUseTool) {
         // Extract wait parameter from all computer-use tools in bundle and accumulate
@@ -404,27 +421,35 @@ export class ToolExecutionService {
         
         if (computerUseTools.length > 0) {
           // Extract wait values from all computer-use tools
+          // For wait tool, use 'seconds' parameter; for other tools, use 'wait' parameter
           const waitValues = computerUseTools
-            .map(tool => tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number' ? tool.args.wait : null)
+            .map(tool => {
+              if (!tool.args || typeof tool.args !== 'object') return null;
+              if (tool.toolName === 'wait' && typeof tool.args.seconds === 'number') {
+                return tool.args.seconds;
+              } else if (typeof tool.args.wait === 'number') {
+                return tool.args.wait;
+              }
+              return null;
+            })
             .filter((w): w is number => w !== null);
           
           if (waitValues.length > 0) {
             // Accumulate wait values from all computer-use tools in the bundle
             const totalWaitSeconds = waitValues.reduce((sum, wait) => sum + wait, 0);
             waitSeconds = totalWaitSeconds * 1000;
+            waitDelay = totalWaitSeconds; // Store in seconds for logging
           }
         }
         
+        const captureStartTime = performance.now();
         const captureResult = await this.captureSystemStateAndScreenshot('after bundle execution', waitSeconds);
+        captureTime = (performance.now() - captureStartTime) / 1000;
         systemState = captureResult.systemState;
         screenshot = captureResult.screenshot;
       } else {
         console.log('[ToolExecutionService] Skipping system state/screenshot (no computer-use tools in bundle)');
       }
-
-      // Calculate execution time BEFORE formatting (formatting is overhead, not execution time)
-      const bundleExecutionTime = (performance.now() - bundleStartTime) / 1000;
-      console.log(`[Timing] Bundle execution completed: ${stepResults.length} steps took ${bundleExecutionTime.toFixed(3)}s (bundle_id=${bundleId})`);
 
       // Determine bundle status
       const allSuccess = stepResults.every(step => step.status === 'ok');
@@ -447,7 +472,7 @@ export class ToolExecutionService {
       const formattingTime = (performance.now() - formattingStartTime) / 1000;
       console.log(`[Timing] Message formatting took ${formattingTime.toFixed(3)}s`);
 
-      // Prepare bundle result for UI callback
+      // Prepare bundle result for UI callback (totalTime will be set after backend send)
       const bundleResult: BundleExecutionResult = {
         correlationId: bundleId,
         results: stepResults.map(step => ({
@@ -459,7 +484,7 @@ export class ToolExecutionService {
           executionTime: 0,
           _rawResult: { success: step.status === 'ok', error: step.status === 'error' ? step.output : null, data: null }
         })),
-        totalTime: bundleExecutionTime,
+        totalTime: 0, // Will be set after backend send
         formattedMessage: combinedFormattedMessage,
         screenshot,
         systemState
@@ -491,6 +516,26 @@ export class ToolExecutionService {
             error: errorMessage
           }
         });
+      }
+
+      // Calculate bundle execution time AFTER sending to backend (execution is complete when backend receives result)
+      // This includes: all tool IPC calls + wait delay + screenshot capture + formatting + backend send
+      const bundleExecutionTime = (performance.now() - bundleStartTime) / 1000;
+      bundleResult.totalTime = bundleExecutionTime;
+      
+      // Log detailed timing breakdown
+      const totalToolTime = toolExecutionTimes.reduce((sum, t) => sum + t.time, 0);
+      if (hasComputerUseTool) {
+        console.log(
+          `[Timing] Bundle execution completed: ${stepResults.length} steps took ${bundleExecutionTime.toFixed(3)}s total ` +
+          `(tools: ${totalToolTime.toFixed(3)}s, wait: ${waitDelay.toFixed(3)}s, capture: ${captureTime.toFixed(3)}s) ` +
+          `(bundle_id=${bundleId})`
+        );
+      } else {
+        console.log(
+          `[Timing] Bundle execution completed: ${stepResults.length} steps took ${bundleExecutionTime.toFixed(3)}s ` +
+          `(tools: ${totalToolTime.toFixed(3)}s) (bundle_id=${bundleId})`
+        );
       }
 
       return bundleResult;

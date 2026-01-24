@@ -11,13 +11,16 @@ logger = logging.getLogger(__name__)
 
 async def wait(args: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Wait for a specified number of seconds.
+    Wait tool - returns immediately without blocking.
+    
+    The actual wait delay is handled by the frontend, which delays screenshot/system state
+    capture by the specified seconds. This ensures the wait doesn't block other operations.
     
     Args:
         args: Dictionary with 'seconds' parameter (defaults to 1.0 if not provided)
         
     Returns:
-        Dictionary with success status and wait result
+        Dictionary with success status and wait result (returns immediately)
     """
     try:
         # Extract seconds from args, default to 1.0 for backward compatibility
@@ -27,19 +30,20 @@ async def wait(args: Dict[str, Any]) -> Dict[str, Any]:
         if not isinstance(seconds, (int, float)) or seconds < 0:
             return {"success": False, "error": "seconds must be a non-negative number"}
         
-        # Wait for specified seconds
-        await asyncio.sleep(float(seconds))
+        # Return immediately - the frontend will delay screenshot/system state capture
+        # This ensures the wait doesn't block other operations
+        seconds_float = float(seconds)
         
         # Format message based on seconds value
-        if seconds == 1.0:
+        if seconds_float == 1.0:
             status_msg = "Waited for 1 second"
         else:
-            status_msg = f"Waited for {seconds} seconds"
+            status_msg = f"Waited for {seconds_float} seconds"
         
         return {
             "success": True,
             "data": {
-                "seconds_waited": float(seconds),
+                "seconds_waited": seconds_float,
                 "status": status_msg,
                 "llm_content": f"status: {status_msg}",
                 "return_display": status_msg,

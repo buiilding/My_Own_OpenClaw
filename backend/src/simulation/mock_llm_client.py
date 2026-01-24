@@ -115,7 +115,7 @@ SIMULATION_RESPONSES = [
                     "ocr_text": "Search Amazon",
                     "explanation": "Clicking on the text 'Search Amazon' found via OCR.",
                     "expectation": "The UI should respond to clicking on 'Search Amazon'.",
-                    "wait": 0.0
+                    "wait": 0.2
                 }
             }
         })
@@ -131,7 +131,7 @@ SIMULATION_RESPONSES = [
                     "text": "shoes",
                     "explanation": "Typing 'shoes' into the Amazon search box.",
                     "expectation": "The text 'shoes' should appear in the search box.",
-                    "wait": 0.0
+                    "wait": 0.2
                 }
             }
         }) + "\n" + json.dumps({
@@ -158,7 +158,7 @@ SIMULATION_RESPONSES = [
                     "ocr_text": "Sort by: Featured",
                     "explanation": "Clicking on the text 'Sort by: Featured' found via OCR.",
                     "expectation": "The UI should respond to clicking on 'Sort by: Featured'.",
-                    "wait": 0.0
+                    "wait": 0.2
                 }
             }
         })
@@ -174,7 +174,7 @@ SIMULATION_RESPONSES = [
                     "ocr_text": "Price: Low to High",
                     "explanation": "Clicking on the text 'Price: Low to High' found via OCR.",
                     "expectation": "The UI should respond to clicking on 'Price: Low to High'.",
-                    "wait": 0.0
+                    "wait": 0.2
                 }
             }
         })
@@ -189,7 +189,7 @@ SIMULATION_RESPONSES = [
                     "clicks": 80,
                     "explanation": "Scrolling down the page to see more search results.",
                     "expectation": "The page should scroll down, revealing more product listings.",
-                    "wait": 0.0
+                    "wait": 1.0
                 }
             }
         })
