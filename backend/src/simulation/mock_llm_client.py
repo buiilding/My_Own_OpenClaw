@@ -47,7 +47,7 @@ def get_chrome_command() -> str:
 _chrome_command = get_chrome_command()
 
 SIMULATION_RESPONSES = [
-    # Iteration 1: Open Chrome and wait
+    # Iteration 1: Open Chrome
     {
         "response": json.dumps({
             "functionCall": {
@@ -61,7 +61,7 @@ SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 4: Click "Search Google or type a URL" (using OCR)
+    # Iteration 2: Click "Search Google or type a URL" (using OCR)
     {
         "response": json.dumps({
             "functionCall": {
@@ -77,7 +77,7 @@ SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 5: Bundle - Type "amazon.com" and press Enter
+    # Iteration 3: Bundle - Type "amazon.com" and press Enter
     # Return multiple tool calls as separate JSON objects (parser will extract both)
     {
         "response": json.dumps({
@@ -104,7 +104,7 @@ SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 6: Click "Search Amazon" (using OCR)
+    # Iteration 4: Click "Search Amazon" (using OCR)
     {
         "response": json.dumps({
             "functionCall": {
@@ -120,7 +120,7 @@ SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 7: Bundle - Type "amazon.com" and press Enter
+    # Iteration 5: Bundle - Type "shoes" and press Enter
     # Return multiple tool calls as separate JSON objects (parser will extract both)
     {
         "response": json.dumps({
@@ -147,7 +147,7 @@ SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 8: Click "Sort by: Featured" (using OCR)
+    # Iteration 6: Click "Sort by: Featured" (using OCR)
     {
         "response": json.dumps({
             "functionCall": {
@@ -163,7 +163,7 @@ SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 9: Click "Price: Low to High" (using OCR)
+    # Iteration 7: Click "Price: Low to High" (using OCR)
     {
         "response": json.dumps({
             "functionCall": {
@@ -179,7 +179,7 @@ SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 10: Scroll down
+    # Iteration 8: Scroll down
     {
         "response": json.dumps({
             "functionCall": {
@@ -194,7 +194,7 @@ SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 11: Click "Black Water Shoes Snorkeling Swim Shoes Quick Dry" using Vision model
+    # Iteration 9: Click "Black Water Shoes Snorkeling Swim Shoes Quick Dry" using Vision model
     {
         "response": json.dumps({
             "functionCall": {

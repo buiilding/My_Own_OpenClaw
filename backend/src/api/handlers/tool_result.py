@@ -159,6 +159,7 @@ class ToolResultHandler(MessageHandler):
             return
         
         # Delegate to session for processing atomic bundle result
+        # step_results is already List[Dict[str, Any]] from schema
         await session.process_frontend_tool_bundle_result(
             bundle_id=bundle_id,
             status=payload.status,

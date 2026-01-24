@@ -251,6 +251,7 @@ class ToolResultHandler:
                 await screenshot_manager.process_screenshot(self.session, screenshot, bundle_id)
         
         # Create bundle result data structure
+        # step_results is already converted to dicts by API handler
         bundle_data = {
             "step_results": step_results,
             "screenshot": screenshot,

@@ -113,6 +113,7 @@ def _create_handler_registry(
     # Register all handlers
     registry.register("query", query_handler)
     registry.register("tool-result", tool_result_handler)
+    registry.register("tool-bundle-result", tool_result_handler)  # Same handler handles both types
     registry.register("wakeword-detected", wakeword_handler)
     registry.register("list-models", list_models_handler)
 

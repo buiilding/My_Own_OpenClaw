@@ -166,11 +166,29 @@ class InteractionLoop:
             self.session.history.add_assistant_message(llm_response_text)
 
             # Execute tools (yields execution-time events)
+            # BUNDLE EXECUTION FIX: Wait for bundle results before processing next response.
+            # This ensures that if a bundle is sent to frontend, we wait for its completion
+            # before the interaction loop continues to the next iteration, preventing race
+            # conditions where subsequent tool calls execute before the bundle finishes.
             # SESSION STATE LEAK FIX: Use finally block to ensure cleanup runs even if
             # execute() raises an exception or client disconnects (GeneratorExit)
+            results_processed = False
             try:
+                # Check if this is a bundle before executing
+                is_bundle = len(parsed_response.tool_calls) > 1
+                
+                # Yield all preparation events (ToolBundleEvent or ToolCallEvent)
                 async for event in self.tool_executor.execute(parsed_response):
                     yield event
+                
+                # BUNDLE EXECUTION FIX: For bundles, wait for results immediately after
+                # sending the bundle event, before the interaction loop continues.
+                # This ensures the bundle completes before any subsequent tool calls.
+                if is_bundle:
+                    logger.info("Waiting for bundle execution to complete before continuing...")
+                    await self.tool_executor.process_results(parsed_response)
+                    results_processed = True
+                    logger.info("Bundle execution completed, continuing interaction loop")
             except Exception as e:
                 logger.error(f"Critical tool execution error: {e}", exc_info=True)
                 error_msg = f"Tool execution error: {str(e)}"
@@ -190,15 +208,18 @@ class InteractionLoop:
                 # Backend only processes results for conversation history, not for display.
                 # ToolOutputEvent is only emitted for backend-side failures (e.g., coordinate resolution)
                 # which are already yielded by ToolPreparer during tool preparation.
-                try:
-                    await self.tool_executor.process_results(parsed_response)
-                except Exception as cleanup_error:
-                    # Log but don't re-raise - we're in finally block and don't want to
-                    # mask the original exception if one occurred
-                    logger.error(
-                        f"Error during tool result cleanup: {cleanup_error}",
-                        exc_info=True
-                    )
+                # BUNDLE EXECUTION FIX: For bundles, process_results() was already called above,
+                # but we still need to handle cleanup for non-bundle tools or error cases.
+                if not results_processed:
+                    try:
+                        await self.tool_executor.process_results(parsed_response)
+                    except Exception as cleanup_error:
+                        # Log but don't re-raise - we're in finally block and don't want to
+                        # mask the original exception if one occurred
+                        logger.error(
+                            f"Error during tool result cleanup: {cleanup_error}",
+                            exc_info=True
+                        )
 
         # Max iterations reached
         if iteration >= max_iterations and not in_extra_turn_after_final_tools:

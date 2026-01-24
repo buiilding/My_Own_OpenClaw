@@ -100,19 +100,13 @@ class ToolBundleMessage(BaseMessage):
     type: Literal["tool-bundle"]
     payload: ToolBundlePayload
 
-class ToolBundleStepResult(BaseModel):
-    """Result for a single step in a bundle."""
-    tool: str
-    status: str  # "ok" or "error"
-    output: str
-
 class ToolBundleResultPayload(BaseModel):
     """Payload for tool-bundle-result message (incoming to backend)."""
     bundle_id: str
     status: str  # "success", "partial_failure", or "failure"
     screenshot: Optional[str] = None
     system_state: Optional[Dict[str, Any]] = None
-    step_results: List[ToolBundleStepResult]
+    step_results: List[Dict[str, Any]]  # List of dicts with tool, status, output
     error: Optional[str] = None
 
 class ToolBundleResultMessage(BaseMessage):
