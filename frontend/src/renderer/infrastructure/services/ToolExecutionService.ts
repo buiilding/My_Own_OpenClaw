@@ -179,9 +179,20 @@ export class ToolExecutionService {
       console.log(`[Timing] Tool execution completed: ${toolName} took ${executionTime.toFixed(3)}s (request_id=${shortId})`);
 
       // Check if this is a computer-use tool that should have a screenshot
-      const isComputerUseTool = COMPUTER_USE_TOOLS.includes(toolName);
-      let screenshot = result.data?.screenshot || null;
-      let systemState: SystemState | null = result.data?.system_state || null;
+      // run_shell_command is conditionally a computer-use tool if wait parameter is provided
+      const isStandardComputerUseTool = COMPUTER_USE_TOOLS.includes(toolName);
+      const isRunShellCommandWithWait = toolName === 'run_shell_command' && 
+        args && typeof args === 'object' && typeof args.wait === 'number' && args.wait > 0;
+      const isComputerUseTool = isStandardComputerUseTool || isRunShellCommandWithWait;
+      
+      let screenshot: string | null = null;
+      let systemState: SystemState | null = null;
+      
+      // Safely extract screenshot and system_state from result.data
+      if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
+        screenshot = result.data.screenshot || null;
+        systemState = result.data.system_state || null;
+      }
 
       // Capture screenshot and system state ONCE after individual tool execution if needed
       if (isComputerUseTool && !options.skipAutoCapture && !screenshot) {
@@ -196,20 +207,24 @@ export class ToolExecutionService {
         screenshot = captureResult.screenshot;
 
         // Add screenshot to result data
-        if (screenshot && result.data && typeof result.data === 'object') {
+        if (screenshot && result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
           result.data = {
             ...result.data,
             screenshot: screenshot,
-            system_state: systemState
+            system_state: systemState ?? undefined
           };
         }
       }
 
       // Format complete message with system context XML
+      const finalSystemState = systemState || 
+        (result.data && typeof result.data === 'object' && !Array.isArray(result.data) 
+          ? (result.data.system_state as SystemState | undefined) || null 
+          : null);
       const formattedMessage = formatToolOutputMessage(
         toolName,
         result,
-        systemState || (result.data && typeof result.data === 'object' ? result.data.system_state : null)
+        finalSystemState
       );
 
       // Prepare result
@@ -363,28 +378,40 @@ export class ToolExecutionService {
       }
 
       // Check if any tool in bundle is a computer-use tool
-      const hasComputerUseTool = bundle.some(tool => 
-        COMPUTER_USE_TOOLS.includes(tool.toolName)
-      );
+      // run_shell_command is conditionally a computer-use tool if wait parameter is provided
+      const hasComputerUseTool = bundle.some(tool => {
+        const isStandardComputerUseTool = COMPUTER_USE_TOOLS.includes(tool.toolName);
+        const isRunShellCommandWithWait = tool.toolName === 'run_shell_command' && 
+          tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number' && tool.args.wait > 0;
+        return isStandardComputerUseTool || isRunShellCommandWithWait;
+      });
 
       // Get system state and screenshot ONCE after all bundled tools execute
       let systemState: SystemState | null = null;
       let screenshot: string | null = null;
 
       if (hasComputerUseTool) {
-        // Extract wait parameter from the last computer-use tool in bundle (or max wait value)
+        // Extract wait parameter from all computer-use tools in bundle and accumulate
         // Default to 2000ms (2 seconds) if not provided
         let waitSeconds = 2000;
-        const computerUseTools = bundle.filter(tool => COMPUTER_USE_TOOLS.includes(tool.toolName));
+        // Get all computer-use tools (standard + run_shell_command with wait)
+        const computerUseTools = bundle.filter(tool => {
+          const isStandardComputerUseTool = COMPUTER_USE_TOOLS.includes(tool.toolName);
+          const isRunShellCommandWithWait = tool.toolName === 'run_shell_command' && 
+            tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number' && tool.args.wait > 0;
+          return isStandardComputerUseTool || isRunShellCommandWithWait;
+        });
+        
         if (computerUseTools.length > 0) {
-          // Use the wait value from the last computer-use tool, or find the maximum
+          // Extract wait values from all computer-use tools
           const waitValues = computerUseTools
             .map(tool => tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number' ? tool.args.wait : null)
             .filter((w): w is number => w !== null);
           
           if (waitValues.length > 0) {
-            // Use the maximum wait value from all computer-use tools in the bundle
-            waitSeconds = Math.max(...waitValues) * 1000;
+            // Accumulate wait values from all computer-use tools in the bundle
+            const totalWaitSeconds = waitValues.reduce((sum, wait) => sum + wait, 0);
+            waitSeconds = totalWaitSeconds * 1000;
           }
         }
         
@@ -447,6 +474,12 @@ export class ToolExecutionService {
       if (this.callbacks.sendToBackend) {
         console.log('[ToolExecutionService] Sending atomic tool-bundle-result');
 
+        // Get error message from failed step if any
+        const failedStep = stepResults.find(step => step.status === 'error');
+        const errorMessage = bundleStatus === 'failure' 
+          ? (failedStep?.output || 'Bundle execution failed')
+          : null;
+
         this.callbacks.sendToBackend({
           type: 'tool-bundle-result',
           payload: {
@@ -455,7 +488,7 @@ export class ToolExecutionService {
             step_results: stepResults,
             screenshot: screenshot || null,
             system_state: systemState || null,
-            error: bundleStatus === 'failure' ? (error?.message || 'Bundle execution failed') : null
+            error: errorMessage
           }
         });
       }
@@ -468,6 +501,7 @@ export class ToolExecutionService {
 
       // Send error bundle result to backend
       if (this.callbacks.sendToBackend) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         this.callbacks.sendToBackend({
           type: 'tool-bundle-result',
           payload: {
@@ -476,7 +510,7 @@ export class ToolExecutionService {
             step_results: stepResults, // Partial results if any
             screenshot: null,
             system_state: null,
-            error: error.message
+            error: errorMessage
           }
         });
       }
