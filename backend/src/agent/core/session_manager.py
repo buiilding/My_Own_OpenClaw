@@ -7,7 +7,6 @@ and cleanup.
 import asyncio
 import logging
 import time
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 from backend.src.agent.core.core import AgentSession

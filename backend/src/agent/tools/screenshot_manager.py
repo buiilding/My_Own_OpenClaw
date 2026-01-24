@@ -11,11 +11,7 @@ import time
 import uuid
 from typing import TYPE_CHECKING, AsyncGenerator
 
-
-def _short_id(request_id: str, length: int = 15) -> str:
-    """Truncate request_id to specified length for logging."""
-    return request_id[:length] if request_id else "unknown"
-
+from backend.src.agent.tools.logging_utils import short_id
 from backend.src.core.events import AgentStreamingEvent, RequestScreenshotEvent
 
 if TYPE_CHECKING:
@@ -87,17 +83,17 @@ class ScreenshotManager:
         
         # Wait for result (with timeout)
         try:
-            logger.info(f"Waiting for hidden screenshot result (id={_short_id(hidden_request_id)})...")
+            logger.info(f"Waiting for hidden screenshot result (id={short_id(hidden_request_id)})...")
             result = await asyncio.wait_for(
                 screenshot_future, timeout=self.timeout
             )
             screenshot_wait_time = time.perf_counter() - screenshot_wait_start
-            logger.info(f"[Timing] Hidden screenshot received in {screenshot_wait_time:.3f}s (id={_short_id(hidden_request_id)})")
+            logger.info(f"[Timing] Hidden screenshot received in {screenshot_wait_time:.3f}s (id={short_id(hidden_request_id)})")
             
             # Result is now a tuple (screenshot_id, screenshot_data) from _handle_screenshot_waiter
             if isinstance(result, tuple) and len(result) == 2:
                 screenshot_id, screenshot_data = result
-                logger.info(f"Received hidden screenshot result (id={_short_id(hidden_request_id)}, screenshot_id={screenshot_id[:8]})")
+                logger.info(f"Received hidden screenshot result (id={short_id(hidden_request_id)}, screenshot_id={screenshot_id[:8]})")
                 # Screenshot is already stored in session by _handle_screenshot_waiter
             else:
                 # Legacy format (just screenshot_data) - process it
@@ -107,7 +103,7 @@ class ScreenshotManager:
             screenshot_wait_time = time.perf_counter() - screenshot_wait_start
             logger.error(f"[Timing] Hidden screenshot timeout after {screenshot_wait_time:.3f}s")
             logger.error(
-                f"Timed out waiting for hidden screenshot (id={_short_id(hidden_request_id)}) after {self.timeout}s"
+                f"Timed out waiting for hidden screenshot (id={short_id(hidden_request_id)}) after {self.timeout}s"
             )
             # SCREENSHOT REQUEST RACE FIX: Clean up pending screenshot entry on timeout
             session._pending_screenshots.pop(hidden_request_id, None)
@@ -145,7 +141,7 @@ class ScreenshotManager:
         screenshot_id = self._generate_screenshot_id(screenshot_data)
         # SIMPLIFIED: Just set as current (discards old automatically)
         session.set_current_screenshot(screenshot_id, screenshot_data)
-        logger.debug(f"Stored screenshot {screenshot_id[:8]} as current (request {_short_id(request_id)})")
+        logger.debug(f"Stored screenshot {screenshot_id[:8]} as current (request {short_id(request_id)})")
         
         # Trigger OCR in background (non-blocking)
         await self._maybe_trigger_ocr(session, screenshot_data, screenshot_id, request_id)
@@ -194,7 +190,7 @@ class ScreenshotManager:
                         # while OCR is processing the old one
                         if session._current_screenshot_id == screenshot_id:
                             session.set_current_ocr_results(results)
-                            logger.info(f"Proactive OCR completed for screenshot {screenshot_id[:8]} (request {_short_id(request_id)})")
+                            logger.info(f"Proactive OCR completed for screenshot {screenshot_id[:8]} (request {short_id(request_id)})")
                         else:
                             logger.debug(f"OCR completed for outdated screenshot {screenshot_id[:8]}, ignoring results")
             except Exception as e:

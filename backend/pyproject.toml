@@ -1,6 +1,6 @@
 [project]
 name = "desktop-assistant-backend"
-version = "0.4.0"
+version = "0.4.5"
 
 [tool.black]
 line-length = 88

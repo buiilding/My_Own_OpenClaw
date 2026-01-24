@@ -8,13 +8,21 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, AsyncGenerator, Optional
 
-from backend.src.agent.llm.event_presenter import EventPresenter
 from backend.src.agent.history.history_committer import HistoryCommitter
 from backend.src.agent.core.interaction_loop import InteractionLoop
+from backend.src.agent.llm.event_presenter import EventPresenter
 from backend.src.agent.llm.llm_interaction_handler import LLMInteractionHandler
-from backend.src.agent.plugins.manager import PluginManager
 from backend.src.agent.llm.prompt_coordinator import PromptCoordinator
+from backend.src.agent.plugins.manager import PluginManager
+from backend.src.agent.tools.ocr_coordinator import OcrCoordinator
+from backend.src.agent.tools.resolvers.coordinate_resolvers import (
+    CoordinateResolver,
+    OcrResolver,
+    VisionResolver,
+)
 from backend.src.agent.tools.result_transformer import ResultTransformer
+from backend.src.agent.tools.screenshot_manager import ScreenshotManager
+from backend.src.agent.tools.synthetic_result_factory import SyntheticResultFactory
 from backend.src.agent.tools.tool_executor import ToolExecutor
 from backend.src.agent.tools.tool_preparer import ToolPreparer
 from backend.src.core.bus import EventBus
@@ -24,7 +32,6 @@ from backend.src.core.events import (
     StreamingCompleteEvent,
     MemoryStoreEvent,
 )
-from backend.src.core.messages import MessageType
 from backend.src.core.plugins.registry import PluginRegistry
 from backend.src.llm.client import LLMClient
 from backend.src.llm.parser import ResponseParser
@@ -79,15 +86,6 @@ class AgentExecutor:
         history_committer = HistoryCommitter(history=session.history)
         
         # Tool preparation: split into specialized components
-        from backend.src.agent.tools.resolvers.coordinate_resolvers import (
-            CoordinateResolver,
-            OcrResolver,
-            VisionResolver,
-        )
-        from backend.src.agent.tools.ocr_coordinator import OcrCoordinator
-        from backend.src.agent.tools.screenshot_manager import ScreenshotManager
-        from backend.src.agent.tools.synthetic_result_factory import SyntheticResultFactory
-        
         self.screenshot_manager = ScreenshotManager()  # Store for use in process_query
         ocr_resolver = OcrResolver()
         vision_resolver = VisionResolver()
@@ -200,8 +198,8 @@ class AgentExecutor:
                         # critical cleanup (memory storage) runs even if parent task is cancelled.
                         # If we await here, cancellation can interrupt the await and lose the event.
                         logger.warning(
-                            f"Client disconnected before MemoryStoreEvent could be yielded. "
-                            f"Publishing to event bus as fallback (fire-and-forget)."
+                            "Client disconnected before MemoryStoreEvent could be yielded. "
+                            "Publishing to event bus as fallback (fire-and-forget)."
                         )
                         # Create fire-and-forget task to ensure it runs even if we're cancelled
                         asyncio.create_task(self.event_bus.publish(memory_event))

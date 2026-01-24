@@ -9,9 +9,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional, List
 
 from backend.src.agent.core.executor import AgentExecutor
+from backend.src.agent.core.prepared_tool_call_storage import PreparedToolCallStorage
+from backend.src.agent.core.screenshot_state import ScreenshotState
 from backend.src.agent.core.state import ConversationHistory
 from backend.src.agent.core.tool_result_handler import ToolResultHandler
 from backend.src.core.bus import EventBus
@@ -131,11 +133,8 @@ class AgentSession:
         self.event_bus.subscribe(InteractionCompleted, self._on_interaction_completed)
 
         # Session-scoped state for computer use
-        # SIMPLIFIED: Only keep current screenshot and OCR results (previous screenshots are obsolete)
-        # For desktop automation, only the current state matters - old screenshots can't be interacted with
-        self._current_screenshot: Optional[str] = None  # Base64-encoded screenshot data
-        self._current_screenshot_id: Optional[str] = None  # ID of the current screenshot
-        self._current_ocr_results: Optional[list[dict]] = None  # OCR results for current screenshot
+        # Extract screenshot/OCR state management to reduce complexity
+        self._screenshot_state = ScreenshotState()
         # SCREENSHOT REQUEST RACE FIX: Use dict to track multiple concurrent screenshot requests
         # Maps request_id -> Future to prevent race conditions when multiple tools request screenshots
         self._pending_screenshots: Dict[str, asyncio.Future] = {}
@@ -146,6 +145,9 @@ class AgentSession:
         # CENTRALIZED TOOL RESULT STORAGE: Single source of truth for all tool results
         from backend.src.agent.core.tool_result_storage import ToolResultStorage
         self._tool_result_storage = ToolResultStorage(cleanup_ttl_seconds=300)
+        
+        # Extract prepared tool call storage to reduce complexity
+        self._prepared_tool_call_storage = PreparedToolCallStorage()
         
         # Legacy accessors for backward compatibility (delegate to storage)
         # These will be removed once all code is migrated
@@ -161,8 +163,7 @@ class AgentSession:
         """
         Get current screenshot data.
         
-        SIMPLIFIED: Only current screenshot is stored. Previous screenshots are discarded.
-        screenshot_id parameter is ignored (kept for API compatibility).
+        Delegates to ScreenshotState for state management.
         
         Args:
             screenshot_id: Ignored (kept for backward compatibility)
@@ -170,14 +171,13 @@ class AgentSession:
         Returns:
             Base64-encoded screenshot data or None if no current screenshot
         """
-        return self._current_screenshot
+        return self._screenshot_state.get_screenshot(screenshot_id)
     
     def get_ocr_results(self, screenshot_id: Optional[str] = None) -> Optional[list[dict]]:
         """
         Get OCR results for current screenshot.
         
-        SIMPLIFIED: Only current OCR results are stored. Previous results are discarded.
-        screenshot_id parameter is ignored (kept for API compatibility).
+        Delegates to ScreenshotState for state management.
         
         Args:
             screenshot_id: Ignored (kept for backward compatibility)
@@ -185,17 +185,17 @@ class AgentSession:
         Returns:
             List of OCR results or None if no current OCR results
         """
-        return self._current_ocr_results
+        return self._screenshot_state.get_ocr_results(screenshot_id)
     
     @property
     def latest_screenshot(self) -> Optional[str]:
         """Legacy property: Returns current screenshot (deprecated, use get_screenshot instead)."""
-        return self.get_screenshot()
+        return self._screenshot_state.latest_screenshot
     
     @property
     def latest_ocr_results(self) -> Optional[list[dict]]:
         """Legacy property: Returns OCR for current screenshot (deprecated, use get_ocr_results instead)."""
-        return self.get_ocr_results()
+        return self._screenshot_state.latest_ocr_results
     
     def get_current_screenshot_id(self) -> Optional[str]:
         """
@@ -208,32 +208,30 @@ class AgentSession:
         Returns:
             Current screenshot ID or None if no screenshot is available
         """
-        return self._current_screenshot_id
+        return self._screenshot_state.get_current_screenshot_id()
     
     def set_current_screenshot(self, screenshot_id: str, screenshot_data: str) -> None:
         """
         Set the current screenshot, discarding any previous screenshot.
         
-        SIMPLIFIED: Only current screenshot is kept. Previous screenshots are obsolete
-        for desktop automation (can't interact with past state).
+        Delegates to ScreenshotState for state management.
         
         Args:
             screenshot_id: Unique ID for the screenshot
             screenshot_data: Base64-encoded screenshot data
         """
-        self._current_screenshot = screenshot_data
-        self._current_screenshot_id = screenshot_id
-        # Discard old OCR results when screenshot changes
-        self._current_ocr_results = None
+        self._screenshot_state.set_current_screenshot(screenshot_id, screenshot_data)
     
     def set_current_ocr_results(self, ocr_results: list[dict]) -> None:
         """
         Set OCR results for the current screenshot.
         
+        Delegates to ScreenshotState for state management.
+        
         Args:
             ocr_results: List of OCR results
         """
-        self._current_ocr_results = ocr_results
+        self._screenshot_state.set_current_ocr_results(ocr_results)
     
     def register_pending_tool_result(self, request_id: str, result: Any) -> None:
         """
@@ -258,13 +256,13 @@ class AgentSession:
         exposing private implementation details. This allows ToolPreparer to
         store prepared calls without tight coupling to internal storage.
         
+        Delegates to PreparedToolCallStorage for state management.
+        
         Args:
             request_id: Request ID for the tool call
             prepared_call: Prepared tool call to store
         """
-        if not hasattr(self, "_prepared_tool_calls"):
-            self._prepared_tool_calls = {}
-        self._prepared_tool_calls[request_id] = prepared_call
+        self._prepared_tool_call_storage.register(request_id, prepared_call)
     
     def get_prepared_tool_call(self, request_id: str) -> Optional[Any]:
         """
@@ -274,15 +272,15 @@ class AgentSession:
         exposing private implementation details. This allows ToolOrchestrator
         to access prepared calls without tight coupling to internal storage.
         
+        Delegates to PreparedToolCallStorage for state management.
+        
         Args:
             request_id: Request ID for the tool call
             
         Returns:
             Prepared tool call or None if not found
         """
-        if not hasattr(self, "_prepared_tool_calls"):
-            return None
-        return self._prepared_tool_calls.get(request_id)
+        return self._prepared_tool_call_storage.get(request_id)
     
     def remove_prepared_tool_call(self, request_id: str) -> None:
         """
@@ -292,11 +290,12 @@ class AgentSession:
         exposing private implementation details. This allows cleanup code
         to remove calls without tight coupling to internal storage.
         
+        Delegates to PreparedToolCallStorage for state management.
+        
         Args:
             request_id: Request ID for the tool call to remove
         """
-        if hasattr(self, "_prepared_tool_calls") and request_id in self._prepared_tool_calls:
-            del self._prepared_tool_calls[request_id]
+        self._prepared_tool_call_storage.remove(request_id)
 
     async def _on_interaction_completed(self, event: InteractionCompleted) -> None:
         """Handle interaction completed event."""

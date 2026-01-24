@@ -7,6 +7,7 @@ import logging
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List
 
 from backend.src.agent.history.history_committer import HistoryCommitter
+from backend.src.agent.tools.bundle_detection import is_atomic_bundle_from_results
 from backend.src.agent.tools.result_transformer import ResultTransformer
 from backend.src.agent.tools.tool_preparer import ToolPreparer
 from backend.src.core.events import AgentStreamingEvent, ThinkingEvent
@@ -105,18 +106,7 @@ class ToolExecutor:
         )
 
         # Check if this is an atomic bundle (all tools have bundle_id, no request_id)
-        is_atomic_bundle = (
-            len(orchestration_result.tool_results) > 1 and
-            all(
-                hasattr(r.tool_call, 'metadata') and 
-                r.tool_call.metadata and 
-                'bundle_id' in r.tool_call.metadata and 
-                'request_id' not in r.tool_call.metadata
-                for r in orchestration_result.tool_results
-            )
-        )
-        
-        if is_atomic_bundle:
+        if is_atomic_bundle_from_results(orchestration_result.tool_results):
             # ATOMIC BUNDLE: Use bundle result from storage
             bundle_id = orchestration_result.tool_results[0].tool_call.metadata.get('bundle_id')
             if bundle_id:

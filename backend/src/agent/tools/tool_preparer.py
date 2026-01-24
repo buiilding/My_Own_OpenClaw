@@ -9,10 +9,8 @@ import time
 import uuid
 from typing import Callable, List, AsyncGenerator, Optional, TYPE_CHECKING
 
-
-def _short_id(request_id: str, length: int = 15) -> str:
-    """Truncate request_id to specified length for logging."""
-    return request_id[:length] if request_id else "unknown"
+from backend.src.agent.tools.logging_utils import short_id
+from backend.src.agent.tools.tool_preparation_helper import prepare_tool_with_coordinates
 
 if TYPE_CHECKING:
     from backend.src.agent.core.core import AgentSession
@@ -100,7 +98,7 @@ class ToolPreparer:
         if is_bundle:
             # ATOMIC BUNDLE: Prepare all tools first, then yield single ToolBundleEvent
             bundle_id = str(uuid.uuid4())
-            logger.info(f"Preparing bundle: {len(tool_calls)} tools (bundle_id={_short_id(bundle_id)})")
+            logger.info(f"Preparing bundle: {len(tool_calls)} tools (bundle_id={short_id(bundle_id)})")
             
             prepared_tools = []
             bundle_failed = False
@@ -122,56 +120,23 @@ class ToolPreparer:
                 # Check if this tool needs coordinate resolution
                 if self._needs_coordinate_resolution(tool_call):
                     try:
-                        # 1. Ensure we have a screenshot (yields RequestScreenshotEvent if needed)
-                        screenshot_start_time = time.perf_counter()
-                        async for event in self.screenshot_manager.get_screenshot(session):
+                        # Prepare tool with coordinate resolution using shared helper
+                        async for event in prepare_tool_with_coordinates(
+                            tool_call,
+                            prepared_call,
+                            session,
+                            self.screenshot_manager,
+                            self.ocr_coordinator,
+                            self.coordinate_resolver,
+                            self.vision_service,
+                            self.vision_service_provider,
+                            bundle_id,
+                        ):
                             yield event
-                        screenshot_time = time.perf_counter() - screenshot_start_time
-                        if screenshot_time > 0.001:
-                            logger.info(f"[Timing] Screenshot acquisition took {screenshot_time:.3f}s (bundle_id={_short_id(bundle_id)})")
-                        
-                        screenshot_data = session.get_screenshot()
-                        screenshot_id = session.get_current_screenshot_id()
-                        if not screenshot_data or not screenshot_id:
-                            raise ValueError("No screenshot data available for coordinate resolution")
-                        
-                        # 2. Get OCR results if needed
-                        ocr_results = None
-                        if tool_call.parameters.get("find_coordinates_by") == CoordinateFindingMethod.OCR:
-                            ocr_start_time = time.perf_counter()
-                            ocr_results = await self.ocr_coordinator.get_ocr_results(
-                                session, screenshot_data, screenshot_id
-                            )
-                            ocr_time = time.perf_counter() - ocr_start_time
-                            logger.info(f"[Timing] OCR results retrieval took {ocr_time:.3f}s (bundle_id={_short_id(bundle_id)}, found {len(ocr_results) if ocr_results else 0} results)")
-                        
-                        # 3. Get vision service if needed
-                        vision_service = None
-                        if tool_call.parameters.get("find_coordinates_by") == CoordinateFindingMethod.PREDICTION:
-                            vision_service = self.vision_service
-                            if not vision_service:
-                                vision_service = self.vision_service_provider(session)
-                            if not vision_service:
-                                logger.warning(f"[bundle_id={_short_id(bundle_id)}] Vision service unavailable for coordinate resolution")
-                        
-                        # 4. Resolve coordinates
-                        coord_resolve_start_time = time.perf_counter()
-                        x, y = await self.coordinate_resolver.resolve(
-                            tool_call, screenshot_data, ocr_results, vision_service
-                        )
-                        coord_resolve_time = time.perf_counter() - coord_resolve_start_time
-                        logger.info(f"[Timing] Coordinate resolution took {coord_resolve_time:.3f}s (bundle_id={_short_id(bundle_id)}, method={tool_call.parameters.get('find_coordinates_by')})")
-                        
-                        # 5. Rewrite to manual mode
-                        self._rewrite_to_manual(prepared_call, x, y)
-                        if not prepared_call.metadata:
-                            prepared_call.metadata = {}
-                        prepared_call.metadata["coordinate_resolution_screenshot_id"] = screenshot_id
-                        logger.info(f"[bundle_id={_short_id(bundle_id)}] Resolved coordinates for {tool_call.tool_name}: ({x}, {y})")
                         
                     except Exception as e:
                         # FAIL-FAST: If any tool in bundle fails during preparation, fail the entire bundle
-                        logger.error(f"[bundle_id={_short_id(bundle_id)}] Failed to prepare tool {tool_call.tool_name} in bundle: {e}", exc_info=True)
+                        logger.error(f"[bundle_id={short_id(bundle_id)}] Failed to prepare tool {tool_call.tool_name} in bundle: {e}", exc_info=True)
                         bundle_failed = True
                         bundle_error = f"Tool {tool_call.tool_name} failed during preparation: {str(e)}"
                         break  # Stop preparing remaining tools
@@ -185,7 +150,7 @@ class ToolPreparer:
             # Yield single ToolBundleEvent with all prepared tools
             if bundle_failed:
                 # Bundle failed during preparation - yield error event
-                logger.error(f"[bundle_id={_short_id(bundle_id)}] Bundle preparation failed: {bundle_error}")
+                logger.error(f"[bundle_id={short_id(bundle_id)}] Bundle preparation failed: {bundle_error}")
                 # For now, we'll still yield the bundle event but mark it as failed
                 # The frontend will handle the error
                 yield ToolBundleEvent(
@@ -197,7 +162,7 @@ class ToolPreparer:
                     bundle_id=bundle_id,
                     tools=prepared_tools
                 )
-                logger.info(f"Bundle prepared: {len(prepared_tools)} tools (bundle_id={_short_id(bundle_id)})")
+                logger.info(f"Bundle prepared: {len(prepared_tools)} tools (bundle_id={short_id(bundle_id)})")
         
         else:
             # SINGLE TOOL: Keep existing behavior
@@ -216,70 +181,22 @@ class ToolPreparer:
             # Check if this tool needs coordinate resolution
             if self._needs_coordinate_resolution(tool_call):
                 try:
-                    # 1. Ensure we have a screenshot (yields RequestScreenshotEvent if needed)
-                    # Note: ScreenshotManager.get_screenshot is an async generator that may yield
-                    # RequestScreenshotEvent. We forward all events to maintain real-time updates.
-                    screenshot_start_time = time.perf_counter()
-                    async for event in self.screenshot_manager.get_screenshot(session):
+                    # Prepare tool with coordinate resolution using shared helper
+                    async for event in prepare_tool_with_coordinates(
+                        tool_call,
+                        prepared_call,
+                        session,
+                        self.screenshot_manager,
+                        self.ocr_coordinator,
+                        self.coordinate_resolver,
+                        self.vision_service,
+                        self.vision_service_provider,
+                        request_id,
+                    ):
                         yield event
-                    screenshot_time = time.perf_counter() - screenshot_start_time
-                    if screenshot_time > 0.001:  # Only log if significant
-                        logger.info(f"[Timing] Screenshot acquisition took {screenshot_time:.3f}s (request_id={_short_id(request_id)})")
-                    
-                    # After screenshot manager completes, check if we have screenshot
-                    screenshot_data = session.get_screenshot()
-                    screenshot_id = session.get_current_screenshot_id()
-                    if not screenshot_data or not screenshot_id:
-                        raise ValueError("No screenshot data available for coordinate resolution")
-
-                    # 2. Get OCR results if needed (for OCR method)
-                    # SIMPLIFIED: Only current screenshot OCR results are available
-                    ocr_results = None
-                    if tool_call.parameters.get("find_coordinates_by") == CoordinateFindingMethod.OCR:
-                        ocr_start_time = time.perf_counter()
-                        ocr_results = await self.ocr_coordinator.get_ocr_results(
-                            session, screenshot_data, screenshot_id
-                        )
-                        ocr_time = time.perf_counter() - ocr_start_time
-                        logger.info(f"[Timing] OCR results retrieval took {ocr_time:.3f}s (request_id={_short_id(request_id)}, found {len(ocr_results) if ocr_results else 0} results)")
-                        logger.debug(
-                            f"[request_id={_short_id(request_id)}] Retrieved {len(ocr_results)} OCR results"
-                        )
-
-                    # 3. Get vision service if needed (for Vision method)
-                    # Use injected service if available, otherwise fall back to provider
-                    vision_service = None
-                    if tool_call.parameters.get("find_coordinates_by") == CoordinateFindingMethod.PREDICTION:
-                        vision_service = self.vision_service  # Use injected service (preferred)
-                        if not vision_service:
-                            # Fallback to provider (for backward compatibility)
-                            vision_service = self.vision_service_provider(session)
-                        if not vision_service:
-                            logger.warning(
-                                f"[request_id={request_id}] Vision service unavailable for coordinate resolution"
-                            )
-
-                    # 4. Resolve coordinates (pure function)
-                    coord_resolve_start_time = time.perf_counter()
-                    x, y = await self.coordinate_resolver.resolve(
-                        tool_call, screenshot_data, ocr_results, vision_service
-                    )
-                    coord_resolve_time = time.perf_counter() - coord_resolve_start_time
-                    logger.info(f"[Timing] Coordinate resolution took {coord_resolve_time:.3f}s (request_id={_short_id(request_id)}, method={tool_call.parameters.get('find_coordinates_by')})")
-
-                    # 5. Rewrite prepared tool call to manual mode (immutable - no mutation of original)
-                    self._rewrite_to_manual(prepared_call, x, y)
-                    # STALE SCREEN EXECUTION FIX: Store screenshot_id used for coordinate resolution
-                    # This allows verification before execution to prevent clicks on wrong UI elements
-                    if not prepared_call.metadata:
-                        prepared_call.metadata = {}
-                    prepared_call.metadata["coordinate_resolution_screenshot_id"] = screenshot_id
-                    logger.info(
-                        f"[request_id={_short_id(request_id)}] Resolved coordinates for {tool_call.tool_name}: ({x}, {y}) using screenshot {screenshot_id[:8]}"
-                    )
                     
                     tool_prep_time = time.perf_counter() - tool_prep_start_time
-                    logger.info(f"[Timing] Tool preparation completed in {tool_prep_time:.3f}s (request_id={_short_id(request_id)}, tool={tool_call.tool_name})")
+                    logger.info(f"[Timing] Tool preparation completed in {tool_prep_time:.3f}s (request_id={short_id(request_id)}, tool={tool_call.tool_name})")
 
                 except Exception as e:
                     logger.error(
@@ -364,22 +281,3 @@ class ToolPreparer:
 
         method = tool_call.parameters.get("find_coordinates_by")
         return method in [CoordinateFindingMethod.OCR, CoordinateFindingMethod.PREDICTION]
-
-    def _rewrite_to_manual(self, prepared_call: PreparedToolCall, x: int, y: int):
-        """
-        Rewrite the prepared tool call parameters to use manual coordinates.
-        
-        Modifies the prepared call's parameters (immutable - original ParsedToolCall unchanged).
-        Removes backend-only fields (find_coordinates_by, ocr_text, description) since
-        the frontend MouseControlArgs schema only accepts x, y coordinates.
-        """
-        # Set manual coordinates
-        prepared_call.parameters["x"] = x
-        prepared_call.parameters["y"] = y
-
-        # Remove backend-only fields that frontend doesn't understand
-        # Frontend schema only accepts x, y, action, and action-specific fields
-        prepared_call.parameters.pop("find_coordinates_by", None)
-        prepared_call.parameters.pop("ocr_text", None)
-        prepared_call.parameters.pop("description", None)
-        prepared_call.parameters.pop("model_name", None)

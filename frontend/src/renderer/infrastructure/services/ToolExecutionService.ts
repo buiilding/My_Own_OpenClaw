@@ -6,80 +6,27 @@
  */
 
 import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../ipc/bridge';
-import { 
-  formatToolOutputMessage, 
+import {
+  formatToolOutputMessage,
   formatBundledToolOutputMessage,
   type ToolResult,
   type SystemState,
-  type BundledToolResult
 } from './MessageFormatter';
+import {
+  COMPUTER_USE_TOOLS,
+  type ToolExecutionOptions,
+  type ToolExecutionResult,
+  type BundleExecutionResult,
+  type ToolExecutionCallbacks,
+} from './ToolExecutionTypes';
+import { captureSystemStateAndScreenshot } from './SystemCapture';
 
-/**
- * Computer-use tools that require screenshots
- */
-const COMPUTER_USE_TOOLS = ['mouse_control', 'keyboard_control', 'scroll_control', 'screenshot', 'wait', 'switch_tab'];
-
-/**
- * Tool execution options
- */
-export interface ToolExecutionOptions {
-  skipAutoCapture?: boolean;
-  correlationId: string;
-}
-
-/**
- * Tool bundle item
- */
-export interface ToolBundleItem {
-  toolName: string;
-  args: any;
-  correlationId: string;
-}
-
-/**
- * Tool execution result with metadata
- */
-export interface ToolExecutionResult {
-  toolName: string;
-  result: ToolResult;
-  executionTime: number;
-  correlationId: string;
-  formattedMessage: string;
-  screenshot?: string | null;
-  systemState?: SystemState | null;
-}
-
-/**
- * Bundle execution result
- */
-export interface BundleExecutionResult {
-  correlationId: string;
-  results: BundledToolResult[];
-  totalTime: number;
-  formattedMessage: string;
-  screenshot?: string | null;
-  systemState?: SystemState | null;
-}
-
-/**
- * Callbacks for UI updates and backend communication
- */
-export interface ToolExecutionCallbacks {
-  /**
-   * Called when a tool result should be displayed in UI
-   */
-  onToolResult?: (result: ToolExecutionResult) => void;
-  
-  /**
-   * Called when a bundle result should be displayed in UI
-   */
-  onBundleResult?: (result: BundleExecutionResult) => void;
-  
-  /**
-   * Called to send tool result to backend
-   */
-  sendToBackend?: (payload: any) => void;
-}
+export {
+  ToolExecutionOptions,
+  ToolExecutionResult,
+  BundleExecutionResult,
+  ToolExecutionCallbacks,
+};
 
 /**
  * Tool Execution Service
@@ -96,46 +43,6 @@ export class ToolExecutionService {
    */
   setCallbacks(callbacks: ToolExecutionCallbacks): void {
     this.callbacks = { ...this.callbacks, ...callbacks };
-  }
-
-  /**
-   * Capture system state and screenshot after tool execution.
-   * This is called ONCE after individual tool execution or ONCE after all bundled tools.
-   * 
-   * @param context - Context string for logging (e.g., "after keyboard_control" or "after bundle")
-   * @param waitSeconds - Optional delay in milliseconds before capturing (defaults to 2000ms)
-   * @returns Object with systemState and screenshot, or null if capture failed
-   */
-  private async captureSystemStateAndScreenshot(context: string, waitSeconds: number = 2000): Promise<{ systemState: SystemState | null; screenshot: string | null }> {
-    // Wait for specified delay (default 2 seconds) for UI to update before capturing
-    await new Promise(r => setTimeout(r, waitSeconds));
-
-    try {
-      const captureStartTime = performance.now();
-      
-      // Get system state and screenshot in parallel
-      const [stateResult, screenshotResult] = await Promise.all([
-        IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE),
-        IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
-          toolName: 'screenshot',
-          args: {
-            explanation: `Screenshot ${context}`,
-            expectation: `State ${context}`
-          },
-          skipAutoCapture: false
-        })
-      ]);
-
-      const systemState = stateResult;
-      const screenshot = screenshotResult.success && screenshotResult.data && typeof screenshotResult.data === 'object'
-        ? screenshotResult.data.screenshot || null
-        : null;
-
-      return { systemState, screenshot };
-    } catch (err) {
-      console.error(`[ToolExecutionService] Failed to capture system state/screenshot ${context}:`, err);
-      return { systemState: null, screenshot: null };
-    }
   }
 
   /**
@@ -162,7 +69,7 @@ export class ToolExecutionService {
 
       // Check if this is a computer-use tool that should have a screenshot
       // run_shell_command is conditionally a computer-use tool if wait parameter is provided
-      const isStandardComputerUseTool = COMPUTER_USE_TOOLS.includes(toolName);
+      const isStandardComputerUseTool = (COMPUTER_USE_TOOLS as string[]).includes(toolName);
       const isRunShellCommandWithWait = toolName === 'run_shell_command' && 
         args && typeof args === 'object' && typeof args.wait === 'number' && args.wait > 0;
       const isComputerUseTool = isStandardComputerUseTool || isRunShellCommandWithWait;
@@ -194,7 +101,10 @@ export class ToolExecutionService {
         
         waitDelay = waitSeconds / 1000; // Convert back to seconds for logging
         const captureStartTime = performance.now();
-        const captureResult = await this.captureSystemStateAndScreenshot(`after ${toolName}`, waitSeconds);
+        const captureResult = await captureSystemStateAndScreenshot(
+          `after ${toolName}`,
+          waitSeconds,
+        );
         captureTime = (performance.now() - captureStartTime) / 1000;
         systemState = captureResult.systemState;
         screenshot = captureResult.screenshot;
@@ -395,7 +305,7 @@ export class ToolExecutionService {
       // Check if any tool in bundle is a computer-use tool
       // run_shell_command is conditionally a computer-use tool if wait parameter is provided
       const hasComputerUseTool = bundle.some(tool => {
-        const isStandardComputerUseTool = COMPUTER_USE_TOOLS.includes(tool.toolName);
+      const isStandardComputerUseTool = (COMPUTER_USE_TOOLS as string[]).includes(tool.toolName);
         const isRunShellCommandWithWait = tool.toolName === 'run_shell_command' && 
           tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number' && tool.args.wait > 0;
         return isStandardComputerUseTool || isRunShellCommandWithWait;
@@ -413,7 +323,7 @@ export class ToolExecutionService {
         let waitSeconds = 2000;
         // Get all computer-use tools (standard + run_shell_command with wait)
         const computerUseTools = bundle.filter(tool => {
-          const isStandardComputerUseTool = COMPUTER_USE_TOOLS.includes(tool.toolName);
+          const isStandardComputerUseTool = (COMPUTER_USE_TOOLS as string[]).includes(tool.toolName);
           const isRunShellCommandWithWait = tool.toolName === 'run_shell_command' && 
             tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number' && tool.args.wait > 0;
           return isStandardComputerUseTool || isRunShellCommandWithWait;
@@ -443,7 +353,10 @@ export class ToolExecutionService {
         }
         
         const captureStartTime = performance.now();
-        const captureResult = await this.captureSystemStateAndScreenshot('after bundle execution', waitSeconds);
+        const captureResult = await captureSystemStateAndScreenshot(
+          'after bundle execution',
+          waitSeconds,
+        );
         captureTime = (performance.now() - captureStartTime) / 1000;
         systemState = captureResult.systemState;
         screenshot = captureResult.screenshot;
