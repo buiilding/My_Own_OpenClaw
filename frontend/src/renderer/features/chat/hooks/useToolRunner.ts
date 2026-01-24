@@ -16,10 +16,6 @@ import { useChatStore, type ChatMessage } from '../stores/chatStore';
 export function useToolRunner() {
   const { addMessage } = useChatStore();
   
-  // Bundle state (minimal - only during bundle execution)
-  const isBundling = useRef(false);
-  const toolBundle = useRef<Array<{ toolName: string; args: any; correlationId: string }>>([]);
-  const bundleCorrelationId = useRef<string | null>(null);
   const hiddenToolCalls = useRef(new Set<string>());
   
   // Tool execution service instance
@@ -93,55 +89,41 @@ export function useToolRunner() {
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data: any) => {
       switch (data.type) {
-        case 'bundle_start':
-          console.log('[useToolRunner] Bundle start received - entering bundle mode');
-          isBundling.current = true;
-          toolBundle.current = [];
-          bundleCorrelationId.current = data.payload?.correlation_id || `bundle-${crypto.randomUUID()}`;
-          break;
-
-        case 'bundle_end':
-          console.log('[useToolRunner] Bundle end received - executing bundle with', toolBundle.current.length, 'tools');
-          isBundling.current = false;
-          const bundleToExecute = [...toolBundle.current]; // Copy array before clearing
-          const correlationId = bundleCorrelationId.current;
-          toolBundle.current = [];
-          bundleCorrelationId.current = null;
-          
-          if (toolServiceRef.current && correlationId) {
-            toolServiceRef.current.executeToolBundle(bundleToExecute, correlationId).catch(err => {
-              console.error('[useToolRunner] Failed to execute bundle:', err);
-            });
+        case 'tool-bundle':
+          // ATOMIC BUNDLE: Execute bundle directly (stateless)
+          if (data.payload && data.payload.tools && Array.isArray(data.payload.tools)) {
+            const bundleId = data.payload.bundle_id || `bundle-${crypto.randomUUID()}`;
+            const tools = data.payload.tools.map((tool: any) => ({
+              toolName: tool.name,
+              args: tool.args,
+            }));
+            
+            console.log('[useToolRunner] Received atomic bundle:', bundleId, tools.length, 'tools');
+            
+            if (toolServiceRef.current) {
+              toolServiceRef.current.executeToolBundle(tools, bundleId).catch(err => {
+                console.error('[useToolRunner] Failed to execute bundle:', err);
+              });
+            }
           }
           break;
 
         case 'tool-call':
-          // Execute tool on frontend when tool-call is received
+          // Execute tool immediately (no bundle mode)
           if (data.payload && data.payload.tool_name && data.payload.parameters) {
             const correlationId = data.payload.correlation_id || data.payload.request_id || data.id || crypto.randomUUID();
             
-            if (isBundling.current) {
-              // Add to bundle
-              console.log('[useToolRunner] Adding tool to bundle:', data.payload.tool_name);
-              toolBundle.current.push({
-                toolName: data.payload.tool_name,
-                args: data.payload.parameters,
-                correlationId: correlationId
+            if (toolServiceRef.current) {
+              toolServiceRef.current.executeTool(
+                data.payload.tool_name,
+                data.payload.parameters,
+                {
+                  correlationId,
+                  skipAutoCapture: false
+                }
+              ).catch(err => {
+                console.error('[useToolRunner] Failed to execute tool:', err);
               });
-            } else {
-              // Execute immediately
-              if (toolServiceRef.current) {
-                toolServiceRef.current.executeTool(
-                  data.payload.tool_name,
-                  data.payload.parameters,
-                  {
-                    correlationId,
-                    skipAutoCapture: false
-                  }
-                ).catch(err => {
-                  console.error('[useToolRunner] Failed to execute tool:', err);
-                });
-              }
             }
           }
           break;

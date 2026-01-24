@@ -289,20 +289,22 @@ export class ToolExecutionService {
   }
 
   /**
-   * Execute a bundle of tools sequentially
+   * Execute a bundle of tools sequentially (atomic bundle).
+   * 
+   * Accepts tools array directly and sends single tool-bundle-result message.
    */
   async executeToolBundle(
-    bundle: ToolBundleItem[],
-    correlationId: string
+    bundle: Array<{ toolName: string; args: any }>,
+    bundleId: string
   ): Promise<BundleExecutionResult> {
     const bundleStartTime = performance.now();
-    const results: BundledToolResult[] = [];
-    console.log(`[Timing] Bundle execution started: ${bundle.length} tools (bundle_id=${correlationId})`);
-    console.log('[ToolExecutionService] Executing bundle of size:', bundle.length);
-    console.log('[ToolExecutionService] Bundle correlation ID:', correlationId);
+    const stepResults: Array<{ tool: string; status: string; output: string }> = [];
+    console.log(`[Timing] Bundle execution started: ${bundle.length} tools (bundle_id=${bundleId})`);
+    console.log('[ToolExecutionService] Executing atomic bundle of size:', bundle.length);
+    console.log('[ToolExecutionService] Bundle ID:', bundleId);
 
     try {
-      // Execute all tools sequentially with skipAutoCapture
+      // Execute all tools sequentially with skipAutoCapture (FAIL-FAST: stop on first error)
       for (let i = 0; i < bundle.length; i++) {
         const tool = bundle[i];
         const toolStartTime = performance.now();
@@ -318,34 +320,38 @@ export class ToolExecutionService {
           });
 
           const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
-          const shortId = tool.correlationId ? tool.correlationId.substring(0, 15) : 'unknown';
-          console.log(`[Timing] Bundled tool execution: ${tool.toolName} took ${toolExecutionTime.toFixed(3)}s (request_id=${shortId})`);
+          console.log(`[Timing] Bundled tool execution: ${tool.toolName} took ${toolExecutionTime.toFixed(3)}s`);
 
-          // Store raw result (will format with system_state at bundle end and display then)
-          results.push({
-            tool_name: tool.toolName,
-            request_id: tool.correlationId,
-            success: result.success,
-            data: result.data,
-            error: result.error,
-            executionTime: toolExecutionTime,
-            _rawResult: result // Store raw result for formatting later
+          // Extract output for step result
+          const output = result.data && typeof result.data === 'object' && result.data.output
+            ? String(result.data.output)
+            : result.success
+            ? `Tool ${tool.toolName} executed successfully`
+            : result.error || 'Unknown error';
+
+          stepResults.push({
+            tool: tool.toolName,
+            status: result.success ? 'ok' : 'error',
+            output: output
           });
 
-          // No delay needed here - the keyboard tool handles timing internally
+          // FAIL-FAST: If tool failed, stop execution immediately
+          if (!result.success) {
+            console.error(`[ToolExecutionService] Tool ${tool.toolName} failed, stopping bundle execution (fail-fast)`);
+            break;
+          }
         } catch (err: any) {
           const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
           console.error('[ToolExecutionService] Bundle tool execution failed:', err);
 
-          // Store raw error result
-          results.push({
-            tool_name: tool.toolName,
-            request_id: tool.correlationId,
-            success: false,
-            error: err.message,
-            executionTime: toolExecutionTime,
-            _rawResult: { success: false, error: err.message, data: null }
+          stepResults.push({
+            tool: tool.toolName,
+            status: 'error',
+            output: err.message || 'Unknown error'
           });
+
+          // FAIL-FAST: Stop execution on exception
+          break;
         }
       }
 
@@ -368,31 +374,41 @@ export class ToolExecutionService {
 
       // Calculate execution time BEFORE formatting (formatting is overhead, not execution time)
       const bundleExecutionTime = (performance.now() - bundleStartTime) / 1000;
-      console.log(`[Timing] Bundle execution completed: ${bundle.length} tools took ${bundleExecutionTime.toFixed(3)}s (bundle_id=${correlationId})`);
+      console.log(`[Timing] Bundle execution completed: ${stepResults.length} steps took ${bundleExecutionTime.toFixed(3)}s (bundle_id=${bundleId})`);
 
-      // Time formatting operations separately
+      // Determine bundle status
+      const allSuccess = stepResults.every(step => step.status === 'ok');
+      const hasFailures = stepResults.some(step => step.status === 'error');
+      const bundleStatus = allSuccess ? 'success' : (hasFailures && stepResults.length < bundle.length) ? 'partial_failure' : 'failure';
+
+      // Format combined bundled message for UI display
       const formattingStartTime = performance.now();
-      
-      // Format combined bundled message for display and backend
       const combinedFormattedMessage = formatBundledToolOutputMessage(
-        results.map(r => ({
-          tool_name: r.tool_name,
-          _rawResult: r._rawResult,
-          success: r.success,
-          error: r.error,
-          data: r.data
+        stepResults.map(step => ({
+          tool_name: step.tool,
+          _rawResult: { success: step.status === 'ok', error: step.status === 'error' ? step.output : null, data: null },
+          success: step.status === 'ok',
+          error: step.status === 'error' ? step.output : null,
+          data: null
         })),
         systemState,
         screenshot
       );
-
       const formattingTime = (performance.now() - formattingStartTime) / 1000;
       console.log(`[Timing] Message formatting took ${formattingTime.toFixed(3)}s`);
 
-      // Prepare bundle result (use pre-calculated execution time, not including formatting overhead)
+      // Prepare bundle result for UI callback
       const bundleResult: BundleExecutionResult = {
-        correlationId,
-        results,
+        correlationId: bundleId,
+        results: stepResults.map(step => ({
+          tool_name: step.tool,
+          request_id: '', // Not needed for atomic bundles
+          success: step.status === 'ok',
+          data: null,
+          error: step.status === 'error' ? step.output : null,
+          executionTime: 0,
+          _rawResult: { success: step.status === 'ok', error: step.status === 'error' ? step.output : null, data: null }
+        })),
         totalTime: bundleExecutionTime,
         formattedMessage: combinedFormattedMessage,
         screenshot,
@@ -404,47 +420,19 @@ export class ToolExecutionService {
         this.callbacks.onBundleResult(bundleResult);
       }
 
-      // Format individual tools for backend (still needed for orchestrator to match request_ids)
-      const formattedTools = results.map(toolResult => {
-        // Include bundle screenshot in tool result data if present
-        const toolDataWithScreenshot = screenshot && toolResult.data
-          ? { ...toolResult.data, screenshot: screenshot }
-          : toolResult.data;
-
-        return {
-          tool_name: toolResult.tool_name,
-          request_id: toolResult.request_id,
-          success: toolResult.success,
-          data: {
-            ...(toolDataWithScreenshot && typeof toolDataWithScreenshot === 'object' ? toolDataWithScreenshot : {}),
-            // Individual tool llm_content for orchestrator matching
-            llm_content: formatToolOutputMessage(
-              toolResult.tool_name,
-              toolResult._rawResult || { success: toolResult.success, error: toolResult.error, data: toolDataWithScreenshot },
-              systemState
-            ),
-            is_preformatted: true,
-          },
-          error: toolResult.error
-        };
-      });
-
-      // Send bundled result to backend
+      // Send atomic tool-bundle-result to backend
       if (this.callbacks.sendToBackend) {
-        console.log('[ToolExecutionService] Sending bundled result');
+        console.log('[ToolExecutionService] Sending atomic tool-bundle-result');
 
         this.callbacks.sendToBackend({
-          type: 'tool-result',
+          type: 'tool-bundle-result',
           payload: {
-            request_id: correlationId,
-            success: true,
-            data: {
-              bundled: true,
-              tools: formattedTools, // Individual tools for orchestrator matching
-              combined_llm_content: combinedFormattedMessage, // Combined message for history
-              system_state: systemState,
-              screenshot: screenshot
-            }
+            bundle_id: bundleId,
+            status: bundleStatus,
+            step_results: stepResults,
+            screenshot: screenshot || null,
+            system_state: systemState || null,
+            error: bundleStatus === 'failure' ? (error?.message || 'Bundle execution failed') : null
           }
         });
       }
@@ -455,13 +443,16 @@ export class ToolExecutionService {
       console.error(`[Timing] Bundle execution failed after ${bundleTotalTime.toFixed(3)}s:`, error);
       console.error('[ToolExecutionService] Bundle execution failed:', error);
 
-      // Send error result to backend
+      // Send error bundle result to backend
       if (this.callbacks.sendToBackend) {
         this.callbacks.sendToBackend({
-          type: 'tool-result',
+          type: 'tool-bundle-result',
           payload: {
-            request_id: correlationId,
-            success: false,
+            bundle_id: bundleId,
+            status: 'failure',
+            step_results: stepResults, // Partial results if any
+            screenshot: null,
+            system_state: null,
             error: error.message
           }
         });

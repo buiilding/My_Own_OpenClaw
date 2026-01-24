@@ -23,8 +23,7 @@ from backend.src.core.events import (
     TokenCountEvent,
     RequestScreenshotEvent,
     MemoryStoreEvent,
-    BundleStartEvent,
-    BundleEndEvent,
+    ToolBundleEvent,
 )
 from backend.src.core.types import StreamingEventType
 
@@ -336,25 +335,24 @@ class MemoryStoreEventFormatter(EventFormatter):
         }
 
 
-class BundleStartEventFormatter(EventFormatter):
-    """Formatter for bundle start events."""
+class ToolBundleEventFormatter(EventFormatter):
+    """Formatter for tool bundle events."""
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
+        if isinstance(event, dict):
+            bundle_id = event.get("bundle_id", "")
+            tools = event.get("tools", [])
+        else:
+            bundle_id = event.bundle_id
+            tools = event.tools
+        
         return {
-            "type": "bundle_start",
+            "type": "tool-bundle",
             "id": msg_id,
-            "payload": {},
-        }
-
-
-class BundleEndEventFormatter(EventFormatter):
-    """Formatter for bundle end events."""
-
-    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
-        return {
-            "type": "bundle_end",
-            "id": msg_id,
-            "payload": {},
+            "payload": {
+                "bundle_id": bundle_id,
+                "tools": tools,
+            },
         }
 
 
@@ -382,8 +380,7 @@ class ResponseFormatter:
             StreamingEventType.TOKEN_COUNT.value: TokenCountEventFormatter(),
             StreamingEventType.REQUEST_SCREENSHOT.value: RequestScreenshotEventFormatter(),
             StreamingEventType.MEMORY_STORE.value: MemoryStoreEventFormatter(),
-            StreamingEventType.BUNDLE_START.value: BundleStartEventFormatter(),
-            StreamingEventType.BUNDLE_END.value: BundleEndEventFormatter(),
+            StreamingEventType.TOOL_BUNDLE.value: ToolBundleEventFormatter(),
         }
         
         # Dispatch table: event class -> formatter key (for O(1) lookup)
@@ -401,8 +398,7 @@ class ResponseFormatter:
             TokenCountEvent: StreamingEventType.TOKEN_COUNT.value,
             RequestScreenshotEvent: StreamingEventType.REQUEST_SCREENSHOT.value,
             MemoryStoreEvent: StreamingEventType.MEMORY_STORE.value,
-            BundleStartEvent: StreamingEventType.BUNDLE_START.value,
-            BundleEndEvent: StreamingEventType.BUNDLE_END.value,
+            ToolBundleEvent: StreamingEventType.TOOL_BUNDLE.value,
         }
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:

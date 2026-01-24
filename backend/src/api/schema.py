@@ -86,6 +86,39 @@ class ToolResultMessage(BaseMessage):
     type: Literal["tool-result"]
     payload: ToolResultPayload
 
+class ToolBundleToolItem(BaseModel):
+    """Single tool definition within a bundle."""
+    name: str
+    args: Dict[str, Any]
+
+class ToolBundlePayload(BaseModel):
+    """Payload for tool-bundle message (outgoing from backend)."""
+    bundle_id: str
+    tools: List[ToolBundleToolItem]
+
+class ToolBundleMessage(BaseMessage):
+    type: Literal["tool-bundle"]
+    payload: ToolBundlePayload
+
+class ToolBundleStepResult(BaseModel):
+    """Result for a single step in a bundle."""
+    tool: str
+    status: str  # "ok" or "error"
+    output: str
+
+class ToolBundleResultPayload(BaseModel):
+    """Payload for tool-bundle-result message (incoming to backend)."""
+    bundle_id: str
+    status: str  # "success", "partial_failure", or "failure"
+    screenshot: Optional[str] = None
+    system_state: Optional[Dict[str, Any]] = None
+    step_results: List[ToolBundleStepResult]
+    error: Optional[str] = None
+
+class ToolBundleResultMessage(BaseMessage):
+    type: Literal["tool-bundle-result"]
+    payload: ToolBundleResultPayload
+
 class HandshakeMessage(BaseModel):
     """Handshake message sent at WebSocket connection start."""
     type: Literal["handshake"]
@@ -99,7 +132,8 @@ IncomingMessage = Union[
     ListModelsMessage,
     UpdateSettingsMessage,
     WakewordDetectedMessage,
-    ToolResultMessage
+    ToolResultMessage,
+    ToolBundleResultMessage
 ]
 
 # Outgoing Messages

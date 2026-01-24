@@ -288,6 +288,18 @@ For remote tools, enable automatic screenshot capture:
 auto_capture_image = "screenshot"
 ```
 
+### Screenshot Capture Behavior
+
+Screenshots are automatically captured for computer-use tools (mouse_control, keyboard_control, scroll_control, etc.):
+
+- **Individual Tools**: Screenshot captured **once** after tool execution completes
+- **Bundled Tools**: Screenshot captured **once** after all bundled tools execute (not after each individual tool)
+
+Both use the same helper method (`captureSystemStateAndScreenshot`) which:
+- Waits 2 seconds before capture (allows UI to update)
+- Captures system state and screenshot in parallel for efficiency
+- Provides consistent error handling and timing logs
+
 ### Screenshot in Results
 
 Screenshots are automatically included in tool results:

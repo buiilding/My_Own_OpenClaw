@@ -26,8 +26,7 @@ from backend.src.agent.tools.synthetic_result_factory import SyntheticResultFact
 from backend.src.agent.tools.vision_service_provider import VisionServiceProvider
 from backend.src.core.events import (
     AgentStreamingEvent,
-    BundleEndEvent,
-    BundleStartEvent,
+    ToolBundleEvent,
     ToolCallEvent,
     ToolOutputEvent,
 )
@@ -80,45 +79,139 @@ class ToolPreparer:
         session: "AgentSession",
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
-        Prepare tool calls and yield ToolCallEvents (and potentially RequestScreenshotEvents).
+        Prepare tool calls and yield ToolCallEvents or ToolBundleEvent.
         
-        If multiple tool calls are present, wraps them in bundle_start/bundle_end events.
+        If multiple tool calls are present, prepares all tools and yields single ToolBundleEvent.
+        If single tool call, yields ToolCallEvent (existing behavior).
         
         Args:
             tool_calls: List of parsed tool calls from LLM
             session: The current agent session
             
         Yields:
-            AgentStreamingEvent: BundleStartEvent, RequestScreenshotEvent, ToolCallEvent, BundleEndEvent, ToolOutputEvent
+            AgentStreamingEvent: RequestScreenshotEvent, ToolCallEvent, ToolBundleEvent, ToolOutputEvent
         """
         preparation_start_time = time.perf_counter()
         logger.info(f"[Timing] Tool preparation started: {len(tool_calls)} tool(s)")
         
-        # Bundle management
+        # Bundle vs single tool handling
         is_bundle = len(tool_calls) > 1
-        bundle_id = None
+        
         if is_bundle:
-            # Generate bundle ID for tracking
+            # ATOMIC BUNDLE: Prepare all tools first, then yield single ToolBundleEvent
             bundle_id = str(uuid.uuid4())
-            yield BundleStartEvent()
-            logger.info(f"Bundle start: {len(tool_calls)} tools (bundle_id={_short_id(bundle_id)})")
-
-        for tool_call in tool_calls:
+            logger.info(f"Preparing bundle: {len(tool_calls)} tools (bundle_id={_short_id(bundle_id)})")
+            
+            prepared_tools = []
+            bundle_failed = False
+            bundle_error = None
+            
+            for tool_call in tool_calls:
+                # For bundles, we don't generate individual request_ids
+                # The bundle_id is the single identifier for the entire bundle
+                if not hasattr(tool_call, "metadata"):
+                    tool_call.metadata = {}
+                tool_call.metadata["bundle_id"] = bundle_id
+                
+                # Create prepared tool call (immutable copy)
+                prepared_call = PreparedToolCall.from_parsed_call(tool_call)
+                if not prepared_call.metadata:
+                    prepared_call.metadata = {}
+                prepared_call.metadata["bundle_id"] = bundle_id
+                
+                # Check if this tool needs coordinate resolution
+                if self._needs_coordinate_resolution(tool_call):
+                    try:
+                        # 1. Ensure we have a screenshot (yields RequestScreenshotEvent if needed)
+                        screenshot_start_time = time.perf_counter()
+                        async for event in self.screenshot_manager.get_screenshot(session):
+                            yield event
+                        screenshot_time = time.perf_counter() - screenshot_start_time
+                        if screenshot_time > 0.001:
+                            logger.info(f"[Timing] Screenshot acquisition took {screenshot_time:.3f}s (bundle_id={_short_id(bundle_id)})")
+                        
+                        screenshot_data = session.get_screenshot()
+                        screenshot_id = session.get_current_screenshot_id()
+                        if not screenshot_data or not screenshot_id:
+                            raise ValueError("No screenshot data available for coordinate resolution")
+                        
+                        # 2. Get OCR results if needed
+                        ocr_results = None
+                        if tool_call.parameters.get("find_coordinates_by") == CoordinateFindingMethod.OCR:
+                            ocr_start_time = time.perf_counter()
+                            ocr_results = await self.ocr_coordinator.get_ocr_results(
+                                session, screenshot_data, screenshot_id
+                            )
+                            ocr_time = time.perf_counter() - ocr_start_time
+                            logger.info(f"[Timing] OCR results retrieval took {ocr_time:.3f}s (bundle_id={_short_id(bundle_id)}, found {len(ocr_results) if ocr_results else 0} results)")
+                        
+                        # 3. Get vision service if needed
+                        vision_service = None
+                        if tool_call.parameters.get("find_coordinates_by") == CoordinateFindingMethod.PREDICTION:
+                            vision_service = self.vision_service
+                            if not vision_service:
+                                vision_service = self.vision_service_provider(session)
+                            if not vision_service:
+                                logger.warning(f"[bundle_id={_short_id(bundle_id)}] Vision service unavailable for coordinate resolution")
+                        
+                        # 4. Resolve coordinates
+                        coord_resolve_start_time = time.perf_counter()
+                        x, y = await self.coordinate_resolver.resolve(
+                            tool_call, screenshot_data, ocr_results, vision_service
+                        )
+                        coord_resolve_time = time.perf_counter() - coord_resolve_start_time
+                        logger.info(f"[Timing] Coordinate resolution took {coord_resolve_time:.3f}s (bundle_id={_short_id(bundle_id)}, method={tool_call.parameters.get('find_coordinates_by')})")
+                        
+                        # 5. Rewrite to manual mode
+                        self._rewrite_to_manual(prepared_call, x, y)
+                        if not prepared_call.metadata:
+                            prepared_call.metadata = {}
+                        prepared_call.metadata["coordinate_resolution_screenshot_id"] = screenshot_id
+                        logger.info(f"[bundle_id={_short_id(bundle_id)}] Resolved coordinates for {tool_call.tool_name}: ({x}, {y})")
+                        
+                    except Exception as e:
+                        # FAIL-FAST: If any tool in bundle fails during preparation, fail the entire bundle
+                        logger.error(f"[bundle_id={_short_id(bundle_id)}] Failed to prepare tool {tool_call.tool_name} in bundle: {e}", exc_info=True)
+                        bundle_failed = True
+                        bundle_error = f"Tool {tool_call.tool_name} failed during preparation: {str(e)}"
+                        break  # Stop preparing remaining tools
+                
+                # Add to prepared tools list (no individual storage needed for bundles)
+                prepared_tools.append({
+                    "name": prepared_call.tool_name,
+                    "args": prepared_call.parameters,
+                })
+            
+            # Yield single ToolBundleEvent with all prepared tools
+            if bundle_failed:
+                # Bundle failed during preparation - yield error event
+                logger.error(f"[bundle_id={_short_id(bundle_id)}] Bundle preparation failed: {bundle_error}")
+                # For now, we'll still yield the bundle event but mark it as failed
+                # The frontend will handle the error
+                yield ToolBundleEvent(
+                    bundle_id=bundle_id,
+                    tools=prepared_tools  # Partial tools prepared before failure
+                )
+            else:
+                yield ToolBundleEvent(
+                    bundle_id=bundle_id,
+                    tools=prepared_tools
+                )
+                logger.info(f"Bundle prepared: {len(prepared_tools)} tools (bundle_id={_short_id(bundle_id)})")
+        
+        else:
+            # SINGLE TOOL: Keep existing behavior
+            tool_call = tool_calls[0]
             tool_prep_start_time = time.perf_counter()
-            # Generate request_id for each tool call
+            # Generate request_id for single tool
             request_id = str(uuid.uuid4())
             if not hasattr(tool_call, "metadata"):
                 tool_call.metadata = {}
             tool_call.metadata["request_id"] = request_id
-            # Store bundle_id in metadata for later matching
-            if is_bundle:
-                tool_call.metadata["bundle_id"] = bundle_id
 
             # Create prepared tool call (immutable copy to avoid mutation)
             prepared_call = PreparedToolCall.from_parsed_call(tool_call)
             prepared_call.metadata["request_id"] = request_id
-            if is_bundle:
-                prepared_call.metadata["bundle_id"] = bundle_id
 
             # Check if this tool needs coordinate resolution
             if self._needs_coordinate_resolution(tool_call):
@@ -247,11 +340,6 @@ class ToolPreparer:
                 raw_call=prepared_call.raw_call,
                 request_id=request_id,
             )
-
-        # Bundle management
-        if len(tool_calls) > 1:
-            yield BundleEndEvent()
-            logger.info(f"Bundle end: {len(tool_calls)} tools")
         
         preparation_total_time = time.perf_counter() - preparation_start_time
         logger.info(f"[Timing] Tool preparation completed: {len(tool_calls)} tool(s) in {preparation_total_time:.3f}s")

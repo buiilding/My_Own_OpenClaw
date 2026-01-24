@@ -264,11 +264,11 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
    ↓
 8. Python sidecar executes tool
    ↓
-9. ToolExecutionService captures screenshot (if computer-use tool)
+9. ToolExecutionService.captureSystemStateAndScreenshot() called ONCE (if computer-use tool)
+   - 2 second delay for UI to update
+   - Parallel system state + screenshot capture
    ↓
-10. ToolExecutionService captures system state
-    ↓
-11. MessageFormatter formats result
+10. MessageFormatter formats result
     ↓
 12. Result displayed in UI via callback
     ↓

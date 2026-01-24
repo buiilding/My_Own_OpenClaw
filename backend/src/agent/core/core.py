@@ -394,6 +394,32 @@ class AgentSession:
             request_id, success, result_data, error, metadata
         )
     
+    async def process_frontend_tool_bundle_result(
+        self,
+        bundle_id: str,
+        status: str,
+        step_results: List[Dict[str, Any]],
+        screenshot: Optional[str],
+        system_state: Optional[Dict[str, Any]],
+        error: Optional[str]
+    ) -> None:
+        """
+        Process an atomic tool-bundle-result from the frontend.
+        
+        Delegates to ToolResultHandler for processing.
+        
+        Args:
+            bundle_id: Bundle ID for the bundle result
+            status: Bundle status ("success", "partial_failure", "failure")
+            step_results: List of step results with tool, status, output
+            screenshot: Optional screenshot captured after bundle execution
+            system_state: Optional system state captured after bundle execution
+            error: Optional error message if bundle failed
+        """
+        await self.tool_result_handler.process_frontend_tool_bundle_result(
+            bundle_id, status, step_results, screenshot, system_state, error
+        )
+    
     async def cleanup(self) -> None:
         """
         Clean up session resources.

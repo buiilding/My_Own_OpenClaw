@@ -53,10 +53,9 @@ Send a user query with optional screenshot.
 - `streaming-response`: Text chunks
 - `tool-call`: Tool execution requests
 - `tool-output`: Tool execution results
+- `tool-bundle`: Atomic bundle of tools (single message)
 - `llm-thought`: Thinking tokens (Gemini)
 - `streaming-complete`: End of stream
-- `bundle_start`: Start of tool bundle
-- `bundle_end`: End of tool bundle
 - `request-screenshot`: Request hidden screenshot
 - `memory-store`: Request to store memory
 - `wakeword-greeting`: Wakeword detection greeting
@@ -518,49 +517,46 @@ Response to list-models request.
 
 ### Bundle Start Message
 
-Indicates the start of a tool bundle (multiple tools to be executed together).
+Atomic bundle of tools to execute together (replaces bundle_start + N tool-calls + bundle_end).
 
-**Type**: `bundle_start`
+**Type**: `tool-bundle`
 
 **Payload**:
 ```json
 {
-  "correlation_id": "bundle-123"
+  "bundle_id": "bundle-123",
+  "tools": [
+    {
+      "name": "mouse_control",
+      "args": { "x": 100, "y": 200, "action": "click" }
+    },
+    {
+      "name": "keyboard_control",
+      "args": { "text": "Hello", "action": "type" }
+    }
+  ]
 }
 ```
+
+**Description**: Single message containing all tools in a bundle. Frontend executes all tools sequentially and returns a single `tool-bundle-result` message.
 
 **Example**:
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174014",
-  "type": "bundle_start",
+  "type": "tool-bundle",
   "payload": {
-    "correlation_id": "bundle-123"
-  },
-  "timestamp": "2025-01-20T10:00:00Z"
-}
-```
-
-### Bundle End Message
-
-Indicates the end of a tool bundle. Frontend should execute all accumulated tools together.
-
-**Type**: `bundle_end`
-
-**Payload**:
-```json
-{
-  "correlation_id": "bundle-123"
-}
-```
-
-**Example**:
-```json
-{
-  "id": "123e4567-e89b-12d3-a456-426614174015",
-  "type": "bundle_end",
-  "payload": {
-    "correlation_id": "bundle-123"
+    "bundle_id": "bundle-123",
+    "tools": [
+      {
+        "name": "mouse_control",
+        "args": { "x": 100, "y": 200, "action": "click" }
+      },
+      {
+        "name": "keyboard_control",
+        "args": { "text": "Hello", "action": "type" }
+      }
+    ]
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }

@@ -254,6 +254,13 @@ For tools using vision models:
 
 1. **User Message**: Screenshot captured before sending (via useChatMessageSender)
 2. **Tool Execution**: Screenshot automatically captured after computer-use tool execution (via ToolExecutionService)
+   - **Individual Tools**: Screenshot captured **once** after tool execution completes
+   - **Bundled Tools**: Screenshot captured **once** after all bundled tools execute (not after each tool)
+   - Both use the same helper method (`captureSystemStateAndScreenshot`) ensuring:
+     - 2 second delay before capture (for UI to update)
+     - Parallel system state + screenshot capture
+     - Consistent error handling
+     - Proper timing logs
 3. **Hidden Screenshots**: Screenshot requested by backend if needed (via request-screenshot message)
 4. **OCR Processing**: Screenshot processed for OCR (backend)
 5. **Storage**: Screenshot stored in session with unique ID (backend)

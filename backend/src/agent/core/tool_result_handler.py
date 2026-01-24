@@ -64,6 +64,30 @@ class ToolResultHandler:
         # Handle individual tool result
         await self._handle_individual_result(request_id, success, result_data, error, metadata)
     
+    async def process_frontend_tool_bundle_result(
+        self,
+        bundle_id: str,
+        status: str,
+        step_results: List[Dict[str, Any]],
+        screenshot: Optional[str],
+        system_state: Optional[Dict[str, Any]],
+        error: Optional[str]
+    ) -> None:
+        """
+        Process an atomic tool-bundle-result from the frontend.
+        
+        Args:
+            bundle_id: Bundle ID for the bundle result
+            status: Bundle status ("success", "partial_failure", "failure")
+            step_results: List of step results with tool, status, output
+            screenshot: Optional screenshot captured after bundle execution
+            system_state: Optional system state captured after bundle execution
+            error: Optional error message if bundle failed
+        """
+        await self._handle_tool_bundle_result(
+            bundle_id, status, step_results, screenshot, system_state, error
+        )
+    
     def _is_screenshot_waiter_request(self, request_id: str) -> bool:
         """
         Check if request_id matches active screenshot waiter.
@@ -191,6 +215,73 @@ class ToolResultHandler:
         
         # Resolve any waiting futures for this request_id
         self.session._tool_result_storage.resolve_result_future(request_id, tool_result)
+    
+    async def _handle_tool_bundle_result(
+        self,
+        bundle_id: str,
+        status: str,
+        step_results: List[Dict[str, Any]],
+        screenshot: Optional[str],
+        system_state: Optional[Dict[str, Any]],
+        error: Optional[str]
+    ) -> None:
+        """
+        Handle atomic tool-bundle-result message.
+        
+        Creates a single ToolResult for the entire bundle and resolves the bundle future.
+        Also processes screenshot and system state if present.
+        
+        Args:
+            bundle_id: Bundle ID for the bundle result
+            status: Bundle status ("success", "partial_failure", "failure")
+            step_results: List of step results with tool, status, output
+            screenshot: Optional screenshot captured after bundle execution
+            system_state: Optional system state captured after bundle execution
+            error: Optional error message if bundle failed
+        """
+        from backend.src.core.interfaces.tool import ToolResult
+        
+        logger.info(f"Processing atomic bundle result: bundle_id={bundle_id[:15]}, status={status}, {len(step_results)} steps")
+        
+        # Process screenshot if present
+        if screenshot:
+            logger.debug("Bundle result includes screenshot data")
+            screenshot_manager = self._get_screenshot_manager()
+            if screenshot_manager:
+                await screenshot_manager.process_screenshot(self.session, screenshot, bundle_id)
+        
+        # Create bundle result data structure
+        bundle_data = {
+            "step_results": step_results,
+            "screenshot": screenshot,
+            "system_state": system_state,
+        }
+        
+        # Determine overall success
+        all_success = status == "success" and all(step.get("status") == "ok" for step in step_results)
+        
+        # Create ToolResult for the entire bundle
+        bundle_result = ToolResult.from_dict({
+            "success": all_success,
+            "data": bundle_data,
+            "error": error,
+            "metadata": {
+                "is_bundled": True,
+                "bundle_id": bundle_id,
+            },
+        })
+        
+        # Store bundle result for orchestrator
+        self.session._tool_result_storage.store_bundled_result(bundle_id, bundle_result)
+        
+        # Resolve bundle future
+        resolved = self.session._tool_result_storage.resolve_bundle_future(bundle_id, bundle_result)
+        if resolved:
+            logger.info(f"Resolved bundle future for bundle_id {bundle_id[:15]}")
+        else:
+            logger.warning(f"No waiting bundle future for bundle_id {bundle_id[:15]}")
+        
+        logger.info(f"Finished processing atomic bundle result {bundle_id[:15]}")
     
     async def _handle_bundled_results(
         self,

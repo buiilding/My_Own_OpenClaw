@@ -104,34 +104,62 @@ class ToolExecutor:
             session_ref=self.session,
         )
 
-        # Check if this is a bundled execution (multiple tools)
-        # If so, try to use the combined bundled result for history
-        if len(orchestration_result.tool_results) > 1:
-            # Check if we have a bundled result stored
-            # Since bundles are processed sequentially, the most recent bundled result
-            # should correspond to these tool results
-            bundled_result = None
-            # Try to find bundled result from centralized storage
-            # Look for bundle_id in tool call metadata
-            for result in orchestration_result.tool_results:
-                if hasattr(result.tool_call, 'metadata') and result.tool_call.metadata:
-                    bundle_id = result.tool_call.metadata.get('bundle_id')
-                    if bundle_id:
-                        bundled_result = self.session._tool_result_storage.get_bundled_result(bundle_id)
-                        if bundled_result:
-                            logger.info(f"Found bundled result for history (bundle_id={bundle_id[:15]}, {len(orchestration_result.tool_results)} tools)")
-                            # Remove from storage after use
-                            self.session._tool_result_storage.remove_bundled_result(bundle_id)
-                            break
-            
-            if bundled_result:
-                # Use combined bundled result for history (single message)
-                processed = await self.result_transformer.transform(
-                    "bundled_tools", bundled_result
-                )
-                self.history_committer.commit(processed)
-                logger.info(f"Committed combined bundled result to history ({len(orchestration_result.tool_results)} tools as single message)")
-                return
+        # Check if this is an atomic bundle (all tools have bundle_id, no request_id)
+        is_atomic_bundle = (
+            len(orchestration_result.tool_results) > 1 and
+            all(
+                hasattr(r.tool_call, 'metadata') and 
+                r.tool_call.metadata and 
+                'bundle_id' in r.tool_call.metadata and 
+                'request_id' not in r.tool_call.metadata
+                for r in orchestration_result.tool_results
+            )
+        )
+        
+        if is_atomic_bundle:
+            # ATOMIC BUNDLE: Use bundle result from storage
+            bundle_id = orchestration_result.tool_results[0].tool_call.metadata.get('bundle_id')
+            if bundle_id:
+                bundled_result = self.session._tool_result_storage.get_bundled_result(bundle_id)
+                if bundled_result:
+                    logger.info(f"Found atomic bundle result for history (bundle_id={bundle_id[:15]}, {len(orchestration_result.tool_results)} tools)")
+                    
+                    # Format bundle result using BundleResultFormatter
+                    from backend.src.agent.tools.bundle_result_formatter import BundleResultFormatter
+                    formatter = BundleResultFormatter()
+                    bundle_data = bundled_result.data if isinstance(bundled_result.data, dict) else {}
+                    formatted_message = formatter.format(
+                        {
+                            "bundle_id": bundle_id,
+                            "status": "success" if bundled_result.success else "failure",
+                            "step_results": bundle_data.get("step_results", []),
+                            "screenshot": bundle_data.get("screenshot"),
+                            "system_state": bundle_data.get("system_state"),
+                            "error": bundled_result.error
+                        },
+                        bundle_data.get("system_state")
+                    )
+                    
+                    # Create ToolResult with formatted message
+                    from backend.src.core.interfaces.tool import ToolResult
+                    formatted_bundle_result = ToolResult(
+                        success=bundled_result.success,
+                        llm_content=formatted_message,
+                        data=bundled_result.data,
+                        error=bundled_result.error,
+                        artifacts=bundled_result.artifacts
+                    )
+                    
+                    # Transform and commit to history
+                    processed = await self.result_transformer.transform(
+                        "bundled_tools", formatted_bundle_result
+                    )
+                    self.history_committer.commit(processed)
+                    logger.info(f"Committed atomic bundle result to history ({len(orchestration_result.tool_results)} tools as single message)")
+                    
+                    # Remove from storage after use
+                    self.session._tool_result_storage.remove_bundled_result(bundle_id)
+                    return
         
         # Process individual results (non-bundled or bundled result not found)
         # MEMORY LEAK FIX: Extract ALL request_ids BEFORE processing to ensure cleanup

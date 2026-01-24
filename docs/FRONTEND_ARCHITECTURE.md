@@ -310,6 +310,8 @@ The Python sidecar handles tool execution and system state capture.
 
 ### Tool Execution Flow
 
+#### Individual Tool Execution
+
 ```
 1. Backend sends tool-call message
    ↓
@@ -325,39 +327,39 @@ The Python sidecar handles tool execution and system state capture.
    ↓
 7. Python sidecar executes tool
    ↓
-8. ToolExecutionService captures screenshot (if computer-use tool)
+8. ToolExecutionService.captureSystemStateAndScreenshot() called ONCE (if computer-use tool)
+   - 2 second delay for UI to update
+   - Parallel system state + screenshot capture
    ↓
-9. ToolExecutionService captures system state
+9. ToolExecutionService formats result with MessageFormatter
    ↓
-10. ToolExecutionService formats result with MessageFormatter
+10. Result displayed in UI via callback
     ↓
-11. Result displayed in UI via callback
+11. Result sent to backend via WebSocket
     ↓
-12. Result sent to backend via WebSocket
-    ↓
-13. Backend processes result and continues
+12. Backend processes result and continues
 ```
 
-### Tool Bundling Flow
+### Atomic Tool Bundling Flow
 
 ```
-1. Backend sends bundle_start message
+1. Backend sends single tool-bundle message with all tools
    ↓
-2. useToolRunner enters bundle mode
+2. useToolRunner receives tool-bundle and calls ToolExecutionService.executeToolBundle() directly
    ↓
-3. Multiple tool-call messages accumulated
+3. Tools executed sequentially via Python sidecar (with skipAutoCapture=true, fail-fast on error)
    ↓
-4. Backend sends bundle_end message
+4. Step results collected in stepResults array
    ↓
-5. ToolExecutionService.executeToolBundle() called
+5. ToolExecutionService.captureSystemStateAndScreenshot() called ONCE (if bundle contains computer-use tool)
+   - 2 second delay for UI to update
+   - Parallel system state + screenshot capture
    ↓
-6. Tools executed in parallel via Python sidecar
+6. Combined formatted message created for UI display
    ↓
-7. Results aggregated and formatted
+7. Single tool-bundle-result message sent to backend
    ↓
 8. Bundled result displayed in UI
-   ↓
-9. Results sent to backend
 ```
 
 ## State Management
@@ -433,7 +435,10 @@ Type-safe IPC bridge abstraction with channel validation.
 
 **ToolExecutionService** (`ToolExecutionService.ts`):
 - Handles tool execution and bundling
-- Automatic screenshot capture for computer-use tools
+- Automatic screenshot capture for computer-use tools:
+  - Individual tools: Screenshot captured **once** after tool execution
+  - Bundled tools: Screenshot captured **once** after all bundled tools execute
+  - Both use `captureSystemStateAndScreenshot()` helper method with 2s delay and parallel capture
 - System state capture and formatting
 - Callback-based architecture for UI updates
 - Pure infrastructure code (no React dependencies)

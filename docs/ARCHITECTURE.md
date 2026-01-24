@@ -151,8 +151,14 @@ Screenshots are captured strategically at key points to provide visual context f
 
 #### Tool Result Screenshots
 - **Timing**: Automatically captured after computer-use tool execution (mouse_control, keyboard_control, scroll_control, etc.)
+  - **Individual Tools**: Screenshot captured **once** after tool execution completes
+  - **Atomic Bundles**: Screenshot captured **once** after all bundled tools execute (single tool-bundle message, single tool-bundle-result response)
 - **Purpose**: Shows the result state after tool execution for verification and continued context
 - **Location**: `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
+- **Implementation**: Both individual and bundled tools use the same helper method (`captureSystemStateAndScreenshot`) which:
+  - Waits 2 seconds before capture (allows UI to update)
+  - Captures system state and screenshot in parallel for efficiency
+  - Provides consistent error handling and timing logs
 - **Storage**: Attached to tool result data sent back to backend
 
 #### LLM-Requested Screenshots

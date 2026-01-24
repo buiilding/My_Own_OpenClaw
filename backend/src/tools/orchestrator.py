@@ -79,6 +79,89 @@ class ToolOrchestrator:
             logger.error("session_ref is required for execute_tools_from_response")
             return SimpleNamespace(tool_results=[])
 
+        # Check if this is a bundle (all tools have bundle_id, no individual request_ids)
+        is_bundle = (
+            len(parsed_response.tool_calls) > 1 and
+            all(
+                hasattr(tc, 'metadata') and 
+                tc.metadata and 
+                'bundle_id' in tc.metadata and 
+                'request_id' not in tc.metadata
+                for tc in parsed_response.tool_calls
+            )
+        )
+        
+        if is_bundle:
+            # ATOMIC BUNDLE: Single future for entire bundle
+            bundle_id = parsed_response.tool_calls[0].metadata.get('bundle_id')
+            if not bundle_id:
+                logger.error("Bundle detected but bundle_id missing from metadata")
+                return SimpleNamespace(tool_results=[])
+            
+            logger.info(f"Processing atomic bundle: {len(parsed_response.tool_calls)} tools (bundle_id={_short_id(bundle_id)})")
+            
+            # Create single bundle future
+            bundle_future = session_ref._tool_result_storage.create_bundle_future(bundle_id)
+            
+            # Check if bundle result already exists
+            bundle_result = session_ref._tool_result_storage.get_bundled_result(bundle_id)
+            if bundle_result:
+                session_ref._tool_result_storage.remove_bundled_result(bundle_id)
+                if not bundle_future.done():
+                    bundle_future.set_result(bundle_result)
+                logger.info(f"Found already completed bundle result for bundle_id {_short_id(bundle_id)}")
+            else:
+                # Wait for bundle result
+                try:
+                    wait_start = time.perf_counter()
+                    logger.info(f"Waiting for frontend bundle result (bundle_id={_short_id(bundle_id)})...")
+                    bundle_result = await asyncio.wait_for(bundle_future, timeout=120.0)
+                    wait_time = time.perf_counter() - wait_start
+                    logger.info(f"[Timing] Bundle orchestrator wait completed in {wait_time:.3f}s (bundle_id={_short_id(bundle_id)})")
+                except asyncio.TimeoutError:
+                    logger.error(f"Timed out waiting for bundle (bundle_id={_short_id(bundle_id)})")
+                    bundle_result = ToolResult(
+                        success=False,
+                        error="Timed out waiting for bundle execution on frontend.",
+                        llm_content="Error: Bundle execution timed out on frontend."
+                    )
+                finally:
+                    session_ref._tool_result_storage.remove_bundle_future(bundle_id)
+            
+            # Extract step_results from bundle result and create individual results
+            # This maintains compatibility with existing code that expects individual tool results
+            results = []
+            step_results = bundle_result.data.get("step_results", []) if isinstance(bundle_result.data, dict) else []
+            
+            for i, tool_call in enumerate(parsed_response.tool_calls):
+                # Find corresponding step result
+                step_result = step_results[i] if i < len(step_results) else None
+                
+                if step_result and step_result.get("status") == "ok":
+                    tool_result = ToolResult(
+                        success=True,
+                        llm_content=step_result.get("output", ""),
+                        data=bundle_result.data  # Include screenshot, system_state from bundle
+                    )
+                else:
+                    error_msg = step_result.get("output", "Unknown error") if step_result else bundle_result.error or "Bundle execution failed"
+                    tool_result = ToolResult(
+                        success=False,
+                        error=error_msg,
+                        llm_content=f"Error: {error_msg}"
+                    )
+                
+                results.append(SimpleNamespace(
+                    tool_call=tool_call,
+                    result=tool_result,
+                    success=tool_result.success,
+                    execution_time=0.1,
+                    context=None
+                ))
+            
+            return SimpleNamespace(tool_results=results)
+        
+        # SINGLE TOOLS: Existing behavior
         results = []
         for tool_call in parsed_response.tool_calls:
             request_id = tool_call.metadata.get('request_id') if hasattr(tool_call, 'metadata') else None
