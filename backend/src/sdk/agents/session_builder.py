@@ -9,7 +9,7 @@ import uuid
 from typing import List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
+    from backend.src.agent.session.session import AgentSession
 
 from backend.src.core.services.agent_factory import RestrictedToolRegistry
 from backend.src.sdk.agents.config_helper import override_model_id

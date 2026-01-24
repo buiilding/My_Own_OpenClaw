@@ -7,8 +7,8 @@ import logging
 
 from dependency_injector import containers, providers
 
-from backend.src.agent.core.session_manager import SessionManager
-from backend.src.api.infrastructure.registry import MessageHandlerRegistry
+from backend.src.agent.session.manager import SessionManager
+from backend.src.api.core.base import MessageHandlerRegistry
 from backend.src.api.handlers.query import QueryMessageHandler
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.handlers.settings import (

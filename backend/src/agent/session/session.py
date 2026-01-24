@@ -11,11 +11,11 @@ import logging
 import uuid
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional, List
 
-from backend.src.agent.core.executor import AgentExecutor
-from backend.src.agent.core.prepared_tool_call_storage import PreparedToolCallStorage
-from backend.src.agent.core.screenshot_state import ScreenshotState
-from backend.src.agent.core.state import ConversationHistory
-from backend.src.agent.core.tool_result_handler import ToolResultHandler
+from backend.src.agent.execution.executor import AgentExecutor
+from backend.src.agent.tools.preparation.screenshot.state import ScreenshotState
+from backend.src.agent.tools.preparation.storage.prepared_call_storage import PreparedToolCallStorage
+from backend.src.agent.tools.waiting import ToolResultHandler
+from backend.src.agent.session.state import ConversationHistory
 from backend.src.core.bus import EventBus
 from backend.src.core.config import AppConfig
 from backend.src.core.events import InteractionCompleted
@@ -127,7 +127,31 @@ class AgentSession:
         )
 
         # Initialize Tool Result Handler (extracted to reduce god object complexity)
-        self.tool_result_handler = ToolResultHandler(self)
+        # Handler initialization happens after executor, so we can access screenshot_manager from executor
+        from backend.src.agent.tools.preparation.screenshot import ScreenshotProcessor
+        from backend.src.agent.tools.waiting import ToolResultReceiver, ToolResultRouter
+        from backend.src.agent.tools.waiting.storage import ToolResultStorage
+        
+        # Initialize handler components
+        tool_result_receiver = ToolResultReceiver(self)
+        # Get screenshot_manager from executor (created during executor initialization)
+        screenshot_manager = self.executor.screenshot_manager if hasattr(self.executor, 'screenshot_manager') else None
+        if screenshot_manager:
+            screenshot_processor = ScreenshotProcessor(screenshot_manager)
+        else:
+            # Fallback: create a new one (shouldn't happen in normal flow)
+            from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
+            screenshot_processor = ScreenshotProcessor(ScreenshotManager())
+        tool_result_router = ToolResultRouter(
+            receiver=tool_result_receiver,
+            screenshot_processor=screenshot_processor,
+            result_storage=self._tool_result_storage,
+            session=self,
+        )
+        self.tool_result_handler = ToolResultHandler(
+            receiver=tool_result_receiver,
+            router=tool_result_router,
+        )
 
         # Subscribe to events
         self.event_bus.subscribe(InteractionCompleted, self._on_interaction_completed)
@@ -143,7 +167,7 @@ class AgentSession:
         self.hidden_screenshot_request_id: Optional[str] = None
         
         # CENTRALIZED TOOL RESULT STORAGE: Single source of truth for all tool results
-        from backend.src.agent.core.tool_result_storage import ToolResultStorage
+        from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
         self._tool_result_storage = ToolResultStorage(cleanup_ttl_seconds=300)
         
         # Extract prepared tool call storage to reduce complexity

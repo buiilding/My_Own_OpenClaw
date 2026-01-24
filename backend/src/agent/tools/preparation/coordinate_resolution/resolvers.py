@@ -18,11 +18,12 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class OcrResolver:
+class OcrCoordinateResolver:
     """
     Resolves coordinates using OCR text matching.
     
     Pure function: no side effects, deterministic output.
+    Input: text → Output: coordinates
     """
 
     @staticmethod
@@ -77,11 +78,12 @@ class OcrResolver:
         )
 
 
-class VisionResolver:
+class VisionCoordinateResolver:
     """
     Resolves coordinates using Vision model.
     
     Pure function: no side effects, deterministic output.
+    Input: text (description) → Output: coordinates
     """
 
     @staticmethod
@@ -135,8 +137,8 @@ class CoordinateResolver:
 
     def __init__(
         self,
-        ocr_resolver: OcrResolver,
-        vision_resolver: VisionResolver,
+        ocr_resolver: OcrCoordinateResolver,
+        vision_resolver: VisionCoordinateResolver,
     ):
         """
         Initialize the coordinate resolver.

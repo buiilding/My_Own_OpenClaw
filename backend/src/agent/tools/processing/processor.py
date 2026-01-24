@@ -1,121 +1,71 @@
 """
-Tool Executor.
+Tool result processor.
 
-Coordinates tool preparation, execution, and result processing.
+Processes tool execution results: transforms and commits to history.
 """
 import logging
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List
+from typing import TYPE_CHECKING, Any
 
 from backend.src.agent.history.history_committer import HistoryCommitter
-from backend.src.agent.tools.bundle_detection import is_atomic_bundle_from_results
-from backend.src.agent.tools.result_transformer import ResultTransformer
-from backend.src.agent.tools.tool_preparer import ToolPreparer
-from backend.src.core.events import AgentStreamingEvent, ThinkingEvent
-from backend.src.llm.parser import ParsedResponse
+from backend.src.agent.tools.shared.bundle_detection import is_atomic_bundle_from_results
+from backend.src.agent.tools.processing.transformer import ResultTransformer
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
-    from backend.src.tools.orchestrator import ToolOrchestrator
+    from backend.src.agent.session.session import AgentSession
 
 logger = logging.getLogger(__name__)
 
 
-class ToolExecutor:
+class ToolResultProcessor:
     """
-    Coordinates tool execution.
+    Processes tool execution results.
     
-    Responsibility: Tool orchestration only.
-    Delegates transformation to ResultTransformer and state mutation to HistoryCommitter.
-    Yields execution-time events (ToolPreparer events, ThinkingEvent).
-    Processes results for history storage only (frontend handles display).
+    Responsibility: Transform results and commit to history.
     """
 
     def __init__(
         self,
-        tool_orchestrator: "ToolOrchestrator",
-        tool_preparer: ToolPreparer,
         result_transformer: ResultTransformer,
         history_committer: HistoryCommitter,
-        session: "AgentSession",
     ):
         """
-        Initialize the tool executor.
+        Initialize the tool result processor.
         
         Args:
-            tool_orchestrator: Orchestrator for tool execution
-            tool_preparer: Preparer for tool call preparation
             result_transformer: Transformer for pure result processing
             history_committer: Committer for state mutation
-            session: Agent session for context
         """
-        self.tool_orchestrator = tool_orchestrator
-        self.tool_preparer = tool_preparer
         self.result_transformer = result_transformer
         self.history_committer = history_committer
-        self.session = session
 
-    async def execute(
-        self, parsed_response: ParsedResponse
-    ) -> AsyncGenerator[AgentStreamingEvent, None]:
-        """
-        Executes tools and processes results.
-        
-        Yields execution-time events (ToolPreparer events, ThinkingEvent).
-        Returns processed results via a callback or separate method.
-        
-        Args:
-            parsed_response: Parsed LLM response with tool calls
-            
-        Yields:
-            Execution-time events: ThinkingEvent, ToolPreparer events (RequestScreenshotEvent, ToolCallEvent, etc.)
-        """
-        # Emit thinking event
-        yield ThinkingEvent(
-            content=f"Executing {len(parsed_response.tool_calls)} tool(s)..."
-        )
-
-        # Prepare tools (yields execution-time events like RequestScreenshotEvent, ToolCallEvent)
-        async for event in self.tool_preparer.prepare_tools(
-            parsed_response.tool_calls, self.session
-        ):
-            yield event
-
-    async def process_results(
-        self, parsed_response: ParsedResponse
+    async def process(
+        self, orchestration_result: Any, session: "AgentSession"
     ) -> None:
         """
-        Processes tool execution results for history storage.
+        Process tool execution results for history storage.
         
         Note: Frontend displays tool results immediately after execution.
         This method only processes results for conversation history (LLM context),
-        not for frontend display. ToolOutputEvent is only emitted for backend-side
-        failures (e.g., coordinate resolution failures) which are handled by ToolPreparer.
+        not for frontend display.
         
         For bundled tools, uses the combined bundled result instead of individual results
         to create a single history message.
         
         Args:
-            parsed_response: Parsed LLM response with tool calls
+            orchestration_result: Result from tool orchestrator with tool results
+            session: Agent session for context
         """
-        # Execute tools (orchestrator waits for frontend results)
-        orchestration_result = await self.tool_orchestrator.execute_tools_from_response(
-            parsed_response,
-            user_id=self.session.user_id,
-            session_id=self.session.session_id,
-            session_ref=self.session,
-        )
-
         # Check if this is an atomic bundle (all tools have bundle_id, no request_id)
         if is_atomic_bundle_from_results(orchestration_result.tool_results):
             # ATOMIC BUNDLE: Use bundle result from storage
             bundle_id = orchestration_result.tool_results[0].tool_call.metadata.get('bundle_id')
             if bundle_id:
-                bundled_result = self.session._tool_result_storage.get_bundled_result(bundle_id)
+                bundled_result = session._tool_result_storage.get_bundled_result(bundle_id)
                 if bundled_result:
                     logger.info(f"Found atomic bundle result for history (bundle_id={bundle_id[:15]}, {len(orchestration_result.tool_results)} tools)")
                     
                     # Format bundle result using BundleResultFormatter
-                    from backend.src.agent.tools.bundle_result_formatter import BundleResultFormatter
+                    from backend.src.agent.tools.shared.bundle_result_formatter import BundleResultFormatter
                     formatter = BundleResultFormatter()
                     bundle_data = bundled_result.data if isinstance(bundled_result.data, dict) else {}
                     formatted_message = formatter.format(
@@ -148,7 +98,7 @@ class ToolExecutor:
                     logger.info(f"Committed atomic bundle result to history ({len(orchestration_result.tool_results)} tools as single message)")
                     
                     # Remove from storage after use
-                    self.session._tool_result_storage.remove_bundled_result(bundle_id)
+                    session._tool_result_storage.remove_bundled_result(bundle_id)
                     return
         
         # Process individual results (non-bundled or bundled result not found)
@@ -179,15 +129,15 @@ class ToolExecutor:
             # sessions with many tool executions.
             
             # Use centralized storage for cleanup
-            cleaned_count = self.session._tool_result_storage.cleanup_request_ids(all_request_ids)
+            cleaned_count = session._tool_result_storage.cleanup_request_ids(all_request_ids)
             if cleaned_count > 0:
                 logger.debug(f"Cleaned up {cleaned_count} tool results after processing")
             
             # Remove prepared tool calls (no longer needed)
             for request_id in all_request_ids:
                 # ENCAPSULATION: Use public method instead of accessing private member
-                self.session.remove_prepared_tool_call(request_id)
+                session.remove_prepared_tool_call(request_id)
             
             # Periodic cleanup of old results (TTL-based)
             # This is a safety net for results that weren't properly cleaned up
-            self.session._tool_result_storage.cleanup_old_results(max_age_seconds=300)
+            session._tool_result_storage.cleanup_old_results(max_age_seconds=300)

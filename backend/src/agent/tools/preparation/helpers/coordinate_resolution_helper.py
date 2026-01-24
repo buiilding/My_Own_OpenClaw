@@ -8,11 +8,11 @@ import logging
 import time
 from typing import Optional, Tuple, TYPE_CHECKING
 
-from backend.src.agent.tools.logging_utils import short_id
+from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.types import CoordinateFindingMethod
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
+    from backend.src.agent.session.session import AgentSession
     from backend.src.core.interfaces.vision import IVisionService
     from backend.src.llm.parser import ParsedToolCall
 

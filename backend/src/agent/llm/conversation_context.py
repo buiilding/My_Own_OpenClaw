@@ -1,5 +1,5 @@
 """
-Prompt Coordinator.
+Conversation Context.
 
 Manages prompt preparation and caching for the agent interaction loop.
 Handles first-iteration prompt building with metadata, and subsequent-iteration
@@ -13,15 +13,15 @@ from backend.src.core.types import LLMMessage
 from backend.src.llm.prompts import PromptMetadata
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.state import ConversationHistory
+    from backend.src.agent.session.state import ConversationHistory
     from backend.src.llm.prompts import PromptConstructor
 
 logger = logging.getLogger(__name__)
 
 
-class PromptCoordinator:
+class ConversationContext:
     """
-    Coordinates prompt preparation and caching.
+    Manages conversation context and prompt preparation.
     
     Responsibility: Prompt building and caching only.
     Does NOT emit events or make business decisions.

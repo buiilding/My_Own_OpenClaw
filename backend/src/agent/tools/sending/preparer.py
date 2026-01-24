@@ -9,19 +9,18 @@ import time
 import uuid
 from typing import Callable, List, AsyncGenerator, Optional, TYPE_CHECKING
 
-from backend.src.agent.tools.logging_utils import short_id
-from backend.src.agent.tools.tool_preparation_helper import prepare_tool_with_coordinates
+from backend.src.agent.tools.preparation.helpers.preparation_helper import prepare_tool_with_coordinates
+from backend.src.agent.tools.preparation.prepared_tool_call import PreparedToolCall
+from backend.src.agent.tools.preparation.coordinate_resolution import CoordinateResolver
+from backend.src.agent.tools.preparation.ocr import OcrCoordinator
+from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
+from backend.src.agent.tools.preparation.helpers.vision_service_provider import VisionServiceProvider
+from backend.src.agent.tools.processing.synthetic_factory import SyntheticResultFactory
+from backend.src.agent.tools.shared.logging_utils import short_id
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
+    from backend.src.agent.session.session import AgentSession
     from backend.src.core.interfaces.vision import IVisionService
-
-from backend.src.agent.tools.prepared_tool_call import PreparedToolCall
-from backend.src.agent.tools.resolvers.coordinate_resolvers import CoordinateResolver
-from backend.src.agent.tools.ocr_coordinator import OcrCoordinator
-from backend.src.agent.tools.screenshot_manager import ScreenshotManager
-from backend.src.agent.tools.synthetic_result_factory import SyntheticResultFactory
-from backend.src.agent.tools.vision_service_provider import VisionServiceProvider
 from backend.src.core.events import (
     AgentStreamingEvent,
     ToolBundleEvent,

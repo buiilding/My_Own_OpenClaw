@@ -11,9 +11,9 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
+    from backend.src.agent.session.session import AgentSession
 
-from backend.src.agent.tools.bundle_detection import is_atomic_bundle
+from backend.src.agent.tools.shared.bundle_detection import is_atomic_bundle
 from backend.src.core.services.context_factory import ContextFactory
 from backend.src.llm.parser import ParsedResponse
 from backend.src.tools.bundle_execution import execute_bundle

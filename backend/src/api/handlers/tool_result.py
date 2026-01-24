@@ -16,7 +16,7 @@ from backend.src.api.schema import BaseMessage, ToolResultMessage, ToolBundleRes
 from backend.src.core.validation import ValidationError
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.session_manager import SessionManager
+    from backend.src.agent.session.manager import SessionManager
 
 logger = logging.getLogger(__name__)
 

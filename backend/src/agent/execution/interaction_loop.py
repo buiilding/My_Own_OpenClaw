@@ -15,11 +15,11 @@ from backend.src.core.events import (
 from backend.src.core.exceptions import LLMRateLimitError
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
+    from backend.src.agent.session.session import AgentSession
+    from backend.src.agent.llm.conversation_context import ConversationContext
     from backend.src.agent.llm.event_presenter import EventPresenter
-    from backend.src.agent.llm.llm_interaction_handler import LLMInteractionHandler
-    from backend.src.agent.llm.prompt_coordinator import PromptCoordinator
-    from backend.src.agent.tools.tool_executor import ToolExecutor
+    from backend.src.agent.llm.llm_stream_processor import LLMStreamProcessor
+    from backend.src.agent.tools.orchestrator import ToolOrchestrator
     from backend.src.llm.parser import ResponseParser
 
 logger = logging.getLogger(__name__)
@@ -36,10 +36,10 @@ class InteractionLoop:
     def __init__(
         self,
         session: "AgentSession",
-        prompt_coordinator: "PromptCoordinator",
-        llm_handler: "LLMInteractionHandler",
+        prompt_coordinator: "ConversationContext",
+        llm_handler: "LLMStreamProcessor",
         response_parser: "ResponseParser",
-        tool_executor: "ToolExecutor",
+        tool_executor: "ToolOrchestrator",
         event_presenter: "EventPresenter",
     ):
         """
@@ -47,10 +47,10 @@ class InteractionLoop:
         
         Args:
             session: Agent session for state access
-            prompt_coordinator: Coordinates prompt preparation
-            llm_handler: Handles LLM streaming and token counting
+            prompt_coordinator: Manages conversation context
+            llm_handler: Processes LLM streaming and token counting
             response_parser: Parses LLM responses
-            tool_executor: Executes tools
+            tool_executor: Orchestrates tool execution
             event_presenter: Presents frontend events
         """
         self.session = session
@@ -178,7 +178,7 @@ class InteractionLoop:
                 is_bundle = len(parsed_response.tool_calls) > 1
                 
                 # Yield all preparation events (ToolBundleEvent or ToolCallEvent)
-                async for event in self.tool_executor.execute(parsed_response):
+                async for event in self.tool_executor.execute(parsed_response, self.session):
                     yield event
                 
                 # BUNDLE EXECUTION FIX: For bundles, wait for results immediately after
@@ -186,7 +186,7 @@ class InteractionLoop:
                 # This ensures the bundle completes before any subsequent tool calls.
                 if is_bundle:
                     logger.info("Waiting for bundle execution to complete before continuing...")
-                    await self.tool_executor.process_results(parsed_response)
+                    await self.tool_executor.process_results(parsed_response, self.session)
                     results_processed = True
                     logger.info("Bundle execution completed, continuing interaction loop")
             except Exception as e:
@@ -212,7 +212,7 @@ class InteractionLoop:
                 # but we still need to handle cleanup for non-bundle tools or error cases.
                 if not results_processed:
                     try:
-                        await self.tool_executor.process_results(parsed_response)
+                        await self.tool_executor.process_results(parsed_response, self.session)
                     except Exception as cleanup_error:
                         # Log but don't re-raise - we're in finally block and don't want to
                         # mask the original exception if one occurred
