@@ -98,7 +98,7 @@ class KeyboardControlArgs(BaseModel):
 
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra='ignore')
     
     explanation: str = Field(
         ...,
@@ -107,6 +107,10 @@ class ScreenshotToolArgs(BaseModel):
     expectation: str = Field(
         ...,
         description="One sentence describing what you expect to see in the screenshot after this action executes."
+    )
+    wait: Optional[float] = Field(
+        None,
+        description="(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture."
     )
 
 

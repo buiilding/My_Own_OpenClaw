@@ -19,7 +19,7 @@ import {
   type BundleExecutionResult,
   type ToolExecutionCallbacks,
 } from './ToolExecutionTypes';
-import { captureSystemStateAndScreenshot } from './SystemCapture';
+import { extractOSstate } from './SystemCapture';
 
 export {
   ToolExecutionOptions,
@@ -87,23 +87,55 @@ export class ToolExecutionService {
 
       // Capture screenshot and system state ONCE after individual tool execution if needed
       if (isComputerUseTool && !options.skipAutoCapture && !screenshot) {
-        // Extract wait parameter from tool args (convert seconds to milliseconds)
+        // Extract wait parameter from tool args (in seconds)
         // For wait tool, use the 'seconds' parameter; for other tools, use 'wait' parameter
-        // Default to 2000ms (2 seconds) if not provided
-        let waitSeconds = 2000;
+        // Default to 2 seconds if not provided
+        let waitSeconds = 2;
         if (toolName === 'wait' && args && typeof args === 'object' && typeof args.seconds === 'number') {
           // Wait tool: use 'seconds' parameter
-          waitSeconds = args.seconds * 1000;
+          waitSeconds = args.seconds;
         } else if (args && typeof args === 'object' && typeof args.wait === 'number') {
           // Other computer-use tools: use 'wait' parameter
-          waitSeconds = args.wait * 1000;
+          waitSeconds = args.wait;
         }
         
-        waitDelay = waitSeconds / 1000; // Convert back to seconds for logging
+        waitDelay = waitSeconds; // Store in seconds for logging
         const captureStartTime = performance.now();
-        const captureResult = await captureSystemStateAndScreenshot(
-          `after ${toolName}`,
-          waitSeconds,
+        const captureResult = await extractOSstate(
+          true,  // enable_screenshot
+          true,  // enable_system_state
+          waitSeconds,  // wait (in seconds)
+          false  // is_first_user_message
+        );
+        captureTime = (performance.now() - captureStartTime) / 1000;
+        systemState = captureResult.systemState;
+        screenshot = captureResult.screenshot;
+
+        // Add screenshot to result data
+        if (screenshot && result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
+          result.data = {
+            ...result.data,
+            screenshot: screenshot,
+            system_state: systemState ?? undefined
+          };
+        }
+      }
+
+      // Handle screenshot tool when called directly (not as part of auto-capture)
+      if (toolName === 'screenshot' && !options.skipAutoCapture && !screenshot) {
+        // Extract wait parameter from screenshot tool args (in seconds)
+        let waitSeconds = 0;
+        if (args && typeof args === 'object' && typeof args.wait === 'number') {
+          waitSeconds = args.wait;
+        }
+        
+        waitDelay = waitSeconds;
+        const captureStartTime = performance.now();
+        const captureResult = await extractOSstate(
+          true,  // enable_screenshot
+          true,  // enable_system_state
+          waitSeconds,  // wait (in seconds)
+          false  // is_first_user_message
         );
         captureTime = (performance.now() - captureStartTime) / 1000;
         systemState = captureResult.systemState;
@@ -249,7 +281,13 @@ export class ToolExecutionService {
 
     try {
       // Execute all tools sequentially with skipAutoCapture (FAIL-FAST: stop on first error)
+      // After each tool, call extractOSstate if it's a computer-use tool
       const toolExecutionTimes: Array<{ tool: string; time: number }> = [];
+      let systemState: SystemState | null = null;
+      let screenshot: string | null = null;
+      let totalWaitDelay = 0;
+      let totalCaptureTime = 0;
+
       for (let i = 0; i < bundle.length; i++) {
         const tool = bundle[i];
         const toolStartTime = performance.now();
@@ -286,6 +324,50 @@ export class ToolExecutionService {
             console.error(`[ToolExecutionService] Tool ${tool.toolName} failed, stopping bundle execution (fail-fast)`);
             break;
           }
+
+          // Check if this tool is a computer-use tool that needs screenshot/system state
+          const isStandardComputerUseTool = (COMPUTER_USE_TOOLS as string[]).includes(tool.toolName);
+          const isRunShellCommandWithWait = tool.toolName === 'run_shell_command' && 
+            tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number' && tool.args.wait > 0;
+          const isComputerUseTool = isStandardComputerUseTool || isRunShellCommandWithWait;
+
+          // Extract OS state after each tool if it's a computer-use tool
+          // Only get system state on the last tool; all others get screenshot only
+          if (isComputerUseTool) {
+            // Extract wait parameter from tool args (in seconds)
+            // For wait tool, use the 'seconds' parameter; for other tools, use 'wait' parameter
+            // Default to 0 if not provided
+            let waitSeconds = 0;
+            if (tool.toolName === 'wait' && tool.args && typeof tool.args === 'object' && typeof tool.args.seconds === 'number') {
+              // Wait tool: use 'seconds' parameter
+              waitSeconds = tool.args.seconds;
+            } else if (tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number') {
+              // Other computer-use tools: use 'wait' parameter
+              waitSeconds = tool.args.wait;
+            }
+
+            // Check if this is the last tool in the bundle
+            const isLastTool = i === bundle.length - 1;
+
+            const captureStartTime = performance.now();
+            const captureResult = await extractOSstate(
+              true,  // enable_screenshot
+              isLastTool,  // enable_system_state (only true for last tool)
+              waitSeconds,  // wait (in seconds)
+              false  // is_first_user_message
+            );
+            const captureTime = (performance.now() - captureStartTime) / 1000;
+            totalCaptureTime += captureTime;
+            totalWaitDelay += waitSeconds;
+
+            // Update screenshot (always updated)
+            screenshot = captureResult.screenshot;
+            
+            // Only update system state if this is the last tool
+            if (isLastTool) {
+              systemState = captureResult.systemState;
+            }
+          }
         } catch (err: any) {
           const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
           toolExecutionTimes.push({ tool: tool.toolName, time: toolExecutionTime });
@@ -300,68 +382,6 @@ export class ToolExecutionService {
           // FAIL-FAST: Stop execution on exception
           break;
         }
-      }
-
-      // Check if any tool in bundle is a computer-use tool
-      // run_shell_command is conditionally a computer-use tool if wait parameter is provided
-      const hasComputerUseTool = bundle.some(tool => {
-      const isStandardComputerUseTool = (COMPUTER_USE_TOOLS as string[]).includes(tool.toolName);
-        const isRunShellCommandWithWait = tool.toolName === 'run_shell_command' && 
-          tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number' && tool.args.wait > 0;
-        return isStandardComputerUseTool || isRunShellCommandWithWait;
-      });
-
-      // Get system state and screenshot ONCE after all bundled tools execute
-      let systemState: SystemState | null = null;
-      let screenshot: string | null = null;
-      let waitDelay = 0;
-      let captureTime = 0;
-
-      if (hasComputerUseTool) {
-        // Extract wait parameter from all computer-use tools in bundle and accumulate
-        // Default to 2000ms (2 seconds) if not provided
-        let waitSeconds = 2000;
-        // Get all computer-use tools (standard + run_shell_command with wait)
-        const computerUseTools = bundle.filter(tool => {
-          const isStandardComputerUseTool = (COMPUTER_USE_TOOLS as string[]).includes(tool.toolName);
-          const isRunShellCommandWithWait = tool.toolName === 'run_shell_command' && 
-            tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number' && tool.args.wait > 0;
-          return isStandardComputerUseTool || isRunShellCommandWithWait;
-        });
-        
-        if (computerUseTools.length > 0) {
-          // Extract wait values from all computer-use tools
-          // For wait tool, use 'seconds' parameter; for other tools, use 'wait' parameter
-          const waitValues = computerUseTools
-            .map(tool => {
-              if (!tool.args || typeof tool.args !== 'object') return null;
-              if (tool.toolName === 'wait' && typeof tool.args.seconds === 'number') {
-                return tool.args.seconds;
-              } else if (typeof tool.args.wait === 'number') {
-                return tool.args.wait;
-              }
-              return null;
-            })
-            .filter((w): w is number => w !== null);
-          
-          if (waitValues.length > 0) {
-            // Accumulate wait values from all computer-use tools in the bundle
-            const totalWaitSeconds = waitValues.reduce((sum, wait) => sum + wait, 0);
-            waitSeconds = totalWaitSeconds * 1000;
-            waitDelay = totalWaitSeconds; // Store in seconds for logging
-          }
-        }
-        
-        const captureStartTime = performance.now();
-        const captureResult = await captureSystemStateAndScreenshot(
-          'after bundle execution',
-          waitSeconds,
-        );
-        captureTime = (performance.now() - captureStartTime) / 1000;
-        systemState = captureResult.systemState;
-        screenshot = captureResult.screenshot;
-      } else {
-        console.log('[ToolExecutionService] Skipping system state/screenshot (no computer-use tools in bundle)');
       }
 
       // Determine bundle status
@@ -438,10 +458,10 @@ export class ToolExecutionService {
       
       // Log detailed timing breakdown
       const totalToolTime = toolExecutionTimes.reduce((sum, t) => sum + t.time, 0);
-      if (hasComputerUseTool) {
+      if (systemState !== null || screenshot !== null) {
         console.log(
           `[Timing] Bundle execution completed: ${stepResults.length} steps took ${bundleExecutionTime.toFixed(3)}s total ` +
-          `(tools: ${totalToolTime.toFixed(3)}s, wait: ${waitDelay.toFixed(3)}s, capture: ${captureTime.toFixed(3)}s) ` +
+          `(tools: ${totalToolTime.toFixed(3)}s, wait: ${totalWaitDelay.toFixed(3)}s, capture: ${totalCaptureTime.toFixed(3)}s) ` +
           `(bundle_id=${bundleId})`
         );
       } else {

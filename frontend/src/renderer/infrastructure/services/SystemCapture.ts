@@ -7,48 +7,113 @@ import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import type { SystemState, ToolResult } from './MessageFormatter';
 
 /**
- * Capture system state and screenshot after tool or bundle execution.
- * This is called ONCE after individual tool execution or ONCE after all bundled tools.
+ * Extract OS state (system state and/or screenshot) with configurable options.
+ * Unified function for all screenshot and system state capture scenarios.
  *
- * @param context - Context string for logging (e.g., "after keyboard_control" or "after bundle")
- * @param waitMilliseconds - Optional delay in milliseconds before capturing (defaults to 2000ms)
- * @returns Object with systemState and screenshot, or nulls if capture failed
+ * @param enable_screenshot - Whether to capture screenshot
+ * @param enable_system_state - Whether to get system state
+ * @param wait - Wait time in seconds before capturing (converted to milliseconds internally)
+ * @param is_first_user_message - Whether this is the first user message (extracts full system state with 0 wait)
+ * @returns Object with systemState and screenshot, or nulls if capture failed or disabled
  */
-export async function captureSystemStateAndScreenshot(
-  context: string,
-  waitMilliseconds: number = 2000,
+export async function extractOSstate(
+  enable_screenshot: boolean,
+  enable_system_state: boolean,
+  wait: number,
+  is_first_user_message: boolean = false,
 ): Promise<{ systemState: SystemState | null; screenshot: string | null }> {
-  // Wait for specified delay (default 2 seconds) for UI to update before capturing
-  await new Promise((resolve) => setTimeout(resolve, waitMilliseconds));
+  // Convert wait from seconds to milliseconds
+  const waitMilliseconds = wait * 1000;
 
+  // Wait for specified delay (allows UI to update before capturing)
+  if (waitMilliseconds > 0) {
+    await new Promise((resolve) => setTimeout(resolve, waitMilliseconds));
+  }
+
+  // For first user message, extract full system state with 0 wait
+  if (is_first_user_message) {
+    try {
+      const [stateResult, screenshotResult] = await Promise.all([
+        enable_system_state
+          ? IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE)
+          : Promise.resolve(null),
+        enable_screenshot
+          ? IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
+              toolName: 'screenshot',
+              args: {
+                explanation: 'Initial user message screenshot',
+                expectation: 'Current screen state',
+              },
+              skipAutoCapture: false,
+            })
+          : Promise.resolve({ success: false, data: null }),
+      ]);
+
+      const systemState = enable_system_state ? stateResult : null;
+      const screenshot =
+        enable_screenshot &&
+        screenshotResult.success &&
+        screenshotResult.data &&
+        typeof screenshotResult.data === 'object'
+          ? screenshotResult.data.screenshot || null
+          : null;
+
+      return { systemState, screenshot };
+    } catch (err) {
+      console.error(
+        `[extractOSstate] Failed to extract OS state (first user message):`,
+        err,
+      );
+      return { systemState: null, screenshot: null };
+    }
+  }
+
+  // Regular extraction
   try {
-    // Get system state and screenshot in parallel
-    const [stateResult, screenshotResult] = await Promise.all([
-      IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE),
-      IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
-        toolName: 'screenshot',
-        args: {
-          explanation: `Screenshot ${context}`,
-          expectation: `State ${context}`,
-        },
-        skipAutoCapture: false,
-      }),
-    ]);
+    const promises: Array<Promise<any>> = [];
 
-    const systemState = stateResult;
-    const screenshot =
-      screenshotResult.success &&
-      screenshotResult.data &&
-      typeof screenshotResult.data === 'object'
-        ? screenshotResult.data.screenshot || null
-        : null;
+    if (enable_system_state) {
+      promises.push(IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE));
+    }
+
+    if (enable_screenshot) {
+      promises.push(
+        IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
+          toolName: 'screenshot',
+          args: {
+            explanation: 'Screenshot capture',
+            expectation: 'Current screen state',
+          },
+          skipAutoCapture: false,
+        }),
+      );
+    }
+
+    // Execute enabled operations in parallel
+    const results = await Promise.all(promises);
+
+    let systemState: SystemState | null = null;
+    let screenshot: string | null = null;
+
+    let resultIndex = 0;
+    if (enable_system_state) {
+      systemState = results[resultIndex];
+      resultIndex++;
+    }
+
+    if (enable_screenshot) {
+      const screenshotResult = results[resultIndex];
+      screenshot =
+        screenshotResult.success &&
+        screenshotResult.data &&
+        typeof screenshotResult.data === 'object'
+          ? screenshotResult.data.screenshot || null
+          : null;
+    }
 
     return { systemState, screenshot };
   } catch (err) {
-    console.error(
-      `[ToolExecutionService] Failed to capture system state/screenshot ${context}:`,
-      err,
-    );
+    console.error(`[extractOSstate] Failed to extract OS state:`, err);
     return { systemState: null, screenshot: null };
   }
 }

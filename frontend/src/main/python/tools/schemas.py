@@ -95,6 +95,10 @@ class ScreenshotToolArgs(BaseModel):
         None,
         description="One sentence describing what you expect to see in the screenshot after this action executes."
     )
+    wait: Optional[float] = Field(
+        None,
+        description="(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture."
+    )
 
 
 # --- Scroll Tool Schemas ---

@@ -8,13 +8,14 @@ import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
+import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
 
 /**
  * Custom hook for sending chat messages.
  * Handles screenshot capture, window minimization, and message sending.
  */
 export function useChatMessageSender(stopPlayback?: () => void) {
-  const { addMessage, updateMessage, setIsSending, setThinkingStatus } = useChatStore();
+  const { addMessage, updateMessage, setIsSending, setThinkingStatus, messages } = useChatStore();
   const { config } = useAppConfigContext();
 
   const sendMessage = useCallback(async (text: string) => {
@@ -46,24 +47,25 @@ export function useChatMessageSender(stopPlayback?: () => void) {
       // Continue even if minimize fails
     }
     
-    // Take screenshot after window is minimized
+    // Extract OS state (screenshot and system state) after window is minimized
+    // Determine if this is the first user message
+    const isFirstUserMessage = !messages.some(msg => msg.sender === 'user');
+    
     let screenshot: string | null = null;
+    let systemState: any = null;
     try {
-      const screenshotResult = await IpcBridge.invoke<any>(INVOKE_CHANNELS.EXECUTE_TOOL, {
-        toolName: 'screenshot',
-        args: {
-          explanation: 'User message screenshot',
-          expectation: 'Current screen state'
-        },
-        skipAutoCapture: false
-      });
+      const osStateResult = await extractOSstate(
+        true,  // enable_screenshot
+        true,  // enable_system_state
+        0,     // wait (0 seconds for user messages)
+        isFirstUserMessage  // is_first_user_message
+      );
       
-      if (screenshotResult.success && screenshotResult.data?.screenshot) {
-        screenshot = screenshotResult.data.screenshot;
-      }
+      screenshot = osStateResult.screenshot;
+      systemState = osStateResult.systemState;
     } catch (error) {
-      console.error('[useChatMessageSender] Failed to capture screenshot:', error);
-      // Continue without screenshot if capture fails
+      console.error('[useChatMessageSender] Failed to extract OS state:', error);
+      // Continue without screenshot/system state if capture fails
     }
     
     // Update message with screenshot

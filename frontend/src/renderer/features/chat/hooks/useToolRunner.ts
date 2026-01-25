@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { IpcBridge, ON_CHANNELS, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { ToolExecutionService, type ToolExecutionResult, type BundleExecutionResult } from '../../../infrastructure/services/ToolExecutionService';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
+import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
 
 /**
  * Custom hook for managing tool execution.
@@ -156,15 +157,24 @@ export function useToolRunner() {
             // Mark as hidden
             hiddenToolCalls.current.add(requestId);
             
-            // Execute screenshot tool
-            IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {
-              toolName: 'screenshot',
-              args: { 
-                explanation: 'Background screenshot for coordinate calculation', 
-                expectation: 'Current screen state' 
-              },
-              skipAutoCapture: false
-            }).then(result => {
+            // Extract OS state (screenshot only, no system state) for hidden screenshot
+            extractOSstate(
+              true,   // enable_screenshot
+              false,  // enable_system_state (hidden screenshots don't need system state)
+              0,      // wait (0 seconds)
+              false   // is_first_user_message
+            ).then(osStateResult => {
+              // Format result to match expected tool result format
+              const result = {
+                success: true,
+                data: {
+                  screenshot: osStateResult.screenshot,
+                  llm_content: 'Hidden screenshot captured for coordinate calculation',
+                  return_display: 'Screenshot captured'
+                },
+                error: null
+              };
+              
               // Send result to backend
               IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
                 type: 'tool-result',
@@ -177,13 +187,13 @@ export function useToolRunner() {
               });
               hiddenToolCalls.current.delete(requestId);
             }).catch(err => {
-              console.error('[useToolRunner] Failed to execute hidden screenshot:', err);
+              console.error('[useToolRunner] Failed to extract OS state for hidden screenshot:', err);
               IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
                 type: 'tool-result',
                 payload: {
                   request_id: requestId,
                   success: false,
-                  error: err.message,
+                  error: err.message || 'Failed to capture hidden screenshot',
                 }
               });
               hiddenToolCalls.current.delete(requestId);
