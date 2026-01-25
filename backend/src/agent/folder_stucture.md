@@ -27,7 +27,7 @@ backend/src/agent/
 │   │   │
 │   │   ├── helpers/                  # Helper utilities
 │   │   │   ├── __init__.py
-│   │   │   ├── preparation_helper.py # resolve_tool_with_coordinates() (from tools/tool_preparation_helper.py)
+│   │   │   ├── preparation_helper.py # resolve_tool_with_coordinates() (from tools/tool_preparation_helper.py) 
 │   │   │   ├── coordinate_resolution_helper.py  # resolve_coordinates() (from tools/coordinate_resolution_helper.py)
 │   │   │   └── vision_service_provider.py      # VisionServiceProvider (from tools/vision_service_provider.py)
 │   │   │
