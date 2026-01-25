@@ -26,7 +26,7 @@ class PluginInitializationError(Exception):
 
 class PluginInitializer:
     """
-    Initializes the plugin system.
+    Initializes the plugin system. 
 
     Handles plugin discovery, registration, and lifecycle management.
     """
