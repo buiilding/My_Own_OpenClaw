@@ -42,7 +42,7 @@ backend/src/api/
 │   ├── __init__.py                    # Exports: All handler classes and base types
 │   ├── query.py                       # QueryMessageHandler - Processes user queries, orchestrates agent interaction
 │   ├── settings.py                    # ListModelsHandler - Handles model listing requests
-│   ├── tool_result.py                 # ToolResultHandler - Processes tool execution results from frontend
+│   ├── tool_result.py                 # ToolResultHandler - Routes tool execution results from frontend to AgentSession (delegates processing)
 │   └── wakeword.py                    # WakewordHandler - Handles wakeword detection and activation
 │
 └── processing/                         # PROCESSING LAYER - Event formatting, TTS, and streaming

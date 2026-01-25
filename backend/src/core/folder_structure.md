@@ -9,7 +9,7 @@ backend/src/core/
 ├── bootstrap/                         # Application initialization & startup coordination
 │   ├── __init__.py                    # Package exports
 │   ├── coordinator.py                 # InitializationCoordinator - orchestrates startup phases (config → container → services → plugins)
-│   ├── handler_initializer.py        # HandlerInitializer - initializes WebSocket message handlers
+│   ├── handler_initializer.py        # HandlerInitializer - validates WebSocket message handlers are registered via DI container
 │   └── plugin_initializer.py         # PluginInitializer - discovers and loads agent plugins
 │
 ├── infrastructure/                    # Cross-cutting infrastructure components
@@ -54,44 +54,44 @@ backend/src/core/
 │   ├── facade.py                      # Container - backward-compatible facade around ApplicationContainer
 │   ├── core_container.py              # CoreContainer - provides config, LLM client, TTS, vision service, event bus
 │   ├── tool_container.py              # ToolContainer - provides tool registry, orchestrator, agent factory, context factory
-│   ├── memory_container.py            # MemoryContainer - provides embedder and memory storage
+│   ├── memory_container.py            # MemoryContainer - provides embedder (embedding provider)
 │   ├── api_container.py               # ApiContainer - provides WebSocket message handlers and handler registry
-│   ├── factories.py                   # Factory functions for creating TTS and vision services
+│   ├── factories.py                   # Factory functions for creating TTS, vision services, embedder, tool registry, and agent factory
 │   ├── initializer.py                 # ContainerInitializer - handles async initialization of container components
 │   ├── config_updater.py              # ContainerConfigUpdater - updates container dependencies when config changes
 │   └── session_factory.py             # AgentSessionFactory - creates AgentSession instances with all dependencies injected
 │
 ├── interfaces/                        # Protocol definitions (interfaces/contracts)
 │   ├── __init__.py                    # Package exports
-│   ├── config.py                      # IConfig - configuration interface protocol
-│   ├── embedding.py                   # IEmbeddingClient - embedding client interface protocol
-│   ├── llm.py                         # ILLMClient - LLM client interface protocol
-│   ├── tool.py                        # ITool - tool interface protocol
+│   ├── config.py                      # ConfigInterface - configuration interface protocol
+│   ├── embedding.py                   # EmbeddingProvider - embedding provider abstract base class
+│   ├── llm.py                         # LLMClientInterface - LLM client interface protocol
+│   ├── tool.py                        # ToolInterface - tool interface protocol with ToolResult and ToolContext
 │   └── vision.py                      # IVisionService - vision service interface protocol
 │
 ├── services/                          # Core service implementations
 │   ├── __init__.py                    # Package exports
-│   ├── agent_factory.py               # AgentFactory - creates agent instances
+│   ├── agent_factory.py               # AgentFactory - creates sub-agent sessions (scoped AgentSessions) with restricted tools
 │   ├── context_factory.py             # ContextFactory - creates execution contexts for tools
 │   ├── gpu_memory_manager.py          # GPUMemoryManager - manages GPU memory allocation
 │   ├── tts_service.py                 # TTSService - text-to-speech service implementation
-│   └── wakeword_service.py            # WakewordService - wakeword detection service
+│   └── wakeword_service.py            # WakewordService - wakeword activation logic and greeting selection policy
 │
 ├── plugins/                           # Plugin system infrastructure
 │   ├── __init__.py                    # Package exports
 │   ├── config.py                      # PluginConfigManager - manages plugin-specific configuration
 │   ├── discovery_service.py           # PluginDiscoveryService - discovers plugins from filesystem
-│   ├── discovery.py                   # Plugin discovery utilities
+│   ├── discovery.py                   # PluginDiscoverer abstract base class and implementations (EntryPointPluginDiscoverer, FilesystemPluginDiscoverer)
 │   ├── lifecycle.py                   # PluginLifecycleManager - manages plugin lifecycle (load, unload, reload)
-│   ├── metadata.py                    # PluginConfig - plugin metadata structures
-│   ├── plugin_config.py               # Plugin configuration models
+│   ├── metadata.py                    # PluginConfig and PluginMetadata - plugin metadata data structures
+│   ├── plugin_config.py               # PLUGIN_CONFIG - Python config file with plugin enable/disable states and priorities
 │   ├── registry.py                    # PluginRegistry - central registry for plugin registration and retrieval
-│   └── state_manager.py               # PluginStateManager - manages plugin state persistence
+│   └── state_manager.py               # PluginStateManager - manages in-memory plugin state (enabled/disabled, metadata, config)
 │
 ├── security/                          # Security and trust boundary enforcement
 │   ├── __init__.py                    # Package exports
 │   ├── policy.py                      # SecurityPolicy - permission checking, resource limits, audit logging
-│   └── executor.py                    # SecurityExecutor - executes tools within security boundaries
+│   └── executor.py                    # ToolExecutor - abstract base class and implementations (DirectToolExecutor, ProcessSandboxedExecutor) for tool execution
 │
 ├── observability/                     # Observability and metrics
 │   ├── __init__.py                    # Package exports

@@ -4,6 +4,7 @@ Plugin Initializer.
 Handles plugin discovery, registration, and initialization.
 """
 import logging
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -71,9 +72,14 @@ class PluginInitializer:
                 plugin_registry, plugin_dirs
             )
 
+            # Check environment variable for auto-enable setting
+            # Defaults to True for backward compatibility
+            auto_enable_env = os.getenv("PLUGIN_AUTO_ENABLE", "true").lower()
+            auto_enable = auto_enable_env in ("true", "1", "yes", "on")
+
             # Discover and register plugins
             discovered_count = await discovery_service.discover_and_register(
-                auto_enable=True
+                auto_enable=auto_enable
             )
             if discovered_count < 0:
                 raise PluginInitializationError(

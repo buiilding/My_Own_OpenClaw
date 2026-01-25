@@ -1,90 +1,91 @@
 backend/src/agent/
-├── __init__.py
+├── __init__.py                        # Package initialization and exports
 ├── session/                          # Session & state management
-│   ├── __init__.py
-│   ├── session.py                    # AgentSession (from core/core.py)
-│   ├── manager.py                    # SessionManager (from core/session_manager.py)
-│   └── state.py                      # ConversationHistory (from core/state.py)
+│   ├── __init__.py                   # Package exports: AgentSession, SessionManager, ConversationHistory
+│   ├── session.py                    # AgentSession - manages conversation state and delegates execution to AgentExecutor
+│   ├── manager.py                    # SessionManager - manages lifecycle of user agent sessions (creation, retrieval, cleanup, TTL expiry)
+│   └── state.py                      # ConversationHistory - manages conversation history state (pruning, token counting, image data cleanup)
 │
 ├── execution/                         # Agent execution orchestration
-│   ├── __init__.py
-│   ├── executor.py                   # AgentExecutor (from core/executor.py)
-│   └── interaction_loop.py           # InteractionLoop (from core/interaction_loop.py)
+│   ├── __init__.py                   # Package exports: AgentExecutor, InteractionLoop
+│   ├── executor.py                   # AgentExecutor - initializes components and delegates main loop to InteractionLoop
+│   └── interaction_loop.py           # InteractionLoop - controls agent's execution state machine (Prompt -> LLM -> Parse -> Tools -> Repeat)
 │
 ├── llm/                              # LLM interaction
-│   ├── __init__.py
-│   ├── conversation_context.py       # ConversationContext (renamed from prompt_coordinator.py)
-│   ├── llm_stream_processor.py       # LLMStreamProcessor (renamed from llm_interaction_handler.py)
-│   └── event_presenter.py             # EventPresenter (unchanged)
+│   ├── __init__.py                   # Package exports: ConversationContext, LLMStreamProcessor, EventPresenter
+│   ├── conversation_context.py       # ConversationContext - manages prompt preparation and caching
+│   ├── llm_stream_processor.py       # LLMStreamProcessor - handles LLM streaming, text aggregation, token counting
+│   └── event_presenter.py             # EventPresenter - presents all frontend/UI events (system prompt, user message, tool schemas, assistant message, completion, error)
 │
 ├── tools/                             # Complete tool lifecycle
-│   ├── __init__.py
-│   ├── orchestrator.py               # NEW: High-level orchestrator (orchestrates sending + waiting + processing)
+│   ├── __init__.py                   # Package exports: ToolOrchestrator, ToolResolver, ResolvedToolCallStorage, etc.
+│   ├── orchestrator.py               # ToolOrchestrator - high-level orchestrator (orchestrates sending via ToolResolver, waiting via ToolResultWaiter, processing via ToolProcessingCoordinator)
 │   │
 │   ├── preparation/                  # Phase 1: Resolve tools
-│   │   ├── __init__.py
-│   │   ├── resolved_tool_call.py     # ResolvedToolCall (from tools/resolved_tool_call.py)
+│   │   ├── __init__.py               # Package exports: ResolvedToolCall
+│   │   ├── resolved_tool_call.py     # ResolvedToolCall - immutable tool call after resolution with resolved coordinates (transforms high-level intents to concrete instructions)
 │   │   │
 │   │   ├── helpers/                  # Helper utilities
-│   │   │   ├── __init__.py
-│   │   │   ├── preparation_helper.py # resolve_tool_with_coordinates() (from tools/tool_preparation_helper.py) 
-│   │   │   ├── coordinate_resolution_helper.py  # resolve_coordinates() (from tools/coordinate_resolution_helper.py)
-│   │   │   └── vision_service_provider.py      # VisionServiceProvider (from tools/vision_service_provider.py)
+│   │   │   ├── __init__.py           # Package exports: resolve_coordinates, resolve_tool_with_coordinates, VisionServiceProvider
+│   │   │   ├── preparation_helper.py # resolve_tool_with_coordinates() - shared async generator for resolving tools with coordinate resolution (screenshot acquisition, coordinate resolution, tool rewriting)
+│   │   │   ├── coordinate_resolution_helper.py  # resolve_coordinates() - centralizes coordinate resolution sub-logic (OCR results acquisition, vision service access, coordinate resolution)
+│   │   │   └── vision_service_provider.py      # VisionServiceProvider - provides decoupled access to vision service from session hierarchy
 │   │   │
 │   │   ├── coordinate_resolution/     # Coordinate resolution
-│   │   │   ├── __init__.py           # (from tools/resolvers/__init__.py)
-│   │   │   └── resolvers.py          # CoordinateResolver, OcrCoordinateResolver, VisionCoordinateResolver (from tools/resolvers/coordinate_resolvers.py)
+│   │   │   ├── __init__.py           # Package exports: CoordinateResolver, OcrCoordinateResolver, VisionCoordinateResolver
+│   │   │   └── resolvers.py          # CoordinateResolver (routes to OCR/Vision), OcrCoordinateResolver (text matching), VisionCoordinateResolver (model prediction) - pure coordinate resolution logic
 │   │   │
 │   │   ├── screenshot/                # Screenshot management
-│   │   │   ├── __init__.py
-│   │   │   ├── manager.py            # ScreenshotManager (from tools/screenshot_manager.py)
-│   │   │   ├── state.py               # ScreenshotState (from core/screenshot_state.py)
-│   │   │   └── processor.py          # NEW: ScreenshotProcessor (processes screenshots from results)
+│   │   │   ├── __init__.py           # Package exports: ScreenshotManager, ScreenshotProcessor, ScreenshotState
+│   │   │   ├── manager.py            # ScreenshotManager - manages screenshot acquisition (hidden screenshot workflow, async waiting, timeout logic) and processing (stores as current, triggers OCR)
+│   │   │   ├── state.py               # ScreenshotState - manages screenshot and OCR state for a session (only current screenshot/OCR, previous discarded)
+│   │   │   └── processor.py          # ScreenshotProcessor - processes screenshots from tool results (delegates to ScreenshotManager)
 │   │   │
 │   │   ├── ocr/                       # OCR coordination
-│   │   │   ├── __init__.py
-│   │   │   └── coordinator.py        # OcrCoordinator (from tools/ocr_coordinator.py)
+│   │   │   ├── __init__.py           # Package exports: OcrCoordinator
+│   │   │   └── coordinator.py        # OcrCoordinator - coordinates OCR result acquisition (waits for proactive OCR, fallback to on-demand OCR, verifies screenshot ID match)
 │   │   │
 │   │   └── storage/                   # Resolution storage
-│   │       ├── __init__.py
-│   │       └── resolved_call_storage.py  # ResolvedToolCallStorage (from core/resolved_call_storage.py)
+│   │       ├── __init__.py           # Package exports: ResolvedToolCallStorage
+│   │       └── resolved_call_storage.py  # ResolvedToolCallStorage - manages storage and retrieval of resolved tool calls (used by ToolOrchestrator during execution)
 │   │
 │   ├── sending/                       # Phase 2: Send resolved tools to frontend
-│   │   ├── __init__.py
-│   │   ├── resolver.py                # ToolResolver (from tools/tool_resolver.py, split)
-│   │   └── sender.py                  # NEW: ToolSender (only sends events)
+│   │   ├── __init__.py               # Package exports: ToolResolver, ToolSender
+│   │   ├── resolver.py                # ToolResolver - orchestrates tool call resolution before execution (coordinates screenshot acquisition, coordinate resolution, tool rewriting)
+│   │   └── sender.py                  # ToolSender - thin wrapper that delegates to ToolResolver for sending resolved tools to frontend
 │   │
 │   ├── waiting/                       # Phase 3: Wait for frontend results, receive and route
-│   │   ├── __init__.py
-│   │   ├── receiver.py                # NEW: ToolResultReceiver (receives results from frontend)
-│   │   ├── router.py                 # NEW: ToolResultRouter (routes results)
-│   │   ├── waiter.py                 # NEW: ToolResultWaiter (waits for results via ToolOrchestrator)
+│   │   ├── __init__.py               # Package exports: ToolResultHandler, ToolResultReceiver, ToolResultRouter, ToolResultWaiter
+│   │   ├── handler.py                 # ToolResultHandler - facade for tool result processing from frontend (delegates to receiver and router)
+│   │   ├── receiver.py                # ToolResultReceiver - receives results from frontend and converts to ToolResult format (individual, bundle, bundled results)
+│   │   ├── router.py                 # ToolResultRouter - routes tool results to screenshot processor, storage, and future resolution
+│   │   ├── waiter.py                 # ToolResultWaiter - waits for results via backend ToolOrchestrator
 │   │   └── storage/
-│   │       ├── __init__.py
-│   │       └── result_storage.py     # ToolResultStorage (from core/tool_result_storage.py)
+│   │       ├── __init__.py           # Package exports: ToolResultStorage
+│   │       └── result_storage.py     # ToolResultStorage - centralized storage for pending tool results, futures, bundled results (with TTL cleanup)
 │   │
 │   ├── processing/                    # Phase 4: Process results
-│   │   ├── __init__.py
-│   │   ├── coordinator.py            # ToolProcessingCoordinator (from tools/tool_executor.py, split - only coordinates processing)
-│   │   ├── processor.py              # NEW: ToolResultProcessor (processes results)
-│   │   ├── transformer.py            # ResultTransformer (from tools/result_transformer.py)
-│   │   └── synthetic_factory.py      # SyntheticResultFactory (from tools/synthetic_result_factory.py)
+│   │   ├── __init__.py               # Package exports: ToolProcessingCoordinator, ToolResultProcessor, ResultTransformer, SyntheticResultFactory
+│   │   ├── coordinator.py            # ToolProcessingCoordinator - coordinates result processing (delegates to ToolResultProcessor)
+│   │   ├── processor.py              # ToolResultProcessor - processes tool execution results (transforms via ResultTransformer and commits to history via HistoryCommitter)
+│   │   ├── transformer.py            # ResultTransformer - pure function class for transforming tool execution results (applies plugins, formats for history)
+│   │   └── synthetic_factory.py      # SyntheticResultFactory - creates synthetic error results for failed tool calls (coordinate resolution failures)
 │   │
 │   └── shared/                        # Shared utilities across phases
-│       ├── __init__.py
-│       ├── bundle_detection.py       # (from tools/bundle_detection.py)
-│       ├── bundle_result_formatter.py # (from tools/bundle_result_formatter.py)
-│       └── logging_utils.py          # (from tools/logging_utils.py)
+│       ├── __init__.py               # Package exports: bundle_detection, bundle_result_formatter, logging_utils
+│       ├── bundle_detection.py       # is_atomic_bundle(), is_atomic_bundle_from_results() - detects atomic bundles from parsed responses or tool results
+│       ├── bundle_result_formatter.py # BundleResultFormatter - formats atomic bundle results into single narrative for LLM history
+│       └── logging_utils.py          # short_id() - utility for truncating IDs for logging
 │
-├── history/                           # History management (unchanged)
-│   ├── __init__.py
-│   └── history_committer.py           # HistoryCommitter
+├── history/                           # History management
+│   ├── __init__.py                   # Package exports: HistoryCommitter
+│   └── history_committer.py           # HistoryCommitter - commits processed tool results to conversation history (pure state mutation, no computation)
 │
-└── plugins/                           # Plugin system (unchanged)
-    ├── __init__.py
-    ├── manager.py                     # PluginManager
-    ├── interface.py                   # Plugin interface
-    └── ocr_plugin.py                 # OCRPlugin
+└── plugins/                           # Plugin system
+    ├── __init__.py                   # Package exports: PluginManager, AgentPlugin interface, OCRPlugin
+    ├── manager.py                     # PluginManager - manages plugin lifecycle and executes plugin hooks (on_tool_end) in parallel
+    ├── interface.py                   # AgentPlugin Protocol - base interface for all plugins (initialize, on_tool_end hooks)
+    └── ocr_plugin.py                 # OCRPlugin - OCR analysis plugin implementation (performs OCR on screenshots, handles CUDA/CPU fallback)
 
 ## Data Flow
 
