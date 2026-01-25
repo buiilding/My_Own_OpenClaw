@@ -225,7 +225,7 @@ class AgentSession:
         Get the ID of the current screenshot.
         
         ENCAPSULATION: Public method to access current screenshot ID without
-        exposing private implementation details. This allows ToolResolver and
+        exposing private implementation details. This allows ToolPreparer and
         other components to access screenshot state without tight coupling.
         
         Returns:
@@ -276,7 +276,7 @@ class AgentSession:
         Register a resolved tool call in the session.
         
         ENCAPSULATION: Public method to register resolved tool calls without
-        exposing private implementation details. This allows ToolResolver to
+        exposing private implementation details. This allows ToolPreparer to
         store resolved calls without tight coupling to internal storage.
         
         Delegates to ResolvedToolCallStorage for state management.

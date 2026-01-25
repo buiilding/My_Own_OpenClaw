@@ -207,7 +207,7 @@ class InteractionLoop:
                 # Note: Frontend displays tool results immediately after execution.
                 # Backend only processes results for conversation history, not for display.
                 # ToolOutputEvent is only emitted for backend-side failures (e.g., coordinate resolution)
-                # which are already yielded by ToolResolver during tool resolution.
+                # which are already yielded by ToolSender during tool preparation/sending.
                 # BUNDLE EXECUTION FIX: For bundles, process_results() was already called above,
                 # but we still need to handle cleanup for non-bundle tools or error cases.
                 if not results_processed:

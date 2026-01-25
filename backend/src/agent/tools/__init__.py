@@ -14,8 +14,11 @@ from backend.src.agent.tools.preparation.ocr import OcrCoordinator
 from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
 from backend.src.agent.tools.preparation.storage import ResolvedToolCallStorage
 
+# Preparation phase
+from backend.src.agent.tools.preparation import ResolvedToolCall, ToolPreparer
+
 # Sending phase
-from backend.src.agent.tools.sending import ToolResolver, ToolSender
+from backend.src.agent.tools.sending import ToolSender
 
 # Waiting phase
 from backend.src.agent.tools.waiting import (
@@ -45,7 +48,9 @@ from backend.src.agent.tools.shared import (
 __all__ = [
     # Orchestrator
     "ToolOrchestrator",
-    # Resolution
+    # Preparation
+    "ResolvedToolCall",
+    "ToolPreparer",
     "CoordinateResolver",
     "OcrCoordinateResolver",
     "VisionCoordinateResolver",
@@ -54,7 +59,6 @@ __all__ = [
     "ResolvedToolCallStorage",
     "VisionServiceProvider",
     # Sending
-    "ToolResolver",
     "ToolSender",
     # Waiting
     "ToolResultHandler",

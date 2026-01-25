@@ -186,7 +186,7 @@ SIMULATION_RESPONSES = [
                 "name": "scroll_control",
                 "args": {
                     "action": "scroll_down",
-                    "clicks": 80,
+                    "clicks": 100,
                     "explanation": "Scrolling down the page to see more search results.",
                     "expectation": "The page should scroll down, revealing more product listings.",
                     "wait": 1.0

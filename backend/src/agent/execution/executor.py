@@ -28,7 +28,8 @@ from backend.src.agent.tools.processing import (
     ToolProcessingCoordinator,
     ToolResultProcessor,
 )
-from backend.src.agent.tools.sending import ToolResolver
+from backend.src.agent.tools.preparation import ToolPreparer
+from backend.src.agent.tools.sending import ToolSender
 from backend.src.agent.tools.waiting import ToolResultWaiter
 from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.events import (
@@ -98,17 +99,23 @@ class AgentExecutor:
         ocr_coordinator = OcrCoordinator()
         synthetic_result_factory = SyntheticResultFactory()
         
-        # Get vision service for ToolResolver (inject directly to avoid circular dependency)
+        # Get vision service for ToolPreparer (inject directly to avoid circular dependency)
         vision_service = None
         if self.tool_orchestrator and self.tool_orchestrator.context_factory:
             vision_service = self.tool_orchestrator.context_factory.vision_service
         
-        tool_resolver = ToolResolver(
+        # Tool preparation: orchestrates resolution
+        tool_preparer = ToolPreparer(
             screenshot_manager=self.screenshot_manager,
             coordinate_resolver=coordinate_resolver,
             ocr_coordinator=ocr_coordinator,
-            synthetic_result_factory=synthetic_result_factory,
             vision_service=vision_service,  # Inject directly instead of using provider
+        )
+        
+        # Tool sending: sends resolved tools to frontend
+        tool_sender = ToolSender(
+            preparer=tool_preparer,
+            synthetic_result_factory=synthetic_result_factory,
         )
         
         # Tool lifecycle components
@@ -121,7 +128,7 @@ class AgentExecutor:
         
         # High-level orchestrator
         agent_tool_orchestrator = AgentToolOrchestrator(
-            tool_resolver=tool_resolver,
+            tool_sender=tool_sender,
             tool_result_waiter=tool_result_waiter,
             tool_processing_coordinator=tool_processing_coordinator,
         )

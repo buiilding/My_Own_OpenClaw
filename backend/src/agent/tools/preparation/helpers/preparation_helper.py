@@ -9,7 +9,7 @@ import time
 from typing import AsyncGenerator, Optional, Tuple, TYPE_CHECKING
 
 from backend.src.agent.tools.preparation.helpers.coordinate_resolution_helper import resolve_coordinates
-from backend.src.agent.tools.preparation.resolved_tool_call import ResolvedToolCall
+from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.events.streaming_events import AgentStreamingEvent
 from backend.src.llm.parser import ParsedToolCall
