@@ -1,15 +1,15 @@
 """
-Tool preparation helper for coordinate resolution workflow.
+Tool resolution helper for coordinate resolution workflow.
 
-Extracts shared logic for preparing a tool call that requires coordinate resolution.
-Pure infrastructure code - no side effects beyond tool preparation.
+Extracts shared logic for resolving a tool call that requires coordinate resolution.
+Pure infrastructure code - no side effects beyond tool resolution.
 """
 import logging
 import time
 from typing import AsyncGenerator, Optional, Tuple, TYPE_CHECKING
 
 from backend.src.agent.tools.preparation.helpers.coordinate_resolution_helper import resolve_coordinates
-from backend.src.agent.tools.preparation.prepared_tool_call import PreparedToolCall
+from backend.src.agent.tools.preparation.resolved_tool_call import ResolvedToolCall
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.events.streaming_events import AgentStreamingEvent
 from backend.src.llm.parser import ParsedToolCall
@@ -24,9 +24,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-async def prepare_tool_with_coordinates(
+async def resolve_tool_with_coordinates(
     tool_call: ParsedToolCall,
-    prepared_call: PreparedToolCall,
+    resolved_call: ResolvedToolCall,
     session: "AgentSession",
     screenshot_manager: "ScreenshotManager",
     ocr_coordinator: "OcrCoordinator",
@@ -36,7 +36,7 @@ async def prepare_tool_with_coordinates(
     context_id: str,  # bundle_id or request_id for logging
 ) -> AsyncGenerator[AgentStreamingEvent, None]:
     """
-    Prepare a tool call that requires coordinate resolution.
+    Resolve a tool call that requires coordinate resolution.
     
     This is the shared logic for:
     - Screenshot acquisition (yields RequestScreenshotEvent if needed)
@@ -45,7 +45,7 @@ async def prepare_tool_with_coordinates(
     
     Args:
         tool_call: The original tool call
-        prepared_call: The prepared tool call to modify
+        resolved_call: The resolved tool call to modify
         session: Agent session with screenshot state
         screenshot_manager: Manager for screenshot acquisition
         ocr_coordinator: Coordinator for OCR result acquisition
@@ -89,35 +89,35 @@ async def prepare_tool_with_coordinates(
     )
     
     # 5. Rewrite to manual mode
-    _rewrite_to_manual(prepared_call, x, y)
-    if not prepared_call.metadata:
-        prepared_call.metadata = {}
-    prepared_call.metadata["coordinate_resolution_screenshot_id"] = screenshot_id
+    _rewrite_to_manual(resolved_call, x, y)
+    if not resolved_call.metadata:
+        resolved_call.metadata = {}
+    resolved_call.metadata["coordinate_resolution_screenshot_id"] = screenshot_id
     logger.info(
         f"[context_id={short_id(context_id)}] Resolved coordinates for {tool_call.tool_name}: ({x}, {y}) using screenshot {screenshot_id[:8]}"
     )
 
 
-def _rewrite_to_manual(prepared_call: PreparedToolCall, x: int, y: int):
+def _rewrite_to_manual(resolved_call: ResolvedToolCall, x: int, y: int):
     """
-    Rewrite the prepared tool call parameters to use manual coordinates.
+    Rewrite the resolved tool call parameters to use manual coordinates.
     
-    Modifies the prepared call's parameters (immutable - original ParsedToolCall unchanged).
+    Modifies the resolved call's parameters (immutable - original ParsedToolCall unchanged).
     Removes backend-only fields (find_coordinates_by, ocr_text, description) since
     the frontend MouseControlArgs schema only accepts x, y coordinates.
     
     Args:
-        prepared_call: The prepared tool call to modify
+        resolved_call: The resolved tool call to modify
         x: Resolved X coordinate
         y: Resolved Y coordinate
     """
     # Set manual coordinates
-    prepared_call.parameters["x"] = x
-    prepared_call.parameters["y"] = y
+    resolved_call.parameters["x"] = x
+    resolved_call.parameters["y"] = y
 
     # Remove backend-only fields that frontend doesn't understand
     # Frontend schema only accepts x, y, action, and action-specific fields
-    prepared_call.parameters.pop("find_coordinates_by", None)
-    prepared_call.parameters.pop("ocr_text", None)
-    prepared_call.parameters.pop("description", None)
-    prepared_call.parameters.pop("model_name", None)
+    resolved_call.parameters.pop("find_coordinates_by", None)
+    resolved_call.parameters.pop("ocr_text", None)
+    resolved_call.parameters.pop("description", None)
+    resolved_call.parameters.pop("model_name", None)

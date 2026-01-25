@@ -21,13 +21,13 @@ backend/src/agent/
 │   ├── __init__.py
 │   ├── orchestrator.py               # NEW: High-level orchestrator (orchestrates sending + waiting + processing)
 │   │
-│   ├── preparation/                  # Phase 1: Prepare tools
+│   ├── preparation/                  # Phase 1: Resolve tools
 │   │   ├── __init__.py
-│   │   ├── prepared_tool_call.py     # PreparedToolCall (from tools/prepared_tool_call.py)
+│   │   ├── resolved_tool_call.py     # ResolvedToolCall (from tools/resolved_tool_call.py)
 │   │   │
 │   │   ├── helpers/                  # Helper utilities
 │   │   │   ├── __init__.py
-│   │   │   ├── preparation_helper.py # prepare_tool_with_coordinates() (from tools/tool_preparation_helper.py)
+│   │   │   ├── preparation_helper.py # resolve_tool_with_coordinates() (from tools/tool_preparation_helper.py)
 │   │   │   ├── coordinate_resolution_helper.py  # resolve_coordinates() (from tools/coordinate_resolution_helper.py)
 │   │   │   └── vision_service_provider.py      # VisionServiceProvider (from tools/vision_service_provider.py)
 │   │   │
@@ -45,13 +45,13 @@ backend/src/agent/
 │   │   │   ├── __init__.py
 │   │   │   └── coordinator.py        # OcrCoordinator (from tools/ocr_coordinator.py)
 │   │   │
-│   │   └── storage/                   # Preparation storage
+│   │   └── storage/                   # Resolution storage
 │   │       ├── __init__.py
-│   │       └── prepared_call_storage.py  # PreparedToolCallStorage (from core/prepared_tool_call_storage.py)
+│   │       └── resolved_call_storage.py  # ResolvedToolCallStorage (from core/resolved_call_storage.py)
 │   │
-│   ├── sending/                       # Phase 2: Send prepared tools to frontend
+│   ├── sending/                       # Phase 2: Send resolved tools to frontend
 │   │   ├── __init__.py
-│   │   ├── preparer.py                # ToolPreparer (from tools/tool_preparer.py, split)
+│   │   ├── resolver.py                # ToolResolver (from tools/tool_resolver.py, split)
 │   │   └── sender.py                  # NEW: ToolSender (only sends events)
 │   │
 │   ├── waiting/                       # Phase 3: Wait for frontend results, receive and route
@@ -119,16 +119,16 @@ execution/interaction_loop.py
         └── ConversationHistory.add_assistant_message() → state updated
 ```
 
-### Tool Lifecycle Flow (Preparation → Sending → Waiting → Processing)
+### Tool Lifecycle Flow (Resolution → Sending → Waiting → Processing)
 ```
 tools/orchestrator.py
     └── ToolOrchestrator
         ↓
 1. Sending Phase (execute method)
-    └── tools/sending/preparer.py
-        └── ToolPreparer.prepare_tools() → AsyncGenerator[AgentStreamingEvent]
+    └── tools/sending/resolver.py
+        └── ToolResolver.resolve_tools() → AsyncGenerator[AgentStreamingEvent]
             ├── tools/preparation/helpers/preparation_helper.py
-            │   └── prepare_tool_with_coordinates() → coordinates resolved
+            │   └── resolve_tool_with_coordinates() → coordinates resolved
             └── tools/sending/sender.py
                 └── ToolSender.send_tools() → ToolCallEvent | ToolBundleEvent
         ↓
@@ -149,10 +149,10 @@ tools/orchestrator.py
                         └── HistoryCommitter.commit() → history updated
 ```
 
-### Tool Preparation Flow (Coordinate Resolution)
+### Tool Resolution Flow (Coordinate Resolution)
 ```
-tools/sending/preparer.py
-    └── ToolPreparer.prepare_tools()
+tools/sending/resolver.py
+    └── ToolResolver.resolve_tools()
         ↓
 1. Screenshot Acquisition
     └── tools/preparation/screenshot/manager.py
@@ -162,7 +162,7 @@ tools/sending/preparer.py
         ↓
 2. Coordinate Resolution (if needed)
     └── tools/preparation/helpers/preparation_helper.py
-        └── prepare_tool_with_coordinates()
+        └── resolve_tool_with_coordinates()
             ├── tools/preparation/screenshot/manager.py
             │   └── ScreenshotManager.get_screenshot() → screenshot_data
             └── tools/preparation/helpers/coordinate_resolution_helper.py
@@ -174,10 +174,10 @@ tools/sending/preparer.py
                         └── VisionCoordinateResolver.resolve() → (x, y)
         ↓
 3. Tool Call Rewriting
-    └── tools/preparation/prepared_tool_call.py
-        └── PreparedToolCall (immutable copy with resolved coordinates)
-            └── tools/preparation/storage/prepared_call_storage.py
-                └── PreparedToolCallStorage.register() → stored for waiting phase
+    └── tools/preparation/resolved_tool_call.py
+        └── ResolvedToolCall (immutable copy with resolved coordinates)
+            └── tools/preparation/storage/resolved_call_storage.py
+                └── ResolvedToolCallStorage.register() → stored for waiting phase
         ↓
 4. Event Emission
     └── tools/sending/sender.py
@@ -246,10 +246,10 @@ session/session.py
         │       ├── get_current_screenshot() → screenshot_data
         │       └── set_current_screenshot() → state updated
         │
-        ├── tools/preparation/storage/prepared_call_storage.py
-        │   └── PreparedToolCallStorage
-        │       ├── register() → prepared_call stored
-        │       └── get() → PreparedToolCall retrieved
+        ├── tools/preparation/storage/resolved_call_storage.py
+        │   └── ResolvedToolCallStorage
+        │       ├── register() → resolved_call stored
+        │       └── get() → ResolvedToolCall retrieved
         │
         └── tools/waiting/storage/result_storage.py
             └── ToolResultStorage
@@ -260,9 +260,9 @@ session/session.py
 
 ### Bundle Execution Flow
 ```
-tools/sending/preparer.py
-    └── ToolPreparer.prepare_tools() (multiple tools)
-        └── All tools prepared with bundle_id
+tools/sending/resolver.py
+    └── ToolResolver.resolve_tools() (multiple tools)
+        └── All tools resolved with bundle_id
             └── tools/sending/sender.py
                 └── ToolSender.send_tools() → ToolBundleEvent
                     └── Frontend executes bundle atomically
@@ -305,7 +305,7 @@ execution/executor.py
         ├── Initialization
         │   ├── llm/conversation_context.py → ConversationContext
         │   ├── llm/llm_stream_processor.py → LLMStreamProcessor
-        │   ├── tools/sending/preparer.py → ToolPreparer
+        │   ├── tools/sending/resolver.py → ToolResolver
         │   ├── tools/waiting/waiter.py → ToolResultWaiter
         │   ├── tools/processing/processor.py → ToolResultProcessor
         │   └── tools/orchestrator.py → ToolOrchestrator

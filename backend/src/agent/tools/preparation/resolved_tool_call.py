@@ -1,8 +1,9 @@
 """
-Prepared Tool Call.
+Resolved Tool Call.
 
-Represents a tool call after preparation (coordinate resolution, etc.).
+Represents a tool call after resolution (coordinate resolution, etc.).
 This is separate from ParsedToolCall to avoid mutating the original parsed response.
+Transforms high-level tool intents into concrete executable instructions.
 """
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
@@ -11,12 +12,15 @@ from backend.src.llm.parser import ParsedToolCall
 
 
 @dataclass
-class PreparedToolCall:
+class ResolvedToolCall:
     """
-    A tool call after preparation (coordinate resolution, etc.).
+    A tool call after resolution (coordinate resolution, etc.).
     
     This is an immutable structure that contains the resolved parameters
     ready for execution. The original ParsedToolCall is preserved for reference.
+    
+    Transforms high-level, declarative tool intents (e.g., "click on 'Submit'")
+    into concrete, executable frontend instructions (e.g., "click at x=732, y=409").
     """
     original_call: ParsedToolCall
     tool_name: str
@@ -25,15 +29,15 @@ class PreparedToolCall:
     metadata: Optional[Dict[str, Any]] = None
     
     @classmethod
-    def from_parsed_call(cls, parsed_call: ParsedToolCall) -> "PreparedToolCall":
+    def from_parsed_call(cls, parsed_call: ParsedToolCall) -> "ResolvedToolCall":
         """
-        Create a PreparedToolCall from a ParsedToolCall.
+        Create a ResolvedToolCall from a ParsedToolCall.
         
         Args:
             parsed_call: The original parsed tool call
             
         Returns:
-            PreparedToolCall with copied parameters
+            ResolvedToolCall with copied parameters
             
         Note: Uses shallow copy for parameters since they are typically simple
         values (strings, numbers, booleans). If nested structures are present,

@@ -38,7 +38,7 @@ async def execute_single_tool(
     request_id = tool_call.metadata.get('request_id') if hasattr(tool_call, 'metadata') else None
     if not request_id:
         logger.warning(f"Tool call {tool_call.tool_name} missing request_id in metadata")
-        # Fallback to placeholder if no request_id (shouldn't happen with ToolPreparer)
+        # Fallback to placeholder if no request_id (shouldn't happen with ToolResolver)
         placeholder_result = ToolResult(
             success=True,
             llm_content=f"Tool {tool_call.tool_name} executing on frontend...",
@@ -47,17 +47,17 @@ async def execute_single_tool(
         return create_tool_result_object(tool_call, placeholder_result, execution_time=0)
     
     # Use prepared tool call if available (avoids using mutated original)
-    # Prepared tool calls have resolved coordinates and are immutable
+    # Resolved tool calls have resolved coordinates and are immutable
     # ENCAPSULATION: Use public method instead of accessing private member
-    prepared_call = None
+    resolved_call = None
     if session_ref:
-        prepared_call = session_ref.get_prepared_tool_call(request_id)
+        resolved_call = session_ref.get_resolved_tool_call(request_id)
     
     # STALE SCREEN EXECUTION FIX: Verify screenshot is still valid before execution
     # If the screen changed since coordinate resolution, the coordinates might point
     # to the wrong UI element, causing dangerous unintended actions.
-    if prepared_call and session_ref:
-        resolution_screenshot_id = prepared_call.metadata.get("coordinate_resolution_screenshot_id") if prepared_call.metadata else None
+    if resolved_call and session_ref:
+        resolution_screenshot_id = resolved_call.metadata.get("coordinate_resolution_screenshot_id") if resolved_call.metadata else None
         current_screenshot_id = session_ref.get_current_screenshot_id()
         
         if resolution_screenshot_id and current_screenshot_id and resolution_screenshot_id != current_screenshot_id:
@@ -75,9 +75,9 @@ async def execute_single_tool(
             )
             return create_tool_result_object(tool_call, stale_screen_result, execution_time=0)
     
-    # Use prepared call if available, otherwise fall back to original
-    # The prepared call has the same structure but with resolved coordinates
-    effective_tool_call = prepared_call.to_parsed_call() if prepared_call else tool_call
+    # Use resolved call if available, otherwise fall back to original
+    # The resolved call has the same structure but with resolved coordinates
+    effective_tool_call = resolved_call.to_parsed_call() if resolved_call else tool_call
 
     # Initialize session attributes if needed
     if not hasattr(session_ref, '_pending_tool_results'):

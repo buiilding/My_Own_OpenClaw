@@ -12,7 +12,7 @@ from backend.src.llm.parser import ParsedResponse
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
     from backend.src.agent.tools.processing.coordinator import ToolProcessingCoordinator
-    from backend.src.agent.tools.sending.preparer import ToolPreparer
+    from backend.src.agent.tools.sending.resolver import ToolResolver
     from backend.src.agent.tools.waiting.waiter import ToolResultWaiter
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class ToolOrchestrator:
 
     def __init__(
         self,
-        tool_preparer: "ToolPreparer",
+        tool_resolver: "ToolResolver",
         tool_result_waiter: "ToolResultWaiter",
         tool_processing_coordinator: "ToolProcessingCoordinator",
     ):
@@ -35,11 +35,11 @@ class ToolOrchestrator:
         Initialize the tool orchestrator.
         
         Args:
-            tool_preparer: Preparer for tool call preparation and sending
+            tool_resolver: Resolver for tool call resolution and sending
             tool_result_waiter: Waiter for frontend results
             tool_processing_coordinator: Coordinator for result processing
         """
-        self.tool_preparer = tool_preparer
+        self.tool_resolver = tool_resolver
         self.tool_result_waiter = tool_result_waiter
         self.tool_processing_coordinator = tool_processing_coordinator
 
@@ -49,22 +49,22 @@ class ToolOrchestrator:
         """
         Execute tools: send → wait → process.
         
-        Yields execution-time events (ToolPreparer events, ThinkingEvent).
+        Yields execution-time events (ToolResolver events, ThinkingEvent).
         
         Args:
             parsed_response: Parsed LLM response with tool calls
             session: Agent session for context
             
         Yields:
-            Execution-time events: ThinkingEvent, ToolPreparer events (RequestScreenshotEvent, ToolCallEvent, etc.)
+            Execution-time events: ThinkingEvent, ToolResolver events (RequestScreenshotEvent, ToolCallEvent, etc.)
         """
         # Emit thinking event
         yield ThinkingEvent(
             content=f"Executing {len(parsed_response.tool_calls)} tool(s)..."
         )
 
-        # Send tools (yields execution-time events like RequestScreenshotEvent, ToolCallEvent)
-        async for event in self.tool_preparer.prepare_tools(
+        # Resolve and send tools (yields execution-time events like RequestScreenshotEvent, ToolCallEvent)
+        async for event in self.tool_resolver.resolve_tools(
             parsed_response.tool_calls, session
         ):
             yield event

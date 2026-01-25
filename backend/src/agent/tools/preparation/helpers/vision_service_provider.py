@@ -17,7 +17,7 @@ class VisionServiceProvider:
     """
     Provides vision service access from session.
     
-    Responsibility: Decouple ToolPreparer from session hierarchy.
+    Responsibility: Decouple ToolResolver from session hierarchy.
     Encapsulates the access pattern for vision service.
     """
 

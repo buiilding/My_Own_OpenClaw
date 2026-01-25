@@ -133,10 +133,10 @@ class ToolResultProcessor:
             if cleaned_count > 0:
                 logger.debug(f"Cleaned up {cleaned_count} tool results after processing")
             
-            # Remove prepared tool calls (no longer needed)
+            # Remove resolved tool calls (no longer needed)
             for request_id in all_request_ids:
                 # ENCAPSULATION: Use public method instead of accessing private member
-                session.remove_prepared_tool_call(request_id)
+                session.remove_resolved_tool_call(request_id)
             
             # Periodic cleanup of old results (TTL-based)
             # This is a safety net for results that weren't properly cleaned up

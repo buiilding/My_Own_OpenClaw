@@ -1,7 +1,7 @@
-"""Preparation storage."""
+"""Resolution storage."""
 
-from backend.src.agent.tools.preparation.storage.prepared_call_storage import PreparedToolCallStorage
+from backend.src.agent.tools.preparation.storage.resolved_call_storage import ResolvedToolCallStorage
 
 __all__ = [
-    "PreparedToolCallStorage",
+    "ResolvedToolCallStorage",
 ]

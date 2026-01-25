@@ -1,5 +1,5 @@
 """
-Coordinate resolution helper for tool preparation.
+Coordinate resolution helper for tool resolution.
 
 Extracts shared coordinate resolution logic used by both bundle and single tool paths.
 Pure infrastructure code - no side effects beyond coordinate resolution.
@@ -39,7 +39,7 @@ async def resolve_coordinates(
     - Resolve coordinates
     
     Step 1 (screenshot acquisition) is handled by the caller since it yields events.
-    Step 5 (rewrite to manual) is handled by the caller since it modifies prepared_call.
+    Step 5 (rewrite to manual) is handled by the caller since it modifies resolved_call.
     
     Args:
         tool_call: The tool call requiring coordinate resolution
@@ -67,8 +67,9 @@ async def resolve_coordinates(
         )
         ocr_time = time.perf_counter() - ocr_start_time
         logger.info(
-            f"[Timing] OCR results retrieval took {ocr_time:.3f}s "
-            f"(context_id={short_id(context_id)}, found {len(ocr_results) if ocr_results else 0} results)"
+            f"[Timing] OCR results acquisition took {ocr_time:.3f}s "
+            f"(context_id={short_id(context_id)}, found {len(ocr_results) if ocr_results else 0} results, "
+            f"includes wait for proactive OCR if needed)"
         )
     
     # 3. Get vision service if needed

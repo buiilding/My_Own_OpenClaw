@@ -3,7 +3,7 @@
 # High-level orchestrator
 from backend.src.agent.tools.orchestrator import ToolOrchestrator
 
-# Preparation phase
+# Resolution phase
 from backend.src.agent.tools.preparation.coordinate_resolution import (
     CoordinateResolver,
     OcrCoordinateResolver,
@@ -12,10 +12,10 @@ from backend.src.agent.tools.preparation.coordinate_resolution import (
 from backend.src.agent.tools.preparation.helpers import VisionServiceProvider
 from backend.src.agent.tools.preparation.ocr import OcrCoordinator
 from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
-from backend.src.agent.tools.preparation.storage import PreparedToolCallStorage
+from backend.src.agent.tools.preparation.storage import ResolvedToolCallStorage
 
 # Sending phase
-from backend.src.agent.tools.sending import ToolPreparer, ToolSender
+from backend.src.agent.tools.sending import ToolResolver, ToolSender
 
 # Waiting phase
 from backend.src.agent.tools.waiting import (
@@ -45,16 +45,16 @@ from backend.src.agent.tools.shared import (
 __all__ = [
     # Orchestrator
     "ToolOrchestrator",
-    # Preparation
+    # Resolution
     "CoordinateResolver",
     "OcrCoordinateResolver",
     "VisionCoordinateResolver",
     "OcrCoordinator",
     "ScreenshotManager",
-    "PreparedToolCallStorage",
+    "ResolvedToolCallStorage",
     "VisionServiceProvider",
     # Sending
-    "ToolPreparer",
+    "ToolResolver",
     "ToolSender",
     # Waiting
     "ToolResultHandler",

@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional, List
 
 from backend.src.agent.execution.executor import AgentExecutor
 from backend.src.agent.tools.preparation.screenshot.state import ScreenshotState
-from backend.src.agent.tools.preparation.storage.prepared_call_storage import PreparedToolCallStorage
+from backend.src.agent.tools.preparation.storage.resolved_call_storage import ResolvedToolCallStorage
 from backend.src.agent.tools.waiting import ToolResultHandler
 from backend.src.agent.session.state import ConversationHistory
 from backend.src.core.infrastructure.bus import EventBus
@@ -169,8 +169,8 @@ class AgentSession:
         self.screenshot_waiter: Optional[asyncio.Future] = None
         self.hidden_screenshot_request_id: Optional[str] = None
         
-        # Extract prepared tool call storage to reduce complexity
-        self._prepared_tool_call_storage = PreparedToolCallStorage()
+        # Extract resolved tool call storage to reduce complexity
+        self._resolved_tool_call_storage = ResolvedToolCallStorage()
         
         # Legacy accessors for backward compatibility (delegate to storage)
         # These will be removed once all code is migrated
@@ -225,7 +225,7 @@ class AgentSession:
         Get the ID of the current screenshot.
         
         ENCAPSULATION: Public method to access current screenshot ID without
-        exposing private implementation details. This allows ToolPreparer and
+        exposing private implementation details. This allows ToolResolver and
         other components to access screenshot state without tight coupling.
         
         Returns:
@@ -271,54 +271,54 @@ class AgentSession:
         # Use centralized storage
         self._tool_result_storage.store_pending_result(request_id, result)
     
-    def register_prepared_tool_call(self, request_id: str, prepared_call: Any) -> None:
+    def register_resolved_tool_call(self, request_id: str, resolved_call: Any) -> None:
         """
-        Register a prepared tool call in the session.
+        Register a resolved tool call in the session.
         
-        ENCAPSULATION: Public method to register prepared tool calls without
-        exposing private implementation details. This allows ToolPreparer to
-        store prepared calls without tight coupling to internal storage.
+        ENCAPSULATION: Public method to register resolved tool calls without
+        exposing private implementation details. This allows ToolResolver to
+        store resolved calls without tight coupling to internal storage.
         
-        Delegates to PreparedToolCallStorage for state management.
+        Delegates to ResolvedToolCallStorage for state management.
         
         Args:
             request_id: Request ID for the tool call
-            prepared_call: Prepared tool call to store
+            resolved_call: Resolved tool call to store
         """
-        self._prepared_tool_call_storage.register(request_id, prepared_call)
+        self._resolved_tool_call_storage.register(request_id, resolved_call)
     
-    def get_prepared_tool_call(self, request_id: str) -> Optional[Any]:
+    def get_resolved_tool_call(self, request_id: str) -> Optional[Any]:
         """
-        Get a prepared tool call by request ID.
+        Get a resolved tool call by request ID.
         
-        ENCAPSULATION: Public method to retrieve prepared tool calls without
+        ENCAPSULATION: Public method to retrieve resolved tool calls without
         exposing private implementation details. This allows ToolOrchestrator
-        to access prepared calls without tight coupling to internal storage.
+        to access resolved calls without tight coupling to internal storage.
         
-        Delegates to PreparedToolCallStorage for state management.
+        Delegates to ResolvedToolCallStorage for state management.
         
         Args:
             request_id: Request ID for the tool call
             
         Returns:
-            Prepared tool call or None if not found
+            Resolved tool call or None if not found
         """
-        return self._prepared_tool_call_storage.get(request_id)
+        return self._resolved_tool_call_storage.get(request_id)
     
-    def remove_prepared_tool_call(self, request_id: str) -> None:
+    def remove_resolved_tool_call(self, request_id: str) -> None:
         """
-        Remove a prepared tool call from the session.
+        Remove a resolved tool call from the session.
         
-        ENCAPSULATION: Public method to remove prepared tool calls without
+        ENCAPSULATION: Public method to remove resolved tool calls without
         exposing private implementation details. This allows cleanup code
         to remove calls without tight coupling to internal storage.
         
-        Delegates to PreparedToolCallStorage for state management.
+        Delegates to ResolvedToolCallStorage for state management.
         
         Args:
             request_id: Request ID for the tool call to remove
         """
-        self._prepared_tool_call_storage.remove(request_id)
+        self._resolved_tool_call_storage.remove(request_id)
 
     async def _on_interaction_completed(self, event: InteractionCompleted) -> None:
         """Handle interaction completed event."""

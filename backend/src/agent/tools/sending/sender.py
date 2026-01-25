@@ -1,7 +1,7 @@
 """
 Tool sender.
 
-Sends prepared tools to frontend by yielding events.
+Sends resolved tools to frontend by yielding events.
 """
 import logging
 from typing import TYPE_CHECKING, AsyncGenerator, List
@@ -10,7 +10,7 @@ from backend.src.core.events import AgentStreamingEvent
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
-    from backend.src.agent.tools.sending.preparer import ToolPreparer
+    from backend.src.agent.tools.sending.resolver import ToolResolver
     from backend.src.llm.parser import ParsedToolCall
 
 logger = logging.getLogger(__name__)
@@ -18,23 +18,23 @@ logger = logging.getLogger(__name__)
 
 class ToolSender:
     """
-    Sends prepared tools to frontend.
+    Sends resolved tools to frontend.
     
     Responsibility: Sending events only.
-    Delegates preparation to ToolPreparer and yields events.
+    Delegates resolution to ToolResolver and yields events.
     """
 
     def __init__(
         self,
-        preparer: "ToolPreparer",
+        resolver: "ToolResolver",
     ):
         """
         Initialize the tool sender.
         
         Args:
-            preparer: Preparer for tool preparation
+            resolver: Resolver for tool resolution
         """
-        self.preparer = preparer
+        self.resolver = resolver
 
     async def send_tools(
         self,
@@ -42,7 +42,7 @@ class ToolSender:
         session: "AgentSession",
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
-        Send prepared tools to frontend by yielding events.
+        Send resolved tools to frontend by yielding events.
         
         Args:
             tool_calls: List of parsed tool calls from LLM
@@ -51,6 +51,6 @@ class ToolSender:
         Yields:
             AgentStreamingEvent: RequestScreenshotEvent, ToolCallEvent, ToolBundleEvent, ToolOutputEvent
         """
-        # Delegate to preparer which yields events
-        async for event in self.preparer.prepare_tools(tool_calls, session):
+        # Delegate to resolver which yields events
+        async for event in self.resolver.resolve_tools(tool_calls, session):
             yield event

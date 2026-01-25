@@ -177,7 +177,7 @@ class InteractionLoop:
                 # Check if this is a bundle before executing
                 is_bundle = len(parsed_response.tool_calls) > 1
                 
-                # Yield all preparation events (ToolBundleEvent or ToolCallEvent)
+                # Yield all resolution events (ToolBundleEvent or ToolCallEvent)
                 async for event in self.tool_executor.execute(parsed_response, self.session):
                     yield event
                 
@@ -202,12 +202,12 @@ class InteractionLoop:
             finally:
                 # SESSION STATE LEAK FIX: Always process results for cleanup, even if
                 # execute() failed or client disconnected. This prevents tool state
-                # (request_ids, pending results, prepared calls) from leaking in session.
+                # (request_ids, pending results, resolved calls) from leaking in session.
                 # Process tool results for history storage (for LLM context)
                 # Note: Frontend displays tool results immediately after execution.
                 # Backend only processes results for conversation history, not for display.
                 # ToolOutputEvent is only emitted for backend-side failures (e.g., coordinate resolution)
-                # which are already yielded by ToolPreparer during tool preparation.
+                # which are already yielded by ToolResolver during tool resolution.
                 # BUNDLE EXECUTION FIX: For bundles, process_results() was already called above,
                 # but we still need to handle cleanup for non-bundle tools or error cases.
                 if not results_processed:
