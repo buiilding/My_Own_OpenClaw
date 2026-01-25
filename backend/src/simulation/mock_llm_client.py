@@ -131,7 +131,7 @@ SIMULATION_RESPONSES = [
                     "text": "shoes",
                     "explanation": "Typing 'shoes' into the Amazon search box.",
                     "expectation": "The text 'shoes' should appear in the search box.",
-                    "wait": 0.2
+                    "wait": 0.0
                 }
             }
         }) + "\n" + json.dumps({
