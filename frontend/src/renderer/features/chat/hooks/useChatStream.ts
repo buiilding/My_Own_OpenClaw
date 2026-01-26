@@ -58,12 +58,29 @@ export function useChatStream() {
   }, [addMessage, updateMessage, setIsSending]);
 
   const handleToolCall = useCallback((data: any) => {
-    const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text: data.payload?.raw_call || JSON.stringify({
+    // Format tool call as pretty-printed JSON
+    let formattedText: string;
+    
+    if (data.payload?.raw_call) {
+      try {
+        // Parse the raw_call JSON string and reformat with indentation
+        const parsed = JSON.parse(data.payload.raw_call);
+        formattedText = JSON.stringify(parsed, null, 2);
+      } catch (e) {
+        // If parsing fails, use raw_call as-is
+        formattedText = data.payload.raw_call;
+      }
+    } else {
+      // Fallback: construct from tool_name and parameters
+      formattedText = JSON.stringify({
         name: data.payload?.tool_name,
         args: data.payload?.parameters
-      }, null, 2),
+      }, null, 2);
+    }
+    
+    const newMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      text: formattedText,
       sender: 'assistant',
       type: 'tool-call',
     };

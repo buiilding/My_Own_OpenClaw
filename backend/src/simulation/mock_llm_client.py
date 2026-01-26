@@ -163,7 +163,7 @@ SIMULATION_RESPONSES = [
                     }
                 }
             }
-        }) + "," + json.dumps({
+        }) + "\n" + json.dumps({
             "metadata": {
                 "description": "Search box shows 'shoes' text.",
                 "explanation": "Pressing Enter to search for shoes on Amazon.",

@@ -478,7 +478,10 @@ class ResponseParser:
                 break
             
             # 1. Scan for the next opening brace '{'
-            # We don't care what comes after it yet - let raw_decode handle validation
+            # CRITICAL: Use relaxed regex (just '{') for true order-independence.
+            # We don't check for specific keys like "metadata" or "functionCall" here.
+            # This allows parsing {"action": ..., "metadata": ...} regardless of key order.
+            # Validation happens AFTER parsing via schema.extract_tool_call().
             match = re.search(r'\{', response[pos:])
             
             if not match:
@@ -544,8 +547,9 @@ class ResponseParser:
                 raise
             except (json.JSONDecodeError, ValueError, IndexError):
                 # 5. Failure: The '{' was not the start of valid JSON
-                # (e.g., inside a code block or regular text)
-                # Advance past this brace to keep searching
+                # (e.g., inside a code block, regular text, or malformed JSON)
+                # CRITICAL: Must advance position to prevent infinite loop.
+                # If we don't skip this '{', the loop will hang forever on the same position.
                 pos = start_index + 1
         
         # SECURITY: Remove extracted JSON using position-based extraction (safe)
