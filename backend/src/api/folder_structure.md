@@ -35,8 +35,10 @@ backend/src/api/
 │   │   ├── message_handler.py         # Message parsing/validation - JSON parsing, Pydantic validation, routing
 │   │   └── task_manager.py            # Task tracking - Concurrency limits, task cancellation, cleanup
 │   │
-│   ├── semantic.py                    # REST endpoint - Semantic memory summarization (/api/semantic)
-│   └── embeddings.py                  # REST endpoint - Embedding generation (/api/embeddings)
+│   └── memory/                        # Memory-related REST endpoints
+│       ├── __init__.py                # Package exports: embeddings, semantic routers
+│       ├── embeddings.py              # REST endpoint - Embedding generation (/api/embeddings)
+│       └── semantic.py                # REST endpoint - Semantic memory summarization (/api/semantic)
 │
 ├── handlers/                           # HANDLER LAYER - Message type-specific processing
 │   ├── __init__.py                    # Exports: All handler classes and base types
@@ -145,17 +147,17 @@ backend/src/api/
 
 ```
 1. HTTP REQUEST
-   └─> routes/semantic.py or routes/embeddings.py
+   └─> routes/memory/semantic.py or routes/memory/embeddings.py
 
 2. DEPENDENCY INJECTION
    └─> deps.py
        └─> get_container() (app-lifespan-scoped container)
 
 3. PROCESSING
-   ├─> routes/semantic.py
+   ├─> routes/memory/semantic.py
    │   └─> LLM client (summarization)
    │
-   └─> routes/embeddings.py
+   └─> routes/memory/embeddings.py
        └─> Embedding provider (vector generation)
 
 4. RESPONSE

@@ -4,7 +4,7 @@
 
 The Memory System provides comprehensive memory capabilities for Desktop Assistant, enabling persistent context, semantic search, and intelligent information retrieval across conversations.
 
-> **Note**: For detailed memory system documentation, see the [Memory System README](../backend/src/memory/README.md) in the backend source code.
+> **Note**: Memory storage and retrieval are handled by the frontend Python sidecar. The backend provides embedding generation via `backend/src/embeddings/`. See the [Frontend Python Sidecar documentation](../frontend/src/main/python/folder_structure.md) for memory system details.
 
 ## Quick Reference
 
@@ -178,7 +178,8 @@ Multiple storage options:
 ## Further Reading
 
 For complete documentation, see:
-- [Memory System README](../backend/src/memory/README.md) - Complete memory system documentation
+- [Frontend Python Sidecar](../frontend/src/main/python/folder_structure.md) - Memory storage and retrieval implementation
+- [Backend Embeddings](../backend/src/embeddings/) - Embedding generation provider
 - [Configuration Guide](CONFIGURATION.md) - Memory configuration options
 - [Backend Architecture](BACKEND_ARCHITECTURE.md) - System architecture details
 

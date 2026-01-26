@@ -17,7 +17,7 @@ backend/src/
 │   ├── history/       # Memory management
 │   └── plugins/       # Plugin system
 ├── tools/             # Tools domain
-├── memory/            # Memory domain
+├── embeddings/        # Embedding provider domain
 ├── llm/               # LLM domain
 ├── api/               # API layer
 ├── core/              # Core infrastructure

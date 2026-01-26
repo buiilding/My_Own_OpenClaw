@@ -181,4 +181,3 @@ class SentenceTransformerProvider(EmbeddingProvider):
                 "Call await provider.initialize() first."
             )
         return self._dimension
-

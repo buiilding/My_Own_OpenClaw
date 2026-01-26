@@ -38,9 +38,8 @@ backend/src/
 │   ├── orchestrator.py  # ToolOrchestrator
 │   ├── remote.py     # Remote tool stubs
 │   └── schema_registry.py  # Tool schema management
-├── memory/            # Memory domain (storage, retrieval)
-│   ├── embeddings.py  # EmbeddingsService
-│   └── README.md     # Memory system documentation
+├── embeddings/        # Embedding provider domain
+│   └── embeddings.py # SentenceTransformerProvider
 ├── llm/               # LLM domain (client, prompts)
 │   ├── client.py     # LLMClient abstraction
 │   ├── parser.py     # ResponseParser
@@ -244,7 +243,7 @@ Constructs prompts for LLM interactions.
 
 ### Memory System
 
-#### EmbeddingsService (`memory/embeddings.py`)
+#### SentenceTransformerProvider (`embeddings/embeddings.py`)
 
 Converts text to vector representations.
 
