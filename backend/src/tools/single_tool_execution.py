@@ -35,7 +35,7 @@ async def execute_single_tool(
     Returns:
         SimpleNamespace with tool_call, result, success, execution_time, and context fields
     """
-    request_id = tool_call.metadata.get('request_id') if hasattr(tool_call, 'metadata') else None
+    request_id = tool_call.metadata.get('request_id') if (hasattr(tool_call, 'metadata') and tool_call.metadata is not None) else None
     if not request_id:
         logger.warning(f"Tool call {tool_call.tool_name} missing request_id in metadata")
         # Fallback to placeholder if no request_id (shouldn't happen with ToolResolver)

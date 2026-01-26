@@ -111,7 +111,7 @@ class ToolPreparer:
             for tool_call in tool_calls:
                 # For bundles, we don't generate individual request_ids
                 # The bundle_id is the single identifier for the entire bundle
-                if not hasattr(tool_call, "metadata"):
+                if not hasattr(tool_call, "metadata") or tool_call.metadata is None:
                     tool_call.metadata = {}
                 tool_call.metadata["bundle_id"] = bundle_id
                 
@@ -163,12 +163,14 @@ class ToolPreparer:
             tool_preparation_start_time = time.perf_counter()
             # Generate request_id for single tool
             request_id = str(uuid.uuid4())
-            if not hasattr(tool_call, "metadata"):
+            if not hasattr(tool_call, "metadata") or tool_call.metadata is None:
                 tool_call.metadata = {}
             tool_call.metadata["request_id"] = request_id
 
             # Create resolved tool call (immutable copy to avoid mutation)
             resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+            if resolved_call.metadata is None:
+                resolved_call.metadata = {}
             resolved_call.metadata["request_id"] = request_id
 
             # Check if this tool needs coordinate resolution

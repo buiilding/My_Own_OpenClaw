@@ -84,7 +84,7 @@ class ToolSender:
         
         # Handle errors: create synthetic results and yield error events
         for tool_call, error_msg in preparation_result.errors:
-            request_id = tool_call.metadata.get("request_id") if hasattr(tool_call, "metadata") else None
+            request_id = tool_call.metadata.get("request_id") if (hasattr(tool_call, "metadata") and tool_call.metadata is not None) else None
             if not request_id:
                 logger.warning(f"Error tool call missing request_id: {tool_call.tool_name}")
                 continue

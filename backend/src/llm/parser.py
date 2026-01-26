@@ -36,10 +36,8 @@ from backend.src.core.infrastructure.exceptions import (
     ParseValidationError,
 )
 from backend.src.core.observability.trust_boundary_metrics import (
-    BoundaryViolationMetrics,
     MetricsService,
 )
-from backend.src.tools.categorization import ToolDomain
 
 if TYPE_CHECKING:
     from backend.src.tools.registry import ToolRegistry
@@ -100,8 +98,10 @@ class ToolCallSchema:
             return None
         
         # Check for computer-use tool format (metadata + action wrapper)
+        # Note: This check is order-independent - handles {"metadata": ..., "action": ...}
+        # as well as {"action": ..., "metadata": ...} for robustness
         if "metadata" in parsed_json and "action" in parsed_json:
-            # Computer-use tool format: metadata must come first
+            # Computer-use tool format
             metadata = parsed_json.get("metadata")
             action = parsed_json.get("action")
             
@@ -312,8 +312,6 @@ class ResponseParser:
         this method are kept for defense-in-depth, but the real timeout
         is enforced by asyncio.wait_for in parse_response.
         """
-        boundary_name = "response_parser"
-        
         # Note: Input validation and size checks are done in parse_response
         # before this method is called, but we keep them here for safety
         
@@ -385,8 +383,6 @@ class ResponseParser:
         """Parse pure JSON responses containing tool calls."""
         tool_calls = []
         
-        import time
-        
         # SECURITY: Check JSON size before parsing
         json_str = response.strip()
         if len(json_str) > self.limits.max_json_size:
@@ -443,14 +439,20 @@ class ResponseParser:
         self, response: str, start_time: float, timeout: float
     ) -> Tuple[List[ParsedToolCall], str]:
         """
-        Parse embedded JSON tool calls using optimized regex + json.JSONDecoder.
+        Parse embedded JSON tool calls using iterative scanning decoder.
         
-        PERFORMANCE: Uses regex to find candidate JSON object starts, then leverages
-        C-optimized json.JSONDecoder.raw_decode() to extract complete objects, avoiding
-        slow character-by-character Python loops.
+        PERFORMANCE: Uses regex to find opening braces, then leverages
+        C-optimized json.JSONDecoder.raw_decode() to extract complete objects.
         
-        This handles nested JSON structures correctly and is orders of magnitude faster
-        than the previous character-by-character approach.
+        This approach naturally handles:
+        - Chaining: {}{} (parses first, gets end index, resumes)
+        - Key reordering: {"action": ..., "metadata": ...} (parses first, validates second)
+        - Interleaved text: Text... JSON... Text... JSON
+        
+        Unlike the previous regex-first approach, this method:
+        - Doesn't require "metadata" or "functionCall" to be the first key
+        - Handles compact chaining naturally by advancing position after each parse
+        - Validates structure after parsing (order-independent)
         
         SECURITY: Includes timeout checks and size limits.
         """
@@ -458,67 +460,59 @@ class ResponseParser:
         
         tool_calls = []
         extracted_positions: List[Tuple[int, int]] = []  # Track extracted positions for safe removal
-        
-        # Find all potential JSON object starts using regex (much faster than character loop)
-        # Look for opening brace followed by optional whitespace and either:
-        # 1. "metadata" (computer-use tool format)
-        # 2. "functionCall" (standard tool format)
-        root_key_pattern = f'"{re.escape(self.schema.root_key)}"'
-        metadata_pattern = '"metadata"'
-        # Pattern: { followed by optional whitespace and either metadata or functionCall
-        pattern = re.compile(rf'\{{(?:\s*(?:{metadata_pattern}|{root_key_pattern}))', re.MULTILINE)
-        
-        # Find all candidate positions
-        # PARSER SEARCH TRUNCATION FIX: Use max_response_size to limit search position,
-        # not max_json_size. max_json_size is for limiting individual JSON object size,
-        # not the position where we search. Using max_json_size here would stop searching
-        # after the first max_json_size bytes, causing valid tool calls to be ignored if
-        # the LLM writes a long preamble before the JSON.
-        candidates = []
-        for match in pattern.finditer(response):
-            start_pos = match.start()
-            # SECURITY: Check position limit using max_response_size (response size already validated at entry)
-            # max_json_size is only used later to verify the extracted JSON object size
-            if start_pos > self.limits.max_response_size:
-                break
-            candidates.append(start_pos)
-        
-        # Process each candidate using optimized JSON decoder
         decoder = json.JSONDecoder()
-        root_key_str = f'"{self.schema.root_key}"'
+        pos = 0
         
-        for start_pos in candidates:
+        # Scan through the entire response
+        while pos < len(response):
             # SECURITY: Check timeout periodically
             if time.monotonic() - start_time > timeout:
-                raise TimeoutError("Parse timeout exceeded")
+                raise ParseTimeoutError(
+                    "Parse timeout exceeded",
+                    timeout_seconds=timeout,
+                    boundary_name="response_parser",
+                )
             
-            # SECURITY: Check size limit
-            remaining = len(response) - start_pos
+            # SECURITY: Check position limit
+            if pos > self.limits.max_response_size:
+                break
+            
+            # 1. Scan for the next opening brace '{'
+            # We don't care what comes after it yet - let raw_decode handle validation
+            match = re.search(r'\{', response[pos:])
+            
+            if not match:
+                break  # No more JSON candidates
+            
+            # Calculate absolute start position
+            start_index = pos + match.start()
+            
+            # SECURITY: Check size limit for remaining text
+            remaining = len(response) - start_index
             if remaining > self.limits.max_json_size:
+                # Skip this position and continue searching
+                pos = start_index + 1
                 continue
             
-            # Try to decode JSON starting at this position
+            # 2. Attempt to decode a full JSON object starting at this brace
             try:
                 # Use raw_decode to extract JSON object and get end position
-                # This is C-optimized and much faster than character-by-character parsing
-                parsed, end_pos = decoder.raw_decode(response, idx=start_pos)
+                # This is C-optimized and handles nested structures correctly
+                parsed, end_index = decoder.raw_decode(response, idx=start_index)
                 
-                # Extract the JSON string
-                json_obj = response[start_pos:end_pos]
-                
-                # Verify it contains either metadata (computer-use) or functionCall (standard)
-                # Defense in depth: ensure we're parsing a valid tool call format
-                has_metadata = '"metadata"' in json_obj
-                has_function_call = root_key_str in json_obj
-                if not (has_metadata or has_function_call):
-                    continue
+                # Extract the JSON string for size checking
+                json_obj = response[start_index:end_index]
                 
                 # SECURITY: Check JSON size
                 if len(json_obj) > self.limits.max_json_size:
+                    # Skip this position and continue
+                    pos = start_index + 1
                     continue
                 
-                # Use schema to extract tool call
+                # 3. Validation: Check if this JSON is actually a tool call
+                # This is order-independent (unlike the regex approach)
                 result = self.schema.extract_tool_call(parsed)
+                
                 if result:
                     tool_name, args, metadata = result
                     
@@ -536,15 +530,23 @@ class ResponseParser:
                         metadata=metadata,
                     )
                     tool_calls.append(tool_call)
-                    # Track position for safe removal
-                    extracted_positions.append((start_pos, end_pos))
+                    extracted_positions.append((start_index, end_index))
+                    
+                    # 4. Success: Advance pointer to the end of this object
+                    # This effectively prepares us for the next chained call
+                    pos = end_index
+                else:
+                    # Not a valid tool call, advance past this brace
+                    pos = start_index + 1
                     
             except (InputSizeLimitError, ParseTimeoutError, ParseValidationError):
                 # Re-raise security exceptions
                 raise
             except (json.JSONDecodeError, ValueError, IndexError):
-                # Not valid JSON at this position, continue to next candidate
-                continue
+                # 5. Failure: The '{' was not the start of valid JSON
+                # (e.g., inside a code block or regular text)
+                # Advance past this brace to keep searching
+                pos = start_index + 1
         
         # SECURITY: Remove extracted JSON using position-based extraction (safe)
         remaining_text = self._remove_extracted_by_positions(response, extracted_positions)
@@ -616,7 +618,7 @@ class ResponseParser:
             # Validate depth by iteratively checking structure
             self._validate_json_depth(parsed, self.limits.max_json_nesting_depth)
             return parsed
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             raise
         except RecursionError:
             raise ParseValidationError(
@@ -730,6 +732,9 @@ class ResponseParser:
         Raises:
             ParseValidationError: If computer-use tool is missing metadata or required fields
         """
+        # Import here to avoid circular import
+        from backend.src.tools.categorization import ToolDomain
+        
         # Check if this is a computer-use tool
         tool = self.tool_registry.get_tool(tool_name)
         is_computer_use = False
@@ -759,6 +764,12 @@ class ResponseParser:
             )
         else:
             # Validate required fields
+            if "description" not in metadata or not metadata["description"]:
+                validation_errors.append(
+                    f"Computer-use tool '{tool_name}' is missing required metadata field 'description'. "
+                    "Description describes the most recent screenshot provided to you."
+                )
+            
             if "explanation" not in metadata or not metadata["explanation"]:
                 validation_errors.append(
                     f"Computer-use tool '{tool_name}' is missing required metadata field 'explanation'. "
@@ -770,9 +781,6 @@ class ResponseParser:
                     f"Computer-use tool '{tool_name}' is missing required metadata field 'expectation'. "
                     "Expectation describes what you expect to see after execution."
                 )
-            
-            # Description is optional (describes the most recent screenshot)
-            # No validation needed for description
         
         if validation_errors:
             self.metrics.record_validation_violation(

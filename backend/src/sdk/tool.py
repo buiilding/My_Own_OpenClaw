@@ -183,7 +183,7 @@ class Tool(ABC, Generic[TArgs]):
                                     "description": "One sentence describing what you expect to see in the screenshot after this action executes."
                                 }
                             },
-                            "required": ["explanation", "expectation"]
+                            "required": ["description", "explanation", "expectation"]
                         },
                         "action": {
                             "type": "object",

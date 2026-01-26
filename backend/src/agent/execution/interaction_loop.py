@@ -140,7 +140,7 @@ class InteractionLoop:
                     "Your tool call format was invalid. "
                     "For computer-use tools (mouse_control, keyboard_control, screenshot, scroll_control, switch_tab, wait), "
                     "you MUST use this format:\n"
-                    '{"metadata": {"explanation": "...", "expectation": "..."}, '
+                    '{"metadata": {"description": "...", "explanation": "...", "expectation": "..."}, '
                     '"action": {"functionCall": {"name": "tool_name", "args": {...}}}}\n\n'
                     "Metadata MUST come first, otherwise the tool call will be rejected. "
                     "Please correct your format and try again."

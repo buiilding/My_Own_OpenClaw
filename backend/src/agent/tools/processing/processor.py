@@ -58,7 +58,8 @@ class ToolResultProcessor:
         # Check if this is an atomic bundle (all tools have bundle_id, no request_id)
         if is_atomic_bundle_from_results(orchestration_result.tool_results):
             # ATOMIC BUNDLE: Use bundle result from storage
-            bundle_id = orchestration_result.tool_results[0].tool_call.metadata.get('bundle_id')
+            first_tool_call = orchestration_result.tool_results[0].tool_call
+            bundle_id = first_tool_call.metadata.get('bundle_id') if (hasattr(first_tool_call, 'metadata') and first_tool_call.metadata is not None) else None
             if bundle_id:
                 bundled_result = session._tool_result_storage.get_bundled_result(bundle_id)
                 if bundled_result:
@@ -107,7 +108,7 @@ class ToolResultProcessor:
         all_request_ids = set()
         for result in orchestration_result.tool_results:
             if hasattr(result.tool_call, 'metadata') and result.tool_call.metadata:
-                request_id = result.tool_call.metadata.get('request_id')
+                request_id = result.tool_call.metadata.get('request_id') if (hasattr(result.tool_call, 'metadata') and result.tool_call.metadata is not None) else None
                 if request_id:
                     all_request_ids.add(request_id)
         
