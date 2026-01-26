@@ -98,11 +98,14 @@ class ToolSender:
             # PROTOCOL VIOLATION FIX: Yield ToolCallEvent before ToolOutputEvent
             # Frontend expects a tool call event before any output event to maintain
             # the request/response state machine.
+            # Extract metadata from tool_call if present
+            tool_metadata = getattr(tool_call, "metadata", None)
             yield ToolCallEvent(
                 tool_name=tool_call.tool_name,
                 parameters=tool_call.parameters,  # Use original parameters (coordinate resolution failed)
                 raw_call=tool_call.raw_call,
                 request_id=request_id,
+                metadata=tool_metadata,
             )
             
             # Yield ToolOutputEvent for backend-side failure
@@ -126,13 +129,16 @@ class ToolSender:
         # Send frontend events for prepared tools (bundles may have partial tools even with errors)
         if preparation_result.bundle_id:
             # Bundle: send single ToolBundleEvent
-            tools = [
-                {
+            tools = []
+            for resolved_call in preparation_result.resolved_calls:
+                tool_dict = {
                     "name": resolved_call.tool_name,
                     "args": resolved_call.parameters,
                 }
-                for resolved_call in preparation_result.resolved_calls
-            ]
+                # Include metadata if present (for computer-use tools)
+                if resolved_call.metadata:
+                    tool_dict["metadata"] = resolved_call.metadata
+                tools.append(tool_dict)
             
             yield ToolBundleEvent(
                 bundle_id=preparation_result.bundle_id,
@@ -151,5 +157,6 @@ class ToolSender:
                         parameters=resolved_call.parameters,
                         raw_call=resolved_call.raw_call,
                         request_id=request_id,
+                        metadata=resolved_call.metadata,
                     )
                     logger.debug(f"Sent tool call event: {resolved_call.tool_name} (request_id={request_id[:15]})")

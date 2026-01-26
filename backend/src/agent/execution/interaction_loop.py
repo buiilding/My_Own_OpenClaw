@@ -12,7 +12,12 @@ from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
     FullResponseEvent,
 )
-from backend.src.core.infrastructure.exceptions import LLMRateLimitError
+from backend.src.core.infrastructure.exceptions import (
+    InputSizeLimitError,
+    LLMRateLimitError,
+    ParseTimeoutError,
+    ParseValidationError,
+)
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -119,7 +124,41 @@ class InteractionLoop:
                 return
 
             # Step 3: Parse response (async, offloaded to thread pool)
-            parsed_response = await self.response_parser.parse_response(llm_response_text)
+            try:
+                parsed_response = await self.response_parser.parse_response(llm_response_text)
+            except (ParseValidationError, ParseTimeoutError, InputSizeLimitError) as e:
+                # Parser validation error - create user message to remind LLM of correct format
+                logger.warning(f"Parser validation error: {e}")
+                
+                # Create detailed error message for LLM
+                error_details = str(e)
+                if hasattr(e, 'validation_errors') and e.validation_errors:
+                    error_details = "; ".join(e.validation_errors)
+                
+                error_user_message = (
+                    f"[System Validation Error: {error_details}]\n\n"
+                    "Your tool call format was invalid. "
+                    "For computer-use tools (mouse_control, keyboard_control, screenshot, scroll_control, switch_tab, wait), "
+                    "you MUST use this format:\n"
+                    '{"metadata": {"explanation": "...", "expectation": "..."}, '
+                    '"action": {"functionCall": {"name": "tool_name", "args": {...}}}}\n\n'
+                    "Metadata MUST come first, otherwise the tool call will be rejected. "
+                    "Please correct your format and try again."
+                )
+                
+                # Add error message to conversation history as user message
+                # This ensures LLM sees the error in next turn and can correct its format
+                self.session.history.add_user_message(error_user_message)
+                
+                # Send error event to frontend
+                async for event in self.event_presenter.present_error(
+                    f"Tool call format validation failed: {error_details}"
+                ):
+                    yield event
+                
+                # Continue loop - allow LLM to retry with corrected format
+                # Loop will continue to next iteration where LLM sees the error message
+                continue
 
             # Present assistant message event
             async for event in self.event_presenter.present_assistant_message(

@@ -43,6 +43,9 @@ class ToolCallEventFormatter(EventFormatter):
         # Include request_id if present (for remote tools to match results)
         if event_dict.get("request_id"):
             payload["request_id"] = event_dict.get("request_id")
+        # Include metadata if present (for computer-use tools: description, explanation, expectation)
+        if event_dict.get("metadata"):
+            payload["metadata"] = event_dict.get("metadata")
         
         return {
             "type": "tool-call",

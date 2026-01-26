@@ -38,14 +38,6 @@ class MouseControlArgs(BaseModel):
     scroll_amount: Optional[int] = Field(None, description="Amount to scroll (positive for down/right, negative for up/left, required for scroll action)")
     scroll_direction: Optional[ScrollDirectionEnum] = Field(ScrollDirectionEnum.VERTICAL, description="Direction of scrolling (required for scroll action)")
     duration: float = Field(0.5, description="Duration for drag operations")
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: str = Field(
-        ...,
-        description="One sentence describing what you expect to see in the screenshot after this mouse action executes."
-    )
     wait: float = Field(
         ...,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -80,14 +72,6 @@ class KeyboardControlArgs(BaseModel):
     text: Optional[str] = Field(None, description="Text to type (required for 'type' action)")
     key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
     keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: str = Field(
-        ...,
-        description="One sentence describing what you expect to see in the screenshot after this keyboard action executes."
-    )
     wait: float = Field(
         ...,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -100,14 +84,6 @@ class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
     model_config = ConfigDict(extra='ignore')
     
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: str = Field(
-        ...,
-        description="One sentence describing what you expect to see in the screenshot after this action executes."
-    )
     wait: Optional[float] = Field(
         None,
         description="(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture."
@@ -127,14 +103,6 @@ class ScrollControlArgs(BaseModel):
     y: Optional[int] = Field(None, description="Y coordinate to scroll at (optional, uses current cursor if not provided)")
     clicks: int = Field(5, description="Number of scroll clicks")
     direction: Optional[ScrollToolDirection] = Field(None, description="Direction for scroll action ('up', 'down', 'left', 'right')")
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: str = Field(
-        ...,
-        description="One sentence describing what you expect to see in the screenshot after this scroll action executes."
-    )
     wait: float = Field(
         ...,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -151,14 +119,6 @@ class SwitchTabArgs(BaseModel):
         ...,
         description="The exact name of the tab/window to switch to, as it appears in get_open_windows output."
     )
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: str = Field(
-        ...,
-        description="One sentence describing what you expect to see in the screenshot after switching to this tab."
-    )
     wait: float = Field(
         ...,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -174,12 +134,4 @@ class WaitToolArgs(BaseModel):
     seconds: float = Field(
         ...,
         description="Number of seconds to wait before capturing a screenshot."
-    )
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: str = Field(
-        ...,
-        description="One sentence describing what you expect to see in the screenshot after this action executes."
     )

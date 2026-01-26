@@ -7,8 +7,8 @@ This test demonstrates different scenarios for the keyboard control tool:
 3. Keyboard shortcuts/hotkeys
 4. Error cases (missing required parameters)
 
-All scenarios simulate LLM tool call format:
-{"functionCall": {"name": "keyboard_control", "args": {"action": "type", "text": "Hello World"}}}
+All scenarios simulate LLM tool call format (computer-use tools require metadata):
+{"metadata": {"explanation": "...", "expectation": "..."}, "action": {"functionCall": {"name": "keyboard_control", "args": {"action": "type", "text": "Hello World"}}}}
 
 The test goes through all the steps:
 1. Parse the LLM response
@@ -124,7 +124,13 @@ async def run_keyboard_test(action: str, text: str = None, key: str = None, keys
         args["keys"] = keys
 
     import json
-    llm_response = json.dumps({"functionCall": {"name": "keyboard_control", "args": args}})
+    llm_response = json.dumps({
+        "metadata": {
+            "explanation": "Performing keyboard action for testing",
+            "expectation": "Keyboard action completes successfully"
+        },
+        "action": {"functionCall": {"name": "keyboard_control", "args": args}}
+    })
 
     print(f"LLM Response: {llm_response}")
 

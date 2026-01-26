@@ -21,14 +21,6 @@ class MouseControlArgs(BaseModel):
     y: Optional[int] = Field(None, description="Y coordinate (required for all actions except scroll)")
     scroll_amount: Optional[int] = Field(None, description="Amount to scroll (required for scroll action)")
     scroll_direction: Literal["vertical", "horizontal"] = Field("vertical", description="Scroll direction")
-    explanation: Optional[str] = Field(
-        None,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: Optional[str] = Field(
-        None,
-        description="One sentence describing what you expect to see in the screenshot after this mouse action executes."
-    )
     wait: Optional[float] = Field(
         2.0,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -54,14 +46,6 @@ class KeyboardControlArgs(BaseModel):
     text: Optional[str] = Field(None, description="Text to type (required for 'type' action)")
     key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
     keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
-    explanation: Optional[str] = Field(
-        None,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: Optional[str] = Field(
-        None,
-        description="One sentence describing what you expect to see in the screenshot after this keyboard action executes."
-    )
     wait: Optional[float] = Field(
         2.0,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -87,14 +71,6 @@ class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
     model_config = ConfigDict(extra='ignore')
     
-    explanation: Optional[str] = Field(
-        None,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: Optional[str] = Field(
-        None,
-        description="One sentence describing what you expect to see in the screenshot after this action executes."
-    )
     wait: Optional[float] = Field(
         None,
         description="(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture."
@@ -112,14 +88,6 @@ class ScrollControlArgs(BaseModel):
     y: Optional[int] = Field(None, description="Y coordinate to scroll at (optional)")
     clicks: int = Field(5, description="Number of scroll clicks")
     direction: Optional[Literal["up", "down", "left", "right"]] = Field(None, description="Direction for scroll action")
-    explanation: Optional[str] = Field(
-        None,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: Optional[str] = Field(
-        None,
-        description="One sentence describing what you expect to see in the screenshot after this scroll action executes."
-    )
     wait: Optional[float] = Field(
         2.0,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -196,14 +164,6 @@ class SwitchTabArgs(BaseModel):
     model_config = ConfigDict(extra='ignore')
     
     tab_name: str = Field(..., description="Name of the tab/window to switch to")
-    explanation: Optional[str] = Field(
-        None,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: Optional[str] = Field(
-        None,
-        description="One sentence describing what you expect to see in the screenshot after switching to this tab."
-    )
     wait: Optional[float] = Field(
         2.0,
         description="Delay in seconds before taking a screenshot after tool execution."
@@ -238,14 +198,6 @@ class WaitToolArgs(BaseModel):
     seconds: Optional[float] = Field(
         1.0,
         description="Number of seconds to wait before capturing a screenshot."
-    )
-    explanation: Optional[str] = Field(
-        None,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: Optional[str] = Field(
-        None,
-        description="One sentence describing what you expect to see in the screenshot after this action executes."
     )
 
 

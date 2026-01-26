@@ -15,6 +15,8 @@ from backend.src.sdk.context import ToolContext
 if TYPE_CHECKING:
     from backend.src.core.security.policy import Permission
     from backend.src.tools.categorization import ToolDomain
+else:
+    from backend.src.tools.categorization import ToolDomain
 
 # Type variable for the arguments model
 TArgs = TypeVar("TArgs", bound=BaseModel)
@@ -135,6 +137,9 @@ class Tool(ABC, Generic[TArgs]):
         Returns the JSON Schema for the tool's arguments.
         Used by the LLM to understand how to call the tool.
         
+        For computer-use tools, wraps the schema with metadata structure requiring
+        metadata to be generated first before the action.
+        
         Returns a cleaned, optimized schema format.
         """
         raw_schema = self.args_model.model_json_schema()
@@ -151,9 +156,61 @@ class Tool(ABC, Generic[TArgs]):
         if cleaned_params.get("type") == "object" and "properties" in cleaned_params:
             cleaned_params.pop("type", None)
         
-        return {
-            "name": self.name,
-            "description": self.description,
-            "parameters": cleaned_params
-        }
+        # Check if this is a computer-use tool
+        is_computer_use = self.category == ToolDomain.COMPUTER
+        
+        if is_computer_use:
+            # Wrap computer-use tools with metadata structure
+            return {
+                "name": self.name,
+                "description": self.description,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "metadata": {
+                            "type": "object",
+                            "properties": {
+                                "description": {
+                                    "type": "string",
+                                    "description": "Description of the most recent screenshot provided to you. This helps you understand the current visual state."
+                                },
+                                "explanation": {
+                                    "type": "string",
+                                    "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+                                },
+                                "expectation": {
+                                    "type": "string",
+                                    "description": "One sentence describing what you expect to see in the screenshot after this action executes."
+                                }
+                            },
+                            "required": ["explanation", "expectation"]
+                        },
+                        "action": {
+                            "type": "object",
+                            "properties": {
+                                "functionCall": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "const": self.name
+                                        },
+                                        "args": cleaned_params
+                                    },
+                                    "required": ["name", "args"]
+                                }
+                            },
+                            "required": ["functionCall"]
+                        }
+                    },
+                    "required": ["metadata", "action"]
+                }
+            }
+        else:
+            # Standard tools use normal format
+            return {
+                "name": self.name,
+                "description": self.description,
+                "parameters": cleaned_params
+            }
 

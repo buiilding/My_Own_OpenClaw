@@ -48,9 +48,14 @@ class ResolvedToolCall:
         # Nested structures should be immutable or not mutated
         parameters = dict(parsed_call.parameters) if parsed_call.parameters else {}
         
-        # Metadata may contain nested structures, but typically just has request_id
+        # Copy metadata from parsed call (for computer-use tools: description, explanation, expectation)
+        # Metadata may also contain request_id and other fields
         # Use shallow copy for performance (metadata is usually flat)
-        metadata = dict(getattr(parsed_call, "metadata", None) or {})
+        parsed_metadata = getattr(parsed_call, "metadata", None)
+        if parsed_metadata:
+            metadata = dict(parsed_metadata)
+        else:
+            metadata = None
         
         return cls(
             original_call=parsed_call,
@@ -65,11 +70,12 @@ class ResolvedToolCall:
         Convert back to ParsedToolCall format (for backward compatibility).
         
         Returns:
-            ParsedToolCall with prepared parameters
+            ParsedToolCall with prepared parameters and metadata
         """
         return ParsedToolCall(
             tool_name=self.tool_name,
             parameters=self.parameters,
             raw_call=self.raw_call,
             confidence=getattr(self.original_call, "confidence", 1.0),
+            metadata=self.metadata,
         )

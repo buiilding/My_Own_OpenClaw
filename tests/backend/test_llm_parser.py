@@ -28,13 +28,25 @@ async def test_parser():
         print(f'  Has tool calls: {parsed2.has_tool_calls}')
     print()
 
-    # Test 3: Regular text (should find no tool calls)
-    text_response = 'This is just regular text with no tool calls.'
-    parsed3 = await parser.parse_response(text_response)
-    print('Regular Text Test:')
+    # Test 3: Computer-use tool format with metadata (new format)
+    computer_use_response = '{"metadata": {"explanation": "Clicking button", "expectation": "Button clicked"}, "action": {"functionCall": {"name": "mouse_control", "args": {"action": "click", "x": 100, "y": 200}}}}'
+    parsed3 = await parser.parse_response(computer_use_response)
+    print('Computer-Use Tool Format Test:')
     print(f'  Tool calls found: {len(parsed3.tool_calls)}')
-    print(f'  Has tool calls: {parsed3.has_tool_calls}')
-    print(f'  Text content: "{parsed3.text_content}"')
+    if parsed3.tool_calls:
+        print(f'  Tool name: {parsed3.tool_calls[0].tool_name}')
+        print(f'  Parameters: {parsed3.tool_calls[0].parameters}')
+        print(f'  Metadata: {parsed3.tool_calls[0].metadata}')
+        print(f'  Has tool calls: {parsed3.has_tool_calls}')
+    print()
+
+    # Test 4: Regular text (should find no tool calls)
+    text_response = 'This is just regular text with no tool calls.'
+    parsed4 = await parser.parse_response(text_response)
+    print('Regular Text Test:')
+    print(f'  Tool calls found: {len(parsed4.tool_calls)}')
+    print(f'  Has tool calls: {parsed4.has_tool_calls}')
+    print(f'  Text content: "{parsed4.text_content}"')
 
 if __name__ == "__main__":
     asyncio.run(test_parser())

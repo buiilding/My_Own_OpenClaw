@@ -39,6 +39,7 @@ from backend.src.core.observability.trust_boundary_metrics import (
     BoundaryViolationMetrics,
     MetricsService,
 )
+from backend.src.tools.categorization import ToolDomain
 
 if TYPE_CHECKING:
     from backend.src.tools.registry import ToolRegistry
@@ -54,6 +55,7 @@ class ParsedToolCall:
     parameters: Dict[str, Any]
     raw_call: str
     confidence: float = 1.0  # 0.0 to 1.0, how confident we are in this parse
+    metadata: Optional[Dict[str, Any]] = None  # Metadata for computer-use tools (description, explanation, expectation)
 
 
 @dataclass
@@ -78,39 +80,76 @@ class ToolCallSchema:
     name_key: str = "name"
     args_key: str = "args"
     
-    def extract_tool_call(self, parsed_json: Dict[str, Any]) -> Optional[Tuple[str, Dict[str, Any]]]:
+    def extract_tool_call(self, parsed_json: Dict[str, Any]) -> Optional[Tuple[str, Dict[str, Any], Optional[Dict[str, Any]]]]:
         """
-        Extract tool name and args from parsed JSON using configured keys.
+        Extract tool name, args, and metadata from parsed JSON.
+        
+        Supports two formats:
+        1. Computer-use tools: {"metadata": {...}, "action": {"functionCall": {"name": "...", "args": {...}}}}
+        2. Standard tools: {"functionCall": {"name": "...", "args": {...}}}
         
         Args:
             parsed_json: Parsed JSON dictionary
             
         Returns:
-            Tuple of (tool_name, args_dict) or None if not a valid tool call
+            Tuple of (tool_name, args_dict, metadata_dict) or None if not a valid tool call
+            - metadata_dict is None for standard tools
+            - metadata_dict contains description, explanation, expectation for computer-use tools
         """
         if not isinstance(parsed_json, dict):
             return None
         
-        # Check for root key (e.g., "functionCall")
-        if self.root_key not in parsed_json:
-            return None
+        # Check for computer-use tool format (metadata + action wrapper)
+        if "metadata" in parsed_json and "action" in parsed_json:
+            # Computer-use tool format: metadata must come first
+            metadata = parsed_json.get("metadata")
+            action = parsed_json.get("action")
+            
+            # Validate metadata exists and is a dict
+            if not isinstance(metadata, dict):
+                return None
+            
+            # Validate action exists and contains functionCall
+            if not isinstance(action, dict) or self.root_key not in action:
+                return None
+            
+            function_call = action[self.root_key]
+            if not isinstance(function_call, dict):
+                return None
+            
+            # Extract name and args from action.functionCall
+            tool_name = function_call.get(self.name_key)
+            args = function_call.get(self.args_key, {})
+            
+            # SECURITY: Validate tool_name is a non-empty string
+            if not isinstance(tool_name, str) or not tool_name.strip():
+                return None
+            
+            if not isinstance(args, dict):
+                return None
+            
+            return (tool_name, args, metadata)
         
-        function_call = parsed_json[self.root_key]
-        if not isinstance(function_call, dict):
-            return None
+        # Standard format: direct functionCall
+        if self.root_key in parsed_json:
+            function_call = parsed_json[self.root_key]
+            if not isinstance(function_call, dict):
+                return None
+            
+            # Extract name and args using configured keys
+            tool_name = function_call.get(self.name_key)
+            args = function_call.get(self.args_key, {})
+            
+            # SECURITY: Validate tool_name is a non-empty string
+            if not isinstance(tool_name, str) or not tool_name.strip():
+                return None
+            
+            if not isinstance(args, dict):
+                return None
+            
+            return (tool_name, args, None)
         
-        # Extract name and args using configured keys
-        tool_name = function_call.get(self.name_key)
-        args = function_call.get(self.args_key, {})
-        
-        # SECURITY: Validate tool_name is a non-empty string
-        if not isinstance(tool_name, str) or not tool_name.strip():
-            return None
-        
-        if not isinstance(args, dict):
-            return None
-        
-        return (tool_name, args)
+        return None
 
 
 class ResponseParser:
@@ -371,16 +410,20 @@ class ResponseParser:
             # Use schema to extract tool call
             result = self.schema.extract_tool_call(parsed_json)
             if result:
-                tool_name, args = result
+                tool_name, args, metadata = result
                 
                 # SECURITY: Validate tool call
                 self._validate_tool_call(tool_name, args)
+                
+                # Validate metadata for computer-use tools
+                self._validate_metadata(tool_name, metadata)
                 
                 tool_call = ParsedToolCall(
                     tool_name=tool_name,
                     parameters=args,
                     raw_call=json_str,  # The entire JSON response
                     confidence=1.0,  # Highest confidence for pure JSON format
+                    metadata=metadata,
                 )
                 tool_calls.append(tool_call)
                 return tool_calls, ""  # No remaining text for pure JSON
@@ -417,10 +460,13 @@ class ResponseParser:
         extracted_positions: List[Tuple[int, int]] = []  # Track extracted positions for safe removal
         
         # Find all potential JSON object starts using regex (much faster than character loop)
-        # Look for opening brace followed by optional whitespace and the root key
+        # Look for opening brace followed by optional whitespace and either:
+        # 1. "metadata" (computer-use tool format)
+        # 2. "functionCall" (standard tool format)
         root_key_pattern = f'"{re.escape(self.schema.root_key)}"'
-        # Pattern: { followed by optional whitespace and the root key
-        pattern = re.compile(rf'\{{(?:\s*{root_key_pattern})', re.MULTILINE)
+        metadata_pattern = '"metadata"'
+        # Pattern: { followed by optional whitespace and either metadata or functionCall
+        pattern = re.compile(rf'\{{(?:\s*(?:{metadata_pattern}|{root_key_pattern}))', re.MULTILINE)
         
         # Find all candidate positions
         # PARSER SEARCH TRUNCATION FIX: Use max_response_size to limit search position,
@@ -460,8 +506,11 @@ class ResponseParser:
                 # Extract the JSON string
                 json_obj = response[start_pos:end_pos]
                 
-                # Verify it contains the root key (defense in depth)
-                if root_key_str not in json_obj:
+                # Verify it contains either metadata (computer-use) or functionCall (standard)
+                # Defense in depth: ensure we're parsing a valid tool call format
+                has_metadata = '"metadata"' in json_obj
+                has_function_call = root_key_str in json_obj
+                if not (has_metadata or has_function_call):
                     continue
                 
                 # SECURITY: Check JSON size
@@ -471,16 +520,20 @@ class ResponseParser:
                 # Use schema to extract tool call
                 result = self.schema.extract_tool_call(parsed)
                 if result:
-                    tool_name, args = result
+                    tool_name, args, metadata = result
                     
                     # SECURITY: Validate tool call
                     self._validate_tool_call(tool_name, args)
+                    
+                    # Validate metadata for computer-use tools
+                    self._validate_metadata(tool_name, metadata)
                     
                     tool_call = ParsedToolCall(
                         tool_name=tool_name,
                         parameters=args,
                         raw_call=json_obj,
                         confidence=1.0,
+                        metadata=metadata,
                     )
                     tool_calls.append(tool_call)
                     # Track position for safe removal
@@ -659,6 +712,76 @@ class ResponseParser:
             )
             raise ParseValidationError(
                 f"Tool call validation failed: {', '.join(validation_errors)}",
+                validation_errors=validation_errors,
+                boundary_name="response_parser",
+            )
+    
+    def _validate_metadata(self, tool_name: str, metadata: Optional[Dict[str, Any]]) -> None:
+        """
+        Validate metadata for computer-use tools.
+        
+        SECURITY: Computer-use tools MUST have metadata with required fields.
+        Metadata must be generated first, otherwise tool call is rejected.
+        
+        Args:
+            tool_name: Name of the tool
+            metadata: Metadata dict (None for non-computer-use tools)
+            
+        Raises:
+            ParseValidationError: If computer-use tool is missing metadata or required fields
+        """
+        # Check if this is a computer-use tool
+        tool = self.tool_registry.get_tool(tool_name)
+        is_computer_use = False
+        if tool and hasattr(tool, 'category'):
+            is_computer_use = tool.category == ToolDomain.COMPUTER
+        
+        if not is_computer_use:
+            # Non-computer-use tools don't need metadata
+            if metadata is not None:
+                # Warn but don't reject - metadata is ignored for non-computer tools
+                logger.debug(f"Non-computer-use tool '{tool_name}' has metadata (will be ignored)")
+            return
+        
+        # Computer-use tools MUST have metadata
+        validation_errors = []
+        
+        if metadata is None:
+            validation_errors.append(
+                f"Computer-use tool '{tool_name}' is missing metadata. "
+                "Metadata MUST be generated first before the action. "
+                "Format: {{\"metadata\": {{\"explanation\": \"...\", \"expectation\": \"...\"}}, \"action\": {{...}}}}"
+            )
+        elif not isinstance(metadata, dict):
+            validation_errors.append(
+                f"Computer-use tool '{tool_name}' has invalid metadata type: {type(metadata).__name__}. "
+                "Metadata must be a dictionary."
+            )
+        else:
+            # Validate required fields
+            if "explanation" not in metadata or not metadata["explanation"]:
+                validation_errors.append(
+                    f"Computer-use tool '{tool_name}' is missing required metadata field 'explanation'. "
+                    "Explanation describes why this tool is being used."
+                )
+            
+            if "expectation" not in metadata or not metadata["expectation"]:
+                validation_errors.append(
+                    f"Computer-use tool '{tool_name}' is missing required metadata field 'expectation'. "
+                    "Expectation describes what you expect to see after execution."
+                )
+            
+            # Description is optional (describes the most recent screenshot)
+            # No validation needed for description
+        
+        if validation_errors:
+            self.metrics.record_validation_violation(
+                validation_errors=validation_errors,
+                boundary_name="response_parser",
+                metadata={"tool_name": tool_name, "has_metadata": metadata is not None},
+            )
+            raise ParseValidationError(
+                f"Metadata validation failed for computer-use tool '{tool_name}': {', '.join(validation_errors)}",
                 validation_errors=validation_errors,
                 boundary_name="response_parser",
             )
