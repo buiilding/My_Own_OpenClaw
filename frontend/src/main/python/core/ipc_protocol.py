@@ -178,7 +178,10 @@ class JSONRPCProtocol:
         """Send a JSON-RPC response to stdout."""
         try:
             response_json = json.dumps(response, ensure_ascii=False)
-            sys.stdout.write(response_json + "\n")
-            sys.stdout.flush()
+            # Use buffer.write() with explicit UTF-8 encoding to avoid Windows console encoding issues
+            # This bypasses cp1252 encoding limitations and handles all Unicode characters
+            response_bytes = (response_json + "\n").encode('utf-8')
+            sys.stdout.buffer.write(response_bytes)
+            sys.stdout.buffer.flush()
         except Exception as e:
             logger.error(f"Error sending response: {e}", exc_info=True)

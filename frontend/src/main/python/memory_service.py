@@ -216,9 +216,11 @@ class MemoryService:
                     response = await self.handle_request(request)
                     
                     # Send JSON response to stdout (one line)
-                    response_json = json.dumps(response)
-                    sys.stdout.write(response_json + "\n")
-                    sys.stdout.flush()
+                    # Use buffer.write() with explicit UTF-8 encoding to avoid Windows console encoding issues
+                    response_json = json.dumps(response, ensure_ascii=False)
+                    response_bytes = (response_json + "\n").encode('utf-8')
+                    sys.stdout.buffer.write(response_bytes)
+                    sys.stdout.buffer.flush()
                     
                 except json.JSONDecodeError as e:
                     logger.error(f"Invalid JSON received: {e}")
@@ -227,8 +229,11 @@ class MemoryService:
                         "success": False,
                         "error": f"Invalid JSON: {str(e)}"
                     }
-                    sys.stdout.write(json.dumps(error_response) + "\n")
-                    sys.stdout.flush()
+                    # Use buffer.write() with explicit UTF-8 encoding to avoid Windows console encoding issues
+                    error_json = json.dumps(error_response, ensure_ascii=False)
+                    error_bytes = (error_json + "\n").encode('utf-8')
+                    sys.stdout.buffer.write(error_bytes)
+                    sys.stdout.buffer.flush()
                 except Exception as e:
                     logger.error(f"Error processing request: {e}", exc_info=True)
                     error_response = {
@@ -236,8 +241,11 @@ class MemoryService:
                         "success": False,
                         "error": str(e)
                     }
-                    sys.stdout.write(json.dumps(error_response) + "\n")
-                    sys.stdout.flush()
+                    # Use buffer.write() with explicit UTF-8 encoding to avoid Windows console encoding issues
+                    error_json = json.dumps(error_response, ensure_ascii=False)
+                    error_bytes = (error_json + "\n").encode('utf-8')
+                    sys.stdout.buffer.write(error_bytes)
+                    sys.stdout.buffer.flush()
 
         except KeyboardInterrupt:
             logger.info("Received keyboard interrupt")

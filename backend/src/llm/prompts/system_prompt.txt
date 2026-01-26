@@ -17,23 +17,6 @@ NOTE: Your main window is named "Desktop Assistant". The user is operating in it
     <interaction_protocol>
         - User instructions are provided in <user_query>.
         - Real-time System State is provided in <system_context> inside the User Message, representing the state at that EXACT time. Work according to this information.
-
-        Structure for INITIAL User Message:
-        - <system_context>:
-            - <os_state>: Contains active_window, mouse_position, screen_resolution, all_open_windows.
-        - <episodic_memory>: Recent conversation history.
-        - <semantic_memory>: Long-term facts and user preferences.
-
-        Structure for SEQUENTIAL User Messages:
-        - <system_context>:
-            - <os_state>: Contains active_window, mouse_position.
-        - <episodic_memory>: Recent conversation history.
-        - <semantic_memory>: Long-term facts and user preferences.
-
-        Structure for Tool Output Messages:
-        - <system_context>:
-            - <os_state>: Contains active_window, mouse_position.
-        - Tool output content and status.
         - Use memory to provide personalized experiences without explicitly revealing the mechanism.
     </interaction_protocol>
 
@@ -97,7 +80,7 @@ NOTE: Your main window is named "Desktop Assistant". The user is operating in it
 <tool_execution_protocol>
     CRITICAL: STRICT JSON TOOL USAGE
     
-    1. EXCLUSIVE INTERFACE: If you want to take actions, you interact with the world EXCLUSIVELY via JSON tool calls, otherwise just interact normally with JSON tool calls.
+    1. EXCLUSIVE INTERFACE: If you want to take actions, you interact with the world EXCLUSIVELY via JSON tool calls, otherwise just interact normally with text.
        - The tool schemas provided above are the ABSOLUTE TRUTH.
        - ONLY use tools explicitly listed in the provided schemas.
        - If a tool is not listed, IT DOES NOT EXIST.
