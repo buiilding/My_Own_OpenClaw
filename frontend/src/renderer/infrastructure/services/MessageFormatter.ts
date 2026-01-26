@@ -37,13 +37,10 @@ export interface ToolResult {
  */
 export function formatSequentialStateXml(state: SystemState | null): string {
   if (!state) {
-    const fallbackTime = new Date().toISOString();
     return `<system_context>
     <os_state>
         <active_window>Unknown</active_window>
         <mouse_position>Unknown</mouse_position>
-        <time>${fallbackTime}</time>
-        <clipboard_preview><empty></clipboard_preview>
     </os_state>
 </system_context>`;
   }
@@ -52,8 +49,6 @@ export function formatSequentialStateXml(state: SystemState | null): string {
     <os_state>
         <active_window>${state.active_window || 'Unknown'}</active_window>
         <mouse_position>${state.mouse_position || 'Unknown'}</mouse_position>
-        <time>${state.time || new Date().toISOString()}</time>
-        <clipboard_preview>${state.clipboard || '<empty>'}</clipboard_preview>
     </os_state>
 </system_context>`;
 }

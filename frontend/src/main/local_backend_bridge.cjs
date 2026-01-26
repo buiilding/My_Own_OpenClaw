@@ -359,9 +359,9 @@ function initializeLocalBackendBridge(mainWindow) {
   });
 
   // Handle system state requests
-  ipcMain.handle('get-system-state', async () => {
+  ipcMain.handle('get-system-state', async (event, { fields } = {}) => {
     try {
-      const result = await sendRequest('get_system_state');
+      const result = await sendRequest('get_system_state', { fields });
       
       if (result.success === false) {
         return null;
@@ -422,9 +422,9 @@ function initializeLocalBackendBridge(mainWindow) {
 /**
  * Helper function to get system state (for use in ipc.cjs)
  */
-async function getSystemState() {
+async function getSystemState(fields = null) {
   try {
-    const result = await sendRequest('get_system_state');
+    const result = await sendRequest('get_system_state', fields ? { fields } : {});
     if (result.success === false) {
       return null;
     }

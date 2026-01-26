@@ -35,7 +35,9 @@ export async function extractOSstate(
     try {
       const [stateResult, screenshotResult] = await Promise.all([
         enable_system_state
-          ? IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE)
+          ? IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE, {
+              fields: ['active_window', 'mouse_position', 'screen_resolution', 'windows'],
+            })
           : Promise.resolve(null),
         enable_screenshot
           ? IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
@@ -68,12 +70,16 @@ export async function extractOSstate(
     }
   }
 
-  // Regular extraction
+  // Regular extraction (for tool outputs: only active_window and mouse_position)
   try {
     const promises: Array<Promise<any>> = [];
 
     if (enable_system_state) {
-      promises.push(IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE));
+      promises.push(
+        IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE, {
+          fields: ['active_window', 'mouse_position'],
+        }),
+      );
     }
 
     if (enable_screenshot) {

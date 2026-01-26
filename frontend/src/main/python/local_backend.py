@@ -12,7 +12,7 @@ import logging
 import signal
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 # Add the frontend python directory to the path
 frontend_python_dir = Path(__file__).parent
@@ -136,12 +136,12 @@ class LocalBackend:
                 "error": f"Tool execution failed: {str(e)}"
             }
     
-    async def _handle_get_system_state(self, **kwargs) -> Dict[str, Any]:
-        """Get system state."""
+    async def _handle_get_system_state(self, fields: Optional[list] = None, **kwargs) -> Dict[str, Any]:
+        """Get system state with optional field selection."""
         try:
             from core.system_state import get_system_state
             
-            state = await get_system_state()
+            state = await get_system_state(fields=fields)
             return {
                 "success": True,
                 "data": state

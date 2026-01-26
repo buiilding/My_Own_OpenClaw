@@ -20,74 +20,139 @@ IS_MACOS = platform.system() == "Darwin"
 IS_LINUX = platform.system() == "Linux"
 
 
-async def get_system_state() -> Dict[str, Any]:
+async def get_system_state(
+    fields: Optional[list] = None
+) -> Dict[str, Any]:
     """
-    Get complete system state.
+    Get system state with optional field selection.
+    
+    Args:
+        fields: Optional list of field names to retrieve. If None, retrieves all fields.
+                Valid fields: 'active_window', 'mouse_position', 'clipboard', 
+                'screen_resolution', 'windows', 'stats', 'time'
     
     Returns:
-        Dictionary with system state information including:
-        - active_window: Currently focused window title
-        - mouse_position: Current mouse coordinates
-        - clipboard: Clipboard content preview
-        - screen_resolution: Display resolution
-        - windows: List of all open window titles
-        - stats: System statistics (CPU, memory, battery)
-        - time: Timestamp
+        Dictionary with requested system state information.
     """
+    # If no fields specified, retrieve all fields (backward compatibility)
+    if fields is None:
+        fields = ['active_window', 'mouse_position', 'clipboard', 'screen_resolution', 'windows', 'stats', 'time']
+    
     try:
-        # Run independent operations in parallel for efficiency
-        results = await asyncio.gather(
-            _get_active_window(),
-            _get_mouse_position(),
-            _get_clipboard_preview(),
-            get_screen_resolution(),
-            _get_all_open_windows(),
-            _get_system_stats(),
-            return_exceptions=True
-        )
+        # Build list of coroutines to execute based on requested fields
+        coroutines = []
+        field_map = {}
         
-        active_window, mouse_pos, clipboard, screen_res, windows, stats = results
+        if 'active_window' in fields:
+            coroutines.append(_get_active_window())
+            field_map['active_window'] = len(coroutines) - 1
         
-        # Handle exceptions
-        if isinstance(active_window, Exception):
-            logger.warning(f"Failed to get active window: {active_window}")
-            active_window = None
-        if isinstance(mouse_pos, Exception):
-            logger.warning(f"Failed to get mouse position: {mouse_pos}")
-            mouse_pos = None
-        if isinstance(clipboard, Exception):
-            logger.warning(f"Failed to get clipboard: {clipboard}")
-            clipboard = '<error>'
-        if isinstance(screen_res, Exception):
-            logger.warning(f"Failed to get screen resolution: {screen_res}")
-            screen_res = None
-        if isinstance(windows, Exception):
-            logger.warning(f"Failed to get open windows: {windows}")
-            windows = []
-        if isinstance(stats, Exception):
-            logger.warning(f"Failed to get system stats: {stats}")
-            stats = {}
+        if 'mouse_position' in fields:
+            coroutines.append(_get_mouse_position())
+            field_map['mouse_position'] = len(coroutines) - 1
         
-        return {
-            "active_window": active_window or "Unknown",
-            "mouse_position": mouse_pos or "Unknown",
-            "clipboard": clipboard or "<empty>",
-            "screen_resolution": screen_res or "Unknown",
-            "windows": windows if isinstance(windows, list) else [],
-            "stats": stats if isinstance(stats, dict) else {},
-            "time": datetime.now().isoformat(),
-        }
+        if 'clipboard' in fields:
+            coroutines.append(_get_clipboard_preview())
+            field_map['clipboard'] = len(coroutines) - 1
+        
+        if 'screen_resolution' in fields:
+            coroutines.append(get_screen_resolution())
+            field_map['screen_resolution'] = len(coroutines) - 1
+        
+        if 'windows' in fields:
+            coroutines.append(_get_all_open_windows())
+            field_map['windows'] = len(coroutines) - 1
+        
+        if 'stats' in fields:
+            coroutines.append(_get_system_stats())
+            field_map['stats'] = len(coroutines) - 1
+        
+        # Run requested operations in parallel
+        if coroutines:
+            results = await asyncio.gather(*coroutines, return_exceptions=True)
+        else:
+            results = []
+        
+        # Build result dictionary with only requested fields
+        result = {}
+        
+        if 'active_window' in fields:
+            idx = field_map.get('active_window')
+            if idx is not None:
+                active_window = results[idx] if not isinstance(results[idx], Exception) else None
+                if isinstance(active_window, Exception):
+                    logger.warning(f"Failed to get active window: {active_window}")
+                    active_window = None
+                result["active_window"] = active_window or "Unknown"
+        
+        if 'mouse_position' in fields:
+            idx = field_map.get('mouse_position')
+            if idx is not None:
+                mouse_pos = results[idx] if not isinstance(results[idx], Exception) else None
+                if isinstance(mouse_pos, Exception):
+                    logger.warning(f"Failed to get mouse position: {mouse_pos}")
+                    mouse_pos = None
+                result["mouse_position"] = mouse_pos or "Unknown"
+        
+        if 'clipboard' in fields:
+            idx = field_map.get('clipboard')
+            if idx is not None:
+                clipboard = results[idx] if not isinstance(results[idx], Exception) else '<error>'
+                if isinstance(clipboard, Exception):
+                    logger.warning(f"Failed to get clipboard: {clipboard}")
+                    clipboard = '<error>'
+                result["clipboard"] = clipboard or "<empty>"
+        
+        if 'screen_resolution' in fields:
+            idx = field_map.get('screen_resolution')
+            if idx is not None:
+                screen_res = results[idx] if not isinstance(results[idx], Exception) else None
+                if isinstance(screen_res, Exception):
+                    logger.warning(f"Failed to get screen resolution: {screen_res}")
+                    screen_res = None
+                result["screen_resolution"] = screen_res or "Unknown"
+        
+        if 'windows' in fields:
+            idx = field_map.get('windows')
+            if idx is not None:
+                windows = results[idx] if not isinstance(results[idx], Exception) else []
+                if isinstance(windows, Exception):
+                    logger.warning(f"Failed to get open windows: {windows}")
+                    windows = []
+                result["windows"] = windows if isinstance(windows, list) else []
+        
+        if 'stats' in fields:
+            idx = field_map.get('stats')
+            if idx is not None:
+                stats = results[idx] if not isinstance(results[idx], Exception) else {}
+                if isinstance(stats, Exception):
+                    logger.warning(f"Failed to get system stats: {stats}")
+                    stats = {}
+                result["stats"] = stats if isinstance(stats, dict) else {}
+        
+        if 'time' in fields:
+            result["time"] = datetime.now().isoformat()
+        
+        return result
     except Exception as e:
         logger.error(f"Error getting system state: {e}", exc_info=True)
-        return {
-            "active_window": "Unknown",
-            "mouse_position": "Unknown",
-            "clipboard": "<error>",
-            "screen_resolution": "Unknown",
-            "windows": [],
-            "stats": {},
-            "time": datetime.now().isoformat(),
-        }
+        # Return minimal fallback with only requested fields
+        fallback = {}
+        if 'active_window' in fields:
+            fallback["active_window"] = "Unknown"
+        if 'mouse_position' in fields:
+            fallback["mouse_position"] = "Unknown"
+        if 'clipboard' in fields:
+            fallback["clipboard"] = "<error>"
+        if 'screen_resolution' in fields:
+            fallback["screen_resolution"] = "Unknown"
+        if 'windows' in fields:
+            fallback["windows"] = []
+        if 'stats' in fields:
+            fallback["stats"] = {}
+        if 'time' in fields:
+            fallback["time"] = datetime.now().isoformat()
+        return fallback
 
 
 async def _get_active_window() -> Optional[str]:
