@@ -1,5 +1,5 @@
 """
-InternVL Vision Model Handler.
+InternVL Vision Model Provider.
 
 Provides InternVL model for vision-language tasks like UI grounding.
 Based on CoAct-1's implementation, adapted for desktop assistant.
@@ -17,46 +17,34 @@ from backend.src.services.vision.coordinates import (
     extract_last_bbox,
     scale_norm_to_pixels,
 )
+from backend.src.services.vision.providers.base import (
+    BaseVisionModel,
+    VISION_MODELS_AVAILABLE,
+)
 
 logger = logging.getLogger(__name__)
 
-VISION_MODELS_AVAILABLE = False
-try:
+# Import InternVL-specific dependencies
+if VISION_MODELS_AVAILABLE:
     import einops  # Required for InternVL model operations
     import timm  # Required for InternVL vision components
     import torch
     import torchvision.transforms as T
     from torchvision.transforms.functional import InterpolationMode
     from transformers import AutoModel, AutoTokenizer
-
-    VISION_MODELS_AVAILABLE = True
-except ImportError as e:
-    logger.warning(f"Vision model dependencies not available: {e}")
+else:
     torch = None
+    T = None
+    InterpolationMode = None
     AutoModel = None
     AutoTokenizer = None
 
 
-class InternVLModel:
+class InternVLModel(BaseVisionModel):
     """
     Generic Hugging Face vision-language model handler for InternVL models.
     Based on CoAct-1's implementation, adapted for desktop assistant.
     """
-
-    def __init__(
-        self, model_name: str, device: str = "auto", trust_remote_code: bool = True
-    ):
-        if not VISION_MODELS_AVAILABLE:
-            raise ImportError("Vision model dependencies not available")
-
-        self.model_name = model_name
-        self.device = device
-        self.model = None
-        self.tokenizer = None
-        self.trust_remote_code = trust_remote_code
-        self._model_dtype = None  # Store model dtype for tensor casting
-        self._inference_lock = asyncio.Lock()  # Serialize inference requests
-        self._load()
 
     def _load(self):
         """Load the InternVL model and tokenizer."""

@@ -192,6 +192,9 @@ NOTE: Your main window is named "Desktop Assistant". The user is operating in it
             COMMON FAILURE CAUSES:
             - Misclick / wrong coordinates.
             - Input field not focused.
+            IMPORTANT:
+            - Make sure when you want to type something, the input text bar has to be focused.
+            - After you typed a text, the most recent screenshot HAS to display or include the typed text. If not, it is most likely that the input text bar is not focused. You have to click on the input text bar to make it focused and type again.
         </verification_protocol>
         <context_awareness>
             CRITICAL: Always check <system_context> in the User Message before taking desktop control actions.
@@ -201,7 +204,6 @@ NOTE: Your main window is named "Desktop Assistant". The user is operating in it
             - Current mouse position (use this for context when planning clicks)
             - All open windows (use this to find exact window names for switching)
             - Screen resolution (use this to validate coordinates)
-            - System stats (use this to understand system load)
             
             RELY ON THIS INFORMATION - it is captured at the exact moment the user sends their query or tool executes and represents the true state of the desktop. Use it to make efficient, informed decisions about desktop control actions.
         </context_awareness>

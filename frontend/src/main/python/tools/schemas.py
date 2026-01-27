@@ -80,14 +80,17 @@ class ScreenshotToolArgs(BaseModel):
 # --- Scroll Tool Schemas ---
 
 class ScrollControlArgs(BaseModel):
-    """Arguments for scroll control tool."""
+    """Arguments for scroll control tool. Vertical: up/down (vscroll). Horizontal: left/right (hscroll)."""
     model_config = ConfigDict(extra='ignore')
     
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(..., description="Scroll action to perform")
     x: Optional[int] = Field(None, description="X coordinate to scroll at (optional)")
     y: Optional[int] = Field(None, description="Y coordinate to scroll at (optional)")
     clicks: int = Field(5, description="Number of scroll clicks")
-    direction: Optional[Literal["up", "down", "left", "right"]] = Field(None, description="Direction for scroll action")
+    direction: Optional[Literal["up", "down", "left", "right"]] = Field(
+        None,
+        description="Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'.",
+    )
     wait: Optional[float] = Field(
         2.0,
         description="Delay in seconds before taking a screenshot after tool execution."

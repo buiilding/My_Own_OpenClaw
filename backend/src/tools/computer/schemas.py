@@ -92,7 +92,7 @@ class ScreenshotToolArgs(BaseModel):
 
 # --- Scroll Tool Schemas ---
 
-# Scroll direction for this tool (different from ScrollDirection enum used in mouse_tool)
+# Scroll direction: vertical (up/down) or horizontal (left/right). Uses vscroll for vertical, hscroll for horizontal.
 ScrollToolDirection = Literal["up", "down", "left", "right"]
 
 class ScrollControlArgs(BaseModel):
@@ -101,8 +101,11 @@ class ScrollControlArgs(BaseModel):
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(..., description="Scroll action to perform")
     x: Optional[int] = Field(None, description="X coordinate to scroll at (optional, uses current cursor if not provided)")
     y: Optional[int] = Field(None, description="Y coordinate to scroll at (optional, uses current cursor if not provided)")
-    clicks: int = Field(5, description="Number of scroll clicks")
-    direction: Optional[ScrollToolDirection] = Field(None, description="Direction for scroll action ('up', 'down', 'left', 'right')")
+    clicks: int = Field(5, description="Number of scroll clicks (positive=up/right, negative=down/left)")
+    direction: Optional[ScrollToolDirection] = Field(
+        None,
+        description="Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'.",
+    )
     wait: float = Field(
         ...,
         description="Delay in seconds before taking a screenshot after tool execution."

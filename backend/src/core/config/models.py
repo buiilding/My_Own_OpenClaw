@@ -176,7 +176,7 @@ class AppConfig(BaseModel):
     # but kept for backend-specific tool configurations if any
     
     # Vision Model Settings
-    vision_model_name: Optional[str] = "OpenGVLab/InternVL3_5-2B"  # Defaults to "OpenGVLab/InternVL3_5-4B" if None
+    vision_model_name: Optional[str] = "OpenGVLab/InternVL3_5-4B"  # Defaults to "OpenGVLab/InternVL3_5-4B" if None
     
     # Voice Mode Settings
     voice_mode_enabled: bool = False

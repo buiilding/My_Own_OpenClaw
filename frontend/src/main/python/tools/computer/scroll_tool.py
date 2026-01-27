@@ -1,9 +1,14 @@
 """
 Scroll Control Tool - Python implementation using pyautogui.
+
+Uses vscroll/hscroll for vertical/horizontal scroll. Includes time.sleep(0.5)
+after moveTo and before scroll (agent-s pattern) for consistent behavior across
+different polling rates and operating systems.
 """
 
 import asyncio
 import logging
+import time
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -12,10 +17,10 @@ logger = logging.getLogger(__name__)
 async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
     """
     Execute scroll control action.
-    
+
     Args:
         args: Dictionary with 'action', 'x', 'y', 'clicks', 'direction'
-        
+
     Returns:
         Dictionary with success status and scroll result
     """
@@ -24,44 +29,43 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
     y = args.get("y")
     clicks = args.get("clicks", 5)
     direction = args.get("direction")
-    
+
     if not action:
         return {"success": False, "error": "action is required"}
-    
+
     try:
         import pyautogui
-        
+
         # Disable pyautogui failsafe
         pyautogui.FAILSAFE = False
-        
+
         def _execute_action():
             if action == "scroll":
                 if not direction:
                     raise ValueError("direction required for scroll action")
-                
+
                 if x is not None and y is not None:
                     pyautogui.moveTo(x, y)
-                
-                # pyautogui.scroll uses positive for up, negative for down
+                    time.sleep(0.5)  # Let cursor/window settle before scroll (consistent across polling rates)
+
+                # vscroll: positive=up, negative=down. hscroll: positive=right, negative=left.
                 if direction == "up":
-                    pyautogui.scroll(clicks, x=x, y=y)
+                    pyautogui.vscroll(clicks)
                 elif direction == "down":
-                    pyautogui.scroll(-clicks, x=x, y=y)
+                    pyautogui.vscroll(-clicks)
                 elif direction == "left":
                     try:
-                        pyautogui.hscroll(-clicks, x=x, y=y)
+                        pyautogui.hscroll(-clicks)
                     except AttributeError:
-                        # hscroll not available, use vertical as fallback
-                        pyautogui.scroll(-clicks, x=x, y=y)
+                        pyautogui.vscroll(-clicks)  # Fallback on platforms without hscroll
                 elif direction == "right":
                     try:
-                        pyautogui.hscroll(clicks, x=x, y=y)
+                        pyautogui.hscroll(clicks)
                     except AttributeError:
-                        # hscroll not available, use vertical as fallback
-                        pyautogui.scroll(clicks, x=x, y=y)
+                        pyautogui.vscroll(clicks)  # Fallback on platforms without hscroll
                 else:
                     raise ValueError(f"Invalid scroll direction: {direction}")
-                
+
                 return {
                     "action": "scroll",
                     "clicks": clicks,
@@ -71,9 +75,9 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "llm_content": f"Scrolled {direction} {clicks} clicks",
                     "return_display": f"Scrolled {direction} {clicks} clicks",
                 }
-            
+
             elif action == "scroll_up":
-                pyautogui.scroll(clicks)
+                pyautogui.vscroll(clicks)
                 return {
                     "action": "scroll_up",
                     "clicks": clicks,
@@ -81,9 +85,9 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "llm_content": f"Scrolled up {clicks} clicks",
                     "return_display": f"Scrolled up {clicks} clicks",
                 }
-            
+
             elif action == "scroll_down":
-                pyautogui.scroll(-clicks)
+                pyautogui.vscroll(-clicks)
                 return {
                     "action": "scroll_down",
                     "clicks": clicks,
@@ -91,7 +95,7 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "llm_content": f"Scrolled down {clicks} clicks",
                     "return_display": f"Scrolled down {clicks} clicks",
                 }
-            
+
             else:
                 raise ValueError(f"Unknown scroll action: {action}")
         

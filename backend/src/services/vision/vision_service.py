@@ -8,7 +8,11 @@ import asyncio
 import logging
 from typing import Optional
 
-from backend.src.services.vision.internvl import InternVLModel, VISION_MODELS_AVAILABLE
+from backend.src.services.vision.providers import (
+    InternVLModel,
+    VenusVisionModel,
+    VISION_MODELS_AVAILABLE,
+)
 from backend.src.services.vision.utils import normalize_model_name
 
 logger = logging.getLogger(__name__)
@@ -30,6 +34,7 @@ class VisionService:
             model_name: Optional model name (defaults to "OpenGVLab/InternVL3_5-4B")
         """
         self.model_name = normalize_model_name(model_name)
+        # NOTE: At runtime this may be an InternVLModel or VenusVisionModel instance.
         self._model: Optional[InternVLModel] = None
         self._initialized = False
         self._initialization_error: Optional[str] = None
@@ -60,16 +65,27 @@ class VisionService:
 
             try:
                 logger.info(f"Initializing vision service with model: {self.model_name}")
-                
-                # Initialize InternVL model in thread pool to avoid blocking event loop
-                # Model loading is synchronous and CPU/IO intensive
-                loop = asyncio.get_event_loop()
-                self._model = await loop.run_in_executor(
-                    None,
-                    lambda: InternVLModel(
+
+                # Choose concrete vision model implementation based on model_name.
+                # - inclusionAI/UI-Venus-* → VenusVisionModel (Qwen2.5-VL family, no use_flash_attn)
+                # - everything else       → InternVLModel (original InternVL behavior)
+                def _build_model():
+                    if self.model_name and self.model_name.startswith(
+                        "inclusionAI/UI-Venus"
+                    ):
+                        return VenusVisionModel(
+                            model_name=self.model_name,
+                            device="auto",
+                            trust_remote_code=True,
+                        )
+                    return InternVLModel(
                         model_name=self.model_name, device="auto", trust_remote_code=True
                     )
-                )
+
+                # Initialize model in thread pool to avoid blocking event loop
+                # Model loading is synchronous and CPU/IO intensive
+                loop = asyncio.get_event_loop()
+                self._model = await loop.run_in_executor(None, _build_model)
                 
                 self._initialized = True
                 logger.info(f"Vision service initialized successfully with model: {self.model_name}")
