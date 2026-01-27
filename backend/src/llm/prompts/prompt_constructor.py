@@ -21,8 +21,9 @@ eliminating circular parsing patterns and preserving data integrity.
 import json
 import logging
 import re
-from typing import List, Dict, Any, Optional, Union, TYPE_CHECKING
+from typing import List, Dict, Any, Optional, Union
 
+from backend.src.core.config import AppConfig
 from backend.src.llm.prompts.prompts import get_system_prompt
 from backend.src.llm.prompts.prompt_metadata import PromptMetadata, UserMessageMetadata
 from backend.src.tools.registry import ToolRegistry
@@ -47,7 +48,7 @@ class PromptConstructor:
     def __init__(
         self,
         tool_registry: ToolRegistry,
-        config: "AppConfig",
+        config: AppConfig,
         system_prompt: Optional[str] = None,
         metrics_service: Optional[MetricsService] = None,
     ):

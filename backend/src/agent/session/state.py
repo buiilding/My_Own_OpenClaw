@@ -61,13 +61,13 @@ class ConversationHistory:
         Content includes context XML, memory sections, and user query.
         For the first message only, tool schemas are embedded in content as a <tool_schemas> XML section.
 
-        MEMORY DOS PROTECTION: Image data is stored only for recent messages (last 5 turns).
-        Older messages have image_data cleared to prevent unbounded memory growth from
-        large base64-encoded images. Text content is preserved for context.
+        MEMORY DOS PROTECTION: Only the two most recent images are kept. When a new screenshot
+        arrives, the LLM compares previous state vs current state to verify actions; older
+        images add no value to that comparison. Text content is preserved for context.
 
         Args:
             content: Message content (context + memory + query, WITH tool schemas for first message only)
-            image_data: Optional base64 image data (will be cleared after 5 turns to prevent memory DoS)
+            image_data: Optional base64 image data (cleared except for the 2 most recent images to limit memory DoS)
             episodic_memory: Optional list of episodic memory strings (structured data)
             semantic_memory: Optional list of semantic memory strings (structured data)
             user_query_raw: Optional raw user query text (structured data)
@@ -89,7 +89,7 @@ class ConversationHistory:
         self._cached_token_count = None
         self._cached_token_count_model = None
         self._prune_if_needed()
-        # MEMORY DOS PROTECTION: Clear image data from old messages (keep last 5 turns)
+        # Keep only the 2 most recent images (previous + current) for before/after comparison; clear older ones
         self._clear_old_image_data()
 
     def add_tool_output(self, message: str, image_data: Optional[str] = None) -> None:
@@ -166,10 +166,9 @@ class ConversationHistory:
             # Pruning occurred, cache already invalidated by _prune_if_needed
             logger.debug("Token count cache invalidated due to history pruning")
         
-        # MEMORY SPIKE FIX: Clear old image data after adding tool output to prevent
-        # unbounded memory growth during tool loops. Tool outputs can include large
-        # screenshots (5-10MB each), and without cleanup, memory spikes during multi-tool
-        # execution can cause OOM crashes before the next user message triggers cleanup.
+        # Keep only the 2 most recent images (previous + current) so the LLM can compare screen
+        # state before/after actions; older images add no value. Also prevents memory spikes during
+        # tool loops (screenshots ~5-10MB each).
         self._clear_old_image_data()
 
     def add_assistant_message(self, message: str) -> None:
@@ -326,35 +325,33 @@ class ConversationHistory:
             self._cached_token_count_model = None
             logger.debug(f"Pruned conversation history to {self.max_length} messages (removed {removed_count})")
     
-    def _clear_old_image_data(self, keep_recent_turns: int = 5) -> None:
+    def _clear_old_image_data(self, keep_recent_images: int = 2) -> None:
         """
-        Clear image_data from messages older than keep_recent_turns to prevent memory DoS.
+        Keep only the last keep_recent_images image-bearing messages; clear image_data from all others.
         
-        MEMORY DOS PROTECTION: Base64-encoded images can be large (e.g., 4K screenshots ~10MB).
-        This method clears image_data from old messages while preserving text content,
-        preventing unbounded memory growth in long-running sessions.
+        RATIONALE: When a new screenshot arrives, the LLM compares previous screen state vs current
+        to verify actions (e.g., "No Change" vs "Wrong Change"). Exactly two images (previous + current)
+        are needed for that comparison; older images contribute nothing. Also limits memory and context
+        (base64 screenshots can be ~10MB each).
         
         Args:
-            keep_recent_turns: Number of recent turns to keep image data (default: 5)
+            keep_recent_images: Number of most recent images to keep (default: 2)
         """
-        if len(self.history) <= keep_recent_turns:
-            return  # Not enough messages to clear
+        image_indices = [i for i, msg in enumerate(self.history) if msg.image_data]
+        if len(image_indices) <= keep_recent_images:
+            return  # Nothing to clear
         
-        # Clear image_data from messages older than keep_recent_turns
-        # Keep text content for context, but drop large image payloads
+        indices_to_clear = set(image_indices[:-keep_recent_images])
         cleared_count = 0
-        for i in range(len(self.history) - keep_recent_turns):
+        for i in indices_to_clear:
             msg = self.history[i]
-            if msg.image_data:
-                # Clear image data but preserve text content
-                msg.image_data = None
-                cleared_count += 1
-                # Rebuild LLM cache entry without image (text-only)
-                self._llm_history_cache[i] = msg.to_llm_message()
+            msg.image_data = None
+            cleared_count += 1
+            self._llm_history_cache[i] = msg.to_llm_message()
         
         if cleared_count > 0:
             logger.debug(
                 f"Cleared image data from {cleared_count} old messages "
-                f"(keeping last {keep_recent_turns} turns) to prevent memory DoS"
+                f"(keeping last {keep_recent_images} images) to limit memory and context size"
             )
 
