@@ -6,13 +6,20 @@ configures CORS, and manages the application lifecycle including startup and shu
 """
 import asyncio
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.src.api.routes import websocket, embeddings, semantic
+from backend.src.api.routes import websocket
+from backend.src.api.routes.memory import embeddings, semantic
 from backend.src.core.bootstrap.coordinator import InitializationCoordinator
+
+# Disable plugin auto-loading by default when running main file
+# Set PLUGIN_AUTO_ENABLE=true to enable auto-loading
+if os.getenv("PLUGIN_AUTO_ENABLE") is None:
+    os.environ["PLUGIN_AUTO_ENABLE"] = "false"
 
 # Configure logging
 logging.basicConfig(

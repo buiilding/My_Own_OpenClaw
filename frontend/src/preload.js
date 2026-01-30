@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'get-system-state',
       'store-memory',
       'search-memory',
+      'minimize-window-delayed',
     ];
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, data);

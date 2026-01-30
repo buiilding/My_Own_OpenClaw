@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Optional
 from backend.src.core.config import AppConfig
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.core import AgentSession
+    from backend.src.agent.session.session import AgentSession
     from backend.src.core.plugins.registry import PluginRegistry
     from backend.src.tools.registry import ToolRegistry
 
@@ -82,9 +82,16 @@ class AgentSessionFactory:
         # Use provided config or fall back to factory's config
         session_config = config if config is not None else self.config
 
-        # Create LLM client (needs config for initialization)
-        # Note: llm_client_factory might use container.config, but we pass config to AgentSession
-        llm_client = self.llm_client_factory()
+        # Create LLM client with session-specific config
+        # The factory accepts an optional config parameter:
+        # - If config is provided, it creates client with that config (for session-specific config)
+        # - Otherwise, it uses DI container's factory (which may be overridden for simulation)
+        llm_client = self.llm_client_factory(session_config)
+        logger.info(
+            f"[Session Factory] Created LLM client with session config: "
+            f"model_provider='{session_config.model_provider}', "
+            f"selected_model_id='{session_config.selected_model_id}'"
+        )
 
         # Create ToolOrchestrator
         tool_orchestrator = self.tool_orchestrator_factory()
@@ -97,7 +104,7 @@ class AgentSessionFactory:
             )
 
         # Create AgentSession
-        from backend.src.agent.core.core import AgentSession
+        from backend.src.agent.session.session import AgentSession
 
         session = AgentSession(
             cfg=session_config,

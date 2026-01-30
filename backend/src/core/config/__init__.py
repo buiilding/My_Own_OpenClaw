@@ -16,16 +16,12 @@ from backend.src.core.config.models import (
     Preferences,
     OCRConfig,
 )
-from backend.src.core.config.manager import (
-    ConfigManager,
-    get_config_manager,
-    get_config_dir,
-    load_settings_from_file,
-    save_settings_to_file,
+from backend.src.core.config.loader import (
+    get_default_tts_model_path,
     load_api_key_for_provider,
-    APP_NAME,
-    CONFIG_FILE_NAME,
+    load_settings_from_file,
 )
+from backend.src.core.config.manager import ConfigManager, get_config_manager
 
 __all__ = [
     "AppConfig",
@@ -41,10 +37,7 @@ __all__ = [
     "OCRConfig",
     "ConfigManager",
     "get_config_manager",
-    "get_config_dir",
     "load_settings_from_file",
-    "save_settings_to_file",
     "load_api_key_for_provider",
-    "APP_NAME",
-    "CONFIG_FILE_NAME",
+    "get_default_tts_model_path",
 ]

@@ -8,7 +8,7 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.core.security.policy import Permission
-from backend.src.core.types import KeyboardAction
+from backend.src.core.types.enums import KeyboardAction
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
 from backend.src.tools.categorization import ToolDomain

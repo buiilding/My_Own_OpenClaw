@@ -10,7 +10,7 @@ from typing import Literal, Optional, Tuple, Dict, Any, List
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 
 from backend.src.core.security.policy import Permission
-from backend.src.core.types import MouseAction, CoordinateFindingMethod, ScrollDirection
+from backend.src.core.types.enums import CoordinateFindingMethod, MouseAction, ScrollDirection
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
 from backend.src.tools.categorization import ToolDomain
