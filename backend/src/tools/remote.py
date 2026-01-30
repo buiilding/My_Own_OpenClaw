@@ -388,7 +388,7 @@ class RemoteWaitTool(Tool[WaitToolArgs], RemoteToolBase):
 
     name = "wait"
     description = (
-        "Wait for 1 second, then capture a screenshot of the current screen state. "
+        "Wait for a specified number of seconds, then capture a screenshot of the current screen state. "
         "Useful for waiting for UI changes, animations, page loads, or async operations to complete. "
         "After execution, returns a status message and a screenshot image."
     )
@@ -494,6 +494,9 @@ class RemoteShellTool(Tool[RunShellCommandArgs], RemoteToolBase):
         "  the command is terminated and current output is returned.\n"
         "- Background (run_in_background=True): Starts the command and returns immediately with execution confirmation. "
         "  Does not wait for output or completion.\n\n"
+        "Optional wait parameter: If 'wait' is provided (in seconds), the tool will wait and capture a screenshot "
+        "after execution, similar to computer-use tools. This is useful when the command opens a GUI application "
+        "or makes visual changes that need to be captured.\n\n"
         "Returns: Command output, exit code, execution time, and any errors."
     )
     args_model = RunShellCommandArgs

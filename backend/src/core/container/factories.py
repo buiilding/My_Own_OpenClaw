@@ -67,7 +67,7 @@ def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProv
         return None
 
     try:
-        from backend.src.memory.embeddings import SentenceTransformerProvider
+        from backend.src.embeddings.embeddings import SentenceTransformerProvider
 
         # Create provider without loading model (deferred to async initialize())
         # CacheManager is injected via DI to avoid global state dependency

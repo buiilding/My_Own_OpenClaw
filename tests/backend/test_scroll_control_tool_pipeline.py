@@ -7,8 +7,8 @@ This test demonstrates different scenarios for the scroll control tool:
 3. Scrolling at specific coordinates
 4. Scrolling with custom click counts
 
-All scenarios simulate LLM tool call format:
-{"functionCall": {"name": "scroll_control", "args": {"action": "scroll_down", "clicks": 5}}}
+All scenarios simulate LLM tool call format (computer-use tools require metadata):
+{"metadata": {"explanation": "...", "expectation": "..."}, "action": {"functionCall": {"name": "scroll_control", "args": {"action": "scroll_down", "clicks": 5}}}}
 
 The test goes through all the steps:
 1. Parse the LLM response
@@ -113,7 +113,13 @@ async def run_scroll_test(action: str, x: int = None, y: int = None, clicks: int
         args["clicks"] = clicks
 
     import json
-    llm_response = json.dumps({"functionCall": {"name": "scroll_control", "args": args}})
+    llm_response = json.dumps({
+        "metadata": {
+            "explanation": "Performing scroll action for testing",
+            "expectation": "Scroll action completes successfully"
+        },
+        "action": {"functionCall": {"name": "scroll_control", "args": args}}
+    })
 
     print(f"LLM Response: {llm_response}")
 

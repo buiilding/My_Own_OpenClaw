@@ -1,9 +1,8 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } = require('electron');
 const path = require('path');
 const { initializeIpc } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
-const { initializeToolExecutor } = require('./tool_executor.cjs');
-const { initializeMemoryServiceBridge, stopMemoryService } = require('./memory_service_bridge.cjs');
+const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
 
 // Disable hardware acceleration to prevent GPU crashes
 app.disableHardwareAcceleration();
@@ -38,8 +37,8 @@ function createWindow() {
 
   initializeIpc(mainWindow);
   initializeWakewordBridge(mainWindow);
-  initializeToolExecutor();
-  initializeMemoryServiceBridge();
+  initializeLocalBackendBridge(mainWindow);
+  initializeWindowMinimizeHandler();
 
   // Instead of quitting, hide the window to the tray
   mainWindow.on('close', (event) => {
@@ -103,7 +102,7 @@ app.whenReady().then(() => {
 // Handle app quit to cleanup subprocesses
 app.on('before-quit', () => {
   console.log('[Main] App quitting, cleaning up subprocesses...');
-  stopMemoryService();
+  stopLocalBackend();
 });
 
 // Prevent app from quitting when all windows are closed.
@@ -111,3 +110,48 @@ app.on('before-quit', () => {
 app.on('window-all-closed', (e) => {
   e.preventDefault();
 });
+
+/**
+ * Initializes IPC handler for delayed window minimization.
+ * Minimizes window after 2 seconds if visible or focused, and not already minimized.
+ */
+function initializeWindowMinimizeHandler() {
+  ipcMain.handle('minimize-window-delayed', async () => {
+    if (!mainWindow) {
+      return { success: false, reason: 'Window not available' };
+    }
+
+    // Check if already minimized - skip if so
+    if (mainWindow.isMinimized()) {
+      return { success: false, reason: 'Already minimized' };
+    }
+
+    // Check if window is visible or focused
+    const isVisible = mainWindow.isVisible();
+    const isFocused = mainWindow.isFocused();
+
+    if (!isVisible && !isFocused) {
+      return { success: false, reason: 'Window not visible or focused' };
+    }
+
+    // Wait 2 seconds before minimizing
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Re-check window state after delay (window might have been closed/minimized)
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return { success: false, reason: 'Window destroyed during delay' };
+    }
+
+    if (mainWindow.isMinimized()) {
+      return { success: false, reason: 'Window minimized during delay' };
+    }
+
+    // Minimize the window
+    try {
+      mainWindow.minimize();
+      return { success: true };
+    } catch (error) {
+      return { success: false, reason: `Failed to minimize: ${error.message}` };
+    }
+  });
+}

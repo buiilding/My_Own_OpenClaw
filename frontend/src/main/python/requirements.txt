@@ -1,5 +1,4 @@
-# Frontend Python Memory Service Dependencies
-# Minimal dependencies for FAISS/memory operations only
+# Frontend Python Local Backend Dependencies
 
 # Vector storage and search
 faiss-cpu>=1.7.4
@@ -14,4 +13,36 @@ numpy>=1.24.0
 # User data directories
 platformdirs>=3.0.0
 
+# Wake-word detection
 openwakeword
+
+# Computer control (mouse, keyboard, screenshot)
+pyautogui>=0.9.54
+pynput>=1.7.6
+
+# System information
+psutil>=5.9.0
+
+# Clipboard access
+pyperclip>=1.8.2
+
+# Image processing (for screenshots)
+Pillow>=10.0.0
+
+# Data validation
+pydantic>=2.0.0
+
+# Gitignore parsing
+pathspec>=0.10.0
+
+# Platform-specific window management
+# Windows
+pywin32>=306; sys_platform == 'win32'
+
+# macOS (AppKit is part of pyobjc, but we can use it directly if available)
+# Note: AppKit is typically available via system Python on macOS
+# If not available, install: pip install pyobjc-framework-AppKit
+
+# Linux: xdotool should be installed via system package manager
+# sudo apt-get install xdotool  (Debian/Ubuntu)
+# sudo yum install xdotool      (RHEL/CentOS)

@@ -23,6 +23,10 @@ class RunShellCommandArgs(BaseModel):
         ...,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
     )
+    wait: Optional[float] = Field(
+        None,
+        description="(OPTIONAL) Delay in seconds before taking a screenshot after tool execution. If provided, the tool will wait and capture a screenshot like computer-use tools."
+    )
 
 
 # --- System Info Schemas ---

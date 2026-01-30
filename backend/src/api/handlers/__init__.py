@@ -26,15 +26,11 @@ Related Components:
 
 Handlers are registered in ApiContainer and accessed via MessageHandlerRegistry.
 """
-from backend.src.api.core.base import (
-    MessageHandler,
-    MessageHandlerRegistry,
-)
+from backend.src.api.infrastructure.handler import MessageHandler
+from backend.src.api.infrastructure.registry import MessageHandlerRegistry
 from backend.src.api.handlers.query import QueryMessageHandler
 from backend.src.api.handlers.settings import (
     ListModelsHandler,
-    LoadSettingsHandler,
-    UpdateSettingsHandler,
 )
 from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.api.handlers.tool_result import ToolResultHandler
@@ -43,8 +39,6 @@ __all__ = [
     "MessageHandler",
     "MessageHandlerRegistry",
     "QueryMessageHandler",
-    "LoadSettingsHandler",
-    "UpdateSettingsHandler",
     "ListModelsHandler",
     "WakewordHandler",
     "ToolResultHandler",

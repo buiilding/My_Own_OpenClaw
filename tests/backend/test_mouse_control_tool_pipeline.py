@@ -9,8 +9,8 @@ This test demonstrates different scenarios for the unified mouse control tool:
 5. Scrolling operations
 6. Error cases (missing required fields)
 
-All scenarios simulate LLM tool call format:
-{"functionCall": {"name": "mouse_control", "args": {"action": "click", "find_coordinates_by": "manual", "x": 100, "y": 200, ...}}}
+All scenarios simulate LLM tool call format (computer-use tools require metadata):
+{"metadata": {"explanation": "...", "expectation": "..."}, "action": {"functionCall": {"name": "mouse_control", "args": {"action": "click", "find_coordinates_by": "manual", "x": 100, "y": 200, ...}}}}
 
 The test goes through all the steps:
 1. Parse the LLM response
@@ -194,7 +194,13 @@ async def run_mouse_test(action: str, find_coordinates_by: str = "manual", x: Op
         args["duration"] = duration
 
     import json
-    llm_response = json.dumps({"functionCall": {"name": "mouse_control", "args": args}})
+    llm_response = json.dumps({
+        "metadata": {
+            "explanation": "Performing mouse action for testing",
+            "expectation": "Mouse action completes successfully"
+        },
+        "action": {"functionCall": {"name": "mouse_control", "args": args}}
+    })
 
     print(f"LLM Response: {llm_response}")
 

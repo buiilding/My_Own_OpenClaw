@@ -3,7 +3,7 @@ Vision Service Interface.
 """
 from typing import Optional, Protocol
 
-from backend.src.services.vision.internvl import InternVLModel
+from backend.src.services.vision.providers import InternVLModel
 
 
 class IVisionService(Protocol):

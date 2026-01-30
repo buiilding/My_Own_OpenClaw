@@ -47,10 +47,29 @@ class LocalMemoryStore:
         # Determine memory directory
         if db_path is None:
             # Use platform-specific user data directory
-            import platformdirs
+            # Frontend has its own data folder, separate from backend config
+            import os
+            import platform
+            from pathlib import Path
+            
             app_name = "desktop-assistant"
-            db_path = platformdirs.user_data_dir(app_name)
-            memory_dir = Path(db_path) / "memory"
+            
+            # Manually construct path to avoid platformdirs duplication issue
+            if os.name == "nt":  # Windows
+                appdata = os.getenv("APPDATA")
+                if not appdata:
+                    raise ValueError("APPDATA environment variable is not set on Windows")
+                db_path = Path(appdata) / app_name
+            elif os.name == "posix":
+                home_dir = Path.home()
+                if platform.system() == "Darwin":  # macOS
+                    db_path = home_dir / "Library" / "Application Support" / app_name
+                else:  # Linux and other Unix-like
+                    db_path = home_dir / ".config" / app_name
+            else:
+                raise ValueError(f"Unsupported OS: {os.name}")
+            
+            memory_dir = db_path / "memory"
         else:
             db_path_obj = Path(db_path)
             if db_path_obj.suffix:
@@ -58,7 +77,14 @@ class LocalMemoryStore:
             else:
                 memory_dir = db_path_obj
 
-        memory_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            memory_dir.mkdir(parents=True, exist_ok=True)
+            if not memory_dir.exists():
+                raise OSError(f"Failed to create memory directory: {memory_dir}")
+            logger.info(f"Memory directory: {memory_dir} (exists: {memory_dir.exists()})")
+        except OSError as e:
+            logger.error(f"Failed to create memory directory {memory_dir}: {e}", exc_info=True)
+            raise
 
         self.memory_dir = memory_dir
         self.embedder = RemoteEmbeddingClient()
@@ -91,13 +117,31 @@ class LocalMemoryStore:
 
         # Load or create FAISS indices
         if self.episodic_index_path.exists():
-            self.episodic_index = faiss.read_index(str(self.episodic_index_path))
+            try:
+                self.episodic_index = faiss.read_index(str(self.episodic_index_path))
+            except Exception as e:
+                logger.warning(f"Failed to read episodic FAISS index (corrupted?): {e}. Will recreate it.")
+                # Delete corrupted index file
+                try:
+                    self.episodic_index_path.unlink()
+                except Exception as del_err:
+                    logger.error(f"Failed to delete corrupted episodic index: {del_err}")
+                self.episodic_index = None
         else:
             # We'll determine dimension during first embedding
             self.episodic_index = None
 
         if self.semantic_index_path.exists():
-            self.semantic_index = faiss.read_index(str(self.semantic_index_path))
+            try:
+                self.semantic_index = faiss.read_index(str(self.semantic_index_path))
+            except Exception as e:
+                logger.warning(f"Failed to read semantic FAISS index (corrupted?): {e}. Will recreate it.")
+                # Delete corrupted index file
+                try:
+                    self.semantic_index_path.unlink()
+                except Exception as del_err:
+                    logger.error(f"Failed to delete corrupted semantic index: {del_err}")
+                self.semantic_index = None
         else:
             self.semantic_index = None
 
@@ -114,13 +158,31 @@ class LocalMemoryStore:
 
         # Load or create FAISS indices (blocking ops)
         if self.episodic_index_path.exists():
-            self.episodic_index = await loop.run_in_executor(executor, faiss.read_index, str(self.episodic_index_path))
+            try:
+                self.episodic_index = await loop.run_in_executor(executor, faiss.read_index, str(self.episodic_index_path))
+            except Exception as e:
+                logger.warning(f"Failed to read episodic FAISS index (corrupted?): {e}. Will recreate it.")
+                # Delete corrupted index file
+                try:
+                    self.episodic_index_path.unlink()
+                except Exception as del_err:
+                    logger.error(f"Failed to delete corrupted episodic index: {del_err}")
+                self.episodic_index = None
         else:
             # We'll determine dimension during first embedding
             self.episodic_index = None
 
         if self.semantic_index_path.exists():
-            self.semantic_index = await loop.run_in_executor(executor, faiss.read_index, str(self.semantic_index_path))
+            try:
+                self.semantic_index = await loop.run_in_executor(executor, faiss.read_index, str(self.semantic_index_path))
+            except Exception as e:
+                logger.warning(f"Failed to read semantic FAISS index (corrupted?): {e}. Will recreate it.")
+                # Delete corrupted index file
+                try:
+                    self.semantic_index_path.unlink()
+                except Exception as del_err:
+                    logger.error(f"Failed to delete corrupted semantic index: {del_err}")
+                self.semantic_index = None
         else:
             self.semantic_index = None
 

@@ -63,7 +63,7 @@ async def run_ctrl_l_test():
         )
 
         # Create LLM response simulating Ctrl+L hotkey call
-        llm_response = '{"functionCall": {"name": "keyboard_control", "args": {"action": "hotkey", "keys": ["ctrl", "l"], "explanation": "Pressing Ctrl+L to focus the address bar and expecting to see the address bar become active with cursor blinking."}}}'
+        llm_response = '{"metadata": {"explanation": "Pressing Ctrl+L to focus the address bar", "expectation": "Address bar becomes active with cursor blinking"}, "action": {"functionCall": {"name": "keyboard_control", "args": {"action": "hotkey", "keys": ["ctrl", "l"]}}}}'
 
         print(f"LLM Response: {llm_response}")
 

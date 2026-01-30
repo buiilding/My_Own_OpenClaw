@@ -5,8 +5,8 @@ This test demonstrates different scenarios for the screenshot tool:
 1. Taking a screenshot
 2. Error cases (computer interface not available)
 
-All scenarios simulate LLM tool call format:
-{"functionCall": {"name": "screenshot", "args": {}}}
+All scenarios simulate LLM tool call format (computer-use tools require metadata):
+{"metadata": {"explanation": "...", "expectation": "..."}, "action": {"functionCall": {"name": "screenshot", "args": {}}}}
 
 The test goes through all the steps:
 1. Parse the LLM response
@@ -69,7 +69,7 @@ async def run_screenshot_test(expect_success: bool = True, verify_response: bool
     """
     # Step 1: Simulate LLM Response
     print("\n🔧 STEP 1: Simulating LLM Response")
-    llm_response = '{"functionCall": {"name": "screenshot", "args": {}}}'
+    llm_response = '{"metadata": {"explanation": "Taking screenshot for testing", "expectation": "Screenshot captured successfully"}, "action": {"functionCall": {"name": "screenshot", "args": {}}}}'
 
     print(f"LLM Response: {llm_response}")
 

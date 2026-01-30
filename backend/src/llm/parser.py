@@ -30,13 +30,12 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from backend.src.core.config import AppConfig
-from backend.src.core.exceptions import (
+from backend.src.core.infrastructure.exceptions import (
     InputSizeLimitError,
     ParseTimeoutError,
     ParseValidationError,
 )
 from backend.src.core.observability.trust_boundary_metrics import (
-    BoundaryViolationMetrics,
     MetricsService,
 )
 
@@ -54,6 +53,7 @@ class ParsedToolCall:
     parameters: Dict[str, Any]
     raw_call: str
     confidence: float = 1.0  # 0.0 to 1.0, how confident we are in this parse
+    metadata: Optional[Dict[str, Any]] = None  # Metadata for computer-use tools (description, explanation, expectation)
 
 
 @dataclass
@@ -78,39 +78,78 @@ class ToolCallSchema:
     name_key: str = "name"
     args_key: str = "args"
     
-    def extract_tool_call(self, parsed_json: Dict[str, Any]) -> Optional[Tuple[str, Dict[str, Any]]]:
+    def extract_tool_call(self, parsed_json: Dict[str, Any]) -> Optional[Tuple[str, Dict[str, Any], Optional[Dict[str, Any]]]]:
         """
-        Extract tool name and args from parsed JSON using configured keys.
+        Extract tool name, args, and metadata from parsed JSON.
+        
+        Supports two formats:
+        1. Computer-use tools: {"metadata": {...}, "action": {"functionCall": {"name": "...", "args": {...}}}}
+        2. Standard tools: {"functionCall": {"name": "...", "args": {...}}}
         
         Args:
             parsed_json: Parsed JSON dictionary
             
         Returns:
-            Tuple of (tool_name, args_dict) or None if not a valid tool call
+            Tuple of (tool_name, args_dict, metadata_dict) or None if not a valid tool call
+            - metadata_dict is None for standard tools
+            - metadata_dict contains description, explanation, expectation for computer-use tools
         """
         if not isinstance(parsed_json, dict):
             return None
         
-        # Check for root key (e.g., "functionCall")
-        if self.root_key not in parsed_json:
-            return None
+        # Check for computer-use tool format (metadata + action wrapper)
+        # Note: This check is order-independent - handles {"metadata": ..., "action": ...}
+        # as well as {"action": ..., "metadata": ...} for robustness
+        if "metadata" in parsed_json and "action" in parsed_json:
+            # Computer-use tool format
+            metadata = parsed_json.get("metadata")
+            action = parsed_json.get("action")
+            
+            # Validate metadata exists and is a dict
+            if not isinstance(metadata, dict):
+                return None
+            
+            # Validate action exists and contains functionCall
+            if not isinstance(action, dict) or self.root_key not in action:
+                return None
+            
+            function_call = action[self.root_key]
+            if not isinstance(function_call, dict):
+                return None
+            
+            # Extract name and args from action.functionCall
+            tool_name = function_call.get(self.name_key)
+            args = function_call.get(self.args_key, {})
+            
+            # SECURITY: Validate tool_name is a non-empty string
+            if not isinstance(tool_name, str) or not tool_name.strip():
+                return None
+            
+            if not isinstance(args, dict):
+                return None
+            
+            return (tool_name, args, metadata)
         
-        function_call = parsed_json[self.root_key]
-        if not isinstance(function_call, dict):
-            return None
+        # Standard format: direct functionCall
+        if self.root_key in parsed_json:
+            function_call = parsed_json[self.root_key]
+            if not isinstance(function_call, dict):
+                return None
+            
+            # Extract name and args using configured keys
+            tool_name = function_call.get(self.name_key)
+            args = function_call.get(self.args_key, {})
+            
+            # SECURITY: Validate tool_name is a non-empty string
+            if not isinstance(tool_name, str) or not tool_name.strip():
+                return None
+            
+            if not isinstance(args, dict):
+                return None
+            
+            return (tool_name, args, None)
         
-        # Extract name and args using configured keys
-        tool_name = function_call.get(self.name_key)
-        args = function_call.get(self.args_key, {})
-        
-        # SECURITY: Validate tool_name is a non-empty string
-        if not isinstance(tool_name, str) or not tool_name.strip():
-            return None
-        
-        if not isinstance(args, dict):
-            return None
-        
-        return (tool_name, args)
+        return None
 
 
 class ResponseParser:
@@ -273,8 +312,6 @@ class ResponseParser:
         this method are kept for defense-in-depth, but the real timeout
         is enforced by asyncio.wait_for in parse_response.
         """
-        boundary_name = "response_parser"
-        
         # Note: Input validation and size checks are done in parse_response
         # before this method is called, but we keep them here for safety
         
@@ -346,8 +383,6 @@ class ResponseParser:
         """Parse pure JSON responses containing tool calls."""
         tool_calls = []
         
-        import time
-        
         # SECURITY: Check JSON size before parsing
         json_str = response.strip()
         if len(json_str) > self.limits.max_json_size:
@@ -371,16 +406,20 @@ class ResponseParser:
             # Use schema to extract tool call
             result = self.schema.extract_tool_call(parsed_json)
             if result:
-                tool_name, args = result
+                tool_name, args, metadata = result
                 
                 # SECURITY: Validate tool call
                 self._validate_tool_call(tool_name, args)
+                
+                # Validate metadata for computer-use tools
+                self._validate_metadata(tool_name, metadata)
                 
                 tool_call = ParsedToolCall(
                     tool_name=tool_name,
                     parameters=args,
                     raw_call=json_str,  # The entire JSON response
                     confidence=1.0,  # Highest confidence for pure JSON format
+                    metadata=metadata,
                 )
                 tool_calls.append(tool_call)
                 return tool_calls, ""  # No remaining text for pure JSON
@@ -400,14 +439,20 @@ class ResponseParser:
         self, response: str, start_time: float, timeout: float
     ) -> Tuple[List[ParsedToolCall], str]:
         """
-        Parse embedded JSON tool calls using optimized regex + json.JSONDecoder.
+        Parse embedded JSON tool calls using iterative scanning decoder.
         
-        PERFORMANCE: Uses regex to find candidate JSON object starts, then leverages
-        C-optimized json.JSONDecoder.raw_decode() to extract complete objects, avoiding
-        slow character-by-character Python loops.
+        PERFORMANCE: Uses regex to find opening braces, then leverages
+        C-optimized json.JSONDecoder.raw_decode() to extract complete objects.
         
-        This handles nested JSON structures correctly and is orders of magnitude faster
-        than the previous character-by-character approach.
+        This approach naturally handles:
+        - Chaining: {}{} (parses first, gets end index, resumes)
+        - Key reordering: {"action": ..., "metadata": ...} (parses first, validates second)
+        - Interleaved text: Text... JSON... Text... JSON
+        
+        Unlike the previous regex-first approach, this method:
+        - Doesn't require "metadata" or "functionCall" to be the first key
+        - Handles compact chaining naturally by advancing position after each parse
+        - Validates structure after parsing (order-independent)
         
         SECURITY: Includes timeout checks and size limits.
         """
@@ -415,83 +460,97 @@ class ResponseParser:
         
         tool_calls = []
         extracted_positions: List[Tuple[int, int]] = []  # Track extracted positions for safe removal
-        
-        # Find all potential JSON object starts using regex (much faster than character loop)
-        # Look for opening brace followed by optional whitespace and the root key
-        root_key_pattern = f'"{re.escape(self.schema.root_key)}"'
-        # Pattern: { followed by optional whitespace and the root key
-        pattern = re.compile(rf'\{{(?:\s*{root_key_pattern})', re.MULTILINE)
-        
-        # Find all candidate positions
-        # PARSER SEARCH TRUNCATION FIX: Use max_response_size to limit search position,
-        # not max_json_size. max_json_size is for limiting individual JSON object size,
-        # not the position where we search. Using max_json_size here would stop searching
-        # after the first max_json_size bytes, causing valid tool calls to be ignored if
-        # the LLM writes a long preamble before the JSON.
-        candidates = []
-        for match in pattern.finditer(response):
-            start_pos = match.start()
-            # SECURITY: Check position limit using max_response_size (response size already validated at entry)
-            # max_json_size is only used later to verify the extracted JSON object size
-            if start_pos > self.limits.max_response_size:
-                break
-            candidates.append(start_pos)
-        
-        # Process each candidate using optimized JSON decoder
         decoder = json.JSONDecoder()
-        root_key_str = f'"{self.schema.root_key}"'
+        pos = 0
         
-        for start_pos in candidates:
+        # Scan through the entire response
+        while pos < len(response):
             # SECURITY: Check timeout periodically
             if time.monotonic() - start_time > timeout:
-                raise TimeoutError("Parse timeout exceeded")
+                raise ParseTimeoutError(
+                    "Parse timeout exceeded",
+                    timeout_seconds=timeout,
+                    boundary_name="response_parser",
+                )
             
-            # SECURITY: Check size limit
-            remaining = len(response) - start_pos
+            # SECURITY: Check position limit
+            if pos > self.limits.max_response_size:
+                break
+            
+            # 1. Scan for the next opening brace '{'
+            # CRITICAL: Use relaxed regex (just '{') for true order-independence.
+            # We don't check for specific keys like "metadata" or "functionCall" here.
+            # This allows parsing {"action": ..., "metadata": ...} regardless of key order.
+            # Validation happens AFTER parsing via schema.extract_tool_call().
+            match = re.search(r'\{', response[pos:])
+            
+            if not match:
+                break  # No more JSON candidates
+            
+            # Calculate absolute start position
+            start_index = pos + match.start()
+            
+            # SECURITY: Check size limit for remaining text
+            remaining = len(response) - start_index
             if remaining > self.limits.max_json_size:
+                # Skip this position and continue searching
+                pos = start_index + 1
                 continue
             
-            # Try to decode JSON starting at this position
+            # 2. Attempt to decode a full JSON object starting at this brace
             try:
                 # Use raw_decode to extract JSON object and get end position
-                # This is C-optimized and much faster than character-by-character parsing
-                parsed, end_pos = decoder.raw_decode(response, idx=start_pos)
+                # This is C-optimized and handles nested structures correctly
+                parsed, end_index = decoder.raw_decode(response, idx=start_index)
                 
-                # Extract the JSON string
-                json_obj = response[start_pos:end_pos]
-                
-                # Verify it contains the root key (defense in depth)
-                if root_key_str not in json_obj:
-                    continue
+                # Extract the JSON string for size checking
+                json_obj = response[start_index:end_index]
                 
                 # SECURITY: Check JSON size
                 if len(json_obj) > self.limits.max_json_size:
+                    # Skip this position and continue
+                    pos = start_index + 1
                     continue
                 
-                # Use schema to extract tool call
+                # 3. Validation: Check if this JSON is actually a tool call
+                # This is order-independent (unlike the regex approach)
                 result = self.schema.extract_tool_call(parsed)
+                
                 if result:
-                    tool_name, args = result
+                    tool_name, args, metadata = result
                     
                     # SECURITY: Validate tool call
                     self._validate_tool_call(tool_name, args)
+                    
+                    # Validate metadata for computer-use tools
+                    self._validate_metadata(tool_name, metadata)
                     
                     tool_call = ParsedToolCall(
                         tool_name=tool_name,
                         parameters=args,
                         raw_call=json_obj,
                         confidence=1.0,
+                        metadata=metadata,
                     )
                     tool_calls.append(tool_call)
-                    # Track position for safe removal
-                    extracted_positions.append((start_pos, end_pos))
+                    extracted_positions.append((start_index, end_index))
+                    
+                    # 4. Success: Advance pointer to the end of this object
+                    # This effectively prepares us for the next chained call
+                    pos = end_index
+                else:
+                    # Not a valid tool call, advance past this brace
+                    pos = start_index + 1
                     
             except (InputSizeLimitError, ParseTimeoutError, ParseValidationError):
                 # Re-raise security exceptions
                 raise
             except (json.JSONDecodeError, ValueError, IndexError):
-                # Not valid JSON at this position, continue to next candidate
-                continue
+                # 5. Failure: The '{' was not the start of valid JSON
+                # (e.g., inside a code block, regular text, or malformed JSON)
+                # CRITICAL: Must advance position to prevent infinite loop.
+                # If we don't skip this '{', the loop will hang forever on the same position.
+                pos = start_index + 1
         
         # SECURITY: Remove extracted JSON using position-based extraction (safe)
         remaining_text = self._remove_extracted_by_positions(response, extracted_positions)
@@ -563,7 +622,7 @@ class ResponseParser:
             # Validate depth by iteratively checking structure
             self._validate_json_depth(parsed, self.limits.max_json_nesting_depth)
             return parsed
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             raise
         except RecursionError:
             raise ParseValidationError(
@@ -659,6 +718,82 @@ class ResponseParser:
             )
             raise ParseValidationError(
                 f"Tool call validation failed: {', '.join(validation_errors)}",
+                validation_errors=validation_errors,
+                boundary_name="response_parser",
+            )
+    
+    def _validate_metadata(self, tool_name: str, metadata: Optional[Dict[str, Any]]) -> None:
+        """
+        Validate metadata for computer-use tools.
+        
+        SECURITY: Computer-use tools MUST have metadata with required fields.
+        Metadata must be generated first, otherwise tool call is rejected.
+        
+        Args:
+            tool_name: Name of the tool
+            metadata: Metadata dict (None for non-computer-use tools)
+            
+        Raises:
+            ParseValidationError: If computer-use tool is missing metadata or required fields
+        """
+        # Import here to avoid circular import
+        from backend.src.tools.categorization import ToolDomain
+        
+        # Check if this is a computer-use tool
+        tool = self.tool_registry.get_tool(tool_name)
+        is_computer_use = False
+        if tool and hasattr(tool, 'category'):
+            is_computer_use = tool.category == ToolDomain.COMPUTER
+        
+        if not is_computer_use:
+            # Non-computer-use tools don't need metadata
+            if metadata is not None:
+                # Warn but don't reject - metadata is ignored for non-computer tools
+                logger.debug(f"Non-computer-use tool '{tool_name}' has metadata (will be ignored)")
+            return
+        
+        # Computer-use tools MUST have metadata
+        validation_errors = []
+        
+        if metadata is None:
+            validation_errors.append(
+                f"Computer-use tool '{tool_name}' is missing metadata. "
+                "Metadata MUST be generated first before the action. "
+                "Format: {{\"metadata\": {{\"explanation\": \"...\", \"expectation\": \"...\"}}, \"action\": {{...}}}}"
+            )
+        elif not isinstance(metadata, dict):
+            validation_errors.append(
+                f"Computer-use tool '{tool_name}' has invalid metadata type: {type(metadata).__name__}. "
+                "Metadata must be a dictionary."
+            )
+        else:
+            # Validate required fields
+            if "description" not in metadata or not metadata["description"]:
+                validation_errors.append(
+                    f"Computer-use tool '{tool_name}' is missing required metadata field 'description'. "
+                    "Description describes the most recent screenshot provided to you."
+                )
+            
+            if "explanation" not in metadata or not metadata["explanation"]:
+                validation_errors.append(
+                    f"Computer-use tool '{tool_name}' is missing required metadata field 'explanation'. "
+                    "Explanation describes why this tool is being used."
+                )
+            
+            if "expectation" not in metadata or not metadata["expectation"]:
+                validation_errors.append(
+                    f"Computer-use tool '{tool_name}' is missing required metadata field 'expectation'. "
+                    "Expectation describes what you expect to see after execution."
+                )
+        
+        if validation_errors:
+            self.metrics.record_validation_violation(
+                validation_errors=validation_errors,
+                boundary_name="response_parser",
+                metadata={"tool_name": tool_name, "has_metadata": metadata is not None},
+            )
+            raise ParseValidationError(
+                f"Metadata validation failed for computer-use tool '{tool_name}': {', '.join(validation_errors)}",
                 validation_errors=validation_errors,
                 boundary_name="response_parser",
             )

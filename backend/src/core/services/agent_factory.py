@@ -9,7 +9,7 @@ import logging
 import uuid
 from typing import List, Optional, Any, Dict
 
-from backend.src.agent.core.core import AgentSession
+from backend.src.agent.session.session import AgentSession
 from backend.src.tools.registry import ToolRegistry
 from backend.src.sdk.tool import Tool as SDKTool
 

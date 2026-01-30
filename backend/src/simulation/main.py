@@ -10,7 +10,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.src.api.routes import websocket, embeddings, semantic
+from backend.src.api.routes import websocket
+from backend.src.api.routes.memory import embeddings, semantic
 from backend.src.core.bootstrap.coordinator import InitializationCoordinator
 from backend.src.core.container.core_container import CoreContainer
 from backend.src.simulation.mock_llm_client import get_mock_llm_client
@@ -58,7 +59,7 @@ async def lifespan(app: FastAPI):
             """Initialize container for simulation mode."""
             logger.info("Phase 2: Initializing container (simulation mode)...")
             
-            from backend.src.core.container.container import Container
+            from backend.src.core.container.facade import Container
             from backend.src.api.deps import set_container
             
             self.container = Container()
@@ -76,12 +77,19 @@ async def lifespan(app: FastAPI):
     # CRITICAL: Override LLM client factory to use MockLLMClient
     # This intercepts all LLM calls and returns hardcoded responses
     # Override the provider in the DI container
+    # Note: The factory accepts an optional config parameter for session-specific configs
+    # but always uses MockLLMClient regardless of the config
+    def mock_llm_client_factory(session_config=None):
+        """Factory that always returns MockLLMClient, accepting optional session config."""
+        # Use session config if provided, otherwise use global config
+        cfg = session_config if session_config is not None else container._di_container.core.config()
+        return get_mock_llm_client(cfg)
+    
     container._di_container.core.llm_client.override(
-        providers.Factory(
-            lambda cfg: get_mock_llm_client(cfg),
-            cfg=container._di_container.core.config,
-        )
+        providers.Factory(mock_llm_client_factory)
     )
+    # Store reference to mock factory so container can use it directly
+    container._mock_llm_factory = mock_llm_client_factory
     logger.info("LLM client factory overridden to use MockLLMClient")
     
     # Reset session factory so it will be recreated with MockLLMClient on next session creation

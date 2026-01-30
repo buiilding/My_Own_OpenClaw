@@ -1,10 +1,11 @@
 """
 Query Processing Domain.
 
-Contains components for processing user queries and formatting responses.
+DEPRECATED: This module is kept for backward compatibility.
+New code should import from backend.src.api.processing instead.
 """
-from backend.src.api.query.formatter import ResponseFormatter
-from backend.src.api.query.pipeline import StreamPipeline
+from backend.src.api.processing.formatter import ResponseFormatter
+from backend.src.api.processing.pipeline import StreamPipeline
 
 __all__ = [
     "ResponseFormatter",
