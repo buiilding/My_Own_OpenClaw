@@ -4,11 +4,11 @@ Pydantic schemas for computer control tools.
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 
-from backend.src.core.types import (
-    MouseAction,
+from backend.src.core.types.enums import (
     CoordinateFindingMethod,
+    KeyboardAction,
+    MouseAction,
     ScrollDirection as ScrollDirectionEnum,
-    KeyboardAction
 )
 
 # --- Mouse Tool Schemas ---
@@ -38,13 +38,9 @@ class MouseControlArgs(BaseModel):
     scroll_amount: Optional[int] = Field(None, description="Amount to scroll (positive for down/right, negative for up/left, required for scroll action)")
     scroll_direction: Optional[ScrollDirectionEnum] = Field(ScrollDirectionEnum.VERTICAL, description="Direction of scrolling (required for scroll action)")
     duration: float = Field(0.5, description="Duration for drag operations")
-    explanation: str = Field(
+    wait: float = Field(
         ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: str = Field(
-        ...,
-        description="One sentence describing what you expect to see in the screenshot after this mouse action executes."
+        description="Delay in seconds before taking a screenshot after tool execution."
     )
 
     @model_validator(mode='after')
@@ -76,13 +72,9 @@ class KeyboardControlArgs(BaseModel):
     text: Optional[str] = Field(None, description="Text to type (required for 'type' action)")
     key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
     keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
-    explanation: str = Field(
+    wait: float = Field(
         ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: str = Field(
-        ...,
-        description="One sentence describing what you expect to see in the screenshot after this keyboard action executes."
+        description="Delay in seconds before taking a screenshot after tool execution."
     )
 
 
@@ -90,21 +82,17 @@ class KeyboardControlArgs(BaseModel):
 
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra='ignore')
     
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: str = Field(
-        ...,
-        description="One sentence describing what you expect to see in the screenshot after this action executes."
+    wait: Optional[float] = Field(
+        None,
+        description="(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture."
     )
 
 
 # --- Scroll Tool Schemas ---
 
-# Scroll direction for this tool (different from ScrollDirection enum used in mouse_tool)
+# Scroll direction: vertical (up/down) or horizontal (left/right). Uses vscroll for vertical, hscroll for horizontal.
 ScrollToolDirection = Literal["up", "down", "left", "right"]
 
 class ScrollControlArgs(BaseModel):
@@ -113,15 +101,14 @@ class ScrollControlArgs(BaseModel):
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(..., description="Scroll action to perform")
     x: Optional[int] = Field(None, description="X coordinate to scroll at (optional, uses current cursor if not provided)")
     y: Optional[int] = Field(None, description="Y coordinate to scroll at (optional, uses current cursor if not provided)")
-    clicks: int = Field(5, description="Number of scroll clicks")
-    direction: Optional[ScrollToolDirection] = Field(None, description="Direction for scroll action ('up', 'down', 'left', 'right')")
-    explanation: str = Field(
-        ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    clicks: int = Field(5, description="Number of scroll clicks (positive=up/right, negative=down/left)")
+    direction: Optional[ScrollToolDirection] = Field(
+        None,
+        description="Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'.",
     )
-    expectation: str = Field(
+    wait: float = Field(
         ...,
-        description="One sentence describing what you expect to see in the screenshot after this scroll action executes."
+        description="Delay in seconds before taking a screenshot after tool execution."
     )
 
 
@@ -135,13 +122,9 @@ class SwitchTabArgs(BaseModel):
         ...,
         description="The exact name of the tab/window to switch to, as it appears in get_open_windows output."
     )
-    explanation: str = Field(
+    wait: float = Field(
         ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: str = Field(
-        ...,
-        description="One sentence describing what you expect to see in the screenshot after switching to this tab."
+        description="Delay in seconds before taking a screenshot after tool execution."
     )
 
 
@@ -151,11 +134,7 @@ class WaitToolArgs(BaseModel):
     """Arguments for wait tool."""
     model_config = ConfigDict(extra='forbid')
 
-    explanation: str = Field(
+    seconds: float = Field(
         ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-    expectation: str = Field(
-        ...,
-        description="One sentence describing what you expect to see in the screenshot after this action executes."
+        description="Number of seconds to wait before capturing a screenshot."
     )

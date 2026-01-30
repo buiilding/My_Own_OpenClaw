@@ -10,9 +10,9 @@ from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator, Dict, List, Optional, TYPE_CHECKING
 
 from backend.src.core.config import AppConfig
-from backend.src.core.events import StreamingEvent, ErrorEvent
-from backend.src.core.exceptions import LLMAPIError
-from backend.src.core.types import LLMMessage
+from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
+from backend.src.core.infrastructure.exceptions import LLMAPIError
+from backend.src.core.types.schemas import LLMMessage
 from backend.src.llm.providers import get_provider
 
 if TYPE_CHECKING:
@@ -78,6 +78,11 @@ class LiteLLMClient(LLMClient):
             ValueError: If no provider is configured or available
         """
         provider_name = self.config.model_provider
+        logger.info(
+            f"[LLM Client] Getting provider: provider_name='{provider_name}', "
+            f"selected_model_id='{self.config.selected_model_id}', "
+            f"api_key={'set' if self.config.api_key else 'not set'}"
+        )
         return get_provider(self.config, provider_name)
 
     async def get_completion(self, model: str, messages: List[LLMMessage]) -> str:

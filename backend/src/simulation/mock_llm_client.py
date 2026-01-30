@@ -10,9 +10,9 @@ import platform
 from typing import AsyncGenerator, List
 
 from backend.src.core.config import AppConfig
-from backend.src.core.events import ChunkEvent, StreamingEvent
+from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent
 from backend.src.llm.client import LLMClient
-from backend.src.core.types import LLMMessage
+from backend.src.core.types.schemas import LLMMessage
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +41,18 @@ def get_chrome_command() -> str:
 # SIMULATION SEQUENCE CONFIGURATION
 # ============================================================================
 # Each step represents what the LLM should "return" for that iteration
-# The format matches what ResponseParser expects: {"functionCall": {"name": "...", "args": {...}}}
+# 
+# For computer-use tools (mouse_control, keyboard_control, scroll_control, etc.):
+#   {"metadata": {"explanation": "...", "expectation": "..."}, "action": {"functionCall": {"name": "...", "args": {...}}}}
+# 
+# For other tools (run_shell_command, read_file, etc.):
+#   {"functionCall": {"name": "...", "args": {...}}}
 
 # Build simulation responses with platform-aware commands
 _chrome_command = get_chrome_command()
 
 SIMULATION_RESPONSES = [
-    # Iteration 1: Open Chrome and wait
+    # Iteration 1: Open Chrome
     {
         "response": json.dumps({
             "functionCall": {
@@ -55,165 +60,213 @@ SIMULATION_RESPONSES = [
                 "args": {
                     "command": _chrome_command,
                     "run_in_background": True,
-                    "explanation": "Opening Google Chrome browser in the background to start the navigation flow."
+                    "wait": 2.0
                 }
             }
         })
     },
-    # Iteration 2: Wait for Chrome to load
+    # Iteration 2: Click "Search Google or type a URL" (using OCR)
     {
         "response": json.dumps({
-            "functionCall": {
-                "name": "wait",
-                "args": {
-                    "explanation": "Waiting for Chrome to start loading before taking a screenshot.",
-                    "expectation": "Chrome should be starting up and loading its initial page."
+            "metadata": {
+                "description": "Chrome browser window is open with the address bar visible.",
+                "explanation": "Clicking on the text 'Search Google or type a URL' found via OCR.",
+                "expectation": "The UI should respond to clicking on 'Search Google or type a URL'."
+            },
+            "action": {
+                "functionCall": {
+                    "name": "mouse_control",
+                    "args": {
+                        "action": "click",
+                        "find_coordinates_by": "ocr",
+                        "ocr_text": "Search Google or type a URL",
+                        "wait": 0
+                    }
                 }
             }
         })
     },
-    # Iteration 4: Click "Search Google or type a URL" (using OCR)
-    {
-        "response": json.dumps({
-            "functionCall": {
-                "name": "mouse_control",
-                "args": {
-                    "action": "click",
-                    "find_coordinates_by": "ocr",
-                    "ocr_text": "Search Google or type a URL",
-                    "explanation": "Clicking on the text 'Search Google or type a URL' found via OCR.",
-                    "expectation": "The UI should respond to clicking on 'Search Google or type a URL'."
-                }
-            }
-        })
-    },
-    # Iteration 5: Bundle - Type "amazon.com" and press Enter
+    # Iteration 3: Bundle - Type "amazon.com" and press Enter
     # Return multiple tool calls as separate JSON objects (parser will extract both)
     {
         "response": json.dumps({
-            "functionCall": {
-                "name": "keyboard_control",
-                "args": {
-                    "action": "type",
-                    "text": "amazon.com",
-                    "explanation": "Typing 'amazon.com' into the browser address bar.",
-                    "expectation": "The text 'amazon.com' should appear in the address bar."
+            "metadata": {
+                "description": "Address bar is focused and ready for input.",
+                "explanation": "Typing 'amazon.com' into the browser address bar.",
+                "expectation": "The text 'amazon.com' should appear in the address bar."
+            },
+            "action": {
+                "functionCall": {
+                    "name": "keyboard_control",
+                    "args": {
+                        "action": "type",
+                        "text": "amazon.com",
+                        "wait": 0
+                    }
                 }
             }
         }) + "\n" + json.dumps({
-            "functionCall": {
-                "name": "keyboard_control",
-                "args": {
-                    "action": "press",
-                    "key": "enter",
-                    "explanation": "Pressing Enter to navigate to amazon.com.",
-                    "expectation": "The browser should navigate to the Amazon website."
+            "metadata": {
+                "description": "Address bar shows 'amazon.com' text.",
+                "explanation": "Pressing Enter to navigate to amazon.com.",
+                "expectation": "The browser should navigate to the Amazon website."
+            },
+            "action": {
+                "functionCall": {
+                    "name": "keyboard_control",
+                    "args": {
+                        "action": "press",
+                        "key": "enter",
+                        "wait": 2.0
+                    }
                 }
             }
         })
     },
-    # Iteration 6: Click "Search Amazon" (using OCR)
+    # Iteration 4: Click "Search Amazon" (using OCR)
     {
         "response": json.dumps({
-            "functionCall": {
-                "name": "mouse_control",
-                "args": {
-                    "action": "click",
-                    "find_coordinates_by": "ocr",
-                    "ocr_text": "Search Amazon",
-                    "explanation": "Clicking on the text 'Search Amazon' found via OCR.",
-                    "expectation": "The UI should respond to clicking on 'Search Amazon'."
+            "metadata": {
+                "description": "Amazon homepage is loaded with search box visible.",
+                "explanation": "Clicking on the text 'Search Amazon' found via OCR.",
+                "expectation": "The UI should respond to clicking on 'Search Amazon'."
+            },
+            "action": {
+                "functionCall": {
+                    "name": "mouse_control",
+                    "args": {
+                        "action": "click",
+                        "find_coordinates_by": "ocr",
+                        "ocr_text": "Search Amazon",
+                        "wait": 0.2
+                    }
                 }
             }
         })
     },
-    # Iteration 7: Bundle - Type "amazon.com" and press Enter
+    # Iteration 5: Bundle - Type "shoes" and press Enter
     # Return multiple tool calls as separate JSON objects (parser will extract both)
     {
         "response": json.dumps({
-            "functionCall": {
-                "name": "keyboard_control",
-                "args": {
-                    "action": "type",
-                    "text": "shoes",
-                    "explanation": "Typing 'shoes' into the Amazon search box.",
-                    "expectation": "The text 'shoes' should appear in the search box."
+            "metadata": {
+                "description": "Amazon search box is focused and ready for input.",
+                "explanation": "Typing 'shoes' into the Amazon search box.",
+                "expectation": "The text 'shoes' should appear in the search box."
+            },
+            "action": {
+                "functionCall": {
+                    "name": "keyboard_control",
+                    "args": {
+                        "action": "type",
+                        "text": "shoes",
+                        "wait": 0.0
+                    }
                 }
             }
         }) + "\n" + json.dumps({
-            "functionCall": {
-                "name": "keyboard_control",
-                "args": {
-                    "action": "press",
-                    "key": "enter",
-                    "explanation": "Pressing Enter to search for shoes on Amazon.",
-                    "expectation": "Amazon should display search results for shoes."
+            "metadata": {
+                "description": "Search box shows 'shoes' text.",
+                "explanation": "Pressing Enter to search for shoes on Amazon.",
+                "expectation": "Amazon should display search results for shoes."
+            },
+            "action": {
+                "functionCall": {
+                    "name": "keyboard_control",
+                    "args": {
+                        "action": "press",
+                        "key": "enter",
+                        "wait": 2.0
+                    }
                 }
             }
         })
     },
-    # Iteration 8: Click "Sort by: Featured" (using OCR)
+    # Iteration 6: Click "Sort by: Featured" (using OCR)
     {
         "response": json.dumps({
-            "functionCall": {
-                "name": "mouse_control",
-                "args": {
-                    "action": "click",
-                    "find_coordinates_by": "ocr",
-                    "ocr_text": "Sort by: Featured",
-                    "explanation": "Clicking on the text 'Sort by: Featured' found via OCR.",
-                    "expectation": "The UI should respond to clicking on 'Sort by: Featured'."
+            "metadata": {
+                "description": "Amazon search results page showing shoes with sort options visible.",
+                "explanation": "Clicking on the text 'Sort by: Featured' found via OCR.",
+                "expectation": "The UI should respond to clicking on 'Sort by: Featured'."
+            },
+            "action": {
+                "functionCall": {
+                    "name": "mouse_control",
+                    "args": {
+                        "action": "click",
+                        "find_coordinates_by": "ocr",
+                        "ocr_text": "Sort by: Featured",
+                        "wait": 0.2
+                    }
                 }
             }
         })
     },
-    # Iteration 9: Click "Price: Low to High" (using OCR)
+    # Iteration 7: Click "Price: Low to High" (using OCR)
     {
         "response": json.dumps({
-            "functionCall": {
-                "name": "mouse_control",
-                "args": {
-                    "action": "click",
-                    "find_coordinates_by": "ocr",
-                    "ocr_text": "Price: Low to High",
-                    "explanation": "Clicking on the text 'Price: Low to High' found via OCR.",
-                    "expectation": "The UI should respond to clicking on 'Price: Low to High'."
+            "metadata": {
+                "description": "Sort dropdown menu is open showing sorting options.",
+                "explanation": "Clicking on the text 'Price: Low to High' found via OCR.",
+                "expectation": "The UI should respond to clicking on 'Price: Low to High'."
+            },
+            "action": {
+                "functionCall": {
+                    "name": "mouse_control",
+                    "args": {
+                        "action": "click",
+                        "find_coordinates_by": "ocr",
+                        "ocr_text": "Price: Low to High",
+                        "wait": 0.2
+                    }
                 }
             }
         })
     },
-    # Iteration 10: Scroll down
+    # Iteration 8: Scroll down
     {
         "response": json.dumps({
-            "functionCall": {
-                "name": "scroll_control",
-                "args": {
-                    "action": "scroll_down",
-                    "clicks": 30,
-                    "explanation": "Scrolling down the page to see more search results.",
-                    "expectation": "The page should scroll down, revealing more product listings."
+            "metadata": {
+                "description": "Amazon search results page sorted by price, showing product listings.",
+                "explanation": "Scrolling down the page to see more search results.",
+                "expectation": "The page should scroll down, revealing more product listings."
+            },
+            "action": {
+                "functionCall": {
+                    "name": "scroll_control",
+                    "args": {
+                        "action": "scroll_down",
+                        "clicks": 100,
+                        "wait": 1.0
+                    }
                 }
             }
         })
     },
-    # Iteration 11: Click "pink shoes" using Vision model
+    # Iteration 9: Click "Black Water Shoes Snorkeling Swim Shoes Quick Dry" using Vision model
     {
         "response": json.dumps({
-            "functionCall": {
-                "name": "mouse_control",
-                "args": {
-                    "action": "click",
-                    "find_coordinates_by": "prediction",
-                    "description": "pink shoes",
-                    "explanation": "Clicking on 'pink shoes' found via vision model.",
-                    "expectation": "The UI should respond to clicking on 'pink shoes'."
+            "metadata": {
+                "description": "Scrolled search results page showing multiple shoe products sorted by price.",
+                "explanation": "Clicking on the cheapest pair of shoes on the list found via vision model.",
+                "expectation": "The UI should respond to clicking on the cheapest pair of shoes on the list."
+            },
+            "action": {
+                "functionCall": {
+                    "name": "mouse_control",
+                    "args": {
+                        "action": "click",
+                        "find_coordinates_by": "prediction",
+                        "description": "The cheapest pair of shoes on the list",
+                        "wait": 2.0
+                    }
                 }
             }
         })
     },
     # Final iteration: No more tools, return final response
     {
-        "response": "I've successfully navigated to Amazon, searched for shoes, sorted them by price, and clicked on pink shoes. The task is complete."
+        "response": "I've successfully navigated to Amazon, searched for shoes, sorted them by price, and clicked on Black Water Shoes Snorkeling Swim Shoes Quick Dry. The task is complete."
     },
 ]
 

@@ -430,7 +430,7 @@ class ComputerInterface:
     # ============================================================================
 
     async def screenshot(self) -> ComputerActionResult:
-        """Take a screenshot and return as base64 string."""
+        """Take a screenshot and return as base64 string (JPEG format for faster encoding)."""
         try:
             if not self._initialized:
                 await self.initialize()
@@ -439,9 +439,21 @@ class ComputerInterface:
                 screenshot = self._pyautogui.screenshot()
                 import io
 
-                # Convert to bytes
+                # Convert to RGB if needed (JPEG requires RGB)
+                if screenshot.mode != 'RGB':
+                    screenshot = screenshot.convert('RGB')
+
+                # Convert to JPEG bytes with optimized settings
+                # Quality 85 provides good balance: fast encoding, small size, acceptable quality
+                # optimize=False speeds up encoding significantly
                 img_buffer = io.BytesIO()
-                screenshot.save(img_buffer, format="PNG")
+                screenshot.save(
+                    img_buffer,
+                    format="JPEG",
+                    quality=85,
+                    optimize=False,
+                    progressive=False
+                )
                 img_bytes = img_buffer.getvalue()
 
                 # Convert to base64

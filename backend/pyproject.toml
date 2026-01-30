@@ -1,3 +1,7 @@
+[project]
+name = "desktop-assistant-backend"
+version = "0.6.4"
+
 [tool.black]
 line-length = 88
 target-version = ['py39']

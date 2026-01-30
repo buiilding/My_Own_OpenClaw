@@ -1,32 +1,38 @@
 """Agent domain package."""
 
-# Core agent state and execution
-from backend.src.agent.core import (
-    AgentExecutor,
+# Session management
+from backend.src.agent.session import (
     AgentSession,
     ConversationHistory,
-    InteractionLoop,
     SessionManager,
 )
 
-# LLM interaction, prompts, and event presentation
-from backend.src.agent.llm import (
-    EventPresenter,
-    LLMInteractionHandler,
-    PromptCoordinator,
+# Execution orchestration
+from backend.src.agent.execution import (
+    AgentExecutor,
+    InteractionLoop,
 )
 
-# Tool orchestration and preparation
+# LLM interaction
+from backend.src.agent.llm import (
+    ConversationContext,
+    EventPresenter,
+    LLMStreamProcessor,
+)
+
+# Tool orchestration and lifecycle
 from backend.src.agent.tools import (
     CoordinateResolver,
+    OcrCoordinateResolver,
     OcrCoordinator,
-    OcrResolver,
     ResultTransformer,
     ScreenshotManager,
     SyntheticResultFactory,
-    ToolExecutor,
+    ToolOrchestrator,
     ToolPreparer,
-    VisionResolver,
+    ToolProcessingCoordinator,
+    ToolResultHandler,
+    VisionCoordinateResolver,
     VisionServiceProvider,
 )
 
@@ -34,26 +40,29 @@ from backend.src.agent.tools import (
 from backend.src.agent.history import HistoryCommitter
 
 __all__ = [
-    # Core
-    "AgentExecutor",
+    # Session
     "AgentSession",
     "ConversationHistory",
-    "InteractionLoop",
     "SessionManager",
+    # Execution
+    "AgentExecutor",
+    "InteractionLoop",
     # LLM
+    "ConversationContext",
     "EventPresenter",
-    "LLMInteractionHandler",
-    "PromptCoordinator",
+    "LLMStreamProcessor",
     # Tools
     "CoordinateResolver",
+    "OcrCoordinateResolver",
     "OcrCoordinator",
-    "OcrResolver",
     "ResultTransformer",
     "ScreenshotManager",
     "SyntheticResultFactory",
-    "ToolExecutor",
+    "ToolOrchestrator",
     "ToolPreparer",
-    "VisionResolver",
+    "ToolProcessingCoordinator",
+    "ToolResultHandler",
+    "VisionCoordinateResolver",
     "VisionServiceProvider",
     # History
     "HistoryCommitter",

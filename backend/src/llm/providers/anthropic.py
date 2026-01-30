@@ -4,13 +4,13 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 import litellm
 from litellm import exceptions as litellm_exceptions
 
-from backend.src.core.events import ChunkEvent, StreamingEvent, ThinkingEvent
-from backend.src.core.exceptions import (
+from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent, ThinkingEvent
+from backend.src.core.infrastructure.exceptions import (
     LLMAPIError,
     LLMError,
     LLMRateLimitError,
 )
-from backend.src.core.types import (
+from backend.src.core.types.schemas import (
     LLMMessage,
     NormalizedLLMResponse,
 )

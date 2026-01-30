@@ -5,10 +5,10 @@ This module defines Pydantic models for all WebSocket message types used in the 
 including incoming messages (query, settings updates) and outgoing responses.
 """
 import re
-from typing import Any, Dict, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field, field_validator
 
-from backend.src.core.validation import ValidationError, validate_user_id
+from backend.src.core.validation.validators import ValidationError, validate_user_id
 
 # Constants for validation
 MAX_MSG_ID_LENGTH = 128  # Maximum length for message IDs
@@ -55,6 +55,8 @@ class BaseMessage(BaseModel):
 class QueryPayload(BaseModel):
     text: str  # Original query text (for reference)
     content: Optional[str] = None  # Complete message content (system state + memories + query)
+    screenshot: Optional[str] = None  # Base64-encoded screenshot data for user messages
+    config: Optional[Dict[str, Any]] = None  # Generic config dictionary from frontend (allows any config fields)
 
 class QueryMessage(BaseMessage):
     type: Literal["query"]
@@ -62,6 +64,7 @@ class QueryMessage(BaseMessage):
 
 class LoadSettingsMessage(BaseMessage):
     type: Literal["load-settings"]
+    payload: Dict[str, Any] = Field(default_factory=dict)  # Optional: can include client_version
 
 class ListModelsMessage(BaseMessage):
     type: Literal["list-models"]
@@ -83,6 +86,33 @@ class ToolResultMessage(BaseMessage):
     type: Literal["tool-result"]
     payload: ToolResultPayload
 
+class ToolBundleToolItem(BaseModel):
+    """Single tool definition within a bundle."""
+    name: str
+    args: Dict[str, Any]
+
+class ToolBundlePayload(BaseModel):
+    """Payload for tool-bundle message (outgoing from backend)."""
+    bundle_id: str
+    tools: List[ToolBundleToolItem]
+
+class ToolBundleMessage(BaseMessage):
+    type: Literal["tool-bundle"]
+    payload: ToolBundlePayload
+
+class ToolBundleResultPayload(BaseModel):
+    """Payload for tool-bundle-result message (incoming to backend)."""
+    bundle_id: str
+    status: str  # "success", "partial_failure", or "failure"
+    screenshot: Optional[str] = None
+    system_state: Optional[Dict[str, Any]] = None
+    step_results: List[Dict[str, Any]]  # List of dicts with tool, status, output
+    error: Optional[str] = None
+
+class ToolBundleResultMessage(BaseMessage):
+    type: Literal["tool-bundle-result"]
+    payload: ToolBundleResultPayload
+
 class HandshakeMessage(BaseModel):
     """Handshake message sent at WebSocket connection start."""
     type: Literal["handshake"]
@@ -96,7 +126,8 @@ IncomingMessage = Union[
     ListModelsMessage,
     UpdateSettingsMessage,
     WakewordDetectedMessage,
-    ToolResultMessage
+    ToolResultMessage,
+    ToolBundleResultMessage
 ]
 
 # Outgoing Messages

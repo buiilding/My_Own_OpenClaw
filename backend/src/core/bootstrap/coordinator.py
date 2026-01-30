@@ -10,7 +10,7 @@ from typing import List, Optional, Tuple
 
 from fastapi import FastAPI
 
-from backend.src.agent.core.session_manager import SessionManager
+from backend.src.agent.session.manager import SessionManager
 from backend.src.api.deps import set_container
 from backend.src.core.bootstrap.handler_initializer import HandlerInitializer
 from backend.src.core.bootstrap.plugin_initializer import PluginInitializer

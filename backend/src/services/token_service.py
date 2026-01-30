@@ -8,7 +8,7 @@ import logging
 from typing import List, Optional
 
 import litellm
-from backend.src.core.types import LLMMessage
+from backend.src.core.types.schemas import LLMMessage
 
 logger = logging.getLogger(__name__)
 

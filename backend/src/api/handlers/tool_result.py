@@ -9,14 +9,14 @@ from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from fastapi import WebSocketDisconnect
 
-from backend.src.api.core.base import MessageHandler
-from backend.src.api.core.errors import send_error_response
-from backend.src.api.core.transport import WebSocketSender
-from backend.src.api.schema import BaseMessage, ToolResultMessage
-from backend.src.core.validation import ValidationError
+from backend.src.api.infrastructure.handler import MessageHandler
+from backend.src.api.infrastructure.errors import send_error_response
+from backend.src.api.transport.protocol import WebSocketSender
+from backend.src.api.schema import BaseMessage, ToolResultMessage, ToolBundleResultMessage
+from backend.src.core.validation.validators import ValidationError
 
 if TYPE_CHECKING:
-    from backend.src.agent.core.session_manager import SessionManager
+    from backend.src.agent.session.manager import SessionManager
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +39,8 @@ class ToolResultHandler(MessageHandler):
         self.session_manager = session_manager
     
     def validate_message(self, message: BaseMessage) -> bool:
-        """Validate tool-result message structure."""
-        return isinstance(message, ToolResultMessage)
+        """Validate tool-result or tool-bundle-result message structure."""
+        return isinstance(message, (ToolResultMessage, ToolBundleResultMessage))
     
     def _validate_metadata(self, metadata: Any) -> Dict[str, Any]:
         """
@@ -89,50 +89,82 @@ class ToolResultHandler(MessageHandler):
         user_id: str
     ) -> None:
         """
-        Handle tool-result message from frontend.
+        Handle tool-result or tool-bundle-result message from frontend.
         
-        Implements error policy:
-        - Protocol violations (missing request_id, invalid structure) → send error
-        - Benign late/invalid messages (no session, terminated session) → log and drop
-        
-        Delegates all processing to session.process_frontend_tool_result().
-        Handler is done - session handles everything internally.
+        Routes to appropriate handler based on message type.
         
         Args:
-            message: Validated ToolResultMessage Pydantic model
+            message: Validated ToolResultMessage or ToolBundleResultMessage Pydantic model
             websocket: WebSocket connection
             user_id: User ID from connection context
         """
-        # Type assertion - message is already validated as ToolResultMessage
-        validated: ToolResultMessage = message  # type: ignore
+        # Route based on message type
+        if isinstance(message, ToolBundleResultMessage):
+            await self._handle_tool_bundle_result(message, websocket, user_id)
+        else:
+            # Type assertion - message is already validated as ToolResultMessage
+            validated: ToolResultMessage = message  # type: ignore
+            
+            payload = validated.payload
+            request_id = payload.request_id
+            
+            # Get session
+            session = self.session_manager.get_session(user_id)
+            if not session:
+                # Benign - stale/terminated session, log and drop silently
+                logger.debug(
+                    f"Tool result for non-existent session "
+                    f"(user_id={user_id}, request_id={request_id[:15] if request_id else 'none'})"
+                )
+                return
+            
+            # Validate and sanitize metadata before passing to domain layer
+            message_dict = validated.model_dump()
+            raw_payload = message_dict.get("payload", {})
+            metadata = self._validate_metadata(raw_payload.get("metadata", {}))
+            
+            # Delegate to session (handler no longer knows about internals)
+            await session.process_frontend_tool_result(
+                request_id=request_id,
+                success=payload.success,
+                result_data=payload.data,
+                error=payload.error,
+                metadata=metadata
+            )
+    
+    async def _handle_tool_bundle_result(
+        self,
+        message: ToolBundleResultMessage,
+        websocket: WebSocketSender,
+        user_id: str
+    ) -> None:
+        """
+        Handle tool-bundle-result message from frontend.
         
-        payload = validated.payload
-        request_id = payload.request_id
+        Args:
+            message: Validated ToolBundleResultMessage Pydantic model
+            websocket: WebSocket connection
+            user_id: User ID from connection context
+        """
+        payload = message.payload
+        bundle_id = payload.bundle_id
         
         # Get session
         session = self.session_manager.get_session(user_id)
         if not session:
-            # Benign - stale/terminated session, log and drop silently
             logger.debug(
-                f"Tool result for non-existent session "
-                f"(user_id={user_id}, request_id={request_id[:15] if request_id else 'none'})"
+                f"Tool bundle result for non-existent session "
+                f"(user_id={user_id}, bundle_id={bundle_id[:15] if bundle_id else 'none'})"
             )
             return
         
-        # Validate and sanitize metadata before passing to domain layer
-        # Metadata is not in ToolResultPayload schema, so extract from model dump
-        # This preserves backward compatibility for metadata extraction
-        message_dict = validated.model_dump()
-        raw_payload = message_dict.get("payload", {})
-        metadata = self._validate_metadata(raw_payload.get("metadata", {}))
-        
-        # Delegate to session (handler no longer knows about internals)
-        await session.process_frontend_tool_result(
-            request_id=request_id,
-            success=payload.success,
-            result_data=payload.data,
-            error=payload.error,
-            metadata=metadata
+        # Delegate to session for processing atomic bundle result
+        # step_results is already List[Dict[str, Any]] from schema
+        await session.process_frontend_tool_bundle_result(
+            bundle_id=bundle_id,
+            status=payload.status,
+            step_results=payload.step_results,
+            screenshot=payload.screenshot,
+            system_state=payload.system_state,
+            error=payload.error
         )
-        
-        # Handler is done - session handles everything internally

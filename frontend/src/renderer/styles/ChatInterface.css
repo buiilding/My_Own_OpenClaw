@@ -125,8 +125,9 @@
   color: #1b5e20;
   max-height: 300px;
   overflow-y: auto;
+  overflow-x: auto;
   background-color: #f1f8e9;
-  white-space: pre-wrap;
+  white-space: pre;
   word-wrap: break-word;
 }
 

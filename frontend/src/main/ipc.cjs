@@ -7,8 +7,7 @@ const { ipcMain, BrowserWindow } = require('electron');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const os = require('os');
-const { getSystemState } = require('./system_state.cjs');
-const { searchMemory } = require('./memory_service_bridge.cjs');
+const { getSystemState, searchMemory } = require('./local_backend_bridge.cjs');
 
 const BACKEND_PORT = process.env.BACKEND_PORT || 8765;
 const BACKEND_URL = `ws://127.0.0.1:${BACKEND_PORT}/ws`;
@@ -20,8 +19,10 @@ let isFirstQuery = true; // Track if this is the first user query in the session
 let currentUserId = null; // Store user_id after successful handshake
 
 function log(message) {
-  // Only log important events, not every message
-  console.log(`[IPC Bridge] ${message}`);
+  // Only log in development - production logging adds overhead
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[IPC Bridge] ${message}`);
+  }
 }
 
 function logDebug(message) {
@@ -177,7 +178,12 @@ function initializeIpc(win) {
           log(`Memory search failed: ${err.message}`);
           return { success: false, data: { memories: { episodic: [], semantic: [] } } };
         }); // Start memory search immediately
-        const statePromise = getSystemState().then(state => {
+        // Request only needed fields based on context type
+        const requestedFields = contextType === 'initial' 
+          ? ['active_window', 'mouse_position', 'screen_resolution', 'windows']
+          : ['active_window', 'mouse_position'];
+        
+        const statePromise = getSystemState(requestedFields).then(state => {
           // Format system state as XML based on context type
           if (contextType === 'initial') {
             return formatInitialStateXml(state);
@@ -295,25 +301,15 @@ function initializeIpc(win) {
 function formatInitialStateXml(state) {
   const windows = state.windows || [];
   const windowsXml = windows.map(w => `        <window>${w}</window>`).join('\n');
-  const stats = state.stats || {};
   
   return `<system_context>
     <os_state>
         <active_window>${state.active_window || 'Unknown'}</active_window>
         <mouse_position>${state.mouse_position || 'Unknown'}</mouse_position>
-        <clipboard_preview>${state.clipboard || '<empty>'}</clipboard_preview>
         <screen_resolution>${state.screen_resolution || 'Unknown'}</screen_resolution>
-        <time>${state.time || new Date().toISOString()}</time>
-        <internet_status>${state.internet || 'Unknown'}</internet_status>
         <all_open_windows>
 ${windowsXml}
         </all_open_windows>
-        <system_stats>
-            <cpu_percent>${stats.cpu_percent || 0}%</cpu_percent>
-            <memory_percent>${stats.memory_percent || 0}%</memory_percent>
-            <battery_percent>${stats.battery_percent || 'N/A'}</battery_percent>
-            <battery_charging>${stats.battery_charging || 'N/A'}</battery_charging>
-        </system_stats>
     </os_state>
 </system_context>`;
 }
@@ -326,8 +322,6 @@ function formatSequentialStateXml(state) {
     <os_state>
         <active_window>${state.active_window || 'Unknown'}</active_window>
         <mouse_position>${state.mouse_position || 'Unknown'}</mouse_position>
-        <time>${state.time || new Date().toISOString()}</time>
-        <clipboard_preview>${state.clipboard || '<empty>'}</clipboard_preview>
     </os_state>
 </system_context>`;
 }
@@ -336,12 +330,9 @@ function formatSequentialStateXml(state) {
  * Format fallback system state XML
  */
 function formatFallbackStateXml() {
-  const fallbackTime = new Date().toISOString();
   return `<system_context>
     <os_state>
         <active_window>Unknown</active_window>
-        <mouse_position>Unknown</mouse_position>
-        <time>${fallbackTime}</time>
     </os_state>
 </system_context>`;
 }

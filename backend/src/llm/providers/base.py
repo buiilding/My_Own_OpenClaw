@@ -6,8 +6,8 @@ import re
 import litellm
 from litellm import exceptions as litellm_exceptions
 
-from backend.src.core.events import StreamingEvent, ErrorEvent
-from backend.src.core.types import LLMMessage, NormalizedLLMResponse
+from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
+from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 
 logger = logging.getLogger(__name__)
 

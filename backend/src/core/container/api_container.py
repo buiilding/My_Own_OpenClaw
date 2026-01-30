@@ -7,21 +7,18 @@ import logging
 
 from dependency_injector import containers, providers
 
-from backend.src.agent.core.session_manager import SessionManager
-from backend.src.api.core.base import MessageHandlerRegistry
+from backend.src.agent.session.manager import SessionManager
+from backend.src.api.infrastructure.registry import MessageHandlerRegistry
 from backend.src.api.handlers.query import QueryMessageHandler
-from backend.src.api.query.formatter import ResponseFormatter
+from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.handlers.settings import (
     ListModelsHandler,
-    LoadSettingsHandler,
-    UpdateSettingsHandler,
 )
-from backend.src.api.tts.manager import TTSManager
+from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.core.config import AppConfig
 from backend.src.core.config.service import ConfigurationService
-from backend.src.core.config.user_config_manager import UserConfigManager
 from backend.src.core.services.wakeword_service import WakewordService
 from backend.src.llm.models import ModelService
 
@@ -43,7 +40,6 @@ class ApiContainer(containers.DeclarativeContainer):
     config = providers.Dependency()
     session_manager = providers.Dependency()
     config_service = providers.Dependency()
-    user_config_manager = providers.Dependency()
     model_service = providers.Dependency()
 
     # TTS Manager (stateless utility)
@@ -77,19 +73,6 @@ class ApiContainer(containers.DeclarativeContainer):
         wakeword_service=wakeword_service,
     )
 
-    load_settings_handler = providers.Singleton(
-        LoadSettingsHandler,
-        config_service=config_service,
-        user_config_manager=user_config_manager,
-    )
-
-    update_settings_handler = providers.Singleton(
-        UpdateSettingsHandler,
-        session_manager=session_manager,
-        config_service=config_service,
-        user_config_manager=user_config_manager,
-    )
-
     list_models_handler = providers.Singleton(
         ListModelsHandler,
         model_service=model_service,
@@ -97,14 +80,12 @@ class ApiContainer(containers.DeclarativeContainer):
 
     # Handler Registry (registers all handlers)
     handler_registry = providers.Singleton(
-        lambda qh, trh, wh, lsh, ush, lmh: _create_handler_registry(
-            qh, trh, wh, lsh, ush, lmh
+        lambda qh, trh, wh, lmh: _create_handler_registry(
+            qh, trh, wh, lmh
         ),
         qh=query_handler,
         trh=tool_result_handler,
         wh=wakeword_handler,
-        lsh=load_settings_handler,
-        ush=update_settings_handler,
         lmh=list_models_handler,
     )
 
@@ -113,8 +94,6 @@ def _create_handler_registry(
     query_handler: QueryMessageHandler,
     tool_result_handler: ToolResultHandler,
     wakeword_handler: WakewordHandler,
-    load_settings_handler: LoadSettingsHandler,
-    update_settings_handler: UpdateSettingsHandler,
     list_models_handler: ListModelsHandler,
 ) -> MessageHandlerRegistry:
     """
@@ -124,8 +103,6 @@ def _create_handler_registry(
         query_handler: Query message handler
         tool_result_handler: Tool result handler
         wakeword_handler: Wakeword handler
-        load_settings_handler: Load settings handler
-        update_settings_handler: Update settings handler
         list_models_handler: List models handler
 
     Returns:
@@ -136,9 +113,8 @@ def _create_handler_registry(
     # Register all handlers
     registry.register("query", query_handler)
     registry.register("tool-result", tool_result_handler)
+    registry.register("tool-bundle-result", tool_result_handler)  # Same handler handles both types
     registry.register("wakeword-detected", wakeword_handler)
-    registry.register("load-settings", load_settings_handler)
-    registry.register("update-settings", update_settings_handler)
     registry.register("list-models", list_models_handler)
 
     logger.info("Message handler registry initialized with all handlers")
