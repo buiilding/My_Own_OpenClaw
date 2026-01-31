@@ -158,15 +158,6 @@ class TokenCountEvent(StreamingEvent):
 
 
 @dataclass
-class RequestScreenshotEvent(StreamingEvent):
-    """Event emitted when the backend needs a screenshot (hidden from UI)."""
-    request_id: str
-    
-    def __post_init__(self):
-        self.type = StreamingEventType.REQUEST_SCREENSHOT
-
-
-@dataclass
 class MemoryStoreEvent(StreamingEvent):
     """Event emitted to trigger frontend memory storage after interaction completes."""
     user_query: str
@@ -202,7 +193,6 @@ AgentStreamingEvent = Union[
     UserMessageFullEvent,
     AssistantMessageFullEvent,
     FullResponseEvent,
-    RequestScreenshotEvent,
     MemoryStoreEvent,
     ToolBundleEvent,
 ]

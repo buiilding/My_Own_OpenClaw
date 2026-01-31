@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
     from backend.src.core.interfaces.vision import IVisionService
 
-from backend.src.core.events.streaming_events import AgentStreamingEvent, RequestScreenshotEvent
+from backend.src.core.events.streaming_events import AgentStreamingEvent
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
 
@@ -47,7 +47,7 @@ class ToolPreparer:
     
     Responsibility: Preparation/resolution only.
     Delegates screenshot acquisition, coordinate resolution to specialized components.
-    Yields infrastructure events (RequestScreenshotEvent) but does NOT yield frontend events.
+    Yields infrastructure events but does NOT yield frontend events.
     """
 
     def __init__(
@@ -83,7 +83,7 @@ class ToolPreparer:
         """
         Prepare tool calls: resolve coordinates, rewrite parameters.
         
-        Yields infrastructure events (RequestScreenshotEvent) during preparation.
+        Yields infrastructure events during preparation.
         Returns PreparationResult with resolved calls and any errors.
         
         Args:
@@ -125,7 +125,7 @@ class ToolPreparer:
                 if self._needs_coordinate_resolution(tool_call):
                     try:
                         # Resolve tool with coordinate resolution using shared helper
-                        # This yields RequestScreenshotEvent if needed
+                        # Coordinate resolution may emit infrastructure events
                         async for event in resolve_tool_with_coordinates(
                             tool_call,
                             resolved_call,
@@ -177,7 +177,7 @@ class ToolPreparer:
             if self._needs_coordinate_resolution(tool_call):
                 try:
                     # Resolve tool with coordinate resolution using shared helper
-                    # This yields RequestScreenshotEvent if needed
+                    # Coordinate resolution may emit infrastructure events
                     async for event in resolve_tool_with_coordinates(
                         tool_call,
                         resolved_call,

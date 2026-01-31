@@ -56,14 +56,14 @@ class ToolOrchestrator:
             session: Agent session for context
             
         Yields:
-            Execution-time events: ThinkingEvent, ToolSender events (RequestScreenshotEvent, ToolCallEvent, etc.)
+            Execution-time events: ThinkingEvent, ToolSender events (ToolCallEvent, etc.)
         """
         # Emit thinking event
         yield ThinkingEvent(
             content=f"Executing {len(parsed_response.tool_calls)} tool(s)..."
         )
 
-        # Send tools (yields execution-time events like RequestScreenshotEvent, ToolCallEvent, ToolBundleEvent)
+        # Send tools (yields execution-time events like ToolCallEvent, ToolBundleEvent)
         async for event in self.tool_sender.send_tools(
             parsed_response.tool_calls, session
         ):

@@ -15,7 +15,6 @@ from backend.src.api.processing.formatters.tool_schemas import ToolSchemasEventF
 from backend.src.api.processing.formatters.user_message import UserMessageFullEventFormatter
 from backend.src.api.processing.formatters.assistant_message import AssistantMessageFullEventFormatter
 from backend.src.api.processing.formatters.token_count import TokenCountEventFormatter
-from backend.src.api.processing.formatters.screenshot import RequestScreenshotEventFormatter
 from backend.src.api.processing.formatters.memory_store import MemoryStoreEventFormatter
 from backend.src.api.processing.formatters.tool_bundle import ToolBundleEventFormatter
 
@@ -32,7 +31,6 @@ __all__ = [
     "UserMessageFullEventFormatter",
     "AssistantMessageFullEventFormatter",
     "TokenCountEventFormatter",
-    "RequestScreenshotEventFormatter",
     "MemoryStoreEventFormatter",
     "ToolBundleEventFormatter",
 ]

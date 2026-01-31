@@ -71,12 +71,6 @@ class ToolResultHandler:
             )
             return
         
-        # Handle hidden screenshot requests
-        if self.router.is_screenshot_waiter_request(request_id):
-            screenshot_data = result_data.get("screenshot") if isinstance(result_data, dict) else None
-            await self.router.route_screenshot_waiter(request_id, screenshot_data)
-            return
-        
         # Handle individual tool result
         tool_result = self.receiver.receive_individual_result(
             request_id, success, result_data, error, metadata

@@ -18,7 +18,6 @@ from backend.src.core.events import (
     UserMessageFullEvent,
     AssistantMessageFullEvent,
     TokenCountEvent,
-    RequestScreenshotEvent,
     MemoryStoreEvent,
     ToolBundleEvent,
 )
@@ -36,7 +35,6 @@ from backend.src.api.processing.formatters.tool_schemas import ToolSchemasEventF
 from backend.src.api.processing.formatters.user_message import UserMessageFullEventFormatter
 from backend.src.api.processing.formatters.assistant_message import AssistantMessageFullEventFormatter
 from backend.src.api.processing.formatters.token_count import TokenCountEventFormatter
-from backend.src.api.processing.formatters.screenshot import RequestScreenshotEventFormatter
 from backend.src.api.processing.formatters.memory_store import MemoryStoreEventFormatter
 from backend.src.api.processing.formatters.tool_bundle import ToolBundleEventFormatter
 
@@ -63,7 +61,6 @@ class ResponseFormatter:
             StreamingEventType.USER_MESSAGE_FULL.value: UserMessageFullEventFormatter(),
             StreamingEventType.ASSISTANT_MESSAGE_FULL.value: AssistantMessageFullEventFormatter(),
             StreamingEventType.TOKEN_COUNT.value: TokenCountEventFormatter(),
-            StreamingEventType.REQUEST_SCREENSHOT.value: RequestScreenshotEventFormatter(),
             StreamingEventType.MEMORY_STORE.value: MemoryStoreEventFormatter(),
             StreamingEventType.TOOL_BUNDLE.value: ToolBundleEventFormatter(),
         }
@@ -81,7 +78,6 @@ class ResponseFormatter:
             UserMessageFullEvent: StreamingEventType.USER_MESSAGE_FULL.value,
             AssistantMessageFullEvent: StreamingEventType.ASSISTANT_MESSAGE_FULL.value,
             TokenCountEvent: StreamingEventType.TOKEN_COUNT.value,
-            RequestScreenshotEvent: StreamingEventType.REQUEST_SCREENSHOT.value,
             MemoryStoreEvent: StreamingEventType.MEMORY_STORE.value,
             ToolBundleEvent: StreamingEventType.TOOL_BUNDLE.value,
         }

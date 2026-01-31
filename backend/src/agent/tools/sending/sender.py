@@ -55,7 +55,7 @@ class ToolSender:
         """
         Send resolved tools to frontend by yielding events.
         
-        First prepares tools (yields RequestScreenshotEvent if needed),
+        First prepares tools,
         then sends frontend events (ToolCallEvent, ToolBundleEvent, ToolOutputEvent).
         
         Args:
@@ -63,14 +63,14 @@ class ToolSender:
             session: The current agent session
             
         Yields:
-            AgentStreamingEvent: RequestScreenshotEvent (infrastructure), ToolCallEvent, ToolBundleEvent, ToolOutputEvent (frontend)
+            AgentStreamingEvent: ToolCallEvent, ToolBundleEvent, ToolOutputEvent (frontend)
         """
-        # Prepare tools (yields RequestScreenshotEvent if needed)
+        # Prepare tools
         preparation_result = None
         async for event_or_result in self.preparer.prepare_tools(tool_calls, session):
             event, result = event_or_result
             
-            # Yield infrastructure events (RequestScreenshotEvent)
+            # Yield infrastructure events
             if event is not None:
                 yield event
             

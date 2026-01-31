@@ -36,7 +36,6 @@ class StreamingEventType(str, Enum):
     FULL_RESPONSE = "full_response"
     TOKEN_COUNT = "token_count"
     CONTENT = "content"  # Used internally by LLM client
-    REQUEST_SCREENSHOT = "request-screenshot"
     MEMORY_STORE = "memory-store"
     TOOL_BUNDLE = "tool-bundle"
 

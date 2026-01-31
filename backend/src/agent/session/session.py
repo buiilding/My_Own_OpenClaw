@@ -162,12 +162,6 @@ class AgentSession:
         # Session-scoped state for computer use
         # Extract screenshot/OCR state management to reduce complexity
         self._screenshot_state = ScreenshotState()
-        # SCREENSHOT REQUEST RACE FIX: Use dict to track multiple concurrent screenshot requests
-        # Maps request_id -> Future to prevent race conditions when multiple tools request screenshots
-        self._pending_screenshots: Dict[str, asyncio.Future] = {}
-        # Legacy single waiter (deprecated, kept for backward compatibility during migration)
-        self.screenshot_waiter: Optional[asyncio.Future] = None
-        self.hidden_screenshot_request_id: Optional[str] = None
         
         # Extract resolved tool call storage to reduce complexity
         self._resolved_tool_call_storage = ResolvedToolCallStorage()
@@ -484,19 +478,6 @@ class AgentSession:
                 self._pending_tool_results.clear()
             if hasattr(self, '_bundled_results'):
                 self._bundled_results.clear()
-            
-            # SCREENSHOT REQUEST RACE FIX: Cancel all pending screenshot requests
-            for request_id, future in list(self._pending_screenshots.items()):
-                if not future.done():
-                    future.cancel()
-                del self._pending_screenshots[request_id]
-            
-            # Legacy cleanup: Clear single waiter if it exists
-            if hasattr(self, 'screenshot_waiter') and self.screenshot_waiter:
-                if not self.screenshot_waiter.done():
-                    self.screenshot_waiter.cancel()
-                self.screenshot_waiter = None
-                self.hidden_screenshot_request_id = None
             
             logger.debug(f"Session {self.session_id} cleanup completed")
         except Exception as e:
