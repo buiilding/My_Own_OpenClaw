@@ -261,15 +261,14 @@ For tools using vision models:
      - Parallel system state + screenshot capture
      - Consistent error handling
      - Proper timing logs
-3. **Hidden Screenshots**: Screenshot requested by backend if needed (via request-screenshot message)
-4. **OCR Processing**: Screenshot processed for OCR (backend)
-5. **Storage**: Screenshot stored in session with unique ID (backend)
+3. **OCR Processing**: Screenshot processed for OCR (backend)
+4. **Storage**: Screenshot stored in session with unique ID (backend)
 
 ### ScreenshotManager
 
 **ScreenshotManager** (`agent/tools/screenshot_manager.py`) manages screenshots:
 
-- **get_screenshot()**: Get screenshot from session or request hidden screenshot
+- **get_screenshot()**: Ensure an active screenshot is available in session
 - **process_screenshot()**: Process and store screenshot, trigger OCR
 - **Screenshot IDs**: Unique IDs prevent race conditions
 

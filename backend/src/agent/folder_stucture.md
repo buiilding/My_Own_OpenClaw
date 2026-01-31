@@ -23,7 +23,7 @@ backend/src/agent/
 │   │
 │   ├── preparation/                  # Phase 1: Prepare tools (resolution)
 │   │   ├── __init__.py               # Package exports: ResolvedToolCall, ToolPreparer
-│   │   ├── preparer.py               # ToolPreparer - orchestrates tool call preparation (coordinates screenshot acquisition, coordinate resolution, tool rewriting, yields RequestScreenshotEvent)
+│   │   ├── preparer.py               # ToolPreparer - orchestrates tool call preparation (coordinates screenshot availability, coordinate resolution, tool rewriting)
 │   │   │
 │   │   ├── types/                    # Data structures
 │   │   │   ├── __init__.py           # Package exports: ResolvedToolCall
@@ -41,7 +41,7 @@ backend/src/agent/
 │   │   │
 │   │   ├── screenshot/                # Screenshot management
 │   │   │   ├── __init__.py            # Package exports: ScreenshotManager, ScreenshotProcessor, ScreenshotState
-│   │   │   ├── manager.py             # ScreenshotManager - manages screenshot acquisition (hidden screenshot workflow, async waiting, timeout logic) and processing (stores as current, triggers OCR)
+│   │   │   ├── manager.py             # ScreenshotManager - manages screenshot availability and processing (stores as current, triggers OCR)
 │   │   │   ├── state.py               # ScreenshotState - manages screenshot and OCR state for a session (only current screenshot/OCR, previous discarded)
 │   │   │   └── processor.py           # ScreenshotProcessor - processes screenshots from tool results (delegates to ScreenshotManager)
 │   │   │
@@ -132,7 +132,7 @@ tools/orchestrator.py
     └── tools/sending/sender.py
         └── ToolSender.send_tools() → AsyncGenerator[AgentStreamingEvent]
             ├── tools/preparation/preparer.py
-            │   └── ToolPreparer.prepare_tools() → yields RequestScreenshotEvent, returns PreparationResult
+            │   └── ToolPreparer.prepare_tools() → returns PreparationResult
             │       └── tools/preparation/helpers/preparation_helper.py
             │           └── resolve_tool_with_coordinates() → coordinates resolved
             └── ToolSender yields ToolCallEvent | ToolBundleEvent | ToolOutputEvent
@@ -164,7 +164,7 @@ tools/sending/sender.py
             ↓
 1. Screenshot Acquisition
     └── tools/preparation/screenshot/manager.py
-        └── ScreenshotManager.get_screenshot() → AsyncGenerator[RequestScreenshotEvent]
+        └── ScreenshotManager.get_screenshot() → AsyncGenerator[AgentStreamingEvent]
             └── session/session.py
                 └── AgentSession._pending_screenshots → Future created
         ↓

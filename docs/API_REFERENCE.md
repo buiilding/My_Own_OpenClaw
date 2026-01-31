@@ -56,7 +56,6 @@ Send a user query with optional screenshot.
 - `tool-bundle`: Atomic bundle of tools (single message)
 - `llm-thought`: Thinking tokens (Gemini)
 - `streaming-complete`: End of stream
-- `request-screenshot`: Request hidden screenshot
 - `memory-store`: Request to store memory
 - `wakeword-greeting`: Wakeword detection greeting
 - `system-prompt`: System prompt for transparency
@@ -557,33 +556,6 @@ Atomic bundle of tools to execute together (replaces bundle_start + N tool-calls
         "args": { "text": "Hello", "action": "type" }
       }
     ]
-  },
-  "timestamp": "2025-01-20T10:00:00Z"
-}
-```
-
-### Request Screenshot Message
-
-Backend requests a hidden screenshot for coordinate calculation (not displayed in UI).
-
-**Type**: `request-screenshot`
-
-**Payload**:
-```json
-{
-  "request_id": "screenshot-req-123",
-  "correlation_id": "screenshot-req-123"
-}
-```
-
-**Example**:
-```json
-{
-  "id": "123e4567-e89b-12d3-a456-426614174016",
-  "type": "request-screenshot",
-  "payload": {
-    "request_id": "screenshot-req-123",
-    "correlation_id": "screenshot-req-123"
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }

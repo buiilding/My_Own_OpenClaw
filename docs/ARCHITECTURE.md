@@ -167,12 +167,6 @@ Screenshots are captured strategically at key points to provide visual context f
 - **Location**: Standard tool execution flow
 - **Storage**: Returned as tool result data
 
-#### Hidden Screenshots
-- **Timing**: Requested by backend when preparing coordinate-based tools that need visual context
-- **Purpose**: Ensures up-to-date screenshot is available before coordinate resolution
-- **Location**: `backend/src/agent/tools/screenshot_manager.py`
-- **Storage**: Stored in session state for tool preparation
-
 **Important**: Screenshots are NOT captured continuously or on a timer - they are only taken when explicitly requested by the system or when providing context for user/AI interactions. This balances the need for visual context with performance considerations.
 
 ### Tool Execution Flow
@@ -182,7 +176,7 @@ Screenshots are captured strategically at key points to provide visual context f
    ↓
 2. ToolPreparer checks if screenshot needed
    ↓
-3. ScreenshotManager acquires screenshot (if needed)
+3. ScreenshotManager ensures active screenshot is available
    ↓
 4. OCRCoordinator runs OCR (if needed)
    ↓

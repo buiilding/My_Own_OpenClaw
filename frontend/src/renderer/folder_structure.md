@@ -187,10 +187,9 @@ frontend/src/renderer/
        └─> IPC: ON_CHANNELS.FROM_BACKEND
            ↓
 2. TOOL RUNNER HOOK
-   └─> features/chat/hooks/useToolRunner.ts
+       └─> features/chat/hooks/useToolRunner.ts
        ├─> Handle tool-call → ToolExecutionService.executeTool()
        ├─> Handle tool-bundle → ToolExecutionService.executeToolBundle()
-       ├─> Handle request-screenshot → extractOSstate() (hidden screenshot)
        └─> Handle memory-store → IPC invoke STORE_MEMORY
            ↓
 3. TOOL EXECUTION SERVICE
@@ -359,15 +358,13 @@ frontend/src/renderer/
 
 15. **Window Management**: Automatic window minimization after message send (prevents chat window in screenshots)
 
-16. **Hidden Screenshots**: Support for hidden screenshot requests from backend (coordinate resolution)
+16. **Memory Storage**: IPC integration with Python sidecar for memory operations
 
-17. **Memory Storage**: IPC integration with Python sidecar for memory operations
+17. **Config Filtering**: Frontend only manages subset of config (model_mode, selected_model_id, voice_mode_enabled, etc.)
 
-18. **Config Filtering**: Frontend only manages subset of config (model_mode, selected_model_id, voice_mode_enabled, etc.)
+18. **Error Boundaries**: React error boundaries prevent full app crashes
 
-19. **Error Boundaries**: React error boundaries prevent full app crashes
-
-20. **Lazy Loading**: SettingsPanel lazy-loaded for faster initial render
+19. **Lazy Loading**: SettingsPanel lazy-loaded for faster initial render
 
 ---
 
