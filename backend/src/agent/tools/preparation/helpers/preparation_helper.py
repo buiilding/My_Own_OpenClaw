@@ -39,7 +39,7 @@ async def resolve_tool_with_coordinates(
     Resolve a tool call that requires coordinate resolution.
     
     This is the shared logic for:
-    - Screenshot acquisition (yields RequestScreenshotEvent if needed)
+    - Screenshot availability check
     - Coordinate resolution
     - Rewriting tool call to manual mode
     
@@ -54,14 +54,11 @@ async def resolve_tool_with_coordinates(
         vision_service_provider: Callable to get vision service from session
         context_id: Context ID (bundle_id or request_id) for logging
         
-    Yields:
-        AgentStreamingEvent: RequestScreenshotEvent if screenshot is needed
-        
     Raises:
         ValueError: If screenshot data is unavailable
         Exception: If coordinate resolution fails
     """
-    # 1. Ensure we have a screenshot (yields RequestScreenshotEvent if needed)
+    # 1. Ensure we have a screenshot
     screenshot_start_time = time.perf_counter()
     async for event in screenshot_manager.get_screenshot(session):
         yield event

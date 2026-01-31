@@ -45,29 +45,6 @@ class ToolResultRouter:
         self.result_storage = result_storage
         self.session = session
 
-    def is_screenshot_waiter_request(self, request_id: str) -> bool:
-        """
-        Check if request_id matches active screenshot waiter.
-        
-        Args:
-            request_id: Request ID to check
-            
-        Returns:
-            True if this is a hidden screenshot request
-        """
-        # Check new dict-based tracking (supports concurrent requests)
-        if request_id in self.session._pending_screenshots:
-            future = self.session._pending_screenshots[request_id]
-            if future and not future.done():
-                return True
-        
-        # Legacy check for backward compatibility
-        return (
-            self.session.screenshot_waiter is not None and
-            not self.session.screenshot_waiter.done() and
-            self.session.hidden_screenshot_request_id == request_id
-        )
-
     async def route_individual_result(
         self,
         request_id: str,
@@ -180,44 +157,3 @@ class ToolResultRouter:
             logger.info(f"Stored combined bundled result for history (bundle_id={bundle_request_id[:15]})")
         else:
             logger.warning("Bundle result missing combined_llm_content, cannot create combined history message")
-
-    async def route_screenshot_waiter(
-        self,
-        request_id: str,
-        screenshot_data: Optional[str],
-    ) -> None:
-        """
-        Route screenshot waiter result: process screenshot and resolve future.
-        
-        Args:
-            request_id: Request ID for the screenshot
-            screenshot_data: Screenshot data
-        """
-        # Get Future from dict using request_id
-        screenshot_future = self.session._pending_screenshots.pop(request_id, None)
-        
-        # Legacy support: Also check single waiter
-        if screenshot_future is None:
-            screenshot_future = self.session.screenshot_waiter
-        
-        if screenshot_future and not screenshot_future.done():
-            if screenshot_data:
-                # Process screenshot and get screenshot_id
-                screenshot_id = await self.screenshot_processor.process_from_result(
-                    self.session, screenshot_data, request_id
-                )
-                if screenshot_id:
-                    # Return tuple so caller can access screenshot_id
-                    screenshot_future.set_result((screenshot_id, screenshot_data))
-                    logger.info(f"Resolved hidden screenshot waiter for request {request_id[:15]} (screenshot_id={screenshot_id[:8]})")
-                else:
-                    screenshot_future.set_exception(ValueError("Screenshot processing failed"))
-                    logger.warning(f"Screenshot processing failed for request {request_id[:15]}")
-            else:
-                screenshot_future.set_exception(ValueError("No screenshot data in result"))
-                logger.warning(f"Hidden screenshot request {request_id[:15]} returned no data")
-        
-        # Legacy cleanup: Reset single waiter if it matches this request
-        if self.session.hidden_screenshot_request_id == request_id:
-            self.session.screenshot_waiter = None
-            self.session.hidden_screenshot_request_id = None
