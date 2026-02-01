@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
 import { filterFrontendConfig } from '../../utils/configFilter';
 import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
-import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
+import { loadConfigFromStorage, saveConfigToStorage, hasStoredConfig } from '../../utils/configStorage';
 
 /**
  * AppConfigContext - Manages application configuration and capabilities.
@@ -66,6 +66,30 @@ export function AppConfigProvider({ children }) {
     };
   }, [onBackendEvent]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!hasStoredConfig()) {
+      IpcBridge.invoke(INVOKE_CHANNELS.LOAD_FRONTEND_CONFIG).then((diskConfig) => {
+        if (!isMounted || !diskConfig || typeof diskConfig !== 'object') {
+          return;
+        }
+        const filteredConfig = filterFrontendConfig(diskConfig);
+        if (Object.keys(filteredConfig).length === 0) {
+          return;
+        }
+        setConfig(filteredConfig);
+        saveConfigToStorage(filteredConfig, Date.now());
+      }).catch((error) => {
+        console.warn('[Config] Failed to load config from disk:', error?.message || error);
+      });
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const updateConfig = useCallback((newConfig) => {
     // Filter config to only include fields that frontend manages
     const filteredConfig = filterFrontendConfig(newConfig);
@@ -92,6 +116,9 @@ export function AppConfigProvider({ children }) {
     // Save to localStorage immediately (frontend-only storage)
     saveConfigToStorage(filteredConfig, Date.now());
     console.log('[Settings Update] Config saved to localStorage');
+    IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, filteredConfig).catch((error) => {
+      console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
+    });
   }, [config]);
 
   const value = {
