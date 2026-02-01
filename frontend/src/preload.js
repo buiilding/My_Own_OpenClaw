@@ -26,6 +26,8 @@ contextBridge.exposeInMainWorld('ipc', {
       'store-memory',
       'search-memory',
       'minimize-window-delayed',
+      'load-frontend-config',
+      'save-frontend-config',
     ];
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, data);

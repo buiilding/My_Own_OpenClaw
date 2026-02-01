@@ -50,6 +50,15 @@ export function loadConfigFromStorage() {
   }
 }
 
+export function hasStoredConfig() {
+  try {
+    return localStorage.getItem(CONFIG_STORAGE_KEY) !== null;
+  } catch (error) {
+    console.error('[ConfigStorage] Failed to read config storage:', error);
+    return false;
+  }
+}
+
 /**
  * Save configuration to localStorage.
  * 

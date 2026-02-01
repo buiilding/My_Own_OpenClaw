@@ -22,6 +22,8 @@ export const INVOKE_CHANNELS = {
   STORE_MEMORY: 'store-memory',
   SEARCH_MEMORY: 'search-memory',
   MINIMIZE_WINDOW_DELAYED: 'minimize-window-delayed',
+  LOAD_FRONTEND_CONFIG: 'load-frontend-config',
+  SAVE_FRONTEND_CONFIG: 'save-frontend-config',
 } as const;
 
 /**

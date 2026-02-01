@@ -3,7 +3,9 @@
  * renderer process, and the Python backend.
  */
 
-const { ipcMain, BrowserWindow } = require('electron');
+const { ipcMain, BrowserWindow, app } = require('electron');
+const fs = require('fs');
+const path = require('path');
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const os = require('os');
@@ -17,6 +19,48 @@ let isConnected = false;
 let reconnectInterval = 5000; // 5 seconds
 let isFirstQuery = true; // Track if this is the first user query in the session
 let currentUserId = null; // Store user_id after successful handshake
+
+const FRONTEND_CONFIG_FILENAME = 'frontend-config.json';
+
+function getFrontendConfigPath() {
+  return path.join(app.getPath('userData'), FRONTEND_CONFIG_FILENAME);
+}
+
+async function loadFrontendConfigFromDisk() {
+  try {
+    const filePath = getFrontendConfigPath();
+    if (!fs.existsSync(filePath)) {
+      return null;
+    }
+    const raw = await fs.promises.readFile(filePath, 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      log('Frontend config on disk is invalid; ignoring');
+      return null;
+    }
+    return parsed;
+  } catch (error) {
+    log(`Failed to load frontend config from disk: ${error.message}`);
+    return null;
+  }
+}
+
+async function saveFrontendConfigToDisk(config) {
+  try {
+    if (!config || typeof config !== 'object' || Array.isArray(config)) {
+      return { success: false, error: 'Invalid config payload' };
+    }
+    const filePath = getFrontendConfigPath();
+    await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+    const tempPath = `${filePath}.tmp`;
+    await fs.promises.writeFile(tempPath, JSON.stringify(config, null, 2), 'utf-8');
+    await fs.promises.rename(tempPath, filePath);
+    return { success: true };
+  } catch (error) {
+    log(`Failed to save frontend config to disk: ${error.message}`);
+    return { success: false, error: error.message };
+  }
+}
 
 function log(message) {
   // Only log in development - production logging adds overhead
@@ -154,6 +198,14 @@ function sendMessageToBackend(type, payload) {
 function initializeIpc(win) {
   mainWindow = win;
   connect();
+
+  ipcMain.handle('load-frontend-config', async () => {
+    return await loadFrontendConfigFromDisk();
+  });
+
+  ipcMain.handle('save-frontend-config', async (event, config) => {
+    return await saveFrontendConfigToDisk(config);
+  });
 
   ipcMain.on('to-backend', async (event, { type, payload }) => {
     // Only log important message types
