@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
 import { filterFrontendConfig } from '../../utils/configFilter';
-import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge, ON_CHANNELS, SEND_CHANNELS, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { loadConfigFromStorage, saveConfigToStorage, hasStoredConfig } from '../../utils/configStorage';
 
 /**
