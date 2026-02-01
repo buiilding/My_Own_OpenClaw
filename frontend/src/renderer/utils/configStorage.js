@@ -10,6 +10,14 @@
 const CONFIG_STORAGE_KEY = 'desktop-assistant-config';
 const CONFIG_VERSION_KEY = 'desktop-assistant-config-version';
 
+export const DEFAULT_FRONTEND_CONFIG = {
+  model_mode: 'online',
+  model_provider: 'openai',
+  selected_model_id: 'gpt-4o',
+  voice_mode_enabled: false,
+  speech_mode_enabled: false,
+};
+
 /**
  * Load configuration from localStorage.
  * 
@@ -19,7 +27,7 @@ export function loadConfigFromStorage() {
   try {
     const stored = localStorage.getItem(CONFIG_STORAGE_KEY);
     if (!stored) {
-      return null;
+      return { ...DEFAULT_FRONTEND_CONFIG };
     }
     
     const config = JSON.parse(stored);
@@ -29,7 +37,7 @@ export function loadConfigFromStorage() {
       console.warn('[ConfigStorage] Invalid config format in localStorage, clearing');
       localStorage.removeItem(CONFIG_STORAGE_KEY);
       localStorage.removeItem(CONFIG_VERSION_KEY);
-      return null;
+      return { ...DEFAULT_FRONTEND_CONFIG };
     }
     
     return config;
@@ -38,7 +46,7 @@ export function loadConfigFromStorage() {
     // Clear corrupted data
     localStorage.removeItem(CONFIG_STORAGE_KEY);
     localStorage.removeItem(CONFIG_VERSION_KEY);
-    return null;
+    return { ...DEFAULT_FRONTEND_CONFIG };
   }
 }
 
