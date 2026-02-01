@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
 import { filterFrontendConfig } from '../../utils/configFilter';
 import { IpcBridge, ON_CHANNELS, SEND_CHANNELS, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
-import { loadConfigFromStorage, saveConfigToStorage, hasStoredConfig } from '../../utils/configStorage';
+import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 
 /**
  * AppConfigContext - Manages application configuration and capabilities.
@@ -69,21 +69,19 @@ export function AppConfigProvider({ children }) {
   useEffect(() => {
     let isMounted = true;
 
-    if (!hasStoredConfig()) {
-      IpcBridge.invoke(INVOKE_CHANNELS.LOAD_FRONTEND_CONFIG).then((diskConfig) => {
-        if (!isMounted || !diskConfig || typeof diskConfig !== 'object') {
-          return;
-        }
-        const filteredConfig = filterFrontendConfig(diskConfig);
-        if (Object.keys(filteredConfig).length === 0) {
-          return;
-        }
-        setConfig(filteredConfig);
-        saveConfigToStorage(filteredConfig, Date.now());
-      }).catch((error) => {
-        console.warn('[Config] Failed to load config from disk:', error?.message || error);
-      });
-    }
+    IpcBridge.invoke(INVOKE_CHANNELS.LOAD_FRONTEND_CONFIG).then((diskConfig) => {
+      if (!isMounted || !diskConfig || typeof diskConfig !== 'object') {
+        return;
+      }
+      const filteredConfig = filterFrontendConfig(diskConfig);
+      if (Object.keys(filteredConfig).length === 0) {
+        return;
+      }
+      setConfig(filteredConfig);
+      saveConfigToStorage(filteredConfig, Date.now());
+    }).catch((error) => {
+      console.warn('[Config] Failed to load config from disk:', error?.message || error);
+    });
 
     return () => {
       isMounted = false;
