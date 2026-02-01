@@ -11,6 +11,7 @@ from backend.src.core.validation.validators import (
     validate_message,
     validate_query_text,
     validate_settings_update,
+    validate_frontend_config,
     validate_user_id,
 )
 
@@ -22,5 +23,6 @@ __all__ = [
     "validate_message",
     "validate_query_text",
     "validate_settings_update",
+    "validate_frontend_config",
     "validate_user_id",
 ]

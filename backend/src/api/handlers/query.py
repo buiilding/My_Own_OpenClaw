@@ -24,6 +24,7 @@ from backend.src.api.schema import BaseMessage, QueryMessage
 from backend.src.core.validation.validators import (
     ValidationError,
     validate_query_text,
+    validate_frontend_config,
 )
 
 logger = logging.getLogger(__name__)
@@ -98,9 +99,13 @@ class QueryMessageHandler(MessageHandler):
                 await self._send_error(websocket, msg_id, f"Invalid query: {e.message}")
                 return
 
-            # Extract config dictionary from query payload (can contain any config fields)
-            query_config = validated.payload.config
-            
+            # Extract and validate frontend config overrides
+            try:
+                query_config = validate_frontend_config(validated.payload.config)
+            except ValidationError as e:
+                await self._send_error(websocket, msg_id, f"Invalid config: {e.message}")
+                return
+
             # Log received config for debugging
             if query_config:
                 logger.info(

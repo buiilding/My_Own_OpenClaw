@@ -265,3 +265,54 @@ def validate_settings_update(settings: Dict[str, Any]) -> Dict[str, Any]:
     
     return validated
 
+
+# Frontend-owned config fields (keep in sync with frontend/src/renderer/utils/configFilter.js)
+FRONTEND_CONFIG_FIELDS = {
+    "model_mode",
+    "model_provider",
+    "selected_model_id",
+    "voice_mode_enabled",
+    "speech_mode_enabled",
+}
+
+
+def validate_frontend_config(settings: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Validate and filter frontend-provided config overrides.
+
+    Only allows the subset of fields that the frontend owns.
+
+    Args:
+        settings: Raw config dictionary from frontend
+
+    Returns:
+        Validated config dictionary containing only allowed keys
+
+    Raises:
+        ValidationError: If validation fails
+    """
+    if settings is None:
+        return {}
+    if not isinstance(settings, dict):
+        raise ValidationError("Config must be a dictionary")
+
+    validated: Dict[str, Any] = {}
+    for key, value in settings.items():
+        if key not in FRONTEND_CONFIG_FIELDS:
+            logger.warning(f"Ignoring non-frontend config field: {key}")
+            continue
+
+        if key == "model_mode":
+            if value is not None:
+                validate_field(value, key, str, required=False)
+                if value not in ("local", "online"):
+                    raise ValidationError("Field 'model_mode' must be 'local' or 'online'")
+        elif key in ("model_provider", "selected_model_id"):
+            if value is not None:
+                validate_field(value, key, str, required=False)
+        elif key in ("voice_mode_enabled", "speech_mode_enabled"):
+            validate_field(value, key, bool, required=False)
+
+        validated[key] = value
+
+    return validated
