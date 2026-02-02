@@ -236,7 +236,7 @@ SIMULATION_RESPONSES = [
                     "name": "scroll_control",
                     "args": {
                         "action": "scroll_down",
-                        "clicks": 100,
+                        "clicks": 5,
                         "wait": 1.0
                     }
                 }

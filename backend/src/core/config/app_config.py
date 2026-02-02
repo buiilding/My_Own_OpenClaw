@@ -33,7 +33,7 @@ APP_CONFIG = AppConfig(
     max_agent_iterations=1000,
     
     # Vision Model Settings (UI grounding / Venus)
-    vision_model_name="inclusionAI/UI-Venus-Ground-7B",
+    vision_model_name="OpenGVLab/InternVL3_5-2B",
     
     # Voice Mode Settings
     voice_mode_enabled=False,
