@@ -249,3 +249,9 @@ class AppConfig(BaseModel):
         if self.model_mode == "local":
             return self.selected_model_id
         return f"{self.model_provider}/{self.selected_model_id}"
+
+    def get_tool_allowlist(self) -> Optional[set[str]]:
+        """Return allowed tool names for the current interaction mode."""
+        if self.interaction_mode == "chat":
+            return {"read_file", "list_directory", "glob", "screenshot"}
+        return None

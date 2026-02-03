@@ -116,6 +116,13 @@ class PromptConstructor:
         tool_schemas = []
         if include_tools:
             tool_schemas = self.tool_registry.get_function_declarations() or []
+            allowlist = self.config.get_tool_allowlist()
+            if allowlist is not None:
+                tool_schemas = [
+                    schema
+                    for schema in tool_schemas
+                    if schema.get("name") in allowlist
+                ]
 
         # Get history (tools passed separately to LLM API)
         if stored_messages and hasattr(stored_messages, 'get_history'):

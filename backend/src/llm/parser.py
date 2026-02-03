@@ -676,6 +676,9 @@ class ResponseParser:
         # SECURITY: Validate tool name against whitelist (tool_registry is required in __init__)
         # This check is guaranteed to run since tool_registry is required
         valid_tool_names = self.tool_registry.get_tool_names()
+        allowed_tools = self.config.get_tool_allowlist()
+        if allowed_tools is not None:
+            valid_tool_names = [name for name in valid_tool_names if name in allowed_tools]
         if tool_name not in valid_tool_names:
             # Show all tools if list is small, otherwise show first 10 and count
             if len(valid_tool_names) <= 15:
@@ -887,4 +890,3 @@ class ResponseParser:
                 result = result.replace("\n\n\n", "\n\n")
             
             return result.strip()
-
