@@ -538,22 +538,8 @@ class LocalMemoryStore:
                 )
             )
 
-        # Execute searches concurrently
-        if search_tasks:
-            results_lists = await asyncio.gather(*search_tasks)
-            all_results = []
-            for results in results_lists:
-                all_results.extend(results)
-        else:
-            all_results = []
-
-        # Sort all results by score (descending) and limit
-        all_results.sort(key=lambda x: x["score"], reverse=True)
-        final_results = all_results[:limit]
-        logger.debug(f"Memory search completed: {len(final_results)} results (from {len(all_results)} total matches)")
-        if final_results:
-            logger.debug(f"Top result score: {final_results[0].get('score', 'N/A'):.4f}, type: {final_results[0].get('type', 'N/A')}")
-        return final_results
+        all_results = await self._collect_search_results(search_tasks)
+        return self._finalize_search_results(all_results, limit)
 
     async def _search_database(
         self,
@@ -640,6 +626,35 @@ class LocalMemoryStore:
                 )
 
         return results
+
+    async def _collect_search_results(
+        self, search_tasks: List[asyncio.Future]
+    ) -> List[Dict[str, Any]]:
+        if not search_tasks:
+            return []
+        results_lists = await asyncio.gather(*search_tasks)
+        all_results: List[Dict[str, Any]] = []
+        for results in results_lists:
+            all_results.extend(results)
+        return all_results
+
+    def _finalize_search_results(
+        self, all_results: List[Dict[str, Any]], limit: int
+    ) -> List[Dict[str, Any]]:
+        all_results.sort(key=lambda x: x["score"], reverse=True)
+        final_results = all_results[:limit]
+        logger.debug(
+            "Memory search completed: %s results (from %s total matches)",
+            len(final_results),
+            len(all_results),
+        )
+        if final_results:
+            logger.debug(
+                "Top result score: %.4f, type: %s",
+                final_results[0].get("score", 0.0),
+                final_results[0].get("type", "N/A"),
+            )
+        return final_results
 
     def _matches_filters(
         self, metadata: Dict[str, Any], filters: Dict[str, Any]
