@@ -16,6 +16,33 @@ function AppContextCoordinator({ children }) {
       configContext.registerSaveStatusCallback(statusContext.setSaving);
     }
   }, [configContext, statusContext]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (
+        event.key !== 'Tab' ||
+        !event.shiftKey ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.repeat
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      const currentConfig = configContext?.config || {};
+      const currentMode = currentConfig.interaction_mode || 'chat';
+      const nextMode = currentMode === 'chat' ? 'agent' : 'chat';
+      configContext.updateConfig({
+        ...currentConfig,
+        interaction_mode: nextMode,
+      });
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [configContext]);
   
   return <>{children}</>;
 }

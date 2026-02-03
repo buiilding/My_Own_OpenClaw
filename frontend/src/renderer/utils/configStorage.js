@@ -14,6 +14,7 @@ export const DEFAULT_FRONTEND_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',
   selected_model_id: 'gpt-5.1',
+  interaction_mode: 'chat',
   voice_mode_enabled: false,
   speech_mode_enabled: false,
 };
@@ -40,7 +41,7 @@ export function loadConfigFromStorage() {
       return { ...DEFAULT_FRONTEND_CONFIG };
     }
     
-    return config;
+    return { ...DEFAULT_FRONTEND_CONFIG, ...config };
   } catch (error) {
     console.error('[ConfigStorage] Failed to load config from localStorage:', error);
     // Clear corrupted data

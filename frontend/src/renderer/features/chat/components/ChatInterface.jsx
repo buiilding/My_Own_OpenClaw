@@ -46,6 +46,8 @@ function ChatInterface() {
   }, []);
 
   const voiceModeEnabled = config?.voice_mode_enabled || false;
+  const interactionMode = config?.interaction_mode || 'chat';
+  const interactionModeLabel = interactionMode === 'agent' ? 'Agent' : 'Chat';
   const statusLabel = thinkingStatus
     ? 'Thinking...'
     : isSending
@@ -82,6 +84,9 @@ function ChatInterface() {
           <div className="chat-subtitle">{statusLabel}</div>
         </div>
         <div className="chat-meta">
+          <div className={`chat-mode-badge chat-mode-${interactionMode}`}>
+            Mode: {interactionModeLabel}
+          </div>
           <TokenCountDisplay tokenCounts={tokenCounts} />
         </div>
       </header>

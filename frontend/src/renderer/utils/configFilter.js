@@ -10,6 +10,7 @@ const FRONTEND_CONFIG_FIELDS = [
   'model_mode',
   'model_provider',
   'selected_model_id',
+  'interaction_mode',
   'voice_mode_enabled',
   'speech_mode_enabled',
 ];

@@ -40,6 +40,24 @@
   gap: 12px;
 }
 
+.chat-mode-badge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.chat-mode-agent {
+  border-color: rgba(47, 143, 122, 0.35);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
 .message-list {
   flex: 1;
   min-height: 0;
