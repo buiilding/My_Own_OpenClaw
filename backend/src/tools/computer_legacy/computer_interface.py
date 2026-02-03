@@ -15,6 +15,24 @@ from typing import Dict, Optional, Any, Callable
 
 logger = logging.getLogger(__name__)
 
+KEY_MAPPINGS = {
+    "return": "enter",
+    "escape": "esc",
+    "delete": "del",
+    "page_down": "pagedown",
+    "page_up": "pageup",
+    "ctrl": "ctrl",
+    "control": "ctrl",
+    "alt": "alt",
+    "shift": "shift",
+    "win": "win",
+    "windows": "win",
+    "super": "win",
+    "command": "command",
+    "cmd": "command",
+    "option": "alt",
+}
+
 from backend.src.tools.computer_legacy.input_types import (
     FunctionKey,
     KeyType,
@@ -513,23 +531,4 @@ class ComputerInterface:
         """Normalize key names to pyautogui format."""
         key = key.lower().strip()
 
-        # Special key mappings
-        key_mappings = {
-            "return": "enter",
-            "escape": "esc",
-            "delete": "del",
-            "page_down": "pagedown",
-            "page_up": "pageup",
-            "ctrl": "ctrl",
-            "control": "ctrl",
-            "alt": "alt",
-            "shift": "shift",
-            "win": "win",
-            "windows": "win",
-            "super": "win",
-            "command": "command",
-            "cmd": "command",
-            "option": "alt",  # On Mac, option is alt
-        }
-
-        return key_mappings.get(key, key)
+        return KEY_MAPPINGS.get(key, key)
