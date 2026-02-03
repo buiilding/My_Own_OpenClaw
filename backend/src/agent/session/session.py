@@ -128,35 +128,8 @@ class AgentSession:
             event_bus=self.event_bus,
         )
 
-        # Initialize Tool Result Handler (extracted to reduce god object complexity)
-        # Handler initialization happens after executor, so we can access screenshot_manager from executor
-        from backend.src.agent.tools.preparation.screenshot import ScreenshotProcessor
-        from backend.src.agent.tools.waiting import ToolResultReceiver, ToolResultRouter
-        from backend.src.agent.tools.waiting.storage import ToolResultStorage
-        
-        # Initialize handler components
-        # Initialize storage first (needed by router)
-        self._tool_result_storage = ToolResultStorage(cleanup_ttl_seconds=300)
-        
-        tool_result_receiver = ToolResultReceiver(self)
-        # Get screenshot_manager from executor (created during executor initialization)
-        screenshot_manager = self.executor.screenshot_manager if hasattr(self.executor, 'screenshot_manager') else None
-        if screenshot_manager:
-            screenshot_processor = ScreenshotProcessor(screenshot_manager)
-        else:
-            # Fallback: create a new one (shouldn't happen in normal flow)
-            from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
-            screenshot_processor = ScreenshotProcessor(ScreenshotManager())
-        tool_result_router = ToolResultRouter(
-            receiver=tool_result_receiver,
-            screenshot_processor=screenshot_processor,
-            result_storage=self._tool_result_storage,
-            session=self,
-        )
-        self.tool_result_handler = ToolResultHandler(
-            receiver=tool_result_receiver,
-            router=tool_result_router,
-        )
+        # Initialize tool result handler after executor creation.
+        self._init_tool_result_handler()
 
         # Subscribe to events
         self.event_bus.subscribe(InteractionCompleted, self._on_interaction_completed)
@@ -177,6 +150,36 @@ class AgentSession:
         # When OCR starts, event is cleared; when OCR completes, event is set
         self.ocr_completion_event = asyncio.Event()
         self.ocr_completion_event.set()  # Set initially (no OCR running)
+
+    def _init_tool_result_handler(self) -> None:
+        """Initialize tool result routing and storage."""
+        from backend.src.agent.tools.preparation.screenshot import (
+            ScreenshotManager,
+            ScreenshotProcessor,
+        )
+        from backend.src.agent.tools.waiting import ToolResultReceiver, ToolResultRouter
+        from backend.src.agent.tools.waiting.storage import ToolResultStorage
+
+        # Initialize storage first (needed by router)
+        self._tool_result_storage = ToolResultStorage(cleanup_ttl_seconds=300)
+
+        tool_result_receiver = ToolResultReceiver(self)
+        screenshot_manager = getattr(self.executor, "screenshot_manager", None)
+        if screenshot_manager:
+            screenshot_processor = ScreenshotProcessor(screenshot_manager)
+        else:
+            # Fallback: create a new one (shouldn't happen in normal flow)
+            screenshot_processor = ScreenshotProcessor(ScreenshotManager())
+        tool_result_router = ToolResultRouter(
+            receiver=tool_result_receiver,
+            screenshot_processor=screenshot_processor,
+            result_storage=self._tool_result_storage,
+            session=self,
+        )
+        self.tool_result_handler = ToolResultHandler(
+            receiver=tool_result_receiver,
+            router=tool_result_router,
+        )
 
     def get_screenshot(self, screenshot_id: Optional[str] = None) -> Optional[str]:
         """
