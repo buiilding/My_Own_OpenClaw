@@ -13,13 +13,15 @@ import {
   type SystemState,
 } from './MessageFormatter';
 import {
-  COMPUTER_USE_TOOLS,
   type ToolExecutionOptions,
   type ToolExecutionResult,
   type BundleExecutionResult,
   type ToolExecutionCallbacks,
 } from './ToolExecutionTypes';
-import { extractOSstate } from './SystemCapture';
+import {
+  captureAfterTool,
+  isComputerUseTool,
+} from './ToolExecutionCapture';
 
 export {
   ToolExecutionOptions,
@@ -69,10 +71,7 @@ export class ToolExecutionService {
 
       // Check if this is a computer-use tool that should have a screenshot
       // run_shell_command is conditionally a computer-use tool if wait parameter is provided
-      const isStandardComputerUseTool = (COMPUTER_USE_TOOLS as string[]).includes(toolName);
-      const isRunShellCommandWithWait = toolName === 'run_shell_command' && 
-        args && typeof args === 'object' && typeof args.wait === 'number' && args.wait > 0;
-      const isComputerUseTool = isStandardComputerUseTool || isRunShellCommandWithWait;
+      const isComputerTool = isComputerUseTool(toolName, args);
       
       let screenshot: string | null = null;
       let systemState: SystemState | null = null;
@@ -86,32 +85,13 @@ export class ToolExecutionService {
       }
 
       // Capture screenshot and system state ONCE after individual tool execution if needed
-      if (isComputerUseTool && !options.skipAutoCapture && !screenshot) {
-        // Extract wait parameter from tool args (in seconds)
-        // For wait tool, use the 'seconds' parameter; for other tools, use 'wait' parameter
-        // Default to 2 seconds if not provided
-        let waitSeconds = 2;
-        if (toolName === 'wait' && args && typeof args === 'object' && typeof args.seconds === 'number') {
-          // Wait tool: use 'seconds' parameter
-          waitSeconds = args.seconds;
-        } else if (args && typeof args === 'object' && typeof args.wait === 'number') {
-          // Other computer-use tools: use 'wait' parameter
-          waitSeconds = args.wait;
-        }
-        
-        waitDelay = waitSeconds; // Store in seconds for logging
-        const captureStartTime = performance.now();
-        const captureResult = await extractOSstate(
-          true,  // enable_screenshot
-          true,  // enable_system_state
-          waitSeconds,  // wait (in seconds)
-          false  // is_first_user_message
-        );
-        captureTime = (performance.now() - captureStartTime) / 1000;
-        systemState = captureResult.systemState;
-        screenshot = captureResult.screenshot;
+      if (isComputerTool && !options.skipAutoCapture && !screenshot) {
+        const capture = await captureAfterTool(toolName, args, true, 2);
+        waitDelay = capture.waitSeconds;
+        captureTime = capture.captureTime;
+        systemState = capture.systemState;
+        screenshot = capture.screenshot;
 
-        // Add screenshot to result data
         if (screenshot && result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
           result.data = {
             ...result.data,
@@ -123,25 +103,12 @@ export class ToolExecutionService {
 
       // Handle screenshot tool when called directly (not as part of auto-capture)
       if (toolName === 'screenshot' && !options.skipAutoCapture && !screenshot) {
-        // Extract wait parameter from screenshot tool args (in seconds)
-        let waitSeconds = 0;
-        if (args && typeof args === 'object' && typeof args.wait === 'number') {
-          waitSeconds = args.wait;
-        }
-        
-        waitDelay = waitSeconds;
-        const captureStartTime = performance.now();
-        const captureResult = await extractOSstate(
-          true,  // enable_screenshot
-          true,  // enable_system_state
-          waitSeconds,  // wait (in seconds)
-          false  // is_first_user_message
-        );
-        captureTime = (performance.now() - captureStartTime) / 1000;
-        systemState = captureResult.systemState;
-        screenshot = captureResult.screenshot;
+        const capture = await captureAfterTool(toolName, args, true, 0);
+        waitDelay = capture.waitSeconds;
+        captureTime = capture.captureTime;
+        systemState = capture.systemState;
+        screenshot = capture.screenshot;
 
-        // Add screenshot to result data
         if (screenshot && result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
           result.data = {
             ...result.data,
@@ -203,7 +170,7 @@ export class ToolExecutionService {
       executionResult.executionTime = totalExecutionTime;
       
       // Log detailed timing breakdown
-      if (isComputerUseTool && !options.skipAutoCapture) {
+      if (isComputerTool && !options.skipAutoCapture) {
         console.log(
           `[Timing] Tool execution completed: ${toolName} took ${totalExecutionTime.toFixed(3)}s total ` +
           `(IPC: ${toolInvokeTime.toFixed(3)}s, wait: ${waitDelay.toFixed(3)}s, capture: ${captureTime.toFixed(3)}s) ` +
@@ -281,7 +248,7 @@ export class ToolExecutionService {
 
     try {
       // Execute all tools sequentially with skipAutoCapture (FAIL-FAST: stop on first error)
-      // After each tool, call extractOSstate if it's a computer-use tool
+      // After each tool, capture OS state if it's a computer-use tool
       const toolExecutionTimes: Array<{ tool: string; time: number }> = [];
       let systemState: SystemState | null = null;
       let screenshot: string | null = null;
@@ -326,46 +293,23 @@ export class ToolExecutionService {
           }
 
           // Check if this tool is a computer-use tool that needs screenshot/system state
-          const isStandardComputerUseTool = (COMPUTER_USE_TOOLS as string[]).includes(tool.toolName);
-          const isRunShellCommandWithWait = tool.toolName === 'run_shell_command' && 
-            tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number' && tool.args.wait > 0;
-          const isComputerUseTool = isStandardComputerUseTool || isRunShellCommandWithWait;
+          const isComputerTool = isComputerUseTool(tool.toolName, tool.args);
 
           // Extract OS state after each tool if it's a computer-use tool
           // Only get system state on the last tool; all others get screenshot only
-          if (isComputerUseTool) {
-            // Extract wait parameter from tool args (in seconds)
-            // For wait tool, use the 'seconds' parameter; for other tools, use 'wait' parameter
-            // Default to 0 if not provided
-            let waitSeconds = 0;
-            if (tool.toolName === 'wait' && tool.args && typeof tool.args === 'object' && typeof tool.args.seconds === 'number') {
-              // Wait tool: use 'seconds' parameter
-              waitSeconds = tool.args.seconds;
-            } else if (tool.args && typeof tool.args === 'object' && typeof tool.args.wait === 'number') {
-              // Other computer-use tools: use 'wait' parameter
-              waitSeconds = tool.args.wait;
-            }
-
-            // Check if this is the last tool in the bundle
+          if (isComputerTool) {
             const isLastTool = i === bundle.length - 1;
-
-            const captureStartTime = performance.now();
-            const captureResult = await extractOSstate(
-              true,  // enable_screenshot
-              isLastTool,  // enable_system_state (only true for last tool)
-              waitSeconds,  // wait (in seconds)
-              false  // is_first_user_message
+            const capture = await captureAfterTool(
+              tool.toolName,
+              tool.args,
+              isLastTool,
+              0
             );
-            const captureTime = (performance.now() - captureStartTime) / 1000;
-            totalCaptureTime += captureTime;
-            totalWaitDelay += waitSeconds;
-
-            // Update screenshot (always updated)
-            screenshot = captureResult.screenshot;
-            
-            // Only update system state if this is the last tool
+            totalCaptureTime += capture.captureTime;
+            totalWaitDelay += capture.waitSeconds;
+            screenshot = capture.screenshot;
             if (isLastTool) {
-              systemState = captureResult.systemState;
+              systemState = capture.systemState;
             }
           }
         } catch (err: any) {
