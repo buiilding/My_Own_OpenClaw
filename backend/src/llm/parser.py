@@ -668,57 +668,9 @@ class ResponseParser:
         
         SECURITY: Validates tool name and parameters.
         """
-        validation_errors = []
-        
-        # SECURITY: Validate tool_name is a non-empty string
-        if not isinstance(tool_name, str):
-            validation_errors.append(f"Tool name must be a string, got {type(tool_name).__name__}")
-        elif not tool_name.strip():
-            validation_errors.append("Tool name cannot be empty or whitespace")
-        elif len(tool_name) > self.limits.max_tool_name_length:
-            validation_errors.append(
-                f"Tool name length {len(tool_name)} exceeds maximum {self.limits.max_tool_name_length}"
-            )
-        
-        # SECURITY: Validate tool name against whitelist (tool_registry is required in __init__)
-        # This check is guaranteed to run since tool_registry is required
-        valid_tool_names = self.tool_registry.get_tool_names()
-        allowed_tools = self.config.get_tool_allowlist()
-        if allowed_tools is not None:
-            valid_tool_names = [name for name in valid_tool_names if name in allowed_tools]
-        if tool_name not in valid_tool_names:
-            # Show all tools if list is small, otherwise show first 10 and count
-            if len(valid_tool_names) <= 15:
-                tools_display = ", ".join(sorted(valid_tool_names))
-            else:
-                tools_display = f"{', '.join(sorted(valid_tool_names)[:10])}... (and {len(valid_tool_names) - 10} more)"
-            validation_errors.append(
-                f"Tool name '{tool_name}' is not in whitelist. Valid tools ({len(valid_tool_names)}): {tools_display}"
-            )
-        
-        # Validate parameter count
-        if len(args) > self.limits.max_parameter_count:
-            validation_errors.append(
-                f"Parameter count {len(args)} exceeds maximum {self.limits.max_parameter_count}"
-            )
-        
-        # Validate parameter value sizes
-        for param_name, param_value in args.items():
-            if isinstance(param_value, str):
-                if len(param_value) > self.limits.max_parameter_value_size:
-                    validation_errors.append(
-                        f"Parameter '{param_name}' value size {len(param_value)} exceeds maximum {self.limits.max_parameter_value_size}"
-                    )
-            elif isinstance(param_value, (dict, list)):
-                # For complex types, check serialized size
-                try:
-                    serialized = json.dumps(param_value)
-                    if len(serialized) > self.limits.max_parameter_value_size:
-                        validation_errors.append(
-                            f"Parameter '{param_name}' serialized size exceeds maximum {self.limits.max_parameter_value_size}"
-                        )
-                except (TypeError, ValueError):
-                    pass
+        validation_errors = self._collect_tool_call_validation_errors(
+            tool_name, args
+        )
         
         if validation_errors:
             self.metrics.record_validation_violation(
@@ -731,6 +683,66 @@ class ResponseParser:
                 validation_errors=validation_errors,
                 boundary_name="response_parser",
             )
+
+    def _collect_tool_call_validation_errors(
+        self, tool_name: str, args: Dict[str, Any]
+    ) -> List[str]:
+        validation_errors: List[str] = []
+
+        if not isinstance(tool_name, str):
+            validation_errors.append(
+                f"Tool name must be a string, got {type(tool_name).__name__}"
+            )
+        elif not tool_name.strip():
+            validation_errors.append("Tool name cannot be empty or whitespace")
+        elif len(tool_name) > self.limits.max_tool_name_length:
+            validation_errors.append(
+                f"Tool name length {len(tool_name)} exceeds maximum {self.limits.max_tool_name_length}"
+            )
+
+        valid_tool_names = self.tool_registry.get_tool_names()
+        allowed_tools = self.config.get_tool_allowlist()
+        if allowed_tools is not None:
+            valid_tool_names = [
+                name for name in valid_tool_names if name in allowed_tools
+            ]
+        if tool_name not in valid_tool_names:
+            if len(valid_tool_names) <= 15:
+                tools_display = ", ".join(sorted(valid_tool_names))
+            else:
+                tools_display = (
+                    f"{', '.join(sorted(valid_tool_names)[:10])}... "
+                    f"(and {len(valid_tool_names) - 10} more)"
+                )
+            validation_errors.append(
+                f"Tool name '{tool_name}' is not in whitelist. "
+                f"Valid tools ({len(valid_tool_names)}): {tools_display}"
+            )
+
+        if len(args) > self.limits.max_parameter_count:
+            validation_errors.append(
+                f"Parameter count {len(args)} exceeds maximum {self.limits.max_parameter_count}"
+            )
+
+        for param_name, param_value in args.items():
+            if isinstance(param_value, str):
+                if len(param_value) > self.limits.max_parameter_value_size:
+                    validation_errors.append(
+                        f"Parameter '{param_name}' value size {len(param_value)} "
+                        f"exceeds maximum {self.limits.max_parameter_value_size}"
+                    )
+            elif isinstance(param_value, (dict, list)):
+                try:
+                    serialized = json.dumps(param_value)
+                    if len(serialized) > self.limits.max_parameter_value_size:
+                        validation_errors.append(
+                            f"Parameter '{param_name}' serialized size exceeds "
+                            f"maximum {self.limits.max_parameter_value_size}"
+                        )
+                except (TypeError, ValueError):
+                    pass
+
+        return validation_errors
     
     def _validate_metadata(self, tool_name: str, metadata: Optional[Dict[str, Any]]) -> None:
         """
@@ -746,14 +758,7 @@ class ResponseParser:
         Raises:
             ParseValidationError: If computer-use tool is missing metadata or required fields
         """
-        # Import here to avoid circular import
-        from backend.src.tools.categorization import ToolDomain
-        
-        # Check if this is a computer-use tool
-        tool = self.tool_registry.get_tool(tool_name)
-        is_computer_use = False
-        if tool and hasattr(tool, 'category'):
-            is_computer_use = tool.category == ToolDomain.COMPUTER
+        is_computer_use = self._is_computer_use_tool(tool_name)
         
         if not is_computer_use:
             # Non-computer-use tools don't need metadata
@@ -807,6 +812,14 @@ class ResponseParser:
                 validation_errors=validation_errors,
                 boundary_name="response_parser",
             )
+
+    def _is_computer_use_tool(self, tool_name: str) -> bool:
+        from backend.src.tools.categorization import ToolDomain
+
+        tool = self.tool_registry.get_tool(tool_name)
+        if tool and hasattr(tool, "category"):
+            return tool.category == ToolDomain.COMPUTER
+        return False
     
     def _remove_extracted_by_positions(
         self, text: str, positions: List[Tuple[int, int]]
