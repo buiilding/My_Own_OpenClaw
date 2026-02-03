@@ -147,19 +147,26 @@ class ShellTool(Tool[RunShellCommandArgs]):
             if args.run_in_background:
                 # For background, we still use subprocess directly (simpler)
                 await self._execute_background_command(command, working_dir or os.getcwd())
-                return {
-                    "command": command,
-                    "exit_code": None,
-                    "background_pids": [],
-                    "execution_time": 0.0,
-                    "working_directory": working_dir or os.getcwd(),
-                    "output": "",
-                    "error": None,
-                    "signal": None,
-                    "llm_content": f"Command '{command}' has been executed in the background.",
-                    "return_display": f"Command executed in background: {command}",
-                    "success": True
-                }
+                result = ShellExecutionResult(
+                    command=command,
+                    output="",
+                    error=None,
+                    exit_code=None,
+                    signal=None,
+                    background_pids=[],
+                    execution_time=0.0,
+                    aborted=False,
+                )
+                llm_content = f"Command '{command}' has been executed in the background."
+                return_display = f"Command executed in background: {command}"
+                return self._build_result_payload(
+                    command=command,
+                    result=result,
+                    working_directory=working_dir or os.getcwd(),
+                    llm_content=llm_content,
+                    return_display=return_display,
+                    success=True,
+                )
 
             # Foreground execution using persistent shell
             # Determine timeout
