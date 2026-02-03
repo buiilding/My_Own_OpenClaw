@@ -8,12 +8,11 @@ import asyncio
 import logging
 import os
 import platform
-import shlex
 import subprocess
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.core.security.policy import Permission
@@ -21,6 +20,7 @@ from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
 from backend.src.tools.categorization import ToolDomain
 from backend.src.services.shell import get_shell_manager
+from backend.src.tools.system_legacy.shell_command_policy import is_command_allowed
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +133,7 @@ class ShellTool(Tool[RunShellCommandArgs]):
                 }
 
             # Validate command safety
-            is_allowed, reason = self._is_command_allowed(command)
+            is_allowed, reason = is_command_allowed(command, self.allowlist)
             if not is_allowed:
                 return {
                     "error": f"Command not allowed: {reason}",
@@ -272,107 +272,6 @@ class ShellTool(Tool[RunShellCommandArgs]):
                 "error": f"Unexpected error: {str(e)}",
                 "llm_content": f"Error: Unexpected error: {str(e)}"
             }
-
-    def _is_command_allowed(self, command: str) -> Tuple[bool, str]:
-        """Check if a command is allowed to execute."""
-        # Parse command to extract root commands
-        root_commands = self._get_command_roots(command)
-
-        if not root_commands:
-            return (
-                False,
-                "Could not identify command root to obtain permission from user",
-            )
-
-        # Define destructive commands that are never allowed
-        destructive_commands = {
-            # File/directory deletion
-            "rm",
-            "del",
-            "delete",
-            "erase",
-            "rd",
-            "rmdir",
-            "unlink",
-            # Disk operations
-            "format",
-            "fdisk",
-            "mkfs",
-            "dd",
-            "diskpart",
-            # System operations
-            "shutdown",
-            "reboot",
-            "halt",
-            "poweroff",
-            "init",
-            "systemctl",
-            # Network destructive
-            "iptables",
-            "firewall-cmd",
-            "ufw",
-            # Process killing (except specific safe ones)
-            "killall",
-            "pkill",
-            "kill",
-            # Package managers when used destructively (we can't check flags, so be conservative)
-            "apt-get",
-            "yum",
-            "dnf",
-            "pacman",
-            "brew",
-            "choco",
-            "scoop",
-        }
-
-        for root_cmd in root_commands:
-            # Check if command is in allowlist (overrides destructive check)
-            if root_cmd in self.allowlist:
-                continue
-
-            # Check if command is destructive
-            if root_cmd in destructive_commands:
-                return (
-                    False,
-                    f"Command '{root_cmd}' is potentially destructive and not allowed",
-                )
-
-        return True, ""
-
-    def _get_command_roots(self, command: str) -> List[str]:
-        """Extract root commands from a shell command."""
-        try:
-            # Parse the command using shell-like parsing
-            parts = shlex.split(command)
-            if not parts:
-                return []
-
-            # For chained commands (&&, ||, ;), split and analyze each part
-            roots = []
-            for part in self._split_command_chain(command):
-                part_parts = shlex.split(part.strip())
-                if part_parts:
-                    roots.append(part_parts[0])
-
-            return list(set(roots))  # Remove duplicates
-        except Exception:
-            # Fallback: try to extract first word
-            first_word = command.strip().split()[0] if command.strip() else ""
-            return [first_word] if first_word else []
-
-    def _split_command_chain(self, command: str) -> List[str]:
-        """Split chained commands (&&, ||, ;) into individual commands."""
-        # Simple splitting - this could be more sophisticated
-        separators = ["&&", "||", ";"]
-        parts = [command]
-
-        for sep in separators:
-            new_parts = []
-            for part in parts:
-                new_parts.extend(part.split(sep))
-            parts = new_parts
-
-        return [part.strip() for part in parts if part.strip()]
 
     async def _execute_command(
         self, command: str, working_dir: str, timeout: float
@@ -600,4 +499,3 @@ class ShellTool(Tool[RunShellCommandArgs]):
         else:
             # Command succeeded but no output
             return "Command executed successfully"
-
