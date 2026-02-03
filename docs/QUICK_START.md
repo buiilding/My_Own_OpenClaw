@@ -1,3 +1,9 @@
+---
+summary: "Quick Start Guide"
+read_when:
+  - When running first-time setup.
+---
+
 # Quick Start Guide
 
 ## Prerequisites

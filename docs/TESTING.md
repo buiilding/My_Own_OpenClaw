@@ -1,3 +1,9 @@
+---
+summary: "Testing Guide"
+read_when:
+  - When adding tests or running CI.
+---
+
 # Testing Guide
 
 ## Backend + Sidecar Tests

@@ -1,3 +1,9 @@
+---
+summary: "Deployment Guide (Planned)"
+read_when:
+  - When shipping, hosting, or infra changes.
+---
+
 # Deployment Guide (Planned)
 
 ## Environments

@@ -1,3 +1,9 @@
+---
+summary: "Troubleshooting Guide"
+read_when:
+  - When diagnosing runtime issues.
+---
+
 # Troubleshooting Guide
 
 ## Common Issues

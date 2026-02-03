@@ -1,3 +1,9 @@
+---
+summary: "Security & Compliance (Planned)"
+read_when:
+  - When handling security or compliance requirements.
+---
+
 # Security & Compliance (Planned)
 
 ## Purpose

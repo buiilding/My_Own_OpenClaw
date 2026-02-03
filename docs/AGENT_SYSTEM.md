@@ -1,3 +1,9 @@
+---
+summary: "Agent System"
+read_when:
+  - When updating agent protocols or tool execution flow.
+---
+
 # Agent System
 
 ## Overview

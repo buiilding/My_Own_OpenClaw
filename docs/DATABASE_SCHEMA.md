@@ -1,3 +1,9 @@
+---
+summary: "Database Schema (Planned)"
+read_when:
+  - When changing persistence or DB schema.
+---
+
 # Database Schema (Planned)
 
 This is a draft schema for the hosted, multi-tenant backend.

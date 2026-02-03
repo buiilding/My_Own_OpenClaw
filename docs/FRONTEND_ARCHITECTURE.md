@@ -1,3 +1,9 @@
+---
+summary: "Frontend Architecture"
+read_when:
+  - When changing renderer or Electron main process.
+---
+
 # Frontend Architecture
 
 ## Overview

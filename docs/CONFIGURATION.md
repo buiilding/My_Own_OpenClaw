@@ -1,3 +1,9 @@
+---
+summary: "Configuration Guide"
+read_when:
+  - When adding or changing config/env vars.
+---
+
 # Configuration Guide
 
 ## Overview

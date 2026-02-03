@@ -1,3 +1,9 @@
+---
+summary: "Contributing"
+read_when:
+  - When preparing PRs or working on dev workflow.
+---
+
 # Contributing
 
 ## Workflow

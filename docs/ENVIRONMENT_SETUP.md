@@ -1,3 +1,9 @@
+---
+summary: "Environment Setup"
+read_when:
+  - When setting up local environment.
+---
+
 # Environment Setup
 
 ## Requirements

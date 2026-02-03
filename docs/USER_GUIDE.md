@@ -1,3 +1,9 @@
+---
+summary: "User Guide (Local Build)"
+read_when:
+  - When updating user-facing behavior or UX.
+---
+
 # User Guide (Local Build)
 
 ## Getting Started

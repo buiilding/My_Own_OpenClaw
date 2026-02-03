@@ -1,3 +1,9 @@
+---
+summary: "Desktop Assistant Documentation"
+read_when:
+  - When browsing the repo entrypoint.
+---
+
 # Desktop Assistant Documentation
 
 Welcome to the comprehensive documentation for the Desktop Assistant project. This documentation covers all aspects of the system, from high-level architecture to detailed implementation guides.

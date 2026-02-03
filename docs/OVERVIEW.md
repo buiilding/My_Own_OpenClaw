@@ -1,3 +1,9 @@
+---
+summary: "Desktop Assistant - Project Overview"
+read_when:
+  - When you need a high-level product overview.
+---
+
 # Desktop Assistant - Project Overview
 
 ## 🎯 Vision

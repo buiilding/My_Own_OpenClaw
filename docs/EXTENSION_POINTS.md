@@ -1,3 +1,9 @@
+---
+summary: "Extension Points"
+read_when:
+  - When adding plugins, tools, or integrations.
+---
+
 # Extension Points
 
 This document lists the current, concrete extension points in the codebase.

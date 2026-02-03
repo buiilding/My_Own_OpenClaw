@@ -1,3 +1,9 @@
+---
+summary: "Python Sidecar"
+read_when:
+  - When changing the Python sidecar or IPC.
+---
+
 # Python Sidecar
 
 ## Overview

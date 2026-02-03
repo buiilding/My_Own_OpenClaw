@@ -1,3 +1,9 @@
+---
+summary: "Communication Flow"
+read_when:
+  - When changing IPC or event flow.
+---
+
 # Communication Flow
 
 ## Overview
