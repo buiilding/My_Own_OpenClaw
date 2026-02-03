@@ -1,5 +1,3 @@
-READ /media/peter-bui/E/Assistants/agent-scripts/AGENTS.LINUX.MD BEFORE ANYTHING (skip if missing).
-
 # Repository Guidelines
 
 - Repo: /media/peter-bui/E/Assistants/Projects/WindieOS
