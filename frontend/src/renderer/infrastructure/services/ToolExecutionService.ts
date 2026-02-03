@@ -56,67 +56,13 @@ export class ToolExecutionService {
     options: ToolExecutionOptions
   ): Promise<ToolExecutionResult> {
     const totalStartTime = performance.now();
-    const shortId = options.correlationId ? options.correlationId.substring(0, 15) : 'unknown';
+    const shortId = this._shortCorrelationId(options.correlationId);
     console.log(`[Timing] Tool execution started: ${toolName} (request_id=${shortId})`);
 
     try {
-      // Execute tool via IPC
-      const toolInvokeStartTime = performance.now();
-      const result: ToolResult = await IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {
-        toolName,
-        args,
-        skipAutoCapture: options.skipAutoCapture || false
-      });
-      const toolInvokeTime = (performance.now() - toolInvokeStartTime) / 1000;
-
-      // Check if this is a computer-use tool that should have a screenshot
-      // run_shell_command is conditionally a computer-use tool if wait parameter is provided
-      const isComputerTool = isComputerUseTool(toolName, args);
-      
-      let screenshot: string | null = null;
-      let systemState: SystemState | null = null;
-      let waitDelay = 0;
-      let captureTime = 0;
-      
-      // Safely extract screenshot and system_state from result.data
-      if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
-        screenshot = result.data.screenshot || null;
-        systemState = result.data.system_state || null;
-      }
-
-      // Capture screenshot and system state ONCE after individual tool execution if needed
-      if (isComputerTool && !options.skipAutoCapture && !screenshot) {
-        const capture = await captureAfterTool(toolName, args, true, 2);
-        waitDelay = capture.waitSeconds;
-        captureTime = capture.captureTime;
-        systemState = capture.systemState;
-        screenshot = capture.screenshot;
-
-        if (screenshot && result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
-          result.data = {
-            ...result.data,
-            screenshot: screenshot,
-            system_state: systemState ?? undefined
-          };
-        }
-      }
-
-      // Handle screenshot tool when called directly (not as part of auto-capture)
-      if (toolName === 'screenshot' && !options.skipAutoCapture && !screenshot) {
-        const capture = await captureAfterTool(toolName, args, true, 0);
-        waitDelay = capture.waitSeconds;
-        captureTime = capture.captureTime;
-        systemState = capture.systemState;
-        screenshot = capture.screenshot;
-
-        if (screenshot && result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
-          result.data = {
-            ...result.data,
-            screenshot: screenshot,
-            system_state: systemState ?? undefined
-          };
-        }
-      }
+      const { result, toolInvokeTime } = await this._invokeTool(toolName, args, options);
+      const capture = await this._ensureCapture(toolName, args, options, result);
+      const { screenshot, systemState, waitDelay, captureTime, isComputerTool } = capture;
 
       // Format complete message with system context XML
       const finalSystemState = this._resolveSystemState(systemState, result.data);
@@ -126,21 +72,15 @@ export class ToolExecutionService {
         finalSystemState
       );
 
-      // Prepare result (executionTime will be calculated after sending to backend)
-      const executionResult: ToolExecutionResult = {
+      const executionResult = this._buildExecutionResult(
         toolName,
         result,
-        executionTime: 0, // Will be set after backend send
-        correlationId: options.correlationId,
+        options.correlationId,
         formattedMessage,
         screenshot,
         systemState
-      };
-
-      // Call UI callback
-      if (this.callbacks.onToolResult) {
-        this.callbacks.onToolResult(executionResult);
-      }
+      );
+      this._emitToolResult(executionResult);
 
       // Send result to backend
       this._sendToolResult(options.correlationId, result, formattedMessage);
@@ -151,52 +91,201 @@ export class ToolExecutionService {
       executionResult.executionTime = totalExecutionTime;
       
       // Log detailed timing breakdown
-      if (isComputerTool && !options.skipAutoCapture) {
-        console.log(
-          `[Timing] Tool execution completed: ${toolName} took ${totalExecutionTime.toFixed(3)}s total ` +
-          `(IPC: ${toolInvokeTime.toFixed(3)}s, wait: ${waitDelay.toFixed(3)}s, capture: ${captureTime.toFixed(3)}s) ` +
-          `(request_id=${shortId})`
-        );
-      } else {
-        console.log(
-          `[Timing] Tool execution completed: ${toolName} took ${totalExecutionTime.toFixed(3)}s ` +
-          `(IPC: ${toolInvokeTime.toFixed(3)}s) (request_id=${shortId})`
-        );
-      }
+      this._logToolTiming(
+        toolName,
+        totalExecutionTime,
+        toolInvokeTime,
+        waitDelay,
+        captureTime,
+        shortId,
+        isComputerTool,
+        options.skipAutoCapture
+      );
 
       return executionResult;
     } catch (error: any) {
-      const errorExecutionTime = (performance.now() - totalStartTime) / 1000;
-      console.error(`[ToolExecutionService] Tool execution failed: ${error.message} (took ${errorExecutionTime.toFixed(3)}s)`);
-
-      // Format error message with system context XML
-      const errorFormattedMessage = formatToolOutputMessage(
+      const errorResult = this._handleToolError(
         toolName,
-        { success: false, error: error.message, data: null },
-        null // No system state for errors
+        options.correlationId,
+        totalStartTime,
+        error
       );
-
-      // Prepare error result
-      const errorResult: ToolExecutionResult = {
-        toolName,
-        result: { success: false, error: error.message, data: null },
-        executionTime: errorExecutionTime,
-        correlationId: options.correlationId,
-        formattedMessage: errorFormattedMessage,
-        screenshot: null,
-        systemState: null
-      };
-
-      // Call UI callback
-      if (this.callbacks.onToolResult) {
-        this.callbacks.onToolResult(errorResult);
-      }
-
-      // Send error result to backend
-      this._sendToolResult(options.correlationId, errorResult.result, errorFormattedMessage);
-
+      this._sendToolResult(options.correlationId, errorResult.result, errorResult.formattedMessage);
       throw error;
     }
+  }
+
+  private async _invokeTool(
+    toolName: string,
+    args: any,
+    options: ToolExecutionOptions
+  ): Promise<{ result: ToolResult; toolInvokeTime: number }> {
+    const toolInvokeStartTime = performance.now();
+    const result: ToolResult = await IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {
+      toolName,
+      args,
+      skipAutoCapture: options.skipAutoCapture || false
+    });
+    const toolInvokeTime = (performance.now() - toolInvokeStartTime) / 1000;
+    return { result, toolInvokeTime };
+  }
+
+  private _extractCapture(result: ToolResult): {
+    screenshot: string | null;
+    systemState: SystemState | null;
+  } {
+    if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
+      return {
+        screenshot: result.data.screenshot || null,
+        systemState: result.data.system_state || null
+      };
+    }
+    return { screenshot: null, systemState: null };
+  }
+
+  private _applyCaptureToResult(
+    result: ToolResult,
+    screenshot: string | null,
+    systemState: SystemState | null
+  ): void {
+    if (!screenshot) {
+      return;
+    }
+    if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
+      result.data = {
+        ...result.data,
+        screenshot,
+        system_state: systemState ?? undefined
+      };
+    }
+  }
+
+  private async _ensureCapture(
+    toolName: string,
+    args: any,
+    options: ToolExecutionOptions,
+    result: ToolResult
+  ): Promise<{
+    screenshot: string | null;
+    systemState: SystemState | null;
+    waitDelay: number;
+    captureTime: number;
+    isComputerTool: boolean;
+  }> {
+    const isComputerTool = isComputerUseTool(toolName, args);
+    let { screenshot, systemState } = this._extractCapture(result);
+    let waitDelay = 0;
+    let captureTime = 0;
+
+    if (isComputerTool && !options.skipAutoCapture && !screenshot) {
+      const capture = await captureAfterTool(toolName, args, true, 2);
+      waitDelay = capture.waitSeconds;
+      captureTime = capture.captureTime;
+      systemState = capture.systemState;
+      screenshot = capture.screenshot;
+      this._applyCaptureToResult(result, screenshot, systemState);
+    }
+
+    if (toolName === 'screenshot' && !options.skipAutoCapture && !screenshot) {
+      const capture = await captureAfterTool(toolName, args, true, 0);
+      waitDelay = capture.waitSeconds;
+      captureTime = capture.captureTime;
+      systemState = capture.systemState;
+      screenshot = capture.screenshot;
+      this._applyCaptureToResult(result, screenshot, systemState);
+    }
+
+    return {
+      screenshot,
+      systemState,
+      waitDelay,
+      captureTime,
+      isComputerTool
+    };
+  }
+
+  private _buildExecutionResult(
+    toolName: string,
+    result: ToolResult,
+    correlationId: string,
+    formattedMessage: string,
+    screenshot: string | null,
+    systemState: SystemState | null
+  ): ToolExecutionResult {
+    return {
+      toolName,
+      result,
+      executionTime: 0,
+      correlationId,
+      formattedMessage,
+      screenshot,
+      systemState
+    };
+  }
+
+  private _emitToolResult(result: ToolExecutionResult): void {
+    if (this.callbacks.onToolResult) {
+      this.callbacks.onToolResult(result);
+    }
+  }
+
+  private _handleToolError(
+    toolName: string,
+    correlationId: string,
+    totalStartTime: number,
+    error: any
+  ): ToolExecutionResult {
+    const errorExecutionTime = (performance.now() - totalStartTime) / 1000;
+    console.error(
+      `[ToolExecutionService] Tool execution failed: ${error.message} (took ${errorExecutionTime.toFixed(3)}s)`
+    );
+
+    const errorFormattedMessage = formatToolOutputMessage(
+      toolName,
+      { success: false, error: error.message, data: null },
+      null
+    );
+
+    const errorResult: ToolExecutionResult = {
+      toolName,
+      result: { success: false, error: error.message, data: null },
+      executionTime: errorExecutionTime,
+      correlationId,
+      formattedMessage: errorFormattedMessage,
+      screenshot: null,
+      systemState: null
+    };
+
+    this._emitToolResult(errorResult);
+    return errorResult;
+  }
+
+  private _logToolTiming(
+    toolName: string,
+    totalExecutionTime: number,
+    toolInvokeTime: number,
+    waitDelay: number,
+    captureTime: number,
+    shortId: string,
+    isComputerTool: boolean,
+    skipAutoCapture?: boolean
+  ): void {
+    if (isComputerTool && !skipAutoCapture) {
+      console.log(
+        `[Timing] Tool execution completed: ${toolName} took ${totalExecutionTime.toFixed(3)}s total ` +
+        `(IPC: ${toolInvokeTime.toFixed(3)}s, wait: ${waitDelay.toFixed(3)}s, capture: ${captureTime.toFixed(3)}s) ` +
+        `(request_id=${shortId})`
+      );
+    } else {
+      console.log(
+        `[Timing] Tool execution completed: ${toolName} took ${totalExecutionTime.toFixed(3)}s ` +
+        `(IPC: ${toolInvokeTime.toFixed(3)}s) (request_id=${shortId})`
+      );
+    }
+  }
+
+  private _shortCorrelationId(correlationId?: string): string {
+    return correlationId ? correlationId.substring(0, 15) : 'unknown';
   }
 
   private _resolveSystemState(
