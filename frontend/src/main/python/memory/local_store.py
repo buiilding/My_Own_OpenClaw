@@ -555,7 +555,7 @@ class LocalMemoryStore:
         if not self._has_searchable_index(index, memory_type):
             return []
 
-        similarities, indices, valid_indices, valid_similarities = self._search_index(
+        valid_indices, valid_similarities = self._search_index(
             index, query_embedding, limit, vector_id_to_memory_id, memory_type
         )
         if not valid_indices:
@@ -603,15 +603,15 @@ class LocalMemoryStore:
         limit: int,
         vector_id_to_memory_id: Dict[int, str],
         memory_type: str,
-    ) -> Tuple[Any, Any, List[int], List[float]]:
+    ) -> Tuple[List[int], List[float]]:
         k = min(limit * 3, index.ntotal) if index.ntotal > 0 else limit
         if k == 0:
             logger.debug("No vectors in %s index to search", memory_type)
-            return None, None, [], []
+            return [], []
 
         similarities, indices = index.search(query_embedding, k)
         if not indices[0].size:
-            return similarities, indices, [], []
+            return [], []
 
         valid_indices: List[int] = []
         valid_similarities: List[float] = []
@@ -620,7 +620,7 @@ class LocalMemoryStore:
                 valid_indices.append(idx)
                 valid_similarities.append(sim)
 
-        return similarities, indices, valid_indices, valid_similarities
+        return valid_indices, valid_similarities
 
     async def _collect_search_results(
         self, search_tasks: List[asyncio.Future]
