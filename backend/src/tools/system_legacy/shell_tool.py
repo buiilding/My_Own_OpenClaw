@@ -134,107 +134,159 @@ class ShellTool(Tool[RunShellCommandArgs]):
 
             # Handle background execution
             if args.run_in_background:
-                # For background, we still use subprocess directly (simpler)
-                await self._execute_background_command(command, working_dir or os.getcwd())
-                result = ShellExecutionResult(
-                    command=command,
-                    output="",
-                    error=None,
-                    exit_code=None,
-                    signal=None,
-                    background_pids=[],
-                    execution_time=0.0,
-                    aborted=False,
-                )
-                llm_content = f"Command '{command}' has been executed in the background."
-                return_display = f"Command executed in background: {command}"
-                return self._build_result_payload(
-                    command=command,
-                    result=result,
-                    working_directory=working_dir or os.getcwd(),
-                    llm_content=llm_content,
-                    return_display=return_display,
-                    success=True,
-                )
+                return await self._run_background_command(command, working_dir)
 
-            # Foreground execution using persistent shell
-            # Determine timeout
-            shell_timeout = self._resolve_shell_timeout(args, ctx)
-
-            # Execute command in persistent shell using new abstraction
-            start_time = time.time()
-            
-            # Get or create shell session
-            shell_session = self._shell_manager.get_session(session_id, user_id)
-            if not shell_session:
-                shell_session = self._shell_manager.create_session(session_id, user_id, working_dir)
-            
-            # Change directory if needed
-            if working_dir and working_dir != await shell_session.get_working_directory():
-                await shell_session.change_directory(working_dir)
-            
-            # Execute command
-            shell_result = await shell_session.execute(command, shell_timeout)
-            
-            execution_time = time.time() - start_time
-
-            # Create result object
-            result = ShellExecutionResult(
+            return await self._run_foreground_command(
                 command=command,
-                output=shell_result.output,
-                error=shell_result.error,
-                exit_code=shell_result.exit_code,
-                signal="TIMEOUT" if shell_result.timed_out else None,
-                background_pids=[],
-                execution_time=execution_time,
-                aborted=shell_result.timed_out
-            )
-
-            # Get current working directory from shell state
-            final_working_dir = await shell_session.get_working_directory()
-
-            # Format output for LLM
-            llm_content = format_llm_output(command, final_working_dir, result)
-
-            # Format display output
-            return_display = format_display_output(result)
-
-            # Determine success
-            # Success is defined as either exit_code 0 OR (exit_code None and no error)
-            # Some tools might return non-zero exit codes but still be "successful" in execution
-            # But for shell commands, non-zero usually means failure.
-            # However, the command WAS executed, so the tool ran successfully.
-            # We should distinguish between "tool execution success" and "command success".
-            # The ToolResult.success indicates if the tool ran without crashing.
-            # The command exit code indicates if the command succeeded.
-            
-            # NOTE: If we set success=False, the orchestrator might treat it as a tool failure.
-            # But here we want to return the output even if the command failed (e.g. grep not found).
-            # So we should probably set success=True unless the tool itself crashed.
-            
-            # BUT, the current implementation sets success based on exit_code.
-            # Let's relax this: if we have output or an exit code, the tool ran.
-            # Only return False if we have an internal error or timeout.
-            
-            # Legacy logic:
-            # success = result.exit_code == 0 and not result.error and not result.aborted
-            
-            # New logic: always True if we got a result, unless aborted or internal error
-            # The exit code is part of the result data.
-            success = self._resolve_success(result)
-
-            return self._build_result_payload(
-                command=command,
-                result=result,
-                working_directory=final_working_dir,
-                llm_content=llm_content,
-                return_display=return_display,
-                success=success,
+                working_dir=working_dir,
+                session_id=session_id,
+                user_id=user_id,
+                args=args,
+                ctx=ctx,
             )
 
         except Exception as e:
             logger.error(f"Unexpected error in shell tool: {e}", exc_info=True)
             return self._error_result(f"Unexpected error: {str(e)}")
+
+    async def _run_background_command(
+        self, command: str, working_dir: Optional[str]
+    ) -> Dict[str, object]:
+        run_dir = working_dir or os.getcwd()
+        # For background, we still use subprocess directly (simpler)
+        await self._execute_background_command(command, run_dir)
+        result = ShellExecutionResult(
+            command=command,
+            output="",
+            error=None,
+            exit_code=None,
+            signal=None,
+            background_pids=[],
+            execution_time=0.0,
+            aborted=False,
+        )
+        llm_content = f"Command '{command}' has been executed in the background."
+        return_display = f"Command executed in background: {command}"
+        return self._build_result_payload(
+            command=command,
+            result=result,
+            working_directory=run_dir,
+            llm_content=llm_content,
+            return_display=return_display,
+            success=True,
+        )
+
+    async def _run_foreground_command(
+        self,
+        command: str,
+        working_dir: Optional[str],
+        session_id: str,
+        user_id: str,
+        args: RunShellCommandArgs,
+        ctx: ToolContext,
+    ) -> Dict[str, object]:
+        # Foreground execution using persistent shell
+        shell_timeout = self._resolve_shell_timeout(args, ctx)
+
+        # Execute command in persistent shell using new abstraction
+        start_time = time.time()
+
+        shell_session = self._get_or_create_shell_session(
+            session_id=session_id,
+            user_id=user_id,
+            working_dir=working_dir,
+        )
+
+        # Change directory if needed
+        if working_dir and working_dir != await shell_session.get_working_directory():
+            await shell_session.change_directory(working_dir)
+
+        # Execute command
+        shell_result = await shell_session.execute(command, shell_timeout)
+
+        execution_time = time.time() - start_time
+
+        # Create result object
+        result = self._build_shell_execution_result(
+            command=command,
+            shell_result=shell_result,
+            execution_time=execution_time,
+        )
+
+        # Get current working directory from shell state
+        final_working_dir = await shell_session.get_working_directory()
+
+        return self._format_shell_result(
+            command=command,
+            working_directory=final_working_dir,
+            result=result,
+        )
+
+    def _get_or_create_shell_session(
+        self, session_id: str, user_id: str, working_dir: Optional[str]
+    ):
+        shell_session = self._shell_manager.get_session(session_id, user_id)
+        if not shell_session:
+            shell_session = self._shell_manager.create_session(
+                session_id, user_id, working_dir
+            )
+        return shell_session
+
+    def _build_shell_execution_result(
+        self, command: str, shell_result, execution_time: float
+    ) -> ShellExecutionResult:
+        return ShellExecutionResult(
+            command=command,
+            output=shell_result.output,
+            error=shell_result.error,
+            exit_code=shell_result.exit_code,
+            signal="TIMEOUT" if shell_result.timed_out else None,
+            background_pids=[],
+            execution_time=execution_time,
+            aborted=shell_result.timed_out,
+        )
+
+    def _format_shell_result(
+        self, command: str, working_directory: str, result: ShellExecutionResult
+    ) -> Dict[str, object]:
+        # Format output for LLM
+        llm_content = format_llm_output(command, working_directory, result)
+
+        # Format display output
+        return_display = format_display_output(result)
+
+        # Determine success
+        # Success is defined as either exit_code 0 OR (exit_code None and no error)
+        # Some tools might return non-zero exit codes but still be "successful" in execution
+        # But for shell commands, non-zero usually means failure.
+        # However, the command WAS executed, so the tool ran successfully.
+        # We should distinguish between "tool execution success" and "command success".
+        # The ToolResult.success indicates if the tool ran without crashing.
+        # The command exit code indicates if the command succeeded.
+
+        # NOTE: If we set success=False, the orchestrator might treat it as a tool failure.
+        # But here we want to return the output even if the command failed (e.g. grep not found).
+        # So we should probably set success=True unless the tool itself crashed.
+
+        # BUT, the current implementation sets success based on exit_code.
+        # Let's relax this: if we have output or an exit code, the tool ran.
+        # Only return False if we have an internal error or timeout.
+
+        # Legacy logic:
+        # success = result.exit_code == 0 and not result.error and not result.aborted
+
+        # New logic: always True if we got a result, unless aborted or internal error
+        # The exit code is part of the result data.
+        success = self._resolve_success(result)
+
+        return self._build_result_payload(
+            command=command,
+            result=result,
+            working_directory=working_directory,
+            llm_content=llm_content,
+            return_display=return_display,
+            success=success,
+        )
 
     def _error_result(self, message: str) -> Dict[str, str]:
         return {
