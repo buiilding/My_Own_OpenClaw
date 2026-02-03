@@ -31,6 +31,7 @@ APP_CONFIG = AppConfig(
     # Agent Execution Settings
     max_history_length=1000,
     max_agent_iterations=1000,
+    interaction_mode="chat",
     
     # Vision Model Settings (UI grounding / Venus)
     vision_model_name="inclusionAI/UI-Venus-Ground-7B",

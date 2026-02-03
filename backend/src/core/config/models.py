@@ -182,6 +182,7 @@ class AppConfig(BaseModel):
     # Agent Execution Settings
     max_history_length: int = 1000  # Maximum conversation history messages
     max_agent_iterations: int = 1000  # Maximum tool execution iterations per query (high limit to effectively remove constraint)
+    interaction_mode: Literal["chat", "agent"] = "chat"
 
     # Tool Execution Settings
     # This section is largely redundant as tools execute on the frontend

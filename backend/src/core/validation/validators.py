@@ -255,7 +255,7 @@ def validate_settings_update(settings: Dict[str, Any]) -> Dict[str, Any]:
             validate_field(value, key, (int, float), required=False)
         elif key == "memory_enabled":
             validate_field(value, key, bool, required=False)
-        elif key in ("model_provider", "selected_model_id", "model_mode", "embedding_model"):
+        elif key in ("model_provider", "selected_model_id", "model_mode", "embedding_model", "interaction_mode"):
             if value is not None:  # Some string fields can be None
                 validate_field(value, key, str, required=False)
         elif key == "voice_mode_enabled":
@@ -271,6 +271,7 @@ FRONTEND_CONFIG_FIELDS = {
     "model_mode",
     "model_provider",
     "selected_model_id",
+    "interaction_mode",
     "voice_mode_enabled",
     "speech_mode_enabled",
 }
@@ -310,6 +311,11 @@ def validate_frontend_config(settings: Optional[Dict[str, Any]]) -> Dict[str, An
         elif key in ("model_provider", "selected_model_id"):
             if value is not None:
                 validate_field(value, key, str, required=False)
+        elif key == "interaction_mode":
+            if value is not None:
+                validate_field(value, key, str, required=False)
+                if value not in ("chat", "agent"):
+                    raise ValidationError("Field 'interaction_mode' must be 'chat' or 'agent'")
         elif key in ("voice_mode_enabled", "speech_mode_enabled"):
             validate_field(value, key, bool, required=False)
 
