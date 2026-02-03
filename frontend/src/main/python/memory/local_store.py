@@ -565,21 +565,7 @@ class LocalMemoryStore:
         memory_ids = self._map_memory_ids(valid_indices, vector_id_to_memory_id)
 
         # Batch retrieval from SQLite
-        async with aiosqlite.connect(db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-
-            placeholders = ",".join(["?"] * len(memory_ids))
-            query = f"""
-                SELECT id, user_id, content, timestamp, metadata
-                FROM memories WHERE id IN ({placeholders})
-            """
-
-            await cursor.execute(query, memory_ids)
-            rows = await cursor.fetchall()
-
-            # Create a lookup map for O(1) access
-            rows_map = {row["id"]: row for row in rows}
+        rows_map = await self._fetch_rows_map(db_path, memory_ids)
 
             # Reconstruct results in order of similarity
             for memory_id, similarity in zip(memory_ids, valid_similarities):
@@ -679,6 +665,24 @@ class LocalMemoryStore:
         vector_id_to_memory_id: Dict[int, str],
     ) -> List[str]:
         return [vector_id_to_memory_id[idx] for idx in valid_indices]
+
+    async def _fetch_rows_map(
+        self, db_path: str, memory_ids: List[str]
+    ) -> Dict[str, Any]:
+        async with aiosqlite.connect(db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
+
+            placeholders = ",".join(["?"] * len(memory_ids))
+            query = f"""
+                SELECT id, user_id, content, timestamp, metadata
+                FROM memories WHERE id IN ({placeholders})
+            """
+
+            await cursor.execute(query, memory_ids)
+            rows = await cursor.fetchall()
+
+            return {row["id"]: row for row in rows}
 
     def _matches_filters(
         self, metadata: Dict[str, Any], filters: Dict[str, Any]
