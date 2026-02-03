@@ -48,7 +48,10 @@ export class IpcBridge {
   private static readonly SEND_CHANNEL_SET = new Set(Object.values(SEND_CHANNELS));
   private static readonly INVOKE_CHANNEL_SET = new Set(Object.values(INVOKE_CHANNELS));
   private static readonly ON_CHANNEL_SET = new Set(Object.values(ON_CHANNELS));
-  private static readonly IS_DEV = import.meta.env.DEV;
+  private static readonly IS_DEV =
+    typeof process !== 'undefined' &&
+    process.env &&
+    process.env.NODE_ENV === 'development';
 
   /**
    * Send a message to the main process (one-way, no response)
