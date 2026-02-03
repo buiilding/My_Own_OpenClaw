@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import ThinkingDisplay from './ThinkingDisplay';
 import TransparencySection from './TransparencySection';
+import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import '../../../styles/ThinkingDisplay.css';
 
 function MessageList({ messages, thinkingStatus }) {
@@ -15,6 +16,16 @@ function MessageList({ messages, thinkingStatus }) {
     scrollToBottom();
   }, [messages, thinkingStatus]);
 
+  const renderMarkdownMessage = (text) => {
+    const html = toSanitizedMarkdownHtml(text ?? '');
+    return (
+      <div
+        className="message-content message-content-markdown"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    );
+  };
+
   const renderMessageContent = (msg) => {
     const isToolOutput = msg.type === 'tool-output';
     const isToolCall = msg.type === 'tool-call';
@@ -22,14 +33,8 @@ function MessageList({ messages, thinkingStatus }) {
 
     if (isError) {
       return (
-        <div className="error-message-container" style={{
-          backgroundColor: '#fee2e2',
-          border: '1px solid #fca5a5',
-          borderRadius: '8px',
-          padding: '12px',
-          color: '#991b1b'
-        }}>
-          <div className="error-header" style={{ fontWeight: 'bold', marginBottom: '4px' }}>⚠️ Error</div>
+        <div className="error-message-container">
+          <div className="error-header">⚠️ Error</div>
           <div className="error-content">{msg.text}</div>
         </div>
       );
@@ -47,7 +52,7 @@ function MessageList({ messages, thinkingStatus }) {
                 src={`data:image/png;base64,${msg.screenshot}`}
                 alt="Screenshot after tool execution"
                 className="tool-screenshot-image"
-                style={{ maxWidth: '100%', maxHeight: '400px', border: '1px solid #ccc', borderRadius: '4px' }}
+                loading="lazy"
               />
             </div>
           )}
@@ -81,42 +86,27 @@ function MessageList({ messages, thinkingStatus }) {
     if (msg.sender === 'user' && msg.screenshot) {
       return (
         <div className="user-message-container">
-          <div className="message-content">{msg.text}</div>
-          <div className="user-screenshot-container" style={{
-            marginTop: '8px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            overflow: 'hidden'
-          }}>
-            <div className="user-screenshot-header" style={{
-              backgroundColor: '#f0f0f0',
-              padding: '6px 12px',
-              fontSize: '12px',
-              fontWeight: '600',
-              color: '#666'
-            }}>📸 Screenshot</div>
+          {renderMarkdownMessage(msg.text)}
+          <div className="user-screenshot-container">
+            <div className="user-screenshot-header">📸 Screenshot</div>
             <img
               src={`data:image/png;base64,${msg.screenshot}`}
               alt="User message screenshot"
               className="user-screenshot-image"
-              style={{ 
-                maxWidth: '100%', 
-                maxHeight: '400px', 
-                display: 'block'
-              }}
+              loading="lazy"
             />
           </div>
         </div>
       );
     }
 
-    return <div className="message-content">{msg.text}</div>;
+    return renderMarkdownMessage(msg.text);
   };
 
   const renderTransparencySections = (msg) => {
     const sections = [];
 
-    // System Prompt (always shown, tool schemas are passed as separate parameter)
+    // System Prompt (always shown, tool schemas are embedded in the first user message)
     if (msg.systemPrompt) {
       sections.push(
         <TransparencySection
@@ -129,12 +119,12 @@ function MessageList({ messages, thinkingStatus }) {
       );
     }
 
-    // Tool Schemas - Now passed as separate parameter to LLM API
+    // Tool Schemas - Shown for transparency (embedded in initial user message)
     if (msg.toolSchemas) {
       sections.push(
         <TransparencySection
           key="tool-schemas"
-          title="Tool Schemas (Available Tools - Passed as API Parameter)"
+          title="Tool Schemas (Available Tools - Embedded in Initial User Message)"
           content={msg.toolSchemas}
           type="json"
         />
@@ -142,7 +132,7 @@ function MessageList({ messages, thinkingStatus }) {
     }
 
     // User Message Full - Show complete message sent to assistant
-    // Tool schemas are no longer embedded in message content
+    // Tool schemas are embedded in the first user message only
     if (msg.fullUserMessage) {
       const userMetadata = msg.fullUserMessage.metadata || {};
       const metadataForDisplay = { ...userMetadata };
@@ -178,7 +168,7 @@ function MessageList({ messages, thinkingStatus }) {
       {messages.map((msg) => {
         const messageClass = `message message-${msg.sender} ${
           msg.sender === 'assistant' && msg.isComplete === false ? 'message-streaming' : ''
-        } ${msg.type ? `message-type-${msg.type}` : ''}`;
+        } ${msg.type ? `message-type-${msg.type}` : ''} ${msg.screenshot ? 'message-has-screenshot' : ''}`;
         return (
           <div key={msg.id} className={messageClass}>
             {renderMessageContent(msg)}
