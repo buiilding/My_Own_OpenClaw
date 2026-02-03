@@ -667,9 +667,12 @@ class LocalMemoryStore:
         return True
 
     def _parse_metadata(self, raw_metadata: Optional[str], memory_type: str) -> Dict[str, Any]:
-        metadata = json.loads(raw_metadata) if raw_metadata else {}
+        metadata = self._parse_raw_metadata(raw_metadata)
         metadata["type"] = memory_type
         return metadata
+
+    def _parse_raw_metadata(self, raw_metadata: Optional[str]) -> Dict[str, Any]:
+        return json.loads(raw_metadata) if raw_metadata else {}
 
     def _passes_metadata_filters(
         self, metadata: Dict[str, Any], filters: Optional[Dict[str, Any]]
@@ -961,7 +964,7 @@ class LocalMemoryStore:
             
             results = []
             for row in rows:
-                metadata = json.loads(row["metadata"]) if row["metadata"] else {}
+                metadata = self._parse_raw_metadata(row["metadata"])
                 results.append({
                     "id": row["id"],
                     "content": row["content"],
@@ -1003,7 +1006,7 @@ class LocalMemoryStore:
             
             results = []
             for row in rows:
-                metadata = json.loads(row["metadata"]) if row["metadata"] else {}
+                metadata = self._parse_raw_metadata(row["metadata"])
                 results.append({
                     "id": row["id"],
                     "content": row["content"],
@@ -1146,7 +1149,7 @@ class LocalMemoryStore:
             
             results = []
             for row in rows:
-                metadata = json.loads(row["metadata"]) if row["metadata"] else {}
+                metadata = self._parse_raw_metadata(row["metadata"])
                 results.append({
                     "id": row["id"],
                     "content": row["content"],
