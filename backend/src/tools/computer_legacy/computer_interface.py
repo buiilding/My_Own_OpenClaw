@@ -155,8 +155,7 @@ class ComputerInterface:
             await self._ensure_ready()
 
             def _perform_double_click():
-                if x is not None and y is not None:
-                    self._pyautogui.moveTo(x, y)
+                self._move_to_if_provided(x, y)
                 self._pyautogui.doubleClick()
 
             await self._run_in_executor(_perform_double_click)
@@ -214,8 +213,7 @@ class ComputerInterface:
             await self._ensure_ready()
 
             def _perform_mouse_down():
-                if x is not None and y is not None:
-                    self._pyautogui.moveTo(x, y)
+                self._move_to_if_provided(x, y)
                 self._pyautogui.mouseDown(button=button)
 
             await self._run_in_executor(_perform_mouse_down)
@@ -239,8 +237,7 @@ class ComputerInterface:
             await self._ensure_ready()
 
             def _perform_mouse_up():
-                if x is not None and y is not None:
-                    self._pyautogui.moveTo(x, y)
+                self._move_to_if_provided(x, y)
                 self._pyautogui.mouseUp(button=button)
 
             await self._run_in_executor(_perform_mouse_up)
@@ -486,6 +483,10 @@ class ComputerInterface:
     # HELPER METHODS
     # ============================================================================
 
+    def _move_to_if_provided(self, x: Optional[int], y: Optional[int]) -> None:
+        if x is not None and y is not None:
+            self._pyautogui.moveTo(x, y)
+
     async def _click(
         self, x: Optional[int], y: Optional[int], button: MouseButton
     ) -> ComputerActionResult:
@@ -494,8 +495,7 @@ class ComputerInterface:
             await self._ensure_ready()
 
             def _perform_click():
-                if x is not None and y is not None:
-                    self._pyautogui.moveTo(x, y)
+                self._move_to_if_provided(x, y)
                 self._pyautogui.click(button=button)
 
             await self._run_in_executor(_perform_click)
