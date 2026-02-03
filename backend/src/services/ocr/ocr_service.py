@@ -327,25 +327,9 @@ class OcrService:
                 logger.warning("OCR returned invalid result format")
                 return []
 
-            def _normalize_ocr_field(value):
-                if value is None:
-                    return []
-                if isinstance(value, str):
-                    return [value]
-                try:
-                    import numpy as np
-
-                    if isinstance(value, np.ndarray):
-                        return value.tolist()
-                except Exception:
-                    pass
-                if isinstance(value, (list, tuple)):
-                    return list(value)
-                return [value]
-
-            text_list = _normalize_ocr_field(getattr(result, "txts", None))
-            scores_list = _normalize_ocr_field(getattr(result, "scores", None))
-            boxes_list = _normalize_ocr_field(getattr(result, "boxes", None))
+            text_list = self._normalize_ocr_field(getattr(result, "txts", None))
+            scores_list = self._normalize_ocr_field(getattr(result, "scores", None))
+            boxes_list = self._normalize_ocr_field(getattr(result, "boxes", None))
 
             bbox_list = []
             for box in boxes_list:
@@ -400,6 +384,22 @@ class OcrService:
         except Exception as e:
             logger.error(f"OCR analysis failed: {e}", exc_info=True)
             return None
+
+    def _normalize_ocr_field(self, value: Any) -> List[Any]:
+        if value is None:
+            return []
+        if isinstance(value, str):
+            return [value]
+        try:
+            import numpy as np
+
+            if isinstance(value, np.ndarray):
+                return value.tolist()
+        except Exception:
+            pass
+        if isinstance(value, (list, tuple)):
+            return list(value)
+        return [value]
 
     async def shutdown(self) -> None:
         """Cleanup OCR resources."""
