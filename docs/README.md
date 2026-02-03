@@ -32,6 +32,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 
 ### Development Guides
 - [**Developer Guide**](DEVELOPER_GUIDE.md) - Comprehensive development guide
+- Developer Guide includes local automation scripts (`bin/docs-list`, `scripts/check`, `scripts/test`, `scripts/check-loc.py`).
 - [**Tool Development Guide**](TOOL_DEVELOPMENT.md) - Creating custom tools
 - [**API Reference**](API_REFERENCE.md) - Complete API documentation
 - [**Extension Points**](EXTENSION_POINTS.md) - How to extend the system
