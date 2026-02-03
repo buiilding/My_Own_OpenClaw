@@ -119,10 +119,7 @@ export class ToolExecutionService {
       }
 
       // Format complete message with system context XML
-      const finalSystemState = systemState || 
-        (result.data && typeof result.data === 'object' && !Array.isArray(result.data) 
-          ? (result.data.system_state as SystemState | undefined) || null 
-          : null);
+      const finalSystemState = this._resolveSystemState(systemState, result.data);
       const formattedMessage = formatToolOutputMessage(
         toolName,
         result,
@@ -229,6 +226,19 @@ export class ToolExecutionService {
 
       throw error;
     }
+  }
+
+  private _resolveSystemState(
+    systemState: SystemState | null,
+    data: ToolResult['data']
+  ): SystemState | null {
+    if (systemState) {
+      return systemState;
+    }
+    if (data && typeof data === 'object' && !Array.isArray(data)) {
+      return (data.system_state as SystemState | undefined) || null;
+    }
+    return null;
   }
 
   /**
