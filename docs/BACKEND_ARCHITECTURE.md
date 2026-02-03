@@ -4,35 +4,80 @@
 
 The backend is built using Python 3.9+ with FastAPI, following clean architecture principles. It uses dependency injection, protocol-based interfaces, and a plugin system for extensibility.
 
+## Future: Multi-Tenant Backend & Subscription Platform (Planned)
+
+This section documents the roadmap to move from a single-user/local backend to a **multi-tenant, hosted backend** that serves many users with subscriptions, usage limits, and enterprise controls.
+
+### Goals
+- One backend service handles multiple users and devices safely.
+- Each user has isolated memory, conversations, tools, and settings.
+- Usage is metered and enforced by subscription plan.
+- Clear auditability, billing, and security posture for production.
+
+### Required Capabilities
+
+#### 1) Identity, Sessions, and Tenant Isolation
+- **Auth**: Email/password + OAuth (Google/GitHub), MFA for paid/enterprise tiers.
+- **Sessions**: JWT + refresh tokens, device/session management, secure token rotation.
+- **Tenant isolation**: Per-user/tenant IDs in every request; enforce in DB, cache, and memory store.
+- **Data encryption**: Encrypt sensitive user data at rest (memories, transcripts, screenshots).
+
+#### 2) Billing & Entitlements
+- **Billing provider**: Stripe (or similar) for subscriptions, invoices, taxes.
+- **Plans & entitlements**: Map plans to model access, tool permissions, concurrency, and retention.
+- **Proration**: Upgrade/downgrade paths and grace periods.
+- **Webhook processing**: Reliable billing webhooks to update entitlements and account status.
+
+#### 3) Usage Metering & Limits
+- **Usage ledger**: Persist per-request usage events (tokens, tool calls, screenshots, compute time).
+- **Rate limits**: Per-user/plan request limits (RPS + burst).
+- **Quota limits**: Daily/monthly token budgets, tool execution caps, memory size limits.
+- **Soft limits**: Warnings and UI indicators (90% usage).
+- **Hard limits**: Request blocking with clear UX error states and upgrade links.
+
+#### 4) Multi-User Backend Routing
+- **API gateway**: Auth, rate limiting, request logging, and request normalization.
+- **Session service**: Map user sessions to agent sessions with tenant-aware state.
+- **Queueing**: Job queue for tool execution or long-running tasks.
+- **Horizontal scaling**: Stateless API servers + shared persistent stores.
+
+#### 5) Storage & Retention
+- **Primary DB**: Users, plans, subscriptions, usage events, and metadata.
+- **Memory store**: Per-tenant memory shards (FAISS or managed vector DB).
+- **Conversation storage**: Split hot/cold storage with retention policies.
+- **Screenshot storage**: Optional storage policy, encryption, and TTL cleanup.
+
+#### 6) Compliance & Security
+- **Audit logs**: Who executed what tool, when, and what data was accessed.
+- **PII handling**: Redaction pipeline and user-controlled deletion.
+- **Access controls**: Admin console for support and plan changes.
+- **Abuse prevention**: Rate limits + anomaly detection for tool misuse.
+
+### Suggested Architecture Additions
+- `api/auth/` for auth endpoints and token issuance.
+- `billing/` domain for Stripe integration and entitlements.
+- `usage/` domain for metering + limits.
+- `tenancy/` domain for per-tenant data isolation and access rules.
+- `admin/` routes for internal support tooling.
+
+### Milestones (Proposed)
+1. **Auth + user table + session tokens**
+2. **Usage ledger + basic rate limits**
+3. **Stripe subscription flow + entitlements**
+4. **Plan-based feature gating**
+5. **Compliance + audit logging**
+
 ## Directory Structure
 
 ```
 backend/src/
 ├── agent/              # Agent domain (core intelligence)
-│   ├── core/          # Core agent state & execution
-│   │   ├── core.py    # AgentSession
-│   │   ├── executor.py  # AgentExecutor
-│   │   ├── interaction_loop.py  # InteractionLoop
-│   │   ├── state.py   # ConversationHistory
-│   │   └── session_manager.py  # SessionManager
-│   ├── llm/           # LLM interaction, prompts, events
-│   │   ├── prompt_coordinator.py
-│   │   ├── llm_interaction_handler.py
-│   │   └── event_presenter.py
-│   ├── tools/         # Tool orchestration & preparation
-│   │   ├── tool_executor.py
-│   │   ├── tool_preparer.py
-│   │   ├── result_transformer.py
-│   │   ├── screenshot_manager.py
-│   │   ├── ocr_coordinator.py
-│   │   ├── vision_service_provider.py
-│   │   └── resolvers/  # Coordinate resolution
-│   ├── history/       # Agent memory & state mutation
-│   │   └── history_committer.py
-│   └── plugins/      # Plugin system
-│       ├── manager.py
-│       ├── interface.py
-│       └── ocr_plugin.py
+│   ├── session/        # AgentSession, SessionManager, ConversationHistory
+│   ├── execution/      # AgentExecutor, InteractionLoop
+│   ├── llm/            # LLM streaming + event presentation
+│   ├── tools/          # Tool lifecycle (prepare/send/wait/process)
+│   ├── history/        # HistoryCommitter
+│   └── plugins/        # Plugin system (OCR, etc.)
 ├── tools/             # Tools domain (registry, loader, tools)
 │   ├── registry.py   # ToolRegistry
 │   ├── orchestrator.py  # ToolOrchestrator
@@ -51,8 +96,8 @@ backend/src/
 │   ├── schema.py     # Pydantic models
 │   └── deps.py       # Dependency injection
 ├── core/              # Core infrastructure
-│   ├── container.py   # DI container
-│   ├── config/        # Configuration management
+│   ├── container/     # DI containers (application, facade, factories)
+│   ├── config/        # Configuration management (app_config.py, loader.py, models.py)
 │   ├── bootstrap/     # System initialization
 │   ├── plugins/       # Plugin registry
 │   ├── services/      # Core services
@@ -68,7 +113,7 @@ backend/src/
 
 ### Agent System
 
-#### AgentSession (`agent/core/core.py`)
+#### AgentSession (`agent/session/session.py`)
 
 The main agent class for orchestrating tasks with tool support.
 
@@ -91,7 +136,7 @@ The main agent class for orchestrating tasks with tool support.
 - Automatic TTL-based cleanup (5 minutes) to prevent memory leaks
 - Weak references for futures to allow garbage collection
 
-#### AgentExecutor (`agent/core/executor.py`)
+#### AgentExecutor (`agent/execution/executor.py`)
 
 Orchestrates the execution of agent interactions.
 
@@ -105,7 +150,7 @@ Orchestrates the execution of agent interactions.
 - `process_query()`: Main entry point for query processing
 - `_is_first_user_message()`: Check if first message
 
-#### InteractionLoop (`agent/core/interaction_loop.py`)
+#### InteractionLoop (`agent/execution/interaction_loop.py`)
 
 Main interaction loop for agent reasoning.
 
@@ -119,7 +164,7 @@ Main interaction loop for agent reasoning.
 - `run_loop()`: Main interaction loop
 - `_handle_tool_results()`: Process tool execution results
 
-#### ToolResultStorage (`agent/core/tool_result_storage.py`)
+#### ToolResultStorage (`agent/tools/waiting/storage/result_storage.py`)
 
 Centralized storage for tool execution results.
 
@@ -175,7 +220,7 @@ Orchestrates tool execution requests.
 - `execute_tools_from_response()`: Execute tools from parsed response
 - `_wait_for_tool_result()`: Wait for frontend tool result
 
-#### ToolPreparer (`agent/tools/tool_preparer.py`)
+#### ToolPreparer (`agent/tools/preparation/preparer.py`)
 
 Prepares tool calls for execution.
 
@@ -231,36 +276,34 @@ Parses LLM responses and extracts tool calls.
 Constructs prompts for LLM interactions.
 
 **Responsibilities**:
-- Format system prompts
-- Format user messages with context
-- Include memory and system state
-- Manage prompt templates
+- Load system prompts
+- Enforce security limits at the prompt boundary
+- Build message history and embed tool schema payloads in the initial user message
+- Emit prompt metadata for transparency events
 
 **Key Methods**:
-- `format_user_message_content()`: Format user message
-- `build_system_prompt()`: Build system prompt
-- `_include_memory()`: Include relevant memories
+- `build_prompt()`: Build LLM messages + tool schema metadata (schemas live in first user message)
+- `_calculate_message_size()`: Enforce size limits
 
-### Memory System
+### Embedding Service
 
 #### SentenceTransformerProvider (`embeddings/embeddings.py`)
 
-Converts text to vector representations.
+Converts text to vector representations (used by `/api/embeddings`).
 
 **Responsibilities**:
 - Encode text to embeddings
 - Batch encoding for efficiency
-- Cache embeddings
-- GPU acceleration support
+- Cache embeddings (via CacheManager)
+- Optional GPU acceleration (device is configurable)
 
 **Key Methods**:
-- `encode_text()`: Encode single text
-- `encode_batch()`: Encode multiple texts
-- `similarity()`: Calculate similarity
+- `embed_text()`: Encode a single string
+- `embed_batch()`: Encode a list of strings
 
 ### Conversation History
 
-#### ConversationHistory (`agent/core/state.py`)
+#### ConversationHistory (`agent/session/state.py`)
 
 Manages conversation history with automatic pruning and performance optimizations.
 
@@ -285,7 +328,7 @@ Manages conversation history with automatic pruning and performance optimization
 
 ### API Layer
 
-#### WebSocket Routes (`api/routes/websocket.py`)
+#### WebSocket Routes (`api/routes/websocket/`)
 
 Handles WebSocket connections.
 
@@ -303,9 +346,10 @@ Handles WebSocket connections.
 Process different message types.
 
 **Handlers**:
-- `QueryMessageHandler`: Process user queries
-- `SettingsMessageHandler`: Handle settings requests
-- `ToolResultHandler`: Process tool execution results
+- `QueryMessageHandler`: Process user queries (`api/handlers/query.py`)
+- `ListModelsHandler`: Return model list (`api/handlers/settings.py`)
+- `ToolResultHandler`: Process tool execution results (`api/handlers/tool_result.py`)
+- `WakewordHandler`: Handle wakeword activation (`api/handlers/wakeword.py`)
 
 ### Configuration System
 
@@ -315,15 +359,15 @@ Manages application configuration.
 
 **Responsibilities**:
 - Load configuration from file
-- Save configuration changes
-- Validate configuration
-- Provide configuration access
+- Provide immutable configuration access
+- Update config in memory (runtime only)
+- Reload config from `app_config.py`
 
 **Key Methods**:
-- `load_config()`: Load configuration
-- `save_config()`: Save configuration
-- `get_config()`: Get current config
-- `update_config()`: Update config
+- `load_config()`: Load configuration (once at startup)
+- `get_config()`: Get current config (immutable `AppConfig`)
+- `update_config()`: Update config in memory (not persisted)
+- `reload_config()`: Reload from `app_config.py`
 
 ### Bootstrap System
 
@@ -345,39 +389,48 @@ Coordinates application initialization.
 
 ## Dependency Injection
 
-The backend uses `dependency-injector` for clean architecture:
+The backend uses `dependency-injector` with a composed container:
 
 ```python
-Container
-├── ConfigManager (singleton)
-├── ToolRegistry (singleton)
-├── LLMClient (factory)
-├── MemoryManager (singleton)
-├── PluginRegistry (singleton)
-└── SessionManager (singleton)
-    └── AgentSession (factory)
+ApplicationContainer
+├── CoreContainer
+│   ├── ConfigManager / ConfigurationService
+│   ├── LLMClient
+│   ├── TTSService
+│   ├── VisionService
+│   └── EventBus
+├── ToolContainer
+│   ├── ToolRegistry
+│   ├── ToolOrchestrator
+│   └── AgentFactory
+├── MemoryContainer
+│   └── EmbeddingProvider
+└── ApiContainer
+    ├── MessageHandlerRegistry
+    └── WebSocket handlers
 ```
 
-**Container Setup** (`core/container/container.py`):
-- Defines all dependencies
-- Configures providers
-- Manages lifecycle
+**Container Setup**:
+- `core/container/application.py`: container composition
+- `core/container/facade.py`: backward-compatible facade and lazy session manager
 
 ## Event System
 
-### Event Bus (`core/bus.py`)
+### Event Bus (`core/infrastructure/bus.py`)
 
-Central event bus for component communication.
+Central event bus for internal component communication.
 
-**Event Types**:
-- `InteractionCompleted`: Interaction finished
-- `ToolExecuted`: Tool execution completed
-- `MemoryStored`: Memory item stored
-- `ErrorOccurred`: Error event
+**Bus Events** (`core/events/bus_events.py`):
+- `InteractionCompleted`
+- `ConfigChanged`
+
+**Streaming Events** (`core/events/streaming_events.py`):
+- `ThinkingEvent`, `ChunkEvent`, `ToolCallEvent`, `ToolOutputEvent`
+- `MemoryStoreEvent`, `StreamingCompleteEvent`, `ErrorEvent`, etc.
 
 **Usage**:
 ```python
-event_bus.emit(InteractionCompleted(session_id=...))
+await event_bus.publish(InteractionCompleted(...))
 ```
 
 ## Plugin System
@@ -390,19 +443,19 @@ Manages plugin lifecycle.
 - Register plugins
 - Initialize plugins
 - Shutdown plugins
-- Handle plugin events
+- Execute tool-end hooks via PluginManager
 
 **Built-in Plugins**:
 - `OCRPlugin`: OCR processing plugin
 
-### Plugin Interface (`core/plugins/interface.py`)
+### Plugin Interface (`agent/plugins/interface.py`)
 
 Base interface for plugins.
 
 **Methods**:
-- `initialize()`: Initialize plugin
-- `shutdown()`: Cleanup plugin
-- `handle_event()`: Process events
+- `initialize(container=None)`: Initialize plugin (optional)
+- `on_tool_end(tool_name, result)`: Hook after tool execution
+- `shutdown()`: Cleanup (optional)
 
 ## Error Handling
 
@@ -410,12 +463,21 @@ Base interface for plugins.
 
 ```
 BaseException
-├── DesktopAssistantException
-│   ├── LLMAPIError
-│   ├── ToolExecutionError
+├── BaseAppError
 │   ├── ConfigurationError
-│   ├── ValidationError
-│   └── MemoryError
+│   ├── LLMError
+│   │   ├── LLMAPIError
+│   │   └── LLMRateLimitError
+│   ├── ToolExecutionError
+│   │   ├── ToolValidationError
+│   │   └── ToolNotFoundError
+│   ├── MemoryError
+│   │   ├── MemoryStoreError
+│   │   └── EmbeddingError
+│   ├── SessionError
+│   ├── InputSizeLimitError
+│   ├── ParseTimeoutError
+│   └── ParseValidationError
 ```
 
 ### Error Handling Flow
@@ -430,16 +492,16 @@ BaseException
 
 ### Tool Execution Security
 
-- **Permission System**: Tools require explicit permissions
-- **Sandboxing**: Isolated execution environment
-- **Resource Limits**: CPU, memory, and time limits
-- **Audit Logging**: All tool executions logged
+- **Permission Model**: `SecurityPolicy` defines permissions, not enforced in sidecar by default
+- **Sandbox Hooks**: Executor abstraction enables sandboxing (not enabled by default)
+- **Resource Limits**: Defined in `SecurityPolicy`, not enforced in sidecar by default
+- **Audit Logging**: Policy supports audit logs; wire-in is required for enforcement
 
 ### Data Security
 
-- **Local Memory Storage**: Conversation history and memory stored and searched locally
+- **Local Memory Storage**: Conversation history and memory stored locally via the Python sidecar
 - **LLM API Access**: User input and screenshots sent to LLM providers via internet APIs (required for AI functionality)
-- **Encryption**: Sensitive data encrypted at rest
+- **Encryption**: No encryption-at-rest by default; rely on OS disk encryption for local data
 - **Access Control**: User-based isolation
 - **No Cloud Sync**: Memory and conversation data are not synced to cloud services
 
@@ -450,7 +512,6 @@ BaseException
 - **LLM Client Caching**: Provider instances cached
 - **Embedding Cache**: Avoid re-computing embeddings
 - **Tool Schema Cache**: Cached tool definitions
-- **Query Result Cache**: Frequent queries cached
 - **Conversation History Cache**: O(1) LLM format access via cached conversion
 - **Tool Result Storage**: Centralized storage with TTL-based cleanup
 
@@ -461,11 +522,11 @@ BaseException
 - **Batch Processing**: Batch embeddings and OCR
 - **Thread Pool**: Global thread pool for blocking operations
 
-### GPU Acceleration
+### GPU Acceleration (Optional)
 
-- **CUDA Support**: GPU-accelerated embeddings
-- **OCR Acceleration**: GPU-accelerated OCR processing
-- **Vision Models**: GPU-accelerated vision inference
+- **CUDA Support**: Embeddings can use GPU when configured
+- **OCR Acceleration**: OCR can leverage GPU when available
+- **Vision Models**: Vision inference can use GPU when available
 
 ## Testing
 

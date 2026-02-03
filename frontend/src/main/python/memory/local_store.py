@@ -1055,6 +1055,47 @@ class LocalMemoryStore:
                 else 0,
             },
         }
+
+    async def get_user_ids_with_unsemanticized_memories(
+        self, limit: int = 100
+    ) -> List[str]:
+        """
+        Return distinct user IDs that have unsemanticized episodic memories.
+        """
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(
+                """
+                SELECT DISTINCT user_id
+                FROM memories
+                WHERE is_semanticized = 0
+                LIMIT ?
+            """,
+                (limit,),
+            )
+            rows = await cursor.fetchall()
+            return [row[0] for row in rows if row and row[0]]
+
+    async def semantic_summary_exists(self, summary_hash: str) -> bool:
+        """
+        Check if a semantic summary with the given hash already exists.
+        """
+        if not summary_hash:
+            return False
+
+        pattern = f'%\"summary_hash\": \"{summary_hash}\"%'
+        async with aiosqlite.connect(self.semantic_db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(
+                """
+                SELECT 1 FROM memories
+                WHERE metadata LIKE ?
+                LIMIT 1
+            """,
+                (pattern,),
+            )
+            row = await cursor.fetchone()
+            return row is not None
     
     async def get_unsemanticized_conversation_windows(
         self, user_id: str

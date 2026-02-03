@@ -160,7 +160,7 @@ class LLMProvider(ABC):
             model_id: Model identifier (guaranteed to be non-empty string by caller)
         
         Returns:
-            Full model string for LiteLLM (e.g., "anthropic/claude-3-opus")
+            Full model string for LiteLLM (e.g., "anthropic/claude-sonnet-4-5-20250929")
         
         Note:
             model_id is validated by _build_request_params before this is called.

@@ -4,6 +4,41 @@
 
 The frontend is built using Electron with React, providing a desktop application with a modern UI. It uses a three-process architecture: Main Process (Node.js), Renderer Process (React), and Python Sidecar (tool execution).
 
+## Future: Multi-User UX & Subscription Readiness (Planned)
+
+To bring this to end users at scale, the frontend needs explicit **account, billing, and usage limit** UX. This section outlines the planned additions.
+
+### 1) Authentication & Account Management
+- **Login / Signup** screens (email + OAuth).
+- **Session persistence** using secure storage (OS keychain).
+- **Device management**: list active sessions, revoke device access.
+
+### 2) Subscription & Billing UI
+- **Plan selection** page with feature matrix.
+- **Upgrade/downgrade** flow with proration awareness.
+- **Billing portal** link (Stripe customer portal).
+- **Payment failure** UX with retry and grace period messaging.
+
+### 3) Usage & Limits
+- **Usage meter**: show remaining tokens/requests for the billing period.
+- **Soft limit warning**: 80–90% usage indicators in the UI.
+- **Hard limit blocking**: clear “limit reached” state with upgrade CTA.
+- **Per-feature gating**: show locked states for higher-tier features.
+
+### 4) Multi-Device & Sync
+- **User profile** and preferences synced across devices.
+- **Settings conflict resolution** (last-write-wins + versioning).
+- **Conversation sync** for active sessions.
+
+### 5) Safety & Transparency
+- **Tool permission prompts** scoped to plan/role.
+- **Audit history UI** to show tool calls and actions.
+- **Data deletion** flows for compliance (account + data removal).
+
+### 6) Offline & Local-Only Modes
+- **Local-only mode** for privacy-first users (no cloud sync).
+- **Graceful fallback** when backend is unreachable.
+
 ## Architecture Overview
 
 ```
@@ -30,7 +65,7 @@ The frontend is built using Electron with React, providing a desktop application
 │  └───────────────────────────────────────────────────┘  │
 │                    ↕ stdin/stdout                         │
 │  ┌───────────────────────────────────────────────────┐  │
-│  │  Python Sidecar (runner.py)                        │  │
+│  │  Python Sidecar (local_backend.py)                 │  │
 │  │  - Tool Execution                                   │  │
 │  │  - System State Capture                             │  │
 │  └───────────────────────────────────────────────────┘  │
@@ -257,17 +292,15 @@ The Python sidecar handles tool execution and system state capture.
 
 #### Key Modules
 
-**runner.py**
-- Main Python process entry
-- Message processing from stdin
-- Tool execution routing
-- System state requests
+**local_backend.py**
+- Main Python sidecar entry
+- JSON-RPC processing
+- Tool execution routing via ToolRegistry
 
-**core/dispatcher.py**
-- Tool dispatcher
-- Tool discovery and loading
-- Automatic screenshot capture
-- Result formatting
+**tools/registry.py**
+- Tool dispatcher/registry
+- Pydantic arg validation
+- Calls tool implementations under `tools/`
 
 **core/system_state.py**
 - System state capture
@@ -373,6 +406,8 @@ The frontend uses a hybrid approach combining React Context API and Zustand:
 - **AppStatusContext**: Transient status (save status)
 - Split contexts prevent unnecessary re-renders when only status changes
 
+**Note**: AppConfigContext persists settings to localStorage and `frontend-config.json` (Electron userData). Settings are not stored by the backend.
+
 **Zustand Store** (for chat state):
 - **chatStore** (`features/chat/stores/chatStore.ts`): Chat messages, sending state, thinking status, token counts
 - Pure state management with no business logic
@@ -409,11 +444,11 @@ UI Update
 Typed API client for backend communication.
 
 **Methods**:
-- `sendQuery(text, screenshot)`: Send user query
-- `updateSettings(settings)`: Update settings
+- `sendQuery(text, screenshot, config?)`: Send user query (optional config per request)
 - `listModels()`: Request available models
-- `loadSettings()`: Request current settings
 - `wakewordDetected()`: Notify wakeword detection
+
+**Note**: Settings are frontend-only and persisted locally (no `updateSettings` or `loadSettings` calls).
 
 ### IPC Bridge (`infrastructure/ipc/bridge.ts`)
 

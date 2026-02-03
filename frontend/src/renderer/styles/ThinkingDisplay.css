@@ -1,14 +1,14 @@
 .thinking-display {
   display: flex;
   flex-direction: column;
-  padding: 8px 12px;
-  background-color: #f3f4f6; /* gray-100 */
-  border: 1px solid #d1d5db; /* gray-300 */
-  border-radius: 8px;
-  margin: 0 auto 10px auto; /* Center horizontally */
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin: 0 auto 10px auto;
   max-width: 90%;
-  opacity: 0;
-  animation: fadeIn 0.3s ease-in-out forwards;
+  box-shadow: var(--shadow-soft);
+  animation: fadeUp 0.3s ease-out;
 }
 
 .thinking-header {
@@ -20,15 +20,15 @@
 }
 
 .thinking-label {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 500;
-  color: #374151; /* gray-700 */
+  color: var(--text-muted);
   flex: 1;
 }
 
 .thinking-toggle {
-  font-size: 0.75rem;
-  color: #6b7280; /* gray-500 */
+  font-size: 0.7rem;
+  color: var(--text-soft);
   margin-left: auto;
 }
 
@@ -40,7 +40,7 @@
 }
 
 .thinking-content.expanded {
-  max-height: 500px;
+  max-height: 460px;
   overflow-y: auto;
 }
 
@@ -50,23 +50,23 @@
 
 .thinking-text {
   margin: 0;
-  font-size: 0.85rem;
-  color: #4b5563; /* gray-600 */
-  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
   white-space: pre-wrap;
   word-wrap: break-word;
-  line-height: 1.5;
-  background-color: #ffffff;
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid #e5e7eb; /* gray-200 */
+  line-height: 1.6;
+  background: var(--surface-ink);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
 }
 
 .thinking-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #9ca3af; /* gray-400 */
-  border-top-color: #3b82f6; /* blue-500 */
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(47, 143, 122, 0.2);
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   flex-shrink: 0;
@@ -78,12 +78,6 @@
   }
 }
 
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .thinking-spinner {
     animation: none;
@@ -91,6 +85,5 @@
 
   .thinking-display {
     animation: none;
-    opacity: 1;
   }
 }

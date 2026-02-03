@@ -13,7 +13,7 @@
 
 ```bash
 git clone <repository-url>
-cd ALL_OR_NOTHING
+cd My_Own_OpenClaw
 ```
 
 ### 2. Backend Setup
@@ -36,6 +36,13 @@ cd frontend
 npm install
 ```
 
+Install Python sidecar dependencies (used for tool execution):
+
+```bash
+cd frontend/src/main/python
+pip install -r requirements.txt
+```
+
 ## Running the Application
 
 ### Development Mode
@@ -46,12 +53,11 @@ You must run the backend and frontend in separate terminals.
 
 ```bash
 # Make sure your conda env is active (if using conda)
-conda activate desktop-assistant-env
+conda activate jarvis
 
-# Set a required API key (even a dummy one) for startup
-export OPENAI_API_KEY="dummy-key"
-# Note: A dummy key is sufficient for the application to start.
-# A valid API key is only required if you set OpenAI as the active provider.
+# Optional: set an API key for the provider you plan to use
+export OPENAI_API_KEY="your-api-key"
+# Note: The backend can start without a key, but requests to that provider will fail.
 
 # Run the server as a module from the project root
 python -m backend.src.main
@@ -60,6 +66,7 @@ python -m backend.src.main
 **Terminal 2: Start the Frontend UI (Vite)**
 
 ```bash
+conda activate frontend_jarvis
 cd frontend
 npm run dev
 ```
@@ -67,26 +74,38 @@ npm run dev
 **Terminal 3: Start the Frontend App (Electron)**
 
 ```bash
+conda activate frontend_jarvis
 cd frontend
 npm run electron
 ```
+
+## Hosted Mode (Planned)
+
+The current build runs locally. A hosted mode is planned with:
+- Login/signup
+- Subscription plans
+- Usage limits and plan-based feature access
+
+When available, you will:
+1. Log in to the hosted backend.
+2. Connect via secure `wss://` WebSocket.
+3. See usage meters and plan entitlements in the UI.
 
 ## Configuration
 
 ### Initial Setup
 
-On first run, the application will create a configuration file at:
+There is no YAML config file. Configuration is split between:
 
-- **Windows**: `%APPDATA%\DesktopAssistant\config.yaml`
-- **macOS**: `~/Library/Application Support/DesktopAssistant/config.yaml`
-- **Linux**: `~/.config/DesktopAssistant/config.yaml`
+- **Backend**: `backend/src/core/config/app_config.py` (requires restart)
+- **Frontend**: Local JSON settings stored in Electron user data (`frontend-config.json`)
 
 ### Setting Up Your LLM Provider
 
 1. **Get an API Key** from your chosen provider:
    - OpenAI: https://platform.openai.com/api-keys
    - Anthropic: https://console.anthropic.com/
-   - Google: https://makersuite.google.com/app/apikey
+   - Gemini (Google AI Studio): https://makersuite.google.com/app/apikey
    - OpenRouter: https://openrouter.ai/keys
 
 2. **Set Environment Variable**:

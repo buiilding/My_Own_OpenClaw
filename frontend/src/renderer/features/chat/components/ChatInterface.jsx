@@ -46,6 +46,13 @@ function ChatInterface() {
   }, []);
 
   const voiceModeEnabled = config?.voice_mode_enabled || false;
+  const statusLabel = thinkingStatus
+    ? 'Thinking...'
+    : isSending
+      ? 'Sending...'
+      : voiceModeEnabled
+        ? 'Voice mode active'
+        : 'Ready';
 
   const stopPlayback = useCallback(() => {
     audioPlayerRef.current?.stopPlayback();
@@ -69,13 +76,21 @@ function ChatInterface() {
 
   return (
     <div className="chat-container">
+      <header className="chat-header">
+        <div className="chat-title-block">
+          <div className="chat-title">Conversation</div>
+          <div className="chat-subtitle">{statusLabel}</div>
+        </div>
+        <div className="chat-meta">
+          <TokenCountDisplay tokenCounts={tokenCounts} />
+        </div>
+      </header>
       <MessageList messages={messages} thinkingStatus={thinkingStatus} />
       <MessageInput 
         onSendMessage={sendMessage} 
         isSending={isSending} 
         voiceModeEnabled={voiceModeEnabled} 
       />
-      <TokenCountDisplay tokenCounts={tokenCounts} />
     </div>
   );
 }

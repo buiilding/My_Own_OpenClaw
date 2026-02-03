@@ -1,6 +1,6 @@
 # Desktop Assistant
 
-> Your AI-powered personal assistant that remembers everything, controls your computer, and adapts to your workflow.
+> Your AI-powered personal assistant that remembers context locally, controls your computer, and adapts to your workflow.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
@@ -16,8 +16,8 @@
 **Key Differentiators:**
 - **Code Editing & Command Execution**: Edit code files, execute shell commands, and automate tasks just like Claude Code or Cursor, but at the OS-level across any application
 - **OS-Level Operation**: Works across your entire operating system, not confined to a single IDE or application
-- **Persistent Memory**: Maintains persistent memory that learns your unique workflow, habits, and personal information to adapt to how you work
-- **Privacy-First**: Only AI inference (LLM API calls) goes to the internet - all memory, files, and data stay on your machine
+- **Persistent Memory**: Local episodic + semantic memory (adaptive learning planned)
+- **Privacy-First**: Only data required for LLM inference (prompt + screenshots) is sent to providers
 
 Users can interact with their computer through natural language commands, with the assistant handling complex tasks using a system of specialized tools.
 
@@ -27,8 +27,8 @@ Key capabilities include:
 - **Code Editing & Automation**: Edit code files, execute commands, and automate development workflows across any editor or application
 - **Intelligent Task Execution** through natural language commands
 - **Computer Control** with OCR-enhanced UI automation and vision models
-- **Persistent Memory System** that learns your workflow, habits, and personal information across sessions
-- **Tool Ecosystem** with 12 built-in tools for computer control and automation
+- **Persistent Memory System** with local episodic + semantic storage across sessions
+- **Tool Ecosystem** with multiple built-in tools for computer control and automation
 - **Multi-Provider LLM Support** for flexible AI integration
 
 Our mission: **Democratize computer power** - making advanced capabilities accessible to everyone, not just developers.
@@ -46,18 +46,18 @@ We have a **working AI assistant** with computer control, LLM integration, and t
 ### ✅ Completed Features
 
 #### 🧠 **Core AI Infrastructure**
-- [x] Multi-provider LLM client (OpenAI, Anthropic, Google, Gemini, Ollama, OpenRouter, Mistral, LM Studio)
+- [x] Multi-provider LLM client (OpenAI, Anthropic, Gemini, Ollama, OpenRouter, Mistral, LM Studio)
 - [x] Advanced agent orchestrator with tool calling capabilities
 - [x] Real-time thinking display and status updates
-- [x] Semantic memory system with GPU-accelerated embeddings
+- [x] Local episodic/semantic memory with FAISS + backend embedding API
 - [x] Conversation history and context management
-- [x] **Persistent Memory**: Learns user workflow, habits, and personal information over time
+- [x] **Persistent Memory**: Local episodic + semantic storage (adaptive learning planned)
 
 #### 🛠️ **Tool System**
-- [x] Tool discovery system for loading verified tools
-- [x] Security validation for tool execution
-- [x] Tool execution sandboxing with permission controls
-- [x] 12 built-in tools for computer control, filesystem, and system operations
+- [x] Tool registry with schema-based execution
+- [x] Trust-boundary validation for tool calls
+- [x] Sandbox hooks available (not enabled by default)
+- [x] Multiple built-in tools for computer control, filesystem, and system operations
 - [x] **Code Editing**: Edit code files across any editor or application (like Claude Code/Cursor, but OS-level)
 - [x] **Command Execution**: Execute shell commands and automate development workflows
 
@@ -65,20 +65,20 @@ We have a **working AI assistant** with computer control, LLM integration, and t
 - [x] **Vision-First Navigation**: Primarily uses screenshots to navigate and understand the computer interface
 - [x] **OCR-Enhanced UI Automation**: `mouse_control` tool with `find_coordinates_by="ocr"` for precision clicking on detected text from screenshots
 - [x] **Vision-Language UI Control**: `mouse_control` tool with `find_coordinates_by="prediction"` using InternVL models to analyze screenshots and intelligently detect UI elements
-- [x] **Automatic Screenshot Capture**: Continuous visual context through screenshots captured before and after all computer interactions
-- [x] **File System Tools**: Complete file operations (read, write, search, replace)
+- [x] **Automatic Screenshot Capture**: Screenshots captured for user messages and after computer-use tool execution
+- [x] **File System Tools**: Read/write/list file operations
 - [x] **Terminal Integration**: Safe command execution with process management
 
 #### 🚀 **Performance & Intelligence**
-- [x] **CUDA Acceleration**: GPU-accelerated embeddings and OCR processing
+- [x] **Optional GPU Acceleration**: Embeddings/OCR/Vision when configured
 - [x] **Natural Language Task Execution**: Complex multi-step task decomposition and execution
-- [x] **Intelligent Memory**: Semantic search and episodic memory with vector similarity
+- [x] **Local Memory**: Semantic search and episodic memory with vector similarity
 
 #### 🎨 **User Experience**
 - [x] Modern Electron UI with chat interface and settings
 - [x] Real-time agent status and tool execution feedback
 - [x] Screenshot integration for visual context
-- [x] Responsive design with dark/light themes
+- [x] Responsive design (single theme in current UI)
 
 See our [Development Roadmap](#-development-roadmap) section below for the complete development timeline.
 
@@ -88,23 +88,23 @@ See our [Development Roadmap](#-development-roadmap) section below for the compl
 
 ### 🧠 **Intelligent Memory System**
 - **Persistent Context**: Remembers conversations and context across sessions
-- **Learns Your Workflow**: Adapts to your unique workflow, habits, and personal information over time
 - **Semantic Search**: Find relevant information using vector similarity
 - **Episodic Memory**: Tracks user actions and agent decisions to build understanding of your preferences
-- **Privacy-First**: Memory and conversation history stored locally; only AI inference (LLM API calls) goes to the internet - nothing else
+- **Summarization**: Periodic rollups into semantic memory via backend semantic API
+- **Privacy-First**: Memory and conversation history stored locally; only data needed for LLM inference is sent to providers
 
 ### 🎮 **Advanced Computer Control**
 - **Vision-First Navigation**: The system primarily uses screenshots to navigate your computer - capturing screen states, analyzing visual elements, and using vision models to understand and interact with your interface
 - **OCR-Enhanced UI**: `mouse_control` tool with `find_coordinates_by="ocr"` for clicking on text elements detected via optical character recognition from screenshots
 - **Vision-Language Models**: `mouse_control` tool with `find_coordinates_by="prediction"` using InternVL to analyze screenshots and intelligently detect UI elements
 - **Multi-Step Automation**: Complex workflows across applications, all driven by visual understanding of screen states
-- **Visual Feedback**: Automatic screenshots captured before and after every computer interaction for continuous visual context
+- **Visual Feedback**: Screenshots captured for user messages and after computer-use tools for visual context
 
 ### 🛠️ **Tool System**
-- **Verified Tools**: Tools loaded from secure verified directory
-- **Security Validation**: Permission-based tool execution
+- **Registered Tools**: Tool registry + schema-driven execution
+- **Schema Validation**: Tool arguments validated against schemas
 - **Custom Development**: SDK for building your own tools
-- **Sandbox Execution**: Isolated tool execution with resource limits
+- **Sandbox Hooks**: Executor abstraction enables sandboxing (not enabled by default)
 
 ### 🎤 **Voice Integration** (In Progress)
 - **Natural Speech**: Voice commands and responses
@@ -112,9 +112,9 @@ See our [Development Roadmap](#-development-roadmap) section below for the compl
 - **Multi-Provider STT/TTS**: Choose from Whisper, cloud APIs, or local engines
 
 ### 🚀 **Performance Optimized**
-- **CUDA Acceleration**: GPU-accelerated embeddings and OCR processing
-- **Multi-Provider LLMs**: OpenAI, Anthropic, Google, Ollama, OpenRouter, Mistral, LM Studio
-- **Intelligent Caching**: Optimized memory usage and response times
+- **Optional GPU Acceleration**: Embeddings/OCR/Vision when configured
+- **Multi-Provider LLMs**: OpenAI, Anthropic, Gemini, Ollama, OpenRouter, Mistral, LM Studio
+- **Caching**: Provider and embedding caches for performance
 - **Scalable Architecture**: Designed for future expansion
 
 ### 🔮 **Future Capabilities** (Planned)
@@ -139,7 +139,7 @@ See our [Development Roadmap](#-development-roadmap) section below for the compl
 #### 1. Clone the Repository
 ```bash
 git clone <repository-url>
-cd personal-assistant
+cd My_Own_OpenClaw
 ```
 
 #### 2. Backend Setup
@@ -166,7 +166,7 @@ You must run the backend and frontend in separate terminals.
 **Terminal 1: Start the Backend**
 ```bash
 # Make sure your conda env is active
-conda activate desktop-assistant-env
+conda activate jarvis
 
 # Set a required API key (even a dummy one) for startup
 export OPENAI_API_KEY="dummy-key"
@@ -179,12 +179,14 @@ python -m backend.src.main
 
 **Terminal 2: Start the Frontend UI (Vite)**
 ```bash
+conda activate frontend_jarvis
 cd frontend
 npm run dev
 ```
 
 **Terminal 3: Start the Frontend App (Electron)**
 ```bash
+conda activate frontend_jarvis
 cd frontend
 npm run electron
 ```
@@ -227,12 +229,12 @@ The core AI assistant is functional. Current development priorities include:
 
 - **Voice Integration**: TTS implementation (STT planned for future)
 - **Enhanced Monitoring**: Basic audit logging and tool execution tracking
-- **Performance Optimization**: CUDA acceleration for embeddings and vision processing
+- **Performance Optimization**: GPU configuration and profiling
 - **User Experience**: UI improvements and additional tool capabilities
 
 If you want to contribute, check out:
 
-- [Open Issues](https://github.com/buiilding/ALL_OR_NOTHING/issues)
+- Open Issues: <your-repo>/issues
 - Look for issues tagged with `good-first-issue`, `help-wanted`, or `enhancement`
 
 ---
@@ -240,15 +242,15 @@ If you want to contribute, check out:
 ## 📖 Documentation
 
 ### Project Documentation
-- **[Changelog](CHANGELOG.md)** - Version history and release notes
-- **[Architecture Overview](docs/ARCHITECTURE.md)** - High-level system architecture
-- **[Backend Documentation](docs/BACKEND.md)** - Backend responsibilities and implementation
-- **[Frontend Documentation](docs/FRONTEND.md)** - Frontend responsibilities and implementation
-- **[Communication Flow](docs/COMMUNICATION.md)** - How frontend and backend communicate
-- **[Tool System](docs/TOOLS.md)** - Tool execution architecture and flow
-- **[Backend Architecture](backend/docs/architecture.md)** - Backend system design and patterns
-
-**Note**: Additional documentation (User Guide, Developer Guide, API Reference, Tool Development Guide, Testing Guide) is planned but not yet available.
+- **[Documentation Index](docs/README.md)** - Full documentation index
+- **[Quick Start](docs/QUICK_START.md)** - Get running quickly
+- **[Installation](docs/INSTALLATION.md)** - Detailed setup instructions
+- **[Architecture](docs/ARCHITECTURE.md)** - System architecture overview
+- **[Backend Architecture](docs/BACKEND_ARCHITECTURE.md)** - Backend responsibilities and implementation
+- **[Frontend Architecture](docs/FRONTEND_ARCHITECTURE.md)** - Frontend responsibilities and implementation
+- **[Python Sidecar](docs/PYTHON_SIDECAR.md)** - Local tool execution + memory service
+- **[Tool System](docs/TOOL_SYSTEM.md)** - Tool execution architecture and flow
+- **[API Reference](docs/API_REFERENCE.md)** - WebSocket and REST payloads
 
 ---
 
@@ -276,23 +278,22 @@ If you want to contribute, check out:
 │  │   - Task Orchestration                   │  │
 │  └──────────────────────────────────────────┘  │
 │   ↕          ↕          ↕           ↕         │
-│ ┌─────┐  ┌────────┐  ┌──────┐  ┌──────────┐ │
-│ │Memory│  │Computer│  │Market│  │   AI     │ │
-│ │System│  │Control │  │place │  │  Models  │ │
-│ │      │  │Tools   │  │      │  │  (CUDA)  │ │
-│ │• FAISS│  │• OCR  │  │• Tool │  │• Embed- │ │
-│ │• Local│  │• Mouse│  │• Disc-│  │• Vision │ │
-│ │• CUDA │  │• Files│  │• Secu-│  │• Rapid- │ │
-│ └─────┘  └────────┘  └──────┘  └──────────┘ │
+│ ┌──────────┐  ┌────────┐  ┌──────────┐  ┌──────────┐ │
+│ │Embeddings│  │Computer│  │Plugins   │  │   AI     │ │
+│ │API       │  │Control │  │Registry  │  │  Models  │ │
+│ │• ST      │  │Tools   │  │• Hooks   │  │• OpenAI  │ │
+│ │• Cache   │  │• OCR   │  │• Config  │  │• Anthro- │ │
+│ │• HTTP    │  │• Mouse │  │          │  │pic/Gemini│ │
+│ └──────────┘  └────────┘  └──────────┘  └──────────┘ │
 └─────────────────────────────────────────────────┘
 ```
 
 **Key Components:**
 - **Agent Orchestrator**: Core intelligence with tool calling and conversation management
-- **Memory System**: FAISS vector search + semantic/episodic memory with CUDA acceleration - learns your workflow, habits, and personal information
+- **Memory System**: Local episodic/semantic memory via sidecar (SQLite + FAISS) with backend embedding API
 - **Computer Control**: Vision-first navigation using screenshots - OCR and vision models analyze screen states to automate UI interactions and file operations
-- **Tool System**: 12 built-in tools with permission-based security - code editing, command execution, and OS-level automation
-- **AI Models**: Multi-provider LLM support with CUDA acceleration for embeddings and vision
+- **Tool System**: Schema-driven tools executed by the sidecar (code editing, command execution, OS-level automation)
+- **AI Models**: Multi-provider LLM support with optional GPU acceleration for embeddings/vision
 - **OS-Level Operation**: Works across your entire operating system, not confined to a single IDE or application
 
 ---
@@ -305,8 +306,8 @@ This is a great time to get involved as a founding contributor. Whether you're e
 
 ### How to Contribute
 
-1. **Check Current Work**: Look at open [Issues](https://github.com/buiilding/ALL_OR_NOTHING/issues)
-2. **Read Guidelines**: Review [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_STANDARDS.md](CODE_STANDARDS.md)
+1. **Check Current Work**: Look at open Issues in your repository
+2. **Read Guidelines**: Review [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)
 3. **Pick an Issue**: Comment on an issue to claim it (or create a new one)
 4. **Make Your Contribution**: Fork, branch, code, test, submit PR
 5. **Collaborate**: Respond to feedback and iterate
@@ -346,22 +347,22 @@ New to open source? No problem! Look for issues tagged:
 - [x] Conversation history and context management
 
 #### Milestone 3: Memory & Learning
-- [x] Semantic memory system with FAISS vector search
-- [x] Episodic memory for user actions tracking
-- [x] CUDA-accelerated embeddings for performance
-- [x] Privacy controls and local data storage
+- [x] Local memory store (SQLite + FAISS) for episodic/semantic memory
+- [x] Summarization via backend semantic API
+- [x] Optional GPU acceleration (when configured)
+- [x] Local data storage (no cloud sync)
 
 #### Milestone 4: Advanced Automation
-- [x] **Tool System**: 12 built-in tools with security validation and sandboxing
+- [x] **Tool System**: Schema-driven tools executed in the Python sidecar
 - [x] **Computer Control Tools**: Vision-first navigation using screenshots - OCR-enhanced UI automation and vision-language models for visual understanding
 - [x] **Agent System**: Multi-step task execution with tool coordination
 - [x] **Intelligent Task Execution**: Natural language task decomposition
 
 #### Milestone 5: Performance & Polish
-- [x] **CUDA Acceleration**: GPU-accelerated embeddings and OCR processing
-- [x] **Automatic Screenshots**: Visual feedback for all computer interactions
+- [x] **Optional GPU Acceleration**: Embeddings/OCR/Vision when configured
+- [x] **Automatic Screenshots**: Screenshots for user messages and after computer-use tools
 - [x] **File System Integration**: Complete file operations toolkit
-- [x] **Marketplace Tools**: Example tools, weather integration
+- [x] **Example Tools**: Filesystem, system, and computer control tools
 
 ### 🔄 **Current Development Focus**
 
@@ -407,10 +408,10 @@ See the [Development Roadmap](#-development-roadmap) section above for detailed 
 **Privacy and Security.** We prioritize privacy and security:
 
 - ✅ **Local memory storage** - Conversation history, memory, files, and all data are stored and searched locally on your machine
-- ✅ **Only AI inference goes to internet** - Only LLM API calls (for AI inference) are sent over the internet - user input, screenshots, and all other data stay on your machine
+- ✅ **LLM inference data only** - Only data required for LLM inference (prompt + screenshots) is sent to providers
 - ✅ **OS-Level Privacy** - Unlike cloud-based services, all your workflow, habits, and personal information remain on your device
 - ✅ **Open source** - Audit the code yourself
-- ✅ **Tool sandboxing** - Tools run with permission controls and resource limits
+- ✅ **Sandbox hooks** - Executor abstraction for sandboxing (not enabled by default)
 - ✅ **Basic audit logging** - Tool execution logging for monitoring
 - ✅ **No cloud sync** - Memory, conversation data, and personal information are never synced to cloud services
 
@@ -422,14 +423,14 @@ See the [Development Roadmap](#-development-roadmap) section above for detailed 
 - **License**: MIT
 - **Status**: Functional AI Assistant with Active Development
 - **Team**: Open source, community-driven
-- **Lines of Code**: ~20,000+ lines across backend, frontend, and tools
+- **Lines of Code**: Varies by branch and build
 - **Key Technologies**:
-  - **AI/ML**: SentenceTransformers, FAISS, RapidOCR, InternVL, CUDA acceleration
+  - **AI/ML**: SentenceTransformers, FAISS, RapidOCR, InternVL (optional GPU acceleration)
   - **Backend**: FastAPI, WebSocket IPC, dependency injection, async architecture
   - **Frontend**: Electron, React, real-time UI updates
-  - **Tools**: 12 built-in tools with permission-based security and sandboxing
-- **Performance**: GPU-accelerated embeddings, OCR, and vision processing
-- **Architecture**: Clean architecture with dependency injection, protocol interfaces, and tool sandboxing
+  - **Tools**: Multiple built-in tools executed in the Python sidecar
+- **Performance**: Optional GPU acceleration for embeddings/OCR/vision when configured
+- **Architecture**: Clean architecture with dependency injection and protocol interfaces
 
 ---
 
@@ -437,15 +438,15 @@ See the [Development Roadmap](#-development-roadmap) section above for detailed 
 
 Inspired by:
 - The vision of ambient computing and personal AI assistants
-- Amazing LLM providers (OpenAI, Anthropic, Google)
+- Amazing LLM providers (OpenAI, Anthropic, Gemini)
 - Open source communities building the future of AI
 
 ---
 
 ## 📬 Contact & Community
 
-- **Issues**: [GitHub Issues](https://github.com/buiilding/ALL_OR_NOTHING/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/buiilding/ALL_OR_NOTHING/discussions)
+- **Issues**: <your-repo>/issues
+- **Discussions**: <your-repo>/discussions
 - **Email**: contact@yourproject.com
 - **Discord**: [Join our community](#) (coming soon)
 
@@ -469,6 +470,6 @@ If this vision excites you, please star the repository! It helps others discover
 
 **🚀 Building the future of personal computing, one commit at a time**
 
-[Join Discussion](https://github.com/buiilding/ALL_OR_NOTHING/discussions) · [Contribute](CONTRIBUTING.md)
+[Join Discussion](<your-repo>/discussions) · [Contribute](CONTRIBUTING.md)
 
 </div>

@@ -14,7 +14,7 @@
 
 - **RAM**: 8GB minimum, 16GB recommended
 - **Storage**: 5GB free space
-- **GPU**: Optional but recommended for CUDA acceleration
+- **GPU**: Optional (only needed for CUDA acceleration)
 - **Internet**: Required for cloud LLM providers
 
 ## Installation Steps
@@ -23,7 +23,7 @@
 
 ```bash
 git clone <repository-url>
-cd ALL_OR_NOTHING
+cd My_Own_OpenClaw
 ```
 
 ### 2. Backend Installation
@@ -46,8 +46,14 @@ source venv/bin/activate
 **Option B: Using conda**
 
 ```bash
-conda create -n desktop-assistant-env python=3.9
-conda activate desktop-assistant-env
+conda create -n jarvis python=3.9
+conda activate jarvis
+```
+
+If you plan to run the Electron frontend (which spawns the Python sidecar), create the frontend environment too:
+
+```bash
+conda create -n frontend_jarvis python=3.9
 ```
 
 #### Install Dependencies
@@ -72,6 +78,17 @@ cd frontend
 npm install
 ```
 
+#### Install Python Sidecar Dependencies
+
+The Electron app spawns a local Python sidecar from your active environment.
+Install its dependencies:
+
+```bash
+conda activate frontend_jarvis
+cd frontend/src/main/python
+pip install -r requirements.txt
+```
+
 #### Verify Installation
 
 ```bash
@@ -92,13 +109,20 @@ $env:OPENAI_API_KEY = "your-api-key-here"
 export OPENAI_API_KEY="your-api-key-here"
 ```
 
-#### Create Configuration File
+#### Configuration Locations
 
-The configuration file is automatically created on first run at:
+There is no YAML config file. Configuration is split between:
 
-- **Windows**: `%APPDATA%\DesktopAssistant\config.yaml`
-- **macOS**: `~/Library/Application Support/DesktopAssistant/config.yaml`
-- **Linux**: `~/.config/DesktopAssistant/config.yaml`
+- **Backend**: `backend/src/core/config/app_config.py` (edit + restart)
+- **Frontend**: `frontend-config.json` stored in Electron user data (saved by the UI)
+
+## Hosted Backend (Planned)
+
+When the hosted backend is available, installation adds:
+- **Login**: OAuth or email/password.
+- **Secure token storage** in OS keychain.
+- **Plan selection** and billing portal access.
+- **Usage meter** and limit warnings in the UI.
 
 ## Optional: GPU Support
 
@@ -238,7 +262,10 @@ node --version  # Should be 18+
 3. Test with `nvidia-smi`
 
 **Fallback to CPU**:
-- System automatically falls back to CPU if CUDA unavailable
+- Some components (OCR/TTS/Vision) can fall back to CPU if CUDA is unavailable.
+- The embedding provider is configured to use CUDA by default. If you do not have CUDA,
+  change `device="cuda"` to `device="cpu"` in `backend/src/core/container/factories.py`
+  or disable memory in `backend/src/core/config/app_config.py`.
 
 ## Platform-Specific Notes
 

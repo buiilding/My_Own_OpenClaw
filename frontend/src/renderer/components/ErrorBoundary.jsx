@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import '../styles/ErrorBoundary.css';
 
 /**
  * ErrorBoundary component catches JavaScript errors anywhere in its child component tree,
@@ -28,9 +29,9 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       // You can render any custom fallback UI
       return (
-        <div style={{ padding: '20px', color: 'red' }}>
+        <div className="error-boundary">
           <h2>Something went wrong.</h2>
-          <details style={{ whiteSpace: 'pre-wrap' }}>
+          <details>
             {this.state.error && this.state.error.toString()}
             <br />
             {this.state.error?.stack}

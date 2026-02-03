@@ -31,19 +31,18 @@ function TransparencySection({ title, content, metadata, type = 'text' }) {
     if (type === 'xml') {
       // For XML content (like full messages with system_context, memory tags, etc.)
       // Preserve formatting and show as preformatted text
-      return <pre className="transparency-content-text" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{String(content)}</pre>;
+      return <pre className="transparency-content-text">{String(content)}</pre>;
     }
     return <pre className="transparency-content-text">{String(content)}</pre>;
   };
 
   return (
     <div className="transparency-section">
-      <div className="transparency-header-container" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className="transparency-header-container">
         <button
           className="transparency-header"
           onClick={() => setIsExpanded(!isExpanded)}
           type="button"
-          style={{ flex: 1 }}
         >
           <span className="transparency-title">
             {isExpanded ? '▼' : '▶'} {title}

@@ -22,14 +22,18 @@ This guide explains how to create custom tools for Desktop Assistant. Tools enab
 
 ### Step 1: Create Backend Stub
 
-Create a tool stub in `backend/src/tools/remote.py`:
+Create a tool stub in `backend/src/tools/remote.py` (subclass `Tool` + `RemoteToolBase`):
 
 ```python
-from backend.src.tools.remote import RemoteTool
-from backend.src.sdk.context import ToolContext
-from backend.src.core.interfaces.tool import ToolResult
+from pydantic import BaseModel
+from backend.src.sdk.tool import Tool
+from backend.src.tools.remote import RemoteToolBase
 
-class MyRemoteTool(RemoteTool):
+class MyArgs(BaseModel):
+    param1: str
+    param2: int = 0
+
+class MyRemoteTool(Tool[MyArgs], RemoteToolBase):
     name = "my_remote_tool"
     description = "Description of my remote tool"
     
@@ -49,6 +53,8 @@ class MyRemoteTool(RemoteTool):
             "required": ["param1"]
         }
 ```
+
+Add the class to `REMOTE_TOOLS` in the same file so the registry can discover it.
 
 ### Step 2: Create Frontend Implementation
 
@@ -99,15 +105,22 @@ async def execute_my_remote_tool(args: Dict[str, Any]) -> Dict[str, Any]:
 
 ### Step 3: Register Tool
 
-Register tool in `frontend/src/main/python/core/dispatcher.py`:
+Register the tool in `frontend/src/main/python/tools/registry.py` and add a Pydantic schema in `frontend/src/main/python/tools/schemas.py`.
 
 ```python
-from frontend.src.main.python.tools.my_tool import execute_my_remote_tool
+# frontend/src/main/python/tools/registry.py
+from tools.my_tool import execute_my_remote_tool
 
-TOOL_REGISTRY = {
-    "my_remote_tool": execute_my_remote_tool,
-    # ... other tools
-}
+self.tools[\"my_remote_tool\"] = execute_my_remote_tool
+```
+
+```python
+# frontend/src/main/python/tools/schemas.py
+class MyRemoteToolArgs(BaseModel):
+    param1: str
+    param2: int = 0
+
+TOOL_SCHEMAS[\"my_remote_tool\"] = MyRemoteToolArgs
 ```
 
 ## Creating a Backend Tool
@@ -221,30 +234,29 @@ Tool schemas follow JSON Schema format:
 
 ### ToolContext
 
-Tools receive a `ToolContext` object:
+Tools receive a `ToolContext` object from `backend/src/sdk/context.py`:
 
 ```python
+from backend.src.sdk.context import ToolContext, UserContext, SessionContext, ExecutionRuntime
+
 class ToolContext:
-    user_id: str
-    session_id: str
-    tool_registry: ToolRegistry
-    memory_manager: Optional[MemoryManager]
-    config: AppConfig
+    user: UserContext
+    session: SessionContext
+    runtime: ExecutionRuntime
 ```
 
 ### Using Context
 
 ```python
 async def execute(self, args: dict, context: ToolContext) -> ToolResult:
-    # Access user ID
-    user_id = context.user_id
-    
-    # Access memory
-    if context.memory_manager:
-        memories = await context.memory_manager.search(args["query"])
-    
-    # Access config
-    timeout = context.config.tools.timeout
+    # Access identity
+    user_id = context.user.user_id
+    session_id = context.session.session_id
+
+    # Access runtime services (injected by ContextFactory)
+    config = context.services.get("config")
+    tool_registry = context.services.get("tool_registry")
+    agent_factory = context.agents
     
     ...
 ```

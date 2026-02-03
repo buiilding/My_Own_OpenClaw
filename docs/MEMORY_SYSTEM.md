@@ -2,187 +2,122 @@
 
 ## Overview
 
-The Memory System provides comprehensive memory capabilities for Desktop Assistant, enabling persistent context, semantic search, and intelligent information retrieval across conversations.
+Memory is implemented in the **frontend Python sidecar**, not the backend. The sidecar stores episodic and semantic memory locally using SQLite + FAISS, and requests embeddings/summaries from the backend over HTTP.
 
-> **Note**: Memory storage and retrieval are handled by the frontend Python sidecar. The backend provides embedding generation via `backend/src/embeddings/`. See the [Frontend Python Sidecar documentation](../frontend/src/main/python/folder_structure.md) for memory system details.
+**Key locations:**
+- Sidecar implementation: `frontend/src/main/python/memory/`
+- Memory orchestration: `frontend/src/main/python/local_backend.py`
+- Embeddings API (backend): `backend/src/api/routes/memory/embeddings.py`
+- Semantic summary API (backend): `backend/src/api/routes/memory/semantic.py`
 
-## Quick Reference
-
-### Key Features
-
-- **Episodic Memory**: Records of user interactions and agent actions
-- **Semantic Memory**: Vector-based storage for meaning-based retrieval
-- **Working Memory**: Current conversation context and state
-- **Declarative Memory**: Factual knowledge and learned information
-
-### Architecture
+## Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Memory        │    │   Vector        │    │   Storage       │
-│   Manager       │◄──►│   Embeddings    │◄──►│   Backend       │
-│                 │    │                 │    │                 │
-│ • Query         │    │ • Text to       │    │ • SQLite        │
-│ • Store         │    │   Vectors       │    │ • FAISS         │
-│ • Retrieve      │    │ • Similarity    │    │ • File-based    │
-│ • Maintenance   │    │ • Caching       │    │ • Async I/O     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌───────────────────────────────────────────────┐
+│ Frontend Python Sidecar                       │
+│  ├─ LocalMemoryStore (SQLite + FAISS)         │
+│  ├─ MemorySummarizer (semantic rollups)       │
+│  └─ MemoryTool (tool access)                  │
+└───────────────────────────────────────────────┘
+                │                 ▲
+                │ HTTP            │ JSON-RPC
+                ▼                 │
+┌───────────────────────────────────────────────┐
+│ Backend API (FastAPI)                         │
+│  ├─ /api/embeddings/ (SentenceTransformer)    │
+│  └─ /api/semantic/summarize (LLM summary)     │
+└───────────────────────────────────────────────┘
 ```
 
-### Configuration
+## Storage Layout
 
-```yaml
-memory:
-  enabled: true
-  storage_type: "sqlite"  # sqlite, faiss, hybrid
-  max_history_length: 1000
-  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
-  similarity_threshold: 0.7
-  cleanup_interval_hours: 24
-  max_memory_items: 50000
+The sidecar stores memory in a local user data directory:
+- **Linux**: `~/.config/desktop-assistant/memory/`
+- **macOS**: `~/Library/Application Support/desktop-assistant/memory/`
+- **Windows**: `%APPDATA%/desktop-assistant/memory/`
 
-embeddings:
-  model_name: "sentence-transformers/all-MiniLM-L6-v2"
-  device: "cuda"  # cuda or cpu
-  cache_size: 1000
-  batch_size: 32
-```
+Files created per user:
+- `episodic.db` (SQLite)
+- `semantic.db` (SQLite)
+- `episodic.faiss.index`
+- `semantic.faiss.index`
+- `watermark_state.json` (summarization progress)
 
-### Usage
+## Core Components
+
+### LocalMemoryStore
+
+`frontend/src/main/python/memory/local_store.py`
+- Manages SQLite + FAISS indices
+- Supports search, add, update, delete
+- Generates embeddings via `RemoteEmbeddingClient`
+
+### MemorySummarizer
+
+`frontend/src/main/python/memory/summarizer.py`
+- Periodically converts episodic memory into semantic summaries
+- Calls backend `/api/semantic/summarize` via `RemoteSemanticClient`
+
+**Behavior notes**:
+- Runs on a fixed interval and also when the app is idle (to avoid interrupting active sessions).
+- Deduplicates summaries using a `summary_hash` over source memory IDs.
+- Marks episodic memories as semanticized only after a successful summary write.
+- Uses `watermark_state.json` to track progress and resumes safely after restarts.
+
+### MemoryTool
+
+`frontend/src/main/python/tools/memory/memory_tool.py`
+- Tool-access to memory (store/search/stats)
+- Wraps `LocalMemoryStore` for tool execution
+
+## Usage (LocalMemoryStore)
 
 ```python
-from backend.src.memory import MemoryManager
+from memory.local_store import LocalMemoryStore
 
-# Initialize memory system
-memory = MemoryManager()
+store = LocalMemoryStore()
+await store.initialize()
 
-# Store an interaction
-await memory.store_interaction(Interaction(...))
-
-# Retrieve relevant memories
-relevant = await memory.retrieve_relevant(
-    query="weather information",
-    limit=5
+memory_id = await store.add(
+    content="User asked about project status",
+    user_id="default_user",
+    metadata={"type": "episodic"}
 )
 
-# Search for similar content
-similar = await memory.search_similar(
-    text="Tell me about the forecast",
-    threshold=0.8
+results = await store.search(
+    query="project status",
+    user_id="default_user",
+    filters={"type": "episodic"},
+    limit=5
 )
 ```
 
-## Components
+## Usage (MemoryTool)
 
-### Memory Manager
+```python
+from tools.memory.memory_tool import MemoryTool
 
-Central orchestrator for all memory operations.
+memory_tool = MemoryTool()
+await memory_tool.initialize()
 
-**Key Methods**:
-- `store_interaction()`: Store user-agent interaction
-- `retrieve_relevant()`: Get semantically relevant memories
-- `search_similar()`: Vector similarity search
-- `cleanup_old_entries()`: Remove old entries
+await memory_tool.execute({
+    "operation": "add",
+    "content": "Remember this",
+    "memory_type": "episodic",
+})
+```
 
-### Embeddings Service
+## Dependencies
 
-Converts text to vector representations using sentence transformers.
+Installed via `frontend/src/main/python/requirements.txt`:
+- `aiosqlite`
+- `faiss-cpu`
+- `numpy`
 
-**Key Methods**:
-- `encode_text()`: Encode single text
-- `encode_batch()`: Encode multiple texts
-- `similarity()`: Calculate similarity
+## Future: Multi-Tenant Memory & Retention (Planned)
 
-### Storage Backend
-
-Multiple storage options:
-
-- **SQLite**: Primary storage for conversation history
-- **FAISS**: High-performance vector similarity search
-- **Hybrid**: Combines both for optimal performance
-
-## Integration
-
-### Agent System Integration
-
-- Agents automatically retrieve relevant memories
-- Successful patterns stored for future use
-- User preferences and behavior patterns tracked
-
-### Tool System Integration
-
-- Tools access conversation history
-- Tool results cached in memory
-- Tools improve based on past performance
-
-## Performance
-
-### Optimization Strategies
-
-- **Caching**: Embedding cache, query cache, result cache
-- **Storage Optimization**: Index optimization, compression, partitioning
-- **Retrieval Optimization**: Approximate search, pre-filtering, batch processing
-
-### GPU Acceleration
-
-- **CUDA Support**: GPU-accelerated embeddings
-- **Batch Processing**: Efficient batch encoding
-- **Performance**: Significant speedup with GPU
-
-## Privacy & Security
-
-### Data Protection
-
-- **Encryption**: Sensitive metadata encrypted at rest
-- **Access Control**: Memory access restricted by user permissions
-- **Data Isolation**: User memories completely isolated
-
-### Privacy Features
-
-- **Opt-in Storage**: Users can disable memory storage
-- **Data Export**: Users can export their memory data
-- **Data Deletion**: Complete memory wipe functionality
-- **Audit Logging**: Memory access is logged for transparency
-
-## Troubleshooting
-
-### Common Issues
-
-**High Memory Usage**:
-- Cleanup old entries
-- Reduce max_memory_items
-- Optimize storage
-
-**Slow Retrieval**:
-- Enable GPU acceleration
-- Rebuild FAISS index
-- Reduce search scope
-
-**Embedding Errors**:
-- Verify embedding model
-- Check GPU availability
-- Verify model configuration
-
-## API Reference
-
-### MemoryManager Methods
-
-| Method | Description | Parameters | Returns |
-|--------|-------------|------------|---------|
-| `store_interaction()` | Store user-agent interaction | `interaction: Interaction` | `None` |
-| `retrieve_relevant()` | Get semantically relevant memories | `query: str, limit: int` | `List[MemoryItem]` |
-| `search_similar()` | Vector similarity search | `text: str, threshold: float` | `List[MemoryItem]` |
-| `cleanup_old_entries()` | Remove old memory entries | `older_than_days: int` | `int` (deleted count) |
-| `health_check()` | System health status | - | `Dict[str, Any]` |
-
-## Further Reading
-
-For complete documentation, see:
-- [Frontend Python Sidecar](../frontend/src/main/python/folder_structure.md) - Memory storage and retrieval implementation
-- [Backend Embeddings](../backend/src/embeddings/) - Embedding generation provider
-- [Configuration Guide](CONFIGURATION.md) - Memory configuration options
-- [Backend Architecture](BACKEND_ARCHITECTURE.md) - System architecture details
-
----
-
-The memory system provides the foundation for persistent, intelligent context management in Desktop Assistant, enabling truly personalized and continuity-aware interactions.
+For hosted mode, memory will move to a per-tenant service with:
+- Per-tenant vector indexes
+- Retention policies per plan
+- Deletion APIs for compliance
+- Encryption at rest + audit logging

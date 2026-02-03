@@ -12,16 +12,28 @@ import '../styles/MainLayout.css';
 function MainLayout({ chat, settings }) {
   return (
     <div className="main-layout">
+      <div className="ambient-backdrop" aria-hidden="true" />
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h2>Assistant</h2>
+          <div className="brand-mark">OC</div>
+          <div className="brand-text">
+            <h2>OpenClaw</h2>
+            <span>Desktop assistant</span>
+          </div>
         </div>
         <nav className="sidebar-nav">
           <ul>
-            <li className="active">Chat</li>
+            <li className="active">
+              <span className="nav-label">Chat</span>
+              <span className="nav-status">Active</span>
+            </li>
             {/* Future navigation links will go here */}
           </ul>
         </nav>
+        <div className="sidebar-footer">
+          <span className="status-dot" aria-hidden="true" />
+          <span>Ready</span>
+        </div>
       </aside>
       <main className="main-content">{chat}</main>
       <aside className="settings-sidebar">{settings}</aside>

@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --font-ui: 'Outfit', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+
+  --bg-base: #f3f0ea;
+  --bg-muted: #ece7df;
+  --surface: rgba(255, 255, 255, 0.7);
+  --surface-strong: rgba(255, 255, 255, 0.95);
+  --surface-muted: rgba(255, 255, 255, 0.55);
+  --surface-ink: rgba(20, 23, 28, 0.04);
+
+  --text-primary: #16181d;
+  --text-muted: #5a606b;
+  --text-soft: #8a919d;
+
+  --accent: #2f8f7a;
+  --accent-strong: #216a5b;
+  --accent-soft: rgba(47, 143, 122, 0.16);
+
+  --warning: #b56b1a;
+  --danger: #b23c2b;
+  --success: #2f7d4c;
+
+  --border: rgba(20, 23, 28, 0.08);
+  --border-strong: rgba(20, 23, 28, 0.16);
+
+  --shadow-soft: 0 10px 30px rgba(20, 23, 28, 0.08);
+  --shadow-lift: 0 18px 50px rgba(20, 23, 28, 0.12);
+
+  --radius-xl: 22px;
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  color: var(--text-primary);
+  background:
+    radial-gradient(900px 600px at 15% 10%, rgba(47, 143, 122, 0.18), transparent 60%),
+    radial-gradient(900px 600px at 85% 15%, rgba(229, 180, 132, 0.2), transparent 60%),
+    linear-gradient(180deg, var(--bg-base) 0%, var(--bg-muted) 100%);
+  background-attachment: fixed;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(47, 143, 122, 0.22);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(20, 23, 28, 0.16);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(20, 23, 28, 0.24);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatSlow {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

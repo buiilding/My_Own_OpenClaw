@@ -4,6 +4,7 @@ import ChatInterface from '../features/chat/components/ChatInterface';
 import MainLayout from '../components/MainLayout';
 import { AppProvider, useAppConfigContext, useAppStatusContext } from './providers/AppProvider';
 import { ChatProvider } from './providers/ChatProvider';
+import '../styles/theme.css';
 import '../styles/ChatInterface.css';
 import '../styles/MainLayout.css';
 import '../styles/accessibility.css';

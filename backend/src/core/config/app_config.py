@@ -16,7 +16,7 @@ APP_CONFIG = AppConfig(
     # LLM Settings
     model_mode="online",
     model_provider="openai",
-    selected_model_id="gpt-4o",
+    selected_model_id="gpt-5.1",
     llm_timeout=300,
     query_timeout=600,
     debug_litellm=False,
@@ -33,7 +33,7 @@ APP_CONFIG = AppConfig(
     max_agent_iterations=1000,
     
     # Vision Model Settings (UI grounding / Venus)
-    vision_model_name="OpenGVLab/InternVL3_5-2B",
+    vision_model_name="inclusionAI/UI-Venus-Ground-7B",
     
     # Voice Mode Settings
     voice_mode_enabled=False,

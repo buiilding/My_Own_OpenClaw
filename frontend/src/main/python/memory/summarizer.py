@@ -1,0 +1,325 @@
+"""
+Periodic memory summarizer.
+
+Converts episodic memories into semantic memories in the background.
+"""
+
+import asyncio
+import hashlib
+import json
+import logging
+from dataclasses import dataclass
+from datetime import datetime
+from typing import List, Optional, Sequence, Set
+
+from core.remote_semantic_client import RemoteSemanticClient
+from memory.local_store import LocalMemoryStore
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class SummarizerSettings:
+    interval_seconds: int = 60
+    idle_seconds: int = 120
+    min_batch_size: int = 6
+    min_batch_size_idle: int = 2
+    max_batch_size: int = 30
+    min_memory_age_seconds: int = 45
+    max_summaries_per_cycle: int = 1
+    max_conversations_per_cycle: int = 5
+    max_chunk_chars: int = 24000
+    max_chunks_per_request: int = 20
+    backoff_min_seconds: int = 30
+    backoff_max_seconds: int = 600
+
+
+class MemorySummarizer:
+    def __init__(
+        self,
+        memory_store: LocalMemoryStore,
+        semantic_client: Optional[RemoteSemanticClient] = None,
+        settings: Optional[SummarizerSettings] = None,
+    ) -> None:
+        self.memory_store = memory_store
+        self.semantic_client = semantic_client or RemoteSemanticClient()
+        self.settings = settings or SummarizerSettings()
+
+        self._shutdown_event = asyncio.Event()
+        self._task: Optional[asyncio.Task] = None
+        self._lock = asyncio.Lock()
+        self._backoff_seconds = 0
+        self._last_activity_at: Optional[datetime] = None
+        self._known_user_ids: Set[str] = set()
+
+    def notify_new_memory(self, user_id: str) -> None:
+        if user_id:
+            self._known_user_ids.add(user_id)
+        self._last_activity_at = datetime.now()
+
+    async def start(self) -> None:
+        if self._task and not self._task.done():
+            return
+        await self.semantic_client.initialize()
+        self._task = asyncio.create_task(self._run_loop(), name="memory-summarizer")
+
+    async def stop(self) -> None:
+        self._shutdown_event.set()
+        if self._task:
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
+        await self.semantic_client.close()
+
+    async def _run_loop(self) -> None:
+        try:
+            while not self._shutdown_event.is_set():
+                await self._wait_interval()
+                await self._maybe_summarize()
+        except asyncio.CancelledError:
+            logger.info("Memory summarizer cancelled")
+        except Exception as e:
+            logger.error(f"Memory summarizer crashed: {e}", exc_info=True)
+
+    async def _wait_interval(self) -> None:
+        wait_seconds = self.settings.interval_seconds
+        if self._backoff_seconds:
+            wait_seconds = max(wait_seconds, self._backoff_seconds)
+        try:
+            await asyncio.wait_for(self._shutdown_event.wait(), timeout=wait_seconds)
+        except asyncio.TimeoutError:
+            return
+
+    async def _maybe_summarize(self) -> None:
+        if self._lock.locked():
+            return
+
+        async with self._lock:
+            try:
+                if not await self._should_run():
+                    return
+
+                user_ids = await self._get_user_ids_with_work()
+                summaries_done = 0
+
+                for user_id in user_ids:
+                    if summaries_done >= self.settings.max_summaries_per_cycle:
+                        break
+
+                    conversation_ids = await self.memory_store.get_unsemanticized_conversation_windows(user_id)
+                    if not conversation_ids:
+                        continue
+
+                    for conversation_id in conversation_ids[: self.settings.max_conversations_per_cycle]:
+                        if summaries_done >= self.settings.max_summaries_per_cycle:
+                            break
+
+                        summaries_done += await self._summarize_conversation_batch(
+                            user_id=user_id,
+                            conversation_id=conversation_id,
+                        )
+
+                if summaries_done:
+                    await self.memory_store.update_watermark(last_semanticized_id=None, pending_message_count=0)
+
+                # Reset backoff after a successful cycle
+                self._backoff_seconds = 0
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:
+                logger.error(f"Memory summarization cycle failed: {e}", exc_info=True)
+                self._apply_backoff()
+
+    async def _should_run(self) -> bool:
+        if self._shutdown_event.is_set():
+            return False
+
+        try:
+            state = await self.memory_store.get_watermark()
+        except Exception:
+            state = {"pending_message_count": 0}
+
+        pending = int(state.get("pending_message_count", 0))
+
+        if pending >= self.settings.min_batch_size:
+            return True
+
+        if self._is_idle():
+            try:
+                user_ids = await self.memory_store.get_user_ids_with_unsemanticized_memories(limit=1)
+                return len(user_ids) > 0
+            except Exception:
+                return pending >= self.settings.min_batch_size_idle
+
+        return False
+
+    def _is_idle(self) -> bool:
+        if not self._last_activity_at:
+            return True
+        idle_seconds = (datetime.now() - self._last_activity_at).total_seconds()
+        return idle_seconds >= self.settings.idle_seconds
+
+    async def _get_user_ids_with_work(self) -> List[str]:
+        user_ids = set(self._known_user_ids)
+        try:
+            discovered = await self.memory_store.get_user_ids_with_unsemanticized_memories()
+            user_ids.update(discovered)
+        except Exception as e:
+            logger.warning(f"Failed to discover user IDs for summarization: {e}")
+        return [uid for uid in user_ids if uid]
+
+    async def _summarize_conversation_batch(
+        self,
+        user_id: str,
+        conversation_id: Optional[str],
+    ) -> int:
+        if not user_id or user_id == "default_user":
+            logger.debug("Skipping summarization for invalid user_id")
+            return 0
+
+        memories = await self.memory_store.get_unsemanticized_episodic_memories_by_conversation(
+            user_id=user_id,
+            conversation_id=conversation_id,
+            limit=self.settings.max_batch_size,
+        )
+        if not memories:
+            return 0
+
+        if not self._should_summarize_batch(memories):
+            return 0
+
+        summary_hash = self._build_summary_hash(user_id, conversation_id, memories)
+        if await self.memory_store.semantic_summary_exists(summary_hash):
+            await self._mark_semanticized(memories)
+            return 1
+
+        conversation_chunks = self._build_conversation_chunks(memories)
+        if not conversation_chunks:
+            return 0
+
+        summary, facts = await self.semantic_client.summarize(conversation_chunks, user_id)
+        summary = (summary or "").strip()
+        facts = [fact.strip() for fact in facts if fact and fact.strip()]
+
+        if not summary and not facts:
+            logger.warning("Semantic summarization returned empty result")
+            return 0
+
+        semantic_content = self._format_semantic_content(summary, facts)
+        metadata = {
+            "type": "semantic",
+            "source": "periodic_summarization",
+            "summary_hash": summary_hash,
+            "source_conversation_id": conversation_id,
+            "source_memory_ids": [m["id"] for m in memories],
+            "source_memory_count": len(memories),
+            "summary_created_at": datetime.now().isoformat(),
+        }
+
+        await self.memory_store.add(
+            semantic_content,
+            user_id,
+            metadata,
+            conversation_id=conversation_id,
+        )
+
+        await self._mark_semanticized(memories)
+
+        return 1
+
+    def _should_summarize_batch(self, memories: Sequence[dict]) -> bool:
+        if len(memories) >= self.settings.min_batch_size:
+            return True
+
+        if len(memories) < self.settings.min_batch_size_idle:
+            return False
+
+        last_ts = self._parse_timestamp(memories[-1].get("timestamp"))
+        if not last_ts:
+            return self._is_idle()
+
+        age_seconds = (datetime.now() - last_ts).total_seconds()
+        if age_seconds < self.settings.min_memory_age_seconds:
+            return False
+
+        return age_seconds >= self.settings.idle_seconds
+
+    def _build_summary_hash(
+        self,
+        user_id: str,
+        conversation_id: Optional[str],
+        memories: Sequence[dict],
+    ) -> str:
+        payload = {
+            "user_id": user_id,
+            "conversation_id": conversation_id,
+            "memory_ids": [m.get("id") for m in memories],
+        }
+        raw = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+    def _build_conversation_chunks(self, memories: Sequence[dict]) -> List[str]:
+        lines: List[str] = []
+        for memory in memories:
+            content = (memory.get("content") or "").strip()
+            if not content:
+                continue
+            timestamp = memory.get("timestamp") or ""
+            lines.append(f"[{timestamp}] {content}")
+
+        if not lines:
+            return []
+
+        chunks: List[str] = []
+        current = ""
+        for line in lines:
+            if len(line) > self.settings.max_chunk_chars:
+                line = line[: self.settings.max_chunk_chars - 3] + "..."
+            if not current:
+                current = line
+                continue
+            if len(current) + len(line) + 1 > self.settings.max_chunk_chars:
+                chunks.append(current)
+                current = line
+                if len(chunks) >= self.settings.max_chunks_per_request:
+                    break
+            else:
+                current = f"{current}\n{line}"
+
+        if current and len(chunks) < self.settings.max_chunks_per_request:
+            chunks.append(current)
+
+        return chunks
+
+    def _format_semantic_content(self, summary: str, facts: Sequence[str]) -> str:
+        parts = []
+        if summary:
+            parts.append(f"Summary: {summary}")
+        if facts:
+            parts.append("Facts:")
+            parts.extend([f"- {fact}" for fact in facts])
+        return "\n".join(parts).strip()
+
+    async def _mark_semanticized(self, memories: Sequence[dict]) -> None:
+        memory_ids = [m.get("id") for m in memories if m.get("id")]
+        await self.memory_store.mark_episodic_memories_semanticized(memory_ids)
+
+    def _parse_timestamp(self, timestamp: Optional[str]) -> Optional[datetime]:
+        if not timestamp:
+            return None
+        try:
+            if timestamp.endswith("Z"):
+                timestamp = timestamp.replace("Z", "+00:00")
+            return datetime.fromisoformat(timestamp)
+        except Exception:
+            return None
+
+    def _apply_backoff(self) -> None:
+        if self._backoff_seconds == 0:
+            self._backoff_seconds = self.settings.backoff_min_seconds
+        else:
+            self._backoff_seconds = min(
+                self._backoff_seconds * 2, self.settings.backoff_max_seconds
+            )

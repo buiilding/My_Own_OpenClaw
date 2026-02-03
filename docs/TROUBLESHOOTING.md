@@ -89,9 +89,9 @@
    export OPENAI_API_KEY="your-key"
    ```
 
-3. **Check Config File**:
-   - Verify API key in config file
-   - Check config file location
+3. **Check Backend Config**:
+   - Verify `backend/src/core/config/app_config.py` uses the provider you expect
+   - Confirm the provider’s API key environment variable is set (see `backend/src/core/config/models.py`)
 
 ### Frontend Issues
 
@@ -120,6 +120,19 @@
    node --version  # Should be 18+
    ```
 
+#### Electron Sandbox Error (Linux)
+
+**Symptoms**:
+- `FATAL:setuid_sandbox_host.cc` or `zygote_host_impl_linux.cc` errors
+
+**Solutions**:
+1. **Disable Electron sandbox (local dev)**:
+   ```bash
+   ELECTRON_DISABLE_SANDBOX=1 npm run electron
+   ```
+2. **Set chrome-sandbox permissions** (system-specific; may require root):
+   - Ensure `node_modules/electron/dist/chrome-sandbox` is owned by root and mode `4755`
+
 #### Connection Issues
 
 **Symptoms**:
@@ -139,6 +152,29 @@
 3. **Check Browser Console**:
    - Open DevTools (Ctrl+Shift+I)
    - Look for WebSocket errors
+
+#### Hosted Auth Issues (Planned)
+
+**Symptoms**:
+- Login loop
+- `auth-required` responses
+- Session expires unexpectedly
+
+**Solutions**:
+1. **Re-authenticate** and verify device session.
+2. **Clear stored tokens** in OS keychain and log in again.
+3. **Check system clock** for time skew (JWT validation).
+
+#### Usage Limit Reached (Planned)
+
+**Symptoms**:
+- `limit-reached` response
+- Messages blocked with upgrade prompt
+
+**Solutions**:
+1. **Wait for reset window** (monthly/daily).
+2. **Upgrade plan** to increase limits.
+3. **Switch to local-only mode** (if supported).
 
 #### UI Not Updating
 
@@ -181,8 +217,8 @@
    - Check sidecar logs
 
 3. **Check Permissions**:
-   - Verify tool has permissions
-   - Check resource limits
+   - Sidecar tools are not permission-gated by default
+   - Check OS-level permissions (screen recording, accessibility)
 
 #### Screenshot Issues
 
@@ -263,16 +299,18 @@
 
 **Solutions**:
 1. **Check Memory Enabled**:
-   - Verify memory enabled in config
-   - Check memory settings
+   - Backend embedding API depends on `memory_enabled` in `backend/src/core/config/app_config.py`
+   - If disabled, `/api/embeddings` returns 503 and memory search/store will fail
 
 2. **Check Database**:
-   - Verify database accessible
-   - Check database permissions
+   - Verify the sidecar memory directory exists and is writable:
+     `~/.config/desktop-assistant/memory/` (Linux),
+     `~/Library/Application Support/desktop-assistant/memory/` (macOS),
+     `%APPDATA%/desktop-assistant/memory/` (Windows)
 
 3. **Check Embeddings**:
-   - Verify embeddings model loaded
-   - Check GPU/CPU availability
+   - Verify the backend is running and `/api/embeddings/health` is healthy
+   - If you don’t have CUDA, set `device="cpu"` in `backend/src/core/container/factories.py`
 
 #### Slow Memory Search
 
@@ -282,9 +320,9 @@
 - Timeout errors
 
 **Solutions**:
-1. **Enable GPU**:
-   - Use CUDA for embeddings
-   - Check GPU availability
+1. **Check Embedding Provider**:
+   - Embedding generation time affects overall memory latency
+   - Ensure `/api/embeddings` is healthy and not erroring
 
 2. **Optimize Index**:
    - Rebuild FAISS index
@@ -309,8 +347,8 @@
    - Check model performance
 
 2. **Enable Caching**:
-   - Enable response caching
-   - Check cache settings
+   - Embedding/tool schema caches are enabled by default
+   - Verify cache isn’t being cleared between requests
 
 3. **Optimize Prompts**:
    - Reduce prompt size
