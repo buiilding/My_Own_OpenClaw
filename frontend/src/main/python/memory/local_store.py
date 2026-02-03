@@ -24,6 +24,11 @@ except ImportError:
     faiss = None
 
 from core.remote_embedding_client import RemoteEmbeddingClient
+from memory.faiss_index import (
+    read_index_safe,
+    read_index_safe_async,
+    save_indices_async,
+)
 from memory.watermark_state import WatermarkStateStore
 
 logger = logging.getLogger(__name__)
@@ -118,75 +123,21 @@ class LocalMemoryStore:
             raise ImportError("aiosqlite is not installed. Install with: pip install aiosqlite")
 
         # Load or create FAISS indices
-        if self.episodic_index_path.exists():
-            try:
-                self.episodic_index = faiss.read_index(str(self.episodic_index_path))
-            except Exception as e:
-                logger.warning(f"Failed to read episodic FAISS index (corrupted?): {e}. Will recreate it.")
-                # Delete corrupted index file
-                try:
-                    self.episodic_index_path.unlink()
-                except Exception as del_err:
-                    logger.error(f"Failed to delete corrupted episodic index: {del_err}")
-                self.episodic_index = None
-        else:
-            # We'll determine dimension during first embedding
-            self.episodic_index = None
-
-        if self.semantic_index_path.exists():
-            try:
-                self.semantic_index = faiss.read_index(str(self.semantic_index_path))
-            except Exception as e:
-                logger.warning(f"Failed to read semantic FAISS index (corrupted?): {e}. Will recreate it.")
-                # Delete corrupted index file
-                try:
-                    self.semantic_index_path.unlink()
-                except Exception as del_err:
-                    logger.error(f"Failed to delete corrupted semantic index: {del_err}")
-                self.semantic_index = None
-        else:
-            self.semantic_index = None
+        self.episodic_index = read_index_safe(self.episodic_index_path, faiss)
+        self.semantic_index = read_index_safe(self.semantic_index_path, faiss)
 
     async def initialize(self) -> None:
         """
         Async initialization: create database schemas, initialize embedder, and load vector mappings.
         Call this after instantiation to complete setup.
         """
-        import asyncio
-        from core.thread_pool import get_executor
-        
-        loop = asyncio.get_running_loop()
-        executor = get_executor()
-
         # Load or create FAISS indices (blocking ops)
-        if self.episodic_index_path.exists():
-            try:
-                self.episodic_index = await loop.run_in_executor(executor, faiss.read_index, str(self.episodic_index_path))
-            except Exception as e:
-                logger.warning(f"Failed to read episodic FAISS index (corrupted?): {e}. Will recreate it.")
-                # Delete corrupted index file
-                try:
-                    self.episodic_index_path.unlink()
-                except Exception as del_err:
-                    logger.error(f"Failed to delete corrupted episodic index: {del_err}")
-                self.episodic_index = None
-        else:
-            # We'll determine dimension during first embedding
-            self.episodic_index = None
-
-        if self.semantic_index_path.exists():
-            try:
-                self.semantic_index = await loop.run_in_executor(executor, faiss.read_index, str(self.semantic_index_path))
-            except Exception as e:
-                logger.warning(f"Failed to read semantic FAISS index (corrupted?): {e}. Will recreate it.")
-                # Delete corrupted index file
-                try:
-                    self.semantic_index_path.unlink()
-                except Exception as del_err:
-                    logger.error(f"Failed to delete corrupted semantic index: {del_err}")
-                self.semantic_index = None
-        else:
-            self.semantic_index = None
+        self.episodic_index = await read_index_safe_async(
+            self.episodic_index_path, faiss
+        )
+        self.semantic_index = await read_index_safe_async(
+            self.semantic_index_path, faiss
+        )
 
         # Initialize the remote embedding client
         await self.embedder.initialize()
@@ -481,22 +432,13 @@ class LocalMemoryStore:
 
     async def _save_faiss_indices(self) -> None:
         """Save both FAISS indices to disk (async operation using global thread pool)."""
-        import asyncio
-        from core.thread_pool import get_executor
-        
-        loop = asyncio.get_running_loop()
-        executor = get_executor()
-
-        def save_indices():
-            if self.episodic_index is not None:
-                faiss.write_index(self.episodic_index, str(self.episodic_index_path))
-            if self.semantic_index is not None:
-                faiss.write_index(self.semantic_index, str(self.semantic_index_path))
-
-        try:
-            await loop.run_in_executor(executor, save_indices)
-        except Exception as e:
-            logger.error(f"Failed to save FAISS indices: {e}")
+        await save_indices_async(
+            self.episodic_index,
+            self.semantic_index,
+            self.episodic_index_path,
+            self.semantic_index_path,
+            faiss,
+        )
 
     async def _rebuild_index(self, memory_type: str) -> None:
         """Rebuild FAISS index from database for a given memory type."""
