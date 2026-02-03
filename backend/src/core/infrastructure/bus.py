@@ -248,8 +248,7 @@ class EventBus:
             Cached handler list if available, None otherwise
         """
         # Use MRO tuple as cache key (handlers depend on inheritance hierarchy)
-        mro_key = tuple(cls for cls in event_type.__mro__ if cls is not object)
-        return self._handler_cache.get(mro_key)
+        return self._handler_cache.get(self._get_mro_key(event_type))
     
     def _cache_handlers(self, event_type: Type[Event], handlers: List[EventHandlerWrapper]) -> None:
         """
@@ -259,8 +258,10 @@ class EventBus:
             event_type: The event type
             handlers: Sorted handler list to cache
         """
-        mro_key = tuple(cls for cls in event_type.__mro__ if cls is not object)
-        self._handler_cache[mro_key] = handlers
+        self._handler_cache[self._get_mro_key(event_type)] = handlers
+
+    def _get_mro_key(self, event_type: Type[Event]) -> tuple:
+        return tuple(cls for cls in event_type.__mro__ if cls is not object)
     
     async def publish(self, event: Event) -> None:
         """
