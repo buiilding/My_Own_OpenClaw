@@ -56,10 +56,10 @@ class LMStudioConfig(BaseModel):
     base_url: str = "http://localhost:1234/v1"
 
 
-class KimiCodeConfig(BaseModel):
-    """Configuration for Kimi Code provider (OpenAI-compatible)."""
+class KimiCodingConfig(BaseModel):
+    """Configuration for Kimi Coding provider (Anthropic-compatible)."""
 
-    model: str = "kimi-for-coding"
+    model: str = "k2p5"
     api_key_env: str = "KIMI_API_KEY"
     base_url: str = "https://api.kimi.com/coding/v1"
 
@@ -74,13 +74,13 @@ class LLMProviders(BaseModel):
     openrouter: OpenRouterConfig = Field(default_factory=OpenRouterConfig)
     mistral: MistralConfig = Field(default_factory=MistralConfig)
     lmstudio: LMStudioConfig = Field(default_factory=LMStudioConfig)
-    kimi_code: KimiCodeConfig = Field(default_factory=KimiCodeConfig)
+    kimi_coding: KimiCodingConfig = Field(default_factory=KimiCodingConfig)
 
     def get_provider_config(self, provider_name: str):
         """Gets the configuration for a specific provider."""
         normalized = provider_name.lower().replace("-", "_")
-        if normalized == "kimi_coding":
-            normalized = "kimi_code"
+        if normalized == "kimi_code":
+            normalized = "kimi_coding"
         if not hasattr(self, normalized):
             raise ValueError(f"Unknown provider: {provider_name}")
         return getattr(self, normalized)

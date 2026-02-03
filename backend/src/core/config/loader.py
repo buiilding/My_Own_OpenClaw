@@ -49,6 +49,9 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
         return cfg.model_copy(update={"api_key": None})
 
     provider_name = cfg.model_provider
+    normalized_provider = provider_name.lower().replace("-", "_")
+    if normalized_provider == "kimi_code":
+        normalized_provider = "kimi_coding"
     logger.info(
         f"[API Key Load] Loading API key for provider='{provider_name}', "
         f"model_mode='{cfg.model_mode}', selected_model_id='{cfg.selected_model_id}'"
@@ -68,14 +71,20 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
         return cfg.model_copy(update={"api_key": None})
 
     if api_key_env_var:
+        api_key_source = api_key_env_var
         api_key = os.getenv(api_key_env_var)
+        if not api_key and normalized_provider == "kimi_coding":
+            fallback_key = os.getenv("KIMICODE_API_KEY")
+            if fallback_key:
+                api_key = fallback_key
+                api_key_source = "KIMICODE_API_KEY"
         if not api_key:
             logger.warning(
                 f"[API Key Load] Environment variable '{api_key_env_var}' for provider '{provider_name}' is not set."
             )
         else:
             logger.info(
-                f"[API Key Load] API key loaded for provider '{provider_name}' from '{api_key_env_var}'"
+                f"[API Key Load] API key loaded for provider '{provider_name}' from '{api_key_source}'"
             )
         return cfg.model_copy(update={"api_key": api_key})
     else:
