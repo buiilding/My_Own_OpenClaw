@@ -24,6 +24,10 @@ from backend.src.services.vision.providers.base import (
 
 logger = logging.getLogger(__name__)
 
+# Image normalization constants.
+INTERNVL_MEAN = (0.485, 0.456, 0.406)
+INTERNVL_STD = (0.229, 0.224, 0.225)
+
 # Import InternVL-specific dependencies
 if VISION_MODELS_AVAILABLE:
     import einops  # Required for InternVL model operations
@@ -156,8 +160,6 @@ class InternVLModel(BaseVisionModel):
         if not VISION_MODELS_AVAILABLE or T is None:
             raise ImportError("Vision model dependencies not available")
 
-        MEAN = (0.485, 0.456, 0.406)
-        STD = (0.229, 0.224, 0.225)
         transform = T.Compose(
             [
                 T.Lambda(lambda img: img.convert("RGB") if img.mode != "RGB" else img),
@@ -165,7 +167,7 @@ class InternVLModel(BaseVisionModel):
                     (input_size, input_size), interpolation=InterpolationMode.BICUBIC
                 ),
                 T.ToTensor(),
-                T.Normalize(mean=MEAN, std=STD),
+                T.Normalize(mean=INTERNVL_MEAN, std=INTERNVL_STD),
             ]
         )
         return transform
