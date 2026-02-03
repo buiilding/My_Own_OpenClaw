@@ -135,6 +135,14 @@ frontend/src/
    npm run electron
    ```
 
+### Local Automation
+
+- `bin/docs-list`: Lists docs and fails on empty/missing docs.
+- `scripts/test`: Runs backend + frontend tests.
+- `scripts/check`: Runs docs list, backend tests, frontend lint + tests.
+- `scripts/committer "<msg>" <files...>`: Scoped commits using the shared `committer` helper.
+- Frontend deps missing: set `SKIP_FRONTEND=1` to skip frontend checks.
+
 ## Future: Productization Checklist (Planned)
 
 To ship to end users with subscriptions and usage limits, plan for:
