@@ -1,3 +1,9 @@
+---
+summary: "Billing & Usage (Planned)"
+read_when:
+  - When changing billing, usage limits, or metering.
+---
+
 # Billing & Usage (Planned)
 
 ## Purpose

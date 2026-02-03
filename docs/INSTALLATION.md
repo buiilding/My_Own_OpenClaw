@@ -1,3 +1,9 @@
+---
+summary: "Installation Guide"
+read_when:
+  - When installing app or dependencies.
+---
+
 # Installation Guide
 
 ## Prerequisites

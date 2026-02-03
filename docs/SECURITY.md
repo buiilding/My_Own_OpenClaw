@@ -1,3 +1,9 @@
+---
+summary: "Security Notes (Current)"
+read_when:
+  - When changing security-relevant code.
+---
+
 # Security Notes (Current)
 
 This document describes **current** security-related behavior in the codebase.

@@ -1,3 +1,9 @@
+---
+summary: "Tool System"
+read_when:
+  - When changing tool registry or execution.
+---
+
 # Tool System
 
 ## Overview

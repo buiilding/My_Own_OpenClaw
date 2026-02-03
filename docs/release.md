@@ -1,3 +1,9 @@
+---
+summary: "Release Guide"
+read_when:
+  - When preparing a release.
+---
+
 # Release Guide
 
 This guide describes a safe, repeatable release process for WindieOS.

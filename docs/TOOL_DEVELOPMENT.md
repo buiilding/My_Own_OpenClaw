@@ -1,3 +1,9 @@
+---
+summary: "Tool Development Guide"
+read_when:
+  - When creating or modifying tools.
+---
+
 # Tool Development Guide
 
 ## Overview

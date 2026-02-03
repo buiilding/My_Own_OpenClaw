@@ -1,3 +1,9 @@
+---
+summary: "Usage Limits (Planned)"
+read_when:
+  - When changing quotas or limits.
+---
+
 # Usage Limits (Planned)
 
 ## Rate Limiting

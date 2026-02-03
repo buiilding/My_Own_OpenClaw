@@ -1,3 +1,9 @@
+---
+summary: "System Architecture"
+read_when:
+  - When making cross-cutting system changes.
+---
+
 # System Architecture
 
 ## Overview

@@ -1,3 +1,9 @@
+---
+summary: "Plan Matrix (Draft)"
+read_when:
+  - When deciding plan tiers or feature gating.
+---
+
 # Plan Matrix (Draft)
 
 This is a draft and will evolve based on cost, usage, and enterprise demand.

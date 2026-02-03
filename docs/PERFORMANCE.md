@@ -1,3 +1,9 @@
+---
+summary: "Performance Notes (Current)"
+read_when:
+  - When working on performance or profiling.
+---
+
 # Performance Notes (Current)
 
 ## Backend
