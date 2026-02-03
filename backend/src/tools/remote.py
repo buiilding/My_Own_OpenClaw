@@ -122,7 +122,8 @@ from backend.src.tools.system.schemas import (
 from backend.src.tools.filesystem.schemas import (
     ReadFileArgs,
     WriteFileArgs,
-    ListDirectoryArgs
+    ListDirectoryArgs,
+    GlobArgs,
 )
 # from backend.src.tools.filesystem.read_file_tool_sdk import ReadFileArgs, ReadFileToolSDK as BackendReadFileTool
 # from backend.src.tools.filesystem.write_file_tool import WriteFileArgs, WriteFileTool as BackendWriteFileTool
@@ -313,6 +314,37 @@ class RemoteListDirectoryTool(Tool[ListDirectoryArgs], RemoteToolBase):
         )
 
     async def run(self, args: ListDirectoryArgs, ctx: ToolContext) -> RemoteToolResult:
+        """Execute remote tool - delegates to execute_remote."""
+        return await self.execute_remote(args, ctx)
+
+
+class RemoteGlobTool(Tool[GlobArgs], RemoteToolBase):
+    """
+    Remote glob tool.
+
+    Delegates execution to frontend file system tool.
+    """
+
+    name = "glob"
+    description = "Find files matching glob patterns."
+    args_model = GlobArgs
+    category = ToolDomain.FILESYSTEM
+
+    async def execute_remote(self, args: GlobArgs, ctx: ToolContext) -> RemoteToolResult:
+        """Prepare glob search for remote execution."""
+        request_id = self._get_request_id(ctx)
+
+        args_dict = args.model_dump()
+
+        logger.debug(f"Remote glob tool call: {args.pattern}")
+
+        return RemoteToolResult(
+            tool_name="glob",
+            args=args_dict,
+            request_id=request_id
+        )
+
+    async def run(self, args: GlobArgs, ctx: ToolContext) -> RemoteToolResult:
         """Execute remote tool - delegates to execute_remote."""
         return await self.execute_remote(args, ctx)
 
@@ -535,6 +567,7 @@ REMOTE_TOOLS = {
     "read_file": RemoteReadFileTool,
     "write_file": RemoteWriteFileTool,
     "list_directory": RemoteListDirectoryTool,
+    "glob": RemoteGlobTool,
 }
 
 

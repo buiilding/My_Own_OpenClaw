@@ -60,3 +60,24 @@ class ListDirectoryArgs(BaseModel):
         ...,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
     )
+
+
+# --- Glob Schemas ---
+
+class GlobArgs(BaseModel):
+    """Arguments for glob tool."""
+    model_config = ConfigDict(extra='forbid')
+
+    pattern: str = Field(
+        ..., description="Glob pattern to search for (e.g., 'src/**/*.ts', '**/*.md')"
+    )
+    path: Optional[str] = Field(
+        None, description="Directory path to search in (defaults to current working directory)"
+    )
+    case_sensitive: Optional[bool] = Field(
+        None, description="Whether pattern matching is case sensitive (reserved for future use)"
+    )
+    explanation: str = Field(
+        ...,
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+    )
