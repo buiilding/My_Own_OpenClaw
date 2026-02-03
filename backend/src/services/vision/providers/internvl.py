@@ -67,14 +67,11 @@ class InternVLModel(BaseVisionModel):
             # Try device_map with auto device placement (like Coact-1)
             try:
                 model_dtype = torch.bfloat16
-                self.model = AutoModel.from_pretrained(
-                    self.model_name,
+                self.model = self._load_model(
                     dtype=model_dtype,
-                    low_cpu_mem_usage=True,
                     use_flash_attn=use_flash_attn,
                     device_map="auto",  # Let accelerate decide device placement
-                    trust_remote_code=self.trust_remote_code,
-                ).eval()
+                )
                 self._model_dtype = model_dtype
                 logger.info(
                     f"Loaded InternVL model with device_map: {self.model_name} on {self.model.device} with dtype {model_dtype}"
@@ -88,16 +85,10 @@ class InternVLModel(BaseVisionModel):
                 dtype = torch.float16 if device == "cuda" else torch.float32
 
                 try:
-                    self.model = (
-                        AutoModel.from_pretrained(
-                            self.model_name,
-                            dtype=dtype,
-                            low_cpu_mem_usage=True,
-                            use_flash_attn=False,
-                            trust_remote_code=self.trust_remote_code,
-                        )
-                        .to(device)
-                        .eval()
+                    self.model = self._load_model(
+                        dtype=dtype,
+                        use_flash_attn=False,
+                        device=device,
                     )
                     self._model_dtype = dtype
                     logger.info(
@@ -110,16 +101,10 @@ class InternVLModel(BaseVisionModel):
                     # CPU fallback as last resort
                     try:
                         cpu_dtype = torch.float32
-                        self.model = (
-                            AutoModel.from_pretrained(
-                                self.model_name,
-                                dtype=cpu_dtype,
-                                low_cpu_mem_usage=True,
-                                use_flash_attn=False,
-                                trust_remote_code=self.trust_remote_code,
-                            )
-                            .to("cpu")
-                            .eval()
+                        self.model = self._load_model(
+                            dtype=cpu_dtype,
+                            use_flash_attn=False,
+                            device="cpu",
                         )
                         self._model_dtype = cpu_dtype
                         logger.info(
@@ -143,6 +128,28 @@ class InternVLModel(BaseVisionModel):
             raise
 
     # ---- Image preprocessing utilities adapted from CoAct-1 InternVL implementation ----
+
+    def _load_model(
+        self,
+        *,
+        dtype,
+        use_flash_attn: bool,
+        device_map: Optional[str] = None,
+        device: Optional[str] = None,
+    ):
+        kwargs = {
+            "dtype": dtype,
+            "low_cpu_mem_usage": True,
+            "use_flash_attn": use_flash_attn,
+            "trust_remote_code": self.trust_remote_code,
+        }
+        if device_map is not None:
+            kwargs["device_map"] = device_map
+
+        model = AutoModel.from_pretrained(self.model_name, **kwargs)
+        if device is not None:
+            model = model.to(device)
+        return model.eval()
 
     def _build_transform(self, input_size: int):
         """Build image transformation pipeline."""
