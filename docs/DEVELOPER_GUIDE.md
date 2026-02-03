@@ -140,6 +140,7 @@ frontend/src/
 - `bin/docs-list`: Lists docs and fails on empty/missing docs.
 - `scripts/test`: Runs backend + frontend tests.
 - `scripts/check`: Runs docs list, backend tests, frontend lint + tests.
+- `scripts/check-loc.py --max 500`: Reports files over the LOC guideline (`--fail` to exit non-zero).
 - `scripts/committer "<msg>" <files...>`: Scoped commits using the shared `committer` helper.
 - Frontend checks auto-skip when `frontend/node_modules` is missing.
 
