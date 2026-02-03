@@ -110,7 +110,7 @@ class SystemPromptEvent(StreamingEvent):
 
 @dataclass
 class ToolSchemasEvent(StreamingEvent):
-    """Event emitted with tool schemas passed to LLM as API parameter."""
+    """Event emitted with tool schemas embedded in the initial user message (transparency only)."""
     tool_schemas: List[Dict[str, Any]]
 
     def __post_init__(self):

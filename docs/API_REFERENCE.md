@@ -151,7 +151,9 @@ Request current application settings.
 
 **Payload**: `{}`
 
-**Response**: `settings-loaded`
+**Response**: `settings-loaded` (legacy)
+
+**Status**: Currently **not handled** by the backend. Frontend settings are local-only.
 
 **Example**:
 ```json
@@ -174,13 +176,15 @@ Update application configuration.
 {
   "model_mode": "online" | "local",
   "model_provider": "openai" | "anthropic" | ...,
-  "selected_model_id": "gpt-4o",
+  "selected_model_id": "gpt-5.1",
   "voice_mode_enabled": true | false,
   "speech_mode_enabled": true | false
 }
 ```
 
-**Response**: `settings-updated`
+**Response**: `settings-updated` (legacy)
+
+**Status**: Currently **not handled** by the backend. Frontend settings are local-only.
 
 **Example**:
 ```json
@@ -190,7 +194,7 @@ Update application configuration.
   "payload": {
     "model_mode": "online",
     "model_provider": "openai",
-    "selected_model_id": "gpt-4o",
+    "selected_model_id": "gpt-5.1",
     "voice_mode_enabled": false,
     "speech_mode_enabled": true
   },
@@ -227,18 +231,14 @@ Send tool execution result from frontend.
 **Payload**:
 ```json
 {
-  "tool_name": "mouse_control",
-  "result": {
-    "success": true,
-    "llm_content": "Tool executed successfully",
-    "data": { ... }
+  "request_id": "uuid-v4",
+  "success": true,
+  "data": {
+    "llm_content": "Preformatted tool output",
+    "screenshot": "base64-encoded-screenshot",
+    "system_state": { "active_window": "...", "mouse_position": "..." }
   },
-  "screenshot": "base64-encoded-screenshot", // Optional
-  "system_context": { // Optional
-    "active_window": "Application Name",
-    "mouse_position": "(100, 200)",
-    "time": "2025-01-20T10:00:00Z"
-  }
+  "error": null
 }
 ```
 
@@ -250,23 +250,37 @@ Send tool execution result from frontend.
   "id": "123e4567-e89b-12d3-a456-426614174004",
   "type": "tool-result",
   "payload": {
-    "tool_name": "mouse_control",
-    "result": {
-      "success": true,
+    "request_id": "req-123",
+    "success": true,
+    "data": {
       "llm_content": "Clicked submit button",
-      "data": {
-        "x": 100,
-        "y": 200
+      "screenshot": "iVBORw0KGgoAAAANSUhEUgAA...",
+      "system_state": {
+        "active_window": "Browser",
+        "mouse_position": "(100, 200)"
       }
     },
-    "screenshot": "iVBORw0KGgoAAAANSUhEUgAA...",
-    "system_context": {
-      "active_window": "Browser",
-      "mouse_position": "(100, 200)",
-      "time": "2025-01-20T10:00:00Z"
-    }
+    "error": null
   },
   "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### Tool Bundle Result Message
+
+Result of an atomic tool bundle executed on the frontend.
+
+**Type**: `tool-bundle-result`
+
+**Payload**:
+```json
+{
+  "bundle_id": "bundle-123",
+  "status": "success",
+  "screenshot": "base64-encoded-screenshot",
+  "system_state": { "active_window": "...", "mouse_position": "..." },
+  "step_results": [ { "tool": "mouse_control", "status": "success" } ],
+  "error": null
 }
 ```
 
@@ -327,11 +341,12 @@ Request tool execution from frontend.
 ```json
 {
   "tool_name": "mouse_control",
-  "arguments": {
+  "parameters": {
     "action": "click",
     "x": 100,
     "y": 200
   },
+  "raw_call": "{...}",
   "request_id": "unique-request-id"
 }
 ```
@@ -343,11 +358,12 @@ Request tool execution from frontend.
   "type": "tool-call",
   "payload": {
     "tool_name": "mouse_control",
-    "arguments": {
+    "parameters": {
       "action": "click",
       "x": 100,
       "y": 200
     },
+    "raw_call": "{...}",
     "request_id": "req-123"
   },
   "timestamp": "2025-01-20T10:00:00Z"
@@ -364,13 +380,12 @@ Tool execution result from backend.
 ```json
 {
   "tool_name": "mouse_control",
-  "result": {
-    "success": true,
-    "llm_content": "Tool executed successfully",
-    "data": { ... }
-  },
-  "screenshot": "base64-encoded-screenshot", // Optional
-  "system_context": { ... } // Optional
+  "success": true,
+  "execution_time": 0.42,
+  "output": "Formatted tool output",
+  "error": null,
+  "screenshot": "base64-encoded-screenshot",
+  "metadata": { ... }
 }
 ```
 
@@ -381,19 +396,13 @@ Tool execution result from backend.
   "type": "tool-output",
   "payload": {
     "tool_name": "mouse_control",
-    "result": {
-      "success": true,
-      "llm_content": "Clicked submit button",
-      "data": {
-        "x": 100,
-        "y": 200
-      }
-    },
+    "success": true,
+    "execution_time": 0.42,
+    "output": "Clicked submit button",
+    "error": null,
     "screenshot": "iVBORw0KGgoAAAANSUhEUgAA...",
-    "system_context": {
-      "active_window": "Browser",
-      "mouse_position": "(100, 200)",
-      "time": "2025-01-20T10:00:00Z"
+    "metadata": {
+      "active_window": "Browser"
     }
   },
   "timestamp": "2025-01-20T10:00:00Z"
@@ -482,12 +491,14 @@ Response to load-settings request.
   "config": {
     "model_mode": "online",
     "model_provider": "openai",
-    "selected_model_id": "gpt-4o",
+    "selected_model_id": "gpt-5.1",
     "voice_mode_enabled": false,
     "speech_mode_enabled": true
   }
 }
 ```
+
+**Status**: Legacy. Backend does not currently emit this; frontend settings are local-only.
 
 **Example**:
 ```json
@@ -498,7 +509,7 @@ Response to load-settings request.
     "config": {
       "model_mode": "online",
       "model_provider": "openai",
-      "selected_model_id": "gpt-4o",
+      "selected_model_id": "gpt-5.1",
       "voice_mode_enabled": false,
       "speech_mode_enabled": true
     }
@@ -514,6 +525,8 @@ Response to update-settings request.
 **Type**: `settings-updated`
 
 **Payload**: `{}`
+
+**Status**: Legacy. Backend does not currently emit this; frontend settings are local-only.
 
 **Example**:
 ```json

@@ -95,15 +95,17 @@ class PromptConstructor:
         - Message content size limits (max_message_content_size)
         - Total prompt size limits (max_prompt_size)
 
-        Gets conversation history and returns tool schemas as separate parameters
-        for the LLM API call (tools parameter and messages parameter).
+        Gets conversation history and returns tool schemas for transparency.
+        Tool schemas are embedded in the first user message, not passed as a
+        separate LLM API parameter.
 
         Args:
             stored_messages: ConversationHistory instance - provides conversation history
             include_tools: Whether to include tool schemas (always True)
 
         Returns:
-            Tuple of (List of LLMMessage dicts ready to send to LLM, List of tool schemas for LLM API, PromptMetadata object)
+            Tuple of (List of LLMMessage dicts ready to send to LLM,
+            List of tool schemas for transparency, PromptMetadata object)
             
         Raises:
             InputSizeLimitError: If any size limit is exceeded

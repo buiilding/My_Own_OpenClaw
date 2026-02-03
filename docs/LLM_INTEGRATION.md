@@ -60,30 +60,31 @@ Curated online model IDs live in `backend/src/llm/models/models_config.py` and a
 
 ### Provider Configuration
 
-Configure providers in `config.yaml`:
+Configure providers in `backend/src/core/config/app_config.py` (AppConfig) and set API keys via environment variables:
 
-```yaml
-model_provider: "openai"
-model_mode: "online"
-selected_model_id: "gpt-4o"
+**Runtime overrides**: The frontend can send a `config` object with each `query` message to override model/provider for that session.
 
-providers:
-  openai:
-    api_key: "your-api-key"
-    base_url: null
-    timeout: 60
-  
-  anthropic:
-    api_key: "your-api-key"
-    timeout: 60
-  
-  google:
-    api_key: "your-api-key"
-    timeout: 60
-  
-  ollama:
-    base_url: "http://localhost:11434"
-    timeout: 60
+```python
+from backend.src.core.config.models import (
+    AppConfig,
+    LLMProviders,
+    OpenAIConfig,
+    AnthropicConfig,
+    GeminiConfig,
+    OllamaConfig,
+)
+
+APP_CONFIG = AppConfig(
+    model_provider="openai",
+    model_mode="online",
+    selected_model_id="gpt-5.1",
+    llm_providers=LLMProviders(
+        openai=OpenAIConfig(model="gpt-5.1"),
+        anthropic=AnthropicConfig(model="claude-sonnet-4-5-20250929"),
+        gemini=GeminiConfig(model="gemini-2.5-flash"),
+        ollama=OllamaConfig(base_url="http://localhost:11434/v1"),
+    ),
+)
 ```
 
 ### Environment Variables
@@ -93,7 +94,10 @@ Set API keys via environment variables:
 ```bash
 export OPENAI_API_KEY="your-api-key"
 export ANTHROPIC_API_KEY="your-api-key"
-export GOOGLE_API_KEY="your-api-key"
+export GOOGLE_API_KEY="your-api-key"  # Gemini
+export OPENROUTER_API_KEY="your-api-key"
+export MISTRAL_API_KEY="your-api-key"
+export KIMI_API_KEY="your-api-key"  # or KIMICODE_API_KEY
 ```
 
 ## Usage
@@ -109,13 +113,13 @@ llm_client = get_llm_client(config)
 
 # Non-streaming
 response = await llm_client.get_completion(
-    model="gpt-4o",
+    model="gpt-5.1",
     messages=[{"role": "user", "content": "Hello"}]
 )
 
 # Streaming
 async for chunk in llm_client.get_completion_stream(
-    model="gpt-4o",
+    model="gpt-5.1",
     messages=[{"role": "user", "content": "Hello"}]
 ):
     print(chunk.content)
@@ -141,12 +145,16 @@ messages = [
 **Models**: `gpt-5.2`, `gpt-5.1`, `gpt-5-mini`, `gpt-5-nano`, `gpt-4.1`, `gpt-4.1-mini`, `gpt-4o`, `gpt-4o-mini`
 
 **Configuration**:
-```yaml
-providers:
-  openai:
-    api_key: "sk-..."
-    base_url: null  # Optional custom base URL
-    timeout: 60
+```python
+from backend.src.core.config.models import AppConfig, LLMProviders, OpenAIConfig
+
+APP_CONFIG = AppConfig(
+    model_provider="openai",
+    selected_model_id="gpt-5.1",
+    llm_providers=LLMProviders(
+        openai=OpenAIConfig(model="gpt-5.1", api_key_env="OPENAI_API_KEY"),
+    ),
+)
 ```
 
 **Features**:
@@ -158,11 +166,19 @@ providers:
 **Models**: `claude-opus-4-1-20250805`, `claude-opus-4-20250514`, `claude-sonnet-4-5-20250929`, `claude-sonnet-4-20250522`, `claude-haiku-4-5-20251001`, `claude-3-5-sonnet-20241022`, `claude-3-5-haiku-20241022`, `claude-3-opus-20240229`, `claude-3-sonnet-20240229`, `claude-3-haiku-20240307`
 
 **Configuration**:
-```yaml
-providers:
-  anthropic:
-    api_key: "sk-ant-..."
-    timeout: 60
+```python
+from backend.src.core.config.models import AppConfig, LLMProviders, AnthropicConfig
+
+APP_CONFIG = AppConfig(
+    model_provider="anthropic",
+    selected_model_id="claude-sonnet-4-5-20250929",
+    llm_providers=LLMProviders(
+        anthropic=AnthropicConfig(
+            model="claude-sonnet-4-5-20250929",
+            api_key_env="ANTHROPIC_API_KEY",
+        ),
+    ),
+)
 ```
 
 **Features**:
@@ -175,31 +191,36 @@ providers:
 **Models**: `gemini-3-pro-preview`, `gemini-3-flash-preview`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.5-flash-lite`
 
 **Configuration**:
-```yaml
-providers:
-  google:
-    api_key: "AIza..."
-    timeout: 60
+```python
+from backend.src.core.config.models import AppConfig, LLMProviders, GeminiConfig
+
+APP_CONFIG = AppConfig(
+    model_provider="gemini",
+    selected_model_id="gemini-2.5-flash",
+    llm_providers=LLMProviders(
+        gemini=GeminiConfig(model="gemini-2.5-flash", api_key_env="GOOGLE_API_KEY"),
+    ),
+)
 ```
 
 **Features**:
 - Streaming responses
 - Thinking tokens (Gemini 2.5 models)
 
-### Kimi Code
+### Kimi Coding
 
-**Models**: `kimi-for-coding`
+**Models**: `k2p5`
 
 **Configuration**:
 ```python
-from backend.src.core.config.models import AppConfig, LLMProviders, KimiCodeConfig
+from backend.src.core.config.models import AppConfig, LLMProviders, KimiCodingConfig
 
 APP_CONFIG = AppConfig(
-    model_provider="kimi_code",
-    selected_model_id="kimi-for-coding",
+    model_provider="kimi-coding",
+    selected_model_id="k2p5",
     llm_providers=LLMProviders(
-        kimi_code=KimiCodeConfig(
-            model="kimi-for-coding",
+        kimi_coding=KimiCodingConfig(
+            model="k2p5",
             api_key_env="KIMI_API_KEY",
             base_url="https://api.kimi.com/coding/v1",
         ),
@@ -208,7 +229,7 @@ APP_CONFIG = AppConfig(
 ```
 
 **Features**:
-- OpenAI-compatible API
+- Anthropic-compatible API
 - Optimized for coding tasks
 
 ### Ollama
@@ -216,11 +237,20 @@ APP_CONFIG = AppConfig(
 **Models**: Any Ollama model (e.g., `llama-2-7b`, `mistral-7b`)
 
 **Configuration**:
-```yaml
-providers:
-  ollama:
-    base_url: "http://localhost:11434"
-    timeout: 60
+```python
+from backend.src.core.config.models import AppConfig, LLMProviders, OllamaConfig
+
+APP_CONFIG = AppConfig(
+    model_mode="local",
+    model_provider="ollama",
+    selected_model_id="llama3",
+    llm_providers=LLMProviders(
+        ollama=OllamaConfig(
+            model="llama3",
+            base_url="http://localhost:11434/v1",
+        ),
+    ),
+)
 ```
 
 **Setup**:
@@ -242,12 +272,20 @@ ollama pull llama-2-7b
 **Models**: 100+ models from various providers
 
 **Configuration**:
-```yaml
-providers:
-  openrouter:
-    api_key: "sk-or-..."
-    base_url: "https://openrouter.ai/api/v1"
-    timeout: 60
+```python
+from backend.src.core.config.models import AppConfig, LLMProviders, OpenRouterConfig
+
+APP_CONFIG = AppConfig(
+    model_provider="openrouter",
+    selected_model_id="openrouter/auto",
+    llm_providers=LLMProviders(
+        openrouter=OpenRouterConfig(
+            model="openrouter/auto",
+            api_key_env="OPENROUTER_API_KEY",
+            base_url="https://openrouter.ai/api/v1",
+        ),
+    ),
+)
 ```
 
 **Features**:
@@ -260,11 +298,19 @@ providers:
 **Models**: `mistral-large-latest`, `mistral-small-latest`
 
 **Configuration**:
-```yaml
-providers:
-  mistral:
-    api_key: "your-api-key"
-    timeout: 60
+```python
+from backend.src.core.config.models import AppConfig, LLMProviders, MistralConfig
+
+APP_CONFIG = AppConfig(
+    model_provider="mistral",
+    selected_model_id="mistral-large-latest",
+    llm_providers=LLMProviders(
+        mistral=MistralConfig(
+            model="mistral-large-latest",
+            api_key_env="MISTRAL_API_KEY",
+        ),
+    ),
+)
 ```
 
 **Features**:
@@ -276,11 +322,19 @@ providers:
 **Models**: Any model supported by LM Studio
 
 **Configuration**:
-```yaml
-providers:
-  lm_studio:
-    base_url: "http://localhost:1234"
-    timeout: 60
+```python
+from backend.src.core.config.models import AppConfig, LLMProviders, LMStudioConfig
+
+APP_CONFIG = AppConfig(
+    model_mode="local",
+    model_provider="lmstudio",
+    selected_model_id="",
+    llm_providers=LLMProviders(
+        lmstudio=LMStudioConfig(
+            base_url="http://localhost:1234/v1",
+        ),
+    ),
+)
 ```
 
 **Setup**:
@@ -436,7 +490,7 @@ async def test_llm_integration():
     client = get_llm_client(config)
     
     response = await client.get_completion(
-        model="gpt-4o",
+        model="gpt-5.1",
         messages=[{"role": "user", "content": "Hello"}]
     )
     
