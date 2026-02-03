@@ -562,8 +562,7 @@ class LocalMemoryStore:
         if not valid_indices:
             return []
 
-        # Get memory IDs
-        memory_ids = [vector_id_to_memory_id[idx] for idx in valid_indices]
+        memory_ids = self._map_memory_ids(valid_indices, vector_id_to_memory_id)
 
         # Batch retrieval from SQLite
         async with aiosqlite.connect(db_path) as conn:
@@ -673,6 +672,13 @@ class LocalMemoryStore:
                 final_results[0].get("type", "N/A"),
             )
         return final_results
+
+    def _map_memory_ids(
+        self,
+        valid_indices: List[int],
+        vector_id_to_memory_id: Dict[int, str],
+    ) -> List[str]:
+        return [vector_id_to_memory_id[idx] for idx in valid_indices]
 
     def _matches_filters(
         self, metadata: Dict[str, Any], filters: Dict[str, Any]
