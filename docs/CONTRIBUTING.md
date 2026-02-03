@@ -25,4 +25,4 @@ read_when:
 - Full gate: `scripts/check`
 - Tests only: `scripts/test`
 - Docs sanity: `bin/docs-list`
-- Frontend deps missing: set `SKIP_FRONTEND=1` to skip frontend checks
+- Frontend checks auto-skip when `frontend/node_modules` is missing.

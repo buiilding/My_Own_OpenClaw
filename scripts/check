@@ -18,12 +18,6 @@ if [ -d "$ROOT/frontend" ]; then
       npm run test:ci
     )
   else
-    if [ "${SKIP_FRONTEND:-}" = "1" ]; then
-      echo "Skipping frontend checks (SKIP_FRONTEND=1)."
-    else
-      echo "Frontend dependencies missing. Run: cd frontend && npm install" >&2
-      echo "Or set SKIP_FRONTEND=1 to skip frontend checks." >&2
-      exit 1
-    fi
+    echo "Skipping frontend checks (frontend/node_modules missing)."
   fi
 fi

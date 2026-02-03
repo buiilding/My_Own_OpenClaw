@@ -141,7 +141,7 @@ frontend/src/
 - `scripts/test`: Runs backend + frontend tests.
 - `scripts/check`: Runs docs list, backend tests, frontend lint + tests.
 - `scripts/committer "<msg>" <files...>`: Scoped commits using the shared `committer` helper.
-- Frontend deps missing: set `SKIP_FRONTEND=1` to skip frontend checks.
+- Frontend checks auto-skip when `frontend/node_modules` is missing.
 
 ## Future: Productization Checklist (Planned)
 
