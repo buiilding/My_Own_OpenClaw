@@ -2,7 +2,15 @@
 
 ## Overview
 
-The Tool System enables the Desktop Assistant to interact with the computer through a set of specialized tools. Tools can be executed on the frontend (Python sidecar) or backend, with the backend primarily handling tool discovery, schema management, and coordinate resolution.
+The Tool System enables the Desktop Assistant to interact with the computer through a set of specialized tools. **Tools are executed in the frontend Python sidecar**, while the backend provides tool schemas, coordinates resolution, and orchestration.
+
+## Future: Tool Entitlements & Limits (Planned)
+
+In the hosted version, tool access will be gated by plan and enforced server-side:
+- **Per-plan tool allowlist** (e.g., advanced computer control for Pro/Enterprise).
+- **Per-tool quotas** (daily/monthly tool call limits).
+- **Risk-based prompts** (extra confirmation for sensitive tools).
+- **Audit logging** for every tool execution (user, device, target, outcome).
 
 ## Architecture
 
@@ -63,13 +71,13 @@ Most tools are executed on the frontend Python sidecar:
 - **System Tools**: `screenshot`, `get_system_stats`, `get_open_windows`
 - **Terminal Tools**: `run_shell_command`
 
-### Backend Tools
+### Backend Responsibilities (No Tool Execution)
 
-Some tools execute on the backend:
-
-- **Memory Tools**: Memory search and storage
-- **LLM Tools**: LLM-related operations
-- **Plugin Tools**: Plugin-provided tools
+The backend does not directly execute tools. It:
+- Builds tool schemas and embeds them in the initial user message (`<tool_schemas>`)
+- Emits tool schemas as a transparency event (`tool-schemas`)
+- Resolves coordinates and screenshots
+- Waits for results from the frontend sidecar
 
 ## Tool Execution Flow
 
@@ -274,6 +282,8 @@ For tools using vision models:
 
 ## Tool Schemas
 
+**Note**: Tool schemas are embedded in the first user message (as a `<tool_schemas>` XML section). They are not passed as a separate LLM API parameter.
+
 ### Schema Format
 
 Tool schemas follow JSON Schema format:
@@ -305,7 +315,7 @@ Tool schemas follow JSON Schema format:
 **SchemaRegistry** (`tools/schema_registry.py`) manages tool schemas:
 
 - Registers tool schemas
-- Provides schemas to LLM
+- Provides schemas to the LLM via the initial user message (and for transparency)
 - Validates tool call arguments
 
 ## Built-in Tools
