@@ -195,96 +195,77 @@ class LocalMemoryStore:
 
     async def _sync_vector_mappings(self) -> None:
         """Sync vector mappings: ensure all memories in both DBs have vector IDs."""
-        # Sync episodic mappings
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT id FROM memories
-                WHERE embedding_id IS NULL
-            """
-            )
+        self.episodic_next_vector_id = await self._sync_vector_mappings_for_db(
+            db_path=self.episodic_db_path,
+            index=self.episodic_index,
+            vector_id_to_memory_id=self.episodic_vector_id_to_memory_id,
+            memory_id_to_vector_id=self.episodic_memory_id_to_vector_id,
+            next_vector_id=self.episodic_next_vector_id,
+        )
 
-            rows = await cursor.fetchall()
-            missing_ids = [row[0] for row in rows]
-
-            for memory_id in missing_ids:
-                await cursor.execute(
-                    "SELECT content FROM memories WHERE id = ?", (memory_id,)
-                )
-                row = await cursor.fetchone()
-                if row:
-                    content = row[0]
-                    embedding = await self.embedder.embed_text(content)
-                    embedding = embedding.reshape(1, -1)
-                    faiss.normalize_L2(embedding)
-
-                    vector_id = self.episodic_next_vector_id
-                    self.episodic_index.add(embedding)
-
-                    await cursor.execute(
-                        """
-                        UPDATE memories SET embedding_id = ? WHERE id = ?
-                    """,
-                        (vector_id, memory_id),
-                    )
-
-                    self.episodic_vector_id_to_memory_id[vector_id] = memory_id
-                    self.episodic_memory_id_to_vector_id[memory_id] = vector_id
-                    self.episodic_next_vector_id += 1
-
-            await conn.commit()
-            
-            # Save index if we added any vectors
-            if missing_ids:
-                await self._save_faiss_indices()
-
-        # Sync semantic mappings
-        async with aiosqlite.connect(self.semantic_db_path) as conn:
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT id FROM memories
-                WHERE embedding_id IS NULL
-            """
-            )
-
-            rows = await cursor.fetchall()
-            missing_ids = [row[0] for row in rows]
-
-            for memory_id in missing_ids:
-                await cursor.execute(
-                    "SELECT content FROM memories WHERE id = ?", (memory_id,)
-                )
-                row = await cursor.fetchone()
-                if row:
-                    content = row[0]
-                    embedding = await self.embedder.embed_text(content)
-                    embedding = embedding.reshape(1, -1)
-                    faiss.normalize_L2(embedding)
-
-                    vector_id = self.semantic_next_vector_id
-                    self.semantic_index.add(embedding)
-
-                    await cursor.execute(
-                        """
-                        UPDATE memories SET embedding_id = ? WHERE id = ?
-                    """,
-                        (vector_id, memory_id),
-                    )
-
-                    self.semantic_vector_id_to_memory_id[vector_id] = memory_id
-                    self.semantic_memory_id_to_vector_id[memory_id] = vector_id
-                    self.semantic_next_vector_id += 1
-
-            await conn.commit()
-            
-            # Save index if we added any vectors
-            if missing_ids:
-                await self._save_faiss_indices()
+        self.semantic_next_vector_id = await self._sync_vector_mappings_for_db(
+            db_path=self.semantic_db_path,
+            index=self.semantic_index,
+            vector_id_to_memory_id=self.semantic_vector_id_to_memory_id,
+            memory_id_to_vector_id=self.semantic_memory_id_to_vector_id,
+            next_vector_id=self.semantic_next_vector_id,
+        )
         
         # Always save indices after sync to ensure persistence
         await self._save_faiss_indices()
+
+    async def _sync_vector_mappings_for_db(
+        self,
+        db_path: str,
+        index,
+        vector_id_to_memory_id: Dict[int, str],
+        memory_id_to_vector_id: Dict[str, int],
+        next_vector_id: int,
+    ) -> int:
+        async with aiosqlite.connect(db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(
+                """
+                SELECT id FROM memories
+                WHERE embedding_id IS NULL
+            """
+            )
+
+            rows = await cursor.fetchall()
+            missing_ids = [row[0] for row in rows]
+
+            for memory_id in missing_ids:
+                await cursor.execute(
+                    "SELECT content FROM memories WHERE id = ?", (memory_id,)
+                )
+                row = await cursor.fetchone()
+                if row:
+                    content = row[0]
+                    embedding = await self.embedder.embed_text(content)
+                    embedding = embedding.reshape(1, -1)
+                    faiss.normalize_L2(embedding)
+
+                    vector_id = next_vector_id
+                    index.add(embedding)
+
+                    await cursor.execute(
+                        """
+                        UPDATE memories SET embedding_id = ? WHERE id = ?
+                    """,
+                        (vector_id, memory_id),
+                    )
+
+                    vector_id_to_memory_id[vector_id] = memory_id
+                    memory_id_to_vector_id[memory_id] = vector_id
+                    next_vector_id += 1
+
+            await conn.commit()
+
+            # Save index if we added any vectors
+            if missing_ids:
+                await self._save_faiss_indices()
+
+        return next_vector_id
 
     async def _save_faiss_indices(self) -> None:
         """Save both FAISS indices to disk (async operation using global thread pool)."""
