@@ -11,8 +11,7 @@ from typing import Dict, Any, List, Tuple
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field, field_validator
 
-from backend.src.api.deps import ContainerDep
-from backend.src.core.config import AppConfig
+from backend.src.api.deps import ContainerDep, SessionManagerDep
 from backend.src.core.config.manager import load_api_key_for_provider
 from backend.src.core.types.schemas import LLMMessage
 from backend.src.core.validation.validators import ValidationError, validate_user_id
@@ -78,7 +77,8 @@ class SummarizeResponse(BaseModel):
 @router.post("/summarize", response_model=SummarizeResponse)
 async def summarize_conversations(
     request: SummarizeRequest,
-    container: ContainerDep
+    container: ContainerDep,
+    session_manager: SessionManagerDep,
 ) -> SummarizeResponse:
     """
     Summarize conversations and extract semantic information.
@@ -99,8 +99,26 @@ async def summarize_conversations(
         HTTPException: If summarization fails
     """
     try:
-        # Use global config only (no user-specific config storage)
-        merged_config = container.config
+        # Prefer active session config to use the current provider/model.
+        session = session_manager.get_session(request.user_id)
+        if session:
+            merged_config = session.cfg
+            logger.debug(
+                "Semantic summarize using session config "
+                f"(user_id={request.user_id}, provider={merged_config.model_provider}, "
+                f"model={merged_config.selected_model_id})"
+            )
+        else:
+            merged_config = container.config
+            logger.debug(
+                "Semantic summarize using global config (no active session) "
+                f"(user_id={request.user_id}, provider={merged_config.model_provider}, "
+                f"model={merged_config.selected_model_id})"
+            )
+
+        # Ensure API key is loaded for the chosen provider if needed.
+        if merged_config.model_mode != "local" and not merged_config.api_key:
+            merged_config = load_api_key_for_provider(merged_config)
         
         # Create LLM client with user's merged config
         llm_client = get_llm_client(merged_config)
