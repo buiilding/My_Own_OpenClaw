@@ -4,14 +4,6 @@
 
 The Tool System enables the Desktop Assistant to interact with the computer through a set of specialized tools. **Tools are executed in the frontend Python sidecar**, while the backend provides tool schemas, coordinates resolution, and orchestration.
 
-## Future: Tool Entitlements & Limits (Planned)
-
-In the hosted version, tool access will be gated by plan and enforced server-side:
-- **Per-plan tool allowlist** (e.g., advanced computer control for Pro/Enterprise).
-- **Per-tool quotas** (daily/monthly tool call limits).
-- **Risk-based prompts** (extra confirmation for sensitive tools).
-- **Audit logging** for every tool execution (user, device, target, outcome).
-
 ## Architecture
 
 ```
@@ -19,7 +11,7 @@ In the hosted version, tool access will be gated by plan and enforced server-sid
 │              Backend (Python)                   │
 │  ┌───────────────────────────────────────────┐  │
 │  │  ToolRegistry                              │  │
-│  │  - Tool Discovery                          │  │
+│  │  - Tool Registration                       │  │
 │  │  - Schema Management                       │  │
 │  │  - Remote Tool Stubs                       │  │
 │  └───────────────────────────────────────────┘  │
@@ -102,7 +94,7 @@ LLM generates tool call in response format:
 
 ### 2. Tool Preparation
 
-**ToolPreparer** (`agent/tools/tool_preparer.py`) prepares tool calls:
+**ToolPreparer** (`agent/tools/preparation/preparer.py`) prepares tool calls:
 
 1. **Screenshot Acquisition**: Ensures screenshot is available
 2. **OCR Processing**: Runs OCR if needed for coordinate resolution
@@ -126,7 +118,7 @@ LLM generates tool call in response format:
 
 ### 4. Result Processing
 
-**ToolResultHandler** (`agent/core/tool_result_handler.py`) processes results:
+**ToolResultHandler** (`agent/tools/waiting/handler.py`) processes results:
 
 1. Receives tool result from frontend
 2. Stores result in centralized **ToolResultStorage** (with TTL-based cleanup)
@@ -326,14 +318,14 @@ Tool schemas follow JSON Schema format:
 - **keyboard_control**: Keyboard input
 - **scroll_control**: Scroll actions
 - **screenshot**: Capture screenshot
+- **switch_tab**: Switch between tabs/windows
+- **wait**: Pause for a specified duration
 
 ### File System Tools
 
 - **read_file**: Read file contents
 - **write_file**: Write file contents
 - **list_directory**: List directory contents
-- **search_file_content**: Search file contents
-- **glob**: File pattern matching
 
 ### System Tools
 
@@ -341,14 +333,16 @@ Tool schemas follow JSON Schema format:
 - **get_open_windows**: List open windows
 - **run_shell_command**: Execute shell command
 
+**Note**: The sidecar implements additional tools (`replace`, `search_file_content`, `glob`, `read_many_files`), but they are not currently registered in the backend tool schemas, so the LLM cannot call them yet.
+
 ## Security
 
 ### Tool Execution Security
 
-- **Permission System**: Tools require explicit permissions
-- **Sandboxing**: Isolated execution environment
-- **Resource Limits**: CPU, memory, and time limits
-- **Audit Logging**: All tool executions logged
+- **Permission Model**: `SecurityPolicy` defines permissions, but sidecar execution does not enforce them yet
+- **Sandbox Hooks**: Executor abstraction allows sandboxing (not enabled by default)
+- **Resource Limits**: Limits are defined in `SecurityPolicy`, not enforced in sidecar by default
+- **Audit Logging**: Policy supports audit logs; wire-in is required for enforcement
 
 ### Tool Validation
 

@@ -113,7 +113,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 ```json
 {
   "id": "uuid-v4",
-  "type": "query|load-settings|update-settings|list-models|tool-result",
+  "type": "query|list-models|tool-result|tool-bundle-result|wakeword-detected",
   "payload": { ... },
   "timestamp": "ISO-8601"
 }
@@ -135,28 +135,26 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 
 **`query`**
 - Purpose: User query with optional screenshot
-- Payload: `{ text: string, screenshot?: string }`
+- Payload: `{ text: string, content?: string, screenshot?: string, config?: object }`
 - Response: Streaming response
-
-**`load-settings`**
-- Purpose: Request current settings
-- Payload: `{}`
-- Response: `settings-loaded`
-
-**`update-settings`**
-- Purpose: Update configuration
-- Payload: `{ ...config }`
-- Response: `settings-updated`
 
 **`list-models`**
 - Purpose: Request available models
 - Payload: `{}`
 - Response: `models-listed`
 
+**`wakeword-detected`**
+- Purpose: Notify backend of wakeword activation
+- Payload: `{}`
+
 **`tool-result`**
 - Purpose: Tool execution result from frontend
-- Payload: `{ tool_name, result, screenshot?, system_context? }`
+- Payload: `{ request_id, success, data?, error? }`
 - Response: Acknowledgment
+
+**`tool-bundle-result`**
+- Purpose: Result of atomic tool bundle
+- Payload: `{ bundle_id, status, screenshot?, system_state?, step_results, error? }`
 
 #### Server Message Types
 
@@ -167,12 +165,17 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 
 **`tool-call`**
 - Purpose: Tool execution request
-- Payload: `{ tool_name, arguments, request_id }`
+- Payload: `{ tool_name, parameters, raw_call, request_id?, metadata? }`
 - Usage: Request tool execution
+
+**`tool-bundle`**
+- Purpose: Atomic bundle of tools (single message)
+- Payload: `{ bundle_id, tools: [{ name, args }] }`
+- Usage: Execute tools sequentially and return `tool-bundle-result`
 
 **`tool-output`**
 - Purpose: Tool execution result
-- Payload: `{ tool_name, result, screenshot?, system_context? }`
+- Payload: `{ tool_name, success, output, execution_time?, error?, screenshot?, metadata? }`
 - Usage: Tool execution complete
 
 **`llm-thought`**
@@ -223,24 +226,6 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
 - `GET /api/semantic/health`
 - Payload: `{ local: [...], online: [...] }`
 - Usage: Model selection
-
-### Planned Message Types (Hosted)
-
-**`auth-required`**
-- Purpose: Server requires re-authentication
-- Payload: `{ reason, login_url? }`
-
-**`usage-update`**
-- Purpose: Updated usage for current billing period
-- Payload: `{ tokens_used, tokens_limit, tool_calls_used, tool_calls_limit }`
-
-**`limit-reached`**
-- Purpose: Hard usage limit reached
-- Payload: `{ limit_type, reset_at, upgrade_url }`
-
-**`entitlement-changed`**
-- Purpose: Plan change or permissions update
-- Payload: `{ plan_id, entitlements }`
 
 ## Message Flow Examples
 
@@ -318,35 +303,12 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
 16. Agent continues with next step
 ```
 
-### Settings Update Flow
+### Settings Flow (Current)
 
-```
-1. User changes setting in SettingsPanel
-   ↓
-2. AppConfigContext.updateConfig() (optimistic update)
-   ↓
-3. AppStatusContext.setSaving() (status update)
-   ↓
-4. IpcBridge.send('to-backend', { type: 'update-settings', payload: {...} })
-   ↓
-5. Main process receives IPC message
-   ↓
-6. Main process sends WebSocket message to backend
-   ↓
-7. Backend validates and saves settings
-   ↓
-8. Backend sends settings-updated response
-   ↓
-9. Main process receives WebSocket message
-   ↓
-10. Main process forwards to renderer via IPC
-    ↓
-11. AppStatusContext handles settings-updated event
-    ↓
-12. AppStatusContext.setSaveStatus('success')
-    ↓
-13. UI updates with success status
-```
+Settings are frontend-only and persisted locally:
+
+- `AppConfigContext.updateConfig()` saves to localStorage and disk.
+- The backend does not currently receive `update-settings` messages.
 
 ## Error Handling
 
