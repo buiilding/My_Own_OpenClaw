@@ -29,6 +29,11 @@ from memory.faiss_index import (
     read_index_safe_async,
     save_indices_async,
 )
+from memory.sqlite_store import (
+    init_episodic_schema,
+    init_semantic_schema,
+    load_vector_mappings,
+)
 from memory.watermark_state import WatermarkStateStore
 
 logger = logging.getLogger(__name__)
@@ -171,171 +176,22 @@ class LocalMemoryStore:
 
     async def _init_databases(self) -> None:
         """Initialize SQLite database schemas for both memory types."""
-        # Initialize episodic memory database
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-
-            await cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS memories (
-                    id TEXT PRIMARY KEY,
-                    user_id TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    timestamp TEXT NOT NULL,
-                    metadata TEXT,
-                    embedding_id INTEGER,
-                    created_at REAL DEFAULT (strftime('%s', 'now')),
-                    is_semanticized INTEGER DEFAULT 0,
-                    conversation_id TEXT
-                )
-            """
-            )
-            
-            # Add is_semanticized column if it doesn't exist (migration)
-            # Check if column exists by trying to query it
-            try:
-                await cursor.execute("SELECT is_semanticized FROM memories LIMIT 1")
-            except Exception:
-                # Column doesn't exist, add it
-                try:
-                    await cursor.execute("ALTER TABLE memories ADD COLUMN is_semanticized INTEGER DEFAULT 0")
-                    await conn.commit()
-                    logger.info("Added is_semanticized column to episodic memory table")
-                except Exception as e:
-                    logger.warning(f"Failed to add is_semanticized column: {e}")
-            
-            # Add conversation_id column if it doesn't exist (migration)
-            try:
-                await cursor.execute("SELECT conversation_id FROM memories LIMIT 1")
-            except Exception:
-                # Column doesn't exist, add it
-                try:
-                    await cursor.execute("ALTER TABLE memories ADD COLUMN conversation_id TEXT")
-                    await conn.commit()
-                    logger.info("Added conversation_id column to episodic memory table")
-                except Exception as e:
-                    logger.warning(f"Failed to add conversation_id column: {e}")
-
-            await cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_user_id
-                ON memories(user_id)
-            """
-            )
-
-            await cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_timestamp
-                ON memories(timestamp)
-            """
-            )
-
-            await cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_embedding_id
-                ON memories(embedding_id)
-            """
-            )
-            
-            await cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_is_semanticized
-                ON memories(is_semanticized)
-            """
-            )
-            
-            await cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_conversation_id
-                ON memories(conversation_id)
-            """
-            )
-            
-            await cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_conversation_semanticized
-                ON memories(conversation_id, is_semanticized)
-            """
-            )
-
-            await conn.commit()
-
-        # Initialize semantic memory database (same schema)
-        async with aiosqlite.connect(self.semantic_db_path) as conn:
-            cursor = await conn.cursor()
-
-            await cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS memories (
-                    id TEXT PRIMARY KEY,
-                    user_id TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    timestamp TEXT NOT NULL,
-                    metadata TEXT,
-                    embedding_id INTEGER,
-                    created_at REAL DEFAULT (strftime('%s', 'now'))
-                )
-            """
-            )
-
-            await cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_user_id
-                ON memories(user_id)
-            """
-            )
-
-            await cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_timestamp
-                ON memories(timestamp)
-            """
-            )
-
-            await cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_embedding_id
-                ON memories(embedding_id)
-            """
-            )
-
-            await conn.commit()
+        await init_episodic_schema(self.episodic_db_path)
+        await init_semantic_schema(self.semantic_db_path)
 
     async def _load_vector_mappings(self) -> None:
         """Load vector ID to memory ID mappings from both databases."""
-        # Load episodic mappings
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT id, embedding_id FROM memories
-                WHERE embedding_id IS NOT NULL
-            """
-            )
+        (
+            self.episodic_vector_id_to_memory_id,
+            self.episodic_memory_id_to_vector_id,
+            self.episodic_next_vector_id,
+        ) = await load_vector_mappings(self.episodic_db_path)
 
-            rows = await cursor.fetchall()
-            for memory_id, vector_id in rows:
-                self.episodic_vector_id_to_memory_id[vector_id] = memory_id
-                self.episodic_memory_id_to_vector_id[memory_id] = vector_id
-                if vector_id >= self.episodic_next_vector_id:
-                    self.episodic_next_vector_id = vector_id + 1
-
-        # Load semantic mappings
-        async with aiosqlite.connect(self.semantic_db_path) as conn:
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT id, embedding_id FROM memories
-                WHERE embedding_id IS NOT NULL
-            """
-            )
-
-            rows = await cursor.fetchall()
-            for memory_id, vector_id in rows:
-                self.semantic_vector_id_to_memory_id[vector_id] = memory_id
-                self.semantic_memory_id_to_vector_id[memory_id] = vector_id
-                if vector_id >= self.semantic_next_vector_id:
-                    self.semantic_next_vector_id = vector_id + 1
+        (
+            self.semantic_vector_id_to_memory_id,
+            self.semantic_memory_id_to_vector_id,
+            self.semantic_next_vector_id,
+        ) = await load_vector_mappings(self.semantic_db_path)
 
     async def _sync_vector_mappings(self) -> None:
         """Sync vector mappings: ensure all memories in both DBs have vector IDs."""
