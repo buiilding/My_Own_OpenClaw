@@ -101,6 +101,7 @@ app.whenReady().then(() => {
 
 // Handle app quit to cleanup subprocesses
 app.on('before-quit', () => {
+  app.isQuitting = true;
   console.log('[Main] App quitting, cleaning up subprocesses...');
   stopLocalBackend();
 });
