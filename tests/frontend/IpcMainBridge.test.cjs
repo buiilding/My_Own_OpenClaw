@@ -138,6 +138,48 @@ describe('ipc.cjs bridge', () => {
     expect(lastMessage.payload.content).toContain('<user_query>\nhello\n</user_query>');
   });
 
+  test('builds query with fallback system context on system state error', async () => {
+    const { handlers, ws, backendBridge } = initIpc();
+    ws.triggerOpen();
+
+    backendBridge.getSystemState.mockRejectedValue(new Error('boom'));
+    backendBridge.searchMemory.mockResolvedValue({
+      success: true,
+      data: { memories: { episodic: [], semantic: [] } },
+    });
+
+    await handlers['to-backend'](null, {
+      type: 'query',
+      payload: { text: 'hi' },
+    });
+
+    const lastMessage = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(lastMessage.payload.content).toContain('<active_window>Unknown</active_window>');
+    expect(lastMessage.payload.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
+    expect(lastMessage.payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
+  });
+
+  test('builds query with empty memories when search fails', async () => {
+    const { handlers, ws, backendBridge } = initIpc();
+    ws.triggerOpen();
+
+    backendBridge.getSystemState.mockResolvedValue({
+      active_window: 'App',
+      mouse_position: '0,0',
+    });
+    backendBridge.searchMemory.mockRejectedValue(new Error('fail'));
+
+    await handlers['to-backend'](null, {
+      type: 'query',
+      payload: { text: 'memory fail' },
+    });
+
+    const lastMessage = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(lastMessage.payload.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
+    expect(lastMessage.payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
+    expect(lastMessage.payload.content).toContain('<user_query>\nmemory fail\n</user_query>');
+  });
+
   test('load-frontend-config returns null when file missing', async () => {
     const { handlers } = initIpc();
     const result = await handlers['load-frontend-config']();
