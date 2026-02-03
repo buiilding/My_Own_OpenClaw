@@ -93,7 +93,10 @@ backend/src/
 │   └── embeddings.py # SentenceTransformerProvider
 ├── llm/               # LLM domain (client, prompts)
 │   ├── client.py     # LLMClient abstraction
-│   ├── parser.py     # ResponseParser
+│   ├── parser.py     # ResponseParser (facade)
+│   ├── parser_types.py  # ParsedToolCall / ParsedResponse / ToolCallSchema
+│   ├── parser_validation.py  # ToolCallValidator
+│   ├── parser_extraction.py  # JSON extraction + removal helpers
 │   ├── prompts/      # Prompt construction
 │   └── providers/   # LLM provider implementations
 ├── api/               # API layer (routes, dependencies)
@@ -107,6 +110,14 @@ backend/src/
 │   ├── bootstrap/     # System initialization
 │   ├── plugins/       # Plugin registry
 │   ├── services/      # Core services
+│   │   ├── tts_service.py   # TTSService (Piper integration)
+│   │   ├── tts_buffer.py    # SentenceBuffer
+│   │   └── tts_audio.py     # Audio chunk helpers
+│   ├── infrastructure/  # Shared infra (cache, bus, etc.)
+│   │   ├── cache.py         # Cache facade
+│   │   ├── cache_entry.py   # CacheEntry
+│   │   ├── cache_store.py   # Cache implementation
+│   │   └── cache_manager.py # CacheManager
 │   └── interfaces/    # Protocol interfaces
 ├── sdk/               # SDK for tool development
 │   ├── tool.py        # Base Tool class
@@ -272,9 +283,14 @@ Parses LLM responses and extracts tool calls.
 - Validate tool call schemas
 - Handle parsing errors
 
+**Structure**:
+- `llm/parser.py`: ResponseParser facade
+- `llm/parser_types.py`: ParsedToolCall / ParsedResponse / ToolCallSchema
+- `llm/parser_validation.py`: ToolCallValidator
+- `llm/parser_extraction.py`: JSON extraction + removal helpers
+
 **Key Methods**:
 - `parse_response()`: Parse LLM response
-- `_extract_tool_calls()`: Extract tool calls from text
 
 #### PromptConstructor (`llm/prompts/prompt_constructor.py`)
 
