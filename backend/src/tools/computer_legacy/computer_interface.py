@@ -11,21 +11,18 @@ import logging
 import platform
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import Dict, Literal, Optional, Any, Callable
+from typing import Dict, Optional, Any, Callable
 
 logger = logging.getLogger(__name__)
 
-# Type definitions matching CUA library
-MouseButton = Literal["left", "right", "middle"]
-NavigationKey = Literal[
-    "pagedown", "pageup", "home", "end", "left", "right", "up", "down"
-]
-SpecialKey = Literal["enter", "esc", "tab", "space", "backspace", "del"]
-ModifierKey = Literal["ctrl", "alt", "shift", "win", "command", "option"]
-FunctionKey = Literal[
-    "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12"
-]
-KeyType = str  # Simplified for now
+from backend.src.tools.computer_legacy.input_types import (
+    FunctionKey,
+    KeyType,
+    ModifierKey,
+    MouseButton,
+    NavigationKey,
+    SpecialKey,
+)
 
 
 @dataclass

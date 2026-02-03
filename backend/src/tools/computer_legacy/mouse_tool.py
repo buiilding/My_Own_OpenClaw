@@ -14,7 +14,8 @@ from backend.src.core.types.enums import CoordinateFindingMethod, MouseAction, S
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
 from backend.src.tools.categorization import ToolDomain
-from backend.src.tools.computer_legacy.computer_interface import ComputerInterface, MouseButton
+from backend.src.tools.computer_legacy.computer_interface import ComputerInterface
+from backend.src.tools.computer_legacy.input_types import MouseButton
 from backend.src.services.vision import InternVLModel
 from backend.src.services.vision.utils import normalize_model_name
 
