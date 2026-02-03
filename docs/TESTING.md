@@ -3,6 +3,7 @@
 ## Backend Tests
 
 ```bash
+conda activate jarvis
 cd backend
 pytest ../tests/backend
 ```
@@ -10,6 +11,7 @@ pytest ../tests/backend
 ## Frontend Tests
 
 ```bash
+conda activate frontend_jarvis
 cd frontend
 npm test
 ```
