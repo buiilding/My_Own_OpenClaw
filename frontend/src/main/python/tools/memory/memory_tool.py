@@ -168,7 +168,7 @@ class MemoryTool(FrontendTool):
                     "llm_content": summary,
                     "return_display": f"Memory search results: {len(results)} matches",
                     "formatted_results": "\n".join([
-                        f"- {r['type'].title()}: {r['content'][:100]}{'...' if len(r['content']) > 100 else ''} (score: {r['score']:.3f})"
+                        f"- {r['type'].title()}: {(r.get('text') or r.get('content', ''))[:100]}{'...' if len(r.get('text') or r.get('content', '')) > 100 else ''} (score: {r['score']:.3f})"
                         for r in results[:5]  # Show first 5 results
                     ])
                 }
