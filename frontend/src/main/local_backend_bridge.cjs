@@ -19,6 +19,24 @@ let readinessCheckCallback = null;
 // Cache Python path to avoid repeated file system checks
 let cachedPythonPath = null;
 
+function getReadinessRetryDelay(attempt) {
+  return Math.min(50 * Math.pow(2, attempt - 1), 1000);
+}
+
+function scheduleReadinessRetry(mainWindow, attempt, maxAttempts) {
+  if (attempt < maxAttempts) {
+    const delay = getReadinessRetryDelay(attempt);
+    setTimeout(() => checkReadiness(mainWindow, attempt + 1, maxAttempts), delay);
+    return true;
+  }
+  return false;
+}
+
+function markBackendReady(mainWindow) {
+  isPythonReady = true;
+  mainWindow?.webContents.send('local-backend-status', { ready: true });
+}
+
 /**
  * Get Python executable path (cached after first lookup)
  */
@@ -72,11 +90,7 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
     pythonProcess.stdin.write(jsonStr + '\n');
   } catch (error) {
     console.error('[LocalBackend] Failed to send ping:', error);
-    if (attempt < maxAttempts) {
-      // Retry with exponential backoff: 50ms, 100ms, 200ms, 400ms, etc.
-      const delay = Math.min(50 * Math.pow(2, attempt - 1), 1000);
-      setTimeout(() => checkReadiness(mainWindow, attempt + 1, maxAttempts), delay);
-    }
+    scheduleReadinessRetry(mainWindow, attempt, maxAttempts);
     return;
   }
 
@@ -94,14 +108,10 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
                 mainWindow?.webContents.send('local-backend-status', { ready: true });
       } else {
         // Retry if ping failed
-        if (attempt < maxAttempts) {
-          const delay = Math.min(50 * Math.pow(2, attempt - 1), 1000);
-          setTimeout(() => checkReadiness(mainWindow, attempt + 1, maxAttempts), delay);
-        } else {
+        if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts)) {
           // Max attempts reached, mark as ready anyway to avoid blocking
           console.warn('[LocalBackend] Backend readiness check failed after max attempts, marking as ready');
-          isPythonReady = true;
-          mainWindow?.webContents.send('local-backend-status', { ready: true });
+          markBackendReady(mainWindow);
         }
       }
     }
@@ -112,14 +122,10 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
     if (readinessCheckCallback) {
       readinessCheckCallback = null;
       // Ping timed out, retry if attempts remain
-      if (attempt < maxAttempts) {
-        const delay = Math.min(50 * Math.pow(2, attempt - 1), 1000);
-        setTimeout(() => checkReadiness(mainWindow, attempt + 1, maxAttempts), delay);
-      } else {
+      if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts)) {
         console.warn('[LocalBackend] Backend readiness check timed out after max attempts');
         // Mark as ready anyway to avoid blocking forever
-        isPythonReady = true;
-        mainWindow?.webContents.send('local-backend-status', { ready: true });
+        markBackendReady(mainWindow);
       }
     }
   }, 500);
@@ -169,7 +175,7 @@ function startLocalBackend(mainWindow) {
   // This allows the frontend to start immediately while backend initializes
   checkReadiness(mainWindow);
 
-  let stdoutBuffer = '';
+  stdoutBuffer = '';
 
   // Handle stdout (JSON-RPC responses, one line per message)
   pythonProcess.stdout.on('data', (data) => {
