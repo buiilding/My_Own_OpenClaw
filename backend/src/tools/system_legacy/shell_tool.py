@@ -11,7 +11,6 @@ import platform
 import subprocess
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -21,25 +20,16 @@ from backend.src.sdk.context import ToolContext
 from backend.src.tools.categorization import ToolDomain
 from backend.src.services.shell import get_shell_manager
 from backend.src.tools.system_legacy.shell_command_policy import is_command_allowed
+from backend.src.tools.system_legacy.shell_result import (
+    ShellExecutionResult,
+    format_display_output,
+    format_llm_output,
+)
 
 logger = logging.getLogger(__name__)
 
 # Default timeout for shell commands (seconds) - fallback if config not available
 DEFAULT_SHELL_TIMEOUT = 30.0
-
-
-@dataclass
-class ShellExecutionResult:
-    """Result of a shell command execution."""
-
-    command: str
-    output: str
-    error: Optional[str]
-    exit_code: Optional[int]
-    signal: Optional[str]
-    background_pids: List[int]
-    execution_time: float
-    aborted: bool
 
 
 class RunShellCommandArgs(BaseModel):
@@ -205,10 +195,10 @@ class ShellTool(Tool[RunShellCommandArgs]):
             final_working_dir = await shell_session.get_working_directory()
 
             # Format output for LLM
-            llm_content = self._format_llm_output(command, final_working_dir, result)
+            llm_content = format_llm_output(command, final_working_dir, result)
 
             # Format display output
-            return_display = self._format_display_output(result)
+            return_display = format_display_output(result)
 
             # Determine success
             # Success is defined as either exit_code 0 OR (exit_code None and no error)
@@ -497,47 +487,3 @@ class ShellTool(Tool[RunShellCommandArgs]):
             pass
 
         return []
-
-    def _format_llm_output(
-        self, command: str, directory: str, result: ShellExecutionResult
-    ) -> str:
-        """Format execution result for LLM consumption."""
-        parts = [
-            f"Command: {command}",
-            f"Directory: {directory}",
-            f"Output: {result.output or '(empty)'}",
-        ]
-
-        if result.error:
-            parts.append(f"Error: {result.error}")
-
-        # Only show exit code if it's relevant (non-zero)
-        # We hide 0 (success) to reduce noise
-        if result.exit_code is not None and result.exit_code != 0:
-            parts.append(f"Exit Code: {result.exit_code}")
-
-        if result.signal:
-            parts.append(f"Signal: {result.signal}")
-
-        if result.background_pids:
-            parts.append(
-                f"Background PIDs: {', '.join(map(str, result.background_pids))}"
-            )
-
-        return "\n".join(parts)
-
-    def _format_display_output(self, result: ShellExecutionResult) -> str:
-        """Format execution result for user display."""
-        if result.aborted:
-            return "Command cancelled by user."
-        elif result.signal:
-            return f"Command terminated by signal: {result.signal}"
-        elif result.error and result.exit_code != 0:
-            return f"Command failed: {result.error}"
-        elif result.exit_code is not None and result.exit_code != 0:
-            return f"Command exited with code: {result.exit_code}"
-        elif result.output.strip():
-            return result.output.strip()
-        else:
-            # Command succeeded but no output
-            return "Command executed successfully"
