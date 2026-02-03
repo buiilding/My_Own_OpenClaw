@@ -31,7 +31,7 @@ jest.mock('ws', () => {
   WebSocketMock.OPEN = 1;
   WebSocketMock.CLOSED = 3;
   return WebSocketMock;
-});
+}, { virtual: true });
 
 jest.mock('electron', () => ({
   ipcMain: {
@@ -42,11 +42,11 @@ jest.mock('electron', () => ({
   app: {
     getPath: jest.fn(() => '/tmp/appdata'),
   },
-}));
+}), { virtual: true });
 
 jest.mock('uuid', () => ({
   v4: jest.fn(() => 'uuid-1'),
-}));
+}), { virtual: true });
 
 jest.mock('os', () => ({
   userInfo: jest.fn(() => ({ username: 'bad user!' })),
@@ -74,6 +74,7 @@ describe('ipc.cjs bridge', () => {
     const { ipcMain } = require('electron');
     const WebSocketMock = require('ws');
     const backendBridge = require('../../frontend/src/main/local_backend_bridge.cjs');
+    const fs = require('fs');
 
     const handlers = {};
     ipcMain.handle.mockImplementation((channel, handler) => {
@@ -95,7 +96,7 @@ describe('ipc.cjs bridge', () => {
 
     const ws = WebSocketMock.instances[0];
 
-    return { handlers, ws, backendBridge, mainWindow };
+    return { handlers, ws, backendBridge, mainWindow, fs };
   };
 
   test('sends handshake on websocket open with sanitized user_id', () => {
@@ -141,5 +142,62 @@ describe('ipc.cjs bridge', () => {
     const { handlers } = initIpc();
     const result = await handlers['load-frontend-config']();
     expect(result).toBeNull();
+  });
+
+  test('load-frontend-config returns parsed config when file exists', async () => {
+    const { handlers, fs } = initIpc();
+    fs.existsSync.mockReturnValue(true);
+    fs.promises.readFile.mockResolvedValue('{"model_mode":"offline"}');
+
+    const result = await handlers['load-frontend-config']();
+
+    expect(result).toEqual({ model_mode: 'offline' });
+  });
+
+  test('load-frontend-config returns null for invalid JSON', async () => {
+    const { handlers, fs } = initIpc();
+    fs.existsSync.mockReturnValue(true);
+    fs.promises.readFile.mockResolvedValue('{bad json');
+
+    const result = await handlers['load-frontend-config']();
+
+    expect(result).toBeNull();
+  });
+
+  test('load-frontend-config returns null for non-object payload', async () => {
+    const { handlers, fs } = initIpc();
+    fs.existsSync.mockReturnValue(true);
+    fs.promises.readFile.mockResolvedValue('[]');
+
+    const result = await handlers['load-frontend-config']();
+
+    expect(result).toBeNull();
+  });
+
+  test('save-frontend-config rejects invalid payload', async () => {
+    const { handlers, fs } = initIpc();
+
+    const result = await handlers['save-frontend-config'](null, null);
+
+    expect(result).toEqual({ success: false, error: 'Invalid config payload' });
+    expect(fs.promises.writeFile).not.toHaveBeenCalled();
+  });
+
+  test('save-frontend-config writes file and renames temp path', async () => {
+    const { handlers, fs } = initIpc();
+
+    const result = await handlers['save-frontend-config'](null, { model_mode: 'online' });
+
+    expect(result).toEqual({ success: true });
+    expect(fs.promises.mkdir).toHaveBeenCalledWith('/tmp/appdata', { recursive: true });
+    expect(fs.promises.writeFile).toHaveBeenCalledWith(
+      '/tmp/appdata/frontend-config.json.tmp',
+      JSON.stringify({ model_mode: 'online' }, null, 2),
+      'utf-8',
+    );
+    expect(fs.promises.rename).toHaveBeenCalledWith(
+      '/tmp/appdata/frontend-config.json.tmp',
+      '/tmp/appdata/frontend-config.json',
+    );
   });
 });

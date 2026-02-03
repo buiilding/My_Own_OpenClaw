@@ -104,4 +104,22 @@ describe('MessageFormatter', () => {
     );
     expect(output).not.toContain('State of the screen after bundled tools were executed:');
   });
+
+  test('formatToolOutputMessage stringifies remaining fields without screenshot/system_state', () => {
+    const output = formatToolOutputMessage(
+      'write_file',
+      {
+        success: true,
+        data: {
+          foo: 'bar',
+          screenshot: 'shot',
+          system_state: { active_window: 'App' },
+        },
+      },
+      null,
+    );
+    expect(output).toContain('"foo": "bar"');
+    expect(output).not.toContain('screenshot');
+    expect(output).not.toContain('system_state');
+  });
 });
