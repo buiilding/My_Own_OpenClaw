@@ -2,7 +2,7 @@ READ /media/peter-bui/E/Assistants/agent-scripts/AGENTS.LINUX.MD BEFORE ANYTHING
 
 # Repository Guidelines
 
-- Repo: /media/peter-bui/E/Assistants/Projects/My_Own_OpenClaw
+- Repo: /media/peter-bui/E/Assistants/Projects/WindieOS
 - Issues/PR comments: use literal multiline strings or heredocs for real newlines; avoid "\\n" in posted text.
 
 ## Project Structure & Module Organization

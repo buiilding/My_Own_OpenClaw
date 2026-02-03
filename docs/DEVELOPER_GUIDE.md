@@ -90,7 +90,7 @@ frontend/src/
 1. **Clone Repository**:
    ```bash
    git clone <repository-url>
-   cd My_Own_OpenClaw
+   cd WindieOS
    ```
 
 2. **Backend Setup**:
