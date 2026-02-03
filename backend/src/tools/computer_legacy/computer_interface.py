@@ -369,8 +369,7 @@ class ComputerInterface:
                 self._pyautogui.moveTo(x, y)
                 # Scroll (positive = up, negative = down in pyautogui)
                 # Apply scaling for platform (Windows = 120 per click)
-                scaled_scroll = scroll_clicks * self._scroll_scale
-                self._pyautogui.scroll(scaled_scroll)
+                self._pyautogui.scroll(self._scale_scroll(scroll_clicks))
 
             await self._run_in_executor(_perform_scroll)
 
@@ -398,8 +397,7 @@ class ComputerInterface:
             def _perform_scroll_at_cursor():
                 current_pos = self._pyautogui.position()
                 # Apply scaling for platform (Windows = 120 per click)
-                scaled_scroll = clicks * self._scroll_scale
-                self._pyautogui.scroll(scaled_scroll)
+                self._pyautogui.scroll(self._scale_scroll(clicks))
                 return current_pos
 
             current_pos = await self._run_in_executor(_perform_scroll_at_cursor)
@@ -486,6 +484,9 @@ class ComputerInterface:
     def _move_to_if_provided(self, x: Optional[int], y: Optional[int]) -> None:
         if x is not None and y is not None:
             self._pyautogui.moveTo(x, y)
+
+    def _scale_scroll(self, clicks: int) -> int:
+        return clicks * self._scroll_scale
 
     async def _click(
         self, x: Optional[int], y: Optional[int], button: MouseButton
