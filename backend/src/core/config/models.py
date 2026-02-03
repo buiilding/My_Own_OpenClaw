@@ -9,19 +9,19 @@ from pydantic import BaseModel, ConfigDict, Field
 class OpenAIConfig(BaseModel):
     """Configuration for OpenAI provider."""
 
-    model: str = "gpt-4o"
+    model: str = "gpt-5.1"
     api_key_env: str = "OPENAI_API_KEY"
 
 
 class AnthropicConfig(BaseModel):
     """Configuration for Anthropic provider."""
 
-    model: str = "claude-3.7-sonnet-20250219"
+    model: str = "claude-sonnet-4-5-20250929"
     api_key_env: str = "ANTHROPIC_API_KEY"
 
 
 class GeminiConfig(BaseModel):
-    """Configuration for Google provider."""
+    """Configuration for Gemini provider."""
 
     model: str = "gemini-2.5-flash"
     api_key_env: str = "GOOGLE_API_KEY"
@@ -45,7 +45,7 @@ class OpenRouterConfig(BaseModel):
 class MistralConfig(BaseModel):
     """Configuration for Mistral AI provider."""
 
-    model: str = "mistral-large-2411"
+    model: str = "mistral-large-latest"
     api_key_env: str = "MISTRAL_API_KEY"
 
 
@@ -54,6 +54,14 @@ class LMStudioConfig(BaseModel):
 
     model: str = ""  # Not used, models are discovered
     base_url: str = "http://localhost:1234/v1"
+
+
+class KimiCodeConfig(BaseModel):
+    """Configuration for Kimi Code provider (OpenAI-compatible)."""
+
+    model: str = "kimi-for-coding"
+    api_key_env: str = "KIMI_API_KEY"
+    base_url: str = "https://api.kimi.com/coding/v1"
 
 
 class LLMProviders(BaseModel):
@@ -66,12 +74,16 @@ class LLMProviders(BaseModel):
     openrouter: OpenRouterConfig = Field(default_factory=OpenRouterConfig)
     mistral: MistralConfig = Field(default_factory=MistralConfig)
     lmstudio: LMStudioConfig = Field(default_factory=LMStudioConfig)
+    kimi_code: KimiCodeConfig = Field(default_factory=KimiCodeConfig)
 
     def get_provider_config(self, provider_name: str):
         """Gets the configuration for a specific provider."""
-        if not hasattr(self, provider_name):
+        normalized = provider_name.lower().replace("-", "_")
+        if normalized == "kimi_coding":
+            normalized = "kimi_code"
+        if not hasattr(self, normalized):
             raise ValueError(f"Unknown provider: {provider_name}")
-        return getattr(self, provider_name)
+        return getattr(self, normalized)
 
 
 class Preferences(BaseModel):
@@ -103,7 +115,7 @@ class SecurityLimits(BaseModel):
 
 
 class OCRConfig(BaseModel):
-    """Configuration for OCR plugin."""
+    """Configuration for OCR service."""
     
     # Batch size thresholds based on GPU memory (GB)
     # Format: [min_gpu_memory_gb, rec_batch_num, cls_batch_num]
@@ -155,7 +167,7 @@ class AppConfig(BaseModel):
     # LLM Settings
     model_mode: Literal["local", "online"] = "online"
     model_provider: str = "openai"  # Default provider
-    selected_model_id: str = "gpt-4o"
+    selected_model_id: str = "gpt-5.1"
     llm_timeout: int = 300
     query_timeout: int = 600  # New field for query timeout
     debug_litellm: bool = False  # Enable LiteLLM debug logging
@@ -236,4 +248,3 @@ class AppConfig(BaseModel):
         if self.model_mode == "local":
             return self.selected_model_id
         return f"{self.model_provider}/{self.selected_model_id}"
-

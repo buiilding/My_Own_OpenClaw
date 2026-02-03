@@ -48,6 +48,7 @@ class ContextFactory:
         self.session_ref = session_ref
         self.agent_factory = agent_factory
         self.vision_service: Optional[Any] = None
+        self.ocr_service: Optional[Any] = None
     
     def set_tool_registry(self, tool_registry: "ToolRegistry") -> None:
         """
@@ -70,6 +71,15 @@ class ContextFactory:
             vision_service: VisionService instance or None
         """
         self.vision_service = vision_service
+
+    def set_ocr_service(self, ocr_service: Optional[Any]) -> None:
+        """
+        Set the OCR service (for pre-initialized RapidOCR engine).
+
+        Args:
+            ocr_service: OcrService instance or None
+        """
+        self.ocr_service = ocr_service
     
     def create_tool_context(
         self,
@@ -119,6 +129,10 @@ class ContextFactory:
         if self.vision_service:
             services["vision_service"] = self.vision_service
 
+        # Add OCR service if available (pre-initialized RapidOCR engine)
+        if self.ocr_service:
+            services["ocr_service"] = self.ocr_service
+
         # Merge additional services
         if additional_services:
             services.update(additional_services)
@@ -160,4 +174,3 @@ class ContextFactory:
         """
         self.session_ref = session_ref
         logger.debug(f"Updated factory session reference: {session_ref.session_id if session_ref else None}")
-

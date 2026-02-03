@@ -29,10 +29,11 @@ class ContainerInitializer:
         """
         Perform async initialization of container components.
 
-        This includes:
-        - Configuration service initialization
-        - Vision service initialization (for fast first-time use)
-        - Setting vision service in context factory
+This includes:
+- Configuration service initialization
+- Vision service initialization (for fast first-time use)
+- OCR service initialization (for fast first-time use)
+- Setting vision/OCR services in context factory
         """
         # Initialize configuration service (loads config and makes it available)
         await self._initialize_config_service()
@@ -40,12 +41,19 @@ class ContainerInitializer:
         # Initialize vision service (pre-loads InternVL model for fast first-time use)
         await self._initialize_vision_service()
 
+        # Initialize OCR service (pre-loads RapidOCR engine for fast first-time use)
+        await self._initialize_ocr_service()
+
         # Initialize embedder (loads SentenceTransformer model in thread pool)
         await self._initialize_embedder()
 
         # Set vision service in context factory so tools can access it
         if self.container.vision_service is not None:
             self.container.context_factory.set_vision_service(self.container.vision_service)
+
+        # Set OCR service in context factory so tools can access it
+        if self.container.ocr_service is not None:
+            self.container.context_factory.set_ocr_service(self.container.ocr_service)
 
         logger.info("Container initialization complete")
 
@@ -128,3 +136,25 @@ class ContainerInitializer:
             logger.warning(f"Embedder dependencies not available: {e}")
         except Exception as e:
             logger.error(f"Failed to initialize embedder: {e}", exc_info=True)
+
+    async def _initialize_ocr_service(self) -> None:
+        """
+        Initialize the OCR service to pre-load the RapidOCR engine.
+        """
+        try:
+            ocr_service = self.container.ocr_service
+
+            if ocr_service is None:
+                logger.warning("OCR service not available in DI container")
+                return
+
+            await ocr_service.initialize(self.container.config.ocr_config)
+            if ocr_service.enabled:
+                logger.info("OCR service initialized successfully")
+            else:
+                logger.warning("OCR service initialized but disabled (dependencies missing)")
+
+        except ImportError as e:
+            logger.warning(f"OCR service dependencies not available: {e}")
+        except Exception as e:
+            logger.error(f"Failed to initialize OCR service: {e}", exc_info=True)

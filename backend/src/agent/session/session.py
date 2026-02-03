@@ -19,7 +19,6 @@ from backend.src.agent.session.state import ConversationHistory
 from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.config import AppConfig
 from backend.src.core.events.bus_events import InteractionCompleted
-from backend.src.core.plugins.registry import PluginRegistry
 from backend.src.llm.client import LLMClient, get_llm_client
 from backend.src.llm.parser import ResponseParser
 from backend.src.llm.prompts import PromptConstructor
@@ -27,6 +26,7 @@ from backend.src.tools.registry import ToolRegistry
 
 if TYPE_CHECKING:
     from backend.src.tools.orchestrator import ToolOrchestrator
+    from backend.src.services.ocr.ocr_service import OcrService
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ class AgentSession:
         self,
         cfg: AppConfig,
         tool_registry: ToolRegistry,
-        plugin_registry: PluginRegistry,
+        ocr_service: Optional["OcrService"],
         llm_client: Optional[LLMClient] = None,
         tool_orchestrator: Optional[ToolOrchestrator] = None,
         event_bus: Optional[EventBus] = None,
@@ -73,7 +73,7 @@ class AgentSession:
         Args:
             cfg: Application configuration object
             tool_registry: Registry containing all available tools
-            plugin_registry: Registry for plugin management
+            ocr_service: OCR service instance (optional)
             llm_client: LLM client instance (auto-created if None)
             tool_orchestrator: Tool orchestration instance (auto-created if None)
             event_bus: EventBus instance for event communication (required)
@@ -115,6 +115,8 @@ class AgentSession:
             raise ValueError("event_bus is required for AgentSession")
         self.event_bus = event_bus
 
+        self.ocr_service = ocr_service
+
         # Initialize Executor
         self.executor = AgentExecutor(
             session=self,
@@ -122,7 +124,7 @@ class AgentSession:
             tool_orchestrator=self.tool_orchestrator,
             prompt_constructor=self.prompt_builder,
             response_parser=self.response_parser,
-            plugin_registry=plugin_registry,
+            ocr_service=self.ocr_service,
             event_bus=self.event_bus,
         )
 

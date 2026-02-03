@@ -4,9 +4,7 @@ Main Application Entry Point.
 This module initializes the FastAPI application, sets up dependency injection,
 configures CORS, and manages the application lifecycle including startup and shutdown.
 """
-import asyncio
 import logging
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -15,11 +13,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.src.api.routes import websocket
 from backend.src.api.routes.memory import embeddings, semantic
 from backend.src.core.bootstrap.coordinator import InitializationCoordinator
-
-# Disable plugin auto-loading by default when running main file
-# Set PLUGIN_AUTO_ENABLE=true to enable auto-loading
-if os.getenv("PLUGIN_AUTO_ENABLE") is None:
-    os.environ["PLUGIN_AUTO_ENABLE"] = "false"
 
 # Configure logging
 logging.basicConfig(
@@ -47,13 +40,12 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # Startup
     coordinator = InitializationCoordinator()
-    _, session_manager, plugin_registry = await coordinator.initialize(app)
+    _, session_manager = await coordinator.initialize(app)
 
     yield
 
     # Shutdown
     logger.info("Shutting down...")
-    await plugin_registry.shutdown_all_plugins()
     logger.info("Shutdown complete.")
 
 

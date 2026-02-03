@@ -20,7 +20,6 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from backend.src.core.interfaces.tool import ToolResult
-from backend.src.agent.plugins.manager import PluginManager
 
 logger = logging.getLogger(__name__)
 
@@ -56,27 +55,13 @@ class ResultTransformer:
     If you need state mutation, use HistoryCommitter instead.
     If you need event emission, use EventPresenter instead.
     
-    Note: PluginManager is used only for calling plugin hooks (which may have
-    side effects, but those are isolated to plugins, not this class).
+    Note: This transformer intentionally avoids plugin hooks. OCR and other
+    capabilities are wired directly via services.
     """
 
-    def __init__(self, plugin_manager: PluginManager):
-        """
-        Initialize the result transformer.
-        
-        Args:
-            plugin_manager: Plugin manager for plugin hooks.
-                          Used only for calling on_tool_end hooks, not for state access.
-        
-        Note: PluginManager is passed for hook execution only.
-              This class does not access PluginManager's internal state.
-        
-        Optional Hardening (for future consideration):
-        - Pass callables instead of PluginManager to make dependencies explicit
-        - Freeze input ToolResult dataclass to prevent accidental mutation
-        - Add runtime checks to verify no side effects occur
-        """
-        self.plugin_manager = plugin_manager
+    def __init__(self) -> None:
+        """Initialize the result transformer."""
+        pass
 
     async def transform(
         self,
@@ -90,8 +75,7 @@ class ResultTransformer:
         
         Args:
             tool_name: Name of the tool that produced this result
-            tool_result: Raw tool execution result (may be mutated by plugins, but
-                        this method itself has no side effects)
+            tool_result: Raw tool execution result
             
         Returns:
             ProcessedToolResult with enriched and normalized data
@@ -99,29 +83,11 @@ class ResultTransformer:
         Side Effects: None (pure function contract)
         """
         transform_start = time.perf_counter()
-        # 1. Plugin Hooks (plugins can process results, but screenshots come from frontend)
-        # DOUBLE PLUGIN EXECUTION FIX: Use PluginManager.on_tool_end instead of manual iteration.
-        # PluginManager already iterates through all plugins and calls on_tool_end, so manual
-        # iteration causes every hook to run twice, duplicating side effects (logging, notifications, etc.).
         if tool_result.artifacts is None:
             tool_result.artifacts = {}
-        
-        # Get merged plugin result (PluginManager handles iteration and error handling)
-        # Note: PluginManager returns a flat artifacts dict, but we need to namespace by plugin name
-        # to avoid collisions. We'll call plugins individually to get namespaced artifacts.
-        # However, we can't do that without duplicating execution. Instead, we'll use PluginManager
-        # but note that artifacts won't be namespaced (this is acceptable as PluginManager merges them).
-        plugin_result = await self.plugin_manager.on_tool_end(tool_name, tool_result)
-        
-        # Merge plugin artifacts into tool_result.artifacts
-        # Note: PluginManager returns a flat dict, not namespaced. This is acceptable as plugins
-        # should use unique artifact keys to avoid collisions. If namespacing is needed, it should
-        # be handled at the plugin level or PluginManager should be updated to namespace.
-        if plugin_result and plugin_result.artifacts:
-            tool_result.artifacts.update(plugin_result.artifacts)
-        
+
         # Extract screenshot data (helper method to avoid nested checks)
-        screenshot_data = self._extract_screenshot_data(tool_result, plugin_result)
+        screenshot_data = self._extract_screenshot_data(tool_result)
 
         # 2. Get pre-formatted message for history
         # Frontend should pre-format messages with system context XML embedded in llm_content.
@@ -141,27 +107,20 @@ class ResultTransformer:
         )
 
     def _extract_screenshot_data(
-        self, tool_result: ToolResult, plugin_result: Optional[Any]
+        self, tool_result: ToolResult
     ) -> Optional[str]:
         """
-        Extract screenshot data from tool result or plugin artifacts.
+        Extract screenshot data from tool result.
         
         Pure function: no side effects, deterministic output.
         
         Args:
             tool_result: Tool execution result
-            plugin_result: Optional plugin result with artifacts
-            
         Returns:
             Base64 screenshot data or None
             
         Side Effects: None (pure function contract)
         """
-        # Check plugin artifacts first (screenshots come from frontend, not plugins)
-        if plugin_result and plugin_result.artifacts and "screenshot" in plugin_result.artifacts:
-            logger.debug("Found screenshot in plugin artifacts")
-            return plugin_result.artifacts["screenshot"]
-        
         # Check tool result artifacts
         if tool_result.artifacts and "screenshot" in tool_result.artifacts:
             logger.debug("Found screenshot in tool result artifacts")

@@ -51,14 +51,14 @@ def build_session(
     # 3. Override model_id in config
     overridden_config = override_model_id(parent_session.cfg, model_id)
     
-    # 4. Get plugin registry from parent session
-    plugin_registry = parent_session.plugin_registry
+    # 4. Share OCR service from parent session
+    ocr_service = parent_session.ocr_service
     
     # 5. Create AgentSession
     sub_session = parent_session.__class__(
         cfg=overridden_config,
         tool_registry=restricted_registry,  # type: ignore
-        plugin_registry=plugin_registry,
+        ocr_service=ocr_service,
         llm_client=parent_session.llm_client,
         tool_orchestrator=parent_session.tool_orchestrator,
         event_bus=parent_session.event_bus,

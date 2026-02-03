@@ -119,14 +119,11 @@ class ScreenshotManager:
                 # Clear OCR completion event before starting new OCR
                 session.ocr_completion_event.clear()
                 
-                # Get OCR plugin from session registry
-                ocr_plugin = None
-                if session.executor and session.executor.plugin_manager:
-                    ocr_plugin = session.executor.plugin_manager.plugin_registry.get_plugin("ocr_analysis")
-                
-                if ocr_plugin and ocr_plugin.enabled:
-                    # perform_ocr is now properly async and handles GPU cache management internally in a thread
-                    results = await ocr_plugin.perform_ocr(screenshot_data)
+                ocr_service = session.ocr_service
+
+                if ocr_service and ocr_service.enabled:
+                    # perform_ocr is async and handles GPU cache management internally in a thread
+                    results = await ocr_service.perform_ocr(screenshot_data)
                     if results:
                         # Only store results if this screenshot_id is still current
                         # This prevents race conditions where a new screenshot arrives

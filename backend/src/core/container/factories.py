@@ -96,3 +96,10 @@ def _create_vision_service(config: AppConfig):
     from backend.src.services.vision import VisionService
 
     return VisionService(model_name=config.vision_model_name)
+
+
+def _create_ocr_service(config: AppConfig):
+    """Create OCR service with configured settings."""
+    from backend.src.services.ocr import OcrService
+
+    return OcrService(config=config.ocr_config)

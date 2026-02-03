@@ -92,7 +92,6 @@ class MouseTool(Tool[MouseControlArgs]):
 
     def __init__(self):
         self.computer = ComputerInterface()
-        self._ocr_plugin = None
         self._vision_service = None
 
     async def run(self, args: MouseControlArgs, ctx: ToolContext) -> dict:
@@ -192,12 +191,12 @@ class MouseTool(Tool[MouseControlArgs]):
             if not screenshot_result.success or not screenshot_result.screenshot_data:
                 raise ValueError(f"Screenshot failed: {screenshot_result.error}")
 
-            # Get OCR plugin and perform OCR
-            ocr_plugin = self._get_ocr_plugin()
-            if not ocr_plugin.enabled:
-                raise ValueError("OCR plugin is not enabled")
+            # Get OCR service and perform OCR
+            ocr_service = self._get_ocr_service(ctx, session)
+            if not ocr_service or not ocr_service.enabled:
+                raise ValueError("OCR service is not available or enabled")
 
-            ocr_results = await ocr_plugin.perform_ocr(screenshot_result.screenshot_data)
+            ocr_results = await ocr_service.perform_ocr(screenshot_result.screenshot_data)
             if ocr_results is None or not ocr_results:
                 raise ValueError("OCR analysis failed or found no text")
 
@@ -266,12 +265,12 @@ class MouseTool(Tool[MouseControlArgs]):
             return await self.computer.scroll_horizontal(x, y, args.scroll_amount or 0)
 
     # OCR helper methods
-    def _get_ocr_plugin(self):
-        """Get or initialize OCR plugin instance."""
-        if self._ocr_plugin is None:
-            from backend.src.agent.plugins.ocr_plugin import get_ocr_plugin_instance
-            self._ocr_plugin = get_ocr_plugin_instance()
-        return self._ocr_plugin
+    def _get_ocr_service(self, ctx: ToolContext, session: Any):
+        """Get OCR service from context or session."""
+        ocr_service = ctx.services.get("ocr_service")
+        if ocr_service:
+            return ocr_service
+        return getattr(session, "ocr_service", None)
 
     def _normalize_text(self, text: str) -> str:
         """Normalize text for comparison."""
