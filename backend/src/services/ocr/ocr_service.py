@@ -174,6 +174,11 @@ class OcrService:
 
         return ocr_params
 
+    def _create_engine(self, use_cuda: bool) -> None:
+        ocr_params = self._build_ocr_params(use_cuda=use_cuda)
+        self._ocr_engine = RapidOCR(params=ocr_params)
+        self.use_cuda = use_cuda
+
     async def initialize(self, config: Optional[OCRConfig] = None) -> None:
         """
         Initialize the OCR engine.
@@ -205,9 +210,7 @@ class OcrService:
             logger.debug("[OCR] PyTorch not available, cannot check CUDA status")
 
         try:
-            ocr_params = self._build_ocr_params(use_cuda=True)
-            self._ocr_engine = RapidOCR(params=ocr_params)
-            self.use_cuda = True
+            self._create_engine(use_cuda=True)
             logger.info("OCR service initialized and ready with CUDA support")
             logger.info("[OCR] Using CUDA device for OCR processing")
         except Exception as e:
@@ -219,9 +222,7 @@ class OcrService:
                     f"Falling back to CPU. Error: {error_msg[:200]}"
                 )
                 try:
-                    ocr_params = self._build_ocr_params(use_cuda=False)
-                    self._ocr_engine = RapidOCR(params=ocr_params)
-                    self.use_cuda = False
+                    self._create_engine(use_cuda=False)
                     logger.info("OCR service initialized with CPU fallback")
                     logger.info("[OCR] Using CPU device for OCR processing (CUDA initialization failed)")
                 except Exception as cpu_error:
@@ -267,18 +268,14 @@ class OcrService:
                             "OCR engine not initialized at startup, initializing now (this should not happen)"
                         )
                         try:
-                            ocr_params = self._build_ocr_params(use_cuda=True)
-                            self._ocr_engine = RapidOCR(params=ocr_params)
-                            self.use_cuda = True
+                            self._create_engine(use_cuda=True)
                             logger.info("Initialized RapidOCR engine with CUDA support (lazy initialization)")
                             logger.info("[OCR] Using CUDA device for OCR processing")
                         except Exception as e:
                             logger.debug(
                                 f"CUDA initialization failed during lazy init, trying CPU: {e}"
                             )
-                            ocr_params = self._build_ocr_params(use_cuda=False)
-                            self._ocr_engine = RapidOCR(params=ocr_params)
-                            self.use_cuda = False
+                            self._create_engine(use_cuda=False)
                             logger.info("Initialized RapidOCR engine with CPU (lazy initialization fallback)")
                             logger.info("[OCR] Using CPU device for OCR processing (CUDA unavailable)")
 
