@@ -19,7 +19,7 @@ backend/src/agent/
 │
 ├── tools/                             # Complete tool lifecycle
 │   ├── __init__.py                   # Package exports: ToolOrchestrator, ToolPreparer, ResolvedToolCallStorage, etc.
-│   ├── orchestrator.py               # ToolOrchestrator - high-level orchestrator (orchestrates sending via ToolSender, waiting via ToolResultWaiter, processing via ToolProcessingCoordinator)
+│   ├── orchestrator.py               # ToolOrchestrator - high-level orchestrator (orchestrates sending via ToolSender, waiting via ToolResultOrchestrator, processing via ToolProcessingCoordinator)
 │   │
 │   ├── preparation/                  # Phase 1: Prepare tools (resolution)
 │   │   ├── __init__.py               # Package exports: ResolvedToolCall, ToolPreparer
@@ -58,11 +58,10 @@ backend/src/agent/
 │   │   └── sender.py                  # ToolSender - sends resolved tools to frontend (uses ToolPreparer for preparation, yields ToolCallEvent, ToolBundleEvent, ToolOutputEvent)
 │   │
 │   ├── waiting/                       # Phase 3: Wait for frontend results, receive and route
-│   │   ├── __init__.py                # Package exports: ToolResultHandler, ToolResultReceiver, ToolResultRouter, ToolResultWaiter
+│   │   ├── __init__.py                # Package exports: ToolResultHandler, ToolResultReceiver, ToolResultRouter
 │   │   ├── handler.py                 # ToolResultHandler - facade for tool result processing from frontend (delegates to receiver and router)
 │   │   ├── receiver.py                # ToolResultReceiver - receives results from frontend and converts to ToolResult format (individual, bundle, bundled results)
 │   │   ├── router.py                  # ToolResultRouter - routes tool results to screenshot processor, storage, and future resolution
-│   │   ├── waiter.py                  # ToolResultWaiter - waits for results via backend ToolOrchestrator
 │   │   └── storage/
 │   │       ├── __init__.py            # Package exports: ToolResultStorage
 │   │       └── result_storage.py      # ToolResultStorage - centralized storage for pending tool results, futures, bundled results (with TTL cleanup)
@@ -132,10 +131,8 @@ tools/orchestrator.py
             └── ToolSender yields ToolCallEvent | ToolBundleEvent | ToolOutputEvent
         ↓
 2. Waiting Phase (process_results method)
-    └── tools/waiting/waiter.py
-        └── ToolResultWaiter.wait_for_results() → orchestration_result
-            └── backend/src/tools/orchestrator.py
-                └── ToolOrchestrator.execute_tools_from_response() → waits for futures
+    └── backend/src/tools/orchestrator.py
+        └── ToolResultOrchestrator.execute_tools_from_response() → waits for futures
         ↓
 3. Processing Phase
     └── tools/processing/coordinator.py
@@ -212,12 +209,10 @@ tools/waiting/handler.py
                 └── ToolResultStorage.resolve_result_future() → future resolved
         ↓
 3. Waiting Phase (orchestrator waits)
-    └── tools/waiting/waiter.py
-        └── ToolResultWaiter.wait_for_results()
-            └── backend/src/tools/orchestrator.py
-                └── ToolOrchestrator.execute_tools_from_response()
-                    └── backend/src/tools/single_tool_execution.py
-                        └── execute_single_tool() → waits for future
+    └── backend/src/tools/orchestrator.py
+        └── ToolResultOrchestrator.execute_tools_from_response()
+            └── backend/src/tools/single_tool_execution.py
+                └── execute_single_tool() → waits for future
                             └── await asyncio.wait_for(future) → ToolResult
         ↓
 4. Processing Phase
@@ -283,8 +278,8 @@ tools/waiting/router.py
         └── tools/waiting/storage/result_storage.py
             └── ToolResultStorage.resolve_bundle_future() → bundle future resolved
         ↓
-tools/waiting/waiter.py
-    └── ToolResultWaiter.wait_for_results()
+backend/src/tools/orchestrator.py
+    └── ToolResultOrchestrator.execute_tools_from_response()
         └── backend/src/tools/bundle_execution.py
             └── execute_bundle() → waits for bundle future
         ↓
@@ -307,7 +302,6 @@ execution/executor.py
         │   ├── llm/llm_stream_processor.py → LLMStreamProcessor
         │   ├── tools/preparation/preparer.py → ToolPreparer
         │   ├── tools/sending/sender.py → ToolSender
-        │   ├── tools/waiting/waiter.py → ToolResultWaiter
         │   ├── tools/processing/processor.py → ToolResultProcessor
         │   └── tools/orchestrator.py → ToolOrchestrator
         │

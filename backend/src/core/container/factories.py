@@ -50,9 +50,11 @@ def _create_tool_registry_with_factory(config: AppConfig, agent_factory):
 
 def _create_tool_orchestrator(tool_registry, config: AppConfig, context_factory):
     """Create tool orchestrator."""
-    from backend.src.tools.orchestrator import ToolOrchestrator
+    from backend.src.tools.orchestrator import ToolResultOrchestrator
 
-    return ToolOrchestrator(tool_registry, config, context_factory=context_factory)
+    return ToolResultOrchestrator(
+        tool_registry, config, context_factory=context_factory
+    )
 
 
 def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProvider]:

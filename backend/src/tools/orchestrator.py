@@ -1,9 +1,8 @@
 """
-Tool Orchestrator for the Desktop Assistant.
+Tool Result Orchestrator for the Desktop Assistant.
 
-This module coordinates tool execution requests, especially those involving
-coordinate resolution for visual tools, and manages the communication with 
-frontend tools.
+This module coordinates tool execution requests by waiting for frontend
+tool results and assembling tool result objects for the agent loop.
 """
 
 import logging
@@ -24,13 +23,12 @@ from backend.src.tools.single_tool_execution import execute_single_tool
 logger = logging.getLogger(__name__)
 
 
-class ToolOrchestrator:
+class ToolResultOrchestrator:
     """
-    Orchestrates tool execution requests.
+    Orchestrates tool execution requests by waiting for frontend results.
     
-    Refactored to handle the new architecture where tool execution
-    happens on the frontend. This class now primarily manages tool 
-    discovery and coordinate resolution before tools are sent to the frontend.
+    In the current architecture, tool execution happens on the frontend.
+    This class waits for results and assembles ToolResult objects for processing.
     """
 
     def __init__(

@@ -29,7 +29,6 @@ from backend.src.agent.tools.processing import (
 )
 from backend.src.agent.tools.preparation import ToolPreparer
 from backend.src.agent.tools.sending import ToolSender
-from backend.src.agent.tools.waiting import ToolResultWaiter
 from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.events import (
     AgentStreamingEvent,
@@ -40,7 +39,7 @@ from backend.src.core.events import (
 from backend.src.llm.client import LLMClient
 from backend.src.llm.parser import ResponseParser
 from backend.src.llm.prompts import PromptConstructor
-from backend.src.tools.orchestrator import ToolOrchestrator
+from backend.src.tools.orchestrator import ToolResultOrchestrator
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -59,7 +58,7 @@ class AgentExecutor:
         self,
         session: "AgentSession",
         llm_client: LLMClient,
-        tool_orchestrator: ToolOrchestrator,
+        tool_orchestrator: ToolResultOrchestrator,
         prompt_constructor: PromptConstructor,
         response_parser: ResponseParser,
         ocr_service: Optional["OcrService"],
@@ -117,7 +116,6 @@ class AgentExecutor:
         )
         
         # Tool lifecycle components
-        tool_result_waiter = ToolResultWaiter(backend_tool_orchestrator=tool_orchestrator)
         tool_result_processor = ToolResultProcessor(
             result_transformer=result_transformer,
             history_committer=history_committer,
@@ -127,7 +125,7 @@ class AgentExecutor:
         # High-level orchestrator
         agent_tool_orchestrator = AgentToolOrchestrator(
             tool_sender=tool_sender,
-            tool_result_waiter=tool_result_waiter,
+            tool_result_orchestrator=tool_orchestrator,
             tool_processing_coordinator=tool_processing_coordinator,
         )
         

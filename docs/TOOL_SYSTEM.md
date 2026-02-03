@@ -17,9 +17,9 @@ The Tool System enables the Desktop Assistant to interact with the computer thro
 │  └───────────────────────────────────────────┘  │
 │              ↕                                    │
 │  ┌───────────────────────────────────────────┐  │
-│  │  ToolOrchestrator                          │  │
-│  │  - Tool Execution Coordination             │  │
-│  │  - Coordinate Resolution                   │  │
+│  │  ToolResultOrchestrator                    │  │
+│  │  - Result Waiting/Assembly                 │  │
+│  │  - Bundle/Single Handling                  │  │
 │  └───────────────────────────────────────────┘  │
 │              ↕                                    │
 │  ┌───────────────────────────────────────────┐  │
@@ -103,9 +103,10 @@ LLM generates tool call in response format:
 
 ### 3. Tool Execution
 
-**ToolOrchestrator** (`tools/orchestrator.py`) coordinates execution:
+Tool calls are sent by the agent tool sender; execution happens in the frontend sidecar.
+**ToolResultOrchestrator** (`tools/orchestrator.py`) waits for frontend results and assembles `ToolResult` objects:
 
-1. Sends tool call to frontend via WebSocket
+1. Frontend receives tool-call event
 2. **useToolRunner** hook receives tool-call event
 3. **ToolExecutionService** (`infrastructure/services/ToolExecutionService.ts`) handles execution:
    - Routes tool to Python sidecar via IPC invoke
