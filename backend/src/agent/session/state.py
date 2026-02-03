@@ -79,10 +79,7 @@ class ConversationHistory:
             semantic_memory=semantic_memory,
             user_query_raw=user_query_raw,
         )
-        self.history.append(stored_msg)
-        # Convert and append to LLM cache immediately (O(1) per message)
-        llm_msg = stored_msg.to_llm_message()
-        self._llm_history_cache.append(llm_msg)
+        self._append_message(stored_msg)
         # Invalidate token count cache (new message added)
         self._invalidate_token_cache()
         self._prune_if_needed()
@@ -132,9 +129,7 @@ class ConversationHistory:
         # Store history length before pruning to detect if pruning occurred
         history_length_before = len(self.history)
         
-        self.history.append(stored_msg)
-        # Append to LLM cache immediately (O(1) per message)
-        self._llm_history_cache.append(llm_msg)
+        self._append_message(stored_msg, llm_msg)
         
         # Prune if needed (this may invalidate cache if pruning occurs)
         self._prune_if_needed()
@@ -167,10 +162,7 @@ class ConversationHistory:
             message: Assistant response text
         """
         stored_msg = self._build_assistant_message(message)
-        self.history.append(stored_msg)
-        # Convert and append to LLM cache immediately (O(1) per message)
-        llm_msg = stored_msg.to_llm_message()
-        self._llm_history_cache.append(llm_msg)
+        self._append_message(stored_msg)
         # Invalidate token count cache (new message added)
         self._invalidate_token_cache()
         self._prune_if_needed()
@@ -338,6 +330,14 @@ class ConversationHistory:
     def _invalidate_token_cache(self) -> None:
         self._cached_token_count = None
         self._cached_token_count_model = None
+
+    def _append_message(
+        self, stored_msg: StoredMessage, llm_msg: Optional[LLMMessage] = None
+    ) -> None:
+        self.history.append(stored_msg)
+        self._llm_history_cache.append(
+            llm_msg if llm_msg is not None else stored_msg.to_llm_message()
+        )
 
     def _build_user_message(
         self,
