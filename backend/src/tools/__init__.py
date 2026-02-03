@@ -8,10 +8,10 @@ definitions, and orchestrator.
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from backend.src.tools.orchestrator import ToolOrchestrator
+    from backend.src.tools.orchestrator import ToolResultOrchestrator
     from backend.src.tools.registry import ToolRegistry
 
-__all__ = ["ToolRegistry", "ToolOrchestrator"]
+__all__ = ["ToolRegistry", "ToolResultOrchestrator"]
 
 
 def __getattr__(name: str):
@@ -19,8 +19,8 @@ def __getattr__(name: str):
         from backend.src.tools.registry import ToolRegistry
 
         return ToolRegistry
-    if name == "ToolOrchestrator":
-        from backend.src.tools.orchestrator import ToolOrchestrator
+    if name == "ToolResultOrchestrator":
+        from backend.src.tools.orchestrator import ToolResultOrchestrator
 
-        return ToolOrchestrator
+        return ToolResultOrchestrator
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

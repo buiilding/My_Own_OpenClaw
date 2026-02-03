@@ -25,7 +25,7 @@ from backend.src.llm.prompts import PromptConstructor
 from backend.src.tools.registry import ToolRegistry
 
 if TYPE_CHECKING:
-    from backend.src.tools.orchestrator import ToolOrchestrator
+    from backend.src.tools.orchestrator import ToolResultOrchestrator
     from backend.src.services.ocr.ocr_service import OcrService
 
 logger = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ class AgentSession:
         tool_registry: ToolRegistry,
         ocr_service: Optional["OcrService"],
         llm_client: Optional[LLMClient] = None,
-        tool_orchestrator: Optional[ToolOrchestrator] = None,
+        tool_orchestrator: Optional[ToolResultOrchestrator] = None,
         event_bus: Optional[EventBus] = None,
         metrics_service: Optional[Any] = None,  # MetricsService (optional for backward compatibility)
         user_id: str = "default_user",
@@ -100,13 +100,15 @@ class AgentSession:
     def _init_tooling(
         self,
         tool_registry: ToolRegistry,
-        tool_orchestrator: Optional[ToolOrchestrator],
+        tool_orchestrator: Optional[ToolResultOrchestrator],
     ) -> None:
         self.tool_registry = tool_registry
         if tool_orchestrator is None:
-            from backend.src.tools.orchestrator import ToolOrchestrator
+            from backend.src.tools.orchestrator import ToolResultOrchestrator
 
-            self.tool_orchestrator = ToolOrchestrator(self.tool_registry, self.cfg)
+            self.tool_orchestrator = ToolResultOrchestrator(
+                self.tool_registry, self.cfg
+            )
         else:
             self.tool_orchestrator = tool_orchestrator
 

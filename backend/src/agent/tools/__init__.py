@@ -25,7 +25,6 @@ from backend.src.agent.tools.waiting import (
     ToolResultHandler,
     ToolResultReceiver,
     ToolResultRouter,
-    ToolResultWaiter,
 )
 from backend.src.agent.tools.waiting.storage import ToolResultStorage
 
@@ -64,7 +63,6 @@ __all__ = [
     "ToolResultHandler",
     "ToolResultReceiver",
     "ToolResultRouter",
-    "ToolResultWaiter",
     "ToolResultStorage",
     # Processing
     "ToolProcessingCoordinator",

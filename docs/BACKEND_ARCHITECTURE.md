@@ -80,7 +80,7 @@ backend/src/
 │   └── plugins/        # Plugin system (OCR, etc.)
 ├── tools/             # Tools domain (registry, loader, tools)
 │   ├── registry.py   # ToolRegistry
-│   ├── orchestrator.py  # ToolOrchestrator
+│   ├── orchestrator.py  # ToolResultOrchestrator
 │   ├── remote.py     # Remote tool stubs
 │   └── schema_registry.py  # Tool schema management
 ├── embeddings/        # Embedding provider domain
@@ -206,19 +206,18 @@ Registry for managing tools in the Desktop Assistant.
 - `get_all_tool_schemas()`: Get all tool schemas
 - `create_context()`: Create execution context
 
-#### ToolOrchestrator (`tools/orchestrator.py`)
+#### ToolResultOrchestrator (`tools/orchestrator.py`)
 
-Orchestrates tool execution requests.
+Orchestrates tool execution requests by waiting for frontend tool results.
 
 **Responsibilities**:
-- Coordinate tool execution
-- Handle coordinate resolution
-- Manage communication with frontend
-- Wait for tool results
+- Wait for frontend tool results (single tools and bundles)
+- Assemble tool result objects for agent processing
+- Provide available tool metadata for inspection
 
 **Key Methods**:
 - `execute_tools_from_response()`: Execute tools from parsed response
-- `_wait_for_tool_result()`: Wait for frontend tool result
+- `get_available_tools()`: Return tool capability metadata
 
 #### ToolPreparer (`agent/tools/preparation/preparer.py`)
 
@@ -401,7 +400,7 @@ ApplicationContainer
 │   └── EventBus
 ├── ToolContainer
 │   ├── ToolRegistry
-│   ├── ToolOrchestrator
+│   ├── ToolResultOrchestrator
 │   └── AgentFactory
 ├── MemoryContainer
 │   └── EmbeddingProvider

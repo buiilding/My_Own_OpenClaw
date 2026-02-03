@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
     from backend.src.agent.tools.processing.coordinator import ToolProcessingCoordinator
     from backend.src.agent.tools.sending.sender import ToolSender
-    from backend.src.agent.tools.waiting.waiter import ToolResultWaiter
+    from backend.src.tools.orchestrator import ToolResultOrchestrator
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class ToolOrchestrator:
     def __init__(
         self,
         tool_sender: "ToolSender",
-        tool_result_waiter: "ToolResultWaiter",
+        tool_result_orchestrator: "ToolResultOrchestrator",
         tool_processing_coordinator: "ToolProcessingCoordinator",
     ):
         """
@@ -36,11 +36,11 @@ class ToolOrchestrator:
         
         Args:
             tool_sender: Sender for sending resolved tools to frontend
-            tool_result_waiter: Waiter for frontend results
+            tool_result_orchestrator: Orchestrator for waiting on frontend results
             tool_processing_coordinator: Coordinator for result processing
         """
         self.tool_sender = tool_sender
-        self.tool_result_waiter = tool_result_waiter
+        self.tool_result_orchestrator = tool_result_orchestrator
         self.tool_processing_coordinator = tool_processing_coordinator
 
     async def execute(
@@ -80,8 +80,11 @@ class ToolOrchestrator:
             session: Agent session for context
         """
         # Wait for frontend results
-        orchestration_result = await self.tool_result_waiter.wait_for_results(
-            parsed_response, session
+        orchestration_result = await self.tool_result_orchestrator.execute_tools_from_response(
+            parsed_response,
+            user_id=session.user_id,
+            session_id=session.session_id,
+            session_ref=session,
         )
 
         # Process results
