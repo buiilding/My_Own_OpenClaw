@@ -67,4 +67,41 @@ describe('MessageFormatter', () => {
     expect(output).toContain('<active_window>App</active_window>');
     expect(output).toContain('State of the screen after bundled tools were executed:');
   });
+
+  test('formatToolOutputMessage uses string data payload', () => {
+    const output = formatToolOutputMessage(
+      'read_file',
+      { success: true, data: 'raw text' },
+      null,
+    );
+    expect(output).toContain('raw text');
+    expect(output).toContain('status: successful');
+  });
+
+  test('formatToolOutputMessage uses message field and screenshot indicator', () => {
+    const output = formatToolOutputMessage(
+      'screenshot',
+      { success: true, data: { message: 'ok', screenshot: 'shot' } },
+      null,
+    );
+    expect(output).toContain('ok');
+    expect(output).toContain('State of the screen after screenshot was executed:');
+  });
+
+  test('formatSequentialStateXml fills missing fields with Unknown', () => {
+    const xml = formatSequentialStateXml({ active_window: 'Browser' });
+    expect(xml).toContain('<active_window>Browser</active_window>');
+    expect(xml).toContain('<mouse_position>Unknown</mouse_position>');
+  });
+
+  test('formatBundledToolOutputMessage omits screenshot indicator when absent', () => {
+    const output = formatBundledToolOutputMessage(
+      [
+        { tool_name: 'read_file', success: true, data: { output: 'ok' } },
+      ],
+      null,
+      null,
+    );
+    expect(output).not.toContain('State of the screen after bundled tools were executed:');
+  });
 });

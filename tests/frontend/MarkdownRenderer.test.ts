@@ -23,4 +23,18 @@ describe('toSanitizedMarkdownHtml', () => {
     expect(html).toContain('<code');
     expect(html).toContain('console.log(1)');
   });
+
+  test('adds safe link attributes', () => {
+    const html = toSanitizedMarkdownHtml('[link](https://example.com)');
+    expect(html).toContain('href="https://example.com"');
+    expect(html).toContain('target="_blank"');
+    expect(html).toContain('rel="noreferrer noopener"');
+  });
+
+  test('renders large markdown as escaped pre block', () => {
+    const large = `<script>alert(1)</script>${'a'.repeat(40010)}`;
+    const html = toSanitizedMarkdownHtml(large);
+    expect(html).toContain('<pre class="code-block">');
+    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+  });
 });
