@@ -86,8 +86,7 @@ class ConversationHistory:
         llm_msg = stored_msg.to_llm_message()
         self._llm_history_cache.append(llm_msg)
         # Invalidate token count cache (new message added)
-        self._cached_token_count = None
-        self._cached_token_count_model = None
+        self._invalidate_token_cache()
         self._prune_if_needed()
         # Keep only the 2 most recent images (previous + current) for before/after comparison; clear older ones
         self._clear_old_image_data()
@@ -189,8 +188,7 @@ class ConversationHistory:
         llm_msg = stored_msg.to_llm_message()
         self._llm_history_cache.append(llm_msg)
         # Invalidate token count cache (new message added)
-        self._cached_token_count = None
-        self._cached_token_count_model = None
+        self._invalidate_token_cache()
         self._prune_if_needed()
 
     def get_history(self) -> List[LLMMessage]:
@@ -309,8 +307,7 @@ class ConversationHistory:
         """Clear all conversation history."""
         self.history = []
         self._llm_history_cache = []
-        self._cached_token_count = None
-        self._cached_token_count_model = None
+        self._invalidate_token_cache()
         # Note: system_prompt is preserved on clear
 
     def _prune_if_needed(self) -> None:
@@ -321,8 +318,7 @@ class ConversationHistory:
             self.history = self.history[-self.max_length :]
             self._llm_history_cache = self._llm_history_cache[-self.max_length :]
             # Invalidate token count cache (history changed)
-            self._cached_token_count = None
-            self._cached_token_count_model = None
+            self._invalidate_token_cache()
             logger.debug(f"Pruned conversation history to {self.max_length} messages (removed {removed_count})")
     
     def _clear_old_image_data(self, keep_recent_images: int = 2) -> None:
@@ -355,3 +351,6 @@ class ConversationHistory:
                 f"(keeping last {keep_recent_images} images) to limit memory and context size"
             )
 
+    def _invalidate_token_cache(self) -> None:
+        self._cached_token_count = None
+        self._cached_token_count_model = None
