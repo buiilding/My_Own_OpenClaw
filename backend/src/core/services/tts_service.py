@@ -486,78 +486,78 @@ class TTSService:
         
         # DOS PROTECTION: Check if buffer exceeds hard limit without delimiter
         # If so, force a split at the limit to prevent OOM attacks
-        if len(buffer) > self.MAX_BUFFER_SIZE:
-            # Find the last space before the limit to avoid splitting words
-            split_pos = self.MAX_BUFFER_SIZE
-            for i in range(self.MAX_BUFFER_SIZE - 1, max(0, self.MAX_BUFFER_SIZE - 100), -1):
-                if buffer[i].isspace():
-                    split_pos = i + 1
-                    break
-            
-            # Force split: queue the first part and keep the rest
-            forced_sentence = buffer[:split_pos].strip()
+        forced_split = self._force_split_buffer(buffer)
+        if forced_split:
+            forced_sentence, remaining_after_split = forced_split
             if forced_sentence:
                 logger.warning(
                     f"TTS buffer exceeded {self.MAX_BUFFER_SIZE} chars without delimiter. "
-                    f"Forcing split at position {split_pos} to prevent OOM."
+                    f"Forcing split at position {self.MAX_BUFFER_SIZE} to prevent OOM."
                 )
                 self.input_queue.put(forced_sentence)
-            
+
             # TTS BUFFER STALL FIX: Process remaining text immediately instead of returning.
-            # The remaining text may contain complete sentences that should be processed now,
-            # not wait for more text to arrive. This prevents text from getting stuck in buffer.
-            remaining_after_split = buffer[split_pos:].strip()
             self.buffer_parts.clear()
             if remaining_after_split:
                 self.buffer_parts.append(remaining_after_split)
-                # Recursively process remaining text to check for delimiters
-                # This ensures complete sentences in the remainder are processed immediately
                 self._process_buffer()
             return
         
         # Clear buffer parts - we'll rebuild with remaining text
         self.buffer_parts.clear()
             
+        sentences, remaining = self._split_sentences(buffer)
+        for sentence in sentences:
+            self.input_queue.put(sentence)
+        if remaining:
+            self.buffer_parts.append(remaining)
+
+    def _force_split_buffer(self, buffer: str) -> Optional[tuple[str, str]]:
+        if len(buffer) <= self.MAX_BUFFER_SIZE:
+            return None
+
+        split_pos = self.MAX_BUFFER_SIZE
+        for i in range(
+            self.MAX_BUFFER_SIZE - 1, max(0, self.MAX_BUFFER_SIZE - 100), -1
+        ):
+            if buffer[i].isspace():
+                split_pos = i + 1
+                break
+
+        forced_sentence = buffer[:split_pos].strip()
+        remaining_after_split = buffer[split_pos:].strip()
+        return forced_sentence, remaining_after_split
+
+    def _split_sentences(self, buffer: str) -> tuple[list[str], str]:
+        sentences: list[str] = []
         start = 0
         i = 0
+
         while i < len(buffer):
             char = buffer[i]
-            
-            # Check for delimiters
+
             if char in self.delimiters:
-                # Special handling for period to avoid splitting filenames
                 if char == ".":
-                    # Look ahead - if next char is NOT whitespace/newline/EOF, skip splitting
-                    # This handles: .env, file.txt, version 1.0, etc.
-                    # Also handles backticks: `.env` should not split
                     if i + 1 < len(buffer):
                         next_char = buffer[i + 1]
-                        # If next char is alphanumeric or special filename chars, it's part of a word/filename
                         if next_char.isalnum() or next_char in {"`", "'", '"', "-", "_"}:
                             i += 1
                             continue
-                    # If at end of buffer, don't split yet (wait for more text or flush)
                     else:
-                        # End of current buffer, don't split yet - let it accumulate
                         i += 1
                         continue
 
-                # Extract sentence up to and including the delimiter
                 sentence = buffer[start : i + 1]
-                
-                # Queue non-empty sentences
                 clean_sentence = sentence.strip()
                 if clean_sentence:
-                    self.input_queue.put(clean_sentence)
-                
+                    sentences.append(clean_sentence)
+
                 start = i + 1
-            
+
             i += 1
 
-        # Keep remaining text that doesn't end with a delimiter
         remaining = buffer[start:]
-        if remaining:
-            self.buffer_parts.append(remaining)
+        return sentences, remaining
 
     async def flush(self):
         """
