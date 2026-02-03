@@ -168,65 +168,35 @@ class Cache:
         """
         Get value from cache or compute it if not found.
         """
-        value = self.get(key)
-        if value is not None:
-            return value
+        while True:
+            value = self.get(key)
+            if value is not None:
+                return value
 
-        event = None
-        should_compute = False
-        with self._lock:
-            if key in self._computing_sync:
-                event = self._computing_sync[key]
-                should_compute = False
-            else:
-                event = threading.Event()
-                self._computing_sync[key] = event
-                should_compute = True
-
-        if not should_compute:
-            event.wait()
-            try:
-                value = self.get(key)
-                if value is not None:
-                    return value
-            except Exception:
-                raise
             with self._lock:
-                if key not in self._computing_sync:
+                event = self._computing_sync.get(key)
+                if event is None:
                     event = threading.Event()
                     self._computing_sync[key] = event
                     should_compute = True
                 else:
-                    event = self._computing_sync[key]
-                    if not event.is_set():
-                        event.wait()
-                        try:
-                            value = self.get(key)
-                            if value is not None:
-                                return value
-                        except Exception:
-                            raise
-                    if key not in self._computing_sync:
-                        event = threading.Event()
-                        self._computing_sync[key] = event
-                        should_compute = True
+                    should_compute = False
 
-        if should_compute:
-            try:
-                value = compute_func()
-                self.set(key, value, ttl)
-                return value
-            except Exception as e:
-                self._store_error_entry(key, e)
-                raise
-            finally:
-                with self._lock:
-                    if key in self._computing_sync and self._computing_sync[key] is event:
-                        del self._computing_sync[key]
-                    if event is not None:
+            if should_compute:
+                try:
+                    value = compute_func()
+                    self.set(key, value, ttl)
+                    return value
+                except Exception as e:
+                    self._store_error_entry(key, e)
+                    raise
+                finally:
+                    with self._lock:
+                        if self._computing_sync.get(key) is event:
+                            del self._computing_sync[key]
                         event.set()
-
-        return self.get(key) or compute_func()
+            else:
+                event.wait()
 
     async def get_or_compute_async(
         self,
@@ -235,65 +205,32 @@ class Cache:
         ttl: Optional[float] = None,
     ) -> T:
         """Get value from cache or compute it asynchronously if not found."""
-        try:
+        while True:
             value = self.get(key)
             if value is not None:
                 return value
-        except Exception:
-            raise
 
-        event = None
-        should_compute = False
-        with self._lock:
-            if key in self._computing_async:
-                event = self._computing_async[key]
-                should_compute = False
-            else:
-                event = self._new_async_event()
-                self._computing_async[key] = event
-                should_compute = True
-
-        if not should_compute:
-            await event.wait()
-            try:
-                value = self.get(key)
-                if value is not None:
-                    return value
-            except Exception:
-                raise
             with self._lock:
-                if key not in self._computing_async:
+                event = self._computing_async.get(key)
+                if event is None:
                     event = self._new_async_event()
                     self._computing_async[key] = event
                     should_compute = True
                 else:
-                    event = self._computing_async[key]
-                    if not event.is_set():
-                        await event.wait()
-                        try:
-                            value = self.get(key)
-                            if value is not None:
-                                return value
-                        except Exception:
-                            raise
-                    if key not in self._computing_async:
-                        event = self._new_async_event()
-                        self._computing_async[key] = event
-                        should_compute = True
+                    should_compute = False
 
-        if should_compute:
-            try:
-                value = await compute_func()
-                self.set(key, value, ttl)
-                return value
-            except Exception as e:
-                self._store_error_entry(key, e)
-                raise
-            finally:
-                with self._lock:
-                    if key in self._computing_async and self._computing_async[key] is event:
-                        del self._computing_async[key]
-                    if event is not None:
+            if should_compute:
+                try:
+                    value = await compute_func()
+                    self.set(key, value, ttl)
+                    return value
+                except Exception as e:
+                    self._store_error_entry(key, e)
+                    raise
+                finally:
+                    with self._lock:
+                        if self._computing_async.get(key) is event:
+                            del self._computing_async[key]
                         event.set()
-
-        return self.get(key) or await compute_func()
+            else:
+                await event.wait()
