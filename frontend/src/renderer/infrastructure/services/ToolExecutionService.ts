@@ -143,23 +143,7 @@ export class ToolExecutionService {
       }
 
       // Send result to backend
-      if (this.callbacks.sendToBackend) {
-        const payloadData = {
-          ...(result.data && typeof result.data === 'object' ? result.data : {}),
-          llm_content: formattedMessage,
-          is_preformatted: true,
-        };
-
-        this.callbacks.sendToBackend({
-          type: 'tool-result',
-          payload: {
-            request_id: options.correlationId,
-            success: result.success,
-            data: payloadData,
-            error: result.error,
-          }
-        });
-      }
+      this._sendToolResult(options.correlationId, result, formattedMessage);
 
       // Calculate total execution time AFTER sending to backend (execution is complete when backend receives result)
       // This includes: tool IPC + wait delay + screenshot capture + formatting + backend send
@@ -209,20 +193,7 @@ export class ToolExecutionService {
       }
 
       // Send error result to backend
-      if (this.callbacks.sendToBackend) {
-        this.callbacks.sendToBackend({
-          type: 'tool-result',
-          payload: {
-            request_id: options.correlationId,
-            success: false,
-            error: error.message,
-            data: {
-              llm_content: errorFormattedMessage,
-              is_preformatted: true,
-            },
-          }
-        });
-      }
+      this._sendToolResult(options.correlationId, errorResult.result, errorFormattedMessage);
 
       throw error;
     }
@@ -239,6 +210,32 @@ export class ToolExecutionService {
       return (data.system_state as SystemState | undefined) || null;
     }
     return null;
+  }
+
+  private _sendToolResult(
+    correlationId: string | undefined,
+    result: ToolResult,
+    formattedMessage: string
+  ): void {
+    if (!this.callbacks.sendToBackend) {
+      return;
+    }
+
+    const payloadData = {
+      ...(result.data && typeof result.data === 'object' && !Array.isArray(result.data) ? result.data : {}),
+      llm_content: formattedMessage,
+      is_preformatted: true,
+    };
+
+    this.callbacks.sendToBackend({
+      type: 'tool-result',
+      payload: {
+        request_id: correlationId,
+        success: result.success,
+        data: payloadData,
+        error: result.error,
+      }
+    });
   }
 
   /**
