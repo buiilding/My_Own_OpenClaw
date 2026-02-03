@@ -504,8 +504,7 @@ class LocalMemoryStore:
         query_embedding = query_embedding.reshape(1, -1)
         faiss.normalize_L2(query_embedding)
         
-        logger.debug(f"Searching memories for query: '{query}' (user_id: {user_id}, limit: {limit})")
-        logger.debug(f"Episodic index ntotal: {self.episodic_index.ntotal if self.episodic_index else 'None'}, Semantic index ntotal: {self.semantic_index.ntotal if self.semantic_index else 'None'}")
+        self._log_search_start(query, user_id, limit)
 
         # Search both databases in parallel
         search_tasks = []
@@ -651,6 +650,19 @@ class LocalMemoryStore:
                 final_results[0].get("type", "N/A"),
             )
         return final_results
+
+    def _log_search_start(self, query: str, user_id: str, limit: int) -> None:
+        logger.debug(
+            "Searching memories for query: '%s' (user_id: %s, limit: %s)",
+            query,
+            user_id,
+            limit,
+        )
+        logger.debug(
+            "Episodic index ntotal: %s, Semantic index ntotal: %s",
+            self.episodic_index.ntotal if self.episodic_index else "None",
+            self.semantic_index.ntotal if self.semantic_index else "None",
+        )
 
     def _map_memory_ids(
         self,
