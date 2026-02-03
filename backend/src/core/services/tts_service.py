@@ -488,11 +488,11 @@ class TTSService:
         # If so, force a split at the limit to prevent OOM attacks
         forced_split = self._force_split_buffer(buffer)
         if forced_split:
-            forced_sentence, remaining_after_split = forced_split
+            forced_sentence, remaining_after_split, split_pos = forced_split
             if forced_sentence:
                 logger.warning(
                     f"TTS buffer exceeded {self.MAX_BUFFER_SIZE} chars without delimiter. "
-                    f"Forcing split at position {self.MAX_BUFFER_SIZE} to prevent OOM."
+                    f"Forcing split at position {split_pos} to prevent OOM."
                 )
                 self.input_queue.put(forced_sentence)
 
@@ -512,7 +512,7 @@ class TTSService:
         if remaining:
             self.buffer_parts.append(remaining)
 
-    def _force_split_buffer(self, buffer: str) -> Optional[tuple[str, str]]:
+    def _force_split_buffer(self, buffer: str) -> Optional[tuple[str, str, int]]:
         if len(buffer) <= self.MAX_BUFFER_SIZE:
             return None
 
@@ -526,7 +526,7 @@ class TTSService:
 
         forced_sentence = buffer[:split_pos].strip()
         remaining_after_split = buffer[split_pos:].strip()
-        return forced_sentence, remaining_after_split
+        return forced_sentence, remaining_after_split, split_pos
 
     def _split_sentences(self, buffer: str) -> tuple[list[str], str]:
         sentences: list[str] = []
