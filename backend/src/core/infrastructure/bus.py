@@ -308,45 +308,7 @@ class EventBus:
         # ThinkingEvent, ToolCallEvent, etc.
         
         # Check cache first to avoid repeated sorting
-        unique_handlers = self._get_cached_handlers(event_type)
-        
-        if unique_handlers is None:
-            # Cache miss: compute handler list
-            handlers = []
-            with self._lock:
-                # Iterate over MRO to find all matching subscribers
-                for cls in event_type.__mro__:
-                    # Skip object base class
-                    if cls is object:
-                        continue
-                    # Check if this class (or any parent) has subscribers
-                    if cls in self._subscribers:
-                        handlers.extend(self._subscribers[cls])
-            
-            # Remove duplicates while preserving order (handlers may be subscribed to multiple levels)
-            # DUPLICATE EVENT DELIVERY FIX: Deduplicate by underlying handler identity, not wrapper identity
-            # If the same handler is subscribed to both ParentEvent and ChildEvent, it gets two different
-            # wrapper objects, but we want to execute the handler only once per event.
-            seen = set()
-            unique_handlers = []
-            for wrapper in handlers:
-                # Get the underlying handler (may be None if weak reference is dead)
-                handler = wrapper.handler
-                if handler is None:
-                    continue  # Skip dead handlers
-                # Use handler identity for deduplication, not wrapper identity
-                handler_id = id(handler)
-                if handler_id not in seen:
-                    seen.add(handler_id)
-                    unique_handlers.append(wrapper)
-            
-            # Sort by priority (lower = higher priority) to maintain execution order
-            # across handlers from different MRO levels
-            unique_handlers.sort(key=lambda w: w.priority)
-            
-            # Cache the result
-            with self._lock:
-                self._cache_handlers(event_type, unique_handlers)
+        unique_handlers = self._get_or_build_handlers(event_type)
         
         if not unique_handlers:
             logger.debug(f"No handlers for {event_name} (checked MRO: {[cls.__name__ for cls in event_type.__mro__ if cls is not object]})")
@@ -356,21 +318,7 @@ class EventBus:
         
         # Execute handlers in priority order
         # MEMORY MANAGEMENT: Filter out dead handlers (from weak references) during iteration
-        active_handlers = [w for w in unique_handlers if w.is_alive()]
-        if len(active_handlers) < len(unique_handlers):
-            # Some handlers were garbage collected, clean them up
-            # Only clean the specific event types that were actually checked (from MRO)
-            with self._lock:
-                # Invalidate cache since handlers changed
-                self._invalidate_handler_cache()
-                # Only clean event types that were in the MRO (not all event types)
-                for cls in event_type.__mro__:
-                    if cls is object:
-                        continue
-                    if cls in self._subscribers:
-                        self._subscribers[cls] = [
-                            w for w in self._subscribers[cls] if w.is_alive()
-                        ]
+        active_handlers = self._filter_active_handlers(unique_handlers, event_type)
         
         for wrapper in active_handlers:
             try:
@@ -404,3 +352,62 @@ class EventBus:
     def get_subscriber_count(self, event_type: Type[Event]) -> int:
         """Get the number of subscribers for an event type."""
         return len(self._subscribers.get(event_type, []))
+
+    def _get_or_build_handlers(
+        self, event_type: Type[Event]
+    ) -> List[EventHandlerWrapper]:
+        unique_handlers = self._get_cached_handlers(event_type)
+        if unique_handlers is not None:
+            return unique_handlers
+
+        handlers = []
+        with self._lock:
+            for cls in event_type.__mro__:
+                if cls is object:
+                    continue
+                if cls in self._subscribers:
+                    handlers.extend(self._subscribers[cls])
+
+        unique_handlers = self._dedupe_handlers(handlers)
+        unique_handlers.sort(key=lambda w: w.priority)
+
+        with self._lock:
+            self._cache_handlers(event_type, unique_handlers)
+
+        return unique_handlers
+
+    def _dedupe_handlers(
+        self, handlers: List[EventHandlerWrapper]
+    ) -> List[EventHandlerWrapper]:
+        seen = set()
+        unique_handlers = []
+        for wrapper in handlers:
+            handler = wrapper.handler
+            if handler is None:
+                continue
+            handler_id = id(handler)
+            if handler_id not in seen:
+                seen.add(handler_id)
+                unique_handlers.append(wrapper)
+        return unique_handlers
+
+    def _filter_active_handlers(
+        self,
+        unique_handlers: List[EventHandlerWrapper],
+        event_type: Type[Event],
+    ) -> List[EventHandlerWrapper]:
+        active_handlers = [w for w in unique_handlers if w.is_alive()]
+        if len(active_handlers) < len(unique_handlers):
+            self._cleanup_dead_handlers(event_type)
+        return active_handlers
+
+    def _cleanup_dead_handlers(self, event_type: Type[Event]) -> None:
+        with self._lock:
+            self._invalidate_handler_cache()
+            for cls in event_type.__mro__:
+                if cls is object:
+                    continue
+                if cls in self._subscribers:
+                    self._subscribers[cls] = [
+                        w for w in self._subscribers[cls] if w.is_alive()
+                    ]
