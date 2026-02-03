@@ -337,12 +337,14 @@ class AgentSession:
         async with self._lock:
             old_provider = self.cfg.model_provider
             old_model = self.cfg.selected_model_id
+            old_mode = self.cfg.interaction_mode
             self.cfg = new_cfg
             
             logger.info(
                 f"[AgentSession] Updating config: "
                 f"model_provider {old_provider} → {new_cfg.model_provider}, "
-                f"selected_model_id {old_model} → {new_cfg.selected_model_id}"
+                f"selected_model_id {old_model} → {new_cfg.selected_model_id}, "
+                f"interaction_mode {old_mode} → {new_cfg.interaction_mode}"
             )
             
             # Re-initialize LLM client with new config
@@ -358,6 +360,27 @@ class AgentSession:
                 if hasattr(self.executor.interaction_loop, 'llm_handler') and self.executor.interaction_loop.llm_handler:
                     self.executor.interaction_loop.llm_handler.llm_client = self.llm_client
                     logger.debug("Updated LLMInteractionHandler with new LLM client")
+
+                # Rebuild prompt constructor and parser to apply config changes immediately.
+                previous_prompt = self.prompt_builder
+                self.prompt_builder = PromptConstructor(
+                    self.tool_registry,
+                    self.cfg,
+                    system_prompt=previous_prompt.system_prompt,
+                )
+                self.response_parser = ResponseParser(self.cfg, self.tool_registry)
+
+                self.executor.prompt_builder = self.prompt_builder
+                self.executor.response_parser = self.response_parser
+                self.executor.interaction_loop.response_parser = self.response_parser
+
+                from backend.src.agent.llm.conversation_context import ConversationContext
+
+                self.executor.interaction_loop.prompt_coordinator = ConversationContext(
+                    prompt_constructor=self.prompt_builder,
+                    history=self.history,
+                )
+                logger.debug("Updated prompt constructor and response parser with new config")
 
     async def process_query(
         self, 
