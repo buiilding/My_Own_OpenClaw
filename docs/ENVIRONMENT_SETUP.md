@@ -6,50 +6,50 @@
 - **Node.js** 18+ (frontend)
 - **npm** (included with Node)
 
-## Conda Environments (Recommended)
+## Python Environment Options
 
-Use two conda envs to match the current setup:
+You can use either `venv` or conda. The Electron sidecar resolves Python using:
 
-```bash
-# Backend env
-conda create -n jarvis python=3.9
-conda activate jarvis
+- `CONDA_PREFIX` if set
+- otherwise `python3` (Linux/macOS) or `py` (Windows) from `PATH`
 
-# Frontend/sidecar env
-conda create -n frontend_jarvis python=3.9
-```
-
-## Backend Environment
+### Option A: `venv` (single env)
 
 ```bash
-conda activate jarvis
 cd backend
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
 pip install -r requirements.txt
+```
+
+Install sidecar deps into the same env you will use to launch Electron:
+
+```bash
+cd frontend/src/main/python
+pip install -r requirements.txt
+```
+
+### Option B: conda
+
+```bash
+conda create -n jarvis python=3.9
+conda activate jarvis
+pip install -r backend/requirements.txt
+```
+
+If you want a separate env for the sidecar:
+
+```bash
+conda create -n frontend_jarvis python=3.9
+conda activate frontend_jarvis
+pip install -r frontend/src/main/python/requirements.txt
 ```
 
 ## Frontend Environment
 
 ```bash
-conda activate frontend_jarvis
 cd frontend
 npm install
-```
-
-## Python Sidecar Environment
-
-The Electron app spawns Python using:
-
-- `CONDA_PREFIX` if available
-- otherwise `python3` (Linux/macOS) or `py` (Windows)
-
-Install sidecar dependencies into the active environment:
-
-```bash
-conda activate frontend_jarvis
-cd frontend/src/main/python
-pip install -r requirements.txt
 ```
 
 ## Environment Variables

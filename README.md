@@ -165,13 +165,11 @@ You must run the backend and frontend in separate terminals.
 
 **Terminal 1: Start the Backend**
 ```bash
-# Make sure your conda env is active
-conda activate jarvis
+# Activate your Python env (conda or venv) if you use one
 
-# Set a required API key (even a dummy one) for startup
-export OPENAI_API_KEY="dummy-key"
-# Note: A dummy key is sufficient for the application to start.
-# A valid API key is only required if you set OpenAI as the active provider.
+# Set an API key for the provider you plan to use
+export OPENAI_API_KEY="your-key"
+# Note: Local providers (Ollama/LM Studio) do not require API keys.
 
 # Run the server as a module from the project root
 python -m backend.src.main
@@ -179,35 +177,26 @@ python -m backend.src.main
 
 **Terminal 2: Start the Frontend UI (Vite)**
 ```bash
-conda activate frontend_jarvis
 cd frontend
 npm run dev
 ```
 
 **Terminal 3: Start the Frontend App (Electron)**
 ```bash
-conda activate frontend_jarvis
 cd frontend
 npm run electron
 ```
+If the sidecar dependencies live in a specific Python environment, activate it before launching Electron.
 
 ### Running Tests
 The project has basic test coverage for the backend.
 
 #### Backend Tests (pytest)
-1.  Navigate to the backend directory:
+1.  From the repo root, run pytest (uses `pytest.ini`):
     ```bash
-    cd backend
+    pytest
     ```
-2.  Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-3.  Run the tests:
-    ```bash
-    pytest ../tests/backend
-    ```
-    Note: Only basic pytest and pytest-asyncio are included. Advanced testing tools may need to be added separately.
+    Note: This runs `tests/backend` and `tests/sidecar`. Only basic pytest and pytest-asyncio are included.
 
 #### Frontend Tests (Jest)
 1.  Navigate to the frontend directory:
