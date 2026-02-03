@@ -835,9 +835,6 @@ class ResponseParser:
                 )
                 return text
         
-        # Sort positions by start index (ascending) for efficient processing
-        sorted_positions = sorted(positions, key=lambda x: x[0])
-        
         # OPTIMIZED: Build string using list of parts (O(N) instead of O(N²))
         parts = []
         current_idx = 0
