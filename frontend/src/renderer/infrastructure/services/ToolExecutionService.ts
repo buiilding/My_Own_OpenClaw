@@ -238,6 +238,31 @@ export class ToolExecutionService {
     });
   }
 
+  private _sendBundleResult(
+    bundleId: string,
+    status: string,
+    stepResults: Array<{ tool: string; status: string; output: string }>,
+    screenshot: string | null,
+    systemState: SystemState | null,
+    error: string | null
+  ): void {
+    if (!this.callbacks.sendToBackend) {
+      return;
+    }
+
+    this.callbacks.sendToBackend({
+      type: 'tool-bundle-result',
+      payload: {
+        bundle_id: bundleId,
+        status,
+        step_results: stepResults,
+        screenshot: screenshot || null,
+        system_state: systemState || null,
+        error
+      }
+    });
+  }
+
   /**
    * Execute a bundle of tools sequentially (atomic bundle).
    * 
@@ -380,27 +405,22 @@ export class ToolExecutionService {
       }
 
       // Send atomic tool-bundle-result to backend
-      if (this.callbacks.sendToBackend) {
-        console.log('[ToolExecutionService] Sending atomic tool-bundle-result');
+      console.log('[ToolExecutionService] Sending atomic tool-bundle-result');
 
-        // Get error message from failed step if any
-        const failedStep = stepResults.find(step => step.status === 'error');
-        const errorMessage = bundleStatus === 'failure' 
-          ? (failedStep?.output || 'Bundle execution failed')
-          : null;
+      // Get error message from failed step if any
+      const failedStep = stepResults.find(step => step.status === 'error');
+      const errorMessage = bundleStatus === 'failure' 
+        ? (failedStep?.output || 'Bundle execution failed')
+        : null;
 
-        this.callbacks.sendToBackend({
-          type: 'tool-bundle-result',
-          payload: {
-            bundle_id: bundleId,
-            status: bundleStatus,
-            step_results: stepResults,
-            screenshot: screenshot || null,
-            system_state: systemState || null,
-            error: errorMessage
-          }
-        });
-      }
+      this._sendBundleResult(
+        bundleId,
+        bundleStatus,
+        stepResults,
+        screenshot,
+        systemState,
+        errorMessage
+      );
 
       // Calculate bundle execution time AFTER sending to backend (execution is complete when backend receives result)
       // This includes: all tool IPC calls + wait delay + screenshot capture + formatting + backend send
@@ -429,20 +449,15 @@ export class ToolExecutionService {
       console.error('[ToolExecutionService] Bundle execution failed:', error);
 
       // Send error bundle result to backend
-      if (this.callbacks.sendToBackend) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        this.callbacks.sendToBackend({
-          type: 'tool-bundle-result',
-          payload: {
-            bundle_id: bundleId,
-            status: 'failure',
-            step_results: stepResults, // Partial results if any
-            screenshot: null,
-            system_state: null,
-            error: errorMessage
-          }
-        });
-      }
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this._sendBundleResult(
+        bundleId,
+        'failure',
+        stepResults,
+        null,
+        null,
+        errorMessage
+      );
 
       throw error;
     }
