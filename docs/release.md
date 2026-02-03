@@ -1,6 +1,6 @@
 # Release Guide
 
-This guide describes a safe, repeatable release process for My_Own_OpenClaw.
+This guide describes a safe, repeatable release process for WindieOS.
 
 ## Principles
 

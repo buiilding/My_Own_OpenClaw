@@ -139,7 +139,7 @@ See our [Development Roadmap](#-development-roadmap) section below for the compl
 #### 1. Clone the Repository
 ```bash
 git clone <repository-url>
-cd My_Own_OpenClaw
+cd WindieOS
 ```
 
 #### 2. Backend Setup
