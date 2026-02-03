@@ -87,6 +87,46 @@ describe('ToolExecutionService', () => {
     expect(result.screenshot).toBeNull();
   });
 
+  test('executeTool reuses system_state and screenshot from tool result', async () => {
+    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
+      success: true,
+      data: {
+        screenshot: 'shot',
+        system_state: { active_window: 'App', mouse_position: '1,1' },
+      },
+    });
+
+    const service = new ToolExecutionService();
+    await service.executeTool(
+      'mouse_control',
+      { action: 'click', x: 1, y: 2 },
+      { correlationId: 'req-ss', skipAutoCapture: false },
+    );
+
+    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(mockFormatToolOutputMessage).toHaveBeenCalledWith(
+      'mouse_control',
+      expect.objectContaining({ success: true }),
+      { active_window: 'App', mouse_position: '1,1' },
+    );
+  });
+
+  test('executeTool honors skipAutoCapture for computer-use tools', async () => {
+    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
+      success: true,
+      data: {},
+    });
+
+    const service = new ToolExecutionService();
+    await service.executeTool(
+      'mouse_control',
+      { action: 'click', x: 1, y: 2 },
+      { correlationId: 'req-skip', skipAutoCapture: true },
+    );
+
+    expect(mockExtractOSstate).not.toHaveBeenCalled();
+  });
+
   test('executeTool treats run_shell_command with wait as computer-use tool', async () => {
     jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
       success: true,
@@ -208,6 +248,35 @@ describe('ToolExecutionService', () => {
         payload: expect.objectContaining({
           bundle_id: 'bundle-2',
           status: 'partial_failure',
+        }),
+      }),
+    );
+  });
+
+  test('executeToolBundle reports failure and error when last tool fails', async () => {
+    jest.spyOn(IpcBridge, 'invoke')
+      .mockResolvedValueOnce({ success: true, data: { output: 'ok' } })
+      .mockResolvedValueOnce({ success: false, error: 'boom', data: null });
+
+    const sendToBackend = jest.fn();
+    const service = new ToolExecutionService({ sendToBackend });
+
+    const result = await service.executeToolBundle(
+      [
+        { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+        { toolName: 'mouse_control', args: { action: 'click', x: 1, y: 2 } },
+      ],
+      'bundle-3',
+    );
+
+    expect(result.results).toHaveLength(2);
+    expect(sendToBackend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'tool-bundle-result',
+        payload: expect.objectContaining({
+          bundle_id: 'bundle-3',
+          status: 'failure',
+          error: 'boom',
         }),
       }),
     );

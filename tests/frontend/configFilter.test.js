@@ -26,6 +26,7 @@ describe('configFilter', () => {
   test('filterFrontendConfig returns empty object on invalid input', () => {
     expect(filterFrontendConfig(null)).toEqual({});
     expect(filterFrontendConfig('nope')).toEqual({});
+    expect(filterFrontendConfig([])).toEqual({});
   });
 
   test('isFrontendConfigOnly validates allowed keys', () => {
@@ -42,5 +43,15 @@ describe('configFilter', () => {
         extra: 'nope',
       }),
     ).toBe(false);
+  });
+
+  test('filterFrontendConfig keeps interaction_mode', () => {
+    const filtered = filterFrontendConfig({
+      interaction_mode: 'voice',
+      extra: 'ignore',
+    });
+    expect(filtered).toEqual({
+      interaction_mode: 'voice',
+    });
   });
 });
