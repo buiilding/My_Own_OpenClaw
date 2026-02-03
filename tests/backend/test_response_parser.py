@@ -25,7 +25,10 @@ class DummyRegistry:
 
 
 def _make_parser(tools, limits=None):
-    config = AppConfig(security_limits=limits or SecurityLimits())
+    config = AppConfig(
+        interaction_mode="agent",
+        security_limits=limits or SecurityLimits(),
+    )
     return ResponseParser(config=config, tool_registry=DummyRegistry(tools))
 
 
