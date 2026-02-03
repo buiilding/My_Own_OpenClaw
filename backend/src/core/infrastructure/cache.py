@@ -154,6 +154,19 @@ class Cache:
             )
             # Move to end (most recently used)
             self._cache.move_to_end(key)
+
+    def _store_error_entry(self, key: str, error: Exception) -> None:
+        error_entry = CacheEntry(
+            value=error,
+            expires_at=time.time() + self.error_ttl,
+            is_error=True,
+        )
+        with self._lock:
+            if self.max_size is not None and len(self._cache) >= self.max_size:
+                if self._cache:
+                    self._cache.popitem(last=False)
+            self._cache[key] = error_entry
+            self._cache.move_to_end(key)
     
     def delete(self, key: str) -> bool:
         """
@@ -312,18 +325,7 @@ class Cache:
                 # Negative caching: Cache the exception for a short TTL
                 # This prevents thundering herd on persistent failures (e.g., backend service down)
                 # Waiters will receive the exception instead of retrying immediately
-                error_entry = CacheEntry(
-                    value=e,  # Store exception as value (callers must check type)
-                    expires_at=time.time() + self.error_ttl,
-                    is_error=True  # Mark as error entry
-                )
-                with self._lock:
-                    # Evict LRU entries if max_size exceeded
-                    if self.max_size is not None and len(self._cache) >= self.max_size:
-                        if self._cache:
-                            self._cache.popitem(last=False)
-                    self._cache[key] = error_entry
-                    self._cache.move_to_end(key)
+                self._store_error_entry(key, e)
                 # Re-raise to propagate to caller
                 raise
             finally:
@@ -426,18 +428,7 @@ class Cache:
             except Exception as e:
                 # THUNDERING HERD FIX: Store exception for propagation to waiters
                 # Negative caching: Cache the exception for a short TTL
-                error_entry = CacheEntry(
-                    value=e,
-                    expires_at=time.time() + self.error_ttl,
-                    is_error=True
-                )
-                with self._lock:
-                    # Evict LRU entries if max_size exceeded
-                    if self.max_size is not None and len(self._cache) >= self.max_size:
-                        if self._cache:
-                            self._cache.popitem(last=False)
-                    self._cache[key] = error_entry
-                    self._cache.move_to_end(key)
+                self._store_error_entry(key, e)
                 # Re-raise to propagate to caller
                 raise
             finally:
