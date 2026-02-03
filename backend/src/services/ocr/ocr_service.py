@@ -331,16 +331,7 @@ class OcrService:
             scores_list = self._normalize_ocr_field(getattr(result, "scores", None))
             boxes_list = self._normalize_ocr_field(getattr(result, "boxes", None))
 
-            bbox_list = []
-            for box in boxes_list:
-                if box is not None and len(box) >= 4:
-                    x_coords = [p[0] for p in box]
-                    y_coords = [p[1] for p in box]
-                    x1 = int(min(x_coords))
-                    y1 = int(min(y_coords))
-                    x2 = int(max(x_coords))
-                    y2 = int(max(y_coords))
-                    bbox_list.append((x1, y1, x2, y2))
+            bbox_list = self._build_bbox_list(boxes_list)
 
             if not text_list or not bbox_list:
                 logger.info("OCR found no text elements")
@@ -400,6 +391,19 @@ class OcrService:
         if isinstance(value, (list, tuple)):
             return list(value)
         return [value]
+
+    def _build_bbox_list(self, boxes_list: List[Any]) -> List[tuple[int, int, int, int]]:
+        bbox_list: List[tuple[int, int, int, int]] = []
+        for box in boxes_list:
+            if box is not None and len(box) >= 4:
+                x_coords = [p[0] for p in box]
+                y_coords = [p[1] for p in box]
+                x1 = int(min(x_coords))
+                y1 = int(min(y_coords))
+                x2 = int(max(x_coords))
+                y2 = int(max(y_coords))
+                bbox_list.append((x1, y1, x2, y2))
+        return bbox_list
 
     async def shutdown(self) -> None:
         """Cleanup OCR resources."""
