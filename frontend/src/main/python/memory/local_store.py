@@ -624,19 +624,9 @@ class LocalMemoryStore:
                 if row["user_id"] != user_id:
                     continue
 
-                # Parse metadata
-                metadata = json.loads(row["metadata"]) if row["metadata"] else {}
-                # Ensure type is set in metadata
-                metadata["type"] = memory_type
-
-                # Apply metadata filters (excluding type filter as it's already handled)
-                if filters:
-                    filtered_filters = {
-                        k: v for k, v in filters.items()
-                        if k not in ("metadata.type", "type")
-                    }
-                    if filtered_filters and not self._matches_filters(metadata, filtered_filters):
-                        continue
+                metadata = self._parse_metadata(row["metadata"], memory_type)
+                if not self._passes_metadata_filters(metadata, filters):
+                    continue
 
                 results.append(
                     {
@@ -674,6 +664,25 @@ class LocalMemoryStore:
                 if filter_key not in metadata or metadata[filter_key] != filter_value:
                     return False
 
+        return True
+
+    def _parse_metadata(self, raw_metadata: Optional[str], memory_type: str) -> Dict[str, Any]:
+        metadata = json.loads(raw_metadata) if raw_metadata else {}
+        metadata["type"] = memory_type
+        return metadata
+
+    def _passes_metadata_filters(
+        self, metadata: Dict[str, Any], filters: Optional[Dict[str, Any]]
+    ) -> bool:
+        if not filters:
+            return True
+        filtered_filters = {
+            key: value
+            for key, value in filters.items()
+            if key not in ("metadata.type", "type")
+        }
+        if filtered_filters and not self._matches_filters(metadata, filtered_filters):
+            return False
         return True
 
     async def update(
