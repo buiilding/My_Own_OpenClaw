@@ -11,7 +11,7 @@ import logging
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import aiosqlite
@@ -553,32 +553,14 @@ class LocalMemoryStore:
         limit: int,
     ) -> List[Dict[str, Any]]:
         """Helper method to search a specific database."""
-        # Search FAISS index
-        if index is None or index.ntotal == 0:
-            logger.debug(f"FAISS index for {memory_type} is empty or None (ntotal: {index.ntotal if index else 'None'})")
-            return []
-        
-        k = min(limit * 3, index.ntotal) if index.ntotal > 0 else limit
-        if k == 0:
-            logger.debug(f"No vectors in {memory_type} index to search")
+        if not self._has_searchable_index(index, memory_type):
             return []
 
-        similarities, indices = index.search(query_embedding, k)
-
-        results = []
-        if not indices[0].size:
-            return results
-
-        # Filter indices that exist in mapping
-        valid_indices = []
-        valid_similarities = []
-        for sim, idx in zip(similarities[0], indices[0]):
-            if idx in vector_id_to_memory_id:
-                valid_indices.append(idx)
-                valid_similarities.append(sim)
-
+        similarities, indices, valid_indices, valid_similarities = self._search_index(
+            index, query_embedding, limit, vector_id_to_memory_id, memory_type
+        )
         if not valid_indices:
-            return results
+            return []
 
         # Get memory IDs
         memory_ids = [vector_id_to_memory_id[idx] for idx in valid_indices]
@@ -626,6 +608,42 @@ class LocalMemoryStore:
                 )
 
         return results
+
+    def _has_searchable_index(self, index, memory_type: str) -> bool:
+        if index is None or index.ntotal == 0:
+            logger.debug(
+                "FAISS index for %s is empty or None (ntotal: %s)",
+                memory_type,
+                index.ntotal if index else "None",
+            )
+            return False
+        return True
+
+    def _search_index(
+        self,
+        index,
+        query_embedding,
+        limit: int,
+        vector_id_to_memory_id: Dict[int, str],
+        memory_type: str,
+    ) -> Tuple[Any, Any, List[int], List[float]]:
+        k = min(limit * 3, index.ntotal) if index.ntotal > 0 else limit
+        if k == 0:
+            logger.debug("No vectors in %s index to search", memory_type)
+            return None, None, [], []
+
+        similarities, indices = index.search(query_embedding, k)
+        if not indices[0].size:
+            return similarities, indices, [], []
+
+        valid_indices: List[int] = []
+        valid_similarities: List[float] = []
+        for sim, idx in zip(similarities[0], indices[0]):
+            if idx in vector_id_to_memory_id:
+                valid_indices.append(idx)
+                valid_similarities.append(sim)
+
+        return similarities, indices, valid_indices, valid_similarities
 
     async def _collect_search_results(
         self, search_tasks: List[asyncio.Future]
