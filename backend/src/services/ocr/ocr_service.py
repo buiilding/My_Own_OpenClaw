@@ -25,6 +25,32 @@ except Exception as e:
     OCR_AVAILABLE = False
     OCR_IMPORT_ERROR = f"Unexpected error during import: {e}"
 
+CUDA_ERROR_KEYWORDS = [
+    "Failed to allocate memory",
+    "CUBLAS_STATUS_ALLOC_FAILED",
+    "CUBLAS failure",
+    "CUDNN",
+    "CUDA",
+    "cuda_call",
+    "cublas",
+    "cudnn",
+    "CUDNN_STATUS",
+    "CUBLAS_STATUS",
+    "BFCArena",
+    "AllocateRawInternal",
+    "RUNTIME_EXCEPTION",
+]
+
+
+def is_cuda_error(error: Exception) -> bool:
+    error_msg = str(error)
+    error_type = type(error).__name__
+    if "ONNXRuntimeError" in error_type or "RuntimeException" in error_type:
+        return True
+    if "ONNXRuntimeError" in error_msg:
+        return True
+    return any(keyword in error_msg for keyword in CUDA_ERROR_KEYWORDS)
+
 
 class OcrService:
     """
@@ -186,27 +212,8 @@ class OcrService:
             logger.info("[OCR] Using CUDA device for OCR processing")
         except Exception as e:
             error_msg = str(e)
-            error_type = type(e).__name__
-            is_cuda_error = (
-                "ONNXRuntimeError" in error_type or
-                "ONNXRuntimeError" in error_msg or
-                "RuntimeException" in error_type or
-                "RUNTIME_EXCEPTION" in error_msg or
-                any(keyword in error_msg for keyword in [
-                    "Failed to allocate memory",
-                    "CUBLAS_STATUS_ALLOC_FAILED",
-                    "CUBLAS failure",
-                    "CUDNN",
-                    "CUDA",
-                    "cuda_call",
-                    "cublas",
-                    "cudnn",
-                    "CUDNN_STATUS",
-                    "CUBLAS_STATUS"
-                ])
-            )
 
-            if is_cuda_error:
+            if is_cuda_error(e):
                 logger.warning(
                     "OCR CUDA initialization failed (GPU error detected). "
                     f"Falling back to CPU. Error: {error_msg[:200]}"
@@ -285,30 +292,8 @@ class OcrService:
                 result = self._ocr_engine(image_bytes)
             except Exception as ocr_error:
                 error_msg = str(ocr_error)
-                error_type = type(ocr_error).__name__
 
-                is_cuda_error = (
-                    "ONNXRuntimeError" in error_type or
-                    "ONNXRuntimeError" in error_msg or
-                    "RuntimeException" in error_type or
-                    "RUNTIME_EXCEPTION" in error_msg or
-                    any(keyword in error_msg for keyword in [
-                        "Failed to allocate memory",
-                        "CUBLAS_STATUS_ALLOC_FAILED",
-                        "CUBLAS failure",
-                        "CUDNN",
-                        "CUDA",
-                        "cuda_call",
-                        "cublas",
-                        "cudnn",
-                        "CUDNN_STATUS",
-                        "CUBLAS_STATUS",
-                        "BFCArena",
-                        "AllocateRawInternal"
-                    ])
-                )
-
-                if is_cuda_error and self.use_cuda:
+                if is_cuda_error(ocr_error) and self.use_cuda:
                     logger.debug(
                         "OCR CUDA error during analysis. GPU memory exhausted. "
                         f"Reloading OCR engine with CPU fallback. Error: {error_msg[:200]}"
@@ -329,7 +314,7 @@ class OcrService:
                             exc_info=True,
                         )
                         return None
-                elif is_cuda_error:
+                elif is_cuda_error(ocr_error):
                     logger.warning(
                         "OCR analysis failed (already using CPU but CUDA error persists): "
                         f"{error_msg[:200]}. Skipping OCR analysis."
