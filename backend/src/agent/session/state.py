@@ -72,10 +72,8 @@ class ConversationHistory:
             semantic_memory: Optional list of semantic memory strings (structured data)
             user_query_raw: Optional raw user query text (structured data)
         """
-        stored_msg = StoredMessage(
-            role=MessageRole.USER,
-            content=content,  # Content without tool schemas
-            message_type=MessageType.USER_QUERY,
+        stored_msg = self._build_user_message(
+            content=content,
             image_data=image_data,
             episodic_memory=episodic_memory,
             semantic_memory=semantic_memory,
@@ -109,12 +107,7 @@ class ConversationHistory:
                        by the frontend after tool execution. Included in history
                        and sent to LLM as multimodal content.
         """
-        stored_msg = StoredMessage(
-            role=MessageRole.USER,
-            content=message,
-            message_type=MessageType.TOOL_OUTPUT,
-            image_data=image_data  # Screenshots are stored here and included in LLM history
-        )
+        stored_msg = self._build_tool_output_message(message, image_data)
         
         # INCREMENTAL TOKEN COUNT: If cache is valid, count new message before pruning
         # This avoids O(N) re-counting when multiple tools are called in sequence
@@ -173,12 +166,7 @@ class ConversationHistory:
         Args:
             message: Assistant response text
         """
-        stored_msg = StoredMessage(
-            role=MessageRole.ASSISTANT,
-            content=message,
-            message_type=MessageType.ASSISTANT_RESPONSE,
-            image_data=None
-        )
+        stored_msg = self._build_assistant_message(message)
         self.history.append(stored_msg)
         # Convert and append to LLM cache immediately (O(1) per message)
         llm_msg = stored_msg.to_llm_message()
@@ -350,3 +338,39 @@ class ConversationHistory:
     def _invalidate_token_cache(self) -> None:
         self._cached_token_count = None
         self._cached_token_count_model = None
+
+    def _build_user_message(
+        self,
+        content: str,
+        image_data: Optional[str],
+        episodic_memory: Optional[List[str]],
+        semantic_memory: Optional[List[str]],
+        user_query_raw: Optional[str],
+    ) -> StoredMessage:
+        return StoredMessage(
+            role=MessageRole.USER,
+            content=content,
+            message_type=MessageType.USER_QUERY,
+            image_data=image_data,
+            episodic_memory=episodic_memory,
+            semantic_memory=semantic_memory,
+            user_query_raw=user_query_raw,
+        )
+
+    def _build_tool_output_message(
+        self, message: str, image_data: Optional[str]
+    ) -> StoredMessage:
+        return StoredMessage(
+            role=MessageRole.USER,
+            content=message,
+            message_type=MessageType.TOOL_OUTPUT,
+            image_data=image_data,
+        )
+
+    def _build_assistant_message(self, message: str) -> StoredMessage:
+        return StoredMessage(
+            role=MessageRole.ASSISTANT,
+            content=message,
+            message_type=MessageType.ASSISTANT_RESPONSE,
+            image_data=None,
+        )
