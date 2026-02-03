@@ -538,12 +538,7 @@ class TTSService:
 
             if char in self.delimiters:
                 if char == ".":
-                    if i + 1 < len(buffer):
-                        next_char = buffer[i + 1]
-                        if next_char.isalnum() or next_char in {"`", "'", '"', "-", "_"}:
-                            i += 1
-                            continue
-                    else:
+                    if self._should_skip_period_split(buffer, i):
                         i += 1
                         continue
 
@@ -558,6 +553,12 @@ class TTSService:
 
         remaining = buffer[start:]
         return sentences, remaining
+
+    def _should_skip_period_split(self, buffer: str, index: int) -> bool:
+        if index + 1 >= len(buffer):
+            return True
+        next_char = buffer[index + 1]
+        return next_char.isalnum() or next_char in {"`", "'", '"', "-", "_"}
 
     async def flush(self):
         """
