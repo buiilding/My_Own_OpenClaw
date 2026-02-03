@@ -122,6 +122,10 @@ class ComputerInterface:
                 )
         return None
 
+    async def _ensure_ready(self) -> None:
+        """Initialize lazily for internal callers."""
+        await self._ensure_ready()
+
     async def _run_in_executor(self, func: Callable, *args: Any) -> Any:
         """Helper to run blocking functions in the thread pool."""
         loop = asyncio.get_running_loop()
@@ -148,8 +152,7 @@ class ComputerInterface:
     ) -> ComputerActionResult:
         """Perform a double left mouse button click."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             def _perform_double_click():
                 if x is not None and y is not None:
@@ -169,8 +172,7 @@ class ComputerInterface:
     async def move_cursor(self, x: int, y: int) -> ComputerActionResult:
         """Move the cursor to specified coordinates."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             await self._run_in_executor(self._pyautogui.moveTo, x, y)
             
@@ -187,8 +189,7 @@ class ComputerInterface:
     ) -> ComputerActionResult:
         """Drag from current position to specified coordinates."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             await self._run_in_executor(
                 self._pyautogui.dragTo, x, y, duration, button
@@ -210,8 +211,7 @@ class ComputerInterface:
     ) -> ComputerActionResult:
         """Press and hold a mouse button."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             def _perform_mouse_down():
                 if x is not None and y is not None:
@@ -236,8 +236,7 @@ class ComputerInterface:
     ) -> ComputerActionResult:
         """Release a mouse button."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             def _perform_mouse_up():
                 if x is not None and y is not None:
@@ -261,8 +260,7 @@ class ComputerInterface:
     async def type_text(self, text: str) -> ComputerActionResult:
         """Type the specified text."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             # Safety check: text length
             if self.safety_enabled and len(text) > self.max_text_length:
@@ -286,8 +284,7 @@ class ComputerInterface:
     async def press_key(self, key: KeyType) -> ComputerActionResult:
         """Press and release a single key."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             # Normalize key names to pyautogui format
             normalized_key = self._normalize_key(key)
@@ -303,8 +300,7 @@ class ComputerInterface:
     async def hotkey(self, *keys: KeyType) -> ComputerActionResult:
         """Press multiple keys simultaneously (keyboard shortcut)."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             # Safety check: dangerous key combinations
             if self.safety_enabled:
@@ -369,8 +365,7 @@ class ComputerInterface:
     ) -> ComputerActionResult:
         """Scroll at coordinates by the specified number of clicks (ticks)."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             def _perform_scroll():
                 # Move to position first
@@ -401,8 +396,7 @@ class ComputerInterface:
     async def scroll_at_cursor(self, clicks: int) -> ComputerActionResult:
         """Scroll at current cursor position."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             def _perform_scroll_at_cursor():
                 current_pos = self._pyautogui.position()
@@ -429,8 +423,7 @@ class ComputerInterface:
     async def screenshot(self) -> ComputerActionResult:
         """Take a screenshot and return as base64 string (JPEG format for faster encoding)."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             def _perform_screenshot():
                 screenshot = self._pyautogui.screenshot()
@@ -470,8 +463,7 @@ class ComputerInterface:
 
     async def get_screen_size(self) -> Dict[str, int]:
         """Get the screen dimensions."""
-        if not self._initialized:
-            await self.initialize()
+        await self._ensure_ready()
 
         if self._screen_size:
             return {"width": self._screen_size[0], "height": self._screen_size[1]}
@@ -480,8 +472,7 @@ class ComputerInterface:
     async def get_cursor_position(self) -> Dict[str, int]:
         """Get the current cursor position."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             def _get_pos():
                 return self._pyautogui.position()
@@ -500,8 +491,7 @@ class ComputerInterface:
     ) -> ComputerActionResult:
         """Internal click method."""
         try:
-            if not self._initialized:
-                await self.initialize()
+            await self._ensure_ready()
 
             def _perform_click():
                 if x is not None and y is not None:
