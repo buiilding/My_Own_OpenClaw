@@ -232,11 +232,7 @@ class ShellTool(Tool[RunShellCommandArgs]):
             
             # New logic: always True if we got a result, unless aborted or internal error
             # The exit code is part of the result data.
-            success = not result.aborted and (result.exit_code is not None or result.output)
-            
-            # If we have an explicit error string (e.g. from pexpect exception), then it failed
-            if result.error and not result.output and result.exit_code is None:
-                success = False
+            success = self._resolve_success(result)
 
             return self._build_result_payload(
                 command=command,
@@ -298,6 +294,14 @@ class ShellTool(Tool[RunShellCommandArgs]):
             "return_display": return_display,
             "success": success,
         }
+
+    def _resolve_success(self, result: ShellExecutionResult) -> bool:
+        success = not result.aborted and (
+            result.exit_code is not None or result.output
+        )
+        if result.error and not result.output and result.exit_code is None:
+            success = False
+        return success
 
     def _resolve_shell_timeout(
         self, args: RunShellCommandArgs, ctx: ToolContext
