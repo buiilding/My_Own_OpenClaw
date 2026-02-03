@@ -6,12 +6,20 @@ from backend.src.core.config import AppConfig
 from backend.src.llm.providers.anthropic import AnthropicProvider
 from backend.src.llm.providers.base import LLMProvider
 from backend.src.llm.providers.gemini import GeminiProvider
+from backend.src.llm.providers.kimi_coding import KimiCodingProvider
 from backend.src.llm.providers.local import LMStudioProvider, OllamaProvider
 from backend.src.llm.providers.mistral import MistralProvider
 from backend.src.llm.providers.openai import OpenAIProvider
 from backend.src.llm.providers.openrouter import OpenRouterProvider
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_provider_name(provider_name: str) -> str:
+    normalized = provider_name.lower().strip()
+    if normalized in ("kimi-code", "kimi_code", "kimi-coding", "kimi_coding"):
+        return "kimi-coding"
+    return normalized
 
 
 def _safe_timeout_conversion(timeout_value: Any, default: float = 60.0) -> float:
@@ -37,12 +45,12 @@ def _safe_timeout_conversion(timeout_value: Any, default: float = 60.0) -> float
         return default
 
 
-def _canonicalize_provider_urls(cfg: AppConfig) -> Tuple[str, str, str]:
+def _canonicalize_provider_urls(cfg: AppConfig) -> Tuple[str, str, str, str]:
     """
     Extract and canonicalize provider base URLs from config.
     
     Returns:
-        Tuple of (ollama_url, lmstudio_url, openrouter_url) with defaults applied
+        Tuple of (ollama_url, lmstudio_url, openrouter_url, kimi_code_url) with defaults applied
     """
     providers = cfg.llm_providers
     
@@ -63,8 +71,14 @@ def _canonicalize_provider_urls(cfg: AppConfig) -> Tuple[str, str, str]:
         openrouter_url = providers.openrouter.base_url
     else:
         openrouter_url = "https://openrouter.ai/api/v1"
+
+    # Kimi Coding (Default: https://api.kimi.com/coding/v1)
+    if providers and providers.kimi_coding and providers.kimi_coding.base_url:
+        kimi_code_url = providers.kimi_coding.base_url
+    else:
+        kimi_code_url = "https://api.kimi.com/coding/v1"
     
-    return (ollama_url, lmstudio_url, openrouter_url)
+    return (ollama_url, lmstudio_url, openrouter_url, kimi_code_url)
 
 
 @lru_cache(maxsize=16)
@@ -74,6 +88,7 @@ def _create_cached_provider_factory(
     ollama_url: str,
     lmstudio_url: str,
     openrouter_url: str,
+    kimi_code_url: str,
 ) -> Dict[str, LLMProvider]:
     """
     Internal cached factory that creates provider instances.
@@ -143,6 +158,16 @@ def _create_cached_provider_factory(
             )
         except ValueError as e:
             logger.debug(f"Mistral provider initialization failed: {e}")
+
+        try:
+            provider = KimiCodingProvider(
+                api_key=api_key,
+                base_url=kimi_code_url,
+                timeout=timeout,
+            )
+            factory["kimi-coding"] = provider
+        except ValueError as e:
+            logger.debug(f"Kimi Coding provider initialization failed: {e}")
     
     # Local providers don't require API keys (but may fail at runtime if not running)
     try:
@@ -183,7 +208,7 @@ def create_provider_factory(
     from the global config structure (Law of Demeter compliance).
     """
     # Extract and canonicalize provider URLs
-    ollama_url, lmstudio_url, openrouter_url = _canonicalize_provider_urls(cfg)
+    ollama_url, lmstudio_url, openrouter_url, kimi_code_url = _canonicalize_provider_urls(cfg)
     
     # Convert timeout to string for cache key consistency (handles None/edge cases)
     timeout_str = str(cfg.llm_timeout) if cfg.llm_timeout is not None else "60.0"
@@ -195,6 +220,7 @@ def create_provider_factory(
         ollama_url=ollama_url,
         lmstudio_url=lmstudio_url,
         openrouter_url=openrouter_url,
+        kimi_code_url=kimi_code_url,
     )
 
 
@@ -218,7 +244,7 @@ def get_provider(cfg: AppConfig, provider_name: str) -> LLMProvider:
     factory = create_provider_factory(cfg)
     
     # Normalize provider name
-    name = provider_name.lower().strip() if provider_name else ""
+    name = _normalize_provider_name(provider_name) if provider_name else ""
     
     logger.info(
         f"[Provider Selection] Requested provider='{provider_name}' (normalized='{name}'), "
@@ -259,5 +285,5 @@ def get_provider(cfg: AppConfig, provider_name: str) -> LLMProvider:
         "No LLM provider configured. "
         "Please set 'model_provider' in app_config.py and ensure you have "
         "the required API keys or local providers running. "
-        "Available provider types: openai, anthropic, gemini, mistral, openrouter, ollama, lmstudio"
+        "Available provider types: openai, anthropic, gemini, mistral, openrouter, kimi-coding, ollama, lmstudio"
     )

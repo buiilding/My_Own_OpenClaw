@@ -15,6 +15,7 @@ from backend.src.core.config.models import (
     LMStudioConfig,
     Preferences,
     OCRConfig,
+    KimiCodingConfig,
 )
 from backend.src.core.config.loader import (
     get_default_tts_model_path,
@@ -35,6 +36,7 @@ __all__ = [
     "LMStudioConfig",
     "Preferences",
     "OCRConfig",
+    "KimiCodingConfig",
     "ConfigManager",
     "get_config_manager",
     "load_settings_from_file",
