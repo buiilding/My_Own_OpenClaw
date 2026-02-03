@@ -407,21 +407,15 @@ class ResponseParser:
             result = self.schema.extract_tool_call(parsed_json)
             if result:
                 tool_name, args, metadata = result
-                
-                # SECURITY: Validate tool call
-                self._validate_tool_call(tool_name, args)
-                
-                # Validate metadata for computer-use tools
-                self._validate_metadata(tool_name, metadata)
-                
-                tool_call = ParsedToolCall(
-                    tool_name=tool_name,
-                    parameters=args,
-                    raw_call=json_str,  # The entire JSON response
-                    confidence=1.0,  # Highest confidence for pure JSON format
-                    metadata=metadata,
+                tool_calls.append(
+                    self._build_tool_call(
+                        tool_name=tool_name,
+                        args=args,
+                        metadata=metadata,
+                        raw_call=json_str,
+                        confidence=1.0,
+                    )
                 )
-                tool_calls.append(tool_call)
                 return tool_calls, ""  # No remaining text for pure JSON
 
         except (InputSizeLimitError, ParseTimeoutError, ParseValidationError):
@@ -518,21 +512,15 @@ class ResponseParser:
                 
                 if result:
                     tool_name, args, metadata = result
-                    
-                    # SECURITY: Validate tool call
-                    self._validate_tool_call(tool_name, args)
-                    
-                    # Validate metadata for computer-use tools
-                    self._validate_metadata(tool_name, metadata)
-                    
-                    tool_call = ParsedToolCall(
-                        tool_name=tool_name,
-                        parameters=args,
-                        raw_call=json_obj,
-                        confidence=1.0,
-                        metadata=metadata,
+                    tool_calls.append(
+                        self._build_tool_call(
+                            tool_name=tool_name,
+                            args=args,
+                            metadata=metadata,
+                            raw_call=json_obj,
+                            confidence=1.0,
+                        )
                     )
-                    tool_calls.append(tool_call)
                     extracted_positions.append((start_index, end_index))
                     
                     # 4. Success: Advance pointer to the end of this object
@@ -630,6 +618,25 @@ class ResponseParser:
                 validation_errors=["JSON nesting too deep"],
                 boundary_name="response_parser",
             )
+
+    def _build_tool_call(
+        self,
+        tool_name: str,
+        args: Dict[str, Any],
+        metadata: Optional[Dict[str, Any]],
+        raw_call: str,
+        confidence: float,
+    ) -> ParsedToolCall:
+        """Validate and construct a ParsedToolCall."""
+        self._validate_tool_call(tool_name, args)
+        self._validate_metadata(tool_name, metadata)
+        return ParsedToolCall(
+            tool_name=tool_name,
+            parameters=args,
+            raw_call=raw_call,
+            confidence=confidence,
+            metadata=metadata,
+        )
     
     def _validate_json_depth(self, obj: Any, max_depth: int) -> None:
         """
