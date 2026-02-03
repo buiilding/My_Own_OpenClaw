@@ -7,7 +7,7 @@ Desktop Assistant does **not** use a YAML config file. Configuration is split be
 - **Backend config**: Python `AppConfig` in `backend/src/core/config/app_config.py`.
 - **Frontend config**: A small JSON blob stored in Electron’s user data folder and mirrored in `localStorage`.
 
-Backend config is loaded **at startup** and is immutable during runtime. Frontend config is updated from the UI and persisted locally.
+Backend config is loaded **at startup** and is immutable during runtime. Frontend config is updated from the UI, persisted locally, and used to build **per-query overrides** sent with each request.
 
 ## Backend Configuration (Python)
 
@@ -62,7 +62,7 @@ Local providers do not require API keys and use base URLs defined in the provide
 
 ## Frontend Configuration (Local)
 
-The UI stores a minimal settings payload (model selection + voice toggles) locally.
+The UI stores a minimal settings payload (model selection + voice toggles) locally. These values are **not** pushed into backend state. Instead, the frontend includes them in each `query` payload as a `config` override.
 
 ### Stored Fields
 
@@ -96,5 +96,5 @@ See:
 
 ## Notes
 
-- The backend does **not** currently persist user config changes at runtime.
-- WebSocket messages **include** an optional `config` field in `query` payloads, allowing the frontend to pass model selection for each request.
+- The backend does **not** persist user config changes at runtime.
+- WebSocket messages **include** an optional `config` field in `query` payloads. This is the intended override path and applies **per query** only.
