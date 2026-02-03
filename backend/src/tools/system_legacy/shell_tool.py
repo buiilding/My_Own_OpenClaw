@@ -10,7 +10,6 @@ import os
 import platform
 import subprocess
 import time
-from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field, ConfigDict
 
