@@ -8,15 +8,18 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import uuid
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional, List
 
-from backend.src.agent.execution.executor import AgentExecutor
-from backend.src.agent.tools.preparation.screenshot.state import ScreenshotState
-from backend.src.agent.tools.preparation.storage.resolved_call_storage import ResolvedToolCallStorage
-from backend.src.agent.tools.waiting import ToolResultHandler
-from backend.src.agent.session.state import ConversationHistory
-from backend.src.core.infrastructure.bus import EventBus
+from backend.src.agent.session.initializer import (
+    init_event_bus,
+    init_executor,
+    init_identity,
+    init_parsing_and_prompt,
+    init_session_state,
+    init_tool_result_handler,
+    init_tooling,
+    subscribe_events,
+)
 from backend.src.core.config import AppConfig
 from backend.src.core.events.bus_events import InteractionCompleted
 from backend.src.llm.client import LLMClient, get_llm_client
@@ -25,6 +28,7 @@ from backend.src.llm.prompts import PromptConstructor
 from backend.src.tools.registry import ToolRegistry
 
 if TYPE_CHECKING:
+    from backend.src.core.infrastructure.bus import EventBus
     from backend.src.tools.orchestrator import ToolResultOrchestrator
     from backend.src.services.ocr.ocr_service import OcrService
 
@@ -84,76 +88,18 @@ class AgentSession:
         self.llm_client: LLMClient = llm_client or get_llm_client(self.cfg)
         self._lock = asyncio.Lock()
 
-        self._init_tooling(tool_registry, tool_orchestrator)
-        self._init_parsing_and_prompt(metrics_service)
-        self._init_identity(user_id, session_id)
-        self._init_event_bus(event_bus)
+        init_tooling(self, tool_registry, tool_orchestrator)
+        init_parsing_and_prompt(self, metrics_service)
+        init_identity(self, user_id, session_id)
+        init_event_bus(self, event_bus)
         self.ocr_service = ocr_service
-        self._init_executor()
+        init_executor(self, self.ocr_service)
 
         # Initialize tool result handler after executor creation.
-        self._init_tool_result_handler()
+        init_tool_result_handler(self)
 
-        self._subscribe_events()
-        self._init_session_state()
-
-    def _init_tooling(
-        self,
-        tool_registry: ToolRegistry,
-        tool_orchestrator: Optional[ToolResultOrchestrator],
-    ) -> None:
-        self.tool_registry = tool_registry
-        if tool_orchestrator is None:
-            from backend.src.tools.orchestrator import ToolResultOrchestrator
-
-            self.tool_orchestrator = ToolResultOrchestrator(
-                self.tool_registry, self.cfg
-            )
-        else:
-            self.tool_orchestrator = tool_orchestrator
-
-    def _init_parsing_and_prompt(self, metrics_service: Optional[Any]) -> None:
-        self.response_parser = ResponseParser(
-            self.cfg, self.tool_registry, metrics_service=metrics_service
-        )
-        self.prompt_builder = PromptConstructor(
-            self.tool_registry, self.cfg, metrics_service=metrics_service
-        )
-        self.history = ConversationHistory(
-            max_length=None,  # Disable pruning
-            system_prompt=self.prompt_builder.system_prompt,
-        )
-
-    def _init_identity(self, user_id: str, session_id: Optional[str]) -> None:
-        self.user_id = user_id
-        self.session_id = session_id or str(uuid.uuid4())
-
-    def _init_event_bus(self, event_bus: Optional[EventBus]) -> None:
-        if event_bus is None:
-            raise ValueError("event_bus is required for AgentSession")
-        self.event_bus = event_bus
-
-    def _init_executor(self) -> None:
-        self.executor = AgentExecutor(
-            session=self,
-            llm_client=self.llm_client,
-            tool_orchestrator=self.tool_orchestrator,
-            prompt_constructor=self.prompt_builder,
-            response_parser=self.response_parser,
-            ocr_service=self.ocr_service,
-            event_bus=self.event_bus,
-        )
-
-    def _subscribe_events(self) -> None:
-        self.event_bus.subscribe(InteractionCompleted, self._on_interaction_completed)
-
-    def _init_session_state(self) -> None:
-        # Session-scoped state for computer use
-        # Extract screenshot/OCR state management to reduce complexity
-        self._screenshot_state = ScreenshotState()
-
-        # Extract resolved tool call storage to reduce complexity
-        self._resolved_tool_call_storage = ResolvedToolCallStorage()
+        subscribe_events(self)
+        init_session_state(self)
 
         # Legacy accessors for backward compatibility (delegate to storage)
         # These will be removed once all code is migrated
@@ -164,36 +110,6 @@ class AgentSession:
         # When OCR starts, event is cleared; when OCR completes, event is set
         self.ocr_completion_event = asyncio.Event()
         self.ocr_completion_event.set()  # Set initially (no OCR running)
-
-    def _init_tool_result_handler(self) -> None:
-        """Initialize tool result routing and storage."""
-        from backend.src.agent.tools.preparation.screenshot import (
-            ScreenshotManager,
-            ScreenshotProcessor,
-        )
-        from backend.src.agent.tools.waiting import ToolResultReceiver, ToolResultRouter
-        from backend.src.agent.tools.waiting.storage import ToolResultStorage
-
-        # Initialize storage first (needed by router)
-        self._tool_result_storage = ToolResultStorage(cleanup_ttl_seconds=300)
-
-        tool_result_receiver = ToolResultReceiver(self)
-        screenshot_manager = getattr(self.executor, "screenshot_manager", None)
-        if screenshot_manager:
-            screenshot_processor = ScreenshotProcessor(screenshot_manager)
-        else:
-            # Fallback: create a new one (shouldn't happen in normal flow)
-            screenshot_processor = ScreenshotProcessor(ScreenshotManager())
-        tool_result_router = ToolResultRouter(
-            receiver=tool_result_receiver,
-            screenshot_processor=screenshot_processor,
-            result_storage=self._tool_result_storage,
-            session=self,
-        )
-        self.tool_result_handler = ToolResultHandler(
-            receiver=tool_result_receiver,
-            router=tool_result_router,
-        )
 
     def get_screenshot(self, screenshot_id: Optional[str] = None) -> Optional[str]:
         """

@@ -4,13 +4,14 @@ TTS Service for Real-time Text-to-Speech Synthesis.
 Uses Piper TTS for local, low-latency synthesis.
 """
 import asyncio
-import base64
 import logging
 import queue
 import threading
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, Optional
 
 from backend.src.core.config import AppConfig
+from backend.src.core.services.tts_audio import prepare_audio_data, send_audio_chunk
+from backend.src.core.services.tts_buffer import SentenceBuffer
 
 logger = logging.getLogger(__name__)
 
@@ -52,14 +53,7 @@ class TTSService:
         self.input_queue = queue.Queue()  # Sentences to synthesize
         self.audio_queue: Optional[asyncio.Queue] = None  # Audio chunks to stream
 
-        # Buffer for sentence detection (use list for efficient appends)
-        self.buffer_parts: List[str] = []
-        self.delimiters = {".", "!", "?", "\n", ";", ":"}
-        self._buffer_lock = threading.Lock()  # Protect buffer access
-        
-        # DOS PROTECTION: Hard limit on buffer size to prevent OOM attacks
-        # If buffer exceeds this without finding a delimiter, force a split/flush
-        self.MAX_BUFFER_SIZE = 500  # Maximum characters to buffer before forcing split
+        self._buffer = SentenceBuffer(max_size=500, logger=logger)
 
         # Thread
         self.worker_thread: Optional[threading.Thread] = None
@@ -160,35 +154,6 @@ class TTSService:
             any(keyword in error_msg for keyword in CUDA_ERROR_KEYWORDS)
         )
 
-    def _prepare_audio_data(self, audio_chunk) -> Dict[str, Any]:
-        """
-        Prepare audio chunk data for transmission.
-        
-        Args:
-            audio_chunk: Audio chunk from Piper voice synthesis
-            
-        Returns:
-            Dictionary with audio data and metadata
-        """
-        return {
-            "audio": base64.b64encode(audio_chunk.audio_int16_bytes).decode("utf-8"),
-            "sample_rate": audio_chunk.sample_rate,
-            "sample_width": audio_chunk.sample_width,
-            "channels": audio_chunk.sample_channels,
-        }
-
-    def _send_audio_chunk(self, audio_data: Dict[str, Any]) -> None:
-        """
-        Send audio chunk to async queue safely.
-        
-        Args:
-            audio_data: Audio data dictionary
-        """
-        if self.loop and self.audio_queue:
-            self.loop.call_soon_threadsafe(
-                self.audio_queue.put_nowait, audio_data
-            )
-
     def _synthesize_text(self, text: str) -> bool:
         """
         Synthesize text to audio chunks and send to queue.
@@ -202,8 +167,8 @@ class TTSService:
         for audio_chunk in self.voice.synthesize(text):
             if not self.running:
                 break
-            audio_data = self._prepare_audio_data(audio_chunk)
-            self._send_audio_chunk(audio_data)
+            audio_data = prepare_audio_data(audio_chunk)
+            send_audio_chunk(self.loop, self.audio_queue, audio_data)
         return True
 
     def _reload_with_cpu(self) -> None:
@@ -449,98 +414,8 @@ class TTSService:
         if self._processing_complete:
             self._processing_complete.clear()
 
-        with self._buffer_lock:
-            self.buffer_parts.append(text_chunk)
-            self._process_buffer()
-
-    def _process_buffer(self):
-        """
-        Split buffer into sentences for synthesis.
-        Simple sentence-buffering: split on natural boundaries, preserve all text.
-        
-        DOS PROTECTION: If buffer exceeds MAX_BUFFER_SIZE without finding a delimiter,
-        forces a split to prevent unbounded memory growth from malicious input or bugs.
-        """
-        # Join buffer parts into single string for processing
-        buffer = "".join(self.buffer_parts)
-        if not buffer:
-            return
-        
-        # DOS PROTECTION: Check if buffer exceeds hard limit without delimiter
-        # If so, force a split at the limit to prevent OOM attacks
-        forced_split = self._force_split_buffer(buffer)
-        if forced_split:
-            forced_sentence, remaining_after_split, split_pos = forced_split
-            if forced_sentence:
-                logger.warning(
-                    f"TTS buffer exceeded {self.MAX_BUFFER_SIZE} chars without delimiter. "
-                    f"Forcing split at position {split_pos} to prevent OOM."
-                )
-                self.input_queue.put(forced_sentence)
-
-            # TTS BUFFER STALL FIX: Process remaining text immediately instead of returning.
-            self.buffer_parts.clear()
-            if remaining_after_split:
-                self.buffer_parts.append(remaining_after_split)
-                self._process_buffer()
-            return
-        
-        # Clear buffer parts - we'll rebuild with remaining text
-        self.buffer_parts.clear()
-            
-        sentences, remaining = self._split_sentences(buffer)
-        for sentence in sentences:
+        for sentence in self._buffer.append(text_chunk):
             self.input_queue.put(sentence)
-        if remaining:
-            self.buffer_parts.append(remaining)
-
-    def _force_split_buffer(self, buffer: str) -> Optional[tuple[str, str, int]]:
-        if len(buffer) <= self.MAX_BUFFER_SIZE:
-            return None
-
-        split_pos = self.MAX_BUFFER_SIZE
-        for i in range(
-            self.MAX_BUFFER_SIZE - 1, max(0, self.MAX_BUFFER_SIZE - 100), -1
-        ):
-            if buffer[i].isspace():
-                split_pos = i + 1
-                break
-
-        forced_sentence = buffer[:split_pos].strip()
-        remaining_after_split = buffer[split_pos:].strip()
-        return forced_sentence, remaining_after_split, split_pos
-
-    def _split_sentences(self, buffer: str) -> tuple[list[str], str]:
-        sentences: list[str] = []
-        start = 0
-        i = 0
-
-        while i < len(buffer):
-            char = buffer[i]
-
-            if char in self.delimiters:
-                if char == ".":
-                    if self._should_skip_period_split(buffer, i):
-                        i += 1
-                        continue
-
-                sentence = buffer[start : i + 1]
-                clean_sentence = sentence.strip()
-                if clean_sentence:
-                    sentences.append(clean_sentence)
-
-                start = i + 1
-
-            i += 1
-
-        remaining = buffer[start:]
-        return sentences, remaining
-
-    def _should_skip_period_split(self, buffer: str, index: int) -> bool:
-        if index + 1 >= len(buffer):
-            return True
-        next_char = buffer[index + 1]
-        return next_char.isalnum() or next_char in {"`", "'", '"', "-", "_"}
 
     async def flush(self):
         """
@@ -549,17 +424,13 @@ class TTSService:
         PREMATURE TTS FLUSH FIX: Clears _processing_complete before waiting to ensure
         we wait for the flushed text to be processed, not a previous completion signal.
         """
-        with self._buffer_lock:
-            # Get any remaining text
-            text = "".join(self.buffer_parts).strip()
-            if text:
-                logger.debug(f"Flushing TTS buffer: {text}")
-                self.input_queue.put(text)
-            
-            # Sentinel to signal end of stream to worker
-            self.input_queue.put(None)
-            
-            self.buffer_parts.clear()
+        text = self._buffer.flush()
+        if text:
+            logger.debug(f"Flushing TTS buffer: {text}")
+            self.input_queue.put(text)
+
+        # Sentinel to signal end of stream to worker
+        self.input_queue.put(None)
         
         # PREMATURE TTS FLUSH FIX: Clear completion event before waiting
         # This ensures we wait for the flushed text to be processed, not a previous
