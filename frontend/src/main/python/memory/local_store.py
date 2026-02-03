@@ -582,14 +582,7 @@ class LocalMemoryStore:
                     continue
 
                 results.append(
-                    {
-                        "id": row["id"],
-                        "text": row["content"],
-                        "metadata": metadata,
-                        "score": float(similarity),
-                        "timestamp": row["timestamp"],
-                        "type": memory_type,
-                    }
+                    self._build_search_result(row, metadata, similarity, memory_type)
                 )
 
         return results
@@ -665,6 +658,22 @@ class LocalMemoryStore:
         vector_id_to_memory_id: Dict[int, str],
     ) -> List[str]:
         return [vector_id_to_memory_id[idx] for idx in valid_indices]
+
+    def _build_search_result(
+        self,
+        row: Any,
+        metadata: Dict[str, Any],
+        similarity: float,
+        memory_type: str,
+    ) -> Dict[str, Any]:
+        return {
+            "id": row["id"],
+            "text": row["content"],
+            "metadata": metadata,
+            "score": float(similarity),
+            "timestamp": row["timestamp"],
+            "type": memory_type,
+        }
 
     async def _fetch_rows_map(
         self, db_path: str, memory_ids: List[str]
