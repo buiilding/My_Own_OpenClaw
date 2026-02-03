@@ -36,7 +36,8 @@ cd frontend
 npm install
 ```
 
-Install Python sidecar dependencies (used for tool execution):
+Install Python sidecar dependencies (used for tool execution) into the same
+Python environment you will use to launch Electron:
 
 ```bash
 cd frontend/src/main/python
@@ -52,8 +53,7 @@ You must run the backend and frontend in separate terminals.
 **Terminal 1: Start the Backend**
 
 ```bash
-# Make sure your conda env is active (if using conda)
-conda activate jarvis
+# Activate your Python env (conda or venv) if you use one
 
 # Optional: set an API key for the provider you plan to use
 export OPENAI_API_KEY="your-api-key"
@@ -66,7 +66,6 @@ python -m backend.src.main
 **Terminal 2: Start the Frontend UI (Vite)**
 
 ```bash
-conda activate frontend_jarvis
 cd frontend
 npm run dev
 ```
@@ -74,7 +73,6 @@ npm run dev
 **Terminal 3: Start the Frontend App (Electron)**
 
 ```bash
-conda activate frontend_jarvis
 cd frontend
 npm run electron
 ```

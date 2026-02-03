@@ -1,22 +1,23 @@
 # Testing Guide
 
-## Backend Tests
+## Backend + Sidecar Tests
 
 ```bash
-conda activate jarvis
-cd backend
-pytest ../tests/backend
+cd /path/to/WindieOS
+pytest
 ```
 
 ## Frontend Tests
 
 ```bash
-conda activate frontend_jarvis
 cd frontend
 npm test
 ```
 
 ## Notes
 
-- Backend tests target tool pipelines and the query handler.
+- `pytest` uses `pytest.ini` and runs `tests/backend` + `tests/sidecar`.
+- Activate the Python environment that has backend/sidecar deps before running `pytest`.
+- For CI parity: `cd frontend && npm run test:ci`.
+- Frontend tests use Jest + React Testing Library.
 - Frontend tests use Jest + React Testing Library.

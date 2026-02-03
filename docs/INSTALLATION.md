@@ -30,7 +30,7 @@ cd WindieOS
 
 #### Python Environment Setup
 
-**Option A: Using venv (Recommended)**
+**Option A: Using venv**
 
 ```bash
 cd backend
@@ -50,10 +50,11 @@ conda create -n jarvis python=3.9
 conda activate jarvis
 ```
 
-If you plan to run the Electron frontend (which spawns the Python sidecar), create the frontend environment too:
+If you plan to run the Electron frontend (which spawns the Python sidecar) and want a separate env:
 
 ```bash
 conda create -n frontend_jarvis python=3.9
+conda activate frontend_jarvis
 ```
 
 #### Install Dependencies
@@ -66,6 +67,7 @@ pip install -r requirements.txt
 #### Verify Installation
 
 ```bash
+cd ..
 python -m backend.src.main --help
 ```
 
@@ -80,11 +82,11 @@ npm install
 
 #### Install Python Sidecar Dependencies
 
-The Electron app spawns a local Python sidecar from your active environment.
-Install its dependencies:
+The Electron app resolves Python from `CONDA_PREFIX` when set, otherwise
+`python3` (Linux/macOS) or `py` (Windows) from `PATH`. Install the sidecar
+dependencies into the same environment you will use to launch Electron:
 
 ```bash
-conda activate frontend_jarvis
 cd frontend/src/main/python
 pip install -r requirements.txt
 ```
