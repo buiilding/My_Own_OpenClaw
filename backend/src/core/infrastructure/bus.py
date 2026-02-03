@@ -311,7 +311,11 @@ class EventBus:
         unique_handlers = self._get_or_build_handlers(event_type)
         
         if not unique_handlers:
-            logger.debug(f"No handlers for {event_name} (checked MRO: {[cls.__name__ for cls in event_type.__mro__ if cls is not object]})")
+            logger.debug(
+                "No handlers for %s (checked MRO: %s)",
+                event_name,
+                [cls.__name__ for cls in self._iter_event_classes(event_type)],
+            )
             return
         
         logger.debug(f"Publishing {event_name} to {len(unique_handlers)} handlers")
@@ -362,9 +366,7 @@ class EventBus:
 
         handlers = []
         with self._lock:
-            for cls in event_type.__mro__:
-                if cls is object:
-                    continue
+            for cls in self._iter_event_classes(event_type):
                 if cls in self._subscribers:
                     handlers.extend(self._subscribers[cls])
 
@@ -404,10 +406,11 @@ class EventBus:
     def _cleanup_dead_handlers(self, event_type: Type[Event]) -> None:
         with self._lock:
             self._invalidate_handler_cache()
-            for cls in event_type.__mro__:
-                if cls is object:
-                    continue
+            for cls in self._iter_event_classes(event_type):
                 if cls in self._subscribers:
                     self._subscribers[cls] = [
                         w for w in self._subscribers[cls] if w.is_alive()
                     ]
+
+    def _iter_event_classes(self, event_type: Type[Event]) -> List[Type[Event]]:
+        return [cls for cls in event_type.__mro__ if cls is not object]
