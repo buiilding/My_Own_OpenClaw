@@ -19,8 +19,10 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Agent System**](AGENT_SYSTEM.md) - Agent orchestrator and execution flow
 - [**Tool System**](TOOL_SYSTEM.md) - Tool execution architecture and development
 - [**Memory System**](MEMORY_SYSTEM.md) - Memory management and retrieval
+- [**Python Sidecar**](PYTHON_SIDECAR.md) - Local tool execution + memory service
 - [**LLM Integration**](LLM_INTEGRATION.md) - LLM providers and configuration
 - [**Plugin System**](PLUGIN_SYSTEM.md) - Plugin architecture and development
+- [**Billing & Usage (Planned)**](BILLING_AND_USAGE.md) - Subscriptions, entitlements, and usage limits
 
 ### Development Guides
 - [**Developer Guide**](DEVELOPER_GUIDE.md) - Comprehensive development guide
@@ -32,6 +34,8 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Configuration Guide**](CONFIGURATION.md) - Configuration options and settings
 - [**Deployment Guide**](DEPLOYMENT.md) - Production deployment instructions
 - [**Environment Setup**](ENVIRONMENT_SETUP.md) - Development environment configuration
+- [**Security & Compliance (Planned)**](SECURITY_AND_COMPLIANCE.md) - Security posture and compliance roadmap
+- [**Plan Matrix (Draft)**](PLAN_MATRIX.md) - Subscription tiers and limits
 
 ### User Guides
 - [**User Guide**](USER_GUIDE.md) - End-user documentation
@@ -42,6 +46,13 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Security Guide**](SECURITY.md) - Security considerations and best practices
 - [**Performance Guide**](PERFORMANCE.md) - Performance optimization strategies
 - [**Contributing Guide**](CONTRIBUTING.md) - How to contribute to the project
+
+### Hosted Platform (Planned)
+- [**Billing & Usage (Planned)**](BILLING_AND_USAGE.md) - Subscriptions, entitlements, and usage limits
+- [**Security & Compliance (Planned)**](SECURITY_AND_COMPLIANCE.md) - Security posture and compliance roadmap
+- [**Plan Matrix (Draft)**](PLAN_MATRIX.md) - Subscription tiers and limits
+- [**Database Schema (Planned)**](DATABASE_SCHEMA.md) - Multi-tenant DB tables
+- [**Usage Limits (Planned)**](USAGE_LIMITS.md) - Rate limits + quota enforcement
 
 ## 🎯 Quick Navigation
 
@@ -88,7 +99,7 @@ See [Contributing Guide](CONTRIBUTING.md) for guidelines on improving documentat
 
 ---
 
-**Last Updated**: January 2026  
+**Last Updated**: February 2026  
 **Version**: 1.0.0
 
 ## Recent Updates
@@ -104,3 +115,8 @@ See [Contributing Guide](CONTRIBUTING.md) for guidelines on improving documentat
 - **Centralized Tool Result Storage**: ToolResultStorage class with TTL-based cleanup
 - **Conversation History Optimization**: O(1) LLM format access via cached conversion
 - **Shallow Copy Optimization**: PreparedToolCall uses shallow copy for better performance
+
+### Productization Roadmap (February 2026)
+- **Multi-Tenant Backend**: Auth, subscriptions, usage metering, and plan enforcement
+- **Billing UX**: Plan selection, billing portal, and usage limits in the UI
+- **Hosted Architecture**: API gateway, session routing, and scalable data plane

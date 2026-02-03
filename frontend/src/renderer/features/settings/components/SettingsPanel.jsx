@@ -121,15 +121,7 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
     <div className="settings-panel">
       <h2>Settings</h2>
       {modelResetWarning && (
-        <div className="model-reset-warning" style={{
-          backgroundColor: '#fef3c7',
-          border: '1px solid #f59e0b',
-          borderRadius: '4px',
-          padding: '8px 12px',
-          marginBottom: '16px',
-          color: '#92400e',
-          fontSize: '14px'
-        }}>
+        <div className="model-reset-warning">
           ⚠️ {modelResetWarning}
         </div>
       )}
@@ -200,7 +192,7 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
         </div>
 
         <div className="form-group">
-          <label htmlFor="voice-mode-toggle" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', cursor: 'pointer' }}>
+          <label htmlFor="voice-mode-toggle" className="toggle-label">
             <span><strong>Voice Mode:</strong></span>
             <div className="toggle-switch">
               <input
@@ -216,7 +208,7 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
         </div>
 
         <div className="form-group">
-          <label htmlFor="speech-mode-toggle" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', cursor: 'pointer' }}>
+          <label htmlFor="speech-mode-toggle" className="toggle-label">
             <span><strong>Speech Mode (TTS):</strong></span>
             <div className="toggle-switch">
               <input

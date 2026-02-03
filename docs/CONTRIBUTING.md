@@ -1,0 +1,20 @@
+# Contributing
+
+## Workflow
+
+1. Create a branch for your change.
+2. Make updates and keep docs in sync.
+3. Run tests when relevant.
+4. Submit a PR with a clear summary.
+
+## Where to Edit
+
+- Backend: `backend/src/`
+- Frontend: `frontend/src/`
+- Sidecar tools: `frontend/src/main/python/`
+- Docs: `docs/`
+
+## Tests
+
+- Backend: `pytest ../tests/backend`
+- Frontend: `npm test`

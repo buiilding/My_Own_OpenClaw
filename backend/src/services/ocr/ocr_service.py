@@ -342,9 +342,25 @@ class OcrService:
                 logger.warning("OCR returned invalid result format")
                 return []
 
-            text_list = getattr(result, "txts", None) or []
-            scores_list = getattr(result, "scores", None) or []
-            boxes_list = getattr(result, "boxes", None) or []
+            def _normalize_ocr_field(value):
+                if value is None:
+                    return []
+                if isinstance(value, str):
+                    return [value]
+                try:
+                    import numpy as np
+
+                    if isinstance(value, np.ndarray):
+                        return value.tolist()
+                except Exception:
+                    pass
+                if isinstance(value, (list, tuple)):
+                    return list(value)
+                return [value]
+
+            text_list = _normalize_ocr_field(getattr(result, "txts", None))
+            scores_list = _normalize_ocr_field(getattr(result, "scores", None))
+            boxes_list = _normalize_ocr_field(getattr(result, "boxes", None))
 
             bbox_list = []
             for box in boxes_list:

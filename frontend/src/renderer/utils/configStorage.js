@@ -13,7 +13,7 @@ const CONFIG_VERSION_KEY = 'desktop-assistant-config-version';
 export const DEFAULT_FRONTEND_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',
-  selected_model_id: 'gpt-4o',
+  selected_model_id: 'gpt-5.1',
   voice_mode_enabled: false,
   speech_mode_enabled: false,
 };

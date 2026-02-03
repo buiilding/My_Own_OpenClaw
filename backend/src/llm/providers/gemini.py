@@ -93,8 +93,8 @@ class GeminiProvider(LLMProvider):
             provider_name in ONLINE_THINKING_MODELS
             and model in ONLINE_THINKING_MODELS[provider_name]
         ):
-            # Disable thinking tokens for Gemini models
-            params["thinking"] = {"type": "disabled", "budget_tokens": 0}
+            # Prefer low-effort reasoning for Gemini thinking models
+            params["reasoning_effort"] = "low"
         return params
 
     def _get_full_model_string(self, model_id: str) -> str:

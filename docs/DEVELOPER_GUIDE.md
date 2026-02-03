@@ -11,18 +11,20 @@ This guide provides comprehensive information for developers working on Desktop 
 ```
 backend/src/
 ├── agent/              # Agent domain
-│   ├── core/          # Core agent logic
-│   ├── llm/           # LLM interaction
-│   ├── tools/         # Tool orchestration
-│   ├── history/       # Memory management
-│   └── plugins/       # Plugin system
-├── tools/             # Tools domain
-├── embeddings/        # Embedding provider domain
-├── llm/               # LLM domain
-├── api/               # API layer
-├── core/              # Core infrastructure
-├── sdk/               # SDK for tool development
-└── main.py            # Application entry point
+│   ├── session/        # AgentSession, SessionManager, ConversationHistory
+│   ├── execution/      # AgentExecutor, InteractionLoop
+│   ├── llm/            # ConversationContext, stream processor, presenter
+│   ├── tools/          # Tool lifecycle (prepare/send/wait/process)
+│   ├── history/        # HistoryCommitter
+│   └── plugins/        # Agent plugin interface + manager
+├── api/                # API layer (routes, handlers, processing, transport)
+├── core/               # Core infrastructure (config, container, services, plugins)
+├── embeddings/         # Embedding provider domain
+├── llm/                # LLM domain (client, prompts, providers)
+├── sdk/                # SDK for tool development
+├── tools/              # Tool registry + orchestrator
+├── simulation/         # Mock LLM and simulation helpers
+└── main.py             # Application entry point
 ```
 
 ### Frontend Structure
@@ -88,7 +90,7 @@ frontend/src/
 1. **Clone Repository**:
    ```bash
    git clone <repository-url>
-   cd ALL_OR_NOTHING
+   cd My_Own_OpenClaw
    ```
 
 2. **Backend Setup**:
@@ -126,6 +128,29 @@ frontend/src/
    cd frontend
    npm run electron
    ```
+
+## Future: Productization Checklist (Planned)
+
+To ship to end users with subscriptions and usage limits, plan for:
+
+### Backend
+- Multi-tenant auth + session management
+- Usage metering (tokens, tool calls, screenshots, compute time)
+- Rate limiting + quota enforcement per plan
+- Billing integration (Stripe) with entitlements
+- Admin tooling for support + account overrides
+
+### Frontend
+- Login/signup + device management
+- Plan selection + billing portal access
+- Usage meter + limit warning states
+- Feature gating based on entitlements
+
+### Ops & Delivery
+- Hosted backend environment (staging + production)
+- Observability (metrics, tracing, logs)
+- Signed desktop builds + auto-updater
+- Telemetry + crash reporting (opt-in)
 
 ## Code Style
 
@@ -377,14 +402,16 @@ const addMessage = useChatStore((state) => state.addMessage);
 
 1. **Create Plugin Class**:
    ```python
-   from backend.src.core.plugins.interface import Plugin
+   from backend.src.agent.plugins.interface import AgentPlugin, PluginResult
    
-   class MyPlugin(Plugin):
-       async def initialize(self) -> None:
+   class MyPlugin(AgentPlugin):
+       name = "my_plugin"
+
+       async def initialize(self, container=None) -> None:
            ...
-       
-       async def shutdown(self) -> None:
-           ...
+
+       async def on_tool_end(self, tool_name: str, result: object):
+           return PluginResult(artifacts={"tool": tool_name})
    ```
 
 2. **Register Plugin**:
@@ -410,9 +437,9 @@ const addMessage = useChatStore((state) => state.addMessage);
 
 ### GPU Acceleration
 
-- **CUDA Support**: GPU-accelerated embeddings
-- **OCR Acceleration**: GPU-accelerated OCR processing
-- **Vision Models**: GPU-accelerated vision inference
+- **CUDA Support (Optional)**: Embeddings can use GPU when configured
+- **OCR Acceleration**: OCR can leverage GPU if available
+- **Vision Models**: Vision inference can use GPU if available
 
 ### Frontend Performance
 

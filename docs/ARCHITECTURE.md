@@ -4,6 +4,46 @@
 
 Desktop Assistant is built as a distributed system with a clear separation between frontend (Electron/React) and backend (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and a plugin system for extensibility.
 
+## Future: Hosted Multi-Tenant Architecture (Planned)
+
+To bring this to end users at scale, the system will evolve into a hosted, multi-tenant platform with subscription-based usage and limits while preserving a local-only mode.
+
+### Target Cloud Topology
+
+```
+User Desktop App
+    │
+    │  HTTPS / WebSocket (auth token)
+    ▼
+API Gateway / Edge
+    │  ├─ Auth + Session Service
+    │  ├─ Rate Limiter + Usage Metering
+    │  └─ Billing + Entitlements
+    ▼
+Agent Execution Layer
+    │  ├─ Session Router
+    │  ├─ Agent Workers
+    │  └─ Tool Dispatch Queue
+    ▼
+Data Plane
+    ├─ Postgres (users, plans, usage, metadata)
+    ├─ Redis (sessions, rate limits, queues)
+    ├─ Vector Store (per-tenant memory)
+    └─ Object Storage (screenshots, logs, audit)
+```
+
+### Core Principles for Multi-Tenancy
+- **Per-tenant isolation** at the API, DB, cache, and memory layers.
+- **Plan-based entitlements** governing model access, concurrency, and tools.
+- **Usage metering** across tokens, tool calls, screenshots, and compute time.
+- **Graceful limit UX**: soft warnings + hard blocking with upgrade flow.
+
+### Local-Only Mode
+Local-only mode remains available for privacy-first users:
+- No cloud sync
+- Local memory + local storage
+- Local model execution when configured
+
 ## High-Level Architecture
 
 ```
@@ -22,7 +62,7 @@ Desktop Assistant is built as a distributed system with a clear separation betwe
 │  │  - IPC Bridge (ipc.cjs)                              │  │
 │  │  - WebSocket Client                                  │  │
 │  │  - Wakeword Bridge                                    │  │
-│  │  - Python Sidecar (runner.py)                         │  │
+│  │  - Python Sidecar (local_backend.py)                  │  │
 │  └──────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                           ↕ WebSocket
@@ -43,10 +83,10 @@ Desktop Assistant is built as a distributed system with a clear separation betwe
 │  │  - Tool Preparation & Execution                      │  │
 │  └──────────────────────────────────────────────────────┘  │
 │   ↕          ↕          ↕           ↕          ↕          │
-│ ┌─────┐  ┌────────┐  ┌──────┐  ┌──────────┐  ┌────────┐ │
-│ │Memory│  │Tools  │  │ LLM  │  │ Plugins  │  │ Vision  │ │
-│ │System│  │System │  │Client│  │ Registry │  │Service  │ │
-│ └─────┘  └────────┘  └──────┘  └──────────┘  └────────┘ │
+│ ┌──────────┐ ┌────────┐ ┌──────┐ ┌──────────┐ ┌────────┐ │
+│ │Embeddings│ │Tools   │ │ LLM  │ │ Plugins  │ │ Vision  │ │
+│ │ API      │ │System  │ │Client│ │ Registry │ │Service  │ │
+│ └──────────┘ └────────┘ └──────┘ └──────────┘ └────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -66,7 +106,7 @@ Desktop Assistant is built as a distributed system with a clear separation betwe
 - **IPC Bridge**: Secure communication between renderer and main
 - **WebSocket Client**: Connection to Python backend
 - **Wakeword Bridge**: Python subprocess management for wakeword detection
-- **Python Sidecar**: Tool execution and system state capture
+- **Python Sidecar**: Tool execution, system state capture, and local memory
 
 ### Backend Architecture
 
@@ -83,7 +123,7 @@ Desktop Assistant is built as a distributed system with a clear separation betwe
 - **Tool Preparation**: Coordinate resolution and tool call preparation
 
 #### Core Systems
-- **Memory System**: Semantic and episodic memory with FAISS
+- **Embedding Service**: SentenceTransformer provider exposed via `/api/embeddings` (used by sidecar memory)
 - **Tool System**: Tool registry and orchestration
 - **LLM Client**: Multi-provider LLM abstraction
 - **Plugin System**: Extensible plugin architecture
@@ -102,7 +142,7 @@ Desktop Assistant is built as a distributed system with a clear separation betwe
    ↓
 4. Message sent via IpcBridge → Main Process
    ↓
-5. Main Process builds complete message with system state and memories
+5. Main Process builds complete message with system state and sidecar memory search results
    ↓
 6. Main Process → WebSocket → Backend
    ↓
@@ -217,18 +257,19 @@ Screenshots are captured strategically at key points to provide visual context f
 ```json
 {
   "id": "uuid-v4",
-  "type": "query|load-settings|update-settings|...",
+  "type": "query|list-models|tool-result|wakeword-detected|...",
   "payload": { ... },
   "timestamp": "ISO-8601"
 }
 ```
 
 **Message Types**:
-- `query`: User query with optional screenshot
-- `load-settings`: Request current settings
-- `update-settings`: Update configuration
+- `query`: User query with optional screenshot and config
 - `list-models`: Request available models
 - `tool-result`: Tool execution result from frontend
+- `wakeword-detected`: Wakeword activation event
+
+**Note**: `load-settings` / `update-settings` exist in schema but are not currently handled; settings are frontend-only.
 
 **Response Types**:
 - `streaming-response`: Streaming text chunks
@@ -249,20 +290,14 @@ Screenshots are captured strategically at key points to provide visual context f
 
 ## Dependency Injection
 
-The backend uses `dependency-injector` for clean architecture:
+The backend uses `dependency-injector` with a composed container:
 
 ```python
-Container
-├── ConfigManager
-├── ToolRegistry
-├── LLMClient
-├── MemoryManager
-├── PluginRegistry
-└── SessionManager
-    └── AgentSession
-        ├── AgentExecutor
-        ├── ToolOrchestrator
-        └── PromptConstructor
+ApplicationContainer
+├── CoreContainer (config, LLM, TTS, vision, event bus)
+├── ToolContainer (tool registry, orchestrator, agent factory)
+├── MemoryContainer (embedding provider)
+└── ApiContainer (message handlers + registry)
 ```
 
 ## Plugin System
@@ -277,22 +312,22 @@ PluginRegistry
 ```
 
 **Plugin Interface**:
-- `initialize()`: Setup plugin
-- `shutdown()`: Cleanup
-- `handle_event()`: Process events
+- `initialize(container=None)`: Setup plugin (optional)
+- `on_tool_end(tool_name, result)`: Hook after tool execution
+- `shutdown()`: Cleanup (optional)
 
 ## Security Architecture
 
 ### Tool Execution Security
-- **Permission System**: Tools require explicit permissions
-- **Sandboxing**: Isolated execution environment
-- **Resource Limits**: CPU, memory, and time limits
-- **Audit Logging**: All tool executions logged
+- **Permission Model**: `SecurityPolicy` defines permissions, not enforced in sidecar by default
+- **Sandboxing Hooks**: Executor abstraction allows sandboxed execution (not enabled by default)
+- **Resource Limits**: Defined in `SecurityPolicy`, not enforced in sidecar by default
+- **Audit Logging**: Policy supports audit logs; wire-in is required for enforcement
 
 ### Data Security
-- **Local Memory Storage**: Conversation history and memory stored and searched locally
+- **Local Memory Storage**: Conversation history and memory stored locally via the Python sidecar
 - **LLM API Access**: User input and screenshots sent to LLM providers via internet APIs (required for AI functionality)
-- **Encryption**: Sensitive data encrypted at rest
+- **Encryption**: No encryption-at-rest by default; rely on OS disk encryption for local data
 - **Access Control**: User-based isolation
 - **No Cloud Sync**: Memory and conversation data are not synced to cloud services
 
@@ -302,7 +337,6 @@ PluginRegistry
 - **LLM Client Caching**: Provider instances cached
 - **Embedding Cache**: Avoid re-computing embeddings
 - **Tool Schema Cache**: Cached tool definitions
-- **Query Result Cache**: Frequent queries cached
 - **Conversation History Cache**: O(1) LLM format access via cached conversion
 - **Tool Result Storage**: Centralized storage with TTL-based cleanup
 
@@ -312,10 +346,10 @@ PluginRegistry
 - **Batch Processing**: Batch embeddings and OCR
 - **Thread Pool**: Global thread pool for blocking operations
 
-### GPU Acceleration
-- **CUDA Support**: GPU-accelerated embeddings
-- **OCR Acceleration**: GPU-accelerated OCR processing
-- **Vision Models**: GPU-accelerated vision inference
+### GPU Acceleration (Optional)
+- **CUDA Support**: Embeddings can use GPU when configured
+- **OCR Acceleration**: OCR can leverage GPU when available
+- **Vision Models**: Vision inference can run on GPU
 
 ## Error Handling
 

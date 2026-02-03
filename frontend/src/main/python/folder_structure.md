@@ -19,6 +19,7 @@ frontend/src/main/python/
 │   ├── __init__.py                    # Package initialization
 │   ├── ipc_protocol.py                # JSONRPCProtocol - JSON-RPC 2.0 protocol handler for stdin/stdout communication
 │   ├── remote_embedding_client.py     # RemoteEmbeddingClient - HTTP client for backend embedding API (replaces local embedder)
+│   ├── remote_semantic_client.py      # RemoteSemanticClient - HTTP client for backend semantic summarization API
 │   ├── system_state.py                # get_system_state() - Cross-platform system state collection (active window, mouse, clipboard, stats)
 │   ├── thread_pool.py                 # Global ThreadPoolExecutor - Shared thread pool for blocking operations
 │   │
@@ -31,7 +32,8 @@ frontend/src/main/python/
 │
 ├── memory/                             # Memory storage system
 │   ├── __init__.py                    # Package initialization
-│   └── local_store.py                # LocalMemoryStore - SQLite + FAISS implementation with remote embeddings (separate DBs for episodic/semantic)
+│   ├── local_store.py                # LocalMemoryStore - SQLite + FAISS implementation with remote embeddings (separate DBs for episodic/semantic)
+│   └── summarizer.py                 # MemorySummarizer - Periodic episodic -> semantic consolidation
 │
 └── tools/                              # Tool implementations and registry
     ├── __init__.py                    # Package initialization
@@ -176,7 +178,14 @@ frontend/src/main/python/
        ├─> semantic.db (SQLite) - Store metadata and content
        └─> semantic.faiss.index - Store embedding vectors
            ↓
-4. SEARCH
+4. PERIODIC CONSOLIDATION
+   └─> memory/summarizer.py
+       ├─> Detect idle windows or batch thresholds
+       ├─> Call backend /api/semantic/summarize
+       ├─> Store semantic memory summary
+       └─> Mark episodic memories as semanticized
+           ↓
+5. SEARCH
    └─> LocalMemoryStore.search()
        ├─> Generate query embedding (RemoteEmbeddingClient)
        ├─> Search FAISS indices (episodic + semantic)

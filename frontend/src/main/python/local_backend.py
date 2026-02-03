@@ -20,6 +20,7 @@ sys.path.insert(0, str(frontend_python_dir))
 
 from core.ipc_protocol import JSONRPCProtocol
 from memory.local_store import LocalMemoryStore
+from memory.summarizer import MemorySummarizer
 
 # Configure logging
 logging.basicConfig(
@@ -40,6 +41,7 @@ class LocalBackend:
     def __init__(self):
         self.protocol = JSONRPCProtocol()
         self.memory_store: LocalMemoryStore = None
+        self._summarizer: Optional[MemorySummarizer] = None
         self.running = False
         # Initialize tool registry once (reused for all tool executions)
         from tools.registry import ToolRegistry
@@ -72,6 +74,13 @@ class LocalBackend:
             self.memory_store = LocalMemoryStore()
             await self.memory_store.initialize()
             logger.info("Memory store initialized")
+
+            try:
+                self._summarizer = MemorySummarizer(self.memory_store)
+                await self._summarizer.start()
+                logger.info("Memory summarizer started")
+            except Exception as e:
+                logger.error(f"Failed to start memory summarizer: {e}", exc_info=True)
             
             # Note: Wake-word detection is kept as separate subprocess for now
             # due to binary protocol requirements. Can be integrated later.
@@ -212,6 +221,14 @@ class LocalBackend:
                 metadata,
                 conversation_id=session_id
             )
+
+            if memory_type == "episodic":
+                try:
+                    await self.memory_store.increment_pending_count()
+                    if self._summarizer:
+                        self._summarizer.notify_new_memory(user_id)
+                except Exception as e:
+                    logger.warning(f"Failed to update summarization watermark: {e}")
             
             return {
                 "success": True,
@@ -259,7 +276,14 @@ class LocalBackend:
         """Shutdown the service gracefully."""
         logger.info("Shutting down local backend...")
         self.running = False
-        
+
+        if self._summarizer:
+            try:
+                await self._summarizer.stop()
+                logger.info("Memory summarizer stopped")
+            except Exception as e:
+                logger.warning(f"Failed to stop memory summarizer: {e}")
+
         if self.memory_store:
             await self.memory_store.close()
             logger.info("Memory store closed")

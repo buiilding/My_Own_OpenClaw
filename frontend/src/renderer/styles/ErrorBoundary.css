@@ -1,0 +1,26 @@
+.error-boundary {
+  padding: 24px;
+  margin: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  color: var(--text-primary);
+}
+
+.error-boundary h2 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  color: var(--danger);
+}
+
+.error-boundary details {
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: var(--surface-ink);
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}

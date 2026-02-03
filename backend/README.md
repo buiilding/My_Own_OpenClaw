@@ -28,17 +28,18 @@ $env:OPENAI_API_KEY = "your-api-key-here"
 # For Anthropic
 $env:ANTHROPIC_API_KEY = "your-api-key-here"
 
-# For other providers, see config.py for environment variable names
+# For Kimi Coding
+$env:KIMI_API_KEY = "your-api-key-here"
+
+# For other providers, see backend/src/core/config/models.py for environment variable names
 ```
 
-3. **Create configuration file:**
+3. **Configuration:**
 
-The application will automatically create a config file at:
-- **Windows**: `%APPDATA%\DesktopAssistant\config.yaml`
-- **macOS**: `~/Library/Application Support/DesktopAssistant/config.yaml`
-- **Linux**: `~/.config/DesktopAssistant/config.yaml`
+There is no YAML config file. Backend configuration lives in:
 
-You can also create/edit this file manually. See `backend/src/core/config.py` for available configuration options.
+- `backend/src/core/config/app_config.py`
+- `backend/src/core/config/models.py`
 
 ## Running the Application
 
@@ -46,85 +47,56 @@ You can also create/edit this file manually. See `backend/src/core/config.py` fo
 
 ```powershell
 cd backend
-python -m src.main
+python -m backend.src.main
 ```
 
 Or using uvicorn directly:
 
 ```powershell
 cd backend
-uvicorn src.main:app --host 0.0.0.0 --port 8765 --reload
+uvicorn backend.src.main:app --host 0.0.0.0 --port 8765 --reload
 ```
 
 ### Production Mode
 
 ```powershell
 cd backend
-uvicorn src.main:app --host 0.0.0.0 --port 8765
+uvicorn backend.src.main:app --host 0.0.0.0 --port 8765
 ```
 
 ## Configuration
 
-The application uses a YAML configuration file. Key settings include:
+The application uses a Python configuration file. Key settings include:
 
-- **LLM Provider**: Choose between OpenAI, Anthropic, Google, etc.
+- **LLM Provider**: Choose between OpenAI, Anthropic, Gemini, etc.
 - **Model Selection**: Configure which model to use
 - **Memory Settings**: Enable/disable memory, configure storage
 - **Tool Settings**: Configure tool execution timeouts and limits
 - **Security**: Configure permissions and resource limits
 
-See `backend/src/core/config.py` for the complete `AppConfig` model with all available options.
+See `backend/src/core/config/app_config.py` and `backend/src/core/config/models.py` for the complete `AppConfig` model.
 
 ## Project Structure
 
 ```
 backend/
-├── src/                    # Application source code
-│   ├── agent/             # Agent domain (organized into subpackages)
-│   │   ├── core/          # Core agent state & execution
-│   │   │   ├── core.py    # AgentSession
-│   │   │   ├── executor.py  # AgentExecutor
-│   │   │   ├── interaction_loop.py  # InteractionLoop
-│   │   │   ├── state.py   # ConversationHistory
-│   │   │   └── session_manager.py  # SessionManager
-│   │   ├── llm/           # LLM interaction, prompts, events
-│   │   │   ├── prompt_coordinator.py
-│   │   │   ├── llm_interaction_handler.py
-│   │   │   └── event_presenter.py
-│   │   ├── tools/         # Tool orchestration & preparation
-│   │   │   ├── tool_executor.py
-│   │   │   ├── tool_preparer.py
-│   │   │   ├── result_transformer.py
-│   │   │   ├── screenshot_manager.py
-│   │   │   ├── ocr_coordinator.py
-│   │   │   ├── vision_service_provider.py
-│   │   │   ├── synthetic_result_factory.py
-│   │   │   └── resolvers/  # Coordinate resolution
-│   │   ├── history/       # Agent memory & state mutation
-│   │   │   └── history_committer.py
-│   │   └── plugins/      # Plugin system
-│   │       ├── manager.py
-│   │       ├── interface.py
-│   │       └── ocr_plugin.py
-│   ├── tools/             # Tools domain (registry, loader, tools)
-│   ├── memory/            # Memory domain (storage, retrieval)
-│   ├── llm/               # LLM domain (client, prompts)
-│   ├── api/               # API layer (routes, dependencies)
-│   ├── core/              # Core infrastructure
-│   │   ├── container.py   # DI container
-│   │   ├── config.py      # Configuration management
-│   │   ├── exceptions.py  # Exception hierarchy
-│   │   └── interfaces/    # Protocol interfaces
-│   └── sdk/               # SDK for tool development
-│       ├── tool.py        # Base Tool class
-│       ├── context.py     # Context classes
-│       └── errors.py      # SDK exceptions
-├── docs/                  # Documentation
-│   ├── architecture.md   # System architecture
-│   ├── tool_development.md # Tool development guide
-│   ├── api_reference.md   # API documentation
-│   └── extension_points.md # Extension guide
-└── requirements.txt       # Python dependencies
+├── src/                     # Application source code
+│   ├── agent/              # Agent domain (session/execution/tools/history)
+│   │   ├── session/        # AgentSession, SessionManager, ConversationHistory
+│   │   ├── execution/      # AgentExecutor, InteractionLoop
+│   │   ├── llm/            # ConversationContext, stream processor, presenter
+│   │   ├── tools/          # Tool lifecycle (prepare/send/wait/process)
+│   │   ├── history/        # HistoryCommitter
+│   │   └── plugins/        # Agent plugin interface + manager
+│   ├── api/                # API layer (routes, handlers, processing, transport)
+│   ├── core/               # Core infrastructure (config, container, services, plugins)
+│   ├── embeddings/         # Embedding provider domain
+│   ├── llm/                # LLM domain (client, parser, prompts, providers)
+│   ├── sdk/                # SDK for tool development (Tool, ToolContext)
+│   ├── tools/              # Tool registry + orchestrator
+│   ├── simulation/         # Mock LLM and simulation helpers
+│   └── main.py             # Application entry point
+└── requirements.txt        # Python dependencies
 ```
 
 ## Key Features
@@ -173,30 +145,22 @@ isort src/
 
 ### Import Errors
 
-If you encounter import errors, ensure you're running from the project root and that `backend` is in your Python path:
+If you encounter import errors, ensure you're running from the project root so the `backend` package is importable:
 
 ```powershell
-# From backend directory
-python -m src.main
+python -m backend.src.main
 ```
 
-### Configuration Not Found
+### Configuration Changes Not Taking Effect
 
-The application will create a default config file on first run. If you need to reset it, delete the config file and restart the application.
-
-### Database Errors
-
-If you encounter SQLite errors, ensure the database directory exists and is writable. The database is stored in the same location as the config file.
+Configuration is defined in `backend/src/core/config/app_config.py`. Changes require an application restart, or a manual reload via the ConfigurationService if you wire it up in code.
 
 ## Documentation
 
-### Getting Started
-- [Developer Guide](docs/DEVELOPER_GUIDE.md) - Comprehensive guide for developers
-- [Extension Points Catalog](docs/EXTENSION_POINTS_CATALOG.md) - Complete reference for all extension points
-
-### Technical Documentation
-- [Architecture Overview](docs/architecture.md) - System architecture
-- [Bootstrap System](docs/bootstrap_system.md) - System initialization and startup
+Documentation lives at the repository root in `docs/`. See:
+- `docs/DEVELOPER_GUIDE.md`
+- `docs/BACKEND_ARCHITECTURE.md`
+- `docs/API_REFERENCE.md`
 - [Core Services](docs/core_services.md) - Infrastructure services and components
 - [Tool Development Guide](docs/tool_development.md) - Creating tools
 - [LLM Providers](docs/llm_providers.md) - LLM provider implementations
@@ -216,4 +180,3 @@ If you encounter SQLite errors, ensure the database directory exists and is writ
 ## License
 
 [Your License Here]
-

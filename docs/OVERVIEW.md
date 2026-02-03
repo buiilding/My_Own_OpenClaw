@@ -7,8 +7,8 @@
 **Key Differentiators:**
 - **Code Editing & Command Execution**: Edit code files, execute shell commands, and automate tasks just like Claude Code or Cursor, but at the OS-level across any application
 - **OS-Level Operation**: Works across your entire operating system, not confined to a single IDE or application
-- **Persistent Memory**: Maintains persistent memory that learns your unique workflow, habits, and personal information to adapt to how you work
-- **Privacy-First**: Only AI inference (LLM API calls) goes to the internet - all memory, files, and data stay on your machine
+- **Persistent Memory**: Local episodic + semantic memory with summarization; habit learning is on the roadmap
+- **Privacy-First**: Only data required for LLM inference (prompt + screenshots) is sent to providers; memory and files stay local
 
 Users can interact with their computer through natural language commands, with the assistant handling complex tasks using a system of specialized tools.
 
@@ -19,6 +19,17 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 ## 🚀 Future Vision & Strategic Roadmap
 
 > **Note**: The capabilities described below are **planned features** that have not yet been implemented. They represent our strategic vision and roadmap for future development.
+
+### 🚢 Bringing This to Users (Planned)
+To move from a developer-focused build to a product for end users, we will add a hosted, multi-tenant backend with subscriptions and usage limits while preserving a local-only mode for privacy-first users.
+
+**Productization roadmap:**
+- **Multi-tenant backend**: Single service handling many users with per-tenant isolation.
+- **Authentication**: OAuth + email signup, device/session management.
+- **Subscriptions**: Stripe-based plans with entitlements and billing portal.
+- **Usage limits**: Token/tool quotas, rate limits, usage meter, and hard/soft limit UX.
+- **Onboarding**: Guided setup, model selection, and permission flows.
+- **Distribution**: Signed installers, auto-updates, crash/telemetry opt-in.
 
 ### 🔄 Multi-Agent Orchestration Across Machines (Planned)
 **Future Architectural Moat**: Our roadmap includes designing the architecture to support multiple assistants working in parallel across different machines. This distributed multi-agent orchestration capability would be **extremely difficult to replicate** - it requires deep architectural planning, coordination protocols, and resource management that cannot be retrofitted into single-agent systems. When implemented, this would position Desktop Assistant as the foundation for enterprise-scale automation where teams of virtual employees can collaborate across environments, handle distributed workflows, and coordinate complex multi-machine tasks simultaneously.
@@ -33,10 +44,10 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 
 ### 🧠 Intelligent Memory System
 - **Persistent Context**: Remembers conversations and context across sessions
-- **Learns Your Workflow**: Adapts to your unique workflow, habits, and personal information over time
 - **Semantic Search**: Find relevant information using vector similarity
-- **Episodic Memory**: Tracks user actions and agent decisions to build understanding of your preferences
-- **Privacy-First**: Memory and conversation history stored locally; only AI inference (LLM API calls) goes to the internet - nothing else
+- **Episodic Memory**: Tracks user actions and agent decisions
+- **Summarization**: Periodic rollups into semantic memory (via backend semantic API)
+- **Privacy-First**: Memory and conversation history stored locally; only data required for LLM inference is sent to providers
 
 ### 🎮 Advanced Computer Control
 - **Vision-First Navigation**: The system primarily uses screenshots to navigate your computer - capturing screen states, analyzing visual elements, and using vision models to understand and interact with your interface
@@ -46,10 +57,10 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 - **Visual Feedback**: Screenshots captured for every user message and after computer-use tool execution to maintain visual context
 
 ### 🛠️ Tool System
-- **Verified Tools**: Tools loaded from secure verified directory
-- **Security Validation**: Permission-based tool execution
+- **Registered Tools**: Tool registry + schema-driven execution
+- **Schema Validation**: Trust-boundary checks on tool calls and parameters
 - **Custom Development**: SDK for building your own tools
-- **Sandbox Execution**: Isolated tool execution with resource limits
+- **Sandbox Hooks**: Executor abstraction enables sandboxing (not enabled by default)
 - **Code Editing**: Edit code files across any editor or application (like Claude Code/Cursor, but OS-level)
 - **Command Execution**: Execute shell commands and automate development workflows
 
@@ -59,9 +70,9 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 - **Multi-Provider STT/TTS**: Choose from Whisper, cloud APIs, or local engines
 
 ### 🚀 Performance Optimized
-- **CUDA Acceleration**: GPU-accelerated embeddings and OCR processing
-- **Multi-Provider LLMs**: OpenAI, Anthropic, Google, Ollama, OpenRouter, Mistral, LM Studio
-- **Intelligent Caching**: Optimized memory usage and response times
+- **Optional GPU Acceleration**: Embeddings, OCR, and vision can use GPU when configured
+- **Multi-Provider LLMs**: OpenAI, Anthropic, Gemini, Ollama, OpenRouter, Mistral, LM Studio
+- **Caching**: Provider and embedding caches for performance
 - **Scalable Architecture**: Designed for future expansion
 
 ### 🔮 Future Capabilities (Planned)
@@ -115,14 +126,13 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 │  │   - Task Orchestration                   │  │
 │  └──────────────────────────────────────────┘  │
 │   ↕          ↕          ↕           ↕         │
-│ ┌─────┐  ┌────────┐  ┌──────┐  ┌──────────┐ │
-│ │Memory│  │Computer│  │Market│  │   AI     │ │
-│ │System│  │Control │  │place │  │  Models  │ │
-│ │      │  │Tools   │  │      │  │  (CUDA)  │ │
-│ │• FAISS│  │• OCR  │  │• Tool │  │• Embed- │ │
-│ │• Local│  │• Mouse│  │• Disc-│  │• Vision │ │
-│ │• CUDA │  │• Files│  │• Secu-│  │• Rapid- │ │
-│ └─────┘  └────────┘  └──────┘  └──────────┘ │
+│ ┌──────────┐  ┌────────┐  ┌──────────┐  ┌──────────┐ │
+│ │Embeddings│  │Computer│  │Plugins   │  │   AI     │ │
+│ │API       │  │Control │  │Registry  │  │  Models  │ │
+│ │• ST      │  │Tools   │  │• Hooks   │  │• OpenAI  │ │
+│ │• Cache   │  │• OCR   │  │• Config  │  │• Anthro- │ │
+│ │• HTTP    │  │• Mouse │  │          │  │pic/Gemini│ │
+│ └──────────┘  └────────┘  └──────────┘  └──────────┘ │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -132,16 +142,16 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 Core intelligence with tool calling and conversation management. Coordinates between LLM, tools, and memory systems.
 
 ### Memory System
-FAISS vector search + semantic/episodic memory with CUDA acceleration. Provides persistent context across sessions and learns your unique workflow, habits, and personal information over time.
+Local episodic + semantic memory stored via the Python sidecar (SQLite + FAISS) with periodic summarization. Embeddings are provided by the backend `/api/embeddings` service. Habit learning is planned.
 
 ### Computer Control
 Vision-first navigation using screenshots - OCR and vision models analyze screen states to automate UI interactions and file operations. The system primarily relies on visual understanding (screenshots) to navigate and control your computer. Works at the OS-level across any application, not confined to a single IDE.
 
 ### Tool System
-12 built-in tools with permission-based security. Extensible SDK for custom tool development. Includes code editing and command execution capabilities (like Claude Code/Cursor, but OS-level).
+Multiple built-in tools with schema validation and an extensible SDK. Includes code editing and command execution capabilities (like Claude Code/Cursor, but OS-level).
 
 ### AI Models
-Multi-provider LLM support with CUDA acceleration for embeddings and vision. Supports 8+ LLM providers.
+Multi-provider LLM support with optional GPU acceleration for embeddings and vision. Supports multiple LLM providers.
 
 ## 📊 Project Status
 
@@ -150,18 +160,18 @@ Multi-provider LLM support with CUDA acceleration for embeddings and vision. Sup
 ### ✅ Completed Features
 
 #### Core AI Infrastructure
-- [x] Multi-provider LLM client (OpenAI, Anthropic, Google, Gemini, Ollama, OpenRouter, Mistral, LM Studio)
+- [x] Multi-provider LLM client (OpenAI, Anthropic, Gemini, Ollama, OpenRouter, Mistral, LM Studio)
 - [x] Advanced agent orchestrator with tool calling capabilities
 - [x] Real-time thinking display and status updates
-- [x] Semantic memory system with GPU-accelerated embeddings
+- [x] Local episodic/semantic memory with FAISS + backend embedding API
 - [x] Conversation history and context management
-- [x] **Persistent Memory**: Learns user workflow, habits, and personal information over time
+- [x] **Persistent Memory**: Local storage of episodic + semantic memory (adaptive learning planned)
 
 #### Tool System
-- [x] Tool discovery system for loading verified tools
-- [x] Security validation for tool execution
-- [x] Tool execution sandboxing with permission controls
-- [x] 12 built-in tools for computer control, filesystem, and system operations
+- [x] Tool registry with schema-based execution
+- [x] Trust-boundary validation for tool calls
+- [x] Sandbox hooks available (not enabled by default)
+- [x] Multiple built-in tools for computer control, filesystem, and system operations
 - [x] **Code Editing**: Edit code files across any editor or application (like Claude Code/Cursor, but OS-level)
 - [x] **Command Execution**: Execute shell commands and automate development workflows
 
@@ -174,21 +184,21 @@ Multi-provider LLM support with CUDA acceleration for embeddings and vision. Sup
 - [x] Terminal Integration
 
 #### Performance & Intelligence
-- [x] CUDA Acceleration
+- [x] Optional GPU acceleration (when configured)
 - [x] Natural Language Task Execution
-- [x] Intelligent Memory
+- [x] Local memory + summarization
 
 #### User Experience
 - [x] Modern Electron UI with chat interface and settings
 - [x] Real-time agent status and tool execution feedback
 - [x] Screenshot integration for visual context
-- [x] Responsive design with dark/light themes
+- [x] Responsive design (single theme in current UI)
 
 ### 🔄 In Progress
 
 - Voice Integration: TTS implementation (STT planned for future)
 - Enhanced Monitoring: Basic audit logging and tool execution tracking
-- Performance Optimization: CUDA acceleration for embeddings and vision processing
+- Performance Optimization: GPU configuration and profiling
 
 ### 🔮 Planned Features
 
@@ -222,10 +232,10 @@ The planned capability for each employee to have a tailored assistant that inter
 **Privacy and Security.** We prioritize privacy and security:
 
 - ✅ **Local memory storage** - Conversation history, memory, files, and all data are stored and searched locally on your machine
-- ✅ **Only AI inference goes to internet** - Only LLM API calls (for AI inference) are sent over the internet - user input, screenshots, and all other data stay on your machine
+- ✅ **LLM inference data only** - Only data required for LLM inference (prompt + screenshots) is sent to providers; other data stays local
 - ✅ **OS-Level Privacy** - Unlike cloud-based services, all your workflow, habits, and personal information remain on your device
 - ✅ **Open source** - Audit the code yourself
-- ✅ **Tool sandboxing** - Tools run with permission controls and resource limits
+- ✅ **Sandbox hooks** - Executor abstraction for sandboxing (not enabled by default)
 - ✅ **Basic audit logging** - Tool execution logging for monitoring
 - ✅ **No cloud sync** - Memory, conversation data, and personal information are never synced to cloud services
 

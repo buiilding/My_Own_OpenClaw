@@ -4,49 +4,48 @@ Static configuration for online and supported models.
 
 from typing import Dict, List
 
-# Curated registry of popular online AI models (as of November 2025)
-# Separate lists for thinking and non-thinking models for cleaner code
+# Curated registry of popular online AI models.
+# Keep provider keys aligned with supported providers in backend.src.llm.providers
 
 ONLINE_MODELS: Dict[str, List[str]] = {
     "openai": [
-        "gpt-5",  # latest flagship [web:9][web:12]
-        "gpt-5-mini",  # fast, low-cost variant [web:12]
-        "gpt-4.1",  # improved GPT-4 replacement [web:6]
+        "gpt-5.2",
+        "gpt-5.1",
+        "gpt-5-mini",
+        "gpt-5-nano",
+        "gpt-4.1",
+        "gpt-4.1-mini",
+        "gpt-4o",
+        "gpt-4o-mini",
     ],
     "anthropic": [
-        "claude-3-haiku-20240307",  # Claude 3 Haiku (confirmed working)
-        # Note: Claude 4.x models that support thinking are in ONLINE_THINKING_MODELS
-        # to avoid duplicates. They can still be used without thinking tokens if needed.
+        "claude-opus-4-1-20250805",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-5-20250929",
+        "claude-sonnet-4-20250522",
+        "claude-haiku-4-5-20251001",
+        "claude-3-5-sonnet-20241022",
+        "claude-3-5-haiku-20241022",
+        "claude-3-opus-20240229",
+        "claude-3-sonnet-20240229",
+        "claude-3-haiku-20240307",
     ],
     "gemini": [
-        "gemini-2.0-flash-lite",  # previous generation lightweight
-        "gemini-2.0-flash-exp",  # experimental variant
-        "gemini-2.0-flash",  # previous generation flash model
-        "computer-use-preview",  # computer use capabilities
+        "gemini-3-pro-preview",
+        "gemini-3-flash-preview",
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
     ],
-    "meta": [
-        "llama-4-scout",  # latest open-source release [web:6][web:9]
-        "llama-4-maverick",  # multimodal variant from Llama 4 family
-        "llama-3.2-vision",  # Llama 3.2 multimodal (text + image)
-    ],
-    "xai": [
-        "grok-4",  # advanced, multimodal reasoning (text + image) [web:6][web:16]
-        "grok-3",  # reasoning and coding; limited multimodal support [web:6]
-        "grok-1.5v",  # first multimodal Grok model (text + vision) [venturebeat.com]
-    ],
-    "mistral_multimodal": [
-        "pixtral-12b-2409",  # 12B parameters, natively multimodal (text + images) :contentReference[oaicite:1]{index=1}
-        "pixtral-large",  # 124B parameters, frontier-class multimodal (text + images) :contentReference[oaicite:2]{index=2}
-    ],
-    "qwen_multimodal": [
-        "qwen2.5-omni",  # end-to-end multimodal: text + image + audio + video :contentReference[oaicite:1]{index=1}
-        "qwen3-omni",  # natively omni-modal: text, images, audio, video :contentReference[oaicite:2]{index=2}
-        "qwen3-vl",  # vision-language variant: text + image (and video) support :contentReference[oaicite:3]{index=3}
+    "mistral": [
+        "mistral-large-latest",
+        "mistral-small-latest",
     ],
     "openrouter": [
-        "openrouter/meta-llama/llama-4-scout",  # supports native text + image input. :contentReference[oaicite:2]{index=2}
-        "openrouter/qwen/qwen3-vl-32b-instruct",  # vision-language (text + image/video) model. :contentReference[oaicite:3]{index=3}
-        "openrouter/qwen/qwen3-vl-235b-a22b-instruct",  # vision-language (text + image/video) model. :contentReference[oaicite:4]{index=4}
+        "auto",
+    ],
+    "kimi-coding": [
+        "k2p5",
     ],
 }
 
@@ -54,18 +53,16 @@ ONLINE_MODELS: Dict[str, List[str]] = {
 # Only including models confirmed working (not deprecated)
 ONLINE_THINKING_MODELS: Dict[str, List[str]] = {
     "anthropic": [
-        # Claude 3.7 models with thinking support
-        "claude-3-7-sonnet-20250219",  # Claude 3.7 Sonnet (latest) - supports thinking
-        # Claude 4.x models with thinking support
-        "claude-sonnet-4-20250522",  # Claude Sonnet 4 (thinking)
-        "claude-sonnet-4-5-20250929",  # Claude Sonnet 4.5 (thinking)
-        "claude-haiku-4-5-20251001",  # Claude Haiku 4.5 (thinking)
-        "claude-haiku-4-5",  # Claude Haiku 4.5 (alternative format, thinking)
+        "claude-opus-4-1-20250805",
+        "claude-opus-4-20250514",
+        "claude-sonnet-4-5-20250929",
+        "claude-sonnet-4-20250522",
+        "claude-haiku-4-5-20251001",
     ],
     "gemini": [
-        "gemini-2.5-pro",  # newest flagship with thinking
-        "gemini-2.5-flash",  # fast, high-throughput with thinking
-        "gemini-2.5-flash-lite",  # lightweight variant with thinking
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
     ],
 }
 
@@ -79,4 +76,3 @@ LOCAL_VISION_MODELS: Dict[str, List[str]] = {
         "OpenGVLab/InternVL2_5-1B",  # Fastest InternVL model
     ]
 }
-
