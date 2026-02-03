@@ -22,5 +22,7 @@ read_when:
 
 ## Tests
 
-- Backend: `pytest ../tests/backend`
-- Frontend: `npm test`
+- Full gate: `scripts/check`
+- Tests only: `scripts/test`
+- Docs sanity: `bin/docs-list`
+- Frontend deps missing: set `SKIP_FRONTEND=1` to skip frontend checks

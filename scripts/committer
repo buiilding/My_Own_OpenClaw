@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$#" -lt 2 ]; then
+  echo "Usage: scripts/committer \"<message>\" <file> [file ...]" >&2
+  exit 1
+fi
+
+if ! command -v committer >/dev/null 2>&1; then
+  echo "committer not found on PATH. Install it or use git commit manually." >&2
+  exit 1
+fi
+
+msg="$1"
+shift
+
+exec committer "$msg" "$@"

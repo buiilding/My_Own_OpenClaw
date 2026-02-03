@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+(
+  cd "$ROOT"
+  python -m pytest
+)
+
+if [ -d "$ROOT/frontend" ]; then
+  if [ -d "$ROOT/frontend/node_modules" ]; then
+    (
+      cd "$ROOT/frontend"
+      npm run test:ci
+    )
+  else
+    if [ "${SKIP_FRONTEND:-}" = "1" ]; then
+      echo "Skipping frontend tests (SKIP_FRONTEND=1)."
+    else
+      echo "Frontend dependencies missing. Run: cd frontend && npm install" >&2
+      echo "Or set SKIP_FRONTEND=1 to skip frontend tests." >&2
+      exit 1
+    fi
+  fi
+fi
