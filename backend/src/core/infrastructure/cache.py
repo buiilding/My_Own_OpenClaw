@@ -108,6 +108,15 @@ class Cache:
             if entry.is_error:
                 raise entry.value
             return entry.value
+
+    def _new_async_event(self) -> asyncio.Event:
+        """Create an asyncio.Event in the current loop (or a new one if missing)."""
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        return asyncio.Event()
     
     def set(self, key: str, value: Any, ttl: Optional[float] = None) -> None:
         """
@@ -369,13 +378,7 @@ class Cache:
             else:
                 # Mark that we're computing this value
                 # Create asyncio.Event in the event loop context
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    # No event loop running, create new one (shouldn't happen in normal usage)
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                event = asyncio.Event()
+                event = self._new_async_event()
                 self._computing_async[key] = event
                 should_compute = True
         
@@ -393,12 +396,7 @@ class Cache:
             # If still not found (expired), compute ourselves
             with self._lock:
                 if key not in self._computing_async:
-                    try:
-                        loop = asyncio.get_running_loop()
-                    except RuntimeError:
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                    event = asyncio.Event()
+                    event = self._new_async_event()
                     self._computing_async[key] = event
                     should_compute = True
                 else:
@@ -415,12 +413,7 @@ class Cache:
                             raise
                     # If still not found, we compute
                     if key not in self._computing_async:
-                        try:
-                            loop = asyncio.get_running_loop()
-                        except RuntimeError:
-                            loop = asyncio.new_event_loop()
-                            asyncio.set_event_loop(loop)
-                        event = asyncio.Event()
+                        event = self._new_async_event()
                         self._computing_async[key] = event
                         should_compute = True
         
@@ -522,4 +515,3 @@ class CacheManager:
 
 # Global cache manager instance
 cache_manager = CacheManager()
-
