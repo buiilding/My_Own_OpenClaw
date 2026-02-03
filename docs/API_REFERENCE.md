@@ -12,6 +12,68 @@ Desktop Assistant uses a WebSocket-based API for real-time communication between
 
 **Connection**: Persistent connection, auto-reconnect on disconnect
 
+### Hosted WebSocket (Planned)
+
+**URL**: `wss://api.<domain>/ws`
+
+**Auth**: `Authorization: Bearer <access_token>`
+
+**Handshake Payload**: `{ user_id, device_id, session_id? }`
+
+## HTTP Endpoints (Memory)
+
+These REST endpoints live on the same FastAPI server as the WebSocket (default `http://127.0.0.1:8765`). They are used by the Python sidecar for embeddings and semantic summarization.
+
+### POST `/api/embeddings/`
+
+Generate an embedding for a single text input.
+
+**Request**:
+```json
+{ "text": "string", "model_name": "default" }
+```
+
+**Limits**: `text` max 8192 chars, `model_name` max 128 chars.
+
+**Response**:
+```json
+{ "embedding": [0.0, 0.1, ...], "model_name": "string", "dimension": 384 }
+```
+
+### GET `/api/embeddings/health`
+
+Health check for the embeddings service.
+
+**Response**:
+```json
+{ "status": "healthy", "model_name": "string", "dimension": 384 }
+```
+
+### POST `/api/semantic/summarize`
+
+Summarize episodic conversations into semantic memory.
+
+**Request**:
+```json
+{ "conversations": ["..."], "user_id": "user-123" }
+```
+
+**Limits**: up to 100 conversations; each conversation max 32KB; `user_id` cannot be `default_user`.
+
+**Response**:
+```json
+{ "summary": "string", "facts": ["..."], "success": true }
+```
+
+### GET `/api/semantic/health`
+
+Health check for semantic summarization.
+
+**Response**:
+```json
+{ "status": "healthy", "message": "Semantic summarization service ready" }
+```
+
 ## Message Format
 
 ### Base Message Structure
@@ -45,7 +107,9 @@ Send a user query with optional screenshot.
 ```json
 {
   "text": "User query text",
-  "screenshot": "base64-encoded-screenshot" // Optional
+  "content": "<system_context>...</system_context> ...", // Optional, built by Electron main process
+  "screenshot": "base64-encoded-screenshot", // Optional
+  "config": { "model_provider": "openai", "selected_model_id": "gpt-5.1" } // Optional
 }
 ```
 
@@ -63,6 +127,8 @@ Send a user query with optional screenshot.
 - `assistant-message-full`: Full assistant message for transparency
 - `tool-schemas`: Tool schemas for transparency
 - `token-count`: Token usage information
+
+**Note**: The Electron main process enriches `query` payloads by adding `content` (system context + memory + user query).
 
 **Example**:
 ```json
@@ -471,17 +537,29 @@ Response to list-models request.
   "local": [
     {
       "id": "llama-2-7b",
-      "provider": "ollama"
+      "provider": "ollama",
+      "display_name": "llama-2-7b"
     }
   ],
   "online": [
     {
-      "id": "gpt-4o",
-      "provider": "openai"
+      "id": "gpt-5.1",
+      "provider": "openai",
+      "display_name": "openai/gpt-5.1",
+      "supports_thinking": false
     },
     {
-      "id": "claude-3-opus",
-      "provider": "anthropic"
+      "id": "claude-sonnet-4-5-20250929",
+      "provider": "anthropic",
+      "display_name": "anthropic/claude-sonnet-4-5-20250929",
+      "supports_thinking": true
+    }
+  ],
+  "vision": [
+    {
+      "id": "OpenGVLab/InternVL3_5-4B",
+      "provider": "huggingface-local",
+      "display_name": "huggingface-local/OpenGVLab/InternVL3_5-4B"
     }
   ]
 }
@@ -496,17 +574,29 @@ Response to list-models request.
     "local": [
       {
         "id": "llama-2-7b",
-        "provider": "ollama"
+        "provider": "ollama",
+        "display_name": "llama-2-7b"
       }
     ],
     "online": [
       {
-        "id": "gpt-4o",
-        "provider": "openai"
+        "id": "gpt-5.1",
+        "provider": "openai",
+        "display_name": "openai/gpt-5.1",
+        "supports_thinking": false
       },
       {
-        "id": "claude-3-opus",
-        "provider": "anthropic"
+        "id": "claude-sonnet-4-5-20250929",
+        "provider": "anthropic",
+        "display_name": "anthropic/claude-sonnet-4-5-20250929",
+        "supports_thinking": true
+      }
+    ],
+    "vision": [
+      {
+        "id": "OpenGVLab/InternVL3_5-4B",
+        "provider": "huggingface-local",
+        "display_name": "huggingface-local/OpenGVLab/InternVL3_5-4B"
       }
     ]
   },
@@ -621,15 +711,14 @@ Greeting message sent when wakeword is detected.
 
 ### System Prompt Message
 
-System prompt sent to frontend for transparency display.
+System prompt sent to frontend for transparency display. Tool schemas are emitted separately as a `tool-schemas` event and embedded in the initial user message.
 
 **Type**: `system-prompt`
 
 **Payload**:
 ```json
 {
-  "content": "You are a helpful assistant...",
-  "tool_schemas": { ... } // Optional
+  "content": "You are a helpful assistant..."
 }
 ```
 
@@ -639,10 +728,7 @@ System prompt sent to frontend for transparency display.
   "id": "123e4567-e89b-12d3-a456-426614174019",
   "type": "system-prompt",
   "payload": {
-    "content": "You are a helpful assistant...",
-    "tool_schemas": {
-      "mouse_control": { ... }
-    }
+    "content": "You are a helpful assistant..."
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }
@@ -708,7 +794,7 @@ Full assistant message content for transparency display.
 
 ### Tool Schemas Message
 
-Tool schemas sent to frontend for transparency display (first message only).
+Tool schemas sent to frontend for transparency display (first message only). Schemas are embedded in the initial user message, not passed as an LLM API parameter.
 
 **Type**: `tool-schemas`
 
