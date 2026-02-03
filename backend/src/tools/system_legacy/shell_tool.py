@@ -12,7 +12,7 @@ import subprocess
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field, ConfigDict
 
 from backend.src.core.security.policy import Permission
@@ -127,39 +127,21 @@ class ShellTool(Tool[RunShellCommandArgs]):
 
             if not command:
                 logger.error("SHELL TOOL FAILED: Command cannot be empty")
-                return {
-                    "error": "Command cannot be empty",
-                    "llm_content": "Error: Command cannot be empty"
-                }
+                return self._error_result("Command cannot be empty")
 
             # Validate command safety
             is_allowed, reason = is_command_allowed(command, self.allowlist)
             if not is_allowed:
-                return {
-                    "error": f"Command not allowed: {reason}",
-                    "llm_content": f"Error: Command not allowed: {reason}"
-                }
+                return self._error_result(f"Command not allowed: {reason}")
 
             # Get session and user IDs from context
             session_id = ctx.session.session_id
             user_id = ctx.user.user_id
 
             # Determine working directory
-            working_dir = None
-            if directory:
-                # Explicit directory parameter takes precedence
-                if not os.path.isabs(directory):
-                    return {
-                        "error": "Directory must be an absolute path",
-                        "llm_content": "Error: Directory must be an absolute path"
-                    }
-
-                if not os.path.exists(directory) or not os.path.isdir(directory):
-                    return {
-                        "error": f"Directory does not exist or is not a directory: {directory}",
-                        "llm_content": f"Error: Directory does not exist or is not a directory: {directory}"
-                    }
-                working_dir = directory
+            working_dir, error_result = self._resolve_working_dir(directory)
+            if error_result:
+                return error_result
 
             # Handle background execution
             if args.run_in_background:
@@ -268,10 +250,32 @@ class ShellTool(Tool[RunShellCommandArgs]):
 
         except Exception as e:
             logger.error(f"Unexpected error in shell tool: {e}", exc_info=True)
-            return {
-                "error": f"Unexpected error: {str(e)}",
-                "llm_content": f"Error: Unexpected error: {str(e)}"
-            }
+            return self._error_result(f"Unexpected error: {str(e)}")
+
+    def _error_result(self, message: str) -> Dict[str, str]:
+        return {
+            "error": message,
+            "llm_content": f"Error: {message}",
+        }
+
+    def _resolve_working_dir(
+        self, directory: Optional[str]
+    ) -> Tuple[Optional[str], Optional[Dict[str, str]]]:
+        if not directory:
+            return None, None
+
+        if not os.path.isabs(directory):
+            return None, self._error_result("Directory must be an absolute path")
+
+        if not os.path.exists(directory) or not os.path.isdir(directory):
+            return (
+                None,
+                self._error_result(
+                    f"Directory does not exist or is not a directory: {directory}"
+                ),
+            )
+
+        return directory, None
 
     async def _execute_command(
         self, command: str, working_dir: str, timeout: float
