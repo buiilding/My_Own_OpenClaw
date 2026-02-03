@@ -24,6 +24,7 @@ except ImportError:
     faiss = None
 
 from core.remote_embedding_client import RemoteEmbeddingClient
+from memory.watermark_state import WatermarkStateStore
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +92,7 @@ class LocalMemoryStore:
 
         # Watermark state file for tracking semanticization progress
         self.watermark_state_path = memory_dir / "watermark_state.json"
+        self._watermark_store = WatermarkStateStore(self.watermark_state_path)
 
         # Separate database paths for each memory type
         self.episodic_db_path = str(memory_dir / "episodic.db")
@@ -1249,65 +1251,6 @@ class LocalMemoryStore:
             await conn.commit()
             logger.debug(f"Marked {len(memory_ids)} episodic memories as semanticized")
     
-    async def _load_watermark_state(self) -> Dict[str, Any]:
-        """
-        Load watermark state from JSON file (async using global thread pool).
-        
-        Returns:
-            Dictionary with 'last_semanticized_id' and 'pending_message_count'
-        """
-        default_state = {
-            "last_semanticized_id": None,
-            "pending_message_count": 0,
-            "last_updated": None
-        }
-        
-        if not self.watermark_state_path.exists():
-            return default_state
-        
-        from core.thread_pool import get_executor
-        loop = asyncio.get_running_loop()
-        executor = get_executor()
-
-        def load_state():
-            try:
-                with open(self.watermark_state_path, 'r') as f:
-                    return json.load(f)
-            except Exception as e:
-                logger.error(f"Failed to load watermark state: {e}", exc_info=True)
-                return None
-
-        state = await loop.run_in_executor(executor, load_state)
-        if state is None:
-            return default_state
-
-        # Ensure all keys exist
-        for key in default_state:
-            if key not in state:
-                state[key] = default_state[key]
-        return state
-    
-    async def _save_watermark_state(self, state: Dict[str, Any]) -> None:
-        """
-        Save watermark state to JSON file (async using global thread pool).
-        
-        Args:
-            state: Dictionary with watermark state
-        """
-        from core.thread_pool import get_executor
-        loop = asyncio.get_running_loop()
-        executor = get_executor()
-
-        def save_state():
-            try:
-                state["last_updated"] = datetime.now().isoformat()
-                with open(self.watermark_state_path, 'w') as f:
-                    json.dump(state, f, indent=2)
-            except Exception as e:
-                logger.error(f"Failed to save watermark state: {e}", exc_info=True)
-
-        await loop.run_in_executor(executor, save_state)
-    
     async def get_watermark(self) -> Dict[str, Any]:
         """
         Get current watermark state.
@@ -1315,7 +1258,7 @@ class LocalMemoryStore:
         Returns:
             Dictionary with 'last_semanticized_id' and 'pending_message_count'
         """
-        return await self._load_watermark_state()
+        return await self._watermark_store.get()
     
     async def update_watermark(self, last_semanticized_id: Optional[str], pending_message_count: int = 0) -> None:
         """
@@ -1325,11 +1268,7 @@ class LocalMemoryStore:
             last_semanticized_id: ID of the last processed episodic memory (None if none processed)
             pending_message_count: Number of pending messages since last batch
         """
-        state = {
-            "last_semanticized_id": last_semanticized_id,
-            "pending_message_count": pending_message_count
-        }
-        await self._save_watermark_state(state)
+        await self._watermark_store.update(last_semanticized_id, pending_message_count)
         logger.debug(f"Updated watermark: last_id={last_semanticized_id}, pending={pending_message_count}")
     
     async def increment_pending_count(self) -> int:
@@ -1339,10 +1278,7 @@ class LocalMemoryStore:
         Returns:
             New pending message count
         """
-        state = await self._load_watermark_state()
-        state["pending_message_count"] = state.get("pending_message_count", 0) + 1
-        await self._save_watermark_state(state)
-        new_count = state["pending_message_count"]
+        new_count = await self._watermark_store.increment_pending_count()
         logger.debug(f"Incremented pending count to {new_count}")
         return new_count
     
