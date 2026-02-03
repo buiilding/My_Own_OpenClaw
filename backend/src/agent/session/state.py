@@ -88,8 +88,7 @@ class ConversationHistory:
         # Invalidate token count cache (new message added)
         self._invalidate_token_cache()
         self._prune_if_needed()
-        # Keep only the 2 most recent images (previous + current) for before/after comparison; clear older ones
-        self._clear_old_image_data()
+        self._trim_old_images()
 
     def add_tool_output(self, message: str, image_data: Optional[str] = None) -> None:
         """
@@ -165,10 +164,7 @@ class ConversationHistory:
             # Pruning occurred, cache already invalidated by _prune_if_needed
             logger.debug("Token count cache invalidated due to history pruning")
         
-        # Keep only the 2 most recent images (previous + current) so the LLM can compare screen
-        # state before/after actions; older images add no value. Also prevents memory spikes during
-        # tool loops (screenshots ~5-10MB each).
-        self._clear_old_image_data()
+        self._trim_old_images()
 
     def add_assistant_message(self, message: str) -> None:
         """
@@ -321,7 +317,7 @@ class ConversationHistory:
             self._invalidate_token_cache()
             logger.debug(f"Pruned conversation history to {self.max_length} messages (removed {removed_count})")
     
-    def _clear_old_image_data(self, keep_recent_images: int = 2) -> None:
+    def _trim_old_images(self, keep_recent_images: int = 2) -> None:
         """
         Keep only the last keep_recent_images image-bearing messages; clear image_data from all others.
         
