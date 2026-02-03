@@ -148,7 +148,7 @@ from backend.src.tools.filesystem.schemas import (
 # from backend.src.tools.filesystem.list_directory_tool import ListDirectoryArgs, ListDirectoryTool as BackendListDirectoryTool
 
 
-class RemoteMouseTool(Tool[MouseControlArgs], RemoteToolBase):
+class RemoteMouseTool(RemoteToolBase, Tool[MouseControlArgs]):
     """
     Remote mouse control tool.
 
@@ -169,7 +169,7 @@ class RemoteMouseTool(Tool[MouseControlArgs], RemoteToolBase):
         )
 
 
-class RemoteKeyboardTool(Tool[KeyboardControlArgs], RemoteToolBase):
+class RemoteKeyboardTool(RemoteToolBase, Tool[KeyboardControlArgs]):
     """
     Remote keyboard control tool.
 
@@ -190,7 +190,7 @@ class RemoteKeyboardTool(Tool[KeyboardControlArgs], RemoteToolBase):
         )
 
 
-class RemoteScreenshotTool(Tool[ScreenshotToolArgs], RemoteToolBase):
+class RemoteScreenshotTool(RemoteToolBase, Tool[ScreenshotToolArgs]):
     """
     Remote screenshot tool.
 
@@ -211,7 +211,7 @@ class RemoteScreenshotTool(Tool[ScreenshotToolArgs], RemoteToolBase):
         )
 
 
-class RemoteReadFileTool(Tool[ReadFileArgs], RemoteToolBase):
+class RemoteReadFileTool(RemoteToolBase, Tool[ReadFileArgs]):
     """
     Remote read file tool.
 
@@ -232,7 +232,7 @@ class RemoteReadFileTool(Tool[ReadFileArgs], RemoteToolBase):
         )
 
 
-class RemoteWriteFileTool(Tool[WriteFileArgs], RemoteToolBase):
+class RemoteWriteFileTool(RemoteToolBase, Tool[WriteFileArgs]):
     """
     Remote write file tool.
 
@@ -253,7 +253,7 @@ class RemoteWriteFileTool(Tool[WriteFileArgs], RemoteToolBase):
         )
 
 
-class RemoteListDirectoryTool(Tool[ListDirectoryArgs], RemoteToolBase):
+class RemoteListDirectoryTool(RemoteToolBase, Tool[ListDirectoryArgs]):
     """
     Remote list directory tool.
 
@@ -277,7 +277,7 @@ class RemoteListDirectoryTool(Tool[ListDirectoryArgs], RemoteToolBase):
         )
 
 
-class RemoteGlobTool(Tool[GlobArgs], RemoteToolBase):
+class RemoteGlobTool(RemoteToolBase, Tool[GlobArgs]):
     """
     Remote glob tool.
 
@@ -298,7 +298,7 @@ class RemoteGlobTool(Tool[GlobArgs], RemoteToolBase):
         )
 
 
-class RemoteScrollTool(Tool[ScrollControlArgs], RemoteToolBase):
+class RemoteScrollTool(RemoteToolBase, Tool[ScrollControlArgs]):
     """
     Remote scroll control tool.
 
@@ -319,7 +319,7 @@ class RemoteScrollTool(Tool[ScrollControlArgs], RemoteToolBase):
         )
 
 
-class RemoteSwitchTabTool(Tool[SwitchTabArgs], RemoteToolBase):
+class RemoteSwitchTabTool(RemoteToolBase, Tool[SwitchTabArgs]):
     """
     Remote switch tab tool.
 
@@ -340,7 +340,7 @@ class RemoteSwitchTabTool(Tool[SwitchTabArgs], RemoteToolBase):
         )
 
 
-class RemoteWaitTool(Tool[WaitToolArgs], RemoteToolBase):
+class RemoteWaitTool(RemoteToolBase, Tool[WaitToolArgs]):
     """
     Remote wait tool.
 
@@ -368,7 +368,7 @@ class RemoteWaitTool(Tool[WaitToolArgs], RemoteToolBase):
         )
 
 
-class RemoteGetOpenWindowsTool(Tool[GetOpenWindowsArgs], RemoteToolBase):
+class RemoteGetOpenWindowsTool(RemoteToolBase, Tool[GetOpenWindowsArgs]):
     """
     Remote get open windows tool.
 
@@ -389,7 +389,7 @@ class RemoteGetOpenWindowsTool(Tool[GetOpenWindowsArgs], RemoteToolBase):
         )
 
 
-class RemoteGetSystemStatsTool(Tool[GetSystemStatsArgs], RemoteToolBase):
+class RemoteGetSystemStatsTool(RemoteToolBase, Tool[GetSystemStatsArgs]):
     """
     Remote get system stats tool.
 
@@ -410,7 +410,7 @@ class RemoteGetSystemStatsTool(Tool[GetSystemStatsArgs], RemoteToolBase):
         )
 
 
-class RemoteShellTool(Tool[RunShellCommandArgs], RemoteToolBase):
+class RemoteShellTool(RemoteToolBase, Tool[RunShellCommandArgs]):
     """
     Remote shell command tool.
 
