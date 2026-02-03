@@ -14,6 +14,20 @@ from backend.src.core.config import AppConfig
 
 logger = logging.getLogger(__name__)
 
+CUDA_ERROR_KEYWORDS = (
+    "Failed to allocate memory",
+    "RUNTIME_EXCEPTION",
+    "CUBLAS_STATUS_ALLOC_FAILED",
+    "CUBLAS failure",
+    "CUDNN",
+    "CUDA",
+    "cuda_call",
+    "cublas",
+    "cudnn",
+    "CUDNN_STATUS",
+    "CUBLAS_STATUS",
+)
+
 
 class TTSService:
     """
@@ -99,28 +113,8 @@ class TTSService:
             except Exception as e:
                 # If CUDA fails (any CUDA/CUDNN error), try CPU fallback
                 error_msg = str(e)
-                error_type = type(e).__name__
-                
-                # Check if it's an ONNXRuntimeError or CUDA-related error
-                is_cuda_error = (
-                    "ONNXRuntimeError" in error_type or
-                    "ONNXRuntimeError" in error_msg or
-                    any(keyword in error_msg for keyword in [
-                        "Failed to allocate memory",
-                        "RUNTIME_EXCEPTION",
-                        "CUBLAS_STATUS_ALLOC_FAILED",
-                        "CUBLAS failure",
-                        "CUDNN",
-                        "CUDA",
-                        "cuda_call",
-                        "cublas",
-                        "cudnn",
-                        "CUDNN_STATUS",
-                        "CUBLAS_STATUS"
-                    ])
-                )
-                
-                if is_cuda_error:
+
+                if self._is_cuda_error(e):
                     logger.warning(
                         f"TTS CUDA initialization failed (GPU error detected). "
                         f"Falling back to CPU. Error: {error_msg[:200]}"
@@ -163,19 +157,7 @@ class TTSService:
         return (
             "ONNXRuntimeError" in error_type or
             "ONNXRuntimeError" in error_msg or
-            any(keyword in error_msg for keyword in [
-                "Failed to allocate memory",
-                "RUNTIME_EXCEPTION",
-                "CUBLAS_STATUS_ALLOC_FAILED",
-                "CUBLAS failure",
-                "CUDNN",
-                "CUDA",
-                "cuda_call",
-                "cublas",
-                "cudnn",
-                "CUDNN_STATUS",
-                "CUBLAS_STATUS"
-            ])
+            any(keyword in error_msg for keyword in CUDA_ERROR_KEYWORDS)
         )
 
     def _prepare_audio_data(self, audio_chunk) -> Dict[str, Any]:
