@@ -170,10 +170,7 @@ class ShellTool(Tool[RunShellCommandArgs]):
 
             # Foreground execution using persistent shell
             # Determine timeout
-            shell_timeout = args.terminate_after_seconds if args.terminate_after_seconds is not None else DEFAULT_SHELL_TIMEOUT
-            config = ctx.services.get("config")
-            if config and hasattr(config, "shell_timeout") and args.terminate_after_seconds is None:
-                shell_timeout = config.shell_timeout
+            shell_timeout = self._resolve_shell_timeout(args, ctx)
 
             # Execute command in persistent shell using new abstraction
             start_time = time.time()
@@ -301,6 +298,18 @@ class ShellTool(Tool[RunShellCommandArgs]):
             "return_display": return_display,
             "success": success,
         }
+
+    def _resolve_shell_timeout(
+        self, args: RunShellCommandArgs, ctx: ToolContext
+    ) -> float:
+        if args.terminate_after_seconds is not None:
+            return args.terminate_after_seconds
+
+        config = ctx.services.get("config")
+        if config and hasattr(config, "shell_timeout"):
+            return config.shell_timeout
+
+        return DEFAULT_SHELL_TIMEOUT
 
     async def _execute_command(
         self, command: str, working_dir: str, timeout: float
