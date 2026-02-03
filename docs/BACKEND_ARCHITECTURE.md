@@ -151,7 +151,7 @@ Registry for managing tools in the Desktop Assistant.
 
 **Responsibilities**:
 - Register and manage tool instances
-- Provide tool schemas for LLM
+- Provide tool schemas for the LLM (embedded in the initial user message + transparency event)
 - Manage remote tool stubs
 - Create tool execution contexts
 

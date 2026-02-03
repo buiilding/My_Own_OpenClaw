@@ -8,9 +8,10 @@ Desktop Assistant supports multiple LLM providers through a unified interface. T
 
 ### Cloud Providers
 
-- **OpenAI**: GPT-4, GPT-3.5, and other OpenAI models
-- **Anthropic**: Claude 3 Opus, Sonnet, Haiku
-- **Google**: Gemini 2.5 Flash, Gemini Pro
+- **OpenAI**: GPT-5, GPT-4.1, GPT-4o, and other OpenAI models
+- **Anthropic**: Claude 4/3.5 families (Opus, Sonnet, Haiku)
+- **Gemini**: Gemini 2.5 and Gemini 3 preview models
+- **Kimi Code**: Kimi for Coding (OpenAI-compatible)
 - **OpenRouter**: Access to 100+ models via unified API
 - **Mistral**: Mistral models
 
@@ -18,6 +19,8 @@ Desktop Assistant supports multiple LLM providers through a unified interface. T
 
 - **Ollama**: Local model execution
 - **LM Studio**: Local model server
+
+Curated online model IDs live in `backend/src/llm/models/models_config.py` and are returned by `list-models`. Local model lists come from the running Ollama/LM Studio servers.
 
 ## LLM Client Architecture
 
@@ -44,7 +47,8 @@ Desktop Assistant supports multiple LLM providers through a unified interface. T
 │      LLMProvider (Base)                  │
 │  - OpenAIProvider                        │
 │  - AnthropicProvider                     │
-│  - GoogleProvider                        │
+│  - GeminiProvider                        │
+│  - KimiCodeProvider                       │
 │  - OllamaProvider                        │
 │  - OpenRouterProvider                    │
 │  - MistralProvider                       │
@@ -134,7 +138,7 @@ messages = [
 
 ### OpenAI
 
-**Models**: `gpt-4o`, `gpt-4-turbo`, `gpt-3.5-turbo`
+**Models**: `gpt-5.2`, `gpt-5.1`, `gpt-5-mini`, `gpt-5-nano`, `gpt-4.1`, `gpt-4.1-mini`, `gpt-4o`, `gpt-4o-mini`
 
 **Configuration**:
 ```yaml
@@ -146,13 +150,12 @@ providers:
 ```
 
 **Features**:
-- Function calling support
 - Streaming responses
 - Token usage tracking
 
 ### Anthropic
 
-**Models**: `claude-3-opus`, `claude-3-sonnet`, `claude-3-haiku`
+**Models**: `claude-opus-4-1-20250805`, `claude-opus-4-20250514`, `claude-sonnet-4-5-20250929`, `claude-sonnet-4-20250522`, `claude-haiku-4-5-20251001`, `claude-3-5-sonnet-20241022`, `claude-3-5-haiku-20241022`, `claude-3-opus-20240229`, `claude-3-sonnet-20240229`, `claude-3-haiku-20240307`
 
 **Configuration**:
 ```yaml
@@ -167,9 +170,9 @@ providers:
 - Thinking tokens (reasoning)
 - Streaming responses
 
-### Google
+### Gemini
 
-**Models**: `gemini-2.5-flash`, `gemini-pro`
+**Models**: `gemini-3-pro-preview`, `gemini-3-flash-preview`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.5-flash-lite`
 
 **Configuration**:
 ```yaml
@@ -180,9 +183,33 @@ providers:
 ```
 
 **Features**:
-- Multimodal support
-- Function calling
 - Streaming responses
+- Thinking tokens (Gemini 2.5 models)
+
+### Kimi Code
+
+**Models**: `kimi-for-coding`
+
+**Configuration**:
+```python
+from backend.src.core.config.models import AppConfig, LLMProviders, KimiCodeConfig
+
+APP_CONFIG = AppConfig(
+    model_provider="kimi_code",
+    selected_model_id="kimi-for-coding",
+    llm_providers=LLMProviders(
+        kimi_code=KimiCodeConfig(
+            model="kimi-for-coding",
+            api_key_env="KIMI_API_KEY",
+            base_url="https://api.kimi.com/coding/v1",
+        ),
+    ),
+)
+```
+
+**Features**:
+- OpenAI-compatible API
+- Optimized for coding tasks
 
 ### Ollama
 
@@ -230,7 +257,7 @@ providers:
 
 ### Mistral
 
-**Models**: `mistral-large`, `mistral-medium`, `mistral-small`
+**Models**: `mistral-large-latest`, `mistral-small-latest`
 
 **Configuration**:
 ```yaml
@@ -242,7 +269,6 @@ providers:
 
 **Features**:
 - High performance
-- Function calling
 - Streaming responses
 
 ### LM Studio
@@ -274,50 +300,63 @@ providers:
 All providers support streaming:
 
 ```python
+from backend.src.core.events.streaming_events import ChunkEvent, ThinkingEvent, ErrorEvent
+
 async for event in llm_client.get_completion_stream(
-    model="gpt-4o",
+    model="gpt-5.1",
     messages=messages
 ):
-    if event.type == "content":
+    if isinstance(event, ChunkEvent):
         print(event.content, end="", flush=True)
-    elif event.type == "error":
-        print(f"Error: {event.error}")
+    elif isinstance(event, ThinkingEvent):
+        print(f"[thinking] {event.content}")
+    elif isinstance(event, ErrorEvent):
+        print(f"Error: {event.content}")
 ```
 
 ### Streaming Events
 
-**Content Event**:
+**Chunk Event**:
 ```python
-StreamingEvent(type="content", content="chunk")
+ChunkEvent(content="chunk")
+```
+
+**Thinking Event**:
+```python
+ThinkingEvent(content="reasoning")
 ```
 
 **Error Event**:
 ```python
-ErrorEvent(type="error", error="error message")
+ErrorEvent(content="error message")
 ```
 
-## Function Calling
+## Tool Calling (Prompt-Embedded Schemas)
 
-### Tool Definitions
+### Tool Schema Injection
 
-Tools are automatically included in LLM requests:
+Tool schemas are embedded in the initial user message (as a `<tool_schemas>` XML section). They are not passed as a separate LLM API parameter.
 
-```python
-tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "mouse_control",
-            "description": "Control mouse",
-            "parameters": {...}
-        }
-    }
-]
+### Tool Call Format
+
+The parser accepts two JSON formats:
+
+**Standard tools**:
+```json
+{ "functionCall": { "name": "read_file", "args": { "path": "/tmp/a.txt" } } }
 ```
 
-### Function Calling Flow
+**Computer-use tools (requires metadata)**:
+```json
+{
+  "metadata": { "description": "...", "explanation": "...", "expectation": "..." },
+  "action": { "functionCall": { "name": "mouse_control", "args": { "x": 10, "y": 20, "action": "click" } } }
+}
+```
 
-1. LLM receives tool definitions
+### Tool Calling Flow
+
+1. LLM reads `<tool_schemas>` from the first user message.
 2. LLM generates tool calls
 3. Tools executed
 4. Results sent back to LLM

@@ -190,20 +190,57 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 - Payload: `{}`
 - Usage: Mark streaming complete
 
-**`settings-loaded`**
-- Purpose: Settings loaded response
-- Payload: `{ config: {...} }`
-- Usage: Initial settings load
-
-**`settings-updated`**
-- Purpose: Settings updated response
-- Payload: `{}`
-- Usage: Settings save confirmation
+**`settings-loaded` / `settings-updated`**
+- Status: Legacy only. Backend does not currently emit these; frontend settings are local-only.
 
 **`models-listed`**
 - Purpose: Available models response
+
+## Memory HTTP Flow (Sidecar ↔ Backend)
+
+The Python sidecar uses REST endpoints on the same FastAPI server (default `http://127.0.0.1:8765`) for memory operations. This is separate from the WebSocket stream.
+
+```
+┌──────────────────────────────┐          HTTP           ┌──────────────────────────────┐
+│ Python Sidecar (memory/)     │  ───────────────────▶   │ FastAPI REST (memory routes) │
+│ - LocalMemoryStore           │                         │ - /api/embeddings            │
+│ - MemorySummarizer           │  ◀───────────────────   │ - /api/semantic/summarize    │
+└──────────────────────────────┘                         └──────────────────────────────┘
+```
+
+### Embedding Flow
+1. Sidecar prepares episodic memory content.
+2. `POST /api/embeddings/` returns the embedding vector.
+3. Sidecar stores embeddings in local FAISS indexes.
+
+### Semantic Summarization Flow
+1. MemorySummarizer batches episodic memories by conversation.
+2. `POST /api/semantic/summarize` returns summary + facts.
+3. Sidecar stores semantic memory and marks episodic memories as semanticized.
+
+### Health Checks
+- `GET /api/embeddings/health`
+- `GET /api/semantic/health`
 - Payload: `{ local: [...], online: [...] }`
 - Usage: Model selection
+
+### Planned Message Types (Hosted)
+
+**`auth-required`**
+- Purpose: Server requires re-authentication
+- Payload: `{ reason, login_url? }`
+
+**`usage-update`**
+- Purpose: Updated usage for current billing period
+- Payload: `{ tokens_used, tokens_limit, tool_calls_used, tool_calls_limit }`
+
+**`limit-reached`**
+- Purpose: Hard usage limit reached
+- Payload: `{ limit_type, reset_at, upgrade_url }`
+
+**`entitlement-changed`**
+- Purpose: Plan change or permissions update
+- Payload: `{ plan_id, entitlements }`
 
 ## Message Flow Examples
 
