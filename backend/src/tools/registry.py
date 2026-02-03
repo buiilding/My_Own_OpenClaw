@@ -7,10 +7,11 @@ only needs their definitions.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
-from backend.src.core.services.context_factory import ContextFactory
-from backend.src.sdk.tool import Tool as SDKTool
+if TYPE_CHECKING:
+    from backend.src.sdk.tool import Tool as SDKTool
+    from backend.src.core.services.context_factory import ContextFactory
 from backend.src.tools.schema_registry import SchemaRegistry
 from backend.src.tools.remote import get_all_remote_tools
 
@@ -29,7 +30,7 @@ class ToolRegistry:
     def __init__(
         self,
         config: Any,
-        context_factory: Optional[ContextFactory] = None,
+        context_factory: Optional["ContextFactory"] = None,
     ):
         """
         Initialize the tool registry.
@@ -39,11 +40,13 @@ class ToolRegistry:
             context_factory: Optional ContextFactory instance
         """
         self.config = config
-        self.tools: Dict[str, SDKTool] = {}
+        self.tools: Dict[str, "SDKTool"] = {}
         self.schema_registry = SchemaRegistry()
 
         # Initialize context factory (create if not provided)
         if context_factory is None:
+            from backend.src.core.services.context_factory import ContextFactory
+
             self.context_factory = ContextFactory(
                 config=config,
                 tool_registry=self,
@@ -65,7 +68,7 @@ class ToolRegistry:
             except Exception as e:
                 logger.error(f"Failed to register remote tool {name}: {e}")
 
-    def register_tool(self, tool: SDKTool) -> None:
+    def register_tool(self, tool: "SDKTool") -> None:
         """
         Register a tool in the registry.
 
@@ -76,7 +79,7 @@ class ToolRegistry:
             logger.warning(f"Tool '{tool.name}' is already registered. Overwriting.")
         self.tools[tool.name] = tool
 
-    def get_tool(self, name: str) -> Optional[SDKTool]:
+    def get_tool(self, name: str) -> Optional["SDKTool"]:
         """
         Get a tool by name.
 
@@ -88,7 +91,7 @@ class ToolRegistry:
         """
         return self.tools.get(name)
 
-    def get_all_tools(self) -> List[SDKTool]:
+    def get_all_tools(self) -> List["SDKTool"]:
         """
         Get all registered tools.
 

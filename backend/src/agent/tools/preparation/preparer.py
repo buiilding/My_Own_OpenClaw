@@ -208,10 +208,20 @@ class ToolPreparer:
                     return
                 
                 # Coordinate resolution succeeded - store resolved tool call
-                session.register_resolved_tool_call(request_id, resolved_call)
+                if hasattr(session, "register_resolved_tool_call"):
+                    session.register_resolved_tool_call(request_id, resolved_call)
+                else:
+                    logger.debug(
+                        "Session missing register_resolved_tool_call; skipping registration",
+                    )
             else:
                 # Tool doesn't need coordinate resolution - store resolved tool call
-                session.register_resolved_tool_call(request_id, resolved_call)
+                if hasattr(session, "register_resolved_tool_call"):
+                    session.register_resolved_tool_call(request_id, resolved_call)
+                else:
+                    logger.debug(
+                        "Session missing register_resolved_tool_call; skipping registration",
+                    )
             
             # Return preparation result
             result = PreparationResult(

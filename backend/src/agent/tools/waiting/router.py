@@ -136,9 +136,10 @@ class ToolResultRouter:
         
         # Store individual tool results for orchestrator matching
         for tool_request_id, tool_result in individual_results:
+            metadata = tool_result.metadata or {}
             logger.debug(
                 f"Storing bundled tool result for orchestrator: request_id={tool_request_id[:15]}, "
-                f"tool={tool_result.metadata.get('tool_name', 'unknown')}, success={tool_result.success}"
+                f"tool={metadata.get('tool_name', 'unknown')}, success={tool_result.success}"
             )
             
             # Store in pending results using centralized storage

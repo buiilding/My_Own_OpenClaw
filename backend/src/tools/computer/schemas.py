@@ -39,7 +39,7 @@ class MouseControlArgs(BaseModel):
     scroll_direction: Optional[ScrollDirectionEnum] = Field(ScrollDirectionEnum.VERTICAL, description="Direction of scrolling (required for scroll action)")
     duration: float = Field(0.5, description="Duration for drag operations")
     wait: float = Field(
-        ...,
+        0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
     )
 
@@ -73,7 +73,7 @@ class KeyboardControlArgs(BaseModel):
     key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
     keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
     wait: float = Field(
-        ...,
+        0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
     )
 
@@ -107,7 +107,7 @@ class ScrollControlArgs(BaseModel):
         description="Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'.",
     )
     wait: float = Field(
-        ...,
+        0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
     )
 
@@ -123,7 +123,7 @@ class SwitchTabArgs(BaseModel):
         description="The exact name of the tab/window to switch to, as it appears in get_open_windows output."
     )
     wait: float = Field(
-        ...,
+        0.0,
         description="Delay in seconds before taking a screenshot after tool execution."
     )
 

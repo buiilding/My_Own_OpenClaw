@@ -6,11 +6,12 @@ sandboxing, isolation, and security boundaries. Currently implements a basic
 executor, but can be extended for process/container isolation.
 """
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, TYPE_CHECKING
 import logging
 
-from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
+if TYPE_CHECKING:
+    from backend.src.sdk.tool import Tool
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class ToolExecutor(ABC):
     """
 
     @abstractmethod
-    async def execute(self, tool: Tool, args: Any, context: ToolContext) -> Any:
+    async def execute(self, tool: "Tool", args: Any, context: ToolContext) -> Any:
         """
         Execute the tool with the given arguments and context.
         """
@@ -32,7 +33,7 @@ class DirectToolExecutor(ToolExecutor):
     Executes tools directly in the current process.
     No isolation, but lowest overhead.
     """
-    async def execute(self, tool: Tool, args: Any, context: ToolContext) -> Any:
+    async def execute(self, tool: "Tool", args: Any, context: ToolContext) -> Any:
         return await tool.run(args, context)
 
 class ProcessSandboxedExecutor(ToolExecutor):
@@ -43,7 +44,7 @@ class ProcessSandboxedExecutor(ToolExecutor):
     - Tool must be importable.
     - Side effects on global state (if any) won't persist.
     """
-    async def execute(self, tool: Tool, args: Any, context: ToolContext) -> Any:
+    async def execute(self, tool: "Tool", args: Any, context: ToolContext) -> Any:
         # SECURITY: Do not silently fall back to insecure execution
         # Raise error to prevent usage in insecure contexts
         raise NotImplementedError(
@@ -61,4 +62,3 @@ def get_tool_executor() -> ToolExecutor:
 def set_tool_executor(executor: ToolExecutor):
     global _global_executor
     _global_executor = executor
-
