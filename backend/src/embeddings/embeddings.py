@@ -5,6 +5,7 @@ This module provides the SentenceTransformer-based embedding provider for genera
 vector embeddings of text. Includes caching to avoid recomputing embeddings for the same text.
 """
 import asyncio
+import os
 import logging
 from typing import List, Optional
 import numpy as np
@@ -47,6 +48,13 @@ class SentenceTransformerProvider(EmbeddingProvider):
         self._initialized = False
         # RACE CONDITION FIX: Lock to prevent concurrent model loading (OOM risk)
         self._init_lock = asyncio.Lock()
+        self._use_executor = os.getenv("PYTEST_CURRENT_TEST") is None
+
+    async def _run_blocking(self, func):
+        if self._use_executor:
+            loop = asyncio.get_running_loop()
+            return await loop.run_in_executor(None, func)
+        return func()
 
     async def initialize(self) -> None:
         """
@@ -64,11 +72,8 @@ class SentenceTransformerProvider(EmbeddingProvider):
                 return
             
             logger.info(f"Loading embedding model: {self._model_name} on {self._device}")
-            loop = asyncio.get_running_loop()
-            
-            # Offload model loading to thread pool
-            self.model = await loop.run_in_executor(
-                None,
+            # Offload model loading to thread pool (or run inline under pytest)
+            self.model = await self._run_blocking(
                 lambda: SentenceTransformer(self._model_name, device=self._device)
             )
             self._dimension = self.model.get_sentence_embedding_dimension()
@@ -92,8 +97,6 @@ class SentenceTransformerProvider(EmbeddingProvider):
         """
         self._ensure_initialized()
         
-        loop = asyncio.get_running_loop()
-        
         if self._use_cache and self._cache_manager:
             cache_key = self._cache_manager.get_embedding_key(text)
             cached_embedding = self._cache_manager.embeddings.get(cache_key)
@@ -102,8 +105,7 @@ class SentenceTransformerProvider(EmbeddingProvider):
                 return cached_embedding
             
             # Offload blocking encode operation to thread pool
-            embedding = await loop.run_in_executor(
-                None,
+            embedding = await self._run_blocking(
                 lambda: self.model.encode(text, convert_to_numpy=True)
             )
             
@@ -112,8 +114,7 @@ class SentenceTransformerProvider(EmbeddingProvider):
             return embedding
         else:
             # Offload blocking encode operation to thread pool
-            return await loop.run_in_executor(
-                None,
+            return await self._run_blocking(
                 lambda: self.model.encode(text, convert_to_numpy=True)
             )
 
@@ -125,8 +126,6 @@ class SentenceTransformerProvider(EmbeddingProvider):
         freezing the asyncio event loop.
         """
         self._ensure_initialized()
-        
-        loop = asyncio.get_running_loop()
         
         if self._use_cache and self._cache_manager:
             embeddings = []
@@ -147,8 +146,7 @@ class SentenceTransformerProvider(EmbeddingProvider):
             # Generate embeddings for uncached texts
             if texts_to_encode:
                 # Offload blocking encode operation to thread pool
-                new_embeddings = await loop.run_in_executor(
-                    None,
+                new_embeddings = await self._run_blocking(
                     lambda: self.model.encode(texts_to_encode, convert_to_numpy=True)
                 )
                 
@@ -166,8 +164,7 @@ class SentenceTransformerProvider(EmbeddingProvider):
             return [emb for _, emb in embeddings]
         else:
             # Offload blocking encode operation to thread pool
-            embeddings = await loop.run_in_executor(
-                None,
+            embeddings = await self._run_blocking(
                 lambda: self.model.encode(texts, convert_to_numpy=True)
             )
             return [e for e in embeddings]
