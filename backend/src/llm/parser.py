@@ -700,12 +700,7 @@ class ResponseParser:
                 f"Tool name length {len(tool_name)} exceeds maximum {self.limits.max_tool_name_length}"
             )
 
-        valid_tool_names = self.tool_registry.get_tool_names()
-        allowed_tools = self.config.get_tool_allowlist()
-        if allowed_tools is not None:
-            valid_tool_names = [
-                name for name in valid_tool_names if name in allowed_tools
-            ]
+        valid_tool_names = self._get_valid_tool_names()
         if tool_name not in valid_tool_names:
             if len(valid_tool_names) <= 15:
                 tools_display = ", ".join(sorted(valid_tool_names))
@@ -743,6 +738,15 @@ class ResponseParser:
                     pass
 
         return validation_errors
+
+    def _get_valid_tool_names(self) -> List[str]:
+        valid_tool_names = self.tool_registry.get_tool_names()
+        allowed_tools = self.config.get_tool_allowlist()
+        if allowed_tools is not None:
+            valid_tool_names = [
+                name for name in valid_tool_names if name in allowed_tools
+            ]
+        return valid_tool_names
     
     def _validate_metadata(self, tool_name: str, metadata: Optional[Dict[str, Any]]) -> None:
         """
