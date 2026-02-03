@@ -282,10 +282,8 @@ class OcrService:
                             logger.info("Initialized RapidOCR engine with CPU (lazy initialization fallback)")
                             logger.info("[OCR] Using CPU device for OCR processing (CUDA unavailable)")
 
-            try:
-                image_bytes = base64.b64decode(screenshot_b64)
-            except Exception as e:
-                logger.error(f"Failed to decode screenshot base64: {e}")
+            image_bytes = self._decode_screenshot(screenshot_b64)
+            if image_bytes is None:
                 return None
 
             try:
@@ -391,6 +389,13 @@ class OcrService:
         if isinstance(value, (list, tuple)):
             return list(value)
         return [value]
+
+    def _decode_screenshot(self, screenshot_b64: str) -> Optional[bytes]:
+        try:
+            return base64.b64decode(screenshot_b64)
+        except Exception as exc:
+            logger.error(f"Failed to decode screenshot base64: {exc}")
+            return None
 
     def _build_bbox_list(self, boxes_list: List[Any]) -> List[tuple[int, int, int, int]]:
         bbox_list: List[tuple[int, int, int, int]] = []
