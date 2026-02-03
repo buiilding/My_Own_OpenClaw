@@ -189,12 +189,12 @@ class WebSocketMessage(TypedDict, total=False):
 
 
 # ============================================================================
-# Plugin Types
+# Legacy Plugin Types (unused)
 # ============================================================================
 
 
 class PluginResultDict(TypedDict, total=False):
-    """Dictionary representation of a plugin result."""
+    """Legacy dictionary representation of a plugin result (unused)."""
 
     artifacts: NotRequired[Optional[Dict[str, Any]]]
     modified_result: NotRequired[Optional[Any]]

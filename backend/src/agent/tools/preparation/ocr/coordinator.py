@@ -2,7 +2,7 @@
 OCR Coordinator.
 
 Coordinates OCR result acquisition and waiting for proactive OCR.
-Handles OCR plugin access and synchronization.
+Handles OCR service access and synchronization.
 """
 import asyncio
 import logging
@@ -19,7 +19,7 @@ class OcrCoordinator:
     """
     Coordinates OCR result acquisition.
     
-    Responsibility: OCR synchronization and plugin access.
+    Responsibility: OCR synchronization and service access.
     Handles waiting for proactive OCR and fallback OCR execution.
     """
 
@@ -42,7 +42,7 @@ class OcrCoordinator:
             List of OCR results with text and bbox
             
         Raises:
-            ValueError: If OCR plugin unavailable, OCR fails, or screenshot ID mismatch
+            ValueError: If OCR service unavailable, OCR fails, or screenshot ID mismatch
         """
         # Determine which screenshot_id to use
         if screenshot_id is None:
@@ -98,18 +98,11 @@ class OcrCoordinator:
             logger.info("OCR results not cached for current screenshot, running OCR now...")
             ocr_exec_start = time.perf_counter()
 
-            ocr_plugin = None
-            if session.executor and session.executor.plugin_manager:
-                ocr_plugin = (
-                    session.executor.plugin_manager.plugin_registry.get_plugin(
-                        "ocr_analysis"
-                    )
-                )
+            ocr_service = session.ocr_service
+            if not ocr_service or not ocr_service.enabled:
+                raise ValueError("OCR service is not available or enabled")
 
-            if not ocr_plugin or not ocr_plugin.enabled:
-                raise ValueError("OCR plugin is not available or enabled")
-
-            ocr_results = await ocr_plugin.perform_ocr(screenshot_data)
+            ocr_results = await ocr_service.perform_ocr(screenshot_data)
             ocr_exec_time = time.perf_counter() - ocr_exec_start
             logger.info(f"[Timing] OCR execution took {ocr_exec_time:.3f}s (found {len(ocr_results) if ocr_results else 0} results)")
             

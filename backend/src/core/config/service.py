@@ -19,7 +19,6 @@ from backend.src.core.config.subscriptions import (
     ConfigSubscriptionManager,
 )
 from backend.src.core.events.bus_events import ConfigChanged
-from backend.src.core.plugins.config import PluginConfigManager
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,6 @@ class ConfigurationService:
 
     Provides a single source of truth for configuration access, including:
     - Application configuration (AppConfig)
-    - Plugin configuration (PluginConfigManager)
     
     Delegates subscriber management to ConfigSubscriptionManager.
     """
@@ -39,7 +37,6 @@ class ConfigurationService:
         self,
         config_manager: ConfigManager,
         event_bus: Optional[EventBus] = None,
-        plugin_config_manager: Optional[PluginConfigManager] = None,
     ):
         """
         Initialize the configuration service.
@@ -47,13 +44,11 @@ class ConfigurationService:
         Args:
             config_manager: ConfigManager instance to wrap
             event_bus: EventBus instance for publishing config change events (optional)
-            plugin_config_manager: Optional PluginConfigManager instance (created if not provided)
         """
         self._config_manager = config_manager
         self._config: Optional[AppConfig] = None
         self._subscription_manager = ConfigSubscriptionManager()
         self._event_bus = event_bus
-        self._plugin_config_manager = plugin_config_manager or PluginConfigManager()
         self._lock = threading.RLock()  # Reentrant lock for thread-safe config updates
 
     def initialize(self) -> AppConfig:
@@ -239,28 +234,6 @@ class ConfigurationService:
         logger.info("Configuration reloaded and subscribers notified")
         return reloaded_config
 
-    def get_plugin_config(self, plugin_name: str) -> Dict[str, Any]:
-        """
-        Get configuration for a specific plugin.
-
-        Args:
-            plugin_name: Name of the plugin
-
-        Returns:
-            Plugin configuration dictionary
-        """
-        return self._plugin_config_manager.get_plugin_config(plugin_name)
-
-    def update_plugin_config(self, plugin_name: str, config: Dict[str, Any]) -> None:
-        """
-        Update configuration for a specific plugin.
-
-        Args:
-            plugin_name: Name of the plugin
-            config: Configuration dictionary
-        """
-        self._plugin_config_manager.update_plugin_config(plugin_name, config)
-
     @property
     def config(self) -> AppConfig:
         """
@@ -334,5 +307,4 @@ class ConfigurationService:
         validated_config = load_api_key_for_provider(validated_config)
         
         return validated_config
-
 

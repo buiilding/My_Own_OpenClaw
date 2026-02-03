@@ -13,10 +13,8 @@ from fastapi import FastAPI
 from backend.src.agent.session.manager import SessionManager
 from backend.src.api.deps import set_container
 from backend.src.core.bootstrap.handler_initializer import HandlerInitializer
-from backend.src.core.bootstrap.plugin_initializer import PluginInitializer
 from backend.src.core.config import ConfigManager, get_config_manager
 from backend.src.core.container import Container
-from backend.src.core.plugins import PluginRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +32,7 @@ class InitializationCoordinator:
     1. Configuration
     2. Container
     3. Services (SessionManager, Handlers)
-    4. Plugins
+    4. Final validation
 
     Provides error handling and rollback on failure.
     Thread-safe: Prevents multiple concurrent initializations.
@@ -45,8 +43,6 @@ class InitializationCoordinator:
         self.config_manager: Optional[ConfigManager] = None
         self.container: Optional[Container] = None
         self.session_manager: Optional[SessionManager] = None
-        self.plugin_registry: Optional[PluginRegistry] = None
-        self.plugin_initializer: Optional[PluginInitializer] = None
         self.handler_initializer: Optional[HandlerInitializer] = None
         self._initialized_phases: List[str] = []
         self._is_initialized: bool = False
@@ -69,7 +65,7 @@ class InitializationCoordinator:
         self,
         app: Optional[FastAPI] = None,
         config_manager: Optional[ConfigManager] = None,
-    ) -> Tuple[Container, SessionManager, PluginRegistry]:
+    ) -> Tuple[Container, SessionManager]:
         """
         Initialize all application components in phases.
 
@@ -78,7 +74,7 @@ class InitializationCoordinator:
             config_manager: Optional ConfigManager instance. If None, uses global singleton.
 
         Returns:
-            Tuple of (container, session_manager, plugin_registry)
+            Tuple of (container, session_manager)
 
         Raises:
             InitializationError: If any phase fails during initialization.
@@ -127,17 +123,12 @@ class InitializationCoordinator:
                 await self._initialize_services()
                 self._initialized_phases.append("services")
 
-                # Phase 4: Plugins
-                plugin_registry = await self._initialize_plugins()
-                self._initialized_phases.append("plugins")
-                self.plugin_registry = plugin_registry
-
                 # Validate final state
                 self._validate_final_state()
 
                 self._is_initialized = True
                 logger.info("Application initialization complete.")
-                return self.container, self.session_manager, plugin_registry
+                return self.container, self.session_manager
 
             except Exception as e:
                 # Preserve original exception type if it's already an InitializationError
@@ -253,36 +244,6 @@ class InitializationCoordinator:
         await self.handler_initializer.initialize(self.container)
         logger.info("WebSocket message handlers initialized.")
 
-    async def _initialize_plugins(self) -> PluginRegistry:
-        """
-        Phase 4: Initialize plugins.
-
-        Returns:
-            Initialized PluginRegistry instance.
-
-        Raises:
-            InitializationError: If plugin initialization fails.
-        """
-        logger.info("Phase 4: Initializing plugins...")
-
-        # Validate previous phase completed
-        if self.container is None:
-            raise InitializationError(
-                "Cannot initialize plugins: container phase not completed"
-            )
-
-        self.plugin_initializer = PluginInitializer()
-        plugin_registry = await self.plugin_initializer.initialize(self.container)
-
-        if plugin_registry is None:
-            raise InitializationError("Failed to create PluginRegistry")
-
-        # Use proper setter to maintain encapsulation
-        self.container.plugin_registry = plugin_registry
-        logger.info("Plugins initialized.")
-
-        return plugin_registry
-
     def _validate_final_state(self) -> None:
         """
         Validate that all required components are initialized and available.
@@ -294,9 +255,6 @@ class InitializationCoordinator:
             raise InitializationError("Container is None after initialization")
         if self.session_manager is None:
             raise InitializationError("SessionManager is None after initialization")
-        if self.plugin_registry is None:
-            raise InitializationError("PluginRegistry is None after initialization")
-
         # Validate container has required services
         if self.container.config_service is None:
             raise InitializationError("Container.config_service is None after initialization")
@@ -319,18 +277,7 @@ class InitializationCoordinator:
         # Rollback in reverse order
         for phase in reversed(self._initialized_phases):
             try:
-                if phase == "plugins":
-                    # Plugin registry cleanup
-                    if self.plugin_registry is not None:
-                        try:
-                            # PluginRegistry may have shutdown method
-                            if hasattr(self.plugin_registry, 'shutdown_all_plugins'):
-                                await self.plugin_registry.shutdown_all_plugins()
-                        except Exception as e:
-                            logger.warning(f"Error shutting down plugins during rollback: {e}")
-                    logger.debug("Rolled back plugins phase")
-
-                elif phase == "services":
+                if phase == "services":
                     # Unsubscribe SessionManager from config changes
                     if self.session_manager is not None and self.container is not None:
                         try:
@@ -360,8 +307,6 @@ class InitializationCoordinator:
         self.config_manager = None
         self.container = None
         self.session_manager = None
-        self.plugin_registry = None
-        self.plugin_initializer = None
         self.handler_initializer = None
         self._initialized_phases.clear()
         self._is_initialized = False

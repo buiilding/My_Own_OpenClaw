@@ -59,15 +59,13 @@ class Container:
 
         # Vision service (from core container)
         self.vision_service = self._di_container.core.vision_service()
+        self.ocr_service = self._di_container.core.ocr_service()
 
         # Core services (from core container)
         self.config_service = self._di_container.core.config_service()
         self.model_service = self._di_container.core.model_service()
 
-        # Plugin registry (set after bootstrap initialization)
-        self._plugin_registry: Optional[Any] = None
-
-        # Session factory (created lazily when plugin_registry is set)
+        # Session factory (created lazily)
         self._session_factory: Optional[AgentSessionFactory] = None
 
         # Session manager (created lazily after container is fully initialized)
@@ -87,18 +85,6 @@ class Container:
     def llm_client(self):
         """Get the LLM client from the DI container."""
         return self._di_container.llm_client()
-
-    @property
-    def plugin_registry(self) -> Optional[Any]:
-        """Get the plugin registry."""
-        return self._plugin_registry
-
-    @plugin_registry.setter
-    def plugin_registry(self, value: Any) -> None:
-        """Set the plugin registry and recreate session factory."""
-        self._plugin_registry = value
-        # Reset factory so it's recreated with new plugin_registry
-        self._session_factory = None
 
     async def initialize(self):
         """
@@ -160,7 +146,7 @@ class Container:
             self._session_factory = AgentSessionFactory(
                 config=self.config,
                 tool_registry=self.tool_registry,
-                plugin_registry=self._plugin_registry,
+                ocr_service=self.ocr_service,
                 llm_client_factory=llm_client_factory,
                 tool_orchestrator_factory=lambda: self._di_container.tool_orchestrator(),
                 event_bus=self._di_container.core.event_bus(),

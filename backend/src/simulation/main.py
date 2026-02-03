@@ -72,7 +72,7 @@ async def lifespan(app: FastAPI):
             logger.info("Container initialized (simulation mode).")
     
     coordinator = SimulationInitializationCoordinator()
-    container, session_manager, plugin_registry = await coordinator.initialize(app)
+    container, session_manager = await coordinator.initialize(app)
     
     # CRITICAL: Override LLM client factory to use MockLLMClient
     # This intercepts all LLM calls and returns hardcoded responses
@@ -104,7 +104,6 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     logger.info("Shutting down simulation backend...")
-    await plugin_registry.shutdown_all_plugins()
     logger.info("Shutdown complete.")
 
 

@@ -13,10 +13,10 @@ from backend.src.core.config import ConfigManager
 from backend.src.core.config.service import ConfigurationService
 from backend.src.core.container.factories import (
     _create_tts_service,
+    _create_ocr_service,
     _create_vision_service,
 )
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
-from backend.src.core.plugins.config import PluginConfigManager
 from backend.src.llm.client import get_llm_client
 from backend.src.llm.models import ModelService
 
@@ -65,15 +65,17 @@ class CoreContainer(containers.DeclarativeContainer):
         config=config,
     )
 
-    # Plugin Config Manager (manages plugin-specific configuration)
-    plugin_config_manager = providers.Singleton(PluginConfigManager)
+    # OCR Service (initialized asynchronously during container initialization)
+    ocr_service = providers.Singleton(
+        _create_ocr_service,
+        config=config,
+    )
 
     # Configuration Service (wraps ConfigManager with change notifications)
     config_service = providers.Singleton(
         ConfigurationService,
         config_manager=config_manager,
         event_bus=event_bus,
-        plugin_config_manager=plugin_config_manager,
     )
 
 

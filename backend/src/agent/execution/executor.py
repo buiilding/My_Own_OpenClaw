@@ -13,7 +13,6 @@ from backend.src.agent.execution.interaction_loop import InteractionLoop
 from backend.src.agent.llm.conversation_context import ConversationContext
 from backend.src.agent.llm.event_presenter import EventPresenter
 from backend.src.agent.llm.llm_stream_processor import LLMStreamProcessor
-from backend.src.agent.plugins.manager import PluginManager
 from backend.src.agent.tools.orchestrator import ToolOrchestrator as AgentToolOrchestrator
 from backend.src.agent.tools.preparation.coordinate_resolution import (
     CoordinateResolver,
@@ -38,7 +37,6 @@ from backend.src.core.events import (
     MemoryStoreEvent,
     StreamingCompleteEvent,
 )
-from backend.src.core.plugins.registry import PluginRegistry
 from backend.src.llm.client import LLMClient
 from backend.src.llm.parser import ResponseParser
 from backend.src.llm.prompts import PromptConstructor
@@ -46,6 +44,7 @@ from backend.src.tools.orchestrator import ToolOrchestrator
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
+    from backend.src.services.ocr.ocr_service import OcrService
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +62,7 @@ class AgentExecutor:
         tool_orchestrator: ToolOrchestrator,
         prompt_constructor: PromptConstructor,
         response_parser: ResponseParser,
-        plugin_registry: PluginRegistry,
+        ocr_service: Optional["OcrService"],
         event_bus: EventBus,
     ):
         self.session = session
@@ -73,8 +72,7 @@ class AgentExecutor:
         self.response_parser = response_parser
         self.event_bus = event_bus
 
-        # Initialize Plugin Manager
-        self.plugin_manager = PluginManager(plugin_registry)
+        self.ocr_service = ocr_service
 
         # Initialize specialized components for SRP
         conversation_context = ConversationContext(
@@ -88,7 +86,7 @@ class AgentExecutor:
         )
         
         # Result processing: split into pure transformation and state mutation
-        result_transformer = ResultTransformer(plugin_manager=self.plugin_manager)
+        result_transformer = ResultTransformer()
         history_committer = HistoryCommitter(history=session.history)
         
         # Tool preparation: split into specialized components

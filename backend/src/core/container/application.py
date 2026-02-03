@@ -65,6 +65,7 @@ class ApplicationContainer(containers.DeclarativeContainer):
     llm_client = core.llm_client
     tts_service = core.tts_service
     vision_service = core.vision_service
+    ocr_service = core.ocr_service
     config_service = core.config_service
     model_service = core.model_service
 

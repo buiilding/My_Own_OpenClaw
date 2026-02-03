@@ -8,9 +8,8 @@ backend/src/core/
 │
 ├── bootstrap/                         # Application initialization & startup coordination
 │   ├── __init__.py                    # Package exports
-│   ├── coordinator.py                 # InitializationCoordinator - orchestrates startup phases (config → container → services → plugins)
+│   ├── coordinator.py                 # InitializationCoordinator - orchestrates startup phases (config → container → services → validation)
 │   ├── handler_initializer.py        # HandlerInitializer - validates WebSocket message handlers are registered via DI container
-│   └── plugin_initializer.py         # PluginInitializer - discovers and loads agent plugins
 │
 ├── infrastructure/                    # Cross-cutting infrastructure components
 │   ├── __init__.py                    # Re-exports bus, cache, exceptions for backward compatibility
@@ -52,11 +51,11 @@ backend/src/core/
 │   ├── __init__.py                    # Re-exports ApplicationContainer and Container
 │   ├── application.py                 # ApplicationContainer - main DI container composing CoreContainer, ToolContainer, MemoryContainer
 │   ├── facade.py                      # Container - backward-compatible facade around ApplicationContainer
-│   ├── core_container.py              # CoreContainer - provides config, LLM client, TTS, vision service, event bus
+│   ├── core_container.py              # CoreContainer - provides config, LLM client, TTS, vision/OCR services, event bus
 │   ├── tool_container.py              # ToolContainer - provides tool registry, orchestrator, agent factory, context factory
 │   ├── memory_container.py            # MemoryContainer - provides embedder (embedding provider)
 │   ├── api_container.py               # ApiContainer - provides WebSocket message handlers and handler registry
-│   ├── factories.py                   # Factory functions for creating TTS, vision services, embedder, tool registry, and agent factory
+│   ├── factories.py                   # Factory functions for creating TTS, vision/OCR services, embedder, tool registry, and agent factory
 │   ├── initializer.py                 # ContainerInitializer - handles async initialization of container components
 │   ├── config_updater.py              # ContainerConfigUpdater - updates container dependencies when config changes
 │   └── session_factory.py             # AgentSessionFactory - creates AgentSession instances with all dependencies injected
@@ -76,17 +75,6 @@ backend/src/core/
 │   ├── gpu_memory_manager.py          # GPUMemoryManager - manages GPU memory allocation
 │   ├── tts_service.py                 # TTSService - text-to-speech service implementation
 │   └── wakeword_service.py            # WakewordService - wakeword activation logic and greeting selection policy
-│
-├── plugins/                           # Plugin system infrastructure
-│   ├── __init__.py                    # Package exports
-│   ├── config.py                      # PluginConfigManager - manages plugin-specific configuration
-│   ├── discovery_service.py           # PluginDiscoveryService - discovers plugins from filesystem
-│   ├── discovery.py                   # PluginDiscoverer abstract base class and implementations (EntryPointPluginDiscoverer, FilesystemPluginDiscoverer)
-│   ├── lifecycle.py                   # PluginLifecycleManager - manages plugin lifecycle (load, unload, reload)
-│   ├── metadata.py                    # PluginConfig and PluginMetadata - plugin metadata data structures
-│   ├── plugin_config.py               # PLUGIN_CONFIG - Python config file with plugin enable/disable states and priorities
-│   ├── registry.py                    # PluginRegistry - central registry for plugin registration and retrieval
-│   └── state_manager.py               # PluginStateManager - manages in-memory plugin state (enabled/disabled, metadata, config)
 │
 ├── security/                          # Security and trust boundary enforcement
 │   ├── __init__.py                    # Package exports
@@ -121,9 +109,8 @@ Bootstrap Coordinator
     ├── SessionManager (created from container)
     └── HandlerInitializer (WebSocket handlers)
     ↓
-4. Plugins Phase
-    ├── PluginDiscoveryService (discovers plugins)
-    └── PluginRegistry (registers plugins)
+4. Final Validation Phase
+    └── Ensure required services are available
 ```
 
 ### Configuration Flow

@@ -20,7 +20,7 @@ class Agent:
     This is a thin wrapper around AgentSession creation that provides a clean,
     intuitive API matching the pseudo-code structure.
     
-    Agents inherit all infrastructure from the parent session (memory, plugins, tool registry)
+    Agents inherit all infrastructure from the parent session (memory, OCR service, tool registry)
     but have:
     - Their own conversation history (scoped)
     - Restricted tools (filtered from parent's tool registry)

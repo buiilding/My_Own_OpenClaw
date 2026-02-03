@@ -12,8 +12,8 @@ from backend.src.core.config import AppConfig
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
-    from backend.src.core.plugins.registry import PluginRegistry
     from backend.src.tools.registry import ToolRegistry
+    from backend.src.services.ocr.ocr_service import OcrService
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class AgentSessionFactory:
         self,
         config: AppConfig,
         tool_registry: "ToolRegistry",
-        plugin_registry: Optional["PluginRegistry"],
+        ocr_service: Optional["OcrService"],
         llm_client_factory: Any,  # Callable that returns LLMClient
         tool_orchestrator_factory: Any,  # Callable that returns ToolOrchestrator
         event_bus: Any,  # EventBus instance
@@ -42,7 +42,7 @@ class AgentSessionFactory:
         Args:
             config: Application configuration
             tool_registry: Tool registry instance
-            plugin_registry: Plugin registry instance (may be None)
+            ocr_service: OCR service instance (may be None)
             llm_client_factory: Factory function that creates LLMClient instances
             tool_orchestrator_factory: Factory function that creates ToolOrchestrator instances
             event_bus: EventBus instance for event communication
@@ -50,7 +50,7 @@ class AgentSessionFactory:
         """
         self.config = config
         self.tool_registry = tool_registry
-        self.plugin_registry = plugin_registry
+        self.ocr_service = ocr_service
         self.llm_client_factory = llm_client_factory
         self.tool_orchestrator_factory = tool_orchestrator_factory
         self.event_bus = event_bus
@@ -73,8 +73,6 @@ class AgentSessionFactory:
         Returns:
             Initialized AgentSession
 
-        Raises:
-            RuntimeError: If plugin_registry is not initialized
         """
         if not session_id:
             session_id = str(uuid.uuid4())
@@ -96,20 +94,13 @@ class AgentSessionFactory:
         # Create ToolOrchestrator
         tool_orchestrator = self.tool_orchestrator_factory()
 
-        # Validate plugin registry is initialized
-        if self.plugin_registry is None:
-            raise RuntimeError(
-                "PluginRegistry not initialized. "
-                "Call container.plugin_registry = ... after bootstrap."
-            )
-
         # Create AgentSession
         from backend.src.agent.session.session import AgentSession
 
         session = AgentSession(
             cfg=session_config,
             tool_registry=self.tool_registry,
-            plugin_registry=self.plugin_registry,
+            ocr_service=self.ocr_service,
             llm_client=llm_client,
             tool_orchestrator=tool_orchestrator,
             event_bus=self.event_bus,

@@ -114,7 +114,7 @@ class ToolResultProcessor:
         
         try:
             for result in orchestration_result.tool_results:
-                # Transform: pure computation (plugins, artifacts, formatting for history)
+                # Transform: pure computation (artifacts, formatting for history)
                 processed = await self.result_transformer.transform(
                     result.tool_call.tool_name, result.result
                 )

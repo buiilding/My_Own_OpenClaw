@@ -71,7 +71,7 @@ backend/src/agent/
 │   │   ├── __init__.py                # Package exports: ToolProcessingCoordinator, ToolResultProcessor, ResultTransformer, SyntheticResultFactory
 │   │   ├── coordinator.py             # ToolProcessingCoordinator - coordinates result processing (delegates to ToolResultProcessor)
 │   │   ├── processor.py               # ToolResultProcessor - processes tool execution results (transforms via ResultTransformer and commits to history via HistoryCommitter)
-│   │   ├── transformer.py             # ResultTransformer - pure function class for transforming tool execution results (applies plugins, formats for history)
+│   │   ├── transformer.py             # ResultTransformer - pure function class for transforming tool execution results (formats for history)
 │   │   └── synthetic_factory.py       # SyntheticResultFactory - creates synthetic error results for failed tool calls (coordinate resolution failures)
 │   │
 │   └── shared/                        # Shared utilities across phases
@@ -83,12 +83,6 @@ backend/src/agent/
 ├── history/                           # History management
 │   ├── __init__.py                    # Package exports: HistoryCommitter
 │   └── history_committer.py           # HistoryCommitter - commits processed tool results to conversation history (pure state mutation, no computation)
-│
-└── plugins/                           # Plugin system
-    ├── __init__.py                    # Package exports: PluginManager, AgentPlugin interface, OCRPlugin
-    ├── manager.py                     # PluginManager - manages plugin lifecycle and executes plugin hooks (on_tool_end) in parallel
-    ├── interface.py                   # AgentPlugin Protocol - base interface for all plugins (initialize, on_tool_end hooks)
-    └── ocr_plugin.py                  # OCRPlugin - OCR analysis plugin implementation (performs OCR on screenshots, handles CUDA/CPU fallback)
 
 ## Data Flow
 
@@ -231,8 +225,6 @@ tools/waiting/handler.py
         └── ToolResultProcessor.process()
             ├── tools/processing/transformer.py
             │   └── ResultTransformer.transform() → ProcessedToolResult
-            │       └── plugins/manager.py
-            │           └── PluginManager.process_result() → plugins applied
             └── history/history_committer.py
                 └── HistoryCommitter.commit() → history updated
                     └── session/state.py
@@ -336,11 +328,11 @@ tools/waiting/router.py
         └── tools/preparation/screenshot/processor.py
             └── ScreenshotProcessor.process_from_result()
                 └── tools/preparation/screenshot/manager.py
-                    └── ScreenshotManager.process_screenshot()
-                        ├── session/session.py
-                        │   └── AgentSession.set_current_screenshot() → state updated
-                        └── plugins/ocr_plugin.py (background task)
-                            └── OCRPlugin.perform_ocr() → ocr_results[]
-                                └── session/session.py
-                                    └── AgentSession.set_current_ocr_results() → state updated
+                └── ScreenshotManager.process_screenshot()
+                    ├── session/session.py
+                    │   └── AgentSession.set_current_screenshot() → state updated
+                    └── services/ocr/ocr_service.py (background task)
+                        └── OcrService.perform_ocr() → ocr_results[]
+                            └── session/session.py
+                                └── AgentSession.set_current_ocr_results() → state updated
 ```
