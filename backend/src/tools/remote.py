@@ -102,6 +102,24 @@ class RemoteToolBase:
         """
         return await self.execute_remote(args, ctx)
 
+    def _build_remote_result(
+        self,
+        args: Any,
+        ctx: ToolContext,
+        log_message: Optional[str] = None,
+        request_id: Optional[str] = None,
+    ) -> RemoteToolResult:
+        if request_id is None:
+            request_id = self._get_request_id(ctx)
+        args_dict = args.model_dump()
+        if log_message:
+            logger.debug(log_message)
+        return RemoteToolResult(
+            tool_name=self.name,
+            args=args_dict,
+            request_id=request_id,
+        )
+
 
 # Import schemas from the new location
 from backend.src.tools.computer.schemas import (
@@ -144,22 +162,11 @@ class RemoteMouseTool(Tool[MouseControlArgs], RemoteToolBase):
 
     async def execute_remote(self, args: MouseControlArgs, ctx: ToolContext) -> RemoteToolResult:
         """Prepare mouse control for remote execution."""
-        request_id = self._get_request_id(ctx)
-
-        # Convert args to dict for frontend
-        args_dict = args.model_dump()
-
-        logger.debug(f"Remote mouse tool call: {args.action} at ({args.x}, {args.y})")
-
-        return RemoteToolResult(
-            tool_name="mouse_control",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote mouse tool call: {args.action} at ({args.x}, {args.y})",
         )
-
-    async def run(self, args: MouseControlArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 class RemoteKeyboardTool(Tool[KeyboardControlArgs], RemoteToolBase):
@@ -176,21 +183,11 @@ class RemoteKeyboardTool(Tool[KeyboardControlArgs], RemoteToolBase):
 
     async def execute_remote(self, args: KeyboardControlArgs, ctx: ToolContext) -> RemoteToolResult:
         """Prepare keyboard control for remote execution."""
-        request_id = self._get_request_id(ctx)
-
-        args_dict = args.model_dump()
-
-        logger.debug(f"Remote keyboard tool call: {args.action}")
-
-        return RemoteToolResult(
-            tool_name="keyboard_control",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote keyboard tool call: {args.action}",
         )
-
-    async def run(self, args: KeyboardControlArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 class RemoteScreenshotTool(Tool[ScreenshotToolArgs], RemoteToolBase):
@@ -207,21 +204,11 @@ class RemoteScreenshotTool(Tool[ScreenshotToolArgs], RemoteToolBase):
 
     async def execute_remote(self, args: ScreenshotToolArgs, ctx: ToolContext) -> RemoteToolResult:
         """Prepare screenshot for remote execution."""
-        request_id = self._get_request_id(ctx)
-
-        args_dict = args.model_dump()
-
-        logger.debug("Remote screenshot tool call")
-
-        return RemoteToolResult(
-            tool_name="screenshot",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message="Remote screenshot tool call",
         )
-
-    async def run(self, args: ScreenshotToolArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 class RemoteReadFileTool(Tool[ReadFileArgs], RemoteToolBase):
@@ -238,21 +225,11 @@ class RemoteReadFileTool(Tool[ReadFileArgs], RemoteToolBase):
 
     async def execute_remote(self, args: ReadFileArgs, ctx: ToolContext) -> RemoteToolResult:
         """Prepare file read for remote execution."""
-        request_id = self._get_request_id(ctx)
-
-        args_dict = args.model_dump()
-
-        logger.debug(f"Remote read file tool call: {args.file_path}")
-
-        return RemoteToolResult(
-            tool_name="read_file",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote read file tool call: {args.file_path}",
         )
-
-    async def run(self, args: ReadFileArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 class RemoteWriteFileTool(Tool[WriteFileArgs], RemoteToolBase):
@@ -269,21 +246,11 @@ class RemoteWriteFileTool(Tool[WriteFileArgs], RemoteToolBase):
 
     async def execute_remote(self, args: WriteFileArgs, ctx: ToolContext) -> RemoteToolResult:
         """Prepare file write for remote execution."""
-        request_id = self._get_request_id(ctx)
-
-        args_dict = args.model_dump()
-
-        logger.debug(f"Remote write file tool call: {args.file_path}")
-
-        return RemoteToolResult(
-            tool_name="write_file",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote write file tool call: {args.file_path}",
         )
-
-    async def run(self, args: WriteFileArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 class RemoteListDirectoryTool(Tool[ListDirectoryArgs], RemoteToolBase):
@@ -302,20 +269,12 @@ class RemoteListDirectoryTool(Tool[ListDirectoryArgs], RemoteToolBase):
         """Prepare directory listing for remote execution."""
         import uuid
         request_id = str(uuid.uuid4())
-
-        args_dict = args.model_dump()
-
-        logger.debug(f"Remote list directory tool call: {args.path}")
-
-        return RemoteToolResult(
-            tool_name="list_directory",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            request_id=request_id,
+            log_message=f"Remote list directory tool call: {args.path}",
         )
-
-    async def run(self, args: ListDirectoryArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 class RemoteGlobTool(Tool[GlobArgs], RemoteToolBase):
@@ -332,21 +291,11 @@ class RemoteGlobTool(Tool[GlobArgs], RemoteToolBase):
 
     async def execute_remote(self, args: GlobArgs, ctx: ToolContext) -> RemoteToolResult:
         """Prepare glob search for remote execution."""
-        request_id = self._get_request_id(ctx)
-
-        args_dict = args.model_dump()
-
-        logger.debug(f"Remote glob tool call: {args.pattern}")
-
-        return RemoteToolResult(
-            tool_name="glob",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote glob tool call: {args.pattern}",
         )
-
-    async def run(self, args: GlobArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 class RemoteScrollTool(Tool[ScrollControlArgs], RemoteToolBase):
@@ -363,21 +312,11 @@ class RemoteScrollTool(Tool[ScrollControlArgs], RemoteToolBase):
 
     async def execute_remote(self, args: ScrollControlArgs, ctx: ToolContext) -> RemoteToolResult:
         """Prepare scroll control for remote execution."""
-        request_id = self._get_request_id(ctx)
-
-        args_dict = args.model_dump()
-
-        logger.debug(f"Remote scroll tool call: {args.action}")
-
-        return RemoteToolResult(
-            tool_name="scroll_control",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote scroll tool call: {args.action}",
         )
-
-    async def run(self, args: ScrollControlArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 class RemoteSwitchTabTool(Tool[SwitchTabArgs], RemoteToolBase):
@@ -394,21 +333,11 @@ class RemoteSwitchTabTool(Tool[SwitchTabArgs], RemoteToolBase):
 
     async def execute_remote(self, args: SwitchTabArgs, ctx: ToolContext) -> RemoteToolResult:
         """Prepare switch tab for remote execution."""
-        request_id = self._get_request_id(ctx)
-
-        args_dict = args.model_dump()
-
-        logger.debug(f"Remote switch tab tool call: {args.tab_name}")
-
-        return RemoteToolResult(
-            tool_name="switch_tab",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote switch tab tool call: {args.tab_name}",
         )
-
-    async def run(self, args: SwitchTabArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 class RemoteWaitTool(Tool[WaitToolArgs], RemoteToolBase):
@@ -431,20 +360,12 @@ class RemoteWaitTool(Tool[WaitToolArgs], RemoteToolBase):
         """Prepare wait for remote execution."""
         import uuid
         request_id = str(uuid.uuid4())
-
-        args_dict = args.model_dump()
-
-        logger.debug("Remote wait tool call")
-
-        return RemoteToolResult(
-            tool_name="wait",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            request_id=request_id,
+            log_message="Remote wait tool call",
         )
-
-    async def run(self, args: WaitToolArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 class RemoteGetOpenWindowsTool(Tool[GetOpenWindowsArgs], RemoteToolBase):
@@ -461,21 +382,11 @@ class RemoteGetOpenWindowsTool(Tool[GetOpenWindowsArgs], RemoteToolBase):
 
     async def execute_remote(self, args: GetOpenWindowsArgs, ctx: ToolContext) -> RemoteToolResult:
         """Prepare get open windows for remote execution."""
-        request_id = self._get_request_id(ctx)
-
-        args_dict = args.model_dump()
-
-        logger.debug("Remote get open windows tool call")
-
-        return RemoteToolResult(
-            tool_name="get_open_windows",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message="Remote get open windows tool call",
         )
-
-    async def run(self, args: GetOpenWindowsArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 class RemoteGetSystemStatsTool(Tool[GetSystemStatsArgs], RemoteToolBase):
@@ -492,21 +403,11 @@ class RemoteGetSystemStatsTool(Tool[GetSystemStatsArgs], RemoteToolBase):
 
     async def execute_remote(self, args: GetSystemStatsArgs, ctx: ToolContext) -> RemoteToolResult:
         """Prepare get system stats for remote execution."""
-        request_id = self._get_request_id(ctx)
-
-        args_dict = args.model_dump()
-
-        logger.debug("Remote get system stats tool call")
-
-        return RemoteToolResult(
-            tool_name="get_system_stats",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message="Remote get system stats tool call",
         )
-
-    async def run(self, args: GetSystemStatsArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 class RemoteShellTool(Tool[RunShellCommandArgs], RemoteToolBase):
@@ -536,21 +437,11 @@ class RemoteShellTool(Tool[RunShellCommandArgs], RemoteToolBase):
 
     async def execute_remote(self, args: RunShellCommandArgs, ctx: ToolContext) -> RemoteToolResult:
         """Prepare shell command for remote execution."""
-        request_id = self._get_request_id(ctx)
-
-        args_dict = args.model_dump()
-
-        logger.debug(f"Remote shell tool call: {args.command}")
-
-        return RemoteToolResult(
-            tool_name="run_shell_command",
-            args=args_dict,
-            request_id=request_id
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote shell tool call: {args.command}",
         )
-
-    async def run(self, args: RunShellCommandArgs, ctx: ToolContext) -> RemoteToolResult:
-        """Execute remote tool - delegates to execute_remote."""
-        return await self.execute_remote(args, ctx)
 
 
 # Registry of remote tools for easy access
