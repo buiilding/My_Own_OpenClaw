@@ -871,10 +871,7 @@ class ResponseParser:
         # Join all parts at once (O(N) operation)
         result = "".join(parts)
         
-        # Clean up extra whitespace using regex (more efficient than iterative replace)
-        result = re.sub(r'\n{3,}', '\n\n', result)
-        
-        return result.strip()
+        return self._normalize_whitespace(result)
     
     def _remove_extracted_calls(self, text: str, tool_calls: List[ParsedToolCall]) -> str:
         """
@@ -902,8 +899,8 @@ class ResponseParser:
             for call in tool_calls:
                 result = result.replace(call.raw_call, "", 1)  # Only replace first occurrence
             
-            # Clean up extra whitespace
-            while "\n\n\n" in result:
-                result = result.replace("\n\n\n", "\n\n")
-            
-            return result.strip()
+            return self._normalize_whitespace(result)
+
+    def _normalize_whitespace(self, text: str) -> str:
+        cleaned = re.sub(r"\n{3,}", "\n\n", text)
+        return cleaned.strip()
