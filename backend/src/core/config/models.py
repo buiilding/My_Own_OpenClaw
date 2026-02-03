@@ -61,7 +61,7 @@ class KimiCodingConfig(BaseModel):
 
     model: str = "k2p5"
     api_key_env: str = "KIMI_API_KEY"
-    base_url: str = "https://api.kimi.com/coding/v1"
+    base_url: str = "https://api.kimi.com/coding"
 
 
 class LLMProviders(BaseModel):

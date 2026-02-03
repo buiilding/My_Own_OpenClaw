@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class KimiCodingProvider(LLMProvider):
     """Provider for Kimi Coding (Anthropic-compatible endpoint)."""
 
-    DEFAULT_BASE_URL = "https://api.kimi.com/coding/v1"
+    DEFAULT_BASE_URL = "https://api.kimi.com/coding"
 
     def __init__(
         self,
@@ -29,6 +29,8 @@ class KimiCodingProvider(LLMProvider):
     ):
         if base_url is None:
             base_url = self.DEFAULT_BASE_URL
+        elif base_url.endswith("/v1"):
+            base_url = base_url[: -len("/v1")]
         super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
 
     def _validate_dependencies(self) -> None:
