@@ -234,19 +234,14 @@ class ShellTool(Tool[RunShellCommandArgs]):
             if result.error and not result.output and result.exit_code is None:
                 success = False
 
-            return {
-                "command": command,
-                "exit_code": result.exit_code,
-                "background_pids": result.background_pids,
-                "execution_time": result.execution_time,
-                "working_directory": final_working_dir,
-                "output": result.output,
-                "error": result.error,
-                "signal": result.signal,
-                "llm_content": llm_content,
-                "return_display": return_display,
-                "success": success
-            }
+            return self._build_result_payload(
+                command=command,
+                result=result,
+                working_directory=final_working_dir,
+                llm_content=llm_content,
+                return_display=return_display,
+                success=success,
+            )
 
         except Exception as e:
             logger.error(f"Unexpected error in shell tool: {e}", exc_info=True)
@@ -276,6 +271,29 @@ class ShellTool(Tool[RunShellCommandArgs]):
             )
 
         return directory, None
+
+    def _build_result_payload(
+        self,
+        command: str,
+        result: ShellExecutionResult,
+        working_directory: str,
+        llm_content: str,
+        return_display: str,
+        success: bool,
+    ) -> Dict[str, object]:
+        return {
+            "command": command,
+            "exit_code": result.exit_code,
+            "background_pids": result.background_pids,
+            "execution_time": result.execution_time,
+            "working_directory": working_directory,
+            "output": result.output,
+            "error": result.error,
+            "signal": result.signal,
+            "llm_content": llm_content,
+            "return_display": return_display,
+            "success": success,
+        }
 
     async def _execute_command(
         self, command: str, working_dir: str, timeout: float
