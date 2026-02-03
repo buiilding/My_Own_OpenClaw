@@ -9,6 +9,7 @@ import asyncio
 import json
 import logging
 import uuid
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -39,6 +40,15 @@ from memory.watermark_state import WatermarkStateStore
 logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
+class _MemoryAttrNames:
+    db_path: str
+    index: str
+    vector_id_to_memory_id: str
+    memory_id_to_vector_id: str
+    next_vector_id: str
+
+
 class LocalMemoryStore:
     """
     Local memory storage using separate SQLite databases for episodic and semantic memory.
@@ -47,6 +57,27 @@ class LocalMemoryStore:
 
     Frontend version: Uses RemoteEmbeddingClient for embedding generation.
     """
+
+    _MEMORY_ATTRS = {
+        "episodic": _MemoryAttrNames(
+            db_path="episodic_db_path",
+            index="episodic_index",
+            vector_id_to_memory_id="episodic_vector_id_to_memory_id",
+            memory_id_to_vector_id="episodic_memory_id_to_vector_id",
+            next_vector_id="episodic_next_vector_id",
+        ),
+        "semantic": _MemoryAttrNames(
+            db_path="semantic_db_path",
+            index="semantic_index",
+            vector_id_to_memory_id="semantic_vector_id_to_memory_id",
+            memory_id_to_vector_id="semantic_memory_id_to_vector_id",
+            next_vector_id="semantic_next_vector_id",
+        ),
+    }
+    _MEMORY_SCHEMA_INIT = {
+        "episodic": init_episodic_schema,
+        "semantic": init_semantic_schema,
+    }
 
     def __init__(self, db_path: Optional[str] = None):
         """
@@ -176,40 +207,41 @@ class LocalMemoryStore:
 
     async def _init_databases(self) -> None:
         """Initialize SQLite database schemas for both memory types."""
-        await init_episodic_schema(self.episodic_db_path)
-        await init_semantic_schema(self.semantic_db_path)
+        for memory_type, init_fn in self._MEMORY_SCHEMA_INIT.items():
+            attrs = self._get_memory_attrs(memory_type)
+            await init_fn(getattr(self, attrs.db_path))
 
     async def _load_vector_mappings(self) -> None:
         """Load vector ID to memory ID mappings from both databases."""
-        (
-            self.episodic_vector_id_to_memory_id,
-            self.episodic_memory_id_to_vector_id,
-            self.episodic_next_vector_id,
-        ) = await load_vector_mappings(self.episodic_db_path)
-
-        (
-            self.semantic_vector_id_to_memory_id,
-            self.semantic_memory_id_to_vector_id,
-            self.semantic_next_vector_id,
-        ) = await load_vector_mappings(self.semantic_db_path)
+        for memory_type in self._MEMORY_ATTRS:
+            attrs = self._get_memory_attrs(memory_type)
+            (
+                vector_id_to_memory_id,
+                memory_id_to_vector_id,
+                next_vector_id,
+            ) = await load_vector_mappings(getattr(self, attrs.db_path))
+            setattr(self, attrs.vector_id_to_memory_id, vector_id_to_memory_id)
+            setattr(self, attrs.memory_id_to_vector_id, memory_id_to_vector_id)
+            setattr(self, attrs.next_vector_id, next_vector_id)
 
     async def _sync_vector_mappings(self) -> None:
         """Sync vector mappings: ensure all memories in both DBs have vector IDs."""
-        self.episodic_next_vector_id = await self._sync_vector_mappings_for_db(
-            db_path=self.episodic_db_path,
-            index=self.episodic_index,
-            vector_id_to_memory_id=self.episodic_vector_id_to_memory_id,
-            memory_id_to_vector_id=self.episodic_memory_id_to_vector_id,
-            next_vector_id=self.episodic_next_vector_id,
-        )
-
-        self.semantic_next_vector_id = await self._sync_vector_mappings_for_db(
-            db_path=self.semantic_db_path,
-            index=self.semantic_index,
-            vector_id_to_memory_id=self.semantic_vector_id_to_memory_id,
-            memory_id_to_vector_id=self.semantic_memory_id_to_vector_id,
-            next_vector_id=self.semantic_next_vector_id,
-        )
+        for memory_type in self._MEMORY_ATTRS:
+            (
+                db_path,
+                index,
+                vector_id_to_memory_id,
+                memory_id_to_vector_id,
+                next_vector_id,
+            ) = self._get_memory_state(memory_type)
+            updated_next_vector_id = await self._sync_vector_mappings_for_db(
+                db_path=db_path,
+                index=index,
+                vector_id_to_memory_id=vector_id_to_memory_id,
+                memory_id_to_vector_id=memory_id_to_vector_id,
+                next_vector_id=next_vector_id,
+            )
+            self._set_next_vector_id(memory_type, updated_next_vector_id)
         
         # Always save indices after sync to ensure persistence
         await self._save_faiss_indices()
@@ -277,27 +309,76 @@ class LocalMemoryStore:
             faiss,
         )
 
+    def _get_memory_attrs(self, memory_type: str) -> _MemoryAttrNames:
+        try:
+            return self._MEMORY_ATTRS[memory_type]
+        except KeyError as exc:
+            raise ValueError(f"Unsupported memory type: {memory_type}") from exc
+
+    def _get_memory_state(
+        self, memory_type: str
+    ) -> Tuple[str, Any, Dict[int, str], Dict[str, int], int]:
+        attrs = self._get_memory_attrs(memory_type)
+        return (
+            getattr(self, attrs.db_path),
+            getattr(self, attrs.index),
+            getattr(self, attrs.vector_id_to_memory_id),
+            getattr(self, attrs.memory_id_to_vector_id),
+            getattr(self, attrs.next_vector_id),
+        )
+
+    def _set_memory_index(self, memory_type: str, index) -> None:
+        attrs = self._get_memory_attrs(memory_type)
+        setattr(self, attrs.index, index)
+
+    def _set_next_vector_id(self, memory_type: str, next_vector_id: int) -> None:
+        attrs = self._get_memory_attrs(memory_type)
+        setattr(self, attrs.next_vector_id, next_vector_id)
+
+    def _normalize_memory_type(self, memory_type_value: Any) -> str:
+        try:
+            from backend.src.core.types import MemoryType
+
+            memory_type_enum = MemoryType(memory_type_value)
+            if memory_type_enum == MemoryType.EPISODIC:
+                return "episodic"
+            if memory_type_enum == MemoryType.SEMANTIC:
+                return "semantic"
+        except (ImportError, ValueError):
+            pass
+
+        return "episodic" if str(memory_type_value) == "episodic" else "semantic"
+
+    def _maybe_normalize_memory_type(self, memory_type_value: Any) -> Optional[str]:
+        try:
+            from backend.src.core.types import MemoryType
+
+            memory_type_enum = MemoryType(memory_type_value)
+            if memory_type_enum == MemoryType.EPISODIC:
+                return "episodic"
+            if memory_type_enum == MemoryType.SEMANTIC:
+                return "semantic"
+        except (ImportError, ValueError):
+            pass
+
+        if memory_type_value in ("episodic", "semantic"):
+            return memory_type_value
+        return None
+
     async def _rebuild_index(self, memory_type: str) -> None:
         """Rebuild FAISS index from database for a given memory type."""
-        if memory_type == "episodic":
-            db_path = self.episodic_db_path
-            index = self.episodic_index
-            vector_id_to_memory_id = self.episodic_vector_id_to_memory_id
-            memory_id_to_vector_id = self.episodic_memory_id_to_vector_id
-        else:  # semantic
-            db_path = self.semantic_db_path
-            index = self.semantic_index
-            vector_id_to_memory_id = self.semantic_vector_id_to_memory_id
-            memory_id_to_vector_id = self.semantic_memory_id_to_vector_id
+        (
+            db_path,
+            _,
+            vector_id_to_memory_id,
+            memory_id_to_vector_id,
+            _,
+        ) = self._get_memory_state(memory_type)
         
         # Clear existing index
         dimension = self.embedder.dimension
-        if memory_type == "episodic":
-            self.episodic_index = faiss.IndexFlatIP(dimension)
-            index = self.episodic_index
-        else:
-            self.semantic_index = faiss.IndexFlatIP(dimension)
-            index = self.semantic_index
+        index = faiss.IndexFlatIP(dimension)
+        self._set_memory_index(memory_type, index)
         
         # Rebuild from database
         async with aiosqlite.connect(db_path) as conn:
@@ -367,12 +448,7 @@ class LocalMemoryStore:
             conversation_id = metadata.get("conversation_id")
 
         # Convert string to enum for type safety
-        try:
-            from backend.src.core.types import MemoryType
-            memory_type = MemoryType(memory_type_str)
-        except (ImportError, ValueError):
-            # Fallback if backend types not available
-            memory_type = "episodic" if memory_type_str == "episodic" else "semantic"
+        memory_type = self._normalize_memory_type(memory_type_str)
 
         # Generate embedding using remote client
         embedding = await self.embedder.embed_text(text)
@@ -380,20 +456,15 @@ class LocalMemoryStore:
         faiss.normalize_L2(embedding)
 
         # Route to appropriate database and index
-        if memory_type in ("episodic", "MemoryType.EPISODIC"):
-            db_path = self.episodic_db_path
-            index = self.episodic_index
-            vector_id = self.episodic_next_vector_id
-            vector_id_to_memory_id = self.episodic_vector_id_to_memory_id
-            memory_id_to_vector_id = self.episodic_memory_id_to_vector_id
-            self.episodic_next_vector_id += 1
-        else:  # semantic
-            db_path = self.semantic_db_path
-            index = self.semantic_index
-            vector_id = self.semantic_next_vector_id
-            vector_id_to_memory_id = self.semantic_vector_id_to_memory_id
-            memory_id_to_vector_id = self.semantic_memory_id_to_vector_id
-            self.semantic_next_vector_id += 1
+        (
+            db_path,
+            index,
+            vector_id_to_memory_id,
+            memory_id_to_vector_id,
+            next_vector_id,
+        ) = self._get_memory_state(memory_type)
+        vector_id = next_vector_id
+        self._set_next_vector_id(memory_type, next_vector_id + 1)
 
         # Add to FAISS index
         index.add(embedding)
@@ -402,7 +473,7 @@ class LocalMemoryStore:
         metadata_json = json.dumps(metadata) if metadata else None
         
         # Only set is_semanticized for episodic memories (semantic memories don't need this field)
-        is_semanticized = 0 if memory_type in ("episodic", "MemoryType.EPISODIC") else None
+        is_semanticized = 0 if memory_type == "episodic" else None
 
         async with aiosqlite.connect(db_path) as conn:
             cursor = await conn.cursor()
@@ -488,16 +559,11 @@ class LocalMemoryStore:
                 memory_type_filter = filters["type"]
 
             # Convert string filter to enum for type safety
-            try:
-                from backend.src.core.types import MemoryType
-                memory_type_enum = MemoryType(memory_type_filter)
-                if memory_type_enum == MemoryType.EPISODIC:
-                    search_semantic = False
-                elif memory_type_enum == MemoryType.SEMANTIC:
-                    search_episodic = False
-            except (ImportError, ValueError):
-                # Invalid memory type filter, ignore it
-                pass
+            normalized_type = self._maybe_normalize_memory_type(memory_type_filter)
+            if normalized_type == "episodic":
+                search_semantic = False
+            elif normalized_type == "semantic":
+                search_episodic = False
 
         # Generate query embedding using remote client
         query_embedding = await self.embedder.embed_text(query)
@@ -509,29 +575,22 @@ class LocalMemoryStore:
         # Search both databases in parallel
         search_tasks = []
 
-        if search_episodic:
-            search_tasks.append(
-                self._search_database(
-                    query_embedding=query_embedding,
-                    user_id=user_id,
-                    db_path=self.episodic_db_path,
-                    index=self.episodic_index,
-                    vector_id_to_memory_id=self.episodic_vector_id_to_memory_id,
-                    memory_type="episodic",
-                    filters=filters,
-                    limit=limit,
-                )
+        for memory_type in self._MEMORY_ATTRS:
+            if memory_type == "episodic" and not search_episodic:
+                continue
+            if memory_type == "semantic" and not search_semantic:
+                continue
+            db_path, index, vector_id_to_memory_id, _, _ = self._get_memory_state(
+                memory_type
             )
-
-        if search_semantic:
             search_tasks.append(
                 self._search_database(
                     query_embedding=query_embedding,
                     user_id=user_id,
-                    db_path=self.semantic_db_path,
-                    index=self.semantic_index,
-                    vector_id_to_memory_id=self.semantic_vector_id_to_memory_id,
-                    memory_type="semantic",
+                    db_path=db_path,
+                    index=index,
+                    vector_id_to_memory_id=vector_id_to_memory_id,
+                    memory_type=memory_type,
                     filters=filters,
                     limit=limit,
                 )
@@ -565,24 +624,24 @@ class LocalMemoryStore:
 
         # Batch retrieval from SQLite
         rows_map = await self._fetch_rows_map(db_path, memory_ids)
+        results: List[Dict[str, Any]] = []
+        # Reconstruct results in order of similarity
+        for memory_id, similarity in zip(memory_ids, valid_similarities):
+            row = rows_map.get(memory_id)
+            if not row:
+                continue
 
-            # Reconstruct results in order of similarity
-            for memory_id, similarity in zip(memory_ids, valid_similarities):
-                row = rows_map.get(memory_id)
-                if not row:
-                    continue
+            # Apply user_id filter
+            if row["user_id"] != user_id:
+                continue
 
-                # Apply user_id filter
-                if row["user_id"] != user_id:
-                    continue
+            metadata = self._parse_metadata(row["metadata"], memory_type)
+            if not self._passes_metadata_filters(metadata, filters):
+                continue
 
-                metadata = self._parse_metadata(row["metadata"], memory_type)
-                if not self._passes_metadata_filters(metadata, filters):
-                    continue
-
-                results.append(
-                    self._build_search_result(row, metadata, similarity, memory_type)
-                )
+            results.append(
+                self._build_search_result(row, metadata, similarity, memory_type)
+            )
 
         return results
 
