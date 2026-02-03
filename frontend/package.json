@@ -10,8 +10,8 @@
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "electron": "ELECTRON_DISABLE_SANDBOX=1 electron .",
-    "test": "jest --config jest.config.cjs",
-    "test:ci": "jest --config jest.config.cjs --runInBand",
+    "test": "NODE_OPTIONS=--no-deprecation jest --config jest.config.cjs",
+    "test:ci": "NODE_OPTIONS=--no-deprecation jest --config jest.config.cjs --runInBand",
     "test:shell": "node src/main/test_shell.cjs"
   },
   "dependencies": {
