@@ -14,7 +14,10 @@ backend/src/core/
 ├── infrastructure/                    # Cross-cutting infrastructure components
 │   ├── __init__.py                    # Re-exports bus, cache, exceptions for backward compatibility
 │   ├── bus.py                         # EventBus - pub/sub event system with priority support and filtering
-│   ├── cache.py                       # Cache, CacheManager - in-memory caching with TTL and LRU eviction
+│   ├── cache.py                       # Cache facade (re-exports store/manager/entry)
+│   ├── cache_entry.py                 # CacheEntry
+│   ├── cache_store.py                 # Cache - TTL + LRU in-memory cache
+│   ├── cache_manager.py               # CacheManager - shared caches
 │   └── exceptions.py                  # Exception hierarchy - BaseAppError and domain-specific exceptions (LLM, Tool, Memory, etc.)
 │
 ├── events/                            # Event system for decoupled communication

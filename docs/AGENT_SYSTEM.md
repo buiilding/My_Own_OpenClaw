@@ -31,7 +31,7 @@ Key entry points:
 2. **Session resolved** (`SessionManager.get_or_create_session`)
 3. **Interaction loop** (`InteractionLoop.run_loop`)
 4. **LLM stream** (`LLMStreamProcessor`)
-5. **Tool orchestration** (`ToolOrchestrator`)
+5. **Tool orchestration** (agent `ToolOrchestrator` + `ToolResultOrchestrator`)
 6. **Results processed** (`ToolProcessingCoordinator`)
 7. **History committed** (`HistoryCommitter`)
 
