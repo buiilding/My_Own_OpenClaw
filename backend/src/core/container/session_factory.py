@@ -102,6 +102,7 @@ class AgentSessionFactory:
             tool_registry=self.tool_registry,
             ocr_service=self.ocr_service,
             llm_client=llm_client,
+            llm_client_factory=self.llm_client_factory,
             tool_orchestrator=tool_orchestrator,
             event_bus=self.event_bus,
             metrics_service=self.metrics_service,
