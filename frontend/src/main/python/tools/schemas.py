@@ -67,6 +67,15 @@ class KeyboardControlArgs(BaseModel):
 
 # --- Screenshot Tool Schemas ---
 
+class DisplayBounds(BaseModel):
+    """Screen bounds for targeted screenshot capture."""
+    model_config = ConfigDict(extra='ignore')
+
+    x: int = Field(..., description="Display X origin")
+    y: int = Field(..., description="Display Y origin")
+    width: int = Field(..., description="Display width")
+    height: int = Field(..., description="Display height")
+
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
     model_config = ConfigDict(extra='ignore')
@@ -74,6 +83,10 @@ class ScreenshotToolArgs(BaseModel):
     wait: Optional[float] = Field(
         None,
         description="(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture."
+    )
+    display_bounds: Optional[DisplayBounds] = Field(
+        None,
+        description="(OPTIONAL) Display bounds to capture instead of the full desktop."
     )
 
 

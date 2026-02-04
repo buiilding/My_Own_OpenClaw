@@ -27,8 +27,18 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
         from PIL import Image
         
         def _capture():
-            # Capture screenshot
-            screenshot = pyautogui.screenshot()
+            # Capture screenshot (full desktop or selected display bounds)
+            region = None
+            if isinstance(args, dict):
+                bounds = args.get("display_bounds")
+                if isinstance(bounds, dict):
+                    x = bounds.get("x")
+                    y = bounds.get("y")
+                    width = bounds.get("width")
+                    height = bounds.get("height")
+                    if all(isinstance(value, (int, float)) for value in (x, y, width, height)):
+                        region = (int(x), int(y), int(width), int(height))
+            screenshot = pyautogui.screenshot(region=region) if region else pyautogui.screenshot()
             
             # Convert to RGB if needed (JPEG requires RGB)
             if screenshot.mode != 'RGB':
