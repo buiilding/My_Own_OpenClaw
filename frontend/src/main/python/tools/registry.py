@@ -18,6 +18,7 @@ from tools.schemas import (
     WriteFileArgs,
     ListDirectoryArgs,
     RunShellCommandArgs,
+    ProcessShellCommandArgs,
     SwitchTabArgs,
     GetOpenWindowsArgs,
     GetSystemStatsArgs,
@@ -44,6 +45,7 @@ TOOL_SCHEMAS: Dict[str, Type[BaseModel]] = {
     "glob": GlobArgs,
     "read_many_files": ReadManyFilesArgs,
     "run_shell_command": RunShellCommandArgs,
+    "process": ProcessShellCommandArgs,
     "switch_tab": SwitchTabArgs,
     "get_open_windows": GetOpenWindowsArgs,
     "get_system_stats": GetSystemStatsArgs,
@@ -138,6 +140,12 @@ class ToolRegistry:
             self.tools["run_shell_command"] = run_shell_command
         except ImportError as e:
             logger.warning(f"Failed to import shell_tool: {e}")
+
+        try:
+            from tools.system.process_tool import process_shell_command
+            self.tools["process"] = process_shell_command
+        except ImportError as e:
+            logger.warning(f"Failed to import process_tool: {e}")
         
         try:
             from tools.system.window_tool import switch_to_window, get_open_windows

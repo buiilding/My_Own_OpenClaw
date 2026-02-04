@@ -152,6 +152,18 @@ class RunShellCommandArgs(BaseModel):
     directory: Optional[str] = Field(None, description="Working directory (must be absolute path)")
     run_in_background: bool = Field(False, description="Run command in background")
     terminate_after_seconds: Optional[float] = Field(120.0, description="Timeout in seconds (for foreground execution)")
+    yield_after_seconds: Optional[float] = Field(
+        None,
+        description="(OPTIONAL) Return early if command runs longer than this (seconds). The command continues in the background.",
+    )
+    env: Optional[dict[str, str]] = Field(
+        None,
+        description="(OPTIONAL) Environment variable overrides for the command.",
+    )
+    pty: Optional[bool] = Field(
+        None,
+        description="(OPTIONAL) Request a pseudo-terminal (best-effort).",
+    )
     explanation: Optional[str] = Field(
         None,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
@@ -160,6 +172,26 @@ class RunShellCommandArgs(BaseModel):
         None,
         description="(OPTIONAL) Delay in seconds before taking a screenshot after tool execution. If provided, the tool will wait and capture a screenshot like computer-use tools."
     )
+
+
+class ProcessShellCommandArgs(BaseModel):
+    """Arguments for process tool (manage background shell sessions)."""
+    model_config = ConfigDict(extra='ignore')
+
+    action: str = Field(
+        ...,
+        description="Action to perform: list, poll, log, write, send-keys, submit, paste, kill, clear, remove.",
+    )
+    session_id: Optional[str] = Field(None, description="Session id for actions other than list/clear")
+    data: Optional[str] = Field(None, description="Data to write for write action")
+    keys: Optional[list[str]] = Field(None, description="Key tokens for send-keys action")
+    hex: Optional[list[str]] = Field(None, description="Hex bytes for send-keys action")
+    literal: Optional[str] = Field(None, description="Literal text for send-keys action")
+    text: Optional[str] = Field(None, description="Text for paste action")
+    bracketed: Optional[bool] = Field(None, description="Wrap paste in bracketed mode")
+    eof: Optional[bool] = Field(None, description="Close stdin after write action")
+    offset: Optional[int] = Field(None, description="Log line offset")
+    limit: Optional[int] = Field(None, description="Log line limit")
 
 
 class SwitchTabArgs(BaseModel):
