@@ -37,35 +37,37 @@ async def execute_bundle(
     Returns:
         SimpleNamespace with tool_results list
     """
-    logger.info(f"Processing atomic bundle: {len(parsed_response.tool_calls)} tools (bundle_id={short_id(bundle_id)})")
+    bundle_id_short = short_id(bundle_id)
+    logger.info(f"Processing atomic bundle: {len(parsed_response.tool_calls)} tools (bundle_id={bundle_id_short})")
     
     # Create single bundle future
     bundle_future = session_ref._tool_result_storage.create_bundle_future(bundle_id)
     
-    # Check if bundle result already exists
-    bundle_result = session_ref._tool_result_storage.get_bundled_result(bundle_id)
-    if bundle_result:
-        session_ref._tool_result_storage.remove_bundled_result(bundle_id)
-        if not bundle_future.done():
-            bundle_future.set_result(bundle_result)
-        logger.info(f"Found already completed bundle result for bundle_id {short_id(bundle_id)}")
-    else:
-        # Wait for bundle result
-        try:
-            wait_start = time.perf_counter()
-            logger.info(f"Waiting for frontend bundle result (bundle_id={short_id(bundle_id)})...")
-            bundle_result = await asyncio.wait_for(bundle_future, timeout=120.0)
-            wait_time = time.perf_counter() - wait_start
-            logger.info(f"[Timing] Bundle orchestrator wait completed in {wait_time:.3f}s (bundle_id={short_id(bundle_id)})")
-        except asyncio.TimeoutError:
-            logger.error(f"Timed out waiting for bundle (bundle_id={short_id(bundle_id)})")
-            bundle_result = ToolResult(
-                success=False,
-                error="Timed out waiting for bundle execution on frontend.",
-                llm_content="Error: Bundle execution timed out on frontend."
-            )
-        finally:
-            session_ref._tool_result_storage.remove_bundle_future(bundle_id)
+    try:
+        # Check if bundle result already exists
+        bundle_result = session_ref._tool_result_storage.get_bundled_result(bundle_id)
+        if bundle_result:
+            session_ref._tool_result_storage.remove_bundled_result(bundle_id)
+            if not bundle_future.done():
+                bundle_future.set_result(bundle_result)
+            logger.info(f"Found already completed bundle result for bundle_id {bundle_id_short}")
+        else:
+            # Wait for bundle result
+            try:
+                wait_start = time.perf_counter()
+                logger.info(f"Waiting for frontend bundle result (bundle_id={bundle_id_short})...")
+                bundle_result = await asyncio.wait_for(bundle_future, timeout=120.0)
+                wait_time = time.perf_counter() - wait_start
+                logger.info(f"[Timing] Bundle orchestrator wait completed in {wait_time:.3f}s (bundle_id={bundle_id_short})")
+            except asyncio.TimeoutError:
+                logger.error(f"Timed out waiting for bundle (bundle_id={bundle_id_short})")
+                bundle_result = ToolResult(
+                    success=False,
+                    error="Timed out waiting for bundle execution on frontend.",
+                    llm_content="Error: Bundle execution timed out on frontend."
+                )
+    finally:
+        session_ref._tool_result_storage.remove_bundle_future(bundle_id)
     
     # Extract step_results from bundle result and create individual results
     # This maintains compatibility with existing code that expects individual tool results

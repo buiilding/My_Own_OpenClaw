@@ -114,25 +114,28 @@ class ScreenshotManager:
             screenshot_id: Unique ID for this screenshot (for race condition prevention)
             request_id: Request ID for logging purposes
         """
+        ocr_service = session.ocr_service
+        if not ocr_service or not ocr_service.enabled:
+            # OCR disabled: keep event set so tools don't block unnecessarily.
+            session.ocr_completion_event.set()
+            return
+
         async def run_ocr_task():
             try:
                 # Clear OCR completion event before starting new OCR
                 session.ocr_completion_event.clear()
-                
-                ocr_service = session.ocr_service
 
-                if ocr_service and ocr_service.enabled:
-                    # perform_ocr is async and handles GPU cache management internally in a thread
-                    results = await ocr_service.perform_ocr(screenshot_data)
-                    if results:
-                        # Only store results if this screenshot_id is still current
-                        # This prevents race conditions where a new screenshot arrives
-                        # while OCR is processing the old one
-                        if session.get_current_screenshot_id() == screenshot_id:
-                            session.set_current_ocr_results(results)
-                            logger.info(f"Proactive OCR completed for screenshot {screenshot_id[:8]} (request {short_id(request_id)})")
-                        else:
-                            logger.debug(f"OCR completed for outdated screenshot {screenshot_id[:8]}, ignoring results")
+                # perform_ocr is async and handles GPU cache management internally in a thread
+                results = await ocr_service.perform_ocr(screenshot_data)
+                if results:
+                    # Only store results if this screenshot_id is still current
+                    # This prevents race conditions where a new screenshot arrives
+                    # while OCR is processing the old one
+                    if session.get_current_screenshot_id() == screenshot_id:
+                        session.set_current_ocr_results(results)
+                        logger.info(f"Proactive OCR completed for screenshot {screenshot_id[:8]} (request {short_id(request_id)})")
+                    else:
+                        logger.debug(f"OCR completed for outdated screenshot {screenshot_id[:8]}, ignoring results")
             except Exception as e:
                 logger.error(f"Proactive OCR failed: {e}")
             finally:

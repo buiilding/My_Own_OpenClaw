@@ -44,6 +44,14 @@ class ToolResultRouter:
         self.screenshot_processor = screenshot_processor
         self.result_storage = result_storage
         self.session = session
+    
+    async def _process_screenshot(self, screenshot: Optional[str], request_id: str, context: str) -> None:
+        if not screenshot:
+            return
+        logger.debug(f"{context} includes screenshot data")
+        await self.screenshot_processor.process_from_result(
+            self.session, screenshot, request_id
+        )
 
     async def route_individual_result(
         self,
@@ -63,11 +71,7 @@ class ToolResultRouter:
             screenshot_data = tool_result.data["screenshot"]
             logger.debug("Tool result includes screenshot data")
         
-        # Process screenshot if present
-        if screenshot_data:
-            await self.screenshot_processor.process_from_result(
-                self.session, screenshot_data, request_id
-            )
+        await self._process_screenshot(screenshot_data, request_id, "Tool result")
         
         # Store the tool result using centralized storage
         self.result_storage.store_pending_result(request_id, tool_result)
@@ -94,12 +98,7 @@ class ToolResultRouter:
         if isinstance(tool_result.data, dict):
             screenshot = tool_result.data.get("screenshot")
         
-        # Process screenshot if present
-        if screenshot:
-            logger.debug("Bundle result includes screenshot data")
-            await self.screenshot_processor.process_from_result(
-                self.session, screenshot, bundle_id
-            )
+        await self._process_screenshot(screenshot, bundle_id, "Bundle result")
         
         # Store bundle result for orchestrator
         self.result_storage.store_bundled_result(bundle_id, tool_result)
@@ -127,12 +126,7 @@ class ToolResultRouter:
             combined_result: Combined result if available
             bundle_screenshot: Screenshot from bundle if present
         """
-        # Process screenshot if present
-        if bundle_screenshot:
-            logger.debug("Bundle result includes screenshot data")
-            await self.screenshot_processor.process_from_result(
-                self.session, bundle_screenshot, bundle_request_id
-            )
+        await self._process_screenshot(bundle_screenshot, bundle_request_id, "Bundle result")
         
         # Store individual tool results for orchestrator matching
         for tool_request_id, tool_result in individual_results:
