@@ -36,13 +36,20 @@ function SettingsSection({ config, onConfigChange }) {
   }, []);
 
   useEffect(() => {
-    if (!displays.length || selectedDisplayId) {
+    if (!displays.length) {
+      return;
+    }
+    const selected = displays.find((display) => String(display.id) === selectedDisplayId);
+    if (selected) {
+      persistDisplaySelection(selected);
       return;
     }
     const primary = displays.find((display) => display.isPrimary) || displays[0];
     if (primary) {
       const nextId = String(primary.id);
-      setSelectedDisplayId(nextId);
+      if (nextId !== selectedDisplayId) {
+        setSelectedDisplayId(nextId);
+      }
       persistDisplaySelection(primary);
     }
   }, [displays, selectedDisplayId]);
