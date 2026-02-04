@@ -62,6 +62,7 @@ export function useChatStream() {
 
   const handleStreamingResponse = useCallback((event: StreamingResponseEvent) => {
     setIsSending(false);
+    setThinkingStatus(null);
 
     const messages = useChatStore.getState().messages;
     const lastMessage = messages[messages.length - 1];
@@ -80,9 +81,10 @@ export function useChatStream() {
       };
       addMessage(newMessage);
     }
-  }, [addMessage, updateMessage, setIsSending]);
+  }, [addMessage, updateMessage, setIsSending, setThinkingStatus]);
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
+    setThinkingStatus(null);
     let formattedText: string;
 
     if (event.payload?.raw_call) {
@@ -106,9 +108,10 @@ export function useChatStream() {
       type: 'tool-call',
     };
     addMessage(newMessage);
-  }, [addMessage]);
+  }, [addMessage, setThinkingStatus]);
 
   const handleToolOutput = useCallback((event: ToolOutputEvent) => {
+    setThinkingStatus(null);
     const outputText = event.payload?.error
       ? `Error: ${event.payload.error}`
       : (event.payload?.output || 'No output');
@@ -127,7 +130,7 @@ export function useChatStream() {
     };
 
     addMessage(newMessage);
-  }, [addMessage]);
+  }, [addMessage, setThinkingStatus]);
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
     updateLastMessageBySender('user', {
@@ -163,13 +166,14 @@ export function useChatStream() {
 
   const handleStreamingComplete = useCallback(() => {
     setIsSending(false);
+    setThinkingStatus(null);
 
     const messages = useChatStore.getState().messages;
     const lastMessage = messages[messages.length - 1];
     if (lastMessage && lastMessage.sender === 'assistant') {
       updateMessage(lastMessage.id, { isComplete: true });
     }
-  }, [updateMessage, setIsSending]);
+  }, [updateMessage, setIsSending, setThinkingStatus]);
 
   const handleTokenCount = useCallback((event: TokenCountEvent) => {
     setTokenCounts(event.payload ?? null);
