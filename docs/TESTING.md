@@ -13,6 +13,13 @@ cd /path/to/WindieOS
 pytest
 ```
 
+### Sidecar-Only Tests
+
+```bash
+cd /path/to/WindieOS
+pytest tests/sidecar
+```
+
 ## Frontend Tests
 
 ```bash
@@ -25,5 +32,4 @@ npm test
 - `pytest` uses `pytest.ini` and runs `tests/backend` + `tests/sidecar`.
 - Activate the Python environment that has backend/sidecar deps before running `pytest`.
 - For CI parity: `cd frontend && npm run test:ci`.
-- Frontend tests use Jest + React Testing Library.
 - Frontend tests use Jest + React Testing Library.
