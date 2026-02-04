@@ -41,6 +41,7 @@ async def test_execute_bundle_uses_existing_result():
     result = await execute_bundle(response, "bundle", session)
 
     assert len(result.tool_results) == 2
+    assert session._tool_result_storage.get_bundle_future("bundle") is None
     assert result.tool_results[0].result.success is True
     assert "done" in (result.tool_results[0].result.llm_content or "")
     assert result.tool_results[1].result.success is True
