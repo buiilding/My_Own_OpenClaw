@@ -16,6 +16,7 @@ read_when:
 
 - **Chatbox**: small overlay at bottom-center. Always-on-top. Click-through when the agent is busy; clickable when idle.
 - **Dashboard**: full window. Opens from the chatbox **Config** button.
+- Only one is visible at a time. Opening one hides the other.
 
 ## Chatbox Behavior
 
@@ -23,8 +24,9 @@ read_when:
 - **Win + Alt + W** toggles chatbox visibility.
 - When shown, input is focusable and ready to type.
 - Status indicator shows **Ready / Sending / Thinking**.
-- **Config** button opens the dashboard window.
+- **Config** button opens the dashboard window and hides the chatbox.
 - **Mic** button is disabled (voice typing off).
+- Closing the dashboard restores the chatbox.
 
 ## Dashboard Layout
 
@@ -71,8 +73,15 @@ Default section on open: **Chat**.
 
 ## Wakeword Behavior
 
-- Wakeword listens when enabled and chatbox is hidden.
+- Wakeword listens when enabled and the chatbox is hidden.
 - When chatbox is visible, wakeword is temporarily paused.
+- If wakeword triggers while the dashboard is open, the dashboard closes and the chatbox opens.
+
+## Screenshot Capture
+
+- On Linux, the app hides its windows during screenshot capture to avoid self-capture.
+- The chatbox briefly disappears and returns after the capture.
+- This happens even if you sent the query from the dashboard (once the dashboard is closed, the chatbox is restored and will hide/show around capture).
 
 ## Troubleshooting
 
