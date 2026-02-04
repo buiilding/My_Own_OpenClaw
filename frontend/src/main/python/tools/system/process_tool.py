@@ -1,0 +1,341 @@
+"""
+Process tool for managing background shell sessions.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+import os
+import time
+from typing import Any, Dict, List, Optional
+
+from tools.system.shell_process_registry import (
+    clear_finished,
+    delete_session,
+    drain_pending,
+    get_finished_session,
+    get_session,
+    list_finished_sessions,
+    list_running_sessions,
+)
+
+logger = logging.getLogger(__name__)
+
+
+def _normalize_action(action: Optional[str]) -> str:
+    return (action or "").strip().lower().replace("_", "-")
+
+
+def _encode_keys(keys: Optional[List[str]], hex_bytes: Optional[List[str]], literal: Optional[str]) -> tuple[bytes, List[str]]:
+    warnings: List[str] = []
+    payload = b""
+
+    key_map = {
+        "enter": b"\r",
+        "return": b"\r",
+        "tab": b"\t",
+        "backspace": b"\x7f",
+        "esc": b"\x1b",
+        "escape": b"\x1b",
+        "up": b"\x1b[A",
+        "down": b"\x1b[B",
+        "right": b"\x1b[C",
+        "left": b"\x1b[D",
+        "c-c": b"\x03",
+        "c-d": b"\x04",
+    }
+
+    if keys:
+        for key in keys:
+            token = key.strip().lower()
+            if not token:
+                continue
+            payload += key_map.get(token, key.encode("utf-8", errors="replace"))
+
+    if hex_bytes:
+        for entry in hex_bytes:
+            if not entry:
+                continue
+            try:
+                payload += bytes.fromhex(entry)
+            except ValueError:
+                warnings.append(f"Invalid hex byte: {entry}")
+
+    if literal:
+        payload += literal.encode("utf-8", errors="replace")
+
+    return payload, warnings
+
+
+def _encode_paste(text: str, bracketed: bool) -> bytes:
+    payload = text.encode("utf-8", errors="replace")
+    if not bracketed:
+        return payload
+    return b"\x1b[200~" + payload + b"\x1b[201~"
+
+
+def _slice_log_lines(text: str, offset: Optional[int], limit: Optional[int]) -> Dict[str, Any]:
+    lines = text.splitlines()
+    total = len(lines)
+    start = max(offset or 0, 0)
+    end = total if limit is None else min(start + max(limit, 0), total)
+    slice_lines = lines[start:end]
+    return {
+        "slice": "\n".join(slice_lines),
+        "total_lines": total,
+    }
+
+
+async def _write_to_session(session, data: bytes, close: bool) -> None:
+    if session.uses_pty:
+        if session.exited or session.pty_master is None:
+            raise RuntimeError("Session stdin is not writable.")
+        await asyncio.to_thread(os.write, session.pty_master, data)
+        if close:
+            await asyncio.to_thread(os.write, session.pty_master, b"\x04")
+        return
+
+    stdin = session.process.stdin
+    if not stdin or stdin.is_closing():
+        raise RuntimeError("Session stdin is not writable.")
+    stdin.write(data)
+    await stdin.drain()
+    if close:
+        stdin.close()
+
+
+async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Manage background shell sessions (list, poll, log, write, send-keys, submit, paste, kill, clear, remove).
+    """
+    action = _normalize_action(args.get("action"))
+    session_id = args.get("session_id")
+
+    if action == "list":
+        running = [
+            {
+                "session_id": session.id,
+                "status": "running",
+                "pid": session.process.pid,
+                "started_at": session.started_at,
+                "runtime_seconds": max(0.0, time.time() - session.started_at),
+                "cwd": session.cwd,
+                "command": session.command,
+                "pty": session.uses_pty,
+                "tail": session.tail,
+                "truncated": session.truncated,
+            }
+            for session in list_running_sessions()
+        ]
+        finished = [
+            {
+                "session_id": session.id,
+                "status": session.status,
+                "started_at": session.started_at,
+                "ended_at": session.ended_at,
+                "runtime_seconds": max(0.0, session.ended_at - session.started_at),
+                "cwd": session.cwd,
+                "command": session.command,
+                "tail": session.tail,
+                "truncated": session.truncated,
+                "exit_code": session.exit_code,
+            }
+            for session in list_finished_sessions()
+        ]
+        return {
+            "success": True,
+            "data": {
+                "running": running,
+                "finished": finished,
+                "return_display": f"{len(running)} running, {len(finished)} finished session(s).",
+            },
+        }
+
+    if action == "clear":
+        cleared = clear_finished()
+        return {
+            "success": True,
+            "data": {
+                "cleared": cleared,
+                "return_display": f"Cleared {cleared} finished session(s).",
+            },
+        }
+
+    if not session_id:
+        return {"success": False, "error": "session_id is required for this action"}
+
+    session = get_session(session_id)
+    finished = get_finished_session(session_id)
+
+    if action in {"poll", "log", "write", "send-keys", "submit", "paste", "kill", "remove"}:
+        if not session and not finished:
+            return {"success": False, "error": f"No session found for {session_id}"}
+
+    if action == "poll":
+        if not session:
+            return {
+                "success": True,
+                "data": {
+                    "status": finished.status,
+                    "session_id": session_id,
+                    "output": finished.tail or "(no output recorded)",
+                    "stdout": finished.stdout,
+                    "stderr": finished.stderr,
+                    "exit_code": finished.exit_code,
+                    "aggregated": finished.aggregated,
+                    "return_display": f"Session {session_id} finished ({finished.status}).",
+                },
+            }
+        if not session.backgrounded:
+            return {"success": False, "error": f"Session {session_id} is not backgrounded."}
+        stdout, stderr = drain_pending(session)
+        output = "\n".join([chunk for chunk in [stdout, stderr] if chunk]).strip()
+        exited = session.exited
+        status = "running"
+        if exited:
+            status = "completed" if (session.exit_code or 0) == 0 else "failed"
+        return {
+            "success": True,
+            "data": {
+                "status": status,
+                "session_id": session_id,
+                "output": output or "(no new output)",
+                "stdout": stdout,
+                "stderr": stderr,
+                "exit_code": session.exit_code,
+                "aggregated": session.aggregated,
+                "return_display": f"Session {session_id} is {status}.",
+            },
+        }
+
+    if action == "log":
+        target = session or finished
+        if session and not session.backgrounded:
+            return {"success": False, "error": f"Session {session_id} is not backgrounded."}
+        offset = args.get("offset")
+        limit = args.get("limit")
+        sliced = _slice_log_lines(target.aggregated, offset, limit)
+        if finished:
+            status = finished.status
+        elif session and session.exited:
+            status = "completed" if (session.exit_code or 0) == 0 else "failed"
+        else:
+            status = "running"
+        return {
+            "success": True,
+            "data": {
+                "status": status,
+                "session_id": session_id,
+                "output": sliced["slice"] or "(no output yet)",
+                "total_lines": sliced["total_lines"],
+                "truncated": target.truncated,
+                "return_display": f"Log slice for session {session_id}.",
+            },
+        }
+
+    if action == "write":
+        if not session:
+            return {"success": False, "error": f"No active session found for {session_id}"}
+        if not session.backgrounded:
+            return {"success": False, "error": f"Session {session_id} is not backgrounded."}
+        data = (args.get("data") or "").encode("utf-8", errors="replace")
+        await _write_to_session(session, data, bool(args.get("eof")))
+        return {
+            "success": True,
+            "data": {
+                "status": "running",
+                "session_id": session_id,
+                "bytes_written": len(data),
+                "return_display": f"Wrote {len(data)} bytes to session {session_id}.",
+            },
+        }
+
+    if action == "send-keys":
+        if not session:
+            return {"success": False, "error": f"No active session found for {session_id}"}
+        if not session.backgrounded:
+            return {"success": False, "error": f"Session {session_id} is not backgrounded."}
+        payload, warnings = _encode_keys(args.get("keys"), args.get("hex"), args.get("literal"))
+        if not payload:
+            return {"success": False, "error": "No key data provided."}
+        await _write_to_session(session, payload, False)
+        return {
+            "success": True,
+            "data": {
+                "status": "running",
+                "session_id": session_id,
+                "bytes_written": len(payload),
+                "warnings": warnings,
+                "return_display": f"Sent {len(payload)} bytes to session {session_id}.",
+            },
+        }
+
+    if action == "submit":
+        if not session:
+            return {"success": False, "error": f"No active session found for {session_id}"}
+        if not session.backgrounded:
+            return {"success": False, "error": f"Session {session_id} is not backgrounded."}
+        await _write_to_session(session, b"\r", False)
+        return {
+            "success": True,
+            "data": {
+                "status": "running",
+                "session_id": session_id,
+                "return_display": f"Submitted session {session_id}.",
+            },
+        }
+
+    if action == "paste":
+        if not session:
+            return {"success": False, "error": f"No active session found for {session_id}"}
+        if not session.backgrounded:
+            return {"success": False, "error": f"Session {session_id} is not backgrounded."}
+        text = args.get("text") or ""
+        payload = _encode_paste(text, bool(args.get("bracketed", True)))
+        await _write_to_session(session, payload, False)
+        return {
+            "success": True,
+            "data": {
+                "status": "running",
+                "session_id": session_id,
+                "bytes_written": len(payload),
+                "return_display": f"Pasted {len(payload)} bytes to session {session_id}.",
+            },
+        }
+
+    if action == "kill":
+        if not session:
+            return {"success": False, "error": f"No active session found for {session_id}"}
+        if session.exited:
+            return {
+                "success": True,
+                "data": {
+                    "status": "completed",
+                    "session_id": session_id,
+                    "return_display": f"Session {session_id} already exited.",
+                },
+            }
+        session.process.kill()
+        await session.process.wait()
+        return {
+            "success": True,
+            "data": {
+                "status": "killed",
+                "session_id": session_id,
+                "return_display": f"Killed session {session_id}.",
+            },
+        }
+
+    if action == "remove":
+        delete_session(session_id)
+        return {
+            "success": True,
+            "data": {
+                "status": "removed",
+                "session_id": session_id,
+                "return_display": f"Removed session {session_id}.",
+            },
+        }
+
+    return {"success": False, "error": f"Unknown action: {action}"}

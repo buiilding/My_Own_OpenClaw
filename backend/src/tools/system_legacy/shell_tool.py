@@ -44,6 +44,18 @@ class RunShellCommandArgs(BaseModel):
         120.0,
         description="(OPTIONAL, only used when run_in_background=False) Maximum time in seconds to wait before terminating the command and returning current output. Default is 120 seconds (2 minutes). Set to None for no timeout limit."
     )
+    yield_after_seconds: Optional[float] = Field(
+        None,
+        description="(OPTIONAL) Return early if the command runs longer than this. The command continues in the background.",
+    )
+    env: Optional[dict[str, str]] = Field(
+        None,
+        description="(OPTIONAL) Environment variable overrides for the command.",
+    )
+    pty: Optional[bool] = Field(
+        None,
+        description="(OPTIONAL) Request a pseudo-terminal (best-effort).",
+    )
     explanation: str = Field(
         ...,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."

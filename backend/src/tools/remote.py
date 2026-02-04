@@ -134,6 +134,7 @@ from backend.src.tools.system.schemas import (
     GetOpenWindowsArgs,
     GetSystemStatsArgs,
     RunShellCommandArgs,
+    ProcessShellCommandArgs,
 )
 
 # Keep filesystem imports as they are (unless migrated)
@@ -426,7 +427,9 @@ class RemoteShellTool(RemoteToolBase, Tool[RunShellCommandArgs]):
         "  Use terminate_after_seconds to set a timeout (default 120 seconds). If timeout is reached, "
         "  the command is terminated and current output is returned.\n"
         "- Background (run_in_background=True): Starts the command and returns immediately with execution confirmation. "
-        "  Does not wait for output or completion.\n\n"
+        "  Does not wait for output or completion.\n"
+        "- Yield (yield_after_seconds): Returns early if the command runs longer than the yield time; "
+        "  the command continues in the background and can be managed with the process tool.\n\n"
         "Optional wait parameter: If 'wait' is provided (in seconds), the tool will wait and capture a screenshot "
         "after execution, similar to computer-use tools. This is useful when the command opens a GUI application "
         "or makes visual changes that need to be captured.\n\n"
@@ -444,6 +447,29 @@ class RemoteShellTool(RemoteToolBase, Tool[RunShellCommandArgs]):
         )
 
 
+class RemoteProcessTool(RemoteToolBase, Tool[ProcessShellCommandArgs]):
+    """
+    Remote process tool.
+
+    Manages background shell sessions on the frontend.
+    """
+
+    name = "process"
+    description = (
+        "Manage background shell command sessions: list, poll, log, write, send-keys, submit, paste, kill, clear, remove."
+    )
+    args_model = ProcessShellCommandArgs
+    category = ToolDomain.SYSTEM
+
+    async def execute_remote(self, args: ProcessShellCommandArgs, ctx: ToolContext) -> RemoteToolResult:
+        """Prepare process tool call for remote execution."""
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote process tool call: {args.action}",
+        )
+
+
 # Registry of remote tools for easy access
 REMOTE_TOOLS = {
     "mouse_control": RemoteMouseTool,
@@ -455,6 +481,7 @@ REMOTE_TOOLS = {
     "get_open_windows": RemoteGetOpenWindowsTool,
     "get_system_stats": RemoteGetSystemStatsTool,
     "run_shell_command": RemoteShellTool,
+    "process": RemoteProcessTool,
     "read_file": RemoteReadFileTool,
     "write_file": RemoteWriteFileTool,
     "list_directory": RemoteListDirectoryTool,

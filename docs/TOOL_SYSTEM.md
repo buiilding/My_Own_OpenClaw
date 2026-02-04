@@ -67,7 +67,7 @@ Most tools are executed on the frontend Python sidecar:
 - **Computer Control Tools**: `mouse_control`, `keyboard_control`, `scroll_control`
 - **File System Tools**: `read_file`, `write_file`, `list_directory`, `search_file_content`
 - **System Tools**: `screenshot`, `get_system_stats`, `get_open_windows`
-- **Terminal Tools**: `run_shell_command`
+- **Terminal Tools**: `run_shell_command`, `process`
 
 ### Backend Responsibilities (No Tool Execution)
 
@@ -177,14 +177,18 @@ Remote tools are executed on the frontend Python sidecar:
 **Backend Stub** (`tools/remote.py`):
 
 ```python
-from backend.src.tools.remote import RemoteTool
+from pydantic import BaseModel
 
-class MyRemoteTool(RemoteTool):
+from backend.src.sdk.tool import Tool
+from backend.src.tools.remote import RemoteToolBase
+
+class MyRemoteToolArgs(BaseModel):
+    param1: str
+
+class MyRemoteTool(Tool[MyRemoteToolArgs], RemoteToolBase):
     name = "my_remote_tool"
     description = "Description of my remote tool"
-    
-    def get_schema(self) -> dict:
-        return {...}
+    args_model = MyRemoteToolArgs
 ```
 
 **Frontend Implementation** (`frontend/src/main/python/tools/my_tool.py`):
@@ -206,8 +210,7 @@ async def execute_my_tool(args: Dict[str, Any]) -> Dict[str, Any]:
 Tools are automatically registered:
 
 1. **Remote Tools**: Discovered from `tools/remote.py`
-2. **Backend Tools**: Registered in tool registry
-3. **Plugin Tools**: Registered by plugins
+2. **Backend Tools**: Registered in the tool registry (`backend/src/tools/registry.py`)
 
 ## Coordinate Resolution
 
@@ -338,9 +341,10 @@ Tool schemas follow JSON Schema format:
 
 - **get_system_stats**: System statistics
 - **get_open_windows**: List open windows
-- **run_shell_command**: Execute shell command
+- **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; use `process` for background sessions)
+- **process**: Manage background shell sessions (poll/log/write/kill)
 
-**Note**: The sidecar implements additional tools (`replace`, `search_file_content`, `glob`, `read_many_files`), but they are not currently registered in the backend tool schemas, so the LLM cannot call them yet.
+**Note**: The sidecar implements additional tools (`replace`, `search_file_content`, `glob`, `read_many_files`), but they are not currently registered in the backend tool schemas, so the LLM cannot call them yet. `process` is registered and available.
 
 ## Security
 
@@ -410,11 +414,11 @@ async def test_tool_execution_flow():
 3. Define tool schema
 4. Register tool in registry
 
-### Tool Plugin Development
+### Tool Registration
 
-1. Create plugin implementing tool interface
-2. Register tool in plugin
-3. Plugin registers tool on initialization
+1. Create tool class inheriting from `Tool`
+2. Define schema + `execute()` implementation
+3. Register in `backend/src/tools/registry.py`
 
 ---
 

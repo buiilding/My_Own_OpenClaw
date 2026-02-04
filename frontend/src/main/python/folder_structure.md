@@ -66,7 +66,9 @@ frontend/src/main/python/
     │
     └── system/                         # System tools
         ├── __init__.py                # Package initialization
-        ├── shell_tool.py              # run_shell_command() - Shell command execution with timeout and background support
+        ├── shell_tool.py              # run_shell_command() - Shell command execution with background sessions
+        ├── shell_process_registry.py  # Background shell session registry
+        ├── process_tool.py            # process() - Manage background shell sessions (poll/log/write/kill)
         ├── stats_tool.py              # get_system_stats() - System statistics (CPU, memory, battery) using psutil
         ├── wait_tool.py               # wait() - Wait tool (returns immediately, frontend handles delay)
         └── window_tool.py            # switch_to_window(), get_open_windows() - Window management using platform abstraction
