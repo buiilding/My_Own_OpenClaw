@@ -42,12 +42,46 @@ class DummyMemoryStore:
         return None
 
 
+class DummyRegistryRaises:
+    def __init__(self, error):
+        self.error = error
+        self.tools = {"read_file": object()}
+
+    async def execute_tool(self, tool_name, args):
+        raise self.error
+
+
+class DummyMemoryStoreCapturing(DummyMemoryStore):
+    def __init__(self, results):
+        super().__init__()
+        self.results = results
+        self.search_calls = []
+
+    async def search(self, query, user_id, filters, limit):
+        self.search_calls.append((query, user_id, filters, limit))
+        return self.results
+
+
+class DummyMemoryStoreRaises(DummyMemoryStore):
+    def __init__(self, error):
+        super().__init__()
+        self.error = error
+
+    async def add(self, content, user_id, metadata, conversation_id=None):
+        raise self.error
+
+
 class DummySummarizer:
     def __init__(self):
         self.notified = []
 
     def notify_new_memory(self, user_id):
         self.notified.append(user_id)
+
+
+class DummyMemoryStorePendingFails(DummyMemoryStore):
+    async def increment_pending_count(self):
+        raise RuntimeError("pending-fail")
 
 
 @pytest.mark.asyncio
@@ -67,6 +101,15 @@ async def test_handle_execute_tool_error():
 
 
 @pytest.mark.asyncio
+async def test_handle_execute_tool_exception():
+    backend = LocalBackend()
+    backend.tool_registry = DummyRegistryRaises(RuntimeError("boom"))
+    result = await backend._handle_execute_tool("read_file", {"file_path": "/tmp/a"})
+    assert result["success"] is False
+    assert result["error"] == "Tool execution failed: boom"
+
+
+@pytest.mark.asyncio
 async def test_handle_get_status_reports_tools():
     backend = LocalBackend()
     backend.tool_registry = DummyRegistry(ToolResult.success_result({}))
@@ -77,6 +120,20 @@ async def test_handle_get_status_reports_tools():
     assert status["running"] is True
     assert status["tool_count"] == 2
     assert "read_file" in status["registered_tools"]
+
+
+@pytest.mark.asyncio
+async def test_handle_get_status_without_store_or_registry():
+    backend = LocalBackend()
+    backend.tool_registry = None
+    backend.memory_store = None
+    backend.running = False
+
+    status = await backend._handle_get_status()
+    assert status["running"] is False
+    assert status["memory_store_initialized"] is False
+    assert status["tool_registry_initialized"] is False
+    assert status["memory_store_status"] == "not_initialized"
 
 
 @pytest.mark.asyncio
@@ -95,6 +152,22 @@ async def test_handle_get_system_state(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_handle_get_system_state_error(monkeypatch):
+    backend = LocalBackend()
+
+    async def raise_state(fields=None):
+        raise RuntimeError("nope")
+
+    from core import system_state as system_state_module
+
+    monkeypatch.setattr(system_state_module, "get_system_state", raise_state)
+
+    result = await backend._handle_get_system_state(fields=["active_window"])
+    assert result["success"] is False
+    assert result["error"] == "nope"
+
+
+@pytest.mark.asyncio
 async def test_handle_search_memory_groups_results():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
@@ -103,6 +176,46 @@ async def test_handle_search_memory_groups_results():
     assert result["success"] is True
     assert result["data"]["memories"]["semantic"] == ["fact"]
     assert result["data"]["memories"]["episodic"] == ["event"]
+
+
+@pytest.mark.asyncio
+async def test_handle_search_memory_empty_results():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreCapturing([])
+
+    result = await backend._handle_search_memory("query")
+    assert result["success"] is True
+    assert result["data"]["memories"] == {"semantic": [], "episodic": []}
+
+
+@pytest.mark.asyncio
+async def test_handle_search_memory_applies_filters():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreCapturing(
+        [{"type": "semantic", "text": "fact"}]
+    )
+
+    result = await backend._handle_search_memory(
+        "query",
+        user_id="user-1",
+        limit=3,
+        memory_type="semantic",
+    )
+    assert result["success"] is True
+    assert backend.memory_store.search_calls == [("query", "user-1", {"type": "semantic"}, 3)]
+
+
+@pytest.mark.asyncio
+async def test_handle_search_memory_ignores_unknown_type():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreCapturing(
+        [{"type": "weird", "text": "skip"}, {"text": "fallback"}]
+    )
+
+    result = await backend._handle_search_memory("query")
+    assert result["success"] is True
+    assert result["data"]["memories"]["semantic"] == []
+    assert result["data"]["memories"]["episodic"] == ["fallback"]
 
 
 @pytest.mark.asyncio
@@ -121,6 +234,54 @@ async def test_handle_store_memory_success_notifies_summarizer():
     assert result["success"] is True
     assert backend.memory_store.pending_count == 1
     assert backend._summarizer.notified == ["user-1"]
+
+
+@pytest.mark.asyncio
+async def test_handle_store_memory_semantic_does_not_notify():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+    backend._summarizer = DummySummarizer()
+
+    result = await backend._handle_store_memory(
+        user_query="hi",
+        assistant_response="hello",
+        memory_type="semantic",
+        user_id="user-1",
+        session_id="session-1",
+    )
+    assert result["success"] is True
+    assert backend.memory_store.pending_count == 0
+    assert backend._summarizer.notified == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_memory_pending_failure_still_succeeds():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStorePendingFails()
+    backend._summarizer = DummySummarizer()
+
+    result = await backend._handle_store_memory(
+        user_query="hi",
+        assistant_response="hello",
+        memory_type="episodic",
+        user_id="user-1",
+    )
+    assert result["success"] is True
+    assert backend._summarizer.notified == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_memory_add_failure():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreRaises(RuntimeError("fail"))
+
+    result = await backend._handle_store_memory(
+        user_query="hi",
+        assistant_response="hello",
+        memory_type="episodic",
+    )
+    assert result["success"] is False
+    assert result["error"] == "fail"
 
 
 @pytest.mark.asyncio
