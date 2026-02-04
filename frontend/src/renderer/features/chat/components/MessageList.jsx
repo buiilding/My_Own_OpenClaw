@@ -1,12 +1,40 @@
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import ThinkingDisplay from './ThinkingDisplay';
 import MessageContent from './MessageContent';
 import MessageTransparencySections from './MessageTransparencySections';
 import '../../../styles/ThinkingDisplay.css';
 
+const MessageItem = memo(function MessageItem({ message }) {
+  const messageClass = `message message-${message.sender} ${
+    message.sender === 'assistant' && message.isComplete === false ? 'message-streaming' : ''
+  } ${message.type ? `message-type-${message.type}` : ''} ${message.screenshot ? 'message-has-screenshot' : ''}`;
+
+  return (
+    <div className={messageClass}>
+      <MessageContent message={message} />
+      <MessageTransparencySections message={message} />
+    </div>
+  );
+});
+
+MessageItem.propTypes = {
+  message: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    text: PropTypes.string.isRequired,
+    sender: PropTypes.oneOf(['user', 'assistant']).isRequired,
+    isComplete: PropTypes.bool,
+    type: PropTypes.string,
+    screenshot: PropTypes.string,
+  }).isRequired,
+};
+
 function MessageList({ messages, thinkingStatus }) {
   const messagesEndRef = useRef(null);
+  const renderedMessages = useMemo(
+    () => messages.map((msg) => <MessageItem key={msg.id} message={msg} />),
+    [messages]
+  );
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -18,17 +46,7 @@ function MessageList({ messages, thinkingStatus }) {
 
   return (
     <div className="message-list">
-      {messages.map((msg) => {
-        const messageClass = `message message-${msg.sender} ${
-          msg.sender === 'assistant' && msg.isComplete === false ? 'message-streaming' : ''
-        } ${msg.type ? `message-type-${msg.type}` : ''} ${msg.screenshot ? 'message-has-screenshot' : ''}`;
-        return (
-          <div key={msg.id} className={messageClass}>
-            <MessageContent message={msg} />
-            <MessageTransparencySections message={msg} />
-          </div>
-        );
-      })}
+      {renderedMessages}
       <div ref={messagesEndRef} />
       <ThinkingDisplay status={thinkingStatus} />
     </div>

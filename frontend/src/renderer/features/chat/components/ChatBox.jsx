@@ -33,6 +33,7 @@ function ChatBox() {
   const [inputValue, setInputValue] = useState('');
   const ignoreMouseRef = useRef(true);
   const inputRef = useRef(null);
+  const isIdle = !thinkingStatus && !isSending;
 
   const lastAssistantMessage = useMemo(
     () => getLatestAssistantMessage(messages),
@@ -60,11 +61,11 @@ function ChatBox() {
   }, []);
 
   useEffect(() => {
-    setOverlayIgnore(true);
+    setOverlayIgnore(!isIdle);
     return () => {
       setOverlayIgnore(false);
     };
-  }, [setOverlayIgnore]);
+  }, [isIdle, setOverlayIgnore]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.CHATBOX_FOCUS, () => {
@@ -93,23 +94,27 @@ function ChatBox() {
   }, [handleSend]);
 
   const handleMouseEnter = useCallback(() => {
-    setOverlayIgnore(false);
-  }, [setOverlayIgnore]);
+    if (!isIdle) {
+      setOverlayIgnore(false);
+    }
+  }, [isIdle, setOverlayIgnore]);
 
   const handleMouseLeave = useCallback(() => {
-    if (document.activeElement === inputRef.current) {
+    if (isIdle || document.activeElement === inputRef.current) {
       return;
     }
     setOverlayIgnore(true);
-  }, [setOverlayIgnore]);
+  }, [isIdle, setOverlayIgnore]);
 
   const handleInputFocus = useCallback(() => {
     setOverlayIgnore(false);
   }, [setOverlayIgnore]);
 
   const handleInputBlur = useCallback(() => {
-    setOverlayIgnore(true);
-  }, [setOverlayIgnore]);
+    if (!isIdle) {
+      setOverlayIgnore(true);
+    }
+  }, [isIdle, setOverlayIgnore]);
 
   const handleOpenSettings = useCallback(async () => {
     try {
