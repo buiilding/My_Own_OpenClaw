@@ -121,6 +121,8 @@ class EventBus:
         # Cache for sorted handler lists per event type (MRO tuple as key)
         # Invalidated on subscribe/unsubscribe to avoid repeated sorting
         self._handler_cache: Dict[tuple, List[EventHandlerWrapper]] = {}
+        # Cache for event class MRO traversal (event type -> classes)
+        self._event_class_cache: Dict[Type[Event], List[Type[Event]]] = {}
     
     def subscribe(
         self,
@@ -413,4 +415,14 @@ class EventBus:
                     ]
 
     def _iter_event_classes(self, event_type: Type[Event]) -> List[Type[Event]]:
-        return [cls for cls in event_type.__mro__ if cls is not object]
+        cached = self._event_class_cache.get(event_type)
+        if cached is not None:
+            return cached
+
+        classes = [cls for cls in event_type.__mro__ if cls is not object]
+        with self._lock:
+            existing = self._event_class_cache.get(event_type)
+            if existing is None:
+                self._event_class_cache[event_type] = classes
+                return classes
+            return existing
