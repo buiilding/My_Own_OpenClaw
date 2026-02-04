@@ -46,7 +46,7 @@ function getPythonPath() {
 /**
  * Start Python wakeword service
  */
-function startWakewordService(mainWindow) {
+function startWakewordService(mainWindow, onWakewordDetected) {
   if (pythonProcess) {
     console.log('[Wakeword] Service already running');
     return;
@@ -118,7 +118,7 @@ function startWakewordService(mainWindow) {
 
   // Handle stdout (detection results only - ready signal now comes via stderr)
   pythonProcess.stdout.on('data', (data) => {
-    processDetectionResults(data, mainWindow);
+    processDetectionResults(data, mainWindow, onWakewordDetected);
   });
 
   // Handle process exit
@@ -178,7 +178,7 @@ function clearResultBuffer() {
   resultBuffer = Buffer.alloc(0);
 }
 
-function processDetectionResults(data, mainWindow) {
+function processDetectionResults(data, mainWindow, onWakewordDetected) {
   // Ignore detection results if wakeword is disabled
   if (!isWakewordEnabled) {
     return;
@@ -205,6 +205,13 @@ function processDetectionResults(data, mainWindow) {
       // Double-check wakeword is still enabled before processing detection
       if (result.detected && isWakewordEnabled) {
         console.log(`[Wakeword] *** DETECTED *** ${result.model} (confidence: ${result.confidence}, score: ${result.score})`);
+        if (typeof onWakewordDetected === 'function') {
+          try {
+            onWakewordDetected();
+          } catch (error) {
+            console.error('[Wakeword] Wakeword handler failed:', error);
+          }
+        }
         mainWindow?.webContents.send('wakeword-detected', {
           model: result.model,
           confidence: result.confidence,
@@ -259,9 +266,9 @@ function stopWakewordService() {
 /**
  * Initialize wakeword bridge IPC handlers
  */
-function initializeWakewordBridge(mainWindow) {
+function initializeWakewordBridge(mainWindow, onWakewordDetected) {
   // Start service when bridge is initialized
-  startWakewordService(mainWindow);
+  startWakewordService(mainWindow, onWakewordDetected);
 
   let receivedChunkCount = 0;
   // Handle audio chunks from renderer
@@ -335,5 +342,4 @@ module.exports = {
   startWakewordService,
   stopWakewordService,
 };
-
 
