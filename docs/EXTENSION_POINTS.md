@@ -1,7 +1,7 @@
 ---
 summary: "Extension Points"
 read_when:
-  - When adding plugins, tools, or integrations.
+  - When adding tools, providers, or integrations.
 ---
 
 # Extension Points
@@ -36,13 +36,13 @@ Add a new provider by implementing `LLMProvider` in:
 
 and wiring it into the provider factory in `backend/src/llm/providers/__init__.py`.
 
-## 4) Agent Plugins
+## 4) Vision Providers
 
-Plugins hook into the agent lifecycle:
+Add a new vision model provider:
 
-- Interface: `backend/src/agent/plugins/interface.py`
-- Manager: `backend/src/agent/plugins/manager.py`
-- Example: `backend/src/agent/plugins/ocr_plugin.py`
+- Base class: `backend/src/services/vision/providers/base.py`
+- Providers: `backend/src/services/vision/providers/`
+- Selection: `backend/src/services/vision/vision_service.py`
 
 ## 5) Renderer UI Features
 

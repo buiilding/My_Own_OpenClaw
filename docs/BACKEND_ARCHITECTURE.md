@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-The backend is built using Python 3.9+ with FastAPI, following clean architecture principles. It uses dependency injection, protocol-based interfaces, and a plugin system for extensibility.
+The backend is built using Python 3.9+ with FastAPI, following clean architecture principles. It uses dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR) instead of plugins.
 
 ## Future: Multi-Tenant Backend & Subscription Platform (Planned)
 
@@ -77,52 +77,20 @@ This section documents the roadmap to move from a single-user/local backend to a
 
 ```
 backend/src/
-├── agent/              # Agent domain (core intelligence)
-│   ├── session/        # AgentSession, SessionManager, ConversationHistory
-│   ├── execution/      # AgentExecutor, InteractionLoop
-│   ├── llm/            # LLM streaming + event presentation
-│   ├── tools/          # Tool lifecycle (prepare/send/wait/process)
-│   ├── history/        # HistoryCommitter
-│   └── plugins/        # Plugin system (OCR, etc.)
-├── tools/             # Tools domain (registry, loader, tools)
-│   ├── registry.py   # ToolRegistry
-│   ├── orchestrator.py  # ToolResultOrchestrator
-│   ├── remote.py     # Remote tool stubs
-│   └── schema_registry.py  # Tool schema management
+├── agent/             # Agent domain (sessions, execution, tools, history)
+│   ├── session/       # AgentSession, SessionManager, ConversationHistory
+│   ├── execution/     # AgentExecutor, InteractionLoop
+│   ├── llm/           # LLM streaming + event presentation
+│   ├── tools/         # Tool lifecycle (prepare/send/wait/process)
+│   └── history/       # HistoryCommitter
+├── api/               # API layer (routes, handlers, processing, transport)
+├── core/              # Core infrastructure (bootstrap, config, container, events, security, validation)
 ├── embeddings/        # Embedding provider domain
-│   └── embeddings.py # SentenceTransformerProvider
-├── llm/               # LLM domain (client, prompts)
-│   ├── client.py     # LLMClient abstraction
-│   ├── parser.py     # ResponseParser (facade)
-│   ├── parser_types.py  # ParsedToolCall / ParsedResponse / ToolCallSchema
-│   ├── parser_validation.py  # ToolCallValidator
-│   ├── parser_extraction.py  # JSON extraction + removal helpers
-│   ├── prompts/      # Prompt construction
-│   └── providers/   # LLM provider implementations
-├── api/               # API layer (routes, dependencies)
-│   ├── routes/       # FastAPI routes
-│   ├── handlers/     # Message handlers
-│   ├── schema.py     # Pydantic models
-│   └── deps.py       # Dependency injection
-├── core/              # Core infrastructure
-│   ├── container/     # DI containers (application, facade, factories)
-│   ├── config/        # Configuration management (app_config.py, loader.py, models.py)
-│   ├── bootstrap/     # System initialization
-│   ├── plugins/       # Plugin registry
-│   ├── services/      # Core services
-│   │   ├── tts_service.py   # TTSService (Piper integration)
-│   │   ├── tts_buffer.py    # SentenceBuffer
-│   │   └── tts_audio.py     # Audio chunk helpers
-│   ├── infrastructure/  # Shared infra (cache, bus, etc.)
-│   │   ├── cache.py         # Cache facade
-│   │   ├── cache_entry.py   # CacheEntry
-│   │   ├── cache_store.py   # Cache implementation
-│   │   └── cache_manager.py # CacheManager
-│   └── interfaces/    # Protocol interfaces
+├── llm/               # LLM domain (client, prompts, providers)
+├── services/          # Runtime services (vision, OCR, token counting)
+├── tools/             # Tool registry + built-in tool stubs
 ├── sdk/               # SDK for tool development
-│   ├── tool.py        # Base Tool class
-│   ├── context.py     # Context classes
-│   └── errors.py      # SDK exceptions
+├── simulation/        # Mock LLM and simulation helpers
 └── main.py            # Application entry point
 ```
 
@@ -238,24 +206,18 @@ Orchestrates tool execution requests by waiting for frontend tool results.
 
 #### ToolPreparer (`agent/tools/preparation/preparer.py`)
 
-Prepares tool calls for execution.
+Prepares tool calls for execution by resolving coordinates and rewriting arguments.
 
 **Responsibilities**:
 - Ensure screenshots are available
-- Coordinate OCR processing
+- Coordinate OCR and vision resolution
 - Resolve coordinates for visual tools
-- Prepare tool calls with metadata
-- Use shallow copy optimization for PreparedToolCall creation
+- Attach request_id/bundle_id metadata
+- Produce `ResolvedToolCall` instances
 
 **Key Methods**:
-- `prepare_tool_calls()`: Prepare tool calls from parsed response
-- `_ensure_screenshot()`: Ensure screenshot is available
-- `_resolve_coordinates()`: Resolve coordinates for tools
-
-**Performance Optimizations**:
-- Shallow copy instead of deep copy for PreparedToolCall parameters
-- Parameters are typically simple values (str, int, bool, float)
-- Reduces overhead per tool call, especially in multi-tool scenarios
+- `prepare_tools()`: Async generator yielding infra events then `PreparationResult`
+- `_needs_coordinate_resolution()`: Decide if a tool call needs coordinates
 
 ### LLM System
 
@@ -405,8 +367,8 @@ Coordinates application initialization.
 **Initialization Phases**:
 1. Configuration loading
 2. Container setup
-3. Service initialization
-4. Plugin loading
+3. Service initialization (session manager + handlers)
+4. Final validation
 
 ## Dependency Injection
 
@@ -418,7 +380,9 @@ ApplicationContainer
 │   ├── ConfigManager / ConfigurationService
 │   ├── LLMClient
 │   ├── TTSService
-│   ├── VisionService
+│   ├── VisionService / OcrService
+│   ├── ModelService
+│   ├── MetricsService
 │   └── EventBus
 ├── ToolContainer
 │   ├── ToolRegistry
@@ -426,7 +390,7 @@ ApplicationContainer
 │   └── AgentFactory
 ├── MemoryContainer
 │   └── EmbeddingProvider
-└── ApiContainer
+└── (ApiContainer created lazily in `core/container/facade.py`)
     ├── MessageHandlerRegistry
     └── WebSocket handlers
 ```
@@ -454,29 +418,19 @@ Central event bus for internal component communication.
 await event_bus.publish(InteractionCompleted(...))
 ```
 
-## Plugin System
+## Service Layer
 
-### Plugin Registry (`core/plugins/registry.py`)
+### VisionService (`services/vision/vision_service.py`)
 
-Manages plugin lifecycle.
+Manages UI grounding models (InternVL/UI-Venus) and handles async initialization/unload.
 
-**Responsibilities**:
-- Register plugins
-- Initialize plugins
-- Shutdown plugins
-- Execute tool-end hooks via PluginManager
+### OcrService (`services/ocr/ocr_service.py`)
 
-**Built-in Plugins**:
-- `OCRPlugin`: OCR processing plugin
+Provides RapidOCR-backed OCR with CUDA/CPU fallback and tuned runtime params.
 
-### Plugin Interface (`agent/plugins/interface.py`)
+### TokenService (`services/token_service.py`)
 
-Base interface for plugins.
-
-**Methods**:
-- `initialize(container=None)`: Initialize plugin (optional)
-- `on_tool_end(tool_name, result)`: Hook after tool execution
-- `shutdown()`: Cleanup (optional)
+Counts tokens for message batches via LiteLLM with a safe fallback estimator.
 
 ## Error Handling
 
@@ -575,11 +529,11 @@ tests/backend/
 2. Implement `execute()` method
 3. Register in tool registry
 
-### Plugin Development
+### Vision Provider
 
-1. Implement `Plugin` interface
-2. Register in plugin registry
-3. Handle events from event bus
+1. Add provider under `services/vision/providers/`
+2. Export it in `services/vision/providers/__init__.py`
+3. Wire selection logic in `services/vision/vision_service.py`
 
 ### Custom LLM Provider
 
@@ -593,4 +547,3 @@ For more detailed information, see:
 - [Tool System](TOOL_SYSTEM.md)
 - [LLM Integration](LLM_INTEGRATION.md)
 - [Memory System](MEMORY_SYSTEM.md)
-- [Plugin System](PLUGIN_SYSTEM.md)

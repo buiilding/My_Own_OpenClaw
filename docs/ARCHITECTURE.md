@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-Desktop Assistant is built as a distributed system with a clear separation between frontend (Electron/React) and backend (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and a plugin system for extensibility.
+Desktop Assistant is built as a distributed system with a clear separation between frontend (Electron/React) and backend (Python/FastAPI). The architecture follows clean architecture principles with dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR).
 
 ## Future: Hosted Multi-Tenant Architecture (Planned)
 
@@ -90,8 +90,8 @@ Local-only mode remains available for privacy-first users:
 │  └──────────────────────────────────────────────────────┘  │
 │   ↕          ↕          ↕           ↕          ↕          │
 │ ┌──────────┐ ┌────────┐ ┌──────┐ ┌──────────┐ ┌────────┐ │
-│ │Embeddings│ │Tools   │ │ LLM  │ │ Plugins  │ │ Vision  │ │
-│ │ API      │ │System  │ │Client│ │ Registry │ │Service  │ │
+│ │Embeddings│ │Tools   │ │ LLM  │ │ OCR      │ │ Vision  │ │
+│ │ API      │ │System  │ │Client│ │ Service  │ │Service  │ │
 │ └──────────┘ └────────┘ └──────┘ └──────────┘ └────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -132,8 +132,8 @@ Local-only mode remains available for privacy-first users:
 - **Embedding Service**: SentenceTransformer provider exposed via `/api/embeddings` (used by sidecar memory)
 - **Tool System**: Tool registry and orchestration
 - **LLM Client**: Multi-provider LLM abstraction
-- **Plugin System**: Extensible plugin architecture
 - **Vision Service**: AI-powered visual understanding
+- **OCR Service**: RapidOCR-backed text detection for coordinate resolution
 
 ## Data Flow
 
@@ -300,27 +300,19 @@ The backend uses `dependency-injector` with a composed container:
 
 ```python
 ApplicationContainer
-├── CoreContainer (config, LLM, TTS, vision, event bus)
+├── CoreContainer (config, LLM, TTS, vision, OCR, model, event bus)
 ├── ToolContainer (tool registry, orchestrator, agent factory)
 ├── MemoryContainer (embedding provider)
-└── ApiContainer (message handlers + registry)
+└── (ApiContainer created lazily in container facade)
 ```
 
-## Plugin System
+## Service Layer
 
-Plugins extend functionality without modifying core code:
+Core runtime services live under `backend/src/services/`:
 
-```
-PluginRegistry
-├── OCRPlugin (built-in)
-├── CustomPlugin1
-└── CustomPlugin2
-```
-
-**Plugin Interface**:
-- `initialize(container=None)`: Setup plugin (optional)
-- `on_tool_end(tool_name, result)`: Hook after tool execution
-- `shutdown()`: Cleanup (optional)
+- `vision/` for UI grounding models
+- `ocr/` for RapidOCR-backed text detection
+- `token_service.py` for token counting
 
 ## Security Architecture
 
@@ -362,11 +354,21 @@ PluginRegistry
 ### Error Hierarchy
 ```
 BaseException
-├── DesktopAssistantException
-│   ├── LLMAPIError
-│   ├── ToolExecutionError
+├── BaseAppError
 │   ├── ConfigurationError
-│   └── ValidationError
+│   ├── LLMError
+│   │   ├── LLMAPIError
+│   │   └── LLMRateLimitError
+│   ├── ToolExecutionError
+│   │   ├── ToolValidationError
+│   │   └── ToolNotFoundError
+│   ├── MemoryError
+│   │   ├── MemoryStoreError
+│   │   └── EmbeddingError
+│   ├── SessionError
+│   ├── InputSizeLimitError
+│   ├── ParseTimeoutError
+│   └── ParseValidationError
 ```
 
 ### Error Flow
@@ -383,10 +385,10 @@ BaseException
 - Implement `execute()` method
 - Register in tool registry
 
-### Plugin Development
-- Implement `Plugin` interface
-- Register in plugin registry
-- Handle events from event bus
+### Vision Provider
+- Implement a provider under `backend/src/services/vision/providers/`
+- Export in `providers/__init__.py`
+- Select in `services/vision/vision_service.py`
 
 ### Custom LLM Provider
 - Implement `LLMProvider` interface
