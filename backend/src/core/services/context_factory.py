@@ -142,8 +142,8 @@ class ContextFactory:
         
         # Metadata from session (includes active window provided by frontend)
         session_metadata = {}
-        if effective_session_ref and hasattr(effective_session_ref, 'metadata'):
-             session_metadata.update(effective_session_ref.metadata)
+        if effective_session_ref and hasattr(effective_session_ref, "metadata"):
+            session_metadata.update(effective_session_ref.metadata)
         
         context = ToolContext(
             user=UserContext(user_id=user_id),

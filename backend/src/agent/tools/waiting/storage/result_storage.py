@@ -92,8 +92,8 @@ class ToolResultStorage:
         Returns:
             True if result was found and removed, False otherwise
         """
-        if request_id in self._pending_results:
-            del self._pending_results[request_id]
+        result = self._pending_results.pop(request_id, None)
+        if result is not None:
             self._result_timestamps.pop(request_id, None)
             logger.debug(f"Removed pending tool result for request_id {request_id[:15]}")
             return True
@@ -157,8 +157,8 @@ class ToolResultStorage:
         Returns:
             True if future was found and removed, False otherwise
         """
-        if request_id in self._futures_dict:
-            del self._futures_dict[request_id]
+        future = self._futures_dict.pop(request_id, None)
+        if future is not None:
             # Weak dict will clean up automatically
             logger.debug(f"Removed result future for request_id {request_id[:15]}")
             return True
@@ -198,8 +198,8 @@ class ToolResultStorage:
         Returns:
             True if result was found and removed, False otherwise
         """
-        if bundle_request_id in self._bundled_results:
-            del self._bundled_results[bundle_request_id]
+        result = self._bundled_results.pop(bundle_request_id, None)
+        if result is not None:
             self._bundle_timestamps.pop(bundle_request_id, None)
             logger.debug(f"Removed bundled result for bundle_id {bundle_request_id[:15]}")
             return True
@@ -263,8 +263,8 @@ class ToolResultStorage:
         Returns:
             True if future was found and removed, False otherwise
         """
-        if bundle_id in self._bundle_futures_dict:
-            del self._bundle_futures_dict[bundle_id]
+        future = self._bundle_futures_dict.pop(bundle_id, None)
+        if future is not None:
             # Weak dict will clean up automatically
             logger.debug(f"Removed bundle future for bundle_id {bundle_id[:15]}")
             return True

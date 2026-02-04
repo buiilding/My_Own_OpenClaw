@@ -37,7 +37,7 @@ class ToolResultReceiver:
         success: bool,
         result_data: Optional[Dict[str, Any]],
         error: Optional[str],
-        metadata: Dict[str, Any],
+        metadata: Optional[Dict[str, Any]],
     ) -> ToolResult:
         """
         Receive and convert individual tool result from frontend.
@@ -54,6 +54,8 @@ class ToolResultReceiver:
         """
         # Convert frontend result to ToolResult format
         # Frontend pre-formats messages with system context XML and sets is_preformatted flag
+        if metadata is None:
+            metadata = {}
         if isinstance(result_data, dict) and result_data.get("is_preformatted"):
             metadata["is_preformatted"] = True
         
@@ -116,7 +118,7 @@ class ToolResultReceiver:
         self,
         bundle_data: Dict[str, Any],
         bundle_request_id: str,
-    ) -> tuple[List[ToolResult], Optional[ToolResult]]:
+    ) -> tuple[List[tuple[str, ToolResult]], Optional[ToolResult], Optional[str]]:
         """
         Receive and convert bundled tool results from frontend.
         
@@ -125,9 +127,10 @@ class ToolResultReceiver:
             bundle_request_id: The request_id of the bundle
             
         Returns:
-            Tuple of (individual tool results list, combined result if available)
+            Tuple of (individual tool results list, combined result if available, bundle screenshot)
         """
         tools = bundle_data.get("tools", [])
+        tools_success = all(t.get("success", False) for t in tools)
         bundle_screenshot = bundle_data.get("screenshot")
         combined_llm_content = bundle_data.get("combined_llm_content")
         
@@ -175,7 +178,7 @@ class ToolResultReceiver:
             }
             
             combined_result = ToolResult.from_dict({
-                "success": all(t.get("success", False) for t in tools),
+                "success": tools_success,
                 "data": combined_data,
                 "error": None,
                 "metadata": {

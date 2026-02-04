@@ -46,6 +46,8 @@ async def execute_single_tool(
         )
         return create_tool_result_object(tool_call, placeholder_result, execution_time=0)
     
+    request_id_short = short_id(request_id)
+
     # Use prepared tool call if available (avoids using mutated original)
     # Resolved tool calls have resolved coordinates and are immutable
     # ENCAPSULATION: Use public method instead of accessing private member
@@ -62,7 +64,7 @@ async def execute_single_tool(
         
         if resolution_screenshot_id and current_screenshot_id and resolution_screenshot_id != current_screenshot_id:
             logger.warning(
-                f"[request_id={short_id(request_id)}] STALE SCREEN DETECTED: "
+                f"[request_id={request_id_short}] STALE SCREEN DETECTED: "
                 f"Coordinates were resolved using screenshot {resolution_screenshot_id[:8]}, "
                 f"but current screenshot is {current_screenshot_id[:8]}. "
                 f"Screen changed before execution - tool will fail to prevent dangerous actions."
@@ -91,6 +93,12 @@ async def execute_single_tool(
     future = session_ref._tool_result_storage.create_result_future(request_id)
     # Also maintain legacy dict for backward compatibility
     session_ref._tool_result_futures[request_id] = future
+
+    def _cleanup_future() -> None:
+        # Use centralized storage for cleanup
+        session_ref._tool_result_storage.remove_result_future(request_id)
+        # Also clean up legacy dict
+        session_ref._tool_result_futures.pop(request_id, None)
     
     # Check if result already exists (may have arrived before we created the future)
     # This handles the race condition where frontend executes tool very quickly
@@ -100,31 +108,27 @@ async def execute_single_tool(
         session_ref._tool_result_storage.remove_pending_result(request_id)
         if not future.done():
             future.set_result(tool_result)
-        logger.info(f"Found already completed result for request_id {short_id(request_id)}")
+        logger.info(f"Found already completed result for request_id {request_id_short}")
+        _cleanup_future()
     else:
         # Result not yet available, wait for it
         try:
             wait_start = time.perf_counter()
-            logger.info(f"Waiting for frontend tool result (request_id={short_id(request_id)})...")
+            logger.info(f"Waiting for frontend tool result (request_id={request_id_short})...")
             # Wait for the result with a timeout
             tool_result = await asyncio.wait_for(future, timeout=120.0)  # 2 min timeout for tools
             wait_time = time.perf_counter() - wait_start
-            logger.info(f"[Timing] Tool orchestrator wait completed in {wait_time:.3f}s (request_id={short_id(request_id)}, tool={tool_call.tool_name})")
-            logger.info(f"Received result for request_id {short_id(request_id)}")
+            logger.info(f"[Timing] Tool orchestrator wait completed in {wait_time:.3f}s (request_id={request_id_short}, tool={tool_call.tool_name})")
+            logger.info(f"Received result for request_id {request_id_short}")
         except asyncio.TimeoutError:
-            logger.error(f"Timed out waiting for tool {tool_call.tool_name} (request_id={short_id(request_id)})")
+            logger.error(f"Timed out waiting for tool {tool_call.tool_name} (request_id={request_id_short})")
             tool_result = ToolResult(
                 success=False,
                 error=f"Timed out waiting for tool {tool_call.tool_name} execution on frontend.",
                 llm_content=f"Error: Tool {tool_call.tool_name} timed out on frontend."
             )
         finally:
-            # Clean up future
-            if request_id in session_ref._tool_result_futures:
-                # Use centralized storage for cleanup
-                session_ref._tool_result_storage.remove_result_future(request_id)
-                # Also clean up legacy dict
-                del session_ref._tool_result_futures[request_id]
+            _cleanup_future()
     
     # Create a result object compatible with InteractionLoop's expectations
     # Use effective_tool_call (prepared if available, original otherwise)
