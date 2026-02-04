@@ -27,6 +27,9 @@ contextBridge.exposeInMainWorld('ipc', {
       'search-memory',
       'set-overlay-ignore-mouse',
       'show-main-window',
+      'show-chatbox',
+      'hide-chatbox',
+      'get-displays',
       'load-frontend-config',
       'save-frontend-config',
     ];
@@ -43,6 +46,8 @@ contextBridge.exposeInMainWorld('ipc', {
       'log',
       'wakeword-detected',
       'wakeword-status',
+      'wakeword-toggle',
+      'chatbox-focus',
     ];
     if (validChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender`
@@ -61,6 +66,8 @@ contextBridge.exposeInMainWorld('ipc', {
       'log',
       'wakeword-detected',
       'wakeword-status',
+      'wakeword-toggle',
+      'chatbox-focus',
     ];
     if (validChannels.includes(channel)) {
       ipcRenderer.once(channel, (event, ...args) => func(...args));

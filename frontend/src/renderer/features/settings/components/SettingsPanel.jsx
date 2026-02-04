@@ -1,60 +1,108 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
+import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import '../../../styles/SettingsPanel.css';
 
+const API_KEY_STORAGE_KEY = 'desktop-assistant-api-key';
+const DISPLAY_STORAGE_KEY = 'desktop-assistant-display-id';
+
+function loadLocalValue(key, fallback = '') {
+  try {
+    const value = localStorage.getItem(key);
+    return value ?? fallback;
+  } catch (error) {
+    console.warn('[Dashboard] Failed to read localStorage:', error);
+    return fallback;
+  }
+}
+
+function saveLocalValue(key, value) {
+  try {
+    if (!value) {
+      localStorage.removeItem(key);
+      return;
+    }
+    localStorage.setItem(key, value);
+  } catch (error) {
+    console.warn('[Dashboard] Failed to write localStorage:', error);
+  }
+}
+
 /**
- * A panel for displaying and editing application settings.
- *
- * @param {object} props - The component's props.
- * @param {object} props.config - The current application configuration.
- * @param {object} props.availableModels - Object with 'local' and 'online' arrays of model objects.
- * @param {Function} props.onConfigChange - Callback function to save updated settings.
+ * Dashboard panel for application settings and status.
  */
 function SettingsPanel({ config, availableModels = { local: [], online: [] }, onConfigChange }) {
   const [modelResetWarning, setModelResetWarning] = useState('');
+  const [apiKey, setApiKey] = useState(() => loadLocalValue(API_KEY_STORAGE_KEY, ''));
+  const [displays, setDisplays] = useState([]);
+  const [displayError, setDisplayError] = useState('');
+  const [selectedDisplayId, setSelectedDisplayId] = useState(() => loadLocalValue(DISPLAY_STORAGE_KEY, ''));
+  const { wakewordEnabled, setWakewordEnabled } = useAppConfigContext();
 
-  // Fully controlled component: derive all values from config prop
-  // No local state for form values - eliminates sync issues
   const modelMode = config?.model_mode || 'online';
   const selectedModelId = config?.selected_model_id || '';
   const selectedProvider = config?.model_provider || '';
-  const voiceModeEnabled = config?.voice_mode_enabled ?? false;
   const speechModeEnabled = config?.speech_mode_enabled ?? false;
+  const interactionMode = config?.interaction_mode || 'chat';
 
-  // Get the current list of models based on mode
   const currentModels = modelMode === 'local'
     ? availableModels.local
     : availableModels.online;
 
-  // Handle user input changes - call onConfigChange immediately
+  useEffect(() => {
+    let mounted = true;
+    IpcBridge.invoke(INVOKE_CHANNELS.GET_DISPLAYS)
+      .then((result) => {
+        if (!mounted) return;
+        setDisplays(Array.isArray(result) ? result : []);
+        setDisplayError('');
+      })
+      .catch((error) => {
+        if (!mounted) return;
+        setDisplayError(error?.message || 'Unable to load displays');
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!displays.length || selectedDisplayId) {
+      return;
+    }
+    const primary = displays.find((display) => display.isPrimary) || displays[0];
+    if (primary) {
+      const nextId = String(primary.id);
+      setSelectedDisplayId(nextId);
+      saveLocalValue(DISPLAY_STORAGE_KEY, nextId);
+    }
+  }, [displays, selectedDisplayId]);
+
+  const displayOptions = useMemo(() => displays.map((display) => ({
+    value: String(display.id),
+    label: display.label || `Display ${display.id}`,
+  })), [displays]);
+
   const handleModelModeChange = (newMode) => {
     onConfigChange({
       model_mode: newMode,
-      selected_model_id: '', // Reset when switching modes
+      selected_model_id: '',
       model_provider: '',
-      voice_mode_enabled: voiceModeEnabled,
       speech_mode_enabled: speechModeEnabled,
+      interaction_mode: interactionMode,
     });
   };
 
   const handleModelChange = (newModelId) => {
-    const model = currentModels.find(m => m.id === newModelId);
+    const model = currentModels.find((m) => m.id === newModelId);
     onConfigChange({
       model_mode: modelMode,
       selected_model_id: newModelId,
       model_provider: model?.provider || '',
-      voice_mode_enabled: voiceModeEnabled,
       speech_mode_enabled: speechModeEnabled,
-    });
-  };
-
-  const handleVoiceModeToggle = (enabled) => {
-    onConfigChange({
-      model_mode: modelMode,
-      selected_model_id: selectedModelId,
-      model_provider: selectedProvider,
-      voice_mode_enabled: enabled,
-      speech_mode_enabled: speechModeEnabled,
+      interaction_mode: interactionMode,
     });
   };
 
@@ -63,20 +111,17 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
       model_mode: modelMode,
       selected_model_id: selectedModelId,
       model_provider: selectedProvider,
-      voice_mode_enabled: voiceModeEnabled,
       speech_mode_enabled: enabled,
+      interaction_mode: interactionMode,
     });
   };
 
-
-  // Validate selected model exists and auto-fix if needed
   useEffect(() => {
     if (availableModels.local.length === 0 && availableModels.online.length === 0) return;
     if (!selectedModelId || !config) return;
 
     const model = currentModels.find(m => m.id === selectedModelId);
     if (!model) {
-      // Model doesn't exist - reset to first available or empty
       const warningMsg = `Selected model "${selectedModelId}" is not available. Resetting to default.`;
       console.warn(warningMsg);
       setModelResetWarning(warningMsg);
@@ -87,46 +132,76 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
           model_mode: modelMode,
           selected_model_id: defaultModel.id,
           model_provider: defaultModel.provider,
-          voice_mode_enabled: voiceModeEnabled,
           speech_mode_enabled: speechModeEnabled,
+          interaction_mode: interactionMode,
         });
       } else {
         onConfigChange({
           model_mode: modelMode,
           selected_model_id: '',
           model_provider: '',
-          voice_mode_enabled: voiceModeEnabled,
           speech_mode_enabled: speechModeEnabled,
+          interaction_mode: interactionMode,
         });
       }
 
       setTimeout(() => setModelResetWarning(''), 5000);
     } else if (model.provider !== selectedProvider) {
-      // Auto-update provider if model exists but provider doesn't match
       onConfigChange({
         model_mode: modelMode,
         selected_model_id: selectedModelId,
         model_provider: model.provider,
-        voice_mode_enabled: voiceModeEnabled,
         speech_mode_enabled: speechModeEnabled,
+        interaction_mode: interactionMode,
       });
     }
-  }, [selectedModelId, currentModels, selectedProvider, availableModels, config, modelMode, voiceModeEnabled, speechModeEnabled, onConfigChange]);
+  }, [selectedModelId, currentModels, selectedProvider, availableModels, config, modelMode, speechModeEnabled, interactionMode, onConfigChange]);
 
   if (!config) {
-    return <div>Loading settings...</div>;
+    return <div className="settings-panel">Loading dashboard...</div>;
   }
 
   return (
     <div className="settings-panel">
-      <h2>Settings</h2>
+      <div className="settings-header">
+        <div>
+          <h2>Dashboard</h2>
+          <p>Memory, skills, models, and access.</p>
+        </div>
+        <div className="settings-chip">Hotkey: Win + Alt + W</div>
+      </div>
+
       {modelResetWarning && (
         <div className="model-reset-warning">
           ⚠️ {modelResetWarning}
         </div>
       )}
-      <form onSubmit={(e) => e.preventDefault()}>
-        <div className="form-group">
+
+      <section className="settings-section">
+        <h3>Memory</h3>
+        <div className="settings-grid">
+          <div className="settings-card">
+            <div className="settings-card-title">Episodic Memory</div>
+            <div className="settings-card-desc">Conversation summaries. Coming soon.</div>
+          </div>
+          <div className="settings-card">
+            <div className="settings-card-title">Semantic Memory</div>
+            <div className="settings-card-desc">Long-term facts and preferences. Coming soon.</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>Procedural Memory</h3>
+        <div className="settings-card">
+          <div className="settings-card-title">SKILLS.md</div>
+          <div className="settings-card-desc">Add a SKILLS.md file to enable procedural memory.</div>
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>Model</h3>
+        <div className="settings-field">
           <label>Model Mode</label>
           <div className="mode-toggle">
             <label className="radio-label">
@@ -151,8 +226,7 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
             </label>
           </div>
         </div>
-
-        <div className="form-group">
+        <div className="settings-field">
           <label htmlFor="model-select">
             {modelMode === 'local' ? 'Local Model' : 'Online Model'}
           </label>
@@ -170,9 +244,7 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
             >
               <option value="">-- Select a model --</option>
               {currentModels.map((model, index) => {
-                // Format display: "model-id (provider)"
                 const displayText = `${model.id} (${model.provider})`;
-                // Use combination of id and provider for unique key, fallback to index if needed
                 const uniqueKey = `${model.id}-${model.provider}-${index}`;
                 return (
                   <option key={uniqueKey} value={model.id}>
@@ -183,46 +255,129 @@ function SettingsPanel({ config, availableModels = { local: [], online: [] }, on
             </select>
           )}
         </div>
+      </section>
 
-        <div className="form-group">
-          <p>
-            <strong>API Keys:</strong> API keys are managed via environment
-            variables. Please see the documentation for details.
-          </p>
+      <section className="settings-section">
+        <h3>Access</h3>
+        <div className="settings-field">
+          <label htmlFor="api-key">API Key</label>
+          <input
+            id="api-key"
+            type="password"
+            value={apiKey}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              setApiKey(nextValue);
+              saveLocalValue(API_KEY_STORAGE_KEY, nextValue);
+            }}
+            placeholder="Paste your provider key"
+          />
+          <p className="settings-help">Stored locally on this device.</p>
         </div>
-
-        <div className="form-group">
-          <label htmlFor="voice-mode-toggle" className="toggle-label">
-            <span><strong>Voice Mode:</strong></span>
+        <div className="settings-field">
+          <label className="toggle-label">
+            <span>Wakeword Listening (Hey Jarvis)</span>
             <div className="toggle-switch">
               <input
                 type="checkbox"
-                id="voice-mode-toggle"
-                checked={voiceModeEnabled}
-                onChange={(e) => handleVoiceModeToggle(e.target.checked)}
+                checked={wakewordEnabled}
+                onChange={(event) => setWakewordEnabled(event.target.checked)}
                 className="toggle-input"
               />
               <span className="toggle-slider"></span>
             </div>
           </label>
+          <p className="settings-help">Use Win + Alt + W to toggle the chatbox.</p>
         </div>
-
-        <div className="form-group">
-          <label htmlFor="speech-mode-toggle" className="toggle-label">
-            <span><strong>Speech Mode (TTS):</strong></span>
+        <div className="settings-field">
+          <label className="toggle-label">
+            <span>Voice Typing</span>
             <div className="toggle-switch">
               <input
                 type="checkbox"
-                id="speech-mode-toggle"
+                checked={false}
+                disabled
+                className="toggle-input"
+              />
+              <span className="toggle-slider"></span>
+            </div>
+          </label>
+          <p className="settings-help">Disabled for now.</p>
+        </div>
+        <div className="settings-field">
+          <label className="toggle-label">
+            <span>Speech Replies (TTS)</span>
+            <div className="toggle-switch">
+              <input
+                type="checkbox"
                 checked={speechModeEnabled}
-                onChange={(e) => handleSpeechModeToggle(e.target.checked)}
+                onChange={(event) => handleSpeechModeToggle(event.target.checked)}
                 className="toggle-input"
               />
               <span className="toggle-slider"></span>
             </div>
           </label>
         </div>
-      </form>
+      </section>
+
+      <section className="settings-section">
+        <h3>Screen</h3>
+        <div className="settings-field">
+          <label htmlFor="display-select">Active Display</label>
+          {displayError ? (
+            <div className="no-models-message">{displayError}</div>
+          ) : displayOptions.length === 0 ? (
+            <div className="no-models-message">No displays detected yet.</div>
+          ) : (
+            <select
+              id="display-select"
+              value={selectedDisplayId}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                setSelectedDisplayId(nextValue);
+                saveLocalValue(DISPLAY_STORAGE_KEY, nextValue);
+              }}
+            >
+              {displayOptions.map((display) => (
+                <option key={display.value} value={display.value}>
+                  {display.label}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>Permissions</h3>
+        <div className="settings-field">
+          <label>Access Level</label>
+          <div className="mode-toggle">
+            <label className="radio-label">
+              <input type="radio" name="access" checked readOnly />
+              <span>Normal Access</span>
+            </label>
+            <label className="radio-label">
+              <input type="radio" name="access" disabled />
+              <span>System Access (coming soon)</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>Usage Limits</h3>
+        <div className="settings-grid">
+          <div className="settings-card">
+            <div className="settings-card-title">Weekly Limit</div>
+            <div className="settings-card-desc">Not configured.</div>
+          </div>
+          <div className="settings-card">
+            <div className="settings-card-title">Session Limit</div>
+            <div className="settings-card-desc">5-hour cap not configured.</div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
@@ -232,7 +387,7 @@ SettingsPanel.propTypes = {
     model_mode: PropTypes.oneOf(['local', 'online']),
     selected_model_id: PropTypes.string,
     model_provider: PropTypes.string,
-    voice_mode_enabled: PropTypes.bool,
+    interaction_mode: PropTypes.string,
     speech_mode_enabled: PropTypes.bool,
     preferences: PropTypes.shape({}),
   }),

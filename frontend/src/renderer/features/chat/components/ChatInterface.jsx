@@ -9,7 +9,7 @@ import { ApiClient } from '../../../infrastructure/api/client';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { useEffect, useRef } from 'react';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import '../../../styles/ChatInterface.css';
 
 /**
@@ -23,7 +23,7 @@ function ChatInterface() {
   const tokenCounts = useChatStore((state) => state.tokenCounts);
   // Use AppConfigContext directly for better performance
   // This avoids re-renders when saveStatus changes in AppStatusContext
-  const { config, wakewordEnabled, updateConfig } = useAppConfigContext();
+  const { config, wakewordEnabled, setWakewordEnabled } = useAppConfigContext();
   
   // Audio player service
   const audioPlayerRef = useRef(null);
@@ -52,9 +52,7 @@ function ChatInterface() {
     ? 'Thinking...'
     : isSending
       ? 'Sending...'
-      : voiceModeEnabled
-        ? 'Voice mode active'
-        : 'Ready';
+      : 'Ready';
 
   const stopPlayback = useCallback(() => {
     audioPlayerRef.current?.stopPlayback();
@@ -64,12 +62,12 @@ function ChatInterface() {
 
   const handleWakewordDetected = useCallback(() => {
     console.log('[ChatInterface] Wakeword detected!');
-    // Enable voice mode
-    if (config) {
-      updateConfig({ ...config, voice_mode_enabled: true });
-    }
+    setWakewordEnabled(false);
     ApiClient.wakewordDetected();
-  }, [config, updateConfig]);
+    IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX).catch((error) => {
+      console.warn('[ChatInterface] Failed to show chatbox:', error);
+    });
+  }, [setWakewordEnabled]);
 
   useWakewordDetection(
     wakewordEnabled && !voiceModeEnabled,
@@ -94,7 +92,6 @@ function ChatInterface() {
       <MessageInput 
         onSendMessage={sendMessage} 
         isSending={isSending} 
-        voiceModeEnabled={voiceModeEnabled} 
       />
     </div>
   );

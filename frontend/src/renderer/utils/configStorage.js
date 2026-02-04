@@ -28,7 +28,7 @@ export function loadConfigFromStorage() {
   try {
     const stored = localStorage.getItem(CONFIG_STORAGE_KEY);
     if (!stored) {
-      return { ...DEFAULT_FRONTEND_CONFIG };
+      return { ...DEFAULT_FRONTEND_CONFIG, voice_mode_enabled: false };
     }
     
     const config = JSON.parse(stored);
@@ -38,16 +38,16 @@ export function loadConfigFromStorage() {
       console.warn('[ConfigStorage] Invalid config format in localStorage, clearing');
       localStorage.removeItem(CONFIG_STORAGE_KEY);
       localStorage.removeItem(CONFIG_VERSION_KEY);
-      return { ...DEFAULT_FRONTEND_CONFIG };
+      return { ...DEFAULT_FRONTEND_CONFIG, voice_mode_enabled: false };
     }
     
-    return { ...DEFAULT_FRONTEND_CONFIG, ...config };
+    return { ...DEFAULT_FRONTEND_CONFIG, ...config, voice_mode_enabled: false };
   } catch (error) {
     console.error('[ConfigStorage] Failed to load config from localStorage:', error);
     // Clear corrupted data
     localStorage.removeItem(CONFIG_STORAGE_KEY);
     localStorage.removeItem(CONFIG_VERSION_KEY);
-    return { ...DEFAULT_FRONTEND_CONFIG };
+    return { ...DEFAULT_FRONTEND_CONFIG, voice_mode_enabled: false };
   }
 }
 
