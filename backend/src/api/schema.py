@@ -56,7 +56,6 @@ class QueryPayload(BaseModel):
     text: str  # Original query text (for reference)
     content: Optional[str] = None  # Complete message content (system state + memories + query)
     screenshot: Optional[str] = None  # Base64-encoded screenshot data for user messages
-    config: Optional[Dict[str, Any]] = None  # Generic config dictionary from frontend (allows any config fields)
 
 class QueryMessage(BaseMessage):
     type: Literal["query"]

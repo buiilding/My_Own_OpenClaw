@@ -13,6 +13,7 @@ from backend.src.api.handlers.query import QueryMessageHandler
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.handlers.settings import (
     ListModelsHandler,
+    UpdateSettingsHandler,
 )
 from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.handlers.tool_result import ToolResultHandler
@@ -78,15 +79,21 @@ class ApiContainer(containers.DeclarativeContainer):
         model_service=model_service,
     )
 
+    update_settings_handler = providers.Singleton(
+        UpdateSettingsHandler,
+        session_manager=session_manager,
+    )
+
     # Handler Registry (registers all handlers)
     handler_registry = providers.Singleton(
-        lambda qh, trh, wh, lmh: _create_handler_registry(
-            qh, trh, wh, lmh
+        lambda qh, trh, wh, lmh, ush: _create_handler_registry(
+            qh, trh, wh, lmh, ush
         ),
         qh=query_handler,
         trh=tool_result_handler,
         wh=wakeword_handler,
         lmh=list_models_handler,
+        ush=update_settings_handler,
     )
 
 
@@ -95,6 +102,7 @@ def _create_handler_registry(
     tool_result_handler: ToolResultHandler,
     wakeword_handler: WakewordHandler,
     list_models_handler: ListModelsHandler,
+    update_settings_handler: UpdateSettingsHandler,
 ) -> MessageHandlerRegistry:
     """
     Create and register all message handlers in the registry.
@@ -116,6 +124,7 @@ def _create_handler_registry(
     registry.register("tool-bundle-result", tool_result_handler)  # Same handler handles both types
     registry.register("wakeword-detected", wakeword_handler)
     registry.register("list-models", list_models_handler)
+    registry.register("update-settings", update_settings_handler)
 
     logger.info("Message handler registry initialized with all handlers")
     return registry

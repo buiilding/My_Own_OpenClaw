@@ -128,8 +128,7 @@ Send a user query with optional screenshot.
 {
   "text": "User query text",
   "content": "<system_context>...</system_context> ...", // Optional, built by Electron main process
-  "screenshot": "base64-encoded-screenshot", // Optional
-  "config": { "model_provider": "openai", "selected_model_id": "gpt-5.1" } // Optional
+  "screenshot": "base64-encoded-screenshot" // Optional
 }
 ```
 
@@ -202,9 +201,9 @@ Update application configuration.
 }
 ```
 
-**Response**: `settings-updated` (legacy)
+**Response**: `settings-updated`
 
-**Status**: Currently **not handled** by the backend. Frontend settings are local-only.
+**Status**: Handled by the backend. Updates apply to the user session on the next query.
 
 **Example**:
 ```json
@@ -543,16 +542,23 @@ Response to update-settings request.
 
 **Type**: `settings-updated`
 
-**Payload**: `{}`
+**Payload**:
+```json
+{
+  "updated_keys": ["model_provider", "selected_model_id"]
+}
+```
 
-**Status**: Legacy. Backend does not currently emit this; frontend settings are local-only.
+**Status**: Emitted by backend after applying session config updates.
 
 **Example**:
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174012",
   "type": "settings-updated",
-  "payload": {},
+  "payload": {
+    "updated_keys": ["model_provider", "selected_model_id"]
+  },
   "timestamp": "2025-01-20T10:00:00Z"
 }
 ```

@@ -16,7 +16,8 @@ Desktop Assistant does **not** use a YAML config file. Configuration is split be
 Backend config is loaded **at startup**. It can be updated or reloaded in memory
 via `ConfigManager`, but changes are **not persisted** (edit `app_config.py` and
 restart to make permanent changes). Frontend config is updated from the UI,
-persisted locally, and used to build **per-query overrides** sent with each request.
+persisted locally, and sent to the backend via `update-settings` to update the
+user session (applies on next query).
 
 ## Backend Configuration (Python)
 
@@ -80,7 +81,7 @@ AppConfig controls WebSocket limits and timeouts:
 
 ## Frontend Configuration (Local)
 
-The UI stores a minimal settings payload (model selection + voice toggles) locally. These values are **not** pushed into backend state. Instead, the frontend includes them in each `query` payload as a `config` override.
+The UI stores a minimal settings payload (model selection + voice toggles) locally. These values are pushed to the backend via `update-settings` and applied to the user session on the next query.
 
 ### Stored Fields
 
@@ -115,4 +116,4 @@ See:
 ## Notes
 
 - The backend does **not** persist user config changes at runtime.
-- WebSocket messages **include** an optional `config` field in `query` payloads. This is the intended override path and applies **per query** only.
+- `query` messages do **not** accept config overrides.

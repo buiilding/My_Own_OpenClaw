@@ -68,7 +68,7 @@ Curated online model IDs live in `backend/src/llm/models/models_config.py` and a
 
 Configure providers in `backend/src/core/config/app_config.py` (AppConfig) and set API keys via environment variables:
 
-**Runtime overrides**: The frontend can send a `config` object with each `query` message to override model/provider for that session.
+**Runtime updates**: The frontend sends `update-settings` to update the session’s model/provider. Changes apply on the next query.
 
 ```python
 from backend.src.core.config.models import (

@@ -74,53 +74,9 @@ class SessionManager(ConfigSubscriber):
                 self._user_locks[user_id] = asyncio.Lock()
             return self._user_locks[user_id]
 
-    async def _apply_query_config_to_session(self, user_id: str, query_config: Dict[str, Any]) -> None:
-        """
-        Apply query config to an existing session.
-        
-        Args:
-            user_id: User identifier
-            query_config: Config dictionary from query payload
-        """
-        if user_id not in self.active_sessions:
-            return
-        
-        session = self.active_sessions[user_id]
-        config_dict = session.cfg.model_dump()
-        
-        logger.debug(
-            f"[Session Config] Updating existing session (user_id={user_id}): "
-            f"current model_provider={config_dict.get('model_provider')}, "
-            f"current selected_model_id={config_dict.get('selected_model_id')}"
-        )
-        
-        # Override session config with any keys present in query_config
-        for key, value in query_config.items():
-            if value is not None:
-                old_value = config_dict.get(key)
-                config_dict[key] = value
-                if old_value != value:
-                    logger.info(
-                        f"[Session Config] Updated {key}: {old_value} → {value} (user_id={user_id})"
-                    )
-        
-        # Load API key for provider if model_provider changed
-        updated_config = AppConfig(**config_dict)
-        updated_config = load_api_key_for_provider(updated_config)
-        
-        logger.info(
-            f"[Session Config] Session updated (user_id={user_id}): "
-            f"model_provider={updated_config.model_provider}, "
-            f"selected_model_id={updated_config.selected_model_id}"
-        )
-        
-        # Update session config
-        await session.update_config(updated_config)
-
     async def get_or_create_session(
-        self, 
-        user_id: str, 
-        query_config: Optional[Dict[str, Any]] = None
+        self,
+        user_id: str,
     ) -> AgentSession:
         """
         Retrieves an existing session or creates a new one if it doesn't exist.
@@ -128,11 +84,8 @@ class SessionManager(ConfigSubscriber):
         Thread-safe: Uses per-user locks to prevent race conditions when multiple
         async tasks try to create a session for the same user concurrently.
         
-        When creating a new session, applies query config to global config.
-        
         Args:
             user_id: User identifier
-            query_config: Optional config dictionary from query payload (overrides global config)
             
         Returns:
             AgentSession instance for the user
@@ -140,10 +93,7 @@ class SessionManager(ConfigSubscriber):
         Raises:
             RuntimeError: If session creation fails
         """
-        # If session exists, update config from query if provided
         if user_id in self.active_sessions:
-            if query_config:
-                await self._apply_query_config_to_session(user_id, query_config)
             return self.active_sessions[user_id]
         
         # Slow path: need to create session (with lock to prevent races)
@@ -151,8 +101,6 @@ class SessionManager(ConfigSubscriber):
         async with user_lock:
             # Double-check: another task might have created it while we waited
             if user_id in self.active_sessions:
-                if query_config:
-                    await self._apply_query_config_to_session(user_id, query_config)
                 return self.active_sessions[user_id]
             
             logger.info(f"Creating new session for user {user_id}")
@@ -167,21 +115,6 @@ class SessionManager(ConfigSubscriber):
                     f"model_provider={config_dict.get('model_provider')}, "
                     f"selected_model_id={config_dict.get('selected_model_id')}"
                 )
-                
-                # Override global config with any keys present in query_config
-                if query_config:
-                    logger.debug(
-                        f"[Session Config] Applying query config overrides (user_id={user_id}): "
-                        f"{list(query_config.keys())}"
-                    )
-                    for key, value in query_config.items():
-                        if value is not None:
-                            old_value = config_dict.get(key)
-                            config_dict[key] = value
-                            if old_value != value:
-                                logger.debug(
-                                    f"[Session Config] Override {key}: {old_value} → {value} (user_id={user_id})"
-                                )
                 
                 # Set default TTS model path if TTS is enabled and path is not set
                 tts_will_be_enabled = config_dict.get("tts_enabled", self.config.tts_enabled)
@@ -233,6 +166,50 @@ class SessionManager(ConfigSubscriber):
             # MEMORY LEAK FIX: Update last activity time on access
             self._session_last_activity[user_id] = time.time()
         return self.active_sessions.get(user_id)
+
+    async def update_session_config(
+        self,
+        user_id: str,
+        updates: Dict[str, Any],
+    ) -> None:
+        """
+        Update a user's session config with validated settings.
+
+        Args:
+            user_id: User identifier
+            updates: Validated config updates (frontend-owned fields)
+        """
+        if not updates:
+            return
+
+        await self.get_or_create_session(user_id)
+        user_lock = await self._get_user_lock(user_id)
+        async with user_lock:
+            if user_id not in self.active_sessions:
+                return
+
+            session = self.active_sessions[user_id]
+            config_dict = session.cfg.model_dump()
+            changes = []
+
+            for key, value in updates.items():
+                if value is not None:
+                    old_value = config_dict.get(key)
+                    config_dict[key] = value
+                    if old_value != value:
+                        changes.append((key, old_value, value))
+
+            if not changes:
+                return
+
+            updated_config = AppConfig(**config_dict)
+            updated_config = load_api_key_for_provider(updated_config)
+
+            logger.info(
+                f"[Session Config] Session updated (user_id={user_id}, fields={len(changes)})"
+            )
+
+            await session.update_config(updated_config)
 
     async def end_session(self, user_id: str):
         """

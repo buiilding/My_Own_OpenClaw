@@ -12,6 +12,7 @@ from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.schema import (
     BaseMessage,
     ListModelsMessage,
+    UpdateSettingsMessage,
 )
 
 if TYPE_CHECKING:
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 from backend.src.core.config.service import ConfigurationService
 from backend.src.core.validation.validators import (
     ValidationError,
-    validate_settings_update,
+    validate_frontend_config,
 )
 from backend.src.llm.models.model_service import ModelService
 
@@ -77,6 +78,61 @@ class ListModelsHandler(MessageHandler):
             )
         except Exception as e:
             # Unexpected error - send sanitized error to prevent information leakage
+            await send_error_response(
+                websocket,
+                message.id,
+                None,
+                exception=e
+            )
+
+
+class UpdateSettingsHandler(MessageHandler):
+    """Handler for update-settings messages."""
+
+    def __init__(self, session_manager: "SessionManager"):
+        """
+        Initialize the update settings handler.
+
+        Args:
+            session_manager: Session manager instance for accessing sessions
+        """
+        self.session_manager = session_manager
+
+    def validate_message(self, message: BaseMessage) -> bool:
+        """Validate update-settings message structure."""
+        return isinstance(message, UpdateSettingsMessage)
+
+    async def handle(
+        self,
+        message: BaseMessage,
+        websocket: WebSocketSender,
+        user_id: str
+    ) -> None:
+        """
+        Handle an update-settings message.
+
+        Applies frontend-owned config updates to the user's session.
+        """
+        try:
+            validated: UpdateSettingsMessage = message  # type: ignore
+            updates = validate_frontend_config(validated.payload)
+
+            if updates:
+                await self.session_manager.update_session_config(user_id, updates)
+
+            await send_success_response(
+                websocket,
+                validated.id,
+                "settings-updated",
+                {"updated_keys": list(updates.keys())}
+            )
+        except ValidationError as e:
+            await send_error_response(
+                websocket,
+                message.id,
+                f"Invalid settings: {e.message}"
+            )
+        except Exception as e:
             await send_error_response(
                 websocket,
                 message.id,

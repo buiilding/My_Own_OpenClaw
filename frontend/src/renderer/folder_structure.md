@@ -81,7 +81,7 @@ frontend/src/renderer/
 ├── infrastructure/                        # Core infrastructure services
 │   │
 │   ├── api/                              # API client
-│   │   └── client.ts                    # ApiClient - Typed API client for backend communication (sendQuery, listModels, wakewordDetected)
+│   │   └── client.ts                    # ApiClient - Typed API client for backend communication (sendQuery, updateSettings, listModels, wakewordDetected)
 │   │
 │   ├── audio/                            # Audio services
 │   │   └── PlayerService.ts            # PlayerService - Audio playback queue management (TTS audio chunks from backend)
