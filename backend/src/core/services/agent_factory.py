@@ -88,6 +88,7 @@ class AgentFactory:
             tool_registry=restricted_registry, # type: ignore
             ocr_service=ocr_service,
             llm_client=parent_session.llm_client,
+            llm_client_factory=parent_session.llm_client_factory,
             tool_orchestrator=parent_session.tool_orchestrator,
             event_bus=parent_session.event_bus,
             user_id=parent_session.user_id,

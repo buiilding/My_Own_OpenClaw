@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional, List
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional, List, Callable
 
 from backend.src.agent.session.initializer import (
     init_event_bus,
@@ -65,6 +65,7 @@ class AgentSession:
         tool_registry: ToolRegistry,
         ocr_service: Optional["OcrService"],
         llm_client: Optional[LLMClient] = None,
+        llm_client_factory: Optional[Callable[[AppConfig], LLMClient]] = None,
         tool_orchestrator: Optional[ToolResultOrchestrator] = None,
         event_bus: Optional[EventBus] = None,
         metrics_service: Optional[Any] = None,  # MetricsService (optional for backward compatibility)
@@ -79,13 +80,15 @@ class AgentSession:
             tool_registry: Registry containing all available tools
             ocr_service: OCR service instance (optional)
             llm_client: LLM client instance (auto-created if None)
+            llm_client_factory: Optional factory for creating LLM clients (used on updates)
             tool_orchestrator: Tool orchestration instance (auto-created if None)
             event_bus: EventBus instance for event communication (required)
             user_id: User identifier for session ownership
             session_id: Session identifier (auto-generated if None)
         """
         self.cfg = cfg
-        self.llm_client: LLMClient = llm_client or get_llm_client(self.cfg)
+        self.llm_client_factory = llm_client_factory or get_llm_client
+        self.llm_client: LLMClient = llm_client or self.llm_client_factory(self.cfg)
         self._lock = asyncio.Lock()
 
         init_tooling(self, tool_registry, tool_orchestrator)
@@ -281,7 +284,7 @@ class AgentSession:
             )
             
             # Re-initialize LLM client with new config
-            self.llm_client = get_llm_client(self.cfg)
+            self.llm_client = self.llm_client_factory(self.cfg)
             logger.info(
                 f"[AgentSession] LLM client recreated with provider={new_cfg.model_provider}, "
                 f"model={new_cfg.selected_model_id}"
