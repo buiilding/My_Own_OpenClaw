@@ -21,12 +21,12 @@ backend/src/
 │   ├── execution/      # AgentExecutor, InteractionLoop
 │   ├── llm/            # ConversationContext, stream processor, presenter
 │   ├── tools/          # Tool lifecycle (prepare/send/wait/process)
-│   ├── history/        # HistoryCommitter
-│   └── plugins/        # Agent plugin interface + manager
+│   └── history/        # HistoryCommitter
 ├── api/                # API layer (routes, handlers, processing, transport)
-├── core/               # Core infrastructure (config, container, services, plugins)
+├── core/               # Core infrastructure (bootstrap, config, container, events, security, validation)
 ├── embeddings/         # Embedding provider domain
 ├── llm/                # LLM domain (client, prompts, providers)
+├── services/           # Runtime services (vision, OCR, token counting)
 ├── sdk/                # SDK for tool development
 ├── tools/              # Tool registry + orchestrator
 ├── simulation/         # Mock LLM and simulation helpers
@@ -413,26 +413,20 @@ const addMessage = useChatStore((state) => state.addMessage);
    provider_factory.register("my_provider", MyProvider)
    ```
 
-### Adding a New Plugin
+### Adding a Vision Provider
 
-1. **Create Plugin Class**:
+1. **Create Provider Class**:
    ```python
-   from backend.src.agent.plugins.interface import AgentPlugin, PluginResult
-   
-   class MyPlugin(AgentPlugin):
-       name = "my_plugin"
+   from backend.src.services.vision.providers.base import BaseVisionModel
 
-       async def initialize(self, container=None) -> None:
+   class MyVisionModel(BaseVisionModel):
+       def _load(self):
            ...
-
-       async def on_tool_end(self, tool_name: str, result: object):
-           return PluginResult(artifacts={"tool": tool_name})
    ```
 
-2. **Register Plugin**:
-   ```python
-   plugin_registry.register(MyPlugin())
-   ```
+2. **Export + Wire**:
+   - Export in `backend/src/services/vision/providers/__init__.py`
+   - Select in `backend/src/services/vision/vision_service.py`
 
 ## Performance Optimization
 
@@ -466,10 +460,10 @@ const addMessage = useChatStore((state) => state.addMessage);
 
 ### Backend Performance
 
-- **Shallow Copy Optimization**: PreparedToolCall uses shallow copy instead of deep copy for parameters
 - **O(1) History Access**: ConversationHistory maintains cached LLM format for instant retrieval
+- **Token Count Cache**: ConversationHistory caches token counts per model
 - **Memory Protection**: Image data automatically cleared from old messages (last 5 turns)
-- **Centralized Storage**: ToolResultStorage provides single source of truth with automatic cleanup
+- **Centralized Storage**: ToolResultStorage provides single source of truth with TTL cleanup
 
 ## Security Best Practices
 

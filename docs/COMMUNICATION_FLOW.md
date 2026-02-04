@@ -66,7 +66,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 
 **`from-backend`**
 - Purpose: Receive messages from backend
-- Format: `{ id, type, payload, timestamp }`
+- Format: `{ id, type, payload }`
 - Usage: All backend responses to renderer
 
 **`ipc-status`**
@@ -115,13 +115,17 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 
 ### Message Format
 
+**Handshake (required, before any other messages)**:
+```json
+{ "type": "handshake", "user_id": "user-123" }
+```
+
 **Outgoing (Client → Server)**:
 ```json
 {
   "id": "uuid-v4",
   "type": "query|list-models|tool-result|tool-bundle-result|wakeword-detected",
-  "payload": { ... },
-  "timestamp": "ISO-8601"
+  "payload": { ... }
 }
 ```
 
@@ -130,8 +134,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 {
   "id": "uuid-v4",
   "type": "streaming-response|tool-call|tool-output|error|...",
-  "payload": { ... },
-  "timestamp": "ISO-8601"
+  "payload": { ... }
 }
 ```
 
@@ -191,7 +194,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 
 **`error`**
 - Purpose: Error response
-- Payload: `{ message: string, code?: string }`
+- Payload: `{ message: string }`
 - Usage: Error handling
 
 **`streaming-complete`**
@@ -343,10 +346,8 @@ Settings are frontend-only and persisted locally:
   "id": "uuid-v4",
   "type": "error",
   "payload": {
-    "message": "Error message",
-    "code": "ERROR_CODE"
-  },
-  "timestamp": "ISO-8601"
+    "message": "Error message"
+  }
 }
 ```
 

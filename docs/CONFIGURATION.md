@@ -13,7 +13,10 @@ Desktop Assistant does **not** use a YAML config file. Configuration is split be
 - **Backend config**: Python `AppConfig` in `backend/src/core/config/app_config.py`.
 - **Frontend config**: A small JSON blob stored in Electron’s user data folder and mirrored in `localStorage`.
 
-Backend config is loaded **at startup** and is immutable during runtime. Frontend config is updated from the UI, persisted locally, and used to build **per-query overrides** sent with each request.
+Backend config is loaded **at startup**. It can be updated or reloaded in memory
+via `ConfigManager`, but changes are **not persisted** (edit `app_config.py` and
+restart to make permanent changes). Frontend config is updated from the UI,
+persisted locally, and used to build **per-query overrides** sent with each request.
 
 ## Backend Configuration (Python)
 
@@ -65,6 +68,15 @@ Local providers do not require API keys and use base URLs defined in the provide
 
 - **Ollama**: default `http://localhost:11434/v1`
 - **LM Studio**: default `http://localhost:1234/v1`
+
+### WebSocket Settings
+
+AppConfig controls WebSocket limits and timeouts:
+
+- `websocket_max_message_size` (default 10MB)
+- `websocket_max_concurrent_tasks` (default 50)
+- `websocket_receive_timeout` (default 3600s)
+- `websocket_task_cancellation_timeout` (default 5s)
 
 ## Frontend Configuration (Local)
 

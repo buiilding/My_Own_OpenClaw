@@ -133,11 +133,11 @@ To move from a developer-focused build to a product for end users, we will add a
 │  └──────────────────────────────────────────┘  │
 │   ↕          ↕          ↕           ↕         │
 │ ┌──────────┐  ┌────────┐  ┌──────────┐  ┌──────────┐ │
-│ │Embeddings│  │Computer│  │Plugins   │  │   AI     │ │
-│ │API       │  │Control │  │Registry  │  │  Models  │ │
-│ │• ST      │  │Tools   │  │• Hooks   │  │• OpenAI  │ │
-│ │• Cache   │  │• OCR   │  │• Config  │  │• Anthro- │ │
-│ │• HTTP    │  │• Mouse │  │          │  │pic/Gemini│ │
+│ │Embeddings│  │Computer│  │OCR/Vision│  │   AI     │ │
+│ │API       │  │Control │  │Services  │  │  Models  │ │
+│ │• ST      │  │Tools   │  │• OCR     │  │• OpenAI  │ │
+│ │• Cache   │  │• Mouse │  │• UI      │  │• Anthro- │ │
+│ │• HTTP    │  │• Scroll│  │  Ground  │  │pic/Gemini│ │
 │ └──────────┘  └────────┘  └──────────┘  └──────────┘ │
 └─────────────────────────────────────────────────┘
 ```

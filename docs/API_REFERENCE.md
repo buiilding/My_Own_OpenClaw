@@ -18,6 +18,16 @@ Desktop Assistant uses a WebSocket-based API for real-time communication between
 
 **Connection**: Persistent connection, auto-reconnect on disconnect
 
+### Handshake (Required)
+
+The client must send a handshake message immediately after connecting.
+This message does **not** use the base message envelope.
+
+**Payload**:
+```json
+{ "type": "handshake", "user_id": "user-123" }
+```
+
 ### Hosted WebSocket (Planned)
 
 **URL**: `wss://api.<domain>/ws`
@@ -84,14 +94,15 @@ Health check for semantic summarization.
 
 ### Base Message Structure
 
+Applies to all messages **after** the handshake.
+
 All messages follow this structure:
 
 ```json
 {
   "id": "uuid-v4",
   "type": "message-type",
-  "payload": { ... },
-  "timestamp": "ISO-8601"
+  "payload": { ... }
 }
 ```
 
@@ -99,7 +110,10 @@ All messages follow this structure:
 - `id`: Unique message identifier (UUID v4)
 - `type`: Message type (see Message Types)
 - `payload`: Message-specific payload
-- `timestamp`: ISO-8601 timestamp
+
+**Notes**:
+- `user_id` is injected server-side from the handshake connection context.
+- `timestamp` is optional and ignored by the backend if present.
 
 ## Client Messages (Frontend → Backend)
 
@@ -353,7 +367,8 @@ Request tool execution from frontend.
     "y": 200
   },
   "raw_call": "{...}",
-  "request_id": "unique-request-id"
+  "request_id": "unique-request-id",
+  "metadata": { ... }
 }
 ```
 
@@ -449,8 +464,7 @@ Error response from backend.
 **Payload**:
 ```json
 {
-  "message": "Error message",
-  "code": "ERROR_CODE" // Optional
+  "message": "Error message"
 }
 ```
 
@@ -460,8 +474,7 @@ Error response from backend.
   "id": "123e4567-e89b-12d3-a456-426614174009",
   "type": "error",
   "payload": {
-    "message": "Tool execution failed",
-    "code": "TOOL_EXECUTION_ERROR"
+    "message": "Tool execution failed"
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }
@@ -883,15 +896,25 @@ Token usage information for the current interaction.
 
 ## Error Codes
 
-### Common Error Codes
+### Common Error Codes (Internal)
 
-- `VALIDATION_ERROR`: Message validation failed
-- `TOOL_EXECUTION_ERROR`: Tool execution failed
+Error responses sent to clients include **only** a `message` string. These
+codes are internal to the backend exception hierarchy and may appear in logs.
+
+- `CONFIG_ERROR`: Configuration error
+- `LLM_ERROR`: LLM error
 - `LLM_API_ERROR`: LLM API error
-- `CONFIGURATION_ERROR`: Configuration error
+- `LLM_RATE_LIMIT`: LLM rate limit
+- `TOOL_EXECUTION_ERROR`: Tool execution failed
+- `TOOL_VALIDATION_ERROR`: Tool validation failed
+- `TOOL_NOT_FOUND`: Tool not found
 - `MEMORY_ERROR`: Memory system error
-- `PLUGIN_ERROR`: Plugin error
-- `UNKNOWN_ERROR`: Unknown error
+- `MEMORY_STORE_ERROR`: Memory store failure
+- `EMBEDDING_ERROR`: Embedding failure
+- `SESSION_ERROR`: Session error
+- `INPUT_SIZE_LIMIT_ERROR`: Input size limit
+- `PARSE_TIMEOUT_ERROR`: Parse timeout
+- `PARSE_VALIDATION_ERROR`: Parse validation error
 
 ## Rate Limiting
 
@@ -909,9 +932,7 @@ On connection, client sends handshake:
 ```json
 {
   "type": "handshake",
-  "payload": {
-    "user_id": "default_user"
-  }
+  "user_id": "default_user"
 }
 ```
 

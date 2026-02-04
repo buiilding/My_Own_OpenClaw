@@ -27,7 +27,6 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Memory System**](MEMORY_SYSTEM.md) - Memory management and retrieval
 - [**Python Sidecar**](PYTHON_SIDECAR.md) - Local tool execution + memory service
 - [**LLM Integration**](LLM_INTEGRATION.md) - LLM providers and configuration
-- [**Plugin System**](PLUGIN_SYSTEM.md) - Plugin architecture and development
 - [**Billing & Usage (Planned)**](BILLING_AND_USAGE.md) - Subscriptions, entitlements, and usage limits
 
 ### Development Guides
