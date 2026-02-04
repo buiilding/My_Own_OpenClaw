@@ -13,11 +13,12 @@ frontend/src/renderer/
 ├── app/                                  # Application root and context providers
 │   ├── App.jsx                          # Root component - sets up providers and layout
 │   ├── ChatBoxApp.jsx                   # ChatBox root component
+│   ├── WakewordController.jsx           # WakewordController - Always-on wakeword detection + chatbox trigger
 │   ├── main.jsx                         # React entry point - renders App with StrictMode in dev
 │   │
 │   └── providers/                       # Context providers for global state
 │       ├── AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
-│       ├── AppConfigProvider.jsx        # AppConfigProvider - Manages config, availableModels, wakewordEnabled (infrequent changes)
+│       ├── AppConfigProvider.jsx        # AppConfigProvider - Manages config, availableModels, wakewordEnabled/active (infrequent changes)
 │       ├── AppContextHooks.js           # AppContext hooks (useAppContext, useAppConfigContext, useAppStatusContext)
 │       ├── AppProvider.jsx              # AppProvider - Combines AppConfigProvider and AppStatusProvider
 │       ├── AppStatusContext.jsx         # AppStatusContext + useAppStatusContext hook
@@ -27,7 +28,7 @@ frontend/src/renderer/
 │
 ├── components/                           # Shared UI components
 │   ├── ErrorBoundary.jsx                # ErrorBoundary - Catches React errors and displays fallback UI
-│   └── MainLayout.jsx                   # MainLayout - Three-column layout (sidebar, main content, settings sidebar)
+│   └── MainLayout.jsx                   # MainLayout - Two-column layout (section selector + content)
 │
 ├── features/                             # Feature modules (organized by domain)
 │   │
@@ -52,10 +53,11 @@ frontend/src/renderer/
 │   │   └── stores/                      # State management
 │   │       └── chatStore.ts             # chatStore (Zustand) - Messages, isSending, thinkingStatus, tokenCounts
 │   │
+│   ├── dashboard/                        # Dashboard feature module
+│   │   └── components/                  # Dashboard UI components
+│   │       └── DashboardContent.jsx     # DashboardContent - Section-specific content panels
+│   │
 │   ├── settings/                         # Settings feature module
-│   │   ├── components/                  # Settings UI components
-│   │   │   └── SettingsPanel.jsx        # SettingsPanel - Model selection, voice/speech mode toggles (fully controlled component)
-│   │   │
 │   │   └── hooks/                       # Settings business logic hooks
 │   │       └── useSettingsManagement.ts # useSettingsManagement - Handles model listing events from backend
 │   │
@@ -93,8 +95,8 @@ frontend/src/renderer/
 │   ├── accessibility.css                # Accessibility utilities (visually-hidden class)
 │   ├── ChatBox.css                      # Chat box overlay styles
 │   ├── ChatInterface.css               # Chat interface styles (messages, tool outputs, transparency sections)
-│   ├── MainLayout.css                   # Main layout styles (three-column grid)
-│   ├── SettingsPanel.css                # Settings panel styles (form controls, toggles)
+│   ├── MainLayout.css                   # Main layout styles (two-column grid)
+│   ├── SettingsPanel.css                # Dashboard section styles (cards, toggles, model list)
 │   ├── ThinkingDisplay.css              # Thinking display styles (collapsible reasoning tokens)
 │   └── TokenCountDisplay.css            # Token count display styles
 │
@@ -122,7 +124,7 @@ frontend/src/renderer/
        ├─> ErrorBoundary (error handling)
        ├─> AppProvider (config and status contexts)
        ├─> ChatProvider (chat hooks setup)
-       └─> AppContent (MainLayout with ChatInterface and SettingsPanel)
+       └─> AppContent (MainLayout with ChatInterface or DashboardContent)
            ↓
 3. CONTEXT INITIALIZATION
    ├─> app/providers/AppConfigContext.jsx
@@ -261,8 +263,8 @@ frontend/src/renderer/
 
 ```
 1. WAKEWORD ENABLED
-   └─> features/chat/components/ChatInterface.jsx
-       └─> wakewordEnabled && !voiceModeEnabled
+   └─> app/WakewordController.jsx
+       └─> wakewordActive (wakewordEnabled && !wakewordSuppressed)
            ↓
 2. WAKEWORD DETECTION HOOK
    └─> features/voice/hooks/useWakewordDetection.ts
@@ -277,16 +279,16 @@ frontend/src/renderer/
        └─> Main process → IPC: ON_CHANNELS.WAKEWORD_DETECTED
            └─> useWakewordDetection hook receives event
                └─> onWakewordDetected callback
-                   ├─> Enable voice mode
-                   └─> ApiClient.wakewordDetected()
+                   ├─> ApiClient.wakewordDetected()
+                   └─> SHOW_CHATBOX (IPC)
 ```
 
 ### Settings Management Flow
 
 ```
 1. SETTINGS CHANGE
-   └─> features/settings/components/SettingsPanel.jsx
-       └─> User changes model/voice/speech settings
+   └─> features/dashboard/components/DashboardContent.jsx
+       └─> User changes model/speech settings
            └─> onConfigChange(newConfig)
                ↓
 2. CONFIG UPDATE
@@ -380,7 +382,7 @@ frontend/src/renderer/
 
 18. **Error Boundaries**: React error boundaries prevent full app crashes
 
-19. **Lazy Loading**: SettingsPanel lazy-loaded for faster initial render
+19. **Lazy Loading**: DashboardContent lazy-loaded for faster initial render
 
 ---
 
@@ -393,18 +395,20 @@ App
 │       ├── AppConfigProvider
 │       │   └── AppStatusProvider
 │       │       └── ChatProvider
+│       │           ├── WakewordController
 │       │           └── AppContent
 │       │               └── MainLayout
-│       │                   ├── Sidebar
-│       │                   ├── ChatInterface
-│       │                   │   ├── MessageList
-│       │                   │   │   ├── Message (user/assistant)
-│       │                   │   │   ├── TransparencySection (system prompt, tool schemas, full messages)
-│       │                   │   │   └── ThinkingDisplay
-│       │                   │   ├── MessageInput
-│       │                   │   │   └── VoiceStatus
-│       │                   │   └── TokenCountDisplay
-│       │                   └── SettingsPanel (lazy-loaded)
+│       │                   ├── Sidebar (section selector)
+│       │                   └── Content
+│       │                       ├── ChatInterface
+│       │                       │   ├── MessageList
+│       │                       │   │   ├── Message (user/assistant)
+│       │                       │   │   ├── TransparencySection (system prompt, tool schemas, full messages)
+│       │                       │   │   └── ThinkingDisplay
+│       │                       │   ├── MessageInput
+│       │                       │   │   └── VoiceStatus
+│       │                       │   └── TokenCountDisplay
+│       │                       └── DashboardContent (lazy-loaded sections)
 ```
 
 ---
@@ -443,7 +447,9 @@ App
 ### App Config Context
 - `config` - Application configuration (model settings, voice settings)
 - `availableModels` - List of available LLM models
-- `wakewordEnabled` - Wakeword detection capability flag
+- `wakewordEnabled` - Wakeword detection preference
+- `wakewordSuppressed` - Temporary suppression while chatbox is visible
+- `wakewordActive` - Computed active state (enabled + not suppressed)
 - `updateConfig()` - Update config and persist to localStorage
 
 ### App Status Context
@@ -522,7 +528,7 @@ Tools that automatically capture screenshots and system state:
 ## Performance Optimizations
 
 1. **Split Contexts**: Config and status contexts separated to minimize re-renders
-2. **Lazy Loading**: SettingsPanel loaded on demand
+2. **Lazy Loading**: DashboardContent loaded on demand
 3. **Memoization**: Callbacks memoized with `useCallback`
 4. **Zustand Selectors**: Components subscribe only to needed store slices
 5. **Channel Validation**: Only in development (preload.js validates in production)

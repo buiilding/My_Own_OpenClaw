@@ -205,6 +205,52 @@
   cursor: not-allowed;
 }
 
+.models-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.model-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 12, 16, 0.55);
+  color: rgba(244, 242, 238, 0.85);
+  cursor: pointer;
+  transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.model-item:hover {
+  border-color: rgba(98, 184, 255, 0.45);
+  transform: translateY(-1px);
+}
+
+.model-item.active {
+  border-color: rgba(88, 196, 151, 0.7);
+  background: rgba(88, 196, 151, 0.12);
+  color: rgba(244, 242, 238, 1);
+}
+
+.model-item-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.model-item-subtitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(244, 242, 238, 0.6);
+}
+
 @media (min-width: 900px) {
   .settings-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -3,13 +3,9 @@ import '../styles/MainLayout.css';
 
 /**
  * Provides the main structural layout for the application.
- * It includes a sidebar and dedicated areas for the chat and settings panels.
- *
- * @param {object} props - The component's props.
- * @param {React.ReactNode} props.chat - The chat component.
- * @param {React.ReactNode} props.settings - The settings component.
+ * It includes a section selector sidebar and a main content panel.
  */
-function MainLayout({ chat, settings }) {
+function MainLayout({ sections, activeSection, onSelectSection, content }) {
   return (
     <div className="main-layout">
       <div className="ambient-backdrop" aria-hidden="true" />
@@ -23,11 +19,17 @@ function MainLayout({ chat, settings }) {
         </div>
         <nav className="sidebar-nav">
           <ul>
-            <li className="active">
-              <span className="nav-label">Chat</span>
-              <span className="nav-status">Active</span>
-            </li>
-            {/* Future navigation links will go here */}
+            {sections.map((section) => {
+              const isActive = section.id === activeSection;
+              return (
+                <li key={section.id} className={isActive ? 'active' : ''}>
+                  <button type="button" onClick={() => onSelectSection(section.id)}>
+                    <span className="nav-label">{section.label}</span>
+                    {isActive ? <span className="nav-status">Active</span> : null}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </nav>
         <div className="sidebar-footer">
@@ -35,15 +37,21 @@ function MainLayout({ chat, settings }) {
           <span>Ready</span>
         </div>
       </aside>
-      <main className="main-content">{chat}</main>
-      <aside className="settings-sidebar">{settings}</aside>
+      <main className="main-content">{content}</main>
     </div>
   );
 }
 
 MainLayout.propTypes = {
-  chat: PropTypes.node.isRequired,
-  settings: PropTypes.node.isRequired,
+  sections: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  activeSection: PropTypes.string.isRequired,
+  onSelectSection: PropTypes.func.isRequired,
+  content: PropTypes.node.isRequired,
 };
 
 export default MainLayout;

@@ -11,7 +11,8 @@ import { AppConfigContext } from './AppConfigContext';
  * This context holds state that changes infrequently:
  * - config: Application configuration (model settings, voice settings, etc.)
  * - availableModels: List of available LLM models
- * - wakewordEnabled: Wakeword detection capability (app-level, persists across chat unmounts)
+ * - wakewordEnabled: Wakeword detection preference (app-level, persists across chat unmounts)
+ * - wakewordActive: Effective wakeword state (preference + suppression)
  *
  * Changes to this context are rare (only on app init, settings load, or explicit config updates).
  */
@@ -22,6 +23,7 @@ export function AppConfigProvider({ children }) {
   });
   const [availableModels, setAvailableModels] = useState({ local: [], online: [] });
   const [wakewordEnabled, setWakewordEnabled] = useState(true);
+  const [wakewordSuppressed, setWakewordSuppressed] = useState(true);
 
   const sanitizeConfig = useCallback((nextConfig) => ({
     ...nextConfig,
@@ -116,7 +118,9 @@ export function AppConfigProvider({ children }) {
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_TOGGLE, (data) => {
-      setWakewordEnabled(Boolean(data?.enabled));
+      if (typeof data?.enabled === 'boolean') {
+        setWakewordSuppressed(!data.enabled);
+      }
     });
     return () => {
       removeListener?.();
@@ -127,6 +131,8 @@ export function AppConfigProvider({ children }) {
     config,
     availableModels,
     wakewordEnabled,
+    wakewordSuppressed,
+    wakewordActive: wakewordEnabled && !wakewordSuppressed,
     setWakewordEnabled,
     updateConfig
   };
