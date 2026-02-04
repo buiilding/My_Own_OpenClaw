@@ -22,6 +22,8 @@ Desktop Assistant uses a WebSocket-based API for real-time communication between
 
 The client must send a handshake message immediately after connecting.
 This message does **not** use the base message envelope.
+The backend assigns a server-side `user_id` for the connection; any `user_id`
+in the handshake payload is ignored.
 
 **Payload**:
 ```json
@@ -112,7 +114,7 @@ All messages follow this structure:
 - `payload`: Message-specific payload
 
 **Notes**:
-- `user_id` is injected server-side from the handshake connection context.
+- `user_id` is injected server-side from the handshake connection context (server-assigned).
 - `timestamp` is optional and ignored by the backend if present.
 
 ## Client Messages (Frontend → Backend)
@@ -933,12 +935,12 @@ codes are internal to the backend exception hierarchy and may appear in logs.
 
 ### Handshake
 
-On connection, client sends handshake:
+On connection, client sends handshake (server assigns `user_id` for the connection):
 
 ```json
 {
   "type": "handshake",
-  "user_id": "default_user"
+  "user_id": "user-123"
 }
 ```
 

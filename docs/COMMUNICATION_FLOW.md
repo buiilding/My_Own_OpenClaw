@@ -108,7 +108,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 ### Connection Lifecycle
 
 1. **Connection**: Client connects to `ws://127.0.0.1:8765/ws`
-2. **Handshake**: Client sends handshake message
+2. **Handshake**: Client sends handshake message (server assigns user_id)
 3. **Session Creation**: Backend creates session
 4. **Message Loop**: Continuous message exchange
 5. **Disconnection**: Cleanup on disconnect
