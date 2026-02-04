@@ -5,58 +5,90 @@ class DummySession:
     pass
 
 
-def test_receive_individual_result_sets_preformatted():
+def test_receive_individual_result_sets_preformatted_metadata():
     receiver = ToolResultReceiver(DummySession())
+    metadata = {}
     result = receiver.receive_individual_result(
-        request_id="req",
+        request_id="req-1",
         success=True,
         result_data={"is_preformatted": True, "output": "ok"},
         error=None,
-        metadata={},
+        metadata=metadata,
     )
 
     assert result.success is True
-    assert result.metadata["is_preformatted"] is True
+    assert result.metadata == {"is_preformatted": True}
+    assert metadata == {"is_preformatted": True}
 
 
-def test_receive_bundle_result_success_and_metadata():
+def test_receive_bundle_result_success_and_failure():
     receiver = ToolResultReceiver(DummySession())
-    bundle = receiver.receive_bundle_result(
+
+    success_result = receiver.receive_bundle_result(
         bundle_id="bundle-1",
         status="success",
-        step_results=[{"tool": "read_file", "status": "ok", "output": "done"}],
-        screenshot="shot",
-        system_state={"active_window": "Editor"},
+        step_results=[{"status": "ok"}, {"status": "ok"}],
+        screenshot=None,
+        system_state=None,
         error=None,
     )
+    assert success_result.success is True
+    assert success_result.metadata == {"is_bundled": True, "bundle_id": "bundle-1"}
 
-    assert bundle.success is True
-    assert bundle.metadata["is_bundled"] is True
-    assert bundle.metadata["bundle_id"] == "bundle-1"
-    assert bundle.data["screenshot"] == "shot"
+    failure_result = receiver.receive_bundle_result(
+        bundle_id="bundle-2",
+        status="success",
+        step_results=[{"status": "ok"}, {"status": "error"}],
+        screenshot=None,
+        system_state=None,
+        error=None,
+    )
+    assert failure_result.success is False
 
 
-def test_receive_bundled_results_combined_and_individual():
+def test_receive_bundled_results_builds_individual_and_combined():
     receiver = ToolResultReceiver(DummySession())
-
-    data = {
+    bundle_data = {
         "tools": [
-            {"request_id": "r1", "tool_name": "read_file", "success": True, "data": {"ok": True}},
-            {"tool_name": "missing", "success": True, "data": {"ok": True}},
+            {"request_id": "req-1", "tool_name": "click", "success": True, "data": {"output": "ok"}},
+            {"request_id": "req-2", "tool_name": "type", "success": False, "data": {"output": "bad"}},
         ],
         "screenshot": "shot",
-        "combined_llm_content": "All done",
+        "combined_llm_content": "<combined />",
     }
 
-    individual, combined, screenshot = receiver.receive_bundled_results(data, "bundle")
+    individual_results, combined_result, bundle_screenshot = receiver.receive_bundled_results(
+        bundle_data, "bundle-req"
+    )
 
-    assert screenshot == "shot"
-    assert len(individual) == 1
-    assert individual[0][0] == "r1"
-    assert individual[0][1].data["screenshot"] == "shot"
+    assert bundle_screenshot == "shot"
+    assert len(individual_results) == 2
+    first_request_id, first_result = individual_results[0]
+    assert first_request_id == "req-1"
+    assert first_result.data["screenshot"] == "shot"
 
-    assert combined is not None
-    assert combined.metadata["is_preformatted"] is True
-    assert combined.metadata["is_bundled"] is True
-    assert combined.metadata["bundle_request_id"] == "bundle"
-    assert combined.llm_content == "All done"
+    assert combined_result is not None
+    assert combined_result.success is False
+    assert combined_result.metadata["is_preformatted"] is True
+    assert combined_result.metadata["is_bundled"] is True
+    assert combined_result.metadata["bundle_request_id"] == "bundle-req"
+    assert combined_result.data["tool_count"] == 2
+    assert combined_result.data["screenshot"] == "shot"
+    assert combined_result.llm_content == "<combined />"
+
+
+def test_receive_bundled_results_skips_missing_request_id():
+    receiver = ToolResultReceiver(DummySession())
+    bundle_data = {
+        "tools": [
+            {"tool_name": "click", "success": True, "data": {"output": "ok"}},
+        ],
+    }
+
+    individual_results, combined_result, bundle_screenshot = receiver.receive_bundled_results(
+        bundle_data, "bundle-req"
+    )
+
+    assert individual_results == []
+    assert combined_result is None
+    assert bundle_screenshot is None
