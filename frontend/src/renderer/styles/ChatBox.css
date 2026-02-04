@@ -1,0 +1,149 @@
+body {
+  background: transparent !important;
+}
+
+.chatbox-shell {
+  width: min(520px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 14px 16px 12px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(15, 20, 26, 0.72), rgba(20, 24, 30, 0.58));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
+  color: #f4f2ee;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeUp 320ms ease;
+}
+
+.chatbox-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.chatbox-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(244, 242, 238, 0.78);
+}
+
+.chatbox-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(88, 196, 151, 0.7);
+  box-shadow: 0 0 8px rgba(88, 196, 151, 0.7);
+}
+
+.chatbox-indicator.is-thinking {
+  background: rgba(245, 178, 78, 0.9);
+  box-shadow: 0 0 10px rgba(245, 178, 78, 0.8);
+  animation: pulseGlow 1.2s ease infinite;
+}
+
+.chatbox-indicator.is-sending {
+  background: rgba(97, 169, 255, 0.9);
+  box-shadow: 0 0 10px rgba(97, 169, 255, 0.8);
+  animation: pulseGlow 1s ease infinite;
+}
+
+.chatbox-settings {
+  border: none;
+  background: rgba(244, 242, 238, 0.12);
+  color: rgba(244, 242, 238, 0.92);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease;
+}
+
+.chatbox-settings:hover {
+  background: rgba(244, 242, 238, 0.22);
+  transform: translateY(-1px);
+}
+
+.chatbox-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.chatbox-input {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(10, 12, 16, 0.6);
+  color: #f8f6f2;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.chatbox-input::placeholder {
+  color: rgba(248, 246, 242, 0.6);
+}
+
+.chatbox-send {
+  border-radius: 14px;
+  border: none;
+  background: rgba(88, 196, 151, 0.9);
+  color: #0b1b16;
+  font-weight: 600;
+  padding: 0 16px;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.chatbox-send:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.chatbox-send:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(33, 106, 91, 0.3);
+}
+
+.chatbox-preview {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: rgba(244, 242, 238, 0.72);
+}
+
+.chatbox-preview-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(244, 242, 238, 0.55);
+}
+
+.chatbox-preview-text {
+  flex: 1;
+}
+
+@keyframes pulseGlow {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

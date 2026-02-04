@@ -1,4 +1,5 @@
-require('@testing-library/jest-dom');
+/* eslint-env jest */
+require('@testing-library/jest-dom/types');
 
 const suppressedPrefixes = [
   '[ConfigStorage]',

@@ -25,7 +25,8 @@ contextBridge.exposeInMainWorld('ipc', {
       'get-system-state',
       'store-memory',
       'search-memory',
-      'minimize-window-delayed',
+      'set-overlay-ignore-mouse',
+      'show-main-window',
       'load-frontend-config',
       'save-frontend-config',
     ];

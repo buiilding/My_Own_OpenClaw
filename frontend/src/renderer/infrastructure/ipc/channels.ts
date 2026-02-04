@@ -21,7 +21,8 @@ export const INVOKE_CHANNELS = {
   GET_SYSTEM_STATE: 'get-system-state',
   STORE_MEMORY: 'store-memory',
   SEARCH_MEMORY: 'search-memory',
-  MINIMIZE_WINDOW_DELAYED: 'minimize-window-delayed',
+  SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
+  SHOW_MAIN_WINDOW: 'show-main-window',
   LOAD_FRONTEND_CONFIG: 'load-frontend-config',
   SAVE_FRONTEND_CONFIG: 'save-frontend-config',
 } as const;

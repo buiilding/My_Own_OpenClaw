@@ -15,6 +15,7 @@ const BACKEND_PORT = process.env.BACKEND_PORT || 8765;
 const BACKEND_URL = `ws://127.0.0.1:${BACKEND_PORT}/ws`;
 let ws = null;
 let mainWindow = null;
+let rendererWindows = new Set();
 let isConnected = false;
 let reconnectInterval = 5000; // 5 seconds
 let isFirstQuery = true; // Track if this is the first user query in the session
@@ -74,6 +75,26 @@ function logDebug(message) {
   // console.log(`[IPC Bridge] ${message}`);
 }
 
+function trackRendererWindow(win) {
+  if (!win || (win.isDestroyed && win.isDestroyed())) {
+    return;
+  }
+  rendererWindows.add(win);
+  win.on('closed', () => {
+    rendererWindows.delete(win);
+  });
+}
+
+function broadcastToRenderers(channel, payload) {
+  for (const win of rendererWindows) {
+    if (!win || win.isDestroyed()) {
+      rendererWindows.delete(win);
+      continue;
+    }
+    win.webContents.send(channel, payload);
+  }
+}
+
 /**
  * Generate a valid user_id from system username or fallback to UUID-based ID.
  * Backend rejects 'default_user', empty, or whitespace-only values.
@@ -108,7 +129,7 @@ function connect() {
     isConnected = true;
     isFirstQuery = true; // Reset on new connection (new session)
     log('Successfully connected to Python backend.');
-    mainWindow?.webContents.send('ipc-status', { isConnected: true });
+    broadcastToRenderers('ipc-status', { isConnected: true });
 
     // Generate valid user_id (backend rejects 'default_user', empty, or whitespace-only)
     currentUserId = generateUserId();
@@ -133,7 +154,7 @@ function connect() {
       if (data.type === 'error') {
         log(`Error from backend: ${data.payload?.message || 'Unknown error'}`);
       }
-      mainWindow?.webContents.send('from-backend', data);
+      broadcastToRenderers('from-backend', data);
     } catch (error) {
       log(`Error parsing message from backend: ${error}`);
     }
@@ -142,7 +163,7 @@ function connect() {
   ws.on('close', () => {
     isConnected = false;
     log('Disconnected from Python backend. Attempting to reconnect...');
-    mainWindow?.webContents.send('ipc-status', { isConnected: false });
+    broadcastToRenderers('ipc-status', { isConnected: false });
     setTimeout(connect, reconnectInterval);
   });
 
@@ -197,6 +218,8 @@ function sendMessageToBackend(type, payload) {
  */
 function initializeIpc(win) {
   mainWindow = win;
+  rendererWindows = new Set();
+  trackRendererWindow(win);
   connect();
 
   ipcMain.handle('load-frontend-config', async () => {
@@ -389,7 +412,12 @@ function formatFallbackStateXml() {
 </system_context>`;
 }
 
+function registerRendererWindow(win) {
+  trackRendererWindow(win);
+}
+
 module.exports = {
   initializeIpc,
+  registerRendererWindow,
   sendMessageToBackend,
 };

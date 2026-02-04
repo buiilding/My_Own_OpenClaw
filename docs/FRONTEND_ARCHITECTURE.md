@@ -263,6 +263,8 @@ The main process manages the application lifecycle and IPC communication.
 **index.cjs**
 - Electron main entry point
 - Window management
+- Enables content protection on Windows/macOS to reduce self-capture in screenshots
+- Chat box overlay window (transparent, always-on-top) with click-through default; settings button opens main window
 - System tray
 - Application lifecycle
 
@@ -270,6 +272,7 @@ The main process manages the application lifecycle and IPC communication.
 - IPC bridge between renderer and main
 - WebSocket client to backend
 - Message routing
+- Broadcasts backend events to all renderer windows (main + chat box)
 - System state management
 
 **wakeword_bridge.cjs**
@@ -285,6 +288,8 @@ The main process manages the application lifecycle and IPC communication.
 - `wakeword-audio-chunk`: Audio data
 - `wakeword-enable`: Enable wakeword
 - `wakeword-disable`: Disable wakeword
+- `show-main-window`: Bring the main window to the front
+- `set-overlay-ignore-mouse`: Toggle click-through behavior for the chat box overlay
 
 **Main → Renderer**:
 - `from-backend`: Messages from backend

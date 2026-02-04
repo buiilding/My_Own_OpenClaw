@@ -16,7 +16,7 @@ export interface ChatMessage {
   type?: 'llm-text' | 'tool-call' | 'tool-output' | 'error';
   isComplete?: boolean;
   screenshot?: string | null;
-  toolMetadata?: Record<string, any> | null;
+  toolMetadata?: Record<string, unknown> | null;
   toolName?: string;
   executionTime?: number | null;
   success?: boolean;
@@ -29,7 +29,7 @@ export interface ChatMessage {
   toolSchemas?: any;
   fullUserMessage?: {
     content: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   };
   fullAssistantMessage?: {
     content: string;

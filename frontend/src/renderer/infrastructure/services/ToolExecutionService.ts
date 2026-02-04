@@ -5,7 +5,6 @@
  * Accepts callbacks for UI updates and backend communication.
  */
 
-import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../ipc/bridge';
 import {
   formatToolOutputMessage,
   formatBundledToolOutputMessage,
@@ -19,9 +18,18 @@ import {
   type ToolExecutionCallbacks,
 } from './ToolExecutionTypes';
 import {
-  captureAfterTool,
-  isComputerUseTool,
+  ensureAutoCapture,
+  resolveSystemState,
 } from './ToolExecutionCapture';
+import { invokeTool } from './ToolExecutionInvoker';
+import {
+  logToolStart,
+  logToolTiming,
+  logBundleStart,
+  logBundleTiming,
+  logBundleFailure,
+} from './ToolExecutionLogger';
+import { runToolBundle } from './ToolExecutionBundleRunner';
 
 export {
   ToolExecutionOptions,
@@ -56,16 +64,24 @@ export class ToolExecutionService {
     options: ToolExecutionOptions
   ): Promise<ToolExecutionResult> {
     const totalStartTime = performance.now();
-    const shortId = this._shortCorrelationId(options.correlationId);
-    console.log(`[Timing] Tool execution started: ${toolName} (request_id=${shortId})`);
+    const shortId = logToolStart(toolName, options.correlationId);
 
     try {
-      const { result, toolInvokeTime } = await this._invokeTool(toolName, args, options);
-      const capture = await this._ensureCapture(toolName, args, options, result);
+      const { result, toolInvokeTime } = await invokeTool(
+        toolName,
+        args,
+        options.skipAutoCapture || false
+      );
+      const capture = await ensureAutoCapture(
+        toolName,
+        args,
+        options.skipAutoCapture,
+        result
+      );
       const { screenshot, systemState, waitDelay, captureTime, isComputerTool } = capture;
 
       // Format complete message with system context XML
-      const finalSystemState = this._resolveSystemState(systemState, result.data);
+      const finalSystemState = resolveSystemState(systemState, result.data);
       const formattedMessage = formatToolOutputMessage(
         toolName,
         result,
@@ -91,7 +107,7 @@ export class ToolExecutionService {
       executionResult.executionTime = totalExecutionTime;
       
       // Log detailed timing breakdown
-      this._logToolTiming(
+      logToolTiming({
         toolName,
         totalExecutionTime,
         toolInvokeTime,
@@ -99,8 +115,8 @@ export class ToolExecutionService {
         captureTime,
         shortId,
         isComputerTool,
-        options.skipAutoCapture
-      );
+        skipAutoCapture: options.skipAutoCapture
+      });
 
       return executionResult;
     } catch (error: any) {
@@ -115,94 +131,6 @@ export class ToolExecutionService {
     }
   }
 
-  private async _invokeTool(
-    toolName: string,
-    args: any,
-    options: ToolExecutionOptions
-  ): Promise<{ result: ToolResult; toolInvokeTime: number }> {
-    const toolInvokeStartTime = performance.now();
-    const result: ToolResult = await IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {
-      toolName,
-      args,
-      skipAutoCapture: options.skipAutoCapture || false
-    });
-    const toolInvokeTime = (performance.now() - toolInvokeStartTime) / 1000;
-    return { result, toolInvokeTime };
-  }
-
-  private _extractCapture(result: ToolResult): {
-    screenshot: string | null;
-    systemState: SystemState | null;
-  } {
-    if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
-      return {
-        screenshot: result.data.screenshot || null,
-        systemState: result.data.system_state || null
-      };
-    }
-    return { screenshot: null, systemState: null };
-  }
-
-  private _applyCaptureToResult(
-    result: ToolResult,
-    screenshot: string | null,
-    systemState: SystemState | null
-  ): void {
-    if (!screenshot) {
-      return;
-    }
-    if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
-      result.data = {
-        ...result.data,
-        screenshot,
-        system_state: systemState ?? undefined
-      };
-    }
-  }
-
-  private async _ensureCapture(
-    toolName: string,
-    args: any,
-    options: ToolExecutionOptions,
-    result: ToolResult
-  ): Promise<{
-    screenshot: string | null;
-    systemState: SystemState | null;
-    waitDelay: number;
-    captureTime: number;
-    isComputerTool: boolean;
-  }> {
-    const isComputerTool = isComputerUseTool(toolName, args);
-    let { screenshot, systemState } = this._extractCapture(result);
-    let waitDelay = 0;
-    let captureTime = 0;
-
-    if (isComputerTool && !options.skipAutoCapture && !screenshot) {
-      const capture = await captureAfterTool(toolName, args, true, 2);
-      waitDelay = capture.waitSeconds;
-      captureTime = capture.captureTime;
-      systemState = capture.systemState;
-      screenshot = capture.screenshot;
-      this._applyCaptureToResult(result, screenshot, systemState);
-    }
-
-    if (toolName === 'screenshot' && !options.skipAutoCapture && !screenshot) {
-      const capture = await captureAfterTool(toolName, args, true, 0);
-      waitDelay = capture.waitSeconds;
-      captureTime = capture.captureTime;
-      systemState = capture.systemState;
-      screenshot = capture.screenshot;
-      this._applyCaptureToResult(result, screenshot, systemState);
-    }
-
-    return {
-      screenshot,
-      systemState,
-      waitDelay,
-      captureTime,
-      isComputerTool
-    };
-  }
 
   private _buildExecutionResult(
     toolName: string,
@@ -260,46 +188,6 @@ export class ToolExecutionService {
     return errorResult;
   }
 
-  private _logToolTiming(
-    toolName: string,
-    totalExecutionTime: number,
-    toolInvokeTime: number,
-    waitDelay: number,
-    captureTime: number,
-    shortId: string,
-    isComputerTool: boolean,
-    skipAutoCapture?: boolean
-  ): void {
-    if (isComputerTool && !skipAutoCapture) {
-      console.log(
-        `[Timing] Tool execution completed: ${toolName} took ${totalExecutionTime.toFixed(3)}s total ` +
-        `(IPC: ${toolInvokeTime.toFixed(3)}s, wait: ${waitDelay.toFixed(3)}s, capture: ${captureTime.toFixed(3)}s) ` +
-        `(request_id=${shortId})`
-      );
-    } else {
-      console.log(
-        `[Timing] Tool execution completed: ${toolName} took ${totalExecutionTime.toFixed(3)}s ` +
-        `(IPC: ${toolInvokeTime.toFixed(3)}s) (request_id=${shortId})`
-      );
-    }
-  }
-
-  private _shortCorrelationId(correlationId?: string): string {
-    return correlationId ? correlationId.substring(0, 15) : 'unknown';
-  }
-
-  private _resolveSystemState(
-    systemState: SystemState | null,
-    data: ToolResult['data']
-  ): SystemState | null {
-    if (systemState) {
-      return systemState;
-    }
-    if (data && typeof data === 'object' && !Array.isArray(data)) {
-      return (data.system_state as SystemState | undefined) || null;
-    }
-    return null;
-  }
 
   private _sendToolResult(
     correlationId: string | undefined,
@@ -362,92 +250,19 @@ export class ToolExecutionService {
     bundleId: string
   ): Promise<BundleExecutionResult> {
     const bundleStartTime = performance.now();
-    const stepResults: Array<{ tool: string; status: string; output: string }> = [];
-    console.log(`[Timing] Bundle execution started: ${bundle.length} tools (bundle_id=${bundleId})`);
-    console.log('[ToolExecutionService] Executing atomic bundle of size:', bundle.length);
-    console.log('[ToolExecutionService] Bundle ID:', bundleId);
+    let stepResults: Array<{ tool: string; status: string; output: string }> = [];
+    logBundleStart(bundle.length, bundleId);
 
     try {
-      // Execute all tools sequentially with skipAutoCapture (FAIL-FAST: stop on first error)
-      // After each tool, capture OS state if it's a computer-use tool
-      const toolExecutionTimes: Array<{ tool: string; time: number }> = [];
-      let systemState: SystemState | null = null;
-      let screenshot: string | null = null;
-      let totalWaitDelay = 0;
-      let totalCaptureTime = 0;
-
-      for (let i = 0; i < bundle.length; i++) {
-        const tool = bundle[i];
-        const toolStartTime = performance.now();
-
-        try {
-          console.log(`[ToolExecutionService] Executing bundled tool ${i+1}/${bundle.length}: ${tool.toolName}`);
-
-          // Execute tool with skipAutoCapture (no system state, no screenshot)
-          const result: ToolResult = await IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {
-            toolName: tool.toolName,
-            args: tool.args,
-            skipAutoCapture: true
-          });
-
-          const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
-          toolExecutionTimes.push({ tool: tool.toolName, time: toolExecutionTime });
-          console.log(`[Timing] Bundled tool IPC: ${tool.toolName} took ${toolExecutionTime.toFixed(3)}s`);
-
-          // Extract output for step result
-          const output = result.data && typeof result.data === 'object' && result.data.output
-            ? String(result.data.output)
-            : result.success
-            ? `Tool ${tool.toolName} executed successfully`
-            : result.error || 'Unknown error';
-
-          stepResults.push({
-            tool: tool.toolName,
-            status: result.success ? 'ok' : 'error',
-            output: output
-          });
-
-          // FAIL-FAST: If tool failed, stop execution immediately
-          if (!result.success) {
-            console.error(`[ToolExecutionService] Tool ${tool.toolName} failed, stopping bundle execution (fail-fast)`);
-            break;
-          }
-
-          // Check if this tool is a computer-use tool that needs screenshot/system state
-          const isComputerTool = isComputerUseTool(tool.toolName, tool.args);
-
-          // Extract OS state after each tool if it's a computer-use tool
-          // Only get system state on the last tool; all others get screenshot only
-          if (isComputerTool) {
-            const isLastTool = i === bundle.length - 1;
-            const capture = await captureAfterTool(
-              tool.toolName,
-              tool.args,
-              isLastTool,
-              0
-            );
-            totalCaptureTime += capture.captureTime;
-            totalWaitDelay += capture.waitSeconds;
-            screenshot = capture.screenshot;
-            if (isLastTool) {
-              systemState = capture.systemState;
-            }
-          }
-        } catch (err: any) {
-          const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
-          toolExecutionTimes.push({ tool: tool.toolName, time: toolExecutionTime });
-          console.error(`[ToolExecutionService] Bundle tool execution failed: ${tool.toolName} (took ${toolExecutionTime.toFixed(3)}s):`, err);
-
-          stepResults.push({
-            tool: tool.toolName,
-            status: 'error',
-            output: err.message || 'Unknown error'
-          });
-
-          // FAIL-FAST: Stop execution on exception
-          break;
-        }
-      }
+      const {
+        stepResults: collectedStepResults,
+        systemState,
+        screenshot,
+        totalWaitDelay,
+        totalCaptureTime,
+        toolExecutionTimes
+      } = await runToolBundle(bundle);
+      stepResults = collectedStepResults;
 
       // Determine bundle status
       const allSuccess = stepResults.every(step => step.status === 'ok');
@@ -518,24 +333,20 @@ export class ToolExecutionService {
       
       // Log detailed timing breakdown
       const totalToolTime = toolExecutionTimes.reduce((sum, t) => sum + t.time, 0);
-      if (systemState !== null || screenshot !== null) {
-        console.log(
-          `[Timing] Bundle execution completed: ${stepResults.length} steps took ${bundleExecutionTime.toFixed(3)}s total ` +
-          `(tools: ${totalToolTime.toFixed(3)}s, wait: ${totalWaitDelay.toFixed(3)}s, capture: ${totalCaptureTime.toFixed(3)}s) ` +
-          `(bundle_id=${bundleId})`
-        );
-      } else {
-        console.log(
-          `[Timing] Bundle execution completed: ${stepResults.length} steps took ${bundleExecutionTime.toFixed(3)}s ` +
-          `(tools: ${totalToolTime.toFixed(3)}s) (bundle_id=${bundleId})`
-        );
-      }
+      logBundleTiming({
+        stepCount: stepResults.length,
+        bundleExecutionTime,
+        totalToolTime,
+        totalWaitDelay,
+        totalCaptureTime,
+        bundleId,
+        captured: systemState !== null || screenshot !== null
+      });
 
       return bundleResult;
     } catch (error: any) {
       const bundleTotalTime = (performance.now() - bundleStartTime) / 1000;
-      console.error(`[Timing] Bundle execution failed after ${bundleTotalTime.toFixed(3)}s:`, error);
-      console.error('[ToolExecutionService] Bundle execution failed:', error);
+      logBundleFailure(bundleId, bundleTotalTime, error);
 
       // Send error bundle result to backend
       const errorMessage = error instanceof Error ? error.message : String(error);

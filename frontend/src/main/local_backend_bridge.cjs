@@ -334,17 +334,70 @@ function stopLocalBackend() {
 /**
  * Initialize IPC handlers for local backend communication
  */
-function initializeLocalBackendBridge(mainWindow) {
-  // Start the Python process
+function initializeLocalBackendBridge(getWindows) {
+  const resolveWindows = () => {
+    if (typeof getWindows === 'function') {
+      const result = getWindows();
+      if (result && typeof result === 'object') {
+        const { mainWindow, chatWindow } = result;
+        return [mainWindow, chatWindow].filter(Boolean);
+      }
+    }
+    return [];
+  };
+
+  const [mainWindow] = resolveWindows();
   startLocalBackend(mainWindow);
+
+  async function withHiddenWindowForScreenshot(task) {
+    if (process.platform !== 'linux') {
+      return task();
+    }
+    const windows = resolveWindows().filter((win) => win && !win.isDestroyed());
+    if (windows.length === 0) {
+      return task();
+    }
+
+    const windowStates = windows.map((win) => ({
+      win,
+      wasVisible: win.isVisible(),
+      wasFocused: win.isFocused(),
+      wasMinimized: win.isMinimized(),
+    }));
+    const focusedWindow = windowStates.find((state) => state.wasFocused)?.win || null;
+
+    for (const state of windowStates) {
+      if (state.wasVisible && !state.wasMinimized) {
+        state.win.hide();
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 120));
+
+    try {
+      return await task();
+    } finally {
+      for (const state of windowStates) {
+        if (state.wasVisible && !state.wasMinimized && !state.win.isDestroyed()) {
+          state.win.show();
+        }
+      }
+      if (focusedWindow && !focusedWindow.isDestroyed()) {
+        focusedWindow.focus();
+      }
+    }
+  }
 
   // Handle tool execution requests
   ipcMain.handle('execute-tool', async (event, { toolName, args, skipAutoCapture = false }) => {
     try {
-      const result = await sendRequest('execute_tool', {
-        tool_name: toolName,
-        args: args,
-      });
+      const runTool = () =>
+        sendRequest('execute_tool', {
+          tool_name: toolName,
+          args: args,
+        });
+      const result = toolName === 'screenshot'
+        ? await withHiddenWindowForScreenshot(runTool)
+        : await runTool();
       
       // Convert Python result format to expected format
       if (result.success === false) {

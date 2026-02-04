@@ -6,7 +6,7 @@ import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useWakewordDetection } from '../../voice/hooks/useWakewordDetection';
 import { ApiClient } from '../../../infrastructure/api/client';
-import { useAppConfigContext } from '../../../app/providers/AppProvider';
+import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { useEffect, useRef } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
