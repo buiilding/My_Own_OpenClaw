@@ -41,6 +41,9 @@ function showChatWindow({ focus = true } = {}) {
   if (!chatWindow || chatWindow.isDestroyed()) {
     return { success: false, reason: 'Chat window not available' };
   }
+  if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
+    mainWindow.hide();
+  }
   if (!chatWindow.isVisible()) {
     chatWindow.show();
   }
@@ -60,6 +63,22 @@ function hideChatWindow() {
     chatWindow.hide();
   }
   sendWakewordToggle(true);
+  return { success: true };
+}
+
+function showMainWindow({ focus = true } = {}) {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return { success: false, reason: 'Main window not available' };
+  }
+  if (chatWindow && !chatWindow.isDestroyed() && chatWindow.isVisible()) {
+    hideChatWindow();
+  }
+  if (!mainWindow.isVisible()) {
+    mainWindow.show();
+  }
+  if (focus) {
+    mainWindow.focus();
+  }
   return { success: true };
 }
 
@@ -103,6 +122,7 @@ function createWindow() {
     if (!app.isQuitting) {
       event.preventDefault();
       mainWindow.hide();
+      showChatWindow({ focus: true });
     }
     return false;
   });
@@ -182,7 +202,7 @@ function createTray() {
     {
       label: 'Show App',
       click: () => {
-        mainWindow.show();
+        showMainWindow({ focus: true });
       },
     },
     {
@@ -198,7 +218,7 @@ function createTray() {
   tray.setContextMenu(contextMenu);
 
   tray.on('double-click', () => {
-    mainWindow.show();
+    showMainWindow({ focus: true });
   });
 }
 
@@ -239,7 +259,7 @@ app.whenReady().then(() => {
         registerRendererWindow(overlay);
       }
     } else {
-      mainWindow.show();
+      showMainWindow({ focus: true });
     }
   });
 });
@@ -287,15 +307,8 @@ function initializeOverlayHandlers() {
   });
 
   ipcMain.handle('show-main-window', async () => {
-    if (!mainWindow || mainWindow.isDestroyed()) {
-      return { success: false, reason: 'Main window not available' };
-    }
     try {
-      if (!mainWindow.isVisible()) {
-        mainWindow.show();
-      }
-      mainWindow.focus();
-      return { success: true };
+      return showMainWindow({ focus: true });
     } catch (error) {
       return { success: false, reason: `Failed to show main window: ${error.message}` };
     }
