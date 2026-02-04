@@ -23,6 +23,11 @@ export function AppConfigProvider({ children }) {
   const [availableModels, setAvailableModels] = useState({ local: [], online: [] });
   const [wakewordEnabled, setWakewordEnabled] = useState(true);
 
+  const sanitizeConfig = useCallback((nextConfig) => ({
+    ...nextConfig,
+    voice_mode_enabled: false,
+  }), []);
+
   const settingsHandlers = useSettingsManagement(
     setConfig,
     setAvailableModels,
@@ -68,7 +73,7 @@ export function AppConfigProvider({ children }) {
       if (!isMounted || !diskConfig || typeof diskConfig !== 'object') {
         return;
       }
-      const filteredConfig = filterFrontendConfig(diskConfig);
+      const filteredConfig = sanitizeConfig(filterFrontendConfig(diskConfig));
       if (Object.keys(filteredConfig).length === 0) {
         return;
       }
@@ -81,10 +86,10 @@ export function AppConfigProvider({ children }) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [sanitizeConfig]);
 
   const updateConfig = useCallback((newConfig) => {
-    const filteredConfig = filterFrontendConfig(newConfig);
+    const filteredConfig = sanitizeConfig(filterFrontendConfig(newConfig));
 
     let hasChanges = false;
     for (const key in filteredConfig) {
@@ -107,7 +112,16 @@ export function AppConfigProvider({ children }) {
     IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, filteredConfig).catch((error) => {
       console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
     });
-  }, [config]);
+  }, [config, sanitizeConfig]);
+
+  useEffect(() => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_TOGGLE, (data) => {
+      setWakewordEnabled(Boolean(data?.enabled));
+    });
+    return () => {
+      removeListener?.();
+    };
+  }, []);
 
   const value = {
     config,

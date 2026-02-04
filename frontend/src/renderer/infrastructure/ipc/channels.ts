@@ -23,6 +23,9 @@ export const INVOKE_CHANNELS = {
   SEARCH_MEMORY: 'search-memory',
   SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
   SHOW_MAIN_WINDOW: 'show-main-window',
+  SHOW_CHATBOX: 'show-chatbox',
+  HIDE_CHATBOX: 'hide-chatbox',
+  GET_DISPLAYS: 'get-displays',
   LOAD_FRONTEND_CONFIG: 'load-frontend-config',
   SAVE_FRONTEND_CONFIG: 'save-frontend-config',
 } as const;
@@ -36,6 +39,8 @@ export const ON_CHANNELS = {
   LOG: 'log',
   WAKEWORD_DETECTED: 'wakeword-detected',
   WAKEWORD_STATUS: 'wakeword-status',
+  WAKEWORD_TOGGLE: 'wakeword-toggle',
+  CHATBOX_FOCUS: 'chatbox-focus',
 } as const;
 
 /**
