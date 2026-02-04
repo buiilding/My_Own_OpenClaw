@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 import pytest
 
 from backend.src.api.handlers.query import QueryMessageHandler
-from backend.src.api.handlers.settings import ListModelsHandler
+from backend.src.api.handlers.settings import ListModelsHandler, UpdateSettingsHandler
 from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.api.schema import (
@@ -12,6 +12,7 @@ from backend.src.api.schema import (
     QueryMessage,
     ToolBundleResultMessage,
     ToolResultMessage,
+    UpdateSettingsMessage,
     WakewordDetectedMessage,
 )
 from backend.src.api.processing.formatter import ResponseFormatter
@@ -35,22 +36,28 @@ class FakeWebSocket:
 class DummyAgent:
     def __init__(self):
         self.cfg = AppConfig()
+        self.updated_configs = []
 
     async def process_query(self, _text, image_data=None, message_content=None):
         yield {"type": "chunk", "content": "ok"}
 
+    async def update_config(self, new_cfg):
+        self.cfg = new_cfg
+        self.updated_configs.append(new_cfg)
+
 
 class DummySessionManager:
     def __init__(self):
-        self.last_query_config = None
         self.session = DummyAgent()
 
-    async def get_or_create_session(self, user_id: str, query_config: Optional[Dict[str, Any]] = None):
-        self.last_query_config = query_config
+    async def get_or_create_session(self, user_id: str):
         return self.session
 
     def get_session(self, user_id: str):
         return getattr(self, "session_instance", None)
+
+    async def update_session_config(self, user_id: str, updates: Dict[str, Any]) -> None:
+        await self.session.update_config(AppConfig(**{**self.session.cfg.model_dump(), **updates}))
 
 
 class DummySession:
@@ -141,24 +148,6 @@ async def test_query_handler_invalid_text():
 
 
 @pytest.mark.asyncio
-async def test_query_handler_invalid_config():
-    websocket = FakeWebSocket()
-    handler = QueryMessageHandler(DummySessionManager(), DummyTTSManager(), ResponseFormatter())
-
-    message = QueryMessage(
-        id="msg_3",
-        type="query",
-        user_id="user_1",
-        payload={"text": "hi", "content": "<user_query>hi</user_query>", "config": {"model_mode": "bad"}},
-    )
-
-    await handler.handle(message, websocket, "user_1")
-    assert websocket.sent
-    assert websocket.sent[0]["type"] == "error"
-    assert "Invalid config" in websocket.sent[0]["payload"]["message"]
-
-
-@pytest.mark.asyncio
 async def test_tool_result_handler_routes_to_session():
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
@@ -236,6 +225,47 @@ async def test_list_models_handler_sends_models():
     assert websocket.sent
     assert websocket.sent[0]["type"] == "models-listed"
     assert websocket.sent[0]["payload"] == [{"id": "model-1"}]
+
+
+@pytest.mark.asyncio
+async def test_update_settings_handler_updates_session():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = UpdateSettingsHandler(session_manager)
+
+    message = UpdateSettingsMessage(
+        id="msg_9",
+        type="update-settings",
+        user_id="user_1",
+        payload={"model_provider": "openai", "selected_model_id": "gpt-5.1"},
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent
+    assert websocket.sent[0]["type"] == "settings-updated"
+    assert "updated_keys" in websocket.sent[0]["payload"]
+    assert session_manager.session.updated_configs
+
+
+@pytest.mark.asyncio
+async def test_update_settings_handler_rejects_invalid_values():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = UpdateSettingsHandler(session_manager)
+
+    message = UpdateSettingsMessage(
+        id="msg_10",
+        type="update-settings",
+        user_id="user_1",
+        payload={"model_mode": "bad"},
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent
+    assert websocket.sent[0]["type"] == "error"
+    assert "Invalid settings" in websocket.sent[0]["payload"]["message"]
 
 
 @pytest.mark.asyncio

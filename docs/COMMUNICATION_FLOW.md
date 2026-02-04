@@ -312,12 +312,13 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
 16. Agent continues with next step
 ```
 
-### Settings Flow (Current)
+### Settings Flow
 
-Settings are frontend-only and persisted locally:
+Settings are persisted locally and synced to the backend session:
 
 - `AppConfigContext.updateConfig()` saves to localStorage and disk.
-- The backend does not currently receive `update-settings` messages.
+- Frontend sends `update-settings` to backend.
+- Backend applies session config updates on the next query.
 
 ## Error Handling
 

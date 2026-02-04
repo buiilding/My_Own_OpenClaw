@@ -455,7 +455,8 @@ UI Update
 Typed API client for backend communication.
 
 **Methods**:
-- `sendQuery(text, screenshot, config?)`: Send user query (optional config per request)
+- `sendQuery(text, screenshot)`: Send user query
+- `updateSettings(config)`: Send frontend-managed config updates
 - `listModels()`: Request available models
 - `wakewordDetected()`: Notify wakeword detection
 

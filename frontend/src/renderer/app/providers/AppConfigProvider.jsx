@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
 import { filterFrontendConfig } from '../../utils/configFilter';
 import { IpcBridge, ON_CHANNELS, SEND_CHANNELS, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { ApiClient } from '../../infrastructure/api/client';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
 
@@ -81,6 +82,7 @@ export function AppConfigProvider({ children }) {
       }
       setConfig(filteredConfig);
       saveConfigToStorage(filteredConfig, Date.now());
+      ApiClient.updateSettings(filteredConfig);
     }).catch((error) => {
       console.warn('[Config] Failed to load config from disk:', error?.message || error);
     });
@@ -114,6 +116,7 @@ export function AppConfigProvider({ children }) {
     IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, filteredConfig).catch((error) => {
       console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
     });
+    ApiClient.updateSettings(filteredConfig);
   }, [config, sanitizeConfig]);
 
   useEffect(() => {

@@ -19,7 +19,7 @@ Key entry points:
 
 ## Core Responsibilities
 
-- **Session management**: create/reuse sessions per `user_id`, apply query config overrides.
+- **Session management**: create/reuse sessions per `user_id`, apply session config updates.
 - **Prompt assembly**: build messages + system context, embed tool schemas in the initial user message (also emitted as a transparency event).
 - **LLM streaming**: stream tokens and transform into events.
 - **Tool lifecycle**: prepare → send → wait → process results.
@@ -35,9 +35,9 @@ Key entry points:
 6. **Results processed** (`ToolProcessingCoordinator`)
 7. **History committed** (`HistoryCommitter`)
 
-## Query Config Overrides
+## Session Config Updates
 
-Each `query` payload can include a `config` object (model selection, voice toggles). The session manager applies these overrides to the per-session `AppConfig` before running the agent.
+Frontend settings are sent via `update-settings` and applied to the user session before the next query.
 
 ## Tool Lifecycle (Backend)
 
