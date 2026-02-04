@@ -113,7 +113,7 @@ function createWindow() {
   }
 
   initializeIpc(mainWindow);
-  initializeWakewordBridge(mainWindow);
+  initializeWakewordBridge(mainWindow, () => showChatWindow({ focus: true }));
   initializeLocalBackendBridge(() => ({ mainWindow, chatWindow }));
   initializeOverlayHandlers();
 
