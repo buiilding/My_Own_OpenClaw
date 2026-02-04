@@ -17,7 +17,6 @@ from backend.src.api.schema import (
 
 if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager
-from backend.src.core.config.service import ConfigurationService
 from backend.src.core.validation.validators import (
     ValidationError,
     validate_frontend_config,

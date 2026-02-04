@@ -272,6 +272,7 @@ Screenshots are captured strategically at key points to provide visual context f
 **Message Types**:
 - `query`: User query with optional screenshot
 - `list-models`: Request available models
+- `update-settings`: Update session config (applies on next query)
 - `tool-result`: Tool execution result from frontend
 - `wakeword-detected`: Wakeword activation event
 
