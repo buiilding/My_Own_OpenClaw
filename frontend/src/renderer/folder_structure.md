@@ -55,7 +55,16 @@ frontend/src/renderer/
 │   │
 │   ├── dashboard/                        # Dashboard feature module
 │   │   └── components/                  # Dashboard UI components
-│   │       └── DashboardContent.jsx     # DashboardContent - Section-specific content panels
+│   │       ├── DashboardContent.jsx     # DashboardContent - Section-specific content panels
+│   │       └── sections/                # Dashboard section components
+│   │           ├── MemorySection.jsx    # MemorySection - Episodic/Semantic placeholders
+│   │           ├── ModelsSection.jsx    # ModelsSection - Model list + API key input
+│   │           ├── ProceduralSection.jsx # ProceduralSection - Skills placeholder
+│   │           ├── SettingsSection.jsx  # SettingsSection - Wakeword/TTS/screen/permissions
+│   │           └── UsageSection.jsx     # UsageSection - Usage placeholder
+│   │
+│   │   └── utils/                       # Dashboard helpers
+│   │       └── storage.js               # storage - localStorage helpers for dashboard sections
 │   │
 │   ├── settings/                         # Settings feature module
 │   │   └── hooks/                       # Settings business logic hooks

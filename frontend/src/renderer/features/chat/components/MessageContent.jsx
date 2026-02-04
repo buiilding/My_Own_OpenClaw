@@ -1,9 +1,10 @@
+import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 
 function MarkdownMessage({ text }) {
-  const html = toSanitizedMarkdownHtml(text ?? '');
+  const html = useMemo(() => toSanitizedMarkdownHtml(text ?? ''), [text]);
   return (
     <div
       className="message-content message-content-markdown"
