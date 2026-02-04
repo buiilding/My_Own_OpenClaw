@@ -49,6 +49,15 @@ class ContextFactory:
         self.agent_factory = agent_factory
         self.vision_service: Optional[Any] = None
         self.ocr_service: Optional[Any] = None
+        self._base_services: Dict[str, Any] = {"config": self.config}
+        if self.tool_registry:
+            self._base_services["tool_registry"] = self.tool_registry
+        if self.agent_factory:
+            self._base_services["agent_factory"] = self.agent_factory
+        if self.vision_service:
+            self._base_services["vision_service"] = self.vision_service
+        if self.ocr_service:
+            self._base_services["ocr_service"] = self.ocr_service
     
     def set_tool_registry(self, tool_registry: "ToolRegistry") -> None:
         """
@@ -58,10 +67,12 @@ class ContextFactory:
             tool_registry: Tool registry instance
         """
         self.tool_registry = tool_registry
+        self._base_services["tool_registry"] = tool_registry
 
     def set_agent_factory(self, agent_factory: Any) -> None:
         """Set the agent factory."""
         self.agent_factory = agent_factory
+        self._base_services["agent_factory"] = agent_factory
 
     def set_vision_service(self, vision_service: Optional[Any]) -> None:
         """
@@ -71,6 +82,10 @@ class ContextFactory:
             vision_service: VisionService instance or None
         """
         self.vision_service = vision_service
+        if vision_service is None:
+            self._base_services.pop("vision_service", None)
+        else:
+            self._base_services["vision_service"] = vision_service
 
     def set_ocr_service(self, ocr_service: Optional[Any]) -> None:
         """
@@ -80,6 +95,10 @@ class ContextFactory:
             ocr_service: OcrService instance or None
         """
         self.ocr_service = ocr_service
+        if ocr_service is None:
+            self._base_services.pop("ocr_service", None)
+        else:
+            self._base_services["ocr_service"] = ocr_service
     
     def create_tool_context(
         self,
@@ -109,29 +128,11 @@ class ContextFactory:
         effective_session_ref = session_ref or self.session_ref
         
         # Build services dictionary
-        services: Dict[str, Any] = {
-            "config": self.config,
-        }
-        
-        # Add tool registry if available
-        if self.tool_registry:
-            services["tool_registry"] = self.tool_registry
+        services: Dict[str, Any] = dict(self._base_services)
         
         # Add session reference if available (for session-scoped data)
         if effective_session_ref:
             services["session"] = effective_session_ref
-        
-        # Add agent factory if available
-        if self.agent_factory:
-            services["agent_factory"] = self.agent_factory
-
-        # Add vision service if available (pre-initialized InternVL model)
-        if self.vision_service:
-            services["vision_service"] = self.vision_service
-
-        # Add OCR service if available (pre-initialized RapidOCR engine)
-        if self.ocr_service:
-            services["ocr_service"] = self.ocr_service
 
         # Merge additional services
         if additional_services:

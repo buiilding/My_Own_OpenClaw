@@ -130,11 +130,15 @@ class ToolResultReceiver:
             Tuple of (individual tool results list, combined result if available, bundle screenshot)
         """
         tools = bundle_data.get("tools", [])
-        tools_success = all(t.get("success", False) for t in tools)
         bundle_screenshot = bundle_data.get("screenshot")
         combined_llm_content = bundle_data.get("combined_llm_content")
         
         logger.info(f"Receiving bundle result: {len(tools)} tools, has_screenshot={bundle_screenshot is not None}, has_combined_content={combined_llm_content is not None}")
+        
+        if not tools and not combined_llm_content:
+            return [], None, bundle_screenshot
+        
+        tools_success = all(t.get("success", False) for t in tools)
         
         # Convert individual tool results
         individual_results = []
