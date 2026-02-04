@@ -67,6 +67,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1000, // Increased width to accommodate sidebar
     height: 700,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, '../preload.js'),
       contextIsolation: true,
@@ -205,6 +206,7 @@ app.whenReady().then(() => {
   createWindow();
   createChatWindow();
   createTray();
+  sendWakewordToggle(false);
 
   if (chatWindow) {
     registerRendererWindow(chatWindow);

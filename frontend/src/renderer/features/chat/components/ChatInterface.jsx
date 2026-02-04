@@ -1,15 +1,12 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import TokenCountDisplay from './TokenCountDisplay';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
-import { useWakewordDetection } from '../../voice/hooks/useWakewordDetection';
-import { ApiClient } from '../../../infrastructure/api/client';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
-import { useEffect, useRef } from 'react';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import '../../../styles/ChatInterface.css';
 
 /**
@@ -23,7 +20,7 @@ function ChatInterface() {
   const tokenCounts = useChatStore((state) => state.tokenCounts);
   // Use AppConfigContext directly for better performance
   // This avoids re-renders when saveStatus changes in AppStatusContext
-  const { config, wakewordEnabled, setWakewordEnabled } = useAppConfigContext();
+  const { config } = useAppConfigContext();
   
   // Audio player service
   const audioPlayerRef = useRef(null);
@@ -45,7 +42,6 @@ function ChatInterface() {
     return removeListener;
   }, []);
 
-  const voiceModeEnabled = config?.voice_mode_enabled || false;
   const interactionMode = config?.interaction_mode || 'chat';
   const interactionModeLabel = interactionMode === 'agent' ? 'Agent' : 'Chat';
   const statusLabel = thinkingStatus
@@ -59,20 +55,6 @@ function ChatInterface() {
   }, []);
 
   const { sendMessage } = useChatMessageSender(stopPlayback);
-
-  const handleWakewordDetected = useCallback(() => {
-    console.log('[ChatInterface] Wakeword detected!');
-    setWakewordEnabled(false);
-    ApiClient.wakewordDetected();
-    IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX).catch((error) => {
-      console.warn('[ChatInterface] Failed to show chatbox:', error);
-    });
-  }, [setWakewordEnabled]);
-
-  useWakewordDetection(
-    wakewordEnabled && !voiceModeEnabled,
-    handleWakewordDetected
-  );
 
   return (
     <div className="chat-container">
