@@ -4,7 +4,6 @@
  */
 
 import { useCallback } from 'react';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
@@ -12,10 +11,10 @@ import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
 
 /**
  * Custom hook for sending chat messages.
- * Handles screenshot capture, window minimization, and message sending.
+ * Handles screenshot capture and message sending.
  */
 export function useChatMessageSender(stopPlayback?: () => void) {
-  const { addMessage, updateMessage, setIsSending, setThinkingStatus, messages } = useChatStore();
+  const { addMessage, updateMessage, setIsSending, setThinkingStatus } = useChatStore();
   const { config } = useAppConfigContext();
 
   const sendMessage = useCallback(async (text: string) => {
@@ -37,19 +36,9 @@ export function useChatMessageSender(stopPlayback?: () => void) {
     setIsSending(true);
     setThinkingStatus(null);
     
-    // Minimize window after 2 seconds delay (if visible/focused and not already minimized)
-    // This happens AFTER message display so user sees their message immediately
-    // The delay ensures the chat window isn't in the screenshot
-    try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.MINIMIZE_WINDOW_DELAYED);
-    } catch (error) {
-      console.error('[useChatMessageSender] Failed to minimize window:', error);
-      // Continue even if minimize fails
-    }
-    
-    // Extract OS state (screenshot and system state) after window is minimized
+    // Extract OS state (screenshot and system state).
     // Determine if this is the first user message
-    const isFirstUserMessage = !messages.some(msg => msg.sender === 'user');
+    const isFirstUserMessage = !useChatStore.getState().messages.some(msg => msg.sender === 'user');
     
     let screenshot: string | null = null;
     let systemState: any = null;

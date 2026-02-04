@@ -1,6 +1,8 @@
-import React, { useEffect } from 'react';
-import { AppConfigProvider, useAppConfigContext } from './AppConfigContext';
-import { AppStatusProvider, useAppStatusContext } from './AppStatusContext';
+import { useEffect } from 'react';
+import { AppConfigProvider } from './AppConfigProvider';
+import { AppStatusProvider } from './AppStatusProvider';
+import { useAppConfigContext } from './AppConfigContext';
+import { useAppStatusContext } from './AppStatusContext';
 
 /**
  * Internal component that coordinates between AppConfigContext and AppStatusContext.
@@ -9,8 +11,7 @@ import { AppStatusProvider, useAppStatusContext } from './AppStatusContext';
 function AppContextCoordinator({ children }) {
   const configContext = useAppConfigContext();
   const statusContext = useAppStatusContext();
-  
-  // Register save status callback when contexts are available
+
   useEffect(() => {
     if (configContext.registerSaveStatusCallback) {
       configContext.registerSaveStatusCallback(statusContext.setSaving);
@@ -43,13 +44,13 @@ function AppContextCoordinator({ children }) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [configContext]);
-  
+
   return <>{children}</>;
 }
 
 /**
  * AppProvider - Combines AppConfigProvider and AppStatusProvider.
- * 
+ *
  * This maintains backward compatibility while using split contexts internally.
  * Components can use useAppConfigContext() and useAppStatusContext() directly
  * for better performance, or use the legacy useAppContext() for convenience.
@@ -65,20 +66,3 @@ export function AppProvider({ children }) {
     </AppConfigProvider>
   );
 }
-
-// Re-export for convenience
-export { useAppConfigContext } from './AppConfigContext';
-export { useAppStatusContext } from './AppStatusContext';
-
-// Legacy hook for backward compatibility
-// This combines both contexts but causes re-renders when either changes
-// Prefer using useAppConfigContext() and useAppStatusContext() separately
-export const useAppContext = () => {
-  const config = useAppConfigContext();
-  const status = useAppStatusContext();
-  
-  return {
-    ...config,
-    saveStatus: status.saveStatus
-  };
-};

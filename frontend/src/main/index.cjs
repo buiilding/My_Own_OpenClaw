@@ -1,6 +1,6 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, screen } = require('electron');
 const path = require('path');
-const { initializeIpc } = require('./ipc.cjs');
+const { initializeIpc, registerRendererWindow } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
 
@@ -12,7 +12,22 @@ process.env.LIBGL_ALWAYS_SOFTWARE = '1';
 process.env.GALLIUM_DRIVER = 'llvmpipe';
 
 let mainWindow = null;
+let chatWindow = null;
 let tray = null;
+let overlayHandlersInitialized = false;
+
+function positionChatWindow() {
+  if (!chatWindow) {
+    return;
+  }
+  const display = screen.getPrimaryDisplay();
+  const { workArea } = display;
+  const [width, height] = chatWindow.getSize();
+  const marginBottom = 24;
+  const x = Math.round(workArea.x + (workArea.width - width) / 2);
+  const y = Math.round(workArea.y + workArea.height - height - marginBottom);
+  chatWindow.setPosition(x, y, false);
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -27,6 +42,14 @@ function createWindow() {
     // skipTaskbar: true,
   });
 
+  if (process.platform === 'win32' || process.platform === 'darwin') {
+    try {
+      mainWindow.setContentProtection(true);
+    } catch (error) {
+      console.warn('[Main] Failed to enable content protection:', error?.message || error);
+    }
+  }
+
   const devUrl = 'http://localhost:5173';
   if (process.env.NODE_ENV !== 'production') {
     mainWindow.loadURL(devUrl);
@@ -37,8 +60,8 @@ function createWindow() {
 
   initializeIpc(mainWindow);
   initializeWakewordBridge(mainWindow);
-  initializeLocalBackendBridge(mainWindow);
-  initializeWindowMinimizeHandler();
+  initializeLocalBackendBridge(() => ({ mainWindow, chatWindow }));
+  initializeOverlayHandlers();
 
   // Instead of quitting, hide the window to the tray
   mainWindow.on('close', (event) => {
@@ -52,6 +75,64 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+}
+
+function createChatWindow() {
+  chatWindow = new BrowserWindow({
+    width: 520,
+    height: 140,
+    frame: false,
+    transparent: true,
+    backgroundColor: '#00000000',
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    hasShadow: true,
+    webPreferences: {
+      preload: path.join(__dirname, '../preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  if (process.platform === 'win32' || process.platform === 'darwin') {
+    try {
+      chatWindow.setContentProtection(true);
+    } catch (error) {
+      console.warn('[Main] Failed to enable chat box content protection:', error?.message || error);
+    }
+  }
+
+  chatWindow.setAlwaysOnTop(true, 'floating');
+  chatWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  chatWindow.setIgnoreMouseEvents(true, { forward: true });
+  positionChatWindow();
+
+  const devUrl = 'http://localhost:5173';
+  if (process.env.NODE_ENV !== 'production') {
+    chatWindow.loadURL(`${devUrl}?view=chatbox`);
+  } else {
+    chatWindow.loadFile(path.join(__dirname, '../../dist/index.html'), {
+      query: { view: 'chatbox' },
+    });
+  }
+
+  chatWindow.on('close', (event) => {
+    if (!app.isQuitting) {
+      event.preventDefault();
+      chatWindow.hide();
+    }
+    return false;
+  });
+
+  chatWindow.on('closed', () => {
+    chatWindow = null;
+  });
+
+  return chatWindow;
 }
 
 function createTray() {
@@ -88,11 +169,24 @@ function createTray() {
 
 app.whenReady().then(() => {
   createWindow();
+  createChatWindow();
   createTray();
+
+  if (chatWindow) {
+    registerRendererWindow(chatWindow);
+  }
+
+  screen.on('display-metrics-changed', () => {
+    positionChatWindow();
+  });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
+      const overlay = createChatWindow();
+      if (overlay) {
+        registerRendererWindow(overlay);
+      }
     } else {
       mainWindow.show();
     }
@@ -116,43 +210,39 @@ app.on('window-all-closed', (e) => {
  * Initializes IPC handler for delayed window minimization.
  * Minimizes window after 2 seconds if visible or focused, and not already minimized.
  */
-function initializeWindowMinimizeHandler() {
-  ipcMain.handle('minimize-window-delayed', async () => {
-    if (!mainWindow) {
-      return { success: false, reason: 'Window not available' };
+function initializeOverlayHandlers() {
+  if (overlayHandlersInitialized) {
+    return;
+  }
+  overlayHandlersInitialized = true;
+  ipcMain.handle('set-overlay-ignore-mouse', async (event, { ignore } = {}) => {
+    if (!chatWindow || chatWindow.isDestroyed()) {
+      return { success: false, reason: 'Chat window not available' };
     }
-
-    // Check if already minimized - skip if so
-    if (mainWindow.isMinimized()) {
-      return { success: false, reason: 'Already minimized' };
-    }
-
-    // Check if window is visible or focused
-    const isVisible = mainWindow.isVisible();
-    const isFocused = mainWindow.isFocused();
-
-    if (!isVisible && !isFocused) {
-      return { success: false, reason: 'Window not visible or focused' };
-    }
-
-    // Wait 2 seconds before minimizing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Re-check window state after delay (window might have been closed/minimized)
-    if (!mainWindow || mainWindow.isDestroyed()) {
-      return { success: false, reason: 'Window destroyed during delay' };
-    }
-
-    if (mainWindow.isMinimized()) {
-      return { success: false, reason: 'Window minimized during delay' };
-    }
-
-    // Minimize the window
     try {
-      mainWindow.minimize();
+      if (ignore) {
+        chatWindow.setIgnoreMouseEvents(true, { forward: true });
+      } else {
+        chatWindow.setIgnoreMouseEvents(false);
+      }
       return { success: true };
     } catch (error) {
-      return { success: false, reason: `Failed to minimize: ${error.message}` };
+      return { success: false, reason: `Failed to update ignore state: ${error.message}` };
+    }
+  });
+
+  ipcMain.handle('show-main-window', async () => {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return { success: false, reason: 'Main window not available' };
+    }
+    try {
+      if (!mainWindow.isVisible()) {
+        mainWindow.show();
+      }
+      mainWindow.focus();
+      return { success: true };
+    } catch (error) {
+      return { success: false, reason: `Failed to show main window: ${error.message}` };
     }
   });
 }

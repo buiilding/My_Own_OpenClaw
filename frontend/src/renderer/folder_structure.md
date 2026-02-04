@@ -12,12 +12,17 @@ The renderer process is the React-based UI layer of the Electron desktop applica
 frontend/src/renderer/
 ├── app/                                  # Application root and context providers
 │   ├── App.jsx                          # Root component - sets up providers and layout
+│   ├── ChatBoxApp.jsx                   # ChatBox root component
 │   ├── main.jsx                         # React entry point - renders App with StrictMode in dev
 │   │
 │   └── providers/                       # Context providers for global state
-│       ├── AppConfigContext.jsx         # AppConfigProvider - Manages config, availableModels, wakewordEnabled (infrequent changes)
+│       ├── AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
+│       ├── AppConfigProvider.jsx        # AppConfigProvider - Manages config, availableModels, wakewordEnabled (infrequent changes)
+│       ├── AppContextHooks.js           # AppContext hooks (useAppContext, useAppConfigContext, useAppStatusContext)
 │       ├── AppProvider.jsx              # AppProvider - Combines AppConfigProvider and AppStatusProvider
-│       ├── AppStatusContext.jsx         # AppStatusProvider - Manages saveStatus (transient, frequent changes)
+│       ├── AppStatusContext.jsx         # AppStatusContext + useAppStatusContext hook
+│       ├── AppStatusProvider.jsx        # AppStatusProvider - Manages saveStatus (transient, frequent changes)
+│       ├── ChatContext.jsx              # ChatContext + useChatContext hook
 │       └── ChatProvider.jsx             # ChatProvider - Sets up chat hooks (useChatStream, useToolRunner)
 │
 ├── components/                           # Shared UI components
@@ -28,15 +33,18 @@ frontend/src/renderer/
 │   │
 │   ├── chat/                            # Chat feature module
 │   │   ├── components/                  # Chat UI components
+│   │   │   ├── ChatBox.jsx              # ChatBox - Floating quick chat overlay UI
 │   │   │   ├── ChatInterface.jsx        # ChatInterface - Main chat orchestrator (composes MessageList, MessageInput, TokenCountDisplay)
+│   │   │   ├── MessageContent.jsx       # MessageContent - Renders message body by type
 │   │   │   ├── MessageInput.jsx         # MessageInput - Input field with voice transcription support
 │   │   │   ├── MessageList.jsx          # MessageList - Renders messages with transparency sections
+│   │   │   ├── MessageTransparencySections.jsx # MessageTransparencySections - Renders transparency panels
 │   │   │   ├── ThinkingDisplay.jsx      # ThinkingDisplay - Displays LLM thinking/reasoning tokens (collapsible)
 │   │   │   ├── TokenCountDisplay.jsx    # TokenCountDisplay - Shows token usage statistics
 │   │   │   └── TransparencySection.jsx  # TransparencySection - Collapsible sections for system prompts, tool schemas, full messages
 │   │   │
 │   │   ├── hooks/                       # Chat business logic hooks
-│   │   │   ├── useChatMessageSender.ts  # useChatMessageSender - Handles message sending with screenshot capture and window minimization
+│   │   │   ├── useChatMessageSender.ts  # useChatMessageSender - Handles message sending with screenshot capture
 │   │   │   ├── useChatStream.ts         # useChatStream - Handles streaming events (llm-thought, streaming-response, tool-call, etc.)
 │   │   │   ├── useToolRunner.ts         # useToolRunner - Connects UI to ToolExecutionService, handles tool execution events
 │   │   │   └── useTranscription.ts      # useTranscription - Manages input state and voice transcription text insertion
@@ -74,16 +82,24 @@ frontend/src/renderer/
 │   └── services/                         # Business logic services
 │       ├── MessageFormatter.ts          # MessageFormatter - Pure functions for formatting tool output with system context XML
 │       ├── SystemCapture.ts            # SystemCapture - extractOSstate() - Unified screenshot and system state capture
+│       ├── ToolExecutionBundleRunner.ts # ToolExecutionBundleRunner - Runs atomic tool bundles and collects results
+│       ├── ToolExecutionCapture.ts     # ToolExecutionCapture - Auto-capture decisions and OS state capture helpers
+│       ├── ToolExecutionInvoker.ts     # ToolExecutionInvoker - IPC invocation wrapper with timing
+│       ├── ToolExecutionLogger.ts      # ToolExecutionLogger - Timing/log helpers
 │       ├── ToolExecutionService.ts     # ToolExecutionService - Tool execution orchestration (single tools and bundles)
 │       └── ToolExecutionTypes.ts       # ToolExecutionTypes - Type definitions and constants (COMPUTER_USE_TOOLS, etc.)
 │
 ├── styles/                                # CSS stylesheets
 │   ├── accessibility.css                # Accessibility utilities (visually-hidden class)
+│   ├── ChatBox.css                      # Chat box overlay styles
 │   ├── ChatInterface.css               # Chat interface styles (messages, tool outputs, transparency sections)
 │   ├── MainLayout.css                   # Main layout styles (three-column grid)
 │   ├── SettingsPanel.css                # Settings panel styles (form controls, toggles)
 │   ├── ThinkingDisplay.css              # Thinking display styles (collapsible reasoning tokens)
 │   └── TokenCountDisplay.css            # Token count display styles
+│
+├── types/                                 # Local renderer types
+│   └── backendEvents.ts                  # Backend event payload types + guards
 │
 └── utils/                                 # Utility functions
     ├── configFilter.js                  # configFilter - Filters config to frontend-managed fields only
@@ -356,7 +372,7 @@ frontend/src/renderer/
 
 14. **Audio Playback**: Queue-based audio player for TTS chunks from backend
 
-15. **Window Management**: Automatic window minimization after message send (prevents chat window in screenshots)
+15. **Window Management**: Linux hides UI windows during screenshot capture to avoid self-capture; chat box overlay is click-through by default
 
 16. **Memory Storage**: IPC integration with Python sidecar for memory operations
 
@@ -406,7 +422,6 @@ App
 - `GET_SYSTEM_STATE` - Get system state (active window, mouse, clipboard, etc.)
 - `STORE_MEMORY` - Store memory via Python sidecar
 - `SEARCH_MEMORY` - Search memory via Python sidecar
-- `MINIMIZE_WINDOW_DELAYED` - Minimize window after delay
 
 ### On Channels (Main → Renderer, events)
 - `FROM_BACKEND` - Backend WebSocket events (streaming-response, tool-call, tool-bundle, etc.)

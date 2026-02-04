@@ -22,7 +22,7 @@ function MessageInput({ onSendMessage, isSending, voiceModeEnabled }) {
     inputValueRef.current = inputValue;
   }, [inputValue]);
 
-  const handleTranscriptionUpdate = useCallback((text, isFinal) => {
+  const handleTranscriptionUpdate = useCallback((text) => {
     updateTranscription(text);
   }, [updateTranscription]);
 

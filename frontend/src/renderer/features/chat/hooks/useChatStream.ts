@@ -4,9 +4,24 @@
  * Manages LLM thoughts, streaming chunks, and completion states.
  */
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
+import {
+  type BackendEvent,
+  type BackendEventType,
+  type LlmThoughtEvent,
+  type StreamingResponseEvent,
+  type ToolCallEvent,
+  type ToolOutputEvent,
+  type SystemPromptEvent,
+  type UserMessageFullEvent,
+  type AssistantMessageFullEvent,
+  type TokenCountEvent,
+  type ToolSchemasEvent,
+  type ErrorEvent,
+  isBackendEvent,
+} from '../../../types/backendEvents';
 
 /**
  * Custom hook for managing streaming message responses.
@@ -21,63 +36,69 @@ export function useChatStream() {
     setTokenCounts,
   } = useChatStore();
 
-  const handleLlmThought = useCallback((data: any) => {
-    // Accumulate thinking tokens for display
-    const newChunk = data.payload?.status || '';
+  const updateLastMessageBySender = useCallback((sender: ChatMessage['sender'], updates: Partial<ChatMessage>) => {
+    const messages = useChatStore.getState().messages;
+    const lastIndex = messages.findLastIndex(msg => msg.sender === sender);
+    if (lastIndex >= 0) {
+      updateMessage(messages[lastIndex].id, updates);
+    }
+  }, [updateMessage]);
+
+  const updateFirstMessageBySender = useCallback((sender: ChatMessage['sender'], updates: Partial<ChatMessage>) => {
+    const messages = useChatStore.getState().messages;
+    const firstMessage = messages.find(msg => msg.sender === sender);
+    if (firstMessage) {
+      updateMessage(firstMessage.id, updates);
+    }
+  }, [updateMessage]);
+
+  const handleLlmThought = useCallback((event: LlmThoughtEvent) => {
+    const newChunk = event.payload?.status || '';
     const currentStatus = useChatStore.getState().thinkingStatus || '';
     const updated = currentStatus + newChunk;
-    // Keep last 5000 characters to show substantial thinking content
     const finalStatus = updated.length > 5000 ? updated.slice(-5000) : updated;
     setThinkingStatus(finalStatus);
   }, [setThinkingStatus]);
 
-  const handleStreamingResponse = useCallback((data: any) => {
-    setIsSending(false); // We've got the first chunk, so we're not "sending" anymore
-    // Don't clear thinking status - keep it visible so users can see reasoning tokens
+  const handleStreamingResponse = useCallback((event: StreamingResponseEvent) => {
+    setIsSending(false);
 
-    // Get current messages from store (not from dependency)
     const messages = useChatStore.getState().messages;
     const lastMessage = messages[messages.length - 1];
     if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete && lastMessage.type === 'llm-text') {
-      // Append chunk to the last message if it's a streaming LLM text message
       updateMessage(lastMessage.id, {
-        text: lastMessage.text + (data.payload?.text || ''),
+        text: lastMessage.text + (event.payload?.text || ''),
         type: 'llm-text',
       });
     } else {
-      // This is the first chunk, create a new message object
       const newMessage: ChatMessage = {
         id: crypto.randomUUID(),
-        text: data.payload?.text || '',
+        text: event.payload?.text || '',
         sender: 'assistant',
         isComplete: false,
-        type: 'llm-text', // Default to LLM text for streaming chunks
+        type: 'llm-text',
       };
       addMessage(newMessage);
     }
   }, [addMessage, updateMessage, setIsSending]);
 
-  const handleToolCall = useCallback((data: any) => {
-    // Format tool call as pretty-printed JSON
+  const handleToolCall = useCallback((event: ToolCallEvent) => {
     let formattedText: string;
-    
-    if (data.payload?.raw_call) {
+
+    if (event.payload?.raw_call) {
       try {
-        // Parse the raw_call JSON string and reformat with indentation
-        const parsed = JSON.parse(data.payload.raw_call);
+        const parsed = JSON.parse(event.payload.raw_call);
         formattedText = JSON.stringify(parsed, null, 2);
       } catch (e) {
-        // If parsing fails, use raw_call as-is
-        formattedText = data.payload.raw_call;
+        formattedText = event.payload.raw_call;
       }
     } else {
-      // Fallback: construct from tool_name and parameters
       formattedText = JSON.stringify({
-        name: data.payload?.tool_name,
-        args: data.payload?.parameters
+        name: event.payload?.tool_name,
+        args: event.payload?.parameters
       }, null, 2);
     }
-    
+
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
       text: formattedText,
@@ -87,89 +108,62 @@ export function useChatStream() {
     addMessage(newMessage);
   }, [addMessage]);
 
-  const handleToolOutput = useCallback((data: any) => {
-    const outputText = data.payload?.error
-      ? `Error: ${data.payload.error}`
-      : (data.payload?.output || 'No output');
+  const handleToolOutput = useCallback((event: ToolOutputEvent) => {
+    const outputText = event.payload?.error
+      ? `Error: ${event.payload.error}`
+      : (event.payload?.output || 'No output');
 
-    // Always generate a unique ID for React keys
-    const messageId = crypto.randomUUID();
     const newMessage: ChatMessage = {
-      id: messageId,
+      id: crypto.randomUUID(),
       text: outputText,
       sender: 'assistant',
       type: 'tool-output',
-      screenshot: data.payload?.screenshot,
-      toolMetadata: data.payload?.metadata,
-      toolName: data.payload?.tool_name,
-      executionTime: data.payload?.execution_time,
-      success: data.payload?.success,
-      correlationId: data.id || data.payload?.request_id,
+      screenshot: event.payload?.screenshot,
+      toolMetadata: event.payload?.metadata,
+      toolName: event.payload?.tool_name,
+      executionTime: event.payload?.execution_time,
+      success: event.payload?.success,
+      correlationId: event.id || event.payload?.request_id,
     };
-    
+
     addMessage(newMessage);
   }, [addMessage]);
 
-  const handleSystemPrompt = useCallback((data: any) => {
-    // Store system prompt data - will be linked to last user message
-    // Find the last user message and attach system prompt to it
-    const messages = useChatStore.getState().messages;
-    const lastUserMessageIndex = messages.findLastIndex(msg => msg.sender === 'user');
-    if (lastUserMessageIndex >= 0) {
-      const lastUserMessage = messages[lastUserMessageIndex];
-      updateMessage(lastUserMessage.id, {
-        systemPrompt: {
-          content: data.payload?.content || '',
-          toolSchemas: data.payload?.tool_schemas,
-        },
-      });
-    }
-  }, [updateMessage]);
+  const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
+    updateLastMessageBySender('user', {
+      systemPrompt: {
+        content: event.payload?.content || '',
+        toolSchemas: event.payload?.tool_schemas,
+      },
+    });
+  }, [updateLastMessageBySender]);
 
-  const handleUserMessageFull = useCallback((data: any) => {
-    // Update the last user message with full transparency data
-    const messages = useChatStore.getState().messages;
-    const lastUserMessageIndex = messages.findLastIndex(msg => msg.sender === 'user');
-    if (lastUserMessageIndex >= 0) {
-      const lastUserMessage = messages[lastUserMessageIndex];
-      updateMessage(lastUserMessage.id, {
-        fullUserMessage: {
-          content: data.payload?.content || '',
-          metadata: data.payload?.metadata,
-        },
-      });
-    }
-  }, [updateMessage]);
+  const handleUserMessageFull = useCallback((event: UserMessageFullEvent) => {
+    updateLastMessageBySender('user', {
+      fullUserMessage: {
+        content: event.payload?.content || '',
+        metadata: event.payload?.metadata,
+      },
+    });
+  }, [updateLastMessageBySender]);
 
-  const handleAssistantMessageFull = useCallback((data: any) => {
-    // Update the last assistant message with full transparency data
-    const messages = useChatStore.getState().messages;
-    const lastAssistantMessageIndex = messages.findLastIndex(msg => msg.sender === 'assistant');
-    if (lastAssistantMessageIndex >= 0) {
-      const lastAssistantMessage = messages[lastAssistantMessageIndex];
-      updateMessage(lastAssistantMessage.id, {
-        fullAssistantMessage: {
-          content: data.payload?.content || '',
-        },
-      });
-    }
-  }, [updateMessage]);
+  const handleAssistantMessageFull = useCallback((event: AssistantMessageFullEvent) => {
+    updateLastMessageBySender('assistant', {
+      fullAssistantMessage: {
+        content: event.payload?.content || '',
+      },
+    });
+  }, [updateLastMessageBySender]);
 
-  const handleToolSchemas = useCallback((data: any) => {
-    // Store tool schemas data - attach only to the first user message
-    const messages = useChatStore.getState().messages;
-    const firstUserMessage = messages.find(msg => msg.sender === 'user');
-    if (firstUserMessage) {
-      updateMessage(firstUserMessage.id, {
-        toolSchemas: data.payload?.tool_schemas,
-      });
-    }
-  }, [updateMessage]);
+  const handleToolSchemas = useCallback((event: ToolSchemasEvent) => {
+    updateFirstMessageBySender('user', {
+      toolSchemas: event.payload?.tool_schemas,
+    });
+  }, [updateFirstMessageBySender]);
 
   const handleStreamingComplete = useCallback(() => {
-    // Don't clear thinking status - keep it visible so users can review reasoning tokens
-    setIsSending(false); // Always unblock UI when streaming completes
-    
+    setIsSending(false);
+
     const messages = useChatStore.getState().messages;
     const lastMessage = messages[messages.length - 1];
     if (lastMessage && lastMessage.sender === 'assistant') {
@@ -177,11 +171,14 @@ export function useChatStream() {
     }
   }, [updateMessage, setIsSending]);
 
-  const handleError = useCallback((data: any) => {
-    // Display error message and unblock UI
+  const handleTokenCount = useCallback((event: TokenCountEvent) => {
+    setTokenCounts(event.payload ?? null);
+  }, [setTokenCounts]);
+
+  const handleError = useCallback((event: ErrorEvent) => {
     setIsSending(false);
-    setThinkingStatus(''); // Clear thinking status on error
-    const errorText = data.payload?.content || data.payload?.message || 'An error occurred';
+    setThinkingStatus('');
+    const errorText = event.payload?.content || event.payload?.message || 'An error occurred';
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
       text: errorText,
@@ -191,55 +188,24 @@ export function useChatStream() {
     addMessage(newMessage);
   }, [addMessage, setIsSending, setThinkingStatus]);
 
-  // Set up IPC event listeners
-  useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data: any) => {
-      switch (data.type) {
-        case 'llm-thought':
-          handleLlmThought(data);
-          break;
-        case 'streaming-response':
-          handleStreamingResponse(data);
-          break;
-        case 'streaming-complete':
-          handleStreamingComplete();
-          break;
-        case 'tool-call':
-          handleToolCall(data);
-          break;
-        case 'tool-output':
-          // Backend only emits tool-output for backend-side failures
-          // Normal tool outputs are displayed by useToolRunner
-          handleToolOutput(data);
-          break;
-        case 'system-prompt':
-          handleSystemPrompt(data);
-          break;
-        case 'user-message-full':
-          handleUserMessageFull(data);
-          break;
-        case 'assistant-message-full':
-          handleAssistantMessageFull(data);
-          break;
-        case 'token-count':
-          setTokenCounts(data.payload);
-          break;
-        case 'tool-schemas':
-          handleToolSchemas(data);
-          break;
-        case 'error':
-          // Filter out settings errors which are handled by AppContext
-          if (!data.payload?.message?.includes('Failed to update settings')) {
-            handleError(data);
-          }
-          break;
-        default:
-          break;
+  const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => ({
+    'llm-thought': event => handleLlmThought(event as LlmThoughtEvent),
+    'streaming-response': event => handleStreamingResponse(event as StreamingResponseEvent),
+    'streaming-complete': () => handleStreamingComplete(),
+    'tool-call': event => handleToolCall(event as ToolCallEvent),
+    'tool-output': event => handleToolOutput(event as ToolOutputEvent),
+    'system-prompt': event => handleSystemPrompt(event as SystemPromptEvent),
+    'user-message-full': event => handleUserMessageFull(event as UserMessageFullEvent),
+    'assistant-message-full': event => handleAssistantMessageFull(event as AssistantMessageFullEvent),
+    'token-count': event => handleTokenCount(event as TokenCountEvent),
+    'tool-schemas': event => handleToolSchemas(event as ToolSchemasEvent),
+    'error': event => {
+      const errorEvent = event as ErrorEvent;
+      if (!errorEvent.payload?.message?.includes('Failed to update settings')) {
+        handleError(errorEvent);
       }
-    });
-
-    return removeListener;
-  }, [
+    },
+  }), [
     handleLlmThought,
     handleStreamingResponse,
     handleStreamingComplete,
@@ -248,8 +214,22 @@ export function useChatStream() {
     handleSystemPrompt,
     handleUserMessageFull,
     handleAssistantMessageFull,
+    handleTokenCount,
     handleToolSchemas,
     handleError,
-    setTokenCounts,
   ]);
+
+  useEffect(() => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data: unknown) => {
+      if (!isBackendEvent(data)) {
+        return;
+      }
+      const handler = handlers[data.type];
+      if (handler) {
+        handler(data);
+      }
+    });
+
+    return removeListener;
+  }, [handlers]);
 }

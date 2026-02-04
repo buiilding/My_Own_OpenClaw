@@ -5,33 +5,35 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react';
-import { IpcBridge, ON_CHANNELS, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { ToolExecutionService, type ToolExecutionResult, type BundleExecutionResult } from '../../../infrastructure/services/ToolExecutionService';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
+import { type ToolBundleEvent, type ToolCallEvent, isBackendEvent } from '../../../types/backendEvents';
 
 /**
  * Custom hook for managing tool execution.
  * Connects UI to ToolExecutionService and handles tool-related events.
  */
-export function useToolRunner() {
+export function useToolRunner(enabled = true) {
   const { addMessage } = useChatStore();
-  
-  // Tool execution service instance
+
   const toolServiceRef = useRef<ToolExecutionService | null>(null);
 
-  // Initialize tool service with callbacks
   useEffect(() => {
+    if (!enabled) {
+      toolServiceRef.current = null;
+      return undefined;
+    }
     const toolService = new ToolExecutionService({
       onToolResult: (result: ToolExecutionResult) => {
-        // Create tool output message
         const toolOutputMessage: ChatMessage = {
           id: crypto.randomUUID(),
           text: result.formattedMessage,
           sender: 'assistant',
           type: 'tool-output',
           screenshot: result.screenshot || null,
-          toolMetadata: result.result.data && typeof result.result.data === 'object' 
-            ? result.result.data.metadata || null 
+          toolMetadata: result.result.data && typeof result.result.data === 'object'
+            ? result.result.data.metadata || null
             : null,
           toolName: result.toolName,
           executionTime: result.executionTime,
@@ -42,7 +44,6 @@ export function useToolRunner() {
         addMessage(toolOutputMessage);
       },
       onBundleResult: (result: BundleExecutionResult) => {
-        // Create bundled tool output message
         const bundledMessage: ChatMessage = {
           id: crypto.randomUUID(),
           text: result.formattedMessage,
@@ -66,7 +67,7 @@ export function useToolRunner() {
 
         addMessage(bundledMessage);
       },
-      sendToBackend: (payload: any) => {
+      sendToBackend: (payload: unknown) => {
         IpcBridge.send(SEND_CHANNELS.TO_BACKEND, payload);
       },
     });
@@ -76,91 +77,71 @@ export function useToolRunner() {
     return () => {
       toolServiceRef.current = null;
     };
-  }, [addMessage]);
+  }, [addMessage, enabled]);
 
-  // Handle tool execution events
+  const handleToolBundle = useCallback((event: ToolBundleEvent) => {
+    const bundleId = event.payload?.bundle_id || `bundle-${crypto.randomUUID()}`;
+    const tools = (event.payload?.tools || [])
+      .filter(tool => tool.name)
+      .map(tool => ({
+        toolName: tool.name as string,
+        args: tool.args || {},
+      }));
+
+    if (tools.length === 0) {
+      return;
+    }
+
+    console.log('[useToolRunner] Received atomic bundle:', bundleId, tools.length, 'tools');
+
+    if (toolServiceRef.current) {
+      toolServiceRef.current.executeToolBundle(tools, bundleId).catch(err => {
+        console.error('[useToolRunner] Failed to execute bundle:', err);
+      });
+    }
+  }, []);
+
+  const handleToolCall = useCallback((event: ToolCallEvent) => {
+    if (!event.payload?.tool_name || !event.payload?.parameters) {
+      return;
+    }
+
+    const correlationId =
+      event.payload.correlation_id ||
+      event.payload.request_id ||
+      event.id ||
+      crypto.randomUUID();
+
+    if (toolServiceRef.current) {
+      toolServiceRef.current.executeTool(
+        event.payload.tool_name,
+        event.payload.parameters,
+        {
+          correlationId,
+          skipAutoCapture: false
+        }
+      ).catch(err => {
+        console.error('[useToolRunner] Failed to execute tool:', err);
+      });
+    }
+  }, []);
+
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data: any) => {
-      switch (data.type) {
-        case 'tool-bundle':
-          // ATOMIC BUNDLE: Execute bundle directly (stateless)
-          if (data.payload && data.payload.tools && Array.isArray(data.payload.tools)) {
-            const bundleId = data.payload.bundle_id || `bundle-${crypto.randomUUID()}`;
-            const tools = data.payload.tools.map((tool: any) => ({
-              toolName: tool.name,
-              args: tool.args,
-            }));
-            
-            console.log('[useToolRunner] Received atomic bundle:', bundleId, tools.length, 'tools');
-            
-            if (toolServiceRef.current) {
-              toolServiceRef.current.executeToolBundle(tools, bundleId).catch(err => {
-                console.error('[useToolRunner] Failed to execute bundle:', err);
-              });
-            }
-          }
-          break;
-
-        case 'tool-call':
-          // Execute tool immediately (no bundle mode)
-          if (data.payload && data.payload.tool_name && data.payload.parameters) {
-            const correlationId = data.payload.correlation_id || data.payload.request_id || data.id || crypto.randomUUID();
-            
-            if (toolServiceRef.current) {
-              toolServiceRef.current.executeTool(
-                data.payload.tool_name,
-                data.payload.parameters,
-                {
-                  correlationId,
-                  skipAutoCapture: false
-                }
-              ).catch(err => {
-                console.error('[useToolRunner] Failed to execute tool:', err);
-              });
-            }
-          }
-          break;
-
-        case 'memory-store':
-          // Handle memory storage request from backend
-          if (data.payload) {
-            const { user_query, assistant_response, memory_type, user_id, session_id } = data.payload;
-            console.log('[useToolRunner] Received memory store request:', memory_type);
-            
-            // Store memory via IPC to Python sidecar
-            IpcBridge.invoke(INVOKE_CHANNELS.STORE_MEMORY, {
-              userQuery: user_query,
-              assistantResponse: assistant_response,
-              memoryType: memory_type,
-              userId: user_id || 'default_user',
-              sessionId: session_id || null
-            }).catch(err => {
-              console.error('[useToolRunner] Failed to store memory:', err);
-            });
-          }
-          break;
-
-        case 'wakeword-greeting':
-          // Handle greeting
-          const greetingText = data.payload?.text || "Hello! I'm listening.";
-          const greetingMessage: ChatMessage = {
-            id: crypto.randomUUID(),
-            text: greetingText,
-            sender: 'assistant',
-            timestamp: new Date().toISOString()
-          };
-          addMessage(greetingMessage);
-          break;
-
-        default:
-          break;
+    if (!enabled) {
+      return undefined;
+    }
+    const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data: unknown) => {
+      if (!isBackendEvent(data)) {
+        return;
+      }
+      if (data.type === 'tool-bundle') {
+        handleToolBundle(data);
+      }
+      if (data.type === 'tool-call') {
+        handleToolCall(data);
       }
     });
 
     return removeListener;
-  }, [addMessage]);
-
-  return {
-    toolService: toolServiceRef.current,
-  };
+  }, [enabled, handleToolBundle, handleToolCall]);
 }
