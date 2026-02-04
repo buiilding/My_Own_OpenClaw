@@ -1,9 +1,11 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
+import { DISPLAY_BOUNDS_STORAGE_KEY } from '../../frontend/src/renderer/utils/displaySelection';
 
 describe('SystemCapture', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    localStorage.clear();
   });
 
   test('extractOSstate returns system state and screenshot for first user message', async () => {
@@ -27,6 +29,29 @@ describe('SystemCapture', () => {
     });
     expect(result.systemState).toEqual({ active_window: 'App', mouse_position: '0,0' });
     expect(result.screenshot).toBe('shot');
+  });
+
+  test('extractOSstate includes stored display bounds in screenshot args', async () => {
+    localStorage.setItem(
+      DISPLAY_BOUNDS_STORAGE_KEY,
+      JSON.stringify({ x: 10, y: 20, width: 300, height: 200 }),
+    );
+    const invokeSpy = jest
+      .spyOn(IpcBridge, 'invoke')
+      .mockResolvedValueOnce({ active_window: 'App', mouse_position: '0,0' })
+      .mockResolvedValueOnce({ success: true, data: { screenshot: 'shot' } });
+
+    await extractOSstate(true, true, 0, true);
+
+    expect(invokeSpy).toHaveBeenNthCalledWith(2, INVOKE_CHANNELS.EXECUTE_TOOL, {
+      toolName: 'screenshot',
+      args: {
+        explanation: 'Initial user message screenshot',
+        expectation: 'Current screen state',
+        display_bounds: { x: 10, y: 20, width: 300, height: 200 },
+      },
+      skipAutoCapture: false,
+    });
   });
 
   test('extractOSstate handles system-state-only capture', async () => {

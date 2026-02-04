@@ -2,16 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import { useAppConfigContext } from '../../../../app/providers/AppContextHooks';
-import { loadLocalValue, saveLocalValue } from '../../utils/storage';
+import { getStoredDisplayId, persistDisplaySelection } from '../../../../utils/displaySelection';
 import '../../../../styles/SettingsPanel.css';
-
-const DISPLAY_STORAGE_KEY = 'desktop-assistant-display-id';
 
 function SettingsSection({ config, onConfigChange }) {
   const { wakewordEnabled, wakewordSuppressed, setWakewordEnabled } = useAppConfigContext();
   const [displays, setDisplays] = useState([]);
   const [displayError, setDisplayError] = useState('');
-  const [selectedDisplayId, setSelectedDisplayId] = useState(() => loadLocalValue(DISPLAY_STORAGE_KEY, ''));
+  const [selectedDisplayId, setSelectedDisplayId] = useState(() => getStoredDisplayId());
 
   const modelMode = config?.model_mode || 'online';
   const selectedModelId = config?.selected_model_id || '';
@@ -45,7 +43,7 @@ function SettingsSection({ config, onConfigChange }) {
     if (primary) {
       const nextId = String(primary.id);
       setSelectedDisplayId(nextId);
-      saveLocalValue(DISPLAY_STORAGE_KEY, nextId);
+      persistDisplaySelection(primary);
     }
   }, [displays, selectedDisplayId]);
 
@@ -129,7 +127,8 @@ function SettingsSection({ config, onConfigChange }) {
               onChange={(event) => {
                 const nextValue = event.target.value;
                 setSelectedDisplayId(nextValue);
-                saveLocalValue(DISPLAY_STORAGE_KEY, nextValue);
+                const selectedDisplay = displays.find((display) => String(display.id) === nextValue);
+                persistDisplaySelection(selectedDisplay ? selectedDisplay : { id: nextValue, bounds: null });
               }}
             >
               {displayOptions.map((display) => (

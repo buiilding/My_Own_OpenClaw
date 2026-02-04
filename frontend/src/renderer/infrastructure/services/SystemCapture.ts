@@ -4,7 +4,20 @@
  */
 
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
+import { getStoredDisplayBounds } from '../../utils/displaySelection';
 import type { SystemState, ToolResult } from './MessageFormatter';
+
+function buildScreenshotArgs(explanation: string) {
+  const args: Record<string, any> = {
+    explanation,
+    expectation: 'Current screen state',
+  };
+  const displayBounds = getStoredDisplayBounds();
+  if (displayBounds) {
+    args.display_bounds = displayBounds;
+  }
+  return args;
+}
 
 /**
  * Extract OS state (system state and/or screenshot) with configurable options.
@@ -42,10 +55,7 @@ export async function extractOSstate(
         enable_screenshot
           ? IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
               toolName: 'screenshot',
-              args: {
-                explanation: 'Initial user message screenshot',
-                expectation: 'Current screen state',
-              },
+              args: buildScreenshotArgs('Initial user message screenshot'),
               skipAutoCapture: false,
             })
           : Promise.resolve({ success: false, data: null }),
@@ -86,10 +96,7 @@ export async function extractOSstate(
       promises.push(
         IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
           toolName: 'screenshot',
-          args: {
-            explanation: 'Screenshot capture',
-            expectation: 'Current screen state',
-          },
+          args: buildScreenshotArgs('Screenshot capture'),
           skipAutoCapture: false,
         }),
       );
@@ -123,4 +130,3 @@ export async function extractOSstate(
     return { systemState: null, screenshot: null };
   }
 }
-

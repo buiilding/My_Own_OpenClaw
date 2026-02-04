@@ -68,7 +68,7 @@ Default section on open: **Chat**.
 - Wakeword toggle ("Hey Jarvis").
 - Hotkey reminder: **Win + Alt + W**.
 - TTS toggle (speech replies).
-- Screen selection (active display).
+- Screen selection (active display). Screenshots use this display.
 - Permissions (normal now; system access marked as coming soon).
 
 ## Wakeword Behavior
