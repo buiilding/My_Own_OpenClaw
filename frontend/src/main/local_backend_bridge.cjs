@@ -345,6 +345,15 @@ function initializeLocalBackendBridge(getWindows) {
     }
     return [];
   };
+  const resolveChatWindow = () => {
+    if (typeof getWindows === 'function') {
+      const result = getWindows();
+      if (result && typeof result === 'object') {
+        return result.chatWindow || null;
+      }
+    }
+    return null;
+  };
 
   const [mainWindow] = resolveWindows();
   startLocalBackend(mainWindow);
@@ -354,6 +363,7 @@ function initializeLocalBackendBridge(getWindows) {
       return task();
     }
     const windows = resolveWindows().filter((win) => win && !win.isDestroyed());
+    const chatWindow = resolveChatWindow();
     if (windows.length === 0) {
       return task();
     }
@@ -378,7 +388,11 @@ function initializeLocalBackendBridge(getWindows) {
     } finally {
       for (const state of windowStates) {
         if (state.wasVisible && !state.wasMinimized && !state.win.isDestroyed()) {
-          state.win.show();
+          if (chatWindow && state.win === chatWindow && typeof state.win.showInactive === 'function') {
+            state.win.showInactive();
+          } else {
+            state.win.show();
+          }
         }
       }
       if (focusedWindow && !focusedWindow.isDestroyed()) {
