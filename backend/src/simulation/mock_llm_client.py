@@ -217,7 +217,7 @@ SIMULATION_RESPONSES = [
                         "action": "click",
                         "find_coordinates_by": "ocr",
                         "ocr_text": "Price: Low to High",
-                        "wait": 0.2
+                        "wait": 2.0
                     }
                 }
             }
