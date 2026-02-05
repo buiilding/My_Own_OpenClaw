@@ -8,10 +8,8 @@ InternVL-specific `use_flash_attn` argument that Venus models do not support.
 
 import logging
 
-from backend.src.services.vision.providers.base import (
-    BaseVisionModel,
-    VISION_MODELS_AVAILABLE,
-)
+from backend.src.services.vision.providers.base import VISION_MODELS_AVAILABLE
+from backend.src.services.vision.providers.internvl import InternVLModel
 
 logger = logging.getLogger(__name__)
 
@@ -25,15 +23,15 @@ else:
     AutoTokenizer = None
 
 
-class VenusVisionModel(BaseVisionModel):
+class VenusVisionModel(InternVLModel):
     """
     Vision model handler for inclusionAI/UI-Venus-Ground-7B (Qwen2.5-VL family).
 
     IMPORTANT:
     - Behavior outside of model/tokenizer loading (pre/post-processing,
-      coordinate extraction) is shared with InternVLModel via higher-level
-      utilities. This class focuses solely on safe model construction for
-      Venus-style architectures that do NOT accept `use_flash_attn`.
+      coordinate extraction) is shared with InternVLModel via inheritance.
+      This class focuses solely on safe model construction for Venus-style
+      architectures that do NOT accept `use_flash_attn`.
     """
 
     def _load(self):
