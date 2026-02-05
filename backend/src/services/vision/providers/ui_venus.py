@@ -6,8 +6,19 @@ Shares the same base initialization contract as InternVLModel but omits the
 InternVL-specific `use_flash_attn` argument that Venus models do not support.
 """
 
+import asyncio
+import base64
 import logging
+from io import BytesIO
+from typing import Optional, Tuple
 
+from PIL import Image
+
+from backend.src.services.vision.coordinates import (
+    extract_first_point,
+    extract_last_bbox,
+    scale_norm_to_pixels,
+)
 from backend.src.services.vision.providers.base import VISION_MODELS_AVAILABLE
 from backend.src.services.vision.providers.internvl import InternVLModel
 
@@ -16,11 +27,17 @@ logger = logging.getLogger(__name__)
 # Import dependencies - these are module-level in base.py but not exported
 if VISION_MODELS_AVAILABLE:
     import torch
-    from transformers import AutoModel, AutoTokenizer
+    from transformers import AutoModel, AutoTokenizer, AutoProcessor
+    try:
+        from transformers import AutoModelForVision2Seq
+    except ImportError:  # pragma: no cover - older transformers
+        AutoModelForVision2Seq = None
 else:
     torch = None
     AutoModel = None
     AutoTokenizer = None
+    AutoProcessor = None
+    AutoModelForVision2Seq = None
 
 
 class VenusVisionModel(InternVLModel):
@@ -44,10 +61,15 @@ class VenusVisionModel(InternVLModel):
                 f"Loading Venus vision model (Qwen2.5-VL family): {self.model_name}"
             )
 
+            if AutoProcessor is None:
+                raise ImportError("AutoProcessor not available for Venus vision model")
+
             # Try device_map with auto device placement first (no use_flash_attn kwarg)
             try:
                 model_dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
-                self.model = AutoModel.from_pretrained(
+                if AutoModelForVision2Seq is None:
+                    raise RuntimeError("AutoModelForVision2Seq unavailable")
+                self.model = AutoModelForVision2Seq.from_pretrained(
                     self.model_name,
                     dtype=model_dtype,
                     low_cpu_mem_usage=True,
@@ -70,8 +92,10 @@ class VenusVisionModel(InternVLModel):
                 dtype = torch.float16 if device == "cuda" else torch.float32
 
                 try:
+                    if AutoModelForVision2Seq is None:
+                        raise RuntimeError("AutoModelForVision2Seq unavailable")
                     self.model = (
-                        AutoModel.from_pretrained(
+                        AutoModelForVision2Seq.from_pretrained(
                             self.model_name,
                             dtype=dtype,
                             low_cpu_mem_usage=True,
@@ -93,8 +117,10 @@ class VenusVisionModel(InternVLModel):
                     # CPU fallback as last resort
                     try:
                         cpu_dtype = torch.float32
+                        if AutoModelForVision2Seq is None:
+                            raise RuntimeError("AutoModelForVision2Seq unavailable")
                         self.model = (
-                            AutoModel.from_pretrained(
+                            AutoModelForVision2Seq.from_pretrained(
                                 self.model_name,
                                 dtype=cpu_dtype,
                                 low_cpu_mem_usage=True,
@@ -115,14 +141,123 @@ class VenusVisionModel(InternVLModel):
                         )
                         raise RuntimeError(f"Failed to load Venus vision model: {cpu_error}")
 
-            # Load tokenizer (Venus models also require trust_remote_code=True)
-            self.tokenizer = AutoTokenizer.from_pretrained(
+            # Load processor (handles both vision + text)
+            self.processor = AutoProcessor.from_pretrained(
                 self.model_name,
                 trust_remote_code=self.trust_remote_code,
-                use_fast=False,
             )
+            # Keep tokenizer for compatibility when available
+            self.tokenizer = getattr(self.processor, "tokenizer", None)
             logger.info(f"Successfully loaded Venus model: {self.model_name}")
 
         except Exception as e:
             logger.error(f"Failed to load Venus vision model {self.model_name}: {e}")
             raise
+
+    async def predict_click_coordinates(
+        self, image_b64: str, instruction: str
+    ) -> Optional[Tuple[int, int]]:
+        """Predict click coordinates using Qwen2.5-VL with processor + generate."""
+        async with self._inference_lock:
+            loop = asyncio.get_running_loop()
+            return await loop.run_in_executor(
+                None,
+                self._predict_sync,
+                image_b64,
+                instruction
+            )
+
+    def _predict_sync(
+        self, image_b64: str, instruction: str
+    ) -> Optional[Tuple[int, int]]:
+        import time
+
+        vision_prediction_start = time.perf_counter()
+        if not instruction:
+            raise ValueError("description parameter is required for prediction method")
+        if not getattr(self, "processor", None):
+            raise RuntimeError("Vision processor not initialized for Venus model")
+
+        try:
+            img_bytes = base64.b64decode(image_b64)
+            image = Image.open(BytesIO(img_bytes))
+            width, height = image.size
+
+            grounding_prompt = (
+                f"Please provide the bounding box coordinate of the UI element this user instruction describes: <ref>{instruction}</ref>. "
+                f"Answer in the format of [[x1, y1, x2, y2]]"
+            )
+
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image"},
+                        {"type": "text", "text": grounding_prompt},
+                    ],
+                }
+            ]
+
+            text = self.processor.apply_chat_template(
+                messages,
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+            inputs = self.processor(
+                text=[text],
+                images=[image],
+                return_tensors="pt",
+            )
+            inputs = inputs.to(self.model.device)
+
+            with torch.no_grad():
+                output_ids = self.model.generate(
+                    **inputs,
+                    max_new_tokens=256,
+                    do_sample=False,
+                    temperature=0.0,
+                    use_cache=True,
+                )
+
+            output_text = self.processor.batch_decode(
+                output_ids, skip_special_tokens=True
+            )[0]
+
+            if not output_text:
+                logger.error("Empty output from Venus model")
+                return None
+
+            point = extract_first_point(output_text)
+            if point is None:
+                bbox = extract_last_bbox(output_text)
+                if bbox is None:
+                    logger.error(f"Could not parse coordinates from output: {output_text}")
+                    return None
+                x1, y1, x2, y2 = bbox
+                cx = (x1 + x2) / 2.0
+                cy = (y1 + y2) / 2.0
+                point = (cx, cy)
+
+            x_norm, y_norm = point
+            if 0 <= x_norm <= 1 and 0 <= y_norm <= 1:
+                x_norm *= 1000.0
+                y_norm *= 1000.0
+
+            if x_norm > 1000 or y_norm > 1000:
+                x_px = max(0, min(width - 1, int(round(x_norm))))
+                y_px = max(0, min(height - 1, int(round(y_norm))))
+            else:
+                x_px, y_px = scale_norm_to_pixels(x_norm, y_norm, width, height)
+
+            vision_prediction_time = time.perf_counter() - vision_prediction_start
+            logger.info(
+                f"[Timing] Venus vision prediction completed in {vision_prediction_time:.3f}s (coordinates=({x_px}, {y_px}))"
+            )
+            return (x_px, y_px)
+
+        except Exception as e:
+            vision_prediction_time = time.perf_counter() - vision_prediction_start
+            logger.error(
+                f"[Timing] Venus vision prediction failed after {vision_prediction_time:.3f}s: {e}"
+            )
+            return None
