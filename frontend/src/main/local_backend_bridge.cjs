@@ -541,7 +541,7 @@ function initializeLocalBackendBridge(getWindows) {
     }
   });
 
-  ipcMain.handle('store-transcript', async (event, { content, userId, sessionId, role, messageType, toolName, correlationId, messageIndex, modelId, modelProvider, timestamp } = {}) => {
+  ipcMain.handle('store-transcript', async (event, { content, userId, sessionId, role, messageType, toolName, correlationId, messageIndex, modelId, modelProvider, screenshot, timestamp } = {}) => {
     try {
       const result = await sendRequest('store_transcript', {
         content: content,
@@ -554,6 +554,7 @@ function initializeLocalBackendBridge(getWindows) {
         message_index: messageIndex,
         model_id: modelId,
         model_provider: modelProvider,
+        screenshot: screenshot,
         timestamp: timestamp,
       });
 
