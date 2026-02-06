@@ -102,7 +102,7 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
 
 
 async def _handle_connect(args: BrowserConnectArgs) -> ToolResult:
-    """Handle browser connect action."""
+    """Handle browser connect action with auto-launch support."""
     controller = get_browser_controller()
     
     # Close existing connection if any
@@ -111,26 +111,41 @@ async def _handle_connect(args: BrowserConnectArgs) -> ToolResult:
     
     try:
         if args.mode == "user_chrome":
-            result = await controller.connect_to_user_chrome(
+            # Use auto_connect which handles launching if needed
+            result = await controller.auto_connect_to_chrome(
                 cdp_url=args.cdp_url,
+                auto_launch=True,
             )
+            
+            # Build user-friendly message
+            if result.get("auto_launched"):
+                message = (
+                    f"Browser {result['status']} in {result['mode']} mode "
+                    f"(Chrome was auto-launched)"
+                )
+            else:
+                message = (
+                    f"Browser {result['status']} in {result['mode']} mode "
+                    f"(connected to existing Chrome)"
+                )
         else:
             result = await controller.launch_managed_browser(
                 headless=args.headless,
                 executable_path=args.executable_path,
             )
+            message = f"Browser {result['status']} in {result['mode']} mode"
         
         return ToolResult.success_result({
             "status": result["status"],
             "mode": result["mode"],
             "url": result["url"],
             "title": result.get("title", ""),
-            "message": f"Browser {result['status']} in {result['mode']} mode",
+            "auto_launched": result.get("auto_launched", False),
+            "message": message,
         })
     except ConnectionError as e:
         return ToolResult.error_result(
-            f"Cannot connect to Chrome. Make sure Chrome is running with "
-            f"--remote-debugging-port=9222. Error: {str(e)}"
+            f"Failed to connect to Chrome. {str(e)}"
         )
     except RuntimeError as e:
         return ToolResult.error_result(str(e))
