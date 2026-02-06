@@ -11,6 +11,8 @@ type PendingMessage = {
   text: string;
   screenshot?: string | null;
   timestamp?: string;
+  modelId?: string | null;
+  modelProvider?: string | null;
 };
 
 let currentSessionId: string | null = null;
@@ -83,6 +85,8 @@ const flushPendingUserMessages = async () => {
       role: 'user',
       messageType: 'user',
       timestamp: message.timestamp,
+      modelId: message.modelId,
+      modelProvider: message.modelProvider,
     });
   }
 };
@@ -109,15 +113,24 @@ export const getTranscriptSessionInfo = (): SessionInfo => {
   return { sessionId: currentSessionId, userId: currentUserId };
 };
 
-export const recordUserMessage = (text: string, options: { timestamp?: string; sessionId?: string | null; userId?: string | null } = {}) => {
+export const recordUserMessage = (
+  text: string,
+  options: {
+    timestamp?: string;
+    sessionId?: string | null;
+    userId?: string | null;
+    modelId?: string | null;
+    modelProvider?: string | null;
+  } = {}
+) => {
   if (!text) {
     return;
   }
-  const { sessionId, userId, timestamp } = options;
+  const { sessionId, userId, timestamp, modelId, modelProvider } = options;
   const info = resolveSessionInfo({ sessionId: sessionId ?? null, userId: userId ?? null });
 
   if (!info.sessionId || !info.userId) {
-    pendingUserMessages.push({ text, timestamp });
+    pendingUserMessages.push({ text, timestamp, modelId, modelProvider });
     return;
   }
 
@@ -126,12 +139,23 @@ export const recordUserMessage = (text: string, options: { timestamp?: string; s
     role: 'user',
     messageType: 'user',
     timestamp,
+    modelId,
+    modelProvider,
     sessionId: info.sessionId,
     userId: info.userId,
   });
 };
 
-export const recordAssistantMessage = (text: string, options: { messageType?: string; sessionId?: string | null; userId?: string | null } = {}) => {
+export const recordAssistantMessage = (
+  text: string,
+  options: {
+    messageType?: string;
+    sessionId?: string | null;
+    userId?: string | null;
+    modelId?: string | null;
+    modelProvider?: string | null;
+  } = {}
+) => {
   if (!text) {
     return;
   }
@@ -144,12 +168,25 @@ export const recordAssistantMessage = (text: string, options: { messageType?: st
     content: text,
     role: 'assistant',
     messageType: options.messageType || 'llm-text',
+    modelId: options.modelId,
+    modelProvider: options.modelProvider,
     sessionId: info.sessionId,
     userId: info.userId,
   });
 };
 
-export const recordToolMessage = (text: string, options: { messageType: string; toolName?: string; correlationId?: string; sessionId?: string | null; userId?: string | null }) => {
+export const recordToolMessage = (
+  text: string,
+  options: {
+    messageType: string;
+    toolName?: string;
+    correlationId?: string;
+    sessionId?: string | null;
+    userId?: string | null;
+    modelId?: string | null;
+    modelProvider?: string | null;
+  }
+) => {
   if (!text) {
     return;
   }
@@ -164,6 +201,8 @@ export const recordToolMessage = (text: string, options: { messageType: string; 
     messageType: options.messageType,
     toolName: options.toolName,
     correlationId: options.correlationId,
+    modelId: options.modelId,
+    modelProvider: options.modelProvider,
     sessionId: info.sessionId,
     userId: info.userId,
   });
@@ -178,6 +217,8 @@ type TranscriptEntry = {
   sessionId?: string | null;
   userId?: string | null;
   timestamp?: string;
+  modelId?: string | null;
+  modelProvider?: string | null;
 };
 
 const storeTranscriptEntry = async (entry: TranscriptEntry) => {
@@ -194,6 +235,8 @@ const storeTranscriptEntry = async (entry: TranscriptEntry) => {
     messageType: entry.messageType,
     toolName: entry.toolName,
     correlationId: entry.correlationId,
+    modelId: entry.modelId,
+    modelProvider: entry.modelProvider,
     timestamp: entry.timestamp,
   });
 };
