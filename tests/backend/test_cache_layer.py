@@ -1,8 +1,9 @@
 import asyncio
 import threading
+import time as time_module
 
 from backend.src.core.infrastructure.cache import Cache
-import backend.src.core.infrastructure.cache as cache_module
+import backend.src.core.infrastructure.cache_store as cache_store_module
 
 
 def test_cache_set_get_and_expire(monkeypatch):
@@ -11,7 +12,7 @@ def test_cache_set_get_and_expire(monkeypatch):
     def fake_time():
         return now["value"]
 
-    monkeypatch.setattr(cache_module.time, "time", fake_time)
+    monkeypatch.setattr(cache_store_module.time, "time", fake_time)
     cache = Cache(default_ttl=10.0)
 
     cache.set("a", 1, ttl=5.0)
