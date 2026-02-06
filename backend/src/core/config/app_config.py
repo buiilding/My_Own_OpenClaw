@@ -34,7 +34,7 @@ APP_CONFIG = AppConfig(
     interaction_mode="chat",
     
     # Vision Model Settings (UI grounding / Venus)
-    vision_model_name="inclusionAI/UI-Venus-Ground-7B",
+    vision_model_name="OpenGVLab/InternVL3_5-4B",
     
     # Voice Mode Settings
     voice_mode_enabled=False,
