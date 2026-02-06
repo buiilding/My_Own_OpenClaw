@@ -8,13 +8,14 @@ Provides web browser control via Playwright:
 - Full automation: click, type, scroll, screenshot, evaluate
 """
 
-from tools.browser.controller import BrowserController, get_browser_controller
-from tools.browser.browser_tool import execute_browser_control
+# Chrome detection (no external deps)
 from tools.browser.chrome_detection import (
     ChromeExecutable,
     find_chrome_executable,
     find_all_chrome_executables,
 )
+
+# Schemas (no external deps)
 from tools.browser.schemas import (
     BrowserConnectArgs,
     BrowserNavigateArgs,
@@ -31,13 +32,22 @@ from tools.browser.schemas import (
     BrowserCloseArgs,
 )
 
+# Optional imports (require playwright)
+try:
+    from tools.browser.controller import BrowserController, get_browser_controller
+    from tools.browser.browser_tool import execute_browser_control
+except ImportError:
+    # Playwright not installed
+    BrowserController = None  # type: ignore
+    get_browser_controller = None  # type: ignore
+    execute_browser_control = None  # type: ignore
+
 __all__ = [
-    "BrowserController",
-    "get_browser_controller",
-    "execute_browser_control",
+    # Chrome detection
     "ChromeExecutable",
     "find_chrome_executable",
     "find_all_chrome_executables",
+    # Schemas
     "BrowserConnectArgs",
     "BrowserNavigateArgs",
     "BrowserSnapshotArgs",
@@ -51,4 +61,8 @@ __all__ = [
     "BrowserSwitchTabArgs",
     "BrowserEvaluateArgs",
     "BrowserCloseArgs",
+    # Controller (may be None if playwright not installed)
+    "BrowserController",
+    "get_browser_controller",
+    "execute_browser_control",
 ]
