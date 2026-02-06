@@ -250,14 +250,15 @@ const shouldSkipEntry = (entry: TranscriptEntry, sessionId: string | null) => {
     seenToolEntries.set(sessionId, sessionSet);
   }
 
-  const signature = `${entry.role || ''}|${entry.messageType || ''}|${entry.toolName || ''}|${entry.content}`;
-  const now = Date.now();
-  const lastEntry = lastEntryBySession.get(sessionId);
-  if (lastEntry && lastEntry.signature === signature && now - lastEntry.timestamp < 5000) {
-    return true;
+  if (entry.role === 'assistant' && entry.messageType !== 'tool-call' && entry.messageType !== 'tool-output') {
+    const signature = `${entry.role || ''}|${entry.messageType || ''}|${entry.content}`;
+    const now = Date.now();
+    const lastEntry = lastEntryBySession.get(sessionId);
+    if (lastEntry && lastEntry.signature === signature && now - lastEntry.timestamp < 5000) {
+      return true;
+    }
+    lastEntryBySession.set(sessionId, { signature, timestamp: now });
   }
-
-  lastEntryBySession.set(sessionId, { signature, timestamp: now });
   return false;
 };
 
