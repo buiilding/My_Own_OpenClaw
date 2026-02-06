@@ -51,6 +51,7 @@ export function useToolRunner(enabled = true) {
           messageType: 'tool-output',
           toolName: result.toolName,
           correlationId: result.correlationId,
+          screenshot: result.screenshot || null,
           modelId,
           modelProvider,
         });
@@ -82,6 +83,7 @@ export function useToolRunner(enabled = true) {
           messageType: 'tool-output',
           toolName: `bundled_tools`,
           correlationId: result.correlationId,
+          screenshot: result.screenshot || null,
           modelId,
           modelProvider,
         });
