@@ -22,6 +22,7 @@ import {
   type StreamingResponseEvent,
   type ToolCallEvent,
   type ToolOutputEvent,
+  type ToolBundleEvent,
   type SystemPromptEvent,
   type UserMessageFullEvent,
   type AssistantMessageFullEvent,
@@ -159,6 +160,34 @@ export function useChatStream() {
       correlationId: event.payload?.request_id,
       sessionId: event.session_id,
       userId: event.user_id,
+      screenshot: event.payload?.screenshot || null,
+      modelId,
+      modelProvider,
+    });
+  }, [addMessage, modelId, modelProvider, setThinkingStatus]);
+
+  const handleToolBundle = useCallback((event: ToolBundleEvent) => {
+    setThinkingStatus(null);
+    const bundlePayload = {
+      bundle_id: event.payload?.bundle_id,
+      tools: event.payload?.tools || [],
+    };
+    const formattedText = JSON.stringify(bundlePayload, null, 2);
+
+    const newMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      text: formattedText,
+      sender: 'assistant',
+      type: 'tool-call',
+    };
+    addMessage(newMessage);
+
+    recordToolMessage(formattedText, {
+      messageType: 'tool-call',
+      toolName: 'tool-bundle',
+      correlationId: event.payload?.bundle_id,
+      sessionId: event.session_id,
+      userId: event.user_id,
       modelId,
       modelProvider,
     });
@@ -214,6 +243,7 @@ export function useChatStream() {
       timestamp: event.payload?.timestamp,
       sessionId: event.payload?.session_id ?? event.session_id ?? null,
       userId: event.payload?.user_id ?? event.user_id ?? null,
+      screenshot: event.payload?.screenshot || null,
       modelId,
       modelProvider,
     });
@@ -272,6 +302,7 @@ export function useChatStream() {
     'streaming-complete': event => handleStreamingComplete(event as StreamingCompleteEvent),
     'tool-call': event => handleToolCall(event as ToolCallEvent),
     'tool-output': event => handleToolOutput(event as ToolOutputEvent),
+    'tool-bundle': event => handleToolBundle(event as ToolBundleEvent),
     'system-prompt': event => handleSystemPrompt(event as SystemPromptEvent),
     'local-user-message': event => handleLocalUserMessage(event as LocalUserMessageEvent),
     'user-message-full': event => handleUserMessageFull(event as UserMessageFullEvent),
@@ -290,6 +321,7 @@ export function useChatStream() {
     handleStreamingComplete,
     handleToolCall,
     handleToolOutput,
+    handleToolBundle,
     handleSystemPrompt,
     handleLocalUserMessage,
     handleUserMessageFull,
