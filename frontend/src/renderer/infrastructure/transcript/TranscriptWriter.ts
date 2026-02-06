@@ -18,6 +18,8 @@ type PendingMessage = {
 let currentSessionId: string | null = null;
 let currentUserId: string | null = null;
 const pendingUserMessages: PendingMessage[] = [];
+const seenToolEntries = new Map<string, Set<string>>();
+const lastEntryBySession = new Map<string, { signature: string; timestamp: number }>();
 
 const readStoredSessionInfo = (): SessionInfo => {
   if (typeof window === 'undefined') {
@@ -87,6 +89,7 @@ const flushPendingUserMessages = async () => {
       timestamp: message.timestamp,
       modelId: message.modelId,
       modelProvider: message.modelProvider,
+      screenshot: message.screenshot,
     });
   }
 };
@@ -121,16 +124,17 @@ export const recordUserMessage = (
     userId?: string | null;
     modelId?: string | null;
     modelProvider?: string | null;
+    screenshot?: string | null;
   } = {}
 ) => {
   if (!text) {
     return;
   }
-  const { sessionId, userId, timestamp, modelId, modelProvider } = options;
+  const { sessionId, userId, timestamp, modelId, modelProvider, screenshot } = options;
   const info = resolveSessionInfo({ sessionId: sessionId ?? null, userId: userId ?? null });
 
   if (!info.sessionId || !info.userId) {
-    pendingUserMessages.push({ text, timestamp, modelId, modelProvider });
+    pendingUserMessages.push({ text, timestamp, modelId, modelProvider, screenshot });
     return;
   }
 
@@ -141,6 +145,7 @@ export const recordUserMessage = (
     timestamp,
     modelId,
     modelProvider,
+    screenshot,
     sessionId: info.sessionId,
     userId: info.userId,
   });
@@ -154,6 +159,7 @@ export const recordAssistantMessage = (
     userId?: string | null;
     modelId?: string | null;
     modelProvider?: string | null;
+    screenshot?: string | null;
   } = {}
 ) => {
   if (!text) {
@@ -170,6 +176,7 @@ export const recordAssistantMessage = (
     messageType: options.messageType || 'llm-text',
     modelId: options.modelId,
     modelProvider: options.modelProvider,
+    screenshot: options.screenshot,
     sessionId: info.sessionId,
     userId: info.userId,
   });
@@ -185,6 +192,7 @@ export const recordToolMessage = (
     userId?: string | null;
     modelId?: string | null;
     modelProvider?: string | null;
+    screenshot?: string | null;
   }
 ) => {
   if (!text) {
@@ -203,6 +211,7 @@ export const recordToolMessage = (
     correlationId: options.correlationId,
     modelId: options.modelId,
     modelProvider: options.modelProvider,
+    screenshot: options.screenshot,
     sessionId: info.sessionId,
     userId: info.userId,
   });
@@ -219,11 +228,45 @@ type TranscriptEntry = {
   timestamp?: string;
   modelId?: string | null;
   modelProvider?: string | null;
+  screenshot?: string | null;
+};
+
+const shouldSkipEntry = (entry: TranscriptEntry, sessionId: string | null) => {
+  if (!sessionId) {
+    return false;
+  }
+
+  if (entry.correlationId) {
+    const toolKey = `${entry.messageType || ''}:${entry.correlationId}`;
+    const sessionSet = seenToolEntries.get(sessionId) || new Set<string>();
+    if (sessionSet.has(toolKey)) {
+      return true;
+    }
+    sessionSet.add(toolKey);
+    if (sessionSet.size > 500) {
+      sessionSet.clear();
+      sessionSet.add(toolKey);
+    }
+    seenToolEntries.set(sessionId, sessionSet);
+  }
+
+  const signature = `${entry.role || ''}|${entry.messageType || ''}|${entry.toolName || ''}|${entry.content}`;
+  const now = Date.now();
+  const lastEntry = lastEntryBySession.get(sessionId);
+  if (lastEntry && lastEntry.signature === signature && now - lastEntry.timestamp < 5000) {
+    return true;
+  }
+
+  lastEntryBySession.set(sessionId, { signature, timestamp: now });
+  return false;
 };
 
 const storeTranscriptEntry = async (entry: TranscriptEntry) => {
   const info = resolveSessionInfo({ sessionId: entry.sessionId ?? null, userId: entry.userId ?? null });
   if (!info.sessionId || !info.userId) {
+    return;
+  }
+  if (shouldSkipEntry(entry, info.sessionId)) {
     return;
   }
 
@@ -237,6 +280,7 @@ const storeTranscriptEntry = async (entry: TranscriptEntry) => {
     correlationId: entry.correlationId,
     modelId: entry.modelId,
     modelProvider: entry.modelProvider,
+    screenshot: entry.screenshot,
     timestamp: entry.timestamp,
   });
 };
