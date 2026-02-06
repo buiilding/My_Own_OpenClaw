@@ -27,14 +27,19 @@ const parseMemoryContent = (memory) => {
   const rawContent = memory.content || '';
   const role = memory.role || memory.metadata?.role;
   const messageType = memory.message_type || memory.metadata?.message_type;
+  const screenshot = memory.screenshot || memory.metadata?.screenshot || null;
 
   if (role) {
     const sender = role === 'user' ? 'user' : 'assistant';
-    const normalizedType = messageType || (role === 'tool' ? 'tool-output' : 'llm-text');
+    const normalizedType = messageType === 'tool-bundle'
+      ? 'tool-call'
+      : (messageType || (role === 'tool' ? 'tool-output' : 'llm-text'));
+    const shouldAttachScreenshot = sender === 'user' || normalizedType === 'tool-output';
     return [{
       sender,
       text: rawContent || '(empty)',
       type: normalizedType,
+      screenshot: shouldAttachScreenshot ? screenshot : null,
     }];
   }
 
