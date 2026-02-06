@@ -434,6 +434,8 @@ class LocalMemoryStore:
         message_type: Optional[str] = None,
         tool_name: Optional[str] = None,
         correlation_id: Optional[str] = None,
+        model_id: Optional[str] = None,
+        model_provider: Optional[str] = None,
         skip_embedding: bool = False,
         timestamp: Optional[str] = None,
     ) -> str:
@@ -451,6 +453,8 @@ class LocalMemoryStore:
             message_type: Optional message type (e.g. "llm-text", "tool-call", "tool-output")
             tool_name: Optional tool name for tool-related entries
             correlation_id: Optional correlation id for tool calls/outputs
+            model_id: Optional model id used for the transcript entry
+            model_provider: Optional model provider for the transcript entry
             skip_embedding: Skip embedding/FAISS indexing (useful for transcript rows)
             timestamp: Optional ISO timestamp to store (defaults to now)
 
@@ -508,8 +512,8 @@ class LocalMemoryStore:
                 await cursor.execute(
                     """
                     INSERT INTO memories
-                    (id, user_id, content, timestamp, metadata, embedding_id, is_semanticized, conversation_id, record_kind, role, message_index, message_type, tool_name, correlation_id)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (id, user_id, content, timestamp, metadata, embedding_id, is_semanticized, conversation_id, record_kind, role, message_index, message_type, tool_name, correlation_id, model_id, model_provider)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
                         memory_id,
@@ -526,6 +530,8 @@ class LocalMemoryStore:
                         message_type,
                         tool_name,
                         correlation_id,
+                        model_id,
+                        model_provider,
                     ),
                 )
             else:
@@ -1088,13 +1094,15 @@ class LocalMemoryStore:
 
             results = []
             for row in rows:
-                results.append({
-                    "conversation_id": row["conversation_id"],
-                    "first_timestamp": row["first_timestamp"],
-                    "last_timestamp": row["last_timestamp"],
-                    "entry_count": row["entry_count"],
-                    "record_kind": row["record_kind"],
-                })
+            results.append({
+                "conversation_id": row["conversation_id"],
+                "first_timestamp": row["first_timestamp"],
+                "last_timestamp": row["last_timestamp"],
+                "entry_count": row["entry_count"],
+                "record_kind": row["record_kind"],
+                "model_id": row["model_id"],
+                "model_provider": row["model_provider"],
+            })
 
             return results
 
@@ -1112,14 +1120,30 @@ class LocalMemoryStore:
                        MIN(timestamp) as first_timestamp,
                        MAX(timestamp) as last_timestamp,
                        COUNT(*) as entry_count,
-                       record_kind
+                       record_kind,
+                       (
+                         SELECT model_id FROM memories m2
+                         WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
+                           AND m2.record_kind = 'transcript'
+                           AND m2.model_id IS NOT NULL AND m2.model_id != ''
+                         ORDER BY m2.timestamp DESC, m2.message_index DESC
+                         LIMIT 1
+                       ) as model_id,
+                       (
+                         SELECT model_provider FROM memories m2
+                         WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
+                           AND m2.record_kind = 'transcript'
+                           AND m2.model_provider IS NOT NULL AND m2.model_provider != ''
+                         ORDER BY m2.timestamp DESC, m2.message_index DESC
+                         LIMIT 1
+                       ) as model_provider
                 FROM memories
                 WHERE user_id = ? AND record_kind = 'transcript'
                 GROUP BY conversation_id
                 ORDER BY last_timestamp DESC
                 LIMIT ?
             """,
-                (user_id, limit),
+                (user_id, user_id, user_id, limit),
             )
         else:
             await cursor.execute(
@@ -1128,7 +1152,9 @@ class LocalMemoryStore:
                        MIN(timestamp) as first_timestamp,
                        MAX(timestamp) as last_timestamp,
                        COUNT(*) as entry_count,
-                       COALESCE(record_kind, 'memory') as record_kind
+                       COALESCE(record_kind, 'memory') as record_kind,
+                       NULL as model_id,
+                       NULL as model_provider
                 FROM memories
                 WHERE user_id = ? AND (record_kind IS NULL OR record_kind = 'memory')
                 GROUP BY conversation_id
@@ -1202,7 +1228,7 @@ class LocalMemoryStore:
             if conversation_id is None:
                 await cursor.execute(
                     f"""
-                    SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind
+                    SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind, model_id, model_provider
                     FROM memories
                     WHERE user_id = ? AND conversation_id IS NULL
                     {record_kind_clause}
@@ -1214,7 +1240,7 @@ class LocalMemoryStore:
             else:
                 await cursor.execute(
                     f"""
-                    SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind
+                    SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind, model_id, model_provider
                     FROM memories
                     WHERE user_id = ? AND conversation_id = ?
                     {record_kind_clause}
@@ -1241,6 +1267,8 @@ class LocalMemoryStore:
                     "message_type": row["message_type"],
                     "tool_name": row["tool_name"],
                     "correlation_id": row["correlation_id"],
+                    "model_id": row["model_id"],
+                    "model_provider": row["model_provider"],
                 })
             
             return results
