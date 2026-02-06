@@ -7,6 +7,7 @@ export type BackendEventType =
   | 'tool-call'
   | 'tool-output'
   | 'tool-bundle'
+  | 'local-user-message'
   | 'system-prompt'
   | 'user-message-full'
   | 'assistant-message-full'
@@ -44,6 +45,11 @@ export type ToolBundleEvent = BackendEventBase<'tool-bundle', {
   bundle_id?: string;
   tools?: Array<{ name?: string; args?: Record<string, unknown> }>;
 }>;
+export type LocalUserMessageEvent = BackendEventBase<'local-user-message', {
+  text?: string;
+  screenshot?: string | null;
+  timestamp?: string;
+}>;
 export type SystemPromptEvent = BackendEventBase<'system-prompt', {
   content?: string;
   tool_schemas?: unknown;
@@ -71,6 +77,7 @@ export type BackendEvent =
   | ToolCallEvent
   | ToolOutputEvent
   | ToolBundleEvent
+  | LocalUserMessageEvent
   | SystemPromptEvent
   | UserMessageFullEvent
   | AssistantMessageFullEvent
@@ -85,6 +92,7 @@ const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
   'tool-call',
   'tool-output',
   'tool-bundle',
+  'local-user-message',
   'system-prompt',
   'user-message-full',
   'assistant-message-full',

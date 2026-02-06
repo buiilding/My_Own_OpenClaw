@@ -85,10 +85,13 @@ function trackRendererWindow(win) {
   });
 }
 
-function broadcastToRenderers(channel, payload) {
+function broadcastToRenderers(channel, payload, sourceWebContents = null) {
   for (const win of rendererWindows) {
     if (!win || win.isDestroyed()) {
       rendererWindows.delete(win);
+      continue;
+    }
+    if (sourceWebContents && win.webContents === sourceWebContents) {
       continue;
     }
     win.webContents.send(channel, payload);
@@ -239,6 +242,16 @@ function initializeIpc(win) {
     // Build complete user message content with system state and memories
     // System context MUST be retrieved - never skip it
     if (type === 'query') {
+      if (payload?.text) {
+        broadcastToRenderers('from-backend', {
+          type: 'local-user-message',
+          payload: {
+            text: payload.text,
+            screenshot: payload.screenshot || null,
+            timestamp: new Date().toISOString(),
+          },
+        }, event.sender);
+      }
       try {
         log('Building complete user message with system state and memories...');
         

@@ -19,6 +19,7 @@ import {
   type AssistantMessageFullEvent,
   type TokenCountEvent,
   type ToolSchemasEvent,
+  type LocalUserMessageEvent,
   type ErrorEvent,
   isBackendEvent,
 } from '../../../types/backendEvents';
@@ -164,6 +165,21 @@ export function useChatStream() {
     });
   }, [updateFirstMessageBySender]);
 
+  const handleLocalUserMessage = useCallback((event: LocalUserMessageEvent) => {
+    const text = event.payload?.text;
+    if (!text) {
+      return;
+    }
+    const newMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      text,
+      sender: 'user',
+      screenshot: event.payload?.screenshot || null,
+      timestamp: event.payload?.timestamp,
+    };
+    addMessage(newMessage);
+  }, [addMessage]);
+
   const handleStreamingComplete = useCallback(() => {
     setIsSending(false);
     setThinkingStatus(null);
@@ -199,6 +215,7 @@ export function useChatStream() {
     'tool-call': event => handleToolCall(event as ToolCallEvent),
     'tool-output': event => handleToolOutput(event as ToolOutputEvent),
     'system-prompt': event => handleSystemPrompt(event as SystemPromptEvent),
+    'local-user-message': event => handleLocalUserMessage(event as LocalUserMessageEvent),
     'user-message-full': event => handleUserMessageFull(event as UserMessageFullEvent),
     'assistant-message-full': event => handleAssistantMessageFull(event as AssistantMessageFullEvent),
     'token-count': event => handleTokenCount(event as TokenCountEvent),
@@ -216,6 +233,7 @@ export function useChatStream() {
     handleToolCall,
     handleToolOutput,
     handleSystemPrompt,
+    handleLocalUserMessage,
     handleUserMessageFull,
     handleAssistantMessageFull,
     handleTokenCount,
