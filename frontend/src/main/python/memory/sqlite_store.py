@@ -31,7 +31,9 @@ async def init_episodic_schema(db_path: str) -> None:
                 message_index INTEGER,
                 message_type TEXT,
                 tool_name TEXT,
-                correlation_id TEXT
+                correlation_id TEXT,
+                model_id TEXT,
+                model_provider TEXT
             )
         """
         )
@@ -154,6 +156,36 @@ async def init_episodic_schema(db_path: str) -> None:
             except Exception as exc:
                 logger.warning(
                     "Failed to add correlation_id column: %s", exc
+                )
+
+        # Add model_id column if it doesn't exist (migration)
+        try:
+            await cursor.execute("SELECT model_id FROM memories LIMIT 1")
+        except Exception:
+            try:
+                await cursor.execute(
+                    "ALTER TABLE memories ADD COLUMN model_id TEXT"
+                )
+                await conn.commit()
+                logger.info("Added model_id column to episodic memory table")
+            except Exception as exc:
+                logger.warning(
+                    "Failed to add model_id column: %s", exc
+                )
+
+        # Add model_provider column if it doesn't exist (migration)
+        try:
+            await cursor.execute("SELECT model_provider FROM memories LIMIT 1")
+        except Exception:
+            try:
+                await cursor.execute(
+                    "ALTER TABLE memories ADD COLUMN model_provider TEXT"
+                )
+                await conn.commit()
+                logger.info("Added model_provider column to episodic memory table")
+            except Exception as exc:
+                logger.warning(
+                    "Failed to add model_provider column: %s", exc
                 )
 
         await cursor.execute(
