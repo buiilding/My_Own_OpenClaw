@@ -93,13 +93,30 @@ class ScreenshotToolArgs(BaseModel):
 # --- Scroll Tool Schemas ---
 
 class ScrollControlArgs(BaseModel):
-    """Arguments for scroll control tool. Vertical: up/down (vscroll). Horizontal: left/right (hscroll)."""
+    """Arguments for scroll control tool. Vertical: up/down (vscroll). Horizontal: left/right (hscroll).
+    
+    Scroll amounts are specified in 'scroll units' (the 'clicks' parameter) where each unit
+    represents approximately 3 lines of text visually. The actual OS wheel clicks are
+    automatically calculated based on the operating system for consistent cross-platform behavior.
+    
+    OS-specific behavior:
+    - Windows: 1 unit ≈ 1 wheel tick (typically 3 lines), adjustable based on user settings
+    - macOS: 1 unit ≈ 0.3 wheel ticks (smooth scrolling compensation)
+    - Linux: 1 unit ≈ 1 wheel tick (typically 3 lines)
+    """
     model_config = ConfigDict(extra='ignore')
     
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(..., description="Scroll action to perform")
     x: Optional[int] = Field(None, description="X coordinate to scroll at (optional)")
     y: Optional[int] = Field(None, description="Y coordinate to scroll at (optional)")
-    clicks: int = Field(5, description="Number of scroll clicks")
+    clicks: int = Field(
+        5,
+        description=(
+            "Number of scroll units (visually ~3 lines of text per unit). "
+            "Default 5 units ≈ 15 lines. Automatically converted to OS-specific wheel clicks: "
+            "Windows/Linux ≈ 1:1, macOS ≈ 0.3:1 due to smooth scrolling."
+        )
+    )
     direction: Optional[Literal["up", "down", "left", "right"]] = Field(
         None,
         description="Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'.",
