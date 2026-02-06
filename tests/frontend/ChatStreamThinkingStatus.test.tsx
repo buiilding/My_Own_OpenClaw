@@ -78,4 +78,26 @@ describe('useChatStream', () => {
 
     expect(useChatStore.getState().thinkingStatus).toBeNull();
   });
+
+  test('adds local user message to store', () => {
+    const onHandlers = {};
+    jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
+      onHandlers[channel] = handler;
+      return () => {};
+    });
+
+    renderHook(() => useChatStream());
+
+    act(() => {
+      onHandlers[ON_CHANNELS.FROM_BACKEND]({
+        type: 'local-user-message',
+        payload: { text: 'hello from chatbox', screenshot: null },
+      });
+    });
+
+    const messages = useChatStore.getState().messages;
+    const last = messages[messages.length - 1];
+    expect(last.sender).toBe('user');
+    expect(last.text).toBe('hello from chatbox');
+  });
 });
