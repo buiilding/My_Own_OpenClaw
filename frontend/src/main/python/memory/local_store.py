@@ -436,6 +436,7 @@ class LocalMemoryStore:
         correlation_id: Optional[str] = None,
         model_id: Optional[str] = None,
         model_provider: Optional[str] = None,
+        screenshot: Optional[str] = None,
         skip_embedding: bool = False,
         timestamp: Optional[str] = None,
     ) -> str:
@@ -455,6 +456,7 @@ class LocalMemoryStore:
             correlation_id: Optional correlation id for tool calls/outputs
             model_id: Optional model id used for the transcript entry
             model_provider: Optional model provider for the transcript entry
+            screenshot: Optional base64 screenshot (stored for transcripts)
             skip_embedding: Skip embedding/FAISS indexing (useful for transcript rows)
             timestamp: Optional ISO timestamp to store (defaults to now)
 
@@ -512,8 +514,8 @@ class LocalMemoryStore:
                 await cursor.execute(
                     """
                     INSERT INTO memories
-                    (id, user_id, content, timestamp, metadata, embedding_id, is_semanticized, conversation_id, record_kind, role, message_index, message_type, tool_name, correlation_id, model_id, model_provider)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (id, user_id, content, timestamp, metadata, embedding_id, is_semanticized, conversation_id, record_kind, role, message_index, message_type, tool_name, correlation_id, model_id, model_provider, screenshot)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
                         memory_id,
@@ -532,6 +534,7 @@ class LocalMemoryStore:
                         correlation_id,
                         model_id,
                         model_provider,
+                        screenshot,
                     ),
                 )
             else:
@@ -1228,7 +1231,7 @@ class LocalMemoryStore:
             if conversation_id is None:
                 await cursor.execute(
                     f"""
-                    SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind, model_id, model_provider
+                    SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind, model_id, model_provider, screenshot
                     FROM memories
                     WHERE user_id = ? AND conversation_id IS NULL
                     {record_kind_clause}
@@ -1240,7 +1243,7 @@ class LocalMemoryStore:
             else:
                 await cursor.execute(
                     f"""
-                    SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind, model_id, model_provider
+                    SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind, model_id, model_provider, screenshot
                     FROM memories
                     WHERE user_id = ? AND conversation_id = ?
                     {record_kind_clause}
@@ -1269,6 +1272,7 @@ class LocalMemoryStore:
                     "correlation_id": row["correlation_id"],
                     "model_id": row["model_id"],
                     "model_provider": row["model_provider"],
+                    "screenshot": row["screenshot"],
                 })
             
             return results
