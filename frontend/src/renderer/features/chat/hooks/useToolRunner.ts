@@ -9,6 +9,7 @@ import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/i
 import { ToolExecutionService, type ToolExecutionResult, type BundleExecutionResult } from '../../../infrastructure/services/ToolExecutionService';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
 import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
+import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { type ToolBundleEvent, type ToolCallEvent, isBackendEvent } from '../../../types/backendEvents';
 
 /**
@@ -17,6 +18,9 @@ import { type ToolBundleEvent, type ToolCallEvent, isBackendEvent } from '../../
  */
 export function useToolRunner(enabled = true) {
   const { addMessage } = useChatStore();
+  const { config } = useAppConfigContext();
+  const modelId = config?.selected_model_id || null;
+  const modelProvider = config?.model_provider || null;
 
   const toolServiceRef = useRef<ToolExecutionService | null>(null);
 
@@ -47,6 +51,8 @@ export function useToolRunner(enabled = true) {
           messageType: 'tool-output',
           toolName: result.toolName,
           correlationId: result.correlationId,
+          modelId,
+          modelProvider,
         });
       },
       onBundleResult: (result: BundleExecutionResult) => {
@@ -76,6 +82,8 @@ export function useToolRunner(enabled = true) {
           messageType: 'tool-output',
           toolName: `bundled_tools`,
           correlationId: result.correlationId,
+          modelId,
+          modelProvider,
         });
       },
       sendToBackend: (payload: unknown) => {
@@ -88,7 +96,7 @@ export function useToolRunner(enabled = true) {
     return () => {
       toolServiceRef.current = null;
     };
-  }, [addMessage, enabled]);
+  }, [addMessage, enabled, modelId, modelProvider]);
 
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
     const bundleId = event.payload?.bundle_id || `bundle-${crypto.randomUUID()}`;
