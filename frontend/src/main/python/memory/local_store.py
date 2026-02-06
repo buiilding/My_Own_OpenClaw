@@ -1094,15 +1094,15 @@ class LocalMemoryStore:
 
             results = []
             for row in rows:
-            results.append({
-                "conversation_id": row["conversation_id"],
-                "first_timestamp": row["first_timestamp"],
-                "last_timestamp": row["last_timestamp"],
-                "entry_count": row["entry_count"],
-                "record_kind": row["record_kind"],
-                "model_id": row["model_id"],
-                "model_provider": row["model_provider"],
-            })
+                results.append({
+                    "conversation_id": row["conversation_id"],
+                    "first_timestamp": row["first_timestamp"],
+                    "last_timestamp": row["last_timestamp"],
+                    "entry_count": row["entry_count"],
+                    "record_kind": row["record_kind"],
+                    "model_id": row["model_id"],
+                    "model_provider": row["model_provider"],
+                })
 
             return results
 
