@@ -128,7 +128,15 @@ class QueryMessageHandler(MessageHandler):
                     message_content=message_content,
                 ):
                     # Process events through pipeline (msg_id passed per call, not stored)
-                    await pipeline.process(event, tts_service, msg_id)
+                    await pipeline.process(
+                        event,
+                        tts_service,
+                        msg_id,
+                        context={
+                            "user_id": agent_instance.user_id,
+                            "session_id": agent_instance.session_id,
+                        },
+                    )
 
                 # TTS STREAMING RACE FIX: Wait for all pending TTS tasks before flush
                 # This ensures all TTS processing completes before inserting the end-of-stream
@@ -142,7 +150,11 @@ class QueryMessageHandler(MessageHandler):
                     websocket,
                     msg_id,
                     "streaming-complete",
-                    {}
+                    {},
+                    context={
+                        "user_id": agent_instance.user_id,
+                        "session_id": agent_instance.session_id,
+                    },
                 )
                 
                 query_total_time = time.perf_counter() - query_start_time

@@ -423,7 +423,19 @@ class LocalMemoryStore:
         await self._save_faiss_indices()
 
     async def add(
-        self, text: str, user_id: str, metadata: Optional[Dict[str, Any]] = None, conversation_id: Optional[str] = None
+        self,
+        text: str,
+        user_id: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        conversation_id: Optional[str] = None,
+        record_kind: str = "memory",
+        role: Optional[str] = None,
+        message_index: Optional[int] = None,
+        message_type: Optional[str] = None,
+        tool_name: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+        skip_embedding: bool = False,
+        timestamp: Optional[str] = None,
     ) -> str:
         """
         Store a memory entry with automatic embedding generation.
@@ -433,12 +445,20 @@ class LocalMemoryStore:
             text: Content to store
             user_id: User identifier
             metadata: Optional metadata dictionary (must include "type": "episodic" or "semantic")
+            record_kind: "memory" (default) or "transcript"
+            role: Optional role for transcript entries ("user", "assistant", "tool")
+            message_index: Optional per-conversation ordering index
+            message_type: Optional message type (e.g. "llm-text", "tool-call", "tool-output")
+            tool_name: Optional tool name for tool-related entries
+            correlation_id: Optional correlation id for tool calls/outputs
+            skip_embedding: Skip embedding/FAISS indexing (useful for transcript rows)
+            timestamp: Optional ISO timestamp to store (defaults to now)
 
         Returns:
             Memory ID string
         """
         memory_id = str(uuid.uuid4())
-        timestamp = datetime.now().isoformat()
+        timestamp_value = timestamp or datetime.now().isoformat()
 
         # Extract memory type from metadata (default to episodic for backward compatibility)
         memory_type_str = metadata.get("type", "episodic") if metadata else "episodic"
@@ -450,12 +470,9 @@ class LocalMemoryStore:
         # Convert string to enum for type safety
         memory_type = self._normalize_memory_type(memory_type_str)
 
-        # Generate embedding using remote client
-        embedding = await self.embedder.embed_text(text)
-        embedding = embedding.reshape(1, -1)
-        faiss.normalize_L2(embedding)
+        if record_kind == "transcript" and memory_type != "episodic":
+            memory_type = "episodic"
 
-        # Route to appropriate database and index
         (
             db_path,
             index,
@@ -463,11 +480,20 @@ class LocalMemoryStore:
             memory_id_to_vector_id,
             next_vector_id,
         ) = self._get_memory_state(memory_type)
-        vector_id = next_vector_id
-        self._set_next_vector_id(memory_type, next_vector_id + 1)
 
-        # Add to FAISS index
-        index.add(embedding)
+        vector_id = None
+        if not skip_embedding:
+            # Generate embedding using remote client
+            embedding = await self.embedder.embed_text(text)
+            embedding = embedding.reshape(1, -1)
+            faiss.normalize_L2(embedding)
+
+            # Route to appropriate database and index
+            vector_id = next_vector_id
+            self._set_next_vector_id(memory_type, next_vector_id + 1)
+
+            # Add to FAISS index
+            index.add(embedding)
 
         # Store in SQLite
         metadata_json = json.dumps(metadata) if metadata else None
@@ -482,18 +508,24 @@ class LocalMemoryStore:
                 await cursor.execute(
                     """
                     INSERT INTO memories
-                    (id, user_id, content, timestamp, metadata, embedding_id, is_semanticized, conversation_id)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    (id, user_id, content, timestamp, metadata, embedding_id, is_semanticized, conversation_id, record_kind, role, message_index, message_type, tool_name, correlation_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
                         memory_id,
                         user_id,
                         text,
-                        timestamp,
+                        timestamp_value,
                         metadata_json,
                         vector_id,
                         is_semanticized,
                         conversation_id,
+                        record_kind,
+                        role,
+                        message_index,
+                        message_type,
+                        tool_name,
+                        correlation_id,
                     ),
                 )
             else:
@@ -508,7 +540,7 @@ class LocalMemoryStore:
                         memory_id,
                         user_id,
                         text,
-                        timestamp,
+                        timestamp_value,
                         metadata_json,
                         vector_id,
                     ),
@@ -516,11 +548,13 @@ class LocalMemoryStore:
             await conn.commit()
 
         # Update mappings
-        vector_id_to_memory_id[vector_id] = memory_id
-        memory_id_to_vector_id[memory_id] = vector_id
+        if not skip_embedding and vector_id_to_memory_id is not None and memory_id_to_vector_id is not None:
+            vector_id_to_memory_id[vector_id] = memory_id
+            memory_id_to_vector_id[memory_id] = vector_id
 
         # Save FAISS indices after each addition to ensure persistence
-        await self._save_faiss_indices()
+        if not skip_embedding:
+            await self._save_faiss_indices()
 
         logger.debug(f"Stored {memory_type} memory {memory_id} for user {user_id}")
         return memory_id
@@ -934,11 +968,16 @@ class LocalMemoryStore:
             cursor = await conn.cursor()
             if user_id:
                 await cursor.execute(
-                    "SELECT COUNT(*) FROM memories WHERE user_id = ?",
+                    """
+                    SELECT COUNT(*) FROM memories
+                    WHERE user_id = ? AND (record_kind IS NULL OR record_kind = 'memory')
+                    """,
                     (user_id,),
                 )
             else:
-                await cursor.execute("SELECT COUNT(*) FROM memories")
+                await cursor.execute(
+                    "SELECT COUNT(*) FROM memories WHERE record_kind IS NULL OR record_kind = 'memory'"
+                )
             row = await cursor.fetchone()
             episodic_count = row[0] if row else 0
             by_type["episodic"] = episodic_count
@@ -985,6 +1024,7 @@ class LocalMemoryStore:
                 SELECT DISTINCT user_id
                 FROM memories
                 WHERE is_semanticized = 0
+                  AND (record_kind IS NULL OR record_kind = 'memory')
                 LIMIT ?
             """,
                 (limit,),
@@ -1012,6 +1052,198 @@ class LocalMemoryStore:
             )
             row = await cursor.fetchone()
             return row is not None
+
+    async def list_conversations(
+        self, user_id: str, limit: int = 200, record_kind: Optional[str] = "transcript"
+    ) -> List[Dict[str, Any]]:
+        """
+        List conversation windows for a user.
+        Returns latest conversations first based on last message timestamp.
+
+        Args:
+            user_id: User identifier
+            limit: Maximum number of conversations to return
+            record_kind: Optional filter ("transcript" or "memory"). Defaults to transcript.
+
+        Returns:
+            List of conversation summaries with timestamps and entry counts
+        """
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
+            rows = await self._list_conversations_with_record_kind(
+                cursor,
+                user_id=user_id,
+                limit=limit,
+                record_kind=record_kind,
+            )
+
+            if record_kind == "transcript" and not rows:
+                rows = await self._list_conversations_with_record_kind(
+                    cursor,
+                    user_id=user_id,
+                    limit=limit,
+                    record_kind="memory",
+                )
+
+            results = []
+            for row in rows:
+                results.append({
+                    "conversation_id": row["conversation_id"],
+                    "first_timestamp": row["first_timestamp"],
+                    "last_timestamp": row["last_timestamp"],
+                    "entry_count": row["entry_count"],
+                    "record_kind": row["record_kind"],
+                })
+
+            return results
+
+    async def _list_conversations_with_record_kind(
+        self,
+        cursor,
+        user_id: str,
+        limit: int,
+        record_kind: Optional[str],
+    ) -> List[Any]:
+        if record_kind == "transcript":
+            await cursor.execute(
+                """
+                SELECT conversation_id,
+                       MIN(timestamp) as first_timestamp,
+                       MAX(timestamp) as last_timestamp,
+                       COUNT(*) as entry_count,
+                       record_kind
+                FROM memories
+                WHERE user_id = ? AND record_kind = 'transcript'
+                GROUP BY conversation_id
+                ORDER BY last_timestamp DESC
+                LIMIT ?
+            """,
+                (user_id, limit),
+            )
+        else:
+            await cursor.execute(
+                """
+                SELECT conversation_id,
+                       MIN(timestamp) as first_timestamp,
+                       MAX(timestamp) as last_timestamp,
+                       COUNT(*) as entry_count,
+                       COALESCE(record_kind, 'memory') as record_kind
+                FROM memories
+                WHERE user_id = ? AND (record_kind IS NULL OR record_kind = 'memory')
+                GROUP BY conversation_id
+                ORDER BY last_timestamp DESC
+                LIMIT ?
+            """,
+                (user_id, limit),
+            )
+        return await cursor.fetchall()
+
+    async def get_next_message_index(
+        self, user_id: str, conversation_id: Optional[str]
+    ) -> int:
+        """
+        Get the next message index for a transcript conversation.
+        """
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            cursor = await conn.cursor()
+            if conversation_id is None:
+                await cursor.execute(
+                    """
+                    SELECT MAX(message_index)
+                    FROM memories
+                    WHERE user_id = ? AND record_kind = 'transcript' AND conversation_id IS NULL
+                """,
+                    (user_id,),
+                )
+            else:
+                await cursor.execute(
+                    """
+                    SELECT MAX(message_index)
+                    FROM memories
+                    WHERE user_id = ? AND record_kind = 'transcript' AND conversation_id = ?
+                """,
+                    (user_id, conversation_id),
+                )
+            row = await cursor.fetchone()
+            max_index = row[0] if row and row[0] is not None else 0
+            return int(max_index) + 1
+
+    async def get_episodic_memories_by_conversation(
+        self,
+        user_id: str,
+        conversation_id: Optional[str],
+        limit: int = 1000,
+        record_kind: Optional[str] = "transcript",
+    ) -> List[Dict[str, Any]]:
+        """
+        Get episodic memories for a specific conversation window.
+        Returns memories in chronological order to maintain conversation history.
+
+        Args:
+            user_id: User identifier
+            conversation_id: Conversation window identifier (None for memories without conversation_id)
+            limit: Maximum number of memories to return (for safety)
+            record_kind: Optional filter ("transcript" or "memory"). Defaults to transcript.
+
+        Returns:
+            List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata', 'conversation_id'
+        """
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
+
+            record_kind_clause = ""
+            if record_kind == "transcript":
+                record_kind_clause = "AND record_kind = 'transcript'"
+            elif record_kind == "memory":
+                record_kind_clause = "AND (record_kind IS NULL OR record_kind = 'memory')"
+
+            if conversation_id is None:
+                await cursor.execute(
+                    f"""
+                    SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind
+                    FROM memories
+                    WHERE user_id = ? AND conversation_id IS NULL
+                    {record_kind_clause}
+                    ORDER BY message_index ASC, timestamp ASC
+                    LIMIT ?
+                """,
+                    (user_id, limit),
+                )
+            else:
+                await cursor.execute(
+                    f"""
+                    SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind
+                    FROM memories
+                    WHERE user_id = ? AND conversation_id = ?
+                    {record_kind_clause}
+                    ORDER BY message_index ASC, timestamp ASC
+                    LIMIT ?
+                """,
+                    (user_id, conversation_id, limit),
+                )
+
+            rows = await cursor.fetchall()
+            
+            results = []
+            for row in rows:
+                metadata = self._parse_raw_metadata(row["metadata"])
+                results.append({
+                    "id": row["id"],
+                    "content": row["content"],
+                    "timestamp": row["timestamp"],
+                    "metadata": metadata,
+                    "conversation_id": row["conversation_id"],
+                    "record_kind": row["record_kind"] or metadata.get("record_kind"),
+                    "role": row["role"],
+                    "message_index": row["message_index"],
+                    "message_type": row["message_type"],
+                    "tool_name": row["tool_name"],
+                    "correlation_id": row["correlation_id"],
+                })
+            
+            return results
     
     async def get_unsemanticized_conversation_windows(
         self, user_id: str
@@ -1033,6 +1265,7 @@ class LocalMemoryStore:
                 SELECT conversation_id, MIN(timestamp) as earliest_timestamp
                 FROM memories
                 WHERE user_id = ? AND is_semanticized = 0
+                  AND (record_kind IS NULL OR record_kind = 'memory')
                 GROUP BY conversation_id
                 ORDER BY earliest_timestamp ASC
             """,
@@ -1065,7 +1298,9 @@ class LocalMemoryStore:
                     """
                     SELECT id, content, timestamp, metadata, conversation_id
                     FROM memories
-                    WHERE user_id = ? AND is_semanticized = 0 AND conversation_id IS NULL
+                    WHERE user_id = ? AND is_semanticized = 0
+                      AND (record_kind IS NULL OR record_kind = 'memory')
+                      AND conversation_id IS NULL
                     ORDER BY timestamp ASC
                     LIMIT ?
                 """,
@@ -1076,7 +1311,9 @@ class LocalMemoryStore:
                     """
                     SELECT id, content, timestamp, metadata, conversation_id
                     FROM memories
-                    WHERE user_id = ? AND is_semanticized = 0 AND conversation_id = ?
+                    WHERE user_id = ? AND is_semanticized = 0
+                      AND (record_kind IS NULL OR record_kind = 'memory')
+                      AND conversation_id = ?
                     ORDER BY timestamp ASC
                     LIMIT ?
                 """,
@@ -1120,6 +1357,7 @@ class LocalMemoryStore:
                 SELECT id, content, timestamp, metadata
                 FROM memories
                 WHERE user_id = ? AND is_semanticized = 0
+                  AND (record_kind IS NULL OR record_kind = 'memory')
                 ORDER BY timestamp ASC
                 LIMIT ?
             """,
@@ -1222,6 +1460,7 @@ class LocalMemoryStore:
                     SELECT id, content, timestamp, metadata, conversation_id
                     FROM memories
                     WHERE user_id = ? AND is_semanticized = 0
+                      AND (record_kind IS NULL OR record_kind = 'memory')
                     ORDER BY timestamp ASC, id ASC
                     LIMIT ?
                 """,
@@ -1245,6 +1484,7 @@ class LocalMemoryStore:
                         FROM memories
                         WHERE user_id = ? 
                           AND is_semanticized = 0
+                          AND (record_kind IS NULL OR record_kind = 'memory')
                           AND (
                               timestamp > ?
                               OR (timestamp = ? AND id > ?)
@@ -1262,6 +1502,7 @@ class LocalMemoryStore:
                         SELECT id, content, timestamp, metadata, conversation_id
                         FROM memories
                         WHERE user_id = ? AND is_semanticized = 0
+                          AND (record_kind IS NULL OR record_kind = 'memory')
                         ORDER BY timestamp ASC, id ASC
                         LIMIT ?
                     """,

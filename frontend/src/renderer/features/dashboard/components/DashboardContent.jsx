@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import MemorySection from './sections/MemorySection';
+import EpisodicMemorySection from './sections/EpisodicMemorySection';
 import ProceduralSection from './sections/ProceduralSection';
 import ModelsSection from './sections/ModelsSection';
 import UsageSection from './sections/UsageSection';
@@ -9,12 +10,7 @@ import '../../../styles/SettingsPanel.css';
 function DashboardContent({ sectionId, config, availableModels, onConfigChange }) {
   switch (sectionId) {
     case 'episodic':
-      return (
-        <MemorySection
-          title="Episodic Memory"
-          description="Conversation summaries and short-term recall."
-        />
-      );
+      return <EpisodicMemorySection />;
     case 'semantic':
       return (
         <MemorySection

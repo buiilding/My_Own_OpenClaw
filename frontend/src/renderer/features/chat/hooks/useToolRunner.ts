@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { ToolExecutionService, type ToolExecutionResult, type BundleExecutionResult } from '../../../infrastructure/services/ToolExecutionService';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
+import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
 import { type ToolBundleEvent, type ToolCallEvent, isBackendEvent } from '../../../types/backendEvents';
 
 /**
@@ -42,6 +43,11 @@ export function useToolRunner(enabled = true) {
         };
 
         addMessage(toolOutputMessage);
+        recordToolMessage(result.formattedMessage, {
+          messageType: 'tool-output',
+          toolName: result.toolName,
+          correlationId: result.correlationId,
+        });
       },
       onBundleResult: (result: BundleExecutionResult) => {
         const bundledMessage: ChatMessage = {
@@ -66,6 +72,11 @@ export function useToolRunner(enabled = true) {
         };
 
         addMessage(bundledMessage);
+        recordToolMessage(result.formattedMessage, {
+          messageType: 'tool-output',
+          toolName: `bundled_tools`,
+          correlationId: result.correlationId,
+        });
       },
       sendToBackend: (payload: unknown) => {
         IpcBridge.send(SEND_CHANNELS.TO_BACKEND, payload);

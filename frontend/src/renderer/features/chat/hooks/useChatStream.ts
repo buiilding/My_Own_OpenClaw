@@ -8,9 +8,16 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
 import {
+  recordAssistantMessage,
+  recordToolMessage,
+  recordUserMessage,
+  updateTranscriptSession,
+} from '../../../infrastructure/transcript/TranscriptWriter';
+import {
   type BackendEvent,
   type BackendEventType,
   type LlmThoughtEvent,
+  type StreamingCompleteEvent,
   type StreamingResponseEvent,
   type ToolCallEvent,
   type ToolOutputEvent,
@@ -109,6 +116,14 @@ export function useChatStream() {
       type: 'tool-call',
     };
     addMessage(newMessage);
+
+    recordToolMessage(formattedText, {
+      messageType: 'tool-call',
+      toolName: event.payload?.tool_name,
+      correlationId: event.payload?.request_id,
+      sessionId: event.session_id,
+      userId: event.user_id,
+    });
   }, [addMessage, setThinkingStatus]);
 
   const handleToolOutput = useCallback((event: ToolOutputEvent) => {
@@ -131,6 +146,14 @@ export function useChatStream() {
     };
 
     addMessage(newMessage);
+
+    recordToolMessage(outputText, {
+      messageType: 'tool-output',
+      toolName: event.payload?.tool_name,
+      correlationId: event.payload?.request_id,
+      sessionId: event.session_id,
+      userId: event.user_id,
+    });
   }, [addMessage, setThinkingStatus]);
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
@@ -178,16 +201,31 @@ export function useChatStream() {
       timestamp: event.payload?.timestamp,
     };
     addMessage(newMessage);
+
+    recordUserMessage(text, {
+      timestamp: event.payload?.timestamp,
+      sessionId: event.payload?.session_id ?? event.session_id ?? null,
+      userId: event.payload?.user_id ?? event.user_id ?? null,
+    });
   }, [addMessage]);
 
-  const handleStreamingComplete = useCallback(() => {
+  const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     setIsSending(false);
     setThinkingStatus(null);
 
     const messages = useChatStore.getState().messages;
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = messages.findLast(
+      (message) => message.sender === 'assistant' && (!message.type || message.type === 'llm-text')
+    );
     if (lastMessage && lastMessage.sender === 'assistant') {
       updateMessage(lastMessage.id, { isComplete: true });
+      if (lastMessage.text) {
+        recordAssistantMessage(lastMessage.text, {
+          messageType: lastMessage.type || 'llm-text',
+          sessionId: event.session_id,
+          userId: event.user_id,
+        });
+      }
     }
   }, [updateMessage, setIsSending, setThinkingStatus]);
 
@@ -206,12 +244,18 @@ export function useChatStream() {
       type: 'error',
     };
     addMessage(newMessage);
+
+    recordAssistantMessage(errorText, {
+      messageType: 'error',
+      sessionId: event.session_id,
+      userId: event.user_id,
+    });
   }, [addMessage, setIsSending, setThinkingStatus]);
 
   const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => ({
     'llm-thought': event => handleLlmThought(event as LlmThoughtEvent),
     'streaming-response': event => handleStreamingResponse(event as StreamingResponseEvent),
-    'streaming-complete': () => handleStreamingComplete(),
+    'streaming-complete': event => handleStreamingComplete(event as StreamingCompleteEvent),
     'tool-call': event => handleToolCall(event as ToolCallEvent),
     'tool-output': event => handleToolOutput(event as ToolOutputEvent),
     'system-prompt': event => handleSystemPrompt(event as SystemPromptEvent),
@@ -246,6 +290,7 @@ export function useChatStream() {
       if (!isBackendEvent(data)) {
         return;
       }
+      updateTranscriptSession(data.session_id ?? null, data.user_id ?? null);
       const handler = handlers[data.type];
       if (handler) {
         handler(data);

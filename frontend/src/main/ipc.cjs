@@ -20,6 +20,8 @@ let isConnected = false;
 let reconnectInterval = 5000; // 5 seconds
 let isFirstQuery = true; // Track if this is the first user query in the session
 let currentUserId = null; // Store user_id after successful handshake
+let currentSessionId = null; // Store session_id from backend responses
+let currentServerUserId = null; // Store server-assigned user_id from backend responses
 
 const FRONTEND_CONFIG_FILENAME = 'frontend-config.json';
 
@@ -153,6 +155,14 @@ function connect() {
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
+      if (data && typeof data === 'object') {
+        if (data.session_id) {
+          currentSessionId = data.session_id;
+        }
+        if (data.user_id) {
+          currentServerUserId = data.user_id;
+        }
+      }
       // Only log errors or important message types
       if (data.type === 'error') {
         log(`Error from backend: ${data.payload?.message || 'Unknown error'}`);
@@ -165,6 +175,8 @@ function connect() {
 
   ws.on('close', () => {
     isConnected = false;
+    currentSessionId = null;
+    currentServerUserId = null;
     log('Disconnected from Python backend. Attempting to reconnect...');
     broadcastToRenderers('ipc-status', { isConnected: false });
     setTimeout(connect, reconnectInterval);
@@ -245,10 +257,14 @@ function initializeIpc(win) {
       if (payload?.text) {
         broadcastToRenderers('from-backend', {
           type: 'local-user-message',
+          session_id: currentSessionId || null,
+          user_id: currentServerUserId || null,
           payload: {
             text: payload.text,
             screenshot: payload.screenshot || null,
             timestamp: new Date().toISOString(),
+            session_id: currentSessionId || null,
+            user_id: currentServerUserId || null,
           },
         }, event.sender);
       }
