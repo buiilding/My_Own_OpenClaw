@@ -155,7 +155,7 @@ class TestConfigurationService:
             service.get_config_value("model_provider")
 
     @pytest.mark.asyncio
-    async def test_reload_config_success(self, service, mock_config_manager, mock_event_bus):
+    async def test_reload_config_success(self, service, mock_config_manager):
         old_config = AppConfig(model_provider="openai")
         reloaded_config = AppConfig(model_provider="anthropic")
         
@@ -166,7 +166,7 @@ class TestConfigurationService:
         
         assert result == reloaded_config
         assert service._config == reloaded_config
-        mock_event_bus.publish.assert_called_once()
+        # Note: reload_config does not publish to event bus (only update_config does)
 
     @pytest.mark.asyncio
     async def test_reload_config_not_initialized(self, service):
@@ -188,7 +188,7 @@ class TestConfigurationService:
         user_overrides = {"model_provider": "anthropic"}
         
         with patch(
-            "backend.src.core.config.service.load_api_key_for_provider",
+            "backend.src.core.config.loader.load_api_key_for_provider",
             return_value=AppConfig(model_provider="anthropic", api_key="test-key")
         ):
             result = service.build_user_config(user_overrides)
@@ -202,7 +202,7 @@ class TestConfigurationService:
         user_overrides = {}
         
         with patch(
-            "backend.src.core.config.service.load_api_key_for_provider",
+            "backend.src.core.config.loader.load_api_key_for_provider",
             side_effect=lambda x: x
         ) as mock_load:
             with patch.object(

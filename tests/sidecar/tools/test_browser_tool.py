@@ -1,0 +1,362 @@
+"""
+Tests for browser tool implementation.
+"""
+
+import pytest
+from unittest import mock
+
+from tools.browser.browser_tool import execute_browser_control
+from tools.browser.controller import reset_browser_controller
+from tools.result import ToolResult
+
+
+@pytest.fixture(autouse=True)
+def reset_controller():
+    """Reset controller before each test."""
+    reset_browser_controller()
+
+
+class TestExecuteBrowserControl:
+    """Test main execute function."""
+    
+    def test_missing_action(self):
+        """Test error when action is missing."""
+        result = execute_browser_control({})
+        
+        assert result.success is False
+        assert "action" in result.error.lower()
+    
+    def test_unknown_action(self):
+        """Test error for unknown action."""
+        result = execute_browser_control({"action": "unknown"})
+        
+        assert result.success is False
+        assert "Unknown" in result.error
+    
+    def test_validation_error(self):
+        """Test validation error handling."""
+        result = execute_browser_control({"action": "click"})  # Missing ref
+        
+        assert result.success is False
+        assert "Validation" in result.error or "ref" in result.error.lower()
+
+
+class TestConnectAction:
+    """Test connect action."""
+    
+    @pytest.mark.asyncio
+    async def test_connect_user_chrome(self):
+        """Test connecting to user Chrome."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = False
+            mock_controller.connect_to_user_chrome.return_value = {
+                "status": "connected",
+                "mode": "user_chrome",
+                "url": "https://example.com",
+            }
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "connect",
+                "mode": "user_chrome",
+                "cdp_url": "http://127.0.0.1:9222",
+            })
+            
+            assert result.success is True
+            assert result.data["mode"] == "user_chrome"
+    
+    @pytest.mark.asyncio
+    async def test_connect_managed(self):
+        """Test launching managed browser."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = False
+            mock_controller.launch_managed_browser.return_value = {
+                "status": "launched",
+                "mode": "managed",
+                "url": "about:blank",
+            }
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "connect",
+                "mode": "managed",
+                "headless": True,
+            })
+            
+            assert result.success is True
+            assert result.data["mode"] == "managed"
+    
+    @pytest.mark.asyncio
+    async def test_connect_error(self):
+        """Test connection error handling."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = False
+            mock_controller.connect_to_user_chrome.side_effect = ConnectionError("Failed")
+            mock_controller.close = mock.AsyncMock()
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "connect",
+                "mode": "user_chrome",
+            })
+            
+            assert result.success is False
+            assert "Cannot connect" in result.error
+
+
+class TestNavigateAction:
+    """Test navigate action."""
+    
+    @pytest.mark.asyncio
+    async def test_navigate_success(self):
+        """Test successful navigation."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.navigate.return_value = {
+                "success": True,
+                "url": "https://example.com",
+                "title": "Example",
+                "status": 200,
+            }
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "navigate",
+                "url": "https://example.com",
+            })
+            
+            assert result.success is True
+            assert result.data["url"] == "https://example.com"
+    
+    @pytest.mark.asyncio
+    async def test_navigate_not_connected(self):
+        """Test navigate when not connected."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = False
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "navigate",
+                "url": "https://example.com",
+            })
+            
+            assert result.success is False
+            assert "not connected" in result.error.lower()
+    
+    @pytest.mark.asyncio
+    async def test_navigate_failure(self):
+        """Test navigation failure."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.navigate.return_value = {
+                "success": False,
+                "error": "Connection refused",
+            }
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "navigate",
+                "url": "https://example.com",
+            })
+            
+            assert result.success is False
+            assert "Connection refused" in result.error
+
+
+class TestSnapshotAction:
+    """Test snapshot action."""
+    
+    @pytest.mark.asyncio
+    async def test_snapshot_ai_format(self):
+        """Test AI format snapshot."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            
+            from tools.browser.controller import PageSnapshot
+            mock_controller.get_page_snapshot.return_value = PageSnapshot(
+                text="[1] button Submit",
+                refs={"1": {"role": "button", "name": "Submit"}},
+                url="https://example.com",
+                title="Example",
+            )
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "snapshot",
+                "format": "ai",
+            })
+            
+            assert result.success is True
+            assert result.data["format"] == "ai"
+            assert result.data["ref_count"] == 1
+    
+    @pytest.mark.asyncio
+    async def test_snapshot_not_connected(self):
+        """Test snapshot when not connected."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = False
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "snapshot",
+            })
+            
+            assert result.success is False
+            assert "not connected" in result.error.lower()
+
+
+class TestClickAction:
+    """Test click action."""
+    
+    @pytest.mark.asyncio
+    async def test_click_success(self):
+        """Test successful click."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.click.return_value = {"success": True}
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "click",
+                "ref": "5",
+            })
+            
+            assert result.success is True
+            assert result.data["ref"] == "5"
+    
+    @pytest.mark.asyncio
+    async def test_click_failure(self):
+        """Test click failure."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.click.return_value = {
+                "success": False,
+                "error": "Element not found",
+            }
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "click",
+                "ref": "999",
+            })
+            
+            assert result.success is False
+            assert "Element not found" in result.error
+
+
+class TestTypeAction:
+    """Test type action."""
+    
+    @pytest.mark.asyncio
+    async def test_type_success(self):
+        """Test successful type."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.type_text.return_value = {"success": True}
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "type",
+                "ref": "3",
+                "text": "Hello World",
+            })
+            
+            assert result.success is True
+            assert result.data["text"] == "Hello World"
+
+
+class TestScreenshotAction:
+    """Test screenshot action."""
+    
+    @pytest.mark.asyncio
+    async def test_screenshot_success(self):
+        """Test successful screenshot."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.screenshot.return_value = b"pngdata"
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "screenshot",
+                "full_page": True,
+            })
+            
+            assert result.success is True
+            assert result.data["format"] == "png"
+            assert result.data["full_page"] is True
+            assert "image_data" in result.data
+    
+    @pytest.mark.asyncio
+    async def test_screenshot_element(self):
+        """Test element screenshot."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.screenshot.return_value = b"pngdata"
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "screenshot",
+                "ref": "5",
+            })
+            
+            assert result.success is True
+            assert result.data["ref"] == "5"
+
+
+class TestGetTabsAction:
+    """Test get_tabs action."""
+    
+    @pytest.mark.asyncio
+    async def test_get_tabs_success(self):
+        """Test successful get_tabs."""
+        from tools.browser.controller import BrowserTab
+        
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.get_tabs.return_value = [
+                BrowserTab("id1", "Tab 1", "https://example.com"),
+                BrowserTab("id2", "Tab 2", "https://google.com"),
+            ]
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "get_tabs",
+            })
+            
+            assert result.success is True
+            assert result.data["tab_count"] == 2
+            assert len(result.data["tabs"]) == 2
+
+
+class TestCloseAction:
+    """Test close action."""
+    
+    @pytest.mark.asyncio
+    async def test_close_success(self):
+        """Test successful close."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.close = mock.AsyncMock()
+            mock_get.return_value = mock_controller
+            
+            result = await execute_browser_control({
+                "action": "close",
+            })
+            
+            assert result.success is True
+            assert result.data["status"] == "closed"
+            mock_controller.close.assert_called_once()
