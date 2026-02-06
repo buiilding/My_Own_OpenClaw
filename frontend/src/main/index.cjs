@@ -314,8 +314,9 @@ function initializeOverlayHandlers() {
     }
   });
 
-  ipcMain.handle('show-chatbox', async () => {
-    return showChatWindow({ focus: true });
+  ipcMain.handle('show-chatbox', async (event, options = {}) => {
+    const focus = options?.focus !== false;
+    return showChatWindow({ focus });
   });
 
   ipcMain.handle('hide-chatbox', async () => {

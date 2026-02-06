@@ -7,13 +7,22 @@ import { useCallback } from 'react';
 import { ApiClient } from '../../../infrastructure/api/client';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
 import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
+import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+
+type ChatMessageSenderOptions = {
+  returnToChatboxOnSend?: boolean;
+};
 
 /**
  * Custom hook for sending chat messages.
  * Handles screenshot capture and message sending.
  */
-export function useChatMessageSender(stopPlayback?: () => void) {
+export function useChatMessageSender(
+  stopPlayback?: () => void,
+  options: ChatMessageSenderOptions = {},
+) {
   const { addMessage, updateMessage, setIsSending, setThinkingStatus } = useChatStore();
+  const { returnToChatboxOnSend = false } = options;
 
   const sendMessage = useCallback(async (text: string) => {
     // Stop audio playback if provided
@@ -33,6 +42,14 @@ export function useChatMessageSender(stopPlayback?: () => void) {
     addMessage(userMessage);
     setIsSending(true);
     setThinkingStatus(null);
+
+    if (returnToChatboxOnSend) {
+      try {
+        await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
+      } catch (error) {
+        console.warn('[useChatMessageSender] Failed to show chatbox:', error);
+      }
+    }
     
     // Extract OS state (screenshot and system state).
     // Determine if this is the first user message
@@ -60,7 +77,7 @@ export function useChatMessageSender(stopPlayback?: () => void) {
     
     // Send query with screenshot to backend
     await ApiClient.sendQuery(text, screenshot);
-  }, [addMessage, updateMessage, setIsSending, setThinkingStatus, stopPlayback]);
+  }, [addMessage, updateMessage, setIsSending, setThinkingStatus, stopPlayback, returnToChatboxOnSend]);
 
   return { sendMessage };
 }

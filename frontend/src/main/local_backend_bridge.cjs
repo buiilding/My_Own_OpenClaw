@@ -392,6 +392,14 @@ function initializeLocalBackendBridge(getWindows) {
             state.win.showInactive();
           } else {
             state.win.show();
+            if (
+              chatWindow &&
+              state.win === chatWindow &&
+              !state.wasFocused &&
+              typeof state.win.blur === 'function'
+            ) {
+              state.win.blur();
+            }
           }
         }
       }
