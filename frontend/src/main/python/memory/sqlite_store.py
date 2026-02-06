@@ -33,7 +33,8 @@ async def init_episodic_schema(db_path: str) -> None:
                 tool_name TEXT,
                 correlation_id TEXT,
                 model_id TEXT,
-                model_provider TEXT
+                model_provider TEXT,
+                screenshot TEXT
             )
         """
         )
@@ -186,6 +187,21 @@ async def init_episodic_schema(db_path: str) -> None:
             except Exception as exc:
                 logger.warning(
                     "Failed to add model_provider column: %s", exc
+                )
+
+        # Add screenshot column if it doesn't exist (migration)
+        try:
+            await cursor.execute("SELECT screenshot FROM memories LIMIT 1")
+        except Exception:
+            try:
+                await cursor.execute(
+                    "ALTER TABLE memories ADD COLUMN screenshot TEXT"
+                )
+                await conn.commit()
+                logger.info("Added screenshot column to episodic memory table")
+            except Exception as exc:
+                logger.warning(
+                    "Failed to add screenshot column: %s", exc
                 )
 
         await cursor.execute(
