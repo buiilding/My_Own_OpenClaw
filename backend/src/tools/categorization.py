@@ -11,6 +11,7 @@ class ToolDomain(str, Enum):
     COMPUTER = "computer"
     FILESYSTEM = "filesystem"
     SYSTEM = "system"
+    BROWSER = "browser"
     MARKETPLACE = "marketplace"
     MEMORY = "memory"
     OTHER = "other"

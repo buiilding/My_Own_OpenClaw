@@ -62,9 +62,12 @@ class TestSentenceBuffer:
         result2 = buffer.append(" Second sentence.")
         result3 = buffer.append(" Third")
         
-        assert result1 == ["First sentence."]
-        assert result2 == ["Second sentence."]
-        assert result3 == []
+        # First sentence kept (period at end), second append triggers split
+        # Second sentence ends with period, so it stays in buffer
+        # Third append triggers split again
+        assert result1 == []
+        assert result2 == ["First sentence."]
+        assert result3 == ["Second sentence."]
         assert buffer._buffer_parts == [" Third"]
 
     def test_split_on_exclamation(self):
@@ -206,14 +209,11 @@ class TestSentenceBuffer:
         result3 = buffer.append(" The lazy dog.")
         
         assert result1 == []
-        # Second append completes the sentence, but period at end means it's kept
-        # Actually, need to check the actual behavior
-        # The period after 'over' completes the sentence
-        # 'over.' has period at end but next char is space, so it should split
-        print('result2:', result2)  # Debug
-        # Third append triggers split of second sentence
-        print('result3:', result3)  # Debug
-        assert buffer.flush() == " The lazy dog."
+        # Second append adds content ending with period, kept in buffer
+        assert result2 == []
+        # Third append triggers split - first sentence is emitted
+        assert result3 == ["The quick brown fox jumps over."]
+        assert buffer._buffer_parts == [" The lazy dog."]
 
     def test_consecutive_delimiters(self):
         buffer = SentenceBuffer()
