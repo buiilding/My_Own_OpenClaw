@@ -317,6 +317,7 @@ async def test_handle_store_transcript_success():
         message_index=None,
         model_id="gpt-test",
         model_provider="openai",
+        screenshot="base64-shot",
         timestamp="2024-01-01T00:00:00",
     )
 
@@ -326,6 +327,7 @@ async def test_handle_store_transcript_success():
     _, _, _, _, kwargs = backend.memory_store.added[-1]
     assert kwargs["model_id"] == "gpt-test"
     assert kwargs["model_provider"] == "openai"
+    assert kwargs["screenshot"] == "base64-shot"
 
 
 @pytest.mark.asyncio
