@@ -122,10 +122,12 @@ export function useChatStream() {
     };
     addMessage(newMessage);
 
+    const correlationId = event.payload?.correlation_id || event.payload?.request_id;
+
     recordToolMessage(formattedText, {
       messageType: 'tool-call',
       toolName: event.payload?.tool_name,
-      correlationId: event.payload?.request_id,
+      correlationId,
       sessionId: event.session_id,
       userId: event.user_id,
       modelId,
@@ -154,10 +156,13 @@ export function useChatStream() {
 
     addMessage(newMessage);
 
+    const correlationId = event.payload?.request_id
+      || (typeof event.payload?.metadata === 'object' ? event.payload?.metadata?.request_id : undefined);
+
     recordToolMessage(outputText, {
       messageType: 'tool-output',
       toolName: event.payload?.tool_name,
-      correlationId: event.payload?.request_id,
+      correlationId,
       sessionId: event.session_id,
       userId: event.user_id,
       screenshot: event.payload?.screenshot || null,
