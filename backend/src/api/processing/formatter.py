@@ -82,7 +82,12 @@ class ResponseFormatter:
             ToolBundleEvent: StreamingEventType.TOOL_BUNDLE.value,
         }
 
-    def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
+    def format(
+        self,
+        event: Union[AgentStreamingEvent, Dict[str, Any]],
+        msg_id: str,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Optional[Dict[str, Any]]:
         """
         Format agent event into WebSocket response.
 
@@ -96,13 +101,30 @@ class ResponseFormatter:
         # O(1) dispatch for typed events using dispatch table
         event_type = self._event_type_map.get(type(event))
         if event_type:
-            return self._formatters[event_type].format(event, msg_id)
+            response = self._formatters[event_type].format(event, msg_id)
+            return self._attach_context(response, context)
         
         # Backward compatibility with dict events
         if isinstance(event, dict):
             event_type = event.get("type")
             formatter = self._formatters.get(event_type)
             if formatter:
-                return formatter.format(event, msg_id)
+                response = formatter.format(event, msg_id)
+                return self._attach_context(response, context)
         
         return None
+
+    def _attach_context(
+        self,
+        response: Optional[Dict[str, Any]],
+        context: Optional[Dict[str, Any]],
+    ) -> Optional[Dict[str, Any]]:
+        if not response or not context:
+            return response
+        session_id = context.get("session_id")
+        user_id = context.get("user_id")
+        if session_id:
+            response["session_id"] = session_id
+        if user_id:
+            response["user_id"] = user_id
+        return response

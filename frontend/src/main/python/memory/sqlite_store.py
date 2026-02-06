@@ -25,7 +25,13 @@ async def init_episodic_schema(db_path: str) -> None:
                 embedding_id INTEGER,
                 created_at REAL DEFAULT (strftime('%s', 'now')),
                 is_semanticized INTEGER DEFAULT 0,
-                conversation_id TEXT
+                conversation_id TEXT,
+                record_kind TEXT DEFAULT 'memory',
+                role TEXT,
+                message_index INTEGER,
+                message_type TEXT,
+                tool_name TEXT,
+                correlation_id TEXT
             )
         """
         )
@@ -58,6 +64,96 @@ async def init_episodic_schema(db_path: str) -> None:
             except Exception as exc:
                 logger.warning(
                     "Failed to add conversation_id column: %s", exc
+                )
+
+        # Add record_kind column if it doesn't exist (migration)
+        try:
+            await cursor.execute("SELECT record_kind FROM memories LIMIT 1")
+        except Exception:
+            try:
+                await cursor.execute(
+                    "ALTER TABLE memories ADD COLUMN record_kind TEXT DEFAULT 'memory'"
+                )
+                await conn.commit()
+                logger.info("Added record_kind column to episodic memory table")
+            except Exception as exc:
+                logger.warning(
+                    "Failed to add record_kind column: %s", exc
+                )
+
+        # Add role column if it doesn't exist (migration)
+        try:
+            await cursor.execute("SELECT role FROM memories LIMIT 1")
+        except Exception:
+            try:
+                await cursor.execute(
+                    "ALTER TABLE memories ADD COLUMN role TEXT"
+                )
+                await conn.commit()
+                logger.info("Added role column to episodic memory table")
+            except Exception as exc:
+                logger.warning(
+                    "Failed to add role column: %s", exc
+                )
+
+        # Add message_index column if it doesn't exist (migration)
+        try:
+            await cursor.execute("SELECT message_index FROM memories LIMIT 1")
+        except Exception:
+            try:
+                await cursor.execute(
+                    "ALTER TABLE memories ADD COLUMN message_index INTEGER"
+                )
+                await conn.commit()
+                logger.info("Added message_index column to episodic memory table")
+            except Exception as exc:
+                logger.warning(
+                    "Failed to add message_index column: %s", exc
+                )
+
+        # Add message_type column if it doesn't exist (migration)
+        try:
+            await cursor.execute("SELECT message_type FROM memories LIMIT 1")
+        except Exception:
+            try:
+                await cursor.execute(
+                    "ALTER TABLE memories ADD COLUMN message_type TEXT"
+                )
+                await conn.commit()
+                logger.info("Added message_type column to episodic memory table")
+            except Exception as exc:
+                logger.warning(
+                    "Failed to add message_type column: %s", exc
+                )
+
+        # Add tool_name column if it doesn't exist (migration)
+        try:
+            await cursor.execute("SELECT tool_name FROM memories LIMIT 1")
+        except Exception:
+            try:
+                await cursor.execute(
+                    "ALTER TABLE memories ADD COLUMN tool_name TEXT"
+                )
+                await conn.commit()
+                logger.info("Added tool_name column to episodic memory table")
+            except Exception as exc:
+                logger.warning(
+                    "Failed to add tool_name column: %s", exc
+                )
+
+        # Add correlation_id column if it doesn't exist (migration)
+        try:
+            await cursor.execute("SELECT correlation_id FROM memories LIMIT 1")
+        except Exception:
+            try:
+                await cursor.execute(
+                    "ALTER TABLE memories ADD COLUMN correlation_id TEXT"
+                )
+                await conn.commit()
+                logger.info("Added correlation_id column to episodic memory table")
+            except Exception as exc:
+                logger.warning(
+                    "Failed to add correlation_id column: %s", exc
                 )
 
         await cursor.execute(
@@ -99,6 +195,20 @@ async def init_episodic_schema(db_path: str) -> None:
             """
             CREATE INDEX IF NOT EXISTS idx_conversation_semanticized
             ON memories(conversation_id, is_semanticized)
+        """
+        )
+
+        await cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_record_kind
+            ON memories(record_kind)
+        """
+        )
+
+        await cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_conversation_message_index
+            ON memories(conversation_id, message_index)
         """
         )
 

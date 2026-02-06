@@ -59,6 +59,9 @@ class LocalBackend:
         # Memory methods
         self.protocol.register_method("search_memory", self._handle_search_memory)
         self.protocol.register_method("store_memory", self._handle_store_memory)
+        self.protocol.register_method("list_conversations", self._handle_list_conversations)
+        self.protocol.register_method("get_conversation", self._handle_get_conversation)
+        self.protocol.register_method("store_transcript", self._handle_store_transcript)
         
         # Health check and diagnostics
         self.protocol.register_method("ping", self._handle_ping)
@@ -193,6 +196,146 @@ class LocalBackend:
             }
         except Exception as e:
             logger.error(f"Memory search failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    async def _handle_list_conversations(
+        self,
+        user_id: str = "default_user",
+        limit: int = 200,
+        record_kind: Optional[str] = "transcript",
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """List episodic conversation windows."""
+        if not self.memory_store:
+            return {
+                "success": False,
+                "error": "Memory store not initialized"
+            }
+
+        try:
+            conversations = await self.memory_store.list_conversations(user_id, limit, record_kind)
+            return {
+                "success": True,
+                "data": {
+                    "conversations": conversations,
+                    "count": len(conversations),
+                }
+            }
+        except Exception as e:
+            logger.error(f"Conversation listing failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    async def _handle_get_conversation(
+        self,
+        conversation_id: Optional[str] = None,
+        user_id: str = "default_user",
+        limit: int = 1000,
+        record_kind: Optional[str] = "transcript",
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Get episodic memories for a conversation window."""
+        if not self.memory_store:
+            return {
+                "success": False,
+                "error": "Memory store not initialized"
+            }
+
+        try:
+            memories = await self.memory_store.get_episodic_memories_by_conversation(
+                user_id, conversation_id, limit, record_kind=record_kind
+            )
+            return {
+                "success": True,
+                "data": {
+                    "conversation_id": conversation_id,
+                    "memories": memories,
+                    "count": len(memories),
+                }
+            }
+        except Exception as e:
+            logger.error(f"Conversation fetch failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    async def _handle_store_transcript(
+        self,
+        content: str,
+        user_id: str = "default_user",
+        session_id: Optional[str] = None,
+        role: Optional[str] = None,
+        message_type: Optional[str] = None,
+        tool_name: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+        message_index: Optional[int] = None,
+        timestamp: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Store a transcript entry (no embeddings)."""
+        if not self.memory_store:
+            return {
+                "success": False,
+                "error": "Memory store not initialized"
+            }
+
+        if not content:
+            return {
+                "success": False,
+                "error": "Content is required"
+            }
+
+        try:
+            record_kind = "transcript"
+            metadata = {
+                "type": "episodic",
+                "record_kind": record_kind,
+            }
+            if role:
+                metadata["role"] = role
+            if message_type:
+                metadata["message_type"] = message_type
+            if tool_name:
+                metadata["tool_name"] = tool_name
+            if correlation_id:
+                metadata["correlation_id"] = correlation_id
+
+            if message_index is None:
+                message_index = await self.memory_store.get_next_message_index(
+                    user_id, session_id
+                )
+
+            memory_id = await self.memory_store.add(
+                content,
+                user_id,
+                metadata,
+                conversation_id=session_id,
+                record_kind=record_kind,
+                role=role,
+                message_index=message_index,
+                message_type=message_type,
+                tool_name=tool_name,
+                correlation_id=correlation_id,
+                skip_embedding=True,
+                timestamp=timestamp,
+            )
+
+            return {
+                "success": True,
+                "data": {
+                    "memory_id": memory_id,
+                    "message_index": message_index,
+                    "record_kind": record_kind,
+                }
+            }
+        except Exception as e:
+            logger.error(f"Transcript store failed: {e}", exc_info=True)
             return {
                 "success": False,
                 "error": str(e)

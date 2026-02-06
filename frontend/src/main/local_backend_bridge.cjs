@@ -485,11 +485,12 @@ function initializeLocalBackendBridge(getWindows) {
   });
 
   // Handle conversation list requests
-  ipcMain.handle('list-conversations', async (event, { userId, limit } = {}) => {
+  ipcMain.handle('list-conversations', async (event, { userId, limit, recordKind } = {}) => {
     try {
       const result = await sendRequest('list_conversations', {
         user_id: userId,
         limit: limit,
+        record_kind: recordKind,
       });
 
       return result;
@@ -502,12 +503,13 @@ function initializeLocalBackendBridge(getWindows) {
   });
 
   // Handle conversation detail requests
-  ipcMain.handle('get-conversation', async (event, { userId, conversationId, limit } = {}) => {
+  ipcMain.handle('get-conversation', async (event, { userId, conversationId, limit, recordKind } = {}) => {
     try {
       const result = await sendRequest('get_conversation', {
         user_id: userId,
         conversation_id: conversationId ?? null,
         limit: limit,
+        record_kind: recordKind,
       });
 
       return result;
@@ -530,6 +532,29 @@ function initializeLocalBackendBridge(getWindows) {
         session_id: sessionId,
       });
       
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  });
+
+  ipcMain.handle('store-transcript', async (event, { content, userId, sessionId, role, messageType, toolName, correlationId, messageIndex, timestamp } = {}) => {
+    try {
+      const result = await sendRequest('store_transcript', {
+        content: content,
+        user_id: userId,
+        session_id: sessionId,
+        role: role,
+        message_type: messageType,
+        tool_name: toolName,
+        correlation_id: correlationId,
+        message_index: messageIndex,
+        timestamp: timestamp,
+      });
+
       return result;
     } catch (error) {
       return {

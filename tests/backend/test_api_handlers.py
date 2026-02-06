@@ -37,6 +37,8 @@ class DummyAgent:
     def __init__(self):
         self.cfg = AppConfig()
         self.updated_configs = []
+        self.user_id = "user_1"
+        self.session_id = "session_1"
 
     async def process_query(self, _text, image_data=None, message_content=None):
         yield {"type": "chunk", "content": "ok"}
@@ -105,8 +107,8 @@ async def test_query_handler_success(monkeypatch):
             self.processed = []
             self.waited = False
 
-        async def process(self, event, tts_service, msg_id):
-            self.processed.append((event, msg_id))
+        async def process(self, event, tts_service, msg_id, context=None):
+            self.processed.append((event, msg_id, context))
 
         async def wait_for_pending_tts(self):
             self.waited = True

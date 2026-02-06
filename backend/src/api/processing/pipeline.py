@@ -57,7 +57,8 @@ class StreamPipeline:
         self, 
         event: AgentStreamingEvent, 
         tts_service: Optional[TTSService],
-        msg_id: str
+        msg_id: str,
+        context: Optional[dict] = None,
     ) -> None:
         """
         Process a single event through the pipeline stages.
@@ -77,7 +78,7 @@ class StreamPipeline:
         """
         # Stage 1: Format and send text immediately (don't wait for TTS)
         # This ensures text appears on screen instantly, improving perceived latency
-        response = self.response_formatter.format(event, msg_id)
+        response = self.response_formatter.format(event, msg_id, context=context)
         if response:
             # Stage 2: Send via transport (text response sent first)
             # If connection is closed, log and re-raise to allow query handler to stop streaming

@@ -19,6 +19,8 @@ export type BackendEventBase<TType extends BackendEventType, TPayload = undefine
   type: TType;
   payload?: TPayload;
   id?: string;
+  session_id?: string;
+  user_id?: string;
 };
 
 export type LlmThoughtEvent = BackendEventBase<'llm-thought', { status?: string }>;
@@ -49,6 +51,8 @@ export type LocalUserMessageEvent = BackendEventBase<'local-user-message', {
   text?: string;
   screenshot?: string | null;
   timestamp?: string;
+  session_id?: string | null;
+  user_id?: string | null;
 }>;
 export type SystemPromptEvent = BackendEventBase<'system-prompt', {
   content?: string;

@@ -24,6 +24,7 @@ class DummyMemoryStore:
     def __init__(self):
         self.added = []
         self.pending_count = 0
+        self.next_index = 1
 
     async def search(self, query, user_id, filters, limit):
         return [
@@ -31,12 +32,17 @@ class DummyMemoryStore:
             {"type": "episodic", "text": "event"},
         ]
 
-    async def add(self, content, user_id, metadata, conversation_id=None):
-        self.added.append((content, user_id, metadata, conversation_id))
+    async def add(self, content, user_id, metadata, conversation_id=None, **kwargs):
+        self.added.append((content, user_id, metadata, conversation_id, kwargs))
         return "memory-1"
 
     async def increment_pending_count(self):
         self.pending_count += 1
+
+    async def get_next_message_index(self, user_id, conversation_id):
+        value = self.next_index
+        self.next_index += 1
+        return value
 
     async def close(self):
         return None
@@ -67,7 +73,7 @@ class DummyMemoryStoreRaises(DummyMemoryStore):
         super().__init__()
         self.error = error
 
-    async def add(self, content, user_id, metadata, conversation_id=None):
+    async def add(self, content, user_id, metadata, conversation_id=None, **kwargs):
         raise self.error
 
 
@@ -293,3 +299,35 @@ async def test_handle_store_memory_fails_without_store():
         assistant_response="hello",
     )
     assert result["success"] is False
+
+
+@pytest.mark.asyncio
+async def test_handle_store_transcript_success():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_transcript(
+        content="hello",
+        user_id="user-1",
+        session_id="session-1",
+        role="user",
+        message_type="user",
+        tool_name=None,
+        correlation_id=None,
+        message_index=None,
+        timestamp="2024-01-01T00:00:00",
+    )
+
+    assert result["success"] is True
+    assert result["data"]["record_kind"] == "transcript"
+    assert backend.memory_store.added
+
+
+@pytest.mark.asyncio
+async def test_handle_store_transcript_requires_content():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_transcript(content="")
+    assert result["success"] is False
+    assert "Content is required" in result["error"]

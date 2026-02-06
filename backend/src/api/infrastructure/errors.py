@@ -32,7 +32,7 @@ SILENT FAILURE PREVENTION:
   expected when clients disconnect and are logged at debug level
 """
 import logging
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 
 from fastapi import WebSocketDisconnect
 
@@ -135,7 +135,8 @@ async def send_success_response(
     websocket: WebSocketSender,
     msg_id: str,
     response_type: str,
-    payload: dict
+    payload: dict,
+    context: Optional[Dict[str, Any]] = None,
 ) -> None:
     """
     Send standardized success response to WebSocket client.
@@ -154,11 +155,19 @@ async def send_success_response(
     try:
         # WebSocketTransportSender now accepts SafeWebSocket for thread-safe writes
         transport = WebSocketTransportSender(websocket)
-        await transport.send({
+        message = {
             "type": response_type,
             "id": msg_id,
             "payload": payload
-        })
+        }
+        if context:
+            session_id = context.get("session_id")
+            user_id = context.get("user_id")
+            if session_id:
+                message["session_id"] = session_id
+            if user_id:
+                message["user_id"] = user_id
+        await transport.send(message)
     except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
         # Connection closed - expected in some cases
         logger.debug(f"Failed to send success response to closed connection: {e}")
