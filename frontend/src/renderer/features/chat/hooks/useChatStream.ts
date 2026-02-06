@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
+import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
   recordAssistantMessage,
   recordToolMessage,
@@ -43,6 +44,9 @@ export function useChatStream() {
     setThinkingStatus,
     setTokenCounts,
   } = useChatStore();
+  const { config } = useAppConfigContext();
+  const modelId = config?.selected_model_id || null;
+  const modelProvider = config?.model_provider || null;
 
   const updateLastMessageBySender = useCallback((sender: ChatMessage['sender'], updates: Partial<ChatMessage>) => {
     const messages = useChatStore.getState().messages;
@@ -123,8 +127,10 @@ export function useChatStream() {
       correlationId: event.payload?.request_id,
       sessionId: event.session_id,
       userId: event.user_id,
+      modelId,
+      modelProvider,
     });
-  }, [addMessage, setThinkingStatus]);
+  }, [addMessage, modelId, modelProvider, setThinkingStatus]);
 
   const handleToolOutput = useCallback((event: ToolOutputEvent) => {
     setThinkingStatus(null);
@@ -153,8 +159,10 @@ export function useChatStream() {
       correlationId: event.payload?.request_id,
       sessionId: event.session_id,
       userId: event.user_id,
+      modelId,
+      modelProvider,
     });
-  }, [addMessage, setThinkingStatus]);
+  }, [addMessage, modelId, modelProvider, setThinkingStatus]);
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
     updateLastMessageBySender('user', {
@@ -206,8 +214,10 @@ export function useChatStream() {
       timestamp: event.payload?.timestamp,
       sessionId: event.payload?.session_id ?? event.session_id ?? null,
       userId: event.payload?.user_id ?? event.user_id ?? null,
+      modelId,
+      modelProvider,
     });
-  }, [addMessage]);
+  }, [addMessage, modelId, modelProvider]);
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     setIsSending(false);
@@ -224,10 +234,12 @@ export function useChatStream() {
           messageType: lastMessage.type || 'llm-text',
           sessionId: event.session_id,
           userId: event.user_id,
+          modelId,
+          modelProvider,
         });
       }
     }
-  }, [updateMessage, setIsSending, setThinkingStatus]);
+  }, [modelId, modelProvider, setIsSending, setThinkingStatus, updateMessage]);
 
   const handleTokenCount = useCallback((event: TokenCountEvent) => {
     setTokenCounts(event.payload ?? null);
@@ -249,8 +261,10 @@ export function useChatStream() {
       messageType: 'error',
       sessionId: event.session_id,
       userId: event.user_id,
+      modelId,
+      modelProvider,
     });
-  }, [addMessage, setIsSending, setThinkingStatus]);
+  }, [addMessage, modelId, modelProvider, setIsSending, setThinkingStatus]);
 
   const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => ({
     'llm-thought': event => handleLlmThought(event as LlmThoughtEvent),
