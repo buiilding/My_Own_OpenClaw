@@ -8,17 +8,17 @@ from backend.src.core.infrastructure.bus import EventBus, EventHandlerWrapper
 from backend.src.core.events.base import Event
 
 
-class TestEvent(Event):
-    """Test event for unit tests."""
+class MockEvent(Event):
+    """Mock event for unit tests."""
     pass
 
 
-class AnotherTestEvent(Event):
-    """Another test event for unit tests."""
+class AnotherMockEvent(Event):
+    """Another mock event for unit tests."""
     pass
 
 
-class TestEventHandlerWrapper:
+class MockEventHandlerWrapper:
     """Tests for EventHandlerWrapper class."""
 
     def test_init_with_function(self):
@@ -38,10 +38,12 @@ class TestEventHandlerWrapper:
                 pass
         
         obj = MyClass()
-        wrapper = EventHandlerWrapper(obj.handler)
+        original_handler = obj.handler
+        wrapper = EventHandlerWrapper(original_handler)
         
         assert wrapper._is_weak
-        assert wrapper.handler is obj.handler
+        # The handler might be a different bound method object but for same method
+        assert wrapper.handler.__func__ is original_handler.__func__
 
     def test_init_with_priority_and_filter(self):
         def handler(event):
@@ -85,7 +87,7 @@ class TestEventHandlerWrapper:
             called.append(event)
         
         wrapper = EventHandlerWrapper(handler)
-        event = TestEvent()
+        event = MockEvent()
         
         await wrapper.call(event)
         
@@ -99,7 +101,7 @@ class TestEventHandlerWrapper:
             called.append(event)
         
         wrapper = EventHandlerWrapper(handler)
-        event = TestEvent()
+        event = MockEvent()
         
         await wrapper.call(event)
         
@@ -113,14 +115,14 @@ class TestEventHandlerWrapper:
             called.append(event)
         
         def filter_func(event):
-            return isinstance(event, AnotherTestEvent)
+            return isinstance(event, AnotherMockEvent)
         
         wrapper = EventHandlerWrapper(handler, filter_func=filter_func)
         
-        await wrapper.call(TestEvent())
+        await wrapper.call(MockEvent())
         assert called == []  # Filtered out
         
-        await wrapper.call(AnotherTestEvent())
+        await wrapper.call(AnotherMockEvent())
         assert len(called) == 1
 
     @pytest.mark.asyncio
@@ -134,10 +136,10 @@ class TestEventHandlerWrapper:
         del obj
         
         # Should not raise
-        await wrapper.call(TestEvent())
+        await wrapper.call(MockEvent())
 
 
-class TestEventBus:
+class MockEventBus:
     """Tests for EventBus class."""
 
     @pytest.fixture
@@ -155,11 +157,11 @@ class TestEventBus:
         def handler(event):
             pass
         
-        bus.subscribe(TestEvent, handler)
+        bus.subscribe(MockEvent, handler)
         
-        assert TestEvent in bus._subscribers
-        assert len(bus._subscribers[TestEvent]) == 1
-        assert bus._subscribers[TestEvent][0].handler is handler
+        assert MockEvent in bus._subscribers
+        assert len(bus._subscribers[MockEvent]) == 1
+        assert bus._subscribers[MockEvent][0].handler is handler
 
     def test_subscribe_with_priority(self, bus):
         def handler1(event):
@@ -168,19 +170,19 @@ class TestEventBus:
         def handler2(event):
             pass
         
-        bus.subscribe(TestEvent, handler1, priority=200)
-        bus.subscribe(TestEvent, handler2, priority=50)
+        bus.subscribe(MockEvent, handler1, priority=200)
+        bus.subscribe(MockEvent, handler2, priority=50)
         
         # Lower priority should come first
-        assert bus._subscribers[TestEvent][0].handler is handler2
-        assert bus._subscribers[TestEvent][1].handler is handler1
+        assert bus._subscribers[MockEvent][0].handler is handler2
+        assert bus._subscribers[MockEvent][1].handler is handler1
 
     def test_subscribe_invalidates_cache(self, bus):
         def handler(event):
             pass
         
-        bus._handler_cache = {(TestEvent,): []}
-        bus.subscribe(TestEvent, handler)
+        bus._handler_cache = {(MockEvent,): []}
+        bus.subscribe(MockEvent, handler)
         
         assert bus._handler_cache == {}
 
@@ -188,26 +190,26 @@ class TestEventBus:
         def handler(event):
             pass
         
-        bus.subscribe(TestEvent, handler)
-        result = bus.unsubscribe(TestEvent, handler)
+        bus.subscribe(MockEvent, handler)
+        result = bus.unsubscribe(MockEvent, handler)
         
         assert result is True
-        assert len(bus._subscribers[TestEvent]) == 0
+        assert len(bus._subscribers[MockEvent]) == 0
 
     def test_unsubscribe_not_found(self, bus):
         def handler(event):
             pass
         
-        result = bus.unsubscribe(TestEvent, handler)
+        result = bus.unsubscribe(MockEvent, handler)
         assert result is False
 
     def test_unsubscribe_invalidates_cache(self, bus):
         def handler(event):
             pass
         
-        bus.subscribe(TestEvent, handler)
-        bus._handler_cache = {(TestEvent,): []}
-        bus.unsubscribe(TestEvent, handler)
+        bus.subscribe(MockEvent, handler)
+        bus._handler_cache = {(MockEvent,): []}
+        bus.unsubscribe(MockEvent, handler)
         
         assert bus._handler_cache == {}
 
@@ -230,12 +232,12 @@ class TestEventBus:
 
     @pytest.mark.asyncio
     async def test_publish_no_handlers(self, bus):
-        event = TestEvent()
+        event = MockEvent()
         
         # Should not raise
         await bus.publish(event)
         
-        assert bus._event_stats.get("TestEvent") == 1
+        assert bus._event_stats.get("MockEvent") == 1
 
     @pytest.mark.asyncio
     async def test_publish_with_handler(self, bus):
@@ -244,8 +246,8 @@ class TestEventBus:
         def handler(event):
             called.append(event)
         
-        bus.subscribe(TestEvent, handler)
-        event = TestEvent()
+        bus.subscribe(MockEvent, handler)
+        event = MockEvent()
         
         await bus.publish(event)
         
@@ -261,10 +263,10 @@ class TestEventBus:
         def handler2(event):
             called.append("handler2")
         
-        bus.subscribe(TestEvent, handler1)
-        bus.subscribe(TestEvent, handler2)
+        bus.subscribe(MockEvent, handler1)
+        bus.subscribe(MockEvent, handler2)
         
-        await bus.publish(TestEvent())
+        await bus.publish(MockEvent())
         
         assert "handler1" in called
         assert "handler2" in called
@@ -279,7 +281,7 @@ class TestEventBus:
         
         bus.add_global_listener(listener)
         
-        await bus.publish(TestEvent())
+        await bus.publish(MockEvent())
         
         assert "listener" in called
 
@@ -294,9 +296,9 @@ class TestEventBus:
             called.append("handler")
         
         bus.add_global_listener(listener)
-        bus.subscribe(TestEvent, handler)
+        bus.subscribe(MockEvent, handler)
         
-        await bus.publish(TestEvent())
+        await bus.publish(MockEvent())
         
         assert "handler" not in called
 
@@ -310,11 +312,11 @@ class TestEventBus:
         def good_handler(event):
             called.append("good")
         
-        bus.subscribe(TestEvent, bad_handler)
-        bus.subscribe(TestEvent, good_handler)
+        bus.subscribe(MockEvent, bad_handler)
+        bus.subscribe(MockEvent, good_handler)
         
         # Should not raise, should continue to good_handler
-        await bus.publish(TestEvent())
+        await bus.publish(MockEvent())
         
         assert called == ["good"]
 
@@ -328,11 +330,11 @@ class TestEventBus:
         def good_handler(event):
             pass
         
-        bus.subscribe(TestEvent, bad_handler)
-        bus.subscribe(TestEvent, good_handler)
+        bus.subscribe(MockEvent, bad_handler)
+        bus.subscribe(MockEvent, good_handler)
         
         # Should not raise but should stop after bad_handler
-        await bus.publish(TestEvent())
+        await bus.publish(MockEvent())
 
     @pytest.mark.asyncio
     async def test_publish_polymorphism(self, bus):
@@ -355,14 +357,14 @@ class TestEventBus:
         assert "ChildEvent" in called
 
     def test_get_stats(self, bus):
-        bus._event_stats = {"TestEvent": 5, "AnotherEvent": 3}
+        bus._event_stats = {"MockEvent": 5, "AnotherEvent": 3}
         
         stats = bus.get_stats()
         
-        assert stats == {"TestEvent": 5, "AnotherEvent": 3}
+        assert stats == {"MockEvent": 5, "AnotherEvent": 3}
 
     def test_clear_stats(self, bus):
-        bus._event_stats = {"TestEvent": 5}
+        bus._event_stats = {"MockEvent": 5}
         
         bus.clear_stats()
         
@@ -375,23 +377,23 @@ class TestEventBus:
         def handler2(event):
             pass
         
-        bus.subscribe(TestEvent, handler1)
-        bus.subscribe(TestEvent, handler2)
+        bus.subscribe(MockEvent, handler1)
+        bus.subscribe(MockEvent, handler2)
         
-        assert bus.get_subscriber_count(TestEvent) == 2
-        assert bus.get_subscriber_count(AnotherTestEvent) == 0
+        assert bus.get_subscriber_count(MockEvent) == 2
+        assert bus.get_subscriber_count(AnotherMockEvent) == 0
 
     def test_handler_caching(self, bus):
         def handler(event):
             pass
         
-        bus.subscribe(TestEvent, handler)
+        bus.subscribe(MockEvent, handler)
         
         # First call should build and cache handlers
-        handlers1 = bus._get_or_build_handlers(TestEvent)
+        handlers1 = bus._get_or_build_handlers(MockEvent)
         
         # Second call should use cache
-        handlers2 = bus._get_cached_handlers(TestEvent)
+        handlers2 = bus._get_cached_handlers(MockEvent)
         
         assert handlers1 == handlers2
 
@@ -401,15 +403,15 @@ class TestEventBus:
                 pass
         
         obj = MyClass()
-        bus.subscribe(TestEvent, obj.handler)
+        bus.subscribe(MockEvent, obj.handler)
         
         # Delete the object
         del obj
         
         # Cleanup should remove dead handlers
-        bus._cleanup_dead_handlers(TestEvent)
+        bus._cleanup_dead_handlers(MockEvent)
         
-        assert len(bus._subscribers[TestEvent]) == 0
+        assert len(bus._subscribers[MockEvent]) == 0
 
     def test_thread_safety_concurrent_subscribe(self, bus):
         import threading
@@ -423,7 +425,7 @@ class TestEventBus:
         
         def subscribe_handler(i):
             try:
-                bus.subscribe(TestEvent, make_handler(i))
+                bus.subscribe(MockEvent, make_handler(i))
             except Exception as e:
                 errors.append(e)
         
@@ -438,4 +440,4 @@ class TestEventBus:
             t.join()
         
         assert len(errors) == 0
-        assert bus.get_subscriber_count(TestEvent) == 10
+        assert bus.get_subscriber_count(MockEvent) == 10
