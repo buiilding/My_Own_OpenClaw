@@ -3,6 +3,7 @@ import MessageList from '../../../chat/components/MessageList';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import { getTranscriptSessionInfo } from '../../../../infrastructure/transcript/TranscriptWriter';
 import '../../../../styles/SettingsPanel.css';
+import '../../../../styles/ChatInterface.css';
 
 const DEFAULT_USER_ID = 'default_user';
 const UNASSIGNED_CONVERSATION_KEY = '__unassigned_conversation__';
@@ -65,6 +66,26 @@ const buildConversationKey = (conversation) => {
   return `${recordKind}::${conversationId}`;
 };
 
+const toTimestampValue = (timestamp) => {
+  if (!timestamp) {
+    return 0;
+  }
+  const parsed = Date.parse(timestamp);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const formatModelLabel = (conversation) => {
+  if (!conversation) {
+    return 'Unknown model';
+  }
+  const modelId = conversation.model_id || conversation.modelId || '';
+  const modelProvider = conversation.model_provider || conversation.modelProvider || '';
+  if (modelId && modelProvider) {
+    return `${modelProvider}/${modelId}`;
+  }
+  return modelId || modelProvider || 'Unknown model';
+};
+
 function EpisodicMemorySection() {
   const [conversations, setConversations] = useState([]);
   const [selectedConversationKey, setSelectedConversationKey] = useState(null);
@@ -82,6 +103,19 @@ function EpisodicMemorySection() {
     }
     return conversations.find((conversation) => buildConversationKey(conversation) === selectedConversationKey);
   }, [conversations, selectedConversationKey]);
+
+  const sortedConversations = useMemo(() => {
+    return [...conversations].sort((a, b) => {
+      return toTimestampValue(b.last_timestamp) - toTimestampValue(a.last_timestamp);
+    });
+  }, [conversations]);
+
+  const activeConversationIndex = useMemo(() => {
+    if (!selectedConversationKey) {
+      return -1;
+    }
+    return sortedConversations.findIndex((conversation) => buildConversationKey(conversation) === selectedConversationKey);
+  }, [sortedConversations, selectedConversationKey]);
 
   const loadConversations = async () => {
     setIsLoadingList(true);
@@ -102,14 +136,9 @@ function EpisodicMemorySection() {
       const list = result?.data?.conversations ?? [];
       setConversations(list);
 
-      if (list.length > 0) {
-        const initialKey = buildConversationKey(list[0]);
-        const hasSelection = selectedConversationKey
-          && list.some((conversation) => buildConversationKey(conversation) === selectedConversationKey);
-        if (!hasSelection) {
-          setSelectedConversationKey(initialKey);
-        }
-      } else if (selectedConversationKey) {
+      const hasSelection = selectedConversationKey
+        && list.some((conversation) => buildConversationKey(conversation) === selectedConversationKey);
+      if (!hasSelection && selectedConversationKey) {
         setSelectedConversationKey(null);
       }
     } catch (error) {
@@ -190,6 +219,17 @@ function EpisodicMemorySection() {
     ? '1 conversation'
     : `${conversations.length} conversations`;
 
+  const conversationTitle = activeConversationIndex >= 0
+    ? `Conversation ${activeConversationIndex + 1}`
+    : 'Conversation';
+
+  const conversationSubtitle = activeConversation
+    ? `Last updated ${formatTimestamp(activeConversation.last_timestamp)}`
+    : 'Select a conversation';
+
+  const activeConversationCount = activeConversation?.entry_count || 0;
+  const activeConversationModel = formatModelLabel(activeConversation);
+
   return (
     <div className="settings-panel memory-panel">
       <div className="settings-header">
@@ -198,81 +238,81 @@ function EpisodicMemorySection() {
           <p>Conversation summaries and short-term recall.</p>
         </div>
       </div>
-      <section className="settings-section memory-section">
-        <div className="memory-grid">
-          <div className="memory-column memory-list">
-            <div className="memory-column-header">
-              <h3>Conversations</h3>
-              <span className="memory-count">{conversationCountLabel}</span>
-            </div>
-            <div className="memory-list-scroll">
-            {isLoadingList ? (
-              <div className="memory-muted">Loading conversations...</div>
-            ) : listError ? (
-              <div className="memory-error">{listError}</div>
-            ) : conversations.length === 0 ? (
-                <div className="memory-muted">No conversations yet.</div>
-              ) : (
-                conversations.map((conversation, index) => {
-                  const key = buildConversationKey(conversation);
-                  const isActive = key === selectedConversationKey;
-                  const displayTitle = conversation.conversation_id
-                    ? `Conversation ${index + 1}`
-                    : 'Unassigned Conversation';
-                  const idPreview = conversation.conversation_id
-                    ? conversation.conversation_id.slice(0, 8)
-                    : 'no session id';
+      {!selectedConversationKey ? (
+        <section className="settings-section memory-section memory-list-section">
+          <div className="memory-list-header">
+            <h3>Conversations</h3>
+            <span className="memory-count">{conversationCountLabel}</span>
+          </div>
+          {isLoadingList ? (
+            <div className="memory-muted">Loading conversations...</div>
+          ) : listError ? (
+            <div className="memory-error">{listError}</div>
+          ) : sortedConversations.length === 0 ? (
+            <div className="memory-muted">No conversations yet.</div>
+          ) : (
+            <div className="memory-list-grid">
+              {sortedConversations.map((conversation, index) => {
+                const key = buildConversationKey(conversation);
+                const displayTitle = conversation.conversation_id
+                  ? `Conversation ${index + 1}`
+                  : 'Unassigned Conversation';
+                const modelLabel = formatModelLabel(conversation);
 
-                  return (
-                    <button
-                      key={`${key}-${index}`}
-                      type="button"
-                      className={`memory-item ${isActive ? 'active' : ''}`}
-                      onClick={() => setSelectedConversationKey(key)}
-                    >
-                      <div className="memory-item-title">{displayTitle}</div>
-                      <div className="memory-item-meta">Last: {formatTimestamp(conversation.last_timestamp)}</div>
-                      <div className="memory-item-meta">Turns: {conversation.entry_count || 0}</div>
-                      <div className="memory-item-id">{idPreview}</div>
-                    </button>
-                  );
-                })
-              )}
+                return (
+                  <button
+                    key={`${key}-${index}`}
+                    type="button"
+                    className="memory-card"
+                    onClick={() => setSelectedConversationKey(key)}
+                  >
+                    <div className="memory-card-title">{displayTitle}</div>
+                    <div className="memory-card-meta">
+                      <div className="memory-card-row">Last updated: {formatTimestamp(conversation.last_timestamp)}</div>
+                      <div className="memory-card-row">Messages: {conversation.entry_count || 0}</div>
+                      <div className="memory-card-row">Model: {modelLabel}</div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
+          )}
+        </section>
+      ) : (
+        <section className="settings-section memory-section memory-chat-section">
+          <div className="chat-container memory-chat-container">
+            <header className="chat-header memory-chat-header">
+              <div className="chat-title-block">
+                <button
+                  type="button"
+                  className="memory-back-button"
+                  onClick={() => setSelectedConversationKey(null)}
+                >
+                  All conversations
+                </button>
+                <div className="chat-title">{conversationTitle}</div>
+                <div className="chat-subtitle">{conversationSubtitle}</div>
+              </div>
+              <div className="chat-meta">
+                <div className="memory-meta-pill">Model: {activeConversationModel}</div>
+                <div className="memory-meta-pill">Messages: {activeConversationCount}</div>
+              </div>
+            </header>
+            {isLoadingConversation ? (
+              <div className="memory-muted">Loading conversation...</div>
+            ) : conversationError ? (
+              <div className="memory-error">{conversationError}</div>
+            ) : messages.length === 0 ? (
+              <div className="settings-card">
+                <div className="settings-card-title">No messages</div>
+                <div className="settings-card-desc">This conversation does not have stored messages yet.</div>
+              </div>
+            ) : (
+              <MessageList messages={messages} thinkingStatus={null} />
+            )}
           </div>
-          <div className="memory-column memory-conversation">
-            <div className="memory-column-header">
-              <h3>Conversation</h3>
-              <span className="memory-count">
-                {activeConversation
-                  ? formatTimestamp(activeConversation.first_timestamp)
-                  : 'Select a conversation'}
-              </span>
-            </div>
-            <div className="memory-conversation-body">
-              {isLoadingConversation ? (
-                <div className="memory-muted">Loading conversation...</div>
-              ) : conversationError ? (
-                <div className="memory-error">{conversationError}</div>
-              ) : !selectedConversationKey ? (
-                <div className="settings-card">
-                  <div className="settings-card-title">Select a conversation</div>
-                  <div className="settings-card-desc">Choose a conversation on the left to view the full history.</div>
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="settings-card">
-                  <div className="settings-card-title">No messages</div>
-                  <div className="settings-card-desc">This conversation does not have stored messages yet.</div>
-                </div>
-              ) : (
-                <div className="memory-message-list">
-                  <MessageList messages={messages} thinkingStatus={null} />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }
