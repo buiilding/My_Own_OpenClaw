@@ -15,6 +15,18 @@ from tools.browser.chrome_detection import (
     find_all_chrome_executables,
 )
 
+# Chrome launcher (no external deps)
+from tools.browser.chrome_launcher import (
+    ChromeLauncher,
+    ensure_chrome_with_cdp,
+    launch_chrome_with_cdp,
+    is_cdp_available,
+    ChromeLauncherError,
+    ChromeNotFoundError,
+    ChromeLaunchTimeoutError,
+    DEFAULT_CDP_URL,
+)
+
 # Schemas (no external deps)
 from tools.browser.schemas import (
     BrowserConnectArgs,
@@ -47,6 +59,15 @@ __all__ = [
     "ChromeExecutable",
     "find_chrome_executable",
     "find_all_chrome_executables",
+    # Chrome launcher
+    "ChromeLauncher",
+    "ensure_chrome_with_cdp",
+    "launch_chrome_with_cdp",
+    "is_cdp_available",
+    "ChromeLauncherError",
+    "ChromeNotFoundError",
+    "ChromeLaunchTimeoutError",
+    "DEFAULT_CDP_URL",
     # Schemas
     "BrowserConnectArgs",
     "BrowserNavigateArgs",
