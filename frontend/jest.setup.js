@@ -1,5 +1,13 @@
 /* eslint-env jest */
 require('@testing-library/jest-dom');
+const { randomUUID } = require('crypto');
+
+if (!global.crypto) {
+  global.crypto = {};
+}
+if (!global.crypto.randomUUID) {
+  global.crypto.randomUUID = randomUUID;
+}
 
 const suppressedPrefixes = [
   '[ConfigStorage]',
