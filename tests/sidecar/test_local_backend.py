@@ -315,12 +315,17 @@ async def test_handle_store_transcript_success():
         tool_name=None,
         correlation_id=None,
         message_index=None,
+        model_id="gpt-test",
+        model_provider="openai",
         timestamp="2024-01-01T00:00:00",
     )
 
     assert result["success"] is True
     assert result["data"]["record_kind"] == "transcript"
     assert backend.memory_store.added
+    _, _, _, _, kwargs = backend.memory_store.added[-1]
+    assert kwargs["model_id"] == "gpt-test"
+    assert kwargs["model_provider"] == "openai"
 
 
 @pytest.mark.asyncio
