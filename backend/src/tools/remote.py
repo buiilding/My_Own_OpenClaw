@@ -144,6 +144,7 @@ from backend.src.tools.filesystem.schemas import (
     ListDirectoryArgs,
     GlobArgs,
 )
+from backend.src.tools.browser.schemas import BrowserControlArgs
 # from backend.src.tools.filesystem.read_file_tool_sdk import ReadFileArgs, ReadFileToolSDK as BackendReadFileTool
 # from backend.src.tools.filesystem.write_file_tool import WriteFileArgs, WriteFileTool as BackendWriteFileTool
 # from backend.src.tools.filesystem.list_directory_tool import ListDirectoryArgs, ListDirectoryTool as BackendListDirectoryTool
@@ -470,6 +471,45 @@ class RemoteProcessTool(RemoteToolBase, Tool[ProcessShellCommandArgs]):
         )
 
 
+class RemoteBrowserTool(RemoteToolBase, Tool[BrowserControlArgs]):
+    """
+    Remote browser control tool.
+
+    Controls a web browser for online tasks with two modes:
+    - 'user_chrome': Connect to user's existing Chrome via CDP
+    - 'managed': Launch isolated Chromium instance
+
+    Provides page snapshots with numbered element refs for reliable
+    interaction without brittle CSS selectors.
+    """
+
+    name = "browser_control"
+    description = """Control a web browser for online tasks.
+
+Modes:
+- 'user_chrome': Connect to existing Chrome (requires --remote-debugging-port=9222)
+- 'managed': Launch isolated Chromium (clean profile, no logins)
+
+Workflow:
+1. Connect: browser_control(action="connect", mode="user_chrome")
+2. Navigate: browser_control(action="navigate", url="https://example.com")
+3. Snapshot: browser_control(action="snapshot") -> returns numbered refs like [1] button
+4. Interact: browser_control(action="click", ref="1")
+5. Close: browser_control(action="close")
+
+Actions: connect, navigate, snapshot, click, type, press, scroll, screenshot, wait, get_tabs, switch_tab, evaluate, close"""
+    args_model = BrowserControlArgs
+    category = ToolDomain.BROWSER
+
+    async def execute_remote(self, args: BrowserControlArgs, ctx: ToolContext) -> RemoteToolResult:
+        """Prepare browser control for remote execution."""
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote browser tool call: {args.action}",
+        )
+
+
 # Registry of remote tools for easy access
 REMOTE_TOOLS = {
     "mouse_control": RemoteMouseTool,
@@ -486,6 +526,7 @@ REMOTE_TOOLS = {
     "write_file": RemoteWriteFileTool,
     "list_directory": RemoteListDirectoryTool,
     "glob": RemoteGlobTool,
+    "browser_control": RemoteBrowserTool,
 }
 
 
