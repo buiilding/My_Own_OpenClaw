@@ -30,6 +30,20 @@ function positionChatWindow() {
   chatWindow.setPosition(x, y, false);
 }
 
+function ensureChatWindowOnTop() {
+  if (!chatWindow || chatWindow.isDestroyed()) {
+    return;
+  }
+  try {
+    chatWindow.setAlwaysOnTop(true, 'floating');
+    if (typeof chatWindow.moveTop === 'function') {
+      chatWindow.moveTop();
+    }
+  } catch (error) {
+    console.warn('[Main] Failed to keep chatbox on top:', error?.message || error);
+  }
+}
+
 function sendWakewordToggle(enabled) {
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
@@ -47,6 +61,7 @@ function showChatWindow({ focus = true } = {}) {
   if (!chatWindow.isVisible()) {
     chatWindow.show();
   }
+  ensureChatWindowOnTop();
   if (focus) {
     chatWindow.focus();
     chatWindow.webContents.send('chatbox-focus');

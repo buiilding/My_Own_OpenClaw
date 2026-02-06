@@ -401,6 +401,16 @@ function initializeLocalBackendBridge(getWindows) {
               state.win.blur();
             }
           }
+          if (chatWindow && state.win === chatWindow) {
+            try {
+              state.win.setAlwaysOnTop(true, 'floating');
+              if (typeof state.win.moveTop === 'function') {
+                state.win.moveTop();
+              }
+            } catch (error) {
+              console.warn('[LocalBackend] Failed to keep chatbox on top:', error?.message || error);
+            }
+          }
         }
       }
       if (focusedWindow && !focusedWindow.isDestroyed()) {
@@ -465,6 +475,41 @@ function initializeLocalBackendBridge(getWindows) {
         memory_type: memory_type,
       });
       
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  });
+
+  // Handle conversation list requests
+  ipcMain.handle('list-conversations', async (event, { userId, limit } = {}) => {
+    try {
+      const result = await sendRequest('list_conversations', {
+        user_id: userId,
+        limit: limit,
+      });
+
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  });
+
+  // Handle conversation detail requests
+  ipcMain.handle('get-conversation', async (event, { userId, conversationId, limit } = {}) => {
+    try {
+      const result = await sendRequest('get_conversation', {
+        user_id: userId,
+        conversation_id: conversationId ?? null,
+        limit: limit,
+      });
+
       return result;
     } catch (error) {
       return {
