@@ -28,6 +28,21 @@ from tools.schemas import (
     GlobArgs,
     ReadManyFilesArgs,
 )
+from tools.browser.schemas import (
+    BrowserConnectArgs,
+    BrowserNavigateArgs,
+    BrowserSnapshotArgs,
+    BrowserClickArgs,
+    BrowserTypeArgs,
+    BrowserPressArgs,
+    BrowserScrollArgs,
+    BrowserScreenshotArgs,
+    BrowserWaitArgs,
+    BrowserGetTabsArgs,
+    BrowserSwitchTabArgs,
+    BrowserEvaluateArgs,
+    BrowserCloseArgs,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +65,8 @@ TOOL_SCHEMAS: Dict[str, Type[BaseModel]] = {
     "get_open_windows": GetOpenWindowsArgs,
     "get_system_stats": GetSystemStatsArgs,
     "wait": WaitToolArgs,
+    # Browser tool schemas - use connect schema as base for validation
+    "browser_control": BrowserConnectArgs,
 }
 
 
@@ -165,6 +182,13 @@ class ToolRegistry:
             self.tools["wait"] = wait
         except ImportError as e:
             logger.warning(f"Failed to import wait_tool: {e}")
+        
+        # Browser tools
+        try:
+            from tools.browser.browser_tool import execute_browser_control
+            self.tools["browser_control"] = execute_browser_control
+        except ImportError as e:
+            logger.warning(f"Failed to import browser_tool: {e}")
         
         logger.debug(f"Registered {len(self.tools)} tools: {', '.join(self.tools.keys())}")
     
