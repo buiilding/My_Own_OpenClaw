@@ -275,6 +275,8 @@ class LocalBackend:
         tool_name: Optional[str] = None,
         correlation_id: Optional[str] = None,
         message_index: Optional[int] = None,
+        model_id: Optional[str] = None,
+        model_provider: Optional[str] = None,
         timestamp: Optional[str] = None,
         **kwargs,
     ) -> Dict[str, Any]:
@@ -322,6 +324,8 @@ class LocalBackend:
                 message_type=message_type,
                 tool_name=tool_name,
                 correlation_id=correlation_id,
+                model_id=model_id,
+                model_provider=model_provider,
                 skip_embedding=True,
                 timestamp=timestamp,
             )
