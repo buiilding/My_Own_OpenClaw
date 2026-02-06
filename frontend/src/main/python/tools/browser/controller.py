@@ -24,6 +24,11 @@ from playwright.async_api import (
 )
 
 from tools.browser.chrome_detection import ChromeExecutable, find_chrome_executable
+from tools.browser.chrome_launcher import (
+    ensure_chrome_with_cdp,
+    ChromeLauncher,
+    ChromeLauncherError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +94,98 @@ class BrowserController:
         if self._page:
             return self.title
         return ""
+    
+    async def auto_connect_to_chrome(
+        self,
+        cdp_url: str = "http://127.0.0.1:9222",
+        auto_launch: bool = True,
+        timeout: int = 30,
+    ) -> Dict[str, Any]:
+        """
+        Auto-connect to Chrome, launching if necessary.
+        
+        This is the recommended method for connecting to user's Chrome.
+        It handles all scenarios:
+        1. Chrome already running with CDP → connect to it
+        2. Chrome not running → launch it with CDP
+        3. Chrome running without CDP → restart with CDP (if allowed)
+        
+        Args:
+            cdp_url: Chrome DevTools Protocol URL
+            auto_launch: Automatically launch Chrome if not running
+            timeout: Connection timeout in seconds
+        
+        Returns:
+            Connection info dict with 'auto_launched' flag
+        
+        Raises:
+            ConnectionError: If cannot connect or launch Chrome
+        """
+        logger.info(f"Auto-connecting to Chrome at {cdp_url}")
+        
+        # Validate CDP URL
+        parsed = urlparse(cdp_url)
+        if parsed.hostname not in ("localhost", "127.0.0.1", None):
+            raise ValueError("CDP URL must be localhost for security")
+        
+        # Extract port from URL
+        port = parsed.port or 9222
+        
+        try:
+            # Use chrome_launcher to ensure Chrome is available
+            actual_cdp_url = await ensure_chrome_with_cdp(
+                cdp_port=port,
+                auto_launch=auto_launch,
+                restart_if_needed=False,  # Don't kill user's Chrome without asking
+                headless=False,
+            )
+            
+            # Now connect via Playwright
+            self._playwright = await async_playwright().start()
+            
+            self._browser = await self._playwright.chromium.connect_over_cdp(
+                actual_cdp_url,
+                timeout=timeout * 1000,
+            )
+            
+            # Get or create context
+            contexts = self._browser.contexts
+            if contexts:
+                self._context = contexts[0]
+            else:
+                self._context = await self._browser.new_context()
+            
+            # Get or create page
+            pages = self._context.pages
+            if pages:
+                self._page = pages[0]
+            else:
+                self._page = await self._context.new_page()
+            
+            self._cdp_url = actual_cdp_url
+            self._mode = "user_chrome"
+            
+            logger.info(f"Connected to Chrome: {self._page.url}")
+            
+            return {
+                "status": "connected",
+                "mode": "user_chrome",
+                "url": self._page.url,
+                "title": await self._page.title(),
+                "auto_launched": True,  # Chrome was auto-launched if needed
+            }
+            
+        except ChromeLauncherError as e:
+            logger.error(f"Chrome launcher error: {e}")
+            await self.close()
+            raise ConnectionError(str(e)) from e
+        except Exception as e:
+            logger.error(f"Failed to connect to Chrome: {e}")
+            await self.close()
+            raise ConnectionError(
+                f"Cannot connect to Chrome at {cdp_url}. "
+                f"Error: {e}"
+            ) from e
     
     async def connect_to_user_chrome(
         self,
