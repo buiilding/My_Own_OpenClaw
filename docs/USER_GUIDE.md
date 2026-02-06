@@ -27,6 +27,7 @@ read_when:
 - **Config** button opens the dashboard window and hides the chatbox.
 - **Mic** button is disabled (voice typing off).
 - Closing the dashboard restores the chatbox.
+- Sending a message from the dashboard closes it and returns to the chatbox.
 
 ## Dashboard Layout
 
@@ -81,7 +82,8 @@ Default section on open: **Chat**.
 
 - On Linux, the app hides its windows during screenshot capture to avoid self-capture.
 - The chatbox briefly disappears and returns after the capture.
-- This happens even if you sent the query from the dashboard (once the dashboard is closed, the chatbox is restored and will hide/show around capture).
+- This happens even if you sent the query from the dashboard (the dashboard closes, the chatbox is restored, and the chatbox hides/shows around capture).
+- The chatbox return does not steal focus, so ongoing computer-control actions continue in the target app.
 
 ## Troubleshooting
 

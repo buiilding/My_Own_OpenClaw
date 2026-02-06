@@ -54,7 +54,9 @@ function ChatInterface() {
     audioPlayerRef.current?.stopPlayback();
   }, []);
 
-  const { sendMessage } = useChatMessageSender(stopPlayback);
+  const { sendMessage } = useChatMessageSender(stopPlayback, {
+    returnToChatboxOnSend: true,
+  });
 
   return (
     <div className="chat-container">
