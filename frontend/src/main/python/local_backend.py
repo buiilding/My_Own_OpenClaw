@@ -277,6 +277,7 @@ class LocalBackend:
         message_index: Optional[int] = None,
         model_id: Optional[str] = None,
         model_provider: Optional[str] = None,
+        screenshot: Optional[str] = None,
         timestamp: Optional[str] = None,
         **kwargs,
     ) -> Dict[str, Any]:
@@ -326,6 +327,7 @@ class LocalBackend:
                 correlation_id=correlation_id,
                 model_id=model_id,
                 model_provider=model_provider,
+                screenshot=screenshot,
                 skip_embedding=True,
                 timestamp=timestamp,
             )
