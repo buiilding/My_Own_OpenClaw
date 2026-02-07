@@ -17,7 +17,7 @@ from fastapi import HTTPException, UploadFile
 
 from backend.src.core.config import AppConfig
 
-_SAFE_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+\\.(png|jpg|jpeg)$")
+_SAFE_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+\.(png|jpg|jpeg)$")
 
 _CONTENT_TYPE_TO_EXT = {
     "image/png": "png",
@@ -29,6 +29,7 @@ _EXT_TO_CONTENT_TYPE = {
     "jpg": "image/jpeg",
     "jpeg": "image/jpeg",
 }
+_UPLOAD_CHUNK_SIZE_BYTES = 1024 * 1024
 
 
 @dataclass(frozen=True)
@@ -59,18 +60,29 @@ class ArtifactStore:
         if not _SAFE_ID_RE.match(artifact_id):
             raise HTTPException(status_code=400, detail="Invalid artifact id")
         path = self.base_dir / artifact_id
-        if not path.exists():
+        if not path.is_file():
             raise HTTPException(status_code=404, detail="Artifact not found")
         content_type = _EXT_TO_CONTENT_TYPE.get(path.suffix.lstrip("."), "application/octet-stream")
         return path, content_type
 
-    async def save_upload(self, upload: UploadFile) -> ArtifactMeta:
-        """Save an uploaded file to disk with size enforcement."""
+    def _resolve_upload_extension(self, upload: UploadFile) -> str:
+        """Resolve file extension for an upload content type."""
         if not upload.content_type:
             raise HTTPException(status_code=400, detail="Missing content type")
         ext = _CONTENT_TYPE_TO_EXT.get(upload.content_type)
         if not ext:
             raise HTTPException(status_code=415, detail="Unsupported content type")
+        return ext
+
+    @staticmethod
+    def _cleanup_partial_upload(path: Path) -> None:
+        """Delete any partially-written artifact after failed upload."""
+        if path.exists():
+            path.unlink(missing_ok=True)
+
+    async def save_upload(self, upload: UploadFile) -> ArtifactMeta:
+        """Save an uploaded file to disk with size enforcement."""
+        ext = self._resolve_upload_extension(upload)
 
         artifact_id = f"{uuid4().hex}.{ext}"
         path = self.base_dir / artifact_id
@@ -81,7 +93,7 @@ class ArtifactStore:
         try:
             with path.open("wb") as handle:
                 while True:
-                    chunk = await upload.read(1024 * 1024)
+                    chunk = await upload.read(_UPLOAD_CHUNK_SIZE_BYTES)
                     if not chunk:
                         break
                     size += len(chunk)
@@ -90,12 +102,10 @@ class ArtifactStore:
                     hasher.update(chunk)
                     handle.write(chunk)
         except HTTPException:
-            if path.exists():
-                path.unlink(missing_ok=True)
+            self._cleanup_partial_upload(path)
             raise
         except Exception as exc:
-            if path.exists():
-                path.unlink(missing_ok=True)
+            self._cleanup_partial_upload(path)
             raise HTTPException(status_code=500, detail="Artifact upload failed") from exc
 
         return ArtifactMeta(
