@@ -23,6 +23,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- 9a50776 fix(vision-provider): guard ui-venus optional deps and decode generated suffix
+- 40384ff fix(waiting-storage): create futures from available event loop
 - d4cbf90 fix(parser): recreate executor lazily for post-shutdown parser reuse
 - 456007b fix(vision): reset service state on initialization failure paths
 - 35fabec fix(models): default missing provider display names during normalization
@@ -82,6 +84,9 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- 9b483c8 refactor(ocr-service): extract pure helpers and slim service module
+- c778fa1 refactor(semantic-api): adopt pydantic v2 list length constraints
+- 3d866fd refactor(vision-providers): share grounding prompt and split internvl inference path
 - 23767ca refactor(frontend-chat): extract chat stream message update helpers
 - 917376d refactor(frontend-chat): extract tool runner message and mapping helpers
 - 9dce059 refactor(frontend-chat): extract stream event helper utilities
@@ -184,6 +189,7 @@ Includes the last 300 commits on `main`.
 - cbcba82 refactor(frontend-voice): stabilize useVoiceMode websocket lifecycle
 
 ### Tests
+- d8a5e67 test(artifacts): align request scope and path assertions with starlette
 - 89d4d27 test(frontend-chat): add chat stream message update helper coverage
 - e3242c3 test(frontend-chat): add tool runner helper coverage
 - ddf1ead test(frontend-chat): add stream event helper coverage
@@ -276,6 +282,7 @@ Includes the last 300 commits on `main`.
 - b7daa47 test(frontend-voice): add regression coverage for callback-ref updates
 
 ### Documentation
+- d9acd87 docs(changelog): include latest frontend refactor, test, and docs commits
 - 425f1a6 docs(frontend): include chat stream message update helper module and tests
 - 80264bc docs(frontend): include tool runner helper module and tests
 - 478473a docs(frontend): include stream event helper module and tests
