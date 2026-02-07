@@ -2,6 +2,7 @@ from backend.src.services.vision.coordinates import (
     extract_first_point,
     extract_last_bbox,
     extract_point_or_bbox_center,
+    scale_model_point_to_pixels,
     scale_norm_to_pixels,
 )
 
@@ -51,3 +52,19 @@ def test_scale_norm_to_pixels_handles_non_positive_dimensions():
     assert scale_norm_to_pixels(100, 200, 0, 200) == (0, 0)
     assert scale_norm_to_pixels(100, 200, 100, 0) == (0, 0)
     assert scale_norm_to_pixels(100, 200, -5, 10) == (0, 0)
+
+
+def test_scale_model_point_to_pixels_scales_unit_normalized_values():
+    assert scale_model_point_to_pixels(0.5, 0.25, 200, 100) == (100, 25)
+
+
+def test_scale_model_point_to_pixels_scales_0_to_1000_values():
+    assert scale_model_point_to_pixels(500, 250, 200, 100) == (100, 25)
+
+
+def test_scale_model_point_to_pixels_clamps_absolute_pixel_values():
+    assert scale_model_point_to_pixels(1500, -10, 100, 200) == (99, 0)
+
+
+def test_scale_model_point_to_pixels_handles_non_positive_dimensions():
+    assert scale_model_point_to_pixels(10, 20, 0, 100) == (0, 0)
