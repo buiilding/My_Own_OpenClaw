@@ -26,6 +26,9 @@ const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typ
 
 describe('useChatMessageSender', () => {
   beforeEach(() => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
     useChatStore.setState({
       messages: [],
       isSending: false,
@@ -50,6 +53,7 @@ describe('useChatMessageSender', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     delete (window as any).ipc;
   });
 

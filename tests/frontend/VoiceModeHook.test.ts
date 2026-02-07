@@ -32,8 +32,13 @@ class MockWebSocket {
 
 describe('useVoiceMode', () => {
   beforeEach(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => {});
     MockWebSocket.instances = [];
     (global as any).WebSocket = MockWebSocket;
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   test('uses latest transcription callback without creating a new websocket', () => {

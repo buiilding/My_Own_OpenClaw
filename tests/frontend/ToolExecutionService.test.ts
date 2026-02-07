@@ -28,6 +28,7 @@ describe('ToolExecutionService', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   test('executeTool captures screenshot for computer-use tools without screenshot', async () => {
