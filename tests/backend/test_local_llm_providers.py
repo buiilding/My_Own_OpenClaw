@@ -100,6 +100,13 @@ def test_local_provider_request_params_set_placeholder_api_key():
     assert params["api_key"] == LOCAL_PROVIDER_PLACEHOLDER_API_KEY
 
 
+def test_ollama_build_tags_url_helper():
+    assert OllamaProvider._build_tags_url("http://localhost:11434/v1") == "http://localhost:11434/api/tags"
+    assert OllamaProvider._build_tags_url("http://localhost:11434") == "http://localhost:11434/api/tags"
+    assert OllamaProvider._build_tags_url("/v1") == "http://localhost:11434/api/tags"
+    assert OllamaProvider._build_tags_url("/") is None
+
+
 @pytest.mark.asyncio
 async def test_get_http_client_creates_single_client_under_concurrency(monkeypatch):
     provider = OllamaProvider(base_url="http://localhost:11434/v1")
