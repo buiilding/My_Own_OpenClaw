@@ -131,7 +131,7 @@ class ToolResultReceiver:
         Returns:
             Tuple of (individual tool results list, combined result if available, bundle screenshot)
         """
-        tools = bundle_data.get("tools", [])
+        tools = self._normalize_bundle_tools(bundle_data.get("tools"))
         bundle_screenshot = bundle_data.get("screenshot")
         bundle_screenshot_ref = bundle_data.get("screenshot_ref")
         combined_llm_content = bundle_data.get("combined_llm_content")
@@ -146,11 +146,21 @@ class ToolResultReceiver:
         if not tools and not combined_llm_content:
             return [], None, bundle_screenshot_ref or bundle_screenshot
         
-        tools_success = all(t.get("success", False) for t in tools)
+        tools_success = all(
+            t.get("success", False)
+            for t in tools
+            if isinstance(t, dict)
+        )
         
         # Convert individual tool results
         individual_results = []
         for tool_result_data in tools:
+            if not isinstance(tool_result_data, dict):
+                logger.warning(
+                    "Tool result in bundle has invalid type: %s",
+                    type(tool_result_data).__name__,
+                )
+                continue
             tool_request_id = tool_result_data.get("request_id")
             if not tool_request_id:
                 logger.warning(f"Tool result in bundle missing request_id: {tool_result_data}")
@@ -206,3 +216,16 @@ class ToolResultReceiver:
             })
         
         return individual_results, combined_result, bundle_screenshot_ref or bundle_screenshot
+
+    @staticmethod
+    def _normalize_bundle_tools(raw_tools: Any) -> List[Any]:
+        """Normalize bundled tool payload to a list for safe iteration."""
+        if isinstance(raw_tools, list):
+            return raw_tools
+        if raw_tools is None:
+            return []
+        logger.warning(
+            "Bundle tools payload is not a list (got %s); ignoring invalid value",
+            type(raw_tools).__name__,
+        )
+        return []

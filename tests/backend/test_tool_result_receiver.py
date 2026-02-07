@@ -94,3 +94,40 @@ def test_receive_bundled_results_skips_missing_request_id():
     assert individual_results == []
     assert combined_result is None
     assert bundle_screenshot is None
+
+
+def test_receive_bundled_results_ignores_non_list_tools_payload():
+    receiver = ToolResultReceiver(DummySession())
+    bundle_data = {
+        "tools": {"request_id": "req-1"},
+        "combined_llm_content": "<combined />",
+    }
+
+    individual_results, combined_result, bundle_screenshot = receiver.receive_bundled_results(
+        bundle_data, "bundle-req"
+    )
+
+    assert individual_results == []
+    assert combined_result is not None
+    assert combined_result.success is True
+    assert combined_result.data["tool_count"] == 0
+    assert bundle_screenshot is None
+
+
+def test_receive_bundled_results_skips_non_dict_tool_entries():
+    receiver = ToolResultReceiver(DummySession())
+    bundle_data = {
+        "tools": [
+            "not-a-dict",
+            {"request_id": "req-1", "tool_name": "click", "success": True, "data": {"output": "ok"}},
+        ],
+    }
+
+    individual_results, combined_result, bundle_screenshot = receiver.receive_bundled_results(
+        bundle_data, "bundle-req"
+    )
+
+    assert len(individual_results) == 1
+    assert individual_results[0][0] == "req-1"
+    assert combined_result is None
+    assert bundle_screenshot is None
