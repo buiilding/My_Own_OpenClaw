@@ -201,6 +201,10 @@ App
 - Transcript conversation browsing and replay panel in the dashboard memory section
 - Uses shared episodic-memory utility helpers for content parsing and conversation key/model/timestamp formatting
 
+**ModelsSection.jsx**
+- Dashboard model-mode and provider key panel
+- Uses shared model-selection utility helpers for list filtering and selected-model reconciliation
+
 #### Context Providers
 
 **AppProvider** (`app/providers/AppProvider.jsx`)

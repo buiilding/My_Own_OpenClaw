@@ -39,3 +39,4 @@ npm test
 - Audio playback lifecycle behavior is covered directly by `tests/frontend/PlayerService.test.ts`.
 - Message input submission/lockout behavior is covered directly by `tests/frontend/MessageInput.test.jsx`.
 - Episodic memory parsing/formatting helpers are covered directly by `tests/frontend/EpisodicMemoryUtils.test.js`.
+- Dashboard model selection/filter/reconciliation helpers are covered directly by `tests/frontend/ModelSelectionUtils.test.js`.
