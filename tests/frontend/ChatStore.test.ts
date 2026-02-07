@@ -71,6 +71,36 @@ describe('chatStore', () => {
     expect(after).toBe(before);
   });
 
+  test('setMessages is a no-op when given existing array reference', () => {
+    const before = useChatStore.getState().messages;
+    useChatStore.getState().setMessages(before);
+    expect(useChatStore.getState().messages).toBe(before);
+  });
+
+  test('setIsSending is a no-op when value is unchanged', () => {
+    const beforeSnapshot = useChatStore.getState();
+    useChatStore.getState().setIsSending(false);
+    const afterSnapshot = useChatStore.getState();
+    expect(afterSnapshot).toBe(beforeSnapshot);
+  });
+
+  test('setThinkingStatus is a no-op when value is unchanged', () => {
+    useChatStore.setState({ thinkingStatus: 'thinking' });
+    const beforeSnapshot = useChatStore.getState();
+    useChatStore.getState().setThinkingStatus('thinking');
+    const afterSnapshot = useChatStore.getState();
+    expect(afterSnapshot).toBe(beforeSnapshot);
+  });
+
+  test('setTokenCounts is a no-op when value reference is unchanged', () => {
+    const tokenCounts = { prompt_tokens: 5, completion_tokens: 2, total_tokens: 7 };
+    useChatStore.setState({ tokenCounts });
+    const beforeSnapshot = useChatStore.getState();
+    useChatStore.getState().setTokenCounts(tokenCounts);
+    const afterSnapshot = useChatStore.getState();
+    expect(afterSnapshot).toBe(beforeSnapshot);
+  });
+
   test('clearMessages resets to a fresh assistant greeting message', () => {
     useChatStore.getState().addMessage({
       id: 'user-1',
