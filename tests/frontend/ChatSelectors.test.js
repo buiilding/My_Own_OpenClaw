@@ -1,4 +1,7 @@
-import { selectChatInterfaceState } from '../../frontend/src/renderer/features/chat/utils/chatSelectors';
+import {
+  selectChatBoxState,
+  selectChatInterfaceState,
+} from '../../frontend/src/renderer/features/chat/utils/chatSelectors';
 
 describe('chatSelectors', () => {
   test('selects only chat interface state fields', () => {
@@ -16,6 +19,22 @@ describe('chatSelectors', () => {
       isSending: true,
       thinkingStatus: 'thinking',
       tokenCounts: { total_tokens: 42 },
+    });
+  });
+
+  test('selects only chatbox state fields', () => {
+    const state = {
+      messages: [{ id: '1', text: 'hello', sender: 'assistant' }],
+      isSending: false,
+      thinkingStatus: null,
+      tokenCounts: { total_tokens: 42 },
+      addMessage: jest.fn(),
+    };
+
+    expect(selectChatBoxState(state)).toEqual({
+      messages: state.messages,
+      isSending: false,
+      thinkingStatus: null,
     });
   });
 });
