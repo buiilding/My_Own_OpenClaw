@@ -72,6 +72,24 @@ async def test_route_individual_result_without_screenshot():
 
 
 @pytest.mark.asyncio
+async def test_route_individual_result_resolves_screenshot_ref(monkeypatch):
+    router = ToolResultRouter(
+        receiver=None,
+        screenshot_processor=FakeScreenshotProcessor(),
+        result_storage=FakeResultStorage(),
+        session=DummySession(),
+    )
+    monkeypatch.setattr(router, "_looks_like_artifact_id", lambda value: value == "shot.png")
+    monkeypatch.setattr(router, "_resolve_screenshot_ref", lambda _value: "decoded-shot")
+    result = ToolResult(success=True, data={"screenshot_ref": "shot.png"})
+
+    await router.route_individual_result("req-1", result)
+
+    assert router.screenshot_processor.calls == [(router.session, "decoded-shot", "req-1")]
+    assert result.artifacts == {"screenshot": "decoded-shot"}
+
+
+@pytest.mark.asyncio
 async def test_route_bundle_result_processes_screenshot_and_resolves():
     router = ToolResultRouter(
         receiver=None,
@@ -86,6 +104,24 @@ async def test_route_bundle_result_processes_screenshot_and_resolves():
     assert router.screenshot_processor.calls == [(router.session, "shot", "bundle-1")]
     assert router.result_storage.bundled == [("bundle-1", result)]
     assert router.result_storage.bundle_resolves == [("bundle-1", result)]
+
+
+@pytest.mark.asyncio
+async def test_route_bundle_result_resolves_screenshot_ref(monkeypatch):
+    router = ToolResultRouter(
+        receiver=None,
+        screenshot_processor=FakeScreenshotProcessor(),
+        result_storage=FakeResultStorage(),
+        session=DummySession(),
+    )
+    monkeypatch.setattr(router, "_looks_like_artifact_id", lambda value: value == "bundle.jpg")
+    monkeypatch.setattr(router, "_resolve_screenshot_ref", lambda _value: "decoded-bundle-shot")
+    result = ToolResult(success=True, data={"screenshot_ref": "bundle.jpg"})
+
+    await router.route_bundle_result("bundle-1", result)
+
+    assert router.screenshot_processor.calls == [(router.session, "decoded-bundle-shot", "bundle-1")]
+    assert result.artifacts == {"screenshot": "decoded-bundle-shot"}
 
 
 @pytest.mark.asyncio
