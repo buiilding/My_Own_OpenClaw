@@ -7,6 +7,7 @@ from backend.src.api.handlers.query import QueryMessageHandler
 from backend.src.api.handlers.settings import ListModelsHandler, UpdateSettingsHandler
 from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
+from backend.src.api.handlers import query as query_handler_module
 from backend.src.api.schema import (
     ListModelsMessage,
     QueryMessage,
@@ -46,6 +47,24 @@ class DummyAgent:
     async def update_config(self, new_cfg):
         self.cfg = new_cfg
         self.updated_configs.append(new_cfg)
+
+
+class DummyCaptureAgent:
+    def __init__(self):
+        self.cfg = AppConfig()
+        self.user_id = "user_1"
+        self.session_id = "session_1"
+        self.calls = []
+
+    async def process_query(self, text, image_data=None, message_content=None):
+        self.calls.append(
+            {
+                "text": text,
+                "image_data": image_data,
+                "message_content": message_content,
+            }
+        )
+        yield {"type": "chunk", "content": "ok"}
 
 
 class DummySessionManager:
@@ -154,6 +173,99 @@ async def test_query_handler_invalid_text():
     assert websocket.sent
     assert websocket.sent[0]["type"] == "error"
     assert "Invalid query" in websocket.sent[0]["payload"]["message"]
+
+
+@pytest.mark.asyncio
+async def test_query_handler_loads_screenshot_from_artifact_ref(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session = DummyCaptureAgent()
+    session_manager.config = AppConfig()
+    handler = QueryMessageHandler(session_manager, DummyTTSManager(), ResponseFormatter())
+
+    class DummyPipeline:
+        def __init__(self, *_args, **_kwargs):
+            return None
+
+        async def process(self, *_args, **_kwargs):
+            return None
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    class DummyStore:
+        def load_base64(self, artifact_id: str) -> str:
+            assert artifact_id == "shot_1.png"
+            return "artifact-base64"
+
+    monkeypatch.setattr("backend.src.api.handlers.query.StreamPipeline", DummyPipeline)
+    monkeypatch.setattr(
+        query_handler_module.ArtifactStore,
+        "from_config",
+        classmethod(lambda _cls, _cfg: DummyStore()),
+    )
+
+    message = QueryMessage(
+        id="msg_artifact_ref_1",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "use artifact screenshot",
+            "content": "<user_query>use artifact screenshot</user_query>",
+            "screenshot_ref": "shot_1.png",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert len(session_manager.session.calls) == 1
+    assert session_manager.session.calls[0]["image_data"] == "artifact-base64"
+
+
+@pytest.mark.asyncio
+async def test_query_handler_continues_when_artifact_load_fails(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session = DummyCaptureAgent()
+    session_manager.config = AppConfig()
+    handler = QueryMessageHandler(session_manager, DummyTTSManager(), ResponseFormatter())
+
+    class DummyPipeline:
+        def __init__(self, *_args, **_kwargs):
+            return None
+
+        async def process(self, *_args, **_kwargs):
+            return None
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    class DummyStore:
+        def load_base64(self, artifact_id: str) -> str:
+            raise RuntimeError(f"failed to load {artifact_id}")
+
+    monkeypatch.setattr("backend.src.api.handlers.query.StreamPipeline", DummyPipeline)
+    monkeypatch.setattr(
+        query_handler_module.ArtifactStore,
+        "from_config",
+        classmethod(lambda _cls, _cfg: DummyStore()),
+    )
+
+    message = QueryMessage(
+        id="msg_artifact_ref_2",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "continue despite artifact error",
+            "content": "<user_query>continue despite artifact error</user_query>",
+            "screenshot_ref": "missing.png",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert len(session_manager.session.calls) == 1
+    assert session_manager.session.calls[0]["image_data"] is None
 
 
 @pytest.mark.asyncio
