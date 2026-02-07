@@ -80,3 +80,12 @@ def test_initialize_accepts_string_path(tmp_path, monkeypatch):
     manager.initialize(str(prompt_file))
 
     assert manager.system_prompt == "os=Linux"
+
+
+def test_initialize_raises_for_non_file_path(tmp_path):
+    manager = PromptManager()
+    directory_path = tmp_path / "dir-as-prompt"
+    directory_path.mkdir()
+
+    with pytest.raises(RuntimeError, match="Cannot read system prompt file"):
+        manager.initialize(directory_path)
