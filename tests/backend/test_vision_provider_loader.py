@@ -3,7 +3,11 @@ import logging
 
 import pytest
 
-from backend.src.services.vision.providers.internvl import _build_instruction_log_metadata
+from backend.src.services.vision.providers.internvl import (
+    InternVLModel,
+    _build_instruction_log_metadata,
+    build_grounding_prompt,
+)
 from backend.src.services.vision.providers.base import (
     load_model_with_fallbacks,
     resolve_model_device,
@@ -51,6 +55,19 @@ class _ModelWithParamsOnly:
 
 class _ModelWithoutDeviceOrParams:
     pass
+
+
+class _ParamWithDType:
+    def __init__(self, dtype):
+        self.dtype = dtype
+
+
+class _ModelWithDTypeParams:
+    def __init__(self, dtype):
+        self._dtype = dtype
+
+    def parameters(self):
+        return iter([_ParamWithDType(self._dtype)])
 
 
 def test_loader_returns_device_map_model_when_first_attempt_succeeds():
@@ -111,6 +128,34 @@ def test_build_instruction_log_metadata_keeps_short_preview():
 
     assert preview == instruction
     assert digest == hashlib.sha256(instruction.encode()).hexdigest()[:8]
+
+
+def test_build_grounding_prompt_contains_instruction_ref():
+    instruction = "click submit button"
+
+    prompt = build_grounding_prompt(instruction)
+
+    assert "<ref>click submit button</ref>" in prompt
+    assert "Answer in the format of [[x1, y1, x2, y2]]" in prompt
+
+
+def test_internvl_resolve_model_dtype_prefers_cached_dtype():
+    model = InternVLModel.__new__(InternVLModel)
+    model._model_dtype = "cached-dtype"
+
+    dtype = model._resolve_model_dtype()
+
+    assert dtype == "cached-dtype"
+
+
+def test_internvl_resolve_model_dtype_uses_model_parameter_dtype():
+    model = InternVLModel.__new__(InternVLModel)
+    model._model_dtype = None
+    model.model = _ModelWithDTypeParams("param-dtype")
+
+    dtype = model._resolve_model_dtype()
+
+    assert dtype == "param-dtype"
 
 
 def test_loader_falls_back_to_direct_cuda_loading_when_device_map_fails():
