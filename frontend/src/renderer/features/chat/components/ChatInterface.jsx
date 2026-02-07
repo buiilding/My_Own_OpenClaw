@@ -7,6 +7,7 @@ import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
 import '../../../styles/ChatInterface.css';
 
 /**
@@ -35,8 +36,9 @@ function ChatInterface() {
   // Audio chunk handler
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data) => {
-      if (data.type === 'audio-chunk' && audioPlayerRef.current) {
-        audioPlayerRef.current.enqueueAudio(data.payload);
+      const audioChunk = extractAudioChunkPayload(data);
+      if (audioChunk && audioPlayerRef.current) {
+        audioPlayerRef.current.enqueueAudio(audioChunk);
       }
     });
     return removeListener;
