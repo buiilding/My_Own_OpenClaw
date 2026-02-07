@@ -86,9 +86,10 @@ class JsonToolCallExtractor:
         tool_calls: List[ParsedToolCall] = []
         extracted_positions: List[Tuple[int, int]] = []
         decoder = json.JSONDecoder()
+        max_scan_end = min(len(response), self.limits.max_response_size)
         pos = 0
 
-        while pos < len(response):
+        while pos < max_scan_end:
             if time.monotonic() - start_time > timeout:
                 raise ParseTimeoutError(
                     "Parse timeout exceeded",
@@ -96,20 +97,15 @@ class JsonToolCallExtractor:
                     boundary_name="response_parser",
                 )
 
-            if pos > self.limits.max_response_size:
-                break
-
-            start_index = response.find("{", pos)
+            start_index = response.find("{", pos, max_scan_end)
             if start_index < 0:
                 break
 
-            remaining = len(response) - start_index
-            if remaining > self.limits.max_json_size:
-                pos = start_index + 1
-                continue
-
             try:
                 parsed, end_index = decoder.raw_decode(response, idx=start_index)
+                if end_index > max_scan_end:
+                    pos = start_index + 1
+                    continue
                 json_obj = response[start_index:end_index]
 
                 if len(json_obj) > self.limits.max_json_size:
@@ -142,31 +138,6 @@ class JsonToolCallExtractor:
         remaining_text = self._remove_extracted_by_positions(response, extracted_positions)
 
         return tool_calls, remaining_text
-
-    def _extract_json_object(
-        self, text: str, start_pos: int, start_time: float, timeout: float
-    ) -> str:
-        """
-        Extract a complete JSON object starting at start_pos using json.JSONDecoder.
-
-        DEPRECATED: Kept for backward compatibility.
-        """
-        if start_pos >= len(text) or text[start_pos] != "{":
-            return ""
-
-        remaining = len(text) - start_pos
-        if remaining > self.limits.max_json_size:
-            return ""
-
-        if time.monotonic() - start_time > timeout:
-            return ""
-
-        try:
-            decoder = json.JSONDecoder()
-            _, end_pos = decoder.raw_decode(text, idx=start_pos)
-            return text[start_pos:end_pos]
-        except (json.JSONDecodeError, ValueError, IndexError):
-            return ""
 
     def _safe_json_loads(
         self, json_str: str, start_time: float, timeout: float
