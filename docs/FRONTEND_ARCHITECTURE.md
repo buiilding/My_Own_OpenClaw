@@ -170,6 +170,10 @@ App
 - Wakeword detection integration
 - Validates backend audio-chunk payloads before enqueueing playback data
 
+**ChatBox.jsx**
+- Floating quick-chat overlay
+- Uses shared chatbox selector and presentation helpers for status and assistant preview derivation
+
 **MessageList.jsx**
 - Displays chat messages
 - Handles different message types
