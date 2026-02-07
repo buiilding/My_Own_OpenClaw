@@ -1,33 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { shallow } from 'zustand/shallow';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
-
-function getLatestAssistantMessage(messages) {
-  for (let i = messages.length - 1; i >= 0; i -= 1) {
-    const msg = messages[i];
-    if (msg.sender === 'assistant' && msg.type !== 'tool-output' && msg.text) {
-      return msg.text;
-    }
-  }
-  return null;
-}
-
-function trimPreview(text, maxLength) {
-  if (!text) {
-    return '';
-  }
-  if (text.length <= maxLength) {
-    return text;
-  }
-  return `${text.slice(0, maxLength)}…`;
-}
+import { selectChatBoxState } from '../utils/chatSelectors';
+import {
+  getChatBoxStatusText,
+  getInteractionModeLabel,
+  getLatestAssistantMessage,
+  trimPreview,
+} from '../utils/chatBoxPresentation';
 
 function ChatBox() {
-  const messages = useChatStore((state) => state.messages);
-  const isSending = useChatStore((state) => state.isSending);
-  const thinkingStatus = useChatStore((state) => state.thinkingStatus);
+  const { messages, isSending, thinkingStatus } = useChatStore(
+    selectChatBoxState,
+    shallow,
+  );
   const { config } = useAppConfigContext();
   const { sendMessage } = useChatMessageSender();
   const [inputValue, setInputValue] = useState('');
@@ -40,13 +29,9 @@ function ChatBox() {
     [messages]
   );
 
-  const statusText = thinkingStatus
-    ? 'Thinking…'
-    : isSending
-      ? 'Sending…'
-      : 'Ready';
+  const statusText = getChatBoxStatusText(thinkingStatus, isSending);
   const interactionMode = config?.interaction_mode || 'chat';
-  const interactionLabel = interactionMode === 'agent' ? 'Agent' : 'Chat';
+  const interactionLabel = getInteractionModeLabel(interactionMode);
 
   const setOverlayIgnore = useCallback(async (ignore) => {
     if (ignoreMouseRef.current === ignore) {
