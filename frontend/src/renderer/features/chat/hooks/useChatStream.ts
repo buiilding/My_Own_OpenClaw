@@ -33,6 +33,12 @@ import {
   type ErrorEvent,
   isBackendEvent,
 } from '../../../types/backendEvents';
+import {
+  buildThinkingStatus,
+  formatToolBundlePayload,
+  formatToolCallPayload,
+  formatToolOutputText,
+} from '../utils/chatStreamFormatting';
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 
@@ -92,11 +98,8 @@ export function useChatStream(enableTranscript: boolean = true) {
   }, [updateMessage]);
 
   const handleLlmThought = useCallback((event: LlmThoughtEvent) => {
-    const newChunk = event.payload?.status || '';
-    const currentStatus = useChatStore.getState().thinkingStatus || '';
-    const updated = currentStatus + newChunk;
-    const finalStatus = updated.length > 5000 ? updated.slice(-5000) : updated;
-    setThinkingStatus(finalStatus);
+    const currentStatus = useChatStore.getState().thinkingStatus;
+    setThinkingStatus(buildThinkingStatus(currentStatus, event.payload?.status));
   }, [setThinkingStatus]);
 
   const handleStreamingResponse = useCallback((event: StreamingResponseEvent) => {
@@ -124,21 +127,7 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
     setThinkingStatus(null);
-    let formattedText: string;
-
-    if (event.payload?.raw_call) {
-      try {
-        const parsed = JSON.parse(event.payload.raw_call);
-        formattedText = JSON.stringify(parsed, null, 2);
-      } catch (e) {
-        formattedText = event.payload.raw_call;
-      }
-    } else {
-      formattedText = JSON.stringify({
-        name: event.payload?.tool_name,
-        args: event.payload?.parameters
-      }, null, 2);
-    }
+    const formattedText = formatToolCallPayload(event.payload);
 
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -166,9 +155,7 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleToolOutput = useCallback((event: ToolOutputEvent) => {
     setThinkingStatus(null);
-    const outputText = event.payload?.error
-      ? `Error: ${event.payload.error}`
-      : (event.payload?.output || 'No output');
+    const outputText = formatToolOutputText(event.payload);
     const screenshotRef = event.payload?.screenshot_ref || null;
     const screenshotUrl = screenshotRef ? buildArtifactUrl(screenshotRef) : null;
 
@@ -208,11 +195,7 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
     setThinkingStatus(null);
-    const bundlePayload = {
-      bundle_id: event.payload?.bundle_id,
-      tools: event.payload?.tools || [],
-    };
-    const formattedText = JSON.stringify(bundlePayload, null, 2);
+    const formattedText = formatToolBundlePayload(event.payload);
 
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
