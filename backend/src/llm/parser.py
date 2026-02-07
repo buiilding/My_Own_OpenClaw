@@ -58,6 +58,8 @@ class ResponseParser:
     """
 
     BOUNDARY_NAME = "response_parser"
+    EXECUTOR_MAX_WORKERS = 2
+    EXECUTOR_THREAD_PREFIX = "parser"
 
     def __init__(
         self,
@@ -115,12 +117,18 @@ class ResponseParser:
             self._extractor.parse_embedded_json,
         )
 
-        self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="parser")
+        self._executor = ThreadPoolExecutor(
+            max_workers=self.EXECUTOR_MAX_WORKERS,
+            thread_name_prefix=self.EXECUTOR_THREAD_PREFIX,
+        )
 
     def _ensure_executor(self) -> ThreadPoolExecutor:
         """Return active parser executor, creating a new one after shutdown if needed."""
         if self._executor is None:
-            self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="parser")
+            self._executor = ThreadPoolExecutor(
+                max_workers=self.EXECUTOR_MAX_WORKERS,
+                thread_name_prefix=self.EXECUTOR_THREAD_PREFIX,
+            )
         return self._executor
 
     def shutdown(self) -> None:
