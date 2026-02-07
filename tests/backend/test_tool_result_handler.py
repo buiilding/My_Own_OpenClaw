@@ -72,6 +72,24 @@ async def test_process_frontend_tool_result_routes_individual():
 
 
 @pytest.mark.asyncio
+async def test_process_frontend_tool_result_routes_individual_for_non_dict_payload():
+    receiver = DummyReceiver()
+    router = DummyRouter()
+    handler = ToolResultHandler(receiver, router)
+
+    await handler.process_frontend_tool_result(
+        request_id="req-2",
+        success=True,
+        result_data=["bundled", True],
+        error=None,
+        metadata={},
+    )
+
+    assert ("individual", "req-2") in receiver.calls
+    assert ("individual", "req-2") in router.calls
+
+
+@pytest.mark.asyncio
 async def test_process_frontend_tool_bundle_result():
     receiver = DummyReceiver()
     router = DummyRouter()

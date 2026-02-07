@@ -39,6 +39,11 @@ class ToolResultHandler:
         """
         self.receiver = receiver
         self.router = router
+
+    @staticmethod
+    def _is_bundled_result_data(result_data: Optional[Dict[str, Any]]) -> bool:
+        """Return True when result payload is a bundled-tool result envelope."""
+        return isinstance(result_data, dict) and bool(result_data.get("bundled"))
     
     async def process_frontend_tool_result(
         self,
@@ -61,7 +66,7 @@ class ToolResultHandler:
             metadata: Additional metadata
         """
         # Route to appropriate handler based on result type
-        if isinstance(result_data, dict) and result_data.get("bundled"):
+        if self._is_bundled_result_data(result_data):
             # Handle bundled results
             individual_results, combined_result, bundle_screenshot = self.receiver.receive_bundled_results(
                 result_data, request_id
