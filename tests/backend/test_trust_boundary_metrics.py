@@ -8,6 +8,7 @@ from backend.src.core.observability.trust_boundary_metrics import (
     METRICS_HISTORY_LIMIT,
     MetricsService,
     STATS_SAMPLE_WINDOW,
+    _numeric_stats,
 )
 
 
@@ -115,3 +116,16 @@ def test_get_all_metrics_releases_registry_lock_before_stats(monkeypatch):
     assert new_metrics.boundary_name == "prompt_constructor"
     assert elapsed < 0.2
     assert "response_parser" in results["stats"]
+
+
+def test_numeric_stats_returns_empty_shape_for_no_values():
+    assert _numeric_stats([]) == {"count": 0, "min": None, "max": None, "avg": None}
+
+
+def test_numeric_stats_calculates_expected_values():
+    stats = _numeric_stats([1.0, 5.0, 2.0, 2.0])
+
+    assert stats["count"] == 4
+    assert stats["min"] == 1.0
+    assert stats["max"] == 5.0
+    assert stats["avg"] == pytest.approx(2.5)
