@@ -22,6 +22,13 @@ import {
   resolveSystemState,
 } from './ToolExecutionCapture';
 import { invokeTool } from './ToolExecutionInvoker';
+import {
+  buildToolResultPayloadData,
+  normalizeBundleStepResults,
+  resolveBundleErrorMessage,
+  resolveBundleStatus,
+  toBundleExecutionResults,
+} from './ToolExecutionPayloads';
 import { uploadArtifactBase64 } from './ArtifactUploader';
 import {
   logToolStart,
@@ -221,20 +228,7 @@ export class ToolExecutionService {
       return;
     }
 
-    const payloadData = {
-      ...(result.data && typeof result.data === 'object' && !Array.isArray(result.data) ? result.data : {}),
-      llm_content: formattedMessage,
-      is_preformatted: true,
-    };
-    if (payloadData.screenshot) {
-      delete payloadData.screenshot;
-    }
-    if (payloadData.image_data) {
-      delete payloadData.image_data;
-    }
-    if (screenshotRef) {
-      payloadData.screenshot_ref = screenshotRef;
-    }
+    const payloadData = buildToolResultPayloadData(result, formattedMessage, screenshotRef);
 
     this.callbacks.sendToBackend({
       type: 'tool-result',
@@ -299,16 +293,8 @@ export class ToolExecutionService {
       stepResults = collectedStepResults;
 
       // Determine bundle status
-      const allSuccess = stepResults.every(step => step.status === 'ok');
-      const hasFailures = stepResults.some(step => step.status === 'error');
-      const bundleStatus = allSuccess ? 'success' : (hasFailures && stepResults.length < bundle.length) ? 'partial_failure' : 'failure';
-      const normalizedResults = stepResults.map(step => ({
-        tool_name: step.tool,
-        _rawResult: { success: step.status === 'ok', error: step.status === 'error' ? step.output : null, data: null },
-        success: step.status === 'ok',
-        error: step.status === 'error' ? step.output : null,
-        data: null
-      }));
+      const bundleStatus = resolveBundleStatus(stepResults, bundle.length);
+      const normalizedResults = normalizeBundleStepResults(stepResults);
 
       // Format combined bundled message for UI display
       const formattingStartTime = performance.now();
@@ -333,15 +319,7 @@ export class ToolExecutionService {
       // Prepare bundle result for UI callback (totalTime will be set after backend send)
       const bundleResult: BundleExecutionResult = {
         correlationId: bundleId,
-        results: normalizedResults.map(step => ({
-          tool_name: step.tool_name,
-          request_id: '', // Not needed for atomic bundles
-          success: step.success,
-          data: step.data,
-          error: step.error,
-          executionTime: 0,
-          _rawResult: step._rawResult
-        })),
+        results: toBundleExecutionResults(normalizedResults),
         totalTime: 0, // Will be set after backend send
         formattedMessage: combinedFormattedMessage,
         screenshot,
@@ -360,10 +338,7 @@ export class ToolExecutionService {
       logBundleDispatch();
 
       // Get error message from failed step if any
-      const failedStep = stepResults.find(step => step.status === 'error');
-      const errorMessage = bundleStatus === 'failure' 
-        ? (failedStep?.output || 'Bundle execution failed')
-        : null;
+      const errorMessage = resolveBundleErrorMessage(bundleStatus, stepResults);
 
       this._sendBundleResult(
         bundleId,
