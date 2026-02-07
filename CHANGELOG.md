@@ -23,6 +23,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- 3dbd975 fix(frontend-config): sync interaction mode to backend on ipc reconnect
 - 219ffb6 fix(frontend-chat): use zustand useShallow selectors to prevent snapshot update loops
 - a4f58cd fix(frontend-dashboard): stabilize provider selection for duplicate model ids
 - 899cef1 fix(frontend-dashboard): normalize model provider and id comparisons to prevent config update loops
@@ -193,6 +194,7 @@ Includes the last 300 commits on `main`.
 - cbcba82 refactor(frontend-voice): stabilize useVoiceMode websocket lifecycle
 
 ### Tests
+- ea759bc test(frontend-config): add ipc reconnect config sync coverage
 - bb62a9b test(frontend-dashboard): cover duplicate-id provider reconciliation determinism
 - 16d65a7 test(frontend-dashboard): add model selection normalization regression coverage
 - d8a5e67 test(artifacts): align request scope and path assertions with starlette
