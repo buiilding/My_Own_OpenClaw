@@ -173,6 +173,7 @@ App
 - Displays chat messages
 - Handles different message types
 - Auto-scroll functionality
+- Reuses shared screenshot-presence utility with `MessageContent` to keep screenshot rendering/class behavior consistent
 
 **MessageInput.jsx**
 - Text input with voice support
