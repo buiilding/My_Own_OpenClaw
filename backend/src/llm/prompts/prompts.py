@@ -50,6 +50,8 @@ class PromptManager:
         if prompt_file_path is None:
             # Default to file in the same directory
             prompt_file_path = Path(__file__).parent / "system_prompt.txt"
+        else:
+            prompt_file_path = Path(prompt_file_path)
 
         # Hold lock during entire initialization to avoid duplicate file reads
         # during concurrent startup paths.
