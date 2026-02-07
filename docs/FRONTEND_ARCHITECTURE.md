@@ -176,6 +176,9 @@ App
 - Auto-scroll functionality
 - Reuses shared screenshot-presence utility with `MessageContent` to keep screenshot rendering/class behavior consistent
 
+**MessageTransparencySections.jsx**
+- Builds transparency section configs via shared chat utility helpers, then maps to `TransparencySection` rendering
+
 **MessageInput.jsx**
 - Text input with voice support
 - Transcription integration
