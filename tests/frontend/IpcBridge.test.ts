@@ -26,9 +26,14 @@ describe('IpcBridge', () => {
   });
 
   test('on returns cleanup function', () => {
-    const cleanup = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, jest.fn());
-    expect(typeof cleanup).toBe('function');
-    expect((window as any).ipc.on).toHaveBeenCalled();
+    const handler = jest.fn();
+    const cleanupFn = jest.fn();
+    (window as any).ipc.on.mockReturnValueOnce(cleanupFn);
+
+    const cleanup = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, handler);
+
+    expect((window as any).ipc.on).toHaveBeenCalledWith('from-backend', handler);
+    expect(cleanup).toBe(cleanupFn);
   });
 
   test('once forwards to window.ipc', () => {
@@ -41,6 +46,13 @@ describe('IpcBridge', () => {
     delete (window as any).ipc;
     await expect(IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {})).rejects.toThrow(
       'window.ipc is not available'
+    );
+  });
+
+  test('send throws when window.ipc is missing', () => {
+    delete (window as any).ipc;
+    expect(() => IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {})).toThrow(
+      'window.ipc is not available',
     );
   });
 });
