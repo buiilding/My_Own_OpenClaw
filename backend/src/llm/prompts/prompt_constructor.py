@@ -95,6 +95,18 @@ class PromptConstructor:
         self.metrics = metrics_service.get_metrics("prompt_constructor")
         self.limits = config.security_limits
 
+    def _get_filtered_tool_schemas(self) -> List[Dict[str, Any]]:
+        """Return tool schemas filtered by interaction-mode allowlist when configured."""
+        tool_schemas = self.tool_registry.get_function_declarations() or []
+        allowlist = self.config.get_tool_allowlist()
+        if allowlist is None:
+            return tool_schemas
+        return [
+            schema
+            for schema in tool_schemas
+            if schema.get("name") in allowlist
+        ]
+
     def build_prompt(
         self,
         stored_messages: Optional[Union[List[StoredMessage], Any]] = None,
@@ -128,14 +140,7 @@ class PromptConstructor:
         # Get tool schemas if needed
         tool_schemas = []
         if include_tools:
-            tool_schemas = self.tool_registry.get_function_declarations() or []
-            allowlist = self.config.get_tool_allowlist()
-            if allowlist is not None:
-                tool_schemas = [
-                    schema
-                    for schema in tool_schemas
-                    if schema.get("name") in allowlist
-                ]
+            tool_schemas = self._get_filtered_tool_schemas()
 
         # Get history (tools passed separately to LLM API)
         if stored_messages and hasattr(stored_messages, 'get_history'):
@@ -327,7 +332,7 @@ class PromptConstructor:
         
         # Add tool schemas to first message only
         if is_first_message:
-            tool_schemas = self.tool_registry.get_function_declarations() or []
+            tool_schemas = self._get_filtered_tool_schemas()
             if tool_schemas:
                 tool_schemas_json = json.dumps(tool_schemas, indent=2)
                 final_content = f"{final_content}\n\n<tool_schemas>\n{tool_schemas_json}\n</tool_schemas>"
