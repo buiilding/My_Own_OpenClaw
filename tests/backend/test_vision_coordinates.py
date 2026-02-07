@@ -34,3 +34,9 @@ def test_scale_norm_to_pixels_clamps_bounds():
     assert scale_norm_to_pixels(0, 0, 100, 200) == (0, 0)
     assert scale_norm_to_pixels(1000, 1000, 100, 200) == (99, 199)
     assert scale_norm_to_pixels(1500, -10, 100, 200) == (99, 0)
+
+
+def test_scale_norm_to_pixels_handles_non_positive_dimensions():
+    assert scale_norm_to_pixels(100, 200, 0, 200) == (0, 0)
+    assert scale_norm_to_pixels(100, 200, 100, 0) == (0, 0)
+    assert scale_norm_to_pixels(100, 200, -5, 10) == (0, 0)
