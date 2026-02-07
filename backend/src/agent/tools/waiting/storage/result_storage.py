@@ -60,13 +60,17 @@ class ToolResultStorage:
 
     @staticmethod
     def _create_future() -> asyncio.Future:
-        """Create a future bound to the running loop when available."""
+        """Create a future bound to an available loop in sync/async contexts."""
         try:
             loop = asyncio.get_running_loop()
             return loop.create_future()
         except RuntimeError:
-            # Fallback for sync contexts/tests where no loop is running yet.
-            return asyncio.Future()
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            return loop.create_future()
     
     def store_pending_result(self, request_id: str, result: ToolResult) -> None:
         """
