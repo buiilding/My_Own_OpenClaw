@@ -82,6 +82,12 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- 23767ca refactor(frontend-chat): extract chat stream message update helpers
+- 917376d refactor(frontend-chat): extract tool runner message and mapping helpers
+- 9dce059 refactor(frontend-chat): extract stream event helper utilities
+- 29f73e1 refactor(frontend-chat): extract tool-output metadata formatting helpers
+- 25751f8 refactor(frontend-chat): extract chat message sender helper utilities
+- d3b7b31 refactor(frontend-chat): centralize screenshot source resolution in shared utility
 - 4c41845 refactor(frontend-chat): extract message list class-name builder
 - a57f6cc refactor(task-manager): prune completed websocket tasks during cleanup
 - c6c5c84 refactor(vision-service): streamline provider construction path
@@ -178,6 +184,12 @@ Includes the last 300 commits on `main`.
 - cbcba82 refactor(frontend-voice): stabilize useVoiceMode websocket lifecycle
 
 ### Tests
+- 89d4d27 test(frontend-chat): add chat stream message update helper coverage
+- e3242c3 test(frontend-chat): add tool runner helper coverage
+- ddf1ead test(frontend-chat): add stream event helper coverage
+- 7e0122e test(frontend-chat): add tool-output metadata utility coverage
+- b555f8d test(frontend-chat): add chat message sender utility coverage
+- a76f1f9 test(frontend-chat): add screenshot source utility coverage
 - 1bffa59 test(frontend-chat): add message list class utility coverage
 - db5c67a test(frontend-voice): strengthen wakeword cooldown callback assertions
 - 8eae4ea test(frontend-dashboard): add settings display utility coverage
@@ -264,6 +276,12 @@ Includes the last 300 commits on `main`.
 - b7daa47 test(frontend-voice): add regression coverage for callback-ref updates
 
 ### Documentation
+- 425f1a6 docs(frontend): include chat stream message update helper module and tests
+- 80264bc docs(frontend): include tool runner helper module and tests
+- 478473a docs(frontend): include stream event helper module and tests
+- 120fe21 docs(frontend): include message tool metadata utility in architecture and tests
+- a2499ef docs(frontend): document chat message sender helper module and tests
+- 3f9f596 docs(frontend): include screenshot source utility coverage and module role
 - a1630c2 docs(frontend): map message list class utility in architecture and tests
 - 9bada6d docs(api): document planned frontend schema sync protocol
 - 2a6114d docs(structure): note deterministic websocket task prune in cleanup
