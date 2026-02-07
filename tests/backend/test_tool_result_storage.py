@@ -31,6 +31,7 @@ def test_cleanup_old_results_removes_expired(monkeypatch):
     storage._result_timestamps["req-old"] = 0
 
     storage.store_bundled_result("bundle-old", result)
+    storage.create_bundle_future("bundle-old")
     storage._bundle_timestamps["bundle-old"] = 0
 
     monkeypatch.setattr(time, "time", lambda: 5)
@@ -39,6 +40,7 @@ def test_cleanup_old_results_removes_expired(monkeypatch):
     assert cleaned == 2
     assert storage.get_pending_result("req-old") is None
     assert storage.get_bundled_result("bundle-old") is None
+    assert storage.get_bundle_future("bundle-old") is None
 
 
 def test_storage_stats_and_clear_all():
@@ -97,3 +99,20 @@ async def test_cleanup_old_results_removes_expired_futures(monkeypatch):
     assert cleaned == 1
     assert storage.get_pending_result("req-old") is None
     assert storage.get_result_future("req-old") is None
+
+
+@pytest.mark.asyncio
+async def test_cleanup_old_results_removes_stale_future_only_entries(monkeypatch):
+    storage = ToolResultStorage(cleanup_ttl_seconds=1)
+
+    storage.create_result_future("req-future-only")
+    storage.create_bundle_future("bundle-future-only")
+    storage._result_timestamps["req-future-only"] = 0
+    storage._bundle_timestamps["bundle-future-only"] = 0
+
+    monkeypatch.setattr(time, "time", lambda: 5)
+    cleaned = storage.cleanup_old_results(max_age_seconds=1)
+
+    assert cleaned == 2
+    assert storage.get_result_future("req-future-only") is None
+    assert storage.get_bundle_future("bundle-future-only") is None
