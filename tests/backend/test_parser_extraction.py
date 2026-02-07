@@ -102,6 +102,15 @@ def test_remove_extracted_by_positions_merges_overlapping_ranges():
     assert cleaned == "abcxyz"
 
 
+def test_remove_extracted_by_positions_single_range_fast_path():
+    extractor = _make_extractor()
+    text = "abc123xyz"
+
+    cleaned = extractor._remove_extracted_by_positions(text, [(3, 6)])
+
+    assert cleaned == "abcxyz"
+
+
 def test_parse_embedded_json_honors_max_response_size_boundary():
     response = (
         "prefix "
