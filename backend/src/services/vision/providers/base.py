@@ -58,6 +58,31 @@ class BaseVisionModel:
         raise NotImplementedError("Subclasses must implement _load()")
 
 
+def resolve_model_device(model: Any) -> Any:
+    """
+    Resolve a model device defensively.
+
+    Some model wrappers (e.g., sharded/accelerate-dispatched models) may not
+    expose a `.device` attribute. In that case, inspect first parameter device
+    and fall back to CPU.
+    """
+    device = getattr(model, "device", None)
+    if device is not None:
+        return device
+
+    parameters = getattr(model, "parameters", None)
+    if callable(parameters):
+        try:
+            first_param = next(parameters())
+            param_device = getattr(first_param, "device", None)
+            if param_device is not None:
+                return param_device
+        except (StopIteration, TypeError):
+            pass
+
+    return "cpu"
+
+
 def load_model_with_fallbacks(
     *,
     provider_label: str,

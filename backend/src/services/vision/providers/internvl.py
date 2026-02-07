@@ -20,6 +20,7 @@ from backend.src.services.vision.providers.base import (
     BaseVisionModel,
     VISION_MODELS_AVAILABLE,
     load_model_with_fallbacks,
+    resolve_model_device,
 )
 
 logger = logging.getLogger(__name__)
@@ -87,8 +88,9 @@ class InternVLModel(BaseVisionModel):
                 cpu_retry_message="trying CPU fallback",
                 failure_message="Failed to load vision model",
             )
+            model_device = resolve_model_device(self.model)
             logger.info(
-                f"Loaded InternVL model: {self.model_name} on {self.model.device} "
+                f"Loaded InternVL model: {self.model_name} on {model_device} "
                 f"with dtype {self._model_dtype}"
             )
 
@@ -268,7 +270,7 @@ class InternVLModel(BaseVisionModel):
                 f"Starting InternVL prediction for instruction (preview: {instruction_preview}..., hash: {instruction_hash})"
             )
             logger.info(
-                f"Model device: {self.model.device}, CUDA available: {torch.cuda.is_available()}"
+                f"Model device: {resolve_model_device(self.model)}, CUDA available: {torch.cuda.is_available()}"
             )
 
             # Decode and process image
@@ -310,7 +312,8 @@ class InternVLModel(BaseVisionModel):
                     model_dtype = torch.bfloat16
                     logger.warning("Could not determine model dtype, defaulting to bfloat16")
             
-            pixel_values = pixel_values.to(model_dtype).to(self.model.device)
+            model_device = resolve_model_device(self.model)
+            pixel_values = pixel_values.to(model_dtype).to(model_device)
 
             # Use InternVL's chat interface (like CoAct-1)
             logger.info("Using InternVL chat interface for generation")
@@ -359,13 +362,13 @@ class InternVLModel(BaseVisionModel):
                         tokenize=True,
                         return_tensors="pt",
                         return_dict=True,
-                    ).to(self.model.device)
+                    ).to(model_device)
 
                     # Add image inputs for generate fallback
                     inputs["pixel_values"] = pixel_values
                     if num_patches_list:
                         inputs["num_patches"] = torch.tensor(num_patches_list).to(
-                            self.model.device
+                            model_device
                         )
 
                     with torch.no_grad():
@@ -420,7 +423,7 @@ class InternVLModel(BaseVisionModel):
                 logger.error(f"Image size: {width}x{height}")
             except (NameError, UnboundLocalError):
                 logger.error("Image size not available")
-            logger.error(f"Model device: {self.model.device}")
+            logger.error(f"Model device: {resolve_model_device(self.model)}")
             try:
                 logger.error(f"CUDA available: {torch.cuda.is_available()}")
                 if torch.cuda.is_available():

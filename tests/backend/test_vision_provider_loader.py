@@ -2,7 +2,10 @@ import logging
 
 import pytest
 
-from backend.src.services.vision.providers.base import load_model_with_fallbacks
+from backend.src.services.vision.providers.base import (
+    load_model_with_fallbacks,
+    resolve_model_device,
+)
 
 
 class _FakeCuda:
@@ -24,6 +27,28 @@ class _FakeTorch:
 
 def _test_logger():
     return logging.getLogger("tests.vision.provider.loader")
+
+
+class _Param:
+    def __init__(self, device):
+        self.device = device
+
+
+class _ModelWithDevice:
+    def __init__(self, device):
+        self.device = device
+
+
+class _ModelWithParamsOnly:
+    def __init__(self, device):
+        self._device = device
+
+    def parameters(self):
+        return iter([_Param(self._device)])
+
+
+class _ModelWithoutDeviceOrParams:
+    pass
 
 
 def test_loader_returns_device_map_model_when_first_attempt_succeeds():
@@ -54,6 +79,18 @@ def test_loader_returns_device_map_model_when_first_attempt_succeeds():
     assert model == {"path": "device_map"}
     assert dtype == fake_torch.bfloat16
     assert calls["direct"] == []
+
+
+def test_resolve_model_device_prefers_model_device_attribute():
+    assert resolve_model_device(_ModelWithDevice("cuda:0")) == "cuda:0"
+
+
+def test_resolve_model_device_uses_first_parameter_device():
+    assert resolve_model_device(_ModelWithParamsOnly("cpu")) == "cpu"
+
+
+def test_resolve_model_device_falls_back_to_cpu_when_unavailable():
+    assert resolve_model_device(_ModelWithoutDeviceOrParams()) == "cpu"
 
 
 def test_loader_falls_back_to_direct_cuda_loading_when_device_map_fails():

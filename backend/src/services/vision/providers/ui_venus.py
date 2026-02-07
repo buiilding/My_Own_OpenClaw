@@ -21,6 +21,7 @@ from backend.src.services.vision.coordinates import (
 from backend.src.services.vision.providers.base import (
     VISION_MODELS_AVAILABLE,
     load_model_with_fallbacks,
+    resolve_model_device,
 )
 from backend.src.services.vision.providers.internvl import InternVLModel
 
@@ -79,8 +80,9 @@ class VenusVisionModel(InternVLModel):
                 cpu_retry_message="trying CPU-only fallback",
                 failure_message="Failed to load Venus vision model",
             )
+            model_device = resolve_model_device(self.model)
             logger.info(
-                f"Loaded Venus model: {self.model_name} on {self.model.device} "
+                f"Loaded Venus model: {self.model_name} on {model_device} "
                 f"with dtype {self._model_dtype}"
             )
 
@@ -176,7 +178,7 @@ class VenusVisionModel(InternVLModel):
                 images=[image],
                 return_tensors="pt",
             )
-            inputs = inputs.to(self.model.device)
+            inputs = inputs.to(resolve_model_device(self.model))
 
             with torch.no_grad():
                 output_ids = self.model.generate(
