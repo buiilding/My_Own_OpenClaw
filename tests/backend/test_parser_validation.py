@@ -137,3 +137,9 @@ def test_validate_metadata_accepts_trimmed_nonempty_strings_for_computer_tools()
             "expectation": " modal opens ",
         },
     )
+
+
+def test_get_valid_tool_names_deduplicates_registry_values():
+    validator, _metrics = _make_validator(["read_file", "read_file", "write_file"])
+
+    assert validator._get_valid_tool_names() == ["read_file", "write_file"]
