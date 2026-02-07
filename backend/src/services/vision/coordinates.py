@@ -55,6 +55,20 @@ def extract_last_bbox(text: str) -> Optional[Tuple[float, float, float, float]]:
         return None
 
 
+def extract_point_or_bbox_center(text: str) -> Optional[Tuple[float, float]]:
+    """Extract [[x,y]] or convert the last [[x1,y1,x2,y2]] bbox to center point."""
+    point = extract_first_point(text)
+    if point is not None:
+        return point
+
+    bbox = extract_last_bbox(text)
+    if bbox is None:
+        return None
+
+    x1, y1, x2, y2 = bbox
+    return ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
+
+
 def scale_norm_to_pixels(
     x_norm: float, y_norm: float, width: int, height: int
 ) -> Tuple[int, int]:
