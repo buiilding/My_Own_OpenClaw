@@ -14,7 +14,6 @@ import {
   recordUserMessage,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
-import { buildArtifactUrl } from '../../../infrastructure/services/ArtifactUploader';
 import {
   type BackendEvent,
   type BackendEventType,
@@ -39,22 +38,17 @@ import {
   formatToolCallPayload,
   formatToolOutputText,
 } from '../utils/chatStreamFormatting';
-
-const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
+import {
+  buildScreenshotAttachment,
+  resolveErrorText,
+  resolveToolOutputCorrelationId,
+  shouldIgnoreStreamError,
+} from '../utils/chatStreamEventUtils';
 
 type TranscriptModelContext = {
   modelId: string | null;
   modelProvider: string | null;
 };
-
-function shouldIgnoreErrorEvent(event: ErrorEvent): boolean {
-  const message = event.payload?.message;
-  const content = event.payload?.content;
-  return (
-    (typeof message === 'string' && message.includes(SETTINGS_UPDATE_ERROR_TEXT))
-    || (typeof content === 'string' && content.includes(SETTINGS_UPDATE_ERROR_TEXT))
-  );
-}
 
 /**
  * Custom hook for managing streaming message responses.
@@ -156,8 +150,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   const handleToolOutput = useCallback((event: ToolOutputEvent) => {
     setThinkingStatus(null);
     const outputText = formatToolOutputText(event.payload);
-    const screenshotRef = event.payload?.screenshot_ref || null;
-    const screenshotUrl = screenshotRef ? buildArtifactUrl(screenshotRef) : null;
+    const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(event.payload?.screenshot_ref);
 
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -170,13 +163,11 @@ export function useChatStream(enableTranscript: boolean = true) {
       toolName: event.payload?.tool_name,
       executionTime: event.payload?.execution_time,
       success: event.payload?.success,
-      correlationId: event.id || event.payload?.request_id,
+      correlationId: resolveToolOutputCorrelationId(event.payload, event.id),
     };
 
     addMessage(newMessage);
-
-    const correlationId = event.payload?.request_id
-      || (typeof event.payload?.metadata === 'object' ? event.payload?.metadata?.request_id : undefined);
+    const correlationId = resolveToolOutputCorrelationId(event.payload, event.id) || undefined;
 
     if (enableTranscript) {
       const modelContext = modelContextRef.current;
@@ -256,8 +247,10 @@ export function useChatStream(enableTranscript: boolean = true) {
     if (!text) {
       return;
     }
-    const screenshotRef = event.payload?.screenshot_ref || null;
-    const screenshotUrl = event.payload?.screenshot_url || (screenshotRef ? buildArtifactUrl(screenshotRef) : null);
+    const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(
+      event.payload?.screenshot_ref,
+      event.payload?.screenshot_url,
+    );
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
       text,
@@ -311,7 +304,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   const handleError = useCallback((event: ErrorEvent) => {
     setIsSending(false);
     setThinkingStatus('');
-    const errorText = event.payload?.content || event.payload?.message || 'An error occurred';
+    const errorText = resolveErrorText(event.payload);
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
       text: errorText,
@@ -347,7 +340,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     'tool-schemas': event => handleToolSchemas(event as ToolSchemasEvent),
     'error': event => {
       const errorEvent = event as ErrorEvent;
-      if (!shouldIgnoreErrorEvent(errorEvent)) {
+      if (!shouldIgnoreStreamError(errorEvent.payload)) {
         handleError(errorEvent);
       }
     },
