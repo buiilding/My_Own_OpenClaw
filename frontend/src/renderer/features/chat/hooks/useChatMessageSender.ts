@@ -30,6 +30,11 @@ export function useChatMessageSender(
     if (stopPlayback) {
       stopPlayback();
     }
+
+    const hadUserMessages = useChatStore
+      .getState()
+      .messages
+      .some((msg) => msg.sender === 'user');
     
     // Create user message immediately (without screenshot) for instant UI display
     const userMessage: ChatMessage = {
@@ -53,8 +58,7 @@ export function useChatMessageSender(
     }
     
     // Extract OS state (screenshot and system state).
-    // Determine if this is the first user message
-    const isFirstUserMessage = !useChatStore.getState().messages.some(msg => msg.sender === 'user');
+    const isFirstUserMessage = !hadUserMessages;
     
     let screenshot: string | null = null;
     let screenshotContentType: string | null = null;
