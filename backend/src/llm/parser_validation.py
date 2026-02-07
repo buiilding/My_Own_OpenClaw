@@ -120,7 +120,9 @@ class ToolCallValidator:
 
     def _get_valid_tool_names(self) -> List[str]:
         raw_tool_names = self.tool_registry.get_tool_names() or []
-        if not isinstance(raw_tool_names, (list, tuple, set)):
+        if isinstance(raw_tool_names, (str, bytes, dict)):
+            raw_tool_names = []
+        elif not isinstance(raw_tool_names, (list, tuple, set)):
             try:
                 raw_tool_names = list(raw_tool_names)
             except TypeError:

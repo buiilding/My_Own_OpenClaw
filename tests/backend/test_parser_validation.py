@@ -110,6 +110,20 @@ def test_validate_tool_call_handles_non_iterable_registry_tool_names():
         validator.validate_tool_call("read_file", {})
 
 
+def test_validate_tool_call_handles_string_registry_tool_names():
+    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
+    metrics = DummyMetrics()
+    validator = ToolCallValidator(
+        config=config,
+        tool_registry=BrokenRegistry("read_file"),
+        metrics=metrics,
+        limits=config.security_limits,
+    )
+
+    with pytest.raises(ParseValidationError, match="Valid tools \\(0\\):"):
+        validator.validate_tool_call("read_file", {})
+
+
 def test_validate_metadata_rejects_whitespace_only_fields_for_computer_tools():
     config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
     metrics = DummyMetrics()
