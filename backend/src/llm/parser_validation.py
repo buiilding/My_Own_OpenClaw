@@ -130,12 +130,12 @@ class ToolCallValidator:
         valid_tool_names = [
             name for name in raw_tool_names if isinstance(name, str)
         ]
-        deduped_tool_names = list(dict.fromkeys(valid_tool_names))
+        deduped_tool_names = sorted(set(valid_tool_names))
         if self._allowed_tools_set is not None:
             deduped_tool_names = [
                 name for name in deduped_tool_names if name in self._allowed_tools_set
             ]
-        return sorted(deduped_tool_names)
+        return deduped_tool_names
 
     def validate_metadata(
         self, tool_name: str, metadata: Optional[Dict[str, Any]]
