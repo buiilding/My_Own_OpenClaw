@@ -264,13 +264,6 @@ export function useWakewordDetection(
     };
   }, [enabled, isReady, startAudioCapture, stopAudioCapture]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopAudioCapture();
-    };
-  }, [stopAudioCapture]);
-
   return {
     isReady,
     error,
