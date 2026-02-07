@@ -30,6 +30,16 @@ describe('local_backend_bridge', () => {
   let pythonProcess;
   let bridge;
 
+  beforeEach(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const initBridge = () => {
     jest.resetModules();
     handlers = {};
@@ -87,6 +97,12 @@ describe('local_backend_bridge', () => {
         })}\n`,
       ),
     );
+  };
+
+  const getLastWrittenRequest = () => {
+    const calls = pythonProcess.stdin.write.mock.calls;
+    const lastCall = calls[calls.length - 1];
+    return JSON.parse(lastCall[0].trim());
   };
 
   test('execute-tool handler returns success for valid response', async () => {
@@ -168,5 +184,64 @@ describe('local_backend_bridge', () => {
 
     const result = await promise;
     expect(result).toEqual({ success: false, error: 'nope' });
+  });
+
+  test('list-conversations handler maps payload keys to backend params', async () => {
+    initBridge();
+    markReady();
+
+    const promise = handlers['list-conversations'](null, {
+      userId: 'u-1',
+      limit: 7,
+      recordKind: 'transcript',
+    });
+
+    const request = getLastWrittenRequest();
+    expect(request).toEqual(
+      expect.objectContaining({
+        method: 'list_conversations',
+        params: {
+          user_id: 'u-1',
+          limit: 7,
+          record_kind: 'transcript',
+        },
+      }),
+    );
+
+    stdoutHandler(
+      Buffer.from(
+        `${JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'req-1',
+          result: { success: true, data: { items: [] } },
+        })}\n`,
+      ),
+    );
+
+    await expect(promise).resolves.toEqual({ success: true, data: { items: [] } });
+  });
+
+  test('store-transcript handler returns standardized error payload', async () => {
+    initBridge();
+    markReady();
+
+    const promise = handlers['store-transcript'](null, {
+      content: 'hello',
+      userId: 'u-1',
+      sessionId: 's-1',
+      role: 'assistant',
+    });
+
+    stdoutHandler(
+      Buffer.from(
+        `${JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'req-1',
+          error: { message: 'store failed' },
+        })}\n`,
+      ),
+    );
+
+    await expect(promise).resolves.toEqual({ success: false, error: 'store failed' });
   });
 });
