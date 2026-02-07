@@ -58,4 +58,30 @@ describe('appConfigPersistence', () => {
     expect(applyConfigIfChanged({}, configRef, setConfig)).toBe(false);
     expect(setConfig).not.toHaveBeenCalled();
   });
+
+  test('sanitizeFrontendProviderConfig does not mutate input object', () => {
+    const input = {
+      voice_mode_enabled: true,
+      model_provider: 'openai',
+    };
+
+    const output = sanitizeFrontendProviderConfig(input);
+    expect(output).toEqual({
+      voice_mode_enabled: false,
+      model_provider: 'openai',
+    });
+    expect(input).toEqual({
+      voice_mode_enabled: true,
+      model_provider: 'openai',
+    });
+  });
+
+  test('does not apply nullish config payloads', () => {
+    const configRef = { current: { voice_mode_enabled: false } };
+    const setConfig = jest.fn();
+
+    expect(applyConfigIfChanged(null, configRef, setConfig)).toBe(false);
+    expect(applyConfigIfChanged(undefined, configRef, setConfig)).toBe(false);
+    expect(setConfig).not.toHaveBeenCalled();
+  });
 });

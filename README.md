@@ -2,7 +2,7 @@
 
 > Your AI-powered personal assistant that remembers context locally, controls your computer, and adapts to your workflow.
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Source](https://img.shields.io/badge/source-closed--source-red.svg)]()
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Electron](https://img.shields.io/badge/electron-latest-brightgreen.svg)](https://www.electronjs.org/)
 [![Project Status](https://img.shields.io/badge/status-functional%20AI%20assistant-green.svg)]()
@@ -311,7 +311,7 @@ This is a great time to get involved as a founding contributor. Whether you're e
 
 ### First-Time Contributors Welcome!
 
-New to open source? No problem! Look for issues tagged:
+New to the project? No problem! Look for issues tagged:
 - `good-first-issue` - Good for newcomers
 - `documentation` - Help improve docs
 - `research-needed` - Research and propose solutions
@@ -399,7 +399,7 @@ See the [Development Roadmap](#-development-roadmap) section above for detailed 
 - ✅ **Local memory storage** - Conversation history, memory, files, and all data are stored and searched locally on your machine
 - ✅ **LLM inference data only** - Only data required for LLM inference (prompt + screenshots) is sent to providers
 - ✅ **OS-Level Privacy** - Unlike cloud-based services, all your workflow, habits, and personal information remain on your device
-- ✅ **Open source** - Audit the code yourself
+- ✅ **Closed source** - Access is restricted to authorized collaborators
 - ✅ **Sandbox hooks** - Executor abstraction for sandboxing (not enabled by default)
 - ✅ **Basic audit logging** - Tool execution logging for monitoring
 - ✅ **No cloud sync** - Memory, conversation data, and personal information are never synced to cloud services
@@ -409,9 +409,9 @@ See the [Development Roadmap](#-development-roadmap) section above for detailed 
 ## 📊 Project Stats
 
 - **Language**: Python (backend), JavaScript/React (frontend), TypeScript (frontend)
-- **License**: MIT
+- **License**: Proprietary (closed-source)
 - **Status**: Functional AI Assistant with Active Development
-- **Team**: Open source, community-driven
+- **Team**: Internal team with authorized contributors
 - **Lines of Code**: Varies by branch and build
 - **Key Technologies**:
   - **AI/ML**: SentenceTransformers, FAISS, RapidOCR, InternVL (optional GPU acceleration)
@@ -428,7 +428,7 @@ See the [Development Roadmap](#-development-roadmap) section above for detailed 
 Inspired by:
 - The vision of ambient computing and personal AI assistants
 - Amazing LLM providers (OpenAI, Anthropic, Gemini)
-- Open source communities building the future of AI
+- Teams building the future of AI
 
 ---
 
@@ -445,7 +445,7 @@ For security concerns (once code is developed), email: security@yourproject.com
 
 ## 📜 License
 
-This project will be licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is proprietary and closed-source. All rights reserved.
 
 ---
 

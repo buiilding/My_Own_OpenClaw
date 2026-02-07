@@ -110,4 +110,96 @@ describe('ToolExecutionBundleRunner', () => {
     ]);
     expect(outcome.toolExecutionTimes).toHaveLength(1);
   });
+
+  test('uses Error.message when invokeTool throws an Error', async () => {
+    mockInvokeTool.mockRejectedValueOnce(new Error('explicit error'));
+
+    const outcome = await runToolBundle([
+      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+    ]);
+
+    expect(outcome.stepResults).toEqual([
+      { tool: 'read_file', status: 'error', output: 'explicit error' },
+    ]);
+  });
+
+  test('uses Unknown error when thrown value is non-string and non-Error', async () => {
+    mockInvokeTool.mockRejectedValueOnce(404);
+
+    const outcome = await runToolBundle([
+      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+    ]);
+
+    expect(outcome.stepResults).toEqual([
+      { tool: 'read_file', status: 'error', output: 'Unknown error' },
+    ]);
+  });
+
+  test('uses generic success text when tool succeeds without output payload', async () => {
+    mockInvokeTool.mockResolvedValueOnce({
+      result: { success: true, data: { value: 'no-output-field' } },
+      toolInvokeTime: 0.01,
+    });
+
+    const outcome = await runToolBundle([
+      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+    ]);
+
+    expect(outcome.stepResults).toEqual([
+      { tool: 'read_file', status: 'ok', output: 'Tool read_file executed successfully' },
+    ]);
+  });
+
+  test('uses Unknown error output when failed result has no error text', async () => {
+    mockInvokeTool.mockResolvedValueOnce({
+      result: { success: false, data: null },
+      toolInvokeTime: 0.01,
+    } as any);
+
+    const outcome = await runToolBundle([
+      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+    ]);
+
+    expect(outcome.stepResults).toEqual([
+      { tool: 'read_file', status: 'error', output: 'Unknown error' },
+    ]);
+  });
+
+  test('captures non-final computer tool without overwriting systemState', async () => {
+    mockInvokeTool
+      .mockResolvedValueOnce({
+        result: { success: true, data: { output: 'step-1' } },
+        toolInvokeTime: 0.01,
+      })
+      .mockResolvedValueOnce({
+        result: { success: true, data: { output: 'step-2' } },
+        toolInvokeTime: 0.02,
+      });
+    mockIsComputerUseTool
+      .mockReturnValueOnce(true)
+      .mockReturnValueOnce(false);
+    mockCaptureAfterTool.mockResolvedValue({
+      screenshot: 'shot-1',
+      screenshotContentType: 'image/png',
+      systemState: { active_window: 'First' } as any,
+      waitSeconds: 1,
+      captureTime: 0.5,
+    });
+
+    const outcome = await runToolBundle([
+      { toolName: 'mouse_control', args: { action: 'move', x: 1, y: 2 } },
+      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+    ]);
+
+    expect(mockCaptureAfterTool).toHaveBeenCalledWith(
+      'mouse_control',
+      { action: 'move', x: 1, y: 2 },
+      false,
+      0,
+    );
+    expect(outcome.systemState).toBeNull();
+    expect(outcome.screenshot).toBe('shot-1');
+    expect(outcome.totalWaitDelay).toBe(1);
+    expect(outcome.totalCaptureTime).toBe(0.5);
+  });
 });

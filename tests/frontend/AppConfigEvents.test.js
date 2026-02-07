@@ -28,4 +28,8 @@ describe('appConfigEvents', () => {
     expect(extractTranscriptUserId({ userId: 123 })).toBeNull();
     expect(extractTranscriptUserId(null)).toBeNull();
   });
+
+  test('returns raw user id string including whitespace', () => {
+    expect(extractTranscriptUserId({ userId: '   user-2   ' })).toBe('   user-2   ');
+  });
 });

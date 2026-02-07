@@ -97,4 +97,131 @@ describe('TranscriptWriter', () => {
       userId: 'new-user',
     });
   });
+
+  test('recordUserMessage writes immediately when session/user provided in options', async () => {
+    const { writer, invokeMock } = loadTranscriptWriter();
+
+    writer.recordUserMessage('direct user message', {
+      sessionId: 'session-direct',
+      userId: 'user-direct',
+      timestamp: '2026-02-01T00:00:00Z',
+    });
+    await Promise.resolve();
+
+    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+      content: 'direct user message',
+      userId: 'user-direct',
+      sessionId: 'session-direct',
+      role: 'user',
+      messageType: 'user',
+      toolName: undefined,
+      correlationId: undefined,
+      modelId: undefined,
+      modelProvider: undefined,
+      screenshot: undefined,
+      timestamp: '2026-02-01T00:00:00Z',
+    });
+  });
+
+  test('recordUserMessage ignores empty text payloads', async () => {
+    const { writer, invokeMock } = loadTranscriptWriter();
+    writer.updateTranscriptSession('session-1', 'user-1');
+
+    writer.recordUserMessage('');
+    await Promise.resolve();
+
+    expect(invokeMock).not.toHaveBeenCalled();
+  });
+
+  test('recordAssistantMessage is ignored when session info is unavailable', async () => {
+    const { writer, invokeMock } = loadTranscriptWriter();
+
+    writer.recordAssistantMessage('assistant message');
+    await Promise.resolve();
+
+    expect(invokeMock).not.toHaveBeenCalled();
+  });
+
+  test('recordAssistantMessage uses default message type llm-text', async () => {
+    window.sessionStorage.setItem(
+      TRANSCRIPT_SESSION_STORAGE_KEY,
+      JSON.stringify({ sessionId: 'stored-session', userId: 'stored-user' }),
+    );
+    const { writer, invokeMock } = loadTranscriptWriter();
+
+    writer.recordAssistantMessage('assistant message');
+    await Promise.resolve();
+
+    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+      content: 'assistant message',
+      userId: 'stored-user',
+      sessionId: 'stored-session',
+      role: 'assistant',
+      messageType: 'llm-text',
+      toolName: undefined,
+      correlationId: undefined,
+      modelId: undefined,
+      modelProvider: undefined,
+      screenshot: undefined,
+      timestamp: undefined,
+    });
+  });
+
+  test('recordAssistantMessage ignores empty text payloads', async () => {
+    const { writer, invokeMock } = loadTranscriptWriter();
+    writer.updateTranscriptSession('session-1', 'user-1');
+
+    writer.recordAssistantMessage('');
+    await Promise.resolve();
+
+    expect(invokeMock).not.toHaveBeenCalled();
+  });
+
+  test('recordToolMessage stores tool metadata when session is available', async () => {
+    const { writer, invokeMock } = loadTranscriptWriter();
+    writer.updateTranscriptSession('session-tool', 'user-tool');
+
+    writer.recordToolMessage('tool output', {
+      messageType: 'tool-output',
+      toolName: 'read_file',
+      correlationId: 'corr-1',
+      modelId: 'model-a',
+      modelProvider: 'provider-a',
+      screenshotRef: 'artifact-1',
+    });
+    await Promise.resolve();
+
+    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+      content: 'tool output',
+      userId: 'user-tool',
+      sessionId: 'session-tool',
+      role: 'tool',
+      messageType: 'tool-output',
+      toolName: 'read_file',
+      correlationId: 'corr-1',
+      modelId: 'model-a',
+      modelProvider: 'provider-a',
+      screenshot: 'artifact-1',
+      timestamp: undefined,
+    });
+  });
+
+  test('recordToolMessage ignores empty text payloads', async () => {
+    const { writer, invokeMock } = loadTranscriptWriter();
+    writer.updateTranscriptSession('session-1', 'user-1');
+
+    writer.recordToolMessage('', { messageType: 'tool-output' });
+    await Promise.resolve();
+
+    expect(invokeMock).not.toHaveBeenCalled();
+  });
+
+  test('recordToolMessage is ignored when session info is unavailable', async () => {
+    const { writer, invokeMock } = loadTranscriptWriter();
+
+    writer.recordToolMessage('tool output', { messageType: 'tool-output' });
+    await Promise.resolve();
+
+    expect(invokeMock).not.toHaveBeenCalled();
+  });
 });

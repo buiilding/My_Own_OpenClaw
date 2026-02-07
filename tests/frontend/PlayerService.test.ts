@@ -104,6 +104,21 @@ describe('PlayerService', () => {
     expect(context.createBufferSource).toHaveBeenCalledTimes(1);
   });
 
+  test('ignores stored onended callback after playback generation changes', () => {
+    const service = new PlayerService();
+    service.enqueueAudio({
+      audio: encodeInt16Samples([1, 2]),
+      sample_rate: 16000,
+    });
+
+    const context = MockAudioContext.instances[0];
+    const staleOnEnded = context.sources[0].onended;
+    service.stopPlayback();
+
+    staleOnEnded?.();
+    expect(context.createBufferSource).toHaveBeenCalledTimes(1);
+  });
+
   test('cleanup closes audio context', () => {
     const service = new PlayerService();
     service.enqueueAudio({
@@ -114,5 +129,87 @@ describe('PlayerService', () => {
     const context = MockAudioContext.instances[0];
     service.cleanup();
     expect(context.close).toHaveBeenCalledTimes(1);
+  });
+
+  test('handles suspended audio context resume rejection without crashing playback', () => {
+    const service = new PlayerService();
+    const context = new MockAudioContext();
+    context.state = 'suspended';
+    context.resume.mockRejectedValueOnce(new Error('resume-failed'));
+    (window as any).AudioContext = jest.fn(() => context);
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    service.enqueueAudio({
+      audio: encodeInt16Samples([10, -10]),
+      sample_rate: 16000,
+    });
+
+    expect(context.createBufferSource).toHaveBeenCalledTimes(1);
+    errorSpy.mockRestore();
+  });
+
+  test('marks player idle when active source finishes and queue is empty', () => {
+    const service = new PlayerService();
+    service.enqueueAudio({
+      audio: encodeInt16Samples([1, 2]),
+      sample_rate: 16000,
+    });
+
+    const context = MockAudioContext.instances[0];
+    expect(service.getIsPlaying()).toBe(true);
+
+    context.sources[0].onended?.();
+    expect(service.getIsPlaying()).toBe(false);
+  });
+
+  test('stopPlayback swallows source stop/disconnect and context close errors', () => {
+    const service = new PlayerService();
+    service.enqueueAudio({
+      audio: encodeInt16Samples([3, 4]),
+      sample_rate: 16000,
+    });
+    const context = MockAudioContext.instances[0];
+    const source = context.sources[0];
+    source.stop.mockImplementation(() => {
+      throw new Error('stop-failed');
+    });
+    source.disconnect.mockImplementation(() => {
+      throw new Error('disconnect-failed');
+    });
+    context.close.mockRejectedValueOnce(new Error('close-failed'));
+
+    expect(() => service.stopPlayback()).not.toThrow();
+    expect(service.getIsPlaying()).toBe(false);
+  });
+
+  test('continues to next chunk when source start throws during playback', () => {
+    const service = new PlayerService();
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const chunkA = { audio: encodeInt16Samples([3, 4]), sample_rate: 16000 };
+    const chunkB = { audio: encodeInt16Samples([5, 6]), sample_rate: 16000 };
+    const context = new MockAudioContext();
+    let throwFirstStart = true;
+    context.createBufferSource = jest.fn(() => {
+      const source = new MockAudioBufferSourceNode();
+      if (throwFirstStart) {
+        source.start.mockImplementation(() => {
+          throw new Error('start-failed');
+        });
+        throwFirstStart = false;
+      }
+      context.sources.push(source);
+      return source as unknown as AudioBufferSourceNode;
+    });
+    (window as any).AudioContext = jest.fn(() => context);
+
+    service.enqueueAudio(chunkA);
+    service.enqueueAudio(chunkB);
+
+    expect(context.createBufferSource).toHaveBeenCalledTimes(2);
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[PlayerService] Error playing audio chunk:',
+      expect.any(Error),
+    );
+    errorSpy.mockRestore();
   });
 });

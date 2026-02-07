@@ -3,10 +3,13 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', (
 }));
 
 import {
+  applyCaptureToResult,
   captureAfterTool,
+  ensureAutoCapture,
   extractCaptureFromResult,
   getWaitSeconds,
   isComputerUseTool,
+  resolveSystemState,
 } from '../../frontend/src/renderer/infrastructure/services/ToolExecutionCapture';
 import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
 
@@ -109,5 +112,107 @@ describe('ToolExecutionCapture', () => {
       screenshotContentType: 'image/png',
       systemState: null,
     });
+  });
+
+  test('applyCaptureToResult mutates object data when screenshot is present', () => {
+    const result: any = {
+      success: true,
+      data: { output: 'ok' },
+    };
+
+    applyCaptureToResult(
+      result,
+      'shot-a',
+      { active_window: 'App' } as any,
+      'image/png'
+    );
+
+    expect(result.data).toEqual({
+      output: 'ok',
+      screenshot: 'shot-a',
+      system_state: { active_window: 'App' },
+      screenshot_content_type: 'image/png',
+    });
+  });
+
+  test('applyCaptureToResult is a no-op when screenshot is empty', () => {
+    const result: any = {
+      success: true,
+      data: { output: 'ok' },
+    };
+
+    applyCaptureToResult(result, null, { active_window: 'App' } as any, 'image/png');
+    expect(result.data).toEqual({ output: 'ok' });
+  });
+
+  test('resolveSystemState prefers explicit state then payload fallback', () => {
+    expect(
+      resolveSystemState(
+        { active_window: 'Explicit' } as any,
+        { system_state: { active_window: 'Fallback' } } as any
+      )
+    ).toEqual({ active_window: 'Explicit' });
+
+    expect(
+      resolveSystemState(
+        null,
+        { system_state: { active_window: 'Fallback' } } as any
+      )
+    ).toEqual({ active_window: 'Fallback' });
+
+    expect(resolveSystemState(null, null)).toBeNull();
+  });
+
+  test('ensureAutoCapture keeps existing screenshot and skips capture', async () => {
+    const result: any = {
+      success: true,
+      data: {
+        screenshot: 'existing-shot',
+        screenshot_content_type: 'image/png',
+        system_state: { active_window: 'Existing' },
+      },
+    };
+
+    const capture = await ensureAutoCapture('mouse_control', { action: 'click' }, false, result);
+
+    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(capture).toEqual({
+      screenshot: 'existing-shot',
+      screenshotContentType: 'image/png',
+      systemState: { active_window: 'Existing' },
+      waitDelay: 0,
+      captureTime: 0,
+      isComputerTool: true,
+    });
+  });
+
+  test('ensureAutoCapture captures for screenshot tool and writes back to result data', async () => {
+    mockExtractOSstate.mockResolvedValue({
+      systemState: { active_window: 'Captured' },
+      screenshot: 'captured-shot',
+      screenshotContentType: 'image/jpeg',
+    } as any);
+
+    const result: any = { success: true, data: { output: 'ok' } };
+
+    const capture = await ensureAutoCapture('screenshot', {}, false, result);
+
+    expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 0, false);
+    expect(capture.screenshot).toBe('captured-shot');
+    expect(capture.screenshotContentType).toBe('image/jpeg');
+    expect(result.data.screenshot).toBe('captured-shot');
+    expect(result.data.screenshot_content_type).toBe('image/jpeg');
+  });
+
+  test('ensureAutoCapture respects skipAutoCapture option', async () => {
+    const result: any = { success: true, data: { output: 'ok' } };
+
+    const capture = await ensureAutoCapture('mouse_control', { action: 'click' }, true, result);
+
+    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(capture.screenshot).toBeNull();
+    expect(capture.screenshotContentType).toBeNull();
+    expect(capture.systemState).toBeNull();
+    expect(capture.isComputerTool).toBe(true);
   });
 });

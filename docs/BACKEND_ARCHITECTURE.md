@@ -268,6 +268,16 @@ Constructs prompts for LLM interactions.
 - `build_prompt()`: Build LLM messages + tool schema metadata (schemas live in first user message)
 - `_calculate_message_size()`: Enforce size limits
 
+### Observability
+
+#### Trust Boundary Metrics (`core/observability/trust_boundary_metrics.py`)
+
+Tracks parser/prompt trust-boundary violations for size, timeout, and validation checks.
+
+**Performance and safety details**:
+- Metrics history is bounded in memory (ring-buffer style) to avoid unbounded growth in long-running sessions.
+- `get_stats()` computes aggregates from a recent sample window and minimizes lock hold time by snapshotting first.
+
 ### Embedding Service
 
 #### SentenceTransformerProvider (`embeddings/embeddings.py`)

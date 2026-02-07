@@ -123,5 +123,86 @@ describe('AppProvider', () => {
     const keydownRemoves = removeListenerSpy.mock.calls.filter(([type]) => type === 'keydown');
     expect(keydownRemoves).toHaveLength(1);
   });
-});
 
+  test('ignores keydown events that do not match shift+tab shortcut', () => {
+    render(
+      <AppProvider>
+        <div>child</div>
+      </AppProvider>,
+    );
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: false,
+      cancelable: true,
+      bubbles: true,
+    });
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(mockConfigContext.updateConfig).not.toHaveBeenCalled();
+  });
+
+  test('does not attempt mode toggle when updateConfig is not a function', () => {
+    mockConfigContext = {
+      ...mockConfigContext,
+      updateConfig: null as any,
+    };
+
+    render(
+      <AppProvider>
+        <div>child</div>
+      </AppProvider>,
+    );
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: true,
+      cancelable: true,
+      bubbles: true,
+    });
+
+    expect(() => window.dispatchEvent(event)).not.toThrow();
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  test('handles missing registerSaveStatusCallback without throwing', () => {
+    mockConfigContext = {
+      ...mockConfigContext,
+      registerSaveStatusCallback: undefined as any,
+    };
+
+    expect(() => {
+      render(
+        <AppProvider>
+          <div>child</div>
+        </AppProvider>,
+      );
+    }).not.toThrow();
+  });
+
+  test('uses fallback chat mode when config is null', () => {
+    mockConfigContext = {
+      ...mockConfigContext,
+      config: null as any,
+    };
+
+    render(
+      <AppProvider>
+        <div>child</div>
+      </AppProvider>,
+    );
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: true,
+      cancelable: true,
+      bubbles: true,
+    });
+    window.dispatchEvent(event);
+
+    expect(mockConfigContext.updateConfig).toHaveBeenCalledWith({
+      interaction_mode: 'agent',
+    });
+  });
+});

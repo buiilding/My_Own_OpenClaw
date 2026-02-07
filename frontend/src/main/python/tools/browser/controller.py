@@ -572,18 +572,46 @@ class BrowserController:
         if not self._page:
             raise RuntimeError("Browser not connected")
         
+        locator = self._page.locator(f"[aria-ref='{ref}']")
+
         try:
-            locator = self._page.locator(f"[aria-ref='{ref}']")
-            
             if double_click:
                 await locator.dblclick(button=button)
             else:
                 await locator.click(button=button)
-            
             return {"success": True, "action": "click", "ref": ref}
         except Exception as e:
-            logger.error(f"Click failed: {e}")
-            return {"success": False, "error": str(e)}
+            error_text = str(e)
+            logger.warning(f"Click failed, retrying with fallback: {error_text}")
+
+            # Fallback 1: force click to bypass actionability checks
+            if not double_click:
+                try:
+                    await locator.click(button=button, force=True)
+                    return {
+                        "success": True,
+                        "action": "click",
+                        "ref": ref,
+                        "forced": True,
+                    }
+                except Exception as force_error:
+                    error_text = str(force_error)
+
+                # Fallback 2: DOM click to bypass pointer interception
+                try:
+                    await locator.evaluate("el => el.click()")
+                    return {
+                        "success": True,
+                        "action": "click",
+                        "ref": ref,
+                        "forced": True,
+                        "method": "dom",
+                    }
+                except Exception as dom_error:
+                    error_text = str(dom_error)
+
+            logger.error(f"Click failed after fallbacks: {error_text}")
+            return {"success": False, "error": error_text}
     
     async def type_text(
         self,

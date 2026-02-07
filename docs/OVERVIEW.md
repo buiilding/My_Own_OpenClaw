@@ -254,7 +254,7 @@ The planned capability for each employee to have a tailored assistant that inter
 - ✅ **Local memory storage** - Conversation history, memory, files, and all data are stored and searched locally on your machine
 - ✅ **LLM inference data only** - Only data required for LLM inference (prompt + screenshots) is sent to providers; other data stays local
 - ✅ **OS-Level Privacy** - Unlike cloud-based services, all your workflow, habits, and personal information remain on your device
-- ✅ **Open source** - Audit the code yourself
+- ✅ **Closed source** - Access is restricted to authorized collaborators
 - ✅ **Sandbox hooks** - Executor abstraction for sandboxing (not enabled by default)
 - ✅ **Basic audit logging** - Tool execution logging for monitoring
 - ✅ **No cloud sync** - Memory, conversation data, and personal information are never synced to cloud services
@@ -294,11 +294,11 @@ See [Quick Start Guide](QUICK_START.md) for immediate setup instructions, or [In
 
 ## 🤝 Contributing
 
-We welcome contributions! See [Contributing Guide](CONTRIBUTING.md) for guidelines.
+Internal contributions are welcome. See [Contributing Guide](CONTRIBUTING.md) for team guidelines.
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+This project is proprietary and closed-source. All rights reserved.
 
 ---
 

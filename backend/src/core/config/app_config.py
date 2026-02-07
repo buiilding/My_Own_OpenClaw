@@ -66,4 +66,5 @@ APP_CONFIG = AppConfig(
     websocket_max_concurrent_tasks=50,
     websocket_receive_timeout=3600.0,  # 1 hour
     websocket_task_cancellation_timeout=5.0,
+
 )

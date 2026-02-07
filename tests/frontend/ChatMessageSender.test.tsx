@@ -72,6 +72,39 @@ describe('useChatMessageSender', () => {
     );
   });
 
+  test('uses default options when omitted', async () => {
+    const { result } = renderHook(() => useChatMessageSender());
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      expect.anything(),
+    );
+    expect(mockSendQuery).toHaveBeenCalledWith('hello', null, null);
+  });
+
+  test('continues send flow when return-to-chatbox invoke fails', async () => {
+    (window as any).ipc.invoke = jest.fn().mockRejectedValue(new Error('show-failed'));
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, { returnToChatboxOnSend: true }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect(mockSendQuery).toHaveBeenCalledWith('hello', null, null);
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[useChatMessageSender] Failed to show chatbox:',
+      expect.any(Error),
+    );
+    warnSpy.mockRestore();
+  });
+
   test('marks first user message capture path on first send', async () => {
     const { result } = renderHook(() =>
       useChatMessageSender(undefined, { returnToChatboxOnSend: false }),
@@ -119,6 +152,40 @@ describe('useChatMessageSender', () => {
     );
   });
 
+  test('calls stopPlayback when provided', async () => {
+    const stopPlayback = jest.fn();
+    const { result } = renderHook(() =>
+      useChatMessageSender(stopPlayback, { returnToChatboxOnSend: false }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect(stopPlayback).toHaveBeenCalledTimes(1);
+  });
+
+  test('continues sending query when screenshot capture fails', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    mockExtractOSstate.mockRejectedValue(new Error('capture-failed'));
+
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, { returnToChatboxOnSend: false }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
+    expect(mockSendQuery).toHaveBeenCalledWith('hello', null, null);
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[useChatMessageSender] Failed to extract OS state:',
+      expect.any(Error),
+    );
+    errorSpy.mockRestore();
+  });
+
   test('continues sending query when artifact upload fails', async () => {
     mockExtractOSstate.mockResolvedValue({
       systemState: { active_window: 'App' } as any,
@@ -142,6 +209,38 @@ describe('useChatMessageSender', () => {
       'user-message.png',
     );
     expect(mockSendQuery).toHaveBeenCalledWith('hello', null, null);
+  });
+
+  test('sends uploaded screenshot refs to backend and updates message attachment', async () => {
+    mockExtractOSstate.mockResolvedValue({
+      systemState: null,
+      screenshot: 'base64-shot',
+      screenshotContentType: 'image/png',
+    } as any);
+    mockUploadArtifactBase64.mockResolvedValue({
+      artifactId: 'artifact-1',
+      url: '/api/artifacts/artifact-1',
+    } as any);
+
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, { returnToChatboxOnSend: false }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect(mockSendQuery).toHaveBeenCalledWith(
+      'hello',
+      'artifact-1',
+      '/api/artifacts/artifact-1',
+    );
+    expect(useChatStore.getState().messages[0]).toEqual(
+      expect.objectContaining({
+        screenshotRef: 'artifact-1',
+        screenshotUrl: '/api/artifacts/artifact-1',
+      }),
+    );
   });
 
   test('resets sending state and appends error message when send fails', async () => {

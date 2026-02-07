@@ -145,6 +145,100 @@ describe('useToolRunner', () => {
     );
   });
 
+  test('uses generated bundle id when bundle_id is missing', async () => {
+    renderHook(() => useToolRunner(true));
+
+    await act(async () => {
+      backendHandler?.({
+        type: 'tool-bundle',
+        payload: {
+          tools: [{ name: 'read_file', args: { file_path: '/tmp/a' } }],
+        },
+      });
+    });
+
+    expect(mockExecuteToolBundle).toHaveBeenCalledTimes(1);
+    const calledTools = mockExecuteToolBundle.mock.calls[0]?.[0];
+    const calledBundleId = mockExecuteToolBundle.mock.calls[0]?.[1];
+    if (typeof calledBundleId !== 'string' || !calledBundleId.startsWith('bundle-')) {
+      throw new Error(`expected generated bundle id prefix, got: ${String(calledBundleId)}`);
+    }
+    if (
+      JSON.stringify(calledTools) !==
+      JSON.stringify([{ toolName: 'read_file', args: { file_path: '/tmp/a' } }])
+    ) {
+      throw new Error(`unexpected mapped tools payload: ${JSON.stringify(calledTools)}`);
+    }
+  });
+
+  test('falls back to event id for tool-call correlation id', async () => {
+    renderHook(() => useToolRunner(true));
+
+    await act(async () => {
+      backendHandler?.({
+        type: 'tool-call',
+        id: 'event-fallback-id',
+        payload: {
+          tool_name: 'read_file',
+          parameters: { file_path: '/tmp/a' },
+        },
+      });
+    });
+
+    expect(mockExecuteTool).toHaveBeenCalledWith(
+      'read_file',
+      { file_path: '/tmp/a' },
+      { correlationId: 'event-fallback-id', skipAutoCapture: false },
+    );
+  });
+
+  test('logs executeToolBundle failures', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    mockExecuteToolBundle.mockRejectedValueOnce(new Error('bundle-failed'));
+    renderHook(() => useToolRunner(true));
+
+    await act(async () => {
+      backendHandler?.({
+        type: 'tool-bundle',
+        payload: {
+          bundle_id: 'bundle-err',
+          tools: [{ name: 'read_file', args: { file_path: '/tmp/a' } }],
+        },
+      });
+      await Promise.resolve();
+    });
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[useToolRunner] Failed to execute bundle:',
+      expect.any(Error),
+    );
+    errorSpy.mockRestore();
+  });
+
+  test('logs executeTool failures', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    mockExecuteTool.mockRejectedValueOnce(new Error('tool-failed'));
+    renderHook(() => useToolRunner(true));
+
+    await act(async () => {
+      backendHandler?.({
+        type: 'tool-call',
+        id: 'event-id',
+        payload: {
+          tool_name: 'read_file',
+          parameters: { file_path: '/tmp/a' },
+        },
+      });
+      await Promise.resolve();
+    });
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[useToolRunner] Failed to execute tool:',
+      expect.any(Error),
+    );
+    errorSpy.mockRestore();
+  });
+
   test('wires service callbacks to chat store and backend sender', () => {
     renderHook(() => useToolRunner(true));
 
@@ -188,6 +282,36 @@ describe('useToolRunner', () => {
         messageType: 'tool-output',
         toolName: 'read_file',
         correlationId: 'corr-2',
+      }),
+    );
+  });
+
+  test('writes bundled tool results via onBundleResult callback', () => {
+    renderHook(() => useToolRunner(true));
+
+    mockCapturedServiceCallbacks.onBundleResult({
+      formattedMessage: 'bundle formatted output',
+      screenshotRef: 'artifact-bundle',
+      screenshotUrl: '/api/artifacts/artifact-bundle',
+      totalTime: 0.5,
+      correlationId: 'bundle-corr',
+      results: [
+        { tool_name: 'read_file', success: true, error: null },
+      ],
+    });
+
+    const lastMessage = useChatStore.getState().messages.at(-1);
+    expect(lastMessage).toEqual(
+      expect.objectContaining({
+        type: 'tool-output',
+        toolName: 'bundled_tools (1 tools)',
+      }),
+    );
+    expect(recordToolMessage).toHaveBeenCalledWith(
+      'bundle formatted output',
+      expect.objectContaining({
+        toolName: 'bundled_tools',
+        correlationId: 'bundle-corr',
       }),
     );
   });

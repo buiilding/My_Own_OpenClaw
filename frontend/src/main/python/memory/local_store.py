@@ -235,6 +235,7 @@ class LocalMemoryStore:
                 next_vector_id,
             ) = self._get_memory_state(memory_type)
             updated_next_vector_id = await self._sync_vector_mappings_for_db(
+                memory_type=memory_type,
                 db_path=db_path,
                 index=index,
                 vector_id_to_memory_id=vector_id_to_memory_id,
@@ -248,6 +249,7 @@ class LocalMemoryStore:
 
     async def _sync_vector_mappings_for_db(
         self,
+        memory_type: str,
         db_path: str,
         index,
         vector_id_to_memory_id: Dict[int, str],
@@ -256,12 +258,22 @@ class LocalMemoryStore:
     ) -> int:
         async with aiosqlite.connect(db_path) as conn:
             cursor = await conn.cursor()
-            await cursor.execute(
+            if memory_type == "episodic":
+                # Skip transcript rows (no embeddings needed)
+                await cursor.execute(
+                    """
+                    SELECT id FROM memories
+                    WHERE embedding_id IS NULL
+                      AND (record_kind IS NULL OR record_kind = 'memory')
                 """
-                SELECT id FROM memories
-                WHERE embedding_id IS NULL
-            """
-            )
+                )
+            else:
+                await cursor.execute(
+                    """
+                    SELECT id FROM memories
+                    WHERE embedding_id IS NULL
+                """
+                )
 
             rows = await cursor.fetchall()
             missing_ids = [row[0] for row in rows]

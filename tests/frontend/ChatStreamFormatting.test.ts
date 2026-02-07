@@ -14,6 +14,11 @@ describe('chatStreamFormatting utils', () => {
     expect(next.endsWith('xyz')).toBe(true);
   });
 
+  test('buildThinkingStatus handles null inputs safely', () => {
+    expect(buildThinkingStatus(null, undefined)).toBe('');
+    expect(buildThinkingStatus('base', undefined)).toBe('base');
+  });
+
   test('formats raw tool call payload JSON and falls back to raw text on parse error', () => {
     expect(formatToolCallPayload({ raw_call: '{"tool":"read_file"}' })).toBe(
       JSON.stringify({ tool: 'read_file' }, null, 2),
@@ -33,9 +38,31 @@ describe('chatStreamFormatting utils', () => {
     );
   });
 
+  test('formats undefined tool call payload as empty object', () => {
+    expect(formatToolCallPayload(undefined)).toBe('{}');
+  });
+
   test('formats bundle payload with default empty tools list', () => {
     expect(formatToolBundlePayload({ bundle_id: 'bundle-1' })).toBe(
       JSON.stringify({ bundle_id: 'bundle-1', tools: [] }, null, 2),
+    );
+  });
+
+  test('formats bundle payload with explicit tools list', () => {
+    expect(
+      formatToolBundlePayload({
+        bundle_id: 'bundle-2',
+        tools: [{ name: 'read_file', args: { file_path: '/tmp/a' } }],
+      }),
+    ).toBe(
+      JSON.stringify(
+        {
+          bundle_id: 'bundle-2',
+          tools: [{ name: 'read_file', args: { file_path: '/tmp/a' } }],
+        },
+        null,
+        2,
+      ),
     );
   });
 

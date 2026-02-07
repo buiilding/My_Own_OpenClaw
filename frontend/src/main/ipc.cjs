@@ -93,7 +93,7 @@ async function uploadArtifact({ base64, contentType, filename }) {
     const form = new FormData();
     form.append('file', blob, safeName);
 
-    const response = await fetch(`${BACKEND_HTTP_URL}/api/artifacts`, {
+    const response = await fetch(`${BACKEND_HTTP_URL}/api/artifacts/`, {
       method: 'POST',
       body: form,
     });
