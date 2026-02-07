@@ -253,3 +253,6 @@ WebSocket Response
 - Vision coordinate conversion from model output space to pixel space is
   centralized in `backend/src/services/vision/coordinates.py` to keep provider
   post-processing behavior consistent across model families.
+- Vision providers now share a defensive model-device resolver in
+  `backend/src/services/vision/providers/base.py` so sharded/accelerate-wrapped
+  models without `.device` attributes can still resolve execution device safely.
