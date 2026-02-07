@@ -84,3 +84,14 @@ def test_parse_embedded_json_normalizes_excess_blank_lines_after_removal():
 
     assert len(tool_calls) == 1
     assert remaining_text == "line1\n\nline2"
+
+
+def test_remove_extracted_by_positions_merges_overlapping_ranges():
+    extractor = _make_extractor()
+    text = "abc123456789xyz"
+    cleaned = extractor._remove_extracted_by_positions(
+        text,
+        [(3, 9), (6, 12)],
+    )
+
+    assert cleaned == "abcxyz"
