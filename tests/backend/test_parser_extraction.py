@@ -66,3 +66,21 @@ def test_parse_embedded_json_extracts_multiple_calls():
 
     assert [call.tool_name for call in tool_calls] == ["read_file", "write_file"]
     assert "functionCall" not in remaining_text
+
+
+def test_parse_embedded_json_normalizes_excess_blank_lines_after_removal():
+    extractor = _make_extractor()
+    response = (
+        "line1\n\n\n\n"
+        '{"functionCall":{"name":"read_file","args":{"path":"/tmp/a"}}}'
+        "\n\n\nline2"
+    )
+
+    tool_calls, remaining_text = extractor.parse_embedded_json(
+        response,
+        start_time=time.monotonic(),
+        timeout=1.0,
+    )
+
+    assert len(tool_calls) == 1
+    assert remaining_text == "line1\n\nline2"
