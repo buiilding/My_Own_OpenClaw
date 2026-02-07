@@ -15,43 +15,60 @@ import { AppStatusContext } from './AppStatusContext';
 export function AppStatusProvider({ children }) {
   const [saveStatus, setSaveStatus] = useState('idle');
   const saveTimeoutId = useRef(null);
+  const resetTimeoutId = useRef(null);
+
+  const clearTimer = useCallback((timerRef) => {
+    if (!timerRef.current) {
+      return;
+    }
+    clearTimeout(timerRef.current);
+    timerRef.current = null;
+  }, []);
+
+  const scheduleIdleReset = useCallback(() => {
+    clearTimer(resetTimeoutId);
+    resetTimeoutId.current = setTimeout(() => {
+      setSaveStatus('idle');
+    }, 3000);
+  }, [clearTimer]);
 
   const onBackendEvent = useCallback((data) => {
     switch (data.type) {
       case 'settings-updated':
-        if (saveTimeoutId.current) {
-          clearTimeout(saveTimeoutId.current);
-        }
+        clearTimer(saveTimeoutId);
         setSaveStatus('success');
-        setTimeout(() => setSaveStatus('idle'), 3000);
+        scheduleIdleReset();
         break;
       case 'error':
         if (data.payload?.message?.includes('Failed to update settings')) {
-          if (saveTimeoutId.current) {
-            clearTimeout(saveTimeoutId.current);
-          }
+          clearTimer(saveTimeoutId);
           setSaveStatus('error');
-          setTimeout(() => setSaveStatus('idle'), 3000);
+          scheduleIdleReset();
         }
         break;
       default:
         break;
     }
-  }, []);
+  }, [clearTimer, scheduleIdleReset]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, onBackendEvent);
     return () => {
       removeListener();
+      clearTimer(saveTimeoutId);
+      clearTimer(resetTimeoutId);
     };
-  }, [onBackendEvent]);
+  }, [onBackendEvent, clearTimer]);
 
   const setSaving = useCallback(() => {
+    clearTimer(saveTimeoutId);
+    clearTimer(resetTimeoutId);
     setSaveStatus('saving');
     saveTimeoutId.current = setTimeout(() => {
       setSaveStatus('error');
+      scheduleIdleReset();
     }, 10000);
-  }, []);
+  }, [clearTimer, scheduleIdleReset]);
 
   const value = {
     saveStatus,
