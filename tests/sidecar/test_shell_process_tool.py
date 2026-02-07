@@ -9,14 +9,6 @@ sys.path.insert(0, str(frontend_python_dir))
 
 from tools.system.shell_tool import run_shell_command  # noqa: E402
 from tools.system.process_tool import process_shell_command  # noqa: E402
-from tools.system.shell_process_registry import reset_registry_for_tests  # noqa: E402
-
-
-@pytest.fixture(autouse=True)
-def _reset_registry():
-    reset_registry_for_tests()
-    yield
-    reset_registry_for_tests()
 
 
 async def _wait_for_finish(session_id: str, timeout: float = 2.0):
@@ -42,6 +34,7 @@ async def test_run_shell_command_background_poll():
     poll = await process_shell_command({"action": "poll", "session_id": session_id})
     assert poll["success"] is True
     assert poll["data"]["status"] in {"running", "completed", "failed"}
+    await _wait_for_finish(session_id)
 
 
 @pytest.mark.asyncio

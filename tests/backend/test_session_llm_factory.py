@@ -4,6 +4,7 @@ from backend.src.agent.session.session import AgentSession
 from backend.src.core.config.models import AppConfig
 from backend.src.core.infrastructure.bus import EventBus
 from backend.src.llm.client import LLMClient
+from backend.src.llm.prompts.prompts import PromptManager
 from backend.src.tools.registry import ToolRegistry
 
 
@@ -17,6 +18,13 @@ class DummyLLMClient(LLMClient):
     async def get_completion_stream(self, model, messages):
         if False:
             yield
+
+
+@pytest.fixture(autouse=True)
+def _init_prompt_manager():
+    """Initialize PromptManager for tests."""
+    PromptManager().initialize()
+    yield
 
 
 @pytest.mark.asyncio

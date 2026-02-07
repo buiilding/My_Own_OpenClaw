@@ -5,7 +5,7 @@ Tests for backend browser remote tool.
 import pytest
 from unittest import mock
 
-from backend.src.tools.browser.remote_browser_tool import RemoteBrowserTool
+from backend.src.tools.browser import RemoteBrowserTool
 from backend.src.tools.browser.schemas import BrowserControlArgs
 from backend.src.tools.remote import REMOTE_TOOLS, get_remote_tool
 

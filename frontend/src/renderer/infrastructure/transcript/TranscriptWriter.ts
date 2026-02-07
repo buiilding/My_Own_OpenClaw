@@ -18,8 +18,6 @@ type PendingMessage = {
 let currentSessionId: string | null = null;
 let currentUserId: string | null = null;
 const pendingUserMessages: PendingMessage[] = [];
-const seenToolEntries = new Map<string, Set<string>>();
-const lastEntryBySession = new Map<string, { signature: string; timestamp: number }>();
 
 const readStoredSessionInfo = (): SessionInfo => {
   if (typeof window === 'undefined') {
@@ -231,43 +229,9 @@ type TranscriptEntry = {
   screenshot?: string | null;
 };
 
-const shouldSkipEntry = (entry: TranscriptEntry, sessionId: string | null) => {
-  if (!sessionId) {
-    return false;
-  }
-
-  if (entry.correlationId) {
-    const toolKey = `${entry.messageType || ''}:${entry.correlationId}`;
-    const sessionSet = seenToolEntries.get(sessionId) || new Set<string>();
-    if (sessionSet.has(toolKey)) {
-      return true;
-    }
-    sessionSet.add(toolKey);
-    if (sessionSet.size > 500) {
-      sessionSet.clear();
-      sessionSet.add(toolKey);
-    }
-    seenToolEntries.set(sessionId, sessionSet);
-  }
-
-  if (entry.role === 'assistant' && entry.messageType !== 'tool-call' && entry.messageType !== 'tool-output') {
-    const signature = `${entry.role || ''}|${entry.messageType || ''}|${entry.content}`;
-    const now = Date.now();
-    const lastEntry = lastEntryBySession.get(sessionId);
-    if (lastEntry && lastEntry.signature === signature && now - lastEntry.timestamp < 5000) {
-      return true;
-    }
-    lastEntryBySession.set(sessionId, { signature, timestamp: now });
-  }
-  return false;
-};
-
 const storeTranscriptEntry = async (entry: TranscriptEntry) => {
   const info = resolveSessionInfo({ sessionId: entry.sessionId ?? null, userId: entry.userId ?? null });
   if (!info.sessionId || !info.userId) {
-    return;
-  }
-  if (shouldSkipEntry(entry, info.sessionId)) {
     return;
   }
 
