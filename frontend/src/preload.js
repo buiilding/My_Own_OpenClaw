@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('ipc', {
   invoke: (channel, data) => {
     const validChannels = [
       'execute-tool',
+      'upload-artifact',
       'get-system-state',
       'store-memory',
       'search-memory',
