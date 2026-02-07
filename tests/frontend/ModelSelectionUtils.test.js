@@ -64,6 +64,23 @@ describe('modelSelectionUtils', () => {
     });
   });
 
+  test('buildModelConfigUpdate normalizes numeric ids and null providers to strings', () => {
+    expect(
+      buildModelConfigUpdate({
+        modelMode: 'online',
+        selectedModel: { id: 7, provider: null },
+        speechModeEnabled: false,
+        interactionMode: 'chat',
+      }),
+    ).toEqual({
+      model_mode: 'online',
+      selected_model_id: '7',
+      model_provider: '',
+      speech_mode_enabled: false,
+      interaction_mode: 'chat',
+    });
+  });
+
   test('evaluateModelSelection returns empty status without selected id', () => {
     expect(
       evaluateModelSelection({
@@ -110,6 +127,32 @@ describe('modelSelectionUtils', () => {
     ).toEqual({
       status: 'valid',
       model: { id: 'gpt-5', provider: 'openai' },
+    });
+  });
+
+  test('evaluateModelSelection treats undefined model provider as empty-string provider', () => {
+    expect(
+      evaluateModelSelection({
+        selectedModelId: 'model-no-provider',
+        selectedProvider: '',
+        currentModels: [{ id: 'model-no-provider' }],
+      }),
+    ).toEqual({
+      status: 'valid',
+      model: { id: 'model-no-provider' },
+    });
+  });
+
+  test('evaluateModelSelection matches numeric model ids against string selected id', () => {
+    expect(
+      evaluateModelSelection({
+        selectedModelId: '123',
+        selectedProvider: 'local',
+        currentModels: [{ id: 123, provider: 'local' }],
+      }),
+    ).toEqual({
+      status: 'valid',
+      model: { id: 123, provider: 'local' },
     });
   });
 
