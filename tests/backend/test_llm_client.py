@@ -80,6 +80,22 @@ async def test_get_completion_stream_provider_error(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_completion_stream_provider_unexpected_error(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+
+    def raise_provider(*_args, **_kwargs):
+        raise RuntimeError("broken provider registry")
+
+    monkeypatch.setattr("backend.src.llm.client.get_provider", raise_provider)
+
+    events = [event async for event in client.get_completion_stream("model", [])]
+    assert len(events) == 1
+    assert isinstance(events[0], ErrorEvent)
+    assert "broken provider registry" in events[0].content
+
+
+@pytest.mark.asyncio
 async def test_get_completion_stream_yields_provider_events(monkeypatch):
     cfg = AppConfig()
     client = LiteLLMClient(cfg)
@@ -90,3 +106,14 @@ async def test_get_completion_stream_yields_provider_events(monkeypatch):
     assert len(events) == 1
     assert isinstance(events[0], ChunkEvent)
     assert events[0].content == "hi"
+
+
+def test_extract_content_rejects_invalid_payloads():
+    with pytest.raises(LLMAPIError):
+        LiteLLMClient._extract_content(["bad"], model="m")
+
+    with pytest.raises(LLMAPIError):
+        LiteLLMClient._extract_content({"no": "content"}, model="m")
+
+    with pytest.raises(LLMAPIError):
+        LiteLLMClient._extract_content({"content": 1}, model="m")
