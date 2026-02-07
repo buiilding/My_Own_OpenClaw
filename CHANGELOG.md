@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- 656fb26 feat(frontend): stabilize tool schema, config, and tests
 - e9fafd6 feat(frontend): handle screenshot refs in chat flow
 - 1781ba9 feat(frontend): upload tool screenshots and send refs
 - dd17108 feat(frontend): add artifact upload IPC bridge
