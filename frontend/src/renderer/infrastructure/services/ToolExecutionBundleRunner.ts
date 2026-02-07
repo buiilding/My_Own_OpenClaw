@@ -19,6 +19,38 @@ export type BundleRunOutcome = {
   toolExecutionTimes: Array<{ tool: string; time: number }>;
 };
 
+function recordToolTiming(
+  toolExecutionTimes: Array<{ tool: string; time: number }>,
+  toolName: string,
+  toolExecutionTime: number,
+): void {
+  toolExecutionTimes.push({ tool: toolName, time: toolExecutionTime });
+  logBundledToolTiming(toolName, toolExecutionTime);
+}
+
+function appendStepResult(
+  stepResults: BundleStepResult[],
+  toolName: string,
+  status: BundleStepResult['status'],
+  output: string,
+): void {
+  stepResults.push({
+    tool: toolName,
+    status,
+    output,
+  });
+}
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    return err.message;
+  }
+  if (typeof err === 'string' && err.length > 0) {
+    return err;
+  }
+  return 'Unknown error';
+}
+
 function resolveStepOutput(result: ToolResult, toolName: string): string {
   if (result.data && typeof result.data === 'object' && result.data.output) {
     return String(result.data.output);
@@ -53,14 +85,14 @@ export async function runToolBundle(
         true
       );
       const toolExecutionTime = toolInvokeTime;
-      toolExecutionTimes.push({ tool: tool.toolName, time: toolExecutionTime });
-      logBundledToolTiming(tool.toolName, toolExecutionTime);
+      recordToolTiming(toolExecutionTimes, tool.toolName, toolExecutionTime);
 
-      stepResults.push({
-        tool: tool.toolName,
-        status: result.success ? 'ok' : 'error',
-        output: resolveStepOutput(result, tool.toolName)
-      });
+      appendStepResult(
+        stepResults,
+        tool.toolName,
+        result.success ? 'ok' : 'error',
+        resolveStepOutput(result, tool.toolName),
+      );
 
       if (!result.success) {
         console.error(`[ToolExecutionService] Tool ${tool.toolName} failed, stopping bundle execution (fail-fast)`);
@@ -86,19 +118,15 @@ export async function runToolBundle(
       }
     } catch (err: unknown) {
       const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
-      toolExecutionTimes.push({ tool: tool.toolName, time: toolExecutionTime });
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      recordToolTiming(toolExecutionTimes, tool.toolName, toolExecutionTime);
+      const errorMessage = getErrorMessage(err);
       console.error(
         `[ToolExecutionService] Bundle tool execution failed: ${tool.toolName} ` +
         `(took ${toolExecutionTime.toFixed(3)}s):`,
         err
       );
 
-      stepResults.push({
-        tool: tool.toolName,
-        status: 'error',
-        output: errorMessage
-      });
+      appendStepResult(stepResults, tool.toolName, 'error', errorMessage);
 
       break;
     }
