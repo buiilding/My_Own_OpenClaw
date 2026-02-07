@@ -65,6 +65,7 @@ frontend/src/renderer/
 │   │       ├── messageInput.js          # messageInput - Input normalization helper before send dispatch
 │   │       ├── messageListClasses.js    # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
 │   │       ├── messageScreenshots.js    # messageScreenshots - Screenshot presence predicates and screenshot-src resolution helpers
+│   │       ├── messageToolMetadata.js   # messageToolMetadata - Tool-output execution-detail metadata formatting helpers
 │   │       ├── messageTransparency.js   # messageTransparency - Descriptor builder for transparency sections
 │   │       ├── tokenCounts.js           # tokenCounts - Table-driven token count formatting/mapping helpers
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
