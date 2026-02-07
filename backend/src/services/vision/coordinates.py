@@ -23,6 +23,11 @@ BBOX_PATTERN = re.compile(
 )
 
 
+def _clamp_pixel(value: int, upper_bound: int) -> int:
+    """Clamp one pixel coordinate component to [0, upper_bound - 1]."""
+    return max(0, min(upper_bound - 1, value))
+
+
 def extract_first_point(text: str) -> Optional[Tuple[float, float]]:
     """Extract the first [[x,y]] as normalized (0-1000) floats."""
     m = POINT_PATTERN.search(text)
@@ -78,9 +83,9 @@ def scale_norm_to_pixels(
 
     x_px = int(math.floor((x_norm / 1000.0) * width))
     y_px = int(math.floor((y_norm / 1000.0) * height))
-    # Clamp to image bounds just in case
-    x_px = max(0, min(width - 1, x_px))
-    y_px = max(0, min(height - 1, y_px))
+    # Clamp to image bounds just in case.
+    x_px = _clamp_pixel(x_px, width)
+    y_px = _clamp_pixel(y_px, height)
     return x_px, y_px
 
 
@@ -105,8 +110,8 @@ def scale_model_point_to_pixels(
         y_norm *= 1000.0
 
     if x_norm > 1000 or y_norm > 1000:
-        x_px = max(0, min(width - 1, int(round(x_norm))))
-        y_px = max(0, min(height - 1, int(round(y_norm))))
+        x_px = _clamp_pixel(int(round(x_norm)), width)
+        y_px = _clamp_pixel(int(round(y_norm)), height)
         return x_px, y_px
 
     return scale_norm_to_pixels(x_norm, y_norm, width, height)
