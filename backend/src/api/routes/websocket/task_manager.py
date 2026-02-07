@@ -151,4 +151,6 @@ class TaskManager:
         # Prune completed tasks deterministically in case callback-driven cleanup
         # is delayed or unavailable during shutdown/loop edge cases.
         async with self.tasks_lock:
-            self.active_tasks = {t for t in self.active_tasks if not t.done()}
+            done_tasks = {t for t in self.active_tasks if t.done()}
+            if done_tasks:
+                self.active_tasks.difference_update(done_tasks)
