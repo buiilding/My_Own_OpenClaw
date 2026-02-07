@@ -7,6 +7,7 @@ import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configSt
 import { AppConfigContext } from './AppConfigContext';
 import { updateTranscriptSession } from '../../infrastructure/transcript/TranscriptWriter';
 import { hasShallowConfigChanges } from './configComparison';
+import { extractTranscriptUserId, routeConfigBackendEvent } from './appConfigEvents';
 
 function logConfigInfo(message, ...args) {
   if (
@@ -65,13 +66,7 @@ export function AppConfigProvider({ children }) {
   }, [config]);
 
   const onBackendEvent = useCallback((data) => {
-    switch (data.type) {
-      case 'models-listed':
-        handlersRef.current.handleModelsListed(data);
-        break;
-      default:
-        break;
-    }
+    routeConfigBackendEvent(data, handlersRef);
   }, []);
 
   useEffect(() => {
@@ -86,8 +81,9 @@ export function AppConfigProvider({ children }) {
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (data) => {
-      if (data?.userId) {
-        updateTranscriptSession(undefined, data.userId);
+      const userId = extractTranscriptUserId(data);
+      if (userId) {
+        updateTranscriptSession(undefined, userId);
       }
     });
     return () => {
@@ -98,8 +94,9 @@ export function AppConfigProvider({ children }) {
   useEffect(() => {
     IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
       .then((result) => {
-        if (result?.userId) {
-          updateTranscriptSession(undefined, result.userId);
+        const userId = extractTranscriptUserId(result);
+        if (userId) {
+          updateTranscriptSession(undefined, userId);
         }
       })
       .catch(() => {});
