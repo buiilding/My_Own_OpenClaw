@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { loadLocalValue, saveLocalValue } from '../../utils/storage';
+import {
+  buildModelConfigUpdate,
+  evaluateModelSelection,
+  filterModelsBySearch,
+  getCurrentModels,
+  getFallbackModelSelection,
+} from '../../utils/modelSelectionUtils';
 import '../../../../styles/SettingsPanel.css';
 
 const API_KEY_STORAGE_KEY = 'desktop-assistant-api-key';
@@ -9,6 +16,7 @@ function ModelsSection({ config, availableModels, onConfigChange }) {
   const [modelResetWarning, setModelResetWarning] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [apiKey, setApiKey] = useState(() => loadLocalValue(API_KEY_STORAGE_KEY, ''));
+  const warningTimeoutRef = useRef(null);
 
   const modelMode = config?.model_mode || 'online';
   const selectedModelId = config?.selected_model_id || '';
@@ -16,60 +24,72 @@ function ModelsSection({ config, availableModels, onConfigChange }) {
   const speechModeEnabled = config?.speech_mode_enabled ?? false;
   const interactionMode = config?.interaction_mode || 'chat';
 
-  const currentModels = modelMode === 'local'
-    ? availableModels.local
-    : availableModels.online;
+  const currentModels = useMemo(
+    () => getCurrentModels(availableModels, modelMode),
+    [availableModels, modelMode],
+  );
 
   const filteredModels = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-    if (!query) {
-      return currentModels;
-    }
-    return currentModels.filter((model) => model.id.toLowerCase().includes(query));
+    return filterModelsBySearch(currentModels, searchTerm);
   }, [currentModels, searchTerm]);
 
-  const handleModelModeChange = useCallback((newMode) => {
-    onConfigChange({
-      model_mode: newMode,
-      selected_model_id: '',
-      model_provider: '',
-      speech_mode_enabled: speechModeEnabled,
-      interaction_mode: interactionMode,
-    });
-  }, [interactionMode, onConfigChange, speechModeEnabled]);
-
-  const handleModelSelect = useCallback((model) => {
-    onConfigChange({
-      model_mode: modelMode,
-      selected_model_id: model?.id || '',
-      model_provider: model?.provider || '',
-      speech_mode_enabled: speechModeEnabled,
-      interaction_mode: interactionMode,
-    });
+  const applyModelSelection = useCallback((selectedModel, modeOverride = modelMode) => {
+    onConfigChange(
+      buildModelConfigUpdate({
+        modelMode: modeOverride,
+        selectedModel,
+        speechModeEnabled,
+        interactionMode,
+      }),
+    );
   }, [interactionMode, modelMode, onConfigChange, speechModeEnabled]);
 
+  const handleModelModeChange = useCallback((newMode) => {
+    applyModelSelection(null, newMode);
+  }, [applyModelSelection]);
+
+  const handleModelSelect = useCallback((model) => {
+    applyModelSelection(model);
+  }, [applyModelSelection]);
+
   useEffect(() => {
-    if (availableModels.local.length === 0 && availableModels.online.length === 0) return;
-    if (!selectedModelId || !config) return;
+    if (!config) {
+      return;
+    }
 
-    const model = currentModels.find((m) => m.id === selectedModelId);
-    if (!model) {
-      const warningMsg = `Selected model "${selectedModelId}" is not available. Resetting to default.`;
-      console.warn(warningMsg);
-      setModelResetWarning(warningMsg);
+    const hasAnyModels = (availableModels?.local?.length || 0) > 0
+      || (availableModels?.online?.length || 0) > 0;
+    if (!hasAnyModels) {
+      return;
+    }
 
-      if (currentModels.length > 0) {
-        const defaultModel = currentModels[0];
-        handleModelSelect(defaultModel);
-      } else {
-        handleModelSelect({ id: '', provider: '' });
+    const selectionState = evaluateModelSelection({
+      selectedModelId,
+      selectedProvider,
+      currentModels,
+    });
+
+    if (selectionState.status === 'missing') {
+      console.warn(selectionState.warning);
+      setModelResetWarning(selectionState.warning);
+      handleModelSelect(getFallbackModelSelection(currentModels));
+      if (warningTimeoutRef.current) {
+        clearTimeout(warningTimeoutRef.current);
       }
+      warningTimeoutRef.current = setTimeout(() => setModelResetWarning(''), 5000);
+      return;
+    }
 
-      setTimeout(() => setModelResetWarning(''), 5000);
-    } else if (model.provider !== selectedProvider) {
-      handleModelSelect(model);
+    if (selectionState.status === 'provider-mismatch') {
+      handleModelSelect(selectionState.model);
     }
   }, [selectedModelId, currentModels, selectedProvider, availableModels, config, handleModelSelect]);
+
+  useEffect(() => () => {
+    if (warningTimeoutRef.current) {
+      clearTimeout(warningTimeoutRef.current);
+    }
+  }, []);
 
   return (
     <div className="settings-panel">
