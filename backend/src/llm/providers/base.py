@@ -7,6 +7,11 @@ import litellm
 from litellm import exceptions as litellm_exceptions
 
 from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
+from backend.src.core.infrastructure.exceptions import (
+    LLMAPIError,
+    LLMError,
+    LLMRateLimitError,
+)
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 
 logger = logging.getLogger(__name__)
@@ -66,6 +71,46 @@ class LLMProvider(ABC):
         - Streaming: Process error events in the event stream
         """
         pass
+
+    async def _get_completion_with_standard_errors(
+        self,
+        *,
+        provider_label: str,
+        model: str,
+        params: Dict[str, Any],
+        invalid_response_message: Optional[str] = None,
+    ) -> NormalizedLLMResponse:
+        """Execute a completion request with consistent error mapping."""
+        try:
+            response = await litellm.acompletion(**params)
+            content = self._extract_completion_content(
+                response,
+                model=model,
+                invalid_response_message=(
+                    invalid_response_message or f"Invalid response from {provider_label}"
+                ),
+            )
+            return {"content": content}
+        except litellm_exceptions.RateLimitError as e:
+            raise LLMRateLimitError(
+                f"{provider_label} rate limit exceeded",
+                model=model,
+                cause=e,
+            )
+        except litellm_exceptions.APIError as e:
+            raise LLMAPIError(
+                f"{provider_label} API error",
+                model=model,
+                cause=e,
+            )
+        except LLMAPIError:
+            raise
+        except Exception as e:
+            raise LLMError(
+                f"An unexpected error occurred with {provider_label}",
+                model=model,
+                cause=e,
+            )
 
     async def get_completion_stream(
         self, model: str, messages: List[LLMMessage]
@@ -252,6 +297,29 @@ class LLMProvider(ABC):
         if isinstance(content, str) and content:
             return content
         return None
+
+    @staticmethod
+    def _extract_completion_content(
+        response: Any,
+        *,
+        model: str,
+        invalid_response_message: str,
+    ) -> str:
+        """Extract completion text content from a LiteLLM response object."""
+        if not response or not getattr(response, "choices", None):
+            raise LLMAPIError(invalid_response_message, model=model)
+
+        first_choice = response.choices[0] if len(response.choices) > 0 else None
+        message = getattr(first_choice, "message", None) if first_choice else None
+        if message is None:
+            raise LLMAPIError(invalid_response_message, model=model)
+
+        content = getattr(message, "content", None)
+        if content is None:
+            return ""
+        if isinstance(content, str):
+            return content
+        return str(content)
 
     @staticmethod
     def _extract_tagged_thinking_from_content(delta: Any) -> Optional[str]:

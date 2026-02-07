@@ -2,8 +2,10 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from types import SimpleNamespace
+import litellm
 
 from backend.src.llm.providers.base import LLMProvider
+from backend.src.core.infrastructure.exceptions import LLMAPIError, LLMError, LLMRateLimitError
 from backend.src.core.events.streaming_events import (
     ChunkEvent,
     ErrorEvent,
@@ -352,3 +354,88 @@ class TestGetCompletionStream:
         assert len(events) == 1
         assert isinstance(events[0], ErrorEvent)
         assert "Unexpected system error" in events[0].content
+
+
+class TestStandardCompletionHelper:
+    @pytest.fixture
+    def provider(self):
+        return MockProvider()
+
+    @pytest.mark.asyncio
+    async def test_returns_content_for_valid_response(self, provider, monkeypatch):
+        response = SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content="ok"))]
+        )
+        monkeypatch.setattr(litellm, "acompletion", AsyncMock(return_value=response))
+
+        result = await provider._get_completion_with_standard_errors(
+            provider_label="Mock",
+            model="model",
+            params={"model": "mock/model", "messages": []},
+        )
+
+        assert result == {"content": "ok"}
+
+    @pytest.mark.asyncio
+    async def test_raises_llm_api_error_for_invalid_response_shape(self, provider, monkeypatch):
+        response = SimpleNamespace(choices=[SimpleNamespace(message=None)])
+        monkeypatch.setattr(litellm, "acompletion", AsyncMock(return_value=response))
+
+        with pytest.raises(LLMAPIError, match="Invalid response"):
+            await provider._get_completion_with_standard_errors(
+                provider_label="Mock",
+                model="model",
+                params={"model": "mock/model", "messages": []},
+                invalid_response_message="Invalid response",
+            )
+
+    @pytest.mark.asyncio
+    async def test_maps_litellm_rate_limit_error(self, provider, monkeypatch):
+        async def raise_rate_limit(**_kwargs):
+            raise litellm.RateLimitError(
+                message="rate-limited",
+                llm_provider="mock",
+                model="model",
+            )
+
+        monkeypatch.setattr(litellm, "acompletion", raise_rate_limit)
+
+        with pytest.raises(LLMRateLimitError, match="Mock rate limit exceeded"):
+            await provider._get_completion_with_standard_errors(
+                provider_label="Mock",
+                model="model",
+                params={"model": "mock/model", "messages": []},
+            )
+
+    @pytest.mark.asyncio
+    async def test_maps_litellm_api_error(self, provider, monkeypatch):
+        async def raise_api_error(**_kwargs):
+            raise litellm.APIError(
+                message="api-failure",
+                llm_provider="mock",
+                model="model",
+                status_code=500,
+            )
+
+        monkeypatch.setattr(litellm, "acompletion", raise_api_error)
+
+        with pytest.raises(LLMAPIError, match="Mock API error"):
+            await provider._get_completion_with_standard_errors(
+                provider_label="Mock",
+                model="model",
+                params={"model": "mock/model", "messages": []},
+            )
+
+    @pytest.mark.asyncio
+    async def test_maps_generic_exception_to_llm_error(self, provider, monkeypatch):
+        async def raise_generic(**_kwargs):
+            raise RuntimeError("boom")
+
+        monkeypatch.setattr(litellm, "acompletion", raise_generic)
+
+        with pytest.raises(LLMError, match="unexpected error occurred with Mock"):
+            await provider._get_completion_with_standard_errors(
+                provider_label="Mock",
+                model="model",
+                params={"model": "mock/model", "messages": []},
+            )
