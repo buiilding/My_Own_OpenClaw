@@ -13,11 +13,15 @@ export function useTranscription(initialValue: string = '') {
   const transcriptionEndRef = useRef(0);
   const hasTranscriptionRef = useRef(false);
 
-  const resetTranscription = useCallback(() => {
+  const clearTranscriptionRegion = useCallback(() => {
     transcriptionStartRef.current = 0;
     transcriptionEndRef.current = 0;
     hasTranscriptionRef.current = false;
   }, []);
+
+  const resetTranscription = useCallback(() => {
+    clearTranscriptionRegion();
+  }, [clearTranscriptionRegion]);
 
   const updateTranscription = useCallback((transcriptionText: string) => {
     if (!transcriptionText) return;
@@ -52,26 +56,29 @@ export function useTranscription(initialValue: string = '') {
     setInputValue((oldValue) => {
       // If user is typing/pasting, update transcription boundaries
       if (hasTranscriptionRef.current) {
+        if (cursorPosition === null) {
+          clearTranscriptionRegion();
+          return newValue;
+        }
+
         const oldLength = oldValue.length;
         const newLength = newValue.length;
         const diff = newLength - oldLength;
         
-        if (cursorPosition !== null && cursorPosition <= transcriptionStartRef.current) {
+        if (cursorPosition <= transcriptionStartRef.current) {
           // User typed before transcription - shift transcription forward
           transcriptionStartRef.current += diff;
           transcriptionEndRef.current += diff;
-        } else if (cursorPosition !== null && cursorPosition >= transcriptionEndRef.current) {
+        } else if (cursorPosition >= transcriptionEndRef.current) {
           // User typed after transcription - keep boundaries
         } else {
           // User typed within transcription - invalidate transcription region
-          hasTranscriptionRef.current = false;
-          transcriptionStartRef.current = 0;
-          transcriptionEndRef.current = 0;
+          clearTranscriptionRegion();
         }
       }
       return newValue;
     });
-  }, []);
+  }, [clearTranscriptionRegion]);
 
   const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
     const pastedText = e.clipboardData.getData('text');
@@ -86,15 +93,15 @@ export function useTranscription(initialValue: string = '') {
       const newValue = before + pastedText + after;
       
       if (hasTranscriptionRef.current) {
-        if (cursorPosition !== null && cursorPosition <= transcriptionStartRef.current) {
+        if (cursorPosition === null) {
+          clearTranscriptionRegion();
+        } else if (cursorPosition <= transcriptionStartRef.current) {
           transcriptionStartRef.current += pastedText.length;
           transcriptionEndRef.current += pastedText.length;
-        } else if (cursorPosition !== null && cursorPosition >= transcriptionEndRef.current) {
+        } else if (cursorPosition >= transcriptionEndRef.current) {
           // No change
         } else {
-          hasTranscriptionRef.current = false;
-          transcriptionStartRef.current = 0;
-          transcriptionEndRef.current = 0;
+          clearTranscriptionRegion();
         }
       }
       
@@ -108,7 +115,7 @@ export function useTranscription(initialValue: string = '') {
     });
     
     e.preventDefault();
-  }, []);
+  }, [clearTranscriptionRegion]);
 
   return {
     inputValue,
