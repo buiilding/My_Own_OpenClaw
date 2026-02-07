@@ -10,6 +10,7 @@ from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 
 logger = logging.getLogger(__name__)
+THINKING_TAG_PATTERN = re.compile(r"<thinking>(.*?)</thinking>", re.DOTALL)
 
 
 class LLMProvider(ABC):
@@ -203,14 +204,17 @@ class LLMProvider(ABC):
         
         # 3. If content is a string, check for XML tags
         if isinstance(content, str):
-            # Check for <thinking> tags (simplified regex - matches existing logic)
-            match = re.search(r"<thinking>(.*?)</thinking>", content, re.DOTALL)
+            # Check for <thinking> tags (compiled once at module load).
+            match = THINKING_TAG_PATTERN.search(content)
             if match:
                 return match.group(1)
             return content
         
         # 4. If content is a dict, extract text/content
         if isinstance(content, dict):
-            return content.get("text") or content.get("content")
+            text_value = content.get("text") or content.get("content")
+            if isinstance(text_value, str):
+                return text_value
+            return None
         
         return None
