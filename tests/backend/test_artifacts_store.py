@@ -180,6 +180,7 @@ async def test_upload_artifact_builds_url(tmp_path) -> None:
         "scheme": "http",
         "server": ("testserver", 80),
         "path": "/api/artifacts/",
+        "headers": [],
     }
     request = Request(scope)
 
