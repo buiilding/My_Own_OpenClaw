@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { buildGatewayAudioMessage, float32ToPcm16 } from '../utils/audioEncoding';
 
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_DELAY_BASE_MS = 1000;
+
+function getReconnectDelayMs(attempt: number): number {
+  return RECONNECT_DELAY_BASE_MS * Math.pow(2, attempt - 1);
+}
+
 /**
  * Custom hook for managing voice mode functionality.
  * Connects to Nova-Voice Gateway WebSocket, captures audio, and handles transcription.
@@ -29,8 +36,12 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
   const onTranscriptionUpdateRef = useRef(onTranscriptionUpdate);
   const onUtteranceEndRef = useRef(onUtteranceEnd);
 
-  const MAX_RECONNECT_ATTEMPTS = 5;
-  const RECONNECT_DELAY_BASE = 1000; // Start with 1 second
+  const clearReconnectTimeout = useCallback(() => {
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     enabledRef.current = enabled;
@@ -58,6 +69,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
         console.log('[VoiceMode] Connected to Nova-Voice Gateway');
         setIsConnected(true);
         setError(null);
+        clearReconnectTimeout();
         reconnectAttemptsRef.current = 0;
 
         // Send language settings (no translation needed)
@@ -122,28 +134,41 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
       };
 
       ws.onclose = () => {
+        if (websocketRef.current !== ws) {
+          return;
+        }
+
         console.log('[VoiceMode] WebSocket closed');
         setIsConnected(false);
-        
+
         // Attempt reconnection if enabled and not manually closed
-        if (enabledRef.current && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
-          const delay = RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttemptsRef.current);
-          reconnectAttemptsRef.current++;
-          console.log(`[VoiceMode] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`);
-          
-          reconnectTimeoutRef.current = setTimeout(() => {
-            connectWebSocket();
-          }, delay) as any;
-        } else if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
-          setError('Failed to connect to voice gateway after multiple attempts');
+        if (!enabledRef.current) {
+          return;
         }
+
+        if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+          setError('Failed to connect to voice gateway after multiple attempts');
+          return;
+        }
+
+        const attempt = reconnectAttemptsRef.current + 1;
+        const delay = getReconnectDelayMs(attempt);
+        reconnectAttemptsRef.current = attempt;
+        console.log(`[VoiceMode] Reconnecting in ${delay}ms (attempt ${attempt})`);
+
+        clearReconnectTimeout();
+        reconnectTimeoutRef.current = setTimeout(() => {
+          if (enabledRef.current) {
+            connectWebSocket();
+          }
+        }, delay) as any;
       };
     } catch (err) {
       console.error('[VoiceMode] Error creating WebSocket:', err);
       setError('Failed to connect to voice gateway');
       setIsConnected(false);
     }
-  }, [gatewayUrl]);
+  }, [clearReconnectTimeout, gatewayUrl]);
 
   // Start audio capture
   const startAudioCapture = useCallback(async () => {
@@ -251,10 +276,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
 
   // Disconnect WebSocket
   const disconnectWebSocket = useCallback(() => {
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
+    clearReconnectTimeout();
 
     if (websocketRef.current) {
       websocketRef.current.close();
@@ -263,7 +285,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
 
     setIsConnected(false);
     setClientId(null);
-  }, []);
+  }, [clearReconnectTimeout]);
 
   // Enable/disable voice mode
   useEffect(() => {
@@ -295,9 +317,6 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
     return () => {
       stopAudioCapture();
       disconnectWebSocket();
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
     };
   }, [stopAudioCapture, disconnectWebSocket]);
 

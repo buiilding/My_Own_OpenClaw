@@ -33,6 +33,8 @@ class MockWebSocket {
 describe('useVoiceMode', () => {
   beforeEach(() => {
     jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
     MockWebSocket.instances = [];
     (global as any).WebSocket = MockWebSocket;
   });
@@ -95,5 +97,71 @@ describe('useVoiceMode', () => {
     expect(onUtteranceEndB).toHaveBeenCalledTimes(1);
     expect(onUtteranceEndA).toHaveBeenCalledTimes(1);
     expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
+  test('reconnects after socket close while enabled', () => {
+    jest.useFakeTimers();
+    renderHook(() => useVoiceMode(true, undefined, undefined, 'ws://localhost:5026'));
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+    const firstSocket = MockWebSocket.instances[0];
+
+    act(() => {
+      firstSocket.onclose?.({} as CloseEvent);
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(MockWebSocket.instances).toHaveLength(2);
+    jest.useRealTimers();
+  });
+
+  test('cancels pending reconnect when disabled', () => {
+    jest.useFakeTimers();
+    const { rerender } = renderHook(
+      ({ enabled }) => useVoiceMode(enabled, undefined, undefined, 'ws://localhost:5026'),
+      { initialProps: { enabled: true } },
+    );
+
+    const firstSocket = MockWebSocket.instances[0];
+    act(() => {
+      firstSocket.onclose?.({} as CloseEvent);
+    });
+
+    rerender({ enabled: false });
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+    jest.useRealTimers();
+  });
+
+  test('sets error after exceeding reconnect attempts', () => {
+    jest.useFakeTimers();
+    const { result } = renderHook(
+      () => useVoiceMode(true, undefined, undefined, 'ws://localhost:5026'),
+    );
+
+    for (let i = 0; i < 5; i += 1) {
+      const currentSocket = MockWebSocket.instances.at(-1)!;
+      act(() => {
+        currentSocket.onclose?.({} as CloseEvent);
+      });
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
+    }
+
+    const lastSocket = MockWebSocket.instances.at(-1)!;
+    act(() => {
+      lastSocket.onclose?.({} as CloseEvent);
+    });
+
+    expect(result.current.error).toBe('Failed to connect to voice gateway after multiple attempts');
+    jest.useRealTimers();
   });
 });
