@@ -19,7 +19,10 @@ from backend.src.services.vision.coordinates import (
     extract_last_bbox,
     scale_norm_to_pixels,
 )
-from backend.src.services.vision.providers.base import VISION_MODELS_AVAILABLE
+from backend.src.services.vision.providers.base import (
+    VISION_MODELS_AVAILABLE,
+    load_model_with_fallbacks,
+)
 from backend.src.services.vision.providers.internvl import InternVLModel
 
 logger = logging.getLogger(__name__)
@@ -63,83 +66,24 @@ class VenusVisionModel(InternVLModel):
 
             if AutoProcessor is None:
                 raise ImportError("AutoProcessor not available for Venus vision model")
-
-            # Try device_map with auto device placement first (no use_flash_attn kwarg)
-            try:
-                model_dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
-                if AutoModelForVision2Seq is None:
-                    raise RuntimeError("AutoModelForVision2Seq unavailable")
-                self.model = AutoModelForVision2Seq.from_pretrained(
-                    self.model_name,
-                    dtype=model_dtype,
-                    low_cpu_mem_usage=True,
-                    device_map="auto",
-                    trust_remote_code=self.trust_remote_code,
-                ).eval()
-                self._model_dtype = model_dtype
-                logger.info(
-                    f"Loaded Venus model with device_map: {self.model_name} "
-                    f"on {self.model.device} with dtype {model_dtype}"
-                )
-            except Exception as device_map_error:
-                logger.warning(
-                    f"Venus device_map loading failed ({device_map_error}), "
-                    "trying direct loading without device_map"
-                )
-
-                # Direct loading - prefer CUDA but allow CPU fallback
-                device = "cuda" if torch.cuda.is_available() else "cpu"
-                dtype = torch.float16 if device == "cuda" else torch.float32
-
-                try:
-                    if AutoModelForVision2Seq is None:
-                        raise RuntimeError("AutoModelForVision2Seq unavailable")
-                    self.model = (
-                        AutoModelForVision2Seq.from_pretrained(
-                            self.model_name,
-                            dtype=dtype,
-                            low_cpu_mem_usage=True,
-                            trust_remote_code=self.trust_remote_code,
-                        )
-                        .to(device)
-                        .eval()
-                    )
-                    self._model_dtype = dtype
-                    logger.info(
-                        f"Loaded Venus model on {device} with {dtype}: {self.model_name}"
-                    )
-                except Exception as direct_error:
-                    logger.warning(
-                        f"Venus direct loading failed ({direct_error}), "
-                        "trying CPU-only fallback"
-                    )
-
-                    # CPU fallback as last resort
-                    try:
-                        cpu_dtype = torch.float32
-                        if AutoModelForVision2Seq is None:
-                            raise RuntimeError("AutoModelForVision2Seq unavailable")
-                        self.model = (
-                            AutoModelForVision2Seq.from_pretrained(
-                                self.model_name,
-                                dtype=cpu_dtype,
-                                low_cpu_mem_usage=True,
-                                trust_remote_code=self.trust_remote_code,
-                            )
-                            .to("cpu")
-                            .eval()
-                        )
-                        self._model_dtype = cpu_dtype
-                        logger.info(
-                            f"Loaded Venus model on CPU (fallback): {self.model_name} "
-                            f"with dtype {cpu_dtype}"
-                        )
-                    except Exception as cpu_error:
-                        logger.error(
-                            "All Venus loading methods failed: "
-                            f"device_map={device_map_error}, direct={direct_error}, cpu={cpu_error}"
-                        )
-                        raise RuntimeError(f"Failed to load Venus vision model: {cpu_error}")
+            self.model, self._model_dtype = load_model_with_fallbacks(
+                provider_label="Venus",
+                model_name=self.model_name,
+                torch_module=torch,
+                device_map_dtype=(
+                    torch.bfloat16 if torch.cuda.is_available() else torch.float32
+                ),
+                load_device_map_model=self._load_with_device_map,
+                load_direct_model=self._load_direct,
+                logger_instance=logger,
+                direct_retry_message="trying direct loading without device_map",
+                cpu_retry_message="trying CPU-only fallback",
+                failure_message="Failed to load Venus vision model",
+            )
+            logger.info(
+                f"Loaded Venus model: {self.model_name} on {self.model.device} "
+                f"with dtype {self._model_dtype}"
+            )
 
             # Load processor (handles both vision + text)
             self.processor = AutoProcessor.from_pretrained(
@@ -153,6 +97,31 @@ class VenusVisionModel(InternVLModel):
         except Exception as e:
             logger.error(f"Failed to load Venus vision model {self.model_name}: {e}")
             raise
+
+    def _load_with_device_map(self, dtype):
+        if AutoModelForVision2Seq is None:
+            raise RuntimeError("AutoModelForVision2Seq unavailable")
+        return AutoModelForVision2Seq.from_pretrained(
+            self.model_name,
+            dtype=dtype,
+            low_cpu_mem_usage=True,
+            device_map="auto",
+            trust_remote_code=self.trust_remote_code,
+        ).eval()
+
+    def _load_direct(self, dtype, device: str):
+        if AutoModelForVision2Seq is None:
+            raise RuntimeError("AutoModelForVision2Seq unavailable")
+        return (
+            AutoModelForVision2Seq.from_pretrained(
+                self.model_name,
+                dtype=dtype,
+                low_cpu_mem_usage=True,
+                trust_remote_code=self.trust_remote_code,
+            )
+            .to(device)
+            .eval()
+        )
 
     async def predict_click_coordinates(
         self, image_b64: str, instruction: str

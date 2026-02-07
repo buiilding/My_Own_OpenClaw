@@ -20,6 +20,7 @@ from backend.src.services.vision.coordinates import (
 from backend.src.services.vision.providers.base import (
     BaseVisionModel,
     VISION_MODELS_AVAILABLE,
+    load_model_with_fallbacks,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,58 +68,30 @@ class InternVLModel(BaseVisionModel):
 
             # Try CUDA first, fallback to CPU if needed (similar to Coact-1 approach)
             logger.info("Loading InternVL model (CUDA preferred, CPU fallback)")
-
-            # Try device_map with auto device placement (like Coact-1)
-            try:
-                model_dtype = torch.bfloat16
-                self.model = self._load_model(
-                    dtype=model_dtype,
+            self.model, self._model_dtype = load_model_with_fallbacks(
+                provider_label="InternVL",
+                model_name=self.model_name,
+                torch_module=torch,
+                device_map_dtype=torch.bfloat16,
+                load_device_map_model=lambda dtype: self._load_model(
+                    dtype=dtype,
                     use_flash_attn=use_flash_attn,
-                    device_map="auto",  # Let accelerate decide device placement
-                )
-                self._model_dtype = model_dtype
-                logger.info(
-                    f"Loaded InternVL model with device_map: {self.model_name} on {self.model.device} with dtype {model_dtype}"
-                )
-            except Exception as device_map_error:
-                logger.warning(
-                    f"Device_map failed ({device_map_error}), trying direct loading"
-                )
-                # Direct loading - prefer CUDA but allow CPU fallback
-                device = "cuda" if torch.cuda.is_available() else "cpu"
-                dtype = torch.float16 if device == "cuda" else torch.float32
-
-                try:
-                    self.model = self._load_model(
-                        dtype=dtype,
-                        use_flash_attn=False,
-                        device=device,
-                    )
-                    self._model_dtype = dtype
-                    logger.info(
-                        f"Loaded InternVL model on {device} with {dtype}: {self.model_name}"
-                    )
-                except Exception as direct_error:
-                    logger.warning(
-                        f"Direct loading failed ({direct_error}), trying CPU fallback"
-                    )
-                    # CPU fallback as last resort
-                    try:
-                        cpu_dtype = torch.float32
-                        self.model = self._load_model(
-                            dtype=cpu_dtype,
-                            use_flash_attn=False,
-                            device="cpu",
-                        )
-                        self._model_dtype = cpu_dtype
-                        logger.info(
-                            f"Loaded InternVL model on CPU (fallback): {self.model_name} with dtype {cpu_dtype}"
-                        )
-                    except Exception as cpu_error:
-                        logger.error(
-                            f"All loading methods failed: device_map={device_map_error}, direct={direct_error}, cpu={cpu_error}"
-                        )
-                        raise RuntimeError(f"Failed to load vision model: {cpu_error}")
+                    device_map="auto",
+                ),
+                load_direct_model=lambda dtype, device: self._load_model(
+                    dtype=dtype,
+                    use_flash_attn=False,
+                    device=device,
+                ),
+                logger_instance=logger,
+                direct_retry_message="trying direct loading",
+                cpu_retry_message="trying CPU fallback",
+                failure_message="Failed to load vision model",
+            )
+            logger.info(
+                f"Loaded InternVL model: {self.model_name} on {self.model.device} "
+                f"with dtype {self._model_dtype}"
+            )
 
             # Load tokenizer (InternVL requires trust_remote_code=True and often use_fast=False)
             self.tokenizer = AutoTokenizer.from_pretrained(
