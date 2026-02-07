@@ -215,6 +215,20 @@ class TestExtractThinkingContent:
 
         assert result == "plain thinking text"
 
+    def test_extract_from_content_tags_when_reasoning_fields_missing(self, provider):
+        delta = {"content": "prefix <thinking>hidden chain</thinking> suffix"}
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "hidden chain"
+
+    def test_extract_ignores_plain_content_without_thinking_tags(self, provider):
+        delta = {"content": "normal assistant text"}
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result is None
+
     def test_extract_no_content_returns_none(self, provider):
         delta = MagicMock()
         delta.reasoning_content = None
