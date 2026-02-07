@@ -138,6 +138,8 @@ class ModelService:
             display_name = normalized_item.get("display_name")
             if not isinstance(display_name, str) or not display_name.strip():
                 normalized_item["display_name"] = f"{normalized_provider}/{normalized_id}"
+            else:
+                normalized_item["display_name"] = display_name.strip()
             normalized.append(normalized_item)
         return normalized
 
