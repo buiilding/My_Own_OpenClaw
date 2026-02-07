@@ -4,6 +4,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', (
 
 import {
   captureAfterTool,
+  extractCaptureFromResult,
   getWaitSeconds,
   isComputerUseTool,
 } from '../../frontend/src/renderer/infrastructure/services/ToolExecutionCapture';
@@ -62,5 +63,51 @@ describe('ToolExecutionCapture', () => {
     expect(mockExtractOSstate).toHaveBeenCalledWith(true, false, 2, false);
     expect(result.systemState).toBeNull();
     expect(result.screenshot).toBe('shot');
+  });
+
+  test('extractCaptureFromResult resolves screenshot/image_data only from string fields', () => {
+    const fromScreenshot = extractCaptureFromResult({
+      success: true,
+      data: {
+        screenshot: 'shot-a',
+        screenshot_content_type: 'image/png',
+        system_state: { active_window: 'App' },
+      },
+    });
+    expect(fromScreenshot).toEqual({
+      screenshot: 'shot-a',
+      screenshotContentType: 'image/png',
+      systemState: { active_window: 'App' },
+    });
+
+    const fromImageData = extractCaptureFromResult({
+      success: true,
+      data: {
+        image_data: 'shot-b',
+        compression: 'jpeg',
+      },
+    });
+    expect(fromImageData).toEqual({
+      screenshot: 'shot-b',
+      screenshotContentType: 'image/jpeg',
+      systemState: null,
+    });
+  });
+
+  test('extractCaptureFromResult ignores non-string screenshot fields', () => {
+    const result = extractCaptureFromResult({
+      success: true,
+      data: {
+        screenshot: { invalid: true },
+        image_data: 42,
+        compression: 'png',
+      },
+    } as any);
+
+    expect(result).toEqual({
+      screenshot: null,
+      screenshotContentType: 'image/png',
+      systemState: null,
+    });
   });
 });

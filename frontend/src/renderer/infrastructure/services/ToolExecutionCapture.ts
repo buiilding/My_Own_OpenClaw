@@ -54,8 +54,9 @@ export function extractCaptureFromResult(result: ToolResult): {
 } {
   if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
     const screenshotContentType = resolveContentType(result.data);
+    const screenshot = resolveScreenshotValue(result.data);
     return {
-      screenshot: result.data.screenshot || result.data.image_data || null,
+      screenshot,
       screenshotContentType,
       systemState: result.data.system_state || null
     };
@@ -169,6 +170,16 @@ function resolveContentType(data: Record<string, any>): string | null {
   }
   if (format === 'image/jpeg' || format === 'jpeg' || format === 'jpg') {
     return 'image/jpeg';
+  }
+  return null;
+}
+
+function resolveScreenshotValue(data: Record<string, any>): string | null {
+  if (typeof data.screenshot === 'string') {
+    return data.screenshot;
+  }
+  if (typeof data.image_data === 'string') {
+    return data.image_data;
   }
   return null;
 }
