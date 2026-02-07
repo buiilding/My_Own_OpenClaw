@@ -202,8 +202,11 @@ class LocalLLMProvider(LLMProvider):
         for model in raw_models:
             if not isinstance(model, dict):
                 continue
-            model_id = model.get(model_id_key, "")
-            if not isinstance(model_id, str) or not model_id:
+            raw_model_id = model.get(model_id_key, "")
+            if not isinstance(raw_model_id, str):
+                continue
+            model_id = raw_model_id.strip()
+            if not model_id:
                 continue
             models.append({
                 "id": model_id,
