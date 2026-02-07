@@ -17,12 +17,25 @@ def _to_litellm_message(message: Any) -> Dict[str, Any]:
     """Normalize a message object to the dict shape expected by LiteLLM."""
     if isinstance(message, dict):
         normalized = dict(message)
-        normalized.setdefault("role", "user")
-        normalized.setdefault("content", "")
+        role = normalized.get("role")
+        if not isinstance(role, str) or not role.strip():
+            normalized["role"] = "user"
+        else:
+            normalized["role"] = role
+        if normalized.get("content") is None:
+            normalized["content"] = ""
+        else:
+            normalized.setdefault("content", "")
         return normalized
+    role = getattr(message, "role", "user")
+    content = getattr(message, "content", "")
+    if not isinstance(role, str) or not role.strip():
+        role = "user"
+    if content is None:
+        content = ""
     return {
-        "role": getattr(message, "role", "user"),
-        "content": getattr(message, "content", ""),
+        "role": role,
+        "content": content,
     }
 
 

@@ -116,6 +116,42 @@ def test_count_tokens_normalizes_partial_dict_without_mutating_input(monkeypatch
     assert captured["messages"][0] is not original
 
 
+def test_count_tokens_normalizes_invalid_role_and_none_content_in_dict(monkeypatch):
+    captured = {}
+
+    def fake_counter(*, model, messages, use_default_image_token_count):
+        captured["messages"] = messages
+        return 2
+
+    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+
+    result = TokenService.count_tokens(
+        [{"role": None, "content": None}],
+        model="gpt-4o-mini",
+    )
+
+    assert result == 2
+    assert captured["messages"] == [{"role": "user", "content": ""}]
+
+
+def test_count_tokens_normalizes_object_message_with_blank_role_and_none_content(monkeypatch):
+    captured = {}
+
+    def fake_counter(*, model, messages, use_default_image_token_count):
+        captured["messages"] = messages
+        return 1
+
+    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+
+    token_count = TokenService.count_tokens(
+        [MessageObj(role="   ", content=None)],
+        model="gpt-4o-mini",
+    )
+
+    assert token_count == 1
+    assert captured["messages"] == [{"role": "user", "content": ""}]
+
+
 def test_get_token_service_singleton_thread_safe(monkeypatch):
     creation_count = {"value": 0}
     barrier = threading.Barrier(16)
