@@ -1,0 +1,68 @@
+import time
+
+import pytest
+
+from backend.src.core.config.models import SecurityLimits
+from backend.src.core.infrastructure.exceptions import ParseTimeoutError
+from backend.src.llm.parser_extraction import JsonToolCallExtractor
+
+
+class DummySchema:
+    def extract_tool_call(self, payload):
+        function_call = payload.get("functionCall") if isinstance(payload, dict) else None
+        if not isinstance(function_call, dict):
+            return None
+        return function_call.get("name"), function_call.get("args", {}), None
+
+
+class DummyValidator:
+    def validate_tool_call(self, _tool_name, _args):
+        return None
+
+    def validate_metadata(self, _tool_name, _metadata):
+        return None
+
+
+class DummyMetrics:
+    def record_size_violation(self, *_args, **_kwargs):
+        return None
+
+
+def _make_extractor():
+    return JsonToolCallExtractor(
+        schema=DummySchema(),
+        validator=DummyValidator(),
+        metrics=DummyMetrics(),
+        limits=SecurityLimits(),
+    )
+
+
+def test_safe_json_loads_raises_parse_timeout_error():
+    extractor = _make_extractor()
+
+    with pytest.raises(ParseTimeoutError):
+        extractor._safe_json_loads(
+            '{"functionCall":{"name":"read_file","args":{}}}',
+            start_time=time.monotonic() - 10,
+            timeout=1.0,
+        )
+
+
+def test_parse_embedded_json_extracts_multiple_calls():
+    extractor = _make_extractor()
+    response = (
+        "before "
+        '{"functionCall":{"name":"read_file","args":{"path":"/tmp/a"}}}'
+        " middle "
+        '{"functionCall":{"name":"write_file","args":{"path":"/tmp/b"}}}'
+        " after"
+    )
+
+    tool_calls, remaining_text = extractor.parse_embedded_json(
+        response,
+        start_time=time.monotonic(),
+        timeout=1.0,
+    )
+
+    assert [call.tool_name for call in tool_calls] == ["read_file", "write_file"]
+    assert "functionCall" not in remaining_text
