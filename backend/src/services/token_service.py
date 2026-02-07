@@ -54,6 +54,9 @@ def _extract_text_char_count(content: Any) -> int:
 
     total = 0
     for item in content:
+        if isinstance(item, str):
+            total += len(item)
+            continue
         total += _extract_text_char_count_from_part(item)
     return total
 

@@ -63,6 +63,25 @@ def test_count_tokens_fallback_handles_dict_and_input_text_parts(monkeypatch):
     assert TokenService.count_tokens(messages) == 3
 
 
+def test_count_tokens_fallback_counts_string_fragments_in_content_list(monkeypatch):
+    def boom(*_args, **_kwargs):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(litellm, "token_counter", boom)
+    messages = [
+        {
+            "role": "assistant",
+            "content": [
+                "abcd",
+                {"type": "text", "text": "efgh"},
+                {"type": "image_url", "image_url": {"url": "ignored"}},
+            ],
+        },
+    ]
+
+    assert TokenService.count_tokens(messages) == 2
+
+
 def test_count_tokens_empty_messages_short_circuit(monkeypatch):
     called = {"value": False}
 
