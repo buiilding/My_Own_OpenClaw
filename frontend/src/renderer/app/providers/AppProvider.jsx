@@ -11,6 +11,7 @@ import { useAppStatusContext } from './AppStatusContext';
 function AppContextCoordinator({ children }) {
   const configContext = useAppConfigContext();
   const statusContext = useAppStatusContext();
+  const registerSaveStatusCallback = configContext?.registerSaveStatusCallback;
   const configRef = useRef(configContext?.config || {});
   const updateConfigRef = useRef(configContext?.updateConfig);
 
@@ -20,10 +21,10 @@ function AppContextCoordinator({ children }) {
   }, [configContext?.config, configContext?.updateConfig]);
 
   useEffect(() => {
-    if (configContext.registerSaveStatusCallback) {
-      configContext.registerSaveStatusCallback(statusContext.setSaving);
+    if (registerSaveStatusCallback) {
+      registerSaveStatusCallback(statusContext.setSaving);
     }
-  }, [configContext.registerSaveStatusCallback, statusContext.setSaving]);
+  }, [registerSaveStatusCallback, statusContext.setSaving]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
