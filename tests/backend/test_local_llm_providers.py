@@ -1,3 +1,4 @@
+import asyncio
 from unittest.mock import AsyncMock
 
 import pytest
@@ -75,3 +76,25 @@ def test_local_provider_request_params_set_placeholder_api_key():
 
     assert params["custom_llm_provider"] == "openai"
     assert params["api_key"] == LOCAL_PROVIDER_PLACEHOLDER_API_KEY
+
+
+@pytest.mark.asyncio
+async def test_get_http_client_creates_single_client_under_concurrency(monkeypatch):
+    provider = OllamaProvider(base_url="http://localhost:11434/v1")
+    created_clients = []
+
+    class DummyClient:
+        async def aclose(self):
+            return None
+
+    def fake_async_client(*_args, **_kwargs):
+        client = DummyClient()
+        created_clients.append(client)
+        return client
+
+    monkeypatch.setattr("backend.src.llm.providers.local.httpx.AsyncClient", fake_async_client)
+
+    clients = await asyncio.gather(*[provider._get_http_client() for _ in range(20)])
+
+    assert len(created_clients) == 1
+    assert len({id(client) for client in clients}) == 1
