@@ -202,3 +202,6 @@ backend/src/api/
 - `routes/websocket/task_manager.py` cleanup now includes a deterministic
   completed-task prune step after cancellation handling, reducing reliance on
   callback timing during disconnect/shutdown paths.
+- `routes/websocket/task_manager.py` now closes rejected coroutine inputs when
+  concurrency limits are exceeded, preventing un-awaited coroutine warnings in
+  route hot paths.
