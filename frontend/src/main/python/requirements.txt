@@ -32,6 +32,10 @@ Pillow>=10.0.0
 # Data validation
 pydantic>=2.0.0
 
+# Testing
+pytest>=8.1.1
+pytest-asyncio>=0.23.6
+
 # Browser automation
 playwright>=1.40.0
 
