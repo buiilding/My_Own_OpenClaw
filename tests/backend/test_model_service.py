@@ -251,6 +251,36 @@ async def test_get_local_models_trims_provider_and_model_identifiers(monkeypatch
     ]
 
 
+@pytest.mark.asyncio
+async def test_get_local_models_sets_default_display_name_when_missing(monkeypatch):
+    factory = {
+        "ollama": MalformedModelsProvider(
+            [
+                {
+                    "id": "valid-model",
+                    "provider": "ollama",
+                    "display_name": "   ",
+                }
+            ]
+        )
+    }
+    monkeypatch.setattr(
+        "backend.src.llm.providers.create_provider_factory",
+        lambda _cfg: factory,
+    )
+
+    service = ModelService(AppConfig())
+    models = await service.get_local_models()
+
+    assert models == [
+        {
+            "id": "valid-model",
+            "provider": "ollama",
+            "display_name": "ollama/valid-model",
+        }
+    ]
+
+
 def test_get_online_models_returns_defensive_copy():
     service = ModelService(AppConfig())
 
