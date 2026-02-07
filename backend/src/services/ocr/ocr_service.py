@@ -25,6 +25,13 @@ except Exception as e:
     OCR_AVAILABLE = False
     OCR_IMPORT_ERROR = f"Unexpected error during import: {e}"
 
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except Exception:
+    np = None  # type: ignore[assignment]
+    NUMPY_AVAILABLE = False
+
 CUDA_ERROR_KEYWORDS = [
     "Failed to allocate memory",
     "CUBLAS_STATUS_ALLOC_FAILED",
@@ -381,13 +388,8 @@ class OcrService:
             return []
         if isinstance(value, str):
             return [value]
-        try:
-            import numpy as np
-
-            if isinstance(value, np.ndarray):
-                return value.tolist()
-        except Exception:
-            pass
+        if NUMPY_AVAILABLE and isinstance(value, np.ndarray):
+            return value.tolist()
         if isinstance(value, (list, tuple)):
             return list(value)
         return [value]
