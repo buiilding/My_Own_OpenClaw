@@ -258,19 +258,30 @@ class OllamaProvider(LocalLLMProvider):
             # Use shared HTTP client for connection pooling
             client = await self._get_http_client()
             response = await client.get(url)
-            if response.status_code == 200:
-                data = response.json()
-                if "models" in data:
-                    for model in data["models"]:
-                        model_name = model.get("name", "")
-                        if model_name:
-                            models.append({
-                                "id": model_name,
-                                "provider": "ollama",
-                                "display_name": model_name,
-                            })
-            else:
+            if response.status_code != 200:
                 logger.warning(f"Ollama list models failed: {response.status_code}")
+                return models
+
+            data = response.json()
+            if not isinstance(data, dict):
+                logger.warning("Ollama list models returned non-object JSON payload")
+                return models
+
+            raw_models = data.get("models", [])
+            if not isinstance(raw_models, list):
+                logger.warning("Ollama list models returned non-list 'models' field")
+                return models
+
+            for model in raw_models:
+                if not isinstance(model, dict):
+                    continue
+                model_name = model.get("name", "")
+                if model_name:
+                    models.append({
+                        "id": model_name,
+                        "provider": "ollama",
+                        "display_name": model_name,
+                    })
         except Exception as e:
             logger.warning(f"Error listing Ollama models: {e}")
             
@@ -323,19 +334,30 @@ class LMStudioProvider(LocalLLMProvider):
             # Use shared HTTP client for connection pooling
             client = await self._get_http_client()
             response = await client.get(url)
-            if response.status_code == 200:
-                data = response.json()
-                if "data" in data:
-                    for model in data["data"]:
-                        model_id = model.get("id", "")
-                        if model_id:
-                            models.append({
-                                "id": model_id,
-                                "provider": "lmstudio",
-                                "display_name": model_id,
-                            })
-                else:
-                    logger.warning(f"LM Studio list models failed: {response.status_code}")
+            if response.status_code != 200:
+                logger.warning(f"LM Studio list models failed: {response.status_code}")
+                return models
+
+            data = response.json()
+            if not isinstance(data, dict):
+                logger.warning("LM Studio list models returned non-object JSON payload")
+                return models
+
+            raw_models = data.get("data", [])
+            if not isinstance(raw_models, list):
+                logger.warning("LM Studio list models returned non-list 'data' field")
+                return models
+
+            for model in raw_models:
+                if not isinstance(model, dict):
+                    continue
+                model_id = model.get("id", "")
+                if model_id:
+                    models.append({
+                        "id": model_id,
+                        "provider": "lmstudio",
+                        "display_name": model_id,
+                    })
         except Exception as e:
             logger.warning(f"Error listing LM Studio models: {e}")
             
