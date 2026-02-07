@@ -115,6 +115,7 @@ async def test_process_poll_includes_stdout_stderr():
 async def test_process_requires_session_id():
     result = await process_shell_command({"action": "poll"})
     assert result["success"] is False
+    assert result["error"] == "session_id is required for this action"
 
 
 @pytest.mark.asyncio
@@ -194,15 +195,18 @@ async def test_process_remove_clears_session():
 
     poll = await process_shell_command({"action": "poll", "session_id": session_id})
     assert poll["success"] is False
+    assert poll["error"] == f"No session found for {session_id}"
 
 
 @pytest.mark.asyncio
 async def test_process_log_missing_session():
     result = await process_shell_command({"action": "log", "session_id": "missing"})
     assert result["success"] is False
+    assert result["error"] == "No session found for missing"
 
 
 @pytest.mark.asyncio
 async def test_process_kill_missing_session():
     result = await process_shell_command({"action": "kill", "session_id": "missing"})
     assert result["success"] is False
+    assert result["error"] == "No session found for missing"

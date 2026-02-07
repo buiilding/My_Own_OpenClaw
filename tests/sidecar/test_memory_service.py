@@ -79,6 +79,9 @@ async def test_handle_search_missing_query():
 
     response = await service.handle_search("req", {})
     assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "Query is required for memory search"
+    assert service.memory_store.search_calls == []
 
 
 @pytest.mark.asyncio
@@ -124,6 +127,9 @@ async def test_handle_store_missing_fields():
 
     response = await service.handle_store("req", {"user_query": "Hi"})
     assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "Missing user_query or assistant_response"
+    assert service.memory_store.add_calls == []
 
 
 @pytest.mark.asyncio
@@ -198,3 +204,5 @@ async def test_handle_request_invalid_type():
 
     response = await service.handle_request({"id": "req", "type": "unknown"})
     assert response["success"] is False
+    assert response["id"] == "req"
+    assert response["error"] == "Unknown request type: unknown"
