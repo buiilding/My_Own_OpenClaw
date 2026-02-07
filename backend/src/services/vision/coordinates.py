@@ -8,7 +8,7 @@ import re
 from typing import Optional, Tuple
 
 # Regex patterns for extracting coordinates (from CoAct-1 InternVL implementation)
-_NUM = r"(\d+(?:\.\d+)?)"
+_NUM = r"(-?\d+(?:\.\d+)?)"
 POINT_PATTERN = re.compile(r"\[\[\s*" + _NUM + r"\s*,\s*" + _NUM + r"\s*\]\]")
 BBOX_PATTERN = re.compile(
     r"\[\[\s*"
@@ -38,15 +38,18 @@ def extract_first_point(text: str) -> Optional[Tuple[float, float]]:
 
 def extract_last_bbox(text: str) -> Optional[Tuple[float, float, float, float]]:
     """Extract the last [[x1,y1,x2,y2]] as normalized (0-1000) floats."""
-    matches = list(BBOX_PATTERN.finditer(text))
-    if not matches:
+    last_match = None
+    for match in BBOX_PATTERN.finditer(text):
+        last_match = match
+
+    if not last_match:
         return None
-    m = matches[-1]
+
     try:
-        x1 = float(m.group(1))
-        y1 = float(m.group(2))
-        x2 = float(m.group(3))
-        y2 = float(m.group(4))
+        x1 = float(last_match.group(1))
+        y1 = float(last_match.group(2))
+        x2 = float(last_match.group(3))
+        y2 = float(last_match.group(4))
         return x1, y1, x2, y2
     except Exception:
         return None
