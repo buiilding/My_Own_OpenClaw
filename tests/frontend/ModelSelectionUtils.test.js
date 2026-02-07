@@ -156,6 +156,38 @@ describe('modelSelectionUtils', () => {
     });
   });
 
+  test('evaluateModelSelection keeps exact provider match even when other providers exist for same id', () => {
+    expect(
+      evaluateModelSelection({
+        selectedModelId: 'shared-model',
+        selectedProvider: 'provider-b',
+        currentModels: [
+          { id: 'shared-model', provider: 'provider-a' },
+          { id: 'shared-model', provider: 'provider-b' },
+        ],
+      }),
+    ).toEqual({
+      status: 'valid',
+      model: { id: 'shared-model', provider: 'provider-b' },
+    });
+  });
+
+  test('evaluateModelSelection picks deterministic canonical provider when selected provider missing', () => {
+    expect(
+      evaluateModelSelection({
+        selectedModelId: 'shared-model',
+        selectedProvider: '',
+        currentModels: [
+          { id: 'shared-model', provider: 'z-provider' },
+          { id: 'shared-model', provider: 'a-provider' },
+        ],
+      }),
+    ).toEqual({
+      status: 'provider-mismatch',
+      model: { id: 'shared-model', provider: 'a-provider' },
+    });
+  });
+
   test('getFallbackModelSelection returns first model or empty selection', () => {
     expect(getFallbackModelSelection(sampleModels)).toEqual({ id: 'gpt-5', provider: 'openai' });
     expect(getFallbackModelSelection([])).toEqual({ id: '', provider: '' });
