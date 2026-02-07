@@ -2,19 +2,7 @@ import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
-import { normalizeArtifactImageContentType } from '../../../infrastructure/services/ArtifactImageUtils';
-import { isUserMessageWithScreenshot } from '../utils/messageScreenshots';
-
-function resolveMessageScreenshotSrc(message) {
-  if (message.screenshotUrl) {
-    return message.screenshotUrl;
-  }
-  if (message.screenshot) {
-    const contentType = normalizeArtifactImageContentType(message.screenshotContentType);
-    return `data:${contentType};base64,${message.screenshot}`;
-  }
-  return null;
-}
+import { isUserMessageWithScreenshot, resolveMessageScreenshotSrc } from '../utils/messageScreenshots';
 
 function MarkdownMessage({ text }) {
   const html = useMemo(() => toSanitizedMarkdownHtml(text ?? ''), [text]);
