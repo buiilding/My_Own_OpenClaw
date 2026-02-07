@@ -62,6 +62,7 @@ frontend/src/renderer/
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
 │   │       ├── chatStreamFormatting.ts  # chatStreamFormatting - Thought/tool message formatting helpers
 │   │       ├── messageInput.js          # messageInput - Input normalization helper before send dispatch
+│   │       ├── messageListClasses.js    # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
 │   │       ├── messageScreenshots.js    # messageScreenshots - Screenshot presence predicates for message rendering
 │   │       ├── messageTransparency.js   # messageTransparency - Descriptor builder for transparency sections
 │   │       ├── tokenCounts.js           # tokenCounts - Table-driven token count formatting/mapping helpers

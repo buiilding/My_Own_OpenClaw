@@ -178,7 +178,7 @@ App
 - Displays chat messages
 - Handles different message types
 - Auto-scroll functionality
-- Reuses shared screenshot-presence utility with `MessageContent` to keep screenshot rendering/class behavior consistent
+- Reuses shared screenshot-presence utility with `MessageContent` and shared message-row class helpers for consistent screenshot/streaming/type CSS state handling
 
 **MessageTransparencySections.jsx**
 - Builds transparency section configs via shared chat utility helpers, then maps to `TransparencySection` rendering
