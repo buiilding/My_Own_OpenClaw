@@ -68,6 +68,18 @@ async def test_get_artifact_invalid_id_returns_400(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_get_artifact_missing_file_returns_404(tmp_path) -> None:
+    container = SimpleNamespace(
+        config=AppConfig(artifact_store_path=str(tmp_path), artifact_max_bytes=1024)
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await artifacts_routes.get_artifact("abc123.png", container)
+
+    assert exc_info.value.status_code == 404
+
+
+@pytest.mark.asyncio
 async def test_get_artifact_wraps_unexpected_errors_with_500(tmp_path, monkeypatch) -> None:
     container = SimpleNamespace(
         config=AppConfig(artifact_store_path=str(tmp_path), artifact_max_bytes=1024)
@@ -112,3 +124,24 @@ async def test_upload_artifact_returns_metadata_and_url(tmp_path) -> None:
     assert response.artifact_id.endswith(".png")
     assert response.url == f"http://testserver/api/artifacts/{response.artifact_id}"
     assert len(response.sha256) == 64
+
+
+@pytest.mark.asyncio
+async def test_upload_artifact_enforces_size_limit(tmp_path) -> None:
+    container = SimpleNamespace(
+        config=AppConfig(artifact_store_path=str(tmp_path), artifact_max_bytes=4)
+    )
+    upload = _upload_file(b"png-bytes", "shot.png", "image/png")
+    request = Request(
+        {
+            "type": "http",
+            "scheme": "http",
+            "server": ("testserver", 80),
+            "path": "/api/artifacts/",
+        }
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await artifacts_routes.upload_artifact(request, container, file=upload)
+
+    assert exc_info.value.status_code == 413
