@@ -1,6 +1,7 @@
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useTranscription } from '../hooks/useTranscription';
+import { normalizeMessageForSend } from '../utils/messageInput';
 
 function MessageInput({ onSendMessage, isSending }) {
   const inputRef = useRef(null);
@@ -12,14 +13,11 @@ function MessageInput({ onSendMessage, isSending }) {
     handlePaste 
   } = useTranscription();
 
-  useEffect(() => {
-    resetTranscription();
-  }, [resetTranscription]);
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (inputValue.trim() && !isSending) {
-      onSendMessage(inputValue.trim());
+    const outgoingMessage = normalizeMessageForSend(inputValue);
+    if (outgoingMessage && !isSending) {
+      onSendMessage(outgoingMessage);
       setInputValue('');
       resetTranscription();
     }
