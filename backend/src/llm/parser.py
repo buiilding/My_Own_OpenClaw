@@ -57,6 +57,8 @@ class ResponseParser:
     timeouts, and strict validation. Violations raise hard errors.
     """
 
+    BOUNDARY_NAME = "response_parser"
+
     def __init__(
         self,
         config: AppConfig,
@@ -93,7 +95,7 @@ class ResponseParser:
 
         if metrics_service is None:
             metrics_service = MetricsService()
-        self.metrics = metrics_service.get_metrics("response_parser")
+        self.metrics = metrics_service.get_metrics(self.BOUNDARY_NAME)
         self.limits = config.security_limits
 
         self._validator = ToolCallValidator(
@@ -107,6 +109,10 @@ class ResponseParser:
             validator=self._validator,
             metrics=self.metrics,
             limits=self.limits,
+        )
+        self._parsing_strategies = (
+            self._extractor.parse_json_response,
+            self._extractor.parse_embedded_json,
         )
 
         self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="parser")
@@ -133,7 +139,7 @@ class ResponseParser:
         to prevent blocking the asyncio event loop. Real timeouts are enforced
         using asyncio.wait_for, which can cancel hanging operations.
         """
-        boundary_name = "response_parser"
+        boundary_name = self.BOUNDARY_NAME
 
         if response is None:
             raise ValueError(
@@ -188,17 +194,13 @@ class ResponseParser:
         tool_calls = []
         text_content = response
 
-        parsing_strategies = [
-            self._extractor.parse_json_response,
-            self._extractor.parse_embedded_json,
-        ]
-
         start_time = time.monotonic()
         timeout = self.limits.parse_timeout_seconds
 
-        for strategy in parsing_strategies:
+        for strategy in self._parsing_strategies:
             calls, remaining_text = strategy(response, start_time, timeout)
             if calls:
+                call_names = [call.tool_name for call in calls]
                 for call in calls:
                     logger.info(
                         "Parser found tool call: %s with params: %s",
@@ -209,7 +211,7 @@ class ResponseParser:
                     "Parser found %s tool calls using %s: %s",
                     len(calls),
                     strategy.__name__,
-                    [call.tool_name for call in calls],
+                    call_names,
                 )
                 tool_calls.extend(calls)
                 text_content = remaining_text
@@ -221,13 +223,13 @@ class ResponseParser:
             ]
             self.metrics.record_validation_violation(
                 validation_errors=validation_errors,
-                boundary_name="response_parser",
+                boundary_name=self.BOUNDARY_NAME,
                 metadata={"tool_call_count": len(tool_calls)},
             )
             raise ParseValidationError(
                 f"Too many tool calls: {len(tool_calls)} > {self.limits.max_tool_calls_per_response}",
                 validation_errors=validation_errors,
-                boundary_name="response_parser",
+                boundary_name=self.BOUNDARY_NAME,
             )
 
         if tool_calls:
