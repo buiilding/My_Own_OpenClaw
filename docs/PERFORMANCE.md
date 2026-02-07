@@ -26,6 +26,7 @@ read_when:
 - **Config startup dedupe**: `AppConfigProvider` skips disk-sync writes and backend settings updates when loaded config matches the in-memory config.
 - **Stable config update handlers**: `AppConfigProvider` now uses a live config ref for comparisons and memoizes provider value/callbacks to avoid stale closures and needless re-renders.
 - **Bundle formatting dedupe**: `ToolExecutionService` now reuses normalized bundle result structures for both formatting and UI payload construction to avoid duplicate per-step mapping work.
+- **Shared bundle tool invocation path**: bundled tool execution now uses the same invoker as single-tool execution, removing duplicated IPC arg shaping and keeping screenshot display-bounds injection behavior consistent.
 
 ## Sidecar
 
