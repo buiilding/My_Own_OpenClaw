@@ -88,6 +88,43 @@ describe('SystemCapture', () => {
     expect(result.screenshot).toBe('shot');
   });
 
+  test('extractOSstate resolves screenshot content types from compression/format fields', async () => {
+    const invokeSpy = jest
+      .spyOn(IpcBridge, 'invoke')
+      .mockResolvedValueOnce({ success: true, data: { screenshot: 'png-shot', compression: 'png' } })
+      .mockResolvedValueOnce({ success: true, data: { screenshot: 'jpg-shot', format: 'jpg' } });
+
+    const pngResult = await extractOSstate(true, false, 0, false);
+    const jpgResult = await extractOSstate(true, false, 0, false);
+
+    expect(invokeSpy).toHaveBeenCalledTimes(2);
+    expect(pngResult).toEqual({
+      systemState: null,
+      screenshot: 'png-shot',
+      screenshotContentType: 'image/png',
+    });
+    expect(jpgResult).toEqual({
+      systemState: null,
+      screenshot: 'jpg-shot',
+      screenshotContentType: 'image/jpeg',
+    });
+  });
+
+  test('extractOSstate ignores non-string screenshot payloads', async () => {
+    jest.spyOn(IpcBridge, 'invoke').mockResolvedValueOnce({
+      success: true,
+      data: { screenshot: { raw: 'not-supported' }, compression: 'png' },
+    });
+
+    const result = await extractOSstate(true, false, 0, false);
+
+    expect(result).toEqual({
+      systemState: null,
+      screenshot: null,
+      screenshotContentType: 'image/png',
+    });
+  });
+
   test('extractOSstate returns nulls when both capture modes disabled', async () => {
     const invokeSpy = jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({} as any);
 
