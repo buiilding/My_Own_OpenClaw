@@ -276,3 +276,7 @@ WebSocket Response
   (`_resolve_model_dtype`, `_run_chat_generation`, `_run_generate_fallback`,
   `_log_failure_context`) to reduce method complexity while preserving
   inference fallback behavior.
+- UI-Venus provider dependency imports are now guarded in
+  `backend/src/services/vision/providers/ui_venus.py` so optional/broken
+  acceleration wheels fail closed at provider load time instead of crashing
+  module import.
