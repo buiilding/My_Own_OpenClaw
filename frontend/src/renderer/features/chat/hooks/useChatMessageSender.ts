@@ -75,18 +75,16 @@ export function useChatMessageSender(
     
     let screenshot: string | null = null;
     let screenshotContentType: string | null = null;
-    let systemState: any = null;
     try {
       const osStateResult = await extractOSstate(
         true,  // enable_screenshot
-        true,  // enable_system_state
+        false, // enable_system_state (unused for user-message send path)
         0,     // wait (0 seconds for user messages)
         isFirstUserMessage  // is_first_user_message
       );
       
       screenshot = osStateResult.screenshot;
       screenshotContentType = osStateResult.screenshotContentType;
-      systemState = osStateResult.systemState;
     } catch (error) {
       console.error('[useChatMessageSender] Failed to extract OS state:', error);
       // Continue without screenshot/system state if capture fails

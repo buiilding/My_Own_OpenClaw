@@ -83,7 +83,7 @@ describe('useChatMessageSender', () => {
 
     expect(mockExtractOSstate).toHaveBeenCalledWith(
       true,
-      true,
+      false,
       0,
       true,
     );
@@ -113,7 +113,7 @@ describe('useChatMessageSender', () => {
 
     expect(mockExtractOSstate).toHaveBeenCalledWith(
       true,
-      true,
+      false,
       0,
       false,
     );
