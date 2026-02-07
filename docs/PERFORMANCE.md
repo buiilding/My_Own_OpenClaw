@@ -25,6 +25,7 @@ read_when:
 - **Chat store no-op updates**: `updateMessage`, `setMessages`, `setIsSending`, `setThinkingStatus`, and `setTokenCounts` now preserve state identity when values are unchanged, preventing unnecessary state churn.
 - **Config startup dedupe**: `AppConfigProvider` skips disk-sync writes and backend settings updates when loaded config matches the in-memory config.
 - **Stable config update handlers**: `AppConfigProvider` now uses a live config ref for comparisons and memoizes provider value/callbacks to avoid stale closures and needless re-renders.
+- **Bundle formatting dedupe**: `ToolExecutionService` now reuses normalized bundle result structures for both formatting and UI payload construction to avoid duplicate per-step mapping work.
 
 ## Sidecar
 
