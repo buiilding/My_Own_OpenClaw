@@ -9,7 +9,7 @@ Responsible for discovering and aggregating available LLM models from:
 import asyncio
 import logging
 from collections.abc import Iterable
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Awaitable, Dict, List, Optional, Sequence, Tuple
 
 from backend.src.core.config import AppConfig
 from backend.src.llm.models.models_config import ONLINE_MODELS, ONLINE_THINKING_MODELS, LOCAL_VISION_MODELS
@@ -57,7 +57,7 @@ def _dedupe_models(models: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
         if key in seen:
             continue
         seen.add(key)
-        deduped.append(dict(model))
+        deduped.append(model)
     return deduped
 
 
@@ -180,7 +180,7 @@ class ModelService:
         # Get provider factory (cached, uses same instances as rest of system)
         factory = create_provider_factory(self.config)
 
-        jobs: List[asyncio.Task[tuple[str, List[Dict[str, Any]], Optional[str]]]] = []
+        jobs: List[Awaitable[tuple[str, List[Dict[str, Any]], Optional[str]]]] = []
         provider_specs = (
             ("ollama", "Ollama"),
             ("lmstudio", "LM Studio"),
@@ -188,7 +188,7 @@ class ModelService:
         for provider_key, label in provider_specs:
             provider = factory.get(provider_key)
             if provider:
-                jobs.append(asyncio.create_task(self._list_models_from_provider(label, provider)))
+                jobs.append(self._list_models_from_provider(label, provider))
             else:
                 logger.debug(f"{label} provider not configured or unavailable")
 
