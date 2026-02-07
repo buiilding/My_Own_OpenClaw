@@ -94,7 +94,7 @@ describe('AppConfigProvider', () => {
     renderHook(() => useAppConfigContext(), { wrapper });
 
     const backendHandler = listeners.get(ON_CHANNELS.FROM_BACKEND);
-    expect(backendHandler).toBeDefined();
+    expect(backendHandler).toEqual(expect.any(Function));
 
     act(() => {
       backendHandler?.({
@@ -109,6 +109,27 @@ describe('AppConfigProvider', () => {
     expect(settingsHandlers.handleModelsListed).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'models-listed' }),
     );
+  });
+
+  test('ignores unsupported backend events', () => {
+    const settingsHandlers = {
+      handleModelsListed: jest.fn(),
+    };
+    (useSettingsManagement as jest.Mock).mockReturnValue(settingsHandlers);
+
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    const backendHandler = listeners.get(ON_CHANNELS.FROM_BACKEND);
+    expect(backendHandler).toEqual(expect.any(Function));
+
+    act(() => {
+      backendHandler?.({
+        type: 'status-updated',
+        payload: { status: 'ok' },
+      });
+    });
+
+    expect(settingsHandlers.handleModelsListed).not.toHaveBeenCalled();
   });
 
   test('skips persistence when updateConfig receives same config', () => {
@@ -175,5 +196,20 @@ describe('AppConfigProvider', () => {
         model_provider: 'openai',
       }),
     );
+  });
+
+  test('keeps updateConfig callback stable across config updates', () => {
+    const { result } = renderHook(() => useAppConfigContext(), { wrapper });
+    const firstUpdateConfig = result.current.updateConfig;
+
+    act(() => {
+      result.current.updateConfig({
+        voice_mode_enabled: false,
+        selected_model_id: 'model-y',
+        model_provider: 'openai',
+      });
+    });
+
+    expect(result.current.updateConfig).toBe(firstUpdateConfig);
   });
 });

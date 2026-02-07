@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
 import { filterFrontendConfig } from '../../utils/configFilter';
 import { IpcBridge, ON_CHANNELS, SEND_CHANNELS, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
@@ -54,9 +54,15 @@ export function AppConfigProvider({ children }) {
   );
 
   const handlersRef = useRef(settingsHandlers);
+  const configRef = useRef(config);
+
   useEffect(() => {
     handlersRef.current = settingsHandlers;
   }, [settingsHandlers]);
+
+  useEffect(() => {
+    configRef.current = config;
+  }, [config]);
 
   const onBackendEvent = useCallback((data) => {
     switch (data.type) {
@@ -110,9 +116,10 @@ export function AppConfigProvider({ children }) {
       if (Object.keys(filteredConfig).length === 0) {
         return;
       }
-      if (!hasShallowConfigChanges(config, filteredConfig)) {
+      if (!hasShallowConfigChanges(configRef.current, filteredConfig)) {
         return;
       }
+      configRef.current = filteredConfig;
       setConfig(filteredConfig);
       saveConfigToStorage(filteredConfig, Date.now());
       ApiClient.updateSettings(filteredConfig);
@@ -128,12 +135,13 @@ export function AppConfigProvider({ children }) {
   const updateConfig = useCallback((newConfig) => {
     const filteredConfig = sanitizeConfig(filterFrontendConfig(newConfig));
 
-    if (!hasShallowConfigChanges(config, filteredConfig)) {
+    if (!hasShallowConfigChanges(configRef.current, filteredConfig)) {
       logConfigInfo('[Settings Update] No changes detected, skipping save');
       return;
     }
 
     logConfigInfo('[Settings Update] Updating config and saving to localStorage...');
+    configRef.current = filteredConfig;
     setConfig(filteredConfig);
 
     saveConfigToStorage(filteredConfig, Date.now());
@@ -142,7 +150,7 @@ export function AppConfigProvider({ children }) {
       console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
     });
     ApiClient.updateSettings(filteredConfig);
-  }, [config, sanitizeConfig]);
+  }, [sanitizeConfig]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_TOGGLE, (data) => {
@@ -155,15 +163,15 @@ export function AppConfigProvider({ children }) {
     };
   }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     config,
     availableModels,
     wakewordEnabled,
     wakewordSuppressed,
     wakewordActive: wakewordEnabled && !wakewordSuppressed,
     setWakewordEnabled,
-    updateConfig
-  };
+    updateConfig,
+  }), [config, availableModels, wakewordEnabled, wakewordSuppressed, updateConfig]);
 
   return (
     <AppConfigContext.Provider value={value}>
