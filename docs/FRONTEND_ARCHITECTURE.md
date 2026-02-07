@@ -247,6 +247,7 @@ App
 - Handles sending user messages
 - Screenshot capture coordination
 - Message formatting and transmission
+- Uses shared sender utility helpers for first-user-message detection and screenshot artifact metadata/attachment shaping
 
 **useChatStream** (`useChatStream.ts`)
 - Manages streaming message responses from backend

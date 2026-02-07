@@ -58,6 +58,7 @@ frontend/src/renderer/
 │   │   │
 │   │   └── utils/                       # Chat presentation/formatting selectors and helpers
 │   │       ├── backendAudioEvents.js    # backendAudioEvents - Validates/extracts audio-chunk payloads for playback
+│   │       ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
 │   │       ├── chatBoxPresentation.js   # chatBoxPresentation - Status/label/preview derivation for ChatBox
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
 │   │       ├── chatStreamFormatting.ts  # chatStreamFormatting - Thought/tool message formatting helpers
