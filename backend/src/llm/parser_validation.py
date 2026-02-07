@@ -16,6 +16,7 @@ class ToolCallValidator:
         self.tool_registry = tool_registry
         self.metrics = metrics
         self.limits = limits
+        self._allowed_tools = config.get_tool_allowlist()
 
     def validate_tool_call(self, tool_name: str, args: Dict[str, Any]) -> None:
         """
@@ -122,10 +123,9 @@ class ToolCallValidator:
             name for name in raw_tool_names if isinstance(name, str)
         ]
         deduped_tool_names = list(dict.fromkeys(valid_tool_names))
-        allowed_tools = self.config.get_tool_allowlist()
-        if allowed_tools is not None:
+        if self._allowed_tools is not None:
             deduped_tool_names = [
-                name for name in deduped_tool_names if name in allowed_tools
+                name for name in deduped_tool_names if name in self._allowed_tools
             ]
         return sorted(deduped_tool_names)
 
