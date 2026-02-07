@@ -84,17 +84,31 @@ class ToolCallValidator:
                         f"exceeds maximum {self.limits.max_parameter_value_size}"
                     )
             elif isinstance(param_value, (dict, list)):
-                try:
-                    serialized = json.dumps(param_value)
-                    if len(serialized) > self.limits.max_parameter_value_size:
-                        validation_errors.append(
-                            f"Parameter '{param_name}' serialized size exceeds "
-                            f"maximum {self.limits.max_parameter_value_size}"
-                        )
-                except (TypeError, ValueError):
-                    pass
+                serialized_size = self._serialized_param_size(param_value)
+                if (
+                    serialized_size is not None
+                    and serialized_size > self.limits.max_parameter_value_size
+                ):
+                    validation_errors.append(
+                        f"Parameter '{param_name}' serialized size exceeds "
+                        f"maximum {self.limits.max_parameter_value_size}"
+                    )
 
         return validation_errors
+
+    @staticmethod
+    def _serialized_param_size(param_value: Any) -> Optional[int]:
+        """Return compact JSON serialized size for dict/list parameter values."""
+        try:
+            # Compact separators avoid inflating payload sizes with whitespace.
+            serialized = json.dumps(
+                param_value,
+                separators=(",", ":"),
+                ensure_ascii=False,
+            )
+            return len(serialized)
+        except (TypeError, ValueError):
+            return None
 
     def _get_valid_tool_names(self) -> List[str]:
         raw_tool_names = self.tool_registry.get_tool_names() or []
