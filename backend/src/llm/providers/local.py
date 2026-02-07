@@ -44,6 +44,7 @@ class LocalLLMProvider(LLMProvider):
         super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
         self._http_client: Optional[httpx.AsyncClient] = None
         self._http_client_loop: Optional[asyncio.AbstractEventLoop] = None
+        self._http_client_lock = asyncio.Lock()
         # Register finalizer to clean up HTTP client on garbage collection
         # The finalizer will be called when 'self' is about to be garbage collected
         weakref.finalize(self, LocalLLMProvider._cleanup_http_client_finalizer, weakref.ref(self))
@@ -56,13 +57,15 @@ class LocalLLMProvider(LLMProvider):
         and keep-alive, reducing latency and preventing file descriptor exhaustion.
         """
         if self._http_client is None:
-            self._http_client = httpx.AsyncClient(timeout=self.timeout)
-            # Store event loop for cleanup finalizer
-            try:
-                self._http_client_loop = asyncio.get_running_loop()
-            except RuntimeError:
-                # No running loop, finalizer will handle cleanup if possible
-                self._http_client_loop = None
+            async with self._http_client_lock:
+                if self._http_client is None:
+                    self._http_client = httpx.AsyncClient(timeout=self.timeout)
+                    # Store event loop for cleanup finalizer
+                    try:
+                        self._http_client_loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        # No running loop, finalizer will handle cleanup if possible
+                        self._http_client_loop = None
         return self._http_client
 
     async def _close_http_client(self) -> None:
