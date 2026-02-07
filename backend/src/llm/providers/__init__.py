@@ -81,6 +81,10 @@ def _canonicalize_provider_urls(cfg: AppConfig) -> Tuple[str, str, str, str]:
         providers.kimi_coding.base_url if providers and providers.kimi_coding else None,
         "https://api.kimi.com/coding/v1",
     )
+    # Kimi provider accepts both .../coding and .../coding/v1; canonicalize to one
+    # to avoid duplicated provider-factory cache entries for equivalent configs.
+    if kimi_code_url.endswith("/v1"):
+        kimi_code_url = kimi_code_url[: -len("/v1")]
     
     return (ollama_url, lmstudio_url, openrouter_url, kimi_code_url)
 

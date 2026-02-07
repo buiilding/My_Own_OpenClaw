@@ -53,7 +53,7 @@ def test_canonicalize_provider_urls_normalizes_values():
         "http://ollama:11434/v1",
         "http://lmstudio:1234/v1",
         "https://openrouter.ai/api/v1",
-        "https://api.kimi.com/coding/v1",
+        "https://api.kimi.com/coding",
     )
 
 
@@ -95,6 +95,39 @@ def test_create_provider_factory_cache_key_ignores_url_trailing_slash(monkeypatc
     assert first_factory is second_factory
     assert first_factory["ollama"].kwargs["base_url"] == "http://localhost:11434/v1"
     assert first_factory["lmstudio"].kwargs["base_url"] == "http://localhost:1234/v1"
+
+
+def test_create_provider_factory_cache_key_normalizes_kimi_v1_suffix(monkeypatch):
+    providers_module._create_cached_provider_factory.cache_clear()
+    monkeypatch.setattr(providers_module, "OpenAIProvider", FakeProvider)
+    monkeypatch.setattr(providers_module, "GeminiProvider", FakeProvider)
+    monkeypatch.setattr(providers_module, "AnthropicProvider", FakeProvider)
+    monkeypatch.setattr(providers_module, "OpenRouterProvider", FakeProvider)
+    monkeypatch.setattr(providers_module, "MistralProvider", FakeProvider)
+    monkeypatch.setattr(providers_module, "KimiCodingProvider", FakeProvider)
+    monkeypatch.setattr(providers_module, "OllamaProvider", FakeProvider)
+    monkeypatch.setattr(providers_module, "LMStudioProvider", FakeProvider)
+
+    cfg_with_v1 = AppConfig(
+        api_key="k",
+        llm_timeout=30,
+        llm_providers=LLMProviders(
+            kimi_coding=KimiCodingConfig(base_url="https://api.kimi.com/coding/v1"),
+        ),
+    )
+    cfg_without_v1 = AppConfig(
+        api_key="k",
+        llm_timeout=30,
+        llm_providers=LLMProviders(
+            kimi_coding=KimiCodingConfig(base_url="https://api.kimi.com/coding"),
+        ),
+    )
+
+    first_factory = providers_module.create_provider_factory(cfg_with_v1)
+    second_factory = providers_module.create_provider_factory(cfg_without_v1)
+
+    assert first_factory is second_factory
+    assert first_factory["kimi-coding"].kwargs["base_url"] == "https://api.kimi.com/coding"
 
 
 def test_get_provider_accepts_kimi_alias(monkeypatch):
