@@ -102,6 +102,8 @@ class VisionService:
 
             except Exception as e:
                 self._initialization_error = str(e)
+                self._model = None
+                self._initialized = False
                 logger.error(f"Failed to initialize vision service: {e}", exc_info=True)
                 return False
 

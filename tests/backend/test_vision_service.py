@@ -65,6 +65,27 @@ async def test_initialize_builds_model_and_marks_service_ready(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_initialize_failure_resets_model_state(monkeypatch):
+    monkeypatch.setattr(vision_service_module, "VISION_MODELS_AVAILABLE", True)
+    service = VisionService(model_name="OpenGVLab/InternVL3_5-4B")
+    service._model = object()
+    service._initialized = True
+
+    def fail_build():
+        raise RuntimeError("build failed")
+
+    monkeypatch.setattr(service, "_build_model_instance", fail_build)
+
+    assert await service.initialize() is True  # already initialized short-circuit
+
+    service._initialized = False
+    assert await service.initialize() is False
+    assert service.is_initialized is False
+    assert service.model is None
+    assert service.initialization_error == "build failed"
+
+
+@pytest.mark.asyncio
 async def test_unload_model_clears_state_and_calls_cleanup_hooks(monkeypatch):
     service = VisionService()
     service._initialized = True
