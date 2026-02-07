@@ -24,6 +24,12 @@ def test_normalize_base_url_strips_whitespace_and_trailing_slash():
     assert providers_module._normalize_base_url("/", "http://default") == "http://default"
 
 
+def test_normalize_provider_name_handles_aliases_and_spacing():
+    assert providers_module._normalize_provider_name(" KIMI_CODE ") == "kimi-coding"
+    assert providers_module._normalize_provider_name("kimi code") == "kimi-coding"
+    assert providers_module._normalize_provider_name("OpenAI") == "openai"
+
+
 def test_safe_timeout_conversion_enforces_limits_and_defaults():
     assert providers_module._safe_timeout_conversion("5") == 5.0
     assert providers_module._safe_timeout_conversion(0.25, default=9.0) == 9.0
