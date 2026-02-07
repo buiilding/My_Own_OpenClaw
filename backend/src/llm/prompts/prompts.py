@@ -47,23 +47,21 @@ class PromptManager:
         Raises:
             RuntimeError: If the prompt file cannot be loaded (missing, permission error, etc.)
         """
-        # Fast path: already initialized (no lock needed for read)
-        if self._system_prompt is not None:
-            return  # Already initialized
-        
-        # Slow path: need to initialize (acquire lock)
-        with self._lock:
-            # Double-check pattern: another thread may have initialized while we waited
-            if self._system_prompt is not None:
-                return  # Already initialized by another thread
-        
         if prompt_file_path is None:
             # Default to file in the same directory
             prompt_file_path = Path(__file__).parent / "system_prompt.txt"
-        
+
+        # Hold lock during entire initialization to avoid duplicate file reads
+        # during concurrent startup paths.
+        with self._lock:
+            if self._system_prompt is not None:
+                return
+            self._system_prompt = self._load_and_format_prompt(prompt_file_path)
+
+    def _load_and_format_prompt(self, prompt_file_path: Path) -> str:
+        """Load prompt template from disk and replace runtime placeholders."""
         try:
-            with open(prompt_file_path, "r", encoding="utf-8") as f:
-                template = f.read()
+            template = prompt_file_path.read_text(encoding="utf-8")
             
             # Validate file is not empty
             if not template or not template.strip():
@@ -74,7 +72,7 @@ class PromptManager:
             
             # Replace placeholders
             current_os = platform.system()
-            self._system_prompt = template.replace("{os}", current_os)
+            return template.replace("{os}", current_os)
         except FileNotFoundError:
             raise RuntimeError(
                 f"CRITICAL: System prompt file not found: {prompt_file_path}. "
@@ -126,4 +124,3 @@ def get_system_prompt() -> str:
 # NOTE: Do NOT create a module-level SYSTEM_PROMPT constant.
 # This would cause import-time crashes if PromptManager is not initialized.
 # Consumers must call get_system_prompt() at runtime.
-
