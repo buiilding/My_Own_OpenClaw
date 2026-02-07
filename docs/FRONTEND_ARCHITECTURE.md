@@ -168,6 +168,7 @@ App
 - Main chat interface
 - Orchestrates message display and input
 - Wakeword detection integration
+- Validates backend audio-chunk payloads before enqueueing playback data
 
 **MessageList.jsx**
 - Displays chat messages
