@@ -8,6 +8,17 @@ import { AppConfigContext } from './AppConfigContext';
 import { updateTranscriptSession } from '../../infrastructure/transcript/TranscriptWriter';
 import { hasShallowConfigChanges } from './configComparison';
 
+function logConfigInfo(message, ...args) {
+  if (
+    typeof process !== 'undefined' &&
+    process.env &&
+    process.env.NODE_ENV === 'test'
+  ) {
+    return;
+  }
+  console.log(message, ...args);
+}
+
 /**
  * AppConfigProvider - Manages application configuration and capabilities.
  *
@@ -59,7 +70,7 @@ export function AppConfigProvider({ children }) {
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, onBackendEvent);
-    console.log('[Config] Requesting available models...');
+    logConfigInfo('[Config] Requesting available models...');
     IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
 
     return () => {
@@ -118,15 +129,15 @@ export function AppConfigProvider({ children }) {
     const filteredConfig = sanitizeConfig(filterFrontendConfig(newConfig));
 
     if (!hasShallowConfigChanges(config, filteredConfig)) {
-      console.log('[Settings Update] No changes detected, skipping save');
+      logConfigInfo('[Settings Update] No changes detected, skipping save');
       return;
     }
 
-    console.log('[Settings Update] Updating config and saving to localStorage...');
+    logConfigInfo('[Settings Update] Updating config and saving to localStorage...');
     setConfig(filteredConfig);
 
     saveConfigToStorage(filteredConfig, Date.now());
-    console.log('[Settings Update] Config saved to localStorage');
+    logConfigInfo('[Settings Update] Config saved to localStorage');
     IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, filteredConfig).catch((error) => {
       console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
     });
