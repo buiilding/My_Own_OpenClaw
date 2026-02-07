@@ -257,11 +257,7 @@ class PromptConstructor:
         NOTE: For production usage with hostile input, consider using a proper
         XML parser (lxml or defusedxml) which handles all edge cases correctly.
         """
-        # SECURITY: Limit search to reasonable size
-        max_search_size = min(len(content), self.limits.max_message_content_size)
-        search_content = content[:max_search_size]
-        
-        match = _xml_tag_pattern(tag_name).search(search_content)
+        match = self._search_xml_tag(content, tag_name)
         if not match:
             return ""
         
@@ -283,11 +279,7 @@ class PromptConstructor:
         
         SECURITY: Limits search space and validates extracted size.
         """
-        # SECURITY: Limit search to reasonable size
-        max_search_size = min(len(content), self.limits.max_message_content_size)
-        search_content = content[:max_search_size]
-        
-        match = _xml_tag_pattern(tag_name).search(search_content)
+        match = self._search_xml_tag(content, tag_name)
         if not match:
             return None
         
@@ -299,6 +291,12 @@ class PromptConstructor:
             return None  # Too large, reject
         
         return extracted.strip()
+
+    def _search_xml_tag(self, content: str, tag_name: str) -> Optional[re.Match[str]]:
+        """Search bounded content for a tag using cached compiled pattern."""
+        max_search_size = min(len(content), self.limits.max_message_content_size)
+        search_content = content[:max_search_size]
+        return _xml_tag_pattern(tag_name).search(search_content)
     
     def format_user_message_content(
         self,
