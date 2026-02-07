@@ -62,22 +62,11 @@ export async function extractOSstate(
       ]);
 
       const systemState = enable_system_state ? stateResult : null;
-      const screenshot =
-        enable_screenshot &&
-        screenshotResult.success &&
-        screenshotResult.data &&
-        typeof screenshotResult.data === 'object'
-          ? screenshotResult.data.screenshot || null
-          : null;
-      const screenshotContentType =
-        enable_screenshot &&
-        screenshotResult.success &&
-        screenshotResult.data &&
-        typeof screenshotResult.data === 'object'
-          ? resolveScreenshotContentType(screenshotResult.data)
-          : null;
+      const screenshotData = enable_screenshot
+        ? extractScreenshotData(screenshotResult)
+        : { screenshot: null, screenshotContentType: null };
 
-      return { systemState, screenshot, screenshotContentType };
+      return { systemState, screenshot: screenshotData.screenshot, screenshotContentType: screenshotData.screenshotContentType };
     } catch (err) {
       console.error(
         `[extractOSstate] Failed to extract OS state (first user message):`,
@@ -124,18 +113,9 @@ export async function extractOSstate(
 
     if (enable_screenshot) {
       const screenshotResult = results[resultIndex];
-      screenshot =
-        screenshotResult.success &&
-        screenshotResult.data &&
-        typeof screenshotResult.data === 'object'
-          ? screenshotResult.data.screenshot || null
-          : null;
-      screenshotContentType =
-        screenshotResult.success &&
-        screenshotResult.data &&
-        typeof screenshotResult.data === 'object'
-          ? resolveScreenshotContentType(screenshotResult.data)
-          : null;
+      const screenshotData = extractScreenshotData(screenshotResult);
+      screenshot = screenshotData.screenshot;
+      screenshotContentType = screenshotData.screenshotContentType;
     }
 
     return { systemState, screenshot, screenshotContentType };
@@ -154,4 +134,19 @@ function resolveScreenshotContentType(data: Record<string, any>): string | null 
     return 'image/png';
   }
   return null;
+}
+
+function extractScreenshotData(result: ToolResult): {
+  screenshot: string | null;
+  screenshotContentType: string | null;
+} {
+  if (!result.success || !result.data || typeof result.data !== 'object') {
+    return { screenshot: null, screenshotContentType: null };
+  }
+
+  const screenshot = typeof result.data.screenshot === 'string'
+    ? result.data.screenshot
+    : null;
+  const screenshotContentType = resolveScreenshotContentType(result.data);
+  return { screenshot, screenshotContentType };
 }
