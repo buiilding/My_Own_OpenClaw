@@ -21,6 +21,9 @@ read_when:
 - **Lazy Settings Panel**: Settings UI is loaded lazily.
 - **Voice audio encoding reuse**: shared PCM conversion helpers in `frontend/src/renderer/features/voice/utils/audioEncoding.ts` remove duplicate per-hook logic.
 - **Gateway metadata prefix cache**: voice packet framing caches metadata prefixes by sample rate to avoid JSON/string encoding work on every audio chunk.
+- **Chat hook selector subscriptions**: `useChatStream` and `useChatMessageSender` subscribe to store actions via selectors to avoid rerenders from unrelated state updates.
+- **Chat store no-op updates**: `updateMessage` now preserves state identity when message IDs are missing, preventing unnecessary state churn.
+- **Config startup dedupe**: `AppConfigProvider` skips disk-sync writes and backend settings updates when loaded config matches the in-memory config.
 
 ## Sidecar
 
