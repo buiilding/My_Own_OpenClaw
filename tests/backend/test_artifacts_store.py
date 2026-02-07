@@ -123,6 +123,17 @@ def test_artifact_store_load_base64(tmp_path) -> None:
     assert encoded == base64.b64encode(data).decode("utf-8")
 
 
+def test_artifact_store_load_base64_enforces_max_bytes(tmp_path) -> None:
+    store = ArtifactStore(tmp_path, max_bytes=4)
+    path = tmp_path / "abc123.png"
+    path.write_bytes(b"12345")
+
+    with pytest.raises(HTTPException) as exc_info:
+        store.load_base64("abc123.png")
+
+    assert exc_info.value.status_code == 413
+
+
 @pytest.mark.asyncio
 async def test_artifact_store_cleans_up_partial_file_on_read_failure(tmp_path, monkeypatch) -> None:
     store = ArtifactStore(tmp_path, max_bytes=1024)
