@@ -3,6 +3,15 @@ import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructu
 import { useChatStream } from '../../frontend/src/renderer/features/chat/hooks/useChatStream';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
+jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
+  useAppConfigContext: () => ({
+    config: {
+      selected_model_id: 'test-model',
+      model_provider: 'test-provider',
+    },
+  }),
+}));
+
 describe('useChatStream', () => {
   beforeEach(() => {
     useChatStore.setState({
