@@ -61,6 +61,7 @@ frontend/src/renderer/
 │   │       ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
 │   │       ├── chatBoxPresentation.js   # chatBoxPresentation - Status/label/preview derivation for ChatBox
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
+│   │       ├── chatStreamEventUtils.ts  # chatStreamEventUtils - Screenshot attachment, error filtering/text, and correlation-id event helpers
 │   │       ├── chatStreamFormatting.ts  # chatStreamFormatting - Thought/tool message formatting helpers
 │   │       ├── messageInput.js          # messageInput - Input normalization helper before send dispatch
 │   │       ├── messageListClasses.js    # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
