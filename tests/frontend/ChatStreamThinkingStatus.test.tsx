@@ -13,6 +13,24 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
 }));
 
 describe('useChatStream', () => {
+  const registerBackendListener = () => {
+    const handlers: Record<string, (data: unknown) => void> = {};
+    jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
+      handlers[channel] = handler;
+      return () => {};
+    });
+
+    renderHook(() => useChatStream());
+
+    const emitBackendEvent = (event: unknown) => {
+      const backendHandler = handlers[ON_CHANNELS.FROM_BACKEND];
+      expect(backendHandler).toEqual(expect.any(Function));
+      backendHandler(event);
+    };
+
+    return { emitBackendEvent };
+  };
+
   beforeEach(() => {
     useChatStore.setState({
       messages: [
@@ -29,17 +47,11 @@ describe('useChatStream', () => {
   });
 
   test('clears thinking status on streaming response', () => {
-    const onHandlers = {};
-    jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
-      onHandlers[channel] = handler;
-      return () => {};
-    });
-
-    renderHook(() => useChatStream());
+    const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
       useChatStore.setState({ thinkingStatus: 'thinking' });
-      onHandlers[ON_CHANNELS.FROM_BACKEND]({
+      emitBackendEvent({
         type: 'streaming-response',
         payload: { text: 'hi' },
       });
@@ -49,17 +61,11 @@ describe('useChatStream', () => {
   });
 
   test('clears thinking status on tool call', () => {
-    const onHandlers = {};
-    jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
-      onHandlers[channel] = handler;
-      return () => {};
-    });
-
-    renderHook(() => useChatStream());
+    const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
       useChatStore.setState({ thinkingStatus: 'thinking' });
-      onHandlers[ON_CHANNELS.FROM_BACKEND]({
+      emitBackendEvent({
         type: 'tool-call',
         payload: { tool_name: 'screenshot', parameters: {} },
       });
@@ -69,17 +75,11 @@ describe('useChatStream', () => {
   });
 
   test('clears thinking status on streaming complete', () => {
-    const onHandlers = {};
-    jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
-      onHandlers[channel] = handler;
-      return () => {};
-    });
-
-    renderHook(() => useChatStream());
+    const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
       useChatStore.setState({ thinkingStatus: 'thinking' });
-      onHandlers[ON_CHANNELS.FROM_BACKEND]({
+      emitBackendEvent({
         type: 'streaming-complete',
         payload: {},
       });
@@ -89,16 +89,10 @@ describe('useChatStream', () => {
   });
 
   test('adds local user message to store', () => {
-    const onHandlers = {};
-    jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
-      onHandlers[channel] = handler;
-      return () => {};
-    });
-
-    renderHook(() => useChatStream());
+    const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      onHandlers[ON_CHANNELS.FROM_BACKEND]({
+      emitBackendEvent({
         type: 'local-user-message',
         payload: { text: 'hello from chatbox', screenshot: null },
       });
@@ -108,5 +102,77 @@ describe('useChatStream', () => {
     const last = messages[messages.length - 1];
     expect(last.sender).toBe('user');
     expect(last.text).toBe('hello from chatbox');
+  });
+
+  test('updates token counts from token-count events', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'token-count',
+        payload: {
+          prompt_tokens: 12,
+          completion_tokens: 5,
+          total_tokens: 17,
+        },
+      });
+    });
+
+    expect(useChatStore.getState().tokenCounts).toEqual({
+      prompt_tokens: 12,
+      completion_tokens: 5,
+      total_tokens: 17,
+    });
+  });
+
+  test('ignores benign settings update errors', () => {
+    const { emitBackendEvent } = registerBackendListener();
+    act(() => {
+      useChatStore.setState({
+        isSending: true,
+        thinkingStatus: 'thinking',
+        messages: [{ id: 'init', text: 'Hello!', sender: 'assistant' }],
+      });
+    });
+
+    act(() => {
+      emitBackendEvent({
+        type: 'error',
+        payload: {
+          message: 'Failed to update settings: timeout',
+        },
+      });
+    });
+
+    expect(useChatStore.getState().isSending).toBe(true);
+    expect(useChatStore.getState().thinkingStatus).toBe('thinking');
+    expect(useChatStore.getState().messages).toHaveLength(1);
+  });
+
+  test('handles real errors even when error text is in payload content', () => {
+    const { emitBackendEvent } = registerBackendListener();
+    act(() => {
+      useChatStore.setState({ isSending: true, thinkingStatus: 'thinking' });
+    });
+
+    act(() => {
+      emitBackendEvent({
+        type: 'error',
+        payload: {
+          content: 'Gateway request failed',
+        },
+      });
+    });
+
+    const state = useChatStore.getState();
+    expect(state.isSending).toBe(false);
+    expect(state.thinkingStatus).toBe('');
+    expect(state.messages.at(-1)).toEqual(
+      expect.objectContaining({
+        sender: 'assistant',
+        type: 'error',
+        text: 'Gateway request failed',
+      }),
+    );
   });
 });

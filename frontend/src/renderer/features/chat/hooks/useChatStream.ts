@@ -34,6 +34,17 @@ import {
   isBackendEvent,
 } from '../../../types/backendEvents';
 
+const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
+
+function shouldIgnoreErrorEvent(event: ErrorEvent): boolean {
+  const message = event.payload?.message;
+  const content = event.payload?.content;
+  return (
+    (typeof message === 'string' && message.includes(SETTINGS_UPDATE_ERROR_TEXT))
+    || (typeof content === 'string' && content.includes(SETTINGS_UPDATE_ERROR_TEXT))
+  );
+}
+
 /**
  * Custom hook for managing streaming message responses.
  * Handles LLM thoughts, streaming chunks, and completion states.
@@ -331,7 +342,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     'tool-schemas': event => handleToolSchemas(event as ToolSchemasEvent),
     'error': event => {
       const errorEvent = event as ErrorEvent;
-      if (!errorEvent.payload?.message?.includes('Failed to update settings')) {
+      if (!shouldIgnoreErrorEvent(errorEvent)) {
         handleError(errorEvent);
       }
     },
