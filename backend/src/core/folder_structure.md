@@ -249,6 +249,9 @@ WebSocket Response
 - Tool-name whitelist normalization in `parser_validation.py` now uses a direct
   sorted-set path after type filtering, reducing per-parse overhead while
   preserving deterministic validation error ordering.
+- `llm/providers/base.py` now centralizes iterable-safe first-choice extraction
+  for both stream deltas and completion payloads, including malformed scalar
+  payload guards at provider trust boundaries.
 - Tool waiting lifecycle responsibilities are concentrated in
   `backend/src/agent/tools/waiting/` with explicit handler/receiver/router/storage
   separation to reduce cross-layer coupling in session code.
