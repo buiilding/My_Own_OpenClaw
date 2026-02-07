@@ -2,21 +2,14 @@ import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
-
-function resolveInlineScreenshotContentType(contentType) {
-  const normalized = (contentType || '').toLowerCase();
-  if (normalized.includes('png')) {
-    return 'image/png';
-  }
-  return 'image/jpeg';
-}
+import { normalizeArtifactImageContentType } from '../../../infrastructure/services/ArtifactImageUtils';
 
 function resolveMessageScreenshotSrc(message) {
   if (message.screenshotUrl) {
     return message.screenshotUrl;
   }
   if (message.screenshot) {
-    const contentType = resolveInlineScreenshotContentType(message.screenshotContentType);
+    const contentType = normalizeArtifactImageContentType(message.screenshotContentType);
     return `data:${contentType};base64,${message.screenshot}`;
   }
   return null;
