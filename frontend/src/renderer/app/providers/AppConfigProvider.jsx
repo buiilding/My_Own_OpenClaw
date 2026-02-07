@@ -99,6 +99,9 @@ export function AppConfigProvider({ children }) {
       if (Object.keys(filteredConfig).length === 0) {
         return;
       }
+      if (!hasShallowConfigChanges(config, filteredConfig)) {
+        return;
+      }
       setConfig(filteredConfig);
       saveConfigToStorage(filteredConfig, Date.now());
       ApiClient.updateSettings(filteredConfig);
