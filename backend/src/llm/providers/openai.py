@@ -64,10 +64,10 @@ class OpenAIProvider(LLMProvider):
         params["stream"] = True
         stream = await litellm.acompletion(**params)
         async for chunk in stream:
-            if chunk and chunk.choices and chunk.choices[0].delta:
-                content = chunk.choices[0].delta.content
-                if content:
-                    yield ChunkEvent(content=content)
+            delta = self._extract_stream_delta(chunk)
+            content = self._extract_delta_content(delta)
+            if content:
+                yield ChunkEvent(content=content)
 
     async def list_models(self) -> List[Dict[str, str]]:
         """

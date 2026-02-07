@@ -228,6 +228,32 @@ class LLMProvider(ABC):
         return None
 
     @staticmethod
+    def _extract_stream_delta(chunk: Any) -> Optional[Any]:
+        """Extract stream delta payload from one LiteLLM stream chunk."""
+        if not chunk:
+            return None
+        choices = getattr(chunk, "choices", None)
+        if not choices:
+            return None
+        first_choice = choices[0] if len(choices) > 0 else None
+        if not first_choice:
+            return None
+        return getattr(first_choice, "delta", None)
+
+    @staticmethod
+    def _extract_delta_content(delta: Any) -> Optional[str]:
+        """Extract textual content from a stream delta payload."""
+        if not delta:
+            return None
+        if isinstance(delta, dict):
+            content = delta.get("content")
+        else:
+            content = getattr(delta, "content", None)
+        if isinstance(content, str) and content:
+            return content
+        return None
+
+    @staticmethod
     def _extract_tagged_thinking_from_content(delta: Any) -> Optional[str]:
         """Extract <thinking>...</thinking> segments from delta.content fields."""
         raw_content = None

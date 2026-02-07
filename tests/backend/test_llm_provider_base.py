@@ -1,6 +1,7 @@
 """Tests for LLMProvider base class."""
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+from types import SimpleNamespace
 
 from backend.src.llm.providers.base import LLMProvider
 from backend.src.core.events.streaming_events import (
@@ -244,6 +245,29 @@ class TestExtractThinkingContent:
         result = provider._extract_thinking_content({})
         
         assert result is None
+
+
+class TestStreamDeltaHelpers:
+    @pytest.fixture
+    def provider(self):
+        return MockProvider()
+
+    def test_extract_stream_delta_returns_none_for_invalid_chunks(self, provider):
+        assert provider._extract_stream_delta(None) is None
+        assert provider._extract_stream_delta(SimpleNamespace(choices=[])) is None
+        assert provider._extract_stream_delta(SimpleNamespace(choices=[SimpleNamespace(delta=None)])) is None
+
+    def test_extract_stream_delta_returns_delta_for_valid_chunk(self, provider):
+        delta = SimpleNamespace(content="hello")
+        chunk = SimpleNamespace(choices=[SimpleNamespace(delta=delta)])
+
+        assert provider._extract_stream_delta(chunk) is delta
+
+    def test_extract_delta_content_supports_object_and_dict_delta(self, provider):
+        assert provider._extract_delta_content(SimpleNamespace(content="hello")) == "hello"
+        assert provider._extract_delta_content({"content": "world"}) == "world"
+        assert provider._extract_delta_content({"content": ""}) is None
+        assert provider._extract_delta_content({"content": 123}) is None
 
 
 class TestGetCompletionStream:

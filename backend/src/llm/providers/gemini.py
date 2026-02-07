@@ -69,15 +69,15 @@ class GeminiProvider(LLMProvider):
         params["stream"] = True
         stream = await litellm.acompletion(**params)
         async for chunk in stream:
-            if not chunk or not chunk.choices or not chunk.choices[0].delta:
+            delta = self._extract_stream_delta(chunk)
+            if not delta:
                 continue
 
-            delta = chunk.choices[0].delta
             thinking_content = self._extract_thinking_content(delta)
             if thinking_content:
                 yield ThinkingEvent(content=thinking_content)
 
-            content = getattr(delta, "content", None)
+            content = self._extract_delta_content(delta)
             if content:
                 yield ChunkEvent(content=content)
 
