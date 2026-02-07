@@ -79,6 +79,24 @@ def test_count_tokens_normalizes_object_message_for_litellm(monkeypatch):
     assert captured["messages"] == [{"role": "assistant", "content": "hello world"}]
 
 
+def test_count_tokens_normalizes_partial_dict_without_mutating_input(monkeypatch):
+    captured = {}
+
+    def fake_counter(*, model, messages, use_default_image_token_count):
+        captured["messages"] = messages
+        return 3
+
+    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+    original = {"content": "hello"}
+
+    result = TokenService.count_tokens([original], model="gpt-4o-mini")
+
+    assert result == 3
+    assert original == {"content": "hello"}
+    assert captured["messages"] == [{"role": "user", "content": "hello"}]
+    assert captured["messages"][0] is not original
+
+
 def test_get_token_service_singleton_thread_safe(monkeypatch):
     creation_count = {"value": 0}
     barrier = threading.Barrier(16)
