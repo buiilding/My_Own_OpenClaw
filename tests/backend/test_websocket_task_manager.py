@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import logging
 import sys
 import types
@@ -30,6 +31,9 @@ async def test_create_task_if_under_limit_enforces_max_concurrency() -> None:
     async def long_running() -> None:
         await blocker.wait()
 
+    async def overflow_task() -> None:
+        await asyncio.sleep(0)
+
     first_task, first_limit_exceeded = await manager.create_task_if_under_limit(
         long_running(), "user_1"
     )
@@ -37,15 +41,14 @@ async def test_create_task_if_under_limit_enforces_max_concurrency() -> None:
     assert first_task is not None
     assert first_limit_exceeded is False
 
-    second_coro = asyncio.sleep(0)
+    second_coro = overflow_task()
     second_task, second_limit_exceeded = await manager.create_task_if_under_limit(
         second_coro, "user_1"
     )
-    if second_limit_exceeded:
-        second_coro.close()
 
     assert second_task is None
     assert second_limit_exceeded is True
+    assert inspect.getcoroutinestate(second_coro) == inspect.CORO_CLOSED
 
     blocker.set()
     await first_task

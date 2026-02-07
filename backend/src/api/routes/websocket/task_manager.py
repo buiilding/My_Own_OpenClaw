@@ -68,6 +68,13 @@ class TaskManager:
             except RuntimeError:
                 # Set is being iterated - ignore (cleanup will handle it)
                 pass
+
+    @staticmethod
+    def _close_if_coroutine(coro) -> None:
+        """Close rejected coroutine inputs to avoid RuntimeWarning leaks."""
+        close = getattr(coro, "close", None)
+        if callable(close):
+            close()
     
     async def create_task_if_under_limit(
         self, 
@@ -86,6 +93,7 @@ class TaskManager:
         """
         async with self.tasks_lock:
             if len(self.active_tasks) >= self.max_concurrent_tasks:
+                self._close_if_coroutine(coro)
                 return None, True
             
             # Create task and add to set atomically within lock
