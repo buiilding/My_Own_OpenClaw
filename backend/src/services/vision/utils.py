@@ -4,6 +4,7 @@ Vision service utilities.
 from typing import Optional
 
 DEFAULT_VISION_MODEL = "OpenGVLab/InternVL3_5-4B"
+_HF_LOCAL_PREFIX = "huggingface-local/"
 
 
 def normalize_model_name(model_name: Optional[str]) -> str:
@@ -23,4 +24,6 @@ def normalize_model_name(model_name: Optional[str]) -> str:
     if not normalized:
         return DEFAULT_VISION_MODEL
 
-    return normalized.removeprefix("huggingface-local/")
+    if normalized.casefold().startswith(_HF_LOCAL_PREFIX):
+        return normalized[len(_HF_LOCAL_PREFIX):]
+    return normalized
