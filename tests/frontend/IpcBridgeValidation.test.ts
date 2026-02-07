@@ -15,7 +15,7 @@ describe('IpcBridge validation', () => {
     delete (window as any).ipc;
   });
 
-  test('throws on invalid channels in development', () => {
+  test('throws on invalid channels in development', async () => {
     process.env.NODE_ENV = 'development';
     jest.resetModules();
     setupIpc();
@@ -24,6 +24,9 @@ describe('IpcBridge validation', () => {
 
     expect(() => IpcBridge.send('bad-channel' as any, {})).toThrow(
       'Invalid send channel',
+    );
+    await expect(IpcBridge.invoke('bad-channel' as any, {})).rejects.toThrow(
+      'Invalid invoke channel',
     );
     expect(() => IpcBridge.on('bad-channel' as any, jest.fn())).toThrow(
       'Invalid on channel',
