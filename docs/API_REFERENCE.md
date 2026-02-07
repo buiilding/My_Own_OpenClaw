@@ -192,6 +192,73 @@ Send a user query with optional screenshot.
 }
 ```
 
+### Frontend Tool Schemas Message (Planned)
+
+Send frontend runtime tool schemas after handshake so backend can build prompt/tool validation from the active client catalog.
+
+**Type**: `frontend-tool-schemas`
+
+**Payload**:
+```json
+{
+  "schema_version": "2026-02-07",
+  "catalog_revision": 1,
+  "client_build": "frontend@1.3.0",
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read a UTF-8 text file from disk",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" }
+        },
+        "required": ["path"]
+      },
+      "execution": {
+        "surface": "frontend-sidecar",
+        "enabled": true
+      }
+    }
+  ]
+}
+```
+
+**Response**: `frontend-tool-schemas-accepted`
+
+**Status**: Planned. Not implemented yet.
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174024",
+  "type": "frontend-tool-schemas",
+  "payload": {
+    "schema_version": "2026-02-07",
+    "catalog_revision": 1,
+    "client_build": "frontend@1.3.0",
+    "tools": [
+      {
+        "name": "read_file",
+        "description": "Read a UTF-8 text file from disk",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": { "type": "string" }
+          },
+          "required": ["path"]
+        },
+        "execution": {
+          "surface": "frontend-sidecar",
+          "enabled": true
+        }
+      }
+    ]
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
 ### Load Settings Message
 
 Request current application settings.
@@ -934,6 +1001,47 @@ Token usage information for the current interaction.
 }
 ```
 
+### Frontend Tool Schemas Accepted Message (Planned)
+
+Acknowledgment after backend validates and stores a frontend-sent tool catalog for the current session.
+
+**Type**: `frontend-tool-schemas-accepted`
+
+**Payload**:
+```json
+{
+  "catalog_revision": 1,
+  "accepted_tools": ["read_file"],
+  "rejected_tools": [
+    {
+      "name": "danger_tool",
+      "reason": "policy_denied"
+    }
+  ]
+}
+```
+
+**Status**: Planned. Not implemented yet.
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174025",
+  "type": "frontend-tool-schemas-accepted",
+  "payload": {
+    "catalog_revision": 1,
+    "accepted_tools": ["read_file"],
+    "rejected_tools": [
+      {
+        "name": "danger_tool",
+        "reason": "policy_denied"
+      }
+    ]
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
 ## Error Codes
 
 ### Common Error Codes (Internal)
@@ -976,6 +1084,19 @@ On connection, client sends handshake (server assigns `user_id` for the connecti
 }
 ```
 
+### Post-Handshake Tool Catalog Sync (Planned)
+
+After handshake, client may send `frontend-tool-schemas` before first `query`. During migration:
+- If schema sync is supported, backend responds with `frontend-tool-schemas-accepted` and uses the accepted catalog for that session.
+- If schema sync is not supported, clients continue using legacy flow (backend-owned remote schema catalog).
+
+Planned sequence:
+1. Connect WebSocket
+2. Send `handshake`
+3. Send `frontend-tool-schemas` (planned)
+4. Receive `frontend-tool-schemas-accepted` (planned)
+5. Send `query`
+
 ### Reconnection
 
 - Auto-reconnect on disconnect
@@ -1004,3 +1125,4 @@ For more detailed information, see:
 - [Communication Flow](COMMUNICATION_FLOW.md)
 - [Backend Architecture](BACKEND_ARCHITECTURE.md)
 - [Frontend Architecture](FRONTEND_ARCHITECTURE.md)
+- [ADR 005: Frontend-Sourced Tool Schemas](adr/005-frontend-tool-schema-source-of-truth.md)
