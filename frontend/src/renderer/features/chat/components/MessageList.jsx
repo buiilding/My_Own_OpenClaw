@@ -3,14 +3,11 @@ import PropTypes from 'prop-types';
 import ThinkingDisplay from './ThinkingDisplay';
 import MessageContent from './MessageContent';
 import MessageTransparencySections from './MessageTransparencySections';
-import { hasMessageScreenshot } from '../utils/messageScreenshots';
+import { buildMessageClassName } from '../utils/messageListClasses';
 import '../../../styles/ThinkingDisplay.css';
 
 const MessageItem = memo(function MessageItem({ message }) {
-  const hasScreenshot = hasMessageScreenshot(message);
-  const messageClass = `message message-${message.sender} ${
-    message.sender === 'assistant' && message.isComplete === false ? 'message-streaming' : ''
-  } ${message.type ? `message-type-${message.type}` : ''} ${hasScreenshot ? 'message-has-screenshot' : ''}`;
+  const messageClass = buildMessageClassName(message);
 
   return (
     <div className={messageClass}>
