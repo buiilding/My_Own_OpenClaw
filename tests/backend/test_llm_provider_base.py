@@ -265,6 +265,18 @@ class TestStreamDeltaHelpers:
 
         assert provider._extract_stream_delta(chunk) is delta
 
+    def test_extract_stream_delta_supports_tuple_choices(self, provider):
+        delta = SimpleNamespace(content="hello")
+        chunk = SimpleNamespace(choices=(SimpleNamespace(delta=delta),))
+
+        assert provider._extract_stream_delta(chunk) is delta
+
+    def test_extract_stream_delta_supports_iterable_choices(self, provider):
+        delta = SimpleNamespace(content="hello")
+        chunk = SimpleNamespace(choices=iter([SimpleNamespace(delta=delta)]))
+
+        assert provider._extract_stream_delta(chunk) is delta
+
     def test_extract_delta_content_supports_object_and_dict_delta(self, provider):
         assert provider._extract_delta_content(SimpleNamespace(content="hello")) == "hello"
         assert provider._extract_delta_content({"content": "world"}) == "world"
