@@ -1,0 +1,155 @@
+import {
+  buildBundleOutputMessage,
+  buildToolOutputMessage,
+  buildTranscriptMetadata,
+  mapBundleTools,
+  resolveToolCallCorrelationId,
+} from '../../frontend/src/renderer/features/chat/utils/toolRunnerMessages';
+
+describe('toolRunnerMessages', () => {
+  test('buildToolOutputMessage maps tool result fields and metadata', () => {
+    const uuidSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('msg-1');
+
+    const message = buildToolOutputMessage({
+      toolName: 'read_file',
+      formattedMessage: 'tool output',
+      executionTime: 1.23,
+      correlationId: 'corr-1',
+      screenshotRef: 'artifact-1',
+      screenshotUrl: 'https://example.com/shot.png',
+      result: {
+        success: true,
+        data: {
+          output: 'ok',
+          metadata: { rows: 2 },
+        },
+      },
+    } as any);
+
+    expect(message).toEqual({
+      id: 'msg-1',
+      text: 'tool output',
+      sender: 'assistant',
+      type: 'tool-output',
+      screenshotRef: 'artifact-1',
+      screenshotUrl: 'https://example.com/shot.png',
+      toolMetadata: { rows: 2 },
+      toolName: 'read_file',
+      executionTime: 1.23,
+      success: true,
+      correlationId: 'corr-1',
+    });
+
+    uuidSpy.mockRestore();
+  });
+
+  test('buildToolOutputMessage falls back to null screenshot and metadata', () => {
+    const uuidSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('msg-2');
+
+    const message = buildToolOutputMessage({
+      toolName: 'read_file',
+      formattedMessage: 'tool output',
+      executionTime: 0.5,
+      correlationId: 'corr-2',
+      screenshotRef: '',
+      screenshotUrl: '',
+      result: {
+        success: false,
+        data: 'not-an-object',
+      },
+    } as any);
+
+    expect(message.screenshotRef).toBeNull();
+    expect(message.screenshotUrl).toBeNull();
+    expect(message.toolMetadata).toBeNull();
+    expect(message.success).toBe(false);
+    uuidSpy.mockRestore();
+  });
+
+  test('buildBundleOutputMessage builds bundled metadata and success flag', () => {
+    const uuidSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('bundle-1');
+
+    const successMessage = buildBundleOutputMessage({
+      formattedMessage: 'bundle output',
+      screenshotRef: null,
+      screenshotUrl: null,
+      totalTime: 2.5,
+      correlationId: 'corr-bundle',
+      results: [
+        { tool_name: 'a', success: true, error: null },
+        { tool_name: 'b', success: true, error: null },
+      ],
+    } as any);
+
+    expect(successMessage.toolName).toBe('bundled_tools (2 tools)');
+    expect(successMessage.success).toBe(true);
+    expect(successMessage.toolMetadata).toEqual({
+      bundled: true,
+      tool_count: 2,
+      tools: [
+        { tool_name: 'a', success: true, error: null },
+        { tool_name: 'b', success: true, error: null },
+      ],
+    });
+
+    const failedMessage = buildBundleOutputMessage({
+      formattedMessage: 'bundle output',
+      screenshotRef: null,
+      screenshotUrl: null,
+      totalTime: 1,
+      correlationId: 'corr-bundle-2',
+      results: [
+        { tool_name: 'a', success: true, error: null },
+        { tool_name: 'b', success: false, error: 'nope' },
+      ],
+    } as any);
+    expect(failedMessage.success).toBe(false);
+
+    uuidSpy.mockRestore();
+  });
+
+  test('buildTranscriptMetadata normalizes screenshotRef', () => {
+    expect(
+      buildTranscriptMetadata(
+        'read_file',
+        'corr-1',
+        undefined,
+        { modelId: 'm1', modelProvider: 'p1' },
+      ),
+    ).toEqual({
+      messageType: 'tool-output',
+      toolName: 'read_file',
+      correlationId: 'corr-1',
+      screenshotRef: null,
+      modelId: 'm1',
+      modelProvider: 'p1',
+    });
+  });
+
+  test('mapBundleTools filters invalid names and normalizes args', () => {
+    expect(
+      mapBundleTools([
+        { name: 'read_file', args: { file_path: '/tmp/a' } },
+        { name: '', args: { ignored: true } },
+        { name: 123, args: { ignored: true } },
+        { name: 'noop', args: 'not-an-object' },
+      ]),
+    ).toEqual([
+      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+      { toolName: 'noop', args: {} },
+    ]);
+
+    expect(mapBundleTools(null)).toEqual([]);
+  });
+
+  test('resolveToolCallCorrelationId prefers explicit payload ids before event id and uuid', () => {
+    const uuidSpy = jest.spyOn(crypto, 'randomUUID').mockReturnValue('uuid-fallback');
+
+    expect(resolveToolCallCorrelationId({ correlation_id: 'corr-1', request_id: 'req-1' }, 'event-1')).toBe('corr-1');
+    expect(resolveToolCallCorrelationId({ request_id: 'req-1' }, 'event-1')).toBe('req-1');
+    expect(resolveToolCallCorrelationId({}, 'event-1')).toBe('event-1');
+    expect(resolveToolCallCorrelationId(undefined, undefined)).toBe('uuid-fallback');
+
+    uuidSpy.mockRestore();
+  });
+});
