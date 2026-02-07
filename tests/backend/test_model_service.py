@@ -73,6 +73,17 @@ class MalformedModelsProvider:
         return self.payload
 
 
+class GeneratorModelsProvider:
+    async def list_models(self):
+        return (
+            item
+            for item in [
+                {"id": "g-model", "provider": "ollama", "display_name": "ollama/g-model"},
+                {"id": "", "provider": "ollama"},
+            ]
+        )
+
+
 @pytest.mark.asyncio
 async def test_get_local_models_fetches_local_providers_in_parallel(monkeypatch):
     state = {
@@ -191,6 +202,22 @@ async def test_get_local_models_filters_invalid_model_entries(monkeypatch):
 
     assert models == [
         {"id": "valid-model", "provider": "ollama", "display_name": "ollama/valid-model"}
+    ]
+
+
+@pytest.mark.asyncio
+async def test_get_local_models_accepts_iterable_provider_payloads(monkeypatch):
+    factory = {"ollama": GeneratorModelsProvider()}
+    monkeypatch.setattr(
+        "backend.src.llm.providers.create_provider_factory",
+        lambda _cfg: factory,
+    )
+
+    service = ModelService(AppConfig())
+    models = await service.get_local_models()
+
+    assert models == [
+        {"id": "g-model", "provider": "ollama", "display_name": "ollama/g-model"}
     ]
 
 
