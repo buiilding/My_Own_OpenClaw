@@ -3,6 +3,8 @@ Vision service utilities.
 """
 from typing import Optional
 
+DEFAULT_VISION_MODEL = "OpenGVLab/InternVL3_5-4B"
+
 
 def normalize_model_name(model_name: Optional[str]) -> str:
     """
@@ -15,10 +17,10 @@ def normalize_model_name(model_name: Optional[str]) -> str:
         Normalized model name without prefix
     """
     if not model_name:
-        return "OpenGVLab/InternVL3_5-4B"
-    
-    if model_name.startswith("huggingface-local/"):
-        return model_name.replace("huggingface-local/", "")
-    
-    return model_name
+        return DEFAULT_VISION_MODEL
 
+    normalized = model_name.strip()
+    if not normalized:
+        return DEFAULT_VISION_MODEL
+
+    return normalized.removeprefix("huggingface-local/")
