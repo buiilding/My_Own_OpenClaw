@@ -3,8 +3,14 @@ Configuration Models.
 
 This module contains Pydantic models for the application configuration.
 """
+import tempfile
+from pathlib import Path
 from typing import List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
+
+
+def _default_artifact_store_path() -> str:
+    return str(Path(tempfile.gettempdir()) / "windieos-artifacts")
 
 class OpenAIConfig(BaseModel):
     """Configuration for OpenAI provider."""
@@ -237,6 +243,16 @@ class AppConfig(BaseModel):
     websocket_task_cancellation_timeout: float = Field(
         default=5.0,
         description="Timeout for waiting for tasks to cancel on disconnect (seconds)"
+    )
+
+    # Artifact Settings (HTTP storage for large blobs)
+    artifact_store_path: str = Field(
+        default_factory=_default_artifact_store_path,
+        description="Local directory for uploaded artifacts"
+    )
+    artifact_max_bytes: int = Field(
+        default=25 * 1024 * 1024,  # 25MB
+        description="Maximum artifact size accepted by HTTP upload"
     )
 
     @property
