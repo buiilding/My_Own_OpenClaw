@@ -14,6 +14,7 @@
 ## Build, Test, and Development Commands
 
 - Runtime baseline: **Python 3.11**, **Node 18+**.
+- Conda envs (authoritative): backend/runtime+backend tests => `conda activate jarvis`; frontend app/sidecar/frontend tests => `conda activate frontend_jarvis`.
 - Install backend deps: `pip install -r backend/requirements.txt`
 - Install frontend deps: `cd frontend && npm install`
 - Run backend (dev): `python -m backend.src.main` (from repo root) or `uvicorn backend.src.main:app --host 0.0.0.0 --port 8765 --reload`.
