@@ -81,11 +81,12 @@ class ToolCallSchema:
 
             if not isinstance(tool_name, str) or not tool_name.strip():
                 return None
+            normalized_tool_name = tool_name.strip()
 
             if not isinstance(args, dict):
                 return None
 
-            return (tool_name, args, metadata)
+            return (normalized_tool_name, args, metadata)
 
         # Standard format: direct functionCall
         if self.root_key in parsed_json:
@@ -98,10 +99,11 @@ class ToolCallSchema:
 
             if not isinstance(tool_name, str) or not tool_name.strip():
                 return None
+            normalized_tool_name = tool_name.strip()
 
             if not isinstance(args, dict):
                 return None
 
-            return (tool_name, args, None)
+            return (normalized_tool_name, args, None)
 
         return None
