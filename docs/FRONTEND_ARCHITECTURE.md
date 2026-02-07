@@ -248,6 +248,7 @@ App
 - Voice input mode management
 - WebSocket connection to Nova-Voice Gateway
 - Audio capture and transcription
+- Bounded reconnect retries with exponential backoff and stale-socket close guards
 
 **useWakewordDetection** (`useWakewordDetection.ts`)
 - Wakeword detection via openWakeWord
