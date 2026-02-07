@@ -10,9 +10,11 @@ import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { uploadArtifactBase64 } from '../../../infrastructure/services/ArtifactUploader';
 import {
-  normalizeArtifactImageContentType,
-  resolveArtifactImageExtension,
-} from '../../../infrastructure/services/ArtifactImageUtils';
+  buildArtifactUploadMeta,
+  buildPendingUserMessage,
+  hasUserMessages,
+  toScreenshotAttachment,
+} from '../utils/chatMessageSenderUtils';
 
 type ChatMessageSenderOptions = {
   returnToChatboxOnSend?: boolean;
@@ -48,18 +50,11 @@ export function useChatMessageSender(
       stopPlayback();
     }
 
-    const hadUserMessages = useChatStore
-      .getState()
-      .messages
-      .some((msg) => msg.sender === 'user');
+    const hadUserMessages = hasUserMessages(useChatStore.getState().messages);
     
     // Create user message immediately (without screenshot) for instant UI display
-    const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text,
-      sender: 'user',
-      screenshot: null  // Will be updated after screenshot capture
-    };
+    const userMessageId = crypto.randomUUID();
+    const userMessage: ChatMessage = buildPendingUserMessage(userMessageId, text);
     
     // Display message immediately
     addMessage(userMessage);
@@ -96,19 +91,18 @@ export function useChatMessageSender(
 
     let uploaded = null;
     if (screenshot) {
-      const artifactContentType = normalizeArtifactImageContentType(screenshotContentType);
+      const artifactUploadMeta = buildArtifactUploadMeta(screenshotContentType);
       try {
         uploaded = await uploadArtifactBase64(
           screenshot,
-          artifactContentType,
-          `user-message.${resolveArtifactImageExtension(artifactContentType)}`
+          artifactUploadMeta.contentType,
+          artifactUploadMeta.filename,
         );
       } catch (error) {
         console.warn('[useChatMessageSender] Failed to upload screenshot artifact:', error);
       }
     }
-    const screenshotRef = uploaded?.artifactId || null;
-    const screenshotUrl = uploaded?.url || null;
+    const { screenshotRef, screenshotUrl } = toScreenshotAttachment(uploaded);
     
     // Update message with screenshot
     updateMessage(userMessage.id, { screenshotRef, screenshotUrl });
