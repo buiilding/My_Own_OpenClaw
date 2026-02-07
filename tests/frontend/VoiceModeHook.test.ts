@@ -28,6 +28,10 @@ class MockWebSocket {
   emitJson(payload: unknown): void {
     this.onmessage?.({ data: JSON.stringify(payload) } as MessageEvent);
   }
+
+  emitRaw(data: unknown): void {
+    this.onmessage?.({ data } as MessageEvent);
+  }
 }
 
 describe('useVoiceMode', () => {
@@ -97,6 +101,47 @@ describe('useVoiceMode', () => {
     expect(onUtteranceEndB).toHaveBeenCalledTimes(1);
     expect(onUtteranceEndA).toHaveBeenCalledTimes(1);
     expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
+  test('sends language payload when websocket opens', () => {
+    renderHook(() => useVoiceMode(true, undefined, undefined, 'ws://localhost:5026'));
+
+    const socket = MockWebSocket.instances[0];
+    act(() => {
+      socket.readyState = MockWebSocket.OPEN;
+      socket.onopen?.({} as Event);
+    });
+
+    expect(socket.send).toHaveBeenCalledWith(
+      '{"type":"set_langs","source_language":"en","target_language":"en"}',
+    );
+  });
+
+  test('sends start_over after utterance-end when websocket is open', () => {
+    const onUtteranceEnd = jest.fn();
+    renderHook(() => useVoiceMode(true, undefined, onUtteranceEnd, 'ws://localhost:5026'));
+
+    const socket = MockWebSocket.instances[0];
+    act(() => {
+      socket.readyState = MockWebSocket.OPEN;
+      socket.emitJson({ type: 'utterance_end' });
+    });
+
+    expect(onUtteranceEnd).toHaveBeenCalledTimes(1);
+    expect(socket.send).toHaveBeenCalledWith('{"type":"start_over"}');
+  });
+
+  test('ignores unexpected binary messages', () => {
+    const onTranscriptionUpdate = jest.fn();
+    renderHook(() => useVoiceMode(true, onTranscriptionUpdate, undefined, 'ws://localhost:5026'));
+
+    const socket = MockWebSocket.instances[0];
+    act(() => {
+      socket.emitRaw(new ArrayBuffer(8));
+    });
+
+    expect(onTranscriptionUpdate).not.toHaveBeenCalled();
+    expect(console.warn).toHaveBeenCalledWith('[VoiceMode] Received unexpected binary message');
   });
 
   test('reconnects after socket close while enabled', () => {
