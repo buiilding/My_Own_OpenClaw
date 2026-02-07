@@ -248,6 +248,7 @@ App
 - Input field state management
 - Transcription text insertion
 - Smart replacement logic
+- Uses shared transcription-region helpers for cursor/boundary updates across typing and paste paths
 
 **Settings Feature Hooks** (`features/settings/hooks/`)
 
