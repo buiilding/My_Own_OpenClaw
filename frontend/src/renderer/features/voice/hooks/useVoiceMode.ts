@@ -3,6 +3,12 @@ import { buildGatewayAudioMessage, float32ToPcm16 } from '../utils/audioEncoding
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY_BASE_MS = 1000;
+const SET_LANGUAGE_PAYLOAD = JSON.stringify({
+  type: 'set_langs',
+  source_language: 'en',
+  target_language: 'en',
+});
+const START_OVER_PAYLOAD = JSON.stringify({ type: 'start_over' });
 
 function getReconnectDelayMs(attempt: number): number {
   return RECONNECT_DELAY_BASE_MS * Math.pow(2, attempt - 1);
@@ -73,11 +79,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
         reconnectAttemptsRef.current = 0;
 
         // Send language settings (no translation needed)
-        ws.send(JSON.stringify({
-          type: 'set_langs',
-          source_language: 'en',
-          target_language: 'en'
-        }));
+        ws.send(SET_LANGUAGE_PAYLOAD);
       };
 
       ws.onmessage = (event) => {
@@ -115,7 +117,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
               }
               // Send start_over to reset Gateway session
               if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'start_over' }));
+                ws.send(START_OVER_PAYLOAD);
               }
               break;
 
