@@ -1,3 +1,6 @@
+import threading
+import time
+
 import pytest
 
 from backend.src.core.observability.trust_boundary_metrics import (
@@ -75,3 +78,40 @@ def test_metrics_service_reset_all_metrics(monkeypatch):
 
     assert all_stats["response_parser"]["total_violations"] == 0
     assert all_stats["prompt_constructor"]["total_violations"] == 0
+
+
+def test_get_all_metrics_releases_registry_lock_before_stats(monkeypatch):
+    service = MetricsService()
+    metrics = service.get_metrics("response_parser")
+
+    started = threading.Event()
+    release = threading.Event()
+    original_get_stats = metrics.get_stats
+
+    def blocked_get_stats():
+        started.set()
+        release.wait(timeout=5)
+        return original_get_stats()
+
+    monkeypatch.setattr(metrics, "get_stats", blocked_get_stats)
+
+    results = {}
+
+    def run_get_all():
+        results["stats"] = service.get_all_metrics()
+
+    worker = threading.Thread(target=run_get_all)
+    worker.start()
+    assert started.wait(timeout=5)
+
+    start = time.monotonic()
+    # Should not block on get_all_metrics() while per-metric stats are running.
+    new_metrics = service.get_metrics("prompt_constructor")
+    elapsed = time.monotonic() - start
+
+    release.set()
+    worker.join(timeout=5)
+
+    assert new_metrics.boundary_name == "prompt_constructor"
+    assert elapsed < 0.2
+    assert "response_parser" in results["stats"]
