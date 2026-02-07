@@ -228,10 +228,12 @@ class MetricsService:
             Dictionary mapping boundary names to their statistics
         """
         with self._metrics_lock:
-            return {
-                name: metrics.get_stats()
-                for name, metrics in self._boundary_metrics.items()
-            }
+            metrics_items = tuple(self._boundary_metrics.items())
+
+        return {
+            name: metrics.get_stats()
+            for name, metrics in metrics_items
+        }
     
     def reset_all_metrics(self) -> None:
         """
@@ -242,4 +244,3 @@ class MetricsService:
         with self._metrics_lock:
             for metrics in self._boundary_metrics.values():
                 metrics.reset()
-
