@@ -136,6 +136,11 @@ describe('useChatMessageSender', () => {
     });
 
     expect(mockUploadArtifactBase64).toHaveBeenCalled();
+    expect(mockUploadArtifactBase64).toHaveBeenCalledWith(
+      'base64-shot',
+      'image/png',
+      'user-message.png',
+    );
     expect(mockSendQuery).toHaveBeenCalledWith('hello', null, null);
   });
 

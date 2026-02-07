@@ -19,11 +19,13 @@ import {
 } from '../../frontend/src/renderer/infrastructure/services/MessageFormatter';
 import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
 import { DISPLAY_BOUNDS_STORAGE_KEY } from '../../frontend/src/renderer/utils/displaySelection';
+import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
 
 const mockExtractOSstate = extractOSstate as jest.MockedFunction<typeof extractOSstate>;
 const mockFormatToolOutputMessage = formatToolOutputMessage as jest.MockedFunction<typeof formatToolOutputMessage>;
 const mockFormatBundledToolOutputMessage =
   formatBundledToolOutputMessage as jest.MockedFunction<typeof formatBundledToolOutputMessage>;
+const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
 
 describe('ToolExecutionService', () => {
   beforeEach(() => {
@@ -42,6 +44,7 @@ describe('ToolExecutionService', () => {
     mockExtractOSstate.mockResolvedValue({
       systemState: { active_window: 'App' },
       screenshot: 'shot',
+      screenshotContentType: 'image/png',
     });
 
     const onToolResult = jest.fn();
@@ -60,6 +63,11 @@ describe('ToolExecutionService', () => {
       skipAutoCapture: false,
     });
     expect(mockExtractOSstate).toHaveBeenCalledWith(true, true, 2, false);
+    expect(mockUploadArtifactBase64).toHaveBeenCalledWith(
+      'shot',
+      'image/png',
+      'mouse_control-screenshot.png',
+    );
     expect(result.screenshot).toBe('shot');
     expect(onToolResult).toHaveBeenCalledTimes(1);
     expect(sendToBackend).toHaveBeenCalledWith(

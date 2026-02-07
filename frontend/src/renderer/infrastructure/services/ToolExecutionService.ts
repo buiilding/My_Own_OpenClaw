@@ -31,6 +31,10 @@ import {
 } from './ToolExecutionPayloads';
 import { uploadArtifactBase64 } from './ArtifactUploader';
 import {
+  normalizeArtifactImageContentType,
+  resolveArtifactImageExtension,
+} from './ArtifactImageUtils';
+import {
   logToolStart,
   logToolTiming,
   logBundleStart,
@@ -93,8 +97,8 @@ export class ToolExecutionService {
       const uploaded = screenshot
         ? await uploadArtifactBase64(
             screenshot,
-            screenshotContentType || 'image/jpeg',
-            `${toolName}-screenshot.${(screenshotContentType || '').includes('png') ? 'png' : 'jpg'}`
+            normalizeArtifactImageContentType(screenshotContentType),
+            `${toolName}-screenshot.${resolveArtifactImageExtension(screenshotContentType)}`
           )
         : null;
       const screenshotRef = uploaded?.artifactId || null;
@@ -309,8 +313,8 @@ export class ToolExecutionService {
       const bundledUpload = screenshot
         ? await uploadArtifactBase64(
             screenshot,
-            screenshotContentType || 'image/jpeg',
-            `bundle-${bundleId}.${(screenshotContentType || '').includes('png') ? 'png' : 'jpg'}`
+            normalizeArtifactImageContentType(screenshotContentType),
+            `bundle-${bundleId}.${resolveArtifactImageExtension(screenshotContentType)}`
           )
         : null;
       const bundleScreenshotRef = bundledUpload?.artifactId || null;

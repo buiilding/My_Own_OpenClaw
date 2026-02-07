@@ -9,6 +9,10 @@ import { useChatStore, type ChatMessage } from '../stores/chatStore';
 import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { uploadArtifactBase64 } from '../../../infrastructure/services/ArtifactUploader';
+import {
+  normalizeArtifactImageContentType,
+  resolveArtifactImageExtension,
+} from '../../../infrastructure/services/ArtifactImageUtils';
 
 type ChatMessageSenderOptions = {
   returnToChatboxOnSend?: boolean;
@@ -92,11 +96,12 @@ export function useChatMessageSender(
 
     let uploaded = null;
     if (screenshot) {
+      const artifactContentType = normalizeArtifactImageContentType(screenshotContentType);
       try {
         uploaded = await uploadArtifactBase64(
           screenshot,
-          screenshotContentType || 'image/jpeg',
-          `user-message.${(screenshotContentType || '').includes('png') ? 'png' : 'jpg'}`
+          artifactContentType,
+          `user-message.${resolveArtifactImageExtension(artifactContentType)}`
         );
       } catch (error) {
         console.warn('[useChatMessageSender] Failed to upload screenshot artifact:', error);
