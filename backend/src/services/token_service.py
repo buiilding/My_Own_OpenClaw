@@ -30,16 +30,32 @@ def _extract_text_char_count(content: Any) -> int:
     """Count text characters from plain or multimodal message content."""
     if isinstance(content, str):
         return len(content)
+
+    if isinstance(content, dict):
+        return _extract_text_char_count_from_part(content)
+
     if not isinstance(content, list):
         return 0
 
     total = 0
     for item in content:
-        if isinstance(item, dict) and item.get("type") == "text":
-            text = item.get("text", "")
-            if isinstance(text, str):
-                total += len(text)
+        total += _extract_text_char_count_from_part(item)
     return total
+
+
+def _extract_text_char_count_from_part(item: Any) -> int:
+    """Count text characters from one multimodal content part."""
+    if not isinstance(item, dict):
+        return 0
+
+    part_type = item.get("type")
+    if part_type not in {"text", "input_text"}:
+        return 0
+
+    text = item.get("text", "")
+    if isinstance(text, str):
+        return len(text)
+    return 0
 
 
 def _fallback_token_estimate(messages: Iterable[Any]) -> int:
