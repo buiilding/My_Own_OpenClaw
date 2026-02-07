@@ -68,6 +68,18 @@ def test_validate_tool_call_rejects_non_dict_args_without_crashing():
 
     assert len(metrics.calls) == 1
     assert metrics.calls[0]["metadata"]["tool_name"] == "read_file"
+    assert metrics.calls[0]["metadata"]["param_count"] == 10
+
+
+def test_validate_tool_call_rejects_non_sized_args_without_crashing():
+    validator, metrics = _make_validator(["read_file"])
+
+    with pytest.raises(ParseValidationError, match="Tool args must be an object/dict"):
+        validator.validate_tool_call("read_file", 42)
+
+    assert len(metrics.calls) == 1
+    assert metrics.calls[0]["metadata"]["tool_name"] == "read_file"
+    assert metrics.calls[0]["metadata"]["param_count"] is None
 
 
 def test_validate_tool_call_filters_non_string_tool_names():

@@ -17,6 +17,9 @@ class ToolCallValidator:
         self.metrics = metrics
         self.limits = limits
         self._allowed_tools = config.get_tool_allowlist()
+        self._allowed_tools_set = (
+            set(self._allowed_tools) if self._allowed_tools is not None else None
+        )
 
     def validate_tool_call(self, tool_name: str, args: Dict[str, Any]) -> None:
         """
@@ -28,7 +31,10 @@ class ToolCallValidator:
             self.metrics.record_validation_violation(
                 validation_errors=validation_errors,
                 boundary_name="response_parser",
-                metadata={"tool_name": tool_name, "param_count": len(args)},
+                metadata={
+                    "tool_name": tool_name,
+                    "param_count": self._safe_count(args),
+                },
             )
             raise ParseValidationError(
                 f"Tool call validation failed: {', '.join(validation_errors)}",
@@ -123,9 +129,9 @@ class ToolCallValidator:
             name for name in raw_tool_names if isinstance(name, str)
         ]
         deduped_tool_names = list(dict.fromkeys(valid_tool_names))
-        if self._allowed_tools is not None:
+        if self._allowed_tools_set is not None:
             deduped_tool_names = [
-                name for name in deduped_tool_names if name in self._allowed_tools
+                name for name in deduped_tool_names if name in self._allowed_tools_set
             ]
         return sorted(deduped_tool_names)
 
@@ -201,3 +207,11 @@ class ToolCallValidator:
     @staticmethod
     def _has_nonempty_text(value: Any) -> bool:
         return isinstance(value, str) and bool(value.strip())
+
+    @staticmethod
+    def _safe_count(value: Any) -> Optional[int]:
+        """Return len(value) when available, otherwise None."""
+        try:
+            return len(value)
+        except TypeError:
+            return None
