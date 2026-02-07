@@ -117,3 +117,22 @@ async def test_parse_response_rejects_large_parameter_values():
     response = '{"functionCall":{"name":"read_file","args":{"file_path":"too-long"}}}'
     with pytest.raises(ParseValidationError):
         await parser.parse_response(response)
+
+
+def test_parse_sync_skips_redundant_second_pass_text_removal(monkeypatch):
+    parser = _make_parser([DummyTool("read_file", ToolDomain.FILESYSTEM)])
+    response = '{"functionCall":{"name":"read_file","args":{"file_path":"/tmp/x"}}}'
+    remove_calls_invocations = {"count": 0}
+    original_remove = parser._extractor.remove_extracted_calls
+
+    def spy_remove(text, tool_calls):
+        remove_calls_invocations["count"] += 1
+        return original_remove(text, tool_calls)
+
+    monkeypatch.setattr(parser._extractor, "remove_extracted_calls", spy_remove)
+
+    parsed = parser._parse_sync(response)
+
+    assert parsed.has_tool_calls is True
+    assert parsed.text_content == ""
+    assert remove_calls_invocations["count"] == 0
