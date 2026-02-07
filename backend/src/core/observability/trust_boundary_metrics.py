@@ -9,12 +9,27 @@ Tracks structured metrics for trust boundary violations to enable:
 """
 import logging
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Dict, List, Optional
+from typing import Any, Deque, Dict, List, Optional, Sequence
 
 logger = logging.getLogger(__name__)
+
+METRICS_HISTORY_LIMIT = 1000
+STATS_SAMPLE_WINDOW = 100
+
+
+def _numeric_stats(values: Sequence[float]) -> Dict[str, Optional[float]]:
+    """Calculate count/min/max/avg for a numeric sequence."""
+    if not values:
+        return {"count": 0, "min": None, "max": None, "avg": None}
+    return {
+        "count": len(values),
+        "min": min(values),
+        "max": max(values),
+        "avg": sum(values) / len(values),
+    }
 
 
 @dataclass
@@ -28,11 +43,17 @@ class BoundaryViolationMetrics:
     total_violations: int = 0
     
     # Size distribution tracking (for tuning limits)
-    rejected_sizes: List[int] = field(default_factory=list)  # Actual sizes that were rejected
-    timeout_durations: List[float] = field(default_factory=list)  # How long before timeout
+    rejected_sizes: Deque[int] = field(
+        default_factory=lambda: deque(maxlen=METRICS_HISTORY_LIMIT)
+    )  # Actual sizes that were rejected
+    timeout_durations: Deque[float] = field(
+        default_factory=lambda: deque(maxlen=METRICS_HISTORY_LIMIT)
+    )  # How long before timeout
     
     # Violation details for analysis
-    violation_details: List[Dict[str, Any]] = field(default_factory=list)
+    violation_details: Deque[Dict[str, Any]] = field(
+        default_factory=lambda: deque(maxlen=METRICS_HISTORY_LIMIT)
+    )
     
     # Boundary name for context
     boundary_name: str = "unknown"
@@ -134,28 +155,27 @@ class BoundaryViolationMetrics:
     def get_stats(self) -> Dict[str, Any]:
         """Get current statistics snapshot."""
         with self._lock:
-            rejected_sizes = self.rejected_sizes[-100:]  # Last 100 for analysis
-            timeout_durations = self.timeout_durations[-100:]
-            
-            return {
-                "boundary_name": self.boundary_name,
-                "total_violations": self.total_violations,
-                "size_limit_violations": self.size_limit_violations,
-                "timeout_violations": self.timeout_violations,
-                "validation_violations": self.validation_violations,
-                "rejected_size_stats": {
-                    "count": len(rejected_sizes),
-                    "min": min(rejected_sizes) if rejected_sizes else None,
-                    "max": max(rejected_sizes) if rejected_sizes else None,
-                    "avg": sum(rejected_sizes) / len(rejected_sizes) if rejected_sizes else None,
-                },
-                "timeout_stats": {
-                    "count": len(timeout_durations),
-                    "min": min(timeout_durations) if timeout_durations else None,
-                    "max": max(timeout_durations) if timeout_durations else None,
-                    "avg": sum(timeout_durations) / len(timeout_durations) if timeout_durations else None,
-                },
-            }
+            # Copy snapshots quickly under lock; expensive aggregation happens outside.
+            rejected_sizes = tuple(self.rejected_sizes)
+            timeout_durations = tuple(self.timeout_durations)
+            boundary_name = self.boundary_name
+            total_violations = self.total_violations
+            size_limit_violations = self.size_limit_violations
+            timeout_violations = self.timeout_violations
+            validation_violations = self.validation_violations
+
+        rejected_size_window = rejected_sizes[-STATS_SAMPLE_WINDOW:]
+        timeout_window = timeout_durations[-STATS_SAMPLE_WINDOW:]
+
+        return {
+            "boundary_name": boundary_name,
+            "total_violations": total_violations,
+            "size_limit_violations": size_limit_violations,
+            "timeout_violations": timeout_violations,
+            "validation_violations": validation_violations,
+            "rejected_size_stats": _numeric_stats(rejected_size_window),
+            "timeout_stats": _numeric_stats(timeout_window),
+        }
     
     def reset(self) -> None:
         """Reset all metrics (for testing)."""
@@ -222,5 +242,4 @@ class MetricsService:
         with self._metrics_lock:
             for metrics in self._boundary_metrics.values():
                 metrics.reset()
-
 
