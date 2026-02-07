@@ -118,6 +118,7 @@ async def test_cleanup_prunes_completed_tasks_when_callback_cleanup_is_delayed(
 ) -> None:
     manager = TaskManager(max_concurrent_tasks=2, task_cancellation_timeout=0.1)
     monkeypatch.setattr(manager, "task_done_callback", lambda _task: None)
+    original_set_id = id(manager.active_tasks)
 
     task, limit_exceeded = await manager.create_task_if_under_limit(
         asyncio.sleep(0), "user_done"
@@ -132,6 +133,7 @@ async def test_cleanup_prunes_completed_tasks_when_callback_cleanup_is_delayed(
     await manager.cleanup("user_done")
 
     assert len(manager.active_tasks) == 0
+    assert id(manager.active_tasks) == original_set_id
 
 
 @pytest.mark.asyncio
