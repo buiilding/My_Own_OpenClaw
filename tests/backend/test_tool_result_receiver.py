@@ -29,6 +29,7 @@ def test_receive_bundle_result_success_and_failure():
         status="success",
         step_results=[{"status": "ok"}, {"status": "ok"}],
         screenshot=None,
+        screenshot_ref=None,
         system_state=None,
         error=None,
     )
@@ -40,6 +41,7 @@ def test_receive_bundle_result_success_and_failure():
         status="success",
         step_results=[{"status": "ok"}, {"status": "error"}],
         screenshot=None,
+        screenshot_ref=None,
         system_state=None,
         error=None,
     )
