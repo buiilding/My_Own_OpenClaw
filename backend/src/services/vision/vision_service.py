@@ -9,6 +9,7 @@ import logging
 from typing import Optional
 
 from backend.src.services.vision.providers import (
+    BaseVisionModel,
     InternVLModel,
     VenusVisionModel,
     VISION_MODELS_AVAILABLE,
@@ -34,13 +35,37 @@ class VisionService:
             model_name: Optional model name (defaults to "OpenGVLab/InternVL3_5-4B")
         """
         self.model_name = normalize_model_name(model_name)
-        # NOTE: At runtime this may be an InternVLModel or VenusVisionModel instance.
-        self._model: Optional[InternVLModel] = None
+        self._model: Optional[BaseVisionModel] = None
         self._initialized = False
         self._initialization_error: Optional[str] = None
         # RACE CONDITION FIX: Lock to serialize initialization/unload operations
         # Prevents double initialization (double VRAM usage) and init/unload conflicts
         self._lock = asyncio.Lock()
+
+    def _build_model_instance(self) -> BaseVisionModel:
+        """Build concrete vision model implementation from configured model name."""
+        if self.model_name.startswith("inclusionAI/UI-Venus"):
+            return VenusVisionModel(
+                model_name=self.model_name,
+                device="auto",
+                trust_remote_code=True,
+            )
+        return InternVLModel(
+            model_name=self.model_name,
+            device="auto",
+            trust_remote_code=True,
+        )
+
+    @staticmethod
+    def _clear_cuda_cache_if_available() -> None:
+        """Clear PyTorch CUDA cache when available."""
+        try:
+            import torch
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                logger.info("CUDA cache cleared")
+        except ImportError:
+            logger.debug("PyTorch not available; skipping CUDA cache clear")
 
     async def initialize(self) -> bool:
         """
@@ -66,26 +91,10 @@ class VisionService:
             try:
                 logger.info(f"Initializing vision service with model: {self.model_name}")
 
-                # Choose concrete vision model implementation based on model_name.
-                # - inclusionAI/UI-Venus-* → VenusVisionModel (Qwen2.5-VL family, no use_flash_attn)
-                # - everything else       → InternVLModel (original InternVL behavior)
-                def _build_model():
-                    if self.model_name and self.model_name.startswith(
-                        "inclusionAI/UI-Venus"
-                    ):
-                        return VenusVisionModel(
-                            model_name=self.model_name,
-                            device="auto",
-                            trust_remote_code=True,
-                        )
-                    return InternVLModel(
-                        model_name=self.model_name, device="auto", trust_remote_code=True
-                    )
-
                 # Initialize model in thread pool to avoid blocking event loop
                 # Model loading is synchronous and CPU/IO intensive
-                loop = asyncio.get_event_loop()
-                self._model = await loop.run_in_executor(None, _build_model)
+                loop = asyncio.get_running_loop()
+                self._model = await loop.run_in_executor(None, self._build_model_instance)
                 
                 self._initialized = True
                 logger.info(f"Vision service initialized successfully with model: {self.model_name}")
@@ -97,12 +106,12 @@ class VisionService:
                 return False
 
     @property
-    def model(self) -> Optional[InternVLModel]:
+    def model(self) -> Optional[BaseVisionModel]:
         """
-        Get the initialized InternVL model instance.
+        Get the initialized vision model instance.
         
         Returns:
-            InternVLModel instance if initialized, None otherwise
+            Vision model instance if initialized, None otherwise
         """
         return self._model
 
@@ -138,7 +147,6 @@ class VisionService:
                 
                 # Delete model reference and trigger garbage collection
                 # PyTorch will free GPU memory when the model object is deleted
-                del self._model
                 self._model = None
                 self._initialized = False
                 
@@ -147,13 +155,7 @@ class VisionService:
                 gc.collect()
                 
                 # If CUDA is available, empty cache to free GPU memory
-                try:
-                    import torch
-                    if torch.cuda.is_available():
-                        torch.cuda.empty_cache()
-                        logger.info("CUDA cache cleared")
-                except ImportError:
-                    pass  # torch not available, skip cache clearing
+                self._clear_cuda_cache_if_available()
                 
                 logger.info(f"Vision model unloaded successfully: {self.model_name}")
                 return True
