@@ -1,6 +1,6 @@
 from functools import lru_cache
 import logging
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Type
 
 from backend.src.core.config import AppConfig
 from backend.src.llm.providers.anthropic import AnthropicProvider
@@ -13,6 +13,14 @@ from backend.src.llm.providers.openai import OpenAIProvider
 from backend.src.llm.providers.openrouter import OpenRouterProvider
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_base_url(base_url: Optional[str], default: str) -> str:
+    """Normalize provider URLs for stable cache keys and consistent provider config."""
+    candidate = (base_url or "").strip()
+    if not candidate:
+        candidate = default
+    return candidate.rstrip("/") or default
 
 
 def _normalize_provider_name(provider_name: str) -> str:
@@ -53,32 +61,40 @@ def _canonicalize_provider_urls(cfg: AppConfig) -> Tuple[str, str, str, str]:
         Tuple of (ollama_url, lmstudio_url, openrouter_url, kimi_code_url) with defaults applied
     """
     providers = cfg.llm_providers
-    
-    # Ollama (Default: http://localhost:11434/v1)
-    if providers and providers.ollama and providers.ollama.base_url:
-        ollama_url = providers.ollama.base_url
-    else:
-        ollama_url = "http://localhost:11434/v1"
-    
-    # LM Studio (Default: http://localhost:1234/v1)
-    if providers and providers.lmstudio and providers.lmstudio.base_url:
-        lmstudio_url = providers.lmstudio.base_url
-    else:
-        lmstudio_url = "http://localhost:1234/v1"
-    
-    # OpenRouter (Default: https://openrouter.ai/api/v1)
-    if providers and providers.openrouter and providers.openrouter.base_url:
-        openrouter_url = providers.openrouter.base_url
-    else:
-        openrouter_url = "https://openrouter.ai/api/v1"
 
-    # Kimi Coding (Default: https://api.kimi.com/coding/v1)
-    if providers and providers.kimi_coding and providers.kimi_coding.base_url:
-        kimi_code_url = providers.kimi_coding.base_url
-    else:
-        kimi_code_url = "https://api.kimi.com/coding/v1"
+    ollama_url = _normalize_base_url(
+        providers.ollama.base_url if providers and providers.ollama else None,
+        "http://localhost:11434/v1",
+    )
+    lmstudio_url = _normalize_base_url(
+        providers.lmstudio.base_url if providers and providers.lmstudio else None,
+        "http://localhost:1234/v1",
+    )
+    openrouter_url = _normalize_base_url(
+        providers.openrouter.base_url if providers and providers.openrouter else None,
+        "https://openrouter.ai/api/v1",
+    )
+    kimi_code_url = _normalize_base_url(
+        providers.kimi_coding.base_url if providers and providers.kimi_coding else None,
+        "https://api.kimi.com/coding/v1",
+    )
     
     return (ollama_url, lmstudio_url, openrouter_url, kimi_code_url)
+
+
+def _register_provider(
+    factory: Dict[str, LLMProvider],
+    *,
+    key: str,
+    label: str,
+    provider_cls: Type[LLMProvider],
+    **kwargs: Any,
+) -> None:
+    """Create and register a provider, swallowing config errors."""
+    try:
+        factory[key] = provider_cls(**kwargs)
+    except ValueError as exc:
+        logger.debug("%s provider initialization failed: %s", label, exc)
 
 
 @lru_cache(maxsize=16)
@@ -114,77 +130,78 @@ def _create_cached_provider_factory(
     # Only create providers that are configured/available
     # Cloud providers require API keys
     if api_key:
-        try:
-            factory["openai"] = OpenAIProvider(
-                api_key=api_key,
-                base_url=None,
-                timeout=timeout,
-            )
-        except ValueError as e:
-            logger.debug(f"OpenAI provider initialization failed: {e}")
-        
-        try:
-            factory["gemini"] = GeminiProvider(
-                api_key=api_key,
-                base_url=None,
-                timeout=timeout,
-            )
-        except ValueError as e:
-            logger.debug(f"Gemini provider initialization failed: {e}")
-        
-        try:
-            factory["anthropic"] = AnthropicProvider(
-                api_key=api_key,
-                base_url=None,
-                timeout=timeout,
-            )
-        except ValueError as e:
-            logger.debug(f"Anthropic provider initialization failed: {e}")
-        
-        try:
-            factory["openrouter"] = OpenRouterProvider(
-                api_key=api_key,
-                base_url=openrouter_url,
-                timeout=timeout,
-            )
-        except ValueError as e:
-            logger.debug(f"OpenRouter provider initialization failed: {e}")
-        
-        try:
-            factory["mistral"] = MistralProvider(
-                api_key=api_key,
-                base_url=None,
-                timeout=timeout,
-            )
-        except ValueError as e:
-            logger.debug(f"Mistral provider initialization failed: {e}")
+        _register_provider(
+            factory,
+            key="openai",
+            label="OpenAI",
+            provider_cls=OpenAIProvider,
+            api_key=api_key,
+            base_url=None,
+            timeout=timeout,
+        )
+        _register_provider(
+            factory,
+            key="gemini",
+            label="Gemini",
+            provider_cls=GeminiProvider,
+            api_key=api_key,
+            base_url=None,
+            timeout=timeout,
+        )
+        _register_provider(
+            factory,
+            key="anthropic",
+            label="Anthropic",
+            provider_cls=AnthropicProvider,
+            api_key=api_key,
+            base_url=None,
+            timeout=timeout,
+        )
+        _register_provider(
+            factory,
+            key="openrouter",
+            label="OpenRouter",
+            provider_cls=OpenRouterProvider,
+            api_key=api_key,
+            base_url=openrouter_url,
+            timeout=timeout,
+        )
+        _register_provider(
+            factory,
+            key="mistral",
+            label="Mistral",
+            provider_cls=MistralProvider,
+            api_key=api_key,
+            base_url=None,
+            timeout=timeout,
+        )
+        _register_provider(
+            factory,
+            key="kimi-coding",
+            label="Kimi Coding",
+            provider_cls=KimiCodingProvider,
+            api_key=api_key,
+            base_url=kimi_code_url,
+            timeout=timeout,
+        )
 
-        try:
-            provider = KimiCodingProvider(
-                api_key=api_key,
-                base_url=kimi_code_url,
-                timeout=timeout,
-            )
-            factory["kimi-coding"] = provider
-        except ValueError as e:
-            logger.debug(f"Kimi Coding provider initialization failed: {e}")
-    
     # Local providers don't require API keys (but may fail at runtime if not running)
-    try:
-        factory["ollama"] = OllamaProvider(
-            base_url=ollama_url,
-            timeout=timeout,
-        )
-    except ValueError as e:
-        logger.debug(f"Ollama provider initialization failed: {e}")
-    
-    try:
-        factory["lmstudio"] = LMStudioProvider(
-            base_url=lmstudio_url,
-            timeout=timeout,
-        )
-    except ValueError as e:
-        logger.debug(f"LM Studio provider initialization failed: {e}")
+    _register_provider(
+        factory,
+        key="ollama",
+        label="Ollama",
+        provider_cls=OllamaProvider,
+        base_url=ollama_url,
+        timeout=timeout,
+    )
+    _register_provider(
+        factory,
+        key="lmstudio",
+        label="LM Studio",
+        provider_cls=LMStudioProvider,
+        base_url=lmstudio_url,
+        timeout=timeout,
+    )
     
     return factory
 
@@ -247,24 +264,31 @@ def get_provider(cfg: AppConfig, provider_name: str) -> LLMProvider:
     name = _normalize_provider_name(provider_name) if provider_name else ""
     
     logger.info(
-        f"[Provider Selection] Requested provider='{provider_name}' (normalized='{name}'), "
-        f"config.model_provider='{cfg.model_provider}', "
-        f"config.api_key={'set' if cfg.api_key else 'not set'}, "
-        f"available_providers={list(factory.keys())}"
+        "[Provider Selection] Requested provider='%s' (normalized='%s'), "
+        "config.model_provider='%s', config.api_key=%s, available_providers=%s",
+        provider_name,
+        name,
+        cfg.model_provider,
+        "set" if cfg.api_key else "not set",
+        list(factory.keys()),
     )
     
     # If provider name specified, return it or raise
     if name:
         if name in factory:
-            logger.info(f"[Provider Selection] Using provider '{name}'")
+            logger.info("[Provider Selection] Using provider '%s'", name)
             return factory[name]
         
         # Provider not available
         available_names = list(factory.keys())
         logger.error(
-            f"[Provider Selection] Provider '{provider_name}' not available. "
-            f"Requested='{name}', Available={available_names}, "
-            f"Config provider='{cfg.model_provider}', API key={'set' if cfg.api_key else 'not set'}"
+            "[Provider Selection] Provider '%s' not available. Requested='%s', Available=%s, "
+            "Config provider='%s', API key=%s",
+            provider_name,
+            name,
+            available_names,
+            cfg.model_provider,
+            "set" if cfg.api_key else "not set",
         )
         raise ValueError(
             f"LLM Provider '{provider_name}' is not configured or invalid. "
