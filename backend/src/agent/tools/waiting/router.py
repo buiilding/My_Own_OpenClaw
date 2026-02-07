@@ -78,6 +78,28 @@ class ToolResultRouter:
             tool_result.artifacts = {}
         tool_result.artifacts["screenshot"] = screenshot_data
 
+    def _extract_screenshot_from_result_data(
+        self,
+        result_data: Any,
+        tool_result: "ToolResult",
+    ) -> Optional[str]:
+        """Extract screenshot payload from result data, resolving artifact refs when needed."""
+        if not isinstance(result_data, dict):
+            return None
+
+        screenshot_data = result_data.get("screenshot")
+        if screenshot_data:
+            logger.debug("Tool result includes screenshot data")
+            return screenshot_data
+
+        screenshot_ref = result_data.get("screenshot_ref")
+        if self._looks_like_artifact_id(screenshot_ref):
+            resolved = self._resolve_screenshot_ref(screenshot_ref)
+            if resolved:
+                self._inject_screenshot_artifact(tool_result, resolved)
+            return resolved
+        return None
+
     async def route_individual_result(
         self,
         request_id: str,
@@ -90,17 +112,10 @@ class ToolResultRouter:
             request_id: Request ID for the tool result
             tool_result: Tool result to route
         """
-        # Extract screenshot data for processing
-        screenshot_data = None
-        if isinstance(tool_result.data, dict) and "screenshot" in tool_result.data:
-            screenshot_data = tool_result.data["screenshot"]
-            logger.debug("Tool result includes screenshot data")
-        if not screenshot_data and isinstance(tool_result.data, dict):
-            screenshot_ref = tool_result.data.get("screenshot_ref")
-            if self._looks_like_artifact_id(screenshot_ref):
-                screenshot_data = self._resolve_screenshot_ref(screenshot_ref)
-            if screenshot_data:
-                self._inject_screenshot_artifact(tool_result, screenshot_data)
+        screenshot_data = self._extract_screenshot_from_result_data(
+            tool_result.data,
+            tool_result,
+        )
         
         await self._process_screenshot(screenshot_data, request_id, "Tool result")
         
@@ -124,16 +139,10 @@ class ToolResultRouter:
         """
         logger.info(f"Routing atomic bundle result: bundle_id={bundle_id[:15]}, status={'success' if tool_result.success else 'failure'}")
         
-        # Extract screenshot from bundle result
-        screenshot = None
-        if isinstance(tool_result.data, dict):
-            screenshot = tool_result.data.get("screenshot")
-            if not screenshot:
-                screenshot_ref = tool_result.data.get("screenshot_ref")
-                if self._looks_like_artifact_id(screenshot_ref):
-                    screenshot = self._resolve_screenshot_ref(screenshot_ref)
-                if screenshot:
-                    self._inject_screenshot_artifact(tool_result, screenshot)
+        screenshot = self._extract_screenshot_from_result_data(
+            tool_result.data,
+            tool_result,
+        )
         
         await self._process_screenshot(screenshot, bundle_id, "Bundle result")
         
