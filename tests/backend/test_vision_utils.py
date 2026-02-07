@@ -9,5 +9,18 @@ def test_normalize_model_name_strips_prefix():
     assert normalize_model_name("huggingface-local/ModelA") == "ModelA"
 
 
+def test_normalize_model_name_strips_whitespace():
+    assert normalize_model_name("  huggingface-local/ModelA  ") == "ModelA"
+
+
+def test_normalize_model_name_blank_string_returns_default():
+    assert normalize_model_name("   ") == "OpenGVLab/InternVL3_5-4B"
+
+
+def test_normalize_model_name_does_not_replace_non_prefix_occurrence():
+    value = "x/huggingface-local/ModelA"
+    assert normalize_model_name(value) == value
+
+
 def test_normalize_model_name_returns_original_when_no_prefix():
     assert normalize_model_name("OpenGVLab/InternVL3_5-4B") == "OpenGVLab/InternVL3_5-4B"
