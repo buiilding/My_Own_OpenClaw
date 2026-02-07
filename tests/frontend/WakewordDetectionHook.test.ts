@@ -84,8 +84,8 @@ describe('useWakewordDetection', () => {
       handler?.({ model: 'jarvis', confidence: 0.85, score: 0.92 });
     });
 
-    expect(onWakewordDetected.mock.calls.length > 0).toBe(true);
-    expect(onWakewordDetected.mock.calls[0][0]).toEqual({
+    expect(onWakewordDetected).toHaveBeenCalledTimes(1);
+    expect(onWakewordDetected).toHaveBeenCalledWith({
       model: 'jarvis',
       confidence: 0.8,
       score: 0.91,
