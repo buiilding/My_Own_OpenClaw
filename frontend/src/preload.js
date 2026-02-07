@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'list-conversations',
       'get-conversation',
       'store-transcript',
+      'get-client-user-id',
       'set-overlay-ignore-mouse',
       'show-main-window',
       'show-chatbox',

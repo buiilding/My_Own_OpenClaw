@@ -5,6 +5,7 @@ import { IpcBridge, ON_CHANNELS, SEND_CHANNELS, INVOKE_CHANNELS } from '../../in
 import { ApiClient } from '../../infrastructure/api/client';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
+import { updateTranscriptSession } from '../../infrastructure/transcript/TranscriptWriter';
 
 /**
  * AppConfigProvider - Manages application configuration and capabilities.
@@ -68,6 +69,27 @@ export function AppConfigProvider({ children }) {
       removeListener();
     };
   }, [onBackendEvent]);
+
+  useEffect(() => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (data) => {
+      if (data?.userId) {
+        updateTranscriptSession(undefined, data.userId);
+      }
+    });
+    return () => {
+      removeListener?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
+      .then((result) => {
+        if (result?.userId) {
+          updateTranscriptSession(undefined, result.userId);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
