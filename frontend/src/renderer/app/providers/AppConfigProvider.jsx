@@ -80,6 +80,12 @@ export function AppConfigProvider({ children }) {
       if (userId) {
         updateTranscriptSession(undefined, userId);
       }
+      if (data?.isConnected === true) {
+        const currentConfig = configRef.current;
+        if (currentConfig && typeof currentConfig === 'object') {
+          ApiClient.updateSettings(currentConfig);
+        }
+      }
     });
     return () => {
       removeListener?.();
