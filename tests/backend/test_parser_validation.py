@@ -149,3 +149,24 @@ def test_get_valid_tool_names_returns_sorted_output():
     validator, _metrics = _make_validator({"write_file", "read_file"})
 
     assert validator._get_valid_tool_names() == ["read_file", "write_file"]
+
+
+def test_validate_tool_call_uses_compact_json_size_for_nested_params():
+    limits = SecurityLimits(max_parameter_value_size=13)
+    config = AppConfig(interaction_mode="agent", security_limits=limits)
+    metrics = DummyMetrics()
+    validator = ToolCallValidator(
+        config=config,
+        tool_registry=DummyRegistry(["read_file"]),
+        metrics=metrics,
+        limits=limits,
+    )
+
+    # Compact JSON length is 13: {"a":1,"b":2}
+    validator.validate_tool_call("read_file", {"payload": {"a": 1, "b": 2}})
+
+
+def test_serialized_param_size_returns_none_for_unserializable_payload():
+    size = ToolCallValidator._serialized_param_size({"unsupported": {1, 2, 3}})
+
+    assert size is None
