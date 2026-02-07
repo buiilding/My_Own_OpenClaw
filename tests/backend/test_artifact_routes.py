@@ -51,7 +51,7 @@ async def test_get_artifact_returns_file_response(tmp_path) -> None:
     response = await artifacts_routes.get_artifact("abc123.png", container)
 
     assert isinstance(response, FileResponse)
-    assert response.path == str(path)
+    assert str(response.path) == str(path)
     assert response.media_type == "image/png"
 
 
@@ -114,6 +114,7 @@ async def test_upload_artifact_returns_metadata_and_url(tmp_path) -> None:
             "scheme": "http",
             "server": ("testserver", 80),
             "path": "/api/artifacts/",
+            "headers": [],
         }
     )
 
@@ -138,6 +139,7 @@ async def test_upload_artifact_enforces_size_limit(tmp_path) -> None:
             "scheme": "http",
             "server": ("testserver", 80),
             "path": "/api/artifacts/",
+            "headers": [],
         }
     )
 
