@@ -69,7 +69,8 @@ class ArtifactStore:
         """Resolve file extension for an upload content type."""
         if not upload.content_type:
             raise HTTPException(status_code=400, detail="Missing content type")
-        ext = _CONTENT_TYPE_TO_EXT.get(upload.content_type)
+        normalized_content_type = upload.content_type.split(";", 1)[0].strip().lower()
+        ext = _CONTENT_TYPE_TO_EXT.get(normalized_content_type)
         if not ext:
             raise HTTPException(status_code=415, detail="Unsupported content type")
         return ext
@@ -110,7 +111,7 @@ class ArtifactStore:
 
         return ArtifactMeta(
             artifact_id=artifact_id,
-            content_type=upload.content_type,
+            content_type=_EXT_TO_CONTENT_TYPE[ext],
             size_bytes=size,
             sha256=hasher.hexdigest(),
             path=path,
