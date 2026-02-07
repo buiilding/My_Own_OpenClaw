@@ -52,6 +52,13 @@ export function AppConfigProvider({ children }) {
   const handlersRef = useRef(settingsHandlers);
   const configRef = useRef(config);
 
+  const syncCurrentConfigToBackend = useCallback(() => {
+    const currentConfig = configRef.current;
+    if (currentConfig && typeof currentConfig === 'object') {
+      ApiClient.updateSettings(currentConfig);
+    }
+  }, []);
+
   useEffect(() => {
     handlersRef.current = settingsHandlers;
   }, [settingsHandlers]);
@@ -81,16 +88,13 @@ export function AppConfigProvider({ children }) {
         updateTranscriptSession(undefined, userId);
       }
       if (data?.isConnected === true) {
-        const currentConfig = configRef.current;
-        if (currentConfig && typeof currentConfig === 'object') {
-          ApiClient.updateSettings(currentConfig);
-        }
+        syncCurrentConfigToBackend();
       }
     });
     return () => {
       removeListener?.();
     };
-  }, []);
+  }, [syncCurrentConfigToBackend]);
 
   useEffect(() => {
     IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
@@ -99,9 +103,12 @@ export function AppConfigProvider({ children }) {
         if (userId) {
           updateTranscriptSession(undefined, userId);
         }
+        if (result?.isConnected === true) {
+          syncCurrentConfigToBackend();
+        }
       })
       .catch(() => {});
-  }, []);
+  }, [syncCurrentConfigToBackend]);
 
   useEffect(() => {
     let isMounted = true;
