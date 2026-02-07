@@ -24,6 +24,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- 4169acf fix(frontend-ipc): gate first query on settings sync ack
 - d0dd0a6 fix(frontend-config): apply config sync when renderer attaches after backend connection
 - 3dbd975 fix(frontend-config): sync interaction mode to backend on ipc reconnect
 - 219ffb6 fix(frontend-chat): use zustand useShallow selectors to prevent snapshot update loops
@@ -91,6 +92,7 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- e2d96b1 refactor(frontend): stabilize dashboard/provider hook dependencies
 - 9b483c8 refactor(ocr-service): extract pure helpers and slim service module
 - c778fa1 refactor(semantic-api): adopt pydantic v2 list length constraints
 - 3d866fd refactor(vision-providers): share grounding prompt and split internvl inference path
@@ -195,7 +197,11 @@ Includes the last 300 commits on `main`.
 - ebe939e refactor(frontend-app): centralize save-status timers in app status provider
 - cbcba82 refactor(frontend-voice): stabilize useVoiceMode websocket lifecycle
 
+### Documentation
+- 1002256 docs(frontend): document settings-ack query gating flow
+
 ### Tests
+- ce329a3 test(frontend-ipc): run cjs suites and add settings-sync race coverage
 - 27b86ba test(frontend-config): cover startup connected-status config sync path
 - ea759bc test(frontend-config): add ipc reconnect config sync coverage
 - bb62a9b test(frontend-dashboard): cover duplicate-id provider reconciliation determinism
