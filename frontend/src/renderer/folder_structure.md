@@ -24,7 +24,8 @@ frontend/src/renderer/
 │       ├── AppStatusContext.jsx         # AppStatusContext + useAppStatusContext hook
 │       ├── AppStatusProvider.jsx        # AppStatusProvider - Manages saveStatus (transient, frequent changes)
 │       ├── ChatContext.jsx              # ChatContext + useChatContext hook
-│       └── ChatProvider.jsx             # ChatProvider - Sets up chat hooks (useChatStream, useToolRunner)
+│       ├── ChatProvider.jsx             # ChatProvider - Sets up chat hooks (useChatStream, useToolRunner)
+│       └── configComparison.ts          # configComparison - Shallow config change detection helpers
 │
 ├── components/                           # Shared UI components
 │   ├── ErrorBoundary.jsx                # ErrorBoundary - Catches React errors and displays fallback UI
@@ -50,13 +51,24 @@ frontend/src/renderer/
 │   │   │   ├── useToolRunner.ts         # useToolRunner - Connects UI to ToolExecutionService, handles tool execution events
 │   │   │   └── useTranscription.ts      # useTranscription - Manages input state and voice transcription text insertion
 │   │   │
-│   │   └── stores/                      # State management
-│   │       └── chatStore.ts             # chatStore (Zustand) - Messages, isSending, thinkingStatus, tokenCounts
+│   │   ├── stores/                      # State management
+│   │   │   └── chatStore.ts             # chatStore (Zustand) - Messages, isSending, thinkingStatus, tokenCounts
+│   │   │
+│   │   └── utils/                       # Chat presentation/formatting selectors and helpers
+│   │       ├── backendAudioEvents.js    # backendAudioEvents - Validates/extracts audio-chunk payloads for playback
+│   │       ├── chatBoxPresentation.js   # chatBoxPresentation - Status/label/preview derivation for ChatBox
+│   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
+│   │       ├── chatStreamFormatting.ts  # chatStreamFormatting - Thought/tool message formatting helpers
+│   │       ├── messageInput.js          # messageInput - Input normalization helper before send dispatch
+│   │       ├── messageScreenshots.js    # messageScreenshots - Screenshot presence predicates for message rendering
+│   │       ├── messageTransparency.js   # messageTransparency - Descriptor builder for transparency sections
+│   │       └── tokenCounts.js           # tokenCounts - Table-driven token count formatting/mapping helpers
 │   │
 │   ├── dashboard/                        # Dashboard feature module
 │   │   └── components/                  # Dashboard UI components
 │   │       ├── DashboardContent.jsx     # DashboardContent - Section-specific content panels
 │   │       └── sections/                # Dashboard section components
+│   │           ├── EpisodicMemorySection.jsx # EpisodicMemorySection - Episodic memory list/actions panel
 │   │           ├── MemorySection.jsx    # MemorySection - Episodic/Semantic placeholders
 │   │           ├── ModelsSection.jsx    # ModelsSection - Model list + API key input
 │   │           ├── ProceduralSection.jsx # ProceduralSection - Skills placeholder
@@ -74,9 +86,13 @@ frontend/src/renderer/
 │       ├── components/                  # Voice UI components
 │       │   └── VoiceStatus.jsx          # VoiceStatus - Displays voice mode status (recording, error, connected)
 │       │
-│       └── hooks/                       # Voice business logic hooks
-│           ├── useVoiceMode.ts          # useVoiceMode - Manages Nova-Voice Gateway WebSocket connection and audio capture
-│           └── useWakewordDetection.ts  # useWakewordDetection - Manages wakeword detection via openWakeWord (audio capture + IPC)
+│       ├── hooks/                       # Voice business logic hooks
+│       │   ├── useVoiceMode.ts          # useVoiceMode - Manages Nova-Voice Gateway WebSocket connection and audio capture
+│       │   └── useWakewordDetection.ts  # useWakewordDetection - Manages wakeword detection via openWakeWord (audio capture + IPC)
+│       │
+│       └── utils/                       # Voice utility helpers
+│           ├── audioEncoding.ts         # audioEncoding - PCM conversion and gateway packet framing helpers
+│           └── wakewordEventUtils.ts    # wakewordEventUtils - wakeword confidence/event validation helpers
 │
 ├── infrastructure/                        # Core infrastructure services
 │   │
@@ -90,31 +106,43 @@ frontend/src/renderer/
 │   │   ├── bridge.ts                   # IpcBridge - Type-safe IPC wrapper with channel validation (send, invoke, on, once)
 │   │   └── channels.ts                 # Channel constants - SEND_CHANNELS, INVOKE_CHANNELS, ON_CHANNELS (centralized channel names)
 │   │
-│   └── services/                         # Business logic services
-│       ├── MessageFormatter.ts          # MessageFormatter - Pure functions for formatting tool output with system context XML
-│       ├── SystemCapture.ts            # SystemCapture - extractOSstate() - Unified screenshot and system state capture
-│       ├── ToolExecutionBundleRunner.ts # ToolExecutionBundleRunner - Runs atomic tool bundles and collects results
-│       ├── ToolExecutionCapture.ts     # ToolExecutionCapture - Auto-capture decisions and OS state capture helpers
-│       ├── ToolExecutionInvoker.ts     # ToolExecutionInvoker - IPC invocation wrapper with timing
-│       ├── ToolExecutionLogger.ts      # ToolExecutionLogger - Timing/log helpers
-│       ├── ToolExecutionService.ts     # ToolExecutionService - Tool execution orchestration (single tools and bundles)
-│       └── ToolExecutionTypes.ts       # ToolExecutionTypes - Type definitions and constants (COMPUTER_USE_TOOLS, etc.)
+│   ├── markdown.ts                       # markdown - Markdown sanitization/rendering helpers
+│   │
+│   ├── services/                         # Business logic services
+│   │   ├── ArtifactImageUtils.ts        # ArtifactImageUtils - Artifact image type/extension normalization
+│   │   ├── ArtifactUploader.ts          # ArtifactUploader - Uploads screenshot artifacts and builds artifact URLs
+│   │   ├── MessageFormatter.ts          # MessageFormatter - Pure functions for formatting tool output with system context XML
+│   │   ├── SystemCapture.ts             # SystemCapture - extractOSstate() - Unified screenshot and system state capture
+│   │   ├── ToolExecutionBundleRunner.ts # ToolExecutionBundleRunner - Runs atomic tool bundles and collects results
+│   │   ├── ToolExecutionCapture.ts      # ToolExecutionCapture - Auto-capture decisions and OS state capture helpers
+│   │   ├── ToolExecutionInvoker.ts      # ToolExecutionInvoker - IPC invocation wrapper with timing
+│   │   ├── ToolExecutionLogger.ts       # ToolExecutionLogger - Timing/log helpers
+│   │   ├── ToolExecutionPayloads.ts     # ToolExecutionPayloads - Shared tool/bundle payload/status shaping helpers
+│   │   ├── ToolExecutionService.ts      # ToolExecutionService - Tool execution orchestration (single tools and bundles)
+│   │   └── ToolExecutionTypes.ts        # ToolExecutionTypes - Type definitions and constants (COMPUTER_USE_TOOLS, etc.)
+│   │
+│   └── transcript/                       # Transcript persistence helpers
+│       └── TranscriptWriter.ts          # TranscriptWriter - Session-aware transcript write queue + IPC storage calls
 │
 ├── styles/                                # CSS stylesheets
 │   ├── accessibility.css                # Accessibility utilities (visually-hidden class)
 │   ├── ChatBox.css                      # Chat box overlay styles
 │   ├── ChatInterface.css               # Chat interface styles (messages, tool outputs, transparency sections)
+│   ├── ErrorBoundary.css                # ErrorBoundary fallback UI styling
 │   ├── MainLayout.css                   # Main layout styles (two-column grid)
 │   ├── SettingsPanel.css                # Dashboard section styles (cards, toggles, model list)
 │   ├── ThinkingDisplay.css              # Thinking display styles (collapsible reasoning tokens)
-│   └── TokenCountDisplay.css            # Token count display styles
+│   ├── TokenCountDisplay.css            # Token count display styles
+│   ├── VoiceStatus.css                  # Voice status badge and state styles
+│   └── theme.css                        # Shared CSS variables/theme tokens
 │
 ├── types/                                 # Local renderer types
 │   └── backendEvents.ts                  # Backend event payload types + guards
 │
 └── utils/                                 # Utility functions
     ├── configFilter.js                  # configFilter - Filters config to frontend-managed fields only
-    └── configStorage.js                 # configStorage - localStorage utilities for config persistence (optimistic state pattern)
+    ├── configStorage.js                 # configStorage - localStorage utilities for config persistence (optimistic state pattern)
+    └── displaySelection.ts              # displaySelection - Display bounds validation and active-display selection helpers
 ```
 
 ---
