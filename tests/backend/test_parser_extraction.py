@@ -29,11 +29,15 @@ class DummyMetrics:
 
 
 def _make_extractor():
+    return _make_extractor_with_limits(SecurityLimits())
+
+
+def _make_extractor_with_limits(limits: SecurityLimits):
     return JsonToolCallExtractor(
         schema=DummySchema(),
         validator=DummyValidator(),
         metrics=DummyMetrics(),
-        limits=SecurityLimits(),
+        limits=limits,
     )
 
 
@@ -95,3 +99,41 @@ def test_remove_extracted_by_positions_merges_overlapping_ranges():
     )
 
     assert cleaned == "abcxyz"
+
+
+def test_parse_embedded_json_honors_max_response_size_boundary():
+    response = (
+        "prefix "
+        '{"functionCall":{"name":"read_file","args":{"path":"/tmp/a"}}}'
+        " suffix"
+    )
+    # Stop scanning before the JSON object starts.
+    limits = SecurityLimits(max_response_size=6)
+    extractor = _make_extractor_with_limits(limits)
+
+    tool_calls, remaining_text = extractor.parse_embedded_json(
+        response,
+        start_time=time.monotonic(),
+        timeout=1.0,
+    )
+
+    assert tool_calls == []
+    assert remaining_text == response
+
+
+def test_parse_embedded_json_accepts_small_json_with_large_trailing_text():
+    response = (
+        '{"functionCall":{"name":"read_file","args":{"path":"/tmp/a"}}}'
+        + ("x" * 400)
+    )
+    limits = SecurityLimits(max_json_size=120, max_response_size=600)
+    extractor = _make_extractor_with_limits(limits)
+
+    tool_calls, remaining_text = extractor.parse_embedded_json(
+        response,
+        start_time=time.monotonic(),
+        timeout=1.0,
+    )
+
+    assert [call.tool_name for call in tool_calls] == ["read_file"]
+    assert remaining_text == "x" * 400
