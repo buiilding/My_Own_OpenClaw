@@ -15,6 +15,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.src.api.routes import websocket
+from backend.src.api.routes import artifacts
 from backend.src.api.routes.memory import embeddings, semantic
 from backend.src.core.logging_setup import configure_logging
 from backend.src.simulation.mock_llm_browser_client import get_mock_llm_browser_client
@@ -94,6 +95,7 @@ app.add_middleware(
 
 # Routes (same as main backend)
 app.include_router(websocket.router)
+app.include_router(artifacts.router)
 app.include_router(embeddings.router)
 app.include_router(semantic.router)
 
