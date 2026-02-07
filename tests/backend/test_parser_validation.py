@@ -24,6 +24,14 @@ class DummyRegistry:
         return None
 
 
+class BrokenRegistry(DummyRegistry):
+    def __init__(self, tool_names):
+        super().__init__(tool_names)
+
+    def get_tool_names(self):
+        return self._tool_names
+
+
 def _make_validator(tool_names, interaction_mode="agent"):
     config = AppConfig(
         interaction_mode=interaction_mode,
@@ -61,3 +69,17 @@ def test_validate_tool_call_applies_chat_mode_allowlist():
 
     with pytest.raises(ParseValidationError, match="not in whitelist"):
         validator.validate_tool_call("secret_tool", {})
+
+
+def test_validate_tool_call_handles_non_iterable_registry_tool_names():
+    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
+    metrics = DummyMetrics()
+    validator = ToolCallValidator(
+        config=config,
+        tool_registry=BrokenRegistry(123),
+        metrics=metrics,
+        limits=config.security_limits,
+    )
+
+    with pytest.raises(ParseValidationError, match="not in whitelist"):
+        validator.validate_tool_call("read_file", {})
