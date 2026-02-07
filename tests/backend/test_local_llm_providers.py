@@ -125,6 +125,27 @@ def test_normalize_listed_models_returns_empty_for_non_list_payload():
     )
 
 
+@pytest.mark.asyncio
+async def test_lmstudio_list_models_trims_and_filters_blank_ids(monkeypatch):
+    provider = LMStudioProvider(base_url="http://localhost:1234/v1")
+    response = DummyResponse(
+        200,
+        {"data": [{"id": "  model-a  "}, {"id": "   "}, {"id": None}]},
+    )
+    get_mock = AsyncMock(return_value=response)
+    monkeypatch.setattr(
+        provider,
+        "_get_http_client",
+        AsyncMock(return_value=type("Client", (), {"get": get_mock})()),
+    )
+
+    models = await provider.list_models()
+
+    assert models == [
+        {"id": "model-a", "provider": "lmstudio", "display_name": "model-a"},
+    ]
+
+
 def test_local_provider_request_params_set_placeholder_api_key():
     provider = OllamaProvider(base_url="http://localhost:11434/v1")
     params = provider._build_request_params("llama3", [{"role": "user", "content": "hi"}])
