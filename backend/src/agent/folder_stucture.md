@@ -59,12 +59,12 @@ backend/src/agent/
 │   │
 │   ├── waiting/                       # Phase 3: Wait for frontend results, receive and route
 │   │   ├── __init__.py                # Package exports: ToolResultHandler, ToolResultReceiver, ToolResultRouter
-│   │   ├── handler.py                 # ToolResultHandler - facade for tool result processing from frontend (delegates to receiver and router)
+│   │   ├── handler.py                 # ToolResultHandler - facade for tool result processing from frontend (bundled payload detection + metadata normalization + receiver/router delegation)
 │   │   ├── receiver.py                # ToolResultReceiver - receives results from frontend and converts to ToolResult format (individual, bundle, bundled results)
-│   │   ├── router.py                  # ToolResultRouter - routes tool results to screenshot processor, storage, and future resolution
+│   │   ├── router.py                  # ToolResultRouter - routes tool results via shared screenshot extraction helpers and shared store+resolve helpers
 │   │   └── storage/
 │   │       ├── __init__.py            # Package exports: ToolResultStorage
-│   │       └── result_storage.py      # ToolResultStorage - centralized storage for pending tool results, futures, bundled results (with TTL cleanup)
+│   │       └── result_storage.py      # ToolResultStorage - centralized storage for pending results/futures/bundles with loop-aware future creation and TTL cleanup (including stale future-only entries)
 │   │
 │   ├── processing/                    # Phase 4: Process results
 │   │   ├── __init__.py                # Package exports: ToolProcessingCoordinator, ToolResultProcessor, ResultTransformer, SyntheticResultFactory
@@ -199,13 +199,13 @@ tools/waiting/handler.py
 2. Routing Phase
     └── tools/waiting/router.py
         └── ToolResultRouter.route_individual_result()
+            ├── _extract_screenshot_from_result_data() (shared screenshot/screenshot_ref resolver path)
             ├── tools/preparation/screenshot/processor.py (if screenshot present)
             │   └── ScreenshotProcessor.process_from_result() → screenshot_id
             │       └── tools/preparation/screenshot/manager.py
             │           └── ScreenshotManager.process_screenshot() → stored + OCR triggered
-            ├── tools/waiting/storage/result_storage.py
-            │   └── ToolResultStorage.store_pending_result() → stored
-            └── tools/waiting/storage/result_storage.py
+            └── _store_and_resolve_individual_result()
+                ├── ToolResultStorage.store_pending_result() → stored
                 └── ToolResultStorage.resolve_result_future() → future resolved
         ↓
 3. Waiting Phase (orchestrator waits)

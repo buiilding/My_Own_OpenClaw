@@ -237,3 +237,12 @@ WebSocket Response
 6. **Type Safety**: Comprehensive type definitions for IDE support and runtime validation
 7. **Thread Safety**: Critical components use locks for concurrent access
 8. **Backward Compatibility**: `__init__.py` files provide re-exports for gradual migration
+
+## Recent Structure Notes
+
+- Trust-boundary parsing and validation helpers are intentionally split across
+  `backend/src/llm/parser.py`, `backend/src/llm/parser_extraction.py`, and
+  `backend/src/llm/parser_validation.py` to keep extraction, enforcement, and orchestration concerns isolated.
+- Tool waiting lifecycle responsibilities are concentrated in
+  `backend/src/agent/tools/waiting/` with explicit handler/receiver/router/storage
+  separation to reduce cross-layer coupling in session code.
