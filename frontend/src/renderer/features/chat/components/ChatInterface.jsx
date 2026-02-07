@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import TokenCountDisplay from './TokenCountDisplay';
@@ -18,8 +18,7 @@ import '../../../styles/ChatInterface.css';
  */
 function ChatInterface() {
   const { messages, isSending, thinkingStatus, tokenCounts } = useChatStore(
-    selectChatInterfaceState,
-    shallow,
+    useShallow(selectChatInterfaceState),
   );
   // Use AppConfigContext directly for better performance
   // This avoids re-renders when saveStatus changes in AppStatusContext
