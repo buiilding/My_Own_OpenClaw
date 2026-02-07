@@ -276,8 +276,9 @@ class InternVLModel(BaseVisionModel):
             instruction_preview, instruction_hash = _build_instruction_log_metadata(
                 instruction
             )
+            preview_suffix = "..." if len(instruction_preview) < len(instruction) else ""
             logger.info(
-                f"Starting InternVL prediction for instruction (preview: {instruction_preview}..., hash: {instruction_hash})"
+                f"Starting InternVL prediction for instruction (preview: {instruction_preview}{preview_suffix}, hash: {instruction_hash})"
             )
             logger.info(
                 f"Model device: {resolve_model_device(self.model)}, CUDA available: {torch.cuda.is_available()}"
