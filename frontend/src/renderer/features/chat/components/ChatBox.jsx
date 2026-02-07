@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
@@ -13,10 +13,7 @@ import {
 } from '../utils/chatBoxPresentation';
 
 function ChatBox() {
-  const { messages, isSending, thinkingStatus } = useChatStore(
-    selectChatBoxState,
-    shallow,
-  );
+  const { messages, isSending, thinkingStatus } = useChatStore(useShallow(selectChatBoxState));
   const { config } = useAppConfigContext();
   const { sendMessage } = useChatMessageSender();
   const [inputValue, setInputValue] = useState('');
