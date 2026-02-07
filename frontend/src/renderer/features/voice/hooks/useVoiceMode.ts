@@ -24,9 +24,24 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const isRecordingRef = useRef(false);
+  const enabledRef = useRef(enabled);
+  const onTranscriptionUpdateRef = useRef(onTranscriptionUpdate);
+  const onUtteranceEndRef = useRef(onUtteranceEnd);
 
   const MAX_RECONNECT_ATTEMPTS = 5;
   const RECONNECT_DELAY_BASE = 1000; // Start with 1 second
+
+  useEffect(() => {
+    enabledRef.current = enabled;
+  }, [enabled]);
+
+  useEffect(() => {
+    onTranscriptionUpdateRef.current = onTranscriptionUpdate;
+  }, [onTranscriptionUpdate]);
+
+  useEffect(() => {
+    onUtteranceEndRef.current = onUtteranceEnd;
+  }, [onUtteranceEnd]);
 
   // Convert Float32Array to Int16Array for transmission
   const float32ToInt16 = useCallback((float32Array: Float32Array) => {
@@ -100,16 +115,16 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
             case 'realtime':
               // Transcription result
               const transcriptionText = data.translation || data.text || '';
-              if (transcriptionText && onTranscriptionUpdate) {
-                onTranscriptionUpdate(transcriptionText, data.is_final === true || data.is_final === 'true');
+              if (transcriptionText && onTranscriptionUpdateRef.current) {
+                onTranscriptionUpdateRef.current(transcriptionText, data.is_final === true || data.is_final === 'true');
               }
               break;
 
             case 'utterance_end':
               // Silence detected, trigger auto-send
               console.log('[VoiceMode] Utterance ended (silence detected)');
-              if (onUtteranceEnd) {
-                onUtteranceEnd();
+              if (onUtteranceEndRef.current) {
+                onUtteranceEndRef.current();
               }
               // Send start_over to reset Gateway session
               if (ws.readyState === WebSocket.OPEN) {
@@ -136,7 +151,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
         setIsConnected(false);
         
         // Attempt reconnection if enabled and not manually closed
-        if (enabled && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+        if (enabledRef.current && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
           const delay = RECONNECT_DELAY_BASE * Math.pow(2, reconnectAttemptsRef.current);
           reconnectAttemptsRef.current++;
           console.log(`[VoiceMode] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`);
@@ -153,7 +168,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
       setError('Failed to connect to voice gateway');
       setIsConnected(false);
     }
-  }, [gatewayUrl, enabled, onTranscriptionUpdate, onUtteranceEnd]);
+  }, [gatewayUrl]);
 
   // Start audio capture
   const startAudioCapture = useCallback(async () => {
