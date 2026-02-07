@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { normalizeArtifactImageContentType } from '../../../infrastructure/services/ArtifactImageUtils';
+import { isUserMessageWithScreenshot } from '../utils/messageScreenshots';
 
 function resolveMessageScreenshotSrc(message) {
   if (message.screenshotUrl) {
@@ -148,7 +149,7 @@ export default function MessageContent({ message }) {
     return <ToolCallMessage message={message} />;
   }
 
-  if (message.sender === 'user' && (message.screenshotUrl || message.screenshotRef || message.screenshot)) {
+  if (isUserMessageWithScreenshot(message)) {
     return <UserMessage message={message} />;
   }
 
