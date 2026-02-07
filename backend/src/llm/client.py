@@ -7,7 +7,7 @@ different Large Language Models (LLMs) through the LiteLLM library.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, AsyncGenerator, List, TYPE_CHECKING
 
 from backend.src.core.config import AppConfig
 from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
@@ -86,6 +86,13 @@ class LiteLLMClient(LLMClient):
         )
         return get_provider(self.config, provider_name)
 
+    def _resolve_provider(self, model: str) -> "LLMProvider":
+        """Resolve provider with normalized error semantics for non-stream callers."""
+        try:
+            return self._get_provider()
+        except Exception as exc:
+            raise LLMAPIError(f"LLM provider error: {exc}", model=model) from exc
+
     @staticmethod
     def _extract_content(response: Any, model: str) -> str:
         """Validate and extract text content from a provider response payload."""
@@ -118,8 +125,13 @@ class LiteLLMClient(LLMClient):
         Raises:
             LLMAPIError: If response structure is invalid
         """
-        provider = self._get_provider()
-        response = await provider.get_completion(model, messages)
+        provider = self._resolve_provider(model)
+        try:
+            response = await provider.get_completion(model, messages)
+        except LLMAPIError:
+            raise
+        except Exception as exc:
+            raise LLMAPIError(f"LLM completion error: {exc}", model=model) from exc
 
         return self._extract_content(response, model)
 
@@ -133,15 +145,19 @@ class LiteLLMClient(LLMClient):
         for consistency with base class error handling pattern.
         """
         try:
-            provider = self._get_provider()
-        except Exception as exc:
+            provider = self._resolve_provider(model)
+        except LLMAPIError as exc:
             logger.error("Provider initialization failed: %s", exc)
-            yield ErrorEvent(content=f"LLM provider error: {str(exc)}")
+            yield ErrorEvent(content=str(exc))
             return
-        
-        # Provider's get_completion_stream handles its own exceptions and yields ErrorEvent
-        async for event in provider.get_completion_stream(model, messages):
-            yield event
+
+        try:
+            # Provider's get_completion_stream handles its own exceptions and yields ErrorEvent
+            async for event in provider.get_completion_stream(model, messages):
+                yield event
+        except Exception as exc:
+            logger.error("Streaming iteration failed: %s", exc, exc_info=True)
+            yield ErrorEvent(content=f"LLM streaming error: {str(exc)}")
 
 
 def get_llm_client(cfg: AppConfig) -> LLMClient:
