@@ -63,7 +63,7 @@ frontend/src/renderer/
 │   │       ├── chatStreamFormatting.ts  # chatStreamFormatting - Thought/tool message formatting helpers
 │   │       ├── messageInput.js          # messageInput - Input normalization helper before send dispatch
 │   │       ├── messageListClasses.js    # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
-│   │       ├── messageScreenshots.js    # messageScreenshots - Screenshot presence predicates for message rendering
+│   │       ├── messageScreenshots.js    # messageScreenshots - Screenshot presence predicates and screenshot-src resolution helpers
 │   │       ├── messageTransparency.js   # messageTransparency - Descriptor builder for transparency sections
 │   │       ├── tokenCounts.js           # tokenCounts - Table-driven token count formatting/mapping helpers
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
