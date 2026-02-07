@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { isUserMessageWithScreenshot, resolveMessageScreenshotSrc } from '../utils/messageScreenshots';
+import { buildToolExecutionMetadata } from '../utils/messageToolMetadata';
 
 function MarkdownMessage({ text }) {
   const html = useMemo(() => toSanitizedMarkdownHtml(text ?? ''), [text]);
@@ -39,12 +40,7 @@ function ToolOutputMessage({ message }) {
         <TransparencySection
           title="Execution Details"
           content={message.text}
-          metadata={{
-            'Tool Name': message.toolName || 'Unknown',
-            'Execution Time': message.executionTime ? `${message.executionTime.toFixed(3)}s` : 'N/A',
-            'Success': message.success ? 'Yes' : 'No',
-            'Active Window': message.toolMetadata?.active_window || 'Unknown',
-          }}
+          metadata={buildToolExecutionMetadata(message)}
           type="text"
         />
       )}
