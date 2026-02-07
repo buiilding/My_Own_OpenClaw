@@ -380,21 +380,23 @@ The Python sidecar handles tool execution and system state capture.
    ↓
 5. Main process receives via IPC
    ↓
-6. Main process builds complete message with system state and memories
+6. Main process ensures startup settings sync is acknowledged (`update-settings` → `settings-updated`) for first query on each connection
    ↓
-7. Main process forwards to backend via WebSocket
+7. Main process builds complete message with system state and memories
    ↓
-8. Backend processes and streams response
+8. Main process forwards to backend via WebSocket
    ↓
-9. Main process receives WebSocket messages
+9. Backend processes and streams response
    ↓
-10. Main process forwards to renderer via IPC
+10. Main process receives WebSocket messages
+   ↓
+11. Main process forwards to renderer via IPC
     ↓
-11. useChatStream hook processes streaming events
+12. useChatStream hook processes streaming events
     ↓
-12. Chat store updated with messages
+13. Chat store updated with messages
     ↓
-13. UI updates via Zustand subscriptions
+14. UI updates via Zustand subscriptions
 ```
 
 ### Tool Execution Flow
