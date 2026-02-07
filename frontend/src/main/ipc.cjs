@@ -14,6 +14,7 @@ const { getSystemState, searchMemory } = require('./local_backend_bridge.cjs');
 const BACKEND_PORT = process.env.BACKEND_PORT || 8765;
 const BACKEND_URL = `ws://127.0.0.1:${BACKEND_PORT}/ws`;
 const BACKEND_HTTP_URL = `http://127.0.0.1:${BACKEND_PORT}`;
+const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 let ws = null;
 let mainWindow = null;
 let rendererWindows = new Set();
@@ -23,6 +24,10 @@ let isFirstQuery = true; // Track if this is the first user query in the session
 let currentUserId = null; // Store user_id after successful handshake
 let currentSessionId = null; // Store session_id from backend responses
 let currentServerUserId = null; // Store server-assigned user_id from backend responses
+let latestFrontendConfig = null; // Last known frontend config for session bootstrap
+let hasAttemptedInitialSettingsSync = false; // One-time per connection query gate
+let pendingSettingsSyncPromise = null; // Last outbound update-settings ACK promise
+const pendingSettingsSyncs = new Map(); // msg_id -> { resolve, timer }
 
 const FRONTEND_CONFIG_FILENAME = 'frontend-config.json';
 
@@ -54,6 +59,7 @@ async function saveFrontendConfigToDisk(config) {
     if (!config || typeof config !== 'object' || Array.isArray(config)) {
       return { success: false, error: 'Invalid config payload' };
     }
+    latestFrontendConfig = { ...config };
     const filePath = getFrontendConfigPath();
     await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
     const tempPath = `${filePath}.tmp`;
@@ -76,6 +82,85 @@ function log(message) {
 function logDebug(message) {
   // Debug logging - can be enabled for troubleshooting
   // console.log(`[IPC Bridge] ${message}`);
+}
+
+function clearPendingSettingsSyncs() {
+  for (const { resolve, timer } of pendingSettingsSyncs.values()) {
+    clearTimeout(timer);
+    resolve(false);
+  }
+  pendingSettingsSyncs.clear();
+}
+
+function resolveSettingsSync(msgId, wasSuccessful) {
+  const pending = pendingSettingsSyncs.get(msgId);
+  if (!pending) {
+    return;
+  }
+  clearTimeout(pending.timer);
+  pendingSettingsSyncs.delete(msgId);
+  pending.resolve(Boolean(wasSuccessful));
+}
+
+function waitForSettingsAck(msgId, source) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      pendingSettingsSyncs.delete(msgId);
+      log(`Settings sync timeout (${source}) for message ${msgId}`);
+      resolve(false);
+    }, SETTINGS_SYNC_TIMEOUT_MS);
+    pendingSettingsSyncs.set(msgId, { resolve, timer });
+  });
+}
+
+function isValidConfigPayload(config) {
+  return Boolean(config) && typeof config === 'object' && !Array.isArray(config);
+}
+
+function sendSettingsUpdate(config, source = 'renderer') {
+  if (!isValidConfigPayload(config)) {
+    return Promise.resolve(false);
+  }
+  latestFrontendConfig = { ...config };
+  const msgId = sendMessageToBackend('update-settings', config);
+  if (!msgId) {
+    return Promise.resolve(false);
+  }
+  const ackPromise = waitForSettingsAck(msgId, source);
+  pendingSettingsSyncPromise = ackPromise.finally(() => {
+    if (pendingSettingsSyncPromise === ackPromise) {
+      pendingSettingsSyncPromise = null;
+    }
+  });
+  return pendingSettingsSyncPromise;
+}
+
+async function ensureInitialSettingsSync() {
+  if (!isConnected) {
+    return;
+  }
+
+  if (hasAttemptedInitialSettingsSync) {
+    if (pendingSettingsSyncPromise) {
+      await pendingSettingsSyncPromise;
+    }
+    return;
+  }
+
+  hasAttemptedInitialSettingsSync = true;
+
+  if (pendingSettingsSyncPromise) {
+    await pendingSettingsSyncPromise;
+    return;
+  }
+
+  if (!isValidConfigPayload(latestFrontendConfig)) {
+    latestFrontendConfig = await loadFrontendConfigFromDisk();
+  }
+
+  if (isValidConfigPayload(latestFrontendConfig)) {
+    await sendSettingsUpdate(latestFrontendConfig, 'initial-query-gate');
+  }
 }
 
 async function uploadArtifact({ base64, contentType, filename }) {
@@ -166,11 +251,13 @@ function connect() {
   ws.on('open', () => {
     isConnected = true;
     isFirstQuery = true; // Reset on new connection (new session)
+    hasAttemptedInitialSettingsSync = false;
+    pendingSettingsSyncPromise = null;
+    clearPendingSettingsSyncs();
     log('Successfully connected to Python backend.');
 
     // Generate valid user_id (backend rejects 'default_user', empty, or whitespace-only)
     currentUserId = generateUserId();
-    broadcastToRenderers('ipc-status', { isConnected: true, userId: currentUserId });
     
     // Send handshake message as required by the backend server
     const handshakeMessage = {
@@ -180,6 +267,8 @@ function connect() {
     try {
       ws.send(JSON.stringify(handshakeMessage));
       log(`Handshake sent with user_id: ${currentUserId}`);
+      // Broadcast connection status after handshake send to reduce startup races.
+      broadcastToRenderers('ipc-status', { isConnected: true, userId: currentUserId });
     } catch (error) {
       log(`Error sending handshake: ${error}`);
     }
@@ -200,6 +289,11 @@ function connect() {
       if (data.type === 'error') {
         log(`Error from backend: ${data.payload?.message || 'Unknown error'}`);
       }
+      if (data.type === 'settings-updated' && data.id) {
+        resolveSettingsSync(data.id, true);
+      } else if (data.type === 'error' && data.id) {
+        resolveSettingsSync(data.id, false);
+      }
       broadcastToRenderers('from-backend', data);
     } catch (error) {
       log(`Error parsing message from backend: ${error}`);
@@ -208,6 +302,9 @@ function connect() {
 
   ws.on('close', () => {
     isConnected = false;
+    hasAttemptedInitialSettingsSync = false;
+    pendingSettingsSyncPromise = null;
+    clearPendingSettingsSyncs();
     currentSessionId = null;
     currentServerUserId = null;
     log('Disconnected from Python backend. Attempting to reconnect...');
@@ -234,16 +331,17 @@ function connect() {
 function sendMessageToBackend(type, payload) {
   if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
     log('Cannot send message: WebSocket is not connected.');
-    return;
+    return null;
   }
 
   if (!currentUserId) {
     log('Cannot send message: user_id not set (handshake may have failed).');
-    return;
+    return null;
   }
 
+  const msgId = uuidv4();
   const message = {
-    id: uuidv4(),
+    id: msgId,
     type,
     payload: payload || {},
     user_id: currentUserId,
@@ -253,8 +351,10 @@ function sendMessageToBackend(type, payload) {
   try {
     ws.send(JSON.stringify(message));
     // Only log errors, not every message
+    return msgId;
   } catch (error) {
     log(`Error sending message to backend: ${error}`);
+    return null;
   }
 }
 
@@ -287,9 +387,18 @@ function initializeIpc(win) {
   });
 
   ipcMain.on('to-backend', async (event, { type, payload }) => {
+    if (type === 'update-settings') {
+      sendSettingsUpdate(payload, 'renderer-update');
+      return;
+    }
+
     // Only log important message types
     if (type === 'query' || type === 'wakeword-detected') {
       log(`Received ${type} from renderer`);
+      await ensureInitialSettingsSync();
+      if (pendingSettingsSyncPromise) {
+        await pendingSettingsSyncPromise;
+      }
     }
 
     // Build complete user message content with system state and memories
