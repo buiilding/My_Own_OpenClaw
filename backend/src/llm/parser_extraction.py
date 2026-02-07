@@ -32,16 +32,17 @@ class JsonToolCallExtractor:
         tool_calls: List[ParsedToolCall] = []
 
         json_str = response.strip()
-        if len(json_str) > self.limits.max_json_size:
+        json_size = len(json_str)
+        if json_size > self.limits.max_json_size:
             self.metrics.record_size_violation(
-                actual_size=len(json_str),
+                actual_size=json_size,
                 max_size=self.limits.max_json_size,
                 boundary_name="response_parser",
                 metadata={"check": "json_size"},
             )
             raise InputSizeLimitError(
-                f"JSON size {len(json_str)} exceeds maximum {self.limits.max_json_size}",
-                actual_size=len(json_str),
+                f"JSON size {json_size} exceeds maximum {self.limits.max_json_size}",
+                actual_size=json_size,
                 max_size=self.limits.max_json_size,
                 boundary_name="response_parser",
             )
