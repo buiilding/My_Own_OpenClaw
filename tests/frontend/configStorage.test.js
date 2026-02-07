@@ -20,6 +20,12 @@ describe('configStorage', () => {
     expect(hasStoredConfig()).toBe(false);
   });
 
+  test('loadConfigFromStorage returns a new config object each call', () => {
+    const first = loadConfigFromStorage();
+    const second = loadConfigFromStorage();
+    expect(first).not.toBe(second);
+  });
+
   test('loadConfigFromStorage merges stored overrides with defaults', () => {
     localStorage.setItem(CONFIG_KEY, JSON.stringify({ model_mode: 'offline' }));
     const result = loadConfigFromStorage();
