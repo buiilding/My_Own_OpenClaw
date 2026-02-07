@@ -205,3 +205,5 @@ backend/src/api/
 - `routes/websocket/task_manager.py` now closes rejected coroutine inputs when
   concurrency limits are exceeded, preventing un-awaited coroutine warnings in
   route hot paths.
+- The same close path is defensive against `close()` exceptions so limit checks
+  do not fail request handling on malformed coroutine-like inputs.
