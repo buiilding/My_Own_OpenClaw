@@ -7,8 +7,6 @@ import asyncio
 import logging
 from typing import Set
 
-from backend.src.api.transport.websocket import SafeWebSocket
-
 logger = logging.getLogger(__name__)
 
 
