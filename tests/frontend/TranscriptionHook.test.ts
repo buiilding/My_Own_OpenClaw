@@ -71,5 +71,60 @@ describe('useTranscription', () => {
 
     jest.useRealTimers();
   });
-});
 
+  test('invalidates transcription region when input change cursor is null', () => {
+    const { result } = renderHook(() => useTranscription(''));
+
+    act(() => {
+      result.current.updateTranscription('hello');
+    });
+    expect(result.current.inputValue).toBe('hello');
+
+    act(() => {
+      result.current.handleInputChange({
+        target: {
+          value: 'hello!',
+          selectionStart: null,
+        },
+      } as any);
+    });
+
+    act(() => {
+      result.current.updateTranscription('world');
+    });
+    expect(result.current.inputValue).toBe('hello!world');
+  });
+
+  test('invalidates transcription region when paste cursor is null', () => {
+    jest.useFakeTimers();
+    const { result } = renderHook(() => useTranscription(''));
+
+    act(() => {
+      result.current.updateTranscription('abc');
+    });
+    expect(result.current.inputValue).toBe('abc');
+
+    act(() => {
+      result.current.handlePaste({
+        clipboardData: { getData: () => 'X' },
+        target: {
+          selectionStart: null,
+          selectionEnd: null,
+          setSelectionRange: jest.fn(),
+        },
+        preventDefault: jest.fn(),
+      } as any);
+    });
+    expect(result.current.inputValue).toBe('Xabc');
+
+    act(() => {
+      result.current.updateTranscription('Y');
+    });
+    expect(result.current.inputValue).toBe('XabcY');
+
+    act(() => {
+      jest.runAllTimers();
+    });
+    jest.useRealTimers();
+  });
+});
