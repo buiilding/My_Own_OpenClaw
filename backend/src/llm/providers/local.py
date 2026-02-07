@@ -228,6 +228,24 @@ class OllamaProvider(LocalLLMProvider):
     def _provider_name(self) -> str:
         return "Ollama"
 
+    @staticmethod
+    def _build_tags_url(base_url: str) -> Optional[str]:
+        """
+        Build Ollama /api/tags endpoint URL from configured base URL.
+        
+        Handles config values that include /v1 and edge-case '/v1' paths.
+        """
+        normalized = base_url
+        if normalized.endswith("/v1"):
+            normalized = normalized.removesuffix("/v1")
+            if not normalized or normalized == "/":
+                normalized = "http://localhost:11434"
+
+        if not normalized or normalized == "/":
+            return None
+
+        return f"{normalized.rstrip('/')}/api/tags"
+
     async def list_models(self) -> List[Dict[str, str]]:
         """
         Fetch models from Ollama.
@@ -241,21 +259,10 @@ class OllamaProvider(LocalLLMProvider):
         """
         models = []
         # base_url is guaranteed to be a string (validated in __init__)
-        # Handle the fact that config base_url usually ends in /v1 but api/tags is at root
-        base_url = self.base_url
-        # Safely remove /v1 suffix if present
-        if base_url.endswith("/v1"):
-            base_url = base_url.removesuffix("/v1")
-            # Handle edge case where base_url was exactly "/v1" - use default localhost
-            if not base_url or base_url == "/":
-                base_url = "http://localhost:11434"
-        
-        # Ensure we have a valid base URL before constructing the endpoint
-        if not base_url or base_url == "/":
+        url = self._build_tags_url(self.base_url)
+        if url is None:
             logger.warning("Invalid Ollama base_url, cannot list models")
             return models
-        
-        url = f"{base_url.rstrip('/')}/api/tags"
         
         try:
             # Use shared HTTP client for connection pooling
