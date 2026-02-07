@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import MessageList from '../../../chat/components/MessageList';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import { getTranscriptSessionInfo } from '../../../../infrastructure/transcript/TranscriptWriter';
@@ -44,7 +44,7 @@ function EpisodicMemorySection() {
     return sortedConversations.findIndex((conversation) => buildConversationKey(conversation) === selectedConversationKey);
   }, [sortedConversations, selectedConversationKey]);
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     setIsLoadingList(true);
     setListError(null);
 
@@ -73,9 +73,9 @@ function EpisodicMemorySection() {
     } finally {
       setIsLoadingList(false);
     }
-  };
+  }, [selectedConversationKey, sessionInfo.userId]);
 
-  const loadConversation = async (conversationKey) => {
+  const loadConversation = useCallback(async (conversationKey) => {
     setIsLoadingConversation(true);
     setConversationError(null);
     setMessages([]);
@@ -106,11 +106,11 @@ function EpisodicMemorySection() {
     } finally {
       setIsLoadingConversation(false);
     }
-  };
+  }, [conversations, sessionInfo.userId]);
 
   useEffect(() => {
     loadConversations();
-  }, [sessionInfo.userId]);
+  }, [loadConversations]);
 
   useEffect(() => {
     if (!selectedConversationKey) {
@@ -118,7 +118,7 @@ function EpisodicMemorySection() {
       return;
     }
     loadConversation(selectedConversationKey);
-  }, [selectedConversationKey, conversations, sessionInfo.userId]);
+  }, [loadConversation, selectedConversationKey]);
 
   useEffect(() => {
     const handleSessionUpdate = (event) => {
