@@ -101,11 +101,13 @@ async def test_query_handler_success(monkeypatch):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     handler = QueryMessageHandler(session_manager, DummyTTSManager(), ResponseFormatter())
+    created_pipelines = []
 
     class DummyPipeline:
         def __init__(self, *_args, **_kwargs):
             self.processed = []
             self.waited = False
+            created_pipelines.append(self)
 
         async def process(self, event, tts_service, msg_id, context=None):
             self.processed.append((event, msg_id, context))
@@ -127,7 +129,12 @@ async def test_query_handler_success(monkeypatch):
 
     await handler.handle(message, websocket, "user_1")
 
-    assert any(msg["type"] == "streaming-complete" for msg in websocket.sent)
+    assert len(created_pipelines) == 1
+    assert len(created_pipelines[0].processed) == 1
+    event, msg_id, context = created_pipelines[0].processed[0]
+    assert event == {"type": "chunk", "content": "ok"}
+    assert msg_id == "msg_1"
+    assert context == {"user_id": "user_1", "session_id": "session_1"}
 
 
 @pytest.mark.asyncio
