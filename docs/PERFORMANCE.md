@@ -23,6 +23,7 @@ read_when:
 - **Gateway metadata prefix cache**: voice packet framing caches metadata prefixes by sample rate to avoid JSON/string encoding work on every audio chunk.
 - **Voice gateway control payload reuse**: `useVoiceMode` reuses pre-serialized `set_langs`/`start_over` JSON payloads instead of re-stringifying on each socket-open or utterance-end event.
 - **Chat hook selector subscriptions**: `useChatStream` and `useChatMessageSender` subscribe to store actions via selectors to avoid rerenders from unrelated state updates.
+- **Stable chat stream listener lifecycle**: `useChatStream` keeps backend event handlers/listener stable across model-config updates and reads transcript model metadata from refs, reducing IPC re-subscribe churn.
 - **Chat send-path capture trimming**: `useChatMessageSender` now skips unused system-state capture during user-message send, reducing extra IPC work on each send.
 - **Chat store no-op updates**: `updateMessage`, `setMessages`, `setIsSending`, `setThinkingStatus`, and `setTokenCounts` now preserve state identity when values are unchanged, preventing unnecessary state churn.
 - **Config startup dedupe**: `AppConfigProvider` skips disk-sync writes and backend settings updates when loaded config matches the in-memory config.
