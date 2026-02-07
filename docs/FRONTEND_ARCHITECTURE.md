@@ -210,6 +210,7 @@ App
 - Model list management
 - Wakeword state
 - Optimized to avoid unnecessary re-renders
+- Uses shared provider event helpers for backend model-list routing and transcript user-id extraction
 
 **AppStatusContext** (`app/providers/AppStatusContext.jsx`)
 - Transient application status (frequently changing)
