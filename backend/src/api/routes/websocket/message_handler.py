@@ -38,14 +38,17 @@ async def parse_and_validate_message(
     Returns:
         Tuple of (validated message or None, error message or None)
     """
+    data_size = len(data)
     # SECURITY: Validate message size after receiving
-    if len(data) > max_message_size:
-        return None, f"Message too large: {len(data)} bytes (max: {max_message_size} bytes)"
+    if data_size > max_message_size:
+        return None, (
+            f"Message too large: {data_size} bytes (max: {max_message_size} bytes)"
+        )
     
     try:
         # PERFORMANCE: Parse small payloads inline to avoid executor overhead,
         # offload larger payloads to prevent event-loop stalls.
-        if len(data) >= _JSON_PARSE_OFFLOAD_BYTES:
+        if data_size >= _JSON_PARSE_OFFLOAD_BYTES:
             loop = asyncio.get_running_loop()
             json_data = await loop.run_in_executor(None, json.loads, data)
         else:
