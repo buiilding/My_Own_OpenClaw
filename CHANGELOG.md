@@ -1,0 +1,321 @@
+# Changelog
+
+All notable changes to WindieOS will be documented in this file.
+
+## Unreleased - 2026-02-07
+
+Includes the last 300 commits on `main`.
+
+### Added
+- e9fafd6 feat(frontend): handle screenshot refs in chat flow
+- 1781ba9 feat(frontend): upload tool screenshots and send refs
+- dd17108 feat(frontend): add artifact upload IPC bridge
+- 344d07b feat(artifacts): resolve screenshot refs in tool flow
+- 7271077 feat(artifacts): add HTTP storage endpoints
+- 1cf6b84 feat(simulation): add browser and computer entrypoints
+- 86a2375 feat(browser): export chrome_launcher from browser module
+- 1bc79c9 feat(browser): update browser_tool to use auto_connect by default
+- 8c9769e feat(browser): add auto_connect_to_chrome method to controller
+- 990aebd feat(browser): add chrome_launcher with auto-detect and auto-launch
+- cd17331 feat(sidecar): add OS-aware scroll standardization
+- 5ff7aff feat(simulation): add MockLLMBrowserClient for browser_control demo
+- dbbd1e9 feat(browser): add ToolDomain.BROWSER, docs, and module init
+- f39c197 feat(browser): add backend browser tool schemas and remote stub
+
+### Fixed
+- d4cbf90 fix(parser): recreate executor lazily for post-shutdown parser reuse
+- 456007b fix(vision): reset service state on initialization failure paths
+- 35fabec fix(models): default missing provider display names during normalization
+- d3be515 fix(token-service): sanitize malformed role/content before LiteLLM counting
+- ceae9e7 fix(llm-provider): recover tagged thinking content from delta content fields
+- af6ad7b fix(tool-results): clean stale future-only entries during TTL cleanup
+- 633021d fix(parser): remove repeated identical raw tool calls deterministically
+- ba6a675 fix(token-service): count dict multimodal text parts in fallback estimator
+- f1cab18 fix(artifacts): support image/jpg alias for jpeg uploads
+- 5b3d8e4 fix(prompts): normalize non-permission prompt file read OS errors
+- e75f0ca fix(parser): require non-empty trimmed metadata strings for computer-use tools
+- 32b6478 fix(parser): reject non-object tool args and sanitize registry tool-name inputs
+- 25ea942 fix(vision): guard coordinate scaling against non-positive dimensions
+- e2e9a96 fix(prompts): apply tool allowlist to first-message schema injection
+- e9c1497 fix(frontend-chat): handle message send failures without dropping user flow
+- 74d571f fix(ocr): make batch-threshold selection deterministic across config ordering
+- 72e1c2c fix(artifacts): enforce max artifact size during base64 loading
+- b255442 fix(artifacts): normalize upload content-type parsing and canonical metadata type
+- 81b63a6 fix(llm): reject non-finite timeout values in provider factory
+- c8fc042 fix(artifacts): accept valid artifact IDs and centralize upload cleanup
+- 3de0dd0 fix(frontend-chat): preserve first-message capture path in sender hook
+- 7b7ba99 fix(frontend): persist transcript user id
+- e7b8136 fix(api): avoid duplicate streaming-complete
+- 438476d fix(browser): make playwright imports optional in __init__.py
+
+### Performance
+- 894fd9e perf(parser): fast-path single-range extracted text cleanup
+- d1a8baa perf(token-service): count plain text fragments in fallback estimation
+- a324ad4 perf(model-service): avoid redundant copies and task scheduling
+- 4f64e61 perf(parser): cache tool allowlist in validator instances
+- 60f2cb3 perf(frontend-chatbox): consolidate chatbox store subscriptions and extract presentation helpers
+- a9e01e7 perf(provider-factory): normalize kimi coding /v1 suffix in cache keys
+- da77d53 perf(frontend-chat): consolidate chat interface store subscriptions with shallow selector
+- a270892 perf(frontend-chat): keep chat stream handlers stable across model updates
+- 734b9be perf(parser): skip redundant tool-call text removal after extraction strategies
+- 0591b0f perf(frontend-voice): reuse serialized gateway control payloads
+- 7e70b07 perf(frontend-chat): avoid tool runner service churn on model config updates
+- 3463594 perf(parser): avoid repeated whitelist sorting in tool-name validation
+- b2b86a5 perf(frontend-chat): skip unused system-state capture during message send
+- a80e46c perf(parser): use compact JSON sizing for nested tool args
+- 2446ca6 perf(observability): compute numeric stats in a single pass
+- 422874e perf(llm-local): serialize shared http client initialization
+- 07c2cb6 perf(frontend-tools): reuse normalized bundle results in execution service
+- 9a076ba perf(frontend-chat): skip redundant chat store state updates
+- a12106b perf(llm): cache parser whitespace normalization regex
+- 04fd029 perf(frontend-config): stabilize provider callbacks with live config refs
+- ddf6454 perf(ocr): avoid repeated numpy import attempts during field normalization
+- 10f492b perf(frontend-chat): make store message updates no-op when ids are missing
+- 918a445 perf(llm-providers): use compiled thinking-tag regex and stricter nested content handling
+- ef89ef5 perf(frontend-config): skip redundant disk-sync updates on identical config
+- c1c772d perf(vision): avoid bbox match-list allocation and support signed coordinates
+- 84f023f perf(prompts): cache XML tag patterns and handle quoted attribute delimiters
+- 18c7e81 perf(frontend-chat): use action selectors to avoid chat hook rerenders
+- 013a94a perf(llm): optimize embedded JSON scanning and timeout error typing
+- 9f42d76 perf(observability): release metrics registry lock before stat aggregation
+- 9897504 perf(frontend-voice): centralize PCM encoding and cache gateway metadata framing
+- fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
+
+### Refactoring
+- 4c41845 refactor(frontend-chat): extract message list class-name builder
+- a57f6cc refactor(task-manager): prune completed websocket tasks during cleanup
+- c6c5c84 refactor(vision-service): streamline provider construction path
+- aa0bcf1 refactor(frontend-dashboard): extract settings display and speech update helpers
+- 22bb2ba refactor(frontend-dashboard): extract model selection helpers and harden reconciliation flow
+- 6508f5d refactor(frontend-dashboard): extract episodic memory parsing and formatting helpers
+- 64ed77c refactor(vision): centralize pixel clamping in coordinates utils
+- d2e31cf refactor(token-service): normalize and trim message roles consistently
+- 64f60fc refactor(frontend-chat): centralize message input submit gating in helper
+- 9a5f4cb refactor(parser): ignore empty raw-call placeholders during cleanup
+- e670533 refactor(frontend-transcript): export shared session storage key constant
+- 94c12a0 refactor(vision): centralize model-point scaling for venus predictions
+- 21bfb98 refactor(frontend-config): centralize sanitize-and-apply config update flow
+- 537b6cb refactor(frontend-config): extract provider backend-event and transcript user-id helpers
+- 2097c7f refactor(vision): share coordinate parsing across providers
+- 8570514 refactor(frontend-audio): harden player stop/cleanup against stale playback callbacks
+- 855047c refactor(vision): normalize provider selection and init error state
+- 41ef1d8 refactor(vision): share provider model loading fallback flow
+- bd1c95e refactor(frontend-chat): extract transcription region boundary math into shared helpers
+- ab09793 refactor(frontend-transcript): split session storage/state/queue concerns from transcript writer
+- 1b9de40 refactor(llm-providers): centralize completion response/error handling in base provider
+- 3d1bfd4 refactor(tool-handler): normalize and defensively copy result metadata
+- 48dcc87 refactor(tool-storage): bind futures to running loop when available
+- 2aac4c4 refactor(tool-router): extract shared result-store resolve helpers
+- b5ad1c0 refactor(frontend-chat): normalize message input sends via shared helper
+- ecd97fe refactor(llm-providers): share stream delta parsing helpers across providers
+- fba1ec2 refactor(frontend-chat): extract chat stream formatting and thinking-status helpers
+- e9bd518 refactor(frontend-chat): make transparency section rendering descriptor-driven
+- 584ae31 refactor(frontend-chat): make token count rendering table-driven
+- 6e54331 refactor(frontend-chat): validate backend audio chunk payloads before playback enqueue
+- 956eacd refactor(frontend-chat): centralize screenshot-presence predicates for message rendering
+- 95067ef refactor(tool-handler): centralize bundled result payload detection
+- 8423793 refactor(frontend-chat): reuse shared artifact image type normalization in message rendering
+- 9e9f0c4 refactor(tool-router): unify screenshot extraction for result routing
+- 57c3931 refactor(frontend-chat): centralize message screenshot source resolution
+- ae86839 refactor(frontend-voice): remove redundant wakeword cleanup and add hook event coverage
+- 122c8f1 refactor(tool-results): harden bundled payload normalization paths
+- 956d451 refactor(vision): extract model selection and cleanup helpers in service
+- 289cb4c refactor(frontend-tools): centralize artifact image metadata normalization across upload paths
+- 6a7f131 refactor(parser): bound embedded JSON scanning and remove dead extractor
+- fb7df84 refactor(frontend-voice): validate wakeword confidence payloads and extract event helpers
+- c442df2 refactor(llm-local): trim listed model identifiers before mapping
+- 0902869 refactor(frontend-tools): unify bundle runner timing and step bookkeeping
+- d8a1bf7 refactor(models): normalize whitespace in provider model identifiers
+- 5251703 refactor(frontend-tools): extract payload and bundle-status helpers from execution service
+- ea30a6c refactor(frontend-tools): harden capture extraction against non-string screenshot payloads
+- 0a3dd2e refactor(llm-local): share JSON endpoint parsing for local model discovery
+- 7cbf31e refactor(frontend-config): dedupe storage fallback/clear helpers
+- f287b0d refactor(frontend-ipc): centralize bridge channel validation and expand dev checks
+- 1e9c36b refactor(frontend-voice): centralize reconnect scheduling and stale-close guards
+- ca47f83 refactor(ocr): split sync OCR flow into focused helper stages
+- eaea4ea refactor(prompts): extract prompt-history metadata assembly helpers
+- 4ecee2b refactor(frontend-tools): normalize screenshot invoker args for non-object payloads
+- 9167de1 refactor(frontend-main): dedupe local backend rpc handlers and harden bridge tests
+- 52a71b8 refactor(llm-local): extract Ollama tags-endpoint URL normalization helper
+- 84a42f2 refactor(models): accept iterable provider model payloads during normalization
+- 627af19 refactor(parser): return sorted whitelist tool names for deterministic validation
+- 3ac42ec refactor(parser): centralize ToolCallSchema function-call field extraction
+- 60df544 refactor(parser): deduplicate whitelist tool names from registry sources
+- 97f2933 refactor(prompts): centralize bounded XML tag search helper
+- ade3681 refactor(parser): merge overlapping extraction spans during text cleanup
+- 95f9233 refactor(models): sanitize provider model payloads before aggregation
+- dc01095 refactor(llm): normalize provider/completion failure handling in non-stream path
+- 4a59804 refactor(frontend-tools): unify tool output content extraction in formatter
+- 075b5ea refactor(parser): harden whitelist source handling for malformed registry outputs
+- 61eb468 refactor(frontend-chat): harden transcription region handling for null cursors
+- f84f1aa refactor(prompts): accept Path-like string inputs for prompt initialization
+- 5fc3329 refactor(frontend-tools): route bundled execution through shared invoker
+- 6ecc7ef refactor(tokens): normalize dict messages via defensive copies with default fields
+- 3a27b8f refactor(parser): trim schema-extracted tool names before validation
+- 8ad4bca refactor(frontend-chat): centralize benign settings-error filtering in stream hook
+- 828cd8c refactor(llm): normalize spaced provider aliases in provider lookup
+- c4ee2a8 refactor(frontend-display): validate stored display bounds before capture usage
+- e87f808 refactor(ocr): normalize and sanitize batch-threshold config rows before selection
+- 43f93cb refactor(frontend-capture): centralize screenshot payload parsing in system capture
+- 7db5fee refactor(llm-local): harden model listing against malformed payloads and non-200 responses
+- 629ca1b refactor(prompts): make prompt manager initialization fully lock-protected
+- 6d44e29 refactor(llm-providers): validate request message payload types up front
+- 2dcfd97 refactor(models): return defensive copies from local-model dedupe path
+- fa5eb8e refactor(vision): normalize model names with trim and single-prefix removal
+- 6ea802b refactor(ocr): harden screenshot decode and polygon bbox normalization
+- eb81a3c refactor(models): deduplicate local model listings by provider/id
+- 059dd58 refactor(frontend-chat): regenerate greeting message identity on store reset
+- 4628792 refactor(llm): centralize completion payload validation and harden stream provider errors
+- c316d08 refactor(frontend-config): remove deferred model-list request and add provider tests
+- 9dd6900 refactor(frontend-services): centralize tool execution info logging controls
+- 0f40806 refactor(llm): reuse parser strategies and centralize boundary identifier
+- 9b33d69 refactor(frontend-config): harden shallow change detection for settings updates
+- cf9f079 refactor(frontend-app): stabilize hotkey listener lifecycle in app provider
+- e5f2f84 refactor(llm): normalize provider URLs and consolidate provider initialization
+- cfc0a5e refactor(services): simplify token fallback estimation and harden singleton init
+- dd313a6 refactor(observability): bound trust boundary metric history and optimize stats snapshot
+- ebe939e refactor(frontend-app): centralize save-status timers in app status provider
+- cbcba82 refactor(frontend-voice): stabilize useVoiceMode websocket lifecycle
+
+### Tests
+- 1bffa59 test(frontend-chat): add message list class utility coverage
+- db5c67a test(frontend-voice): strengthen wakeword cooldown callback assertions
+- 8eae4ea test(frontend-dashboard): add settings display utility coverage
+- 87813e4 test(frontend-dashboard): add model selection utility coverage
+- 418ac63 test(websocket): harden message-handler and task-manager edge-path coverage
+- 474bd38 test(api-handlers): add artifact-ref and bundle screenshot_ref regression coverage
+- b22ed97 test(frontend-dashboard): add episodic memory utility parsing and mapping coverage
+- 3231901 test(frontend-chat): add message input component submit and lockout coverage
+- a6de921 test(frontend-transcript): add storage and pending-queue primitive coverage
+- 47824c6 test(frontend-config): add coverage for config sanitize-and-apply helpers
+- 16f1a9c test(frontend-config): add direct coverage for app config event helper routing
+- 8ea5264 test(frontend-audio): add player service queue and cleanup lifecycle coverage
+- 9037ed9 test(frontend-chat): add transcription region helper edge-case coverage
+- fe2fbc1 test(frontend-transcript): add direct coverage for transcript session state and queue flush behavior
+- 76d9996 test(backend-artifacts): add retrieval and size-limit edge-case coverage
+- 220f42f test(backend): cover artifact routes and screenshot_ref query handling
+- 75f5d15 test(frontend-chat): add message input normalization helper coverage
+- 396ff08 test(frontend-chatbox): add coverage for chatbox selectors and presentation utilities
+- 83ffa93 test(frontend-chat): add direct coverage for chat stream formatting helpers
+- 45cc704 test(frontend-chat): add selector coverage for chat interface state projection
+- 36a6e55 test(frontend-chat): add coverage for transparency section descriptor builder
+- c5679da test(frontend-chat): cover token count formatting and item mapping helpers
+- 820f43c test(frontend-chat): verify chat stream uses latest model metadata without listener churn
+- ec4477a test(frontend-chat): cover backend audio event payload guard utility
+- 0e3e7ad test(frontend-chat): cover shared screenshot predicate utility
+- a6dd4a4 test(frontend-voice): cover gateway open/start-over control frames and binary guard
+- 0565c48 test(frontend): harden tool runner hook assertions and invalid-event coverage
+- 782d189 test(api): align query/bundle receiver tests with current handler contracts
+- 3662cb2 test(observability): add direct numeric-stats helper coverage
+- db3b29a test(llm-local): cover Ollama tags-endpoint helper normalization cases
+- ba9cb19 test(llm-local): add Ollama base-url edge-case and malformed models payload coverage
+- 6243aad test(artifacts): add content-type alias coverage for image/jpg uploads
+- 1b5a1fc test(models): cover generator-based provider model payload normalization
+- b5df271 test(prompts): ensure directory prompt path raises normalized read error
+- c546ac6 test(parser): assert sorted whitelist output for set-backed registry sources
+- 515dc4e test(parser): reject non-dict functionCall payloads in both schema formats
+- 5f59c31 test(parser): verify validator deduplicates repeated registry tool names
+- fe491a1 test(parser): cover overlapping extraction-span merge behavior
+- 0c3de46 test(models): add malformed provider payload and invalid-entry filtering coverage
+- af36194 test(parser): add metadata whitespace and valid-string cases for computer tools
+- d85a66d test(llm): add error-path coverage for provider resolution, completion, and stream iteration
+- d43d4db test(parser): cover malformed tool-name registry output handling
+- f8f3f21 test(prompts): cover initialize with string prompt path
+- 82bfd7f test(tokens): verify partial dict normalization does not mutate caller input
+- 1f5c5ab test(parser): add ToolCallSchema coverage for wrapper, defaults, and invalid args
+- 09224b4 test(llm): cover provider-name normalization for spaced kimi alias
+- 5746120 test(llm-local): verify concurrent client requests reuse one async client
+- ca08401 test(ocr): validate malformed-threshold filtering and fallback defaults
+- 4fbde50 test(parser): add tool-call validator coverage for args type and allowlist filtering
+- 1c85569 test(llm-local): add model listing and request-param coverage for ollama/lmstudio
+- 04d5042 test(prompts): add prompt manager concurrency and initialization coverage
+- 7e7fc41 test(frontend-ipc): strengthen bridge listener and missing-ipc coverage
+- ff32f33 test(vision): add non-positive image dimension scaling coverage
+- 97a687b test(llm): verify embedded-json cleanup collapses excessive blank lines
+- 96a410e test(prompts): ensure first-message schema block respects chat-mode allowlist
+- a2607dc test(ocr): cover normalization behavior for scalar, tuple, and numpy array inputs
+- 7c81be0 test(llm-providers): assert request param validation for missing/invalid messages
+- f104a8a test(ocr): cover unsorted threshold configs for gpu and cpu selection
+- 790b313 test(artifacts): verify load_base64 rejects oversized artifacts
+- 9f5240f test(artifacts): cover parameterized and case-insensitive content-type uploads
+- 9e33f82 test(models): verify local model outputs are isolated from caller mutation
+- e848f65 test(frontend-chat): add useTranscription behavior coverage
+- a3e3bd4 test(llm): add timeout edge-case coverage for NaN and Inf
+- 65ad65f test(llm-providers): expand thinking extraction coverage for nested and plain content
+- fc561a5 test(vision): cover whitespace and non-prefix model normalization paths
+- 638e699 test(frontend-services): verify tool logger info gating behavior
+- d394e20 test(ocr): add helper coverage for decode, thresholds, and bbox parsing
+- 3b01bdc test(frontend-chat): add useToolRunner hook coverage for event dispatch and callbacks
+- 1172c15 test(models): verify local model dedupe across provider outputs
+- 527df1f test(vision): cover signed coordinate parsing for points and bounding boxes
+- 43ad3f7 test(prompts): cover XML extraction edge cases and tool-schema injection behavior
+- 7fe5574 test(llm): cover unexpected provider init failures and payload extraction checks
+- d47b1b3 test(artifacts): update upload fixtures and cover partial-write cleanup
+- dcf6ad0 test(llm): add parser extraction timeout and embedded-call coverage
+- 977adaa test(observability): assert get_all_metrics avoids registry lock contention
+- e374ecf test(llm): cover provider helper normalization and cache-key stability
+- 57b0849 test(frontend): align chat stream and capture tests with current contracts
+- c1536dc test(services): extend token service fallback and concurrency coverage
+- 3d5b912 test(observability): add trust-boundary metrics capacity and sampling coverage
+- 5e99fa7 test(backend): cover artifact storage
+- ff73473 test(sidecar): harden error-contract assertions for memory/local-backend/process handlers
+- b118f37 test(memory-api): cover embeddings and semantic route helper paths
+- 01ec0cc test(websocket): add route-unit coverage for handshake, parsing, and task limits
+- b7daa47 test(frontend-voice): add regression coverage for callback-ref updates
+
+### Documentation
+- a1630c2 docs(frontend): map message list class utility in architecture and tests
+- 9bada6d docs(api): document planned frontend schema sync protocol
+- 2a6114d docs(structure): note deterministic websocket task prune in cleanup
+- d56b776 docs(frontend): document dashboard settings display utility module and tests
+- 9505286 docs(frontend): add model selection utility module to architecture and testing guides
+- 0b7e720 docs(frontend): document episodic memory utility module and coverage
+- 33bca0f docs(testing): include message input component behavior coverage
+- 6c33ea4 docs(structure): document shared vision coordinate scaling utility
+- fcb7168 docs(testing): include transcript storage and pending queue test coverage
+- 9f7056a docs(frontend): include app config persistence helper module in architecture map
+- 405af21 docs(frontend): include app config event helper module in architecture map
+- 0a37c10 docs(structure): note shared vision provider utility boundaries
+- 9a59572 docs(frontend): document player lifecycle hardening and test coverage
+- 5781fdf docs(frontend): document transcript module split and transcription region helper paths
+- e664f98 docs(legal): package evaluation contract with one-command PDF build
+- 43f81de docs(structure): refresh backend folder structure docs for waiting/parser layers
+- fc132ec docs(frontend): refresh renderer folder structure map with current utilities and services
+- a1ee4dc docs(frontend): note message input send normalization helper
+- 5e75906 docs(frontend): document shared chatbox selector and presentation helper paths
+- fffd817 docs(frontend): note shared chat stream formatting helper path
+- 7dc1dd7 docs(perf): record chat interface selector consolidation
+- 94e6510 docs(frontend): note descriptor-based transparency section rendering path
+- b387071 docs(frontend): document shared token count display helper path
+- 6573150 docs(perf): document stable useChatStream listener lifecycle
+- e39277b docs(frontend): document audio-chunk payload validation in chat interface
+- e863fc6 docs(frontend): note shared screenshot predicate usage in message components
+- b4678fe docs(perf): document voice gateway control payload reuse
+- d1f9a1d docs(perf): include message rendering in shared artifact image helper coverage
+- c482e1e docs(perf): note stable useToolRunner service lifecycle
+- 14d9527 docs(testing): document tool runner guard and cleanup hook coverage
+- ce85491 docs(frontend): note wakeword confidence validation and chunk-size normalization
+- cbeeaff docs(perf): note shared artifact image metadata normalization helper
+- 51a2524 docs(perf): note chat send-path system-state capture trimming
+- 5df2ffd docs(perf): note shared bundle runner bookkeeping helpers
+- 43a83f7 docs(perf): note shared tool-result payload/status helper path
+- 9fa4cc4 docs(frontend): note voice-mode reconnect backoff and stale-close handling
+- 497092e docs(perf): record shared formatter content extraction path
+- c178877 docs(perf): note shared invoker path for bundled tools
+- eb0a124 docs(perf): capture bundled tool-result normalization reuse
+- 40a0b3e docs(perf): note config ref stabilization and chat-store no-op guards
+- 4d6888a docs(perf): record recent frontend selector and config dedupe optimizations
+- 5965e7c docs(artifacts): document screenshot refs and uploads
+- 0b4ba18 docs(agents): document WindieOS conda env split for test/runtime
+- 4bcd084 docs(planning): integrate roadmap links across overview architecture and developer docs
+- b1c8968 docs(roadmap): add future product plan tracks and sequencing
+- 9b3be43 docs(deployment): expand packaging and multi-user hosting plan
+- 8780ab8 docs: add BROWSER_CONTROL_RUN.md with setup and usage instructions
+- d995fe7 docs(adr): add ADR for browser extension auto-attach
+
+### Other
+- bdada3c chore(frontend-test): suppress expected console noise in frontend suites
+- 7565279 chore(frontend-test): quiet config info logs during jest runs
+- c5e7371 build(sidecar): add pytest dependencies to python requirements
+- 97fab14 chore: sync browser tools, logging, transcripts
+- 02dac42 chore: commit pending changes
