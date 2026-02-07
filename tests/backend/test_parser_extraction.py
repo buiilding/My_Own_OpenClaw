@@ -5,6 +5,7 @@ import pytest
 from backend.src.core.config.models import SecurityLimits
 from backend.src.core.infrastructure.exceptions import ParseTimeoutError
 from backend.src.llm.parser_extraction import JsonToolCallExtractor
+from backend.src.llm.parser_types import ParsedToolCall
 
 
 class DummySchema:
@@ -137,3 +138,17 @@ def test_parse_embedded_json_accepts_small_json_with_large_trailing_text():
 
     assert [call.tool_name for call in tool_calls] == ["read_file"]
     assert remaining_text == "x" * 400
+
+
+def test_remove_extracted_calls_removes_repeated_identical_raw_calls():
+    extractor = _make_extractor()
+    raw_call = '{"functionCall":{"name":"read_file","args":{"path":"/tmp/a"}}}'
+    text = f"before {raw_call} middle {raw_call} after"
+    tool_calls = [
+        ParsedToolCall(tool_name="read_file", parameters={"path": "/tmp/a"}, raw_call=raw_call),
+        ParsedToolCall(tool_name="read_file", parameters={"path": "/tmp/a"}, raw_call=raw_call),
+    ]
+
+    cleaned = extractor.remove_extracted_calls(text, tool_calls)
+
+    assert cleaned == "before  middle  after"
