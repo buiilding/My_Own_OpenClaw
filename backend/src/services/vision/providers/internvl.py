@@ -13,8 +13,7 @@ from typing import Optional, Tuple
 from PIL import Image
 
 from backend.src.services.vision.coordinates import (
-    extract_first_point,
-    extract_last_bbox,
+    extract_point_or_bbox_center,
     scale_norm_to_pixels,
 )
 from backend.src.services.vision.providers.base import (
@@ -397,23 +396,12 @@ class InternVLModel(BaseVisionModel):
                 logger.error("Empty output from model")
                 return None
 
-            # Parse coordinates using extracted utilities
-            point = extract_first_point(output_text)
+            # Parse coordinates using shared extraction utilities.
+            point = extract_point_or_bbox_center(output_text)
             logger.info(f"Extracted point: {point}")
-
             if point is None:
-                bbox = extract_last_bbox(output_text)
-                logger.info(f"Extracted bbox: {bbox}")
-                if bbox is None:
-                    logger.error(
-                        f"Could not parse coordinates from output: {output_text}"
-                    )
-                    return None
-                x1, y1, x2, y2 = bbox
-                cx = (x1 + x2) / 2.0
-                cy = (y1 + y2) / 2.0
-                point = (cx, cy)
-                logger.info(f"Calculated center point from bbox: {point}")
+                logger.error(f"Could not parse coordinates from output: {output_text}")
+                return None
 
             x_norm, y_norm = point
             x_px, y_px = scale_norm_to_pixels(x_norm, y_norm, width, height)

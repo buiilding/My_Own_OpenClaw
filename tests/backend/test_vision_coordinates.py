@@ -1,6 +1,7 @@
 from backend.src.services.vision.coordinates import (
     extract_first_point,
     extract_last_bbox,
+    extract_point_or_bbox_center,
     scale_norm_to_pixels,
 )
 
@@ -28,6 +29,16 @@ def test_extract_last_bbox_returns_last_match():
 def test_extract_last_bbox_accepts_signed_decimals():
     result = extract_last_bbox("bbox [[-1.5,2.25,3.5,-4.75]]")
     assert result == (-1.5, 2.25, 3.5, -4.75)
+
+
+def test_extract_point_or_bbox_center_prefers_explicit_point():
+    text = "first [[100,200]] then bbox [[1,2,3,4]]"
+    assert extract_point_or_bbox_center(text) == (100.0, 200.0)
+
+
+def test_extract_point_or_bbox_center_uses_last_bbox_center():
+    text = "bbox [[1,2,3,4]] then [[5,6,9,10]]"
+    assert extract_point_or_bbox_center(text) == (7.0, 8.0)
 
 
 def test_scale_norm_to_pixels_clamps_bounds():

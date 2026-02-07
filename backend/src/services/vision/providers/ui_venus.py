@@ -15,8 +15,7 @@ from typing import Optional, Tuple
 from PIL import Image
 
 from backend.src.services.vision.coordinates import (
-    extract_first_point,
-    extract_last_bbox,
+    extract_point_or_bbox_center,
     scale_norm_to_pixels,
 )
 from backend.src.services.vision.providers.base import (
@@ -196,16 +195,10 @@ class VenusVisionModel(InternVLModel):
                 logger.error("Empty output from Venus model")
                 return None
 
-            point = extract_first_point(output_text)
+            point = extract_point_or_bbox_center(output_text)
             if point is None:
-                bbox = extract_last_bbox(output_text)
-                if bbox is None:
-                    logger.error(f"Could not parse coordinates from output: {output_text}")
-                    return None
-                x1, y1, x2, y2 = bbox
-                cx = (x1 + x2) / 2.0
-                cy = (y1 + y2) / 2.0
-                point = (cx, cy)
+                logger.error(f"Could not parse coordinates from output: {output_text}")
+                return None
 
             x_norm, y_norm = point
             if 0 <= x_norm <= 1 and 0 <= y_norm <= 1:
