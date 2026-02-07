@@ -100,7 +100,11 @@ class TaskManager:
                 return None, True
             
             # Create task and add to set atomically within lock
-            task = asyncio.create_task(coro)
+            try:
+                task = asyncio.create_task(coro)
+            except Exception:
+                self._close_if_coroutine(coro)
+                raise
             self.active_tasks.add(task)
             task.add_done_callback(self.task_done_callback)
             return task, False

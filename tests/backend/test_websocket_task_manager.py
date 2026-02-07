@@ -73,6 +73,26 @@ async def test_create_task_if_under_limit_ignores_close_errors_on_rejected_input
 
 
 @pytest.mark.asyncio
+async def test_create_task_if_under_limit_closes_coro_when_task_creation_fails(monkeypatch) -> None:
+    manager = TaskManager(max_concurrent_tasks=1, task_cancellation_timeout=0.1)
+
+    async def some_coro() -> None:
+        await asyncio.sleep(0)
+
+    coro = some_coro()
+
+    def fail_create_task(_coro):
+        raise RuntimeError("loop closed")
+
+    monkeypatch.setattr(asyncio, "create_task", fail_create_task)
+
+    with pytest.raises(RuntimeError, match="loop closed"):
+        await manager.create_task_if_under_limit(coro, "user_create_fail")
+
+    assert inspect.getcoroutinestate(coro) == inspect.CORO_CLOSED
+
+
+@pytest.mark.asyncio
 async def test_cleanup_cancels_pending_tasks() -> None:
     manager = TaskManager(max_concurrent_tasks=2, task_cancellation_timeout=0.1)
 
