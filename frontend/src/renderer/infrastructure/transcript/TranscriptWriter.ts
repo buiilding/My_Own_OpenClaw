@@ -1,85 +1,20 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
+import { createPendingUserQueue } from './pendingUserQueue';
+import { emitSessionUpdateEvent, persistSessionInfoToStorage, readSessionInfoFromStorage } from './sessionInfoStorage';
+import { createTranscriptSessionState } from './sessionInfoState';
+import type { SessionInfo, TranscriptEntry } from './types';
 
-const SESSION_STORAGE_KEY = 'transcript-session-info';
-
-type SessionInfo = {
-  sessionId: string | null;
-  userId: string | null;
-};
-
-type PendingMessage = {
-  text: string;
-  screenshotRef?: string | null;
-  timestamp?: string;
-  modelId?: string | null;
-  modelProvider?: string | null;
-};
-
-let currentSessionId: string | null = null;
-let currentUserId: string | null = null;
-const pendingUserMessages: PendingMessage[] = [];
-
-const readStoredSessionInfo = (): SessionInfo => {
-  if (typeof window === 'undefined') {
-    return { sessionId: null, userId: null };
-  }
-  try {
-    const raw = window.sessionStorage.getItem(SESSION_STORAGE_KEY);
-    if (!raw) {
-      return { sessionId: null, userId: null };
-    }
-    const parsed = JSON.parse(raw);
-    return {
-      sessionId: typeof parsed?.sessionId === 'string' ? parsed.sessionId : null,
-      userId: typeof parsed?.userId === 'string' ? parsed.userId : null,
-    };
-  } catch (error) {
-    return { sessionId: null, userId: null };
-  }
-};
-
-const persistSessionInfo = (info: SessionInfo) => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  try {
-    window.sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(info));
-  } catch (error) {
-    // Ignore storage errors.
-  }
-};
-
-const notifySessionUpdate = (info: SessionInfo) => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  window.dispatchEvent(new CustomEvent('transcript-session-update', { detail: info }));
-};
-
-const ensureSessionInfoLoaded = () => {
-  if (currentSessionId || currentUserId) {
-    return;
-  }
-  const stored = readStoredSessionInfo();
-  currentSessionId = stored.sessionId;
-  currentUserId = stored.userId;
-};
-
-const resolveSessionInfo = (override?: Partial<SessionInfo>): SessionInfo => {
-  ensureSessionInfoLoaded();
-  return {
-    sessionId: override?.sessionId ?? currentSessionId,
-    userId: override?.userId ?? currentUserId,
-  };
-};
+const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
+const pendingUserQueue = createPendingUserQueue();
 
 const flushPendingUserMessages = async () => {
-  if (!currentSessionId || !currentUserId || pendingUserMessages.length === 0) {
+  const currentInfo = sessionState.get();
+  if (!currentInfo.sessionId || !currentInfo.userId || pendingUserQueue.size() === 0) {
     return;
   }
 
-  const pending = pendingUserMessages.splice(0, pendingUserMessages.length);
-  for (const message of pending) {
+  const pendingMessages = pendingUserQueue.drain();
+  for (const message of pendingMessages) {
     await storeTranscriptEntry({
       content: message.text,
       role: 'user',
@@ -93,25 +28,14 @@ const flushPendingUserMessages = async () => {
 };
 
 export const updateTranscriptSession = (sessionId?: string | null, userId?: string | null) => {
-  const nextSessionId = sessionId || currentSessionId;
-  const nextUserId = userId || currentUserId;
-
-  if (nextSessionId) {
-    currentSessionId = nextSessionId;
-  }
-  if (nextUserId && !currentUserId) {
-    currentUserId = nextUserId;
-  }
-
-  const info = { sessionId: currentSessionId, userId: currentUserId };
-  persistSessionInfo(info);
-  notifySessionUpdate(info);
+  const info = sessionState.update(sessionId, userId);
+  persistSessionInfoToStorage(info);
+  emitSessionUpdateEvent(info);
   void flushPendingUserMessages();
 };
 
 export const getTranscriptSessionInfo = (): SessionInfo => {
-  ensureSessionInfoLoaded();
-  return { sessionId: currentSessionId, userId: currentUserId };
+  return sessionState.get();
 };
 
 export const recordUserMessage = (
@@ -129,10 +53,10 @@ export const recordUserMessage = (
     return;
   }
   const { sessionId, userId, timestamp, modelId, modelProvider, screenshotRef } = options;
-  const info = resolveSessionInfo({ sessionId: sessionId ?? null, userId: userId ?? null });
+  const info = sessionState.resolve({ sessionId: sessionId ?? null, userId: userId ?? null });
 
   if (!info.sessionId || !info.userId) {
-    pendingUserMessages.push({ text, timestamp, modelId, modelProvider, screenshotRef });
+    pendingUserQueue.enqueue({ text, timestamp, modelId, modelProvider, screenshotRef });
     return;
   }
 
@@ -163,7 +87,7 @@ export const recordAssistantMessage = (
   if (!text) {
     return;
   }
-  const info = resolveSessionInfo({ sessionId: options.sessionId ?? null, userId: options.userId ?? null });
+  const info = sessionState.resolve({ sessionId: options.sessionId ?? null, userId: options.userId ?? null });
   if (!info.sessionId || !info.userId) {
     return;
   }
@@ -196,7 +120,7 @@ export const recordToolMessage = (
   if (!text) {
     return;
   }
-  const info = resolveSessionInfo({ sessionId: options.sessionId ?? null, userId: options.userId ?? null });
+  const info = sessionState.resolve({ sessionId: options.sessionId ?? null, userId: options.userId ?? null });
   if (!info.sessionId || !info.userId) {
     return;
   }
@@ -215,22 +139,8 @@ export const recordToolMessage = (
   });
 };
 
-type TranscriptEntry = {
-  content: string;
-  role?: string | null;
-  messageType?: string | null;
-  toolName?: string | null;
-  correlationId?: string | null;
-  sessionId?: string | null;
-  userId?: string | null;
-  timestamp?: string;
-  modelId?: string | null;
-  modelProvider?: string | null;
-  screenshotRef?: string | null;
-};
-
 const storeTranscriptEntry = async (entry: TranscriptEntry) => {
-  const info = resolveSessionInfo({ sessionId: entry.sessionId ?? null, userId: entry.userId ?? null });
+  const info = sessionState.resolve({ sessionId: entry.sessionId ?? null, userId: entry.userId ?? null });
   if (!info.sessionId || !info.userId) {
     return;
   }
