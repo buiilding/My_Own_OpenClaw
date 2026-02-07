@@ -18,6 +18,14 @@ from backend.src.api.routes.websocket.task_manager import TaskManager
 logger = logging.getLogger(__name__)
 
 
+async def _close_policy_violation(safe_ws: SafeWebSocket, reason: str) -> None:
+    """Close websocket with policy-violation code and swallow close failures."""
+    try:
+        await safe_ws.close(code=1008)  # Policy Violation
+    except Exception as close_error:
+        logger.debug(f"Error closing WebSocket after {reason}: {close_error}")
+
+
 async def perform_handshake(
     websocket: WebSocket,
     safe_ws: SafeWebSocket
@@ -49,24 +57,15 @@ async def perform_handshake(
         return server_user_id
     except PydanticValidationError as e:
         logger.warning(f"Handshake validation failed: {e}")
-        try:
-            await safe_ws.close(code=1008)  # Policy Violation
-        except Exception as close_error:
-            logger.debug(f"Error closing WebSocket after handshake validation failure: {close_error}")
+        await _close_policy_violation(safe_ws, "handshake validation failure")
         return None
     except json.JSONDecodeError as e:
         logger.warning(f"Handshake JSON decode failed: {e}")
-        try:
-            await safe_ws.close(code=1008)  # Policy Violation
-        except Exception as close_error:
-            logger.debug(f"Error closing WebSocket after handshake JSON error: {close_error}")
+        await _close_policy_violation(safe_ws, "handshake JSON error")
         return None
     except Exception as e:
         logger.error(f"Handshake error: {e}")
-        try:
-            await safe_ws.close(code=1008)  # Policy Violation
-        except Exception as close_error:
-            logger.debug(f"Error closing WebSocket after handshake error: {close_error}")
+        await _close_policy_violation(safe_ws, "handshake error")
         return None
 
 
