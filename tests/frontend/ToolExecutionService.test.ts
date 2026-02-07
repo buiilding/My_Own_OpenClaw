@@ -18,6 +18,7 @@ import {
   formatToolOutputMessage,
 } from '../../frontend/src/renderer/infrastructure/services/MessageFormatter';
 import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
+import { DISPLAY_BOUNDS_STORAGE_KEY } from '../../frontend/src/renderer/utils/displaySelection';
 
 const mockExtractOSstate = extractOSstate as jest.MockedFunction<typeof extractOSstate>;
 const mockFormatToolOutputMessage = formatToolOutputMessage as jest.MockedFunction<typeof formatToolOutputMessage>;
@@ -29,6 +30,7 @@ describe('ToolExecutionService', () => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
     jest.spyOn(console, 'error').mockImplementation(() => {});
+    localStorage.clear();
   });
 
   test('executeTool captures screenshot for computer-use tools without screenshot', async () => {
@@ -301,5 +303,32 @@ describe('ToolExecutionService', () => {
         }),
       }),
     );
+  });
+
+  test('executeToolBundle injects display bounds for bundled screenshot tool', async () => {
+    localStorage.setItem(
+      DISPLAY_BOUNDS_STORAGE_KEY,
+      JSON.stringify({ x: 11, y: 22, width: 333, height: 222 }),
+    );
+
+    const invokeSpy = jest.spyOn(IpcBridge, 'invoke')
+      .mockResolvedValueOnce({ success: true, data: { output: 'ok' } })
+      .mockResolvedValueOnce({ active_window: 'App', mouse_position: '1,1' } as any)
+      .mockResolvedValueOnce({ success: true, data: { screenshot: 'shot' } });
+
+    const service = new ToolExecutionService();
+    await service.executeToolBundle(
+      [{ toolName: 'screenshot', args: { wait: 0 } }],
+      'bundle-screenshot',
+    );
+
+    expect(invokeSpy).toHaveBeenNthCalledWith(1, INVOKE_CHANNELS.EXECUTE_TOOL, {
+      toolName: 'screenshot',
+      args: {
+        wait: 0,
+        display_bounds: { x: 11, y: 22, width: 333, height: 222 },
+      },
+      skipAutoCapture: true,
+    });
   });
 });
