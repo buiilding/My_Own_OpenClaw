@@ -27,6 +27,7 @@ read_when:
 - **Stable config update handlers**: `AppConfigProvider` now uses a live config ref for comparisons and memoizes provider value/callbacks to avoid stale closures and needless re-renders.
 - **Bundle formatting dedupe**: `ToolExecutionService` now reuses normalized bundle result structures for both formatting and UI payload construction to avoid duplicate per-step mapping work.
 - **Shared bundle tool invocation path**: bundled tool execution now uses the same invoker as single-tool execution, removing duplicated IPC arg shaping and keeping screenshot display-bounds injection behavior consistent.
+- **Shared tool-output content extraction**: `MessageFormatter` now reuses a single content/screenshot extraction path for single and bundled tool messages, removing duplicated branching and keeping output precedence consistent.
 
 ## Sidecar
 
