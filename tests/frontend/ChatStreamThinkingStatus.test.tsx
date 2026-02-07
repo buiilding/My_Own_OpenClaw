@@ -2,14 +2,23 @@ import { act, renderHook } from '@testing-library/react';
 import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { useChatStream } from '../../frontend/src/renderer/features/chat/hooks/useChatStream';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import { recordToolMessage } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
+
+let mockConfig = {
+  selected_model_id: 'test-model',
+  model_provider: 'test-provider',
+};
+const mockUseAppConfigContext = jest.fn(() => ({ config: mockConfig }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
-  useAppConfigContext: () => ({
-    config: {
-      selected_model_id: 'test-model',
-      model_provider: 'test-provider',
-    },
-  }),
+  useAppConfigContext: () => mockUseAppConfigContext(),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
+  recordAssistantMessage: jest.fn(),
+  recordToolMessage: jest.fn(),
+  recordUserMessage: jest.fn(),
+  updateTranscriptSession: jest.fn(),
 }));
 
 describe('useChatStream', () => {
@@ -32,6 +41,12 @@ describe('useChatStream', () => {
   };
 
   beforeEach(() => {
+    jest.clearAllMocks();
+    mockConfig = {
+      selected_model_id: 'test-model',
+      model_provider: 'test-provider',
+    };
+    mockUseAppConfigContext.mockReturnValue({ config: mockConfig });
     useChatStore.setState({
       messages: [
         {
@@ -172,6 +187,53 @@ describe('useChatStream', () => {
         sender: 'assistant',
         type: 'error',
         text: 'Gateway request failed',
+      }),
+    );
+  });
+
+  test('uses latest model metadata without re-subscribing backend listener', () => {
+    const handlers: Record<string, (data: unknown) => void> = {};
+    const removeListener = jest.fn();
+    const onSpy = jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
+      handlers[channel] = handler;
+      return removeListener;
+    });
+
+    const { rerender } = renderHook(
+      ({ enableTranscript }) => useChatStream(enableTranscript),
+      { initialProps: { enableTranscript: true } },
+    );
+
+    expect(onSpy).toHaveBeenCalledTimes(1);
+
+    mockConfig = {
+      selected_model_id: 'updated-model',
+      model_provider: 'updated-provider',
+    };
+    mockUseAppConfigContext.mockReturnValue({ config: mockConfig });
+    rerender({ enableTranscript: true });
+
+    expect(onSpy).toHaveBeenCalledTimes(1);
+
+    const backendHandler = handlers[ON_CHANNELS.FROM_BACKEND];
+    expect(backendHandler).toEqual(expect.any(Function));
+    act(() => {
+      backendHandler({
+        type: 'tool-call',
+        session_id: 'session-1',
+        user_id: 'user-1',
+        payload: {
+          tool_name: 'read_file',
+          parameters: { file_path: '/tmp/a' },
+        },
+      });
+    });
+
+    expect(recordToolMessage).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        modelId: 'updated-model',
+        modelProvider: 'updated-provider',
       }),
     );
   });
