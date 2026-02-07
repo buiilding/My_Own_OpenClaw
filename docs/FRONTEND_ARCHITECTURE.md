@@ -180,6 +180,10 @@ App
 - Auto-scroll functionality
 - Reuses shared screenshot-presence utility with `MessageContent` and shared message-row class helpers for consistent screenshot/streaming/type CSS state handling
 
+**MessageContent.jsx**
+- Renders user/assistant/tool/error message bodies
+- Uses shared screenshot utilities for screenshot-presence checks and screenshot URL/data-URL resolution
+
 **MessageTransparencySections.jsx**
 - Builds transparency section configs via shared chat utility helpers, then maps to `TransparencySection` rendering
 
