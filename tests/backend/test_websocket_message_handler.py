@@ -91,6 +91,18 @@ async def test_parse_and_validate_message_returns_validation_error() -> None:
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_rejects_non_object_json_root() -> None:
+    payload = json.dumps(["not", "an", "object"])
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=1024
+    )
+
+    assert message is None
+    assert error == "Invalid message format: root must be an object, got list"
+
+
+@pytest.mark.asyncio
 async def test_handle_message_routes_to_registry() -> None:
     registry = DummyRegistry()
     websocket = SimpleNamespace()

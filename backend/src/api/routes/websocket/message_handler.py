@@ -48,6 +48,12 @@ async def parse_and_validate_message(
         # (e.g., stalling audio streams)
         loop = asyncio.get_running_loop()
         json_data = await loop.run_in_executor(None, json.loads, data)
+
+        if not isinstance(json_data, dict):
+            payload_type = type(json_data).__name__
+            return None, (
+                f"Invalid message format: root must be an object, got {payload_type}"
+            )
         
         # Inject user_id from connection context BEFORE validation
         # BaseMessage requires user_id, but it comes from connection context, not client JSON
