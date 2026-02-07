@@ -4,23 +4,39 @@ from types import SimpleNamespace
 
 import pytest
 from fastapi import HTTPException
-from starlette.datastructures import UploadFile
+from starlette.datastructures import Headers, UploadFile
 from starlette.requests import Request
 
-from backend.src.api.routes.artifacts import upload_artifact
 from backend.src.core.config.models import AppConfig
 from backend.src.services.artifacts import ArtifactStore
+
+
+class BrokenUpload:
+    def __init__(self, content_type="image/png"):
+        self.content_type = content_type
+        self._reads = 0
+
+    async def read(self, _chunk_size):
+        self._reads += 1
+        if self._reads == 1:
+            return b"partial-bytes"
+        raise RuntimeError("stream error")
+
+
+def _upload_file(data: bytes, filename: str, content_type: str | None) -> UploadFile:
+    headers = Headers({"content-type": content_type}) if content_type else Headers()
+    return UploadFile(
+        file=io.BytesIO(data),
+        filename=filename,
+        headers=headers,
+    )
 
 
 @pytest.mark.asyncio
 async def test_artifact_store_save_and_resolve(tmp_path) -> None:
     store = ArtifactStore(tmp_path, max_bytes=1024)
     data = b"png-data"
-    upload = UploadFile(
-        filename="shot.png",
-        file=io.BytesIO(data),
-        content_type="image/png",
-    )
+    upload = _upload_file(data, "shot.png", "image/png")
 
     meta = await store.save_upload(upload)
     path, content_type = store.resolve_path(meta.artifact_id)
@@ -34,11 +50,7 @@ async def test_artifact_store_save_and_resolve(tmp_path) -> None:
 @pytest.mark.asyncio
 async def test_artifact_store_enforces_size_limit(tmp_path) -> None:
     store = ArtifactStore(tmp_path, max_bytes=5)
-    upload = UploadFile(
-        filename="shot.png",
-        file=io.BytesIO(b"123456"),
-        content_type="image/png",
-    )
+    upload = _upload_file(b"123456", "shot.png", "image/png")
 
     with pytest.raises(HTTPException) as exc_info:
         await store.save_upload(upload)
@@ -50,11 +62,7 @@ async def test_artifact_store_enforces_size_limit(tmp_path) -> None:
 @pytest.mark.asyncio
 async def test_artifact_store_rejects_unsupported_content_type(tmp_path) -> None:
     store = ArtifactStore(tmp_path, max_bytes=1024)
-    upload = UploadFile(
-        filename="note.txt",
-        file=io.BytesIO(b"hello"),
-        content_type="text/plain",
-    )
+    upload = _upload_file(b"hello", "note.txt", "text/plain")
 
     with pytest.raises(HTTPException) as exc_info:
         await store.save_upload(upload)
@@ -65,11 +73,7 @@ async def test_artifact_store_rejects_unsupported_content_type(tmp_path) -> None
 @pytest.mark.asyncio
 async def test_artifact_store_rejects_missing_content_type(tmp_path) -> None:
     store = ArtifactStore(tmp_path, max_bytes=1024)
-    upload = UploadFile(
-        filename="shot.png",
-        file=io.BytesIO(b"data"),
-        content_type=None,
-    )
+    upload = _upload_file(b"data", "shot.png", None)
 
     with pytest.raises(HTTPException) as exc_info:
         await store.save_upload(upload)
@@ -86,6 +90,15 @@ def test_artifact_store_rejects_invalid_id(tmp_path) -> None:
     assert exc_info.value.status_code == 400
 
 
+def test_artifact_store_missing_id_returns_not_found(tmp_path) -> None:
+    store = ArtifactStore(tmp_path, max_bytes=1024)
+
+    with pytest.raises(HTTPException) as exc_info:
+        store.resolve_path("abc123.png")
+
+    assert exc_info.value.status_code == 404
+
+
 def test_artifact_store_load_base64(tmp_path) -> None:
     store = ArtifactStore(tmp_path, max_bytes=1024)
     data = b"png-data"
@@ -98,14 +111,32 @@ def test_artifact_store_load_base64(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_artifact_store_cleans_up_partial_file_on_read_failure(tmp_path, monkeypatch) -> None:
+    store = ArtifactStore(tmp_path, max_bytes=1024)
+    monkeypatch.setattr(
+        "backend.src.services.artifacts.store.uuid4",
+        lambda: SimpleNamespace(hex="fixedid"),
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await store.save_upload(BrokenUpload())
+
+    assert exc_info.value.status_code == 500
+    assert not (tmp_path / "fixedid.png").exists()
+
+
+@pytest.mark.asyncio
 async def test_upload_artifact_builds_url(tmp_path) -> None:
+    try:
+        from backend.src.api.routes.artifacts import upload_artifact
+    except RuntimeError as exc:
+        if "python-multipart" in str(exc):
+            pytest.skip("python-multipart not installed in test environment")
+        raise
+
     config = AppConfig(artifact_store_path=str(tmp_path), artifact_max_bytes=1024)
     container = SimpleNamespace(config=config)
-    upload = UploadFile(
-        filename="shot.png",
-        file=io.BytesIO(b"data"),
-        content_type="image/png",
-    )
+    upload = _upload_file(b"data", "shot.png", "image/png")
     scope = {
         "type": "http",
         "scheme": "http",
