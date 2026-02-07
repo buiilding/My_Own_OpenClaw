@@ -299,6 +299,7 @@ async def test_handle_store_memory_fails_without_store():
         assistant_response="hello",
     )
     assert result["success"] is False
+    assert result["error"] == "Memory store not initialized"
 
 
 @pytest.mark.asyncio
