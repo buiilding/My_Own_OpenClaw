@@ -1,6 +1,6 @@
-import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { captureAfterTool, isComputerUseTool } from './ToolExecutionCapture';
 import { logBundledToolStart, logBundledToolTiming } from './ToolExecutionLogger';
+import { invokeTool } from './ToolExecutionInvoker';
 import type { SystemState, ToolResult } from './MessageFormatter';
 
 export type BundleStepResult = {
@@ -47,13 +47,12 @@ export async function runToolBundle(
     try {
       logBundledToolStart(i + 1, bundle.length, tool.toolName);
 
-      const result: ToolResult = await IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {
-        toolName: tool.toolName,
-        args: tool.args,
-        skipAutoCapture: true
-      });
-
-      const toolExecutionTime = (performance.now() - toolStartTime) / 1000;
+      const { result, toolInvokeTime } = await invokeTool(
+        tool.toolName,
+        tool.args,
+        true
+      );
+      const toolExecutionTime = toolInvokeTime;
       toolExecutionTimes.push({ tool: tool.toolName, time: toolExecutionTime });
       logBundledToolTiming(tool.toolName, toolExecutionTime);
 
