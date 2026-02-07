@@ -74,7 +74,6 @@ async def cleanup_connection(
     task_manager: TaskManager,
     session_manager,
     user_id: str,
-    safe_ws: SafeWebSocket
 ) -> None:
     """
     Clean up connection resources: cancel tasks and end session.
@@ -86,7 +85,6 @@ async def cleanup_connection(
         task_manager: Task manager instance
         session_manager: Session manager instance
         user_id: User ID for the connection
-        safe_ws: Safe WebSocket wrapper
     """
     # Clean up tasks
     await task_manager.cleanup(user_id)

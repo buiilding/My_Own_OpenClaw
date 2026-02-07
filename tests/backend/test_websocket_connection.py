@@ -95,9 +95,8 @@ async def test_perform_handshake_invalid_payload_closes_socket() -> None:
 async def test_cleanup_connection_runs_task_and_session_cleanup() -> None:
     task_manager = DummyTaskManager()
     session_manager = DummySessionManager()
-    safe_ws = DummySafeWebSocket()
 
-    await cleanup_connection(task_manager, session_manager, "user_123", safe_ws)
+    await cleanup_connection(task_manager, session_manager, "user_123")
 
     assert task_manager.cleaned_user_ids == ["user_123"]
     assert session_manager.ended_user_ids == ["user_123"]
@@ -107,9 +106,8 @@ async def test_cleanup_connection_runs_task_and_session_cleanup() -> None:
 async def test_cleanup_connection_swallows_session_cleanup_errors() -> None:
     task_manager = DummyTaskManager()
     session_manager = DummySessionManager(should_raise=True)
-    safe_ws = DummySafeWebSocket()
 
-    await cleanup_connection(task_manager, session_manager, "user_456", safe_ws)
+    await cleanup_connection(task_manager, session_manager, "user_456")
 
     assert task_manager.cleaned_user_ids == ["user_456"]
     assert session_manager.ended_user_ids == ["user_456"]

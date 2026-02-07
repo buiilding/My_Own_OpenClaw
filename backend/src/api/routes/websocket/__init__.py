@@ -93,7 +93,7 @@ async def websocket_endpoint(
                     pass  # Connection may already be closed
                 finally:
                     # Clean up session on timeout to prevent orphaned sessions
-                    await cleanup_connection(task_manager, session_manager, user_id, safe_ws)
+                    await cleanup_connection(task_manager, session_manager, user_id)
                 break
             
             # Parse and validate message
@@ -124,11 +124,11 @@ async def websocket_endpoint(
                 
     except WebSocketDisconnect:
         logger.info(f"Client {user_id} disconnected")
-        await cleanup_connection(task_manager, session_manager, user_id, safe_ws)
+        await cleanup_connection(task_manager, session_manager, user_id)
     except Exception as e:
         # Handle unexpected exceptions (e.g., KeyboardInterrupt, SystemError) to ensure cleanup
         # This prevents resource leaks when unexpected errors occur
         logger.error(f"Unexpected error in WebSocket loop for user {user_id}: {e}", exc_info=True)
-        await cleanup_connection(task_manager, session_manager, user_id, safe_ws)
+        await cleanup_connection(task_manager, session_manager, user_id)
         # Re-raise to let FastAPI handle it appropriately
         raise
