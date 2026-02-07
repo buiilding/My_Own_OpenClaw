@@ -4,6 +4,7 @@ import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/c
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
 import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
+import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
 
 jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', () => ({
   extractOSstate: jest.fn(),
@@ -15,8 +16,13 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   },
 }));
 
+jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader', () => ({
+  uploadArtifactBase64: jest.fn(),
+}));
+
 const mockExtractOSstate = extractOSstate as jest.MockedFunction<typeof extractOSstate>;
 const mockSendQuery = ApiClient.sendQuery as jest.MockedFunction<typeof ApiClient.sendQuery>;
+const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
 
 describe('useChatMessageSender', () => {
   beforeEach(() => {
@@ -40,6 +46,7 @@ describe('useChatMessageSender', () => {
 
     mockExtractOSstate.mockResolvedValue({ systemState: null, screenshot: null });
     mockSendQuery.mockResolvedValue(undefined);
+    mockUploadArtifactBase64.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -105,6 +112,55 @@ describe('useChatMessageSender', () => {
       true,
       0,
       false,
+    );
+  });
+
+  test('continues sending query when artifact upload fails', async () => {
+    mockExtractOSstate.mockResolvedValue({
+      systemState: { active_window: 'App' } as any,
+      screenshot: 'base64-shot',
+      screenshotContentType: 'image/png',
+    });
+    mockUploadArtifactBase64.mockRejectedValue(new Error('upload failed'));
+
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, { returnToChatboxOnSend: false }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect(mockUploadArtifactBase64).toHaveBeenCalled();
+    expect(mockSendQuery).toHaveBeenCalledWith('hello', null, null);
+  });
+
+  test('resets sending state and appends error message when send fails', async () => {
+    mockSendQuery.mockRejectedValue(new Error('send failed'));
+
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, { returnToChatboxOnSend: false }),
+    );
+
+    let thrownError: Error | null = null;
+    await act(async () => {
+      try {
+        await result.current.sendMessage('hello');
+      } catch (error: any) {
+        thrownError = error;
+      }
+    });
+
+    expect(thrownError?.message).toBe('send failed');
+
+    expect(useChatStore.getState().isSending).toBe(false);
+    const messages = useChatStore.getState().messages;
+    expect(messages.at(-1)).toEqual(
+      expect.objectContaining({
+        sender: 'assistant',
+        type: 'error',
+        text: 'Failed to send message. Please try again.',
+      }),
     );
   });
 });

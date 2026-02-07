@@ -28,6 +28,16 @@ export function useChatMessageSender(
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const { returnToChatboxOnSend = false } = options;
 
+  const appendSendFailureMessage = useCallback(() => {
+    addMessage({
+      id: crypto.randomUUID(),
+      text: 'Failed to send message. Please try again.',
+      sender: 'assistant',
+      type: 'error',
+      isComplete: true,
+    });
+  }, [addMessage]);
+
   const sendMessage = useCallback(async (text: string) => {
     // Stop audio playback if provided
     if (stopPlayback) {
@@ -82,13 +92,18 @@ export function useChatMessageSender(
       // Continue without screenshot/system state if capture fails
     }
 
-    const uploaded = screenshot
-      ? await uploadArtifactBase64(
+    let uploaded = null;
+    if (screenshot) {
+      try {
+        uploaded = await uploadArtifactBase64(
           screenshot,
           screenshotContentType || 'image/jpeg',
           `user-message.${(screenshotContentType || '').includes('png') ? 'png' : 'jpg'}`
-        )
-      : null;
+        );
+      } catch (error) {
+        console.warn('[useChatMessageSender] Failed to upload screenshot artifact:', error);
+      }
+    }
     const screenshotRef = uploaded?.artifactId || null;
     const screenshotUrl = uploaded?.url || null;
     
@@ -96,8 +111,23 @@ export function useChatMessageSender(
     updateMessage(userMessage.id, { screenshotRef, screenshotUrl });
     
     // Send query with screenshot to backend
-    await ApiClient.sendQuery(text, screenshotRef, screenshotUrl);
-  }, [addMessage, updateMessage, setIsSending, setThinkingStatus, stopPlayback, returnToChatboxOnSend]);
+    try {
+      await ApiClient.sendQuery(text, screenshotRef, screenshotUrl);
+    } catch (error) {
+      console.error('[useChatMessageSender] Failed to send query:', error);
+      setIsSending(false);
+      appendSendFailureMessage();
+      throw error;
+    }
+  }, [
+    addMessage,
+    appendSendFailureMessage,
+    updateMessage,
+    setIsSending,
+    setThinkingStatus,
+    stopPlayback,
+    returnToChatboxOnSend,
+  ]);
 
   return { sendMessage };
 }
