@@ -235,23 +235,23 @@ class JsonToolCallExtractor:
             return text
 
         sorted_positions = sorted(positions, key=lambda x: x[0])
-        for i in range(len(sorted_positions) - 1):
-            start1, end1 = sorted_positions[i]
-            start2, end2 = sorted_positions[i + 1]
-            if end1 > start2:
-                logger.warning(
-                    "Overlapping extraction positions detected: (%s, %s) and (%s, %s), skipping removal",
-                    start1,
-                    end1,
-                    start2,
-                    end2,
-                )
-                return text
+
+        merged_positions: List[Tuple[int, int]] = []
+        for start, end in sorted_positions:
+            if not merged_positions:
+                merged_positions.append((start, end))
+                continue
+
+            last_start, last_end = merged_positions[-1]
+            if start <= last_end:
+                merged_positions[-1] = (last_start, max(last_end, end))
+            else:
+                merged_positions.append((start, end))
 
         parts = []
         current_idx = 0
 
-        for start, end in sorted_positions:
+        for start, end in merged_positions:
             if not (0 <= start < end <= len(text)):
                 continue
 
