@@ -16,7 +16,10 @@ logger = logging.getLogger(__name__)
 def _to_litellm_message(message: Any) -> Dict[str, Any]:
     """Normalize a message object to the dict shape expected by LiteLLM."""
     if isinstance(message, dict):
-        return message
+        normalized = dict(message)
+        normalized.setdefault("role", "user")
+        normalized.setdefault("content", "")
+        return normalized
     return {
         "role": getattr(message, "role", "user"),
         "content": getattr(message, "content", ""),
