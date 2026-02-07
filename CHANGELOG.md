@@ -23,6 +23,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- 71c4a9e fix(vision-internvl): retry model load without meta init on tensor-item failure
 - 9a50776 fix(vision-provider): guard ui-venus optional deps and decode generated suffix
 - 40384ff fix(waiting-storage): create futures from available event loop
 - d4cbf90 fix(parser): recreate executor lazily for post-shutdown parser reuse
