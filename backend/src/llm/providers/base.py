@@ -142,6 +142,10 @@ class LLMProvider(ABC):
             raise TypeError(f"model must be str, got {type(model).__name__}")
         if not model.strip():
             raise ValueError("model parameter cannot be empty or whitespace-only")
+        if messages is None:
+            raise ValueError("messages parameter cannot be None")
+        if not isinstance(messages, list):
+            raise TypeError(f"messages must be list, got {type(messages).__name__}")
         
         params = {
             "model": model_string or self._get_full_model_string(model),
