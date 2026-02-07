@@ -205,6 +205,10 @@ class LLMProvider(ABC):
                 or delta.get("reasoning")
                 or delta.get("thought")
             )
+
+        # 2.5: Some providers include hidden reasoning inside delta.content tags.
+        if not content:
+            content = self._extract_tagged_thinking_from_content(delta)
         
         # 3. If content is a string, check for XML tags
         if isinstance(content, str):
@@ -222,3 +226,20 @@ class LLMProvider(ABC):
             return None
         
         return None
+
+    @staticmethod
+    def _extract_tagged_thinking_from_content(delta: Any) -> Optional[str]:
+        """Extract <thinking>...</thinking> segments from delta.content fields."""
+        raw_content = None
+        if isinstance(delta, dict):
+            raw_content = delta.get("content")
+        else:
+            raw_content = getattr(delta, "content", None)
+
+        if not isinstance(raw_content, str):
+            return None
+
+        match = THINKING_TAG_PATTERN.search(raw_content)
+        if not match:
+            return None
+        return match.group(1)
