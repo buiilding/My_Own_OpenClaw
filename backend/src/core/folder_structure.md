@@ -246,6 +246,9 @@ WebSocket Response
 - Parser validation now explicitly normalizes malformed registry tool-name
   payloads (e.g., string/blob-like values) to avoid accidental character-level
   whitelist expansion.
+- Tool-name whitelist normalization in `parser_validation.py` now uses a direct
+  sorted-set path after type filtering, reducing per-parse overhead while
+  preserving deterministic validation error ordering.
 - Tool waiting lifecycle responsibilities are concentrated in
   `backend/src/agent/tools/waiting/` with explicit handler/receiver/router/storage
   separation to reduce cross-layer coupling in session code.
