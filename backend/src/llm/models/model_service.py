@@ -47,6 +47,19 @@ def _copy_catalog(catalog: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return [dict(model) for model in catalog]
 
 
+def _dedupe_models(models: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Deduplicate model entries by (provider, id), preserving first-seen order."""
+    deduped: List[Dict[str, Any]] = []
+    seen: set[tuple[Any, Any]] = set()
+    for model in models:
+        key = (model.get("provider"), model.get("id"))
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(model)
+    return deduped
+
+
 _ONLINE_MODELS_CATALOG = _build_catalog(ONLINE_MODELS, supports_thinking=False)
 _THINKING_MODELS_CATALOG = _build_catalog(ONLINE_THINKING_MODELS, supports_thinking=True)
 _VISION_MODELS_CATALOG = _build_catalog(LOCAL_VISION_MODELS)
@@ -164,7 +177,7 @@ class ModelService:
                 f"Failures: {', '.join(f'{name}' for name, _ in provider_failures)}"
             )
 
-        return local_models
+        return _dedupe_models(local_models)
 
     async def get_all_models(self) -> Dict[str, List[Dict[str, Any]]]:
         """
@@ -175,5 +188,4 @@ class ModelService:
             "online": self.get_all_online_models(),
             "vision": self.get_vision_models(),
         }
-
 
