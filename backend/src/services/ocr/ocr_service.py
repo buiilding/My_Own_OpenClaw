@@ -123,11 +123,7 @@ class OcrService:
 
         gpu_memory_gb = self._detect_gpu_memory() if use_cuda else None
         cpu_cores = self._detect_cpu_cores()
-        sorted_thresholds = sorted(
-            config.batch_size_thresholds,
-            key=lambda threshold: float(threshold[0]),
-            reverse=True,
-        )
+        sorted_thresholds = self._normalized_batch_thresholds(config.batch_size_thresholds)
 
         rec_batch_num = 6
         cls_batch_num = 4
@@ -185,6 +181,28 @@ class OcrService:
             )
 
         return ocr_params
+
+    @staticmethod
+    def _normalized_batch_thresholds(
+        thresholds: List[List[float | int]],
+    ) -> List[tuple[float, int, int]]:
+        """Normalize and sort batch-size thresholds by descending VRAM requirement."""
+        normalized: List[tuple[float, int, int]] = []
+        for row in thresholds:
+            if not isinstance(row, (list, tuple)) or len(row) != 3:
+                continue
+            try:
+                min_gpu = float(row[0])
+                rec_batch = int(row[1])
+                cls_batch = int(row[2])
+            except (TypeError, ValueError):
+                continue
+            normalized.append((min_gpu, rec_batch, cls_batch))
+
+        if not normalized:
+            normalized = [(0.0, 6, 4)]
+
+        return sorted(normalized, key=lambda item: item[0], reverse=True)
 
     def _create_engine(self, use_cuda: bool) -> None:
         ocr_params = self._build_ocr_params(use_cuda=use_cuda)
