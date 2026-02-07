@@ -134,10 +134,10 @@ function connect() {
     isConnected = true;
     isFirstQuery = true; // Reset on new connection (new session)
     log('Successfully connected to Python backend.');
-    broadcastToRenderers('ipc-status', { isConnected: true });
 
     // Generate valid user_id (backend rejects 'default_user', empty, or whitespace-only)
     currentUserId = generateUserId();
+    broadcastToRenderers('ipc-status', { isConnected: true, userId: currentUserId });
     
     // Send handshake message as required by the backend server
     const handshakeMessage = {
@@ -178,7 +178,7 @@ function connect() {
     currentSessionId = null;
     currentServerUserId = null;
     log('Disconnected from Python backend. Attempting to reconnect...');
-    broadcastToRenderers('ipc-status', { isConnected: false });
+    broadcastToRenderers('ipc-status', { isConnected: false, userId: currentUserId });
     setTimeout(connect, reconnectInterval);
   });
 
@@ -239,6 +239,10 @@ function initializeIpc(win) {
 
   ipcMain.handle('load-frontend-config', async () => {
     return await loadFrontendConfigFromDisk();
+  });
+
+  ipcMain.handle('get-client-user-id', async () => {
+    return { userId: currentUserId, isConnected };
   });
 
   ipcMain.handle('save-frontend-config', async (event, config) => {

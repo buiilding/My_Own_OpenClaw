@@ -99,7 +99,7 @@ export const updateTranscriptSession = (sessionId?: string | null, userId?: stri
   if (nextSessionId) {
     currentSessionId = nextSessionId;
   }
-  if (nextUserId) {
+  if (nextUserId && !currentUserId) {
     currentUserId = nextUserId;
   }
 

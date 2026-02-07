@@ -24,6 +24,7 @@ export const INVOKE_CHANNELS = {
   LIST_CONVERSATIONS: 'list-conversations',
   GET_CONVERSATION: 'get-conversation',
   STORE_TRANSCRIPT: 'store-transcript',
+  GET_CLIENT_USER_ID: 'get-client-user-id',
   SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
   SHOW_MAIN_WINDOW: 'show-main-window',
   SHOW_CHATBOX: 'show-chatbox',
