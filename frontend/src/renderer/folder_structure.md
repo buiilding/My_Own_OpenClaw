@@ -81,6 +81,7 @@ frontend/src/renderer/
 │   │   └── utils/                       # Dashboard helpers
 │   │       ├── episodicMemoryUtils.js   # episodicMemoryUtils - Conversation key, parsing, formatting, and message mapping helpers
 │   │       ├── modelSelectionUtils.js   # modelSelectionUtils - Model filtering, selection reconciliation, and config payload shaping helpers
+│   │       ├── settingsDisplayUtils.js  # settingsDisplayUtils - Display option/selection reconciliation and speech-toggle config payload helpers
 │   │       └── storage.js               # storage - localStorage helpers for dashboard sections
 │   │
 │   ├── settings/                         # Settings feature module

@@ -205,6 +205,10 @@ App
 - Dashboard model-mode and provider key panel
 - Uses shared model-selection utility helpers for list filtering and selected-model reconciliation
 
+**SettingsSection.jsx**
+- Dashboard settings panel for wakeword, speech reply toggle, and active display selection
+- Uses shared settings-display utility helpers for display selection fallback and speech-mode update payload shaping
+
 #### Context Providers
 
 **AppProvider** (`app/providers/AppProvider.jsx`)
