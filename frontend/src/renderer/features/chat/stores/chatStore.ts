@@ -70,11 +70,13 @@ interface ChatState {
 /**
  * Initial message
  */
-const initialMessage: ChatMessage = {
-  id: crypto.randomUUID(),
-  text: 'Hello! How can I help you today?',
-  sender: 'assistant',
-};
+function createInitialMessage(): ChatMessage {
+  return {
+    id: crypto.randomUUID(),
+    text: 'Hello! How can I help you today?',
+    sender: 'assistant',
+  };
+}
 
 /**
  * Chat store
@@ -82,7 +84,7 @@ const initialMessage: ChatMessage = {
  */
 export const useChatStore = create<ChatState>((set) => ({
   // Initial state
-  messages: [initialMessage],
+  messages: [createInitialMessage()],
   isSending: false,
   thinkingStatus: null,
   tokenCounts: null,
@@ -108,5 +110,5 @@ export const useChatStore = create<ChatState>((set) => ({
 
   setTokenCounts: (tokenCounts) => set({ tokenCounts }),
 
-  clearMessages: () => set({ messages: [initialMessage] }),
+  clearMessages: () => set({ messages: [createInitialMessage()] }),
 }));
