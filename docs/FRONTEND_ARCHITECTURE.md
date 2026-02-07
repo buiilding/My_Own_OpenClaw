@@ -258,6 +258,7 @@ App
 - Token count updates
 - Uses shared chat-stream formatting/status helpers for thought truncation and tool-call/tool-bundle/tool-output text shaping
 - Uses shared stream-event helpers for screenshot attachment shaping, correlation-id resolution, and settings-update error filtering
+- Uses shared stream message-update helpers for first/last sender message selection and streaming/system/full-message payload shaping
 
 **useToolRunner** (`useToolRunner.ts`)
 - Connects UI to ToolExecutionService

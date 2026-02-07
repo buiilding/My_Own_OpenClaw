@@ -63,6 +63,7 @@ frontend/src/renderer/
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
 │   │       ├── chatStreamEventUtils.ts  # chatStreamEventUtils - Screenshot attachment, error filtering/text, and correlation-id event helpers
 │   │       ├── chatStreamFormatting.ts  # chatStreamFormatting - Thought/tool message formatting helpers
+│   │       ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
 │   │       ├── messageInput.js          # messageInput - Input normalization helper before send dispatch
 │   │       ├── messageListClasses.js    # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)
 │   │       ├── messageScreenshots.js    # messageScreenshots - Screenshot presence predicates and screenshot-src resolution helpers

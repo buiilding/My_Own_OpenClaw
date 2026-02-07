@@ -43,6 +43,7 @@ npm test
 - Tool-output execution metadata formatting behavior is covered directly by `tests/frontend/MessageToolMetadata.test.js`.
 - Chat message sender helper behavior is covered directly by `tests/frontend/ChatMessageSenderUtils.test.ts`.
 - Chat stream event helper behavior (error filtering/text, correlation id, screenshot attachment) is covered directly by `tests/frontend/ChatStreamEventUtils.test.ts`.
+- Chat stream message-update helper behavior is covered directly by `tests/frontend/ChatStreamMessageUpdates.test.ts`.
 - Tool-runner message/mapping helper behavior is covered directly by `tests/frontend/ToolRunnerMessages.test.ts`.
 - Episodic memory parsing/formatting helpers are covered directly by `tests/frontend/EpisodicMemoryUtils.test.js`.
 - Dashboard model selection/filter/reconciliation helpers are covered directly by `tests/frontend/ModelSelectionUtils.test.js`.
