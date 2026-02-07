@@ -243,6 +243,9 @@ WebSocket Response
 - Trust-boundary parsing and validation helpers are intentionally split across
   `backend/src/llm/parser.py`, `backend/src/llm/parser_extraction.py`, and
   `backend/src/llm/parser_validation.py` to keep extraction, enforcement, and orchestration concerns isolated.
+- Parser validation now explicitly normalizes malformed registry tool-name
+  payloads (e.g., string/blob-like values) to avoid accidental character-level
+  whitelist expansion.
 - Tool waiting lifecycle responsibilities are concentrated in
   `backend/src/agent/tools/waiting/` with explicit handler/receiver/router/storage
   separation to reduce cross-layer coupling in session code.
