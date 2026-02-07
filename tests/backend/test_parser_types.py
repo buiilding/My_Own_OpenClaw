@@ -47,3 +47,20 @@ def test_extract_tool_call_defaults_missing_args_to_empty_dict():
     payload = {"functionCall": {"name": "read_file"}}
 
     assert schema.extract_tool_call(payload) == ("read_file", {}, None)
+
+
+def test_extract_tool_call_rejects_non_dict_standard_function_call():
+    schema = ToolCallSchema()
+    payload = {"functionCall": "not-a-dict"}
+
+    assert schema.extract_tool_call(payload) is None
+
+
+def test_extract_tool_call_rejects_non_dict_wrapper_function_call():
+    schema = ToolCallSchema()
+    payload = {
+        "metadata": {"description": "d", "explanation": "e", "expectation": "x"},
+        "action": {"functionCall": "not-a-dict"},
+    }
+
+    assert schema.extract_tool_call(payload) is None
