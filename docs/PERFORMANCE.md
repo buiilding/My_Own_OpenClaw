@@ -21,6 +21,7 @@ read_when:
 - **Lazy Settings Panel**: Settings UI is loaded lazily.
 - **Voice audio encoding reuse**: shared PCM conversion helpers in `frontend/src/renderer/features/voice/utils/audioEncoding.ts` remove duplicate per-hook logic.
 - **Gateway metadata prefix cache**: voice packet framing caches metadata prefixes by sample rate to avoid JSON/string encoding work on every audio chunk.
+- **Voice gateway control payload reuse**: `useVoiceMode` reuses pre-serialized `set_langs`/`start_over` JSON payloads instead of re-stringifying on each socket-open or utterance-end event.
 - **Chat hook selector subscriptions**: `useChatStream` and `useChatMessageSender` subscribe to store actions via selectors to avoid rerenders from unrelated state updates.
 - **Chat send-path capture trimming**: `useChatMessageSender` now skips unused system-state capture during user-message send, reducing extra IPC work on each send.
 - **Chat store no-op updates**: `updateMessage`, `setMessages`, `setIsSending`, `setThinkingStatus`, and `setTokenCounts` now preserve state identity when values are unchanged, preventing unnecessary state churn.
