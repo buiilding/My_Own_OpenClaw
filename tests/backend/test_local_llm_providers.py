@@ -45,6 +45,28 @@ async def test_ollama_list_models_returns_empty_on_non_200(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_ollama_list_models_handles_non_list_models_field(monkeypatch):
+    provider = OllamaProvider(base_url="http://localhost:11434/v1")
+    response = DummyResponse(200, {"models": {"name": "not-a-list"}})
+    get_mock = AsyncMock(return_value=response)
+    monkeypatch.setattr(provider, "_get_http_client", AsyncMock(return_value=type("Client", (), {"get": get_mock})()))
+
+    assert await provider.list_models() == []
+
+
+@pytest.mark.asyncio
+async def test_ollama_list_models_uses_default_host_for_v1_only_base_url(monkeypatch):
+    provider = OllamaProvider(base_url="/v1")
+    response = DummyResponse(200, {"models": []})
+    get_mock = AsyncMock(return_value=response)
+    monkeypatch.setattr(provider, "_get_http_client", AsyncMock(return_value=type("Client", (), {"get": get_mock})()))
+
+    await provider.list_models()
+
+    get_mock.assert_awaited_once_with("http://localhost:11434/api/tags")
+
+
+@pytest.mark.asyncio
 async def test_lmstudio_list_models_handles_non_list_payload(monkeypatch):
     provider = LMStudioProvider(base_url="http://localhost:1234/v1")
     response = DummyResponse(200, {"data": {"id": "should-be-list"}})
