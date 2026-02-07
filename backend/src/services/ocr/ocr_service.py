@@ -116,18 +116,23 @@ class OcrService:
 
         gpu_memory_gb = self._detect_gpu_memory() if use_cuda else None
         cpu_cores = self._detect_cpu_cores()
+        sorted_thresholds = sorted(
+            config.batch_size_thresholds,
+            key=lambda threshold: float(threshold[0]),
+            reverse=True,
+        )
 
         rec_batch_num = 6
         cls_batch_num = 4
         if use_cuda and gpu_memory_gb:
-            for min_gpu, rec_batch, cls_batch in config.batch_size_thresholds:
+            for min_gpu, rec_batch, cls_batch in sorted_thresholds:
                 if gpu_memory_gb >= min_gpu:
                     rec_batch_num = rec_batch
                     cls_batch_num = cls_batch
                     break
         else:
-            if config.batch_size_thresholds:
-                _, rec_batch_num, cls_batch_num = config.batch_size_thresholds[-1]
+            if sorted_thresholds:
+                _, rec_batch_num, cls_batch_num = sorted_thresholds[-1]
 
         if config.use_cpu_cores_for_threads:
             intra_op_threads = cpu_cores
