@@ -6,8 +6,8 @@ import { ApiClient } from '../../infrastructure/api/client';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
 import { updateTranscriptSession } from '../../infrastructure/transcript/TranscriptWriter';
-import { hasShallowConfigChanges } from './configComparison';
 import { extractTranscriptUserId, routeConfigBackendEvent } from './appConfigEvents';
+import { applyConfigIfChanged, sanitizeFrontendProviderConfig } from './appConfigPersistence';
 
 function logConfigInfo(message, ...args) {
   if (
@@ -39,11 +39,6 @@ export function AppConfigProvider({ children }) {
   const [availableModels, setAvailableModels] = useState({ local: [], online: [] });
   const [wakewordEnabled, setWakewordEnabled] = useState(true);
   const [wakewordSuppressed, setWakewordSuppressed] = useState(true);
-
-  const sanitizeConfig = useCallback((nextConfig) => ({
-    ...nextConfig,
-    voice_mode_enabled: false,
-  }), []);
 
   const settingsHandlers = useSettingsManagement(
     setConfig,
@@ -109,15 +104,11 @@ export function AppConfigProvider({ children }) {
       if (!isMounted || !diskConfig || typeof diskConfig !== 'object') {
         return;
       }
-      const filteredConfig = sanitizeConfig(filterFrontendConfig(diskConfig));
-      if (Object.keys(filteredConfig).length === 0) {
+      const filteredConfig = sanitizeFrontendProviderConfig(filterFrontendConfig(diskConfig));
+      const didApplyConfig = applyConfigIfChanged(filteredConfig, configRef, setConfig);
+      if (!didApplyConfig) {
         return;
       }
-      if (!hasShallowConfigChanges(configRef.current, filteredConfig)) {
-        return;
-      }
-      configRef.current = filteredConfig;
-      setConfig(filteredConfig);
       saveConfigToStorage(filteredConfig, Date.now());
       ApiClient.updateSettings(filteredConfig);
     }).catch((error) => {
@@ -127,27 +118,24 @@ export function AppConfigProvider({ children }) {
     return () => {
       isMounted = false;
     };
-  }, [sanitizeConfig]);
+  }, []);
 
   const updateConfig = useCallback((newConfig) => {
-    const filteredConfig = sanitizeConfig(filterFrontendConfig(newConfig));
-
-    if (!hasShallowConfigChanges(configRef.current, filteredConfig)) {
+    const filteredConfig = sanitizeFrontendProviderConfig(filterFrontendConfig(newConfig));
+    const didApplyConfig = applyConfigIfChanged(filteredConfig, configRef, setConfig);
+    if (!didApplyConfig) {
       logConfigInfo('[Settings Update] No changes detected, skipping save');
       return;
     }
 
     logConfigInfo('[Settings Update] Updating config and saving to localStorage...');
-    configRef.current = filteredConfig;
-    setConfig(filteredConfig);
-
     saveConfigToStorage(filteredConfig, Date.now());
     logConfigInfo('[Settings Update] Config saved to localStorage');
     IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, filteredConfig).catch((error) => {
       console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
     });
     ApiClient.updateSettings(filteredConfig);
-  }, [sanitizeConfig]);
+  }, []);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.WAKEWORD_TOGGLE, (data) => {
