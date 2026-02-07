@@ -6,6 +6,7 @@ Based on CoAct-1's implementation, adapted for desktop assistant.
 """
 import asyncio
 import base64
+import hashlib
 import logging
 from io import BytesIO
 from typing import Optional, Tuple
@@ -43,6 +44,15 @@ else:
     InterpolationMode = None
     AutoModel = None
     AutoTokenizer = None
+
+
+def _build_instruction_log_metadata(
+    instruction: str, preview_length: int = 50
+) -> Tuple[str, str]:
+    """Return a bounded instruction preview and short stable hash for safe logs."""
+    preview = instruction[:preview_length] if len(instruction) > preview_length else instruction
+    instruction_hash = hashlib.sha256(instruction.encode()).hexdigest()[:8]
+    return preview, instruction_hash
 
 
 class InternVLModel(BaseVisionModel):
@@ -258,14 +268,14 @@ class InternVLModel(BaseVisionModel):
         This method contains all blocking operations (base64 decoding, PIL processing,
         model inference) that must run off the event loop.
         """
-        import hashlib
         import time
         vision_prediction_start = time.perf_counter()
         try:
             # SECURITY: Sanitize instruction in logs to prevent PII leakage
             # Truncate to first 50 chars and append hash for identification
-            instruction_preview = instruction[:50] if len(instruction) > 50 else instruction
-            instruction_hash = hashlib.sha256(instruction.encode()).hexdigest()[:8]
+            instruction_preview, instruction_hash = _build_instruction_log_metadata(
+                instruction
+            )
             logger.info(
                 f"Starting InternVL prediction for instruction (preview: {instruction_preview}..., hash: {instruction_hash})"
             )
@@ -320,7 +330,10 @@ class InternVLModel(BaseVisionModel):
 
             # Format question with image placeholder (InternVL style)
             question = f"<image>\n{grounding_prompt}"
-            logger.info(f"Chat question: {question}")
+            logger.debug(
+                "Prepared chat question with image placeholder (instruction hash=%s)",
+                instruction_hash,
+            )
 
             # Prepare generation config
             generation_config = dict(
