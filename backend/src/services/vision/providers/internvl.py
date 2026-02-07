@@ -66,6 +66,12 @@ def build_grounding_prompt(instruction: str) -> str:
     return GROUNDING_PROMPT_TEMPLATE.format(instruction=instruction)
 
 
+def _is_meta_tensor_loading_error(error: Exception) -> bool:
+    """Return True for meta-tensor construction failures during model load."""
+    message = str(error).lower()
+    return "meta tensor" in message or "tensor.item() cannot be called on meta tensors" in message
+
+
 class InternVLModel(BaseVisionModel):
     """
     Generic Hugging Face vision-language model handler for InternVL models.
@@ -145,7 +151,19 @@ class InternVLModel(BaseVisionModel):
         if device_map is not None:
             kwargs["device_map"] = device_map
 
-        model = AutoModel.from_pretrained(self.model_name, **kwargs)
+        try:
+            model = AutoModel.from_pretrained(self.model_name, **kwargs)
+        except Exception as error:
+            if _is_meta_tensor_loading_error(error) and kwargs.get("low_cpu_mem_usage"):
+                retry_kwargs = dict(kwargs)
+                retry_kwargs["low_cpu_mem_usage"] = False
+                logger.warning(
+                    "InternVL load hit meta-tensor init path for %s; retrying with low_cpu_mem_usage=False",
+                    self.model_name,
+                )
+                model = AutoModel.from_pretrained(self.model_name, **retry_kwargs)
+            else:
+                raise
         if device is not None:
             model = model.to(device)
         return model.eval()

@@ -6,6 +6,7 @@ import pytest
 from backend.src.services.vision.providers.internvl import (
     InternVLModel,
     _build_instruction_log_metadata,
+    _is_meta_tensor_loading_error,
     build_grounding_prompt,
 )
 from backend.src.services.vision.providers.base import (
@@ -68,6 +69,20 @@ class _ModelWithDTypeParams:
 
     def parameters(self):
         return iter([_ParamWithDType(self._dtype)])
+
+
+class _DummyEvalModel:
+    def __init__(self):
+        self.moved_to = None
+        self.eval_called = False
+
+    def to(self, device):
+        self.moved_to = device
+        return self
+
+    def eval(self):
+        self.eval_called = True
+        return self
 
 
 def test_loader_returns_device_map_model_when_first_attempt_succeeds():
@@ -139,6 +154,12 @@ def test_build_grounding_prompt_contains_instruction_ref():
     assert "Answer in the format of [[x1, y1, x2, y2]]" in prompt
 
 
+def test_is_meta_tensor_loading_error_detects_meta_tensor_messages():
+    assert _is_meta_tensor_loading_error(RuntimeError("Tensor.item() cannot be called on meta tensors"))
+    assert _is_meta_tensor_loading_error(RuntimeError("meta tensor construction path failed"))
+    assert _is_meta_tensor_loading_error(RuntimeError("ordinary error")) is False
+
+
 def test_internvl_resolve_model_dtype_prefers_cached_dtype():
     model = InternVLModel.__new__(InternVLModel)
     model._model_dtype = "cached-dtype"
@@ -156,6 +177,54 @@ def test_internvl_resolve_model_dtype_uses_model_parameter_dtype():
     dtype = model._resolve_model_dtype()
 
     assert dtype == "param-dtype"
+
+
+def test_internvl_load_model_retries_without_low_cpu_mem_usage_on_meta_error(monkeypatch):
+    model = InternVLModel.__new__(InternVLModel)
+    model.model_name = "OpenGVLab/InternVL3_5-4B"
+    model.trust_remote_code = True
+    calls = []
+
+    def fake_from_pretrained(_model_name, **kwargs):
+        calls.append(kwargs.copy())
+        if len(calls) == 1:
+            raise RuntimeError("Tensor.item() cannot be called on meta tensors")
+        return _DummyEvalModel()
+
+    monkeypatch.setattr(
+        "backend.src.services.vision.providers.internvl.AutoModel.from_pretrained",
+        fake_from_pretrained,
+    )
+
+    loaded = model._load_model(dtype="bf16", use_flash_attn=False, device="cpu")
+
+    assert isinstance(loaded, _DummyEvalModel)
+    assert loaded.moved_to == "cpu"
+    assert loaded.eval_called is True
+    assert len(calls) == 2
+    assert calls[0]["low_cpu_mem_usage"] is True
+    assert calls[1]["low_cpu_mem_usage"] is False
+
+
+def test_internvl_load_model_does_not_retry_non_meta_errors(monkeypatch):
+    model = InternVLModel.__new__(InternVLModel)
+    model.model_name = "OpenGVLab/InternVL3_5-4B"
+    model.trust_remote_code = True
+    calls = {"count": 0}
+
+    def fake_from_pretrained(_model_name, **_kwargs):
+        calls["count"] += 1
+        raise RuntimeError("some other loading error")
+
+    monkeypatch.setattr(
+        "backend.src.services.vision.providers.internvl.AutoModel.from_pretrained",
+        fake_from_pretrained,
+    )
+
+    with pytest.raises(RuntimeError, match="some other loading error"):
+        model._load_model(dtype="bf16", use_flash_attn=False, device="cpu")
+
+    assert calls["count"] == 1
 
 
 def test_loader_falls_back_to_direct_cuda_loading_when_device_map_fails():

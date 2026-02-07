@@ -283,6 +283,9 @@ WebSocket Response
   `build_grounding_prompt()` in
   `backend/src/services/vision/providers/internvl.py`, keeping InternVL and
   UI-Venus prompt envelopes aligned.
+- InternVL model load now retries with `low_cpu_mem_usage=False` when
+  transformers/meta initialization raises a meta-tensor scalar extraction error,
+  improving startup resilience for custom InternVL checkpoints.
 - InternVL synchronous prediction flow is decomposed into focused helpers
   (`_resolve_model_dtype`, `_run_chat_generation`, `_run_generate_fallback`,
   `_log_failure_context`) to reduce method complexity while preserving
