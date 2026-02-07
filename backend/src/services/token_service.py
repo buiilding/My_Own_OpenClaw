@@ -70,9 +70,14 @@ def _extract_text_char_count_from_part(item: Any) -> int:
     if part_type not in {"text", "input_text"}:
         return 0
 
-    text = item.get("text", "")
+    text = item.get("text")
     if isinstance(text, str):
         return len(text)
+
+    # Some adapters use "content" for text payload in text parts.
+    content = item.get("content")
+    if isinstance(content, str):
+        return len(content)
     return 0
 
 
