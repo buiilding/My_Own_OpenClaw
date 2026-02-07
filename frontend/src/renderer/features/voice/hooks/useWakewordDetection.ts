@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { IpcBridge, SEND_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { float32ToPcm16, normalizeScriptProcessorChunkSize } from '../utils/audioEncoding';
+import {
+  getChunkSizeWarning,
+  isWithinCooldown,
+  resolveConfidence,
+} from '../utils/wakewordEventUtils';
 
 /**
  * Custom hook for wakeword detection using openWakeWord.
@@ -26,9 +31,6 @@ export function useWakewordDetection(
 
   // Ensure chunkSize is a valid power of 2
   const chunkSize = normalizeScriptProcessorChunkSize(rawChunkSize);
-  if (rawChunkSize !== chunkSize) {
-    console.warn(`[Wakeword] chunkSize ${rawChunkSize} is not a power of 2, using ${chunkSize} instead`);
-  }
 
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +48,13 @@ export function useWakewordDetection(
   useEffect(() => {
     onWakewordDetectedRef.current = onWakewordDetected;
   }, [onWakewordDetected]);
+
+  useEffect(() => {
+    const warningMessage = getChunkSizeWarning(rawChunkSize, chunkSize);
+    if (warningMessage) {
+      console.warn(warningMessage);
+    }
+  }, [rawChunkSize, chunkSize]);
 
   // Send audio chunk to main process via IPC
   const sendAudioChunk = useCallback((audioData: Int16Array) => {
@@ -157,23 +166,28 @@ export function useWakewordDetection(
   useEffect(() => {
     const unsubscribe = IpcBridge.on(ON_CHANNELS.WAKEWORD_DETECTED, (data: any) => {
       const now = Date.now();
+      const confidence = resolveConfidence(data?.confidence);
+      if (confidence === null) {
+        console.warn('[Wakeword] Invalid confidence value in detection event');
+        return;
+      }
       
       // Cooldown check to prevent multiple rapid detections
-      if (now - lastDetectionRef.current < cooldownPeriod) {
+      if (isWithinCooldown(now, lastDetectionRef.current, cooldownPeriod)) {
         return;
       }
 
-      console.log(`[Wakeword] Detection event: model=${data.model}, confidence=${data.confidence.toFixed(4)}, threshold=${threshold}`);
+      console.log(`[Wakeword] Detection event: model=${data.model}, confidence=${confidence.toFixed(4)}, threshold=${threshold}`);
       
-      if (data.confidence >= threshold) {
+      if (confidence >= threshold) {
         const timeSinceLastDetection = now - lastDetectionRef.current;
-        if (timeSinceLastDetection < cooldownPeriod) {
+        if (isWithinCooldown(now, lastDetectionRef.current, cooldownPeriod)) {
           console.log(`[Wakeword] Ignoring (cooldown: ${timeSinceLastDetection}ms < ${cooldownPeriod}ms)`);
           return;
         }
         
         lastDetectionRef.current = now;
-        console.log(`[Wakeword] *** DETECTED *** ${data.model} (confidence: ${data.confidence.toFixed(4)})`);
+        console.log(`[Wakeword] *** DETECTED *** ${data.model} (confidence: ${confidence.toFixed(4)})`);
         
         // Immediately disable wakeword processing to prevent buffered chunks from triggering again
         IpcBridge.send(SEND_CHANNELS.WAKEWORD_DISABLE);
@@ -181,14 +195,14 @@ export function useWakewordDetection(
         if (onWakewordDetectedRef.current) {
           onWakewordDetectedRef.current({
             model: data.model,
-            confidence: data.confidence,
+            confidence,
             score: data.score,
           });
         } else {
           console.warn('[Wakeword] No callback provided');
         }
       } else {
-        console.log(`[Wakeword] Below threshold (${data.confidence.toFixed(4)} < ${threshold})`);
+        console.log(`[Wakeword] Below threshold (${confidence.toFixed(4)} < ${threshold})`);
       }
     });
 
