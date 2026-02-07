@@ -181,6 +181,9 @@ App
 - Transcription integration
 - Auto-send on utterance end
 
+**TokenCountDisplay.jsx**
+- Displays token usage counters in a table-driven render path backed by shared token-count formatting helpers
+
 **SettingsPanel.jsx**
 - Settings configuration UI
 - Model selection
