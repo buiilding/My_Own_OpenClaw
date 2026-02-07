@@ -112,7 +112,7 @@ class ToolCallValidator:
             deduped_tool_names = [
                 name for name in deduped_tool_names if name in allowed_tools
             ]
-        return deduped_tool_names
+        return sorted(deduped_tool_names)
 
     def validate_metadata(
         self, tool_name: str, metadata: Optional[Dict[str, Any]]
