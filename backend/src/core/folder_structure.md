@@ -255,6 +255,9 @@ WebSocket Response
 - Tool waiting lifecycle responsibilities are concentrated in
   `backend/src/agent/tools/waiting/` with explicit handler/receiver/router/storage
   separation to reduce cross-layer coupling in session code.
+- `backend/src/agent/tools/waiting/storage/result_storage.py` now creates
+  futures via running-loop or event-loop fallback paths to keep sync-context
+  tests and cleanup flows stable on newer asyncio runtimes.
 - Vision provider internals now centralize shared fallback loading and coordinate
   extraction logic in `backend/src/services/vision/providers/base.py` and
   `backend/src/services/vision/coordinates.py`, keeping provider-specific files
