@@ -8,6 +8,7 @@ Responsible for discovering and aggregating available LLM models from:
 
 import asyncio
 import logging
+from collections.abc import Iterable
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from backend.src.core.config import AppConfig
@@ -110,7 +111,10 @@ class ModelService:
     @staticmethod
     def _normalize_provider_models(raw_models: Any) -> List[Dict[str, Any]]:
         """Normalize provider model payloads to a clean list of model dicts."""
-        if not isinstance(raw_models, (list, tuple)):
+        if (
+            not isinstance(raw_models, Iterable)
+            or isinstance(raw_models, (str, bytes, dict))
+        ):
             return []
 
         normalized: List[Dict[str, Any]] = []
