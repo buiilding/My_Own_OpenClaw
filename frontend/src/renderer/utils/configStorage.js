@@ -19,6 +19,15 @@ export const DEFAULT_FRONTEND_CONFIG = {
   speech_mode_enabled: false,
 };
 
+function buildFrontendConfig(overrides = {}) {
+  return { ...DEFAULT_FRONTEND_CONFIG, ...overrides, voice_mode_enabled: false };
+}
+
+function clearStoredConfigUnsafe() {
+  localStorage.removeItem(CONFIG_STORAGE_KEY);
+  localStorage.removeItem(CONFIG_VERSION_KEY);
+}
+
 /**
  * Load configuration from localStorage.
  * 
@@ -28,7 +37,7 @@ export function loadConfigFromStorage() {
   try {
     const stored = localStorage.getItem(CONFIG_STORAGE_KEY);
     if (!stored) {
-      return { ...DEFAULT_FRONTEND_CONFIG, voice_mode_enabled: false };
+      return buildFrontendConfig();
     }
     
     const config = JSON.parse(stored);
@@ -36,18 +45,16 @@ export function loadConfigFromStorage() {
     // Validate that it's an object (basic validation)
     if (typeof config !== 'object' || config === null || Array.isArray(config)) {
       console.warn('[ConfigStorage] Invalid config format in localStorage, clearing');
-      localStorage.removeItem(CONFIG_STORAGE_KEY);
-      localStorage.removeItem(CONFIG_VERSION_KEY);
-      return { ...DEFAULT_FRONTEND_CONFIG, voice_mode_enabled: false };
+      clearStoredConfigUnsafe();
+      return buildFrontendConfig();
     }
     
-    return { ...DEFAULT_FRONTEND_CONFIG, ...config, voice_mode_enabled: false };
+    return buildFrontendConfig(config);
   } catch (error) {
     console.error('[ConfigStorage] Failed to load config from localStorage:', error);
     // Clear corrupted data
-    localStorage.removeItem(CONFIG_STORAGE_KEY);
-    localStorage.removeItem(CONFIG_VERSION_KEY);
-    return { ...DEFAULT_FRONTEND_CONFIG, voice_mode_enabled: false };
+    clearStoredConfigUnsafe();
+    return buildFrontendConfig();
   }
 }
 
@@ -114,8 +121,7 @@ export function getConfigVersion() {
  */
 export function clearConfigStorage() {
   try {
-    localStorage.removeItem(CONFIG_STORAGE_KEY);
-    localStorage.removeItem(CONFIG_VERSION_KEY);
+    clearStoredConfigUnsafe();
   } catch (error) {
     console.error('[ConfigStorage] Failed to clear config storage:', error);
   }
