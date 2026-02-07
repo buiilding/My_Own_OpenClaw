@@ -22,6 +22,7 @@ _SAFE_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+\.(png|jpg|jpeg)$")
 _CONTENT_TYPE_TO_EXT = {
     "image/png": "png",
     "image/jpeg": "jpg",
+    "image/jpg": "jpg",
 }
 
 _EXT_TO_CONTENT_TYPE = {
