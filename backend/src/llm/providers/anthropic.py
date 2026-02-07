@@ -2,14 +2,8 @@ import logging
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import litellm
-from litellm import exceptions as litellm_exceptions
 
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent, ThinkingEvent
-from backend.src.core.infrastructure.exceptions import (
-    LLMAPIError,
-    LLMError,
-    LLMRateLimitError,
-)
 from backend.src.core.types.schemas import (
     LLMMessage,
     NormalizedLLMResponse,
@@ -43,22 +37,11 @@ class AnthropicProvider(LLMProvider):
         self, model: str, messages: List[LLMMessage]
     ) -> NormalizedLLMResponse:
         params = self._build_request_params(model, messages)
-        try:
-            response = await litellm.acompletion(**params)
-            if (
-                not response
-                or not response.choices
-                or not response.choices[0].message
-            ):
-                raise LLMAPIError("Invalid response from Anthropic", model=model)
-            content = response.choices[0].message.content or ""
-            return {"content": content}
-        except litellm_exceptions.RateLimitError as e:
-            raise LLMRateLimitError("Anthropic rate limit exceeded", model=model, cause=e)
-        except litellm_exceptions.APIError as e:
-            raise LLMAPIError("Anthropic API error", model=model, cause=e)
-        except Exception as e:
-            raise LLMError("An unexpected error occurred with Anthropic", model=model, cause=e)
+        return await self._get_completion_with_standard_errors(
+            provider_label="Anthropic",
+            model=model,
+            params=params,
+        )
 
     async def _stream_internal(
         self, model: str, messages: List[LLMMessage]
