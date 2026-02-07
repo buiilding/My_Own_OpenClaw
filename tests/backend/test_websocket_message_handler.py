@@ -103,6 +103,54 @@ async def test_parse_and_validate_message_rejects_non_object_json_root() -> None
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_small_payload_parses_inline(monkeypatch) -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_inline",
+            "type": "query",
+            "payload": {"text": "hello"},
+        }
+    )
+    monkeypatch.setattr(mh.asyncio, "get_running_loop", lambda: (_ for _ in ()).throw(RuntimeError("should not be used")))
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=4096
+    )
+
+    assert error is None
+    assert isinstance(message, QueryMessage)
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_large_payload_uses_executor(monkeypatch) -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_large",
+            "type": "query",
+            "payload": {"text": "hello"},
+        }
+    )
+    monkeypatch.setattr(mh, "_JSON_PARSE_OFFLOAD_BYTES", 1)
+
+    called = {"executor": False}
+
+    class FakeLoop:
+        async def run_in_executor(self, executor, fn, data):
+            called["executor"] = True
+            return fn(data)
+
+    monkeypatch.setattr(mh.asyncio, "get_running_loop", lambda: FakeLoop())
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=4096
+    )
+
+    assert error is None
+    assert isinstance(message, QueryMessage)
+    assert called["executor"] is True
+
+
+@pytest.mark.asyncio
 async def test_handle_message_routes_to_registry() -> None:
     registry = DummyRegistry()
     websocket = SimpleNamespace()
