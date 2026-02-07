@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { shallow } from 'zustand/shallow';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import TokenCountDisplay from './TokenCountDisplay';
@@ -8,6 +9,7 @@ import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
+import { selectChatInterfaceState } from '../utils/chatSelectors';
 import '../../../styles/ChatInterface.css';
 
 /**
@@ -15,10 +17,10 @@ import '../../../styles/ChatInterface.css';
  * Orchestrates the chat interaction using store and hooks.
  */
 function ChatInterface() {
-  const messages = useChatStore((state) => state.messages);
-  const isSending = useChatStore((state) => state.isSending);
-  const thinkingStatus = useChatStore((state) => state.thinkingStatus);
-  const tokenCounts = useChatStore((state) => state.tokenCounts);
+  const { messages, isSending, thinkingStatus, tokenCounts } = useChatStore(
+    selectChatInterfaceState,
+    shallow,
+  );
   // Use AppConfigContext directly for better performance
   // This avoids re-renders when saveStatus changes in AppStatusContext
   const { config } = useAppConfigContext();
