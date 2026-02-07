@@ -1,0 +1,71 @@
+import asyncio
+import sys
+import types
+
+import pytest
+
+# Test-only shim: avoid pulling full app container deps during route import.
+_original_deps = sys.modules.get("backend.src.api.deps")
+fake_deps = types.ModuleType("backend.src.api.deps")
+fake_deps.ContainerDep = object
+fake_deps.SessionManagerDep = object
+fake_deps.HandlerRegistryDep = object
+sys.modules["backend.src.api.deps"] = fake_deps
+
+from backend.src.api.routes.websocket.task_manager import TaskManager
+
+if _original_deps is not None:
+    sys.modules["backend.src.api.deps"] = _original_deps
+else:
+    sys.modules.pop("backend.src.api.deps", None)
+
+
+@pytest.mark.asyncio
+async def test_create_task_if_under_limit_enforces_max_concurrency() -> None:
+    manager = TaskManager(max_concurrent_tasks=1, task_cancellation_timeout=0.1)
+    blocker = asyncio.Event()
+
+    async def long_running() -> None:
+        await blocker.wait()
+
+    first_task, first_limit_exceeded = await manager.create_task_if_under_limit(
+        long_running(), "user_1"
+    )
+
+    assert first_task is not None
+    assert first_limit_exceeded is False
+
+    second_coro = asyncio.sleep(0)
+    second_task, second_limit_exceeded = await manager.create_task_if_under_limit(
+        second_coro, "user_1"
+    )
+    if second_limit_exceeded:
+        second_coro.close()
+
+    assert second_task is None
+    assert second_limit_exceeded is True
+
+    blocker.set()
+    await first_task
+    await asyncio.sleep(0.01)
+    assert len(manager.active_tasks) == 0
+
+
+@pytest.mark.asyncio
+async def test_cleanup_cancels_pending_tasks() -> None:
+    manager = TaskManager(max_concurrent_tasks=2, task_cancellation_timeout=0.1)
+
+    async def never_finishes() -> None:
+        await asyncio.sleep(10)
+
+    task, limit_exceeded = await manager.create_task_if_under_limit(
+        never_finishes(), "user_2"
+    )
+    assert task is not None
+    assert limit_exceeded is False
+    assert len(manager.active_tasks) == 1
+
+    await manager.cleanup("user_2")
+
+    assert task.done()
+    assert task.cancelled()
