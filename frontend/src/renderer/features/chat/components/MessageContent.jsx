@@ -3,6 +3,25 @@ import PropTypes from 'prop-types';
 import TransparencySection from './TransparencySection';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 
+function resolveInlineScreenshotContentType(contentType) {
+  const normalized = (contentType || '').toLowerCase();
+  if (normalized.includes('png')) {
+    return 'image/png';
+  }
+  return 'image/jpeg';
+}
+
+function resolveMessageScreenshotSrc(message) {
+  if (message.screenshotUrl) {
+    return message.screenshotUrl;
+  }
+  if (message.screenshot) {
+    const contentType = resolveInlineScreenshotContentType(message.screenshotContentType);
+    return `data:${contentType};base64,${message.screenshot}`;
+  }
+  return null;
+}
+
 function MarkdownMessage({ text }) {
   const html = useMemo(() => toSanitizedMarkdownHtml(text ?? ''), [text]);
   return (
@@ -18,11 +37,7 @@ MarkdownMessage.propTypes = {
 };
 
 function ToolOutputMessage({ message }) {
-  const screenshotSrc = message.screenshotUrl
-    ? message.screenshotUrl
-    : message.screenshot
-      ? `data:image/jpeg;base64,${message.screenshot}`
-      : null;
+  const screenshotSrc = resolveMessageScreenshotSrc(message);
   return (
     <div className="tool-output-container">
       <div className="tool-output-header">📤 Tool Output</div>
@@ -60,6 +75,7 @@ ToolOutputMessage.propTypes = {
     text: PropTypes.string.isRequired,
     screenshot: PropTypes.string,
     screenshotUrl: PropTypes.string,
+    screenshotContentType: PropTypes.string,
     toolMetadata: PropTypes.object,
     toolName: PropTypes.string,
     executionTime: PropTypes.number,
@@ -98,11 +114,7 @@ ErrorMessage.propTypes = {
 };
 
 function UserMessage({ message }) {
-  const screenshotSrc = message.screenshotUrl
-    ? message.screenshotUrl
-    : message.screenshot
-      ? `data:image/jpeg;base64,${message.screenshot}`
-      : null;
+  const screenshotSrc = resolveMessageScreenshotSrc(message);
   return (
     <div className="user-message-container">
       <MarkdownMessage text={message.text} />
@@ -126,6 +138,7 @@ UserMessage.propTypes = {
     text: PropTypes.string.isRequired,
     screenshot: PropTypes.string,
     screenshotUrl: PropTypes.string,
+    screenshotContentType: PropTypes.string,
   }).isRequired,
 };
 
@@ -156,6 +169,7 @@ MessageContent.propTypes = {
     type: PropTypes.string,
     screenshot: PropTypes.string,
     screenshotUrl: PropTypes.string,
+    screenshotContentType: PropTypes.string,
     toolMetadata: PropTypes.object,
     toolName: PropTypes.string,
     executionTime: PropTypes.number,
