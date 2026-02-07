@@ -37,6 +37,20 @@ function markBackendReady(mainWindow) {
   mainWindow?.webContents.send('local-backend-status', { ready: true });
 }
 
+function getErrorMessage(error) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
+function toErrorResponse(error) {
+  return {
+    success: false,
+    error: getErrorMessage(error),
+  };
+}
+
 /**
  * Get Python executable path (cached after first lookup)
  */
@@ -99,13 +113,12 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
     if (response.id === requestId) {
       readinessCheckCallback = null;
       
-              if (response.result && response.result.status === 'ok') {
-                isPythonReady = true;
-                // Only log in development
-                if (process.env.NODE_ENV !== 'production') {
-                  console.log('[LocalBackend] Python service ready (verified via ping)');
-                }
-                mainWindow?.webContents.send('local-backend-status', { ready: true });
+      if (response.result && response.result.status === 'ok') {
+        // Only log in development
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[LocalBackend] Python service ready (verified via ping)');
+        }
+        markBackendReady(mainWindow);
       } else {
         // Retry if ping failed
         if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts)) {
@@ -278,7 +291,7 @@ function handlePythonResponse(response) {
 /**
  * Send JSON-RPC request to Python process
  */
-function sendRequest(method, params = {}) {
+function sendRequest(method, params = {}, options = {}) {
   if (!pythonProcess || !isPythonReady) {
     throw new Error('Local backend not ready');
   }
@@ -292,13 +305,14 @@ function sendRequest(method, params = {}) {
   };
 
   return new Promise((resolve, reject) => {
-    // Set timeout (30 seconds)
+    const timeoutMs = typeof options.timeoutMs === 'number' ? options.timeoutMs : 30000;
+    // Set timeout
     const timeout = setTimeout(() => {
       if (pendingRequests.has(requestId)) {
         pendingRequests.delete(requestId);
         reject(new Error('Request timed out'));
       }
-    }, 30000);
+    }, timeoutMs);
 
     pendingRequests.set(requestId, { resolve, reject, timeout });
 
@@ -311,6 +325,33 @@ function sendRequest(method, params = {}) {
       reject(error);
     }
   });
+}
+
+async function getSystemStateFromBackend(fields) {
+  const params = fields ? { fields } : {};
+  try {
+    const result = await sendRequest('get_system_state', params);
+    if (result.success === false) {
+      return null;
+    }
+    return result.data || result;
+  } catch (error) {
+    console.error(`[LocalBackend] System state request failed: ${getErrorMessage(error)}`);
+    return null;
+  }
+}
+
+async function sendMemorySearchRequest({ query, user_id, limit, memory_type }) {
+  try {
+    return await sendRequest('search_memory', {
+      query: query,
+      user_id: user_id,
+      limit: limit,
+      memory_type: memory_type,
+    });
+  } catch (error) {
+    return toErrorResponse(error);
+  }
 }
 
 /**
@@ -335,28 +376,48 @@ function stopLocalBackend() {
  * Initialize IPC handlers for local backend communication
  */
 function initializeLocalBackendBridge(getWindows) {
-  const resolveWindows = () => {
+  const resolveWindowProvider = () => {
     if (typeof getWindows === 'function') {
-      const result = getWindows();
-      if (result && typeof result === 'object') {
-        const { mainWindow, chatWindow } = result;
-        return [mainWindow, chatWindow].filter(Boolean);
+      return getWindows;
+    }
+    if (getWindows && typeof getWindows === 'object') {
+      if ('mainWindow' in getWindows || 'chatWindow' in getWindows) {
+        return () => getWindows;
       }
+      return () => ({ mainWindow: getWindows, chatWindow: null });
+    }
+    return () => ({});
+  };
+  const getWindowState = resolveWindowProvider();
+
+  const resolveWindows = () => {
+    const result = getWindowState();
+    if (result && typeof result === 'object') {
+      const { mainWindow, chatWindow } = result;
+      return [mainWindow, chatWindow].filter(Boolean);
     }
     return [];
   };
   const resolveChatWindow = () => {
-    if (typeof getWindows === 'function') {
-      const result = getWindows();
-      if (result && typeof result === 'object') {
-        return result.chatWindow || null;
-      }
+    const result = getWindowState();
+    if (result && typeof result === 'object') {
+      return result.chatWindow || null;
     }
     return null;
   };
 
   const [mainWindow] = resolveWindows();
   startLocalBackend(mainWindow);
+
+  const registerRpcHandler = (channel, method, mapParams) => {
+    ipcMain.handle(channel, async (event, payload = {}) => {
+      try {
+        return await sendRequest(method, mapParams(payload || {}));
+      } catch (error) {
+        return toErrorResponse(error);
+      }
+    });
+  };
 
   async function withHiddenWindowForScreenshot(task) {
     if (process.platform !== 'linux') {
@@ -422,11 +483,12 @@ function initializeLocalBackendBridge(getWindows) {
   // Handle tool execution requests
   ipcMain.handle('execute-tool', async (event, { toolName, args, skipAutoCapture = false }) => {
     try {
+      const timeoutMs = toolName === 'browser_control' ? 120000 : 30000;
       const runTool = () =>
         sendRequest('execute_tool', {
           tool_name: toolName,
           args: args,
-        });
+        }, { timeoutMs });
       const result = toolName === 'screenshot'
         ? await withHiddenWindowForScreenshot(runTool)
         : await runTool();
@@ -441,131 +503,75 @@ function initializeLocalBackendBridge(getWindows) {
         data: result.data || result,
       };
     } catch (error) {
-      console.error(`[LocalBackend] Tool execution failed: ${error.message}`);
+      console.error(`[LocalBackend] Tool execution failed: ${getErrorMessage(error)}`);
       return {
         success: false,
-        error: error.message
+        error: getErrorMessage(error)
       };
     }
   });
 
   // Handle system state requests
   ipcMain.handle('get-system-state', async (event, { fields } = {}) => {
-    try {
-      const result = await sendRequest('get_system_state', { fields });
-      
-      if (result.success === false) {
-        return null;
-      }
-      
-      return result.data || result;
-    } catch (error) {
-      console.error(`[LocalBackend] System state request failed: ${error.message}`);
-      return null;
-    }
+    return getSystemStateFromBackend(fields);
   });
 
   // Handle memory search requests (integrated into local backend)
-  ipcMain.handle('search-memory', async (event, { query, user_id, limit, memory_type }) => {
-    try {
-      const result = await sendRequest('search_memory', {
-        query: query,
-        user_id: user_id,
-        limit: limit,
-        memory_type: memory_type,
-      });
-      
-      return result;
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message
-      };
-    }
-  });
+  ipcMain.handle('search-memory', async (event, { query, user_id, limit, memory_type } = {}) => (
+    sendMemorySearchRequest({ query, user_id, limit, memory_type })
+  ));
 
   // Handle conversation list requests
-  ipcMain.handle('list-conversations', async (event, { userId, limit, recordKind } = {}) => {
-    try {
-      const result = await sendRequest('list_conversations', {
-        user_id: userId,
-        limit: limit,
-        record_kind: recordKind,
-      });
-
-      return result;
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message
-      };
-    }
-  });
+  registerRpcHandler('list-conversations', 'list_conversations', ({ userId, limit, recordKind } = {}) => ({
+    user_id: userId,
+    limit: limit,
+    record_kind: recordKind,
+  }));
 
   // Handle conversation detail requests
-  ipcMain.handle('get-conversation', async (event, { userId, conversationId, limit, recordKind } = {}) => {
-    try {
-      const result = await sendRequest('get_conversation', {
-        user_id: userId,
-        conversation_id: conversationId ?? null,
-        limit: limit,
-        record_kind: recordKind,
-      });
-
-      return result;
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message
-      };
-    }
-  });
+  registerRpcHandler('get-conversation', 'get_conversation', ({ userId, conversationId, limit, recordKind } = {}) => ({
+    user_id: userId,
+    conversation_id: conversationId ?? null,
+    limit: limit,
+    record_kind: recordKind,
+  }));
 
   // Handle memory storage requests
-  ipcMain.handle('store-memory', async (event, { userQuery, assistantResponse, memoryType, userId, sessionId }) => {
-    try {
-      const result = await sendRequest('store_memory', {
-        user_query: userQuery,
-        assistant_response: assistantResponse,
-        memory_type: memoryType,
-        user_id: userId,
-        session_id: sessionId,
-      });
-      
-      return result;
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message
-      };
-    }
-  });
+  registerRpcHandler('store-memory', 'store_memory', ({ userQuery, assistantResponse, memoryType, userId, sessionId } = {}) => ({
+    user_query: userQuery,
+    assistant_response: assistantResponse,
+    memory_type: memoryType,
+    user_id: userId,
+    session_id: sessionId,
+  }));
 
-  ipcMain.handle('store-transcript', async (event, { content, userId, sessionId, role, messageType, toolName, correlationId, messageIndex, modelId, modelProvider, screenshot, timestamp } = {}) => {
-    try {
-      const result = await sendRequest('store_transcript', {
-        content: content,
-        user_id: userId,
-        session_id: sessionId,
-        role: role,
-        message_type: messageType,
-        tool_name: toolName,
-        correlation_id: correlationId,
-        message_index: messageIndex,
-        model_id: modelId,
-        model_provider: modelProvider,
-        screenshot: screenshot,
-        timestamp: timestamp,
-      });
-
-      return result;
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message
-      };
-    }
-  });
+  registerRpcHandler('store-transcript', 'store_transcript', ({
+    content,
+    userId,
+    sessionId,
+    role,
+    messageType,
+    toolName,
+    correlationId,
+    messageIndex,
+    modelId,
+    modelProvider,
+    screenshot,
+    timestamp,
+  } = {}) => ({
+    content: content,
+    user_id: userId,
+    session_id: sessionId,
+    role: role,
+    message_type: messageType,
+    tool_name: toolName,
+    correlation_id: correlationId,
+    message_index: messageIndex,
+    model_id: modelId,
+    model_provider: modelProvider,
+    screenshot: screenshot,
+    timestamp: timestamp,
+  }));
 
   // Only log initialization in development
   if (process.env.NODE_ENV !== 'production') {
@@ -577,36 +583,14 @@ function initializeLocalBackendBridge(getWindows) {
  * Helper function to get system state (for use in ipc.cjs)
  */
 async function getSystemState(fields = null) {
-  try {
-    const result = await sendRequest('get_system_state', fields ? { fields } : {});
-    if (result.success === false) {
-      return null;
-    }
-    return result.data || result;
-  } catch (error) {
-    console.error(`[LocalBackend] System state request failed: ${error.message}`);
-    return null;
-  }
+  return getSystemStateFromBackend(fields);
 }
 
 /**
  * Helper function to search memory (for use in ipc.cjs)
  */
 async function searchMemory(query, user_id, limit, memory_type) {
-  try {
-    const result = await sendRequest('search_memory', {
-      query: query,
-      user_id: user_id,
-      limit: limit,
-      memory_type: memory_type,
-    });
-    return result;
-  } catch (error) {
-    return {
-      success: false,
-      error: error.message
-    };
-  }
+  return sendMemorySearchRequest({ query, user_id, limit, memory_type });
 }
 
 module.exports = {
