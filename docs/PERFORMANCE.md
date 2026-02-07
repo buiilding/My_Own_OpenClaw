@@ -19,6 +19,8 @@ read_when:
 - **Split contexts**: `AppConfigContext` vs `AppStatusContext` reduces re-renders.
 - **Zustand store**: Chat state is store-driven and efficiently subscribed.
 - **Lazy Settings Panel**: Settings UI is loaded lazily.
+- **Voice audio encoding reuse**: shared PCM conversion helpers in `frontend/src/renderer/features/voice/utils/audioEncoding.ts` remove duplicate per-hook logic.
+- **Gateway metadata prefix cache**: voice packet framing caches metadata prefixes by sample rate to avoid JSON/string encoding work on every audio chunk.
 
 ## Sidecar
 

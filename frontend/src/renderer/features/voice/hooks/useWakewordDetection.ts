@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { IpcBridge, SEND_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { float32ToPcm16, normalizeScriptProcessorChunkSize } from '../utils/audioEncoding';
 
 /**
  * Custom hook for wakeword detection using openWakeWord.
@@ -17,15 +18,6 @@ export function useWakewordDetection(
   onWakewordDetected?: (data: { model: string; confidence: number; score?: number }) => void,
   options: { sampleRate?: number; chunkSize?: number; threshold?: number } = {}
 ) {
-  // Validate and fix chunkSize - must be power of 2 for ScriptProcessor
-  const getValidChunkSize = (size: number) => {
-    const validSizes = [256, 512, 1024, 1280, 2048, 4096, 8192, 16384];
-    // Find closest valid size
-    return validSizes.reduce((prev, curr) =>
-      Math.abs(curr - size) < Math.abs(prev - size) ? curr : prev
-    );
-  };
-
   const {
     sampleRate = 16000,
     chunkSize: rawChunkSize = 1024,
@@ -33,7 +25,7 @@ export function useWakewordDetection(
   } = options;
 
   // Ensure chunkSize is a valid power of 2
-  const chunkSize = getValidChunkSize(rawChunkSize);
+  const chunkSize = normalizeScriptProcessorChunkSize(rawChunkSize);
   if (rawChunkSize !== chunkSize) {
     console.warn(`[Wakeword] chunkSize ${rawChunkSize} is not a power of 2, using ${chunkSize} instead`);
   }
@@ -55,25 +47,12 @@ export function useWakewordDetection(
     onWakewordDetectedRef.current = onWakewordDetected;
   }, [onWakewordDetected]);
 
-  // Convert Float32Array to Int16Array (16-bit PCM)
-  const float32ToInt16 = useCallback((float32Array: Float32Array) => {
-    const int16Array = new Int16Array(float32Array.length);
-    for (let i = 0; i < float32Array.length; i++) {
-      const s = Math.max(-1, Math.min(1, float32Array[i]));
-      int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-    }
-    return int16Array;
-  }, []);
-
-  let sentChunkCountRef = useRef(0);
   // Send audio chunk to main process via IPC
   const sendAudioChunk = useCallback((audioData: Int16Array) => {
     if (!isCapturingRef.current) {
       return;
     }
-    
-    sentChunkCountRef.current++;
-    
+
     // Convert Int16Array to ArrayBuffer for transmission
     const buffer = audioData.buffer;
     IpcBridge.send(SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK, buffer);
@@ -114,7 +93,6 @@ export function useWakewordDetection(
       const scriptNode = audioContext.createScriptProcessor(bufferSize, 1, 1);
       scriptNodeRef.current = scriptNode;
 
-      let processedChunkCount = 0;
       scriptNode.onaudioprocess = (event) => {
         if (!isCapturingRef.current) {
           return;
@@ -124,9 +102,7 @@ export function useWakewordDetection(
         const inputData = event.inputBuffer.getChannelData(0);
         
         // Convert Float32Array to Int16Array
-        const int16Data = float32ToInt16(inputData);
-        
-        processedChunkCount++;
+        const int16Data = float32ToPcm16(inputData);
         
         // Send to main process
         sendAudioChunk(int16Data);
@@ -142,7 +118,7 @@ export function useWakewordDetection(
       setError(`Audio capture failed: ${err.message}`);
       isCapturingRef.current = false;
     }
-  }, [sampleRate, chunkSize, float32ToInt16, sendAudioChunk]);
+  }, [sampleRate, chunkSize, sendAudioChunk]);
 
   // Stop audio capture
   const stopAudioCapture = useCallback(async () => {
