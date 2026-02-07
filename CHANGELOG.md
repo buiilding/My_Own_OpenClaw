@@ -23,6 +23,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- 219ffb6 fix(frontend-chat): use zustand useShallow selectors to prevent snapshot update loops
 - a4f58cd fix(frontend-dashboard): stabilize provider selection for duplicate model ids
 - 899cef1 fix(frontend-dashboard): normalize model provider and id comparisons to prevent config update loops
 - 71c4a9e fix(vision-internvl): retry model load without meta init on tensor-item failure
