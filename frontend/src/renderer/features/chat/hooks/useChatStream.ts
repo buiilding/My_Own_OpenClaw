@@ -4,7 +4,7 @@
  * Manages LLM thoughts, streaming chunks, and completion states.
  */
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
@@ -36,6 +36,11 @@ import {
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
 
+type TranscriptModelContext = {
+  modelId: string | null;
+  modelProvider: string | null;
+};
+
 function shouldIgnoreErrorEvent(event: ErrorEvent): boolean {
   const message = event.payload?.message;
   const content = event.payload?.content;
@@ -58,6 +63,17 @@ export function useChatStream(enableTranscript: boolean = true) {
   const { config } = useAppConfigContext();
   const modelId = config?.selected_model_id || null;
   const modelProvider = config?.model_provider || null;
+  const modelContextRef = useRef<TranscriptModelContext>({
+    modelId,
+    modelProvider,
+  });
+
+  useEffect(() => {
+    modelContextRef.current = {
+      modelId,
+      modelProvider,
+    };
+  }, [modelId, modelProvider]);
 
   const updateLastMessageBySender = useCallback((sender: ChatMessage['sender'], updates: Partial<ChatMessage>) => {
     const messages = useChatStore.getState().messages;
@@ -135,17 +151,18 @@ export function useChatStream(enableTranscript: boolean = true) {
     const correlationId = event.payload?.correlation_id || event.payload?.request_id;
 
     if (enableTranscript) {
+      const modelContext = modelContextRef.current;
       recordToolMessage(formattedText, {
         messageType: 'tool-call',
         toolName: event.payload?.tool_name,
         correlationId,
         sessionId: event.session_id,
         userId: event.user_id,
-        modelId,
-        modelProvider,
+        modelId: modelContext.modelId,
+        modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, modelId, modelProvider, setThinkingStatus]);
+  }, [addMessage, enableTranscript, setThinkingStatus]);
 
   const handleToolOutput = useCallback((event: ToolOutputEvent) => {
     setThinkingStatus(null);
@@ -175,6 +192,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       || (typeof event.payload?.metadata === 'object' ? event.payload?.metadata?.request_id : undefined);
 
     if (enableTranscript) {
+      const modelContext = modelContextRef.current;
       recordToolMessage(outputText, {
         messageType: 'tool-output',
         toolName: event.payload?.tool_name,
@@ -182,11 +200,11 @@ export function useChatStream(enableTranscript: boolean = true) {
         sessionId: event.session_id,
         userId: event.user_id,
         screenshotRef,
-        modelId,
-        modelProvider,
+        modelId: modelContext.modelId,
+        modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, modelId, modelProvider, setThinkingStatus]);
+  }, [addMessage, enableTranscript, setThinkingStatus]);
 
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
     setThinkingStatus(null);
@@ -205,17 +223,18 @@ export function useChatStream(enableTranscript: boolean = true) {
     addMessage(newMessage);
 
     if (enableTranscript) {
+      const modelContext = modelContextRef.current;
       recordToolMessage(formattedText, {
         messageType: 'tool-call',
         toolName: 'tool-bundle',
         correlationId: event.payload?.bundle_id,
         sessionId: event.session_id,
         userId: event.user_id,
-        modelId,
-        modelProvider,
+        modelId: modelContext.modelId,
+        modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, modelId, modelProvider, setThinkingStatus]);
+  }, [addMessage, enableTranscript, setThinkingStatus]);
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
     updateLastMessageBySender('user', {
@@ -267,16 +286,17 @@ export function useChatStream(enableTranscript: boolean = true) {
     addMessage(newMessage);
 
     if (enableTranscript) {
+      const modelContext = modelContextRef.current;
       recordUserMessage(text, {
         timestamp: event.payload?.timestamp,
         sessionId: event.payload?.session_id ?? event.session_id ?? null,
         userId: event.payload?.user_id ?? event.user_id ?? null,
         screenshotRef,
-        modelId,
-        modelProvider,
+        modelId: modelContext.modelId,
+        modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, modelId, modelProvider]);
+  }, [addMessage, enableTranscript]);
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     setIsSending(false);
@@ -289,16 +309,17 @@ export function useChatStream(enableTranscript: boolean = true) {
     if (lastMessage && lastMessage.sender === 'assistant') {
       updateMessage(lastMessage.id, { isComplete: true });
       if (lastMessage.text && enableTranscript) {
+        const modelContext = modelContextRef.current;
         recordAssistantMessage(lastMessage.text, {
           messageType: lastMessage.type || 'llm-text',
           sessionId: event.session_id,
           userId: event.user_id,
-          modelId,
-          modelProvider,
+          modelId: modelContext.modelId,
+          modelProvider: modelContext.modelProvider,
         });
       }
     }
-  }, [enableTranscript, modelId, modelProvider, setIsSending, setThinkingStatus, updateMessage]);
+  }, [enableTranscript, setIsSending, setThinkingStatus, updateMessage]);
 
   const handleTokenCount = useCallback((event: TokenCountEvent) => {
     setTokenCounts(event.payload ?? null);
@@ -317,15 +338,16 @@ export function useChatStream(enableTranscript: boolean = true) {
     addMessage(newMessage);
 
     if (enableTranscript) {
+      const modelContext = modelContextRef.current;
       recordAssistantMessage(errorText, {
         messageType: 'error',
         sessionId: event.session_id,
         userId: event.user_id,
-        modelId,
-        modelProvider,
+        modelId: modelContext.modelId,
+        modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, modelId, modelProvider, setIsSending, setThinkingStatus]);
+  }, [addMessage, enableTranscript, setIsSending, setThinkingStatus]);
 
   const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => ({
     'llm-thought': event => handleLlmThought(event as LlmThoughtEvent),
