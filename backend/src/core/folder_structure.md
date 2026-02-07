@@ -268,3 +268,11 @@ WebSocket Response
 - InternVL prediction logging now routes through a bounded preview + hash helper
   in `backend/src/services/vision/providers/internvl.py` to avoid raw
   instruction leakage in chat-question log lines.
+- Vision grounding prompt construction is now shared via
+  `build_grounding_prompt()` in
+  `backend/src/services/vision/providers/internvl.py`, keeping InternVL and
+  UI-Venus prompt envelopes aligned.
+- InternVL synchronous prediction flow is decomposed into focused helpers
+  (`_resolve_model_dtype`, `_run_chat_generation`, `_run_generate_fallback`,
+  `_log_failure_context`) to reduce method complexity while preserving
+  inference fallback behavior.

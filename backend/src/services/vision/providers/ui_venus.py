@@ -23,7 +23,10 @@ from backend.src.services.vision.providers.base import (
     load_model_with_fallbacks,
     resolve_model_device,
 )
-from backend.src.services.vision.providers.internvl import InternVLModel
+from backend.src.services.vision.providers.internvl import (
+    InternVLModel,
+    build_grounding_prompt,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +127,14 @@ class VenusVisionModel(InternVLModel):
             .eval()
         )
 
+    def _decode_generated_text(self, output_ids, inputs) -> str:
+        """Decode only generated continuation tokens when possible."""
+        input_ids = inputs.get("input_ids") if hasattr(inputs, "get") else None
+        if input_ids is not None and output_ids.shape[1] > input_ids.shape[1]:
+            output_ids = output_ids[:, input_ids.shape[1] :]
+        decoded = self.processor.batch_decode(output_ids, skip_special_tokens=True)
+        return decoded[0] if decoded else ""
+
     async def predict_click_coordinates(
         self, image_b64: str, instruction: str
     ) -> Optional[Tuple[int, int]]:
@@ -153,10 +164,7 @@ class VenusVisionModel(InternVLModel):
             image = Image.open(BytesIO(img_bytes))
             width, height = image.size
 
-            grounding_prompt = (
-                f"Please provide the bounding box coordinate of the UI element this user instruction describes: <ref>{instruction}</ref>. "
-                f"Answer in the format of [[x1, y1, x2, y2]]"
-            )
+            grounding_prompt = build_grounding_prompt(instruction)
 
             messages = [
                 {
@@ -189,9 +197,7 @@ class VenusVisionModel(InternVLModel):
                     use_cache=True,
                 )
 
-            output_text = self.processor.batch_decode(
-                output_ids, skip_special_tokens=True
-            )[0]
+            output_text = self._decode_generated_text(output_ids, inputs)
 
             if not output_text:
                 logger.error("Empty output from Venus model")
