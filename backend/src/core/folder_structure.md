@@ -256,3 +256,6 @@ WebSocket Response
 - Vision providers now share a defensive model-device resolver in
   `backend/src/services/vision/providers/base.py` so sharded/accelerate-wrapped
   models without `.device` attributes can still resolve execution device safely.
+- InternVL prediction logging now routes through a bounded preview + hash helper
+  in `backend/src/services/vision/providers/internvl.py` to avoid raw
+  instruction leakage in chat-question log lines.
