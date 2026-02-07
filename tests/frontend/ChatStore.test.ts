@@ -60,6 +60,17 @@ describe('chatStore', () => {
     );
   });
 
+  test('updateMessage is a no-op when id does not exist', () => {
+    const before = useChatStore.getState().messages;
+
+    useChatStore.getState().updateMessage('missing-id', {
+      text: 'no-op',
+    });
+
+    const after = useChatStore.getState().messages;
+    expect(after).toBe(before);
+  });
+
   test('clearMessages resets to a fresh assistant greeting message', () => {
     useChatStore.getState().addMessage({
       id: 'user-1',
@@ -83,4 +94,3 @@ describe('chatStore', () => {
     expect(secondReset[0].id).not.toEqual(firstReset[0].id);
   });
 });
-

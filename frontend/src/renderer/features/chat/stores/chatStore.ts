@@ -96,11 +96,16 @@ export const useChatStore = create<ChatState>((set) => ({
     })),
 
   updateMessage: (id, updates) =>
-    set((state) => ({
-      messages: state.messages.map((msg) =>
-        msg.id === id ? { ...msg, ...updates } : msg
-      ),
-    })),
+    set((state) => {
+      const index = state.messages.findIndex((message) => message.id === id);
+      if (index === -1) {
+        return state;
+      }
+
+      const nextMessages = [...state.messages];
+      nextMessages[index] = { ...nextMessages[index], ...updates };
+      return { messages: nextMessages };
+    }),
 
   setMessages: (messages) => set({ messages }),
 
