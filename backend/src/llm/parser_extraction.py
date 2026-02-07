@@ -204,6 +204,11 @@ class JsonToolCallExtractor:
     ) -> str:
         if not positions:
             return text
+        if len(positions) == 1:
+            start, end = positions[0]
+            if not (0 <= start < end <= len(text)):
+                return text
+            return self._normalize_whitespace(text[:start] + text[end:])
 
         sorted_positions = sorted(positions, key=lambda x: x[0])
 
