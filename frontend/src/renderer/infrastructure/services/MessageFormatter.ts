@@ -79,7 +79,7 @@ export function formatToolOutputMessage(
         content = result.data.result;
       } else {
         // Exclude screenshot from text content
-        const { screenshot, system_state, ...textData } = result.data;
+        const { screenshot, image_data, screenshot_ref, screenshot_content_type, system_state, ...textData } = result.data;
         if (Object.keys(textData).length > 0) {
           content = JSON.stringify(textData, null, 2);
         }
@@ -97,7 +97,7 @@ export function formatToolOutputMessage(
   parts.push(systemContextXml);
   
   // Add screenshot indicator if screenshot is present
-  if (result.data && typeof result.data === 'object' && result.data.screenshot) {
+  if (result.data && typeof result.data === 'object' && (result.data.screenshot || result.data.image_data || result.data.screenshot_ref)) {
     parts.push(`State of the screen after ${toolName} was executed:`);
   }
   
@@ -155,7 +155,7 @@ export function formatBundledToolOutputMessage(
           content = toolResult.data.result;
         } else {
           // Exclude screenshot from text content
-          const { screenshot: _, system_state: __, ...textData } = toolResult.data;
+          const { screenshot: _, image_data: __, screenshot_ref: ___, screenshot_content_type: ____, system_state: _____, ...textData } = toolResult.data;
           if (Object.keys(textData).length > 0) {
             content = JSON.stringify(textData, null, 2);
           }

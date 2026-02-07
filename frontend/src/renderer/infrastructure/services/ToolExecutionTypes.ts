@@ -48,6 +48,9 @@ export interface ToolExecutionResult {
   correlationId: string;
   formattedMessage: string;
   screenshot?: string | null;
+  screenshotRef?: string | null;
+  screenshotUrl?: string | null;
+  screenshotContentType?: string | null;
   systemState?: SystemState | null;
 }
 
@@ -60,6 +63,9 @@ export interface BundleExecutionResult {
   totalTime: number;
   formattedMessage: string;
   screenshot?: string | null;
+  screenshotRef?: string | null;
+  screenshotUrl?: string | null;
+  screenshotContentType?: string | null;
   systemState?: SystemState | null;
 }
 
@@ -82,4 +88,3 @@ export interface ToolExecutionCallbacks {
    */
   sendToBackend?: (payload: any) => void;
 }
-

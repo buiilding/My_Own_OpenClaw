@@ -22,6 +22,7 @@ import {
   resolveSystemState,
 } from './ToolExecutionCapture';
 import { invokeTool } from './ToolExecutionInvoker';
+import { uploadArtifactBase64 } from './ArtifactUploader';
 import {
   logToolStart,
   logToolTiming,
@@ -78,7 +79,17 @@ export class ToolExecutionService {
         options.skipAutoCapture,
         result
       );
-      const { screenshot, systemState, waitDelay, captureTime, isComputerTool } = capture;
+      const { screenshot, screenshotContentType, systemState, waitDelay, captureTime, isComputerTool } = capture;
+
+      const uploaded = screenshot
+        ? await uploadArtifactBase64(
+            screenshot,
+            screenshotContentType || 'image/jpeg',
+            `${toolName}-screenshot.${(screenshotContentType || '').includes('png') ? 'png' : 'jpg'}`
+          )
+        : null;
+      const screenshotRef = uploaded?.artifactId || null;
+      const screenshotUrl = uploaded?.url || null;
 
       // Format complete message with system context XML
       const finalSystemState = resolveSystemState(systemState, result.data);
@@ -94,12 +105,15 @@ export class ToolExecutionService {
         options.correlationId,
         formattedMessage,
         screenshot,
+        screenshotRef,
+        screenshotUrl,
+        screenshotContentType,
         systemState
       );
       this._emitToolResult(executionResult);
 
       // Send result to backend
-      this._sendToolResult(options.correlationId, result, formattedMessage);
+      this._sendToolResult(options.correlationId, result, formattedMessage, screenshotRef);
 
       // Calculate total execution time AFTER sending to backend (execution is complete when backend receives result)
       // This includes: tool IPC + wait delay + screenshot capture + formatting + backend send
@@ -138,6 +152,9 @@ export class ToolExecutionService {
     correlationId: string,
     formattedMessage: string,
     screenshot: string | null,
+    screenshotRef: string | null,
+    screenshotUrl: string | null,
+    screenshotContentType: string | null,
     systemState: SystemState | null
   ): ToolExecutionResult {
     return {
@@ -147,6 +164,9 @@ export class ToolExecutionService {
       correlationId,
       formattedMessage,
       screenshot,
+      screenshotRef,
+      screenshotUrl,
+      screenshotContentType,
       systemState
     };
   }
@@ -192,7 +212,8 @@ export class ToolExecutionService {
   private _sendToolResult(
     correlationId: string | undefined,
     result: ToolResult,
-    formattedMessage: string
+    formattedMessage: string,
+    screenshotRef?: string | null
   ): void {
     if (!this.callbacks.sendToBackend) {
       return;
@@ -203,6 +224,15 @@ export class ToolExecutionService {
       llm_content: formattedMessage,
       is_preformatted: true,
     };
+    if (payloadData.screenshot) {
+      delete payloadData.screenshot;
+    }
+    if (payloadData.image_data) {
+      delete payloadData.image_data;
+    }
+    if (screenshotRef) {
+      payloadData.screenshot_ref = screenshotRef;
+    }
 
     this.callbacks.sendToBackend({
       type: 'tool-result',
@@ -220,6 +250,7 @@ export class ToolExecutionService {
     status: string,
     stepResults: Array<{ tool: string; status: string; output: string }>,
     screenshot: string | null,
+    screenshotRef: string | null,
     systemState: SystemState | null,
     error: string | null
   ): void {
@@ -233,7 +264,8 @@ export class ToolExecutionService {
         bundle_id: bundleId,
         status,
         step_results: stepResults,
-        screenshot: screenshot || null,
+        screenshot: null,
+        screenshot_ref: screenshotRef || null,
         system_state: systemState || null,
         error
       }
@@ -258,6 +290,7 @@ export class ToolExecutionService {
         stepResults: collectedStepResults,
         systemState,
         screenshot,
+        screenshotContentType,
         totalWaitDelay,
         totalCaptureTime,
         toolExecutionTimes
@@ -285,6 +318,16 @@ export class ToolExecutionService {
       const formattingTime = (performance.now() - formattingStartTime) / 1000;
       console.log(`[Timing] Message formatting took ${formattingTime.toFixed(3)}s`);
 
+      const bundledUpload = screenshot
+        ? await uploadArtifactBase64(
+            screenshot,
+            screenshotContentType || 'image/jpeg',
+            `bundle-${bundleId}.${(screenshotContentType || '').includes('png') ? 'png' : 'jpg'}`
+          )
+        : null;
+      const bundleScreenshotRef = bundledUpload?.artifactId || null;
+      const bundleScreenshotUrl = bundledUpload?.url || null;
+
       // Prepare bundle result for UI callback (totalTime will be set after backend send)
       const bundleResult: BundleExecutionResult = {
         correlationId: bundleId,
@@ -300,6 +343,9 @@ export class ToolExecutionService {
         totalTime: 0, // Will be set after backend send
         formattedMessage: combinedFormattedMessage,
         screenshot,
+        screenshotRef: bundleScreenshotRef,
+        screenshotUrl: bundleScreenshotUrl,
+        screenshotContentType: bundledUpload?.contentType || null,
         systemState
       };
 
@@ -322,6 +368,7 @@ export class ToolExecutionService {
         bundleStatus,
         stepResults,
         screenshot,
+        bundleScreenshotRef,
         systemState,
         errorMessage
       );
@@ -354,6 +401,7 @@ export class ToolExecutionService {
         bundleId,
         'failure',
         stepResults,
+        null,
         null,
         null,
         errorMessage
