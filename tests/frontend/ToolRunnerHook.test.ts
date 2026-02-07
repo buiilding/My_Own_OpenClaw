@@ -8,14 +8,14 @@ import { recordToolMessage } from '../../frontend/src/renderer/infrastructure/tr
 const mockExecuteTool = jest.fn().mockResolvedValue(undefined);
 const mockExecuteToolBundle = jest.fn().mockResolvedValue(undefined);
 let mockCapturedServiceCallbacks: any = null;
+let mockConfig = {
+  selected_model_id: 'test-model',
+  model_provider: 'test-provider',
+};
+const mockUseAppConfigContext = jest.fn(() => ({ config: mockConfig }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
-  useAppConfigContext: () => ({
-    config: {
-      selected_model_id: 'test-model',
-      model_provider: 'test-provider',
-    },
-  }),
+  useAppConfigContext: () => mockUseAppConfigContext(),
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
@@ -40,6 +40,11 @@ describe('useToolRunner', () => {
     jest.clearAllMocks();
     mockCapturedServiceCallbacks = null;
     backendHandler = null;
+    mockConfig = {
+      selected_model_id: 'test-model',
+      model_provider: 'test-provider',
+    };
+    mockUseAppConfigContext.mockReturnValue({ config: mockConfig });
     mockExecuteTool.mockResolvedValue(undefined);
     mockExecuteToolBundle.mockResolvedValue(undefined);
     removeListener = jest.fn();
@@ -198,5 +203,46 @@ describe('useToolRunner', () => {
 
     expect(mockExecuteTool).not.toHaveBeenCalled();
     expect(mockExecuteToolBundle).not.toHaveBeenCalled();
+  });
+
+  test('uses latest model metadata without recreating the tool execution service', () => {
+    const ToolExecutionServiceMock = jest.requireMock(
+      '../../frontend/src/renderer/infrastructure/services/ToolExecutionService',
+    ).ToolExecutionService as jest.Mock;
+
+    const { rerender } = renderHook(
+      ({ enabled }) => useToolRunner(enabled),
+      { initialProps: { enabled: true } },
+    );
+
+    expect(ToolExecutionServiceMock).toHaveBeenCalledTimes(1);
+
+    mockConfig = {
+      selected_model_id: 'updated-model',
+      model_provider: 'updated-provider',
+    };
+    mockUseAppConfigContext.mockReturnValue({ config: mockConfig });
+
+    rerender({ enabled: true });
+
+    expect(ToolExecutionServiceMock).toHaveBeenCalledTimes(1);
+
+    mockCapturedServiceCallbacks.onToolResult({
+      toolName: 'read_file',
+      result: { success: true, data: { metadata: {} }, error: null },
+      executionTime: 0.1,
+      correlationId: 'corr-config',
+      formattedMessage: 'config-aware output',
+      screenshotRef: null,
+      screenshotUrl: null,
+    });
+
+    expect(recordToolMessage).toHaveBeenCalledWith(
+      'config-aware output',
+      expect.objectContaining({
+        modelId: 'updated-model',
+        modelProvider: 'updated-provider',
+      }),
+    );
   });
 });
