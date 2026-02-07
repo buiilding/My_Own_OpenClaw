@@ -62,7 +62,8 @@ frontend/src/renderer/
 │   │       ├── messageInput.js          # messageInput - Input normalization helper before send dispatch
 │   │       ├── messageScreenshots.js    # messageScreenshots - Screenshot presence predicates for message rendering
 │   │       ├── messageTransparency.js   # messageTransparency - Descriptor builder for transparency sections
-│   │       └── tokenCounts.js           # tokenCounts - Table-driven token count formatting/mapping helpers
+│   │       ├── tokenCounts.js           # tokenCounts - Table-driven token count formatting/mapping helpers
+│   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
 │   │
 │   ├── dashboard/                        # Dashboard feature module
 │   │   └── components/                  # Dashboard UI components
@@ -122,7 +123,11 @@ frontend/src/renderer/
 │   │   └── ToolExecutionTypes.ts        # ToolExecutionTypes - Type definitions and constants (COMPUTER_USE_TOOLS, etc.)
 │   │
 │   └── transcript/                       # Transcript persistence helpers
-│       └── TranscriptWriter.ts          # TranscriptWriter - Session-aware transcript write queue + IPC storage calls
+│       ├── pendingUserQueue.ts          # pendingUserQueue - Queue container for user messages awaiting session info
+│       ├── sessionInfoState.ts          # sessionInfoState - Lazy-loaded session resolver/update state machine
+│       ├── sessionInfoStorage.ts        # sessionInfoStorage - sessionStorage read/write + update event emitter
+│       ├── TranscriptWriter.ts          # TranscriptWriter - Session-aware transcript write queue + IPC storage calls
+│       └── types.ts                     # types - Shared transcript session/entry/pending message types
 │
 ├── styles/                                # CSS stylesheets
 │   ├── accessibility.css                # Accessibility utilities (visually-hidden class)
