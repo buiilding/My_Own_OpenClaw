@@ -1,10 +1,34 @@
+declare global {
+  interface Window {
+    __WINDIE_VERBOSE_TOOL_LOGS__?: boolean;
+  }
+}
+
+function shouldLogInfo(): boolean {
+  if (typeof window !== 'undefined' && typeof window.__WINDIE_VERBOSE_TOOL_LOGS__ === 'boolean') {
+    return window.__WINDIE_VERBOSE_TOOL_LOGS__;
+  }
+  return !(
+    typeof process !== 'undefined' &&
+    process.env &&
+    process.env.NODE_ENV === 'test'
+  );
+}
+
+function logInfo(message?: any, ...optionalParams: any[]): void {
+  if (!shouldLogInfo()) {
+    return;
+  }
+  console.log(message, ...optionalParams);
+}
+
 export function shortCorrelationId(correlationId?: string): string {
   return correlationId ? correlationId.substring(0, 15) : 'unknown';
 }
 
 export function logToolStart(toolName: string, correlationId?: string): string {
   const shortId = shortCorrelationId(correlationId);
-  console.log(`[Timing] Tool execution started: ${toolName} (request_id=${shortId})`);
+  logInfo(`[Timing] Tool execution started: ${toolName} (request_id=${shortId})`);
   return shortId;
 }
 
@@ -29,13 +53,13 @@ export function logToolTiming(params: {
     skipAutoCapture
   } = params;
   if (isComputerTool && !skipAutoCapture) {
-    console.log(
+    logInfo(
       `[Timing] Tool execution completed: ${toolName} took ${totalExecutionTime.toFixed(3)}s total ` +
       `(IPC: ${toolInvokeTime.toFixed(3)}s, wait: ${waitDelay.toFixed(3)}s, capture: ${captureTime.toFixed(3)}s) ` +
       `(request_id=${shortId})`
     );
   } else {
-    console.log(
+    logInfo(
       `[Timing] Tool execution completed: ${toolName} took ${totalExecutionTime.toFixed(3)}s ` +
       `(IPC: ${toolInvokeTime.toFixed(3)}s) (request_id=${shortId})`
     );
@@ -43,13 +67,25 @@ export function logToolTiming(params: {
 }
 
 export function logBundleStart(bundleSize: number, bundleId: string): void {
-  console.log(`[Timing] Bundle execution started: ${bundleSize} tools (bundle_id=${bundleId})`);
-  console.log('[ToolExecutionService] Executing atomic bundle of size:', bundleSize);
-  console.log('[ToolExecutionService] Bundle ID:', bundleId);
+  logInfo(`[Timing] Bundle execution started: ${bundleSize} tools (bundle_id=${bundleId})`);
+  logInfo('[ToolExecutionService] Executing atomic bundle of size:', bundleSize);
+  logInfo('[ToolExecutionService] Bundle ID:', bundleId);
+}
+
+export function logBundledToolStart(step: number, totalSteps: number, toolName: string): void {
+  logInfo(`[ToolExecutionService] Executing bundled tool ${step}/${totalSteps}: ${toolName}`);
 }
 
 export function logBundledToolTiming(toolName: string, toolExecutionTime: number): void {
-  console.log(`[Timing] Bundled tool IPC: ${toolName} took ${toolExecutionTime.toFixed(3)}s`);
+  logInfo(`[Timing] Bundled tool IPC: ${toolName} took ${toolExecutionTime.toFixed(3)}s`);
+}
+
+export function logBundleFormatting(formattingTime: number): void {
+  logInfo(`[Timing] Message formatting took ${formattingTime.toFixed(3)}s`);
+}
+
+export function logBundleDispatch(): void {
+  logInfo('[ToolExecutionService] Sending atomic tool-bundle-result');
 }
 
 export function logBundleTiming(params: {
@@ -71,13 +107,13 @@ export function logBundleTiming(params: {
     captured
   } = params;
   if (captured) {
-    console.log(
+    logInfo(
       `[Timing] Bundle execution completed: ${stepCount} steps took ${bundleExecutionTime.toFixed(3)}s total ` +
       `(tools: ${totalToolTime.toFixed(3)}s, wait: ${totalWaitDelay.toFixed(3)}s, capture: ${totalCaptureTime.toFixed(3)}s) ` +
       `(bundle_id=${bundleId})`
     );
   } else {
-    console.log(
+    logInfo(
       `[Timing] Bundle execution completed: ${stepCount} steps took ${bundleExecutionTime.toFixed(3)}s ` +
       `(tools: ${totalToolTime.toFixed(3)}s) (bundle_id=${bundleId})`
     );

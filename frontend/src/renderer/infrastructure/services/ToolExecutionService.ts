@@ -27,6 +27,8 @@ import {
   logToolStart,
   logToolTiming,
   logBundleStart,
+  logBundleFormatting,
+  logBundleDispatch,
   logBundleTiming,
   logBundleFailure,
 } from './ToolExecutionLogger';
@@ -316,7 +318,7 @@ export class ToolExecutionService {
         screenshot
       );
       const formattingTime = (performance.now() - formattingStartTime) / 1000;
-      console.log(`[Timing] Message formatting took ${formattingTime.toFixed(3)}s`);
+      logBundleFormatting(formattingTime);
 
       const bundledUpload = screenshot
         ? await uploadArtifactBase64(
@@ -355,7 +357,7 @@ export class ToolExecutionService {
       }
 
       // Send atomic tool-bundle-result to backend
-      console.log('[ToolExecutionService] Sending atomic tool-bundle-result');
+      logBundleDispatch();
 
       // Get error message from failed step if any
       const failedStep = stepResults.find(step => step.status === 'error');
