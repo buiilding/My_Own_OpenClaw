@@ -69,3 +69,14 @@ def test_initialize_raises_for_missing_file(tmp_path):
     manager = PromptManager()
     with pytest.raises(RuntimeError, match="System prompt file not found"):
         manager.initialize(tmp_path / "missing.txt")
+
+
+def test_initialize_accepts_string_path(tmp_path, monkeypatch):
+    prompt_file = tmp_path / "system_prompt.txt"
+    prompt_file.write_text("os={os}", encoding="utf-8")
+    monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "Linux")
+
+    manager = PromptManager()
+    manager.initialize(str(prompt_file))
+
+    assert manager.system_prompt == "os=Linux"
