@@ -1,5 +1,6 @@
 from functools import lru_cache
 import logging
+import math
 from typing import Any, Dict, Optional, Tuple, Type
 
 from backend.src.core.config import AppConfig
@@ -43,6 +44,8 @@ def _safe_timeout_conversion(timeout_value: Any, default: float = 60.0) -> float
     """
     try:
         timeout = float(timeout_value)
+        if not math.isfinite(timeout):
+            return default
         # Enforce minimum safety floor (1 second) and maximum reasonable limit (1 hour)
         if timeout < 1.0:
             return default
