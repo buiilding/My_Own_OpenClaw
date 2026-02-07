@@ -13,6 +13,36 @@ type DisplayLike = {
   bounds?: DisplayBounds | null;
 };
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function parseDisplayBounds(raw: string): DisplayBounds | null {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') {
+      return null;
+    }
+
+    const { x, y, width, height } = parsed as DisplayBounds;
+    if (
+      !isFiniteNumber(x) ||
+      !isFiniteNumber(y) ||
+      !isFiniteNumber(width) ||
+      !isFiniteNumber(height)
+    ) {
+      return null;
+    }
+    if (width <= 0 || height <= 0) {
+      return null;
+    }
+    return { x, y, width, height };
+  } catch (error) {
+    console.warn('[DisplaySelection] Failed to parse stored bounds:', error);
+    return null;
+  }
+}
+
 function readLocalStorage(key: string): string {
   try {
     return localStorage.getItem(key) ?? '';
@@ -43,25 +73,7 @@ export function getStoredDisplayBounds(): DisplayBounds | null {
   if (!raw) {
     return null;
   }
-  try {
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') {
-      return null;
-    }
-    const { x, y, width, height } = parsed as DisplayBounds;
-    if (
-      typeof x !== 'number' ||
-      typeof y !== 'number' ||
-      typeof width !== 'number' ||
-      typeof height !== 'number'
-    ) {
-      return null;
-    }
-    return { x, y, width, height };
-  } catch (error) {
-    console.warn('[DisplaySelection] Failed to parse stored bounds:', error);
-    return null;
-  }
+  return parseDisplayBounds(raw);
 }
 
 export function persistDisplaySelection(display: DisplayLike | null): void {
