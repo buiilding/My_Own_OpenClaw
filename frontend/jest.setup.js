@@ -11,6 +11,8 @@ if (!global.crypto.randomUUID) {
 
 const suppressedPrefixes = [
   '[ConfigStorage]',
+  '[Config]',
+  '[Settings Update]',
   '[ToolExecutionService]',
   '[Timing]',
 ];
