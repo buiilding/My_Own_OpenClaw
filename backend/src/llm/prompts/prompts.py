@@ -85,6 +85,11 @@ class PromptManager:
                 f"CRITICAL: Cannot read system prompt file: {prompt_file_path}. "
                 f"Permission denied: {e}"
             )
+        except OSError as e:
+            raise RuntimeError(
+                f"CRITICAL: Cannot read system prompt file: {prompt_file_path}. "
+                f"OS error: {e}"
+            )
         except UnicodeDecodeError as e:
             raise RuntimeError(
                 f"CRITICAL: System prompt file is not valid UTF-8: {prompt_file_path}. "
