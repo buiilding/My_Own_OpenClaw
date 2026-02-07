@@ -186,6 +186,27 @@ class TestExtractThinkingContent:
         
         assert result == "Nested text"
 
+    def test_extract_from_dict_content_field(self, provider):
+        delta = {"reasoning_content": {"content": "Nested content"}}
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "Nested content"
+
+    def test_extract_from_dict_non_string_nested_value_returns_none(self, provider):
+        delta = {"reasoning_content": {"text": 123}}
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result is None
+
+    def test_extract_plain_string_without_tags(self, provider):
+        delta = {"thinking": "plain thinking text"}
+
+        result = provider._extract_thinking_content(delta)
+
+        assert result == "plain thinking text"
+
     def test_extract_no_content_returns_none(self, provider):
         delta = MagicMock()
         delta.reasoning_content = None
