@@ -3,6 +3,10 @@ Tests for browser tool implementation.
 """
 
 import pytest
+
+# Skip all tests if playwright is not installed
+pytest.importorskip("playwright")
+
 from unittest import mock
 
 from tools.browser.browser_tool import execute_browser_control

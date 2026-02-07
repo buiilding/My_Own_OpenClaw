@@ -32,33 +32,45 @@ playwright install chromium
 
 Connect to your existing Chrome browser for full access to your logged-in sessions.
 
-### Setup
+### Auto-Launch (Recommended)
 
-1. **Start Chrome with debugging enabled:**
+**No manual setup required!** When you say:
+```
+Connect to my browser and go to Amazon
+```
 
-   **Linux:**
-   ```bash
-   google-chrome --remote-debugging-port=9222
-   ```
+The agent will **automatically**:
+1. Check if Chrome is running with CDP enabled → connect to it
+2. If Chrome is running without CDP → restart it with CDP (restores your tabs)
+3. If Chrome is not running → launch it with CDP
 
-   **macOS:**
-   ```bash
-   /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
-   ```
+### Manual Setup (Optional)
 
-   **Windows:**
-   ```cmd
-   "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
-   ```
+If you prefer to start Chrome manually:
 
-2. **Connect via the tool:**
-   ```json
-   {
-     "action": "connect",
-     "mode": "user_chrome",
-     "cdp_url": "http://127.0.0.1:9222"
-   }
-   ```
+**Linux:**
+```bash
+google-chrome --remote-debugging-port=9222
+```
+
+**macOS:**
+```bash
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
+```
+
+**Windows:**
+```cmd
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
+```
+
+Then connect via the tool:
+```json
+{
+  "action": "connect",
+  "mode": "user_chrome",
+  "cdp_url": "http://127.0.0.1:9222"
+}
+```
 
 ### Security Note
 
@@ -368,13 +380,28 @@ Close browser connection.
 **Error:** `Cannot connect to Chrome at http://127.0.0.1:9222`
 
 **Solutions:**
-1. Make sure Chrome is running with `--remote-debugging-port=9222`
-2. Check no other process is using port 9222:
+
+1. **Auto-launch** (recommended): The agent automatically launches Chrome with CDP. Simply say "Connect to my browser" and it handles the rest, including restarting Chrome with the debugging flag if needed.
+
+2. **Manual launch** (if auto-launch fails):
+   ```bash
+   # macOS
+   /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
+
+   # Linux
+   google-chrome --remote-debugging-port=9222
+
+   # Windows
+   "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
+   ```
+
+3. Check no other process is using port 9222:
    ```bash
    lsof -i :9222  # macOS/Linux
    netstat -ano | findstr :9222  # Windows
    ```
-3. Try a different port:
+
+4. Try a different port:
    ```bash
    google-chrome --remote-debugging-port=9223
    ```

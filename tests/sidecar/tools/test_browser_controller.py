@@ -3,6 +3,10 @@ Tests for browser controller module.
 """
 
 import pytest
+
+# Skip all tests if playwright is not installed
+pytest.importorskip("playwright")
+
 from unittest import mock
 from pathlib import Path
 

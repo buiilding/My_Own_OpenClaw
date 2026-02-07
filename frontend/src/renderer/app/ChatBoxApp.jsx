@@ -10,7 +10,7 @@ function ChatBoxApp() {
   return (
     <ErrorBoundary>
       <AppProvider>
-        <ChatProvider enableToolRunner={false}>
+        <ChatProvider enableToolRunner={false} enableTranscript={false}>
           <ChatBox />
         </ChatProvider>
       </AppProvider>

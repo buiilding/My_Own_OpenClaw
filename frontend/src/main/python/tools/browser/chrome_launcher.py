@@ -290,6 +290,8 @@ async def kill_existing_chrome(graceful: bool = True) -> bool:
     system = platform.system()
     
     try:
+        if find_chrome_process() is None:
+            return False
         if system == "Windows":
             if graceful:
                 subprocess.run(["taskkill", "/IM", "chrome.exe"], capture_output=True)

@@ -94,7 +94,7 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             result = _build_result_from_session(session, timed_out=False)
         except asyncio.TimeoutError:
             await _terminate_session(session)
-            await wait_task
+            # wait_task was cancelled by wait_for; don't await it
             result = _build_result_from_session(
                 session,
                 timed_out=True,
@@ -155,6 +155,7 @@ async def _start_shell_session(
         started_at=time.time(),
         pty_master=master_fd,
         uses_pty=use_pty,
+        loop=asyncio.get_running_loop(),
     )
     add_session(session)
 
@@ -166,6 +167,8 @@ async def _start_shell_session(
         read_tasks.append(asyncio.create_task(_read_stream(session, process.stderr, "stderr")))
 
     wait_task = asyncio.create_task(_wait_for_exit(session, read_tasks))
+    session.read_tasks = read_tasks
+    session.wait_task = wait_task
     return session, wait_task
 
 
@@ -205,7 +208,16 @@ async def _wait_for_exit(
         except OSError:
             pass
         session.pty_master = None
-    await asyncio.gather(*read_tasks, return_exceptions=True)
+    if read_tasks:
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(*read_tasks, return_exceptions=True),
+                timeout=1.0,
+            )
+        except asyncio.TimeoutError:
+            for task in read_tasks:
+                task.cancel()
+            await asyncio.gather(*read_tasks, return_exceptions=True)
     status = "completed" if exit_code == 0 else "failed"
     mark_exited(session, exit_code, status)
 

@@ -7,7 +7,15 @@ from unittest import mock
 
 from tools.registry import ToolRegistry, TOOL_SCHEMAS
 
+# Skip all tests if playwright is not installed
+try:
+    from tools.browser.browser_tool import execute_browser_control
+    PLAYWRIGHT_AVAILABLE = True
+except ImportError:
+    PLAYWRIGHT_AVAILABLE = False
 
+
+@pytest.mark.skipif(not PLAYWRIGHT_AVAILABLE, reason="playwright not installed")
 class TestBrowserToolRegistration:
     """Test browser tool is properly registered."""
     

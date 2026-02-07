@@ -6,8 +6,8 @@ import { ChatContext } from './ChatContext';
  * ChatProvider - Thin wrapper that sets up chat hooks and provides store access.
  * No business logic - just composition.
  */
-export function ChatProvider({ children, enableToolRunner = true }) {
-  useChatStream();
+export function ChatProvider({ children, enableToolRunner = true, enableTranscript = true }) {
+  useChatStream(enableTranscript);
   useToolRunner(enableToolRunner);
 
   return (

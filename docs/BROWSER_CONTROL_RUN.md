@@ -7,7 +7,7 @@ read_when:
 
 # How to Run Browser Control
 
-## Quick Start (3 Steps)
+## Quick Start (2 Steps)
 
 ### Step 1: Install Playwright
 
@@ -17,7 +17,28 @@ pip install playwright
 playwright install chromium
 ```
 
-### Step 2: Start Chrome with CDP
+### Step 2: Run WindieOS
+
+**Terminal 1 - Backend:**
+```bash
+cd WindieOS
+python -m backend.src.main
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd WindieOS/frontend
+npm run electron
+```
+
+**Then in the chat:**
+```
+Connect to my browser and go to Amazon
+```
+
+That's it! Chrome will be **automatically launched** with CDP enabled.
+
+**Optional:** If you prefer to use an already-running Chrome window, start it with:
 
 **Linux:**
 ```bash
@@ -33,8 +54,6 @@ google-chrome --remote-debugging-port=9222
 ```cmd
 "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
 ```
-
-### Step 3: Run WindieOS
 
 **Terminal 1 - Backend:**
 ```bash

@@ -30,12 +30,22 @@ class TestIsCdpAvailable:
     @pytest.mark.asyncio
     async def test_cdp_available_success(self):
         """Test detecting available CDP."""
-        with mock.patch("aiohttp.ClientSession") as mock_session_class:
-            mock_session = mock.AsyncMock()
-            mock_response = mock.AsyncMock()
-            mock_response.status = 200
-            mock_session.get.return_value.__aenter__.return_value = mock_response
-            mock_session_class.return_value.__aenter__.return_value = mock_session
+        # Create a mock response that will be returned by the context manager
+        mock_response = mock.AsyncMock()
+        mock_response.status = 200
+        
+        # Create an async context manager mock for session.get()
+        mock_get_cm = mock.AsyncMock()
+        mock_get_cm.__aenter__ = mock.AsyncMock(return_value=mock_response)
+        mock_get_cm.__aexit__ = mock.AsyncMock(return_value=False)
+        
+        # Create session mock - get() should return the context manager directly
+        mock_session = mock.MagicMock()
+        mock_session.get = mock.MagicMock(return_value=mock_get_cm)
+        
+        with mock.patch("tools.browser.chrome_launcher.aiohttp.ClientSession") as mock_session_class:
+            mock_session_class.return_value.__aenter__ = mock.AsyncMock(return_value=mock_session)
+            mock_session_class.return_value.__aexit__ = mock.AsyncMock(return_value=False)
             
             result = await is_cdp_available(DEFAULT_CDP_URL)
             
@@ -44,13 +54,19 @@ class TestIsCdpAvailable:
     @pytest.mark.asyncio
     async def test_cdp_available_failure(self):
         """Test detecting unavailable CDP."""
-        with mock.patch("aiohttp.ClientSession") as mock_session_class:
-            mock_session = mock.AsyncMock()
-            mock_session.get.side_effect = Exception("Connection refused")
-            mock_session_class.return_value.__aenter__.return_value = mock_session
-            
+        mock_get_cm = mock.AsyncMock()
+        mock_get_cm.__aenter__ = mock.AsyncMock(side_effect=Exception("Connection refused"))
+        mock_get_cm.__aexit__ = mock.AsyncMock(return_value=False)
+
+        mock_session = mock.MagicMock()
+        mock_session.get = mock.MagicMock(return_value=mock_get_cm)
+
+        with mock.patch("tools.browser.chrome_launcher.aiohttp.ClientSession") as mock_session_class:
+            mock_session_class.return_value.__aenter__ = mock.AsyncMock(return_value=mock_session)
+            mock_session_class.return_value.__aexit__ = mock.AsyncMock(return_value=False)
+
             result = await is_cdp_available(DEFAULT_CDP_URL)
-            
+
             assert result is False
 
 
@@ -63,7 +79,7 @@ class TestFindChromeProcess:
         """Test finding Chrome on Windows."""
         mock_system.return_value = "Windows"
         mock_run.return_value = mock.Mock(
-            stdout='"chrome.exe","12345","Console","1","123,456 K"',
+            stdout='"Image Name","PID","Session Name","Session#","Mem Usage"\n"chrome.exe","12345","Console","1","123,456 K"',
             returncode=0
         )
         

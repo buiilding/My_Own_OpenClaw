@@ -328,6 +328,14 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
         }
 
     if action == "remove":
+        if session and not session.exited:
+            if session.wait_task and not session.wait_task.done():
+                session.wait_task.cancel()
+            for task in session.read_tasks:
+                if not task.done():
+                    task.cancel()
+            session.process.kill()
+            await session.process.wait()
         delete_session(session_id)
         return {
             "success": True,

@@ -37,7 +37,7 @@ import {
  * Custom hook for managing streaming message responses.
  * Handles LLM thoughts, streaming chunks, and completion states.
  */
-export function useChatStream() {
+export function useChatStream(enableTranscript: boolean = true) {
   const {
     addMessage,
     updateMessage,
@@ -124,16 +124,18 @@ export function useChatStream() {
 
     const correlationId = event.payload?.correlation_id || event.payload?.request_id;
 
-    recordToolMessage(formattedText, {
-      messageType: 'tool-call',
-      toolName: event.payload?.tool_name,
-      correlationId,
-      sessionId: event.session_id,
-      userId: event.user_id,
-      modelId,
-      modelProvider,
-    });
-  }, [addMessage, modelId, modelProvider, setThinkingStatus]);
+    if (enableTranscript) {
+      recordToolMessage(formattedText, {
+        messageType: 'tool-call',
+        toolName: event.payload?.tool_name,
+        correlationId,
+        sessionId: event.session_id,
+        userId: event.user_id,
+        modelId,
+        modelProvider,
+      });
+    }
+  }, [addMessage, enableTranscript, modelId, modelProvider, setThinkingStatus]);
 
   const handleToolOutput = useCallback((event: ToolOutputEvent) => {
     setThinkingStatus(null);
@@ -159,17 +161,19 @@ export function useChatStream() {
     const correlationId = event.payload?.request_id
       || (typeof event.payload?.metadata === 'object' ? event.payload?.metadata?.request_id : undefined);
 
-    recordToolMessage(outputText, {
-      messageType: 'tool-output',
-      toolName: event.payload?.tool_name,
-      correlationId,
-      sessionId: event.session_id,
-      userId: event.user_id,
-      screenshot: event.payload?.screenshot || null,
-      modelId,
-      modelProvider,
-    });
-  }, [addMessage, modelId, modelProvider, setThinkingStatus]);
+    if (enableTranscript) {
+      recordToolMessage(outputText, {
+        messageType: 'tool-output',
+        toolName: event.payload?.tool_name,
+        correlationId,
+        sessionId: event.session_id,
+        userId: event.user_id,
+        screenshot: event.payload?.screenshot || null,
+        modelId,
+        modelProvider,
+      });
+    }
+  }, [addMessage, enableTranscript, modelId, modelProvider, setThinkingStatus]);
 
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
     setThinkingStatus(null);
@@ -187,16 +191,18 @@ export function useChatStream() {
     };
     addMessage(newMessage);
 
-    recordToolMessage(formattedText, {
-      messageType: 'tool-call',
-      toolName: 'tool-bundle',
-      correlationId: event.payload?.bundle_id,
-      sessionId: event.session_id,
-      userId: event.user_id,
-      modelId,
-      modelProvider,
-    });
-  }, [addMessage, modelId, modelProvider, setThinkingStatus]);
+    if (enableTranscript) {
+      recordToolMessage(formattedText, {
+        messageType: 'tool-call',
+        toolName: 'tool-bundle',
+        correlationId: event.payload?.bundle_id,
+        sessionId: event.session_id,
+        userId: event.user_id,
+        modelId,
+        modelProvider,
+      });
+    }
+  }, [addMessage, enableTranscript, modelId, modelProvider, setThinkingStatus]);
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
     updateLastMessageBySender('user', {
@@ -244,15 +250,17 @@ export function useChatStream() {
     };
     addMessage(newMessage);
 
-    recordUserMessage(text, {
-      timestamp: event.payload?.timestamp,
-      sessionId: event.payload?.session_id ?? event.session_id ?? null,
-      userId: event.payload?.user_id ?? event.user_id ?? null,
-      screenshot: event.payload?.screenshot || null,
-      modelId,
-      modelProvider,
-    });
-  }, [addMessage, modelId, modelProvider]);
+    if (enableTranscript) {
+      recordUserMessage(text, {
+        timestamp: event.payload?.timestamp,
+        sessionId: event.payload?.session_id ?? event.session_id ?? null,
+        userId: event.payload?.user_id ?? event.user_id ?? null,
+        screenshot: event.payload?.screenshot || null,
+        modelId,
+        modelProvider,
+      });
+    }
+  }, [addMessage, enableTranscript, modelId, modelProvider]);
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     setIsSending(false);
@@ -264,7 +272,7 @@ export function useChatStream() {
     );
     if (lastMessage && lastMessage.sender === 'assistant') {
       updateMessage(lastMessage.id, { isComplete: true });
-      if (lastMessage.text) {
+      if (lastMessage.text && enableTranscript) {
         recordAssistantMessage(lastMessage.text, {
           messageType: lastMessage.type || 'llm-text',
           sessionId: event.session_id,
@@ -274,7 +282,7 @@ export function useChatStream() {
         });
       }
     }
-  }, [modelId, modelProvider, setIsSending, setThinkingStatus, updateMessage]);
+  }, [enableTranscript, modelId, modelProvider, setIsSending, setThinkingStatus, updateMessage]);
 
   const handleTokenCount = useCallback((event: TokenCountEvent) => {
     setTokenCounts(event.payload ?? null);
@@ -292,14 +300,16 @@ export function useChatStream() {
     };
     addMessage(newMessage);
 
-    recordAssistantMessage(errorText, {
-      messageType: 'error',
-      sessionId: event.session_id,
-      userId: event.user_id,
-      modelId,
-      modelProvider,
-    });
-  }, [addMessage, modelId, modelProvider, setIsSending, setThinkingStatus]);
+    if (enableTranscript) {
+      recordAssistantMessage(errorText, {
+        messageType: 'error',
+        sessionId: event.session_id,
+        userId: event.user_id,
+        modelId,
+        modelProvider,
+      });
+    }
+  }, [addMessage, enableTranscript, modelId, modelProvider, setIsSending, setThinkingStatus]);
 
   const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => ({
     'llm-thought': event => handleLlmThought(event as LlmThoughtEvent),
@@ -341,7 +351,9 @@ export function useChatStream() {
       if (!isBackendEvent(data)) {
         return;
       }
-      updateTranscriptSession(data.session_id ?? null, data.user_id ?? null);
+      if (enableTranscript) {
+        updateTranscriptSession(data.session_id ?? null, data.user_id ?? null);
+      }
       const handler = handlers[data.type];
       if (handler) {
         handler(data);
@@ -349,5 +361,5 @@ export function useChatStream() {
     });
 
     return removeListener;
-  }, [handlers]);
+  }, [enableTranscript, handlers]);
 }

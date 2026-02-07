@@ -5,6 +5,7 @@ Shell process registry for background command sessions.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import os
 import time
 import uuid
@@ -69,6 +70,9 @@ class ProcessSession:
     pending_stderr: List[str] = field(default_factory=list)
     pending_stdout_chars: int = 0
     pending_stderr_chars: int = 0
+    read_tasks: List[asyncio.Task] = field(default_factory=list, repr=False)
+    wait_task: Optional[asyncio.Task] = field(default=None, repr=False)
+    loop: Optional[asyncio.AbstractEventLoop] = field(default=None, repr=False)
 
 
 @dataclass
@@ -271,5 +275,82 @@ def reset_registry_for_tests() -> None:
     _running_sessions.clear()
     _finished_sessions.clear()
     if _sweeper_task and not _sweeper_task.done():
-        _sweeper_task.cancel()
+        try:
+            loop = asyncio.get_running_loop()
+            if not loop.is_closed():
+                _sweeper_task.cancel()
+        except RuntimeError:
+            pass
     _sweeper_task = None
+
+
+async def shutdown_registry_for_tests() -> None:
+    global _sweeper_task
+    current_loop = asyncio.get_running_loop()
+    sessions = list(_running_sessions.values())
+    _running_sessions.clear()
+    _finished_sessions.clear()
+
+    sweeper_task = _sweeper_task
+    _sweeper_task = None
+    if sweeper_task and not sweeper_task.done():
+        try:
+            sweeper_loop = sweeper_task.get_loop()
+        except AttributeError:
+            sweeper_loop = None
+        if sweeper_loop is current_loop or sweeper_loop is None:
+            sweeper_task.cancel()
+            await asyncio.gather(sweeper_task, return_exceptions=True)
+        else:
+            with contextlib.suppress(Exception):
+                sweeper_task.cancel()
+
+    cleanup_tasks: List[asyncio.Task] = []
+    for session in sessions:
+        same_loop = session.loop is current_loop
+        if same_loop and session.wait_task and not session.wait_task.done():
+            try:
+                await asyncio.wait_for(session.wait_task, timeout=1.0)
+                continue
+            except asyncio.TimeoutError:
+                pass
+            except asyncio.CancelledError:
+                continue
+            if session.process and session.process.returncode is None:
+                with contextlib.suppress(ProcessLookupError, Exception):
+                    session.process.kill()
+            with contextlib.suppress(asyncio.TimeoutError, asyncio.CancelledError, Exception):
+                await asyncio.wait_for(session.wait_task, timeout=1.0)
+            if session.wait_task.done():
+                continue
+            session.wait_task.cancel()
+            cleanup_tasks.append(session.wait_task)
+        if not same_loop and session.process and session.process.returncode is None:
+            with contextlib.suppress(ProcessLookupError, Exception):
+                session.process.kill()
+        if session.wait_task and not session.wait_task.done() and not same_loop:
+            with contextlib.suppress(Exception):
+                session.wait_task.cancel()
+        for task in session.read_tasks:
+            if not task.done():
+                task.cancel()
+                if same_loop:
+                    cleanup_tasks.append(task)
+        if session.uses_pty and session.pty_master is not None:
+            try:
+                os.close(session.pty_master)
+            except OSError:
+                pass
+            session.pty_master = None
+
+    if cleanup_tasks:
+        with contextlib.suppress(asyncio.TimeoutError):
+            await asyncio.wait_for(
+                asyncio.gather(*cleanup_tasks, return_exceptions=True),
+                timeout=1.0,
+            )
+
+    for session in sessions:
+        if session.loop is current_loop and session.process and session.process.returncode is None:
+            with contextlib.suppress(asyncio.TimeoutError, Exception):
+                await asyncio.wait_for(session.process.wait(), timeout=1.0)

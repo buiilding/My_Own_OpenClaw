@@ -5,6 +5,7 @@ This is EXACTLY like the main backend, but intercepts LLM calls and returns
 hardcoded responses based on simulation steps. All other features work identically.
 """
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -14,26 +15,10 @@ from backend.src.api.routes import websocket
 from backend.src.api.routes.memory import embeddings, semantic
 from backend.src.core.bootstrap.coordinator import InitializationCoordinator
 from backend.src.core.container.core_container import CoreContainer
+from backend.src.core.logging_setup import configure_logging
 from backend.src.simulation.mock_llm_client import get_mock_llm_client
 
-# Configure logging
-logging.basicConfig(
-    level=logging.DEBUG, format="%(name)s - %(levelname)s - %(message)s"
-)
-
-# Disable noisy debug logs from specific libraries
-logging.getLogger("litellm").setLevel(logging.WARNING)
-logging.getLogger("LiteLLM").setLevel(logging.WARNING)
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logging.getLogger("httpcore").setLevel(logging.WARNING)
-logging.getLogger("urllib3").setLevel(logging.WARNING)
-logging.getLogger("aiosqlite").setLevel(logging.WARNING)
-logging.getLogger("PIL").setLevel(logging.WARNING)
-logging.getLogger("PIL.PngImagePlugin").setLevel(logging.WARNING)
-logging.getLogger("Pillow").setLevel(logging.WARNING)
-
-# Disable system prompt content logging
-logging.getLogger("backend.src.llm.prompt_constructor").setLevel(logging.INFO)
+configure_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -125,11 +110,13 @@ app.include_router(semantic.router)
 
 if __name__ == "__main__":
     import uvicorn
+    access_log = os.getenv("WINDIEOS_LOG_PROFILE", "important").lower() == "verbose"
 
     uvicorn.run(
         "backend.src.simulation.main:app",
         host="0.0.0.0",
         port=8765,  # Same port as main backend
+        access_log=access_log,
         reload=True,
         reload_dirs=["backend/src"]
     )
