@@ -65,6 +65,14 @@ class SharedModelProvider:
         return [self._shared]
 
 
+class MalformedModelsProvider:
+    def __init__(self, payload):
+        self.payload = payload
+
+    async def list_models(self):
+        return self.payload
+
+
 @pytest.mark.asyncio
 async def test_get_local_models_fetches_local_providers_in_parallel(monkeypatch):
     state = {
@@ -145,6 +153,45 @@ async def test_get_local_models_returns_defensive_copy(monkeypatch):
 
     second = await service.get_local_models()
     assert second[0]["id"] == "shared-model"
+
+
+@pytest.mark.asyncio
+async def test_get_local_models_ignores_non_list_provider_payload(monkeypatch):
+    factory = {"ollama": MalformedModelsProvider({"id": "not-a-list"})}
+    monkeypatch.setattr(
+        "backend.src.llm.providers.create_provider_factory",
+        lambda _cfg: factory,
+    )
+
+    service = ModelService(AppConfig())
+    models = await service.get_local_models()
+
+    assert models == []
+
+
+@pytest.mark.asyncio
+async def test_get_local_models_filters_invalid_model_entries(monkeypatch):
+    factory = {
+        "ollama": MalformedModelsProvider(
+            [
+                {"id": "valid-model", "provider": "ollama", "display_name": "ollama/valid-model"},
+                {"id": "", "provider": "ollama"},
+                {"id": "missing-provider"},
+                "not-a-dict",
+            ]
+        )
+    }
+    monkeypatch.setattr(
+        "backend.src.llm.providers.create_provider_factory",
+        lambda _cfg: factory,
+    )
+
+    service = ModelService(AppConfig())
+    models = await service.get_local_models()
+
+    assert models == [
+        {"id": "valid-model", "provider": "ollama", "display_name": "ollama/valid-model"}
+    ]
 
 
 def test_get_online_models_returns_defensive_copy():
