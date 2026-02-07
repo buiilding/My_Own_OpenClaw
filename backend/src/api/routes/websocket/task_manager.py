@@ -94,13 +94,24 @@ class TaskManager:
         """
         async with self.tasks_lock:
             if len(self.active_tasks) >= self.max_concurrent_tasks:
+                logger.debug(
+                    "Task limit exceeded for user %s (%d/%d)",
+                    user_id,
+                    len(self.active_tasks),
+                    self.max_concurrent_tasks,
+                )
                 self._close_if_coroutine(coro)
                 return None, True
             
             # Create task and add to set atomically within lock
             try:
                 task = asyncio.create_task(coro)
-            except Exception:
+            except Exception as e:
+                logger.debug(
+                    "Failed to create task for user %s: %s",
+                    user_id,
+                    e,
+                )
                 self._close_if_coroutine(coro)
                 raise
             self.active_tasks.add(task)
