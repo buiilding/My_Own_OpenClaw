@@ -170,3 +170,14 @@ def test_serialized_param_size_returns_none_for_unserializable_payload():
     size = ToolCallValidator._serialized_param_size({"unsupported": {1, 2, 3}})
 
     assert size is None
+
+
+def test_validate_tool_call_whitelist_error_truncates_sorted_tool_display():
+    tool_names = [f"tool_{index:02d}" for index in range(20, 0, -1)]
+    validator, _metrics = _make_validator(tool_names)
+
+    with pytest.raises(ParseValidationError) as exc:
+        validator.validate_tool_call("missing_tool", {})
+
+    message = str(exc.value)
+    assert "Valid tools (20): tool_01, tool_02, tool_03, tool_04, tool_05, tool_06, tool_07, tool_08, tool_09, tool_10... (and 10 more)" in message

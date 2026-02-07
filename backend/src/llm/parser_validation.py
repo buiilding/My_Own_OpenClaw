@@ -52,12 +52,13 @@ class ToolCallValidator:
             )
 
         valid_tool_names = self._get_valid_tool_names()
-        if tool_name not in valid_tool_names:
+        valid_tool_name_set = set(valid_tool_names)
+        if tool_name not in valid_tool_name_set:
             if len(valid_tool_names) <= 15:
-                tools_display = ", ".join(sorted(valid_tool_names))
+                tools_display = ", ".join(valid_tool_names)
             else:
                 tools_display = (
-                    f"{', '.join(sorted(valid_tool_names)[:10])}... "
+                    f"{', '.join(valid_tool_names[:10])}... "
                     f"(and {len(valid_tool_names) - 10} more)"
                 )
             validation_errors.append(
