@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { buildTokenCountItems } from '../utils/tokenCounts';
 import '../../../styles/TokenCountDisplay.css';
 
 function TokenCountDisplay({ tokenCounts }) {
@@ -6,26 +7,19 @@ function TokenCountDisplay({ tokenCounts }) {
     return null;
   }
 
-  const { input_tokens, output_tokens, total_tokens, conversation_tokens } = tokenCounts;
+  const countItems = buildTokenCountItems(tokenCounts);
 
   return (
     <div className="token-count-display">
-      <div className="token-count-item">
-        <span className="token-label">Input:</span>
-        <span className="token-value">{input_tokens?.toLocaleString() || 0}</span>
-      </div>
-      <div className="token-count-item">
-        <span className="token-label">Output:</span>
-        <span className="token-value">{output_tokens?.toLocaleString() || 0}</span>
-      </div>
-      <div className="token-count-item">
-        <span className="token-label">Total:</span>
-        <span className="token-value">{total_tokens?.toLocaleString() || 0}</span>
-      </div>
-      <div className="token-count-item conversation-total">
-        <span className="token-label">Conversation:</span>
-        <span className="token-value">{conversation_tokens?.toLocaleString() || 0}</span>
-      </div>
+      {countItems.map((item) => (
+        <div
+          key={item.key}
+          className={`token-count-item${item.className ? ` ${item.className}` : ''}`}
+        >
+          <span className="token-label">{item.label}:</span>
+          <span className="token-value">{item.value}</span>
+        </div>
+      ))}
     </div>
   );
 }
