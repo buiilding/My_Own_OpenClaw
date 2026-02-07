@@ -69,6 +69,7 @@ frontend/src/renderer/
 │   │       ├── messageToolMetadata.js   # messageToolMetadata - Tool-output execution-detail metadata formatting helpers
 │   │       ├── messageTransparency.js   # messageTransparency - Descriptor builder for transparency sections
 │   │       ├── tokenCounts.js           # tokenCounts - Table-driven token count formatting/mapping helpers
+│   │       ├── toolRunnerMessages.ts    # toolRunnerMessages - Tool result/bundle message builders and tool-call/bundle mapping helpers
 │   │       └── transcriptionRegions.ts  # transcriptionRegions - Pure cursor/boundary helper logic for transcription updates
 │   │
 │   ├── dashboard/                        # Dashboard feature module
