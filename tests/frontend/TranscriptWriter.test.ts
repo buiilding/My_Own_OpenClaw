@@ -1,6 +1,8 @@
 type TranscriptWriterModule = typeof import('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter');
 
-const SESSION_STORAGE_KEY = 'transcript-session-info';
+const { TRANSCRIPT_SESSION_STORAGE_KEY } = require(
+  '../../frontend/src/renderer/infrastructure/transcript/sessionInfoStorage',
+) as typeof import('../../frontend/src/renderer/infrastructure/transcript/sessionInfoStorage');
 
 function loadTranscriptWriter() {
   jest.resetModules();
@@ -23,7 +25,7 @@ describe('TranscriptWriter', () => {
 
   test('loads session info from sessionStorage', () => {
     window.sessionStorage.setItem(
-      SESSION_STORAGE_KEY,
+      TRANSCRIPT_SESSION_STORAGE_KEY,
       JSON.stringify({ sessionId: 'stored-session', userId: 'stored-user' }),
     );
 
@@ -74,7 +76,7 @@ describe('TranscriptWriter', () => {
     writer.updateTranscriptSession('session-2', 'user-2');
 
     expect(updates).toEqual([{ sessionId: 'session-2', userId: 'user-2' }]);
-    expect(window.sessionStorage.getItem(SESSION_STORAGE_KEY)).toBe(
+    expect(window.sessionStorage.getItem(TRANSCRIPT_SESSION_STORAGE_KEY)).toBe(
       JSON.stringify({ sessionId: 'session-2', userId: 'user-2' }),
     );
 
@@ -83,7 +85,7 @@ describe('TranscriptWriter', () => {
 
   test('preserves stored session id when update only provides user id', () => {
     window.sessionStorage.setItem(
-      SESSION_STORAGE_KEY,
+      TRANSCRIPT_SESSION_STORAGE_KEY,
       JSON.stringify({ sessionId: 'stored-session', userId: null }),
     );
     const { writer } = loadTranscriptWriter();
