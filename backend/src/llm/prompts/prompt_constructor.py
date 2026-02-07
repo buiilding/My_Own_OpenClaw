@@ -21,6 +21,7 @@ eliminating circular parsing patterns and preserving data integrity.
 import json
 import logging
 import re
+from functools import lru_cache
 from typing import List, Dict, Any, Optional, Union
 
 from backend.src.core.config import AppConfig
@@ -35,6 +36,18 @@ from backend.src.core.observability.trust_boundary_metrics import MetricsService
 # system_monitor removed - frontend handles system state
 
 logger = logging.getLogger(__name__)
+
+
+@lru_cache(maxsize=128)
+def _xml_tag_pattern(tag_name: str) -> re.Pattern[str]:
+    """Compile and cache XML-like tag patterns used for prompt metadata extraction."""
+    escaped_tag = re.escape(tag_name)
+    # Allow attributes with quoted values that may include '>' characters.
+    # Example: <tag code="if a > b">payload</tag>
+    return re.compile(
+        f"<{escaped_tag}(?:\\s+(?:[^>\"']+|\"[^\"]*\"|'[^']*')*)?>(.*?)</{escaped_tag}>",
+        re.DOTALL,
+    )
 
 
 class PromptConstructor:
@@ -243,19 +256,7 @@ class PromptConstructor:
         max_search_size = min(len(content), self.limits.max_message_content_size)
         search_content = content[:max_search_size]
         
-        # Escape tag name for regex
-        escaped_tag = re.escape(tag_name)
-        
-        # Regex pattern:
-        # <tag_name       : Match opening tag name
-        # (?:\s+[^>]*?)?  : Match optional attributes (non-greedy, respects quoted strings)
-        # >               : End of opening tag
-        # (.*?)           : Match content (non-greedy)
-        # </tag_name>     : Match closing tag
-        # re.DOTALL        : Allow . to match newlines
-        pattern = f"<{escaped_tag}(?:\\s+[^>]*?)?>(.*?)</{escaped_tag}>"
-        
-        match = re.search(pattern, search_content, re.DOTALL)
+        match = _xml_tag_pattern(tag_name).search(search_content)
         if not match:
             return ""
         
@@ -281,13 +282,7 @@ class PromptConstructor:
         max_search_size = min(len(content), self.limits.max_message_content_size)
         search_content = content[:max_search_size]
         
-        # Escape tag name for regex
-        escaped_tag = re.escape(tag_name)
-        
-        # Regex pattern: same as _extract_xml_tag but extract group(1) (content)
-        pattern = f"<{escaped_tag}(?:\\s+[^>]*?)?>(.*?)</{escaped_tag}>"
-        
-        match = re.search(pattern, search_content, re.DOTALL)
+        match = _xml_tag_pattern(tag_name).search(search_content)
         if not match:
             return None
         
