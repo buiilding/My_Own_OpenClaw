@@ -145,18 +145,6 @@ class QueryMessageHandler(MessageHandler):
                     await pipeline.wait_for_pending_tts()
                     await tts_service.flush()
 
-                # Send final complete message using canonical utility
-                await send_success_response(
-                    websocket,
-                    msg_id,
-                    "streaming-complete",
-                    {},
-                    context={
-                        "user_id": agent_instance.user_id,
-                        "session_id": agent_instance.session_id,
-                    },
-                )
-                
                 query_total_time = time.perf_counter() - query_start_time
                 logger.info(f"[Timing] Query processing completed in {query_total_time:.3f}s (user_id={user_id})")
 
