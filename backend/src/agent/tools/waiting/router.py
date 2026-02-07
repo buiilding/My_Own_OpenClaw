@@ -78,6 +78,35 @@ class ToolResultRouter:
             tool_result.artifacts = {}
         tool_result.artifacts["screenshot"] = screenshot_data
 
+    def _store_and_resolve_individual_result(
+        self,
+        request_id: str,
+        tool_result: "ToolResult",
+        *,
+        log_on_miss: bool = False,
+        log_context: str = "tool",
+    ) -> None:
+        """Store and resolve one individual tool result."""
+        self.result_storage.store_pending_result(request_id, tool_result)
+        resolved = self.result_storage.resolve_result_future(request_id, tool_result)
+        if resolved:
+            logger.info("Resolved %s result future for request_id %s", log_context, request_id[:15])
+        elif log_on_miss:
+            logger.debug("No waiting future for %s request_id %s", log_context, request_id[:15])
+
+    def _store_and_resolve_bundle_result(
+        self,
+        bundle_id: str,
+        tool_result: "ToolResult",
+    ) -> None:
+        """Store and resolve one bundled tool result."""
+        self.result_storage.store_bundled_result(bundle_id, tool_result)
+        resolved = self.result_storage.resolve_bundle_future(bundle_id, tool_result)
+        if resolved:
+            logger.info("Resolved bundle future for bundle_id %s", bundle_id[:15])
+        else:
+            logger.warning("No waiting bundle future for bundle_id %s", bundle_id[:15])
+
     def _extract_screenshot_from_result_data(
         self,
         result_data: Any,
@@ -118,12 +147,7 @@ class ToolResultRouter:
         )
         
         await self._process_screenshot(screenshot_data, request_id, "Tool result")
-        
-        # Store the tool result using centralized storage
-        self.result_storage.store_pending_result(request_id, tool_result)
-        
-        # Resolve any waiting futures for this request_id
-        self.result_storage.resolve_result_future(request_id, tool_result)
+        self._store_and_resolve_individual_result(request_id, tool_result)
 
     async def route_bundle_result(
         self,
@@ -145,16 +169,7 @@ class ToolResultRouter:
         )
         
         await self._process_screenshot(screenshot, bundle_id, "Bundle result")
-        
-        # Store bundle result for orchestrator
-        self.result_storage.store_bundled_result(bundle_id, tool_result)
-        
-        # Resolve bundle future
-        resolved = self.result_storage.resolve_bundle_future(bundle_id, tool_result)
-        if resolved:
-            logger.info(f"Resolved bundle future for bundle_id {bundle_id[:15]}")
-        else:
-            logger.warning(f"No waiting bundle future for bundle_id {bundle_id[:15]}")
+        self._store_and_resolve_bundle_result(bundle_id, tool_result)
 
     async def route_bundled_results(
         self,
@@ -189,16 +204,12 @@ class ToolResultRouter:
             
             if resolved_bundle_screenshot:
                 self._inject_screenshot_artifact(tool_result, resolved_bundle_screenshot)
-
-            # Store in pending results using centralized storage
-            self.result_storage.store_pending_result(tool_request_id, tool_result)
-            
-            # Resolve waiting future for this tool's request_id
-            resolved = self.result_storage.resolve_result_future(tool_request_id, tool_result)
-            if resolved:
-                logger.info(f"Resolved bundled tool result future for request_id {tool_request_id[:15]}")
-            else:
-                logger.debug(f"No waiting future for bundled tool request_id {tool_request_id[:15]}")
+            self._store_and_resolve_individual_result(
+                tool_request_id,
+                tool_result,
+                log_on_miss=True,
+                log_context="bundled tool",
+            )
         
         # Store combined result if available
         if combined_result:
