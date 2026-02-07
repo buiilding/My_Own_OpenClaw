@@ -209,5 +209,8 @@ backend/src/api/
   do not fail request handling on malformed coroutine-like inputs.
 - `routes/websocket/message_handler.py` now short-circuits non-object JSON
   payload roots with a deterministic validation error before schema validation.
+- `routes/websocket/message_handler.py` uses size-aware JSON parsing:
+  small payloads parse inline, while larger payloads are offloaded to the
+  executor path to reduce event-loop stalls under heavy message sizes.
 - `routes/websocket/connection.py` cleanup path uses a tighter signature that
   only accepts task/session/user dependencies (no unused websocket argument).
