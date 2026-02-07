@@ -40,6 +40,7 @@ npm test
 - Message input submission/lockout behavior is covered directly by `tests/frontend/MessageInput.test.jsx`.
 - Message row class composition (sender/type/streaming/screenshot) is covered directly by `tests/frontend/MessageListClasses.test.js`.
 - Screenshot URL/data-URL resolution behavior is covered directly by `tests/frontend/MessageScreenshotSrc.test.js`.
+- Tool-output execution metadata formatting behavior is covered directly by `tests/frontend/MessageToolMetadata.test.js`.
 - Chat message sender helper behavior is covered directly by `tests/frontend/ChatMessageSenderUtils.test.ts`.
 - Episodic memory parsing/formatting helpers are covered directly by `tests/frontend/EpisodicMemoryUtils.test.js`.
 - Dashboard model selection/filter/reconciliation helpers are covered directly by `tests/frontend/ModelSelectionUtils.test.js`.
