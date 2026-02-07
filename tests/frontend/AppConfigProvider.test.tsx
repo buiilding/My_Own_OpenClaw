@@ -33,6 +33,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
 describe('AppConfigProvider', () => {
   const listeners = new Map<string, (data: any) => void>();
   let removeBackendListener: jest.Mock;
+  let loadFrontendConfigResponse: any;
+  let clientUserIdResponse: any;
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <AppConfigProvider>{children}</AppConfigProvider>
@@ -42,6 +44,8 @@ describe('AppConfigProvider', () => {
     jest.clearAllMocks();
     listeners.clear();
     removeBackendListener = jest.fn();
+    loadFrontendConfigResponse = null;
+    clientUserIdResponse = null;
 
     (loadConfigFromStorage as jest.Mock).mockReturnValue({ voice_mode_enabled: false });
     (useSettingsManagement as jest.Mock).mockReturnValue({
@@ -55,10 +59,10 @@ describe('AppConfigProvider', () => {
     });
     jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: any) => {
       if (channel === INVOKE_CHANNELS.LOAD_FRONTEND_CONFIG) {
-        return null;
+        return loadFrontendConfigResponse;
       }
       if (channel === INVOKE_CHANNELS.GET_CLIENT_USER_ID) {
-        return null;
+        return clientUserIdResponse;
       }
       return null;
     });
@@ -129,5 +133,47 @@ describe('AppConfigProvider', () => {
 
     expect(removeBackendListener).toHaveBeenCalled();
   });
-});
 
+  test('skips disk-sync writes when disk config matches stored config', async () => {
+    loadFrontendConfigResponse = { voice_mode_enabled: false };
+
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(saveConfigToStorage).not.toHaveBeenCalled();
+    expect(ApiClient.updateSettings).not.toHaveBeenCalled();
+  });
+
+  test('applies disk config when it differs from stored config', async () => {
+    loadFrontendConfigResponse = {
+      voice_mode_enabled: true,
+      selected_model_id: 'model-x',
+      model_provider: 'openai',
+    };
+
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(saveConfigToStorage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        voice_mode_enabled: false,
+        selected_model_id: 'model-x',
+        model_provider: 'openai',
+      }),
+      expect.any(Number),
+    );
+    expect(ApiClient.updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        voice_mode_enabled: false,
+        selected_model_id: 'model-x',
+        model_provider: 'openai',
+      }),
+    );
+  });
+});
