@@ -65,6 +65,12 @@ class ToolCallValidator:
                 f"Valid tools ({len(valid_tool_names)}): {tools_display}"
             )
 
+        if not isinstance(args, dict):
+            validation_errors.append(
+                f"Tool args must be an object/dict, got {type(args).__name__}"
+            )
+            return validation_errors
+
         if len(args) > self.limits.max_parameter_count:
             validation_errors.append(
                 f"Parameter count {len(args)} exceeds maximum {self.limits.max_parameter_count}"
@@ -91,7 +97,10 @@ class ToolCallValidator:
         return validation_errors
 
     def _get_valid_tool_names(self) -> List[str]:
-        valid_tool_names = self.tool_registry.get_tool_names()
+        raw_tool_names = self.tool_registry.get_tool_names() or []
+        valid_tool_names = [
+            name for name in raw_tool_names if isinstance(name, str)
+        ]
         allowed_tools = self.config.get_tool_allowlist()
         if allowed_tools is not None:
             valid_tool_names = [
