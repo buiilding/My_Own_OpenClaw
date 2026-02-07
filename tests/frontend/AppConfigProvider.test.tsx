@@ -12,6 +12,7 @@ import { useAppConfigContext } from '../../frontend/src/renderer/app/providers/A
 import { useSettingsManagement } from '../../frontend/src/renderer/features/settings/hooks/useSettingsManagement';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../frontend/src/renderer/utils/configStorage';
 import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
+import { updateTranscriptSession } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 
 jest.mock('../../frontend/src/renderer/features/settings/hooks/useSettingsManagement');
 jest.mock('../../frontend/src/renderer/utils/configFilter', () => ({
@@ -35,6 +36,7 @@ describe('AppConfigProvider', () => {
   let removeBackendListener: jest.Mock;
   let loadFrontendConfigResponse: any;
   let clientUserIdResponse: any;
+  const mockUpdateTranscriptSession = updateTranscriptSession as jest.Mock;
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <AppConfigProvider>{children}</AppConfigProvider>
@@ -211,5 +213,149 @@ describe('AppConfigProvider', () => {
     });
 
     expect(result.current.updateConfig).toBe(firstUpdateConfig);
+  });
+
+  test('updates transcript session when client user id resolves', async () => {
+    clientUserIdResponse = { userId: 'client-user-1' };
+
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(undefined, 'client-user-1');
+  });
+
+  test('updates transcript session from IPC status events with userId', () => {
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    const ipcStatusHandler = listeners.get(ON_CHANNELS.IPC_STATUS);
+    expect(ipcStatusHandler).toEqual(expect.any(Function));
+
+    act(() => {
+      ipcStatusHandler?.({ userId: 'ipc-user-1' });
+    });
+
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(undefined, 'ipc-user-1');
+  });
+
+  test('syncs current config to backend when IPC status reports connected', () => {
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    const ipcStatusHandler = listeners.get(ON_CHANNELS.IPC_STATUS);
+    expect(ipcStatusHandler).toEqual(expect.any(Function));
+
+    act(() => {
+      ipcStatusHandler?.({ isConnected: true });
+    });
+
+    expect(ApiClient.updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({ voice_mode_enabled: false }),
+    );
+  });
+
+  test('does not sync config when IPC status reports disconnected', () => {
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    const ipcStatusHandler = listeners.get(ON_CHANNELS.IPC_STATUS);
+    expect(ipcStatusHandler).toEqual(expect.any(Function));
+
+    act(() => {
+      ipcStatusHandler?.({ isConnected: false });
+    });
+
+    expect(ApiClient.updateSettings).not.toHaveBeenCalled();
+  });
+
+  test('ignores IPC status events when userId is invalid', () => {
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    const ipcStatusHandler = listeners.get(ON_CHANNELS.IPC_STATUS);
+    expect(ipcStatusHandler).toEqual(expect.any(Function));
+
+    act(() => {
+      ipcStatusHandler?.({ userId: '' });
+    });
+
+    expect(mockUpdateTranscriptSession).not.toHaveBeenCalled();
+  });
+
+  test('wakeword toggle events update wakewordActive state only for boolean payloads', () => {
+    const { result } = renderHook(() => useAppConfigContext(), { wrapper });
+    expect(result.current.wakewordActive).toBe(false);
+
+    const wakewordHandler = listeners.get(ON_CHANNELS.WAKEWORD_TOGGLE);
+    expect(wakewordHandler).toEqual(expect.any(Function));
+
+    act(() => {
+      wakewordHandler?.({ enabled: true });
+    });
+    expect(result.current.wakewordActive).toBe(true);
+
+    act(() => {
+      wakewordHandler?.({ enabled: 'yes' });
+    });
+    expect(result.current.wakewordActive).toBe(true);
+  });
+
+  test('warns when disk config load fails', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: any) => {
+      if (channel === INVOKE_CHANNELS.LOAD_FRONTEND_CONFIG) {
+        throw new Error('disk-load-failed');
+      }
+      if (channel === INVOKE_CHANNELS.GET_CLIENT_USER_ID) {
+        return null;
+      }
+      return null;
+    });
+
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[Config] Failed to load config from disk:',
+      'disk-load-failed',
+    );
+    warnSpy.mockRestore();
+  });
+
+  test('warns when save-to-disk invoke fails during updateConfig', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel: any) => {
+      if (channel === INVOKE_CHANNELS.LOAD_FRONTEND_CONFIG) {
+        return null;
+      }
+      if (channel === INVOKE_CHANNELS.GET_CLIENT_USER_ID) {
+        return null;
+      }
+      if (channel === INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG) {
+        throw new Error('disk-save-failed');
+      }
+      return null;
+    });
+
+    const { result } = renderHook(() => useAppConfigContext(), { wrapper });
+
+    act(() => {
+      result.current.updateConfig({
+        voice_mode_enabled: false,
+        selected_model_id: 'model-save-err',
+        model_provider: 'openai',
+      });
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[Settings Update] Failed to save config to disk:',
+      'disk-save-failed',
+    );
+    warnSpy.mockRestore();
   });
 });
