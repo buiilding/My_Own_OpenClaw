@@ -9,7 +9,7 @@ type SessionInfo = {
 
 type PendingMessage = {
   text: string;
-  screenshot?: string | null;
+  screenshotRef?: string | null;
   timestamp?: string;
   modelId?: string | null;
   modelProvider?: string | null;
@@ -87,7 +87,7 @@ const flushPendingUserMessages = async () => {
       timestamp: message.timestamp,
       modelId: message.modelId,
       modelProvider: message.modelProvider,
-      screenshot: message.screenshot,
+      screenshotRef: message.screenshotRef,
     });
   }
 };
@@ -122,17 +122,17 @@ export const recordUserMessage = (
     userId?: string | null;
     modelId?: string | null;
     modelProvider?: string | null;
-    screenshot?: string | null;
+    screenshotRef?: string | null;
   } = {}
 ) => {
   if (!text) {
     return;
   }
-  const { sessionId, userId, timestamp, modelId, modelProvider, screenshot } = options;
+  const { sessionId, userId, timestamp, modelId, modelProvider, screenshotRef } = options;
   const info = resolveSessionInfo({ sessionId: sessionId ?? null, userId: userId ?? null });
 
   if (!info.sessionId || !info.userId) {
-    pendingUserMessages.push({ text, timestamp, modelId, modelProvider, screenshot });
+    pendingUserMessages.push({ text, timestamp, modelId, modelProvider, screenshotRef });
     return;
   }
 
@@ -143,7 +143,7 @@ export const recordUserMessage = (
     timestamp,
     modelId,
     modelProvider,
-    screenshot,
+    screenshotRef,
     sessionId: info.sessionId,
     userId: info.userId,
   });
@@ -157,7 +157,7 @@ export const recordAssistantMessage = (
     userId?: string | null;
     modelId?: string | null;
     modelProvider?: string | null;
-    screenshot?: string | null;
+    screenshotRef?: string | null;
   } = {}
 ) => {
   if (!text) {
@@ -174,7 +174,7 @@ export const recordAssistantMessage = (
     messageType: options.messageType || 'llm-text',
     modelId: options.modelId,
     modelProvider: options.modelProvider,
-    screenshot: options.screenshot,
+    screenshotRef: options.screenshotRef,
     sessionId: info.sessionId,
     userId: info.userId,
   });
@@ -190,7 +190,7 @@ export const recordToolMessage = (
     userId?: string | null;
     modelId?: string | null;
     modelProvider?: string | null;
-    screenshot?: string | null;
+    screenshotRef?: string | null;
   }
 ) => {
   if (!text) {
@@ -209,7 +209,7 @@ export const recordToolMessage = (
     correlationId: options.correlationId,
     modelId: options.modelId,
     modelProvider: options.modelProvider,
-    screenshot: options.screenshot,
+    screenshotRef: options.screenshotRef,
     sessionId: info.sessionId,
     userId: info.userId,
   });
@@ -226,7 +226,7 @@ type TranscriptEntry = {
   timestamp?: string;
   modelId?: string | null;
   modelProvider?: string | null;
-  screenshot?: string | null;
+  screenshotRef?: string | null;
 };
 
 const storeTranscriptEntry = async (entry: TranscriptEntry) => {
@@ -245,7 +245,7 @@ const storeTranscriptEntry = async (entry: TranscriptEntry) => {
     correlationId: entry.correlationId,
     modelId: entry.modelId,
     modelProvider: entry.modelProvider,
-    screenshot: entry.screenshot,
+    screenshot: entry.screenshotRef,
     timestamp: entry.timestamp,
   });
 };

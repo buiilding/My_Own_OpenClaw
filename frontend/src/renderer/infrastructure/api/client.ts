@@ -10,18 +10,20 @@ export const ApiClient = {
   /**
    * Send a user query to the backend
    * @param {string} text
-   * @param {string|null} screenshot - Optional base64-encoded screenshot data
+   * @param {string|null} screenshotRef - Optional artifact reference for screenshot data
    */
   sendQuery: async (
-    text: string, 
-    screenshot: string | null = null
+    text: string,
+    screenshotRef: string | null = null,
+    screenshotUrl: string | null = null
   ): Promise<void> => {
     // System state and memories are automatically added by ipc.cjs
     IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
       type: 'query',
       payload: {
         text,
-        screenshot: screenshot  // Optional screenshot data
+        screenshot_ref: screenshotRef,  // Optional screenshot reference
+        screenshot_url: screenshotUrl
       }
     });
   },

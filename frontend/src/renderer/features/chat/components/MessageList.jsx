@@ -6,9 +6,10 @@ import MessageTransparencySections from './MessageTransparencySections';
 import '../../../styles/ThinkingDisplay.css';
 
 const MessageItem = memo(function MessageItem({ message }) {
+  const hasScreenshot = Boolean(message.screenshotUrl || message.screenshotRef || message.screenshot);
   const messageClass = `message message-${message.sender} ${
     message.sender === 'assistant' && message.isComplete === false ? 'message-streaming' : ''
-  } ${message.type ? `message-type-${message.type}` : ''} ${message.screenshot ? 'message-has-screenshot' : ''}`;
+  } ${message.type ? `message-type-${message.type}` : ''} ${hasScreenshot ? 'message-has-screenshot' : ''}`;
 
   return (
     <div className={messageClass}>
@@ -26,6 +27,8 @@ MessageItem.propTypes = {
     isComplete: PropTypes.bool,
     type: PropTypes.string,
     screenshot: PropTypes.string,
+    screenshotRef: PropTypes.string,
+    screenshotUrl: PropTypes.string,
   }).isRequired,
 };
 
@@ -62,6 +65,8 @@ MessageList.propTypes = {
       isComplete: PropTypes.bool,
       type: PropTypes.string,
       screenshot: PropTypes.string,
+      screenshotRef: PropTypes.string,
+      screenshotUrl: PropTypes.string,
     })
   ).isRequired,
   thinkingStatus: PropTypes.string,

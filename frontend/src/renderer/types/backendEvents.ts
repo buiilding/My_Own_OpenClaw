@@ -40,6 +40,7 @@ export type ToolOutputEvent = BackendEventBase<'tool-output', {
   output?: string;
   error?: string | null;
   screenshot?: string | null;
+  screenshot_ref?: string | null;
   metadata?: Record<string, unknown>;
   request_id?: string;
 }>;
@@ -50,6 +51,8 @@ export type ToolBundleEvent = BackendEventBase<'tool-bundle', {
 export type LocalUserMessageEvent = BackendEventBase<'local-user-message', {
   text?: string;
   screenshot?: string | null;
+  screenshot_ref?: string | null;
+  screenshot_url?: string | null;
   timestamp?: string;
   session_id?: string | null;
   user_id?: string | null;
