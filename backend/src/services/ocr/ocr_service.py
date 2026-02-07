@@ -286,106 +286,18 @@ class OcrService:
         device = "CUDA" if self.use_cuda else "CPU"
         logger.info(f"[Timing] OCR analysis starting (device={device})")
         try:
-            if self._ocr_engine is None:
-                with self._init_lock:
-                    if self._ocr_engine is not None:
-                        pass
-                    elif not OCR_AVAILABLE:
-                        logger.warning("OCR requested but rapidocr not available")
-                        return None
-                    else:
-                        logger.warning(
-                            "OCR engine not initialized at startup, initializing now (this should not happen)"
-                        )
-                        try:
-                            self._create_engine(use_cuda=True)
-                            logger.info("Initialized RapidOCR engine with CUDA support (lazy initialization)")
-                            logger.info("[OCR] Using CUDA device for OCR processing")
-                        except Exception as e:
-                            logger.debug(
-                                f"CUDA initialization failed during lazy init, trying CPU: {e}"
-                            )
-                            self._create_engine(use_cuda=False)
-                            logger.info("Initialized RapidOCR engine with CPU (lazy initialization fallback)")
-                            logger.info("[OCR] Using CPU device for OCR processing (CUDA unavailable)")
+            if not self._ensure_engine_initialized_sync():
+                return None
 
             image_bytes = self._decode_screenshot(screenshot_b64)
             if image_bytes is None:
                 return None
 
-            try:
-                result = self._ocr_engine(image_bytes)
-            except Exception as ocr_error:
-                error_msg = str(ocr_error)
+            result = self._run_ocr_engine(image_bytes)
+            if result is None:
+                return None
 
-                if is_cuda_error(ocr_error) and self.use_cuda:
-                    logger.debug(
-                        "OCR CUDA error during analysis. GPU memory exhausted. "
-                        f"Reloading OCR engine with CPU fallback. Error: {error_msg[:200]}"
-                    )
-                    try:
-                        ocr_params = self._build_ocr_params(use_cuda=False)
-                        self._ocr_engine = RapidOCR(params=ocr_params)
-                        self.use_cuda = False
-                        logger.warning(
-                            "OCR engine reloaded with CPU (CUDA memory exhausted) - retrying analysis"
-                        )
-                        result = self._ocr_engine(image_bytes)
-                        logger.info("OCR analysis completed successfully with CPU fallback")
-                    except Exception as reload_error:
-                        logger.error(
-                            f"OCR CPU fallback also failed: {reload_error}. "
-                            "Skipping OCR analysis.",
-                            exc_info=True,
-                        )
-                        return None
-                elif is_cuda_error(ocr_error):
-                    logger.warning(
-                        "OCR analysis failed (already using CPU but CUDA error persists): "
-                        f"{error_msg[:200]}. Skipping OCR analysis."
-                    )
-                    return None
-                else:
-                    raise
-
-            if not result or not hasattr(result, "txts"):
-                logger.warning("OCR returned invalid result format")
-                return []
-
-            text_list = self._normalize_ocr_field(getattr(result, "txts", None))
-            scores_list = self._normalize_ocr_field(getattr(result, "scores", None))
-            boxes_list = self._normalize_ocr_field(getattr(result, "boxes", None))
-
-            bbox_list = self._build_bbox_list(boxes_list)
-
-            if not text_list or not bbox_list:
-                logger.info("OCR found no text elements")
-                return []
-
-            ocr_results = []
-            for i, (text, bbox) in enumerate(zip(text_list, bbox_list)):
-                try:
-                    x1, y1, x2, y2 = bbox
-                    confidence = (
-                        float(scores_list[i])
-                        if i < len(scores_list) and scores_list[i] is not None
-                        else 0.9
-                    )
-
-                    ocr_results.append({
-                        "id": str(i),
-                        "text": str(text).strip(),
-                        "confidence": confidence,
-                        "bbox": {
-                            "x": int(x1),
-                            "y": int(y1),
-                            "width": int(x2 - x1),
-                            "height": int(y2 - y1),
-                        },
-                    })
-                except (ValueError, IndexError) as e:
-                    logger.warning(f"Failed to parse OCR bbox for text '{text}': {e}")
-                    continue
+            ocr_results = self._build_ocr_results(result)
 
             ocr_analysis_time = time.perf_counter() - ocr_analysis_start
             device = "CUDA" if self.use_cuda else "CPU"
@@ -399,6 +311,145 @@ class OcrService:
 
         except Exception as e:
             logger.error(f"OCR analysis failed: {e}", exc_info=True)
+            return None
+
+    def _ensure_engine_initialized_sync(self) -> bool:
+        """Ensure OCR engine exists for synchronous OCR execution."""
+        if self._ocr_engine is not None:
+            return True
+
+        with self._init_lock:
+            if self._ocr_engine is not None:
+                return True
+            if not OCR_AVAILABLE:
+                logger.warning("OCR requested but rapidocr not available")
+                return False
+
+            logger.warning(
+                "OCR engine not initialized at startup, initializing now (this should not happen)"
+            )
+            return self._lazy_initialize_engine()
+
+    def _lazy_initialize_engine(self) -> bool:
+        """Initialize OCR engine with CUDA-first strategy and CPU fallback."""
+        try:
+            self._create_engine(use_cuda=True)
+            logger.info("Initialized RapidOCR engine with CUDA support (lazy initialization)")
+            logger.info("[OCR] Using CUDA device for OCR processing")
+            return True
+        except Exception as cuda_error:
+            logger.debug(
+                "CUDA initialization failed during lazy init, trying CPU: %s",
+                cuda_error,
+            )
+            try:
+                self._create_engine(use_cuda=False)
+                logger.info("Initialized RapidOCR engine with CPU (lazy initialization fallback)")
+                logger.info("[OCR] Using CPU device for OCR processing (CUDA unavailable)")
+                return True
+            except Exception as cpu_error:
+                logger.error(
+                    "OCR lazy initialization failed for both CUDA and CPU: %s",
+                    cpu_error,
+                    exc_info=True,
+                )
+                self._ocr_engine = None
+                return False
+
+    def _run_ocr_engine(self, image_bytes: bytes) -> Any:
+        """Execute OCR engine and apply runtime CUDA fallback when needed."""
+        try:
+            return self._ocr_engine(image_bytes)
+        except Exception as ocr_error:
+            error_msg = str(ocr_error)
+
+            if not is_cuda_error(ocr_error):
+                raise
+
+            if self.use_cuda:
+                logger.debug(
+                    "OCR CUDA error during analysis. GPU memory exhausted. "
+                    f"Reloading OCR engine with CPU fallback. Error: {error_msg[:200]}"
+                )
+                return self._retry_ocr_with_cpu(image_bytes)
+
+            logger.warning(
+                "OCR analysis failed (already using CPU but CUDA error persists): "
+                f"{error_msg[:200]}. Skipping OCR analysis."
+            )
+            return None
+
+    def _retry_ocr_with_cpu(self, image_bytes: bytes) -> Any:
+        """Reload OCR engine in CPU mode and retry OCR execution once."""
+        try:
+            ocr_params = self._build_ocr_params(use_cuda=False)
+            self._ocr_engine = RapidOCR(params=ocr_params)
+            self.use_cuda = False
+            logger.warning(
+                "OCR engine reloaded with CPU (CUDA memory exhausted) - retrying analysis"
+            )
+            result = self._ocr_engine(image_bytes)
+            logger.info("OCR analysis completed successfully with CPU fallback")
+            return result
+        except Exception as reload_error:
+            logger.error(
+                f"OCR CPU fallback also failed: {reload_error}. "
+                "Skipping OCR analysis.",
+                exc_info=True,
+            )
+            return None
+
+    def _build_ocr_results(self, result: Any) -> List[Dict[str, Any]]:
+        """Map raw OCR engine result object into normalized OCR records."""
+        if not result or not hasattr(result, "txts"):
+            logger.warning("OCR returned invalid result format")
+            return []
+
+        text_list = self._normalize_ocr_field(getattr(result, "txts", None))
+        scores_list = self._normalize_ocr_field(getattr(result, "scores", None))
+        boxes_list = self._normalize_ocr_field(getattr(result, "boxes", None))
+
+        bbox_list = self._build_bbox_list(boxes_list)
+        if not text_list or not bbox_list:
+            logger.info("OCR found no text elements")
+            return []
+
+        ocr_results: List[Dict[str, Any]] = []
+        for i, (text, bbox) in enumerate(zip(text_list, bbox_list)):
+            ocr_record = self._build_ocr_record(i, text, bbox, scores_list)
+            if ocr_record is not None:
+                ocr_results.append(ocr_record)
+        return ocr_results
+
+    def _build_ocr_record(
+        self,
+        index: int,
+        text: Any,
+        bbox: tuple[int, int, int, int],
+        scores_list: List[Any],
+    ) -> Optional[Dict[str, Any]]:
+        """Build one OCR record row from parsed OCR components."""
+        try:
+            x1, y1, x2, y2 = bbox
+            confidence = (
+                float(scores_list[index])
+                if index < len(scores_list) and scores_list[index] is not None
+                else 0.9
+            )
+
+            return {
+                "id": str(index),
+                "text": str(text).strip(),
+                "confidence": confidence,
+                "bbox": {
+                    "x": int(x1),
+                    "y": int(y1),
+                    "width": int(x2 - x1),
+                    "height": int(y2 - y1),
+                },
+            }
+        except (ValueError, IndexError) as e:
+            logger.warning(f"Failed to parse OCR bbox for text '{text}': {e}")
             return None
 
     def _normalize_ocr_field(self, value: Any) -> List[Any]:
