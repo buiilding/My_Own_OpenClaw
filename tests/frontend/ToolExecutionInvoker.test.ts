@@ -46,4 +46,38 @@ describe('ToolExecutionInvoker', () => {
       skipAutoCapture: false,
     });
   });
+
+  test('normalizes screenshot args to object when args is null', async () => {
+    const invokeSpy = jest
+      .spyOn(IpcBridge, 'invoke')
+      .mockResolvedValue({ success: true, data: {} } as any);
+
+    await invokeTool('screenshot', null, false);
+
+    expect(invokeSpy).toHaveBeenCalledWith(INVOKE_CHANNELS.EXECUTE_TOOL, {
+      toolName: 'screenshot',
+      args: {},
+      skipAutoCapture: false,
+    });
+  });
+
+  test('normalizes screenshot args to object before injecting display bounds', async () => {
+    localStorage.setItem(
+      DISPLAY_BOUNDS_STORAGE_KEY,
+      JSON.stringify({ x: 2, y: 3, width: 4, height: 5 }),
+    );
+    const invokeSpy = jest
+      .spyOn(IpcBridge, 'invoke')
+      .mockResolvedValue({ success: true, data: {} } as any);
+
+    await invokeTool('screenshot', 'invalid-args', false);
+
+    expect(invokeSpy).toHaveBeenCalledWith(INVOKE_CHANNELS.EXECUTE_TOOL, {
+      toolName: 'screenshot',
+      args: {
+        display_bounds: { x: 2, y: 3, width: 4, height: 5 },
+      },
+      skipAutoCapture: false,
+    });
+  });
 });
