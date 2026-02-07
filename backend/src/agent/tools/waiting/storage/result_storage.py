@@ -57,6 +57,16 @@ class ToolResultStorage:
         self._bundle_timestamps: Dict[str, float] = {}
         
         self._cleanup_ttl = cleanup_ttl_seconds
+
+    @staticmethod
+    def _create_future() -> asyncio.Future:
+        """Create a future bound to the running loop when available."""
+        try:
+            loop = asyncio.get_running_loop()
+            return loop.create_future()
+        except RuntimeError:
+            # Fallback for sync contexts/tests where no loop is running yet.
+            return asyncio.Future()
     
     def store_pending_result(self, request_id: str, result: ToolResult) -> None:
         """
@@ -109,7 +119,7 @@ class ToolResultStorage:
         Returns:
             asyncio.Future that will be resolved when the result arrives
         """
-        future = asyncio.Future()
+        future = self._create_future()
         self._result_futures[request_id] = future
         self._futures_dict[request_id] = future
         self._result_timestamps.setdefault(request_id, time.time())
@@ -220,7 +230,7 @@ class ToolResultStorage:
         Returns:
             asyncio.Future that will be resolved when the bundle result arrives
         """
-        future = asyncio.Future()
+        future = self._create_future()
         self._bundle_futures[bundle_id] = future
         self._bundle_futures_dict[bundle_id] = future
         self._bundle_timestamps.setdefault(bundle_id, time.time())
