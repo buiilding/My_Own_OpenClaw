@@ -211,6 +211,7 @@ App
 - Wakeword state
 - Optimized to avoid unnecessary re-renders
 - Uses shared provider event helpers for backend model-list routing and transcript user-id extraction
+- Uses shared config persistence helpers for sanitize-and-apply update flow across disk-load and user-update paths
 
 **AppStatusContext** (`app/providers/AppStatusContext.jsx`)
 - Transient application status (frequently changing)
