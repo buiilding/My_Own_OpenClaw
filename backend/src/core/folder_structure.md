@@ -250,3 +250,6 @@ WebSocket Response
   extraction logic in `backend/src/services/vision/providers/base.py` and
   `backend/src/services/vision/coordinates.py`, keeping provider-specific files
   focused on model-specific I/O.
+- Vision coordinate conversion from model output space to pixel space is
+  centralized in `backend/src/services/vision/coordinates.py` to keep provider
+  post-processing behavior consistent across model families.
