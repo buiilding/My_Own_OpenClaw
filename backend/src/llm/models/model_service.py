@@ -123,11 +123,19 @@ class ModelService:
                 continue
             model_id = item.get("id")
             provider_name = item.get("provider")
-            if not isinstance(model_id, str) or not model_id.strip():
+            if not isinstance(model_id, str):
                 continue
-            if not isinstance(provider_name, str) or not provider_name.strip():
+            if not isinstance(provider_name, str):
                 continue
-            normalized.append(dict(item))
+
+            normalized_id = model_id.strip()
+            normalized_provider = provider_name.strip()
+            if not normalized_id or not normalized_provider:
+                continue
+            normalized_item = dict(item)
+            normalized_item["id"] = normalized_id
+            normalized_item["provider"] = normalized_provider
+            normalized.append(normalized_item)
         return normalized
 
     async def _list_models_from_provider(

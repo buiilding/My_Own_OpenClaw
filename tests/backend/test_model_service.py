@@ -221,6 +221,36 @@ async def test_get_local_models_accepts_iterable_provider_payloads(monkeypatch):
     ]
 
 
+@pytest.mark.asyncio
+async def test_get_local_models_trims_provider_and_model_identifiers(monkeypatch):
+    factory = {
+        "ollama": MalformedModelsProvider(
+            [
+                {
+                    "id": "  spaced-model  ",
+                    "provider": "  ollama  ",
+                    "display_name": "ollama/spaced-model",
+                }
+            ]
+        )
+    }
+    monkeypatch.setattr(
+        "backend.src.llm.providers.create_provider_factory",
+        lambda _cfg: factory,
+    )
+
+    service = ModelService(AppConfig())
+    models = await service.get_local_models()
+
+    assert models == [
+        {
+            "id": "spaced-model",
+            "provider": "ollama",
+            "display_name": "ollama/spaced-model",
+        }
+    ]
+
+
 def test_get_online_models_returns_defensive_copy():
     service = ModelService(AppConfig())
 
