@@ -262,8 +262,8 @@ For tools using vision models:
 
 ### Screenshot Lifecycle
 
-1. **User Message**: Screenshot captured before sending (via useChatMessageSender)
-2. **Tool Execution**: Screenshot automatically captured after computer-use tool execution (via ToolExecutionService)
+1. **User Message**: Screenshot captured before sending (via useChatMessageSender) and uploaded via HTTP `/api/artifacts`
+2. **Tool Execution**: Screenshot automatically captured after computer-use tool execution (via ToolExecutionService) and uploaded via HTTP `/api/artifacts`
    - **Individual Tools**: Screenshot captured **once** after tool execution completes
    - **Bundled Tools**: Screenshot captured **once** after all bundled tools execute (not after each tool)
    - Both use the same helper method (`captureSystemStateAndScreenshot`) ensuring:
@@ -271,8 +271,9 @@ For tools using vision models:
      - Parallel system state + screenshot capture
      - Consistent error handling
      - Proper timing logs
-3. **OCR Processing**: Screenshot processed for OCR (backend)
-4. **Storage**: Screenshot stored in session with unique ID (backend)
+3. **WS Reference**: WebSocket payloads carry `screenshot_ref` (optionally `screenshot_url` for UI) instead of base64 blobs
+4. **OCR Processing**: Screenshot processed for OCR (backend, resolved from artifact store)
+5. **Storage**: Screenshot stored in session with unique ID (backend)
 
 ### ScreenshotManager
 

@@ -247,33 +247,35 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
    ↓
 3. Screenshot captured (always for visual context)
    ↓
-4. IpcBridge.send('to-backend', { type: 'query', payload: {...} })
+4. Screenshot uploaded via HTTP `/api/artifacts` → returns `screenshot_ref` (client may derive `screenshot_url`)
    ↓
-5. Main process receives IPC message
+5. IpcBridge.send('to-backend', { type: 'query', payload: { screenshot_ref, ... } })
    ↓
-6. Main process builds complete message with system state and memories
+6. Main process receives IPC message
    ↓
-7. Main process sends WebSocket message to backend
+7. Main process builds complete message with system state and memories
    ↓
-8. Backend validates message (schema.py)
+8. Main process sends WebSocket message to backend
+   ↓
+9. Backend validates message (schema.py)
    ↓
 9. QueryHandler processes message
    ↓
-10. AgentSession.process_query()
+11. AgentSession.process_query()
     ↓
 11. LLM generates response
     ↓
-12. Backend streams response chunks
+13. Backend streams response chunks
     ↓
-13. Main process receives WebSocket messages
+14. Main process receives WebSocket messages
     ↓
-14. Main process forwards to renderer via IPC
+15. Main process forwards to renderer via IPC
     ↓
-15. useChatStream hook processes events
+16. useChatStream hook processes events
     ↓
-16. Chat store updated via Zustand
+17. Chat store updated via Zustand
     ↓
-17. UI updates with streaming response
+18. UI updates with streaming response
 ```
 
 ### Tool Execution Flow
@@ -300,10 +302,12 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
    - Parallel system state + screenshot capture
    ↓
 10. MessageFormatter formats result
+   ↓
+11. Screenshot uploaded via HTTP `/api/artifacts` → returns `screenshot_ref` (client may derive `screenshot_url`)
     ↓
 12. Result displayed in UI via callback
-    ↓
-13. Result sent to backend via IpcBridge.send()
+   ↓
+13. Result sent to backend via IpcBridge.send() with `screenshot_ref`
     ↓
 14. Main process sends tool-result to backend via WebSocket
     ↓

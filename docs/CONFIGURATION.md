@@ -79,6 +79,13 @@ AppConfig controls WebSocket limits and timeouts:
 - `websocket_receive_timeout` (default 3600s)
 - `websocket_task_cancellation_timeout` (default 5s)
 
+### Artifact Settings
+
+AppConfig controls HTTP artifact storage used for screenshots:
+
+- `artifact_store_path` (default: temp dir `windieos-artifacts`)
+- `artifact_max_bytes` (default: 25MB)
+
 ## Frontend Configuration (Local)
 
 The UI stores a minimal settings payload (model selection + voice toggles) locally. These values are pushed to the backend via `update-settings` and applied to the user session on the next query.
