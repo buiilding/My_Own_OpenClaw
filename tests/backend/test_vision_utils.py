@@ -24,3 +24,7 @@ def test_normalize_model_name_does_not_replace_non_prefix_occurrence():
 
 def test_normalize_model_name_returns_original_when_no_prefix():
     assert normalize_model_name("OpenGVLab/InternVL3_5-4B") == "OpenGVLab/InternVL3_5-4B"
+
+
+def test_normalize_model_name_strips_case_insensitive_prefix():
+    assert normalize_model_name("HuggingFace-Local/ModelA") == "ModelA"
