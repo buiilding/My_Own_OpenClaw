@@ -226,7 +226,22 @@ describe('ToolExecutionService', () => {
         }),
       }),
     );
-    expect(mockFormatBundledToolOutputMessage).toHaveBeenCalled();
+    expect(mockFormatBundledToolOutputMessage).toHaveBeenCalledWith(
+      [
+        expect.objectContaining({
+          tool_name: 'read_file',
+          success: true,
+          error: null,
+        }),
+        expect.objectContaining({
+          tool_name: 'mouse_control',
+          success: true,
+          error: null,
+        }),
+      ],
+      { active_window: 'App' },
+      'bundle-shot',
+    );
   });
 
   test('executeToolBundle fails fast and reports partial failure', async () => {

@@ -251,7 +251,6 @@ export class ToolExecutionService {
     bundleId: string,
     status: string,
     stepResults: Array<{ tool: string; status: string; output: string }>,
-    screenshot: string | null,
     screenshotRef: string | null,
     systemState: SystemState | null,
     error: string | null
@@ -303,17 +302,18 @@ export class ToolExecutionService {
       const allSuccess = stepResults.every(step => step.status === 'ok');
       const hasFailures = stepResults.some(step => step.status === 'error');
       const bundleStatus = allSuccess ? 'success' : (hasFailures && stepResults.length < bundle.length) ? 'partial_failure' : 'failure';
+      const normalizedResults = stepResults.map(step => ({
+        tool_name: step.tool,
+        _rawResult: { success: step.status === 'ok', error: step.status === 'error' ? step.output : null, data: null },
+        success: step.status === 'ok',
+        error: step.status === 'error' ? step.output : null,
+        data: null
+      }));
 
       // Format combined bundled message for UI display
       const formattingStartTime = performance.now();
       const combinedFormattedMessage = formatBundledToolOutputMessage(
-        stepResults.map(step => ({
-          tool_name: step.tool,
-          _rawResult: { success: step.status === 'ok', error: step.status === 'error' ? step.output : null, data: null },
-          success: step.status === 'ok',
-          error: step.status === 'error' ? step.output : null,
-          data: null
-        })),
+        normalizedResults,
         systemState,
         screenshot
       );
@@ -333,14 +333,14 @@ export class ToolExecutionService {
       // Prepare bundle result for UI callback (totalTime will be set after backend send)
       const bundleResult: BundleExecutionResult = {
         correlationId: bundleId,
-        results: stepResults.map(step => ({
-          tool_name: step.tool,
+        results: normalizedResults.map(step => ({
+          tool_name: step.tool_name,
           request_id: '', // Not needed for atomic bundles
-          success: step.status === 'ok',
-          data: null,
-          error: step.status === 'error' ? step.output : null,
+          success: step.success,
+          data: step.data,
+          error: step.error,
           executionTime: 0,
-          _rawResult: { success: step.status === 'ok', error: step.status === 'error' ? step.output : null, data: null }
+          _rawResult: step._rawResult
         })),
         totalTime: 0, // Will be set after backend send
         formattedMessage: combinedFormattedMessage,
@@ -369,7 +369,6 @@ export class ToolExecutionService {
         bundleId,
         bundleStatus,
         stepResults,
-        screenshot,
         bundleScreenshotRef,
         systemState,
         errorMessage
@@ -403,7 +402,6 @@ export class ToolExecutionService {
         bundleId,
         'failure',
         stepResults,
-        null,
         null,
         null,
         errorMessage
