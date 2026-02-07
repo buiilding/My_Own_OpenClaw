@@ -14,6 +14,8 @@ const suppressedPrefixes = [
   '[Config]',
   '[Settings Update]',
   '[ToolExecutionService]',
+  '[useChatMessageSender]',
+  '[VoiceMode]',
   '[Timing]',
 ];
 
@@ -24,7 +26,11 @@ const originalConsole = {
 };
 
 const shouldSuppress = (args) =>
-  typeof args[0] === 'string' && suppressedPrefixes.some((prefix) => args[0].startsWith(prefix));
+  args.some(
+    (arg) =>
+      typeof arg === 'string'
+      && suppressedPrefixes.some((prefix) => arg.startsWith(prefix)),
+  );
 
 ['log', 'warn', 'error'].forEach((method) => {
   jest.spyOn(console, method).mockImplementation((...args) => {
