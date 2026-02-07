@@ -29,6 +29,8 @@ def test_safe_timeout_conversion_enforces_limits_and_defaults():
     assert providers_module._safe_timeout_conversion(0.25, default=9.0) == 9.0
     assert providers_module._safe_timeout_conversion(999999) == 3600.0
     assert providers_module._safe_timeout_conversion("bad", default=12.0) == 12.0
+    assert providers_module._safe_timeout_conversion(float("nan"), default=7.0) == 7.0
+    assert providers_module._safe_timeout_conversion(float("inf"), default=7.0) == 7.0
 
 
 def test_canonicalize_provider_urls_normalizes_values():
