@@ -264,6 +264,7 @@ App
 - Handles tool execution events
 - Manages tool bundling
 - Updates chat store with tool results
+- Uses shared tool-runner message/mapping helpers for output message shaping and tool-call/bundle normalization
 
 **useTranscription** (`useTranscription.ts`)
 - Input field state management
