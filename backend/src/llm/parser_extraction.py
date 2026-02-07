@@ -98,11 +98,10 @@ class JsonToolCallExtractor:
             if pos > self.limits.max_response_size:
                 break
 
-            match = re.search(r"\{", response[pos:])
-            if not match:
+            start_index = response.find("{", pos)
+            if start_index < 0:
                 break
 
-            start_index = pos + match.start()
             remaining = len(response) - start_index
             if remaining > self.limits.max_json_size:
                 pos = start_index + 1
@@ -173,7 +172,11 @@ class JsonToolCallExtractor:
     ) -> Dict[str, Any]:
         """Safely load JSON with depth limits and timeout checks."""
         if time.monotonic() - start_time > timeout:
-            raise TimeoutError("JSON load timeout exceeded")
+            raise ParseTimeoutError(
+                "JSON load timeout exceeded",
+                timeout_seconds=timeout,
+                boundary_name="response_parser",
+            )
 
         try:
             parsed = json.loads(json_str)
