@@ -227,6 +227,20 @@ describe('AppConfigProvider', () => {
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(undefined, 'client-user-1');
   });
 
+  test('syncs current config when get-client-user-id reports already connected', async () => {
+    clientUserIdResponse = { userId: 'client-user-1', isConnected: true };
+
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(ApiClient.updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({ voice_mode_enabled: false }),
+    );
+  });
+
   test('updates transcript session from IPC status events with userId', () => {
     renderHook(() => useAppConfigContext(), { wrapper });
 
