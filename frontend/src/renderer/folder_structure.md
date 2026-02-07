@@ -18,7 +18,7 @@ frontend/src/renderer/
 │   │
 │   └── providers/                       # Context providers for global state
 │       ├── AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
-│       ├── AppConfigProvider.jsx        # AppConfigProvider - Manages config, availableModels, wakewordEnabled/active (infrequent changes)
+│       ├── AppConfigProvider.jsx        # AppConfigProvider - Manages config/models/wakeword and syncs frontend config to backend on connect/startup
 │       ├── AppContextHooks.js           # AppContext hooks (useAppContext, useAppConfigContext, useAppStatusContext)
 │       ├── AppProvider.jsx              # AppProvider - Combines AppConfigProvider and AppStatusProvider
 │       ├── AppStatusContext.jsx         # AppStatusContext + useAppStatusContext hook
@@ -213,7 +213,7 @@ frontend/src/renderer/
 3. IPC BRIDGE
    └─> infrastructure/ipc/bridge.ts
        └─> IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'query', ... })
-           └─> Main process → Backend WebSocket
+           └─> Main process (`src/main/ipc.cjs`) waits for initial `update-settings` ACK, then forwards query to backend WebSocket
 ```
 
 ### Streaming Response Flow

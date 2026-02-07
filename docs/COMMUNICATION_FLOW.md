@@ -202,8 +202,9 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 - Payload: `{}`
 - Usage: Mark streaming complete
 
-**`settings-loaded` / `settings-updated`**
-- Status: Legacy only. Backend does not currently emit these; frontend settings are local-only.
+**`settings-updated`**
+- Purpose: Acknowledge `update-settings` payload application for the current session.
+- Usage: Electron main process gates first `query`/`wakeword-detected` until this ACK (or timeout fallback) to avoid tool-whitelist races.
 
 **`models-listed`**
 - Purpose: Available models response
@@ -322,7 +323,9 @@ Settings are persisted locally and synced to the backend session:
 
 - `AppConfigContext.updateConfig()` saves to localStorage and disk.
 - Frontend sends `update-settings` to backend.
-- Backend applies session config updates on the next query.
+- Main process tracks `settings-updated` ACK by message id.
+- First `query`/`wakeword-detected` after connect waits for initial settings sync ACK (timeout fallback keeps app responsive).
+- Backend applies session config updates for the active session before subsequent query processing.
 
 ## Error Handling
 
