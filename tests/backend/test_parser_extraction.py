@@ -152,3 +152,37 @@ def test_remove_extracted_calls_removes_repeated_identical_raw_calls():
     cleaned = extractor.remove_extracted_calls(text, tool_calls)
 
     assert cleaned == "before  middle  after"
+
+
+def test_remove_extracted_calls_ignores_empty_raw_call_entries():
+    extractor = _make_extractor()
+    text = "  keep spacing  "
+    tool_calls = [
+        ParsedToolCall(
+            tool_name="read_file",
+            parameters={"path": "/tmp/a"},
+            raw_call="",
+        )
+    ]
+
+    cleaned = extractor.remove_extracted_calls(text, tool_calls)
+
+    assert cleaned == text
+
+
+def test_remove_extracted_calls_skips_empty_entries_and_removes_valid_calls():
+    extractor = _make_extractor()
+    raw_call = '{"functionCall":{"name":"read_file","args":{"path":"/tmp/a"}}}'
+    text = f"before {raw_call} after"
+    tool_calls = [
+        ParsedToolCall(tool_name="read_file", parameters={"path": "/tmp/a"}, raw_call=""),
+        ParsedToolCall(
+            tool_name="read_file",
+            parameters={"path": "/tmp/a"},
+            raw_call=raw_call,
+        ),
+    ]
+
+    cleaned = extractor.remove_extracted_calls(text, tool_calls)
+
+    assert cleaned == "before  after"
