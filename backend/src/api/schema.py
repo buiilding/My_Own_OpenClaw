@@ -56,6 +56,8 @@ class QueryPayload(BaseModel):
     text: str  # Original query text (for reference)
     content: Optional[str] = None  # Complete message content (system state + memories + query)
     screenshot: Optional[str] = None  # Base64-encoded screenshot data for user messages
+    screenshot_ref: Optional[str] = None  # Artifact reference for screenshot (preferred)
+    screenshot_url: Optional[str] = None  # Optional client-provided URL (ignored by backend)
 
 class QueryMessage(BaseMessage):
     type: Literal["query"]
@@ -104,6 +106,7 @@ class ToolBundleResultPayload(BaseModel):
     bundle_id: str
     status: str  # "success", "partial_failure", or "failure"
     screenshot: Optional[str] = None
+    screenshot_ref: Optional[str] = None
     system_state: Optional[Dict[str, Any]] = None
     step_results: List[Dict[str, Any]]  # List of dicts with tool, status, output
     error: Optional[str] = None

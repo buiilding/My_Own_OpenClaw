@@ -21,6 +21,7 @@ from backend.src.api.transport.sender import WebSocketTransportSender
 from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.processing.tts.processor import TTSProcessor
 from backend.src.api.schema import BaseMessage, QueryMessage
+from backend.src.services.artifacts import ArtifactStore
 from backend.src.core.validation.validators import (
     ValidationError,
     validate_query_text,
@@ -121,6 +122,13 @@ class QueryMessageHandler(MessageHandler):
             # Frontend now sends complete message content
             message_content = validated.payload.content
             screenshot = validated.payload.screenshot  # Optional screenshot data
+            screenshot_ref = validated.payload.screenshot_ref
+            if not screenshot and screenshot_ref:
+                try:
+                    store = ArtifactStore.from_config(self.session_manager.config)
+                    screenshot = store.load_base64(screenshot_ref)
+                except Exception as e:
+                    logger.warning(f"Failed to load screenshot artifact {screenshot_ref}: {e}")
             try:
                 async for event in agent_instance.process_query(
                     query_text,

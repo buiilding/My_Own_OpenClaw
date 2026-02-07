@@ -165,6 +165,7 @@ class ToolResultHandler(MessageHandler):
             status=payload.status,
             step_results=payload.step_results,
             screenshot=payload.screenshot,
+            screenshot_ref=payload.screenshot_ref,
             system_state=payload.system_state,
             error=payload.error
         )
