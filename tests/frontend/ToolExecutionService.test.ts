@@ -7,6 +7,10 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/MessageFormatter'
   formatBundledToolOutputMessage: jest.fn(() => 'bundle-formatted'),
 }));
 
+jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader', () => ({
+  uploadArtifactBase64: jest.fn().mockResolvedValue(null),
+}));
+
 import { ToolExecutionService } from '../../frontend/src/renderer/infrastructure/services/ToolExecutionService';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
@@ -22,6 +26,7 @@ const mockFormatBundledToolOutputMessage =
 
 describe('ToolExecutionService', () => {
   beforeEach(() => {
+    jest.restoreAllMocks();
     jest.clearAllMocks();
   });
 

@@ -94,7 +94,7 @@ describe('SystemCapture', () => {
     const result = await extractOSstate(false, false, 0, false);
 
     expect(invokeSpy).not.toHaveBeenCalled();
-    expect(result).toEqual({ systemState: null, screenshot: null });
+    expect(result).toEqual({ systemState: null, screenshot: null, screenshotContentType: null });
   });
 
   test('extractOSstate handles invoke errors gracefully', async () => {
@@ -103,7 +103,7 @@ describe('SystemCapture', () => {
 
     const result = await extractOSstate(true, true, 0, false);
 
-    expect(result).toEqual({ systemState: null, screenshot: null });
+    expect(result).toEqual({ systemState: null, screenshot: null, screenshotContentType: null });
     consoleSpy.mockRestore();
   });
 });
