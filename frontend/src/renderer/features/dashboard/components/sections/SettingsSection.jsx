@@ -3,6 +3,12 @@ import PropTypes from 'prop-types';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import { useAppConfigContext } from '../../../../app/providers/AppContextHooks';
 import { getStoredDisplayId, persistDisplaySelection } from '../../../../utils/displaySelection';
+import {
+  buildSpeechModeConfigUpdate,
+  findDisplayById,
+  resolveDisplaySelection,
+  toDisplayOptions,
+} from '../../utils/settingsDisplayUtils';
 import '../../../../styles/SettingsPanel.css';
 
 function SettingsSection({ config, onConfigChange }) {
@@ -11,11 +17,7 @@ function SettingsSection({ config, onConfigChange }) {
   const [displayError, setDisplayError] = useState('');
   const [selectedDisplayId, setSelectedDisplayId] = useState(() => getStoredDisplayId());
 
-  const modelMode = config?.model_mode || 'online';
-  const selectedModelId = config?.selected_model_id || '';
-  const selectedProvider = config?.model_provider || '';
   const speechModeEnabled = config?.speech_mode_enabled ?? false;
-  const interactionMode = config?.interaction_mode || 'chat';
 
   useEffect(() => {
     let mounted = true;
@@ -36,37 +38,20 @@ function SettingsSection({ config, onConfigChange }) {
   }, []);
 
   useEffect(() => {
-    if (!displays.length) {
+    const { selectedDisplay, nextSelectedDisplayId } = resolveDisplaySelection(displays, selectedDisplayId);
+    if (!selectedDisplay) {
       return;
     }
-    const selected = displays.find((display) => String(display.id) === selectedDisplayId);
-    if (selected) {
-      persistDisplaySelection(selected);
-      return;
+    if (nextSelectedDisplayId !== selectedDisplayId) {
+      setSelectedDisplayId(nextSelectedDisplayId);
     }
-    const primary = displays.find((display) => display.isPrimary) || displays[0];
-    if (primary) {
-      const nextId = String(primary.id);
-      if (nextId !== selectedDisplayId) {
-        setSelectedDisplayId(nextId);
-      }
-      persistDisplaySelection(primary);
-    }
+    persistDisplaySelection(selectedDisplay);
   }, [displays, selectedDisplayId]);
 
-  const displayOptions = useMemo(() => displays.map((display) => ({
-    value: String(display.id),
-    label: display.label || `Display ${display.id}`,
-  })), [displays]);
+  const displayOptions = useMemo(() => toDisplayOptions(displays), [displays]);
 
   const handleSpeechModeToggle = (enabled) => {
-    onConfigChange({
-      model_mode: modelMode,
-      selected_model_id: selectedModelId,
-      model_provider: selectedProvider,
-      speech_mode_enabled: enabled,
-      interaction_mode: interactionMode,
-    });
+    onConfigChange(buildSpeechModeConfigUpdate(config, enabled));
   };
 
   return (
@@ -134,7 +119,7 @@ function SettingsSection({ config, onConfigChange }) {
               onChange={(event) => {
                 const nextValue = event.target.value;
                 setSelectedDisplayId(nextValue);
-                const selectedDisplay = displays.find((display) => String(display.id) === nextValue);
+                const selectedDisplay = findDisplayById(displays, nextValue);
                 persistDisplaySelection(selectedDisplay ? selectedDisplay : { id: nextValue, bounds: null });
               }}
             >
