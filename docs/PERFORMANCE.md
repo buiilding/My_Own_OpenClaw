@@ -22,6 +22,7 @@ read_when:
 - **Voice audio encoding reuse**: shared PCM conversion helpers in `frontend/src/renderer/features/voice/utils/audioEncoding.ts` remove duplicate per-hook logic.
 - **Gateway metadata prefix cache**: voice packet framing caches metadata prefixes by sample rate to avoid JSON/string encoding work on every audio chunk.
 - **Chat hook selector subscriptions**: `useChatStream` and `useChatMessageSender` subscribe to store actions via selectors to avoid rerenders from unrelated state updates.
+- **Chat send-path capture trimming**: `useChatMessageSender` now skips unused system-state capture during user-message send, reducing extra IPC work on each send.
 - **Chat store no-op updates**: `updateMessage`, `setMessages`, `setIsSending`, `setThinkingStatus`, and `setTokenCounts` now preserve state identity when values are unchanged, preventing unnecessary state churn.
 - **Config startup dedupe**: `AppConfigProvider` skips disk-sync writes and backend settings updates when loaded config matches the in-memory config.
 - **Stable config update handlers**: `AppConfigProvider` now uses a live config ref for comparisons and memoizes provider value/callbacks to avoid stale closures and needless re-renders.
