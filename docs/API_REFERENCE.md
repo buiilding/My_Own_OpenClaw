@@ -92,6 +92,32 @@ Health check for semantic summarization.
 { "status": "healthy", "message": "Semantic summarization service ready" }
 ```
 
+## HTTP Endpoints (Artifacts)
+
+Large artifacts (screenshots, snapshots) are uploaded over HTTP and referenced by ID in WebSocket payloads.
+
+### POST `/api/artifacts/`
+
+Upload an artifact (multipart/form-data).
+
+**Request**:
+- `file`: binary file upload
+
+**Response**:
+```json
+{
+  "artifact_id": "uuid.jpg",
+  "content_type": "image/jpeg",
+  "size_bytes": 123456,
+  "sha256": "hex",
+  "url": "http://127.0.0.1:8765/api/artifacts/uuid.jpg"
+}
+```
+
+### GET `/api/artifacts/{artifact_id}`
+
+Fetch an artifact by ID (binary response).
+
 ## Message Format
 
 ### Base Message Structure
@@ -130,7 +156,9 @@ Send a user query with optional screenshot.
 {
   "text": "User query text",
   "content": "<system_context>...</system_context> ...", // Optional, built by Electron main process
-  "screenshot": "base64-encoded-screenshot" // Optional
+  "screenshot": "base64-encoded-screenshot", // Optional (legacy)
+  "screenshot_ref": "uuid.jpg", // Preferred
+  "screenshot_url": "http://127.0.0.1:8765/api/artifacts/uuid.jpg" // Optional (client hint, ignored by backend)
 }
 ```
 
@@ -158,7 +186,7 @@ Send a user query with optional screenshot.
   "type": "query",
   "payload": {
     "text": "Click the submit button",
-    "screenshot": "iVBORw0KGgoAAAANSUhEUgAA..."
+    "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg"
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }
@@ -256,7 +284,9 @@ Send tool execution result from frontend.
   "success": true,
   "data": {
     "llm_content": "Preformatted tool output",
-    "screenshot": "base64-encoded-screenshot",
+    "screenshot": "base64-encoded-screenshot", // Optional (legacy)
+    "screenshot_ref": "uuid.jpg",
+    "screenshot_url": "http://127.0.0.1:8765/api/artifacts/uuid.jpg",
     "system_state": { "active_window": "...", "mouse_position": "..." }
   },
   "error": null
@@ -275,7 +305,8 @@ Send tool execution result from frontend.
     "success": true,
     "data": {
       "llm_content": "Clicked submit button",
-      "screenshot": "iVBORw0KGgoAAAANSUhEUgAA...",
+      "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg",
+      "screenshot_url": "http://127.0.0.1:8765/api/artifacts/1f2c3a4b5d6e7f8a.jpg",
       "system_state": {
         "active_window": "Browser",
         "mouse_position": "(100, 200)"
@@ -298,7 +329,8 @@ Result of an atomic tool bundle executed on the frontend.
 {
   "bundle_id": "bundle-123",
   "status": "success",
-  "screenshot": "base64-encoded-screenshot",
+  "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg",
+  "screenshot_url": "http://127.0.0.1:8765/api/artifacts/1f2c3a4b5d6e7f8a.jpg",
   "system_state": { "active_window": "...", "mouse_position": "..." },
   "step_results": [ { "tool": "mouse_control", "status": "success" } ],
   "error": null
