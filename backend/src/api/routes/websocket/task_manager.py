@@ -74,7 +74,10 @@ class TaskManager:
         """Close rejected coroutine inputs to avoid RuntimeWarning leaks."""
         close = getattr(coro, "close", None)
         if callable(close):
-            close()
+            try:
+                close()
+            except Exception as e:
+                logger.debug(f"Ignoring coroutine close failure: {e}")
     
     async def create_task_if_under_limit(
         self, 

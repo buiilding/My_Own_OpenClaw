@@ -57,6 +57,22 @@ async def test_create_task_if_under_limit_enforces_max_concurrency() -> None:
 
 
 @pytest.mark.asyncio
+async def test_create_task_if_under_limit_ignores_close_errors_on_rejected_inputs() -> None:
+    manager = TaskManager(max_concurrent_tasks=0, task_cancellation_timeout=0.1)
+
+    class BadCloseCoro:
+        def close(self):
+            raise RuntimeError("close failed")
+
+    task, limit_exceeded = await manager.create_task_if_under_limit(
+        BadCloseCoro(), "user_bad_close"
+    )
+
+    assert task is None
+    assert limit_exceeded is True
+
+
+@pytest.mark.asyncio
 async def test_cleanup_cancels_pending_tasks() -> None:
     manager = TaskManager(max_concurrent_tasks=2, task_cancellation_timeout=0.1)
 
