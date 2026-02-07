@@ -1,6 +1,7 @@
 import base64
 
 import backend.src.services.ocr.ocr_service as ocr_service_module
+import pytest
 from backend.src.core.config.models import OCRConfig
 from backend.src.services.ocr.ocr_service import OcrService, is_cuda_error
 
@@ -136,3 +137,88 @@ def test_normalized_batch_thresholds_falls_back_when_all_invalid():
     thresholds = OcrService._normalized_batch_thresholds([["bad", "bad", "bad"]])
 
     assert thresholds == [(0.0, 6, 4)]
+
+
+def test_ensure_engine_initialized_sync_short_circuits_when_engine_exists():
+    service = OcrService()
+    service._ocr_engine = object()
+
+    assert service._ensure_engine_initialized_sync() is True
+
+
+def test_ensure_engine_initialized_sync_uses_lazy_init_when_available(monkeypatch):
+    service = OcrService()
+    service._ocr_engine = None
+    monkeypatch.setattr(ocr_service_module, "OCR_AVAILABLE", True)
+
+    called = {"lazy": 0}
+
+    def fake_lazy():
+        called["lazy"] += 1
+        service._ocr_engine = object()
+        return True
+
+    monkeypatch.setattr(service, "_lazy_initialize_engine", fake_lazy)
+
+    assert service._ensure_engine_initialized_sync() is True
+    assert called["lazy"] == 1
+
+
+def test_run_ocr_engine_retries_with_cpu_when_cuda_error(monkeypatch):
+    service = OcrService()
+    service.use_cuda = True
+
+    class RaisingEngine:
+        def __call__(self, _image):
+            raise RuntimeError("CUDNN_STATUS_ALLOC_FAILED")
+
+    service._ocr_engine = RaisingEngine()
+    image_bytes = b"image"
+    expected = object()
+    captured = {"payload": None}
+
+    def fake_retry(payload):
+        captured["payload"] = payload
+        return expected
+
+    monkeypatch.setattr(service, "_retry_ocr_with_cpu", fake_retry)
+
+    assert service._run_ocr_engine(image_bytes) is expected
+    assert captured["payload"] == image_bytes
+
+
+def test_run_ocr_engine_raises_non_cuda_errors():
+    service = OcrService()
+    service.use_cuda = True
+
+    class RaisingEngine:
+        def __call__(self, _image):
+            raise RuntimeError("non-cuda-failure")
+
+    service._ocr_engine = RaisingEngine()
+
+    with pytest.raises(RuntimeError, match="non-cuda-failure"):
+        service._run_ocr_engine(b"image")
+
+
+def test_build_ocr_results_maps_valid_rows_and_skips_invalid_rows():
+    service = OcrService()
+
+    class DummyResult:
+        txts = ["hello", "bad"]
+        scores = [0.75, "nan-not-float"]
+        boxes = [
+            [[1, 2], [4, 2], [4, 7], [1, 7]],
+            [[8, 1], [10, "x"], [10, 4], [8, 4]],
+        ]
+
+    results = service._build_ocr_results(DummyResult())
+
+    assert results == [
+        {
+            "id": "0",
+            "text": "hello",
+            "confidence": 0.75,
+            "bbox": {"x": 1, "y": 2, "width": 3, "height": 5},
+        }
+    ]
