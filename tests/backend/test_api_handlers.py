@@ -269,6 +269,49 @@ async def test_query_handler_continues_when_artifact_load_fails(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_query_handler_prefers_inline_screenshot_over_artifact_ref(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session = DummyCaptureAgent()
+    session_manager.config = AppConfig()
+    handler = QueryMessageHandler(session_manager, DummyTTSManager(), ResponseFormatter())
+
+    class DummyPipeline:
+        def __init__(self, *_args, **_kwargs):
+            return None
+
+        async def process(self, *_args, **_kwargs):
+            return None
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    monkeypatch.setattr("backend.src.api.handlers.query.StreamPipeline", DummyPipeline)
+    monkeypatch.setattr(
+        query_handler_module.ArtifactStore,
+        "from_config",
+        classmethod(lambda _cls, _cfg: (_ for _ in ()).throw(RuntimeError("should not be called"))),
+    )
+
+    message = QueryMessage(
+        id="msg_artifact_ref_3",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "inline screenshot should win",
+            "content": "<user_query>inline screenshot should win</user_query>",
+            "screenshot": "inline-base64",
+            "screenshot_ref": "unused.png",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert len(session_manager.session.calls) == 1
+    assert session_manager.session.calls[0]["image_data"] == "inline-base64"
+
+
+@pytest.mark.asyncio
 async def test_tool_result_handler_routes_to_session():
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
@@ -311,6 +354,55 @@ async def test_tool_bundle_result_handler_routes_to_session():
     await handler.handle(message, websocket, "user_1")
     assert session_manager.session_instance.bundle_calls
     assert session_manager.session_instance.bundle_calls[0]["bundle_id"] == "bundle_1"
+
+
+@pytest.mark.asyncio
+async def test_tool_bundle_result_handler_forwards_screenshot_ref():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session_instance = DummySession()
+    handler = ToolResultHandler(session_manager)
+
+    message = ToolBundleResultMessage(
+        id="msg_5b",
+        type="tool-bundle-result",
+        user_id="user_1",
+        payload={
+            "bundle_id": "bundle_2",
+            "status": "success",
+            "step_results": [{"tool": "read_file", "status": "ok", "output": "done"}],
+            "screenshot": None,
+            "screenshot_ref": "artifact-1.png",
+            "system_state": None,
+            "error": None,
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert session_manager.session_instance.bundle_calls
+    assert session_manager.session_instance.bundle_calls[0]["bundle_id"] == "bundle_2"
+    assert session_manager.session_instance.bundle_calls[0]["screenshot_ref"] == "artifact-1.png"
+
+
+def test_tool_result_handler_validate_metadata_filters_unknown_keys():
+    session_manager = DummySessionManager()
+    handler = ToolResultHandler(session_manager)
+
+    validated = handler._validate_metadata(
+        {
+            "is_preformatted": True,
+            "is_bundled": False,
+            "bundle_request_id": "bundle-123",
+            "ignored_key": "ignored",
+        }
+    )
+
+    assert validated == {
+        "is_preformatted": True,
+        "is_bundled": False,
+        "bundle_request_id": "bundle-123",
+    }
 
 
 @pytest.mark.asyncio
