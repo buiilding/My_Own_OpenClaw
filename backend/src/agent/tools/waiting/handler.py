@@ -44,6 +44,13 @@ class ToolResultHandler:
     def _is_bundled_result_data(result_data: Optional[Dict[str, Any]]) -> bool:
         """Return True when result payload is a bundled-tool result envelope."""
         return isinstance(result_data, dict) and bool(result_data.get("bundled"))
+
+    @staticmethod
+    def _normalize_metadata(metadata: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """Return a mutable metadata dict, tolerating malformed payloads."""
+        if not isinstance(metadata, dict):
+            return {}
+        return dict(metadata)
     
     async def process_frontend_tool_result(
         self,
@@ -51,7 +58,7 @@ class ToolResultHandler:
         success: bool,
         result_data: Optional[Dict[str, Any]],
         error: Optional[str],
-        metadata: Dict[str, Any]
+        metadata: Optional[Dict[str, Any]]
     ) -> None:
         """
         Process a tool result from the frontend.
@@ -77,8 +84,9 @@ class ToolResultHandler:
             return
         
         # Handle individual tool result
+        normalized_metadata = self._normalize_metadata(metadata)
         tool_result = self.receiver.receive_individual_result(
-            request_id, success, result_data, error, metadata
+            request_id, success, result_data, error, normalized_metadata
         )
         await self.router.route_individual_result(request_id, tool_result)
     
