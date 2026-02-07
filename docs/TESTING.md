@@ -33,3 +33,4 @@ npm test
 - Activate the Python environment that has backend/sidecar deps before running `pytest`.
 - For CI parity: `cd frontend && npm run test:ci`.
 - Frontend tests use Jest + React Testing Library.
+- `tests/frontend/ToolRunnerHook.test.ts` covers backend-listener cleanup and malformed tool event guards to prevent false-positive dispatch behavior.
