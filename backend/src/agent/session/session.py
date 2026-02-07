@@ -377,6 +377,7 @@ class AgentSession:
         status: str,
         step_results: List[Dict[str, Any]],
         screenshot: Optional[str],
+        screenshot_ref: Optional[str],
         system_state: Optional[Dict[str, Any]],
         error: Optional[str]
     ) -> None:
@@ -394,7 +395,7 @@ class AgentSession:
             error: Optional error message if bundle failed
         """
         await self.tool_result_handler.process_frontend_tool_bundle_result(
-            bundle_id, status, step_results, screenshot, system_state, error
+            bundle_id, status, step_results, screenshot, screenshot_ref, system_state, error
         )
     
     async def cleanup(self) -> None:

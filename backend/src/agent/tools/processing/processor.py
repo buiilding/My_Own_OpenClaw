@@ -75,6 +75,7 @@ class ToolResultProcessor:
                             "status": "success" if bundled_result.success else "failure",
                             "step_results": bundle_data.get("step_results", []),
                             "screenshot": bundle_data.get("screenshot"),
+                            "screenshot_ref": bundle_data.get("screenshot_ref"),
                             "system_state": bundle_data.get("system_state"),
                             "error": bundled_result.error
                         },

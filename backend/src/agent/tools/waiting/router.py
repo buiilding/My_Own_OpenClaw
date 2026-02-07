@@ -6,6 +6,8 @@ Routes tool results to appropriate handlers.
 import logging
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
+from backend.src.services.artifacts import ArtifactStore
+
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
     from backend.src.agent.tools.preparation.screenshot.processor import ScreenshotProcessor
@@ -53,6 +55,29 @@ class ToolResultRouter:
             self.session, screenshot, request_id
         )
 
+    def _resolve_screenshot_ref(self, screenshot_ref: Optional[str]) -> Optional[str]:
+        if not screenshot_ref:
+            return None
+        try:
+            store = ArtifactStore.from_config(self.session.cfg)
+            return store.load_base64(screenshot_ref)
+        except Exception as exc:
+            logger.warning(f"Failed to load screenshot artifact {screenshot_ref}: {exc}")
+            return None
+
+    def _looks_like_artifact_id(self, value: Optional[str]) -> bool:
+        if not value or not isinstance(value, str):
+            return False
+        if "/" in value or "\\" in value:
+            return False
+        lowered = value.lower()
+        return lowered.endswith((".png", ".jpg", ".jpeg")) and len(value) < 80
+
+    def _inject_screenshot_artifact(self, tool_result: "ToolResult", screenshot_data: str) -> None:
+        if tool_result.artifacts is None:
+            tool_result.artifacts = {}
+        tool_result.artifacts["screenshot"] = screenshot_data
+
     async def route_individual_result(
         self,
         request_id: str,
@@ -70,6 +95,12 @@ class ToolResultRouter:
         if isinstance(tool_result.data, dict) and "screenshot" in tool_result.data:
             screenshot_data = tool_result.data["screenshot"]
             logger.debug("Tool result includes screenshot data")
+        if not screenshot_data and isinstance(tool_result.data, dict):
+            screenshot_ref = tool_result.data.get("screenshot_ref")
+            if self._looks_like_artifact_id(screenshot_ref):
+                screenshot_data = self._resolve_screenshot_ref(screenshot_ref)
+            if screenshot_data:
+                self._inject_screenshot_artifact(tool_result, screenshot_data)
         
         await self._process_screenshot(screenshot_data, request_id, "Tool result")
         
@@ -97,6 +128,12 @@ class ToolResultRouter:
         screenshot = None
         if isinstance(tool_result.data, dict):
             screenshot = tool_result.data.get("screenshot")
+            if not screenshot:
+                screenshot_ref = tool_result.data.get("screenshot_ref")
+                if self._looks_like_artifact_id(screenshot_ref):
+                    screenshot = self._resolve_screenshot_ref(screenshot_ref)
+                if screenshot:
+                    self._inject_screenshot_artifact(tool_result, screenshot)
         
         await self._process_screenshot(screenshot, bundle_id, "Bundle result")
         
@@ -126,7 +163,12 @@ class ToolResultRouter:
             combined_result: Combined result if available
             bundle_screenshot: Screenshot from bundle if present
         """
-        await self._process_screenshot(bundle_screenshot, bundle_request_id, "Bundle result")
+        resolved_bundle_screenshot = bundle_screenshot
+        if self._looks_like_artifact_id(bundle_screenshot):
+            resolved_bundle_screenshot = self._resolve_screenshot_ref(bundle_screenshot)
+        if resolved_bundle_screenshot and combined_result:
+            self._inject_screenshot_artifact(combined_result, resolved_bundle_screenshot)
+        await self._process_screenshot(resolved_bundle_screenshot, bundle_request_id, "Bundle result")
         
         # Store individual tool results for orchestrator matching
         for tool_request_id, tool_result in individual_results:
@@ -136,6 +178,9 @@ class ToolResultRouter:
                 f"tool={metadata.get('tool_name', 'unknown')}, success={tool_result.success}"
             )
             
+            if resolved_bundle_screenshot:
+                self._inject_screenshot_artifact(tool_result, resolved_bundle_screenshot)
+
             # Store in pending results using centralized storage
             self.result_storage.store_pending_result(tool_request_id, tool_result)
             

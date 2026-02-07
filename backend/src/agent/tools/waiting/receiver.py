@@ -74,6 +74,7 @@ class ToolResultReceiver:
         status: str,
         step_results: List[Dict[str, Any]],
         screenshot: Optional[str],
+        screenshot_ref: Optional[str],
         system_state: Optional[Dict[str, Any]],
         error: Optional[str],
     ) -> ToolResult:
@@ -95,6 +96,7 @@ class ToolResultReceiver:
         bundle_data = {
             "step_results": step_results,
             "screenshot": screenshot,
+            "screenshot_ref": screenshot_ref,
             "system_state": system_state,
         }
         
@@ -131,12 +133,18 @@ class ToolResultReceiver:
         """
         tools = bundle_data.get("tools", [])
         bundle_screenshot = bundle_data.get("screenshot")
+        bundle_screenshot_ref = bundle_data.get("screenshot_ref")
         combined_llm_content = bundle_data.get("combined_llm_content")
         
-        logger.info(f"Receiving bundle result: {len(tools)} tools, has_screenshot={bundle_screenshot is not None}, has_combined_content={combined_llm_content is not None}")
+        logger.info(
+            f"Receiving bundle result: {len(tools)} tools, "
+            f"has_screenshot={bundle_screenshot is not None}, "
+            f"has_screenshot_ref={bundle_screenshot_ref is not None}, "
+            f"has_combined_content={combined_llm_content is not None}"
+        )
         
         if not tools and not combined_llm_content:
-            return [], None, bundle_screenshot
+            return [], None, bundle_screenshot_ref or bundle_screenshot
         
         tools_success = all(t.get("success", False) for t in tools)
         
@@ -159,9 +167,12 @@ class ToolResultReceiver:
                 tool_metadata["is_preformatted"] = True
             
             # Include screenshot in tool result data if present
-            if bundle_screenshot and isinstance(tool_data, dict):
+            if (bundle_screenshot or bundle_screenshot_ref) and isinstance(tool_data, dict):
                 tool_data = tool_data.copy()
-                tool_data["screenshot"] = bundle_screenshot
+                if bundle_screenshot:
+                    tool_data["screenshot"] = bundle_screenshot
+                if bundle_screenshot_ref:
+                    tool_data["screenshot_ref"] = bundle_screenshot_ref
             
             tool_result = ToolResult.from_dict({
                 "success": tool_success,
@@ -179,6 +190,7 @@ class ToolResultReceiver:
                 "bundled": True,
                 "tool_count": len(tools),
                 "screenshot": bundle_screenshot,
+                "screenshot_ref": bundle_screenshot_ref,
             }
             
             combined_result = ToolResult.from_dict({
@@ -193,4 +205,4 @@ class ToolResultReceiver:
                 "llm_content": combined_llm_content,
             })
         
-        return individual_results, combined_result, bundle_screenshot
+        return individual_results, combined_result, bundle_screenshot_ref or bundle_screenshot

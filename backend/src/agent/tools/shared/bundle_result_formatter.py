@@ -43,6 +43,7 @@ class BundleResultFormatter:
         step_results = bundle_result.get("step_results", [])
         error = bundle_result.get("error")
         screenshot = bundle_result.get("screenshot")
+        screenshot_ref = bundle_result.get("screenshot_ref")
         sys_state = bundle_result.get("system_state") or system_state
         
         # Build narrative
@@ -75,7 +76,7 @@ class BundleResultFormatter:
             parts.append("\n" + _format_system_state_xml(sys_state))
         
         # Add screenshot indicator
-        if screenshot:
+        if screenshot or screenshot_ref:
             parts.append("\n[Screenshot captured after bundle execution]")
         
         return "\n".join(parts)
