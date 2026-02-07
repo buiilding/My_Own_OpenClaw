@@ -107,6 +107,25 @@ class ModelService:
         """
         return _copy_catalog(_VISION_MODELS_CATALOG)
 
+    @staticmethod
+    def _normalize_provider_models(raw_models: Any) -> List[Dict[str, Any]]:
+        """Normalize provider model payloads to a clean list of model dicts."""
+        if not isinstance(raw_models, (list, tuple)):
+            return []
+
+        normalized: List[Dict[str, Any]] = []
+        for item in raw_models:
+            if not isinstance(item, dict):
+                continue
+            model_id = item.get("id")
+            provider_name = item.get("provider")
+            if not isinstance(model_id, str) or not model_id.strip():
+                continue
+            if not isinstance(provider_name, str) or not provider_name.strip():
+                continue
+            normalized.append(dict(item))
+        return normalized
+
     async def _list_models_from_provider(
         self,
         label: str,
@@ -114,7 +133,8 @@ class ModelService:
     ) -> tuple[str, List[Dict[str, Any]], Optional[str]]:
         """List models from one provider, returning either models or an error string."""
         try:
-            models = await provider.list_models()
+            raw_models = await provider.list_models()
+            models = self._normalize_provider_models(raw_models)
             logger.debug(f"Successfully listed {len(models)} {label} models")
             return label, models, None
         except Exception as e:
