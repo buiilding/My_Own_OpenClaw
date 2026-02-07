@@ -77,3 +77,24 @@ def test_build_ocr_params_cpu_mode_uses_lowest_batch_threshold(monkeypatch):
     assert params["Rec.rec_batch_num"] == 5
     assert params["Cls.cls_batch_num"] == 3
     assert params["EngineConfig.onnxruntime.use_cuda"] is False
+
+
+def test_build_ocr_params_uses_sorted_thresholds_when_config_unsorted(monkeypatch):
+    config = OCRConfig(
+        batch_size_thresholds=[
+            [0.0, 5, 3],
+            [16.0, 24, 10],
+            [8.0, 12, 6],
+        ]
+    )
+    service = OcrService(config=config)
+    monkeypatch.setattr(service, "_detect_gpu_memory", lambda: 12.0)
+    monkeypatch.setattr(service, "_detect_cpu_cores", lambda: 8)
+
+    params_gpu = service._build_ocr_params(use_cuda=True)
+    params_cpu = service._build_ocr_params(use_cuda=False)
+
+    assert params_gpu["Rec.rec_batch_num"] == 12
+    assert params_gpu["Cls.cls_batch_num"] == 6
+    assert params_cpu["Rec.rec_batch_num"] == 5
+    assert params_cpu["Cls.cls_batch_num"] == 3
