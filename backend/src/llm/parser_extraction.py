@@ -245,10 +245,17 @@ class JsonToolCallExtractor:
             return text
 
         positions: List[Tuple[int, int]] = []
+        search_start = 0
         for call in tool_calls:
-            pos = text.find(call.raw_call)
+            if not call.raw_call:
+                continue
+
+            pos = text.find(call.raw_call, search_start)
+            if pos < 0:
+                pos = text.find(call.raw_call)
             if pos >= 0:
                 positions.append((pos, pos + len(call.raw_call)))
+                search_start = pos + len(call.raw_call)
 
         if positions:
             return self._remove_extracted_by_positions(text, positions)
