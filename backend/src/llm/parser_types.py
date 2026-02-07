@@ -39,6 +39,26 @@ class ToolCallSchema:
     name_key: str = "name"
     args_key: str = "args"
 
+    def _extract_name_and_args(
+        self,
+        function_call: Dict[str, Any],
+    ) -> Optional[Tuple[str, Dict[str, Any]]]:
+        """Extract and validate tool name/args from a function call payload."""
+        if not isinstance(function_call, dict):
+            return None
+
+        tool_name = function_call.get(self.name_key)
+        args = function_call.get(self.args_key, {})
+
+        if not isinstance(tool_name, str) or not tool_name.strip():
+            return None
+        normalized_tool_name = tool_name.strip()
+
+        if not isinstance(args, dict):
+            return None
+
+        return normalized_tool_name, args
+
     def extract_tool_call(
         self, parsed_json: Dict[str, Any]
     ) -> Optional[Tuple[str, Dict[str, Any], Optional[Dict[str, Any]]]]:
@@ -72,37 +92,20 @@ class ToolCallSchema:
             if not isinstance(action, dict) or self.root_key not in action:
                 return None
 
-            function_call = action[self.root_key]
-            if not isinstance(function_call, dict):
+            extracted = self._extract_name_and_args(action[self.root_key])
+            if extracted is None:
                 return None
 
-            tool_name = function_call.get(self.name_key)
-            args = function_call.get(self.args_key, {})
-
-            if not isinstance(tool_name, str) or not tool_name.strip():
-                return None
-            normalized_tool_name = tool_name.strip()
-
-            if not isinstance(args, dict):
-                return None
+            normalized_tool_name, args = extracted
 
             return (normalized_tool_name, args, metadata)
 
         # Standard format: direct functionCall
         if self.root_key in parsed_json:
-            function_call = parsed_json[self.root_key]
-            if not isinstance(function_call, dict):
+            extracted = self._extract_name_and_args(parsed_json[self.root_key])
+            if extracted is None:
                 return None
-
-            tool_name = function_call.get(self.name_key)
-            args = function_call.get(self.args_key, {})
-
-            if not isinstance(tool_name, str) or not tool_name.strip():
-                return None
-            normalized_tool_name = tool_name.strip()
-
-            if not isinstance(args, dict):
-                return None
+            normalized_tool_name, args = extracted
 
             return (normalized_tool_name, args, None)
 
