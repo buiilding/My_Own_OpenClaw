@@ -105,6 +105,14 @@ class TestBuildRequestParams:
         with pytest.raises(TypeError, match="model must be str"):
             provider._build_request_params(123, messages)
 
+    def test_build_raises_on_none_messages(self, provider):
+        with pytest.raises(ValueError, match="messages parameter cannot be None"):
+            provider._build_request_params("gpt-4", None)
+
+    def test_build_raises_on_non_list_messages(self, provider):
+        with pytest.raises(TypeError, match="messages must be list"):
+            provider._build_request_params("gpt-4", {"role": "user", "content": "Hello"})
+
 
 class TestExtractThinkingContent:
     """Tests for _extract_thinking_content method."""
