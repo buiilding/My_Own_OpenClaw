@@ -6,3 +6,11 @@ export function selectChatInterfaceState(state) {
     tokenCounts: state.tokenCounts,
   };
 }
+
+export function selectChatBoxState(state) {
+  return {
+    messages: state.messages,
+    isSending: state.isSending,
+    thinkingStatus: state.thinkingStatus,
+  };
+}
