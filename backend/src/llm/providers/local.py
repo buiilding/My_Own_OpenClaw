@@ -187,6 +187,68 @@ class LocalLLMProvider(LLMProvider):
                 if content:
                     yield ChunkEvent(content=content)
 
+    @staticmethod
+    def _normalize_listed_models(
+        raw_models: object,
+        *,
+        model_id_key: str,
+        provider_name: str,
+    ) -> List[Dict[str, str]]:
+        """Normalize provider model listing payload rows."""
+        if not isinstance(raw_models, list):
+            return []
+
+        models: List[Dict[str, str]] = []
+        for model in raw_models:
+            if not isinstance(model, dict):
+                continue
+            model_id = model.get(model_id_key, "")
+            if not isinstance(model_id, str) or not model_id:
+                continue
+            models.append({
+                "id": model_id,
+                "provider": provider_name,
+                "display_name": model_id,
+            })
+        return models
+
+    async def _list_models_from_json_endpoint(
+        self,
+        *,
+        url: str,
+        provider_label: str,
+        provider_name: str,
+        models_field: str,
+        model_id_key: str,
+    ) -> List[Dict[str, str]]:
+        """List models from an HTTP endpoint that returns object JSON payloads."""
+        try:
+            client = await self._get_http_client()
+            response = await client.get(url)
+            if response.status_code != 200:
+                logger.warning(f"{provider_label} list models failed: {response.status_code}")
+                return []
+
+            data = response.json()
+            if not isinstance(data, dict):
+                logger.warning(f"{provider_label} list models returned non-object JSON payload")
+                return []
+
+            raw_models = data.get(models_field, [])
+            models = self._normalize_listed_models(
+                raw_models,
+                model_id_key=model_id_key,
+                provider_name=provider_name,
+            )
+            if not isinstance(raw_models, list):
+                logger.warning(
+                    f"{provider_label} list models returned non-list '{models_field}' field"
+                )
+            return models
+        except Exception as e:
+            logger.warning(f"Error listing {provider_label} models: {e}")
+            return []
+
     def _build_request_params(self, model: str, messages: List[LLMMessage]) -> dict:
         params = super()._build_request_params(model, messages)
         # Local models often need to be told they are compatible with OpenAI's API
@@ -257,45 +319,19 @@ class OllamaProvider(LocalLLMProvider):
         Listing models can trigger model loading/swapping in Ollama, so a longer
         timeout is often needed compared to inference requests.
         """
-        models = []
         # base_url is guaranteed to be a string (validated in __init__)
         url = self._build_tags_url(self.base_url)
         if url is None:
             logger.warning("Invalid Ollama base_url, cannot list models")
-            return models
-        
-        try:
-            # Use shared HTTP client for connection pooling
-            client = await self._get_http_client()
-            response = await client.get(url)
-            if response.status_code != 200:
-                logger.warning(f"Ollama list models failed: {response.status_code}")
-                return models
+            return []
 
-            data = response.json()
-            if not isinstance(data, dict):
-                logger.warning("Ollama list models returned non-object JSON payload")
-                return models
-
-            raw_models = data.get("models", [])
-            if not isinstance(raw_models, list):
-                logger.warning("Ollama list models returned non-list 'models' field")
-                return models
-
-            for model in raw_models:
-                if not isinstance(model, dict):
-                    continue
-                model_name = model.get("name", "")
-                if model_name:
-                    models.append({
-                        "id": model_name,
-                        "provider": "ollama",
-                        "display_name": model_name,
-                    })
-        except Exception as e:
-            logger.warning(f"Error listing Ollama models: {e}")
-            
-        return models
+        return await self._list_models_from_json_endpoint(
+            url=url,
+            provider_label="Ollama",
+            provider_name="ollama",
+            models_field="models",
+            model_id_key="name",
+        )
 
 
 class LMStudioProvider(LocalLLMProvider):
@@ -335,40 +371,14 @@ class LMStudioProvider(LocalLLMProvider):
         Uses the provider's configured timeout instead of a hardcoded value.
         Listing models can take longer if the backend is under load.
         """
-        models = []
         # base_url is guaranteed to be a string (validated in __init__)
         # Config base_url usually includes /v1, which is what we want for /models
         url = f"{self.base_url.rstrip('/')}/models"
-        
-        try:
-            # Use shared HTTP client for connection pooling
-            client = await self._get_http_client()
-            response = await client.get(url)
-            if response.status_code != 200:
-                logger.warning(f"LM Studio list models failed: {response.status_code}")
-                return models
 
-            data = response.json()
-            if not isinstance(data, dict):
-                logger.warning("LM Studio list models returned non-object JSON payload")
-                return models
-
-            raw_models = data.get("data", [])
-            if not isinstance(raw_models, list):
-                logger.warning("LM Studio list models returned non-list 'data' field")
-                return models
-
-            for model in raw_models:
-                if not isinstance(model, dict):
-                    continue
-                model_id = model.get("id", "")
-                if model_id:
-                    models.append({
-                        "id": model_id,
-                        "provider": "lmstudio",
-                        "display_name": model_id,
-                    })
-        except Exception as e:
-            logger.warning(f"Error listing LM Studio models: {e}")
-            
-        return models
+        return await self._list_models_from_json_endpoint(
+            url=url,
+            provider_label="LM Studio",
+            provider_name="lmstudio",
+            models_field="data",
+            model_id_key="id",
+        )

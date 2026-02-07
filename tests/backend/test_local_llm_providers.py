@@ -5,6 +5,7 @@ import pytest
 
 from backend.src.llm.providers.local import (
     LOCAL_PROVIDER_PLACEHOLDER_API_KEY,
+    LocalLLMProvider,
     LMStudioProvider,
     OllamaProvider,
 )
@@ -90,6 +91,38 @@ async def test_lmstudio_list_models_returns_models(monkeypatch):
         {"id": "model-a", "provider": "lmstudio", "display_name": "model-a"},
         {"id": "model-b", "provider": "lmstudio", "display_name": "model-b"},
     ]
+
+
+@pytest.mark.asyncio
+async def test_ollama_list_models_filters_invalid_rows(monkeypatch):
+    provider = OllamaProvider(base_url="http://localhost:11434/v1")
+    response = DummyResponse(
+        200,
+        {"models": [{"name": "ok-model"}, {"name": ""}, {"name": None}, "bad-row"]},
+    )
+    get_mock = AsyncMock(return_value=response)
+    monkeypatch.setattr(
+        provider,
+        "_get_http_client",
+        AsyncMock(return_value=type("Client", (), {"get": get_mock})()),
+    )
+
+    models = await provider.list_models()
+
+    assert models == [
+        {"id": "ok-model", "provider": "ollama", "display_name": "ok-model"},
+    ]
+
+
+def test_normalize_listed_models_returns_empty_for_non_list_payload():
+    assert (
+        LocalLLMProvider._normalize_listed_models(
+            {"id": "not-a-list"},
+            model_id_key="id",
+            provider_name="lmstudio",
+        )
+        == []
+    )
 
 
 def test_local_provider_request_params_set_placeholder_api_key():
