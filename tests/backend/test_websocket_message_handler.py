@@ -171,3 +171,43 @@ async def test_send_error_delegates_to_send_error_response(monkeypatch) -> None:
     assert captured["ws"] is websocket
     assert captured["msg_id"] == "msg_300"
     assert captured["message"] == "boom"
+
+
+@pytest.mark.asyncio
+async def test_handle_message_does_not_raise_if_send_error_fails_for_value_error(monkeypatch) -> None:
+    registry = DummyRegistry(exc=ValueError("bad request"))
+    websocket = SimpleNamespace()
+    message = QueryMessage(
+        id="msg_103",
+        type="query",
+        user_id="user_1",
+        payload={"text": "test"},
+    )
+
+    async def failing_send_error(_ws, _msg_id, _error_message):
+        raise RuntimeError("socket already closed")
+
+    monkeypatch.setattr(mh, "send_error", failing_send_error)
+
+    # Should swallow send_error failure and not raise.
+    await mh.handle_message(websocket, message, registry, "user_1")
+
+
+@pytest.mark.asyncio
+async def test_handle_message_does_not_raise_if_send_error_fails_for_unexpected_error(monkeypatch) -> None:
+    registry = DummyRegistry(exc=RuntimeError("unexpected"))
+    websocket = SimpleNamespace()
+    message = QueryMessage(
+        id="msg_104",
+        type="query",
+        user_id="user_1",
+        payload={"text": "test"},
+    )
+
+    async def failing_send_error(_ws, _msg_id, _error_message):
+        raise RuntimeError("socket already closed")
+
+    monkeypatch.setattr(mh, "send_error", failing_send_error)
+
+    # Should swallow send_error failure and not raise.
+    await mh.handle_message(websocket, message, registry, "user_1")
