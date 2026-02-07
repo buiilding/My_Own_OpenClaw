@@ -1,5 +1,15 @@
 const EMPTY_MODEL_SELECTION = { id: '', provider: '' };
 
+function normalizeProvider(provider) {
+  return provider === undefined || provider === null ? '' : String(provider);
+}
+
+function compareProvidersAscending(left, right) {
+  const leftProvider = normalizeProvider(left?.provider);
+  const rightProvider = normalizeProvider(right?.provider);
+  return leftProvider.localeCompare(rightProvider);
+}
+
 export function getCurrentModels(availableModels, modelMode) {
   const localModels = Array.isArray(availableModels?.local) ? availableModels.local : [];
   const onlineModels = Array.isArray(availableModels?.online) ? availableModels.online : [];
@@ -47,26 +57,36 @@ export function evaluateModelSelection({ selectedModelId, selectedProvider, curr
     return { status: 'empty' };
   }
   const normalizedSelectedModelId = String(selectedModelId);
-  const normalizedSelectedProvider = selectedProvider === undefined || selectedProvider === null
-    ? ''
-    : String(selectedProvider);
+  const normalizedSelectedProvider = normalizeProvider(selectedProvider);
 
-  const matchedModel = currentModels.find((model) => String(model?.id ?? '') === normalizedSelectedModelId);
-  if (!matchedModel) {
+  const candidateModels = currentModels
+    .filter((model) => String(model?.id ?? '') === normalizedSelectedModelId)
+    .slice()
+    .sort(compareProvidersAscending);
+
+  if (candidateModels.length === 0) {
     return {
       status: 'missing',
       warning: `Selected model "${normalizedSelectedModelId}" is not available. Resetting to default.`,
     };
   }
 
-  const matchedProvider = matchedModel.provider === undefined || matchedModel.provider === null
-    ? ''
-    : String(matchedModel.provider);
-  if (matchedProvider !== normalizedSelectedProvider) {
-    return { status: 'provider-mismatch', model: matchedModel };
+  if (normalizedSelectedProvider.length > 0) {
+    const exactModel = candidateModels.find(
+      (model) => normalizeProvider(model?.provider) === normalizedSelectedProvider,
+    );
+    if (exactModel) {
+      return { status: 'valid', model: exactModel };
+    }
   }
 
-  return { status: 'valid', model: matchedModel };
+  const canonicalModel = candidateModels[0];
+  const canonicalProvider = normalizeProvider(canonicalModel?.provider);
+  if (canonicalProvider !== normalizedSelectedProvider) {
+    return { status: 'provider-mismatch', model: canonicalModel };
+  }
+
+  return { status: 'valid', model: canonicalModel };
 }
 
 export function getFallbackModelSelection(currentModels) {
