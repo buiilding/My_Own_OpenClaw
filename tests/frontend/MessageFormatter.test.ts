@@ -88,6 +88,39 @@ describe('MessageFormatter', () => {
     expect(output).toContain('State of the screen after screenshot was executed:');
   });
 
+  test('prefers output over message for single and bundled tool formatting', () => {
+    const singleOutput = formatToolOutputMessage(
+      'read_file',
+      {
+        success: true,
+        data: {
+          output: 'from-output',
+          message: 'from-message',
+        },
+      },
+      null,
+    );
+    expect(singleOutput).toContain('from-output');
+    expect(singleOutput).not.toContain('from-message');
+
+    const bundledOutput = formatBundledToolOutputMessage(
+      [
+        {
+          tool_name: 'read_file',
+          success: true,
+          data: {
+            output: 'bundle-output',
+            message: 'bundle-message',
+          },
+        },
+      ],
+      null,
+      null,
+    );
+    expect(bundledOutput).toContain('bundle-output');
+    expect(bundledOutput).not.toContain('bundle-message');
+  });
+
   test('formatSequentialStateXml fills missing fields with Unknown', () => {
     const xml = formatSequentialStateXml({ active_window: 'Browser' });
     expect(xml).toContain('<active_window>Browser</active_window>');
@@ -121,5 +154,22 @@ describe('MessageFormatter', () => {
     expect(output).toContain('"foo": "bar"');
     expect(output).not.toContain('screenshot');
     expect(output).not.toContain('system_state');
+  });
+
+  test('formatToolOutputMessage treats screenshot_ref as screenshot indicator only', () => {
+    const output = formatToolOutputMessage(
+      'screenshot',
+      {
+        success: true,
+        data: {
+          screenshot_ref: 'artifact:123',
+          metadata: { foo: 'bar' },
+        },
+      },
+      null,
+    );
+    expect(output).toContain('"metadata"');
+    expect(output).not.toContain('screenshot_ref');
+    expect(output).toContain('State of the screen after screenshot was executed:');
   });
 });

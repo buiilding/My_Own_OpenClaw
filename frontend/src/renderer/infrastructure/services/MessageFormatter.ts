@@ -32,6 +32,60 @@ export interface ToolResult {
   } | string | null;
 }
 
+const NON_TEXT_DATA_KEYS = new Set([
+  'screenshot',
+  'image_data',
+  'screenshot_ref',
+  'screenshot_content_type',
+  'system_state',
+]);
+
+function asResultDataObject(data: ToolResult['data']): Record<string, any> | null {
+  if (data && typeof data === 'object' && !Array.isArray(data)) {
+    return data;
+  }
+  return null;
+}
+
+function extractToolContent(data: ToolResult['data']): string {
+  if (!data) {
+    return 'No output';
+  }
+
+  if (typeof data === 'string') {
+    return data;
+  }
+
+  const objectData = asResultDataObject(data);
+  if (!objectData) {
+    return 'No output';
+  }
+
+  for (const key of ['llm_content', 'output', 'message', 'result']) {
+    const value = objectData[key];
+    if (typeof value === 'string' && value.length > 0) {
+      return value;
+    }
+    if (value !== undefined && value !== null) {
+      return String(value);
+    }
+  }
+
+  const textData = Object.fromEntries(
+    Object.entries(objectData).filter(([key]) => !NON_TEXT_DATA_KEYS.has(key)),
+  );
+  if (Object.keys(textData).length > 0) {
+    return JSON.stringify(textData, null, 2);
+  }
+
+  return 'No output';
+}
+
+function hasScreenshotData(data: ToolResult['data']): boolean {
+  const objectData = asResultDataObject(data);
+  return Boolean(objectData && (objectData.screenshot || objectData.image_data || objectData.screenshot_ref));
+}
+
 /**
  * Format system state as sequential XML (minimal) for tool output
  */
@@ -64,27 +118,7 @@ export function formatToolOutputMessage(
   const parts = [`${toolName} output:`];
   
   if (result.success) {
-    // Extract content from result
-    let content = 'No output';
-    if (result.data) {
-      if (typeof result.data === 'string') {
-        content = result.data;
-      } else if (result.data.llm_content) {
-        content = result.data.llm_content;
-      } else if (result.data.output) {
-        content = result.data.output;
-      } else if (result.data.message) {
-        content = result.data.message;
-      } else if (result.data.result) {
-        content = result.data.result;
-      } else {
-        // Exclude screenshot from text content
-        const { screenshot, image_data, screenshot_ref, screenshot_content_type, system_state, ...textData } = result.data;
-        if (Object.keys(textData).length > 0) {
-          content = JSON.stringify(textData, null, 2);
-        }
-      }
-    }
+    const content = extractToolContent(result.data);
     parts.push(content);
     parts.push('status: successful');
   } else {
@@ -97,7 +131,7 @@ export function formatToolOutputMessage(
   parts.push(systemContextXml);
   
   // Add screenshot indicator if screenshot is present
-  if (result.data && typeof result.data === 'object' && (result.data.screenshot || result.data.image_data || result.data.screenshot_ref)) {
+  if (hasScreenshotData(result.data)) {
     parts.push(`State of the screen after ${toolName} was executed:`);
   }
   
@@ -140,27 +174,7 @@ export function formatBundledToolOutputMessage(
     parts.push(`\n${toolName} output:`);
     
     if (toolResult.success) {
-      // Extract content from result (matching formatToolOutputMessage logic)
-      let content = 'No output';
-      if (toolResult.data) {
-        if (typeof toolResult.data === 'string') {
-          content = toolResult.data;
-        } else if (toolResult.data.llm_content) {
-          content = toolResult.data.llm_content;
-        } else if (toolResult.data.message) {
-          content = toolResult.data.message;
-        } else if (toolResult.data.output) {
-          content = toolResult.data.output;
-        } else if (toolResult.data.result) {
-          content = toolResult.data.result;
-        } else {
-          // Exclude screenshot from text content
-          const { screenshot: _, image_data: __, screenshot_ref: ___, screenshot_content_type: ____, system_state: _____, ...textData } = toolResult.data;
-          if (Object.keys(textData).length > 0) {
-            content = JSON.stringify(textData, null, 2);
-          }
-        }
-      }
+      const content = extractToolContent(toolResult.data);
       parts.push(content);
       parts.push('status: successful');
     } else {
