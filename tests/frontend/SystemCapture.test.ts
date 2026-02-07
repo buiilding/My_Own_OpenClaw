@@ -31,6 +31,28 @@ describe('SystemCapture', () => {
     expect(result.screenshot).toBe('shot');
   });
 
+  test('extractOSstate waits before capture when wait is positive', async () => {
+    jest.useFakeTimers();
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+    jest.spyOn(IpcBridge, 'invoke')
+      .mockResolvedValueOnce({ active_window: 'App', mouse_position: '0,0' })
+      .mockResolvedValueOnce({ success: true, data: { screenshot: 'shot' } });
+
+    const pending = extractOSstate(true, true, 0.25, false);
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 250);
+
+    jest.runAllTimers();
+    const result = await pending;
+
+    expect(result).toEqual({
+      systemState: { active_window: 'App', mouse_position: '0,0' },
+      screenshot: 'shot',
+      screenshotContentType: null,
+    });
+    setTimeoutSpy.mockRestore();
+    jest.useRealTimers();
+  });
+
   test('extractOSstate includes stored display bounds in screenshot args', async () => {
     localStorage.setItem(
       DISPLAY_BOUNDS_STORAGE_KEY,
@@ -125,10 +147,43 @@ describe('SystemCapture', () => {
     });
   });
 
+  test('extractOSstate returns null screenshot fields for unsuccessful tool payloads', async () => {
+    jest.spyOn(IpcBridge, 'invoke').mockResolvedValueOnce({
+      success: false,
+      data: null,
+    });
+
+    const result = await extractOSstate(true, false, 0, false);
+
+    expect(result).toEqual({
+      systemState: null,
+      screenshot: null,
+      screenshotContentType: null,
+    });
+  });
+
   test('extractOSstate returns nulls when both capture modes disabled', async () => {
     const invokeSpy = jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({} as any);
 
     const result = await extractOSstate(false, false, 0, false);
+
+    expect(invokeSpy).not.toHaveBeenCalled();
+    expect(result).toEqual({ systemState: null, screenshot: null, screenshotContentType: null });
+  });
+
+  test('extractOSstate uses default non-first-message mode when fourth arg is omitted', async () => {
+    const invokeSpy = jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({} as any);
+
+    const result = await extractOSstate(false, false, 0);
+
+    expect(invokeSpy).not.toHaveBeenCalled();
+    expect(result).toEqual({ systemState: null, screenshot: null, screenshotContentType: null });
+  });
+
+  test('extractOSstate first-message path supports disabled screenshot/system-state flags', async () => {
+    const invokeSpy = jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({} as any);
+
+    const result = await extractOSstate(false, false, 0, true);
 
     expect(invokeSpy).not.toHaveBeenCalled();
     expect(result).toEqual({ systemState: null, screenshot: null, screenshotContentType: null });
@@ -141,6 +196,19 @@ describe('SystemCapture', () => {
     const result = await extractOSstate(true, true, 0, false);
 
     expect(result).toEqual({ systemState: null, screenshot: null, screenshotContentType: null });
+    consoleSpy.mockRestore();
+  });
+
+  test('extractOSstate handles first-message extraction errors gracefully', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    jest.spyOn(IpcBridge, 'invoke')
+      .mockResolvedValueOnce({ active_window: 'App', mouse_position: '0,0' })
+      .mockRejectedValueOnce(new Error('first-message-screenshot-failure'));
+
+    const result = await extractOSstate(true, true, 0, true);
+
+    expect(result).toEqual({ systemState: null, screenshot: null, screenshotContentType: null });
+    expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
   });
 });

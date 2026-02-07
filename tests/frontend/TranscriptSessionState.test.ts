@@ -24,4 +24,20 @@ describe('transcript session state', () => {
       userId: 'stored-user',
     });
   });
+
+  test('update keeps existing session id when only user id is provided', () => {
+    const state = createTranscriptSessionState(() => ({ sessionId: 'stored-session', userId: null }));
+    expect(state.update(undefined, 'new-user')).toEqual({
+      sessionId: 'stored-session',
+      userId: 'new-user',
+    });
+  });
+
+  test('resolve ignores null override values and keeps current state', () => {
+    const state = createTranscriptSessionState(() => ({ sessionId: 'session-1', userId: 'user-1' }));
+    expect(state.resolve({ sessionId: null, userId: null })).toEqual({
+      sessionId: 'session-1',
+      userId: 'user-1',
+    });
+  });
 });

@@ -13,6 +13,11 @@ describe('tokenCounts utils', () => {
     expect(formatTokenCount(null)).toBe('0');
   });
 
+  test('formats zero and decimal values', () => {
+    expect(formatTokenCount(0)).toBe('0');
+    expect(formatTokenCount(1234.5)).toBe('1,234.5');
+  });
+
   test('builds token count items in display order with labels and classes', () => {
     const items = buildTokenCountItems({
       input_tokens: 10,

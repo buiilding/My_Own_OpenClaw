@@ -20,4 +20,8 @@ describe('messageInput utils', () => {
   test('buildOutgoingMessage delegates to normalized text when sending is allowed', () => {
     expect(buildOutgoingMessage('  hello world  ', false)).toBe('hello world');
   });
+
+  test('buildOutgoingMessage returns null for whitespace even when sending is allowed', () => {
+    expect(buildOutgoingMessage('   ', false)).toBeNull();
+  });
 });

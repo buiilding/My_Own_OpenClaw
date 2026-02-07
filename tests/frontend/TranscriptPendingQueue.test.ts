@@ -18,4 +18,15 @@ describe('pendingUserQueue', () => {
     const queue = createPendingUserQueue();
     expect(queue.drain()).toEqual([]);
   });
+
+  test('drained array mutation does not re-populate queue', () => {
+    const queue = createPendingUserQueue();
+    queue.enqueue({ text: 'first', timestamp: 't1' });
+
+    const drained = queue.drain();
+    drained.push({ text: 'mutated', timestamp: 't2' } as any);
+
+    expect(queue.size()).toBe(0);
+    expect(queue.drain()).toEqual([]);
+  });
 });

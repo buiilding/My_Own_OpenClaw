@@ -37,12 +37,51 @@ describe('transcript session info storage', () => {
     });
   });
 
+  test('returns null fields when payload types are invalid', () => {
+    window.sessionStorage.setItem(
+      TRANSCRIPT_SESSION_STORAGE_KEY,
+      JSON.stringify({ sessionId: 123, userId: { id: 'user' } }),
+    );
+
+    expect(readSessionInfoFromStorage()).toEqual({
+      sessionId: null,
+      userId: null,
+    });
+  });
+
   test('persists session info payload to sessionStorage', () => {
     persistSessionInfoToStorage({ sessionId: 'session-2', userId: 'user-2' });
 
     expect(window.sessionStorage.getItem(TRANSCRIPT_SESSION_STORAGE_KEY)).toBe(
       JSON.stringify({ sessionId: 'session-2', userId: 'user-2' }),
     );
+  });
+
+  test('persistSessionInfoToStorage swallows storage write errors', () => {
+    const originalSetItem = window.sessionStorage.setItem;
+    window.sessionStorage.setItem = jest.fn(() => {
+      throw new Error('set-item-failed');
+    }) as any;
+
+    expect(() => {
+      persistSessionInfoToStorage({ sessionId: 'session-err', userId: 'user-err' });
+    }).not.toThrow();
+
+    window.sessionStorage.setItem = originalSetItem;
+  });
+
+  test('readSessionInfoFromStorage returns null fields when storage read throws', () => {
+    const originalGetItem = window.sessionStorage.getItem;
+    window.sessionStorage.getItem = jest.fn(() => {
+      throw new Error('get-item-failed');
+    }) as any;
+
+    expect(readSessionInfoFromStorage()).toEqual({
+      sessionId: null,
+      userId: null,
+    });
+
+    window.sessionStorage.getItem = originalGetItem;
   });
 
   test('emits transcript-session-update custom event', () => {

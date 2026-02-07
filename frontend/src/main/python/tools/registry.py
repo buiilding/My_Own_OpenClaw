@@ -28,22 +28,6 @@ from tools.schemas import (
     GlobArgs,
     ReadManyFilesArgs,
 )
-from tools.browser.schemas import (
-    BrowserConnectArgs,
-    BrowserNavigateArgs,
-    BrowserSnapshotArgs,
-    BrowserClickArgs,
-    BrowserTypeArgs,
-    BrowserPressArgs,
-    BrowserScrollArgs,
-    BrowserScreenshotArgs,
-    BrowserWaitArgs,
-    BrowserGetTabsArgs,
-    BrowserSwitchTabArgs,
-    BrowserEvaluateArgs,
-    BrowserCloseArgs,
-)
-
 logger = logging.getLogger(__name__)
 
 # Map tool names to their Pydantic schema classes
@@ -65,8 +49,7 @@ TOOL_SCHEMAS: Dict[str, Type[BaseModel]] = {
     "get_open_windows": GetOpenWindowsArgs,
     "get_system_stats": GetSystemStatsArgs,
     "wait": WaitToolArgs,
-    # Browser tool schemas - use connect schema as base for validation
-    "browser_control": BrowserConnectArgs,
+    # Browser tool schemas - handled inside browser_tool for action-specific validation
 }
 
 

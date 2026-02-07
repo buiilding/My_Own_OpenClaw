@@ -37,4 +37,38 @@ describe('chatSelectors', () => {
       thinkingStatus: null,
     });
   });
+
+  test('keeps selected object references (no cloning)', () => {
+    const messages = [{ id: '1', text: 'hello', sender: 'assistant' }];
+    const tokenCounts = { total_tokens: 42 };
+    const state = {
+      messages,
+      isSending: false,
+      thinkingStatus: null,
+      tokenCounts,
+      addMessage: jest.fn(),
+    };
+
+    const chatInterface = selectChatInterfaceState(state);
+    const chatBox = selectChatBoxState(state);
+
+    expect(chatInterface.messages).toBe(messages);
+    expect(chatInterface.tokenCounts).toBe(tokenCounts);
+    expect(chatBox.messages).toBe(messages);
+  });
+
+  test('returns undefined tokenCounts when not present', () => {
+    const selected = selectChatInterfaceState({
+      messages: [],
+      isSending: false,
+      thinkingStatus: null,
+    });
+
+    expect(selected).toEqual({
+      messages: [],
+      isSending: false,
+      thinkingStatus: null,
+      tokenCounts: undefined,
+    });
+  });
 });

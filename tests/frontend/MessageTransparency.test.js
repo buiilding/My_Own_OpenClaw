@@ -45,4 +45,20 @@ describe('messageTransparency utils', () => {
 
     expect(sections[2].metadata).not.toBe(metadata);
   });
+
+  test('full user message metadata defaults to empty object', () => {
+    const sections = buildTransparencySectionConfigs({
+      fullUserMessage: { content: '<xml />' },
+    });
+
+    expect(sections).toEqual([
+      {
+        key: 'user-message-full',
+        title: 'Full Message Sent to Assistant (Complete)',
+        content: '<xml />',
+        metadata: {},
+        type: 'xml',
+      },
+    ]);
+  });
 });

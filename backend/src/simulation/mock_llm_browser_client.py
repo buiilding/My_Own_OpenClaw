@@ -52,7 +52,7 @@ BROWSER_SIMULATION_RESPONSES = [
                     "args": {
                         "action": "navigate",
                         "url": "https://amazon.com",
-                        "wait_until": "networkidle"
+                        "wait_until": "domcontentloaded"
                     }
                 }
             }
@@ -79,11 +79,11 @@ BROWSER_SIMULATION_RESPONSES = [
         })
     },
     # Iteration 4: Type "shoes" in search box and submit
-    # (Assuming ref "3" is the search box from snapshot)
+    # (Assuming ref "11" is the search box from snapshot)
     {
         "response": json.dumps({
             "metadata": {
-                "description": "Page snapshot shows [3] searchbox 'Search Amazon'.",
+                "description": "Page snapshot shows [11] searchbox 'Search Amazon'.",
                 "explanation": "Typing 'shoes' into the Amazon search box and submitting the search.",
                 "expectation": "Search results for shoes should load, sorted by relevance."
             },
@@ -92,7 +92,7 @@ BROWSER_SIMULATION_RESPONSES = [
                     "name": "browser_control",
                     "args": {
                         "action": "type",
-                        "ref": "3",
+                        "ref": "11",
                         "text": "shoes",
                         "submit": True
                     }
@@ -113,7 +113,7 @@ BROWSER_SIMULATION_RESPONSES = [
                     "name": "browser_control",
                     "args": {
                         "action": "wait",
-                        "state": "networkidle"
+                        "state": "domcontentloaded"
                     }
                 }
             }
@@ -139,33 +139,32 @@ BROWSER_SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 7: Click on "Sort by" dropdown to change to price low-to-high
-    # (Assuming ref "5" is the Sort by dropdown)
+    # Iteration 7: Set sort order to Price: Low to High
     {
         "response": json.dumps({
             "metadata": {
-                "description": "Search results show shoes with 'Sort by: Featured' dropdown visible.",
-                "explanation": "Clicking on the Sort by dropdown to change sorting to Price: Low to High.",
-                "expectation": "Dropdown menu should open showing sorting options."
+                "description": "Search results page is loaded with sorting controls available.",
+                "explanation": "Updating the Sort by dropdown to 'Price: Low to High' via DOM.",
+                "expectation": "Page should reload with results sorted from lowest to highest price."
             },
             "action": {
                 "functionCall": {
                     "name": "browser_control",
                     "args": {
-                        "action": "click",
-                        "ref": "5"
+                        "action": "evaluate",
+                        "script": "(() => { const select = document.querySelector('#s-result-sort-select'); if (!select) return { ok: false, reason: 'select not found' }; const option = Array.from(select.options).find(o => (o.textContent || '').includes('Price: Low to High')); if (!option) return { ok: false, reason: 'option not found' }; select.value = option.value; select.dispatchEvent(new Event('change', { bubbles: true })); return { ok: true, value: option.value, label: option.textContent }; })()"
                     }
                 }
             }
         })
     },
-    # Iteration 8: Wait for dropdown to appear and get snapshot
+    # Iteration 8: Wait briefly for page to update after sort
     {
         "response": json.dumps({
             "metadata": {
-                "description": "Sort dropdown should be opening.",
-                "explanation": "Waiting briefly for dropdown to render then getting snapshot.",
-                "expectation": "Dropdown with sorting options should be visible."
+                "description": "Sort change triggered, waiting briefly for results to update.",
+                "explanation": "Waiting a short moment to allow the page to refresh sorted results.",
+                "expectation": "Results should begin updating to the new sort order."
             },
             "action": {
                 "functionCall": {
@@ -178,21 +177,20 @@ BROWSER_SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 9: Click on "Price: Low to High" option
-    # (Assuming ref "8" is the Price: Low to High option)
+    # Iteration 9: Wait for sorted results to load
     {
         "response": json.dumps({
             "metadata": {
-                "description": "Sort dropdown is open showing options including 'Price: Low to High'.",
-                "explanation": "Clicking on 'Price: Low to High' to sort shoes by cheapest first.",
-                "expectation": "Page should reload with shoes sorted from lowest to highest price."
+                "description": "Sorting updated to Price: Low to High.",
+                "explanation": "Waiting for the results page to reload with sorted listings.",
+                "expectation": "Results should reload showing cheapest shoes first."
             },
             "action": {
                 "functionCall": {
                     "name": "browser_control",
                     "args": {
-                        "action": "click",
-                        "ref": "8"
+                        "action": "wait",
+                        "state": "domcontentloaded"
                     }
                 }
             }
@@ -211,7 +209,7 @@ BROWSER_SIMULATION_RESPONSES = [
                     "name": "browser_control",
                     "args": {
                         "action": "wait",
-                        "state": "networkidle"
+                        "state": "domcontentloaded"
                     }
                 }
             }
@@ -237,8 +235,7 @@ BROWSER_SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 12: Click on the cheapest shoe (first product)
-    # (Assuming ref "12" is the first product link)
+    # Iteration 12: Click on the cheapest shoe (first product after sorting)
     {
         "response": json.dumps({
             "metadata": {
@@ -250,8 +247,8 @@ BROWSER_SIMULATION_RESPONSES = [
                 "functionCall": {
                     "name": "browser_control",
                     "args": {
-                        "action": "click",
-                        "ref": "12"
+                        "action": "evaluate",
+                        "script": "(() => { const selector = 'a.a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal'; const link = document.querySelector(selector); if (!link) return { ok: false, reason: 'no product link found' }; link.click(); return { ok: true, href: link.href, text: (link.textContent || '').trim() }; })()"
                     }
                 }
             }
@@ -270,7 +267,7 @@ BROWSER_SIMULATION_RESPONSES = [
                     "name": "browser_control",
                     "args": {
                         "action": "wait",
-                        "state": "networkidle"
+                        "state": "domcontentloaded"
                     }
                 }
             }

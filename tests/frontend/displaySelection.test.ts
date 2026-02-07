@@ -31,6 +31,18 @@ describe('displaySelection', () => {
     expect(getStoredDisplayBounds()).toBeNull();
   });
 
+  test('persists id and clears bounds when bounds are missing', () => {
+    localStorage.setItem(
+      DISPLAY_BOUNDS_STORAGE_KEY,
+      JSON.stringify({ x: 0, y: 0, width: 100, height: 100 }),
+    );
+
+    persistDisplaySelection({ id: 'display-a' });
+
+    expect(getStoredDisplayId()).toBe('display-a');
+    expect(getStoredDisplayBounds()).toBeNull();
+  });
+
   test('rejects stored bounds with non-positive dimensions', () => {
     localStorage.setItem(
       DISPLAY_BOUNDS_STORAGE_KEY,
@@ -56,6 +68,11 @@ describe('displaySelection', () => {
       DISPLAY_BOUNDS_STORAGE_KEY,
       JSON.stringify({ x: 1, y: 2, width: Number.POSITIVE_INFINITY, height: 100 }),
     );
+    expect(getStoredDisplayBounds()).toBeNull();
+  });
+
+  test('returns null for malformed stored bounds JSON', () => {
+    localStorage.setItem(DISPLAY_BOUNDS_STORAGE_KEY, '{bad json');
     expect(getStoredDisplayBounds()).toBeNull();
   });
 });

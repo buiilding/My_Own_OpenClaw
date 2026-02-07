@@ -172,4 +172,57 @@ describe('MessageFormatter', () => {
     expect(output).not.toContain('screenshot_ref');
     expect(output).toContain('State of the screen after screenshot was executed:');
   });
+
+  test('formatToolOutputMessage falls back to No output when only non-text fields exist', () => {
+    const output = formatToolOutputMessage(
+      'screenshot',
+      {
+        success: true,
+        data: {
+          screenshot: 'shot',
+          system_state: { active_window: 'App' },
+        },
+      },
+      null,
+    );
+    expect(output).toContain('No output');
+    expect(output).toContain('status: successful');
+  });
+
+  test('formatToolOutputMessage treats image_data as screenshot indicator', () => {
+    const output = formatToolOutputMessage(
+      'screenshot',
+      {
+        success: true,
+        data: {
+          image_data: 'inline-image',
+        },
+      },
+      null,
+    );
+    expect(output).toContain('State of the screen after screenshot was executed:');
+  });
+
+  test('formatBundledToolOutputMessage prefers _rawResult payload when provided', () => {
+    const output = formatBundledToolOutputMessage(
+      [
+        {
+          tool_name: 'read_file',
+          success: true,
+          data: { output: 'outer-success' },
+          _rawResult: {
+            success: false,
+            error: 'inner-failure',
+            data: { output: 'inner-output' },
+          },
+        },
+      ],
+      null,
+      null,
+    );
+
+    expect(output).toContain('error: inner-failure');
+    expect(output).toContain('status: failed');
+    expect(output).not.toContain('outer-success');
+  });
 });

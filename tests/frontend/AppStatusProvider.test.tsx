@@ -98,6 +98,25 @@ describe('AppStatusProvider', () => {
     expect(result.current.saveStatus).toBe('idle');
   });
 
+  test('ignores backend errors that are not settings-update errors', () => {
+    const { result } = renderHook(() => useAppStatusContext(), { wrapper });
+
+    emitBackendEvent({
+      type: 'error',
+      payload: { message: 'Database timeout' },
+    });
+
+    expect(result.current.saveStatus).toBe('idle');
+  });
+
+  test('ignores unsupported backend event types', () => {
+    const { result } = renderHook(() => useAppStatusContext(), { wrapper });
+
+    emitBackendEvent({ type: 'models-listed', payload: {} });
+
+    expect(result.current.saveStatus).toBe('idle');
+  });
+
   test('cleans up listener on unmount', () => {
     const { unmount } = renderHook(() => useAppStatusContext(), { wrapper });
 
@@ -106,4 +125,3 @@ describe('AppStatusProvider', () => {
     expect(removeListener).toHaveBeenCalledTimes(1);
   });
 });
-
