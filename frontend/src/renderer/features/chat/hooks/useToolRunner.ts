@@ -7,73 +7,18 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { ToolExecutionService, type ToolExecutionResult, type BundleExecutionResult } from '../../../infrastructure/services/ToolExecutionService';
-import { useChatStore, type ChatMessage } from '../stores/chatStore';
+import { useChatStore } from '../stores/chatStore';
 import { recordToolMessage } from '../../../infrastructure/transcript/TranscriptWriter';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { type ToolBundleEvent, type ToolCallEvent, isBackendEvent } from '../../../types/backendEvents';
-
-type TranscriptModelContext = {
-  modelId: string | null;
-  modelProvider: string | null;
-};
-
-function buildToolOutputMessage(result: ToolExecutionResult): ChatMessage {
-  return {
-    id: crypto.randomUUID(),
-    text: result.formattedMessage,
-    sender: 'assistant',
-    type: 'tool-output',
-    screenshotRef: result.screenshotRef || null,
-    screenshotUrl: result.screenshotUrl || null,
-    toolMetadata: result.result.data && typeof result.result.data === 'object'
-      ? result.result.data.metadata || null
-      : null,
-    toolName: result.toolName,
-    executionTime: result.executionTime,
-    success: result.result.success,
-    correlationId: result.correlationId,
-  };
-}
-
-function buildBundleOutputMessage(result: BundleExecutionResult): ChatMessage {
-  return {
-    id: crypto.randomUUID(),
-    text: result.formattedMessage,
-    sender: 'assistant',
-    type: 'tool-output',
-    screenshotRef: result.screenshotRef || null,
-    screenshotUrl: result.screenshotUrl || null,
-    toolMetadata: {
-      bundled: true,
-      tool_count: result.results.length,
-      tools: result.results.map(r => ({
-        tool_name: r.tool_name,
-        success: r.success,
-        error: r.error
-      }))
-    },
-    toolName: `bundled_tools (${result.results.length} tools)`,
-    executionTime: result.totalTime,
-    success: result.results.every(r => r.success),
-    correlationId: result.correlationId,
-  };
-}
-
-function buildTranscriptMetadata(
-  toolName: string,
-  correlationId: string,
-  screenshotRef: string | null | undefined,
-  modelContext: TranscriptModelContext,
-) {
-  return {
-    messageType: 'tool-output' as const,
-    toolName,
-    correlationId,
-    screenshotRef: screenshotRef || null,
-    modelId: modelContext.modelId,
-    modelProvider: modelContext.modelProvider,
-  };
-}
+import {
+  buildBundleOutputMessage,
+  buildToolOutputMessage,
+  buildTranscriptMetadata,
+  mapBundleTools,
+  resolveToolCallCorrelationId,
+  type TranscriptModelContext,
+} from '../utils/toolRunnerMessages';
 
 /**
  * Custom hook for managing tool execution.
@@ -139,12 +84,7 @@ export function useToolRunner(enabled = true) {
 
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
     const bundleId = event.payload?.bundle_id || `bundle-${crypto.randomUUID()}`;
-    const tools = (event.payload?.tools || [])
-      .filter(tool => tool.name)
-      .map(tool => ({
-        toolName: tool.name as string,
-        args: tool.args || {},
-      }));
+    const tools = mapBundleTools(event.payload?.tools);
 
     if (tools.length === 0) {
       return;
@@ -162,11 +102,7 @@ export function useToolRunner(enabled = true) {
       return;
     }
 
-    const correlationId =
-      event.payload.correlation_id ||
-      event.payload.request_id ||
-      event.id ||
-      crypto.randomUUID();
+    const correlationId = resolveToolCallCorrelationId(event.payload, event.id);
 
     if (toolServiceRef.current) {
       toolServiceRef.current.executeTool(
