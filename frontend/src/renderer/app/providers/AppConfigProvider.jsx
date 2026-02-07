@@ -6,6 +6,7 @@ import { ApiClient } from '../../infrastructure/api/client';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
 import { updateTranscriptSession } from '../../infrastructure/transcript/TranscriptWriter';
+import { hasShallowConfigChanges } from './configComparison';
 
 /**
  * AppConfigProvider - Manages application configuration and capabilities.
@@ -117,15 +118,7 @@ export function AppConfigProvider({ children }) {
   const updateConfig = useCallback((newConfig) => {
     const filteredConfig = sanitizeConfig(filterFrontendConfig(newConfig));
 
-    let hasChanges = false;
-    for (const key in filteredConfig) {
-      if (filteredConfig[key] !== config?.[key]) {
-        hasChanges = true;
-        break;
-      }
-    }
-
-    if (!hasChanges) {
+    if (!hasShallowConfigChanges(config, filteredConfig)) {
       console.log('[Settings Update] No changes detected, skipping save');
       return;
     }
