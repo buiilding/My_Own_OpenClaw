@@ -135,69 +135,16 @@ class PromptConstructor:
         Raises:
             InputSizeLimitError: If any size limit is exceeded
         """
-        boundary_name = "prompt_constructor"
-        
         # Get tool schemas if needed
         tool_schemas = []
         if include_tools:
             tool_schemas = self._get_filtered_tool_schemas()
 
-        # Get history (tools passed separately to LLM API)
-        if stored_messages and hasattr(stored_messages, 'get_history'):
-            prompt_messages = stored_messages.get_history()
-        else:
-            # Fallback: empty history if stored_messages not available
-            prompt_messages = []
-
-        # Build metadata for transparency events
-        user_message_metadata = None
-
-        if stored_messages and hasattr(stored_messages, 'last_user_query'):
-            last_user_query_stored = stored_messages.last_user_query
-            if last_user_query_stored:
-                # Extract metadata from stored message
-                user_query = last_user_query_stored.user_query_raw or ""
-
-                # Find the last user message in rendered history for full content
-                full_content = ""
-                for msg in reversed(prompt_messages):
-                    if msg["role"] == MessageRole.USER.value:
-                        msg_content = content_to_message_content(msg["content"])
-                        text_content = msg_content.get_text()
-                        if "<user_query>" in text_content:
-                            full_content = text_content
-                            break
-
-                # Determine context type and extract context XML from content
-                stored_list = stored_messages.get_stored_messages()
-                user_query_count = sum(1 for msg in stored_list if msg.message_type == MessageType.USER_QUERY)
-                is_first_user_message = (user_query_count == 1)
-
-                # Extract context XML from message content
-                context_xml = ""
-                active_window = "Unknown"
-                if full_content:
-                    # Try to extract context XML from the message content
-                    if "<system_context>" in full_content:
-                        start_idx = full_content.find("<system_context>")
-                        end_idx = full_content.find("</system_context>") + len("</system_context>")
-                        if end_idx > start_idx:
-                            context_xml = full_content[start_idx:end_idx]
-                    
-                    # Try to extract active window from context XML
-                    if "<active_window>" in full_content:
-                        a_start = full_content.find("<active_window>") + len("<active_window>")
-                        a_end = full_content.find("</active_window>")
-                        if a_end > a_start:
-                            active_window = full_content[a_start:a_end]
-                
-                user_message_metadata = UserMessageMetadata(
-                    original_query=user_query,
-                    full_content=full_content,
-                    context_type="initial" if is_first_user_message else "sequential",
-                    injected_context=context_xml,
-                    active_window=active_window,
-                )
+        prompt_messages = self._get_prompt_messages(stored_messages)
+        user_message_metadata = self._build_user_message_metadata(
+            stored_messages,
+            prompt_messages,
+        )
 
         metadata = PromptMetadata(
             system_prompt=self.system_prompt,
@@ -206,6 +153,74 @@ class PromptConstructor:
         )
 
         return prompt_messages, tool_schemas, metadata
+
+    def _get_prompt_messages(
+        self,
+        stored_messages: Optional[Union[List[StoredMessage], Any]],
+    ) -> List[LLMMessage]:
+        """Get rendered prompt history from stored messages object when available."""
+        if stored_messages and hasattr(stored_messages, "get_history"):
+            return stored_messages.get_history()
+        return []
+
+    def _build_user_message_metadata(
+        self,
+        stored_messages: Optional[Union[List[StoredMessage], Any]],
+        prompt_messages: List[LLMMessage],
+    ) -> Optional[UserMessageMetadata]:
+        """Build metadata payload for user_message_full transparency event."""
+        if not stored_messages or not hasattr(stored_messages, "last_user_query"):
+            return None
+
+        last_user_query_stored = stored_messages.last_user_query
+        if not last_user_query_stored:
+            return None
+
+        user_query = last_user_query_stored.user_query_raw or ""
+        full_content = self._find_last_user_query_content(prompt_messages)
+        context_xml, active_window = self._extract_context_metadata(full_content)
+        context_type = self._determine_context_type(stored_messages)
+
+        return UserMessageMetadata(
+            original_query=user_query,
+            full_content=full_content,
+            context_type=context_type,
+            injected_context=context_xml,
+            active_window=active_window,
+        )
+
+    def _find_last_user_query_content(self, prompt_messages: List[LLMMessage]) -> str:
+        """Find last user message text that includes a <user_query> block."""
+        for msg in reversed(prompt_messages):
+            if msg.get("role") != MessageRole.USER.value:
+                continue
+            msg_content = content_to_message_content(msg.get("content", ""))
+            text_content = msg_content.get_text()
+            if "<user_query>" in text_content:
+                return text_content
+        return ""
+
+    def _extract_context_metadata(self, full_content: str) -> tuple[str, str]:
+        """Extract system context XML and active window from rendered user content."""
+        if not full_content:
+            return "", "Unknown"
+
+        context_xml = self._extract_xml_tag(full_content, "system_context")
+        active_window = self._extract_xml_tag_content(full_content, "active_window") or "Unknown"
+        return context_xml, active_window
+
+    def _determine_context_type(self, stored_messages: Any) -> str:
+        """Determine whether current message context is initial or sequential."""
+        if not hasattr(stored_messages, "get_stored_messages"):
+            return "sequential"
+
+        stored_list = stored_messages.get_stored_messages()
+        user_query_count = sum(
+            1
+            for msg in stored_list
+            if getattr(msg, "message_type", None) == MessageType.USER_QUERY
+        )
+        return "initial" if user_query_count == 1 else "sequential"
     
     def _calculate_message_size(self, msg: Dict[str, Any]) -> int:
         """
