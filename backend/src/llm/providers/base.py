@@ -218,6 +218,18 @@ class LLMProvider(ABC):
         """
         pass
 
+    @staticmethod
+    def _first_item(values: Any) -> Optional[Any]:
+        """Return first item from indexable or iterable inputs, otherwise None."""
+        if not values:
+            return None
+        if isinstance(values, (list, tuple)):
+            return values[0] if values else None
+        try:
+            return next(iter(values), None)
+        except TypeError:
+            return None
+
     def _extract_thinking_content(self, delta: Any) -> Optional[str]:
         """
         Extracts reasoning/thinking content from a LiteLLM delta.
@@ -278,16 +290,7 @@ class LLMProvider(ABC):
         if not chunk:
             return None
         choices = getattr(chunk, "choices", None)
-        if not choices:
-            return None
-
-        if isinstance(choices, (list, tuple)):
-            first_choice = choices[0] if choices else None
-        else:
-            try:
-                first_choice = next(iter(choices), None)
-            except TypeError:
-                return None
+        first_choice = LLMProvider._first_item(choices)
         if not first_choice:
             return None
         return getattr(first_choice, "delta", None)
@@ -313,10 +316,11 @@ class LLMProvider(ABC):
         invalid_response_message: str,
     ) -> str:
         """Extract completion text content from a LiteLLM response object."""
-        if not response or not getattr(response, "choices", None):
+        if not response:
             raise LLMAPIError(invalid_response_message, model=model)
 
-        first_choice = response.choices[0] if len(response.choices) > 0 else None
+        choices = getattr(response, "choices", None)
+        first_choice = LLMProvider._first_item(choices)
         message = getattr(first_choice, "message", None) if first_choice else None
         if message is None:
             raise LLMAPIError(invalid_response_message, model=model)

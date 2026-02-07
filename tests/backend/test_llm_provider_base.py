@@ -277,11 +277,45 @@ class TestStreamDeltaHelpers:
 
         assert provider._extract_stream_delta(chunk) is delta
 
+    def test_extract_stream_delta_returns_none_for_non_iterable_choices(self, provider):
+        chunk = SimpleNamespace(choices=42)
+
+        assert provider._extract_stream_delta(chunk) is None
+
     def test_extract_delta_content_supports_object_and_dict_delta(self, provider):
         assert provider._extract_delta_content(SimpleNamespace(content="hello")) == "hello"
         assert provider._extract_delta_content({"content": "world"}) == "world"
         assert provider._extract_delta_content({"content": ""}) is None
         assert provider._extract_delta_content({"content": 123}) is None
+
+
+class TestCompletionContentHelpers:
+    @pytest.fixture
+    def provider(self):
+        return MockProvider()
+
+    def test_extract_completion_content_supports_iterable_choices(self, provider):
+        response = SimpleNamespace(
+            choices=iter([SimpleNamespace(message=SimpleNamespace(content="ok"))])
+        )
+
+        content = provider._extract_completion_content(
+            response,
+            model="model",
+            invalid_response_message="Invalid response",
+        )
+
+        assert content == "ok"
+
+    def test_extract_completion_content_raises_on_non_iterable_choices(self, provider):
+        response = SimpleNamespace(choices=42)
+
+        with pytest.raises(LLMAPIError, match="Invalid response"):
+            provider._extract_completion_content(
+                response,
+                model="model",
+                invalid_response_message="Invalid response",
+            )
 
 
 class TestGetCompletionStream:
