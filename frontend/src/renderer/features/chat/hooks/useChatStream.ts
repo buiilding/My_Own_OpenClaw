@@ -44,6 +44,15 @@ import {
   resolveToolOutputCorrelationId,
   shouldIgnoreStreamError,
 } from '../utils/chatStreamEventUtils';
+import {
+  buildAssistantMessageFullUpdate,
+  buildSystemPromptUpdate,
+  buildUserMessageFullUpdate,
+  findFirstMessageIdBySender,
+  findLastMessageIdBySender,
+  findStreamingCompleteAssistantMessage,
+  resolveStreamingResponseAction,
+} from '../utils/chatStreamMessageUpdates';
 
 type TranscriptModelContext = {
   modelId: string | null;
@@ -76,18 +85,16 @@ export function useChatStream(enableTranscript: boolean = true) {
   }, [modelId, modelProvider]);
 
   const updateLastMessageBySender = useCallback((sender: ChatMessage['sender'], updates: Partial<ChatMessage>) => {
-    const messages = useChatStore.getState().messages;
-    const lastIndex = messages.findLastIndex(msg => msg.sender === sender);
-    if (lastIndex >= 0) {
-      updateMessage(messages[lastIndex].id, updates);
+    const messageId = findLastMessageIdBySender(useChatStore.getState().messages, sender);
+    if (messageId) {
+      updateMessage(messageId, updates);
     }
   }, [updateMessage]);
 
   const updateFirstMessageBySender = useCallback((sender: ChatMessage['sender'], updates: Partial<ChatMessage>) => {
-    const messages = useChatStore.getState().messages;
-    const firstMessage = messages.find(msg => msg.sender === sender);
-    if (firstMessage) {
-      updateMessage(firstMessage.id, updates);
+    const messageId = findFirstMessageIdBySender(useChatStore.getState().messages, sender);
+    if (messageId) {
+      updateMessage(messageId, updates);
     }
   }, [updateMessage]);
 
@@ -100,17 +107,19 @@ export function useChatStream(enableTranscript: boolean = true) {
     setIsSending(false);
     setThinkingStatus(null);
 
-    const messages = useChatStore.getState().messages;
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete && lastMessage.type === 'llm-text') {
-      updateMessage(lastMessage.id, {
-        text: lastMessage.text + (event.payload?.text || ''),
+    const action = resolveStreamingResponseAction(
+      useChatStore.getState().messages,
+      event.payload?.text,
+    );
+    if (action.type === 'append') {
+      updateMessage(action.messageId, {
+        text: action.nextText,
         type: 'llm-text',
       });
     } else {
       const newMessage: ChatMessage = {
         id: crypto.randomUUID(),
-        text: event.payload?.text || '',
+        text: action.text,
         sender: 'assistant',
         isComplete: false,
         type: 'llm-text',
@@ -212,27 +221,19 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
     updateLastMessageBySender('user', {
-      systemPrompt: {
-        content: event.payload?.content || '',
-        toolSchemas: event.payload?.tool_schemas,
-      },
+      systemPrompt: buildSystemPromptUpdate(event.payload),
     });
   }, [updateLastMessageBySender]);
 
   const handleUserMessageFull = useCallback((event: UserMessageFullEvent) => {
     updateLastMessageBySender('user', {
-      fullUserMessage: {
-        content: event.payload?.content || '',
-        metadata: event.payload?.metadata,
-      },
+      fullUserMessage: buildUserMessageFullUpdate(event.payload),
     });
   }, [updateLastMessageBySender]);
 
   const handleAssistantMessageFull = useCallback((event: AssistantMessageFullEvent) => {
     updateLastMessageBySender('assistant', {
-      fullAssistantMessage: {
-        content: event.payload?.content || '',
-      },
+      fullAssistantMessage: buildAssistantMessageFullUpdate(event.payload),
     });
   }, [updateLastMessageBySender]);
 
@@ -278,10 +279,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     setIsSending(false);
     setThinkingStatus(null);
 
-    const messages = useChatStore.getState().messages;
-    const lastMessage = messages.findLast(
-      (message) => message.sender === 'assistant' && (!message.type || message.type === 'llm-text')
-    );
+    const lastMessage = findStreamingCompleteAssistantMessage(useChatStore.getState().messages);
     if (lastMessage && lastMessage.sender === 'assistant') {
       updateMessage(lastMessage.id, { isComplete: true });
       if (lastMessage.text && enableTranscript) {
