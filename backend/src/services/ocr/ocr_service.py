@@ -388,23 +388,53 @@ class OcrService:
         return [value]
 
     def _decode_screenshot(self, screenshot_b64: str) -> Optional[bytes]:
+        if not isinstance(screenshot_b64, str):
+            logger.error("Screenshot payload must be a base64 string")
+            return None
+
+        payload = screenshot_b64.strip()
+        if not payload:
+            logger.error("Screenshot payload is empty")
+            return None
+
+        if payload.startswith("data:"):
+            _, separator, encoded = payload.partition(",")
+            if not separator:
+                logger.error("Invalid data URL format for screenshot payload")
+                return None
+            payload = encoded
+
+        payload = "".join(payload.split())
         try:
-            return base64.b64decode(screenshot_b64)
+            return base64.b64decode(payload, validate=True)
         except Exception as exc:
             logger.error(f"Failed to decode screenshot base64: {exc}")
             return None
 
+    def _parse_bbox(self, box: Any) -> Optional[tuple[int, int, int, int]]:
+        """Convert OCR polygon points to an axis-aligned bounding box."""
+        if box is None or not hasattr(box, "__len__") or len(box) < 4:
+            return None
+
+        try:
+            x_coords = [float(point[0]) for point in box]
+            y_coords = [float(point[1]) for point in box]
+        except (TypeError, ValueError, IndexError):
+            return None
+
+        return (
+            int(min(x_coords)),
+            int(min(y_coords)),
+            int(max(x_coords)),
+            int(max(y_coords)),
+        )
+
     def _build_bbox_list(self, boxes_list: List[Any]) -> List[tuple[int, int, int, int]]:
         bbox_list: List[tuple[int, int, int, int]] = []
         for box in boxes_list:
-            if box is not None and len(box) >= 4:
-                x_coords = [p[0] for p in box]
-                y_coords = [p[1] for p in box]
-                x1 = int(min(x_coords))
-                y1 = int(min(y_coords))
-                x2 = int(max(x_coords))
-                y2 = int(max(y_coords))
-                bbox_list.append((x1, y1, x2, y2))
+            bbox = self._parse_bbox(box)
+            if bbox is not None:
+                bbox_list.append(bbox)
         return bbox_list
 
     async def shutdown(self) -> None:
