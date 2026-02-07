@@ -13,6 +13,7 @@ const { getSystemState, searchMemory } = require('./local_backend_bridge.cjs');
 
 const BACKEND_PORT = process.env.BACKEND_PORT || 8765;
 const BACKEND_URL = `ws://127.0.0.1:${BACKEND_PORT}/ws`;
+const BACKEND_HTTP_URL = `http://127.0.0.1:${BACKEND_PORT}`;
 let ws = null;
 let mainWindow = null;
 let rendererWindows = new Set();
@@ -75,6 +76,38 @@ function log(message) {
 function logDebug(message) {
   // Debug logging - can be enabled for troubleshooting
   // console.log(`[IPC Bridge] ${message}`);
+}
+
+async function uploadArtifact({ base64, contentType, filename }) {
+  if (!base64 || typeof base64 !== 'string') {
+    return { success: false, error: 'Missing artifact data' };
+  }
+
+  const resolvedContentType = contentType || 'application/octet-stream';
+  const ext = resolvedContentType === 'image/png' ? 'png' : 'jpg';
+  const safeName = filename && typeof filename === 'string' ? filename : `artifact.${ext}`;
+
+  try {
+    const buffer = Buffer.from(base64, 'base64');
+    const blob = new Blob([buffer], { type: resolvedContentType });
+    const form = new FormData();
+    form.append('file', blob, safeName);
+
+    const response = await fetch(`${BACKEND_HTTP_URL}/api/artifacts`, {
+      method: 'POST',
+      body: form,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return { success: false, error: `Upload failed (${response.status}): ${errorText}` };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error.message || String(error) };
+  }
 }
 
 function trackRendererWindow(win) {
@@ -245,6 +278,10 @@ function initializeIpc(win) {
     return { userId: currentUserId, isConnected };
   });
 
+  ipcMain.handle('upload-artifact', async (_event, payload) => {
+    return uploadArtifact(payload || {});
+  });
+
   ipcMain.handle('save-frontend-config', async (event, config) => {
     return await saveFrontendConfigToDisk(config);
   });
@@ -265,7 +302,8 @@ function initializeIpc(win) {
           user_id: currentServerUserId || null,
           payload: {
             text: payload.text,
-            screenshot: payload.screenshot || null,
+            screenshot_ref: payload.screenshot_ref || null,
+            screenshot_url: payload.screenshot_url || null,
             timestamp: new Date().toISOString(),
             session_id: currentSessionId || null,
             user_id: currentServerUserId || null,
