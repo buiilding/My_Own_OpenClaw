@@ -12,6 +12,69 @@ import { recordToolMessage } from '../../../infrastructure/transcript/Transcript
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { type ToolBundleEvent, type ToolCallEvent, isBackendEvent } from '../../../types/backendEvents';
 
+type TranscriptModelContext = {
+  modelId: string | null;
+  modelProvider: string | null;
+};
+
+function buildToolOutputMessage(result: ToolExecutionResult): ChatMessage {
+  return {
+    id: crypto.randomUUID(),
+    text: result.formattedMessage,
+    sender: 'assistant',
+    type: 'tool-output',
+    screenshotRef: result.screenshotRef || null,
+    screenshotUrl: result.screenshotUrl || null,
+    toolMetadata: result.result.data && typeof result.result.data === 'object'
+      ? result.result.data.metadata || null
+      : null,
+    toolName: result.toolName,
+    executionTime: result.executionTime,
+    success: result.result.success,
+    correlationId: result.correlationId,
+  };
+}
+
+function buildBundleOutputMessage(result: BundleExecutionResult): ChatMessage {
+  return {
+    id: crypto.randomUUID(),
+    text: result.formattedMessage,
+    sender: 'assistant',
+    type: 'tool-output',
+    screenshotRef: result.screenshotRef || null,
+    screenshotUrl: result.screenshotUrl || null,
+    toolMetadata: {
+      bundled: true,
+      tool_count: result.results.length,
+      tools: result.results.map(r => ({
+        tool_name: r.tool_name,
+        success: r.success,
+        error: r.error
+      }))
+    },
+    toolName: `bundled_tools (${result.results.length} tools)`,
+    executionTime: result.totalTime,
+    success: result.results.every(r => r.success),
+    correlationId: result.correlationId,
+  };
+}
+
+function buildTranscriptMetadata(
+  toolName: string,
+  correlationId: string,
+  screenshotRef: string | null | undefined,
+  modelContext: TranscriptModelContext,
+) {
+  return {
+    messageType: 'tool-output' as const,
+    toolName,
+    correlationId,
+    screenshotRef: screenshotRef || null,
+    modelId: modelContext.modelId,
+    modelProvider: modelContext.modelProvider,
+  };
+}
+
 /**
  * Custom hook for managing tool execution.
  * Connects UI to ToolExecutionService and handles tool-related events.
@@ -23,6 +86,14 @@ export function useToolRunner(enabled = true) {
   const modelProvider = config?.model_provider || null;
 
   const toolServiceRef = useRef<ToolExecutionService | null>(null);
+  const modelContextRef = useRef<TranscriptModelContext>({
+    modelId,
+    modelProvider,
+  });
+
+  useEffect(() => {
+    modelContextRef.current = { modelId, modelProvider };
+  }, [modelId, modelProvider]);
 
   useEffect(() => {
     if (!enabled) {
@@ -31,64 +102,28 @@ export function useToolRunner(enabled = true) {
     }
     const toolService = new ToolExecutionService({
       onToolResult: (result: ToolExecutionResult) => {
-        const toolOutputMessage: ChatMessage = {
-          id: crypto.randomUUID(),
-          text: result.formattedMessage,
-          sender: 'assistant',
-          type: 'tool-output',
-          screenshotRef: result.screenshotRef || null,
-          screenshotUrl: result.screenshotUrl || null,
-          toolMetadata: result.result.data && typeof result.result.data === 'object'
-            ? result.result.data.metadata || null
-            : null,
-          toolName: result.toolName,
-          executionTime: result.executionTime,
-          success: result.result.success,
-          correlationId: result.correlationId,
-        };
-
-        addMessage(toolOutputMessage);
-        recordToolMessage(result.formattedMessage, {
-          messageType: 'tool-output',
-          toolName: result.toolName,
-          correlationId: result.correlationId,
-          screenshotRef: result.screenshotRef || null,
-          modelId,
-          modelProvider,
-        });
+        addMessage(buildToolOutputMessage(result));
+        recordToolMessage(
+          result.formattedMessage,
+          buildTranscriptMetadata(
+            result.toolName,
+            result.correlationId,
+            result.screenshotRef,
+            modelContextRef.current,
+          ),
+        );
       },
       onBundleResult: (result: BundleExecutionResult) => {
-        const bundledMessage: ChatMessage = {
-          id: crypto.randomUUID(),
-          text: result.formattedMessage,
-          sender: 'assistant',
-          type: 'tool-output',
-          screenshotRef: result.screenshotRef || null,
-          screenshotUrl: result.screenshotUrl || null,
-          toolMetadata: {
-            bundled: true,
-            tool_count: result.results.length,
-            tools: result.results.map(r => ({
-              tool_name: r.tool_name,
-              success: r.success,
-              error: r.error
-            }))
-          },
-          toolName: `bundled_tools (${result.results.length} tools)`,
-          executionTime: result.totalTime,
-          success: result.results.every(r => r.success),
-          correlationId: result.correlationId,
-        };
-
-        addMessage(bundledMessage);
-        recordToolMessage(result.formattedMessage, {
-          messageType: 'tool-output',
-          toolName: `bundled_tools`,
-          correlationId: result.correlationId,
-          screenshotRef: result.screenshotRef || null,
-          modelId,
-          modelProvider,
-        });
+        addMessage(buildBundleOutputMessage(result));
+        recordToolMessage(
+          result.formattedMessage,
+          buildTranscriptMetadata(
+            'bundled_tools',
+            result.correlationId,
+            result.screenshotRef,
+            modelContextRef.current,
+          ),
+        );
       },
       sendToBackend: (payload: unknown) => {
         IpcBridge.send(SEND_CHANNELS.TO_BACKEND, payload);
@@ -100,7 +135,7 @@ export function useToolRunner(enabled = true) {
     return () => {
       toolServiceRef.current = null;
     };
-  }, [addMessage, enabled, modelId, modelProvider]);
+  }, [addMessage, enabled]);
 
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
     const bundleId = event.payload?.bundle_id || `bundle-${crypto.randomUUID()}`;
