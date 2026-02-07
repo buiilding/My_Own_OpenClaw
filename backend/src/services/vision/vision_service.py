@@ -1,7 +1,7 @@
 """
 Vision Service.
 
-Manages the InternVL vision model instance for UI grounding.
+Manages the configured vision model instance for UI grounding.
 Initializes the model at startup for fast first-time use.
 """
 import asyncio
@@ -22,9 +22,9 @@ VENUS_MODEL_PREFIX = "inclusionai/ui-venus"
 
 class VisionService:
     """
-    Service for managing the InternVL vision model.
+    Service for managing the configured vision model.
     
-    Provides a singleton instance of the InternVL model that is initialized
+    Provides a singleton model instance that is initialized
     at server startup, enabling fast first-time use in mouse_control tool with find_coordinates_by="prediction".
     """
 
@@ -45,13 +45,8 @@ class VisionService:
 
     def _build_model_instance(self) -> BaseVisionModel:
         """Build concrete vision model implementation from configured model name."""
-        if self._is_venus_model():
-            return VenusVisionModel(
-                model_name=self.model_name,
-                device="auto",
-                trust_remote_code=True,
-            )
-        return InternVLModel(
+        model_class = VenusVisionModel if self._is_venus_model() else InternVLModel
+        return model_class(
             model_name=self.model_name,
             device="auto",
             trust_remote_code=True,
@@ -86,7 +81,7 @@ class VisionService:
 
     async def initialize(self) -> bool:
         """
-        Initialize the InternVL model.
+        Initialize the configured vision model.
         
         This should be called during server startup to pre-load the model.
         Thread-safe: Uses lock to prevent concurrent initialization (double VRAM usage).
@@ -146,7 +141,7 @@ class VisionService:
 
     async def unload_model(self) -> bool:
         """
-        Unload the InternVL model to free VRAM/system RAM.
+        Unload the configured vision model to free VRAM/system RAM.
         
         This is useful when the vision system is not actively being used,
         allowing other applications or models to use the freed memory.
