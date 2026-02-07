@@ -82,3 +82,31 @@ def scale_norm_to_pixels(
     x_px = max(0, min(width - 1, x_px))
     y_px = max(0, min(height - 1, y_px))
     return x_px, y_px
+
+
+def scale_model_point_to_pixels(
+    x_value: float, y_value: float, width: int, height: int
+) -> Tuple[int, int]:
+    """
+    Scale model output coordinates to pixels.
+
+    Supports three common model coordinate spaces:
+    - Unit normalized [0, 1]
+    - InternVL-style normalized [0, 1000]
+    - Absolute pixel-like values (>1000 on either axis)
+    """
+    if width <= 0 or height <= 0:
+        return 0, 0
+
+    x_norm = x_value
+    y_norm = y_value
+    if 0 <= x_norm <= 1 and 0 <= y_norm <= 1:
+        x_norm *= 1000.0
+        y_norm *= 1000.0
+
+    if x_norm > 1000 or y_norm > 1000:
+        x_px = max(0, min(width - 1, int(round(x_norm))))
+        y_px = max(0, min(height - 1, int(round(y_norm))))
+        return x_px, y_px
+
+    return scale_norm_to_pixels(x_norm, y_norm, width, height)
