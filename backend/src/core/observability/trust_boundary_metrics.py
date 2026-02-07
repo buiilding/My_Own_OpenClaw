@@ -24,11 +24,25 @@ def _numeric_stats(values: Sequence[float]) -> Dict[str, Optional[float]]:
     """Calculate count/min/max/avg for a numeric sequence."""
     if not values:
         return {"count": 0, "min": None, "max": None, "avg": None}
+
+    total = 0.0
+    min_value = float("inf")
+    max_value = float("-inf")
+    count = 0
+
+    for value in values:
+        total += value
+        if value < min_value:
+            min_value = value
+        if value > max_value:
+            max_value = value
+        count += 1
+
     return {
-        "count": len(values),
-        "min": min(values),
-        "max": max(values),
-        "avg": sum(values) / len(values),
+        "count": count,
+        "min": min_value,
+        "max": max_value,
+        "avg": total / count,
     }
 
 
