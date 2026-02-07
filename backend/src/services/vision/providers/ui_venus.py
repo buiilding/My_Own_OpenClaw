@@ -31,12 +31,23 @@ from backend.src.services.vision.providers.internvl import (
 logger = logging.getLogger(__name__)
 
 # Import dependencies - these are module-level in base.py but not exported
+VENUS_MODEL_DEPS_AVAILABLE = False
 if VISION_MODELS_AVAILABLE:
-    import torch
-    from transformers import AutoModel, AutoTokenizer, AutoProcessor
     try:
-        from transformers import AutoModelForVision2Seq
-    except ImportError:  # pragma: no cover - older transformers
+        import torch
+        from transformers import AutoModel, AutoProcessor, AutoTokenizer
+
+        try:
+            from transformers import AutoModelForVision2Seq
+        except ImportError:  # pragma: no cover - older transformers
+            AutoModelForVision2Seq = None
+        VENUS_MODEL_DEPS_AVAILABLE = True
+    except Exception as import_error:
+        logger.warning("Venus vision dependencies unavailable: %s", import_error)
+        torch = None
+        AutoModel = None
+        AutoTokenizer = None
+        AutoProcessor = None
         AutoModelForVision2Seq = None
 else:
     torch = None
@@ -59,7 +70,12 @@ class VenusVisionModel(InternVLModel):
 
     def _load(self):
         """Load the Venus/Qwen2.5-VL model and tokenizer without use_flash_attn."""
-        if not VISION_MODELS_AVAILABLE or AutoModel is None or AutoTokenizer is None:
+        if (
+            not VISION_MODELS_AVAILABLE
+            or not VENUS_MODEL_DEPS_AVAILABLE
+            or AutoModel is None
+            or AutoTokenizer is None
+        ):
             raise ImportError("Vision model dependencies not available")
 
         try:
