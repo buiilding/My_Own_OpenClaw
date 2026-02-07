@@ -3,12 +3,16 @@ OCR Service.
 
 Provides OCR analysis for screenshots without the plugin system.
 """
-import base64
 import logging
 import threading
 from typing import Any, Dict, List, Optional
 
 from backend.src.core.config.models import OCRConfig
+from backend.src.services.ocr.helpers import (
+    decode_screenshot_payload,
+    is_cuda_error,
+    normalize_ocr_field,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -31,33 +35,6 @@ try:
 except Exception:
     np = None  # type: ignore[assignment]
     NUMPY_AVAILABLE = False
-
-CUDA_ERROR_KEYWORDS = [
-    "Failed to allocate memory",
-    "CUBLAS_STATUS_ALLOC_FAILED",
-    "CUBLAS failure",
-    "CUDNN",
-    "CUDA",
-    "cuda_call",
-    "cublas",
-    "cudnn",
-    "CUDNN_STATUS",
-    "CUBLAS_STATUS",
-    "BFCArena",
-    "AllocateRawInternal",
-    "RUNTIME_EXCEPTION",
-]
-
-
-def is_cuda_error(error: Exception) -> bool:
-    error_msg = str(error)
-    error_type = type(error).__name__
-    if "ONNXRuntimeError" in error_type or "RuntimeException" in error_type:
-        return True
-    if "ONNXRuntimeError" in error_msg:
-        return True
-    return any(keyword in error_msg for keyword in CUDA_ERROR_KEYWORDS)
-
 
 class OcrService:
     """
@@ -453,39 +430,14 @@ class OcrService:
             return None
 
     def _normalize_ocr_field(self, value: Any) -> List[Any]:
-        if value is None:
-            return []
-        if isinstance(value, str):
-            return [value]
-        if NUMPY_AVAILABLE and isinstance(value, np.ndarray):
-            return value.tolist()
-        if isinstance(value, (list, tuple)):
-            return list(value)
-        return [value]
+        return normalize_ocr_field(
+            value,
+            numpy_available=NUMPY_AVAILABLE,
+            numpy_module=np,
+        )
 
     def _decode_screenshot(self, screenshot_b64: str) -> Optional[bytes]:
-        if not isinstance(screenshot_b64, str):
-            logger.error("Screenshot payload must be a base64 string")
-            return None
-
-        payload = screenshot_b64.strip()
-        if not payload:
-            logger.error("Screenshot payload is empty")
-            return None
-
-        if payload.startswith("data:"):
-            _, separator, encoded = payload.partition(",")
-            if not separator:
-                logger.error("Invalid data URL format for screenshot payload")
-                return None
-            payload = encoded
-
-        payload = "".join(payload.split())
-        try:
-            return base64.b64decode(payload, validate=True)
-        except Exception as exc:
-            logger.error(f"Failed to decode screenshot base64: {exc}")
-            return None
+        return decode_screenshot_payload(screenshot_b64, logger=logger)
 
     def _parse_bbox(self, box: Any) -> Optional[tuple[int, int, int, int]]:
         """Convert OCR polygon points to an axis-aligned bounding box."""

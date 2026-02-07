@@ -262,6 +262,10 @@ WebSocket Response
   `backend/src/api/routes/memory/semantic.py` now use Pydantic v2
   `min_length`/`max_length` fields, removing deprecated `min_items`/
   `max_items` warnings without changing endpoint validation intent.
+- OCR utility helpers (`is_cuda_error`, screenshot payload decode, OCR field
+  normalization) now live in `backend/src/services/ocr/helpers.py`, reducing
+  `ocr_service.py` size and keeping service orchestration separate from pure
+  parsing/error-classification logic.
 - Vision provider internals now centralize shared fallback loading and coordinate
   extraction logic in `backend/src/services/vision/providers/base.py` and
   `backend/src/services/vision/coordinates.py`, keeping provider-specific files
