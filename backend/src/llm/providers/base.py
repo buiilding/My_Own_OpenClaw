@@ -280,7 +280,14 @@ class LLMProvider(ABC):
         choices = getattr(chunk, "choices", None)
         if not choices:
             return None
-        first_choice = choices[0] if len(choices) > 0 else None
+
+        if isinstance(choices, (list, tuple)):
+            first_choice = choices[0] if choices else None
+        else:
+            try:
+                first_choice = next(iter(choices), None)
+            except TypeError:
+                return None
         if not first_choice:
             return None
         return getattr(first_choice, "delta", None)
