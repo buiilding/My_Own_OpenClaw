@@ -246,3 +246,7 @@ WebSocket Response
 - Tool waiting lifecycle responsibilities are concentrated in
   `backend/src/agent/tools/waiting/` with explicit handler/receiver/router/storage
   separation to reduce cross-layer coupling in session code.
+- Vision provider internals now centralize shared fallback loading and coordinate
+  extraction logic in `backend/src/services/vision/providers/base.py` and
+  `backend/src/services/vision/coordinates.py`, keeping provider-specific files
+  focused on model-specific I/O.
