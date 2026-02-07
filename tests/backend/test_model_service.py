@@ -53,6 +53,18 @@ class DuplicateLocalProvider:
         ]
 
 
+class SharedModelProvider:
+    def __init__(self) -> None:
+        self._shared = {
+            "id": "shared-model",
+            "provider": "ollama",
+            "display_name": "ollama/shared-model",
+        }
+
+    async def list_models(self):
+        return [self._shared]
+
+
 @pytest.mark.asyncio
 async def test_get_local_models_fetches_local_providers_in_parallel(monkeypatch):
     state = {
@@ -117,6 +129,22 @@ async def test_get_local_models_deduplicates_provider_model_pairs(monkeypatch):
     assert len(models) == 1
     assert models[0]["provider"] == "ollama"
     assert models[0]["id"] == "dup-model"
+
+
+@pytest.mark.asyncio
+async def test_get_local_models_returns_defensive_copy(monkeypatch):
+    factory = {"ollama": SharedModelProvider()}
+    monkeypatch.setattr(
+        "backend.src.llm.providers.create_provider_factory",
+        lambda _cfg: factory,
+    )
+
+    service = ModelService(AppConfig())
+    first = await service.get_local_models()
+    first[0]["id"] = "mutated-id"
+
+    second = await service.get_local_models()
+    assert second[0]["id"] == "shared-model"
 
 
 def test_get_online_models_returns_defensive_copy():
