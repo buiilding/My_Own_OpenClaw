@@ -13,6 +13,7 @@ from backend.src.core.infrastructure.exceptions import (
 from backend.src.llm.parser_types import ParsedToolCall, ToolCallSchema
 
 logger = logging.getLogger(__name__)
+MULTI_NEWLINE_RE = re.compile(r"\n{3,}")
 
 
 class JsonToolCallExtractor:
@@ -288,5 +289,5 @@ class JsonToolCallExtractor:
         return self._normalize_whitespace(result)
 
     def _normalize_whitespace(self, text: str) -> str:
-        cleaned = re.sub(r"\n{3,}", "\n\n", text)
+        cleaned = MULTI_NEWLINE_RE.sub("\n\n", text)
         return cleaned.strip()
