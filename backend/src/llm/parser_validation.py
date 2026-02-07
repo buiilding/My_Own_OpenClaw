@@ -144,19 +144,19 @@ class ToolCallValidator:
                 "Metadata must be a dictionary."
             )
         else:
-            if "description" not in metadata or not metadata["description"]:
+            if not self._has_nonempty_text(metadata.get("description")):
                 validation_errors.append(
                     f"Computer-use tool '{tool_name}' is missing required metadata field 'description'. "
                     "Description describes the most recent screenshot provided to you."
                 )
 
-            if "explanation" not in metadata or not metadata["explanation"]:
+            if not self._has_nonempty_text(metadata.get("explanation")):
                 validation_errors.append(
                     f"Computer-use tool '{tool_name}' is missing required metadata field 'explanation'. "
                     "Explanation describes why this tool is being used."
                 )
 
-            if "expectation" not in metadata or not metadata["expectation"]:
+            if not self._has_nonempty_text(metadata.get("expectation")):
                 validation_errors.append(
                     f"Computer-use tool '{tool_name}' is missing required metadata field 'expectation'. "
                     "Expectation describes what you expect to see after execution."
@@ -181,3 +181,7 @@ class ToolCallValidator:
         if tool and hasattr(tool, "category"):
             return tool.category == ToolDomain.COMPUTER
         return False
+
+    @staticmethod
+    def _has_nonempty_text(value: Any) -> bool:
+        return isinstance(value, str) and bool(value.strip())
