@@ -36,7 +36,8 @@ export function useToolRunner(enabled = true) {
           text: result.formattedMessage,
           sender: 'assistant',
           type: 'tool-output',
-          screenshot: result.screenshot || null,
+          screenshotRef: result.screenshotRef || null,
+          screenshotUrl: result.screenshotUrl || null,
           toolMetadata: result.result.data && typeof result.result.data === 'object'
             ? result.result.data.metadata || null
             : null,
@@ -51,7 +52,7 @@ export function useToolRunner(enabled = true) {
           messageType: 'tool-output',
           toolName: result.toolName,
           correlationId: result.correlationId,
-          screenshot: result.screenshot || null,
+          screenshotRef: result.screenshotRef || null,
           modelId,
           modelProvider,
         });
@@ -62,7 +63,8 @@ export function useToolRunner(enabled = true) {
           text: result.formattedMessage,
           sender: 'assistant',
           type: 'tool-output',
-          screenshot: result.screenshot || null,
+          screenshotRef: result.screenshotRef || null,
+          screenshotUrl: result.screenshotUrl || null,
           toolMetadata: {
             bundled: true,
             tool_count: result.results.length,
@@ -83,7 +85,7 @@ export function useToolRunner(enabled = true) {
           messageType: 'tool-output',
           toolName: `bundled_tools`,
           correlationId: result.correlationId,
-          screenshot: result.screenshot || null,
+          screenshotRef: result.screenshotRef || null,
           modelId,
           modelProvider,
         });

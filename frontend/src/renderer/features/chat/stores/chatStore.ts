@@ -16,6 +16,8 @@ export interface ChatMessage {
   type?: 'llm-text' | 'tool-call' | 'tool-output' | 'error';
   isComplete?: boolean;
   screenshot?: string | null;
+  screenshotRef?: string | null;
+  screenshotUrl?: string | null;
   toolMetadata?: Record<string, unknown> | null;
   toolName?: string;
   executionTime?: number | null;

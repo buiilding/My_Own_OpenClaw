@@ -18,15 +18,20 @@ MarkdownMessage.propTypes = {
 };
 
 function ToolOutputMessage({ message }) {
+  const screenshotSrc = message.screenshotUrl
+    ? message.screenshotUrl
+    : message.screenshot
+      ? `data:image/jpeg;base64,${message.screenshot}`
+      : null;
   return (
     <div className="tool-output-container">
       <div className="tool-output-header">📤 Tool Output</div>
       <pre className="tool-output-content">{message.text}</pre>
-      {message.screenshot && (
+      {screenshotSrc && (
         <div className="tool-screenshot-container">
           <div className="tool-screenshot-header">📸 Screenshot After Action</div>
           <img
-            src={`data:image/png;base64,${message.screenshot}`}
+            src={screenshotSrc}
             alt="Screenshot after tool execution"
             className="tool-screenshot-image"
             loading="lazy"
@@ -54,6 +59,7 @@ ToolOutputMessage.propTypes = {
   message: PropTypes.shape({
     text: PropTypes.string.isRequired,
     screenshot: PropTypes.string,
+    screenshotUrl: PropTypes.string,
     toolMetadata: PropTypes.object,
     toolName: PropTypes.string,
     executionTime: PropTypes.number,
@@ -92,14 +98,19 @@ ErrorMessage.propTypes = {
 };
 
 function UserMessage({ message }) {
+  const screenshotSrc = message.screenshotUrl
+    ? message.screenshotUrl
+    : message.screenshot
+      ? `data:image/jpeg;base64,${message.screenshot}`
+      : null;
   return (
     <div className="user-message-container">
       <MarkdownMessage text={message.text} />
-      {message.screenshot && (
+      {screenshotSrc && (
         <div className="user-screenshot-container">
           <div className="user-screenshot-header">📸 Screenshot</div>
           <img
-            src={`data:image/png;base64,${message.screenshot}`}
+            src={screenshotSrc}
             alt="User message screenshot"
             className="user-screenshot-image"
             loading="lazy"
@@ -114,6 +125,7 @@ UserMessage.propTypes = {
   message: PropTypes.shape({
     text: PropTypes.string.isRequired,
     screenshot: PropTypes.string,
+    screenshotUrl: PropTypes.string,
   }).isRequired,
 };
 
@@ -130,7 +142,7 @@ export default function MessageContent({ message }) {
     return <ToolCallMessage message={message} />;
   }
 
-  if (message.sender === 'user' && message.screenshot) {
+  if (message.sender === 'user' && (message.screenshotUrl || message.screenshotRef || message.screenshot)) {
     return <UserMessage message={message} />;
   }
 
@@ -143,6 +155,7 @@ MessageContent.propTypes = {
     sender: PropTypes.oneOf(['user', 'assistant']).isRequired,
     type: PropTypes.string,
     screenshot: PropTypes.string,
+    screenshotUrl: PropTypes.string,
     toolMetadata: PropTypes.object,
     toolName: PropTypes.string,
     executionTime: PropTypes.number,

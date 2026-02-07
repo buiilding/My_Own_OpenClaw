@@ -14,6 +14,7 @@ import {
   recordUserMessage,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
+import { buildArtifactUrl } from '../../../infrastructure/services/ArtifactUploader';
 import {
   type BackendEvent,
   type BackendEventType,
@@ -142,13 +143,16 @@ export function useChatStream(enableTranscript: boolean = true) {
     const outputText = event.payload?.error
       ? `Error: ${event.payload.error}`
       : (event.payload?.output || 'No output');
+    const screenshotRef = event.payload?.screenshot_ref || null;
+    const screenshotUrl = screenshotRef ? buildArtifactUrl(screenshotRef) : null;
 
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
       text: outputText,
       sender: 'assistant',
       type: 'tool-output',
-      screenshot: event.payload?.screenshot,
+      screenshotRef,
+      screenshotUrl,
       toolMetadata: event.payload?.metadata,
       toolName: event.payload?.tool_name,
       executionTime: event.payload?.execution_time,
@@ -168,7 +172,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         correlationId,
         sessionId: event.session_id,
         userId: event.user_id,
-        screenshot: event.payload?.screenshot || null,
+        screenshotRef,
         modelId,
         modelProvider,
       });
@@ -241,11 +245,14 @@ export function useChatStream(enableTranscript: boolean = true) {
     if (!text) {
       return;
     }
+    const screenshotRef = event.payload?.screenshot_ref || null;
+    const screenshotUrl = event.payload?.screenshot_url || (screenshotRef ? buildArtifactUrl(screenshotRef) : null);
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
       text,
       sender: 'user',
-      screenshot: event.payload?.screenshot || null,
+      screenshotRef,
+      screenshotUrl,
       timestamp: event.payload?.timestamp,
     };
     addMessage(newMessage);
@@ -255,7 +262,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         timestamp: event.payload?.timestamp,
         sessionId: event.payload?.session_id ?? event.session_id ?? null,
         userId: event.payload?.user_id ?? event.user_id ?? null,
-        screenshot: event.payload?.screenshot || null,
+        screenshotRef,
         modelId,
         modelProvider,
       });

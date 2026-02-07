@@ -8,6 +8,7 @@ import { ApiClient } from '../../../infrastructure/api/client';
 import { useChatStore, type ChatMessage } from '../stores/chatStore';
 import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { uploadArtifactBase64 } from '../../../infrastructure/services/ArtifactUploader';
 
 type ChatMessageSenderOptions = {
   returnToChatboxOnSend?: boolean;
@@ -56,6 +57,7 @@ export function useChatMessageSender(
     const isFirstUserMessage = !useChatStore.getState().messages.some(msg => msg.sender === 'user');
     
     let screenshot: string | null = null;
+    let screenshotContentType: string | null = null;
     let systemState: any = null;
     try {
       const osStateResult = await extractOSstate(
@@ -66,17 +68,28 @@ export function useChatMessageSender(
       );
       
       screenshot = osStateResult.screenshot;
+      screenshotContentType = osStateResult.screenshotContentType;
       systemState = osStateResult.systemState;
     } catch (error) {
       console.error('[useChatMessageSender] Failed to extract OS state:', error);
       // Continue without screenshot/system state if capture fails
     }
+
+    const uploaded = screenshot
+      ? await uploadArtifactBase64(
+          screenshot,
+          screenshotContentType || 'image/jpeg',
+          `user-message.${(screenshotContentType || '').includes('png') ? 'png' : 'jpg'}`
+        )
+      : null;
+    const screenshotRef = uploaded?.artifactId || null;
+    const screenshotUrl = uploaded?.url || null;
     
     // Update message with screenshot
-    updateMessage(userMessage.id, { screenshot });
+    updateMessage(userMessage.id, { screenshotRef, screenshotUrl });
     
     // Send query with screenshot to backend
-    await ApiClient.sendQuery(text, screenshot);
+    await ApiClient.sendQuery(text, screenshotRef, screenshotUrl);
   }, [addMessage, updateMessage, setIsSending, setThinkingStatus, stopPlayback, returnToChatboxOnSend]);
 
   return { sendMessage };

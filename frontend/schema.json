@@ -263,6 +263,39 @@
         "text": {
           "title": "Text",
           "type": "string"
+        },
+        "screenshot_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Screenshot Ref"
+        },
+        "screenshot_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Screenshot Url"
+        },
+        "screenshot": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Screenshot"
         }
       },
       "required": [
