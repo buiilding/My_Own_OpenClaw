@@ -223,6 +223,8 @@ class LLMProvider(ABC):
         """Return first item from indexable or iterable inputs, otherwise None."""
         if not values:
             return None
+        if isinstance(values, (str, bytes, dict)):
+            return None
         if isinstance(values, (list, tuple)):
             return values[0] if values else None
         try:

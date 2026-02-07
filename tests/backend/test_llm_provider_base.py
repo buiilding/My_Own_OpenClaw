@@ -317,6 +317,16 @@ class TestCompletionContentHelpers:
                 invalid_response_message="Invalid response",
             )
 
+    def test_extract_completion_content_raises_on_malformed_string_choices(self, provider):
+        response = SimpleNamespace(choices="not-a-list")
+
+        with pytest.raises(LLMAPIError, match="Invalid response"):
+            provider._extract_completion_content(
+                response,
+                model="model",
+                invalid_response_message="Invalid response",
+            )
+
 
 class TestGetCompletionStream:
     """Tests for get_completion_stream method."""
