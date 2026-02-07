@@ -23,6 +23,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- a4f58cd fix(frontend-dashboard): stabilize provider selection for duplicate model ids
 - 899cef1 fix(frontend-dashboard): normalize model provider and id comparisons to prevent config update loops
 - 71c4a9e fix(vision-internvl): retry model load without meta init on tensor-item failure
 - 9a50776 fix(vision-provider): guard ui-venus optional deps and decode generated suffix
@@ -191,6 +192,7 @@ Includes the last 300 commits on `main`.
 - cbcba82 refactor(frontend-voice): stabilize useVoiceMode websocket lifecycle
 
 ### Tests
+- bb62a9b test(frontend-dashboard): cover duplicate-id provider reconciliation determinism
 - 16d65a7 test(frontend-dashboard): add model selection normalization regression coverage
 - d8a5e67 test(artifacts): align request scope and path assertions with starlette
 - 89d4d27 test(frontend-chat): add chat stream message update helper coverage
