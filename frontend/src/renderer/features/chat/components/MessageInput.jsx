@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useTranscription } from '../hooks/useTranscription';
-import { normalizeMessageForSend } from '../utils/messageInput';
+import { buildOutgoingMessage } from '../utils/messageInput';
 
 function MessageInput({ onSendMessage, isSending }) {
   const inputRef = useRef(null);
@@ -15,8 +15,8 @@ function MessageInput({ onSendMessage, isSending }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const outgoingMessage = normalizeMessageForSend(inputValue);
-    if (outgoingMessage && !isSending) {
+    const outgoingMessage = buildOutgoingMessage(inputValue, isSending);
+    if (outgoingMessage) {
       onSendMessage(outgoingMessage);
       setInputValue('');
       resetTranscription();
@@ -24,27 +24,25 @@ function MessageInput({ onSendMessage, isSending }) {
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit} className="message-input-form">
-        <label htmlFor="chat-input" className="visually-hidden">
-          Type your message
-        </label>
-        <input
-          ref={inputRef}
-          id="chat-input"
-          type="text"
-          value={inputValue}
-          onChange={handleInputChange}
-          onPaste={handlePaste}
-          placeholder="Type your message..."
-          disabled={isSending}
-          className="message-input"
-        />
-        <button type="submit" disabled={isSending} className="send-button">
-          {isSending ? '...' : 'Send'}
-        </button>
-      </form>
-    </>
+    <form onSubmit={handleSubmit} className="message-input-form">
+      <label htmlFor="chat-input" className="visually-hidden">
+        Type your message
+      </label>
+      <input
+        ref={inputRef}
+        id="chat-input"
+        type="text"
+        value={inputValue}
+        onChange={handleInputChange}
+        onPaste={handlePaste}
+        placeholder="Type your message..."
+        disabled={isSending}
+        className="message-input"
+      />
+      <button type="submit" disabled={isSending} className="send-button">
+        {isSending ? '...' : 'Send'}
+      </button>
+    </form>
   );
 }
 
