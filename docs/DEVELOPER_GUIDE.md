@@ -147,6 +147,7 @@ frontend/src/
 ## Future: Productization Checklist (Planned)
 
 To ship to end users with subscriptions and usage limits, plan for:
+See `FUTURE_PLAN.md` and `DEPLOYMENT.md` for sequencing and deployment tracks.
 
 ### Backend
 - Multi-tenant auth + session management
@@ -166,6 +167,16 @@ To ship to end users with subscriptions and usage limits, plan for:
 - Observability (metrics, tracing, logs)
 - Signed desktop builds + auto-updater
 - Telemetry + crash reporting (opt-in)
+
+### Priority Future Initiatives
+- Dynamic OCR/vision grounding scaling for concurrent multi-user workloads.
+- Prompt policy split for computer-use vs non-computer-use paths.
+- Controlled frontend self-evolution workflow (proposal -> review -> apply).
+- Agent self-UI interaction in bounded maintenance contexts.
+- Automatic backend remote-tool schema synchronization with compatibility checks.
+- Login/signup + landing + onboarding flows.
+- Student-first chat mode with immediate screenshot/dashboard context.
+- Dedicated execution environment strategy (local VM vs hosted workspace).
 
 ## Code Style
 

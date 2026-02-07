@@ -25,6 +25,8 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 ## 🚀 Future Vision & Strategic Roadmap
 
 > **Note**: The capabilities described below are **planned features** that have not yet been implemented. They represent our strategic vision and roadmap for future development.
+>
+> For sequencing and implementation tracks, see `FUTURE_PLAN.md` and `DEPLOYMENT.md`.
 
 ### 🚢 Bringing This to Users (Planned)
 To move from a developer-focused build to a product for end users, we will add a hosted, multi-tenant backend with subscriptions and usage limits while preserving a local-only mode for privacy-first users.
@@ -36,6 +38,18 @@ To move from a developer-focused build to a product for end users, we will add a
 - **Usage limits**: Token/tool quotas, rate limits, usage meter, and hard/soft limit UX.
 - **Onboarding**: Guided setup, model selection, and permission flows.
 - **Distribution**: Signed installers, auto-updates, crash/telemetry opt-in.
+
+### 📌 Focused Initiative Set (Current Planning)
+The following initiative set is being tracked in `FUTURE_PLAN.md` and `DEPLOYMENT.md`:
+- Scale OCR and vision grounding instances dynamically for concurrent multi-user workloads.
+- Split system prompt policy between computer-use models and non-computer-use models.
+- Add controlled self-evolution workflow so Windie can propose frontend implementation changes safely.
+- Let the agent interact with its own UI for bounded maintenance flows (including skills authoring UX).
+- Add automatic remote tool schema update/synchronization in backend with version + compatibility checks.
+- Ship login/signup, landing page, and account onboarding flows.
+- Ship student-first chat mode: screenshot capture + immediate dashboard context.
+- Evaluate dedicated agent execution environment: local VM vs hosted remote workspace.
+- Run long-term “Agent OS” research track for reproducible, policy-enforced agent runtime.
 
 ### 🔄 Multi-Agent Orchestration Across Machines (Planned)
 **Future Architectural Moat**: Our roadmap includes designing the architecture to support multiple assistants working in parallel across different machines. This distributed multi-agent orchestration capability would be **extremely difficult to replicate** - it requires deep architectural planning, coordination protocols, and resource management that cannot be retrofitted into single-agent systems. When implemented, this would position Desktop Assistant as the foundation for enterprise-scale automation where teams of virtual employees can collaborate across environments, handle distributed workflows, and coordinate complex multi-machine tasks simultaneously.
