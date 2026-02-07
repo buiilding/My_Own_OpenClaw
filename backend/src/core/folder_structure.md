@@ -258,6 +258,10 @@ WebSocket Response
 - `backend/src/agent/tools/waiting/storage/result_storage.py` now creates
   futures via running-loop or event-loop fallback paths to keep sync-context
   tests and cleanup flows stable on newer asyncio runtimes.
+- Semantic request list bounds in
+  `backend/src/api/routes/memory/semantic.py` now use Pydantic v2
+  `min_length`/`max_length` fields, removing deprecated `min_items`/
+  `max_items` warnings without changing endpoint validation intent.
 - Vision provider internals now centralize shared fallback loading and coordinate
   extraction logic in `backend/src/services/vision/providers/base.py` and
   `backend/src/services/vision/coordinates.py`, keeping provider-specific files

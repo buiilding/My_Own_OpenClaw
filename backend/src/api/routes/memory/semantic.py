@@ -34,14 +34,15 @@ FALLBACK_SUMMARY_LENGTH = 500  # Characters to use for fallback summary if parsi
 
 class SummarizeRequest(BaseModel):
     """Request model for semantic summarization."""
-    # FIX: Add constraints to prevent DoS
     conversations: List[str] = Field(
-        ..., 
-        min_items=1, 
-        max_items=100, 
-        description="List of conversation texts to summarize (max 100 items)"
-    )  # Each conversation string validated below
-    user_id: str = Field(..., min_length=1, description="User ID (required, cannot be default_user)")
+        ...,
+        min_length=1,
+        max_length=100,
+        description="List of conversation texts to summarize (max 100 items)",
+    )
+    user_id: str = Field(
+        ..., min_length=1, description="User ID (required, cannot be default_user)"
+    )
     
     @field_validator('conversations')
     @classmethod
