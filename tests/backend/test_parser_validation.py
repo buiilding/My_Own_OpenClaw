@@ -143,3 +143,9 @@ def test_get_valid_tool_names_deduplicates_registry_values():
     validator, _metrics = _make_validator(["read_file", "read_file", "write_file"])
 
     assert validator._get_valid_tool_names() == ["read_file", "write_file"]
+
+
+def test_get_valid_tool_names_returns_sorted_output():
+    validator, _metrics = _make_validator({"write_file", "read_file"})
+
+    assert validator._get_valid_tool_names() == ["read_file", "write_file"]
