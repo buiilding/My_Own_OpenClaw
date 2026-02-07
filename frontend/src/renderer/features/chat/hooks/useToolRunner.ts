@@ -17,7 +17,7 @@ import { type ToolBundleEvent, type ToolCallEvent, isBackendEvent } from '../../
  * Connects UI to ToolExecutionService and handles tool-related events.
  */
 export function useToolRunner(enabled = true) {
-  const { addMessage } = useChatStore();
+  const addMessage = useChatStore((state) => state.addMessage);
   const { config } = useAppConfigContext();
   const modelId = config?.selected_model_id || null;
   const modelProvider = config?.model_provider || null;
@@ -114,8 +114,6 @@ export function useToolRunner(enabled = true) {
     if (tools.length === 0) {
       return;
     }
-
-    console.log('[useToolRunner] Received atomic bundle:', bundleId, tools.length, 'tools');
 
     if (toolServiceRef.current) {
       toolServiceRef.current.executeToolBundle(tools, bundleId).catch(err => {
