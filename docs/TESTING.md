@@ -35,3 +35,4 @@ npm test
 - Frontend tests use Jest + React Testing Library.
 - `tests/frontend/ToolRunnerHook.test.ts` covers backend-listener cleanup and malformed tool event guards to prevent false-positive dispatch behavior.
 - Transcript/session persistence behavior is covered directly by `tests/frontend/TranscriptWriter.test.ts` and `tests/frontend/TranscriptSessionState.test.ts`.
+- Audio playback lifecycle behavior is covered directly by `tests/frontend/PlayerService.test.ts`.

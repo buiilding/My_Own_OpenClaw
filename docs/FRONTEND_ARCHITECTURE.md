@@ -524,6 +524,7 @@ Type-safe IPC bridge abstraction with channel validation.
 - Sequential playback management
 - Audio format conversion
 - Callback-based architecture
+- Stop/cleanup logic cancels active audio sources and prevents stale `onended` callbacks from continuing cleared queues
 
 ## Security
 

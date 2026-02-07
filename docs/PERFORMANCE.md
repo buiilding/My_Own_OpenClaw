@@ -37,6 +37,7 @@ read_when:
 - **Bundle runner helper reuse**: `runToolBundle` now uses shared timing/step helpers for success and failure paths, keeping per-step bookkeeping consistent and reducing duplicated loop logic.
 - **Shared artifact image metadata normalization**: chat send, tool execution upload, and chat message rendering paths now use one image content-type/extension helper, reducing duplicate string parsing and keeping screenshot handling consistent.
 - **Stable tool runner service lifecycle**: `useToolRunner` keeps one `ToolExecutionService` instance across model-config updates and reads model metadata via refs, reducing service churn while preserving transcript attribution.
+- **PlayerService cleanup hardening**: audio playback stop/cleanup now cancels active sources and invalidates stale playback callbacks to avoid race-driven queue continuation after stop.
 
 ## Sidecar
 
