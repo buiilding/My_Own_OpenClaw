@@ -79,11 +79,35 @@ class LiteLLMClient(LLMClient):
         """
         provider_name = self.config.model_provider
         logger.info(
-            f"[LLM Client] Getting provider: provider_name='{provider_name}', "
-            f"selected_model_id='{self.config.selected_model_id}', "
-            f"api_key={'set' if self.config.api_key else 'not set'}"
+            "[LLM Client] Getting provider: provider_name='%s', selected_model_id='%s', api_key=%s",
+            provider_name,
+            self.config.selected_model_id,
+            "set" if self.config.api_key else "not set",
         )
         return get_provider(self.config, provider_name)
+
+    @staticmethod
+    def _extract_content(response: Any, model: str) -> str:
+        """Validate and extract text content from a provider response payload."""
+        if not isinstance(response, dict):
+            raise LLMAPIError(
+                f"Invalid response type from provider: expected dict, got {type(response).__name__}",
+                model=model,
+            )
+
+        if "content" not in response:
+            raise LLMAPIError(
+                f"Invalid response structure from provider: missing 'content' key. Keys: {list(response.keys())}",
+                model=model,
+            )
+
+        content = response["content"]
+        if not isinstance(content, str):
+            raise LLMAPIError(
+                f"Invalid content type from provider: expected str, got {type(content).__name__}",
+                model=model,
+            )
+        return content
 
     async def get_completion(self, model: str, messages: List[LLMMessage]) -> str:
         """
@@ -96,28 +120,8 @@ class LiteLLMClient(LLMClient):
         """
         provider = self._get_provider()
         response = await provider.get_completion(model, messages)
-        
-        # Validate response structure (TypedDict guarantees type hints but not runtime structure)
-        if not isinstance(response, dict):
-            raise LLMAPIError(
-                f"Invalid response type from provider: expected dict, got {type(response).__name__}",
-                model=model
-            )
-        
-        if "content" not in response:
-            raise LLMAPIError(
-                f"Invalid response structure from provider: missing 'content' key. Keys: {list(response.keys())}",
-                model=model
-            )
-        
-        content = response["content"]
-        if not isinstance(content, str):
-            raise LLMAPIError(
-                f"Invalid content type from provider: expected str, got {type(content).__name__}",
-                model=model
-            )
-        
-        return content
+
+        return self._extract_content(response, model)
 
     async def get_completion_stream(
         self, model: str, messages: List[LLMMessage]
@@ -130,10 +134,9 @@ class LiteLLMClient(LLMClient):
         """
         try:
             provider = self._get_provider()
-        except ValueError as e:
-            # Provider not configured or unavailable
-            logger.error(f"Provider initialization failed: {e}")
-            yield ErrorEvent(content=f"LLM provider error: {str(e)}")
+        except Exception as exc:
+            logger.error("Provider initialization failed: %s", exc)
+            yield ErrorEvent(content=f"LLM provider error: {str(exc)}")
             return
         
         # Provider's get_completion_stream handles its own exceptions and yields ErrorEvent
