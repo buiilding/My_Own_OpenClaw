@@ -34,6 +34,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/ToolExecutionServ
 
 describe('useToolRunner', () => {
   let backendHandler: ((data: unknown) => void) | null = null;
+  let removeListener: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -41,6 +42,7 @@ describe('useToolRunner', () => {
     backendHandler = null;
     mockExecuteTool.mockResolvedValue(undefined);
     mockExecuteToolBundle.mockResolvedValue(undefined);
+    removeListener = jest.fn();
 
     useChatStore.setState({
       messages: [],
@@ -57,7 +59,7 @@ describe('useToolRunner', () => {
       if (channel === ON_CHANNELS.FROM_BACKEND) {
         backendHandler = handler;
       }
-      return () => undefined;
+      return removeListener;
     });
     jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
   });
@@ -73,13 +75,21 @@ describe('useToolRunner', () => {
       ON_CHANNELS.FROM_BACKEND,
       expect.any(Function),
     );
-    expect(backendHandler).toBeTruthy();
+    expect(backendHandler).toEqual(expect.any(Function));
   });
 
   test('does not subscribe when disabled', () => {
     renderHook(() => useToolRunner(false));
 
     expect(IpcBridge.on).not.toHaveBeenCalled();
+  });
+
+  test('removes backend listener on unmount', () => {
+    const { unmount } = renderHook(() => useToolRunner(true));
+
+    unmount();
+
+    expect(removeListener).toHaveBeenCalledTimes(1);
   });
 
   test('dispatches tool-call events to ToolExecutionService', async () => {
@@ -133,7 +143,13 @@ describe('useToolRunner', () => {
   test('wires service callbacks to chat store and backend sender', () => {
     renderHook(() => useToolRunner(true));
 
-    expect(mockCapturedServiceCallbacks).toBeTruthy();
+    expect(mockCapturedServiceCallbacks).toEqual(
+      expect.objectContaining({
+        onToolResult: expect.any(Function),
+        onBundleResult: expect.any(Function),
+        sendToBackend: expect.any(Function),
+      }),
+    );
 
     mockCapturedServiceCallbacks.sendToBackend({ type: 'tool-result', payload: { ok: true } });
     expect(IpcBridge.send).toHaveBeenCalledWith(
@@ -169,5 +185,18 @@ describe('useToolRunner', () => {
         correlationId: 'corr-2',
       }),
     );
+  });
+
+  test('ignores invalid backend payloads', async () => {
+    renderHook(() => useToolRunner(true));
+
+    await act(async () => {
+      backendHandler?.({ type: 'unknown-event', payload: {} });
+      backendHandler?.({ type: 'tool-call', payload: {} });
+      backendHandler?.({ type: 'tool-bundle', payload: { tools: [{ name: '', args: {} }] } });
+    });
+
+    expect(mockExecuteTool).not.toHaveBeenCalled();
+    expect(mockExecuteToolBundle).not.toHaveBeenCalled();
   });
 });
