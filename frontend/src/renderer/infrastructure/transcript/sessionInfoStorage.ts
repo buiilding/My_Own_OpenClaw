@@ -1,6 +1,6 @@
 import type { SessionInfo } from './types';
 
-const SESSION_STORAGE_KEY = 'transcript-session-info';
+export const TRANSCRIPT_SESSION_STORAGE_KEY = 'transcript-session-info';
 
 export function readSessionInfoFromStorage(): SessionInfo {
   if (typeof window === 'undefined') {
@@ -8,7 +8,7 @@ export function readSessionInfoFromStorage(): SessionInfo {
   }
 
   try {
-    const raw = window.sessionStorage.getItem(SESSION_STORAGE_KEY);
+    const raw = window.sessionStorage.getItem(TRANSCRIPT_SESSION_STORAGE_KEY);
     if (!raw) {
       return { sessionId: null, userId: null };
     }
@@ -29,7 +29,7 @@ export function persistSessionInfoToStorage(info: SessionInfo): void {
   }
 
   try {
-    window.sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(info));
+    window.sessionStorage.setItem(TRANSCRIPT_SESSION_STORAGE_KEY, JSON.stringify(info));
   } catch (error) {
     // Ignore storage errors.
   }
