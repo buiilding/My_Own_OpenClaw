@@ -58,15 +58,11 @@ export function AppConfigProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      console.log('[Config] Requesting available models...');
-      IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
-    }, 0);
-
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, onBackendEvent);
+    console.log('[Config] Requesting available models...');
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
 
     return () => {
-      clearTimeout(timeoutId);
       removeListener();
     };
   }, [onBackendEvent]);
