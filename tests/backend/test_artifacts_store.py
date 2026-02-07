@@ -61,6 +61,20 @@ async def test_artifact_store_normalizes_content_type_with_parameters(tmp_path) 
 
 
 @pytest.mark.asyncio
+async def test_artifact_store_accepts_image_jpg_alias(tmp_path) -> None:
+    store = ArtifactStore(tmp_path, max_bytes=1024)
+    upload = _upload_file(b"jpg-data", "shot.jpg", "image/jpg")
+
+    meta = await store.save_upload(upload)
+    path, content_type = store.resolve_path(meta.artifact_id)
+
+    assert meta.content_type == "image/jpeg"
+    assert content_type == "image/jpeg"
+    assert meta.artifact_id.endswith(".jpg")
+    assert path.exists()
+
+
+@pytest.mark.asyncio
 async def test_artifact_store_enforces_size_limit(tmp_path) -> None:
     store = ArtifactStore(tmp_path, max_bytes=5)
     upload = _upload_file(b"123456", "shot.png", "image/png")
