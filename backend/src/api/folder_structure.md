@@ -196,3 +196,9 @@ backend/src/api/
 - **Routes Layer**: Entry points, connection management, message parsing
 - **Handlers Layer**: Message type-specific business logic
 - **Processing Layer**: Event formatting, TTS processing, streaming pipeline
+
+## Recent Structure Notes
+
+- `routes/websocket/task_manager.py` cleanup now includes a deterministic
+  completed-task prune step after cancellation handling, reducing reliance on
+  callback timing during disconnect/shutdown paths.
