@@ -13,6 +13,7 @@ export type BundleRunOutcome = {
   stepResults: BundleStepResult[];
   systemState: SystemState | null;
   screenshot: string | null;
+  screenshotContentType: string | null;
   totalWaitDelay: number;
   totalCaptureTime: number;
   toolExecutionTimes: Array<{ tool: string; time: number }>;
@@ -35,6 +36,7 @@ export async function runToolBundle(
   const toolExecutionTimes: Array<{ tool: string; time: number }> = [];
   let systemState: SystemState | null = null;
   let screenshot: string | null = null;
+  let screenshotContentType: string | null = null;
   let totalWaitDelay = 0;
   let totalCaptureTime = 0;
 
@@ -78,6 +80,7 @@ export async function runToolBundle(
         totalCaptureTime += capture.captureTime;
         totalWaitDelay += capture.waitSeconds;
         screenshot = capture.screenshot;
+        screenshotContentType = capture.screenshotContentType;
         if (isLastTool) {
           systemState = capture.systemState;
         }
@@ -106,6 +109,7 @@ export async function runToolBundle(
     stepResults,
     systemState,
     screenshot,
+    screenshotContentType,
     totalWaitDelay,
     totalCaptureTime,
     toolExecutionTimes

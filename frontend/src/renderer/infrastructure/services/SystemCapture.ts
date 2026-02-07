@@ -34,7 +34,7 @@ export async function extractOSstate(
   enable_system_state: boolean,
   wait: number,
   is_first_user_message: boolean = false,
-): Promise<{ systemState: SystemState | null; screenshot: string | null }> {
+): Promise<{ systemState: SystemState | null; screenshot: string | null; screenshotContentType: string | null }> {
   // Convert wait from seconds to milliseconds
   const waitMilliseconds = wait * 1000;
 
@@ -69,14 +69,21 @@ export async function extractOSstate(
         typeof screenshotResult.data === 'object'
           ? screenshotResult.data.screenshot || null
           : null;
+      const screenshotContentType =
+        enable_screenshot &&
+        screenshotResult.success &&
+        screenshotResult.data &&
+        typeof screenshotResult.data === 'object'
+          ? resolveScreenshotContentType(screenshotResult.data)
+          : null;
 
-      return { systemState, screenshot };
+      return { systemState, screenshot, screenshotContentType };
     } catch (err) {
       console.error(
         `[extractOSstate] Failed to extract OS state (first user message):`,
         err,
       );
-      return { systemState: null, screenshot: null };
+      return { systemState: null, screenshot: null, screenshotContentType: null };
     }
   }
 
@@ -107,6 +114,7 @@ export async function extractOSstate(
 
     let systemState: SystemState | null = null;
     let screenshot: string | null = null;
+    let screenshotContentType: string | null = null;
 
     let resultIndex = 0;
     if (enable_system_state) {
@@ -122,11 +130,28 @@ export async function extractOSstate(
         typeof screenshotResult.data === 'object'
           ? screenshotResult.data.screenshot || null
           : null;
+      screenshotContentType =
+        screenshotResult.success &&
+        screenshotResult.data &&
+        typeof screenshotResult.data === 'object'
+          ? resolveScreenshotContentType(screenshotResult.data)
+          : null;
     }
 
-    return { systemState, screenshot };
+    return { systemState, screenshot, screenshotContentType };
   } catch (err) {
     console.error(`[extractOSstate] Failed to extract OS state:`, err);
-    return { systemState: null, screenshot: null };
+    return { systemState: null, screenshot: null, screenshotContentType: null };
   }
+}
+
+function resolveScreenshotContentType(data: Record<string, any>): string | null {
+  const format = (data.compression || data.format || '').toString().toLowerCase();
+  if (format === 'jpeg' || format === 'jpg') {
+    return 'image/jpeg';
+  }
+  if (format === 'png') {
+    return 'image/png';
+  }
+  return null;
 }

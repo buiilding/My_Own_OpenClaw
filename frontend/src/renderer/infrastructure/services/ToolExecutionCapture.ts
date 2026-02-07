@@ -4,6 +4,7 @@ import type { SystemState, ToolResult } from './MessageFormatter';
 
 export type ToolCaptureResult = {
   screenshot: string | null;
+  screenshotContentType: string | null;
   systemState: SystemState | null;
   waitSeconds: number;
   captureTime: number;
@@ -11,6 +12,7 @@ export type ToolCaptureResult = {
 
 export type AutoCaptureResult = {
   screenshot: string | null;
+  screenshotContentType: string | null;
   systemState: SystemState | null;
   waitDelay: number;
   captureTime: number;
@@ -47,21 +49,25 @@ export function getWaitSeconds(
 
 export function extractCaptureFromResult(result: ToolResult): {
   screenshot: string | null;
+  screenshotContentType: string | null;
   systemState: SystemState | null;
 } {
   if (result.data && typeof result.data === 'object' && !Array.isArray(result.data)) {
+    const screenshotContentType = resolveContentType(result.data);
     return {
-      screenshot: result.data.screenshot || null,
+      screenshot: result.data.screenshot || result.data.image_data || null,
+      screenshotContentType,
       systemState: result.data.system_state || null
     };
   }
-  return { screenshot: null, systemState: null };
+  return { screenshot: null, screenshotContentType: null, systemState: null };
 }
 
 export function applyCaptureToResult(
   result: ToolResult,
   screenshot: string | null,
-  systemState: SystemState | null
+  systemState: SystemState | null,
+  screenshotContentType: string | null
 ): void {
   if (!screenshot) {
     return;
@@ -70,7 +76,8 @@ export function applyCaptureToResult(
     result.data = {
       ...result.data,
       screenshot,
-      system_state: systemState ?? undefined
+      system_state: systemState ?? undefined,
+      screenshot_content_type: screenshotContentType ?? undefined
     };
   }
 }
@@ -101,7 +108,7 @@ export async function ensureAutoCapture(
   result: ToolResult
 ): Promise<AutoCaptureResult> {
   const isComputerTool = isComputerUseTool(toolName, args);
-  let { screenshot, systemState } = extractCaptureFromResult(result);
+  let { screenshot, screenshotContentType, systemState } = extractCaptureFromResult(result);
   let waitDelay = 0;
   let captureTime = 0;
 
@@ -117,11 +124,13 @@ export async function ensureAutoCapture(
     captureTime = capture.captureTime;
     systemState = capture.systemState;
     screenshot = capture.screenshot;
-    applyCaptureToResult(result, screenshot, systemState);
+    screenshotContentType = capture.screenshotContentType;
+    applyCaptureToResult(result, screenshot, systemState, screenshotContentType);
   }
 
   return {
     screenshot,
+    screenshotContentType,
     systemState,
     waitDelay,
     captureTime,
@@ -146,8 +155,20 @@ export async function captureAfterTool(
   const captureTime = (performance.now() - captureStartTime) / 1000;
   return {
     screenshot: captureResult.screenshot,
+    screenshotContentType: captureResult.screenshotContentType,
     systemState: enableSystemState ? captureResult.systemState : null,
     waitSeconds,
     captureTime
   };
+}
+
+function resolveContentType(data: Record<string, any>): string | null {
+  const format = (data.screenshot_content_type || data.compression || data.format || '').toString().toLowerCase();
+  if (format === 'image/png' || format === 'png') {
+    return 'image/png';
+  }
+  if (format === 'image/jpeg' || format === 'jpeg' || format === 'jpg') {
+    return 'image/jpeg';
+  }
+  return null;
 }
