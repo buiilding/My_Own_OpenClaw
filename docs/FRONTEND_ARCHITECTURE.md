@@ -197,6 +197,10 @@ App
 - Model selection
 - Voice/speech mode toggles
 
+**EpisodicMemorySection.jsx**
+- Transcript conversation browsing and replay panel in the dashboard memory section
+- Uses shared episodic-memory utility helpers for content parsing and conversation key/model/timestamp formatting
+
 #### Context Providers
 
 **AppProvider** (`app/providers/AppProvider.jsx`)
