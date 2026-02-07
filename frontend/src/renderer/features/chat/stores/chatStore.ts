@@ -107,13 +107,17 @@ export const useChatStore = create<ChatState>((set) => ({
       return { messages: nextMessages };
     }),
 
-  setMessages: (messages) => set({ messages }),
+  setMessages: (messages) =>
+    set((state) => (state.messages === messages ? state : { messages })),
 
-  setIsSending: (isSending) => set({ isSending }),
+  setIsSending: (isSending) =>
+    set((state) => (state.isSending === isSending ? state : { isSending })),
 
-  setThinkingStatus: (thinkingStatus) => set({ thinkingStatus }),
+  setThinkingStatus: (thinkingStatus) =>
+    set((state) => (state.thinkingStatus === thinkingStatus ? state : { thinkingStatus })),
 
-  setTokenCounts: (tokenCounts) => set({ tokenCounts }),
+  setTokenCounts: (tokenCounts) =>
+    set((state) => (state.tokenCounts === tokenCounts ? state : { tokenCounts })),
 
   clearMessages: () => set({ messages: [createInitialMessage()] }),
 }));
