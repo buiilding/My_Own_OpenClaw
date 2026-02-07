@@ -56,7 +56,7 @@ def _dedupe_models(models: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
         if key in seen:
             continue
         seen.add(key)
-        deduped.append(model)
+        deduped.append(dict(model))
     return deduped
 
 
@@ -188,4 +188,3 @@ class ModelService:
             "online": self.get_all_online_models(),
             "vision": self.get_vision_models(),
         }
-
