@@ -134,6 +134,24 @@ def test_count_tokens_normalizes_invalid_role_and_none_content_in_dict(monkeypat
     assert captured["messages"] == [{"role": "user", "content": ""}]
 
 
+def test_count_tokens_strips_whitespace_from_dict_role(monkeypatch):
+    captured = {}
+
+    def fake_counter(*, model, messages, use_default_image_token_count):
+        captured["messages"] = messages
+        return 2
+
+    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+
+    result = TokenService.count_tokens(
+        [{"role": "  assistant  ", "content": "hello"}],
+        model="gpt-4o-mini",
+    )
+
+    assert result == 2
+    assert captured["messages"] == [{"role": "assistant", "content": "hello"}]
+
+
 def test_count_tokens_normalizes_object_message_with_blank_role_and_none_content(monkeypatch):
     captured = {}
 
@@ -150,6 +168,24 @@ def test_count_tokens_normalizes_object_message_with_blank_role_and_none_content
 
     assert token_count == 1
     assert captured["messages"] == [{"role": "user", "content": ""}]
+
+
+def test_count_tokens_strips_whitespace_from_object_role(monkeypatch):
+    captured = {}
+
+    def fake_counter(*, model, messages, use_default_image_token_count):
+        captured["messages"] = messages
+        return 1
+
+    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+
+    token_count = TokenService.count_tokens(
+        [MessageObj(role="  assistant  ", content="hello")],
+        model="gpt-4o-mini",
+    )
+
+    assert token_count == 1
+    assert captured["messages"] == [{"role": "assistant", "content": "hello"}]
 
 
 def test_get_token_service_singleton_thread_safe(monkeypatch):

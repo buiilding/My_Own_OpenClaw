@@ -13,24 +13,26 @@ import litellm
 logger = logging.getLogger(__name__)
 
 
+def _normalize_role(value: Any) -> str:
+    """Normalize role values to non-empty stripped strings."""
+    if not isinstance(value, str):
+        return "user"
+    role = value.strip()
+    return role or "user"
+
+
 def _to_litellm_message(message: Any) -> Dict[str, Any]:
     """Normalize a message object to the dict shape expected by LiteLLM."""
     if isinstance(message, dict):
         normalized = dict(message)
-        role = normalized.get("role")
-        if not isinstance(role, str) or not role.strip():
-            normalized["role"] = "user"
-        else:
-            normalized["role"] = role
+        normalized["role"] = _normalize_role(normalized.get("role"))
         if normalized.get("content") is None:
             normalized["content"] = ""
         else:
             normalized.setdefault("content", "")
         return normalized
-    role = getattr(message, "role", "user")
+    role = _normalize_role(getattr(message, "role", "user"))
     content = getattr(message, "content", "")
-    if not isinstance(role, str) or not role.strip():
-        role = "user"
     if content is None:
         content = ""
     return {
