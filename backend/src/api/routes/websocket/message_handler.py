@@ -66,7 +66,6 @@ async def parse_and_validate_message(
             return validated_msg, None
         except PydanticValidationError as e:
             # Validation failed - format error details
-            msg_id = json_data.get("id")
             error_details = "; ".join(
                 f"{'.'.join(str(loc) for loc in err['loc'])}: {err['msg']}"
                 for err in e.errors()
