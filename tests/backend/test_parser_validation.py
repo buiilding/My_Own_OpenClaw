@@ -3,6 +3,7 @@ import pytest
 from backend.src.core.config.models import AppConfig, SecurityLimits
 from backend.src.core.infrastructure.exceptions import ParseValidationError
 from backend.src.llm.parser_validation import ToolCallValidator
+from backend.src.tools.categorization import ToolDomain
 
 
 class DummyMetrics:
@@ -30,6 +31,18 @@ class BrokenRegistry(DummyRegistry):
 
     def get_tool_names(self):
         return self._tool_names
+
+
+class DummyTool:
+    def __init__(self, category):
+        self.category = category
+
+
+class ComputerRegistry(DummyRegistry):
+    def get_tool(self, name):
+        if name == "mouse_control":
+            return DummyTool(ToolDomain.COMPUTER)
+        return None
 
 
 def _make_validator(tool_names, interaction_mode="agent"):
@@ -83,3 +96,44 @@ def test_validate_tool_call_handles_non_iterable_registry_tool_names():
 
     with pytest.raises(ParseValidationError, match="not in whitelist"):
         validator.validate_tool_call("read_file", {})
+
+
+def test_validate_metadata_rejects_whitespace_only_fields_for_computer_tools():
+    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
+    metrics = DummyMetrics()
+    validator = ToolCallValidator(
+        config=config,
+        tool_registry=ComputerRegistry(["mouse_control"]),
+        metrics=metrics,
+        limits=config.security_limits,
+    )
+
+    with pytest.raises(ParseValidationError, match="missing required metadata field"):
+        validator.validate_metadata(
+            "mouse_control",
+            {
+                "description": "   ",
+                "explanation": "\n",
+                "expectation": "   ",
+            },
+        )
+
+
+def test_validate_metadata_accepts_trimmed_nonempty_strings_for_computer_tools():
+    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
+    metrics = DummyMetrics()
+    validator = ToolCallValidator(
+        config=config,
+        tool_registry=ComputerRegistry(["mouse_control"]),
+        metrics=metrics,
+        limits=config.security_limits,
+    )
+
+    validator.validate_metadata(
+        "mouse_control",
+        {
+            "description": " current screen ",
+            "explanation": " click submit ",
+            "expectation": " modal opens ",
+        },
+    )
