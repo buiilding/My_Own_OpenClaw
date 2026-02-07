@@ -59,6 +59,9 @@ def scale_norm_to_pixels(
     x_norm: float, y_norm: float, width: int, height: int
 ) -> Tuple[int, int]:
     """Scale 0-1000 normalized coordinates to pixel coordinates for given image size."""
+    if width <= 0 or height <= 0:
+        return 0, 0
+
     x_px = int(math.floor((x_norm / 1000.0) * width))
     y_px = int(math.floor((y_norm / 1000.0) * height))
     # Clamp to image bounds just in case
