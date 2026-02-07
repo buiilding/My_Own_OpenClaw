@@ -39,6 +39,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 ### Configuration & Deployment
 - [**Configuration Guide**](CONFIGURATION.md) - Configuration options and settings
 - [**Deployment Guide**](DEPLOYMENT.md) - Production deployment instructions
+- [**Future Product Plan (Draft)**](FUTURE_PLAN.md) - Sequenced roadmap for packaging, hosted rollout, and major future features
 - [**Environment Setup**](ENVIRONMENT_SETUP.md) - Development environment configuration
 - [**Security & Compliance (Planned)**](SECURITY_AND_COMPLIANCE.md) - Security posture and compliance roadmap
 - [**Plan Matrix (Draft)**](PLAN_MATRIX.md) - Subscription tiers and limits
@@ -54,6 +55,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Contributing Guide**](CONTRIBUTING.md) - How to contribute to the project
 
 ### Hosted Platform (Planned)
+- [**Future Product Plan (Draft)**](FUTURE_PLAN.md) - Feature sequencing and decision tracks
 - [**Billing & Usage (Planned)**](BILLING_AND_USAGE.md) - Subscriptions, entitlements, and usage limits
 - [**Security & Compliance (Planned)**](SECURITY_AND_COMPLIANCE.md) - Security posture and compliance roadmap
 - [**Plan Matrix (Draft)**](PLAN_MATRIX.md) - Subscription tiers and limits
