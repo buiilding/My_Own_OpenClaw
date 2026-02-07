@@ -60,4 +60,51 @@ describe('useChatMessageSender', () => {
       { focus: false },
     );
   });
+
+  test('marks first user message capture path on first send', async () => {
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, { returnToChatboxOnSend: false }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect(mockExtractOSstate).toHaveBeenCalledWith(
+      true,
+      true,
+      0,
+      true,
+    );
+  });
+
+  test('uses non-first capture path when user message already exists', async () => {
+    useChatStore.setState({
+      messages: [
+        {
+          id: 'existing-user',
+          text: 'previous',
+          sender: 'user',
+        },
+      ],
+      isSending: false,
+      thinkingStatus: null,
+      tokenCounts: null,
+    });
+
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, { returnToChatboxOnSend: false }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('second');
+    });
+
+    expect(mockExtractOSstate).toHaveBeenCalledWith(
+      true,
+      true,
+      0,
+      false,
+    );
+  });
 });
