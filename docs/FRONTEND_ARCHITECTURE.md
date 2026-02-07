@@ -187,6 +187,7 @@ App
 - Text input with voice support
 - Transcription integration
 - Auto-send on utterance end
+- Uses shared message-normalization helper before send dispatch
 
 **TokenCountDisplay.jsx**
 - Displays token usage counters in a table-driven render path backed by shared token-count formatting helpers
