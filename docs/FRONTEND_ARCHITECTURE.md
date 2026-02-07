@@ -254,6 +254,7 @@ App
 - Wakeword detection via openWakeWord
 - Audio capture and processing
 - IPC communication with main process
+- Detection-event confidence validation and chunk-size normalization warnings
 
 **Shared Voice Audio Utilities** (`features/voice/utils/audioEncoding.ts`)
 - PCM float32 -> int16 conversion used by both voice hooks
