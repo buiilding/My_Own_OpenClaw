@@ -17,6 +17,7 @@ from backend.src.services.vision.providers import (
 from backend.src.services.vision.utils import normalize_model_name
 
 logger = logging.getLogger(__name__)
+VENUS_MODEL_PREFIX = "inclusionai/ui-venus"
 
 
 class VisionService:
@@ -44,7 +45,7 @@ class VisionService:
 
     def _build_model_instance(self) -> BaseVisionModel:
         """Build concrete vision model implementation from configured model name."""
-        if self.model_name.startswith("inclusionAI/UI-Venus"):
+        if self._is_venus_model():
             return VenusVisionModel(
                 model_name=self.model_name,
                 device="auto",
@@ -55,6 +56,22 @@ class VisionService:
             device="auto",
             trust_remote_code=True,
         )
+
+    def _is_venus_model(self) -> bool:
+        """Return True when configured model name targets a Venus-family checkpoint."""
+        return self.model_name.casefold().startswith(VENUS_MODEL_PREFIX)
+
+    def _set_initialized_model(self, model: BaseVisionModel) -> None:
+        """Persist successful model initialization state."""
+        self._model = model
+        self._initialized = True
+        self._initialization_error = None
+
+    def _set_initialization_failure(self, error_message: str) -> None:
+        """Persist initialization failure state."""
+        self._model = None
+        self._initialized = False
+        self._initialization_error = error_message
 
     @staticmethod
     def _clear_cuda_cache_if_available() -> None:
@@ -84,7 +101,9 @@ class VisionService:
                 return True
 
             if not VISION_MODELS_AVAILABLE:
-                self._initialization_error = "Vision model dependencies not available"
+                self._set_initialization_failure(
+                    "Vision model dependencies not available"
+                )
                 logger.warning(self._initialization_error)
                 return False
 
@@ -94,16 +113,14 @@ class VisionService:
                 # Initialize model in thread pool to avoid blocking event loop
                 # Model loading is synchronous and CPU/IO intensive
                 loop = asyncio.get_running_loop()
-                self._model = await loop.run_in_executor(None, self._build_model_instance)
-                
-                self._initialized = True
+                model = await loop.run_in_executor(None, self._build_model_instance)
+
+                self._set_initialized_model(model)
                 logger.info(f"Vision service initialized successfully with model: {self.model_name}")
                 return True
 
             except Exception as e:
-                self._initialization_error = str(e)
-                self._model = None
-                self._initialized = False
+                self._set_initialization_failure(str(e))
                 logger.error(f"Failed to initialize vision service: {e}", exc_info=True)
                 return False
 
@@ -151,6 +168,7 @@ class VisionService:
                 # PyTorch will free GPU memory when the model object is deleted
                 self._model = None
                 self._initialized = False
+                self._initialization_error = None
                 
                 # Force garbage collection to free memory immediately
                 import gc

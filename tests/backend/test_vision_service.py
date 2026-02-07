@@ -40,6 +40,16 @@ def test_build_model_instance_selects_venus_provider_by_prefix(monkeypatch):
     assert model.trust_remote_code is True
 
 
+def test_build_model_instance_selects_venus_provider_case_insensitive(monkeypatch):
+    monkeypatch.setattr(vision_service_module, "InternVLModel", DummyInternModel)
+    monkeypatch.setattr(vision_service_module, "VenusVisionModel", DummyVenusModel)
+    service = VisionService(model_name="  huggingface-local/inclusionai/ui-venus-ground-7b ")
+
+    model = service._build_model_instance()
+
+    assert isinstance(model, DummyVenusModel)
+
+
 def test_build_model_instance_defaults_to_internvl_provider(monkeypatch):
     monkeypatch.setattr(vision_service_module, "InternVLModel", DummyInternModel)
     monkeypatch.setattr(vision_service_module, "VenusVisionModel", DummyVenusModel)
@@ -62,6 +72,17 @@ async def test_initialize_builds_model_and_marks_service_ready(monkeypatch):
     assert await service.initialize() is True
     assert service.is_initialized is True
     assert service.model is built_model
+
+
+@pytest.mark.asyncio
+async def test_initialize_success_clears_previous_error(monkeypatch):
+    monkeypatch.setattr(vision_service_module, "VISION_MODELS_AVAILABLE", True)
+    service = VisionService(model_name="OpenGVLab/InternVL3_5-4B")
+    service._initialization_error = "previous failure"
+    monkeypatch.setattr(service, "_build_model_instance", lambda: object())
+
+    assert await service.initialize() is True
+    assert service.initialization_error is None
 
 
 @pytest.mark.asyncio
@@ -90,6 +111,7 @@ async def test_unload_model_clears_state_and_calls_cleanup_hooks(monkeypatch):
     service = VisionService()
     service._initialized = True
     service._model = object()
+    service._initialization_error = "old error"
     called = {"cuda_clear": 0, "gc_collect": 0}
 
     monkeypatch.setattr(service, "_clear_cuda_cache_if_available", lambda: called.__setitem__("cuda_clear", 1))
@@ -99,6 +121,7 @@ async def test_unload_model_clears_state_and_calls_cleanup_hooks(monkeypatch):
     assert await service.unload_model() is True
     assert service.is_initialized is False
     assert service.model is None
+    assert service.initialization_error is None
     assert called["cuda_clear"] == 1
     assert called["gc_collect"] == 1
 
