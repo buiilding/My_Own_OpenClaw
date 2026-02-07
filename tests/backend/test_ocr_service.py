@@ -1,5 +1,6 @@
 import base64
 
+import backend.src.services.ocr.ocr_service as ocr_service_module
 from backend.src.core.config.models import OCRConfig
 from backend.src.services.ocr.ocr_service import OcrService, is_cuda_error
 
@@ -65,6 +66,24 @@ def test_build_ocr_params_uses_thresholds_and_thread_config(monkeypatch):
     assert params["Cls.cls_batch_num"] == 6
     assert params["EngineConfig.onnxruntime.intra_op_num_threads"] == 10
     assert params["EngineConfig.onnxruntime.inter_op_num_threads"] == 5
+
+
+def test_normalize_ocr_field_coerces_common_types():
+    service = OcrService()
+
+    assert service._normalize_ocr_field(None) == []
+    assert service._normalize_ocr_field("text") == ["text"]
+    assert service._normalize_ocr_field((1, 2)) == [1, 2]
+    assert service._normalize_ocr_field(123) == [123]
+
+
+def test_normalize_ocr_field_handles_numpy_array_if_available():
+    service = OcrService()
+    if not ocr_service_module.NUMPY_AVAILABLE:
+        return
+
+    array = ocr_service_module.np.array([1, 2, 3])
+    assert service._normalize_ocr_field(array) == [1, 2, 3]
 
 
 def test_build_ocr_params_cpu_mode_uses_lowest_batch_threshold(monkeypatch):
