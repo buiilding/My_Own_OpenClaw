@@ -1,7 +1,9 @@
+import hashlib
 import logging
 
 import pytest
 
+from backend.src.services.vision.providers.internvl import _build_instruction_log_metadata
 from backend.src.services.vision.providers.base import (
     load_model_with_fallbacks,
     resolve_model_device,
@@ -91,6 +93,24 @@ def test_resolve_model_device_uses_first_parameter_device():
 
 def test_resolve_model_device_falls_back_to_cpu_when_unavailable():
     assert resolve_model_device(_ModelWithoutDeviceOrParams()) == "cpu"
+
+
+def test_build_instruction_log_metadata_truncates_preview_and_hashes_text():
+    instruction = "x" * 80
+
+    preview, digest = _build_instruction_log_metadata(instruction)
+
+    assert preview == "x" * 50
+    assert digest == hashlib.sha256(instruction.encode()).hexdigest()[:8]
+
+
+def test_build_instruction_log_metadata_keeps_short_preview():
+    instruction = "click submit"
+
+    preview, digest = _build_instruction_log_metadata(instruction)
+
+    assert preview == instruction
+    assert digest == hashlib.sha256(instruction.encode()).hexdigest()[:8]
 
 
 def test_loader_falls_back_to_direct_cuda_loading_when_device_map_fails():
