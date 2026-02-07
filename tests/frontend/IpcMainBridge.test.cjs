@@ -90,6 +90,8 @@ describe('ipc.cjs bridge', () => {
     ));
 
     const mainWindow = {
+      on: jest.fn(),
+      isDestroyed: jest.fn(() => false),
       webContents: { send: jest.fn() },
     };
     ipc.initializeIpc(mainWindow);
@@ -124,7 +126,7 @@ describe('ipc.cjs bridge', () => {
       data: { memories: { episodic: ['e1'], semantic: [] } },
     });
 
-    await handlers['to-backend'](null, {
+    await handlers['to-backend']({ sender: null }, {
       type: 'query',
       payload: { text: 'hello' },
     });
@@ -148,7 +150,7 @@ describe('ipc.cjs bridge', () => {
       data: { memories: { episodic: [], semantic: [] } },
     });
 
-    await handlers['to-backend'](null, {
+    await handlers['to-backend']({ sender: null }, {
       type: 'query',
       payload: { text: 'hi' },
     });
@@ -169,7 +171,7 @@ describe('ipc.cjs bridge', () => {
     });
     backendBridge.searchMemory.mockRejectedValue(new Error('fail'));
 
-    await handlers['to-backend'](null, {
+    await handlers['to-backend']({ sender: null }, {
       type: 'query',
       payload: { text: 'memory fail' },
     });
@@ -178,6 +180,93 @@ describe('ipc.cjs bridge', () => {
     expect(lastMessage.payload.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
     expect(lastMessage.payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
     expect(lastMessage.payload.content).toContain('<user_query>\nmemory fail\n</user_query>');
+  });
+
+  test('gates first query behind settings-updated ack when frontend config exists', async () => {
+    const { handlers, ws, backendBridge, fs } = initIpc();
+    fs.existsSync.mockReturnValue(true);
+    fs.promises.readFile.mockResolvedValue(JSON.stringify({
+      interaction_mode: 'agent',
+      model_mode: 'online',
+    }));
+    ws.triggerOpen();
+
+    backendBridge.getSystemState.mockResolvedValue({
+      active_window: 'App',
+      mouse_position: '0,0',
+    });
+    backendBridge.searchMemory.mockResolvedValue({
+      success: true,
+      data: { memories: { episodic: [], semantic: [] } },
+    });
+
+    const queryPromise = handlers['to-backend']({ sender: null }, {
+      type: 'query',
+      payload: { text: 'mode check' },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(ws.sent.length).toBe(2);
+    const settingsMessage = JSON.parse(ws.sent[1]);
+    expect(settingsMessage.type).toBe('update-settings');
+    expect(settingsMessage.payload).toEqual(expect.objectContaining({
+      interaction_mode: 'agent',
+    }));
+
+    ws.handlers.message(JSON.stringify({
+      type: 'settings-updated',
+      id: settingsMessage.id,
+      payload: { updated_keys: ['interaction_mode'] },
+    }));
+
+    await queryPromise;
+
+    const queryMessage = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(queryMessage.type).toBe('query');
+    expect(queryMessage.payload.content).toContain('<user_query>\nmode check\n</user_query>');
+  });
+
+  test('waits for pending renderer update-settings ack before sending query', async () => {
+    const { handlers, ws, backendBridge } = initIpc();
+    ws.triggerOpen();
+
+    backendBridge.getSystemState.mockResolvedValue({
+      active_window: 'App',
+      mouse_position: '0,0',
+    });
+    backendBridge.searchMemory.mockResolvedValue({
+      success: true,
+      data: { memories: { episodic: [], semantic: [] } },
+    });
+
+    await handlers['to-backend']({ sender: null }, {
+      type: 'update-settings',
+      payload: { interaction_mode: 'agent' },
+    });
+
+    const updateSettingsMessage = JSON.parse(ws.sent[1]);
+    expect(updateSettingsMessage.type).toBe('update-settings');
+
+    const queryPromise = handlers['to-backend']({ sender: null }, {
+      type: 'query',
+      payload: { text: 'after settings update' },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(JSON.parse(ws.sent[ws.sent.length - 1]).type).toBe('update-settings');
+
+    ws.handlers.message(JSON.stringify({
+      type: 'settings-updated',
+      id: updateSettingsMessage.id,
+      payload: { updated_keys: ['interaction_mode'] },
+    }));
+
+    await queryPromise;
+
+    const queryMessage = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(queryMessage.type).toBe('query');
+    expect(queryMessage.payload.content).toContain('<user_query>\nafter settings update\n</user_query>');
   });
 
   test('load-frontend-config returns null when file missing', async () => {

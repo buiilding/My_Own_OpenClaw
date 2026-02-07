@@ -17,7 +17,7 @@ module.exports = {
   },
   transformIgnorePatterns: ['/node_modules/(?!marked)'],
   moduleDirectories: ['node_modules', '<rootDir>/frontend/node_modules'],
-  moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json'],
+  moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'cjs', 'json'],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': '<rootDir>/tests/frontend/__mocks__/styleMock.js',
   },
