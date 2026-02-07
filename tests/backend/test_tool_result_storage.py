@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import pytest
@@ -56,6 +57,16 @@ def test_storage_stats_and_clear_all():
     cleared = storage.get_stats()
     assert cleared["pending_results"] == 0
     assert cleared["bundled_results"] == 0
+
+
+def test_create_futures_in_sync_context():
+    storage = ToolResultStorage()
+
+    result_future = storage.create_result_future("req-sync")
+    bundle_future = storage.create_bundle_future("bundle-sync")
+
+    assert isinstance(result_future, asyncio.Future)
+    assert isinstance(bundle_future, asyncio.Future)
 
 
 @pytest.mark.asyncio
