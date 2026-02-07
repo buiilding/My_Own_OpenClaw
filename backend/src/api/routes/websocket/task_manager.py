@@ -123,3 +123,8 @@ class TaskManager:
         zombies = [t for t in pending if not t.done()]
         if zombies:
             logger.error(f"Orphaned {len(zombies)} tasks after cleanup for user {user_id}")
+
+        # Prune completed tasks deterministically in case callback-driven cleanup
+        # is delayed or unavailable during shutdown/loop edge cases.
+        async with self.tasks_lock:
+            self.active_tasks = {t for t in self.active_tasks if not t.done()}

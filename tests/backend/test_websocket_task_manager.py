@@ -74,6 +74,28 @@ async def test_cleanup_cancels_pending_tasks() -> None:
 
 
 @pytest.mark.asyncio
+async def test_cleanup_prunes_completed_tasks_when_callback_cleanup_is_delayed(
+    monkeypatch,
+) -> None:
+    manager = TaskManager(max_concurrent_tasks=2, task_cancellation_timeout=0.1)
+    monkeypatch.setattr(manager, "task_done_callback", lambda _task: None)
+
+    task, limit_exceeded = await manager.create_task_if_under_limit(
+        asyncio.sleep(0), "user_done"
+    )
+    assert task is not None
+    assert limit_exceeded is False
+    await task
+
+    # Without callback removal, completed tasks remain in active set.
+    assert len(manager.active_tasks) == 1
+
+    await manager.cleanup("user_done")
+
+    assert len(manager.active_tasks) == 0
+
+
+@pytest.mark.asyncio
 async def test_task_done_callback_falls_back_when_loop_unavailable(monkeypatch) -> None:
     manager = TaskManager(max_concurrent_tasks=1, task_cancellation_timeout=0.1)
     task = asyncio.create_task(asyncio.sleep(0))
