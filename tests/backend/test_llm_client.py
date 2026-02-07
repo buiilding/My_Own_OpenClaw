@@ -19,6 +19,15 @@ class DummyProvider:
             yield event
 
 
+class FailingStreamProvider:
+    async def get_completion(self, model, messages):
+        return {"content": "ok"}
+
+    async def get_completion_stream(self, model, messages):
+        raise RuntimeError("stream exploded")
+        yield ChunkEvent(content="never")  # pragma: no cover
+
+
 @pytest.mark.asyncio
 async def test_get_completion_returns_content(monkeypatch):
     cfg = AppConfig()
@@ -117,3 +126,44 @@ def test_extract_content_rejects_invalid_payloads():
 
     with pytest.raises(LLMAPIError):
         LiteLLMClient._extract_content({"content": 1}, model="m")
+
+
+@pytest.mark.asyncio
+async def test_get_completion_wraps_provider_resolution_error(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+
+    def raise_provider(*_args, **_kwargs):
+        raise ValueError("no provider")
+
+    monkeypatch.setattr("backend.src.llm.client.get_provider", raise_provider)
+
+    with pytest.raises(LLMAPIError, match="LLM provider error"):
+        await client.get_completion("model", [])
+
+
+@pytest.mark.asyncio
+async def test_get_completion_wraps_unexpected_provider_completion_error(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+
+    class ExplodingProvider:
+        async def get_completion(self, model, messages):
+            raise RuntimeError("boom")
+
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: ExplodingProvider())
+
+    with pytest.raises(LLMAPIError, match="LLM completion error"):
+        await client.get_completion("model", [])
+
+
+@pytest.mark.asyncio
+async def test_get_completion_stream_handles_iteration_error(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: FailingStreamProvider())
+
+    events = [event async for event in client.get_completion_stream("model", [])]
+    assert len(events) == 1
+    assert isinstance(events[0], ErrorEvent)
+    assert "LLM streaming error" in events[0].content
