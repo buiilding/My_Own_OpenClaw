@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { buildGatewayAudioMessage, float32ToPcm16 } from '../utils/audioEncoding';
 
 /**
  * Custom hook for managing voice mode functionality.
@@ -42,32 +43,6 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
   useEffect(() => {
     onUtteranceEndRef.current = onUtteranceEnd;
   }, [onUtteranceEnd]);
-
-  // Convert Float32Array to Int16Array for transmission
-  const float32ToInt16 = useCallback((float32Array: Float32Array) => {
-    const int16Array = new Int16Array(float32Array.length);
-    for (let i = 0; i < float32Array.length; i++) {
-      const s = Math.max(-1, Math.min(1, float32Array[i]));
-      int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-    }
-    return int16Array;
-  }, []);
-
-  // Format audio chunk for Nova-Voice Gateway
-  const formatAudioMessage = useCallback((audioData: Int16Array) => {
-    const metadata = { sampleRate: 16000 };
-    const metadataJson = JSON.stringify(metadata);
-    const metadataLength = new Uint32Array([metadataJson.length]);
-    const metadataBytes = new TextEncoder().encode(metadataJson);
-    
-    const message = new Uint8Array([
-      ...new Uint8Array(metadataLength.buffer),
-      ...metadataBytes,
-      ...new Uint8Array(audioData.buffer)
-    ]);
-    
-    return message;
-  }, []);
 
   // Connect to Nova-Voice Gateway WebSocket
   const connectWebSocket = useCallback(() => {
@@ -213,10 +188,10 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
         const inputData = event.inputBuffer.getChannelData(0);
         
         // Convert Float32Array to Int16Array
-        const int16Data = float32ToInt16(inputData);
+        const int16Data = float32ToPcm16(inputData);
         
         // Format and send to Gateway
-        const message = formatAudioMessage(int16Data);
+        const message = buildGatewayAudioMessage(int16Data, 16000);
         
         try {
           websocketRef.current.send(message);
@@ -238,7 +213,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
       setIsRecording(false);
       isRecordingRef.current = false;
     }
-  }, [float32ToInt16, formatAudioMessage]);
+  }, []);
 
   // Stop audio capture
   const stopAudioCapture = useCallback(async () => {

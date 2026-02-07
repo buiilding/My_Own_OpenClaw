@@ -254,6 +254,11 @@ App
 - Audio capture and processing
 - IPC communication with main process
 
+**Shared Voice Audio Utilities** (`features/voice/utils/audioEncoding.ts`)
+- PCM float32 -> int16 conversion used by both voice hooks
+- ScriptProcessor chunk-size normalization helper
+- Gateway packet framing with cached metadata prefixes
+
 ### Main Process (Node.js)
 
 The main process manages the application lifecycle and IPC communication.
