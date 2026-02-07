@@ -200,7 +200,6 @@ class ResponseParser:
         """
         tool_calls = []
         text_content = response
-        strategy_stripped_text = False
 
         start_time = time.monotonic()
         timeout = self.limits.parse_timeout_seconds
@@ -223,7 +222,6 @@ class ResponseParser:
                 )
                 tool_calls.extend(calls)
                 text_content = remaining_text
-                strategy_stripped_text = True
                 break
 
         if len(tool_calls) > self.limits.max_tool_calls_per_response:
@@ -246,9 +244,6 @@ class ResponseParser:
         else:
             logger.debug("No tool calls found in response (conversational response)")
             logger.debug("Response content: %s...", repr(response[:200]))
-
-        if tool_calls and not strategy_stripped_text:
-            text_content = self._extractor.remove_extracted_calls(text_content, tool_calls)
 
         return ParsedResponse(
             original_response=response,
