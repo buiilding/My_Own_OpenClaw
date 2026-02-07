@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Create TypeAdapter once at module level for performance
 _INCOMING_MESSAGE_ADAPTER = TypeAdapter(IncomingMessage)
+_JSON_PARSE_OFFLOAD_BYTES = 64 * 1024
 
 
 async def parse_and_validate_message(
@@ -42,12 +43,13 @@ async def parse_and_validate_message(
         return None, f"Message too large: {len(data)} bytes (max: {max_message_size} bytes)"
     
     try:
-        # PERFORMANCE: Offload large JSON parsing to thread pool
-        # With max_message_size (default 10MB), parsing can block the event loop
-        # for 50-200ms, causing jitter for all other connected clients
-        # (e.g., stalling audio streams)
-        loop = asyncio.get_running_loop()
-        json_data = await loop.run_in_executor(None, json.loads, data)
+        # PERFORMANCE: Parse small payloads inline to avoid executor overhead,
+        # offload larger payloads to prevent event-loop stalls.
+        if len(data) >= _JSON_PARSE_OFFLOAD_BYTES:
+            loop = asyncio.get_running_loop()
+            json_data = await loop.run_in_executor(None, json.loads, data)
+        else:
+            json_data = json.loads(data)
 
         if not isinstance(json_data, dict):
             payload_type = type(json_data).__name__
