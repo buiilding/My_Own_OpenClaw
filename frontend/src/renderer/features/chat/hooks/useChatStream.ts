@@ -39,13 +39,11 @@ import {
  * Handles LLM thoughts, streaming chunks, and completion states.
  */
 export function useChatStream(enableTranscript: boolean = true) {
-  const {
-    addMessage,
-    updateMessage,
-    setIsSending,
-    setThinkingStatus,
-    setTokenCounts,
-  } = useChatStore();
+  const addMessage = useChatStore((state) => state.addMessage);
+  const updateMessage = useChatStore((state) => state.updateMessage);
+  const setIsSending = useChatStore((state) => state.setIsSending);
+  const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const { config } = useAppConfigContext();
   const modelId = config?.selected_model_id || null;
   const modelProvider = config?.model_provider || null;

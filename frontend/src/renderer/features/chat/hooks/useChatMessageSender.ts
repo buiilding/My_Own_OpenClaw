@@ -22,7 +22,10 @@ export function useChatMessageSender(
   stopPlayback?: () => void,
   options: ChatMessageSenderOptions = {},
 ) {
-  const { addMessage, updateMessage, setIsSending, setThinkingStatus } = useChatStore();
+  const addMessage = useChatStore((state) => state.addMessage);
+  const updateMessage = useChatStore((state) => state.updateMessage);
+  const setIsSending = useChatStore((state) => state.setIsSending);
+  const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const { returnToChatboxOnSend = false } = options;
 
   const sendMessage = useCallback(async (text: string) => {
