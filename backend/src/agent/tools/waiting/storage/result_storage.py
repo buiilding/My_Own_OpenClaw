@@ -112,6 +112,7 @@ class ToolResultStorage:
         future = asyncio.Future()
         self._result_futures[request_id] = future
         self._futures_dict[request_id] = future
+        self._result_timestamps.setdefault(request_id, time.time())
         logger.debug(f"Created result future for request_id {request_id[:15]}")
         return future
     
@@ -131,6 +132,8 @@ class ToolResultStorage:
             future.set_result(result)
             # Clean up from tracking dict (future may still be in weak dict)
             self._futures_dict.pop(request_id, None)
+            if request_id not in self._pending_results:
+                self._result_timestamps.pop(request_id, None)
             logger.debug(f"Resolved result future for request_id {request_id[:15]}")
             return True
         return False
@@ -159,6 +162,8 @@ class ToolResultStorage:
         """
         future = self._futures_dict.pop(request_id, None)
         if future is not None:
+            if request_id not in self._pending_results:
+                self._result_timestamps.pop(request_id, None)
             # Weak dict will clean up automatically
             logger.debug(f"Removed result future for request_id {request_id[:15]}")
             return True
@@ -218,6 +223,7 @@ class ToolResultStorage:
         future = asyncio.Future()
         self._bundle_futures[bundle_id] = future
         self._bundle_futures_dict[bundle_id] = future
+        self._bundle_timestamps.setdefault(bundle_id, time.time())
         logger.debug(f"Created bundle future for bundle_id {bundle_id[:15]}")
         return future
     
@@ -237,6 +243,8 @@ class ToolResultStorage:
             future.set_result(result)
             # Clean up from tracking dict (future may still be in weak dict)
             self._bundle_futures_dict.pop(bundle_id, None)
+            if bundle_id not in self._bundled_results:
+                self._bundle_timestamps.pop(bundle_id, None)
             logger.debug(f"Resolved bundle future for bundle_id {bundle_id[:15]}")
             return True
         return False
@@ -265,6 +273,8 @@ class ToolResultStorage:
         """
         future = self._bundle_futures_dict.pop(bundle_id, None)
         if future is not None:
+            if bundle_id not in self._bundled_results:
+                self._bundle_timestamps.pop(bundle_id, None)
             # Weak dict will clean up automatically
             logger.debug(f"Removed bundle future for bundle_id {bundle_id[:15]}")
             return True
@@ -303,6 +313,7 @@ class ToolResultStorage:
         ]
         for bundle_id in expired_bundle_ids:
             self.remove_bundled_result(bundle_id)
+            self.remove_bundle_future(bundle_id)
             cleaned_count += 1
         
         if cleaned_count > 0:
