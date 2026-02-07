@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { AppConfigProvider } from './AppConfigProvider';
 import { AppStatusProvider } from './AppStatusProvider';
 import { useAppConfigContext } from './AppConfigContext';
@@ -11,12 +11,19 @@ import { useAppStatusContext } from './AppStatusContext';
 function AppContextCoordinator({ children }) {
   const configContext = useAppConfigContext();
   const statusContext = useAppStatusContext();
+  const configRef = useRef(configContext?.config || {});
+  const updateConfigRef = useRef(configContext?.updateConfig);
+
+  useEffect(() => {
+    configRef.current = configContext?.config || {};
+    updateConfigRef.current = configContext?.updateConfig;
+  }, [configContext?.config, configContext?.updateConfig]);
 
   useEffect(() => {
     if (configContext.registerSaveStatusCallback) {
       configContext.registerSaveStatusCallback(statusContext.setSaving);
     }
-  }, [configContext, statusContext]);
+  }, [configContext.registerSaveStatusCallback, statusContext.setSaving]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -32,10 +39,13 @@ function AppContextCoordinator({ children }) {
       }
 
       event.preventDefault();
-      const currentConfig = configContext?.config || {};
+      const currentConfig = configRef.current || {};
       const currentMode = currentConfig.interaction_mode || 'chat';
       const nextMode = currentMode === 'chat' ? 'agent' : 'chat';
-      configContext.updateConfig({
+      if (typeof updateConfigRef.current !== 'function') {
+        return;
+      }
+      updateConfigRef.current({
         ...currentConfig,
         interaction_mode: nextMode,
       });
@@ -43,7 +53,7 @@ function AppContextCoordinator({ children }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [configContext]);
+  }, []);
 
   return <>{children}</>;
 }
