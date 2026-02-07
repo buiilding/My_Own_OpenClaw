@@ -45,6 +45,14 @@ class FakeLocalProvider:
         ]
 
 
+class DuplicateLocalProvider:
+    async def list_models(self):
+        return [
+            {"id": "dup-model", "provider": "ollama", "display_name": "ollama/dup-model"},
+            {"id": "dup-model", "provider": "ollama", "display_name": "ollama/dup-model"},
+        ]
+
+
 @pytest.mark.asyncio
 async def test_get_local_models_fetches_local_providers_in_parallel(monkeypatch):
     state = {
@@ -90,6 +98,25 @@ async def test_get_local_models_tolerates_partial_provider_failure(monkeypatch):
 
     assert len(models) == 1
     assert models[0]["provider"] == "lmstudio"
+
+
+@pytest.mark.asyncio
+async def test_get_local_models_deduplicates_provider_model_pairs(monkeypatch):
+    factory = {
+        "ollama": DuplicateLocalProvider(),
+        "lmstudio": DuplicateLocalProvider(),
+    }
+    monkeypatch.setattr(
+        "backend.src.llm.providers.create_provider_factory",
+        lambda _cfg: factory,
+    )
+
+    service = ModelService(AppConfig())
+    models = await service.get_local_models()
+
+    assert len(models) == 1
+    assert models[0]["provider"] == "ollama"
+    assert models[0]["id"] == "dup-model"
 
 
 def test_get_online_models_returns_defensive_copy():
