@@ -122,5 +122,7 @@ class ArtifactStore:
         import base64
 
         path, _ = self.resolve_path(artifact_id)
+        if path.stat().st_size > self.max_bytes:
+            raise HTTPException(status_code=413, detail="Artifact too large")
         data = path.read_bytes()
         return base64.b64encode(data).decode("utf-8")
