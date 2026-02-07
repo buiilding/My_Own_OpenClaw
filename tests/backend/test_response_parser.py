@@ -119,6 +119,18 @@ async def test_parse_response_rejects_large_parameter_values():
         await parser.parse_response(response)
 
 
+@pytest.mark.asyncio
+async def test_parse_response_recreates_executor_after_shutdown():
+    parser = _make_parser([DummyTool("read_file", ToolDomain.FILESYSTEM)])
+    parser.shutdown()
+
+    response = '{"functionCall":{"name":"read_file","args":{"file_path":"/tmp/x"}}}'
+    parsed = await parser.parse_response(response)
+
+    assert parsed.has_tool_calls is True
+    assert parsed.tool_calls[0].tool_name == "read_file"
+
+
 def test_parse_sync_skips_redundant_second_pass_text_removal(monkeypatch):
     parser = _make_parser([DummyTool("read_file", ToolDomain.FILESYSTEM)])
     response = '{"functionCall":{"name":"read_file","args":{"file_path":"/tmp/x"}}}'

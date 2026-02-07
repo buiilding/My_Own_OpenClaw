@@ -117,6 +117,12 @@ class ResponseParser:
 
         self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="parser")
 
+    def _ensure_executor(self) -> ThreadPoolExecutor:
+        """Return active parser executor, creating a new one after shutdown if needed."""
+        if self._executor is None:
+            self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="parser")
+        return self._executor
+
     def shutdown(self) -> None:
         """
         Shutdown the parser and clean up resources.
@@ -169,9 +175,10 @@ class ResponseParser:
         logger.debug("Parsing LLM response for tool calls: %s...", repr(response[:200]))
 
         loop = asyncio.get_running_loop()
+        executor = self._ensure_executor()
         try:
             parsed_response = await asyncio.wait_for(
-                loop.run_in_executor(self._executor, self._parse_sync, response),
+                loop.run_in_executor(executor, self._parse_sync, response),
                 timeout=self.limits.parse_timeout_seconds,
             )
         except asyncio.TimeoutError:
