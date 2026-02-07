@@ -26,30 +26,43 @@ export function buildModelConfigUpdate(params) {
     selectedModel,
   } = params;
   const normalizedSelection = selectedModel || EMPTY_MODEL_SELECTION;
+  const selectedModelId = normalizedSelection.id === undefined || normalizedSelection.id === null
+    ? ''
+    : String(normalizedSelection.id);
+  const selectedProvider = normalizedSelection.provider === undefined || normalizedSelection.provider === null
+    ? ''
+    : String(normalizedSelection.provider);
 
   return {
     model_mode: modelMode,
-    selected_model_id: normalizedSelection.id || '',
-    model_provider: normalizedSelection.provider || '',
+    selected_model_id: selectedModelId,
+    model_provider: selectedProvider,
     speech_mode_enabled: speechModeEnabled,
     interaction_mode: interactionMode,
   };
 }
 
 export function evaluateModelSelection({ selectedModelId, selectedProvider, currentModels }) {
-  if (!selectedModelId) {
+  if (selectedModelId === undefined || selectedModelId === null || selectedModelId === '') {
     return { status: 'empty' };
   }
+  const normalizedSelectedModelId = String(selectedModelId);
+  const normalizedSelectedProvider = selectedProvider === undefined || selectedProvider === null
+    ? ''
+    : String(selectedProvider);
 
-  const matchedModel = currentModels.find((model) => model.id === selectedModelId);
+  const matchedModel = currentModels.find((model) => String(model?.id ?? '') === normalizedSelectedModelId);
   if (!matchedModel) {
     return {
       status: 'missing',
-      warning: `Selected model "${selectedModelId}" is not available. Resetting to default.`,
+      warning: `Selected model "${normalizedSelectedModelId}" is not available. Resetting to default.`,
     };
   }
 
-  if (matchedModel.provider !== selectedProvider) {
+  const matchedProvider = matchedModel.provider === undefined || matchedModel.provider === null
+    ? ''
+    : String(matchedModel.provider);
+  if (matchedProvider !== normalizedSelectedProvider) {
     return { status: 'provider-mismatch', model: matchedModel };
   }
 
