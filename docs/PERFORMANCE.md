@@ -31,6 +31,7 @@ read_when:
 - **Shared tool-output content extraction**: `MessageFormatter` now reuses a single content/screenshot extraction path for single and bundled tool messages, removing duplicated branching and keeping output precedence consistent.
 - **Shared tool-result payload builders**: `ToolExecutionService` now uses pure payload/status helpers to normalize backend dispatch payloads and bundle status calculations, reducing duplicate object-shaping logic.
 - **Bundle runner helper reuse**: `runToolBundle` now uses shared timing/step helpers for success and failure paths, keeping per-step bookkeeping consistent and reducing duplicated loop logic.
+- **Shared artifact image metadata normalization**: chat and tool execution upload paths now use a single image content-type/extension helper, reducing duplicate string parsing and keeping upload naming consistent.
 
 ## Sidecar
 
