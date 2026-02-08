@@ -7,6 +7,7 @@ import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configSt
 import { AppConfigContext } from './AppConfigContext';
 import { updateTranscriptSession } from '../../infrastructure/transcript/TranscriptWriter';
 import { extractTranscriptUserId, routeConfigBackendEvent } from './appConfigEvents';
+import { setBackendHttpUrl } from '../../infrastructure/services/ArtifactUploader';
 import {
   applyConfigIfChanged,
   mergeFrontendProviderConfig,
@@ -99,6 +100,7 @@ export function AppConfigProvider({ children }) {
       if (userId) {
         updateTranscriptSession(undefined, userId);
       }
+      setBackendHttpUrl(data?.backendHttpUrl);
       if (data?.isConnected === true) {
         syncCurrentConfigToBackend();
       }
@@ -115,6 +117,7 @@ export function AppConfigProvider({ children }) {
         if (userId) {
           updateTranscriptSession(undefined, userId);
         }
+        setBackendHttpUrl(result?.backendHttpUrl);
         if (result?.isConnected === true) {
           syncCurrentConfigToBackend();
         }

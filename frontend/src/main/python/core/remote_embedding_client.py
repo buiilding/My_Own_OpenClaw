@@ -6,8 +6,10 @@ Client for calling the backend embedding API from the frontend memory system.
 
 import aiohttp
 import logging
-from typing import List, Optional, Any
+from typing import Optional
 import numpy as np
+
+from core.backend_config import get_backend_http_url
 
 logger = logging.getLogger(__name__)
 
@@ -19,14 +21,14 @@ class RemoteEmbeddingClient:
     This replaces the local EmbeddingProvider in the frontend memory system.
     """
 
-    def __init__(self, backend_url: str = "http://localhost:8765"):
+    def __init__(self, backend_url: Optional[str] = None):
         """
         Initialize the remote embedding client.
 
         Args:
             backend_url: Base URL of the backend API
         """
-        self.backend_url = backend_url.rstrip("/")
+        self.backend_url = (backend_url or get_backend_http_url()).rstrip("/")
         self._session: Optional[aiohttp.ClientSession] = None
 
     async def initialize(self) -> None:
