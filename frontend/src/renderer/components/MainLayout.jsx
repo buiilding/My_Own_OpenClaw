@@ -13,7 +13,7 @@ function MainLayout({ sections, activeSection, onSelectSection, content }) {
         <div className="sidebar-header">
           <div className="brand-mark">OC</div>
           <div className="brand-text">
-            <h2>OpenClaw</h2>
+            <h2>WindieOS</h2>
             <span>Desktop assistant</span>
           </div>
         </div>
