@@ -24,6 +24,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- fix(frontend-branding): rename sidebar app title from OpenClaw to WindieOS
 - fix(frontend-consistency): merge partial config updates, wire voice mode end-to-end, preserve episodic screenshot refs, and ignore mode-toggle hotkey while typing in editable fields
 - fix(frontend-voice): persist `voice_mode_enabled`, expose Voice Mode toggle in settings, and auto-send transcribed input on utterance end
 - fix(api): preserve handshake client identity continuity and validate handshake user IDs
