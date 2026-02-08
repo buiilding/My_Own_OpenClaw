@@ -118,8 +118,21 @@ class ToolBundleResultMessage(BaseMessage):
 class HandshakeMessage(BaseModel):
     """Handshake message sent at WebSocket connection start."""
     type: Literal["handshake"]
-    # FIX: Remove default value. Client MUST provide identity.
     user_id: str
+
+    @field_validator("user_id")
+    @classmethod
+    def validate_handshake_user_id(cls, v: str) -> str:
+        """
+        Validate client-provided handshake user_id.
+
+        Enforces the same security constraints as runtime message validation while
+        preserving client identity continuity across reconnects.
+        """
+        try:
+            return validate_user_id(v)
+        except ValidationError as e:
+            raise ValueError(e.message) from e
 
 # Union type for parsing
 IncomingMessage = Union[

@@ -24,6 +24,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- fix(api): preserve handshake client identity continuity and validate handshake user IDs
+- fix(api): register and handle `load-settings` with `settings-loaded` responses
 - fix(vision-internvl): disable flash-attn runtime flags on CUDA kernel-image mismatch and retry chat inference
 - fix(frontend-config): send list-models only from main window to avoid duplicate local-model probes from chatbox
 - fix(frontend-transcript): queue tool transcript entries until session/user ids are available to avoid missing tool-call history in episodic memory
@@ -201,9 +203,11 @@ Includes the last 300 commits on `main`.
 - cbcba82 refactor(frontend-voice): stabilize useVoiceMode websocket lifecycle
 
 ### Documentation
+- docs(api): align handshake identity semantics and websocket payload field names (`streaming-response.text`, `llm-thought.status`)
 - 1002256 docs(frontend): document settings-ack query gating flow
 
 ### Tests
+- test(api): add websocket handshake identity + load-settings regression coverage
 - ce329a3 test(frontend-ipc): run cjs suites and add settings-sync race coverage
 - 27b86ba test(frontend-config): cover startup connected-status config sync path
 - ea759bc test(frontend-config): add ipc reconnect config sync coverage

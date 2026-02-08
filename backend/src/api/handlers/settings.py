@@ -11,6 +11,7 @@ from backend.src.api.infrastructure.errors import send_error_response, send_succ
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.schema import (
     BaseMessage,
+    LoadSettingsMessage,
     ListModelsMessage,
     UpdateSettingsMessage,
 )
@@ -18,12 +19,85 @@ from backend.src.api.schema import (
 if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager
 from backend.src.core.validation.validators import (
+    FRONTEND_CONFIG_FIELDS,
     ValidationError,
     validate_frontend_config,
 )
 from backend.src.llm.models.model_service import ModelService
 
 logger = logging.getLogger(__name__)
+
+
+def _build_frontend_settings_payload(config: Any) -> Dict[str, Any]:
+    """
+    Extract frontend-owned config keys from an AppConfig-like object.
+
+    Returns a stable key order for deterministic responses/tests.
+    """
+    if config is None:
+        return {}
+    return {
+        key: getattr(config, key)
+        for key in sorted(FRONTEND_CONFIG_FIELDS)
+        if hasattr(config, key)
+    }
+
+
+class LoadSettingsHandler(MessageHandler):
+    """Handler for load-settings messages."""
+
+    def __init__(self, session_manager: "SessionManager"):
+        """
+        Initialize the load settings handler.
+
+        Args:
+            session_manager: Session manager instance for session/global config access
+        """
+        self.session_manager = session_manager
+
+    def validate_message(self, message: BaseMessage) -> bool:
+        """Validate load-settings message structure."""
+        return isinstance(message, LoadSettingsMessage)
+
+    async def handle(
+        self,
+        message: BaseMessage,
+        websocket: WebSocketSender,
+        user_id: str
+    ) -> None:
+        """
+        Handle a load-settings message.
+
+        Returns frontend-owned settings from active session config if present,
+        otherwise from global app config defaults.
+        """
+        try:
+            validated: LoadSettingsMessage = message  # type: ignore
+
+            session = self.session_manager.get_session(user_id)
+            config_source = getattr(session, "cfg", None)
+            if config_source is None:
+                config_source = getattr(self.session_manager, "config", None)
+
+            await send_success_response(
+                websocket,
+                validated.id,
+                "settings-loaded",
+                {"config": _build_frontend_settings_payload(config_source)},
+            )
+        except ValidationError as e:
+            await send_error_response(
+                websocket,
+                message.id,
+                f"Invalid load-settings message: {e.message}"
+            )
+        except Exception as e:
+            await send_error_response(
+                websocket,
+                message.id,
+                None,
+                exception=e
+            )
 
 
 class ListModelsHandler(MessageHandler):

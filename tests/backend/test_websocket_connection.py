@@ -56,14 +56,13 @@ class DummySessionManager:
 
 
 @pytest.mark.asyncio
-async def test_perform_handshake_returns_server_assigned_user_id() -> None:
+async def test_perform_handshake_returns_client_user_id() -> None:
     websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "client_user"}))
     safe_ws = DummySafeWebSocket()
 
     assigned_user_id = await perform_handshake(websocket, safe_ws)
 
-    assert assigned_user_id is not None
-    assert assigned_user_id.startswith("user_")
+    assert assigned_user_id == "client_user"
     assert safe_ws.closed == []
 
 
@@ -82,6 +81,18 @@ async def test_perform_handshake_invalid_json_closes_socket() -> None:
 @pytest.mark.asyncio
 async def test_perform_handshake_invalid_payload_closes_socket() -> None:
     websocket = DummyWebSocket(json.dumps({"type": "handshake"}))
+    safe_ws = DummySafeWebSocket()
+
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id is None
+    assert safe_ws.closed
+    assert safe_ws.closed[0][0] == 1008
+
+
+@pytest.mark.asyncio
+async def test_perform_handshake_invalid_user_id_closes_socket() -> None:
+    websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "   "}))
     safe_ws = DummySafeWebSocket()
 
     assigned_user_id = await perform_handshake(websocket, safe_ws)

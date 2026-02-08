@@ -108,7 +108,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 ### Connection Lifecycle
 
 1. **Connection**: Client connects to `ws://127.0.0.1:8765/ws`
-2. **Handshake**: Client sends handshake message (server assigns user_id)
+2. **Handshake**: Client sends handshake message (backend validates and uses client `user_id`)
 3. **Session Creation**: Backend creates session
 4. **Message Loop**: Continuous message exchange
 5. **Disconnection**: Cleanup on disconnect
@@ -124,7 +124,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 ```json
 {
   "id": "uuid-v4",
-  "type": "query|list-models|tool-result|tool-bundle-result|wakeword-detected",
+  "type": "query|load-settings|list-models|update-settings|tool-result|tool-bundle-result|wakeword-detected",
   "payload": { ... }
 }
 ```
@@ -152,6 +152,16 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 - Payload: `{}`
 - Response: `models-listed`
 
+**`load-settings`**
+- Purpose: Request frontend-owned settings snapshot from backend session/default config.
+- Payload: `{}`
+- Response: `settings-loaded`
+
+**`update-settings`**
+- Purpose: Apply frontend-owned config fields to the active backend session.
+- Payload: `{ model_mode?, model_provider?, selected_model_id?, interaction_mode?, voice_mode_enabled?, speech_mode_enabled? }`
+- Response: `settings-updated`
+
 **`wakeword-detected`**
 - Purpose: Notify backend of wakeword activation
 - Payload: `{}`
@@ -169,7 +179,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 
 **`streaming-response`**
 - Purpose: Streaming text chunks
-- Payload: `{ chunk: string }`
+- Payload: `{ text: string }`
 - Usage: Real-time response streaming
 
 **`tool-call`**
@@ -189,7 +199,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 
 **`llm-thought`**
 - Purpose: LLM thinking tokens (Gemini)
-- Payload: `{ thought: string }`
+- Payload: `{ status: string }`
 - Usage: Display reasoning
 
 **`error`**
@@ -205,6 +215,10 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 **`settings-updated`**
 - Purpose: Acknowledge `update-settings` payload application for the current session.
 - Usage: Electron main process gates first `query`/`wakeword-detected` until this ACK (or timeout fallback) to avoid tool-whitelist races.
+
+**`settings-loaded`**
+- Purpose: Return frontend-owned config snapshot for the current session/default config.
+- Usage: Response to `load-settings`.
 
 **`models-listed`**
 - Purpose: Available models response

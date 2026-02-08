@@ -6,7 +6,6 @@ Handles handshake, connection setup, and cleanup.
 import json
 import logging
 import asyncio
-import uuid
 
 from fastapi import WebSocket
 from pydantic import ValidationError as PydanticValidationError
@@ -31,14 +30,14 @@ async def perform_handshake(
     safe_ws: SafeWebSocket
 ) -> str | None:
     """
-    Perform WebSocket handshake and assign server-side user_id.
+    Perform WebSocket handshake and validate client-provided user_id.
     
     Args:
         websocket: Raw WebSocket connection
         safe_ws: Safe WebSocket wrapper
         
     Returns:
-        server-assigned user_id if handshake successful, None otherwise
+        validated client user_id if handshake successful, None otherwise
     """
     try:
         raw_data = await websocket.receive_text()
@@ -46,15 +45,13 @@ async def perform_handshake(
         loop = asyncio.get_running_loop()
         handshake_data = await loop.run_in_executor(None, json.loads, raw_data)
         handshake_msg = HandshakeMessage.model_validate(handshake_data)
-        client_user_id = handshake_msg.user_id
-        server_user_id = f"user_{uuid.uuid4().hex}"
+        user_id = handshake_msg.user_id
         
         logger.info(
-            "Handshake successful (client_user_id=%s, assigned_user_id=%s)",
-            client_user_id,
-            server_user_id,
+            "Handshake successful (user_id=%s)",
+            user_id,
         )
-        return server_user_id
+        return user_id
     except PydanticValidationError as e:
         logger.warning(f"Handshake validation failed: {e}")
         await _close_policy_violation(safe_ws, "handshake validation failure")
