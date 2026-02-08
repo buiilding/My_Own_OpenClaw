@@ -216,12 +216,36 @@ describe('TranscriptWriter', () => {
     expect(invokeMock).not.toHaveBeenCalled();
   });
 
-  test('recordToolMessage is ignored when session info is unavailable', async () => {
+  test('queues tool messages until session/user ids are available, then flushes', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
 
-    writer.recordToolMessage('tool output', { messageType: 'tool-output' });
+    writer.recordToolMessage('tool call payload', {
+      messageType: 'tool-call',
+      toolName: 'mouse_control',
+      correlationId: 'corr-tool-1',
+      modelId: 'model-z',
+      modelProvider: 'provider-z',
+      screenshotRef: 'artifact-tool',
+    });
     await Promise.resolve();
 
     expect(invokeMock).not.toHaveBeenCalled();
+
+    writer.updateTranscriptSession('session-tool-queued', 'user-tool-queued');
+    await Promise.resolve();
+
+    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+      content: 'tool call payload',
+      userId: 'user-tool-queued',
+      sessionId: 'session-tool-queued',
+      role: 'tool',
+      messageType: 'tool-call',
+      toolName: 'mouse_control',
+      correlationId: 'corr-tool-1',
+      modelId: 'model-z',
+      modelProvider: 'provider-z',
+      screenshot: 'artifact-tool',
+      timestamp: undefined,
+    });
   });
 });
