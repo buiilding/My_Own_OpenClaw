@@ -6,6 +6,7 @@ import pytest
 from backend.src.services.vision.providers.internvl import (
     InternVLModel,
     _build_instruction_log_metadata,
+    _is_cuda_kernel_image_error,
     _is_meta_tensor_loading_error,
     build_grounding_prompt,
 )
@@ -85,6 +86,25 @@ class _DummyEvalModel:
         return self
 
 
+class _DummyModuleWithFlashFlag:
+    def __init__(self, use_flash_attn: bool):
+        self.use_flash_attn = use_flash_attn
+
+
+class _DummyModelWithFlashFlags:
+    def __init__(self):
+        self.config = type("Config", (), {"use_flash_attn": True})()
+        self.config.vision_config = type("VisionConfig", (), {"use_flash_attn": True})()
+        self._modules = [
+            _DummyModuleWithFlashFlag(True),
+            _DummyModuleWithFlashFlag(False),
+            _DummyModuleWithFlashFlag(True),
+        ]
+
+    def modules(self):
+        return iter(self._modules)
+
+
 def test_loader_returns_device_map_model_when_first_attempt_succeeds():
     fake_torch = _FakeTorch(cuda_available=True)
     calls = {"device_map": [], "direct": []}
@@ -160,6 +180,16 @@ def test_is_meta_tensor_loading_error_detects_meta_tensor_messages():
     assert _is_meta_tensor_loading_error(RuntimeError("ordinary error")) is False
 
 
+def test_is_cuda_kernel_image_error_detects_known_messages():
+    assert _is_cuda_kernel_image_error(
+        RuntimeError("CUDA error: no kernel image is available for execution on the device")
+    )
+    assert _is_cuda_kernel_image_error(
+        RuntimeError("Search for `cudaErrorNoKernelImageForDevice` in docs")
+    )
+    assert _is_cuda_kernel_image_error(RuntimeError("some other cuda error")) is False
+
+
 def test_internvl_resolve_model_dtype_prefers_cached_dtype():
     model = InternVLModel.__new__(InternVLModel)
     model._model_dtype = "cached-dtype"
@@ -225,6 +255,18 @@ def test_internvl_load_model_does_not_retry_non_meta_errors(monkeypatch):
         model._load_model(dtype="bf16", use_flash_attn=False, device="cpu")
 
     assert calls["count"] == 1
+
+
+def test_disable_flash_attention_runtime_turns_off_flags():
+    model = InternVLModel.__new__(InternVLModel)
+    model.model = _DummyModelWithFlashFlags()
+
+    changed = model._disable_flash_attention_runtime()
+
+    assert changed is True
+    assert model.model.config.use_flash_attn is False
+    assert model.model.config.vision_config.use_flash_attn is False
+    assert [m.use_flash_attn for m in model.model.modules()] == [False, False, False]
 
 
 def test_loader_falls_back_to_direct_cuda_loading_when_device_map_fails():

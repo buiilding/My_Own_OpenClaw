@@ -24,6 +24,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- fix(vision-internvl): disable flash-attn runtime flags on CUDA kernel-image mismatch and retry chat inference
 - 4169acf fix(frontend-ipc): gate first query on settings sync ack
 - d0dd0a6 fix(frontend-config): apply config sync when renderer attaches after backend connection
 - 3dbd975 fix(frontend-config): sync interaction mode to backend on ipc reconnect

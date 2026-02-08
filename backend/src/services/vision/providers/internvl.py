@@ -72,6 +72,15 @@ def _is_meta_tensor_loading_error(error: Exception) -> bool:
     return "meta tensor" in message or "tensor.item() cannot be called on meta tensors" in message
 
 
+def _is_cuda_kernel_image_error(error: Exception) -> bool:
+    """Return True when CUDA kernel binary is incompatible with the active GPU."""
+    message = str(error).lower()
+    return (
+        "no kernel image is available for execution on the device" in message
+        or "cudaerrornokernelimagefordevice" in message
+    )
+
+
 class InternVLModel(BaseVisionModel):
     """
     Generic Hugging Face vision-language model handler for InternVL models.
@@ -357,6 +366,34 @@ class InternVLModel(BaseVisionModel):
         logger.info(f"Generate fallback on CUDA succeeded: {repr(output_text)}")
         return output_text
 
+    def _disable_flash_attention_runtime(self) -> bool:
+        """
+        Disable flash-attention switches on loaded modules for runtime fallback.
+
+        This handles environments where flash-attn imports but the packaged CUDA
+        kernels do not support the active GPU architecture.
+        """
+        disabled_count = 0
+
+        config = getattr(self.model, "config", None)
+        vision_config = getattr(config, "vision_config", None) if config else None
+        for cfg in (config, vision_config):
+            if cfg is not None and getattr(cfg, "use_flash_attn", False):
+                setattr(cfg, "use_flash_attn", False)
+                disabled_count += 1
+
+        for module in self.model.modules():
+            if getattr(module, "use_flash_attn", False):
+                setattr(module, "use_flash_attn", False)
+                disabled_count += 1
+
+        if disabled_count:
+            logger.warning(
+                "Disabled flash-attention runtime flags on %d InternVL module/config entries; retrying inference",
+                disabled_count,
+            )
+        return disabled_count > 0
+
     def _log_failure_context(
         self,
         *,
@@ -458,23 +495,54 @@ class InternVLModel(BaseVisionModel):
                     generation_config=generation_config,
                 )
             except Exception as chat_error:
-                logger.error(
-                    f"Chat method failed: {chat_error}, trying generate fallback on CUDA"
-                )
-                try:
-                    output_text = self._run_generate_fallback(
-                        pixel_values=pixel_values,
-                        question=question,
-                        num_patches_list=num_patches_list,
-                        model_device=model_device,
+                if _is_cuda_kernel_image_error(chat_error) and self._disable_flash_attention_runtime():
+                    logger.warning(
+                        "Detected CUDA kernel-image mismatch in flash-attn path; retrying chat with flash-attn disabled"
                     )
-                except Exception as generate_error:
+                    try:
+                        output_text = self._run_chat_generation(
+                            pixel_values=pixel_values,
+                            question=question,
+                            num_patches_list=num_patches_list,
+                            generation_config=generation_config,
+                        )
+                    except Exception as retry_chat_error:
+                        chat_error = retry_chat_error
+                        logger.error(
+                            f"Chat retry with flash-attn disabled failed: {retry_chat_error}, trying generate fallback on CUDA"
+                        )
+                        try:
+                            output_text = self._run_generate_fallback(
+                                pixel_values=pixel_values,
+                                question=question,
+                                num_patches_list=num_patches_list,
+                                model_device=model_device,
+                            )
+                        except Exception as generate_error:
+                            logger.error(
+                                f"Both CUDA methods failed: chat={chat_error}, generate={generate_error}"
+                            )
+                            raise RuntimeError(
+                                f"Vision model inference failed on CUDA: {generate_error}"
+                            ) from chat_error
+                else:
                     logger.error(
-                        f"Both CUDA methods failed: chat={chat_error}, generate={generate_error}"
+                        f"Chat method failed: {chat_error}, trying generate fallback on CUDA"
                     )
-                    raise RuntimeError(
-                        f"Vision model inference failed on CUDA: {generate_error}"
-                    ) from chat_error
+                    try:
+                        output_text = self._run_generate_fallback(
+                            pixel_values=pixel_values,
+                            question=question,
+                            num_patches_list=num_patches_list,
+                            model_device=model_device,
+                        )
+                    except Exception as generate_error:
+                        logger.error(
+                            f"Both CUDA methods failed: chat={chat_error}, generate={generate_error}"
+                        )
+                        raise RuntimeError(
+                            f"Vision model inference failed on CUDA: {generate_error}"
+                        ) from chat_error
 
             if not output_text:
                 logger.error("Empty output from model")
