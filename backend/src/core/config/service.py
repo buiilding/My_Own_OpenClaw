@@ -49,7 +49,19 @@ class ConfigurationService:
         self._config: Optional[AppConfig] = None
         self._subscription_manager = ConfigSubscriptionManager()
         self._event_bus = event_bus
-        self._lock = threading.RLock()  # Reentrant lock for thread-safe config updates
+        self._lock = threading.RLock()  # Reentrant lock for thread-safe config reads/writes
+        # Single-writer gate for async update/reload operations.
+        self._update_lock = asyncio.Lock()
+
+    def _require_initialized_config(self) -> AppConfig:
+        """
+        Return initialized config or raise.
+
+        Must be called while holding ``self._lock``.
+        """
+        if self._config is None:
+            raise RuntimeError("ConfigurationService not initialized")
+        return self._config
 
     def initialize(self) -> AppConfig:
         """
@@ -76,11 +88,13 @@ class ConfigurationService:
         Raises:
             RuntimeError: If config has not been initialized
         """
-        if self._config is None:
-            raise RuntimeError(
-                "ConfigurationService not initialized. Call initialize() first."
-            )
-        return self._config
+        with self._lock:
+            config = self._config
+            if config is None:
+                raise RuntimeError(
+                    "ConfigurationService not initialized. Call initialize() first."
+                )
+            return config
 
     def subscribe(self, subscriber: ConfigSubscriber) -> None:
         """
@@ -132,32 +146,30 @@ class ConfigurationService:
         Returns:
             Updated config with API key loaded
         """
-        with self._lock:
-            if self._config is None:
-                raise RuntimeError("ConfigurationService not initialized")
+        async with self._update_lock:
+            with self._lock:
+                old_config = self._require_initialized_config()
 
-            old_config = self._config
+            # Run blocking I/O operations in thread pool to avoid blocking event loop
+            loop = asyncio.get_running_loop()
+            updated_config = await loop.run_in_executor(
+                None, self._config_manager.update_config, new_config
+            )
 
-        # Run blocking I/O operations in thread pool to avoid blocking event loop
-        loop = asyncio.get_running_loop()
-        updated_config = await loop.run_in_executor(
-            None, self._config_manager.update_config, new_config
-        )
-        
-        with self._lock:
-            self._config = updated_config
+            with self._lock:
+                self._config = updated_config
 
-        # Notify subscribers outside lock to avoid deadlocks
-        # (subscribers may need to acquire other locks)
-        await self._subscription_manager.notify_subscribers(old_config, updated_config)
+            # Notify subscribers outside lock to avoid deadlocks
+            # (subscribers may need to acquire other locks)
+            await self._subscription_manager.notify_subscribers(old_config, updated_config)
 
-        # Publish event for event bus subscribers
-        if self._event_bus:
-            event = ConfigChanged(old_config=old_config, new_config=updated_config)
-            await self._event_bus.publish(event)
+            # Publish event for event bus subscribers
+            if self._event_bus:
+                event = ConfigChanged(old_config=old_config, new_config=updated_config)
+                await self._event_bus.publish(event)
 
-        logger.info("Configuration updated and subscribers notified")
-        return updated_config
+            logger.info("Configuration updated and subscribers notified")
+            return updated_config
 
     def get_config_value(self, path: str, default: Any = None) -> Any:
         """
@@ -212,27 +224,25 @@ class ConfigurationService:
         Returns:
             Reloaded AppConfig instance
         """
-        with self._lock:
-            if self._config is None:
-                raise RuntimeError("ConfigurationService not initialized")
+        async with self._update_lock:
+            with self._lock:
+                old_config = self._require_initialized_config()
 
-            old_config = self._config
+            # Run blocking I/O operations in thread pool to avoid blocking event loop
+            loop = asyncio.get_running_loop()
+            reloaded_config = await loop.run_in_executor(
+                None, self._config_manager.reload_config
+            )
 
-        # Run blocking I/O operations in thread pool to avoid blocking event loop
-        loop = asyncio.get_running_loop()
-        reloaded_config = await loop.run_in_executor(
-            None, self._config_manager.reload_config
-        )
-        
-        with self._lock:
-            self._config = reloaded_config
+            with self._lock:
+                self._config = reloaded_config
 
-        # Notify subscribers outside lock to avoid deadlocks
-        # (subscribers may need to acquire other locks)
-        await self._subscription_manager.notify_subscribers(old_config, reloaded_config)
+            # Notify subscribers outside lock to avoid deadlocks
+            # (subscribers may need to acquire other locks)
+            await self._subscription_manager.notify_subscribers(old_config, reloaded_config)
 
-        logger.info("Configuration reloaded and subscribers notified")
-        return reloaded_config
+            logger.info("Configuration reloaded and subscribers notified")
+            return reloaded_config
 
     @property
     def config(self) -> AppConfig:
@@ -307,4 +317,3 @@ class ConfigurationService:
         validated_config = load_api_key_for_provider(validated_config)
         
         return validated_config
-

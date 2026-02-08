@@ -6,7 +6,6 @@ and cleanup.
 """
 import asyncio
 import logging
-import time
 from typing import Any, Dict, Optional
 
 from backend.src.agent.session.session import AgentSession
@@ -30,8 +29,6 @@ class SessionManager(ConfigSubscriber):
         self,
         config: AppConfig,
         create_agent_session_func,
-        session_ttl_hours: float = 24.0,
-        reaper_interval_seconds: float = 3600.0,
     ):
         """
         Initialize the session manager.
@@ -39,23 +36,14 @@ class SessionManager(ConfigSubscriber):
         Args:
             config: Global application configuration
             create_agent_session_func: Function to create agent sessions (takes user_id, config)
-            session_ttl_hours: Hours of inactivity before session expires (default: 24)
-            reaper_interval_seconds: Seconds between reaper runs (default: 3600 = 1 hour)
         """
         self.config = config
         self.create_agent_session = create_agent_session_func
         self.active_sessions: Dict[str, AgentSession] = {}
-        # Track last activity time for each session (for TTL expiry)
-        self._session_last_activity: Dict[str, float] = {}
         # Per-user locks to prevent race conditions during session creation
         self._user_locks: Dict[str, asyncio.Lock] = {}
         # Lock for managing user_locks dictionary itself
         self._locks_lock = asyncio.Lock()
-        # Session expiry configuration
-        self.session_ttl_seconds = session_ttl_hours * 3600.0
-        self.reaper_interval_seconds = reaper_interval_seconds
-        self._reaper_task: Optional[asyncio.Task] = None
-        self._shutdown_event = asyncio.Event()
 
     async def _get_user_lock(self, user_id: str) -> asyncio.Lock:
         """
@@ -139,8 +127,6 @@ class SessionManager(ConfigSubscriber):
                     user_id=user_id, config=session_config
                 )
                 self.active_sessions[user_id] = session
-                # MEMORY LEAK FIX: Track last activity time for TTL expiry
-                self._session_last_activity[user_id] = time.time()
                 logger.info(f"Successfully created session for user {user_id}")
                 return session
             except Exception as e:
@@ -154,17 +140,12 @@ class SessionManager(ConfigSubscriber):
         """
         Retrieves an active session for a user.
         
-        Updates last activity time to prevent expiry of active sessions.
-        
         Args:
             user_id: User identifier
             
         Returns:
             AgentSession if exists, None otherwise
         """
-        if user_id in self.active_sessions:
-            # MEMORY LEAK FIX: Update last activity time on access
-            self._session_last_activity[user_id] = time.time()
         return self.active_sessions.get(user_id)
 
     async def update_session_config(
@@ -248,9 +229,6 @@ class SessionManager(ConfigSubscriber):
             finally:
                 # Always remove from cache, even if cleanup fails
                 del self.active_sessions[user_id]
-                # MEMORY LEAK FIX: Remove activity tracking
-                if user_id in self._session_last_activity:
-                    del self._session_last_activity[user_id]
                 
                 # Clean up lock if no longer needed
                 async with self._locks_lock:
@@ -268,9 +246,9 @@ class SessionManager(ConfigSubscriber):
         Args:
             config: New configuration to apply
         """
-        # Update container config for future sessions (if container exists)
-        if hasattr(self, 'container'):
-            self.container.update_config(config)
+        # NOTE: SessionManager is a config subscriber only.
+        # Global container/config mutation belongs to ConfigurationService/Container.
+        # This method only updates currently active sessions.
 
         # RACE CONDITION FIX: Acquire user locks before updating to prevent
         # conflicts with end_session which also holds the lock during cleanup

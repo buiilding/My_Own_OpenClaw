@@ -1,5 +1,6 @@
 """Tests for ConfigurationService."""
 import asyncio
+import time
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -7,6 +8,11 @@ from backend.src.core.config.service import ConfigurationService
 from backend.src.core.config.models import AppConfig
 from backend.src.core.config.manager import ConfigManager
 from backend.src.core.infrastructure.bus import EventBus
+
+
+class MockSubscriber:
+    def __init__(self):
+        self.on_config_changed = AsyncMock()
 
 
 class TestConfigurationService:
@@ -120,6 +126,35 @@ class TestConfigurationService:
         assert service._config == updated_config
         mock_config_manager.update_config.assert_called_once_with(new_config)
         mock_event_bus.publish.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_update_config_serializes_concurrent_updates(self, service, mock_config_manager):
+        service._config = AppConfig(model_provider="openai")
+        subscriber = MockSubscriber()
+        service.subscribe(subscriber)
+
+        first_config = AppConfig(model_provider="anthropic")
+        second_config = AppConfig(model_provider="gemini")
+
+        def update_with_delay(new_cfg: AppConfig) -> AppConfig:
+            if new_cfg.model_provider == "anthropic":
+                time.sleep(0.05)
+            return new_cfg
+
+        mock_config_manager.update_config.side_effect = update_with_delay
+
+        task_one = asyncio.create_task(service.update_config(first_config))
+        await asyncio.sleep(0.01)  # ensure task_one acquires the single-writer gate first
+        task_two = asyncio.create_task(service.update_config(second_config))
+        await asyncio.gather(task_one, task_two)
+
+        calls = subscriber.on_config_changed.await_args_list
+        assert len(calls) == 2
+        assert calls[0].args[0].model_provider == "openai"
+        assert calls[0].args[1].model_provider == "anthropic"
+        assert calls[1].args[0].model_provider == "anthropic"
+        assert calls[1].args[1].model_provider == "gemini"
+        assert service._config.model_provider == "gemini"
 
     @pytest.mark.asyncio
     async def test_update_config_not_initialized(self, service):
