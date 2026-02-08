@@ -12,6 +12,7 @@ from backend.src.api.infrastructure.registry import MessageHandlerRegistry
 from backend.src.api.handlers.query import QueryMessageHandler
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.handlers.settings import (
+    LoadSettingsHandler,
     ListModelsHandler,
     UpdateSettingsHandler,
 )
@@ -79,6 +80,11 @@ class ApiContainer(containers.DeclarativeContainer):
         model_service=model_service,
     )
 
+    load_settings_handler = providers.Singleton(
+        LoadSettingsHandler,
+        session_manager=session_manager,
+    )
+
     update_settings_handler = providers.Singleton(
         UpdateSettingsHandler,
         session_manager=session_manager,
@@ -86,13 +92,14 @@ class ApiContainer(containers.DeclarativeContainer):
 
     # Handler Registry (registers all handlers)
     handler_registry = providers.Singleton(
-        lambda qh, trh, wh, lmh, ush: _create_handler_registry(
-            qh, trh, wh, lmh, ush
+        lambda qh, trh, wh, lmh, lsh, ush: _create_handler_registry(
+            qh, trh, wh, lmh, lsh, ush
         ),
         qh=query_handler,
         trh=tool_result_handler,
         wh=wakeword_handler,
         lmh=list_models_handler,
+        lsh=load_settings_handler,
         ush=update_settings_handler,
     )
 
@@ -102,6 +109,7 @@ def _create_handler_registry(
     tool_result_handler: ToolResultHandler,
     wakeword_handler: WakewordHandler,
     list_models_handler: ListModelsHandler,
+    load_settings_handler: LoadSettingsHandler,
     update_settings_handler: UpdateSettingsHandler,
 ) -> MessageHandlerRegistry:
     """
@@ -124,6 +132,7 @@ def _create_handler_registry(
     registry.register("tool-bundle-result", tool_result_handler)  # Same handler handles both types
     registry.register("wakeword-detected", wakeword_handler)
     registry.register("list-models", list_models_handler)
+    registry.register("load-settings", load_settings_handler)
     registry.register("update-settings", update_settings_handler)
 
     logger.info("Message handler registry initialized with all handlers")

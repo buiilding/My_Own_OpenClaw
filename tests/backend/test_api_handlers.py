@@ -4,12 +4,17 @@ from typing import Any, Dict, List, Optional
 import pytest
 
 from backend.src.api.handlers.query import QueryMessageHandler
-from backend.src.api.handlers.settings import ListModelsHandler, UpdateSettingsHandler
+from backend.src.api.handlers.settings import (
+    ListModelsHandler,
+    LoadSettingsHandler,
+    UpdateSettingsHandler,
+)
 from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.api.handlers import query as query_handler_module
 from backend.src.api.schema import (
     ListModelsMessage,
+    LoadSettingsMessage,
     QueryMessage,
     ToolBundleResultMessage,
     ToolResultMessage,
@@ -479,6 +484,34 @@ async def test_update_settings_handler_rejects_invalid_values():
     assert websocket.sent
     assert websocket.sent[0]["type"] == "error"
     assert "Invalid settings" in websocket.sent[0]["payload"]["message"]
+
+
+@pytest.mark.asyncio
+async def test_load_settings_handler_returns_frontend_config():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session_instance = session_manager.session
+    handler = LoadSettingsHandler(session_manager)
+
+    message = LoadSettingsMessage(
+        id="msg_11",
+        type="load-settings",
+        user_id="user_1",
+        payload={},
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent
+    assert websocket.sent[0]["type"] == "settings-loaded"
+    assert websocket.sent[0]["payload"]["config"] == {
+        "interaction_mode": "chat",
+        "model_mode": "online",
+        "model_provider": "openai",
+        "selected_model_id": "gpt-5.1",
+        "speech_mode_enabled": False,
+        "voice_mode_enabled": False,
+    }
 
 
 @pytest.mark.asyncio

@@ -5,7 +5,7 @@ This module handles WebSocket connections for real-time communication with the f
 Manages message routing, session management, and streaming responses from the agent.
 
 Connection Lifecycle:
-1. Client connects → handshake (server assigns user_id)
+1. Client connects → handshake (client provides validated user_id)
 2. Message loop → receive, validate, route to handler
 3. Handler processes → may spawn background tasks (TTS streaming)
 4. Client disconnects → cleanup tasks, end session

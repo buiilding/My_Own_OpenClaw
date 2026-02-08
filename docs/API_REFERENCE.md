@@ -22,8 +22,8 @@ Desktop Assistant uses a WebSocket-based API for real-time communication between
 
 The client must send a handshake message immediately after connecting.
 This message does **not** use the base message envelope.
-The backend assigns a server-side `user_id` for the connection; any `user_id`
-in the handshake payload is ignored.
+The backend validates the client-provided `user_id` and uses it as the
+connection identity.
 
 **Payload**:
 ```json
@@ -140,7 +140,7 @@ All messages follow this structure:
 - `payload`: Message-specific payload
 
 **Notes**:
-- `user_id` is injected server-side from the handshake connection context (server-assigned).
+- `user_id` is injected server-side from the handshake connection context (client-provided, validated at handshake).
 - `timestamp` is optional and ignored by the backend if present.
 
 ## Client Messages (Frontend → Backend)
@@ -267,9 +267,9 @@ Request current application settings.
 
 **Payload**: `{}`
 
-**Response**: `settings-loaded` (legacy)
+**Response**: `settings-loaded`
 
-**Status**: Currently **not handled** by the backend. Frontend settings are local-only.
+**Status**: Handled by the backend. Returns frontend-owned settings from the active session config (or global defaults if no session exists).
 
 **Example**:
 ```json
@@ -435,7 +435,7 @@ Streaming text chunks from LLM.
 **Payload**:
 ```json
 {
-  "chunk": "Text chunk"
+  "text": "Text chunk"
 }
 ```
 
@@ -445,7 +445,7 @@ Streaming text chunks from LLM.
   "id": "123e4567-e89b-12d3-a456-426614174005",
   "type": "streaming-response",
   "payload": {
-    "chunk": "I'll help you click the submit button."
+    "text": "I'll help you click the submit button."
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }
@@ -539,7 +539,7 @@ LLM thinking/reasoning tokens (Gemini models).
 **Payload**:
 ```json
 {
-  "thought": "Thinking token text"
+  "status": "Thinking token text"
 }
 ```
 
@@ -549,7 +549,7 @@ LLM thinking/reasoning tokens (Gemini models).
   "id": "123e4567-e89b-12d3-a456-426614174008",
   "type": "llm-thought",
   "payload": {
-    "thought": "I need to find the submit button first..."
+    "status": "I need to find the submit button first..."
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }
@@ -617,7 +617,7 @@ Response to load-settings request.
 }
 ```
 
-**Status**: Legacy. Backend does not currently emit this; frontend settings are local-only.
+**Status**: Emitted by backend in response to `load-settings`.
 
 **Example**:
 ```json
@@ -1075,7 +1075,7 @@ codes are internal to the backend exception hierarchy and may appear in logs.
 
 ### Handshake
 
-On connection, client sends handshake (server assigns `user_id` for the connection):
+On connection, client sends handshake (backend validates and uses the client `user_id` for the connection):
 
 ```json
 {
