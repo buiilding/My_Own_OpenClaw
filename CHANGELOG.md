@@ -99,6 +99,8 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- refactor(session): unify AgentSession state initialization/cleanup around active state stores
+- refactor(screenshot-state): add explicit `clear()` lifecycle API for session shutdown
 - refactor(config): serialize async config write/reload operations with a single-writer gate
 - refactor(session-manager): make session manager a pure active-session subscriber (no container mutation path)
 - e2d96b1 refactor(frontend): stabilize dashboard/provider hook dependencies
@@ -211,6 +213,8 @@ Includes the last 300 commits on `main`.
 - 1002256 docs(frontend): document settings-ack query gating flow
 
 ### Tests
+- test(session): add AgentSession cleanup regression coverage for screenshot/tool-result/resolved-call state
+- test(screenshot-state): add lifecycle clear/reset coverage
 - test(config): add concurrent update serialization regression coverage in ConfigurationService
 - test(session-manager): add race-safety and config-ownership regression coverage
 - test(api): add websocket handshake identity + load-settings regression coverage

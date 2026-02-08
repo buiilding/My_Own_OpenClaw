@@ -104,16 +104,6 @@ class AgentSession:
         subscribe_events(self)
         init_session_state(self)
 
-        # Legacy accessors for backward compatibility (delegate to storage)
-        # These will be removed once all code is migrated
-        self._tool_result_futures: Dict[str, asyncio.Future] = {}  # Deprecated
-        self._pending_tool_results: Dict[str, Any] = {}  # Deprecated
-        self._bundled_results: Dict[str, Any] = {}  # Deprecated
-        # Initialize event as set (no OCR in progress initially)
-        # When OCR starts, event is cleared; when OCR completes, event is set
-        self.ocr_completion_event = asyncio.Event()
-        self.ocr_completion_event.set()  # Set initially (no OCR running)
-
     def get_screenshot(self, screenshot_id: Optional[str] = None) -> Optional[str]:
         """
         Get current screenshot data.
@@ -419,13 +409,20 @@ class AgentSession:
             # Shutdown response parser (may have thread pool executor)
             if hasattr(self, 'response_parser') and self.response_parser:
                 self.response_parser.shutdown()
+
+            # Clear conversation history state
+            if hasattr(self, 'history') and self.history:
+                self.history.clear()
             
-            # Clear session-scoped state to free memory
-            if hasattr(self, '_screenshots'):
-                self._screenshots.clear()
-            if hasattr(self, '_ocr_results_by_screenshot'):
-                self._ocr_results_by_screenshot.clear()
-            # Use centralized storage for cleanup
+            # Clear current screenshot/OCR state
+            if hasattr(self, '_screenshot_state') and self._screenshot_state:
+                self._screenshot_state.clear()
+
+            # Clear resolved tool-call cache
+            if hasattr(self, '_resolved_tool_call_storage') and self._resolved_tool_call_storage:
+                self._resolved_tool_call_storage.clear()
+
+            # Clear tool-result storage
             if hasattr(self, '_tool_result_storage'):
                 self._tool_result_storage.clear_all()
             

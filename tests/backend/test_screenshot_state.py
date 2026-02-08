@@ -34,3 +34,15 @@ def test_screenshot_state_ignores_screenshot_id_in_getters():
 
     assert state.get_screenshot("other-id") == "image-1"
     assert state.get_ocr_results("other-id") == [{"text": "one"}]
+
+
+def test_screenshot_state_clear_resets_all_fields():
+    state = ScreenshotState()
+    state.set_current_screenshot("shot-1", "image-1")
+    state.set_current_ocr_results([{"text": "one"}])
+
+    state.clear()
+
+    assert state.get_screenshot() is None
+    assert state.get_ocr_results() is None
+    assert state.get_current_screenshot_id() is None

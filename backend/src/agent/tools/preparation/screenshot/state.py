@@ -97,3 +97,9 @@ class ScreenshotState:
             ocr_results: List of OCR results
         """
         self._current_ocr_results = ocr_results
+
+    def clear(self) -> None:
+        """Clear all screenshot/OCR state for session shutdown."""
+        self._current_screenshot = None
+        self._current_screenshot_id = None
+        self._current_ocr_results = None
