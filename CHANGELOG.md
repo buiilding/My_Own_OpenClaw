@@ -99,6 +99,7 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- refactor(config-subscriptions): await threadpool callback completion for deterministic config-update ordering
 - refactor(session): unify AgentSession state initialization/cleanup around active state stores
 - refactor(screenshot-state): add explicit `clear()` lifecycle API for session shutdown
 - refactor(config): serialize async config write/reload operations with a single-writer gate
@@ -213,6 +214,7 @@ Includes the last 300 commits on `main`.
 - 1002256 docs(frontend): document settings-ack query gating flow
 
 ### Tests
+- test(config-subscriptions): remove timing sleeps by asserting awaited callback completion semantics
 - test(session): add AgentSession cleanup regression coverage for screenshot/tool-result/resolved-call state
 - test(screenshot-state): add lifecycle clear/reset coverage
 - test(config): add concurrent update serialization regression coverage in ConfigurationService

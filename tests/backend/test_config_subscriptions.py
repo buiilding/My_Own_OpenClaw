@@ -120,9 +120,6 @@ class TestConfigSubscriptionManager:
         
         await manager.notify_subscribers(old_config, new_config)
         
-        # Give the thread pool time to execute
-        await asyncio.sleep(0.1)
-        
         # Callback should be called
         callback.assert_called_once_with(old_config, new_config)
 
@@ -137,9 +134,6 @@ class TestConfigSubscriptionManager:
         
         # Should not raise exception
         await manager.notify_subscribers(old_config, new_config)
-        
-        # Give the thread pool time to execute
-        await asyncio.sleep(0.1)
         
         error_callback.assert_called_once()
 

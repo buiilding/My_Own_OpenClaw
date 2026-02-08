@@ -124,23 +124,27 @@ class ConfigSubscriptionManager:
                 )
 
         # Notify callback subscribers
-        # PERFORMANCE: Offload synchronous callbacks to thread pool to prevent
-        # blocking the event loop. If a callback performs I/O or heavy computation,
-        # it will block a worker thread instead of the entire application.
+        # Offload synchronous callbacks to thread pool to prevent blocking the
+        # event loop, but await completion to keep config-update semantics
+        # deterministic for callers.
         loop = asyncio.get_running_loop()
+        callback_tasks = []
         for callback in callbacks_copy:
             try:
                 # Execute synchronous callbacks in thread pool
-                loop.run_in_executor(
+                callback_tasks.append(loop.run_in_executor(
                     None,
                     self._safe_callback_exec,
                     callback,
                     old_config,
                     new_config
-                )
+                ))
             except Exception as e:
                 # This catches scheduling errors, not callback errors
                 logger.error(f"Error scheduling config change callback: {e}", exc_info=True)
+
+        if callback_tasks:
+            await asyncio.gather(*callback_tasks, return_exceptions=True)
     
     def _safe_callback_exec(
         self,
