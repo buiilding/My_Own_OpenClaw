@@ -14,3 +14,8 @@
 
 # Specific TODOs
 - [ ] PyAutoGUI takes screen resolutions from the backend, make it accept the frontend screen size.
+- [ ] fix the ocr for screen resolution that is not (1920x1080)
+- [ ] Create a way so devs can select the tools given to the agent, so there are only tool schemas given to the agent based on the selected tools. this way, we can test each functionalities individually, namely browser-control, computer-control, coding.
+- [ ] fully test browser-control workfflow, perfect tools.
+- [ ] fully test coding capabilities workflow, perfect tools.
+- [ ] make the ui click-through so it doesnt interfere with the main window, better the ui.
