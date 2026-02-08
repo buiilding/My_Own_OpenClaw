@@ -73,8 +73,11 @@ export function AppConfigProvider({ children }) {
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, onBackendEvent);
-    logConfigInfo('[Config] Requesting available models...');
-    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
+    const view = new URLSearchParams(window.location.search).get('view');
+    if (view !== 'chatbox') {
+      logConfigInfo('[Config] Requesting available models...');
+      IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
+    }
 
     return () => {
       removeListener();
