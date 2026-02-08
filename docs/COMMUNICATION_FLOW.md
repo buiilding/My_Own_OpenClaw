@@ -27,7 +27,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 │  │  - IPC Bridge (ipc.cjs)                            │  │
 │  │  - WebSocket Client                                 │  │
 │  └───────────────────────────────────────────────────┘  │
-│                    ↕ WebSocket (ws://127.0.0.1:8765/ws)  │
+│                    ↕ WebSocket (default ws://127.0.0.1:8765/ws) │
 │  ┌───────────────────────────────────────────────────┐  │
 │  │  Python Backend (FastAPI)                          │  │
 │  │  - WebSocket Routes                                 │  │
@@ -107,11 +107,22 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 
 ### Connection Lifecycle
 
-1. **Connection**: Client connects to `ws://127.0.0.1:8765/ws`
+1. **Connection**: Client connects to backend WebSocket (default `ws://127.0.0.1:8765/ws`)
 2. **Handshake**: Client sends handshake message (backend validates and uses client `user_id`)
 3. **Session Creation**: Backend creates session
 4. **Message Loop**: Continuous message exchange
 5. **Disconnection**: Cleanup on disconnect
+
+### Endpoint Resolution (Electron Main)
+
+`frontend/src/main/ipc.cjs` resolves backend endpoints in this order:
+
+1. `BACKEND_WS_URL` and/or `BACKEND_HTTP_URL`
+2. `BACKEND_HOST` + `BACKEND_PORT`
+3. Fallback: `ws://127.0.0.1:8765/ws` and `http://127.0.0.1:8765`
+
+The resolved HTTP URL is also passed to the Python sidecar as `WINDIE_BACKEND_HTTP_URL`
+so memory embedding/summarization calls target the same backend host.
 
 ### Message Format
 
@@ -225,7 +236,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 
 ## Memory HTTP Flow (Sidecar ↔ Backend)
 
-The Python sidecar uses REST endpoints on the same FastAPI server (default `http://127.0.0.1:8765`) for memory operations. This is separate from the WebSocket stream.
+The Python sidecar uses REST endpoints on the same FastAPI server (default `http://127.0.0.1:8765`) for memory operations. This is separate from the WebSocket stream and inherits Electron's resolved backend HTTP URL.
 
 ```
 ┌──────────────────────────────┐          HTTP           ┌──────────────────────────────┐

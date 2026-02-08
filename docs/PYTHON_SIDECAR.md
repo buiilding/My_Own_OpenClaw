@@ -56,6 +56,7 @@ Local memory is implemented in the sidecar:
 - SQLite + FAISS in `frontend/src/main/python/memory/local_store.py`
 - Summarization worker in `frontend/src/main/python/memory/summarizer.py`
 - Uses backend `/api/embeddings` and `/api/semantic/summarize` APIs
+- Backend base URL comes from `WINDIE_BACKEND_HTTP_URL` (set by Electron main process), then `BACKEND_HTTP_URL`, then default `http://127.0.0.1:8765`
 - Summarizer runs periodically and when idle, deduplicates via summary hashes, and updates `watermark_state.json` safely on shutdown
 
 Memory storage path:

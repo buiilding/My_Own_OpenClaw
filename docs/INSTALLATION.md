@@ -117,6 +117,22 @@ $env:OPENAI_API_KEY = "your-api-key-here"
 export OPENAI_API_KEY="your-api-key-here"
 ```
 
+If Electron should connect to a backend running on another machine, set backend endpoint env vars before starting Electron:
+
+```bash
+export BACKEND_HOST="192.168.1.50"   # Backend machine IP or hostname
+export BACKEND_PORT="8765"           # Optional (default 8765)
+```
+
+Or set full URLs explicitly:
+
+```bash
+export BACKEND_HTTP_URL="http://192.168.1.50:8765"
+export BACKEND_WS_URL="ws://192.168.1.50:8765/ws"
+```
+
+`BACKEND_WS_URL` and `BACKEND_HTTP_URL` override `BACKEND_HOST`/`BACKEND_PORT` when provided.
+
 #### Configuration Locations
 
 There is no YAML config file. Configuration is split between:
@@ -205,7 +221,7 @@ npm run electron
 
 1. Backend should start on `http://0.0.0.0:8765`
 2. Check logs for "Application startup complete"
-3. Verify WebSocket endpoint: `ws://127.0.0.1:8765/ws`
+3. Verify WebSocket endpoint: `ws://<backend-host>:8765/ws` (default local: `ws://127.0.0.1:8765/ws`)
 
 ### Check Frontend
 
