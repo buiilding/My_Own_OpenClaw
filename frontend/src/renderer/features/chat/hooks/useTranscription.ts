@@ -14,8 +14,19 @@ import {
  * and managing cursor positions/replacements.
  */
 export function useTranscription(initialValue: string = '') {
-  const [inputValue, setInputValue] = useState(initialValue);
+  const [inputValue, setInputValueState] = useState(initialValue);
+  const inputValueRef = useRef(initialValue);
   const transcriptionRegionRef = useRef(createEmptyTranscriptionRegion());
+
+  const setInputValue = useCallback((nextValueOrUpdater: string | ((previousValue: string) => string)) => {
+    setInputValueState((previousValue) => {
+      const nextValue = typeof nextValueOrUpdater === 'function'
+        ? nextValueOrUpdater(previousValue)
+        : nextValueOrUpdater;
+      inputValueRef.current = nextValue;
+      return nextValue;
+    });
+  }, []);
 
   const clearTranscriptionRegion = useCallback(() => {
     transcriptionRegionRef.current = createEmptyTranscriptionRegion();
@@ -24,6 +35,8 @@ export function useTranscription(initialValue: string = '') {
   const resetTranscription = useCallback(() => {
     clearTranscriptionRegion();
   }, [clearTranscriptionRegion]);
+
+  const getInputValue = useCallback(() => inputValueRef.current, []);
 
   const updateTranscription = useCallback((transcriptionText: string) => {
     if (!transcriptionText) return;
@@ -91,6 +104,7 @@ export function useTranscription(initialValue: string = '') {
   return {
     inputValue,
     setInputValue,
+    getInputValue,
     updateTranscription,
     resetTranscription,
     handleInputChange,

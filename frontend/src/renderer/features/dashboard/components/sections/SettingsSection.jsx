@@ -5,6 +5,7 @@ import { useAppConfigContext } from '../../../../app/providers/AppContextHooks';
 import { getStoredDisplayId, persistDisplaySelection } from '../../../../utils/displaySelection';
 import {
   buildSpeechModeConfigUpdate,
+  buildVoiceModeConfigUpdate,
   findDisplayById,
   resolveDisplaySelection,
   toDisplayOptions,
@@ -18,6 +19,7 @@ function SettingsSection({ config, onConfigChange }) {
   const [selectedDisplayId, setSelectedDisplayId] = useState(() => getStoredDisplayId());
 
   const speechModeEnabled = config?.speech_mode_enabled ?? false;
+  const voiceModeEnabled = config?.voice_mode_enabled ?? false;
 
   useEffect(() => {
     let mounted = true;
@@ -54,6 +56,10 @@ function SettingsSection({ config, onConfigChange }) {
     onConfigChange(buildSpeechModeConfigUpdate(config, enabled));
   };
 
+  const handleVoiceModeToggle = (enabled) => {
+    onConfigChange(buildVoiceModeConfigUpdate(config, enabled));
+  };
+
   return (
     <div className="settings-panel">
       <div className="settings-header">
@@ -88,6 +94,21 @@ function SettingsSection({ config, onConfigChange }) {
 
       <section className="settings-section">
         <h3>Audio</h3>
+        <div className="settings-field">
+          <label className="toggle-label">
+            <span>Voice Mode (Nova Gateway)</span>
+            <div className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={voiceModeEnabled}
+                onChange={(event) => handleVoiceModeToggle(event.target.checked)}
+                className="toggle-input"
+              />
+              <span className="toggle-slider"></span>
+            </div>
+          </label>
+          <p className="settings-help">Streams microphone audio to ws://localhost:5026 for live transcription.</p>
+        </div>
         <div className="settings-field">
           <label className="toggle-label">
             <span>Speech Replies (TTS)</span>
@@ -159,6 +180,7 @@ SettingsSection.propTypes = {
     selected_model_id: PropTypes.string,
     model_provider: PropTypes.string,
     interaction_mode: PropTypes.string,
+    voice_mode_enabled: PropTypes.bool,
     speech_mode_enabled: PropTypes.bool,
   }),
   onConfigChange: PropTypes.func.isRequired,

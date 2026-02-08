@@ -1,9 +1,32 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import MessageInput from '../../frontend/src/renderer/features/chat/components/MessageInput';
 
+let mockVoiceState;
+let lastOnTranscriptionUpdate;
+let lastOnUtteranceEnd;
+
+jest.mock('../../frontend/src/renderer/features/voice/hooks/useVoiceMode', () => ({
+  useVoiceMode: (_enabled, onTranscriptionUpdate, onUtteranceEnd) => {
+    lastOnTranscriptionUpdate = onTranscriptionUpdate;
+    lastOnUtteranceEnd = onUtteranceEnd;
+    return mockVoiceState;
+  },
+}));
+
 describe('MessageInput', () => {
+  beforeEach(() => {
+    mockVoiceState = {
+      isConnected: false,
+      isRecording: false,
+      error: null,
+      clientId: null,
+    };
+    lastOnTranscriptionUpdate = undefined;
+    lastOnUtteranceEnd = undefined;
+  });
+
   test('submits trimmed message text', () => {
     const onSendMessage = jest.fn();
     render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);
@@ -39,5 +62,26 @@ describe('MessageInput', () => {
 
     expect(onSendMessage).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: '...' })).toBeDisabled();
+  });
+
+  test('auto-sends latest transcription when utterance ends in voice mode', () => {
+    const onSendMessage = jest.fn();
+    render(<MessageInput onSendMessage={onSendMessage} isSending={false} voiceModeEnabled />);
+
+    const input = screen.getByLabelText('Type your message');
+    expect(lastOnTranscriptionUpdate).toEqual(expect.any(Function));
+    expect(lastOnUtteranceEnd).toEqual(expect.any(Function));
+
+    act(() => {
+      lastOnTranscriptionUpdate('hello from voice', true);
+    });
+    expect(input.value).toBe('hello from voice');
+
+    act(() => {
+      lastOnUtteranceEnd();
+    });
+
+    expect(onSendMessage).toHaveBeenCalledWith('hello from voice');
+    expect(input.value).toBe('');
   });
 });

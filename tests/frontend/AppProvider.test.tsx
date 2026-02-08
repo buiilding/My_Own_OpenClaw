@@ -163,7 +163,7 @@ describe('AppProvider', () => {
     });
 
     expect(() => window.dispatchEvent(event)).not.toThrow();
-    expect(event.defaultPrevented).toBe(true);
+    expect(event.defaultPrevented).toBe(false);
   });
 
   test('handles missing registerSaveStatusCallback without throwing', () => {
@@ -204,5 +204,27 @@ describe('AppProvider', () => {
     expect(mockConfigContext.updateConfig).toHaveBeenCalledWith({
       interaction_mode: 'agent',
     });
+  });
+
+  test('ignores shift+tab shortcut when typing inside editable elements', () => {
+    render(
+      <AppProvider>
+        <input aria-label="editable" />
+      </AppProvider>,
+    );
+
+    const input = document.querySelector('input');
+    expect(input).toBeTruthy();
+
+    const event = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: true,
+      cancelable: true,
+      bubbles: true,
+    });
+    input?.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(mockConfigContext.updateConfig).not.toHaveBeenCalled();
   });
 });

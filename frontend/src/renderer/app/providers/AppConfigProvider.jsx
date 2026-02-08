@@ -7,7 +7,11 @@ import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configSt
 import { AppConfigContext } from './AppConfigContext';
 import { updateTranscriptSession } from '../../infrastructure/transcript/TranscriptWriter';
 import { extractTranscriptUserId, routeConfigBackendEvent } from './appConfigEvents';
-import { applyConfigIfChanged, sanitizeFrontendProviderConfig } from './appConfigPersistence';
+import {
+  applyConfigIfChanged,
+  mergeFrontendProviderConfig,
+  sanitizeFrontendProviderConfig,
+} from './appConfigPersistence';
 
 function logConfigInfo(message, ...args) {
   if (
@@ -51,6 +55,7 @@ export function AppConfigProvider({ children }) {
 
   const handlersRef = useRef(settingsHandlers);
   const configRef = useRef(config);
+  const saveStatusCallbackRef = useRef(null);
 
   const syncCurrentConfigToBackend = useCallback(() => {
     const currentConfig = configRef.current;
@@ -66,6 +71,10 @@ export function AppConfigProvider({ children }) {
   useEffect(() => {
     configRef.current = config;
   }, [config]);
+
+  const registerSaveStatusCallback = useCallback((callback) => {
+    saveStatusCallbackRef.current = typeof callback === 'function' ? callback : null;
+  }, []);
 
   const onBackendEvent = useCallback((data) => {
     routeConfigBackendEvent(data, handlersRef);
@@ -120,7 +129,9 @@ export function AppConfigProvider({ children }) {
       if (!isMounted || !diskConfig || typeof diskConfig !== 'object') {
         return;
       }
-      const filteredConfig = sanitizeFrontendProviderConfig(filterFrontendConfig(diskConfig));
+      const filteredConfig = sanitizeFrontendProviderConfig(
+        mergeFrontendProviderConfig(configRef.current, filterFrontendConfig(diskConfig)),
+      );
       const didApplyConfig = applyConfigIfChanged(filteredConfig, configRef, setConfig);
       if (!didApplyConfig) {
         return;
@@ -137,11 +148,17 @@ export function AppConfigProvider({ children }) {
   }, []);
 
   const updateConfig = useCallback((newConfig) => {
-    const filteredConfig = sanitizeFrontendProviderConfig(filterFrontendConfig(newConfig));
+    const filteredConfig = sanitizeFrontendProviderConfig(
+      mergeFrontendProviderConfig(configRef.current, filterFrontendConfig(newConfig)),
+    );
     const didApplyConfig = applyConfigIfChanged(filteredConfig, configRef, setConfig);
     if (!didApplyConfig) {
       logConfigInfo('[Settings Update] No changes detected, skipping save');
       return;
+    }
+
+    if (saveStatusCallbackRef.current) {
+      saveStatusCallbackRef.current();
     }
 
     logConfigInfo('[Settings Update] Updating config and saving to localStorage...');
@@ -172,7 +189,8 @@ export function AppConfigProvider({ children }) {
     wakewordActive: wakewordEnabled && !wakewordSuppressed,
     setWakewordEnabled,
     updateConfig,
-  }), [config, availableModels, wakewordEnabled, wakewordSuppressed, updateConfig]);
+    registerSaveStatusCallback,
+  }), [config, availableModels, wakewordEnabled, wakewordSuppressed, updateConfig, registerSaveStatusCallback]);
 
   return (
     <AppConfigContext.Provider value={value}>

@@ -26,12 +26,14 @@ export function resolveDisplaySelection(displays, selectedDisplayId) {
   };
 }
 
-export function buildSpeechModeConfigUpdate(config, enabled) {
+export function buildSpeechModeConfigUpdate(_config, enabled) {
   return {
-    model_mode: config?.model_mode || 'online',
-    selected_model_id: config?.selected_model_id || '',
-    model_provider: config?.model_provider || '',
     speech_mode_enabled: enabled,
-    interaction_mode: config?.interaction_mode || 'chat',
+  };
+}
+
+export function buildVoiceModeConfigUpdate(_config, enabled) {
+  return {
+    voice_mode_enabled: enabled,
   };
 }

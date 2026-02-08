@@ -19,6 +19,14 @@ describe('resolveMessageScreenshotSrc', () => {
     ).toBe('data:image/png;base64,abc123');
   });
 
+  test('builds artifact URL when screenshotRef is present', () => {
+    expect(
+      resolveMessageScreenshotSrc({
+        screenshotRef: 'artifact-123',
+      }),
+    ).toBe('http://127.0.0.1:8765/api/artifacts/artifact-123');
+  });
+
   test('defaults inline screenshot content type to jpeg when missing or invalid', () => {
     expect(resolveMessageScreenshotSrc({ screenshot: 'raw' })).toBe('data:image/jpeg;base64,raw');
     expect(

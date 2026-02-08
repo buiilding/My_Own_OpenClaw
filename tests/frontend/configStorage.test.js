@@ -35,7 +35,7 @@ describe('configStorage', () => {
     });
   });
 
-  test('loadConfigFromStorage forces voice_mode_enabled to false', () => {
+  test('loadConfigFromStorage preserves stored voice_mode_enabled value', () => {
     localStorage.setItem(
       CONFIG_KEY,
       JSON.stringify({ voice_mode_enabled: true, speech_mode_enabled: true }),
@@ -45,7 +45,7 @@ describe('configStorage', () => {
     expect(result).toEqual({
       ...DEFAULT_FRONTEND_CONFIG,
       speech_mode_enabled: true,
-      voice_mode_enabled: false,
+      voice_mode_enabled: true,
     });
   });
 

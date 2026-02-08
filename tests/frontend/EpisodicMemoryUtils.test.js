@@ -54,6 +54,9 @@ describe('episodicMemoryUtils', () => {
         text: 'user says hi',
         type: 'llm-text',
         screenshot: 'user-shot',
+        screenshotRef: null,
+        screenshotUrl: null,
+        screenshotContentType: null,
       },
     ]);
   });
@@ -70,6 +73,9 @@ describe('episodicMemoryUtils', () => {
         text: 'assistant answer',
         type: 'llm-text',
         screenshot: null,
+        screenshotRef: null,
+        screenshotUrl: null,
+        screenshotContentType: null,
       },
     ]);
   });
@@ -87,6 +93,9 @@ describe('episodicMemoryUtils', () => {
         text: 'bundle issued',
         type: 'tool-call',
         screenshot: null,
+        screenshotRef: null,
+        screenshotUrl: null,
+        screenshotContentType: null,
       },
     ]);
   });
@@ -103,6 +112,9 @@ describe('episodicMemoryUtils', () => {
         text: 'tool output text',
         type: 'tool-output',
         screenshot: 'tool-shot',
+        screenshotRef: null,
+        screenshotUrl: null,
+        screenshotContentType: null,
       },
     ]);
   });
@@ -176,6 +188,30 @@ describe('episodicMemoryUtils', () => {
         text: 'plain text',
         sender: 'assistant',
         type: 'llm-text',
+        isComplete: true,
+      },
+    ]);
+  });
+
+  test('parseMemoriesToMessages maps transcript screenshot value to screenshotRef', () => {
+    const messages = parseMemoriesToMessages([
+      {
+        id: 'tool-1',
+        role: 'tool',
+        message_type: 'tool-output',
+        content: 'tool output',
+        screenshot: 'artifact-123',
+        record_kind: 'transcript',
+      },
+    ]);
+
+    expect(messages).toEqual([
+      {
+        id: 'tool-1-0',
+        text: 'tool output',
+        sender: 'assistant',
+        type: 'tool-output',
+        screenshotRef: 'artifact-123',
         isComplete: true,
       },
     ]);

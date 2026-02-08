@@ -1,6 +1,6 @@
 import { useChatStream } from '../../features/chat/hooks/useChatStream';
 import { useToolRunner } from '../../features/chat/hooks/useToolRunner';
-import { ChatContext } from './ChatContext';
+import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
 
 /**
  * ChatProvider - Thin wrapper that sets up chat hooks and provides store access.
@@ -11,7 +11,7 @@ export function ChatProvider({ children, enableToolRunner = true, enableTranscri
   useToolRunner(enableToolRunner);
 
   return (
-    <ChatContext.Provider value={null}>
+    <ChatContext.Provider value={EMPTY_CHAT_CONTEXT}>
       {children}
     </ChatContext.Provider>
   );
