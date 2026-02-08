@@ -71,11 +71,26 @@ def _create_embedder(config: AppConfig, cache_manager) -> Optional[EmbeddingProv
     try:
         from backend.src.embeddings.embeddings import SentenceTransformerProvider
 
+        # Pick the right device: prefer CUDA if available, fall back to Apple
+        # Silicon (MPS) or CPU. This avoids crashing on machines without a GPU
+        # (common on macOS) where torch is compiled without CUDA support.
+        device = "cpu"
+        try:
+            import torch
+
+            if torch.cuda.is_available():
+                device = "cuda"
+            elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+                device = "mps"
+        except Exception:
+            # If torch import/probing fails, stay on CPU to keep startup healthy.
+            device = "cpu"
+
         # Create provider without loading model (deferred to async initialize())
         # CacheManager is injected via DI to avoid global state dependency
         return SentenceTransformerProvider(
             model_name=config.embedding_model,
-            device="cuda",
+            device=device,
             cache_manager=cache_manager,
         )
     except ImportError as e:
