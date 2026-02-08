@@ -8,6 +8,8 @@ import aiohttp
 import logging
 from typing import List, Optional, Tuple
 
+from core.backend_config import get_backend_http_url
+
 logger = logging.getLogger(__name__)
 
 
@@ -16,8 +18,8 @@ class RemoteSemanticClient:
     Client for remote semantic summarization via backend API.
     """
 
-    def __init__(self, backend_url: str = "http://localhost:8765", timeout_seconds: int = 60):
-        self.backend_url = backend_url.rstrip("/")
+    def __init__(self, backend_url: Optional[str] = None, timeout_seconds: int = 60):
+        self.backend_url = (backend_url or get_backend_http_url()).rstrip("/")
         self.timeout_seconds = timeout_seconds
         self._session: Optional[aiohttp.ClientSession] = None
 

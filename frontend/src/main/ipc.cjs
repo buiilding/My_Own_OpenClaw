@@ -10,10 +10,11 @@ const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const os = require('os');
 const { getSystemState, searchMemory } = require('./local_backend_bridge.cjs');
+const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
 
-const BACKEND_PORT = process.env.BACKEND_PORT || 8765;
-const BACKEND_URL = `ws://127.0.0.1:${BACKEND_PORT}/ws`;
-const BACKEND_HTTP_URL = `http://127.0.0.1:${BACKEND_PORT}`;
+const BACKEND_ENDPOINTS = resolveBackendEndpoints();
+const BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
+const BACKEND_HTTP_URL = BACKEND_ENDPOINTS.httpUrl;
 const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 let ws = null;
 let mainWindow = null;
@@ -246,7 +247,7 @@ function connect() {
   }
 
   log(`Attempting to connect to Python backend at ${BACKEND_URL}...`);
-  ws = new WebSocket(BACKEND_URL, { origin: 'http://localhost:5173' });
+  ws = new WebSocket(BACKEND_URL, { origin: BACKEND_ENDPOINTS.wsOrigin });
 
   ws.on('open', () => {
     isConnected = true;
@@ -268,7 +269,12 @@ function connect() {
       ws.send(JSON.stringify(handshakeMessage));
       log(`Handshake sent with user_id: ${currentUserId}`);
       // Broadcast connection status after handshake send to reduce startup races.
-      broadcastToRenderers('ipc-status', { isConnected: true, userId: currentUserId });
+      broadcastToRenderers('ipc-status', {
+        isConnected: true,
+        userId: currentUserId,
+        backendWsUrl: BACKEND_URL,
+        backendHttpUrl: BACKEND_HTTP_URL,
+      });
     } catch (error) {
       log(`Error sending handshake: ${error}`);
     }
@@ -308,7 +314,12 @@ function connect() {
     currentSessionId = null;
     currentServerUserId = null;
     log('Disconnected from Python backend. Attempting to reconnect...');
-    broadcastToRenderers('ipc-status', { isConnected: false, userId: currentUserId });
+    broadcastToRenderers('ipc-status', {
+      isConnected: false,
+      userId: currentUserId,
+      backendWsUrl: BACKEND_URL,
+      backendHttpUrl: BACKEND_HTTP_URL,
+    });
     setTimeout(connect, reconnectInterval);
   });
 
@@ -375,7 +386,12 @@ function initializeIpc(win) {
   });
 
   ipcMain.handle('get-client-user-id', async () => {
-    return { userId: currentUserId, isConnected };
+    return {
+      userId: currentUserId,
+      isConnected,
+      backendWsUrl: BACKEND_URL,
+      backendHttpUrl: BACKEND_HTTP_URL,
+    };
   });
 
   ipcMain.handle('upload-artifact', async (_event, payload) => {

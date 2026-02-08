@@ -24,6 +24,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- fix(frontend-remote): support non-local backend endpoints for websocket/artifact traffic and sidecar memory HTTP calls
 - fix(frontend-branding): rename sidebar app title from OpenClaw to WindieOS
 - fix(frontend-consistency): merge partial config updates, wire voice mode end-to-end, preserve episodic screenshot refs, and ignore mode-toggle hotkey while typing in editable fields
 - fix(frontend-voice): persist `voice_mode_enabled`, expose Voice Mode toggle in settings, and auto-send transcribed input on utterance end
@@ -100,6 +101,7 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- refactor(frontend-endpoints): centralize backend ws/http endpoint resolution across Electron main process and sidecar bootstrap
 - refactor(config-subscriptions): await threadpool callback completion for deterministic config-update ordering
 - refactor(session): unify AgentSession state initialization/cleanup around active state stores
 - refactor(screenshot-state): add explicit `clear()` lifecycle API for session shutdown
@@ -215,6 +217,7 @@ Includes the last 300 commits on `main`.
 - 1002256 docs(frontend): document settings-ack query gating flow
 
 ### Tests
+- test(frontend-endpoints): cover env-driven endpoint resolution, renderer artifact URL wiring, and sidecar backend URL injection
 - test(config-subscriptions): remove timing sleeps by asserting awaited callback completion semantics
 - test(session): add AgentSession cleanup regression coverage for screenshot/tool-result/resolved-call state
 - test(screenshot-state): add lifecycle clear/reset coverage

@@ -68,6 +68,20 @@ jest.mock('../../frontend/src/main/local_backend_bridge.cjs', () => ({
 }));
 
 describe('ipc.cjs bridge', () => {
+  const ORIGINAL_ENV = process.env;
+
+  beforeEach(() => {
+    process.env = { ...ORIGINAL_ENV };
+    delete process.env.BACKEND_HOST;
+    delete process.env.BACKEND_PORT;
+    delete process.env.BACKEND_HTTP_URL;
+    delete process.env.BACKEND_WS_URL;
+  });
+
+  afterAll(() => {
+    process.env = ORIGINAL_ENV;
+  });
+
   const initIpc = () => {
     jest.resetModules();
 
@@ -109,6 +123,35 @@ describe('ipc.cjs bridge', () => {
     const handshake = JSON.parse(ws.sent[0]);
     expect(handshake.type).toBe('handshake');
     expect(handshake.user_id).toBe('bad_user_');
+  });
+
+  test('uses BACKEND_HOST and BACKEND_PORT for websocket + http endpoint metadata', async () => {
+    process.env.BACKEND_HOST = '10.0.0.42';
+    process.env.BACKEND_PORT = '9001';
+
+    const { ws, handlers } = initIpc();
+    expect(ws.url).toBe('ws://10.0.0.42:9001/ws');
+    expect(ws.options).toEqual(expect.objectContaining({ origin: 'http://10.0.0.42:9001' }));
+
+    const clientInfo = await handlers['get-client-user-id']();
+    expect(clientInfo).toEqual(expect.objectContaining({
+      backendWsUrl: 'ws://10.0.0.42:9001/ws',
+      backendHttpUrl: 'http://10.0.0.42:9001',
+    }));
+  });
+
+  test('derives websocket URL from BACKEND_HTTP_URL when explicit ws url is absent', async () => {
+    process.env.BACKEND_HTTP_URL = 'https://windie.example.com/';
+
+    const { ws, handlers } = initIpc();
+    expect(ws.url).toBe('wss://windie.example.com/ws');
+    expect(ws.options).toEqual(expect.objectContaining({ origin: 'https://windie.example.com' }));
+
+    const clientInfo = await handlers['get-client-user-id']();
+    expect(clientInfo).toEqual(expect.objectContaining({
+      backendWsUrl: 'wss://windie.example.com/ws',
+      backendHttpUrl: 'https://windie.example.com',
+    }));
   });
 
   test('builds full query payload with system state + memories', async () => {

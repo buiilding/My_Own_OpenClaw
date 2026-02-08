@@ -10,6 +10,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
   buildArtifactUrl,
+  setBackendHttpUrl,
   uploadArtifactBase64,
 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
 
@@ -18,6 +19,7 @@ const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invo
 describe('ArtifactUploader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    setBackendHttpUrl('http://127.0.0.1:8765');
   });
 
   test('returns null for empty base64 input without invoking IPC', async () => {
@@ -64,5 +66,10 @@ describe('ArtifactUploader', () => {
 
   test('buildArtifactUrl returns canonical API artifact path', () => {
     expect(buildArtifactUrl('art-2')).toBe('http://127.0.0.1:8765/api/artifacts/art-2');
+  });
+
+  test('buildArtifactUrl uses runtime backend http URL when provided', () => {
+    setBackendHttpUrl('http://10.0.0.42:9001/');
+    expect(buildArtifactUrl('art-2')).toBe('http://10.0.0.42:9001/api/artifacts/art-2');
   });
 });

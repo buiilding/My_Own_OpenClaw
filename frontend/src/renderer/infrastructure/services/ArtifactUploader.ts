@@ -1,5 +1,8 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 
+const DEFAULT_BACKEND_HTTP_URL = 'http://127.0.0.1:8765';
+let backendHttpUrl = DEFAULT_BACKEND_HTTP_URL;
+
 export type ArtifactUploadResult = {
   artifactId: string;
   contentType: string;
@@ -19,6 +22,36 @@ type UploadResponse = {
   };
   error?: string;
 };
+
+function normalizeBackendHttpUrl(url: string | null | undefined): string | null {
+  if (!url || typeof url !== 'string') {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null;
+    }
+    parsed.search = '';
+    parsed.hash = '';
+    parsed.pathname = parsed.pathname === '/' ? '/' : parsed.pathname.replace(/\/$/, '');
+    return parsed.toString().replace(/\/$/, '');
+  } catch {
+    return null;
+  }
+}
+
+export function setBackendHttpUrl(url: string | null | undefined): void {
+  const normalized = normalizeBackendHttpUrl(url);
+  if (normalized) {
+    backendHttpUrl = normalized;
+  }
+}
+
+export function getBackendHttpUrl(): string {
+  return backendHttpUrl;
+}
 
 export async function uploadArtifactBase64(
   base64: string,
@@ -50,6 +83,5 @@ export async function uploadArtifactBase64(
 }
 
 export function buildArtifactUrl(artifactId: string): string {
-  const baseUrl = 'http://127.0.0.1:8765';
-  return `${baseUrl}/api/artifacts/${artifactId}`;
+  return `${getBackendHttpUrl()}/api/artifacts/${artifactId}`;
 }

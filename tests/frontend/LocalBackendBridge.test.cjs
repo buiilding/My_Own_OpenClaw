@@ -21,6 +21,7 @@ jest.mock('fs', () => ({
 }));
 
 describe('local_backend_bridge', () => {
+  const ORIGINAL_ENV = process.env;
   let spawn;
   let ipcMain;
   let uuid;
@@ -31,6 +32,11 @@ describe('local_backend_bridge', () => {
   let bridge;
 
   beforeEach(() => {
+    process.env = { ...ORIGINAL_ENV };
+    delete process.env.BACKEND_HOST;
+    delete process.env.BACKEND_PORT;
+    delete process.env.BACKEND_HTTP_URL;
+    delete process.env.BACKEND_WS_URL;
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -38,6 +44,10 @@ describe('local_backend_bridge', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  afterAll(() => {
+    process.env = ORIGINAL_ENV;
   });
 
   const initBridge = () => {
@@ -124,6 +134,23 @@ describe('local_backend_bridge', () => {
 
     const result = await promise;
     expect(result).toEqual({ success: true, data: { value: 1 } });
+  });
+
+  test('passes resolved backend http URL to Python sidecar env', () => {
+    process.env.BACKEND_HOST = '192.168.1.55';
+    process.env.BACKEND_PORT = '8811';
+    initBridge();
+    markReady();
+
+    expect(spawn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(Array),
+      expect.objectContaining({
+        env: expect.objectContaining({
+          WINDIE_BACKEND_HTTP_URL: 'http://192.168.1.55:8811',
+        }),
+      }),
+    );
   });
 
   test('execute-tool handler returns error on json-rpc error', async () => {

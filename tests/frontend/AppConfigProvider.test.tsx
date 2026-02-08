@@ -13,6 +13,7 @@ import { useSettingsManagement } from '../../frontend/src/renderer/features/sett
 import { loadConfigFromStorage, saveConfigToStorage } from '../../frontend/src/renderer/utils/configStorage';
 import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
 import { updateTranscriptSession } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
+import { setBackendHttpUrl } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
 
 jest.mock('../../frontend/src/renderer/features/settings/hooks/useSettingsManagement');
 jest.mock('../../frontend/src/renderer/utils/configFilter', () => ({
@@ -24,6 +25,9 @@ jest.mock('../../frontend/src/renderer/utils/configStorage', () => ({
 }));
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
   updateTranscriptSession: jest.fn(),
+}));
+jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader', () => ({
+  setBackendHttpUrl: jest.fn(),
 }));
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
@@ -37,6 +41,7 @@ describe('AppConfigProvider', () => {
   let loadFrontendConfigResponse: any;
   let clientUserIdResponse: any;
   const mockUpdateTranscriptSession = updateTranscriptSession as jest.Mock;
+  const mockSetBackendHttpUrl = setBackendHttpUrl as jest.Mock;
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <AppConfigProvider>{children}</AppConfigProvider>
@@ -241,6 +246,18 @@ describe('AppConfigProvider', () => {
     );
   });
 
+  test('sets artifact backend http URL when get-client-user-id includes endpoint metadata', async () => {
+    clientUserIdResponse = { backendHttpUrl: 'http://10.0.0.42:9001' };
+
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockSetBackendHttpUrl).toHaveBeenCalledWith('http://10.0.0.42:9001');
+  });
+
   test('updates transcript session from IPC status events with userId', () => {
     renderHook(() => useAppConfigContext(), { wrapper });
 
@@ -252,6 +269,19 @@ describe('AppConfigProvider', () => {
     });
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith(undefined, 'ipc-user-1');
+  });
+
+  test('sets artifact backend http URL from IPC status payload', () => {
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    const ipcStatusHandler = listeners.get(ON_CHANNELS.IPC_STATUS);
+    expect(ipcStatusHandler).toEqual(expect.any(Function));
+
+    act(() => {
+      ipcStatusHandler?.({ backendHttpUrl: 'http://10.0.0.42:9001' });
+    });
+
+    expect(mockSetBackendHttpUrl).toHaveBeenCalledWith('http://10.0.0.42:9001');
   });
 
   test('syncs current config to backend when IPC status reports connected', () => {

@@ -9,6 +9,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 const { ipcMain } = require('electron');
 const { v4: uuidv4 } = require('uuid');
+const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
 
 let pythonProcess = null;
 let isPythonReady = false;
@@ -175,12 +176,15 @@ function startLocalBackend(mainWindow) {
     console.log(`[LocalBackend] Starting Python local backend: ${pythonPath} ${scriptPath}`);
   }
 
+  const backendEndpoints = resolveBackendEndpoints();
+
   pythonProcess = spawn(pythonPath, [scriptPath], {
     stdio: ['pipe', 'pipe', 'pipe'],
     cwd: path.dirname(scriptPath),
     env: {
       ...process.env,
       PYTHONUNBUFFERED: '1',
+      WINDIE_BACKEND_HTTP_URL: backendEndpoints.httpUrl,
     }
   });
 
