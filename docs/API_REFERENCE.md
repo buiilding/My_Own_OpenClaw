@@ -12,7 +12,12 @@ Desktop Assistant uses a WebSocket-based API for real-time communication between
 
 ## WebSocket Endpoint
 
-**URL**: `ws://127.0.0.1:8765/ws`
+**URL**: default `ws://127.0.0.1:8765/ws`
+
+Electron clients may override this via:
+- `BACKEND_WS_URL` (explicit WebSocket URL)
+- `BACKEND_HTTP_URL` (WebSocket derived as `/ws`)
+- `BACKEND_HOST` + `BACKEND_PORT`
 
 **Protocol**: WebSocket (RFC 6455)
 

@@ -152,7 +152,10 @@ read_when:
    - Check backend logs
 
 2. **Check WebSocket URL**:
-   - Should be `ws://127.0.0.1:8765/ws`
+   - Default is `ws://127.0.0.1:8765/ws`
+   - For remote backend, set Electron env vars before launch:
+     - `BACKEND_HOST=<backend-ip>` (and optional `BACKEND_PORT`)
+     - or `BACKEND_HTTP_URL` / `BACKEND_WS_URL`
    - Verify no firewall blocking
 
 3. **Check Browser Console**:

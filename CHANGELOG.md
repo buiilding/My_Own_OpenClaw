@@ -213,6 +213,7 @@ Includes the last 300 commits on `main`.
 - cbcba82 refactor(frontend-voice): stabilize useVoiceMode websocket lifecycle
 
 ### Documentation
+- docs(frontend-remote): document backend endpoint env overrides (`BACKEND_HOST`/`BACKEND_PORT`/`BACKEND_HTTP_URL`/`BACKEND_WS_URL`) and sidecar URL propagation
 - docs(api): align handshake identity semantics and websocket payload field names (`streaming-response.text`, `llm-thought.status`)
 - 1002256 docs(frontend): document settings-ack query gating flow
 

@@ -272,11 +272,12 @@ Screenshots are captured strategically at key points to provide visual context f
 **Message Types**:
 - `query`: User query with optional screenshot
 - `list-models`: Request available models
+- `load-settings`: Load frontend-owned settings snapshot from backend session/default config
 - `update-settings`: Update session config (applies on next query)
 - `tool-result`: Tool execution result from frontend
 - `wakeword-detected`: Wakeword activation event
 
-**Note**: `update-settings` is handled by the backend to update session config; `load-settings` remains frontend-only.
+**Note**: both `load-settings` and `update-settings` are handled by the backend. The frontend remains the source of truth for these config fields.
 
 **Response Types**:
 - `streaming-response`: Streaming text chunks

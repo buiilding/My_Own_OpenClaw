@@ -230,7 +230,8 @@ Read the file README.md
    - Should show "Connected" status
 
 3. **Check Firewall**:
-   - Ensure localhost connections are allowed
+   - Ensure backend host/port is reachable from the Electron machine
+   - For remote backend, set `BACKEND_HOST` (or `BACKEND_HTTP_URL` / `BACKEND_WS_URL`) before launching Electron
 
 ## Next Steps
 
