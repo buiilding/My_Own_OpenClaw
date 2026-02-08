@@ -4,6 +4,18 @@ import { AppStatusProvider } from './AppStatusProvider';
 import { useAppConfigContext } from './AppConfigContext';
 import { useAppStatusContext } from './AppStatusContext';
 
+const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"]';
+
+function isEditableShortcutTarget(target) {
+  if (!(target instanceof Element)) {
+    return false;
+  }
+  if (target.closest(EDITABLE_SELECTOR)) {
+    return true;
+  }
+  return target instanceof HTMLElement && target.isContentEditable;
+}
+
 /**
  * Internal component that coordinates between AppConfigContext and AppStatusContext.
  * This ensures that when config is saved, the status context is notified.
@@ -39,13 +51,17 @@ function AppContextCoordinator({ children }) {
         return;
       }
 
+      if (typeof updateConfigRef.current !== 'function') {
+        return;
+      }
+      if (isEditableShortcutTarget(event.target)) {
+        return;
+      }
+
       event.preventDefault();
       const currentConfig = configRef.current || {};
       const currentMode = currentConfig.interaction_mode || 'chat';
       const nextMode = currentMode === 'chat' ? 'agent' : 'chat';
-      if (typeof updateConfigRef.current !== 'function') {
-        return;
-      }
       updateConfigRef.current({
         ...currentConfig,
         interaction_mode: nextMode,

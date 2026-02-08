@@ -1,17 +1,19 @@
 import {
   applyConfigIfChanged,
+  mergeFrontendProviderConfig,
   sanitizeFrontendProviderConfig,
 } from '../../frontend/src/renderer/app/providers/appConfigPersistence';
 
 describe('appConfigPersistence', () => {
-  test('sanitizes config by forcing voice mode disabled', () => {
+  test('sanitizes config by stripping undefined fields', () => {
     expect(
       sanitizeFrontendProviderConfig({
         voice_mode_enabled: true,
+        speech_mode_enabled: undefined,
         selected_model_id: 'model-a',
       }),
     ).toEqual({
-      voice_mode_enabled: false,
+      voice_mode_enabled: true,
       selected_model_id: 'model-a',
     });
   });
@@ -67,7 +69,7 @@ describe('appConfigPersistence', () => {
 
     const output = sanitizeFrontendProviderConfig(input);
     expect(output).toEqual({
-      voice_mode_enabled: false,
+      voice_mode_enabled: true,
       model_provider: 'openai',
     });
     expect(input).toEqual({
@@ -83,5 +85,17 @@ describe('appConfigPersistence', () => {
     expect(applyConfigIfChanged(null, configRef, setConfig)).toBe(false);
     expect(applyConfigIfChanged(undefined, configRef, setConfig)).toBe(false);
     expect(setConfig).not.toHaveBeenCalled();
+  });
+
+  test('mergeFrontendProviderConfig preserves base fields and applies patch fields', () => {
+    expect(
+      mergeFrontendProviderConfig(
+        { model_mode: 'online', voice_mode_enabled: false },
+        { voice_mode_enabled: true },
+      ),
+    ).toEqual({
+      model_mode: 'online',
+      voice_mode_enabled: true,
+    });
   });
 });

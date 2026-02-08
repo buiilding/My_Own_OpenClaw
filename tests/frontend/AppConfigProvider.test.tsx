@@ -185,7 +185,7 @@ describe('AppConfigProvider', () => {
 
     expect(saveConfigToStorage).toHaveBeenCalledWith(
       expect.objectContaining({
-        voice_mode_enabled: false,
+        voice_mode_enabled: true,
         selected_model_id: 'model-x',
         model_provider: 'openai',
       }),
@@ -193,7 +193,7 @@ describe('AppConfigProvider', () => {
     );
     expect(ApiClient.updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({
-        voice_mode_enabled: false,
+        voice_mode_enabled: true,
         selected_model_id: 'model-x',
         model_provider: 'openai',
       }),
@@ -371,5 +371,33 @@ describe('AppConfigProvider', () => {
       'disk-save-failed',
     );
     warnSpy.mockRestore();
+  });
+
+  test('updateConfig merges partial updates with existing config', () => {
+    const { result } = renderHook(() => useAppConfigContext(), { wrapper });
+
+    act(() => {
+      result.current.updateConfig({ selected_model_id: 'model-merged' });
+    });
+
+    expect(saveConfigToStorage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        voice_mode_enabled: false,
+        selected_model_id: 'model-merged',
+      }),
+      expect.any(Number),
+    );
+  });
+
+  test('registerSaveStatusCallback is invoked before persisting changed config', () => {
+    const { result } = renderHook(() => useAppConfigContext(), { wrapper });
+    const callback = jest.fn();
+
+    act(() => {
+      result.current.registerSaveStatusCallback(callback);
+      result.current.updateConfig({ selected_model_id: 'model-callback' });
+    });
+
+    expect(callback).toHaveBeenCalledTimes(1);
   });
 });

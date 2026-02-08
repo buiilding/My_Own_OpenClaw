@@ -20,7 +20,7 @@ export const DEFAULT_FRONTEND_CONFIG = {
 };
 
 function buildFrontendConfig(overrides = {}) {
-  return { ...DEFAULT_FRONTEND_CONFIG, ...overrides, voice_mode_enabled: false };
+  return { ...DEFAULT_FRONTEND_CONFIG, ...overrides };
 }
 
 function clearStoredConfigUnsafe() {

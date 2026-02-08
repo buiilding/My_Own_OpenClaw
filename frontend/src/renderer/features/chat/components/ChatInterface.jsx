@@ -46,6 +46,7 @@ function ChatInterface() {
   }, []);
 
   const interactionMode = config?.interaction_mode || 'chat';
+  const voiceModeEnabled = config?.voice_mode_enabled === true;
   const interactionModeLabel = interactionMode === 'agent' ? 'Agent' : 'Chat';
   const statusLabel = thinkingStatus
     ? 'Thinking...'
@@ -78,7 +79,8 @@ function ChatInterface() {
       <MessageList messages={messages} thinkingStatus={thinkingStatus} />
       <MessageInput 
         onSendMessage={sendMessage} 
-        isSending={isSending} 
+        isSending={isSending}
+        voiceModeEnabled={voiceModeEnabled}
       />
     </div>
   );

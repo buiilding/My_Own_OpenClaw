@@ -1,5 +1,6 @@
 import {
   buildSpeechModeConfigUpdate,
+  buildVoiceModeConfigUpdate,
   findDisplayById,
   resolveDisplaySelection,
   toDisplayOptions,
@@ -56,28 +57,29 @@ describe('settingsDisplayUtils', () => {
     });
   });
 
-  test('buildSpeechModeConfigUpdate preserves config fields and updates enabled value', () => {
+  test('buildSpeechModeConfigUpdate updates speech mode only', () => {
     expect(buildSpeechModeConfigUpdate({
       model_mode: 'local',
       selected_model_id: 'qwen2.5',
       model_provider: 'ollama',
       interaction_mode: 'voice',
     }, true)).toEqual({
-      model_mode: 'local',
-      selected_model_id: 'qwen2.5',
-      model_provider: 'ollama',
       speech_mode_enabled: true,
-      interaction_mode: 'voice',
     });
   });
 
-  test('buildSpeechModeConfigUpdate applies defaults when config values missing', () => {
+  test('buildSpeechModeConfigUpdate applies boolean payload with no config dependency', () => {
     expect(buildSpeechModeConfigUpdate(null, false)).toEqual({
-      model_mode: 'online',
-      selected_model_id: '',
-      model_provider: '',
       speech_mode_enabled: false,
-      interaction_mode: 'chat',
+    });
+  });
+
+  test('buildVoiceModeConfigUpdate updates voice mode only', () => {
+    expect(buildVoiceModeConfigUpdate({}, true)).toEqual({
+      voice_mode_enabled: true,
+    });
+    expect(buildVoiceModeConfigUpdate(null, false)).toEqual({
+      voice_mode_enabled: false,
     });
   });
 });

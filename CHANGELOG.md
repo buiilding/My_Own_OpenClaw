@@ -25,6 +25,7 @@ Includes the last 300 commits on `main`.
 
 ### Fixed
 - fix(frontend-consistency): merge partial config updates, wire voice mode end-to-end, preserve episodic screenshot refs, and ignore mode-toggle hotkey while typing in editable fields
+- fix(frontend-voice): persist `voice_mode_enabled`, expose Voice Mode toggle in settings, and auto-send transcribed input on utterance end
 - fix(api): preserve handshake client identity continuity and validate handshake user IDs
 - fix(api): register and handle `load-settings` with `settings-loaded` responses
 - fix(vision-internvl): disable flash-attn runtime flags on CUDA kernel-image mismatch and retry chat inference

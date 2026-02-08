@@ -1,9 +1,27 @@
 import { hasShallowConfigChanges } from './configComparison';
 
-export function sanitizeFrontendProviderConfig(nextConfig) {
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+export function sanitizeFrontendProviderConfig(config) {
+  if (!isPlainObject(config)) {
+    return {};
+  }
+
+  const sanitized = {};
+  for (const [key, value] of Object.entries(config)) {
+    if (value !== undefined) {
+      sanitized[key] = value;
+    }
+  }
+  return sanitized;
+}
+
+export function mergeFrontendProviderConfig(baseConfig, patchConfig) {
   return {
-    ...nextConfig,
-    voice_mode_enabled: false,
+    ...sanitizeFrontendProviderConfig(baseConfig),
+    ...sanitizeFrontendProviderConfig(patchConfig),
   };
 }
 
