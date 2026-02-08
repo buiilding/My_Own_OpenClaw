@@ -1,25 +1,45 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { createPendingUserQueue } from './pendingUserQueue';
+import { createPendingToolQueue } from './pendingToolQueue';
 import { emitSessionUpdateEvent, persistSessionInfoToStorage, readSessionInfoFromStorage } from './sessionInfoStorage';
 import { createTranscriptSessionState } from './sessionInfoState';
 import type { SessionInfo, TranscriptEntry } from './types';
 
 const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
 const pendingUserQueue = createPendingUserQueue();
+const pendingToolQueue = createPendingToolQueue();
 
-const flushPendingUserMessages = async () => {
+const flushPendingMessages = async () => {
   const currentInfo = sessionState.get();
-  if (!currentInfo.sessionId || !currentInfo.userId || pendingUserQueue.size() === 0) {
+  if (
+    !currentInfo.sessionId
+    || !currentInfo.userId
+    || (pendingUserQueue.size() === 0 && pendingToolQueue.size() === 0)
+  ) {
     return;
   }
 
-  const pendingMessages = pendingUserQueue.drain();
-  for (const message of pendingMessages) {
+  const pendingUserMessages = pendingUserQueue.drain();
+  for (const message of pendingUserMessages) {
     await storeTranscriptEntry({
       content: message.text,
       role: 'user',
       messageType: 'user',
       timestamp: message.timestamp,
+      modelId: message.modelId,
+      modelProvider: message.modelProvider,
+      screenshotRef: message.screenshotRef,
+    });
+  }
+
+  const pendingToolMessages = pendingToolQueue.drain();
+  for (const message of pendingToolMessages) {
+    await storeTranscriptEntry({
+      content: message.text,
+      role: 'tool',
+      messageType: message.messageType,
+      toolName: message.toolName || undefined,
+      correlationId: message.correlationId || undefined,
       modelId: message.modelId,
       modelProvider: message.modelProvider,
       screenshotRef: message.screenshotRef,
@@ -31,7 +51,7 @@ export const updateTranscriptSession = (sessionId?: string | null, userId?: stri
   const info = sessionState.update(sessionId, userId);
   persistSessionInfoToStorage(info);
   emitSessionUpdateEvent(info);
-  void flushPendingUserMessages();
+  void flushPendingMessages();
 };
 
 export const getTranscriptSessionInfo = (): SessionInfo => {
@@ -122,6 +142,15 @@ export const recordToolMessage = (
   }
   const info = sessionState.resolve({ sessionId: options.sessionId ?? null, userId: options.userId ?? null });
   if (!info.sessionId || !info.userId) {
+    pendingToolQueue.enqueue({
+      text,
+      messageType: options.messageType,
+      toolName: options.toolName,
+      correlationId: options.correlationId,
+      modelId: options.modelId,
+      modelProvider: options.modelProvider,
+      screenshotRef: options.screenshotRef,
+    });
     return;
   }
 

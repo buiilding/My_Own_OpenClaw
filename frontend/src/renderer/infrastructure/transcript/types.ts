@@ -11,6 +11,16 @@ export type PendingUserMessage = {
   modelProvider?: string | null;
 };
 
+export type PendingToolMessage = {
+  text: string;
+  messageType: string;
+  toolName?: string | null;
+  correlationId?: string | null;
+  modelId?: string | null;
+  modelProvider?: string | null;
+  screenshotRef?: string | null;
+};
+
 export type TranscriptEntry = {
   content: string;
   role?: string | null;

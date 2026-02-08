@@ -25,6 +25,7 @@ Includes the last 300 commits on `main`.
 
 ### Fixed
 - fix(vision-internvl): disable flash-attn runtime flags on CUDA kernel-image mismatch and retry chat inference
+- fix(frontend-transcript): queue tool transcript entries until session/user ids are available to avoid missing tool-call history in episodic memory
 - 4169acf fix(frontend-ipc): gate first query on settings sync ack
 - d0dd0a6 fix(frontend-config): apply config sync when renderer attaches after backend connection
 - 3dbd975 fix(frontend-config): sync interaction mode to backend on ipc reconnect
