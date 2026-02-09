@@ -18,17 +18,19 @@ class ToolCallEventFormatter(EventFormatter):
         tool_name = event_dict.get("tool_name")
         parameters = event_dict.get("parameters")
         raw_call = event_dict.get("raw_call")
-        
-        if not tool_name or not parameters or not raw_call:
+
+        missing_fields = []
+        if not tool_name:
+            missing_fields.append("tool_name")
+        if parameters is None:
+            missing_fields.append("parameters")
+        elif not isinstance(parameters, dict):
+            missing_fields.append("parameters(type)")
+        if not raw_call:
+            missing_fields.append("raw_call")
+
+        if missing_fields:
             # Missing required fields - log warning and skip formatting
-            missing_fields = []
-            if not tool_name:
-                missing_fields.append("tool_name")
-            if not parameters:
-                missing_fields.append("parameters")
-            if not raw_call:
-                missing_fields.append("raw_call")
-            
             logger.warning(
                 f"ToolCallEvent missing required fields: {missing_fields}. "
                 f"Skipping format (msg_id={msg_id})"

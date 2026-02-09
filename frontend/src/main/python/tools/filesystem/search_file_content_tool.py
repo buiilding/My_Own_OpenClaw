@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 
 from tools.result import ToolResult
-from tools.schemas import SearchFileContentArgs
 from tools.filesystem.file_utils import is_text_file
 
 logger = logging.getLogger(__name__)
@@ -225,20 +224,27 @@ async def _manual_file_search(
     return matches
 
 
-async def search_file_content(args: SearchFileContentArgs) -> ToolResult:
+async def search_file_content(args: Dict[str, Any]) -> ToolResult:
     """
     Search for regex patterns in file contents.
     
     Args:
-        args: SearchFileContentArgs with pattern, path, include
+        args: Dict with pattern, path, include
         
     Returns:
         ToolResult with matches grouped by file
     """
     try:
-        pattern = args.pattern
-        search_path = args.path
-        include = args.include
+        pattern = args.get("pattern")
+        search_path = args.get("path")
+        include = args.get("include")
+
+        if not isinstance(pattern, str) or not pattern:
+            return ToolResult.error_result("pattern parameter is required")
+        if search_path is not None and not isinstance(search_path, str):
+            return ToolResult.error_result("path parameter must be a string")
+        if include is not None and not isinstance(include, str):
+            return ToolResult.error_result("include parameter must be a string")
         
         # Validate regex pattern
         try:

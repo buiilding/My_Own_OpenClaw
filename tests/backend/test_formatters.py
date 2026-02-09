@@ -322,7 +322,7 @@ class TestToolCallEventFormatter:
         assert result is None
 
     def test_format_empty_parameters(self, formatter):
-        # Empty dict is falsy in Python, so it should be treated as missing
+        # Empty args object is valid for tools that have no required args.
         event = {
             "type": "tool_call",
             "tool_name": "read_file",
@@ -332,6 +332,24 @@ class TestToolCallEventFormatter:
         msg_id = "msg-123"
         
         result = formatter.format(event, msg_id)
-        
-        # Empty dict is falsy, so parameters check fails
+        assert result == {
+            "type": "tool-call",
+            "id": msg_id,
+            "payload": {
+                "tool_name": "read_file",
+                "parameters": {},
+                "raw_call": '<read_file path="/test.txt"/>',
+            },
+        }
+
+    def test_format_invalid_parameters_type(self, formatter):
+        event = {
+            "type": "tool_call",
+            "tool_name": "read_file",
+            "parameters": "not-a-dict",
+            "raw_call": '<read_file path="/test.txt"/>',
+        }
+        msg_id = "msg-123"
+
+        result = formatter.format(event, msg_id)
         assert result is None

@@ -168,7 +168,7 @@ Local episodic + semantic memory stored via the Python sidecar (SQLite + FAISS) 
 Vision-first navigation using screenshots - OCR and vision models analyze screen states to automate UI interactions and file operations. The system primarily relies on visual understanding (screenshots) to navigate and control your computer. Works at the OS-level across any application, not confined to a single IDE.
 
 ### Tool System
-Multiple built-in tools with schema validation and an extensible SDK. Includes code editing and command execution capabilities (like Claude Code/Cursor, but OS-level).
+Multiple built-in tools with backend-owned schema validation and an extensible SDK. Includes code editing and command execution capabilities (like Claude Code/Cursor, but OS-level).
 
 ### AI Models
 Multi-provider LLM support with optional GPU acceleration for embeddings and vision. Supports multiple LLM providers.

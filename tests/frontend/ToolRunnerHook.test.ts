@@ -192,6 +192,27 @@ describe('useToolRunner', () => {
     );
   });
 
+  test('dispatches tool-call with empty args object', async () => {
+    renderHook(() => useToolRunner(true));
+
+    await act(async () => {
+      backendHandler?.({
+        type: 'tool-call',
+        id: 'event-empty-args',
+        payload: {
+          tool_name: 'screenshot',
+          parameters: {},
+        },
+      });
+    });
+
+    expect(mockExecuteTool).toHaveBeenCalledWith(
+      'screenshot',
+      {},
+      { correlationId: 'event-empty-args', skipAutoCapture: false },
+    );
+  });
+
   test('logs executeToolBundle failures', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     mockExecuteToolBundle.mockRejectedValueOnce(new Error('bundle-failed'));

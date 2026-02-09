@@ -24,6 +24,24 @@ This guide explains how to create custom tools for Desktop Assistant. Tools enab
 - Access to backend services
 - Memory and LLM integration
 
+## Preventing Schema Drift
+
+Remote-tool schema ownership stays in backend, but frontend must explicitly tag which
+sidecar tools are exposed to backend schema generation.
+
+Source files:
+- `backend/src/tools/remote.py`: backend remote tools + schemas exposed to LLM.
+- `frontend/src/main/python/tools/registry.py`: `EXPOSED_TO_BACKEND_TOOLS` explicit tag set.
+- `tests/backend/test_remote_tool_contract.py`: CI contract test.
+
+Rule:
+1. Add/remove remote tool in `backend/src/tools/remote.py`.
+2. Update `EXPOSED_TO_BACKEND_TOOLS` in frontend registry.
+3. Implement sidecar handler and register it.
+4. Run `pytest tests/backend/test_remote_tool_contract.py`.
+
+CI fails if sets diverge, which blocks drift from merging.
+
 ## Creating a Remote Tool
 
 ### Step 1: Create Backend Stub
@@ -111,22 +129,13 @@ async def execute_my_remote_tool(args: Dict[str, Any]) -> Dict[str, Any]:
 
 ### Step 3: Register Tool
 
-Register the tool in `frontend/src/main/python/tools/registry.py` and add a Pydantic schema in `frontend/src/main/python/tools/schemas.py`.
+Register the tool in `frontend/src/main/python/tools/registry.py`.
 
 ```python
 # frontend/src/main/python/tools/registry.py
 from tools.my_tool import execute_my_remote_tool
 
 self.tools[\"my_remote_tool\"] = execute_my_remote_tool
-```
-
-```python
-# frontend/src/main/python/tools/schemas.py
-class MyRemoteToolArgs(BaseModel):
-    param1: str
-    param2: int = 0
-
-TOOL_SCHEMAS[\"my_remote_tool\"] = MyRemoteToolArgs
 ```
 
 ## Creating a Backend Tool
@@ -469,7 +478,7 @@ class APICallTool(Tool):
 ### Tool Execution Errors
 
 1. Check error messages
-2. Verify input validation
+2. Verify backend tool schema and payload shape
 3. Review tool implementation
 4. Check resource limits
 

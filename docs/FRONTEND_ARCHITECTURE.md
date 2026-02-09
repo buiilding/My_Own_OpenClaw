@@ -355,7 +355,7 @@ The Python sidecar handles tool execution and system state capture.
 
 **tools/registry.py**
 - Tool dispatcher/registry
-- Pydantic arg validation
+- Lightweight arg passthrough dispatch (validation handled by backend/tool implementation)
 - Calls tool implementations under `tools/`
 
 **core/system_state.py**

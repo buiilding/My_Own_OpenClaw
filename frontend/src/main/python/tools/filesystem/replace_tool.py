@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Dict, Any
 
 from tools.result import ToolResult
-from tools.schemas import ReplaceArgs
 
 logger = logging.getLogger(__name__)
 
@@ -107,21 +106,28 @@ def _perform_replacement(
     return new_content, replace_count
 
 
-async def replace(args: ReplaceArgs) -> ToolResult:
+async def replace(args: Dict[str, Any]) -> ToolResult:
     """
     Replace text in a file with line ending normalization.
     
     Args:
-        args: ReplaceArgs with file_path, old_string, new_string, replace_all
+        args: Dict with file_path, old_string, new_string, replace_all
         
     Returns:
         ToolResult with replacement count
     """
     try:
-        file_path = args.file_path
-        old_string = args.old_string
-        new_string = args.new_string
-        replace_all = args.replace_all
+        file_path = args.get("file_path")
+        old_string = args.get("old_string")
+        new_string = args.get("new_string")
+        replace_all = bool(args.get("replace_all", False))
+
+        if not isinstance(file_path, str) or not file_path:
+            return ToolResult.error_result("file_path parameter is required")
+        if not isinstance(old_string, str):
+            return ToolResult.error_result("old_string parameter is required")
+        if not isinstance(new_string, str):
+            return ToolResult.error_result("new_string parameter is required")
         
         path = Path(file_path)
         

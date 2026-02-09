@@ -1,56 +1,34 @@
 """
 Tool Registry for Local Backend.
 
-Registers and executes all available tools with Pydantic validation.
+Registers and executes all available tools.
 """
 
 import logging
-from typing import Any, Dict, Type
-from pydantic import BaseModel, ValidationError
+from typing import Any, Callable, Dict
 
 from tools.result import ToolResult
-from tools.schemas import (
-    MouseControlArgs,
-    KeyboardControlArgs,
-    ScreenshotToolArgs,
-    ScrollControlArgs,
-    ReadFileArgs,
-    WriteFileArgs,
-    ListDirectoryArgs,
-    RunShellCommandArgs,
-    ProcessShellCommandArgs,
-    SwitchTabArgs,
-    GetOpenWindowsArgs,
-    GetSystemStatsArgs,
-    WaitToolArgs,
-    ReplaceArgs,
-    SearchFileContentArgs,
-    GlobArgs,
-    ReadManyFilesArgs,
-)
 logger = logging.getLogger(__name__)
 
-# Map tool names to their Pydantic schema classes
-TOOL_SCHEMAS: Dict[str, Type[BaseModel]] = {
-    "mouse_control": MouseControlArgs,
-    "keyboard_control": KeyboardControlArgs,
-    "screenshot": ScreenshotToolArgs,
-    "scroll_control": ScrollControlArgs,
-    "read_file": ReadFileArgs,
-    "write_file": WriteFileArgs,
-    "list_directory": ListDirectoryArgs,
-    "replace": ReplaceArgs,
-    "search_file_content": SearchFileContentArgs,
-    "glob": GlobArgs,
-    "read_many_files": ReadManyFilesArgs,
-    "run_shell_command": RunShellCommandArgs,
-    "process": ProcessShellCommandArgs,
-    "switch_tab": SwitchTabArgs,
-    "get_open_windows": GetOpenWindowsArgs,
-    "get_system_stats": GetSystemStatsArgs,
-    "wait": WaitToolArgs,
-    # Browser tool schemas - handled inside browser_tool for action-specific validation
-}
+# Tools in this set are advertised by backend remote schema generation and may be
+# called by the LLM. Keep this list in sync with backend/src/tools/remote.py.
+EXPOSED_TO_BACKEND_TOOLS = frozenset({
+    "mouse_control",
+    "keyboard_control",
+    "screenshot",
+    "scroll_control",
+    "switch_tab",
+    "wait",
+    "get_open_windows",
+    "get_system_stats",
+    "run_shell_command",
+    "process",
+    "read_file",
+    "write_file",
+    "list_directory",
+    "glob",
+    "browser_control",
+})
 
 
 class ToolRegistry:
@@ -61,7 +39,7 @@ class ToolRegistry:
     """
     
     def __init__(self):
-        self.tools: Dict[str, callable] = {}
+        self.tools: Dict[str, Callable[..., Any]] = {}
         self._register_tools()
     
     def _register_tools(self):
@@ -172,16 +150,28 @@ class ToolRegistry:
             self.tools["browser_control"] = execute_browser_control
         except ImportError as e:
             logger.warning(f"Failed to import browser_tool: {e}")
-        
+
+        missing_exposed_tools = EXPOSED_TO_BACKEND_TOOLS - set(self.tools.keys())
+        if missing_exposed_tools:
+            logger.warning(
+                "Tools expected by backend schemas are unavailable in sidecar runtime: %s",
+                ", ".join(sorted(missing_exposed_tools)),
+            )
+
         logger.debug(f"Registered {len(self.tools)} tools: {', '.join(self.tools.keys())}")
+
+    @staticmethod
+    def get_exposed_tool_names() -> set[str]:
+        """Return sidecar tools that are expected to be exposed by backend schemas."""
+        return set(EXPOSED_TO_BACKEND_TOOLS)
     
     async def execute_tool(self, tool_name: str, args: Dict[str, Any]) -> ToolResult:
         """
-        Execute a tool with Pydantic validation.
+        Execute a tool.
         
         Args:
             tool_name: Name of the tool
-            args: Tool arguments (raw dictionary)
+            args: Tool arguments
             
         Returns:
             ToolResult object with standardized structure
@@ -189,53 +179,13 @@ class ToolRegistry:
         tool = self.tools.get(tool_name)
         if not tool:
             return ToolResult.error_result(f"Tool not found: {tool_name}")
-        
-        # Validate arguments using Pydantic
-        schema_class = TOOL_SCHEMAS.get(tool_name)
-        validated_args = None
-        if schema_class:
-            try:
-                validated_args = schema_class(**args)
-            except ValidationError as e:
-                # Safely extract error messages from Pydantic validation errors
-                error_messages = []
-                for err in e.errors():
-                    loc = err.get('loc', ())
-                    msg = err.get('msg', 'Validation error')
-                    # Handle both tuple and list locations, and empty locations
-                    if loc:
-                        if isinstance(loc, (tuple, list)) and len(loc) > 0:
-                            field_name = '.'.join(str(x) for x in loc)
-                        else:
-                            field_name = str(loc)
-                        error_messages.append(f"{field_name}: {msg}")
-                    else:
-                        error_messages.append(msg)
-                error_msg = "; ".join(error_messages) if error_messages else "Validation error"
-                return ToolResult.error_result(f"Invalid arguments: {error_msg}")
-            except Exception as e:
-                return ToolResult.error_result(f"Argument validation failed: {str(e)}")
+
+        tool_args = args if isinstance(args, dict) else {}
         
         # Execute tool (handle both sync and async)
         try:
             import asyncio
-            import inspect
-            
-            # Determine what format the tool expects
-            # New tools (replace, search_file_content, glob, read_many_files) accept Pydantic models
-            # Legacy tools (read_file, write_file, list_directory) accept dicts
-            tools_accepting_models = {"replace", "search_file_content", "glob", "read_many_files"}
-            
-            if tool_name in tools_accepting_models and validated_args:
-                # Pass Pydantic model directly
-                tool_args = validated_args
-            elif validated_args:
-                # Convert to dict for legacy tools
-                tool_args = validated_args.model_dump()
-            else:
-                # No validation, pass as-is
-                tool_args = args
-            
+
             if asyncio.iscoroutinefunction(tool):
                 result = await tool(tool_args)
             else:
