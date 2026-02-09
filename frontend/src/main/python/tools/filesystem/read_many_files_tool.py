@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Dict, Any, List
 
 from tools.result import ToolResult
-from tools.schemas import ReadManyFilesArgs
 from tools.filesystem.file_utils import is_binary_file, is_text_file
 from tools.filesystem.gitignore_utils import load_gitignore, is_ignored
 
@@ -102,23 +101,27 @@ async def _read_single_file(file_path: str, workspace_root: str) -> tuple[str, D
         )
 
 
-async def read_many_files(args: ReadManyFilesArgs) -> ToolResult:
+async def read_many_files(args: Dict[str, Any]) -> ToolResult:
     """
     Read multiple files in parallel.
     
     Args:
-        args: ReadManyFilesArgs with paths, include, exclude
+        args: Dict with paths, include, exclude
         
     Returns:
         ToolResult with concatenated content and file lists
     """
     try:
-        paths = args.paths
-        include = args.include or []
-        exclude = args.exclude or []
-        
-        if not paths:
+        paths = args.get("paths")
+        include = args.get("include") or []
+        exclude = args.get("exclude") or []
+
+        if not isinstance(paths, list) or not all(isinstance(item, str) for item in paths):
             return ToolResult.error_result("paths parameter is required")
+        if not isinstance(include, list) or not all(isinstance(item, str) for item in include):
+            return ToolResult.error_result("include parameter must be a list of strings")
+        if not isinstance(exclude, list) or not all(isinstance(item, str) for item in exclude):
+            return ToolResult.error_result("exclude parameter must be a list of strings")
         
         workspace_root = os.getcwd()
         

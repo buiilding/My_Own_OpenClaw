@@ -9,7 +9,6 @@ sys.path.insert(0, str(frontend_python_dir))
 
 from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
-from tools.schemas import ReplaceArgs  # noqa: E402
 
 
 @pytest.mark.asyncio
@@ -21,50 +20,35 @@ async def test_execute_tool_returns_error_for_missing_tool():
 
 
 @pytest.mark.asyncio
-async def test_execute_tool_validation_error_returns_tool_result():
-    registry = ToolRegistry()
-    registry.tools["read_file"] = lambda _args: ToolResult.success_result({"ok": True})
-
-    result = await registry.execute_tool("read_file", {})
-    assert result.success is False
-    assert "Invalid arguments" in (result.error or "")
-
-
-@pytest.mark.asyncio
-async def test_execute_tool_passes_pydantic_model_for_replace():
-    registry = ToolRegistry()
-    captured = {}
-
-    def replace_tool(args):
-        captured["arg_type"] = type(args)
-        return ToolResult.success_result({"ok": True})
-
-    registry.tools["replace"] = replace_tool
-
-    result = await registry.execute_tool(
-        "replace",
-        {"file_path": "/tmp/a", "old_string": "x", "new_string": "y"},
-    )
-    assert result.success is True
-    assert captured["arg_type"] is ReplaceArgs
-
-
-@pytest.mark.asyncio
-async def test_execute_tool_converts_pydantic_to_dict_for_legacy_tools():
+async def test_execute_tool_passes_args_without_schema_validation():
     registry = ToolRegistry()
     captured = {}
 
     def read_file_tool(args):
-        captured["arg_type"] = type(args)
         captured["args"] = args
         return ToolResult.success_result({"ok": True})
 
     registry.tools["read_file"] = read_file_tool
 
-    result = await registry.execute_tool("read_file", {"file_path": "/tmp/a"})
+    result = await registry.execute_tool("read_file", {})
     assert result.success is True
-    assert captured["arg_type"] is dict
-    assert captured["args"]["file_path"] == "/tmp/a"
+    assert captured["args"] == {}
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_coerces_non_dict_args_to_empty_dict():
+    registry = ToolRegistry()
+    captured = {}
+
+    def read_file_tool(args):
+        captured["args"] = args
+        return ToolResult.success_result({"ok": True})
+
+    registry.tools["read_file"] = read_file_tool
+
+    result = await registry.execute_tool("read_file", "not-a-dict")
+    assert result.success is True
+    assert captured["args"] == {}
 
 
 @pytest.mark.asyncio

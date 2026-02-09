@@ -98,7 +98,9 @@ export function useToolRunner(enabled = true) {
   }, []);
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
-    if (!event.payload?.tool_name || !event.payload?.parameters) {
+    const toolName = event.payload?.tool_name;
+    const parameters = event.payload?.parameters;
+    if (!toolName || !parameters || typeof parameters !== 'object' || Array.isArray(parameters)) {
       return;
     }
 
@@ -106,8 +108,8 @@ export function useToolRunner(enabled = true) {
 
     if (toolServiceRef.current) {
       toolServiceRef.current.executeTool(
-        event.payload.tool_name,
-        event.payload.parameters,
+        toolName,
+        parameters,
         {
           correlationId,
           skipAutoCapture: false

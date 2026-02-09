@@ -5,7 +5,7 @@ Tests for browser tool registration in the registry.
 import pytest
 from unittest import mock
 
-from tools.registry import ToolRegistry, TOOL_SCHEMAS
+from tools.registry import ToolRegistry
 
 # Skip all tests if playwright is not installed
 try:
@@ -18,12 +18,6 @@ except ImportError:
 @pytest.mark.skipif(not PLAYWRIGHT_AVAILABLE, reason="playwright not installed")
 class TestBrowserToolRegistration:
     """Test browser tool is properly registered."""
-    
-    def test_browser_control_in_schemas(self):
-        """Test browser_control schema is registered."""
-        assert "browser_control" in TOOL_SCHEMAS
-        from tools.browser.schemas import BrowserConnectArgs
-        assert TOOL_SCHEMAS["browser_control"] == BrowserConnectArgs
     
     def test_browser_control_in_registry(self):
         """Test browser_control tool is in registry."""

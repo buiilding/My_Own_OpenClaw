@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import Dict, Any
 
 from tools.result import ToolResult
-from tools.schemas import GlobArgs
 from tools.filesystem.gitignore_utils import load_gitignore, is_ignored
 
 logger = logging.getLogger(__name__)
@@ -37,22 +36,24 @@ class GlobEntry:
         )
 
 
-async def glob(args: GlobArgs) -> ToolResult:
+async def glob(args: Dict[str, Any]) -> ToolResult:
     """
     Find files matching glob patterns.
     
     Args:
-        args: GlobArgs with pattern, path, case_sensitive
+        args: Dict with pattern, path, case_sensitive
         
     Returns:
         ToolResult with matching files sorted by modification time
     """
     try:
-        pattern = args.pattern
-        search_path = args.path
-        
-        if not pattern:
+        pattern = args.get("pattern")
+        search_path = args.get("path")
+
+        if not isinstance(pattern, str) or not pattern:
             return ToolResult.error_result("pattern parameter is required")
+        if search_path is not None and not isinstance(search_path, str):
+            return ToolResult.error_result("path parameter must be a string")
         
         # Determine search directory
         if search_path:

@@ -12,25 +12,7 @@ import base64
 import logging
 from typing import Any, Dict
 
-from pydantic import ValidationError
-
 from tools.browser.controller import get_browser_controller
-from tools.browser.schemas import (
-    BrowserConnectArgs,
-    BrowserNavigateArgs,
-    BrowserSnapshotArgs,
-    BrowserClickArgs,
-    BrowserTypeArgs,
-    BrowserPressArgs,
-    BrowserScrollArgs,
-    BrowserScreenshotArgs,
-    BrowserWaitArgs,
-    BrowserGetTabsArgs,
-    BrowserSwitchTabArgs,
-    BrowserEvaluateArgs,
-    BrowserCloseArgs,
-    get_browser_schema,
-)
 from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
@@ -46,54 +28,41 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
     Returns:
         ToolResult with execution result
     """
+    if not isinstance(raw_args, dict):
+        return ToolResult.error_result("Arguments must be an object")
+
     action = raw_args.get("action")
     if not action:
         return ToolResult.error_result("Missing required 'action' parameter")
-    
-    # Validate arguments
-    schema_class = get_browser_schema(action)
-    if not schema_class:
-        return ToolResult.error_result(f"Unknown browser action: {action}")
-    
-    try:
-        validated_args = schema_class(**raw_args)
-    except ValidationError as e:
-        errors = "; ".join(
-            f"{'.'.join(str(x) for x in err.get('loc', []))}: {err.get('msg', 'error')}"
-            for err in e.errors()
-        )
-        return ToolResult.error_result(f"Validation error: {errors}")
-    except Exception as e:
-        return ToolResult.error_result(f"Argument validation failed: {str(e)}")
-    
+
     # Route to appropriate handler
     try:
         if action == "connect":
-            return await _handle_connect(validated_args)
+            return await _handle_connect(raw_args)
         elif action == "navigate":
-            return await _handle_navigate(validated_args)
+            return await _handle_navigate(raw_args)
         elif action == "snapshot":
-            return await _handle_snapshot(validated_args)
+            return await _handle_snapshot(raw_args)
         elif action == "click":
-            return await _handle_click(validated_args)
+            return await _handle_click(raw_args)
         elif action == "type":
-            return await _handle_type(validated_args)
+            return await _handle_type(raw_args)
         elif action == "press":
-            return await _handle_press(validated_args)
+            return await _handle_press(raw_args)
         elif action == "scroll":
-            return await _handle_scroll(validated_args)
+            return await _handle_scroll(raw_args)
         elif action == "screenshot":
-            return await _handle_screenshot(validated_args)
+            return await _handle_screenshot(raw_args)
         elif action == "wait":
-            return await _handle_wait(validated_args)
+            return await _handle_wait(raw_args)
         elif action == "get_tabs":
-            return await _handle_get_tabs(validated_args)
+            return await _handle_get_tabs(raw_args)
         elif action == "switch_tab":
-            return await _handle_switch_tab(validated_args)
+            return await _handle_switch_tab(raw_args)
         elif action == "evaluate":
-            return await _handle_evaluate(validated_args)
+            return await _handle_evaluate(raw_args)
         elif action == "close":
-            return await _handle_close(validated_args)
+            return await _handle_close(raw_args)
         else:
             return ToolResult.error_result(f"Unhandled action: {action}")
     except Exception as e:
@@ -101,7 +70,7 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
         return ToolResult.error_result(f"Action failed: {str(e)}")
 
 
-async def _handle_connect(args: BrowserConnectArgs) -> ToolResult:
+async def _handle_connect(args: Dict[str, Any]) -> ToolResult:
     """Handle browser connect action with auto-launch support."""
     controller = get_browser_controller()
     
@@ -110,10 +79,11 @@ async def _handle_connect(args: BrowserConnectArgs) -> ToolResult:
         await controller.close()
     
     try:
-        if args.mode == "user_chrome":
+        mode = args.get("mode", "user_chrome")
+        if mode == "user_chrome":
             # Use auto_connect which handles launching if needed
             result = await controller.auto_connect_to_chrome(
-                cdp_url=args.cdp_url,
+                cdp_url=args.get("cdp_url", "http://127.0.0.1:9222"),
                 auto_launch=True,
             )
             
@@ -128,12 +98,14 @@ async def _handle_connect(args: BrowserConnectArgs) -> ToolResult:
                     f"Browser {result['status']} in {result['mode']} mode "
                     f"(connected to existing Chrome)"
                 )
-        else:
+        elif mode == "managed":
             result = await controller.launch_managed_browser(
-                headless=args.headless,
-                executable_path=args.executable_path,
+                headless=bool(args.get("headless", False)),
+                executable_path=args.get("executable_path"),
             )
             message = f"Browser {result['status']} in {result['mode']} mode"
+        else:
+            return ToolResult.error_result(f"Unknown browser mode: {mode}")
         
         return ToolResult.success_result({
             "status": result["status"],
@@ -151,7 +123,7 @@ async def _handle_connect(args: BrowserConnectArgs) -> ToolResult:
         return ToolResult.error_result(str(e))
 
 
-async def _handle_navigate(args: BrowserNavigateArgs) -> ToolResult:
+async def _handle_navigate(args: Dict[str, Any]) -> ToolResult:
     """Handle browser navigate action."""
     controller = get_browser_controller()
     
@@ -160,7 +132,11 @@ async def _handle_navigate(args: BrowserNavigateArgs) -> ToolResult:
             "Browser not connected. Run 'connect' action first."
         )
     
-    result = await controller.navigate(args.url, args.wait_until)
+    url = args.get("url")
+    if not isinstance(url, str) or not url:
+        return ToolResult.error_result("Missing required 'url' parameter")
+
+    result = await controller.navigate(url, args.get("wait_until", "networkidle"))
     
     if result.get("success"):
         return ToolResult.success_result({
@@ -173,7 +149,7 @@ async def _handle_navigate(args: BrowserNavigateArgs) -> ToolResult:
         return ToolResult.error_result(result.get("error", "Navigation failed"))
 
 
-async def _handle_snapshot(args: BrowserSnapshotArgs) -> ToolResult:
+async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
     """Handle browser snapshot action."""
     controller = get_browser_controller()
     
@@ -183,13 +159,13 @@ async def _handle_snapshot(args: BrowserSnapshotArgs) -> ToolResult:
         )
     
     snapshot = await controller.get_page_snapshot(
-        format_type=args.format,
-        max_chars=args.max_chars,
+        format_type=args.get("format", "ai"),
+        max_chars=args.get("max_chars", 5000),
     )
     
     return ToolResult.success_result({
         "action": "snapshot",
-        "format": args.format,
+        "format": args.get("format", "ai"),
         "url": snapshot.url,
         "title": snapshot.title,
         "snapshot": snapshot.text,
@@ -198,7 +174,7 @@ async def _handle_snapshot(args: BrowserSnapshotArgs) -> ToolResult:
     })
 
 
-async def _handle_click(args: BrowserClickArgs) -> ToolResult:
+async def _handle_click(args: Dict[str, Any]) -> ToolResult:
     """Handle browser click action."""
     controller = get_browser_controller()
     
@@ -207,24 +183,31 @@ async def _handle_click(args: BrowserClickArgs) -> ToolResult:
             "Browser not connected. Run 'connect' action first."
         )
     
+    ref = args.get("ref")
+    if not isinstance(ref, str) or not ref:
+        return ToolResult.error_result("Missing required 'ref' parameter")
+
+    double_click = bool(args.get("double_click", False))
+    button = args.get("button", "left")
+
     result = await controller.click(
-        ref=args.ref,
-        double_click=args.double_click,
-        button=args.button,
+        ref=ref,
+        double_click=double_click,
+        button=button,
     )
     
     if result.get("success"):
         return ToolResult.success_result({
             "action": "click",
-            "ref": args.ref,
-            "double_click": args.double_click,
-            "button": args.button,
+            "ref": ref,
+            "double_click": double_click,
+            "button": button,
         })
     else:
         return ToolResult.error_result(result.get("error", "Click failed"))
 
 
-async def _handle_type(args: BrowserTypeArgs) -> ToolResult:
+async def _handle_type(args: Dict[str, Any]) -> ToolResult:
     """Handle browser type action."""
     controller = get_browser_controller()
     
@@ -233,25 +216,35 @@ async def _handle_type(args: BrowserTypeArgs) -> ToolResult:
             "Browser not connected. Run 'connect' action first."
         )
     
+    ref = args.get("ref")
+    text = args.get("text")
+    if not isinstance(ref, str) or not ref:
+        return ToolResult.error_result("Missing required 'ref' parameter")
+    if not isinstance(text, str):
+        return ToolResult.error_result("Missing required 'text' parameter")
+
+    submit = bool(args.get("submit", False))
+    clear_first = bool(args.get("clear_first", False))
+
     result = await controller.type_text(
-        ref=args.ref,
-        text=args.text,
-        submit=args.submit,
-        clear_first=args.clear_first,
+        ref=ref,
+        text=text,
+        submit=submit,
+        clear_first=clear_first,
     )
     
     if result.get("success"):
         return ToolResult.success_result({
             "action": "type",
-            "ref": args.ref,
-            "text": args.text,
-            "submit": args.submit,
+            "ref": ref,
+            "text": text,
+            "submit": submit,
         })
     else:
         return ToolResult.error_result(result.get("error", "Type failed"))
 
 
-async def _handle_press(args: BrowserPressArgs) -> ToolResult:
+async def _handle_press(args: Dict[str, Any]) -> ToolResult:
     """Handle browser press action."""
     controller = get_browser_controller()
     
@@ -260,18 +253,22 @@ async def _handle_press(args: BrowserPressArgs) -> ToolResult:
             "Browser not connected. Run 'connect' action first."
         )
     
-    result = await controller.press_key(args.key)
+    key = args.get("key")
+    if not isinstance(key, str) or not key:
+        return ToolResult.error_result("Missing required 'key' parameter")
+
+    result = await controller.press_key(key)
     
     if result.get("success"):
         return ToolResult.success_result({
             "action": "press",
-            "key": args.key,
+            "key": key,
         })
     else:
         return ToolResult.error_result(result.get("error", "Key press failed"))
 
 
-async def _handle_scroll(args: BrowserScrollArgs) -> ToolResult:
+async def _handle_scroll(args: Dict[str, Any]) -> ToolResult:
     """Handle browser scroll action."""
     controller = get_browser_controller()
     
@@ -280,19 +277,21 @@ async def _handle_scroll(args: BrowserScrollArgs) -> ToolResult:
             "Browser not connected. Run 'connect' action first."
         )
     
-    result = await controller.scroll(args.direction, args.amount)
+    direction = args.get("direction", "down")
+    amount = args.get("amount", 500)
+    result = await controller.scroll(direction, amount)
     
     if result.get("success"):
         return ToolResult.success_result({
             "action": "scroll",
-            "direction": args.direction,
-            "amount": args.amount,
+            "direction": direction,
+            "amount": amount,
         })
     else:
         return ToolResult.error_result(result.get("error", "Scroll failed"))
 
 
-async def _handle_screenshot(args: BrowserScreenshotArgs) -> ToolResult:
+async def _handle_screenshot(args: Dict[str, Any]) -> ToolResult:
     """Handle browser screenshot action."""
     controller = get_browser_controller()
     
@@ -301,10 +300,13 @@ async def _handle_screenshot(args: BrowserScreenshotArgs) -> ToolResult:
             "Browser not connected. Run 'connect' action first."
         )
     
+    full_page = bool(args.get("full_page", False))
+    ref = args.get("ref")
+
     try:
         image_bytes = await controller.screenshot(
-            full_page=args.full_page,
-            ref=args.ref,
+            full_page=full_page,
+            ref=ref,
         )
         
         # Convert to base64 for JSON serialization
@@ -313,8 +315,8 @@ async def _handle_screenshot(args: BrowserScreenshotArgs) -> ToolResult:
         return ToolResult.success_result({
             "action": "screenshot",
             "format": "png",
-            "full_page": args.full_page,
-            "ref": args.ref,
+            "full_page": full_page,
+            "ref": ref,
             "image_data": image_b64,
             "image_size_bytes": len(image_bytes),
         })
@@ -322,7 +324,7 @@ async def _handle_screenshot(args: BrowserScreenshotArgs) -> ToolResult:
         return ToolResult.error_result(f"Screenshot failed: {str(e)}")
 
 
-async def _handle_wait(args: BrowserWaitArgs) -> ToolResult:
+async def _handle_wait(args: Dict[str, Any]) -> ToolResult:
     """Handle browser wait action."""
     controller = get_browser_controller()
     
@@ -331,30 +333,32 @@ async def _handle_wait(args: BrowserWaitArgs) -> ToolResult:
             "Browser not connected. Run 'connect' action first."
         )
     
-    if args.seconds is not None:
+    seconds = args.get("seconds")
+    if seconds is not None:
         # Fixed time wait
         import asyncio
-        await asyncio.sleep(args.seconds)
+        await asyncio.sleep(seconds)
         return ToolResult.success_result({
             "action": "wait",
             "type": "time",
-            "seconds": args.seconds,
+            "seconds": seconds,
         })
     else:
         # Wait for load state
-        result = await controller.wait_for_load(args.state)
+        state = args.get("state", "networkidle")
+        result = await controller.wait_for_load(state)
         
         if result.get("success"):
             return ToolResult.success_result({
                 "action": "wait",
                 "type": "load_state",
-                "state": args.state,
+                "state": state,
             })
         else:
             return ToolResult.error_result(result.get("error", "Wait failed"))
 
 
-async def _handle_get_tabs(args: BrowserGetTabsArgs) -> ToolResult:
+async def _handle_get_tabs(args: Dict[str, Any]) -> ToolResult:
     """Handle browser get_tabs action."""
     controller = get_browser_controller()
     
@@ -379,7 +383,7 @@ async def _handle_get_tabs(args: BrowserGetTabsArgs) -> ToolResult:
     })
 
 
-async def _handle_switch_tab(args: BrowserSwitchTabArgs) -> ToolResult:
+async def _handle_switch_tab(args: Dict[str, Any]) -> ToolResult:
     """Handle browser switch_tab action."""
     controller = get_browser_controller()
     
@@ -388,20 +392,24 @@ async def _handle_switch_tab(args: BrowserSwitchTabArgs) -> ToolResult:
             "Browser not connected. Run 'connect' action first."
         )
     
-    success = await controller.switch_tab(args.target_id)
+    target_id = args.get("target_id")
+    if not isinstance(target_id, str) or not target_id:
+        return ToolResult.error_result("Missing required 'target_id' parameter")
+
+    success = await controller.switch_tab(target_id)
     
     if success:
         return ToolResult.success_result({
             "action": "switch_tab",
-            "target_id": args.target_id,
+            "target_id": target_id,
             "url": controller.current_url,
             "title": controller.current_title,
         })
     else:
-        return ToolResult.error_result(f"Tab not found: {args.target_id}")
+        return ToolResult.error_result(f"Tab not found: {target_id}")
 
 
-async def _handle_evaluate(args: BrowserEvaluateArgs) -> ToolResult:
+async def _handle_evaluate(args: Dict[str, Any]) -> ToolResult:
     """Handle browser evaluate action."""
     controller = get_browser_controller()
     
@@ -410,19 +418,23 @@ async def _handle_evaluate(args: BrowserEvaluateArgs) -> ToolResult:
             "Browser not connected. Run 'connect' action first."
         )
     
-    result = await controller.evaluate(args.script)
+    script = args.get("script")
+    if not isinstance(script, str):
+        return ToolResult.error_result("Missing required 'script' parameter")
+
+    result = await controller.evaluate(script)
     
     if result.get("success"):
         return ToolResult.success_result({
             "action": "evaluate",
-            "script": args.script,
+            "script": script,
             "result": result.get("result"),
         })
     else:
         return ToolResult.error_result(result.get("error", "Evaluate failed"))
 
 
-async def _handle_close(args: BrowserCloseArgs) -> ToolResult:
+async def _handle_close(args: Dict[str, Any]) -> ToolResult:
     """Handle browser close action."""
     controller = get_browser_controller()
     

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend): add remote tool contract coverage to enforce backend remote schema and sidecar exposed-tool sync
 - 656fb26 feat(frontend): stabilize tool schema, config, and tests
 - e9fafd6 feat(frontend): handle screenshot refs in chat flow
 - 1781ba9 feat(frontend): upload tool screenshots and send refs
@@ -24,6 +25,9 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- fix(sidecar-tools): validate browser/filesystem tool args inside handlers and add explicit error paths for missing/invalid fields
+- fix(formatters): ignore malformed `tool_call` events that omit a valid `name` or non-object `args`
+- fix(frontend-chat): synthesize missing tool bundle ids and preserve event-id correlation fallback in tool runner dispatch
 - fix(frontend-remote): support non-local backend endpoints for websocket/artifact traffic and sidecar memory HTTP calls
 - fix(frontend-branding): rename sidebar app title from OpenClaw to WindieOS
 - fix(frontend-consistency): merge partial config updates, wire voice mode end-to-end, preserve episodic screenshot refs, and ignore mode-toggle hotkey while typing in editable fields
@@ -101,6 +105,7 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- refactor(sidecar-registry): remove central schema map validation and keep backend as the source of truth for remote tool schemas
 - refactor(frontend-endpoints): centralize backend ws/http endpoint resolution across Electron main process and sidecar bootstrap
 - refactor(config-subscriptions): await threadpool callback completion for deterministic config-update ordering
 - refactor(session): unify AgentSession state initialization/cleanup around active state stores
