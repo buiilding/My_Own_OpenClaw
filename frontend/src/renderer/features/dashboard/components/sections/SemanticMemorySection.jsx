@@ -57,7 +57,13 @@ function SemanticMemorySection() {
   const [selectedMemoryId, setSelectedMemoryId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [sessionInfo, setSessionInfo] = useState(() => getTranscriptSessionInfo());
+
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(null);
+  }, []);
 
   const loadSemanticMemories = useCallback(async () => {
     setIsLoading(true);
@@ -89,9 +95,63 @@ function SemanticMemorySection() {
     }
   }, [selectedMemoryId, sessionInfo.userId]);
 
+  const deleteSemanticMemory = useCallback(async (memory) => {
+    if (!memory?.id) {
+      return;
+    }
+
+    const shouldDelete = window.confirm('Delete this semantic memory? This cannot be undone.');
+    if (!shouldDelete) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setLoadError(null);
+
+    try {
+      const userId = sessionInfo.userId || DEFAULT_USER_ID;
+      const result = await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_SEMANTIC_MEMORY, {
+        userId,
+        memoryId: memory.id,
+      });
+
+      if (!result || result.success === false) {
+        throw new Error(result?.error || 'Failed to delete semantic memory');
+      }
+
+      closeContextMenu();
+      if (selectedMemoryId === memory.id) {
+        setSelectedMemoryId(null);
+      }
+      await loadSemanticMemories();
+    } catch (error) {
+      setLoadError(error.message || 'Failed to delete semantic memory');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [closeContextMenu, loadSemanticMemories, selectedMemoryId, sessionInfo.userId]);
+
   useEffect(() => {
     loadSemanticMemories();
   }, [loadSemanticMemories]);
+
+  useEffect(() => {
+    if (!contextMenu) {
+      return () => undefined;
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        closeContextMenu();
+        return;
+      }
+      if (event.key === 'Delete' && contextMenu?.memory) {
+        deleteSemanticMemory(contextMenu.memory);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [closeContextMenu, contextMenu, deleteSemanticMemory]);
 
   useEffect(() => {
     const handleSessionUpdate = (event) => {
@@ -132,6 +192,8 @@ function SemanticMemorySection() {
             </div>
             {isLoading ? (
               <div className="memory-muted">Loading semantic memories...</div>
+            ) : isDeleting ? (
+              <div className="memory-muted">Deleting semantic memory...</div>
             ) : loadError ? (
               <div className="memory-error">{loadError}</div>
             ) : memories.length === 0 ? (
@@ -144,6 +206,16 @@ function SemanticMemorySection() {
                     type="button"
                     className={`memory-item ${memory.id === selectedMemoryId ? 'active' : ''}`}
                     onClick={() => setSelectedMemoryId(memory.id)}
+                    onContextMenu={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      setContextMenu({
+                        x: event.clientX,
+                        y: event.clientY,
+                        memory,
+                        index,
+                      });
+                    }}
                   >
                     <div className="memory-item-title">{memory.summary || `Entry ${index + 1}`}</div>
                     <div className="memory-item-meta">{formatTimestamp(memory.timestamp)}</div>
@@ -187,6 +259,52 @@ function SemanticMemorySection() {
           </div>
         </div>
       </section>
+      {contextMenu ? (
+        <div
+          className="memory-context-menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          role="menu"
+          onMouseDown={(event) => {
+            event.stopPropagation();
+          }}
+          onClick={(event) => event.stopPropagation()}
+          onContextMenu={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          }}
+        >
+          <button
+            type="button"
+            className="danger"
+            disabled={isDeleting}
+            onClick={() => deleteSemanticMemory(contextMenu.memory)}
+          >
+            Delete
+          </button>
+          <button
+            type="button"
+            disabled={isDeleting}
+            onClick={closeContextMenu}
+          >
+            Cancel
+          </button>
+        </div>
+      ) : null}
+      {contextMenu ? (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9998,
+          }}
+          onMouseDown={closeContextMenu}
+          onContextMenu={(event) => {
+            event.preventDefault();
+            closeContextMenu();
+          }}
+        />
+      ) : null}
     </div>
   );
 }

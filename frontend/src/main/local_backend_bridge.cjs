@@ -553,6 +553,12 @@ function initializeLocalBackendBridge(getWindows) {
     record_kind: recordKind,
   }));
 
+  // Handle semantic memory deletion requests
+  registerRpcHandler('delete-semantic-memory', 'delete_semantic_memory', ({ userId, memoryId } = {}) => ({
+    user_id: userId,
+    memory_id: memoryId,
+  }));
+
   // Handle memory storage requests
   registerRpcHandler('store-memory', 'store_memory', ({ userQuery, assistantResponse, memoryType, userId, sessionId } = {}) => ({
     user_query: userQuery,

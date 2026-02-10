@@ -63,6 +63,7 @@ class LocalBackend:
         self.protocol.register_method("get_conversation", self._handle_get_conversation)
         self.protocol.register_method("list_semantic_memories", self._handle_list_semantic_memories)
         self.protocol.register_method("delete_conversation", self._handle_delete_conversation)
+        self.protocol.register_method("delete_semantic_memory", self._handle_delete_semantic_memory)
         self.protocol.register_method("store_transcript", self._handle_store_transcript)
         
         # Health check and diagnostics
@@ -326,6 +327,44 @@ class LocalBackend:
             }
         except Exception as e:
             logger.error(f"Conversation deletion failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    async def _handle_delete_semantic_memory(
+        self,
+        user_id: str = "default_user",
+        memory_id: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Delete a semantic memory entry."""
+        if not self.memory_store:
+            return {
+                "success": False,
+                "error": "Memory store not initialized"
+            }
+
+        if not memory_id:
+            return {
+                "success": False,
+                "error": "memory_id is required"
+            }
+
+        try:
+            deleted = await self.memory_store.delete_semantic_memory(
+                user_id=user_id,
+                memory_id=memory_id,
+            )
+            return {
+                "success": True,
+                "data": {
+                    "memory_id": memory_id,
+                    "deleted": bool(deleted),
+                }
+            }
+        except Exception as e:
+            logger.error(f"Semantic memory deletion failed: {e}", exc_info=True)
             return {
                 "success": False,
                 "error": str(e)

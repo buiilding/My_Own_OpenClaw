@@ -1160,6 +1160,49 @@ class LocalMemoryStore:
 
             return results
 
+    async def delete_semantic_memory(self, user_id: str, memory_id: str) -> bool:
+        """
+        Delete a semantic memory entry by ID for a given user.
+
+        Note: We do not remove vectors from FAISS; we remove DB rows and in-memory
+        mappings so stale vectors cannot be resolved back to memory IDs.
+        """
+        if not memory_id:
+            return False
+
+        vector_id: Optional[int] = None
+        deleted = False
+
+        async with aiosqlite.connect(self.semantic_db_path) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(
+                "SELECT embedding_id FROM memories WHERE id = ? AND user_id = ?",
+                (memory_id, user_id),
+            )
+            row = await cursor.fetchone()
+            if row:
+                try:
+                    vector_id = row[0] if row[0] is None else int(row[0])
+                except Exception:
+                    vector_id = None
+
+            await cursor.execute(
+                "DELETE FROM memories WHERE id = ? AND user_id = ?",
+                (memory_id, user_id),
+            )
+            deleted = cursor.rowcount > 0
+            await conn.commit()
+
+        if deleted and vector_id is not None:
+            self.semantic_vector_id_to_memory_id.pop(vector_id, None)
+            self.semantic_memory_id_to_vector_id.pop(memory_id, None)
+        elif deleted:
+            self.semantic_memory_id_to_vector_id.pop(memory_id, None)
+
+        if deleted:
+            logger.debug("Deleted semantic memory %s (user_id=%s)", memory_id, user_id)
+        return bool(deleted)
+
     async def delete_conversation(
         self,
         user_id: str,

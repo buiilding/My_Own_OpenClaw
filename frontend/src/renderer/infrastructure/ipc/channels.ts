@@ -26,6 +26,7 @@ export const INVOKE_CHANNELS = {
   GET_CONVERSATION: 'get-conversation',
   LIST_SEMANTIC_MEMORIES: 'list-semantic-memories',
   DELETE_CONVERSATION: 'delete-conversation',
+  DELETE_SEMANTIC_MEMORY: 'delete-semantic-memory',
   STORE_TRANSCRIPT: 'store-transcript',
   GET_CLIENT_USER_ID: 'get-client-user-id',
   SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
