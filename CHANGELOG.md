@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(tools): expose sidecar filesystem tools (`replace`, `search_file_content`, `read_many_files`) via backend remote schemas and enforce strict sidecar registry/exposed-set equality
 - feat(browser): add stable-ish browser snapshot refs, structured `dom_compact` format, and hide executor ref maps from LLM tool results
 - docs(legal): add founder equity and collaboration agreement for WindieOS with matching PDF artifact
 - build(dev): add env-aware helper scripts (`python-in-env`, split test runners, and frontend/backend run wrappers) so local commands no longer require manual `conda activate`
