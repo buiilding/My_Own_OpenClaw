@@ -76,6 +76,12 @@ Files created per user:
 - Tool-access to memory (store/search/stats)
 - Wraps `LocalMemoryStore` for tool execution
 
+## Dashboard Read APIs
+
+The Electron renderer reads memory through sidecar JSON-RPC handlers exposed over IPC:
+- `list_conversations` + `get_conversation` for episodic/transcript browsing.
+- `list_semantic_memories` for semantic-memory browsing in the Semantic Memory tab.
+
 ## Usage (LocalMemoryStore)
 
 ```python

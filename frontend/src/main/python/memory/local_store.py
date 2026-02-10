@@ -1121,6 +1121,45 @@ class LocalMemoryStore:
 
             return results
 
+    async def list_semantic_memories(
+        self, user_id: str, limit: int = 200
+    ) -> List[Dict[str, Any]]:
+        """
+        List semantic memories for a user ordered by newest first.
+
+        Args:
+            user_id: User identifier
+            limit: Maximum number of memories to return
+
+        Returns:
+            List of semantic memory entries with parsed metadata
+        """
+        async with aiosqlite.connect(self.semantic_db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            cursor = await conn.cursor()
+            await cursor.execute(
+                """
+                SELECT id, content, timestamp, metadata
+                FROM memories
+                WHERE user_id = ?
+                ORDER BY timestamp DESC
+                LIMIT ?
+            """,
+                (user_id, limit),
+            )
+            rows = await cursor.fetchall()
+
+            results = []
+            for row in rows:
+                results.append({
+                    "id": row["id"],
+                    "content": row["content"],
+                    "timestamp": row["timestamp"],
+                    "metadata": self._parse_raw_metadata(row["metadata"]),
+                })
+
+            return results
+
     async def _list_conversations_with_record_kind(
         self,
         cursor,

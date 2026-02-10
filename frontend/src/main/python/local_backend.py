@@ -61,6 +61,7 @@ class LocalBackend:
         self.protocol.register_method("store_memory", self._handle_store_memory)
         self.protocol.register_method("list_conversations", self._handle_list_conversations)
         self.protocol.register_method("get_conversation", self._handle_get_conversation)
+        self.protocol.register_method("list_semantic_memories", self._handle_list_semantic_memories)
         self.protocol.register_method("store_transcript", self._handle_store_transcript)
         
         # Health check and diagnostics
@@ -260,6 +261,35 @@ class LocalBackend:
             }
         except Exception as e:
             logger.error(f"Conversation fetch failed: {e}", exc_info=True)
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    async def _handle_list_semantic_memories(
+        self,
+        user_id: str = "default_user",
+        limit: int = 200,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """List semantic memories for a user."""
+        if not self.memory_store:
+            return {
+                "success": False,
+                "error": "Memory store not initialized"
+            }
+
+        try:
+            memories = await self.memory_store.list_semantic_memories(user_id, limit)
+            return {
+                "success": True,
+                "data": {
+                    "memories": memories,
+                    "count": len(memories),
+                }
+            }
+        except Exception as e:
+            logger.error(f"Semantic memory listing failed: {e}", exc_info=True)
             return {
                 "success": False,
                 "error": str(e)

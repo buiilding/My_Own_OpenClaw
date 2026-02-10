@@ -248,6 +248,39 @@ describe('local_backend_bridge', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { items: [] } });
   });
 
+  test('list-semantic-memories handler maps payload keys to backend params', async () => {
+    initBridge();
+    markReady();
+
+    const promise = handlers['list-semantic-memories'](null, {
+      userId: 'u-1',
+      limit: 12,
+    });
+
+    const request = getLastWrittenRequest();
+    expect(request).toEqual(
+      expect.objectContaining({
+        method: 'list_semantic_memories',
+        params: {
+          user_id: 'u-1',
+          limit: 12,
+        },
+      }),
+    );
+
+    stdoutHandler(
+      Buffer.from(
+        `${JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'req-1',
+          result: { success: true, data: { memories: [] } },
+        })}\n`,
+      ),
+    );
+
+    await expect(promise).resolves.toEqual({ success: true, data: { memories: [] } });
+  });
+
   test('store-transcript handler returns standardized error payload', async () => {
     initBridge();
     markReady();

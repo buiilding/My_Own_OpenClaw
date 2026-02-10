@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import MemorySection from './sections/MemorySection';
 import EpisodicMemorySection from './sections/EpisodicMemorySection';
+import SemanticMemorySection from './sections/SemanticMemorySection';
 import ProceduralSection from './sections/ProceduralSection';
 import ModelsSection from './sections/ModelsSection';
 import UsageSection from './sections/UsageSection';
@@ -12,12 +12,7 @@ function DashboardContent({ sectionId, config, availableModels, onConfigChange }
     case 'episodic':
       return <EpisodicMemorySection />;
     case 'semantic':
-      return (
-        <MemorySection
-          title="Semantic Memory"
-          description="Long-term facts and preferences."
-        />
-      );
+      return <SemanticMemorySection />;
     case 'procedural':
       return <ProceduralSection />;
     case 'models':
