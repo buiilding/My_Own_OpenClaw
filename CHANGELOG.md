@@ -11,6 +11,7 @@ Includes the last 300 commits on `main`.
 - build(dev): add env-aware helper scripts (`python-in-env`, split test runners, and frontend/backend run wrappers) so local commands no longer require manual `conda activate`
 - test(sidecar): align browser tool/controller/registry test mocks with async `browser_control` connect and Playwright locator usage
 - test(backend): add remote tool contract coverage to enforce backend remote schema and sidecar exposed-tool sync
+- feat(frontend-dashboard): allow deleting episodic conversations from the dashboard via right-click menu (removes rows from local SQLite)
 - 656fb26 feat(frontend): stabilize tool schema, config, and tests
 - e9fafd6 feat(frontend): handle screenshot refs in chat flow
 - 1781ba9 feat(frontend): upload tool screenshots and send refs

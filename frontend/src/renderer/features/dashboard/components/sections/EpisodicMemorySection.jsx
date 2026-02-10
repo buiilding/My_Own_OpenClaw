@@ -21,8 +21,14 @@ function EpisodicMemorySection() {
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
   const [listError, setListError] = useState(null);
   const [conversationError, setConversationError] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [sessionInfo, setSessionInfo] = useState(() => getTranscriptSessionInfo());
+
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(null);
+  }, []);
 
   const activeConversation = useMemo(() => {
     if (!selectedConversationKey) {
@@ -75,6 +81,42 @@ function EpisodicMemorySection() {
     }
   }, [selectedConversationKey, sessionInfo.userId]);
 
+  const deleteConversation = useCallback(async (conversation) => {
+    if (!conversation) {
+      return;
+    }
+
+    const recordKind = conversation?.record_kind || 'transcript';
+    const displayTitle = conversation?.conversation_id ? 'this conversation' : 'this unassigned conversation';
+    const shouldDelete = window.confirm(`Delete ${displayTitle}? This cannot be undone.`);
+    if (!shouldDelete) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setListError(null);
+
+    try {
+      const userId = sessionInfo.userId || DEFAULT_USER_ID;
+      const result = await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
+        userId,
+        conversationId: conversation?.conversation_id ?? null,
+        recordKind,
+      });
+
+      if (!result || result.success === false) {
+        throw new Error(result?.error || 'Failed to delete conversation');
+      }
+
+      closeContextMenu();
+      await loadConversations();
+    } catch (error) {
+      setListError(error.message || 'Failed to delete conversation');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [closeContextMenu, loadConversations, sessionInfo.userId]);
+
   const loadConversation = useCallback(async (conversationKey) => {
     setIsLoadingConversation(true);
     setConversationError(null);
@@ -111,6 +153,24 @@ function EpisodicMemorySection() {
   useEffect(() => {
     loadConversations();
   }, [loadConversations]);
+
+  useEffect(() => {
+    if (!contextMenu) {
+      return () => undefined;
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        closeContextMenu();
+        return;
+      }
+      if (event.key === 'Delete' && contextMenu?.conversation) {
+        deleteConversation(contextMenu.conversation);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [closeContextMenu, contextMenu, deleteConversation]);
 
   useEffect(() => {
     if (!selectedConversationKey) {
@@ -164,6 +224,8 @@ function EpisodicMemorySection() {
           </div>
           {isLoadingList ? (
             <div className="memory-muted">Loading conversations...</div>
+          ) : isDeleting ? (
+            <div className="memory-muted">Deleting conversation...</div>
           ) : listError ? (
             <div className="memory-error">{listError}</div>
           ) : sortedConversations.length === 0 ? (
@@ -183,6 +245,17 @@ function EpisodicMemorySection() {
                     type="button"
                     className="memory-card"
                     onClick={() => setSelectedConversationKey(key)}
+                    onContextMenu={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      setContextMenu({
+                        x: event.clientX,
+                        y: event.clientY,
+                        conversation,
+                        index,
+                        key,
+                      });
+                    }}
                   >
                     <div className="memory-card-title">{displayTitle}</div>
                     <div className="memory-card-meta">
@@ -231,6 +304,53 @@ function EpisodicMemorySection() {
           </div>
         </section>
       )}
+      {contextMenu ? (
+        <div
+          className="memory-context-menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          role="menu"
+          onMouseDown={(event) => {
+            // Prevent closing when clicking inside menu.
+            event.stopPropagation();
+          }}
+          onClick={(event) => event.stopPropagation()}
+          onContextMenu={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+          }}
+        >
+          <button
+            type="button"
+            className="danger"
+            disabled={isDeleting}
+            onClick={() => deleteConversation(contextMenu.conversation)}
+          >
+            Delete
+          </button>
+          <button
+            type="button"
+            disabled={isDeleting}
+            onClick={closeContextMenu}
+          >
+            Cancel
+          </button>
+        </div>
+      ) : null}
+      {contextMenu ? (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9998,
+          }}
+          onMouseDown={closeContextMenu}
+          onContextMenu={(event) => {
+            event.preventDefault();
+            closeContextMenu();
+          }}
+        />
+      ) : null}
     </div>
   );
 }

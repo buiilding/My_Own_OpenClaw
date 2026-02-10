@@ -455,6 +455,43 @@
   color: rgba(248, 118, 118, 0.9);
 }
 
+.memory-context-menu {
+  position: fixed;
+  z-index: 9999;
+  min-width: 180px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 12, 16, 0.95);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(12px);
+}
+
+.memory-context-menu button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 10px 10px;
+  border-radius: 10px;
+  color: rgba(244, 242, 238, 0.92);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.memory-context-menu button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.memory-context-menu button.danger {
+  color: rgba(248, 118, 118, 0.95);
+}
+
+.memory-context-menu button.danger:hover {
+  background: rgba(248, 118, 118, 0.12);
+}
+
 @media (max-width: 960px) {
   .memory-grid {
     grid-template-columns: 1fr;

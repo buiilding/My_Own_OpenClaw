@@ -1160,6 +1160,110 @@ class LocalMemoryStore:
 
             return results
 
+    async def delete_conversation(
+        self,
+        user_id: str,
+        conversation_id: Optional[str],
+        record_kind: Optional[str] = "transcript",
+    ) -> int:
+        """
+        Delete episodic memories for a given conversation window.
+
+        Note: We do not remove vectors from FAISS; we remove DB rows and in-memory
+        mappings so stale vectors cannot be resolved back to memory IDs.
+
+        Args:
+            user_id: User identifier
+            conversation_id: Conversation window identifier (None deletes rows with NULL conversation_id)
+            record_kind: Optional filter ("transcript" or "memory"). Defaults to transcript.
+
+        Returns:
+            Number of rows deleted.
+        """
+        record_kind_clause = ""
+        if record_kind == "transcript":
+            record_kind_clause = "AND record_kind = 'transcript'"
+        elif record_kind == "memory":
+            record_kind_clause = "AND (record_kind IS NULL OR record_kind = 'memory')"
+
+        deleted_count = 0
+
+        async with aiosqlite.connect(self.episodic_db_path) as conn:
+            cursor = await conn.cursor()
+
+            if conversation_id is None:
+                await cursor.execute(
+                    f"""
+                    SELECT id, embedding_id
+                    FROM memories
+                    WHERE user_id = ? AND conversation_id IS NULL
+                    {record_kind_clause}
+                """,
+                    (user_id,),
+                )
+            else:
+                await cursor.execute(
+                    f"""
+                    SELECT id, embedding_id
+                    FROM memories
+                    WHERE user_id = ? AND conversation_id = ?
+                    {record_kind_clause}
+                """,
+                    (user_id, conversation_id),
+                )
+
+            rows = await cursor.fetchall()
+
+            memory_ids: List[str] = []
+            vector_ids: List[int] = []
+            for memory_id, embedding_id in rows:
+                if memory_id:
+                    memory_ids.append(memory_id)
+                if embedding_id is not None:
+                    try:
+                        vector_ids.append(int(embedding_id))
+                    except Exception:
+                        continue
+
+            if conversation_id is None:
+                await cursor.execute(
+                    f"""
+                    DELETE FROM memories
+                    WHERE user_id = ? AND conversation_id IS NULL
+                    {record_kind_clause}
+                """,
+                    (user_id,),
+                )
+            else:
+                await cursor.execute(
+                    f"""
+                    DELETE FROM memories
+                    WHERE user_id = ? AND conversation_id = ?
+                    {record_kind_clause}
+                """,
+                    (user_id, conversation_id),
+                )
+
+            deleted_count = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+            await conn.commit()
+
+        for vector_id in vector_ids:
+            memory_id = self.episodic_vector_id_to_memory_id.pop(vector_id, None)
+            if memory_id:
+                self.episodic_memory_id_to_vector_id.pop(memory_id, None)
+
+        for memory_id in memory_ids:
+            self.episodic_memory_id_to_vector_id.pop(memory_id, None)
+
+        logger.debug(
+            "Deleted conversation (user_id=%s conversation_id=%s record_kind=%s) -> %s rows",
+            user_id,
+            conversation_id,
+            record_kind,
+            deleted_count,
+        )
+        return int(deleted_count)
+
     async def _list_conversations_with_record_kind(
         self,
         cursor,
