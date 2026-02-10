@@ -30,6 +30,7 @@ export const INVOKE_CHANNELS = {
   STORE_TRANSCRIPT: 'store-transcript',
   GET_CLIENT_USER_ID: 'get-client-user-id',
   SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
+  SET_CHATBOX_SIZE: 'set-chatbox-size',
   SHOW_MAIN_WINDOW: 'show-main-window',
   SHOW_CHATBOX: 'show-chatbox',
   HIDE_CHATBOX: 'hide-chatbox',
