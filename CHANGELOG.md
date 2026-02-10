@@ -28,6 +28,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- fix(ci): run backend/sidecar GitHub Actions jobs on Python 3.11 to support browser schema union typing (`|`) used by sidecar tests
 - fix(ci): split backend and sidecar pytest lanes so each job installs only its own Python dependency set
 - fix(sidecar-tools): validate browser/filesystem tool args inside handlers and add explicit error paths for missing/invalid fields
 - fix(formatters): ignore malformed `tool_call` events that omit a valid `name` or non-object `args`
