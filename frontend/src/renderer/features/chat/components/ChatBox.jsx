@@ -109,41 +109,43 @@ function ChatBox() {
   const preview = trimPreview(lastAssistantMessage, 140);
 
   return (
-    <div className="chatbox-shell" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      <div className="chatbox-row">
-        <div className="chatbox-left">
-          <span className={`chatbox-indicator ${thinkingStatus ? 'is-thinking' : isSending ? 'is-sending' : ''}`} />
-          <span className="chatbox-mode">{interactionLabel}</span>
-          <span className="chatbox-status-text">{statusText}</span>
+    <div className="chatbox-shell-wrap" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+      <div className="chatbox-shell">
+        <div className="chatbox-row">
+          <div className="chatbox-left">
+            <span className={`chatbox-indicator ${thinkingStatus ? 'is-thinking' : isSending ? 'is-sending' : ''}`} />
+            <span className="chatbox-mode">{interactionLabel}</span>
+            <span className="chatbox-status-text">{statusText}</span>
+          </div>
+          <form className="chatbox-form" onSubmit={handleSubmit}>
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={(event) => setInputValue(event.target.value)}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
+              placeholder="Type a command…"
+              className="chatbox-input"
+              disabled={isSending}
+            />
+          </form>
+          <div className="chatbox-actions">
+            <button type="button" className="chatbox-icon chatbox-settings" onClick={handleOpenSettings} aria-label="Open dashboard">
+              Config
+            </button>
+            <button type="button" className="chatbox-icon chatbox-mic" disabled aria-label="Voice typing disabled">
+              Mic
+            </button>
+          </div>
         </div>
-        <form className="chatbox-form" onSubmit={handleSubmit}>
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={(event) => setInputValue(event.target.value)}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            placeholder="Type a command…"
-            className="chatbox-input"
-            disabled={isSending}
-          />
-        </form>
-        <div className="chatbox-actions">
-          <button type="button" className="chatbox-icon chatbox-settings" onClick={handleOpenSettings} aria-label="Open dashboard">
-            Config
-          </button>
-          <button type="button" className="chatbox-icon chatbox-mic" disabled aria-label="Voice typing disabled">
-            Mic
-          </button>
-        </div>
+        {preview ? (
+          <div className="chatbox-preview">
+            <span className="chatbox-preview-label">Assistant</span>
+            <span className="chatbox-preview-text">{preview}</span>
+          </div>
+        ) : null}
       </div>
-      {preview ? (
-        <div className="chatbox-preview">
-          <span className="chatbox-preview-label">Assistant</span>
-          <span className="chatbox-preview-text">{preview}</span>
-        </div>
-      ) : null}
     </div>
   );
 }
