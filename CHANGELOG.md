@@ -28,6 +28,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- fix(frontend-dashboard): replace semantic memory placeholder with live sidecar-backed semantic memory listing and detail view
 - fix(ci): run backend/sidecar GitHub Actions jobs on Python 3.11 to support browser schema union typing (`|`) used by sidecar tests
 - fix(ci): skip optional `flash-attn` install in backend CI dependency step to avoid failing wheel builds in hosted runners
 - fix(ci): split backend and sidecar pytest lanes so each job installs only its own Python dependency set

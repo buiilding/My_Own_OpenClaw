@@ -540,6 +540,12 @@ function initializeLocalBackendBridge(getWindows) {
     record_kind: recordKind,
   }));
 
+  // Handle semantic memory list requests
+  registerRpcHandler('list-semantic-memories', 'list_semantic_memories', ({ userId, limit } = {}) => ({
+    user_id: userId,
+    limit: limit,
+  }));
+
   // Handle memory storage requests
   registerRpcHandler('store-memory', 'store_memory', ({ userQuery, assistantResponse, memoryType, userId, sessionId } = {}) => ({
     user_query: userQuery,
