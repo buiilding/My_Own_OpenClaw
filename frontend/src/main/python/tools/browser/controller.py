@@ -29,24 +29,25 @@ from tools.browser.chrome_launcher import (
     ChromeLauncher,
     ChromeLauncherError,
 )
+from tools.browser.ref_registry import RefRegistry
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class PageSnapshot:
-    """AI-friendly page snapshot with element references."""
+    """AI-friendly page snapshot."""
     text: str
-    refs: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     url: str = ""
     title: str = ""
+    ref_count: int = 0
     
     def to_dict(self) -> Dict[str, Any]:
         return {
             "snapshot": self.text,
-            "refs": self.refs,
             "url": self.url,
             "title": self.title,
+            "ref_count": self.ref_count,
         }
 
 
@@ -75,6 +76,8 @@ class BrowserController:
         self._mode: Optional[str] = None  # "user_chrome" or "managed"
         self._user_data_dir: Optional[Path] = None
         self._browser_process = None
+        # Per-tab ref registries keyed by target_id (currently str(id(Page))).
+        self._ref_registry_by_tab: Dict[str, RefRegistry] = {}
         
     @property
     def is_connected(self) -> bool:
@@ -94,6 +97,31 @@ class BrowserController:
         if self._page:
             return self.title
         return ""
+
+    def _get_target_id(self, page: Optional[Page] = None) -> str:
+        p = page or self._page
+        return str(id(p)) if p else ""
+
+    def _get_ref_registry(self, page: Optional[Page] = None) -> RefRegistry:
+        target_id = self._get_target_id(page)
+        if not target_id:
+            # Shouldn't happen in normal operation; keep callers simple.
+            return RefRegistry()
+        reg = self._ref_registry_by_tab.get(target_id)
+        if reg is None:
+            reg = RefRegistry()
+            self._ref_registry_by_tab[target_id] = reg
+        return reg
+
+    def _reset_ref_registry(self, page: Optional[Page] = None) -> None:
+        target_id = self._get_target_id(page)
+        if not target_id:
+            return
+        reg = self._ref_registry_by_tab.get(target_id)
+        if reg is None:
+            reg = RefRegistry()
+            self._ref_registry_by_tab[target_id] = reg
+        reg.reset()
     
     async def auto_connect_to_chrome(
         self,
@@ -164,6 +192,7 @@ class BrowserController:
             
             self._cdp_url = actual_cdp_url
             self._mode = "user_chrome"
+            self._reset_ref_registry(self._page)
             
             logger.info(f"Connected to Chrome: {self._page.url}")
             
@@ -237,6 +266,7 @@ class BrowserController:
             
             self._cdp_url = cdp_url
             self._mode = "user_chrome"
+            self._reset_ref_registry(self._page)
             
             logger.info(f"Connected to Chrome: {self._page.url}")
             
@@ -312,6 +342,7 @@ class BrowserController:
             )
             self._page = await self._context.new_page()
             self._mode = "managed"
+            self._reset_ref_registry(self._page)
             
             logger.info(f"Managed browser launched: {self._page.url}")
             
@@ -350,6 +381,7 @@ class BrowserController:
         for page in self._context.pages:
             if str(id(page)) == target_id:
                 self._page = page
+                _ = self._get_ref_registry(page)
                 await page.bring_to_front()
                 return True
         return False
@@ -377,6 +409,9 @@ class BrowserController:
                 wait_until=wait_until,  # type: ignore
                 timeout=30000,
             )
+
+            # New document -> reset refs for this tab.
+            self._reset_ref_registry(self._page)
             
             return {
                 "success": True,
@@ -397,10 +432,13 @@ class BrowserController:
         max_chars: int = 5000,
     ) -> PageSnapshot:
         """
-        Get AI-friendly page snapshot with element references.
+        Get page snapshot for LLM consumption.
         
         Args:
-            format_type: "ai" (numbered refs) or "aria" (accessibility tree)
+            format_type:
+                - "ai": Flat list of interactive elements with (mostly) stable refs.
+                - "dom_compact": Shallow semantic tree grouping interactive elements.
+                - "aria": Accessibility tree snapshot (no refs).
             max_chars: Maximum characters in snapshot
         
         Returns:
@@ -411,13 +449,15 @@ class BrowserController:
         
         if format_type == "aria":
             return await self._get_aria_snapshot()
-        else:
-            return await self._get_ai_snapshot(max_chars)
+        if format_type == "dom_compact":
+            return await self._get_dom_compact_snapshot(max_chars)
+        return await self._get_ai_snapshot(max_chars)
     
     async def _get_ai_snapshot(self, max_chars: int = 5000) -> PageSnapshot:
-        """Build AI snapshot with numbered element references."""
+        """Build a flat interactive snapshot with stable-ish refs."""
         title = await self._page.title()
         url = self._page.url
+        reg = self._get_ref_registry(self._page)
         
         # Query interactive elements
         elements = await self._page.query_selector_all(
@@ -427,22 +467,85 @@ class BrowserController:
         )
         
         lines = []
-        refs: Dict[str, Dict[str, Any]] = {}
-        ref_num = 1
+        seen_refs: set[str] = set()
+        max_elements = 250
         
         for elem in elements:
             try:
-                # Get element info
-                tag = await elem.evaluate("el => el.tagName.toLowerCase()")
-                role = await elem.get_attribute("role") or ""
-                elem_type = await elem.get_attribute("type") or ""
-                name = await self._get_element_name(elem)
-                placeholder = await elem.get_attribute("placeholder") or ""
-                
-                # Skip hidden elements
-                visible = await elem.is_visible()
-                if not visible:
+                if len(seen_refs) >= max_elements:
+                    break
+
+                info = await elem.evaluate(
+                    """
+                    (el) => {
+                      const tag = (el.tagName || "").toLowerCase();
+                      const attr = (n) => el.getAttribute(n) || "";
+                      const role = attr("role");
+                      const type = attr("type");
+                      const id = el.id || "";
+                      const nameAttr = attr("name");
+                      const placeholder = attr("placeholder");
+                      const href = tag === "a" ? (attr("href") || "") : "";
+
+                      const ariaLabel = attr("aria-label");
+                      const title = attr("title");
+                      const alt = attr("alt");
+
+                      let label = (ariaLabel || title || nameAttr || placeholder || alt || "").trim();
+                      if (!label) {
+                        const text = (el.innerText || el.textContent || "").trim();
+                        label = text;
+                      }
+                      if (label.length > 80) label = label.slice(0, 80);
+
+                      const style = window.getComputedStyle(el);
+                      const rect = el.getBoundingClientRect();
+                      const visible =
+                        style &&
+                        style.display !== "none" &&
+                        style.visibility !== "hidden" &&
+                        style.opacity !== "0" &&
+                        rect.width > 0 &&
+                        rect.height > 0;
+
+                      const interesting = new Set(["form","main","nav","header","footer","section","article","aside","dialog"]);
+                      const ancestors = [];
+                      let p = el.parentElement;
+                      while (p && ancestors.length < 4) {
+                        const ptag = (p.tagName || "").toLowerCase();
+                        const pid = p.id || "";
+                        const pclass = (p.getAttribute("class") || "").trim().split(/\\s+/).filter(Boolean)[0] || "";
+                        if (interesting.has(ptag) || pid) {
+                          let label = ptag;
+                          if (pid) label += `#${pid}`;
+                          else if (pclass && (ptag === "div" || ptag === "section")) label += `.${pclass}`;
+                          ancestors.unshift(label);
+                        }
+                        p = p.parentElement;
+                      }
+
+                      return { tag, role, type, id, nameAttr, placeholder, href, label, visible, ancestors };
+                    }
+                    """
+                )
+
+                if not isinstance(info, dict) or not info.get("visible"):
                     continue
+
+                tag = str(info.get("tag") or "")
+                role = str(info.get("role") or "")
+                elem_type = str(info.get("type") or "")
+                placeholder = str(info.get("placeholder") or "")
+                name = str(info.get("label") or "")
+
+                key = self._build_element_key(info)
+                ref, is_new = reg.assign(key=key, url=url)
+
+                # Attach ref for later interactions. Don't use aria-* namespace.
+                await elem.evaluate(
+                    "(el, ref) => el.setAttribute('data-windie-ref', ref)",
+                    ref,
+                )
                 
                 # Build description
                 description = self._describe_element(
@@ -450,24 +553,14 @@ class BrowserController:
                 )
                 
                 if description:
-                    lines.append(f"[{ref_num}] {description}")
-                    
-                    # Store ref info for later interaction
-                    refs[str(ref_num)] = {
-                        "role": role or tag,
-                        "name": name,
-                        "tag": tag,
-                        "type": elem_type,
-                        "selector": f"aria-ref={ref_num}",
-                    }
-                    
-                    # Add data attribute for Playwright selection
-                    await elem.evaluate(f"el => el.setAttribute('aria-ref', '{ref_num}')")
-                    
-                    ref_num += 1
+                    prefix = "*[" if is_new else "["
+                    lines.append(f"{prefix}{ref}] {description}")
+                    seen_refs.add(ref)
             except Exception as e:
                 logger.debug(f"Error processing element: {e}")
                 continue
+
+        reg.finalize_snapshot(seen_refs=seen_refs, url=url)
         
         # Build snapshot text
         snapshot_text = f"Title: {title}\nURL: {url}\n\n"
@@ -479,9 +572,175 @@ class BrowserController:
         
         return PageSnapshot(
             text=snapshot_text,
-            refs=refs,
             url=url,
             title=title,
+            ref_count=len(seen_refs),
+        )
+
+    def _build_element_key(self, info: Dict[str, Any]) -> str:
+        """
+        Build a key used for stable ref assignment.
+
+        Best-effort heuristic: prefer semantic attributes over DOM position.
+        """
+        parts: list[str] = []
+        # Prefer stable identifiers first.
+        for k in ("tag", "role", "type", "id", "nameAttr", "href", "placeholder"):
+            v = info.get(k)
+            if not v:
+                continue
+            vs = str(v).strip()
+            if not vs:
+                continue
+            if len(vs) > 160:
+                vs = vs[:160]
+            parts.append(f"{k}={vs}")
+
+        # Only use the human label when we don't have stronger identifiers.
+        if not any(info.get(k) for k in ("id", "nameAttr", "href")):
+            v = info.get("label")
+            if v:
+                vs = str(v).strip()
+                if vs:
+                    if len(vs) > 160:
+                        vs = vs[:160]
+                    parts.append(f"label={vs}")
+        ancestors = info.get("ancestors") or []
+        if isinstance(ancestors, list) and ancestors:
+            anc_str = "/".join(str(a) for a in ancestors[:4])
+            parts.append(f"anc={anc_str}")
+        return "|".join(parts)
+
+    async def _get_dom_compact_snapshot(self, max_chars: int = 5000) -> PageSnapshot:
+        """Structured snapshot: grouped interactive elements with a shallow semantic tree."""
+        title = await self._page.title()
+        url = self._page.url
+        reg = self._get_ref_registry(self._page)
+
+        elements = await self._page.query_selector_all(
+            'button, input, textarea, select, a, [role="button"], '
+            '[role="link"], [role="textbox"], [role="checkbox"], '
+            '[role="radio"], [role="combobox"], [role="searchbox"]'
+        )
+
+        groups: Dict[tuple[str, ...], list[tuple[str, str, bool]]] = {}
+        seen_refs: set[str] = set()
+        max_elements = 250
+
+        for elem in elements:
+            if len(seen_refs) >= max_elements:
+                break
+            try:
+                info = await elem.evaluate(
+                    """
+                    (el) => {
+                      const tag = (el.tagName || "").toLowerCase();
+                      const attr = (n) => el.getAttribute(n) || "";
+                      const role = attr("role");
+                      const type = attr("type");
+                      const id = el.id || "";
+                      const nameAttr = attr("name");
+                      const placeholder = attr("placeholder");
+                      const href = tag === "a" ? (attr("href") || "") : "";
+
+                      const ariaLabel = attr("aria-label");
+                      const title = attr("title");
+                      const alt = attr("alt");
+
+                      let label = (ariaLabel || title || nameAttr || placeholder || alt || "").trim();
+                      if (!label) {
+                        const text = (el.innerText || el.textContent || "").trim();
+                        label = text;
+                      }
+                      if (label.length > 80) label = label.slice(0, 80);
+
+                      const style = window.getComputedStyle(el);
+                      const rect = el.getBoundingClientRect();
+                      const visible =
+                        style &&
+                        style.display !== "none" &&
+                        style.visibility !== "hidden" &&
+                        style.opacity !== "0" &&
+                        rect.width > 0 &&
+                        rect.height > 0;
+
+                      const interesting = new Set(["form","main","nav","header","footer","section","article","aside","dialog"]);
+                      const ancestors = [];
+                      let p = el.parentElement;
+                      while (p && ancestors.length < 5) {
+                        const ptag = (p.tagName || "").toLowerCase();
+                        const pid = p.id || "";
+                        const pclass = (p.getAttribute("class") || "").trim().split(/\\s+/).filter(Boolean)[0] || "";
+                        if (interesting.has(ptag) || pid) {
+                          let label = ptag;
+                          if (pid) label += `#${pid}`;
+                          else if (pclass && (ptag === "div" || ptag === "section")) label += `.${pclass}`;
+                          ancestors.unshift(label);
+                        }
+                        p = p.parentElement;
+                      }
+
+                      return { tag, role, type, id, nameAttr, placeholder, href, label, visible, ancestors };
+                    }
+                    """
+                )
+                if not isinstance(info, dict) or not info.get("visible"):
+                    continue
+
+                tag = str(info.get("tag") or "")
+                role = str(info.get("role") or "")
+                elem_type = str(info.get("type") or "")
+                placeholder = str(info.get("placeholder") or "")
+                name = str(info.get("label") or "")
+
+                key = self._build_element_key(info)
+                ref, is_new = reg.assign(key=key, url=url)
+                await elem.evaluate("(el, ref) => el.setAttribute('data-windie-ref', ref)", ref)
+
+                description = self._describe_element(tag, role, elem_type, name, placeholder)
+                if not description:
+                    continue
+
+                ancestors = info.get("ancestors") or []
+                if not isinstance(ancestors, list):
+                    ancestors = []
+                group_key = tuple(str(a) for a in ancestors)
+
+                groups.setdefault(group_key, []).append((ref, description, is_new))
+                seen_refs.add(ref)
+            except Exception as e:
+                logger.debug(f"Error processing element: {e}")
+                continue
+
+        reg.finalize_snapshot(seen_refs=seen_refs, url=url)
+
+        def render_group(path: tuple[str, ...], items: list[tuple[str, str, bool]]) -> list[str]:
+            out: list[str] = []
+            indent = 0
+            for part in path:
+                out.append(f"{'  ' * indent}<{part}>")
+                indent += 1
+            for ref, desc, is_new in items:
+                prefix = "*[" if is_new else "["
+                out.append(f"{'  ' * indent}{prefix}{ref}] {desc}")
+            return out
+
+        group_items = sorted(groups.items(), key=lambda kv: (len(kv[0]), kv[0]))
+        lines: list[str] = []
+        for path, items in group_items:
+            lines.extend(render_group(path, items))
+
+        snapshot_text = f"Title: {title}\nURL: {url}\n\n"
+        snapshot_text += "\n".join(lines)
+
+        if len(snapshot_text) > max_chars:
+            snapshot_text = snapshot_text[:max_chars] + "\n... (truncated)"
+
+        return PageSnapshot(
+            text=snapshot_text,
+            url=url,
+            title=title,
+            ref_count=len(seen_refs),
         )
     
     async def _get_aria_snapshot(self) -> PageSnapshot:
@@ -515,9 +774,9 @@ class BrowserController:
         
         return PageSnapshot(
             text=snapshot_text,
-            refs={},
             url=url,
             title=title,
+            ref_count=0,
         )
     
     async def _get_element_name(self, elem) -> str:
@@ -572,7 +831,7 @@ class BrowserController:
         if not self._page:
             raise RuntimeError("Browser not connected")
         
-        locator = self._page.locator(f"[aria-ref='{ref}']")
+        locator = self._page.locator(f"[data-windie-ref='{ref}'], [aria-ref='{ref}']")
 
         try:
             if double_click:
@@ -625,7 +884,7 @@ class BrowserController:
             raise RuntimeError("Browser not connected")
         
         try:
-            locator = self._page.locator(f"[aria-ref='{ref}']")
+            locator = self._page.locator(f"[data-windie-ref='{ref}'], [aria-ref='{ref}']")
             
             if clear_first:
                 await locator.fill(text)
@@ -695,7 +954,7 @@ class BrowserController:
             raise RuntimeError("Browser not connected")
         
         if ref:
-            locator = self._page.locator(f"[aria-ref='{ref}']")
+            locator = self._page.locator(f"[data-windie-ref='{ref}'], [aria-ref='{ref}']")
             return await locator.screenshot(type="png")
         else:
             return await self._page.screenshot(
@@ -754,6 +1013,7 @@ class BrowserController:
             self._context = None
             self._mode = None
             self._cdp_url = None
+            self._ref_registry_by_tab.clear()
             
         except Exception as e:
             logger.error(f"Error during browser close: {e}")

@@ -143,6 +143,9 @@ from backend.src.tools.filesystem.schemas import (
     WriteFileArgs,
     ListDirectoryArgs,
     GlobArgs,
+    ReplaceArgs,
+    SearchFileContentArgs,
+    ReadManyFilesArgs,
 )
 from backend.src.tools.browser.schemas import BrowserControlArgs
 # from backend.src.tools.filesystem.read_file_tool_sdk import ReadFileArgs, ReadFileToolSDK as BackendReadFileTool
@@ -297,6 +300,69 @@ class RemoteGlobTool(RemoteToolBase, Tool[GlobArgs]):
             args,
             ctx,
             log_message=f"Remote glob tool call: {args.pattern}",
+        )
+
+
+class RemoteReplaceTool(RemoteToolBase, Tool[ReplaceArgs]):
+    """
+    Remote replace tool.
+
+    Delegates execution to frontend filesystem replace tool.
+    """
+
+    name = "replace"
+    description = "Replace exact text in a file. Use for surgical edits when you know the exact old_string and the desired new_string."
+    args_model = ReplaceArgs
+    category = ToolDomain.FILESYSTEM
+
+    async def execute_remote(self, args: ReplaceArgs, ctx: ToolContext) -> RemoteToolResult:
+        """Prepare replace for remote execution."""
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote replace tool call: {args.file_path}",
+        )
+
+
+class RemoteSearchFileContentTool(RemoteToolBase, Tool[SearchFileContentArgs]):
+    """
+    Remote search file content tool.
+
+    Delegates execution to frontend filesystem search_file_content tool.
+    """
+
+    name = "search_file_content"
+    description = "Search for a regex pattern in file contents under a directory (with optional include filter)."
+    args_model = SearchFileContentArgs
+    category = ToolDomain.FILESYSTEM
+
+    async def execute_remote(self, args: SearchFileContentArgs, ctx: ToolContext) -> RemoteToolResult:
+        """Prepare search_file_content for remote execution."""
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote search_file_content tool call: {args.pattern}",
+        )
+
+
+class RemoteReadManyFilesTool(RemoteToolBase, Tool[ReadManyFilesArgs]):
+    """
+    Remote read many files tool.
+
+    Delegates execution to frontend filesystem read_many_files tool.
+    """
+
+    name = "read_many_files"
+    description = "Read multiple files/directories/globs and return concatenated content with per-file separators."
+    args_model = ReadManyFilesArgs
+    category = ToolDomain.FILESYSTEM
+
+    async def execute_remote(self, args: ReadManyFilesArgs, ctx: ToolContext) -> RemoteToolResult:
+        """Prepare read_many_files for remote execution."""
+        return self._build_remote_result(
+            args,
+            ctx,
+            log_message=f"Remote read_many_files tool call: {len(args.paths)} path(s)",
         )
 
 
@@ -591,6 +657,9 @@ REMOTE_TOOLS = {
     "write_file": RemoteWriteFileTool,
     "list_directory": RemoteListDirectoryTool,
     "glob": RemoteGlobTool,
+    "replace": RemoteReplaceTool,
+    "search_file_content": RemoteSearchFileContentTool,
+    "read_many_files": RemoteReadManyFilesTool,
     "browser_control": RemoteBrowserTool,
 }
 

@@ -169,8 +169,7 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
         "url": snapshot.url,
         "title": snapshot.title,
         "snapshot": snapshot.text,
-        "refs": snapshot.refs,
-        "ref_count": len(snapshot.refs),
+        "ref_count": snapshot.ref_count,
     })
 
 

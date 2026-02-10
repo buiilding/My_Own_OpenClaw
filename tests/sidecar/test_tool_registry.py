@@ -11,6 +11,24 @@ from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
 
 
+def test_registered_tools_match_exposed_tool_set():
+    registry = ToolRegistry()
+    registered = set(registry.tools.keys())
+    exposed = ToolRegistry.get_exposed_tool_names()
+
+    # Some exposed tools are optional at runtime (e.g. browser_control requires Playwright).
+    optional_missing = {"browser_control"}
+    missing_from_registered = sorted((exposed - registered) - optional_missing)
+    extra_in_registered = sorted(registered - exposed)
+
+    assert (registered | optional_missing) == exposed, (
+        "Sidecar tool registry drift detected.\n"
+        "All tools registered in the sidecar must be exposed to backend schemas, and vice versa.\n"
+        f"Missing from registered tools: {missing_from_registered}\n"
+        f"Extra registered tools (not exposed): {extra_in_registered}"
+    )
+
+
 @pytest.mark.asyncio
 async def test_execute_tool_returns_error_for_missing_tool():
     registry = ToolRegistry()

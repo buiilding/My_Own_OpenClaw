@@ -105,6 +105,14 @@ class TestBrowserSnapshotArgs:
             format="aria",
         )
         assert args.format == "aria"
+
+    def test_valid_dom_compact_snapshot(self):
+        """Test valid dom_compact snapshot args."""
+        args = BrowserSnapshotArgs(
+            action="snapshot",
+            format="dom_compact",
+        )
+        assert args.format == "dom_compact"
     
     def test_max_chars_bounds(self):
         """Test max_chars validation."""

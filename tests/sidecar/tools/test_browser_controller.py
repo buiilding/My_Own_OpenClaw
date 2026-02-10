@@ -26,9 +26,9 @@ class TestPageSnapshot:
         """Test creating PageSnapshot."""
         snapshot = PageSnapshot(
             text="Test snapshot",
-            refs={"1": {"role": "button", "name": "Submit"}},
             url="https://example.com",
             title="Example",
+            ref_count=1,
         )
         assert snapshot.text == "Test snapshot"
         assert snapshot.url == "https://example.com"
@@ -37,13 +37,14 @@ class TestPageSnapshot:
         """Test to_dict method."""
         snapshot = PageSnapshot(
             text="Test",
-            refs={"1": {"role": "button"}},
             url="https://example.com",
             title="Example",
+            ref_count=1,
         )
         d = snapshot.to_dict()
         assert d["snapshot"] == "Test"
         assert d["url"] == "https://example.com"
+        assert d["ref_count"] == 1
 
 
 class TestBrowserTab:
@@ -325,19 +326,23 @@ class TestBrowserControllerSnapshot:
         """Test AI snapshot generation."""
         # Mock elements
         mock_elem = mock.AsyncMock()
-        mock_elem.is_visible.return_value = True
-        mock_elem.evaluate.return_value = "button"
-        mock_elem.get_attribute.side_effect = lambda x: {
-            "role": "button",
-            "type": "",
-            "aria-label": None,
-            "title": None,
-            "name": None,
-            "value": None,
-            "alt": None,
-            "placeholder": None,
-        }.get(x)
-        mock_elem.text_content.return_value = "Submit"
+        mock_elem.evaluate = mock.AsyncMock(
+            side_effect=[
+                {
+                    "tag": "button",
+                    "role": "button",
+                    "type": "",
+                    "id": "",
+                    "nameAttr": "",
+                    "placeholder": "",
+                    "href": "",
+                    "label": "Submit",
+                    "visible": True,
+                    "ancestors": [],
+                },
+                None,  # data-windie-ref setAttribute
+            ]
+        )
         
         self.controller._page.query_selector_all.return_value = [mock_elem]
         
@@ -346,6 +351,7 @@ class TestBrowserControllerSnapshot:
         assert snapshot.title == "Example"
         assert snapshot.url == "https://example.com"
         assert "Submit" in snapshot.text
+        assert snapshot.ref_count == 1
     
     @pytest.mark.asyncio
     async def test_get_aria_snapshot(self):
@@ -362,6 +368,7 @@ class TestBrowserControllerSnapshot:
         
         assert snapshot.title == "Example"
         assert "button" in snapshot.text
+        assert snapshot.ref_count == 0
 
 
 class TestSingleton:

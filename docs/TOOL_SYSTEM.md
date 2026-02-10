@@ -339,6 +339,10 @@ Tool schemas follow JSON Schema format:
 - **read_file**: Read file contents
 - **write_file**: Write file contents
 - **list_directory**: List directory contents
+- **glob**: Find files by glob pattern
+- **search_file_content**: Search for a regex pattern in file contents
+- **replace**: Replace exact text in a file (surgical edit)
+- **read_many_files**: Read multiple files/directories/globs and return concatenated content
 
 ### System Tools
 
@@ -347,7 +351,7 @@ Tool schemas follow JSON Schema format:
 - **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; use `process` for background sessions)
 - **process**: Manage background shell sessions (poll/log/write/kill)
 
-**Note**: The sidecar implements additional tools (`replace`, `search_file_content`, `glob`, `read_many_files`), but they are not currently registered in the backend tool schemas, so the LLM cannot call them yet. `process` is registered and available.
+**Note**: The backend advertises a fixed set of remote tool schemas (LLM-callable). The sidecar may register additional helpers, but only tools listed in `frontend/src/main/python/tools/registry.py` `EXPOSED_TO_BACKEND_TOOLS` are available for LLM tool calling.
 
 ## Security
 

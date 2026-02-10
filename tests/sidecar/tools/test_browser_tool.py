@@ -194,9 +194,9 @@ class TestSnapshotAction:
             from tools.browser.controller import PageSnapshot
             mock_controller.get_page_snapshot.return_value = PageSnapshot(
                 text="[1] button Submit",
-                refs={"1": {"role": "button", "name": "Submit"}},
                 url="https://example.com",
                 title="Example",
+                ref_count=1,
             )
             mock_get.return_value = mock_controller
             
@@ -208,6 +208,7 @@ class TestSnapshotAction:
             assert result.success is True
             assert result.data["format"] == "ai"
             assert result.data["ref_count"] == 1
+            assert "refs" not in result.data
     
     @pytest.mark.asyncio
     async def test_snapshot_not_connected(self):

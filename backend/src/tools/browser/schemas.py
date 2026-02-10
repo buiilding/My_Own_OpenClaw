@@ -57,9 +57,9 @@ class BrowserSnapshotArgs(BaseModel):
         ...,
         description="Get page snapshot"
     )
-    format: Literal["ai", "aria"] = Field(
+    format: Literal["ai", "dom_compact", "aria"] = Field(
         "ai",
-        description="Snapshot format: 'ai' (numbered refs) or 'aria' (accessibility tree)"
+        description="Snapshot format: 'ai' (flat interactive list), 'dom_compact' (grouped), or 'aria' (accessibility tree)"
     )
     max_chars: int = Field(
         5000,
@@ -279,9 +279,9 @@ class BrowserControlArgs(BaseModel):
     )
     
     # Snapshot args
-    format: Literal["ai", "aria"] = Field(
+    format: Literal["ai", "dom_compact", "aria"] = Field(
         "ai",
-        description="Snapshot format"
+        description="Snapshot format: 'ai' (flat interactive list), 'dom_compact' (grouped), or 'aria' (accessibility tree)"
     )
     max_chars: int = Field(
         5000,
