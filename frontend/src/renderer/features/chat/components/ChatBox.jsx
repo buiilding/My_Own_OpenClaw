@@ -17,9 +17,10 @@ function ChatBox() {
   const { config } = useAppConfigContext();
   const { sendMessage } = useChatMessageSender();
   const [inputValue, setInputValue] = useState('');
-  const ignoreMouseRef = useRef(true);
+  const ignoreMouseRef = useRef(undefined);
+  const shellRef = useRef(null);
   const inputRef = useRef(null);
-  const isIdle = !thinkingStatus && !isSending;
+  const lastSizeRef = useRef({ width: 0, height: 0 });
 
   const lastAssistantMessage = useMemo(
     () => getLatestAssistantMessage(messages),
@@ -43,11 +44,55 @@ function ChatBox() {
   }, []);
 
   useEffect(() => {
-    setOverlayIgnore(!isIdle);
+    // Default: overlay is interactive. We resize the window to the pill, so it shouldn't
+    // block clicks outside the UI.
+    setOverlayIgnore(false);
     return () => {
       setOverlayIgnore(false);
     };
-  }, [isIdle, setOverlayIgnore]);
+  }, [setOverlayIgnore]);
+
+  useEffect(() => {
+    if (!shellRef.current) {
+      return () => {};
+    }
+
+    const updateSize = async () => {
+      const rect = shellRef.current?.getBoundingClientRect();
+      if (!rect) {
+        return;
+      }
+      const width = Math.max(1, Math.ceil(rect.width));
+      const height = Math.max(1, Math.ceil(rect.height));
+
+      if (lastSizeRef.current.width === width && lastSizeRef.current.height === height) {
+        return;
+      }
+      lastSizeRef.current = { width, height };
+      try {
+        await IpcBridge.invoke(INVOKE_CHANNELS.SET_CHATBOX_SIZE, { width, height });
+      } catch (error) {
+        console.warn('[ChatBox] Failed to resize chatbox window:', error);
+      }
+    };
+
+    if (typeof ResizeObserver === 'undefined') {
+      // JSDOM doesn't implement ResizeObserver; Electron/Chromium does.
+      window.requestAnimationFrame(updateSize);
+      return () => {};
+    }
+
+    const observer = new ResizeObserver(() => {
+      // Collapse bursts into one update per frame.
+      window.requestAnimationFrame(updateSize);
+    });
+    observer.observe(shellRef.current);
+    window.requestAnimationFrame(updateSize);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.CHATBOX_FOCUS, () => {
@@ -75,28 +120,13 @@ function ChatBox() {
     handleSend();
   }, [handleSend]);
 
-  const handleMouseEnter = useCallback(() => {
-    if (!isIdle) {
-      setOverlayIgnore(false);
-    }
-  }, [isIdle, setOverlayIgnore]);
-
-  const handleMouseLeave = useCallback(() => {
-    if (isIdle || document.activeElement === inputRef.current) {
-      return;
-    }
-    setOverlayIgnore(true);
-  }, [isIdle, setOverlayIgnore]);
-
   const handleInputFocus = useCallback(() => {
     setOverlayIgnore(false);
   }, [setOverlayIgnore]);
 
   const handleInputBlur = useCallback(() => {
-    if (!isIdle) {
-      setOverlayIgnore(true);
-    }
-  }, [isIdle, setOverlayIgnore]);
+    // no-op; placeholder if we want click-through behavior later
+  }, []);
 
   const handleOpenSettings = useCallback(async () => {
     try {
@@ -109,8 +139,8 @@ function ChatBox() {
   const preview = trimPreview(lastAssistantMessage, 140);
 
   return (
-    <div className="chatbox-shell-wrap" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      <div className="chatbox-shell">
+    <div className="chatbox-shell-wrap">
+      <div className="chatbox-shell" ref={shellRef}>
         <div className="chatbox-row">
           <div className="chatbox-left">
             <span className={`chatbox-indicator ${thinkingStatus ? 'is-thinking' : isSending ? 'is-sending' : ''}`} />
