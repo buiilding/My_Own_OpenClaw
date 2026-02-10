@@ -15,7 +15,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install backend dependencies
-        run: pip install -r backend/requirements.txt
+        run: |
+          grep -vE '^\s*flash-attn(\s|$)' backend/requirements.txt > /tmp/backend-requirements-ci.txt
+          pip install -r /tmp/backend-requirements-ci.txt
       - name: Run backend tests
         env:
           PYTHONPATH: .
