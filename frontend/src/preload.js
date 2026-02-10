@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('ipc', {
       'get-conversation',
       'list-semantic-memories',
       'delete-conversation',
+      'delete-semantic-memory',
       'store-transcript',
       'get-client-user-id',
       'set-overlay-ignore-mouse',

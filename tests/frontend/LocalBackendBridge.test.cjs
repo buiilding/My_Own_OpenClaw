@@ -316,6 +316,39 @@ describe('local_backend_bridge', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { deleted_count: 3 } });
   });
 
+  test('delete-semantic-memory handler maps payload keys to backend params', async () => {
+    initBridge();
+    markReady();
+
+    const promise = handlers['delete-semantic-memory'](null, {
+      userId: 'u-1',
+      memoryId: 'm-1',
+    });
+
+    const request = getLastWrittenRequest();
+    expect(request).toEqual(
+      expect.objectContaining({
+        method: 'delete_semantic_memory',
+        params: {
+          user_id: 'u-1',
+          memory_id: 'm-1',
+        },
+      }),
+    );
+
+    stdoutHandler(
+      Buffer.from(
+        `${JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'req-1',
+          result: { success: true, data: { deleted: true } },
+        })}\n`,
+      ),
+    );
+
+    await expect(promise).resolves.toEqual({ success: true, data: { deleted: true } });
+  });
+
   test('store-transcript handler returns standardized error payload', async () => {
     initBridge();
     markReady();
