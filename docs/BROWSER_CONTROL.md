@@ -125,6 +125,10 @@ Wait options: `load`, `domcontentloaded`, `networkidle`, `commit`
 
 Get page overview with numbered element references.
 
+Notes:
+- Refs are designed to be stable across repeated snapshots on the same page/tab, but can still change if the page navigates or the DOM replaces elements.
+- Newly-appeared interactive elements since the last snapshot are prefixed with `*` (example: `*[12]`).
+
 ```json
 {
   "action": "snapshot",
@@ -142,6 +146,26 @@ URL: https://github.com
 [2] link "Sign up"
 [3] searchbox "Search"
 [4] button "Search GitHub"
+```
+
+**DOM Compact Output (grouped):**
+```json
+{
+  "action": "snapshot",
+  "format": "dom_compact",
+  "max_chars": 5000
+}
+```
+```
+Title: GitHub
+URL: https://github.com
+
+<main>
+  [3] searchbox "Search"
+  [4] button "Search GitHub"
+<nav>
+  [1] link "Sign in"
+  [2] link "Sign up"
 ```
 
 **ARIA Format Output:**
@@ -412,7 +436,7 @@ Close browser connection.
 **Error:** `Element not found` when clicking
 
 **Solutions:**
-1. Re-run `snapshot` - refs change after page updates
+1. Re-run `snapshot` - the page/DOM may have changed since the last snapshot
 2. Check element is visible
 3. Try waiting for element: `{"action": "wait", "seconds": 2}`
 
@@ -435,7 +459,7 @@ playwright install chromium
 
 ## Best Practices
 
-1. **Always snapshot before interacting** - Element refs change on navigation
+1. **Snapshot before interacting** - Ensures refs are attached and the target still exists
 2. **Use managed mode for unknown sites** - Safer, no risk to your data
 3. **Use user_chrome for logged-in tasks** - Access your existing sessions
 4. **Close when done** - Frees resources

@@ -27,6 +27,9 @@ EXPOSED_TO_BACKEND_TOOLS = frozenset({
     "write_file",
     "list_directory",
     "glob",
+    "replace",
+    "search_file_content",
+    "read_many_files",
     "browser_control",
 })
 
