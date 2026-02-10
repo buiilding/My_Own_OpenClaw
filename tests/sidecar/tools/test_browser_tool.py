@@ -23,26 +23,33 @@ def reset_controller():
 class TestExecuteBrowserControl:
     """Test main execute function."""
     
-    def test_missing_action(self):
+    @pytest.mark.asyncio
+    async def test_missing_action(self):
         """Test error when action is missing."""
-        result = execute_browser_control({})
+        result = await execute_browser_control({})
         
         assert result.success is False
         assert "action" in result.error.lower()
     
-    def test_unknown_action(self):
+    @pytest.mark.asyncio
+    async def test_unknown_action(self):
         """Test error for unknown action."""
-        result = execute_browser_control({"action": "unknown"})
+        result = await execute_browser_control({"action": "unknown"})
         
         assert result.success is False
-        assert "Unknown" in result.error
+        assert "Unhandled" in result.error
     
-    def test_validation_error(self):
+    @pytest.mark.asyncio
+    async def test_validation_error(self):
         """Test validation error handling."""
-        result = execute_browser_control({"action": "click"})  # Missing ref
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_get.return_value = mock_controller
+            result = await execute_browser_control({"action": "click"})  # Missing ref
         
         assert result.success is False
-        assert "Validation" in result.error or "ref" in result.error.lower()
+        assert "ref" in result.error.lower()
 
 
 class TestConnectAction:
@@ -54,7 +61,7 @@ class TestConnectAction:
         with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = False
-            mock_controller.connect_to_user_chrome.return_value = {
+            mock_controller.auto_connect_to_chrome.return_value = {
                 "status": "connected",
                 "mode": "user_chrome",
                 "url": "https://example.com",
@@ -69,6 +76,7 @@ class TestConnectAction:
             
             assert result.success is True
             assert result.data["mode"] == "user_chrome"
+            mock_controller.auto_connect_to_chrome.assert_awaited_once()
     
     @pytest.mark.asyncio
     async def test_connect_managed(self):
@@ -98,7 +106,7 @@ class TestConnectAction:
         with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = False
-            mock_controller.connect_to_user_chrome.side_effect = ConnectionError("Failed")
+            mock_controller.auto_connect_to_chrome.side_effect = ConnectionError("Failed")
             mock_controller.close = mock.AsyncMock()
             mock_get.return_value = mock_controller
             
@@ -108,7 +116,7 @@ class TestConnectAction:
             })
             
             assert result.success is False
-            assert "Cannot connect" in result.error
+            assert "Failed to connect to Chrome" in result.error
 
 
 class TestNavigateAction:

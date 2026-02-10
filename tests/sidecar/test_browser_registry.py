@@ -32,7 +32,7 @@ class TestBrowserToolRegistration:
         with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = False
-            mock_controller.connect_to_user_chrome.return_value = {
+            mock_controller.auto_connect_to_chrome.return_value = {
                 "status": "connected",
                 "mode": "user_chrome",
                 "url": "https://example.com",
@@ -46,6 +46,7 @@ class TestBrowserToolRegistration:
             
             assert result.success is True
             assert result.data["mode"] == "user_chrome"
+            mock_controller.auto_connect_to_chrome.assert_awaited_once()
     
     @pytest.mark.asyncio
     async def test_browser_control_validation_error(self):

@@ -78,16 +78,17 @@ class TestBrowserControllerBasics:
     async def test_connect_to_user_chrome(self, mock_playwright):
         """Test connecting to user Chrome."""
         # Mock Playwright
-        mock_pw = mock.AsyncMock()
+        mock_pw = mock.MagicMock()
         mock_browser = mock.AsyncMock()
         mock_context = mock.AsyncMock()
         mock_page = mock.AsyncMock()
         
         mock_page.url = "https://example.com"
+        mock_page.title.return_value = "Example"
         mock_context.pages = [mock_page]
         mock_browser.contexts = [mock_context]
-        mock_pw.chromium.connect_over_cdp.return_value = mock_browser
-        mock_playwright.return_value.start.return_value = mock_pw
+        mock_pw.chromium.connect_over_cdp = mock.AsyncMock(return_value=mock_browser)
+        mock_playwright.return_value.start = mock.AsyncMock(return_value=mock_pw)
         
         controller = BrowserController()
         result = await controller.connect_to_user_chrome("http://127.0.0.1:9222")
@@ -114,7 +115,7 @@ class TestBrowserControllerBasics:
         mock_mkdtemp.return_value = "/tmp/windieos_browser_test"
         mock_find_exe.return_value = mock.Mock(path="/usr/bin/chrome")
         
-        mock_pw = mock.AsyncMock()
+        mock_pw = mock.MagicMock()
         mock_browser = mock.AsyncMock()
         mock_context = mock.AsyncMock()
         mock_page = mock.AsyncMock()
@@ -122,8 +123,8 @@ class TestBrowserControllerBasics:
         mock_page.url = "about:blank"
         mock_context.new_page.return_value = mock_page
         mock_browser.new_context.return_value = mock_context
-        mock_pw.chromium.launch.return_value = mock_browser
-        mock_playwright.return_value.start.return_value = mock_pw
+        mock_pw.chromium.launch = mock.AsyncMock(return_value=mock_browser)
+        mock_playwright.return_value.start = mock.AsyncMock(return_value=mock_pw)
         
         controller = BrowserController()
         result = await controller.launch_managed_browser()
@@ -148,7 +149,17 @@ class TestBrowserControllerActions:
     def setup_method(self):
         """Setup mock page for each test."""
         self.controller = BrowserController()
-        self.controller._page = mock.AsyncMock()
+        self.controller._page = mock.MagicMock()
+        self.controller._page.goto = mock.AsyncMock()
+        self.controller._page.title = mock.AsyncMock(return_value="Example")
+        self.controller._page.locator = mock.MagicMock()
+        self.controller._page.screenshot = mock.AsyncMock()
+        self.controller._page.wait_for_load_state = mock.AsyncMock()
+        self.controller._page.evaluate = mock.AsyncMock()
+        self.controller._page.keyboard = mock.MagicMock()
+        self.controller._page.keyboard.press = mock.AsyncMock()
+        self.controller._page.mouse = mock.MagicMock()
+        self.controller._page.mouse.wheel = mock.AsyncMock()
         self.controller._browser = mock.AsyncMock()
         self.controller._context = mock.AsyncMock()
     
@@ -177,18 +188,24 @@ class TestBrowserControllerActions:
     @pytest.mark.asyncio
     async def test_click(self):
         """Test clicking element."""
-        mock_locator = mock.AsyncMock()
+        mock_locator = mock.MagicMock()
+        mock_locator.click = mock.AsyncMock()
+        mock_locator.dblclick = mock.AsyncMock()
+        mock_locator.evaluate = mock.AsyncMock()
         self.controller._page.locator.return_value = mock_locator
         
         result = await self.controller.click("1")
         
         assert result["success"] is True
-        mock_locator.click.assert_called_once()
+        mock_locator.click.assert_awaited_once_with(button="left")
     
     @pytest.mark.asyncio
     async def test_click_failure(self):
         """Test click failure."""
-        self.controller._page.locator.side_effect = Exception("Element not found")
+        mock_locator = mock.MagicMock()
+        mock_locator.click = mock.AsyncMock(side_effect=Exception("Element not found"))
+        mock_locator.evaluate = mock.AsyncMock(side_effect=Exception("Element not found"))
+        self.controller._page.locator.return_value = mock_locator
         
         result = await self.controller.click("1")
         
@@ -197,7 +214,10 @@ class TestBrowserControllerActions:
     @pytest.mark.asyncio
     async def test_type_text(self):
         """Test typing text."""
-        mock_locator = mock.AsyncMock()
+        mock_locator = mock.MagicMock()
+        mock_locator.fill = mock.AsyncMock()
+        mock_locator.type = mock.AsyncMock()
+        mock_locator.press = mock.AsyncMock()
         self.controller._page.locator.return_value = mock_locator
         
         result = await self.controller.type_text("1", "Hello World")
@@ -208,7 +228,10 @@ class TestBrowserControllerActions:
     @pytest.mark.asyncio
     async def test_type_text_with_submit(self):
         """Test typing text with submit."""
-        mock_locator = mock.AsyncMock()
+        mock_locator = mock.MagicMock()
+        mock_locator.fill = mock.AsyncMock()
+        mock_locator.type = mock.AsyncMock()
+        mock_locator.press = mock.AsyncMock()
         self.controller._page.locator.return_value = mock_locator
         
         result = await self.controller.type_text("1", "Hello", submit=True)
@@ -256,8 +279,8 @@ class TestBrowserControllerActions:
     @pytest.mark.asyncio
     async def test_screenshot_element(self):
         """Test element screenshot."""
-        mock_locator = mock.AsyncMock()
-        mock_locator.screenshot.return_value = b"pngdata"
+        mock_locator = mock.MagicMock()
+        mock_locator.screenshot = mock.AsyncMock(return_value=b"pngdata")
         self.controller._page.locator.return_value = mock_locator
         
         result = await self.controller.screenshot(ref="1")
