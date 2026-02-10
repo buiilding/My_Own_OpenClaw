@@ -546,6 +546,13 @@ function initializeLocalBackendBridge(getWindows) {
     limit: limit,
   }));
 
+  // Handle conversation deletion requests
+  registerRpcHandler('delete-conversation', 'delete_conversation', ({ userId, conversationId, recordKind } = {}) => ({
+    user_id: userId,
+    conversation_id: conversationId ?? null,
+    record_kind: recordKind,
+  }));
+
   // Handle memory storage requests
   registerRpcHandler('store-memory', 'store_memory', ({ userQuery, assistantResponse, memoryType, userId, sessionId } = {}) => ({
     user_query: userQuery,
