@@ -10,6 +10,7 @@
 - [ ] Chat mode: capture screenshot and open dashboard immediately (student-facing).
 - [ ] Explore dedicated VM for Windie (user-controllable and agent-controllable); consider off-device hosting vs. security.
 - [ ] Create an OS specifically for an agent.
+- [ ] Create usage limits for users so we don't go broke
 
 
 # Specific TODOs
