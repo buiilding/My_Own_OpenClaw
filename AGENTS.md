@@ -14,13 +14,15 @@
 ## Build, Test, and Development Commands
 
 - Runtime baseline: **Python 3.11**, **Node 18+**.
-- Conda envs (authoritative): backend/runtime+backend tests => `conda activate jarvis`; frontend app/sidecar/frontend tests => `conda activate frontend_jarvis`.
+- Conda env names (authoritative): backend/runtime+backend tests => `jarvis`; frontend app/sidecar/frontend tests => `frontend_jarvis`.
+- No manual activation required: use `./scripts/python-in-env <backend|frontend|sidecar> <cmd...>` (falls back to current shell env if conda env missing).
 - Install backend deps: `pip install -r backend/requirements.txt`
 - Install frontend deps: `cd frontend && npm install`
-- Run backend (dev): `python -m backend.src.main` (from repo root) or `uvicorn backend.src.main:app --host 0.0.0.0 --port 8765 --reload`.
-- Run frontend UI (Vite): `cd frontend && npm run dev`
-- Run Electron app: `cd frontend && npm run electron`
-- Backend tests: `pytest` (repo root uses `pytest.ini`).
+- Run backend (dev): `./scripts/run-backend` (or `./scripts/python-in-env backend python -m backend.src.main`).
+- Run frontend UI (Vite): `./scripts/run-frontend-dev`
+- Run Electron app: `./scripts/run-frontend-electron`
+- Backend tests: `./scripts/test-backend`
+- Sidecar tests: `./scripts/test-sidecar`
 - Frontend tests: `cd frontend && npm run test` (CI: `npm run test:ci`).
 - Lint frontend: `cd frontend && npm run lint`.
 

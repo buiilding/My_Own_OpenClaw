@@ -10,14 +10,21 @@ read_when:
 
 ```bash
 cd /path/to/WindieOS
-pytest
+./scripts/test
+```
+
+### Backend-Only Tests
+
+```bash
+cd /path/to/WindieOS
+./scripts/test-backend
 ```
 
 ### Sidecar-Only Tests
 
 ```bash
 cd /path/to/WindieOS
-pytest tests/sidecar
+./scripts/test-sidecar
 ```
 
 ## Frontend Tests
@@ -29,8 +36,10 @@ npm test
 
 ## Notes
 
-- `pytest` uses `pytest.ini` and runs `tests/backend` + `tests/sidecar`.
-- Activate the Python environment that has backend/sidecar deps before running `pytest`.
+- Python tests are split by env automatically:
+  - `tests/backend` runs with `jarvis`
+  - `tests/sidecar` runs with `frontend_jarvis`
+- `scripts/python-in-env` uses `conda run` when envs exist, otherwise falls back to the current shell env (CI-friendly).
 - For CI parity: `cd frontend && npm run test:ci`.
 - Frontend tests use Jest + React Testing Library.
 - `tests/frontend/ToolRunnerHook.test.ts` covers backend-listener cleanup and malformed tool event guards to prevent false-positive dispatch behavior.

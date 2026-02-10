@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- build(dev): add env-aware helper scripts (`python-in-env`, split test runners, and frontend/backend run wrappers) so local commands no longer require manual `conda activate`
+- test(sidecar): align browser tool/controller/registry test mocks with async `browser_control` connect and Playwright locator usage
 - test(backend): add remote tool contract coverage to enforce backend remote schema and sidecar exposed-tool sync
 - 656fb26 feat(frontend): stabilize tool schema, config, and tests
 - e9fafd6 feat(frontend): handle screenshot refs in chat flow
@@ -25,6 +27,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- fix(ci): split backend and sidecar pytest lanes so each job installs only its own Python dependency set
 - fix(sidecar-tools): validate browser/filesystem tool args inside handlers and add explicit error paths for missing/invalid fields
 - fix(formatters): ignore malformed `tool_call` events that omit a valid `name` or non-object `args`
 - fix(frontend-chat): synthesize missing tool bundle ids and preserve event-id correlation fallback in tool runner dispatch
@@ -105,6 +108,7 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- refactor(dev-workflow): route `scripts/test` and `scripts/check` through backend/sidecar-specific runners and update docs to match non-activation flow
 - refactor(sidecar-registry): remove central schema map validation and keep backend as the source of truth for remote tool schemas
 - refactor(frontend-endpoints): centralize backend ws/http endpoint resolution across Electron main process and sidecar bootstrap
 - refactor(config-subscriptions): await threadpool callback completion for deterministic config-update ordering

@@ -165,38 +165,33 @@ You must run the backend and frontend in separate terminals.
 
 **Terminal 1: Start the Backend**
 ```bash
-# Activate your Python env (conda or venv) if you use one
-
 # Set an API key for the provider you plan to use
 export OPENAI_API_KEY="your-key"
 # Note: Local providers (Ollama/LM Studio) do not require API keys.
 
-# Run the server as a module from the project root
-python -m backend.src.main
+# Run the server from the project root (auto-uses jarvis env if available)
+./scripts/run-backend
 ```
 
 **Terminal 2: Start the Frontend UI (Vite)**
 ```bash
-cd frontend
-npm run dev
+./scripts/run-frontend-dev
 ```
 
 **Terminal 3: Start the Frontend App (Electron)**
 ```bash
-cd frontend
-npm run electron
+./scripts/run-frontend-electron
 ```
-If the sidecar dependencies live in a specific Python environment, activate it before launching Electron.
 
 ### Running Tests
 The project has basic test coverage for the backend.
 
 #### Backend Tests (pytest)
-1.  From the repo root, run pytest (uses `pytest.ini`):
+1.  From the repo root, run split Python tests (auto-routes backend/sidecar to the right env):
     ```bash
-    pytest
+    ./scripts/test
     ```
-    Note: This runs `tests/backend` and `tests/sidecar`. Only basic pytest and pytest-asyncio are included.
+    Note: `./scripts/test-backend` and `./scripts/test-sidecar` are available for targeted runs.
 
 #### Frontend Tests (Jest)
 1.  Navigate to the frontend directory:
