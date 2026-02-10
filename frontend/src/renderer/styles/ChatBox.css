@@ -2,22 +2,28 @@ body {
   background: transparent !important;
 }
 
-.chatbox-shell {
+.chatbox-shell-wrap {
   width: min(520px, calc(100vw - 32px));
   margin: 0 auto;
-  padding: 12px 14px 10px;
   border-radius: 22px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.38);
+  animation: fadeUp 320ms ease;
+}
+
+.chatbox-shell {
+  padding: 12px 14px 10px;
+  border-radius: inherit;
   background: radial-gradient(circle at top, rgba(20, 28, 36, 0.82), rgba(10, 12, 16, 0.72));
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
-    0 16px 36px rgba(0, 0, 0, 0.38),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(18px);
   color: #f4f2ee;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  animation: fadeUp 320ms ease;
+  overflow: hidden; /* clip backdrop-filter to rounded corners (Chromium) */
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .chatbox-row {
