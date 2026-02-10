@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(legal): add founder equity and collaboration agreement for WindieOS with matching PDF artifact
 - build(dev): add env-aware helper scripts (`python-in-env`, split test runners, and frontend/backend run wrappers) so local commands no longer require manual `conda activate`
 - test(sidecar): align browser tool/controller/registry test mocks with async `browser_control` connect and Playwright locator usage
 - test(backend): add remote tool contract coverage to enforce backend remote schema and sidecar exposed-tool sync
