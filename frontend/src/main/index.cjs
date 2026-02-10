@@ -150,7 +150,7 @@ function createWindow() {
 function createChatWindow() {
   chatWindow = new BrowserWindow({
     width: 520,
-    height: 140,
+    height: 96,
     frame: false,
     transparent: true,
     backgroundColor: '#00000000',
@@ -160,7 +160,10 @@ function createChatWindow() {
     fullscreenable: false,
     skipTaskbar: true,
     alwaysOnTop: true,
-    hasShadow: true,
+    // Use CSS shadow for the pill; WM window shadows are often rectangular on Linux.
+    hasShadow: false,
+    // Hint to Linux compositors that this is a small utility window (often reduces WM shadows).
+    type: 'toolbar',
     webPreferences: {
       preload: path.join(__dirname, '../preload.js'),
       contextIsolation: true,
@@ -178,7 +181,7 @@ function createChatWindow() {
 
   chatWindow.setAlwaysOnTop(true, 'floating');
   chatWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  chatWindow.setIgnoreMouseEvents(true, { forward: true });
+  chatWindow.setIgnoreMouseEvents(false);
   positionChatWindow();
 
   const devUrl = 'http://localhost:5173';
@@ -318,6 +321,25 @@ function initializeOverlayHandlers() {
       return { success: true };
     } catch (error) {
       return { success: false, reason: `Failed to update ignore state: ${error.message}` };
+    }
+  });
+
+  ipcMain.handle('set-chatbox-size', async (event, { width, height } = {}) => {
+    if (!chatWindow || chatWindow.isDestroyed()) {
+      return { success: false, reason: 'Chat window not available' };
+    }
+    const nextWidth = Math.max(1, Math.min(900, Math.round(Number(width) || 0)));
+    const nextHeight = Math.max(1, Math.min(500, Math.round(Number(height) || 0)));
+    try {
+      const [curWidth, curHeight] = chatWindow.getSize();
+      if (curWidth === nextWidth && curHeight === nextHeight) {
+        return { success: true, resized: false };
+      }
+      chatWindow.setSize(nextWidth, nextHeight, false);
+      positionChatWindow();
+      return { success: true, resized: true, width: nextWidth, height: nextHeight };
+    } catch (error) {
+      return { success: false, reason: `Failed to resize chatbox: ${error.message}` };
     }
   });
 
