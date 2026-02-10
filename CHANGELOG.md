@@ -31,6 +31,7 @@ Includes the last 300 commits on `main`.
 
 ### Fixed
 - fix(frontend-dashboard): replace semantic memory placeholder with live sidecar-backed semantic memory listing and detail view
+- fix(frontend-chatbox): auto-resize the chatbox overlay window to the pill bounds to avoid blocking background clicks
 - fix(ci): run backend/sidecar GitHub Actions jobs on Python 3.11 to support browser schema union typing (`|`) used by sidecar tests
 - fix(ci): skip optional `flash-attn` install in backend CI dependency step to avoid failing wheel builds in hosted runners
 - fix(ci): split backend and sidecar pytest lanes so each job installs only its own Python dependency set
