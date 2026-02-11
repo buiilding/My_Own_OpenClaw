@@ -35,6 +35,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- fix(orchestrator): avoid test-order circular import during `ToolResultOrchestrator` module load by lazy-loading bundle detection/execution helpers
 - fix(frontend-dashboard): replace semantic memory placeholder with live sidecar-backed semantic memory listing and detail view
 - fix(frontend-chatbox): auto-resize the chatbox overlay window to the pill bounds to avoid blocking background clicks
 - fix(ocr): scale OCR-resolved coordinates from screenshot pixel space to screen resolution for HiDPI/multi-resolution setups
