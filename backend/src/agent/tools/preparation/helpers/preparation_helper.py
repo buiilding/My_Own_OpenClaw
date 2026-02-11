@@ -6,8 +6,13 @@ Pure infrastructure code - no side effects beyond tool resolution.
 """
 import logging
 import time
-from typing import AsyncGenerator, Optional, Tuple, TYPE_CHECKING
+from typing import AsyncGenerator, Optional, TYPE_CHECKING
 
+from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
+    CoordinateContract,
+    build_contract_metadata,
+    normalize_to_display_space,
+)
 from backend.src.agent.tools.preparation.helpers.coordinate_resolution_helper import resolve_coordinates
 from backend.src.agent.tools.preparation.helpers.image_dimensions import (
     get_image_dimensions_from_screenshot_b64,
@@ -92,65 +97,80 @@ async def resolve_tool_with_coordinates(
 
     # Normalize to frontend mouse coordinate space when screenshot pixel space differs
     # (common with HiDPI scaling where screenshot is physical pixels).
-    if tool_call.parameters.get("find_coordinates_by") in (
+    requires_coordinate_normalization = tool_call.parameters.get("find_coordinates_by") in (
         CoordinateFindingMethod.OCR,
         CoordinateFindingMethod.PREDICTION,
-    ):
-        x, y = _maybe_scale_coordinates_to_screen(session, screenshot_data, x, y, context_id)
+    )
+    if requires_coordinate_normalization:
+        contract = _build_coordinate_contract(session, screenshot_data, x, y)
+        normalized = normalize_to_display_space(contract)
+        if normalized.status == "scaled_to_display":
+            logger.info(
+                "[context_id=%s] Scaled coordinates from screenshot %sx%s to display %sx%s: (%s,%s)->(%s,%s)",
+                short_id(context_id),
+                contract.source_image_size[0] if contract.source_image_size else "?",
+                contract.source_image_size[1] if contract.source_image_size else "?",
+                contract.target_display_size[0] if contract.target_display_size else "?",
+                contract.target_display_size[1] if contract.target_display_size else "?",
+                x,
+                y,
+                normalized.x,
+                normalized.y,
+            )
+        elif normalized.status not in ("source_equals_target", "already_display_space"):
+            logger.warning(
+                "[context_id=%s] Coordinate normalization fallback: status=%s "
+                "(source_size=%s, target_size=%s)",
+                short_id(context_id),
+                normalized.status,
+                contract.source_image_size,
+                contract.target_display_size,
+            )
+        x, y = normalized.x, normalized.y
     
     # 5. Rewrite to manual mode
     _rewrite_to_manual(resolved_call, x, y)
     if not resolved_call.metadata:
         resolved_call.metadata = {}
     resolved_call.metadata["coordinate_resolution_screenshot_id"] = screenshot_id
+    if requires_coordinate_normalization:
+        resolved_call.metadata["coordinate_contract"] = build_contract_metadata(
+            contract,
+            normalized,
+        )
+    else:
+        resolved_call.metadata["coordinate_contract"] = {
+        "coordinate_space": "display_px",
+        "source_coordinates": {"x": x, "y": y},
+        "source_image_size": None,
+        "target_display_size": None,
+        "normalized_coordinates": {"x": x, "y": y},
+        "normalized_space": "display_px",
+        "normalization_status": "already_display_space",
+        }
     logger.info(
         f"[context_id={short_id(context_id)}] Resolved coordinates for {tool_call.tool_name}: ({x}, {y}) using screenshot {screenshot_id[:8]}"
     )
 
 
-def _maybe_scale_coordinates_to_screen(
+def _build_coordinate_contract(
     session: "AgentSession",
     screenshot_b64: str,
     x: int,
     y: int,
-    context_id: str,
-) -> Tuple[int, int]:
+) -> CoordinateContract:
     system_state = session.get_current_system_state()
-    screen_res = parse_screen_resolution(
+    target_display_size = parse_screen_resolution(
         system_state.get("screen_resolution") if isinstance(system_state, dict) else None
     )
-    if not screen_res:
-        return x, y
-    screen_w, screen_h = screen_res
-
-    screenshot_res = get_image_dimensions_from_screenshot_b64(screenshot_b64)
-    if not screenshot_res:
-        return x, y
-    shot_w, shot_h = screenshot_res
-
-    if screen_w <= 0 or screen_h <= 0 or shot_w <= 0 or shot_h <= 0:
-        return x, y
-
-    if (screen_w, screen_h) == (shot_w, shot_h):
-        return x, y
-
-    scale_x = screen_w / shot_w
-    scale_y = screen_h / shot_h
-    scaled_x = int(round(x * scale_x))
-    scaled_y = int(round(y * scale_y))
-    logger.info(
-        "[context_id=%s] Scaled coordinates from screenshot %sx%s to screen %sx%s: (%s,%s)->(%s,%s)",
-        short_id(context_id),
-        shot_w,
-        shot_h,
-        screen_w,
-        screen_h,
-        x,
-        y,
-        scaled_x,
-        scaled_y,
+    source_image_size = get_image_dimensions_from_screenshot_b64(screenshot_b64)
+    return CoordinateContract(
+        x=x,
+        y=y,
+        coordinate_space="screenshot_px",
+        source_image_size=source_image_size,
+        target_display_size=target_display_size,
     )
-    return scaled_x, scaled_y
 
 
 def _rewrite_to_manual(resolved_call: ResolvedToolCall, x: int, y: int):
