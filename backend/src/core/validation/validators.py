@@ -21,7 +21,10 @@ class FrontendConfigPatch(BaseModel):
     Extra keys are ignored after warning in validate_frontend_config.
     """
 
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(
+        extra="ignore",
+        protected_namespaces=(),
+    )
 
     model_mode: Optional[Literal["local", "online"]] = None
     model_provider: Optional[str] = None
