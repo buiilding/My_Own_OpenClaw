@@ -18,13 +18,8 @@ from backend.src.tools.remote_tools.computer import (
     RemoteWaitTool,
 )
 from backend.src.tools.remote_tools.filesystem import (
-    RemoteGlobTool,
-    RemoteListDirectoryTool,
     RemoteReadFileTool,
-    RemoteReadManyFilesTool,
     RemoteReplaceTool,
-    RemoteSearchFileContentTool,
-    RemoteWriteFileTool,
 )
 from backend.src.tools.remote_tools.system import (
     RemoteGetSystemStatsTool,
@@ -44,12 +39,7 @@ REMOTE_TOOLS: Dict[str, Type[Tool]] = {
     "run_shell_command": RemoteShellTool,
     "process": RemoteProcessTool,
     "read_file": RemoteReadFileTool,
-    "write_file": RemoteWriteFileTool,
-    "list_directory": RemoteListDirectoryTool,
-    "glob": RemoteGlobTool,
     "replace": RemoteReplaceTool,
-    "search_file_content": RemoteSearchFileContentTool,
-    "read_many_files": RemoteReadManyFilesTool,
     "browser_control": RemoteBrowserTool,
 }
 

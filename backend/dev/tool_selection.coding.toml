@@ -5,12 +5,7 @@ tools = [
   "run_shell_command",
   "process",
   "read_file",
-  "write_file",
-  "list_directory",
-  "glob",
   "replace",
-  "search_file_content",
-  "read_many_files",
 ]
 
 [tool_options.mouse_control]

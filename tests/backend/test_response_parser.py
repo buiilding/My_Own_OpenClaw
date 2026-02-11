@@ -48,21 +48,21 @@ async def test_parse_response_embedded_json_multiple_calls():
     parser = _make_parser(
         [
             DummyTool("read_file", ToolDomain.FILESYSTEM),
-            DummyTool("write_file", ToolDomain.FILESYSTEM),
+            DummyTool("replace", ToolDomain.FILESYSTEM),
         ]
     )
     response = (
         "first\n"
         '{"functionCall":{"name":"read_file","args":{"file_path":"/tmp/a"}}}\n'
         "middle\n"
-        '{"functionCall":{"name":"write_file","args":{"file_path":"/tmp/b","content":"hi"}}}\n'
+        '{"functionCall":{"name":"replace","args":{"file_path":"/tmp/b","old_string":"x","new_string":"y"}}}\n'
         "last"
     )
     parsed = await parser.parse_response(response)
     assert parsed.has_tool_calls is True
     assert len(parsed.tool_calls) == 2
     assert parsed.tool_calls[0].tool_name == "read_file"
-    assert parsed.tool_calls[1].tool_name == "write_file"
+    assert parsed.tool_calls[1].tool_name == "replace"
     assert "functionCall" not in parsed.text_content
 
 

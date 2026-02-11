@@ -149,29 +149,6 @@ class ReadFileArgs(BaseModel):
     )
 
 
-class WriteFileArgs(BaseModel):
-    """Arguments for write file tool."""
-    model_config = ConfigDict(extra='ignore')
-    
-    file_path: str = Field(..., description="Absolute path to the file to write")
-    content: str = Field(..., description="Content to write to the file")
-    explanation: Optional[str] = Field(
-        None,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-
-
-class ListDirectoryArgs(BaseModel):
-    """Arguments for list directory tool."""
-    model_config = ConfigDict(extra='ignore')
-    
-    path: str = Field(..., description="Absolute path to the directory to list")
-    explanation: Optional[str] = Field(
-        None,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
-    )
-
-
 # --- System Tool Schemas ---
 
 class RunShellCommandArgs(BaseModel):
@@ -276,30 +253,3 @@ class ReplaceArgs(BaseModel):
     old_string: str = Field(..., description="The string to search for and replace")
     new_string: str = Field(..., description="The replacement string")
     replace_all: bool = Field(False, description="If true, replace all occurrences; if false, replace only the first occurrence")
-
-
-class SearchFileContentArgs(BaseModel):
-    """Arguments for search_file_content tool."""
-    model_config = ConfigDict(extra='ignore')
-    
-    pattern: str = Field(..., description="Regular expression pattern to search for")
-    path: Optional[str] = Field(None, description="Directory path to search in (defaults to current working directory)")
-    include: Optional[str] = Field(None, description="Glob pattern to filter files (e.g., '*.py')")
-
-
-class GlobArgs(BaseModel):
-    """Arguments for glob tool."""
-    model_config = ConfigDict(extra='ignore')
-    
-    pattern: str = Field(..., description="Glob pattern to search for (e.g., 'src/**/*.ts', '**/*.md')")
-    path: Optional[str] = Field(None, description="Directory path to search in (defaults to current working directory)")
-    case_sensitive: Optional[bool] = Field(None, description="Whether pattern matching is case sensitive (reserved for future use)")
-
-
-class ReadManyFilesArgs(BaseModel):
-    """Arguments for read_many_files tool."""
-    model_config = ConfigDict(extra='ignore')
-    
-    paths: List[str] = Field(..., description="List of file paths or glob patterns to read")
-    include: Optional[List[str]] = Field(None, description="Additional glob patterns to include")
-    exclude: Optional[List[str]] = Field(None, description="Glob patterns to exclude (reserved for future use)")

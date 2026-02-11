@@ -1,9 +1,7 @@
 """
 Vision Service Interface.
 """
-from typing import Optional, Protocol
-
-from backend.src.services.vision.providers import InternVLModel
+from typing import Any, Optional, Protocol
 
 
 class IVisionService(Protocol):
@@ -12,8 +10,8 @@ class IVisionService(Protocol):
     model_name: str
     
     @property
-    def model(self) -> Optional[InternVLModel]:
-        """Get the initialized InternVL model instance."""
+    def model(self) -> Optional[Any]:
+        """Get the initialized vision model instance."""
         ...
     
     @property
@@ -29,4 +27,3 @@ class IVisionService(Protocol):
     async def initialize(self) -> bool:
         """Initialize the InternVL model."""
         ...
-

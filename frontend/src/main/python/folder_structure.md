@@ -52,13 +52,9 @@ frontend/src/main/python/
     │   ├── __init__.py                # Package initialization
     │   ├── file_utils.py              # Binary file detection, encoding detection utilities
     │   ├── gitignore_utils.py         # Gitignore parsing and filtering using pathspec
-    │   ├── glob_tool.py               # glob() - File pattern matching with gitignore filtering
-    │   ├── list_directory_tool.py     # list_directory() - Directory listing with gitignore filtering
     │   ├── read_file_tool.py          # read_file() - File reading with binary detection, size limits, pagination
-    │   ├── read_many_files_tool.py    # read_many_files() - Parallel file reading with glob patterns and gitignore filtering
     │   ├── replace_tool.py            # replace() - Find-and-replace with line ending normalization
-    │   ├── search_file_content_tool.py # search_file_content() - Regex search with git grep fallback and match limits
-    │   └── write_file_tool.py         # write_file() - File writing with workspace validation and hard guardrail (fails if exists)
+    │   └── ...                        # Removed legacy filesystem tool implementations
     │
     ├── memory/                         # Memory management tools
     │   ├── __init__.py                # Package initialization
@@ -126,7 +122,7 @@ frontend/src/main/python/
            ↓
 3. TOOL IMPLEMENTATION
    ├─> tools/computer/*.py - Computer control (mouse, keyboard, screenshot, scroll)
-   ├─> tools/filesystem/*.py - Filesystem operations (read, write, glob, search, replace)
+   ├─> tools/filesystem/*.py - Filesystem operations (read, replace)
    ├─> tools/system/*.py - System operations (shell, stats, wait, windows)
    └─> tools/memory/memory_tool.py - Memory operations
        ↓
@@ -284,15 +280,13 @@ frontend/src/main/python/
 
 10. **Workspace Boundaries**: File operations validated against workspace root
 
-11. **Hard Guardrails**: write_file fails if file exists (forces use of replace tool)
+11. **Thread Pool Reuse**: Global thread pool for blocking operations (FAISS, file I/O)
 
-12. **Thread Pool Reuse**: Global thread pool for blocking operations (FAISS, file I/O)
+12. **Error Handling**: Graceful degradation when platform-specific libraries unavailable
 
-13. **Error Handling**: Graceful degradation when platform-specific libraries unavailable
+13. **Binary Detection**: Automatic binary file detection to prevent reading binary as text
 
-14. **Binary Detection**: Automatic binary file detection to prevent reading binary as text
-
-15. **Size Limits**: File size limits (10MB) and match limits (500) to prevent context window explosion
+14. **Size Limits**: File size limits (10MB) and match limits (500) to prevent context window explosion
 
 ---
 
