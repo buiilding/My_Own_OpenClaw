@@ -15,10 +15,14 @@ The backend is built using Python 3.9+ with FastAPI, following clean architectur
 To reduce feature-change friction in `backend/src/core`, runtime internals were split into smaller seams:
 
 - **Config assembly is centralized** in `backend/src/core/config/runtime.py` so loader/manager/service paths apply the same runtime policies (API key loading + TTS defaults).
+- **Runtime config assembly is now routed through** `backend/src/core/config/loader.py::build_runtime_config()` so `ConfigManager.update_config()` and `ConfigurationService.build_user_config()` share one policy path.
 - **EventBus internals were extracted** into `backend/src/core/infrastructure/event_bus_registry.py` so handler storage/caching and publish flow evolve independently.
 - **TTS internals were modularized** with `backend/src/core/services/tts_cuda.py` and `backend/src/core/services/tts_worker.py` while keeping `TTSService` as the public orchestrator.
 - **Container config refresh was hardened** in `backend/src/core/container/config_updater.py` and `backend/src/core/container/facade.py` to avoid stale references and to correctly reinitialize the embedder.
+- **Container runtime orchestration is split** into `backend/src/core/container/session_runtime.py` and `backend/src/core/container/api_runtime.py`, with `Container` acting as a thinner compatibility facade.
 - **ApiContainer handler wiring is declarative** in `backend/src/core/container/api_container.py` so adding/removing WebSocket handlers no longer requires repetitive manual registration calls.
+- **Incoming message routing is core-owned** in `backend/src/core/container/incoming_routing.py`, and `ApiContainer` now consumes that single route table with schema coverage checks against `IncomingMessage`.
+- **Tool schema cache is DI-owned** in `backend/src/tools/schema_registry.py` and `backend/src/tools/registry.py` (no global cache singleton dependency in backend tool schema path).
 - **Initialization rollback now clears global container state** from the coordinator path for safer same-process startup retries.
 
 ## Agent Runtime Refactors (2026-02-11)
@@ -246,7 +250,7 @@ Prepares tool calls for execution by resolving coordinates and rewriting argumen
 - Produce `ResolvedToolCall` instances
 
 **Key Methods**:
-- `prepare_tools()`: Async generator yielding infra events then `PreparationResult`
+- `prepare()`: Prepare and resolve tool calls into a `PreparationResult`
 - `_needs_coordinate_resolution()`: Decide if a tool call needs coordinates
 
 ### LLM System
