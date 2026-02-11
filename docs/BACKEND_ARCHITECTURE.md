@@ -10,6 +10,36 @@ read_when:
 
 The backend is built using Python 3.9+ with FastAPI, following clean architecture principles. It uses dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR) instead of plugins.
 
+## Core Runtime Refactors (2026-02-11)
+
+To reduce feature-change friction in `backend/src/core`, runtime internals were split into smaller seams:
+
+- **Config assembly is centralized** in `backend/src/core/config/runtime.py` so loader/manager/service paths apply the same runtime policies (API key loading + TTS defaults).
+- **EventBus internals were extracted** into `backend/src/core/infrastructure/event_bus_registry.py` so handler storage/caching and publish flow evolve independently.
+- **TTS internals were modularized** with `backend/src/core/services/tts_cuda.py` and `backend/src/core/services/tts_worker.py` while keeping `TTSService` as the public orchestrator.
+- **Container config refresh was hardened** in `backend/src/core/container/config_updater.py` and `backend/src/core/container/facade.py` to avoid stale references and to correctly reinitialize the embedder.
+- **ApiContainer handler wiring is declarative** in `backend/src/core/container/api_container.py` so adding/removing WebSocket handlers no longer requires repetitive manual registration calls.
+- **Initialization rollback now clears global container state** from the coordinator path for safer same-process startup retries.
+
+## Agent Runtime Refactors (2026-02-11)
+
+To reduce feature-change friction in `backend/src/agent`, session and tool-orchestration internals were split into composable seams:
+
+- **Session runtime state is centralized** in `backend/src/agent/session/runtime_state.py` (`SessionRuntimeState`) for screenshots, resolved calls, tool results, and system state.
+- **Session config updates are isolated** in `backend/src/agent/session/config_runtime.py` and **cleanup is isolated** in `backend/src/agent/session/lifecycle.py`.
+- **Interaction-loop policies were extracted** to `backend/src/agent/execution/policies.py` (iteration, parse recovery, and tool execution policy objects).
+- **Tool execution metadata is normalized** with `backend/src/agent/tools/preparation/types/execution_ref.py`, then reused by bundle detection and result processing.
+- **Screenshot OCR task ownership is explicit** via active-task tracking in screenshot state/manager and wait-side coordination.
+
+## API Runtime Refactors (2026-02-11)
+
+To reduce feature-change friction in `backend/src/api`, WebSocket + semantic API internals were split into smaller seams:
+
+- **Schemas are split by concern** in `backend/src/api/schemas/common.py`, `backend/src/api/schemas/incoming.py`, and `backend/src/api/schemas/outgoing.py`, while `backend/src/api/schema.py` remains a backward-compatible re-export facade.
+- **Query and wakeword orchestration moved to services** in `backend/src/api/services/query_execution.py` and `backend/src/api/services/wakeword_execution.py`, with shared TTS lifecycle handling in `backend/src/api/services/tts_session.py`.
+- **Semantic summarization parsing/orchestration moved out of route handlers** into `backend/src/api/routes/memory/semantic_parser.py` and `backend/src/api/routes/memory/semantic_service.py`, leaving `semantic.py` as a thin HTTP layer.
+- **FastAPI dependency resolution now prefers app scope** in `backend/src/api/deps.py` (`app.state.container` first, global fallback second) so tests and request-scoped integrations can use a single container source.
+
 ## Future: Multi-Tenant Backend & Subscription Platform (Planned)
 
 This section documents the roadmap to move from a single-user/local backend to a **multi-tenant, hosted backend** that serves many users with subscriptions, usage limits, and enterprise controls.

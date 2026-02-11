@@ -19,6 +19,9 @@ restart to make permanent changes). Frontend config is updated from the UI,
 persisted locally, and sent to the backend via `update-settings` to update the
 user session (applies on next query).
 
+Runtime normalization logic is centralized in `backend/src/core/config/runtime.py`
+so loader/manager/service paths apply the same policy sequence.
+
 ## Backend Configuration (Python)
 
 The backend reads configuration from `backend/src/core/config/app_config.py` which instantiates `AppConfig` from `backend/src/core/config/models.py`.
