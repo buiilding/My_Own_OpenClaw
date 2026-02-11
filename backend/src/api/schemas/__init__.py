@@ -1,46 +1,43 @@
-"""Backward-compatible API schema re-exports.
+"""API schema modules split by direction."""
 
-New code should import from ``backend.src.api.schemas`` modules.
-This module remains as the stable import path for existing call-sites.
-"""
-
-from backend.src.api.schemas import (  # noqa: F401
+from backend.src.api.schemas.common import BaseMessage, HandshakeMessage
+from backend.src.api.schemas.incoming import (
+    IncomingMessage,
+    ListModelsMessage,
+    LoadSettingsMessage,
+    QueryMessage,
+    ToolBundleResultMessage,
+    ToolBundleResultPayload,
+    ToolResultMessage,
+    ToolResultPayload,
+    UpdateSettingsMessage,
+    UpdateSettingsPayload,
+    WakewordDetectedMessage,
+)
+from backend.src.api.schemas.outgoing import (
     AssistantMessageFullMessage,
     AssistantMessageFullPayload,
     AudioChunkMessage,
     AudioChunkPayload,
-    BaseMessage,
     ErrorPayload,
     ErrorResponse,
-    HandshakeMessage,
-    IncomingMessage,
-    ListModelsMessage,
     LlmThought,
-    LoadSettingsMessage,
-    QueryMessage,
     StreamingComplete,
     StreamingResponse,
     SystemPromptMessage,
     SystemPromptPayload,
     ToolBundleMessage,
     ToolBundlePayload,
-    ToolBundleResultMessage,
-    ToolBundleResultPayload,
     ToolBundleToolItem,
     ToolCallMessage,
     ToolCallPayload,
     ToolOutputMessage,
     ToolOutputMetadata,
     ToolOutputPayload,
-    ToolResultMessage,
-    ToolResultPayload,
-    UpdateSettingsMessage,
-    UpdateSettingsPayload,
     UserMessageFullMessage,
     UserMessageFullMetadata,
     UserMessageFullPayload,
     WakewordActivatedMessage,
-    WakewordDetectedMessage,
     WakewordGreetingMessage,
     WakewordGreetingPayload,
 )
