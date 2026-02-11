@@ -7,7 +7,7 @@ No side effects beyond result creation.
 import asyncio
 import logging
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.interfaces.tool import ToolResult
@@ -19,6 +19,51 @@ if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
 
 logger = logging.getLogger(__name__)
+
+
+def _coerce_resolved_call(
+    resolved_call: Any,
+    fallback_call: ParsedToolCall,
+) -> ParsedToolCall:
+    """
+    Convert resolved-call representations into ParsedToolCall.
+
+    Supports both legacy objects exposing ``to_parsed_call()`` and
+    current ``ResolvedToolCall`` dataclass instances that only expose
+    plain attributes.
+    """
+    to_parsed_call = getattr(resolved_call, "to_parsed_call", None)
+    if callable(to_parsed_call):
+        parsed_call = to_parsed_call()
+        if isinstance(parsed_call, ParsedToolCall):
+            return parsed_call
+        logger.warning(
+            "Resolved call to_parsed_call() returned %s; falling back to attribute coercion",
+            type(parsed_call).__name__,
+        )
+
+    tool_name = getattr(resolved_call, "tool_name", fallback_call.tool_name)
+    raw_call = getattr(resolved_call, "raw_call", fallback_call.raw_call)
+
+    raw_parameters = getattr(resolved_call, "parameters", fallback_call.parameters)
+    parameters = dict(raw_parameters) if isinstance(raw_parameters, dict) else dict(
+        fallback_call.parameters or {}
+    )
+
+    raw_metadata = getattr(resolved_call, "metadata", fallback_call.metadata)
+    metadata = (
+        dict(raw_metadata)
+        if isinstance(raw_metadata, dict)
+        else (dict(fallback_call.metadata) if isinstance(fallback_call.metadata, dict) else None)
+    )
+
+    return ParsedToolCall(
+        tool_name=tool_name,
+        parameters=parameters,
+        raw_call=raw_call,
+        confidence=fallback_call.confidence,
+        metadata=metadata,
+    )
 
 
 async def execute_single_tool(
@@ -59,7 +104,14 @@ async def execute_single_tool(
     # If the screen changed since coordinate resolution, the coordinates might point
     # to the wrong UI element, causing dangerous unintended actions.
     if resolved_call and session_ref:
-        resolution_screenshot_id = resolved_call.metadata.get("coordinate_resolution_screenshot_id") if resolved_call.metadata else None
+        resolved_metadata = (
+            resolved_call.metadata if isinstance(getattr(resolved_call, "metadata", None), dict) else None
+        )
+        resolution_screenshot_id = (
+            resolved_metadata.get("coordinate_resolution_screenshot_id")
+            if resolved_metadata
+            else None
+        )
         current_screenshot_id = session_ref.get_current_screenshot_id()
         
         if resolution_screenshot_id and current_screenshot_id and resolution_screenshot_id != current_screenshot_id:
@@ -79,7 +131,9 @@ async def execute_single_tool(
     
     # Use resolved call if available, otherwise fall back to original
     # The resolved call has the same structure but with resolved coordinates
-    effective_tool_call = resolved_call.to_parsed_call() if resolved_call else tool_call
+    effective_tool_call = (
+        _coerce_resolved_call(resolved_call, tool_call) if resolved_call else tool_call
+    )
 
     result_storage = session_ref.get_result_storage()
 

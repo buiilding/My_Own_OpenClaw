@@ -46,6 +46,7 @@ Includes the last 300 commits on `main`.
 ### Fixed
 - fix(frontend-chatbox): apply chat overlay resize+reposition atomically via `setBounds` to keep the input pill anchored at a consistent Y position across typing/idle/response states
 - fix(frontend-ipc): strip unsupported `screenshot_url` from outbound `query` / `tool-bundle-result` payloads to match backend incoming schema
+- fix(tool-results): accept attribute-only `ResolvedToolCall` objects in single-tool execution (no `to_parsed_call()` requirement)
 - fix(tool-orchestrator): skip non-bundle tool calls that arrive without `request_id` metadata instead of emitting placeholder pending results
 - fix(api-schema): set frontend settings payload validators to `protected_namespaces=()` so `model_*` fields validate cleanly without namespace warnings
 - fix(api-schema): remove unsupported incoming `screenshot_url` fields (`query`, `tool-bundle-result`), align docs, and add parse-time regression coverage
