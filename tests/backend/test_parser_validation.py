@@ -274,6 +274,8 @@ def test_serialized_param_size_returns_none_for_unserializable_payload():
 def test_validate_tool_call_whitelist_error_truncates_sorted_tool_display():
     tool_names = [f"tool_{index:02d}" for index in range(20, 0, -1)]
     validator, _metrics = _make_validator(tool_names)
+    # Keep this unit deterministic regardless of dev tool-selection config.
+    validator._dev_tool_selection = None
 
     with pytest.raises(ParseValidationError) as exc:
         validator.validate_tool_call("missing_tool", {})

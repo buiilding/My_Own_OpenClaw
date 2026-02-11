@@ -13,6 +13,12 @@ Behavior:
 
 Tool names are the schema names (example: `mouse_control`, `browser_control`, `read_file`). Canonical list: `backend/src/tools/remote.py` (`REMOTE_TOOLS`).
 
+Policy implementation lives in `backend/src/tools/tool_policy.py` and is used by:
+- prompt schema injection filtering
+- parser whitelist/method validation
+- available-tool capability listing
+- container startup gating for OCR/Vision
+
 ## Ready Profiles
 
 Prebuilt profiles:

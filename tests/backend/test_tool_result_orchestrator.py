@@ -113,6 +113,8 @@ async def test_execute_tools_from_response_calls_execute_single_tool(monkeypatch
 
 def test_get_available_tools_returns_capabilities():
     orchestrator = ToolResultOrchestrator(DummyRegistry(), config={})
+    # Keep this unit deterministic regardless of dev tool-selection config.
+    orchestrator._dev_tool_selection = None
 
     tools = orchestrator.get_available_tools()
 
