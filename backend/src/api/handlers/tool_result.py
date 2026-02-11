@@ -59,7 +59,7 @@ class ToolResultHandler(MessageHandler):
             return {}
         
         # Only allow known metadata keys
-        allowed_keys = {"is_preformatted", "is_bundled", "bundle_request_id"}
+        allowed_keys = {"is_preformatted"}
         validated = {k: v for k, v in metadata.items() if k in allowed_keys}
         
         # Warn on unknown keys

@@ -1,31 +1,32 @@
 """
-Frontend-executed remote tool exports.
+Exports for frontend-executed remote tool stubs.
 """
 
-from backend.src.tools.remote_tools import (
-    REMOTE_TOOLS,
-    RemoteBrowserTool,
+from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
+from backend.src.tools.remote_tools.browser import RemoteBrowserTool
+from backend.src.tools.remote_tools.computer import (
     RemoteGetOpenWindowsTool,
-    RemoteGetSystemStatsTool,
-    RemoteGlobTool,
     RemoteKeyboardTool,
-    RemoteListDirectoryTool,
     RemoteMouseTool,
-    RemoteProcessTool,
+    RemoteScreenshotTool,
+    RemoteScrollTool,
+    RemoteSwitchTabTool,
+    RemoteWaitTool,
+)
+from backend.src.tools.remote_tools.filesystem import (
+    RemoteGlobTool,
+    RemoteListDirectoryTool,
     RemoteReadFileTool,
     RemoteReadManyFilesTool,
     RemoteReplaceTool,
-    RemoteScreenshotTool,
-    RemoteScrollTool,
     RemoteSearchFileContentTool,
-    RemoteShellTool,
-    RemoteSwitchTabTool,
-    RemoteToolBase,
-    RemoteToolResult,
-    RemoteWaitTool,
     RemoteWriteFileTool,
-    get_all_remote_tools,
-    get_remote_tool,
+)
+from backend.src.tools.remote_tools.registry import REMOTE_TOOLS, get_all_remote_tools, get_remote_tool
+from backend.src.tools.remote_tools.system import (
+    RemoteGetSystemStatsTool,
+    RemoteProcessTool,
+    RemoteShellTool,
 )
 
 __all__ = [

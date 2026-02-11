@@ -403,11 +403,7 @@ def test_tool_result_handler_validate_metadata_filters_unknown_keys():
         }
     )
 
-    assert validated == {
-        "is_preformatted": True,
-        "is_bundled": False,
-        "bundle_request_id": "bundle-123",
-    }
+    assert validated == {"is_preformatted": True}
 
 
 @pytest.mark.asyncio
