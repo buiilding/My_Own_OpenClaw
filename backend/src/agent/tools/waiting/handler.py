@@ -51,6 +51,25 @@ class ToolResultHandler:
         if not isinstance(metadata, dict):
             return {}
         return dict(metadata)
+
+    async def _route_single_or_bundle_result(
+        self,
+        correlation_id: str,
+        tool_result: "ToolResult",
+        *,
+        is_bundle: bool,
+    ) -> None:
+        """
+        Route a normalized ToolResult via the unified router path.
+
+        Keeps a single execution path for individual and atomic bundle results.
+        """
+        route_mode = "bundle" if is_bundle else "individual"
+        await self.router.route_result(
+            correlation_id,
+            tool_result,
+            route_mode=route_mode,
+        )
     
     async def process_frontend_tool_result(
         self,
@@ -88,7 +107,11 @@ class ToolResultHandler:
         tool_result = self.receiver.receive_individual_result(
             request_id, success, result_data, error, normalized_metadata
         )
-        await self.router.route_individual_result(request_id, tool_result)
+        await self._route_single_or_bundle_result(
+            request_id,
+            tool_result,
+            is_bundle=False,
+        )
     
     async def process_frontend_tool_bundle_result(
         self,
@@ -117,4 +140,8 @@ class ToolResultHandler:
         )
         
         # Route bundle result
-        await self.router.route_bundle_result(bundle_id, bundle_result)
+        await self._route_single_or_bundle_result(
+            bundle_id,
+            bundle_result,
+            is_bundle=True,
+        )
