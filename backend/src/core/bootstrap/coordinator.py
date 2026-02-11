@@ -3,9 +3,11 @@ Initialization Coordinator.
 
 Coordinates the initialization phases of the application startup process.
 """
+
 import asyncio
 import logging
 import threading
+from typing import cast
 from typing import List, Optional, Tuple
 
 from fastapi import FastAPI
@@ -21,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class InitializationError(Exception):
     """Raised when initialization fails."""
+
     pass
 
 
@@ -94,13 +97,6 @@ class InitializationCoordinator:
             with self._lock_creation_lock:
                 # Double-check after acquiring threading lock
                 if self._initialization_lock is None:
-                    # Get or create event loop for this thread
-                    try:
-                        loop = asyncio.get_running_loop()
-                    except RuntimeError:
-                        # No event loop running - create new one (shouldn't happen in normal usage)
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
                     self._initialization_lock = asyncio.Lock()
 
         async with self._initialization_lock:
@@ -141,7 +137,7 @@ class InitializationCoordinator:
 
                 logger.error(
                     f"Initialization failed at phase: {self._initialized_phases[-1] if self._initialized_phases else 'unknown'}",
-                    exc_info=True
+                    exc_info=True,
                 )
                 # Attempt cleanup of initialized phases
                 await self._rollback()
@@ -223,6 +219,7 @@ class InitializationCoordinator:
         # Initialize PromptManager (required for PromptConstructor)
         # This belongs in services phase since it's used by service components
         from backend.src.llm.prompts import PromptManager
+
         PromptManager().initialize()
 
         # Get session manager from container (created lazily via property)
@@ -257,9 +254,13 @@ class InitializationCoordinator:
             raise InitializationError("SessionManager is None after initialization")
         # Validate container has required services
         if self.container.config_service is None:
-            raise InitializationError("Container.config_service is None after initialization")
+            raise InitializationError(
+                "Container.config_service is None after initialization"
+            )
         if self.container.tool_registry is None:
-            raise InitializationError("Container.tool_registry is None after initialization")
+            raise InitializationError(
+                "Container.tool_registry is None after initialization"
+            )
 
         logger.debug("Final state validation passed")
 
@@ -284,24 +285,31 @@ class InitializationCoordinator:
                             config_service = self.container.config_service
                             if config_service is not None:
                                 config_service.unsubscribe(self.session_manager)
-                                logger.debug("Unsubscribed SessionManager from config changes")
+                                logger.debug(
+                                    "Unsubscribed SessionManager from config changes"
+                                )
                         except Exception as e:
-                            logger.warning(f"Error unsubscribing SessionManager during rollback: {e}")
+                            logger.warning(
+                                f"Error unsubscribing SessionManager during rollback: {e}"
+                            )
                     logger.debug("Rolled back services phase")
 
                 elif phase == "container":
-                    # Clear global container state
-                    # Note: set_container doesn't support None, so we can't fully clear it
-                    # The global state will remain, but this is acceptable during rollback
-                    # since the application is in a failed state anyway
-                    # In production, this should never happen as initialization is single-use
-                    logger.debug("Rolled back container phase (global state may remain)")
+                    # Clear global container state for clean retry in-process.
+                    try:
+                        set_container(cast(Container, None), force=True)
+                        logger.debug("Cleared global container state during rollback")
+                    except Exception as e:
+                        logger.warning(f"Failed to clear global container state: {e}")
+                    logger.debug("Rolled back container phase")
 
                 elif phase == "configuration":
                     # Configuration cleanup (usually stateless, but log for completeness)
                     logger.debug("Rolled back configuration phase")
             except Exception as e:
-                logger.error(f"Error during rollback of {phase} phase: {e}", exc_info=True)
+                logger.error(
+                    f"Error during rollback of {phase} phase: {e}", exc_info=True
+                )
 
         # Reset all state
         self.config_manager = None

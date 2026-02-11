@@ -3,6 +3,7 @@ Container Facade for backward compatibility.
 
 This module provides a thin facade around ApplicationContainer for backward compatibility.
 """
+
 import logging
 import threading
 from typing import Any, Optional
@@ -109,7 +110,9 @@ class Container:
         self,
         user_id: str = "default_user",
         session_id: Optional[str] = None,
-        config: Optional[Any] = None,  # AppConfig - lazy import to avoid circular dependency
+        config: Optional[
+            Any
+        ] = None,  # AppConfig - lazy import to avoid circular dependency
     ) -> Any:  # AgentSession - lazy import to avoid circular dependency
         """
         Create a new AgentSession with all dependencies injected.
@@ -134,15 +137,16 @@ class Container:
             def llm_client_factory(session_config=None):
                 if session_config is not None:
                     # Check if we have a mock factory (simulation mode)
-                    if hasattr(self, '_mock_llm_factory') and self._mock_llm_factory:
+                    if hasattr(self, "_mock_llm_factory") and self._mock_llm_factory:
                         return self._mock_llm_factory(session_config)
                     # Normal mode: create directly with session config
                     from backend.src.llm.client import get_llm_client
+
                     return get_llm_client(session_config)
                 else:
                     # Use DI container's factory (respects simulation mode overrides)
                     return self._di_container.llm_client()
-            
+
             self._session_factory = AgentSessionFactory(
                 config=self.config,
                 tool_registry=self.tool_registry,
@@ -161,9 +165,9 @@ class Container:
     def session_manager(self):
         """
         Get the session manager instance.
-        
+
         Creates SessionManager lazily on first access with all dependencies injected.
-        
+
         THREAD SAFETY: Uses double-checked locking pattern to prevent race conditions
         when multiple threads access this property simultaneously during startup.
         Without this, multiple SessionManager instances could be created, causing
@@ -177,7 +181,7 @@ class Container:
                 # Check again after acquiring lock (another thread may have created it)
                 if self._session_manager is None:
                     from backend.src.agent.session.manager import SessionManager
-                    
+
                     self._session_manager = SessionManager(
                         config=self.config,
                         create_agent_session_func=self.create_agent_session,
@@ -188,24 +192,44 @@ class Container:
     def handler_registry(self):
         """
         Get the message handler registry.
-        
+
         Creates ApiContainer and handler registry lazily on first access.
         """
         if self._api_container is None:
             self._api_container = ApiContainer()
-            
-            # Wire dependencies from core container
-            self._api_container.config.override(
-                providers.Singleton(lambda: self.config)
-            )
-            self._api_container.config_service.override(
-                providers.Singleton(lambda: self.config_service)
-            )
-            self._api_container.model_service.override(
-                providers.Singleton(lambda: self.model_service)
-            )
-            self._api_container.session_manager.override(
-                providers.Singleton(lambda: self.session_manager)
-            )
-        
+            self._sync_api_container_overrides()
+
         return self._api_container.handler_registry()
+
+    def refresh_runtime_config(self, updated_config: AppConfig) -> None:
+        """
+        Refresh runtime-owned container references after config update.
+
+        Keeps config-dependent service references aligned for existing lazy providers.
+        """
+        self.config = updated_config
+
+        if self.tool_registry:
+            self.tool_registry.config = updated_config
+        if self.context_factory:
+            self.context_factory.config = updated_config
+            base_services = getattr(self.context_factory, "_base_services", None)
+            if isinstance(base_services, dict):
+                base_services["config"] = updated_config
+
+        if self._api_container is not None:
+            self._sync_api_container_overrides()
+
+    def _sync_api_container_overrides(self) -> None:
+        """Ensure API container dependencies reference current runtime instances."""
+        if self._api_container is None:
+            return
+
+        self._api_container.config.override(providers.Object(self.config))
+        self._api_container.config_service.override(
+            providers.Object(self.config_service)
+        )
+        self._api_container.model_service.override(providers.Object(self.model_service))
+        self._api_container.session_manager.override(
+            providers.Object(self.session_manager)
+        )

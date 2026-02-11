@@ -3,6 +3,7 @@ Container Config Updater.
 
 Handles configuration updates for container components.
 """
+
 import logging
 from typing import Any
 
@@ -47,28 +48,26 @@ class ContainerConfigUpdater:
             config_manager = self.container._di_container.config_manager()
             updated_config = config_manager.update_config(config)
 
-        # Update container's config
-        self.container.config = updated_config
+        # Update container's config-dependent references
+        self.container.refresh_runtime_config(updated_config)
 
         # Update model service (recreate with new config)
         # ModelService stores config in __init__, so we need to recreate it
         from backend.src.llm.models import ModelService
-        self.container.model_service = self.container._di_container.core.model_service.override(
-            providers.Singleton(
-                ModelService,
-                config=providers.Singleton(lambda: updated_config),
-            )
-        )()
 
-        # Update tool registry config
-        if self.container.tool_registry:
-            self.container.tool_registry.config = updated_config
+        core_model_service_provider = self.container._di_container.core.model_service
+        core_model_service_provider.reset_override()
+        core_model_service_provider.override(
+            providers.Singleton(ModelService, config=providers.Object(updated_config))
+        )
+        self.container.model_service = core_model_service_provider()
+        self.container.refresh_runtime_config(updated_config)
 
         # Re-initialize embedder if memory enabled status changed
-        # Memory storage is now handled by frontend, but backend still handles embeddings
-        if updated_config.memory_enabled and not self.container.embedder:
-            # Re-create embedder
+        if updated_config.memory_enabled:
             self._reinitialize_embedder(updated_config)
+        else:
+            self.container.embedder = None
 
         # CRITICAL FIX: Invalidate session factory to force recreation with new config
         # AgentSessionFactory holds a reference to the old AppConfig in self.config
@@ -85,9 +84,15 @@ class ContainerConfigUpdater:
             config: New configuration instance
         """
         # Re-create embedder
-        self.container.embedder = self.container._di_container.embedder.override(
+        memory_embedder_provider = self.container._di_container.embedder
+        memory_embedder_provider.reset_override()
+        memory_embedder_provider.override(
             providers.Singleton(
-                lambda cfg: _create_embedder(cfg),
-                cfg=providers.Singleton(lambda: config),
+                _create_embedder,
+                config=providers.Object(config),
+                cache_manager=providers.Object(
+                    self.container._di_container.cache_manager()
+                ),
             )
-        )()
+        )
+        self.container.embedder = memory_embedder_provider()
