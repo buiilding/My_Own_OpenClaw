@@ -13,8 +13,10 @@ process.env.GALLIUM_DRIVER = 'llvmpipe';
 
 let mainWindow = null;
 let chatWindow = null;
+let responseWindow = null;
 let tray = null;
 let overlayHandlersInitialized = false;
+let responseOverlayVisible = false;
 const WAKEWORD_HOTKEY = 'Super+Alt+W';
 
 function positionChatWindow() {
@@ -24,6 +26,7 @@ function positionChatWindow() {
   const [width, height] = chatWindow.getSize();
   const { x, y } = getChatWindowBounds(width, height);
   chatWindow.setPosition(x, y, false);
+  positionResponseWindow();
 }
 
 function getChatWindowBounds(width, height) {
@@ -33,6 +36,31 @@ function getChatWindowBounds(width, height) {
   const x = Math.round(workArea.x + (workArea.width - width) / 2);
   const y = Math.round(workArea.y + workArea.height - height - marginBottom);
   return { x, y, width, height };
+}
+
+function getResponseWindowBounds(width, height) {
+  const fallback = getChatWindowBounds(width, height);
+  if (!chatWindow || chatWindow.isDestroyed()) {
+    return fallback;
+  }
+
+  const chatBounds = chatWindow.getBounds();
+  const gap = 10;
+  return {
+    x: Math.round(chatBounds.x + (chatBounds.width - width) / 2),
+    y: Math.round(chatBounds.y - gap - height),
+    width,
+    height,
+  };
+}
+
+function positionResponseWindow() {
+  if (!responseWindow || responseWindow.isDestroyed() || !responseOverlayVisible) {
+    return;
+  }
+  const [width, height] = responseWindow.getSize();
+  const bounds = getResponseWindowBounds(width, height);
+  responseWindow.setBounds(bounds, false);
 }
 
 function ensureChatWindowOnTop() {
@@ -46,6 +74,20 @@ function ensureChatWindowOnTop() {
     }
   } catch (error) {
     console.warn('[Main] Failed to keep chatbox on top:', error?.message || error);
+  }
+}
+
+function ensureResponseWindowOnTop() {
+  if (!responseWindow || responseWindow.isDestroyed() || !responseOverlayVisible) {
+    return;
+  }
+  try {
+    responseWindow.setAlwaysOnTop(true, 'floating');
+    if (typeof responseWindow.moveTop === 'function') {
+      responseWindow.moveTop();
+    }
+  } catch (error) {
+    console.warn('[Main] Failed to keep response overlay on top:', error?.message || error);
   }
 }
 
@@ -67,6 +109,14 @@ function showChatWindow({ focus = true } = {}) {
     chatWindow.show();
   }
   ensureChatWindowOnTop();
+  if (responseWindow && !responseWindow.isDestroyed() && responseOverlayVisible) {
+    if (typeof responseWindow.showInactive === 'function') {
+      responseWindow.showInactive();
+    } else {
+      responseWindow.show();
+    }
+    ensureResponseWindowOnTop();
+  }
   if (focus) {
     chatWindow.focus();
     chatWindow.webContents.send('chatbox-focus');
@@ -81,6 +131,9 @@ function hideChatWindow() {
   }
   if (chatWindow.isVisible()) {
     chatWindow.hide();
+  }
+  if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
+    responseWindow.hide();
   }
   sendWakewordToggle(true);
   return { success: true };
@@ -134,7 +187,7 @@ function createWindow() {
 
   initializeIpc(mainWindow);
   initializeWakewordBridge(mainWindow, () => showChatWindow({ focus: true }));
-  initializeLocalBackendBridge(() => ({ mainWindow, chatWindow }));
+  initializeLocalBackendBridge(() => ({ mainWindow, chatWindow, responseWindow }));
   initializeOverlayHandlers();
 
   // Instead of quitting, hide the window to the tray
@@ -213,6 +266,66 @@ function createChatWindow() {
   return chatWindow;
 }
 
+function createResponseWindow() {
+  responseWindow = new BrowserWindow({
+    width: 520,
+    height: 1,
+    frame: false,
+    transparent: true,
+    backgroundColor: '#00000000',
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    hasShadow: false,
+    type: 'toolbar',
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, '../preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  if (process.platform === 'win32' || process.platform === 'darwin') {
+    try {
+      responseWindow.setContentProtection(true);
+    } catch (error) {
+      console.warn('[Main] Failed to enable response overlay content protection:', error?.message || error);
+    }
+  }
+
+  responseWindow.setAlwaysOnTop(true, 'floating');
+  responseWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+
+  const devUrl = 'http://localhost:5173';
+  if (process.env.NODE_ENV !== 'production') {
+    responseWindow.loadURL(`${devUrl}?view=chatbox-response`);
+  } else {
+    responseWindow.loadFile(path.join(__dirname, '../../dist/index.html'), {
+      query: { view: 'chatbox-response' },
+    });
+  }
+
+  responseWindow.on('close', (event) => {
+    if (!app.isQuitting) {
+      event.preventDefault();
+      responseOverlayVisible = false;
+      responseWindow.hide();
+    }
+    return false;
+  });
+
+  responseWindow.on('closed', () => {
+    responseWindow = null;
+    responseOverlayVisible = false;
+  });
+
+  return responseWindow;
+}
+
 function createTray() {
   // Create a transparent 1x1 pixel icon to use as a placeholder.
   // TODO: Replace with a proper app icon later.
@@ -248,15 +361,20 @@ function createTray() {
 app.whenReady().then(() => {
   createWindow();
   createChatWindow();
+  createResponseWindow();
   createTray();
   sendWakewordToggle(false);
 
   if (chatWindow) {
     registerRendererWindow(chatWindow);
   }
+  if (responseWindow) {
+    registerRendererWindow(responseWindow);
+  }
 
   screen.on('display-metrics-changed', () => {
     positionChatWindow();
+    positionResponseWindow();
   });
 
   const registered = globalShortcut.register(WAKEWORD_HOTKEY, () => {
@@ -277,9 +395,13 @@ app.whenReady().then(() => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
-      const overlay = createChatWindow();
-      if (overlay) {
-        registerRendererWindow(overlay);
+      const chatOverlay = createChatWindow();
+      const responseOverlay = createResponseWindow();
+      if (chatOverlay) {
+        registerRendererWindow(chatOverlay);
+      }
+      if (responseOverlay) {
+        registerRendererWindow(responseOverlay);
       }
     } else {
       showMainWindow({ focus: true });
@@ -343,9 +465,49 @@ function initializeOverlayHandlers() {
       // Apply size+position atomically to keep the chat input pill anchored.
       const bounds = getChatWindowBounds(nextWidth, nextHeight);
       chatWindow.setBounds(bounds, false);
+      positionResponseWindow();
       return { success: true, resized: true, width: nextWidth, height: nextHeight };
     } catch (error) {
       return { success: false, reason: `Failed to resize chatbox: ${error.message}` };
+    }
+  });
+
+  ipcMain.handle('set-responsebox-size', async (event, { width, height, visible } = {}) => {
+    if (!responseWindow || responseWindow.isDestroyed()) {
+      return { success: false, reason: 'Response window not available' };
+    }
+
+    const shouldShow = Boolean(visible);
+    if (!shouldShow) {
+      responseOverlayVisible = false;
+      if (responseWindow.isVisible()) {
+        responseWindow.hide();
+      }
+      return { success: true, visible: false };
+    }
+
+    const nextWidth = Math.max(1, Math.min(900, Math.round(Number(width) || 0)));
+    const nextHeight = Math.max(1, Math.min(1500, Math.round(Number(height) || 0)));
+    try {
+      const bounds = getResponseWindowBounds(nextWidth, nextHeight);
+      responseWindow.setBounds(bounds, false);
+      responseOverlayVisible = true;
+      if (chatWindow && !chatWindow.isDestroyed() && chatWindow.isVisible()) {
+        if (typeof responseWindow.showInactive === 'function') {
+          responseWindow.showInactive();
+        } else {
+          responseWindow.show();
+        }
+        ensureResponseWindowOnTop();
+      }
+      return {
+        success: true,
+        visible: true,
+        width: nextWidth,
+        height: nextHeight,
+      };
+    } catch (error) {
+      return { success: false, reason: `Failed to resize response overlay: ${error.message}` };
     }
   });
 

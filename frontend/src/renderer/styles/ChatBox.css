@@ -105,9 +105,11 @@ body {
   padding: 14px 16px 12px;
   max-height: min(80vh, 1280px);
   overflow-y: auto;
+  scrollbar-gutter: stable;
   white-space: pre-wrap;
   word-break: break-word;
   margin-bottom: 0;
+  transition: max-height 150ms ease-out;
 }
 
 .chatbox-response-text {
