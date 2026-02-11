@@ -44,6 +44,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox): keep overlay fully interactive while preserving rounded-pill hit geometry so background windows are not blocked by rectangular shadow regions
 
 ### Fixed
+- fix(frontend-chatbox): apply chat overlay resize+reposition atomically via `setBounds` to keep the input pill anchored at a consistent Y position across typing/idle/response states
 - fix(frontend-ipc): strip unsupported `screenshot_url` from outbound `query` / `tool-bundle-result` payloads to match backend incoming schema
 - fix(tool-orchestrator): skip non-bundle tool calls that arrive without `request_id` metadata instead of emitting placeholder pending results
 - fix(api-schema): set frontend settings payload validators to `protected_namespaces=()` so `model_*` fields validate cleanly without namespace warnings

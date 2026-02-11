@@ -21,13 +21,18 @@ function positionChatWindow() {
   if (!chatWindow) {
     return;
   }
+  const [width, height] = chatWindow.getSize();
+  const { x, y } = getChatWindowBounds(width, height);
+  chatWindow.setPosition(x, y, false);
+}
+
+function getChatWindowBounds(width, height) {
   const display = screen.getPrimaryDisplay();
   const { workArea } = display;
-  const [width, height] = chatWindow.getSize();
   const marginBottom = 24;
   const x = Math.round(workArea.x + (workArea.width - width) / 2);
   const y = Math.round(workArea.y + workArea.height - height - marginBottom);
-  chatWindow.setPosition(x, y, false);
+  return { x, y, width, height };
 }
 
 function ensureChatWindowOnTop() {
@@ -329,14 +334,15 @@ function initializeOverlayHandlers() {
       return { success: false, reason: 'Chat window not available' };
     }
     const nextWidth = Math.max(1, Math.min(900, Math.round(Number(width) || 0)));
-    const nextHeight = Math.max(1, Math.min(500, Math.round(Number(height) || 0)));
+    const nextHeight = Math.max(1, Math.min(1500, Math.round(Number(height) || 0)));
     try {
       const [curWidth, curHeight] = chatWindow.getSize();
       if (curWidth === nextWidth && curHeight === nextHeight) {
         return { success: true, resized: false };
       }
-      chatWindow.setSize(nextWidth, nextHeight, false);
-      positionChatWindow();
+      // Apply size+position atomically to keep the chat input pill anchored.
+      const bounds = getChatWindowBounds(nextWidth, nextHeight);
+      chatWindow.setBounds(bounds, false);
       return { success: true, resized: true, width: nextWidth, height: nextHeight };
     } catch (error) {
       return { success: false, reason: `Failed to resize chatbox: ${error.message}` };
