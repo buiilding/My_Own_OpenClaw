@@ -237,15 +237,22 @@ class TestConfigurationService:
         user_overrides = {}
         
         with patch(
+            "backend.src.core.config.loader.get_default_tts_model_path",
+            return_value="/default/path"
+        ):
+            result = service.build_user_config(user_overrides)
+            assert result.tts_model_path == "/default/path"
+
+    def test_build_user_config_runtime_builder_uses_provider_loader(self, service):
+        global_config = AppConfig(model_provider="openai")
+        service._config = global_config
+
+        with patch(
             "backend.src.core.config.loader.load_api_key_for_provider",
-            side_effect=lambda x: x
-        ) as mock_load:
-            with patch.object(
-                service, "get_default_tts_model_path",
-                return_value="/default/path"
-            ):
-                result = service.build_user_config(user_overrides)
-                assert result.tts_model_path == "/default/path"
+            side_effect=lambda cfg: cfg.model_copy(update={"api_key": "k"})
+        ):
+            result = service.build_user_config({})
+            assert result.api_key == "k"
 
     def test_build_user_config_validation_error(self, service):
         global_config = AppConfig()

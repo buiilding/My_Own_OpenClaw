@@ -10,6 +10,7 @@ import logging
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from backend.src.core.infrastructure.cache import CacheManager
     from backend.src.sdk.tool import Tool as SDKTool
     from backend.src.core.services.context_factory import ContextFactory
 from backend.src.tools.schema_registry import SchemaRegistry
@@ -30,6 +31,7 @@ class ToolRegistry:
     def __init__(
         self,
         config: Any,
+        cache_manager: "CacheManager",
         context_factory: Optional["ContextFactory"] = None,
     ):
         """
@@ -37,11 +39,12 @@ class ToolRegistry:
 
         Args:
             config: Application configuration object
+            cache_manager: CacheManager instance
             context_factory: Optional ContextFactory instance
         """
         self.config = config
         self.tools: Dict[str, "SDKTool"] = {}
-        self.schema_registry = SchemaRegistry()
+        self.schema_registry = SchemaRegistry(cache_manager=cache_manager)
 
         # Initialize context factory (create if not provided)
         if context_factory is None:

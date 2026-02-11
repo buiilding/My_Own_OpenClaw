@@ -10,11 +10,9 @@ import logging
 import os
 from pathlib import Path
 import platform
-from typing import Optional
 
 from backend.src.core.config.models import AppConfig
 from backend.src.core.config.runtime import (
-    apply_runtime_policies,
     assemble_runtime_config,
 )
 
@@ -128,6 +126,22 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
         return cfg.model_copy(update={"api_key": None})
 
 
+def build_runtime_config(cfg: AppConfig) -> AppConfig:
+    """
+    Build runtime config with all mandatory policies in one place.
+
+    Policies:
+    - Enforce runtime normalization (tts_enabled + default model path)
+    - Resolve API key for selected provider
+    """
+    return assemble_runtime_config(
+        cfg,
+        get_default_tts_model_path=get_default_tts_model_path,
+        load_api_key_for_provider=load_api_key_for_provider,
+        force_tts_enabled=True,
+    )
+
+
 def load_settings_from_file(reload_module: bool = False) -> AppConfig:
     """
     Loads the application configuration from Python config file.
@@ -161,36 +175,15 @@ def load_settings_from_file(reload_module: bool = False) -> AppConfig:
 
         app_config = config_module.APP_CONFIG
 
-        app_config = apply_runtime_policies(
-            app_config,
-            get_default_tts_model_path=get_default_tts_model_path,
-            force_tts_enabled=True,
-        )
-
         logger.info("Configuration loaded from Python config file")
 
     except ImportError as e:
         logger.error("Failed to import config module: %s", e, exc_info=True)
         logger.warning("Falling back to default configuration.")
         app_config = AppConfig()
-        app_config = apply_runtime_policies(
-            app_config,
-            get_default_tts_model_path=get_default_tts_model_path,
-            force_tts_enabled=True,
-        )
     except Exception as e:
         logger.error("Failed to load config from Python file: %s", e, exc_info=True)
         logger.warning("Falling back to default configuration.")
         app_config = AppConfig()
-        app_config = apply_runtime_policies(
-            app_config,
-            get_default_tts_model_path=get_default_tts_model_path,
-            force_tts_enabled=True,
-        )
 
-    return assemble_runtime_config(
-        app_config,
-        get_default_tts_model_path=get_default_tts_model_path,
-        load_api_key_for_provider=load_api_key_for_provider,
-        force_tts_enabled=True,
-    )
+    return build_runtime_config(app_config)

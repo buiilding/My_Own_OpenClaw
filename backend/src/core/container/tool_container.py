@@ -29,6 +29,7 @@ class ToolContainer(containers.DeclarativeContainer):
 
     # Wiring - these will be provided by parent container
     config = providers.Dependency()
+    cache_manager = providers.Dependency()
 
     # Agent Factory
     agent_factory = providers.Singleton(
@@ -38,9 +39,10 @@ class ToolContainer(containers.DeclarativeContainer):
     # Create tool registry and context factory together to resolve circular dependency
     # This factory creates both and wires them together properly
     tool_registry_and_factory = providers.Singleton(
-        lambda cfg, af: _create_tool_registry_with_factory(cfg, af),
+        lambda cfg, af, cm: _create_tool_registry_with_factory(cfg, af, cm),
         cfg=config,
         af=agent_factory,
+        cm=cache_manager,
     )
 
     # Extract registry and factory from the tuple

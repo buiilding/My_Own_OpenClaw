@@ -10,11 +10,11 @@ import threading
 from typing import Optional
 
 from backend.src.core.config.loader import (
-    load_api_key_for_provider,
+    build_runtime_config,
+    load_api_key_for_provider,  # compatibility re-export used by API modules
     load_settings_from_file,
 )
 from backend.src.core.config.models import AppConfig
-from backend.src.core.config.runtime import assemble_runtime_config
 
 logger = logging.getLogger(__name__)
 
@@ -104,12 +104,7 @@ class ConfigManager:
         if new_config is None:
             raise ValueError("Cannot update config with None value")
 
-        updated_config = assemble_runtime_config(
-            new_config,
-            get_default_tts_model_path=self._default_tts_path,
-            load_api_key_for_provider=load_api_key_for_provider,
-            force_tts_enabled=True,
-        )
+        updated_config = build_runtime_config(new_config)
 
         # Validate updated config
         if updated_config is None:
@@ -161,14 +156,6 @@ class ConfigManager:
 
         logger.info("Configuration reloaded from Python config file")
         return reloaded_config
-
-    @staticmethod
-    def _default_tts_path() -> str:
-        """Resolve the default TTS path lazily to avoid import cycles."""
-        from backend.src.core.config.loader import get_default_tts_model_path
-
-        return get_default_tts_model_path()
-
 
 # Global config manager instance
 _config_manager = ConfigManager()

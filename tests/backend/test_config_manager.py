@@ -70,7 +70,7 @@ class TestConfigManager:
         new_config = AppConfig(model_provider="anthropic")
         
         with patch(
-            "backend.src.core.config.manager.load_api_key_for_provider",
+            "backend.src.core.config.manager.build_runtime_config",
             return_value=new_config
         ):
             result = manager.update_config(new_config)
@@ -90,15 +90,9 @@ class TestConfigManager:
         # Create config with tts_enabled=False
         new_config = AppConfig(tts_enabled=False, model_provider="anthropic")
         assert new_config.tts_enabled is False
-        
-        with patch(
-            "backend.src.core.config.manager.load_api_key_for_provider",
-            return_value=new_config
-        ) as mock_load:
-            # The update should force tts_enabled to True before calling load_api_key_for_provider
-            # but since we mock it, we check the mock was called
-            manager.update_config(new_config)
-            mock_load.assert_called_once()
+
+        result = manager.update_config(new_config)
+        assert result.tts_enabled is True
 
     def test_reload_config_success(self):
         manager = ConfigManager()

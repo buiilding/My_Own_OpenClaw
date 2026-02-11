@@ -5,17 +5,16 @@ This module provides a thin facade around ApplicationContainer for backward comp
 """
 
 import logging
-import threading
 from typing import Any, Optional
 
 from dependency_injector import providers
 
 from backend.src.core.config import AppConfig, ConfigManager, get_config_manager
-from backend.src.core.container.api_container import ApiContainer
+from backend.src.core.container.api_runtime import ApiRuntimeBinder
 from backend.src.core.container.application import ApplicationContainer
 from backend.src.core.container.config_updater import ContainerConfigUpdater
 from backend.src.core.container.initializer import ContainerInitializer
-from backend.src.core.container.session_factory import AgentSessionFactory
+from backend.src.core.container.session_runtime import SessionRuntimeCoordinator
 
 logger = logging.getLogger(__name__)
 
@@ -66,17 +65,9 @@ class Container:
         self.config_service = self._di_container.core.config_service()
         self.model_service = self._di_container.core.model_service()
 
-        # Session factory (created lazily)
-        self._session_factory: Optional[AgentSessionFactory] = None
-
-        # Session manager (created lazily after container is fully initialized)
-        self._session_manager: Optional[Any] = None
-        # CONTAINER LOCK INITIALIZATION RACE FIX: Initialize lock in __init__ to prevent race condition
-        # when multiple threads access session_manager property simultaneously
-        self._session_manager_lock = threading.Lock()
-
-        # API container (created after session_manager is available)
-        self._api_container: Optional[Any] = None
+        # Runtime coordinators (split from facade to reduce orchestration coupling)
+        self._session_runtime = SessionRuntimeCoordinator(self)
+        self._api_runtime = ApiRuntimeBinder(self)
 
         # Initialize specialized handlers
         self._initializer = ContainerInitializer(self)
@@ -129,36 +120,10 @@ class Container:
         Returns:
             Initialized AgentSession
         """
-        # Create or get session factory
-        if self._session_factory is None:
-            # Create LLM client factory that accepts optional config parameter
-            # For simulation mode: Use the stored mock factory (if available)
-            # For normal mode: Create LLM client directly with session config
-            def llm_client_factory(session_config=None):
-                if session_config is not None:
-                    # Check if we have a mock factory (simulation mode)
-                    if hasattr(self, "_mock_llm_factory") and self._mock_llm_factory:
-                        return self._mock_llm_factory(session_config)
-                    # Normal mode: create directly with session config
-                    from backend.src.llm.client import get_llm_client
-
-                    return get_llm_client(session_config)
-                else:
-                    # Use DI container's factory (respects simulation mode overrides)
-                    return self._di_container.llm_client()
-
-            self._session_factory = AgentSessionFactory(
-                config=self.config,
-                tool_registry=self.tool_registry,
-                ocr_service=self.ocr_service,
-                llm_client_factory=llm_client_factory,
-                tool_orchestrator_factory=lambda: self._di_container.tool_orchestrator(),
-                event_bus=self._di_container.core.event_bus(),
-                metrics_service=self._di_container.core.metrics_service(),
-            )
-
-        return self._session_factory.create_session(
-            user_id=user_id, session_id=session_id, config=config
+        return self._session_runtime.create_agent_session(
+            user_id=user_id,
+            session_id=session_id,
+            config=config,
         )
 
     @property
@@ -173,20 +138,7 @@ class Container:
         Without this, multiple SessionManager instances could be created, causing
         session state to be split across instances and leading to "lost" sessions.
         """
-        if self._session_manager is None:
-            # CONTAINER LOCK INITIALIZATION RACE FIX: Lock is initialized in __init__,
-            # so we can safely use it here without race condition
-            # Double-checked locking pattern for thread-safe lazy initialization
-            with self._session_manager_lock:
-                # Check again after acquiring lock (another thread may have created it)
-                if self._session_manager is None:
-                    from backend.src.agent.session.manager import SessionManager
-
-                    self._session_manager = SessionManager(
-                        config=self.config,
-                        create_agent_session_func=self.create_agent_session,
-                    )
-        return self._session_manager
+        return self._session_runtime.get_session_manager()
 
     @property
     def handler_registry(self):
@@ -195,11 +147,7 @@ class Container:
 
         Creates ApiContainer and handler registry lazily on first access.
         """
-        if self._api_container is None:
-            self._api_container = ApiContainer()
-            self._sync_api_container_overrides()
-
-        return self._api_container.handler_registry()
+        return self._api_runtime.get_handler_registry()
 
     def refresh_runtime_config(self, updated_config: AppConfig) -> None:
         """
@@ -217,19 +165,10 @@ class Container:
             if isinstance(base_services, dict):
                 base_services["config"] = updated_config
 
-        if self._api_container is not None:
-            self._sync_api_container_overrides()
+        self._api_runtime.refresh_overrides()
 
-    def _sync_api_container_overrides(self) -> None:
-        """Ensure API container dependencies reference current runtime instances."""
-        if self._api_container is None:
-            return
-
-        self._api_container.config.override(providers.Object(self.config))
-        self._api_container.config_service.override(
-            providers.Object(self.config_service)
-        )
-        self._api_container.model_service.override(providers.Object(self.model_service))
-        self._api_container.session_manager.override(
-            providers.Object(self.session_manager)
-        )
+    def invalidate_session_factory(self) -> None:
+        """
+        Invalidate cached AgentSessionFactory so future sessions use latest config.
+        """
+        self._session_runtime.invalidate_session_factory()

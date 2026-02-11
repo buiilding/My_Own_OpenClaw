@@ -19,6 +19,7 @@ from backend.src.core.config.models import (
     KimiCodingConfig,
 )
 from backend.src.core.config.loader import (
+    build_runtime_config,
     get_default_tts_model_path,
     load_api_key_for_provider,
     load_settings_from_file,
@@ -45,6 +46,7 @@ __all__ = [
     "ConfigManager",
     "get_config_manager",
     "load_settings_from_file",
+    "build_runtime_config",
     "load_api_key_for_provider",
     "get_default_tts_model_path",
     "apply_runtime_policies",

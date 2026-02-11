@@ -69,7 +69,7 @@ async def lifespan(app: FastAPI):
         providers.Factory(mock_llm_client_factory)
     )
     container._mock_llm_factory = mock_llm_client_factory
-    container._session_factory = None
+    container.invalidate_session_factory()
     logger.info("LLM client factory overridden to use MockLLMBrowserClient")
     logger.info("Session factory reset - will use MockLLMBrowserClient on next session creation")
 

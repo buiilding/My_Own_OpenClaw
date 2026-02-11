@@ -4,7 +4,7 @@ import pytest
 from pydantic import BaseModel
 
 from backend.src.core.config.models import AppConfig
-from backend.src.core.infrastructure.cache import cache_manager
+from backend.src.core.infrastructure.cache import CacheManager
 from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.registry import ToolRegistry
@@ -52,7 +52,7 @@ def test_tool_schema_computer_format_wrapped():
 
 
 def test_schema_registry_caches_schemas():
-    cache_manager.tool_schemas.clear()
+    cache_manager = CacheManager()
 
     class CountingTool(DummyTool):
         calls = 0
@@ -62,7 +62,7 @@ def test_schema_registry_caches_schemas():
             return super().get_json_schema()
 
     tool = CountingTool()
-    registry = SchemaRegistry()
+    registry = SchemaRegistry(cache_manager=cache_manager)
     schema1 = registry.get_schema(tool)
     schema2 = registry.get_schema(tool)
 
@@ -71,20 +71,21 @@ def test_schema_registry_caches_schemas():
 
 
 def test_schema_registry_handles_schema_errors():
-    cache_manager.tool_schemas.clear()
+    cache_manager = CacheManager()
 
     class BrokenTool(DummyTool):
         def get_json_schema(self):
             raise RuntimeError("boom")
 
-    registry = SchemaRegistry()
+    registry = SchemaRegistry(cache_manager=cache_manager)
     schema = registry.get_schema(BrokenTool())
     assert schema is None
 
 
 def test_tool_registry_declarations_and_capabilities():
     config = AppConfig()
-    registry = ToolRegistry(config=config)
+    cache_manager = CacheManager()
+    registry = ToolRegistry(config=config, cache_manager=cache_manager)
     registry.register_tool(DummyTool())
 
     declarations = registry.get_function_declarations_filtered(["dummy_tool"])
