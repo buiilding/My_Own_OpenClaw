@@ -4,7 +4,7 @@ Tool result router.
 Routes tool results to appropriate handlers.
 """
 import logging
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Literal, Optional, TYPE_CHECKING
 
 from backend.src.services.artifacts import ArtifactStore
 
@@ -16,6 +16,9 @@ if TYPE_CHECKING:
     from backend.src.core.interfaces.tool import ToolResult
 
 logger = logging.getLogger(__name__)
+
+
+RouteMode = Literal["individual", "bundle"]
 
 
 class ToolResultRouter:
@@ -107,6 +110,15 @@ class ToolResultRouter:
         else:
             logger.warning("No waiting bundle future for bundle_id %s", bundle_id[:15])
 
+    def _set_current_system_state_if_available(self, tool_result: "ToolResult") -> None:
+        """Best-effort session state update from tool result payload."""
+        if not isinstance(tool_result.data, dict):
+            return
+        # Some tests/mocks provide lightweight session doubles without this API.
+        set_current_system_state = getattr(self.session, "set_current_system_state", None)
+        if callable(set_current_system_state):
+            set_current_system_state(tool_result.data.get("system_state"))
+
     def _extract_screenshot_from_result_data(
         self,
         result_data: Any,
@@ -141,13 +153,11 @@ class ToolResultRouter:
             request_id: Request ID for the tool result
             tool_result: Tool result to route
         """
-        screenshot_data = self._extract_screenshot_from_result_data(
-            tool_result.data,
+        await self.route_result(
+            request_id,
             tool_result,
+            route_mode="individual",
         )
-        
-        await self._process_screenshot(screenshot_data, request_id, "Tool result")
-        self._store_and_resolve_individual_result(request_id, tool_result)
 
     async def route_bundle_result(
         self,
@@ -161,18 +171,50 @@ class ToolResultRouter:
             bundle_id: Bundle ID for the bundle result
             tool_result: Bundle result to route
         """
-        logger.info(f"Routing atomic bundle result: bundle_id={bundle_id[:15]}, status={'success' if tool_result.success else 'failure'}")
-        
-        if isinstance(tool_result.data, dict):
-            self.session.set_current_system_state(tool_result.data.get("system_state"))
+        await self.route_result(
+            bundle_id,
+            tool_result,
+            route_mode="bundle",
+        )
 
-        screenshot = self._extract_screenshot_from_result_data(
+    async def route_result(
+        self,
+        correlation_id: str,
+        tool_result: "ToolResult",
+        *,
+        route_mode: RouteMode,
+    ) -> None:
+        """
+        Route one tool result through the shared single/bundle pipeline.
+
+        Args:
+            correlation_id: request_id for individual results, bundle_id for bundled results
+            tool_result: Tool result to route
+            route_mode: Routing mode ("individual" or "bundle")
+        """
+        is_bundle = route_mode == "bundle"
+        context = "Bundle result" if is_bundle else "Tool result"
+
+        # Keep system_state in session fresh for both single-tool and bundle paths.
+        self._set_current_system_state_if_available(tool_result)
+
+        if is_bundle:
+            logger.info(
+                "Routing atomic bundle result: bundle_id=%s, status=%s",
+                correlation_id[:15],
+                "success" if tool_result.success else "failure",
+            )
+
+        screenshot_data = self._extract_screenshot_from_result_data(
             tool_result.data,
             tool_result,
         )
-        
-        await self._process_screenshot(screenshot, bundle_id, "Bundle result")
-        self._store_and_resolve_bundle_result(bundle_id, tool_result)
+        await self._process_screenshot(screenshot_data, correlation_id, context)
+
+        if is_bundle:
+            self._store_and_resolve_bundle_result(correlation_id, tool_result)
+            return
+        self._store_and_resolve_individual_result(correlation_id, tool_result)
 
     async def route_bundled_results(
         self,

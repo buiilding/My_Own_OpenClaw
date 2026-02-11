@@ -5,7 +5,11 @@ from backend.src.core.interfaces.tool import ToolResult
 
 
 class DummySession:
-    pass
+    def __init__(self):
+        self.current_system_state = None
+
+    def set_current_system_state(self, state):
+        self.current_system_state = state
 
 
 class FakeScreenshotProcessor:
@@ -69,6 +73,25 @@ async def test_route_individual_result_without_screenshot():
 
     assert router.screenshot_processor.calls == []
     assert router.result_storage.pending == [("req-1", result)]
+    assert router.session.current_system_state is None
+
+
+@pytest.mark.asyncio
+async def test_route_individual_result_updates_session_system_state():
+    router = ToolResultRouter(
+        receiver=None,
+        screenshot_processor=FakeScreenshotProcessor(),
+        result_storage=FakeResultStorage(),
+        session=DummySession(),
+    )
+    result = ToolResult(
+        success=True,
+        data={"output": "ok", "system_state": {"screen_resolution": "1920x1080"}},
+    )
+
+    await router.route_individual_result("req-1", result)
+
+    assert router.session.current_system_state == {"screen_resolution": "1920x1080"}
 
 
 @pytest.mark.asyncio
@@ -122,6 +145,23 @@ async def test_route_bundle_result_resolves_screenshot_ref(monkeypatch):
 
     assert router.screenshot_processor.calls == [(router.session, "decoded-bundle-shot", "bundle-1")]
     assert result.artifacts == {"screenshot": "decoded-bundle-shot"}
+
+
+@pytest.mark.asyncio
+async def test_route_result_shared_pipeline_for_bundle_updates_state_and_storage():
+    router = ToolResultRouter(
+        receiver=None,
+        screenshot_processor=FakeScreenshotProcessor(),
+        result_storage=FakeResultStorage(),
+        session=DummySession(),
+    )
+    result = ToolResult(success=True, data={"system_state": {"active_window": "Browser"}})
+
+    await router.route_result("bundle-2", result, route_mode="bundle")
+
+    assert router.session.current_system_state == {"active_window": "Browser"}
+    assert router.result_storage.bundled == [("bundle-2", result)]
+    assert router.result_storage.bundle_resolves == [("bundle-2", result)]
 
 
 @pytest.mark.asyncio

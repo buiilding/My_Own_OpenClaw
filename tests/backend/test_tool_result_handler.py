@@ -27,6 +27,9 @@ class DummyRouter:
     def __init__(self):
         self.calls = []
 
+    async def route_result(self, correlation_id, tool_result, *, route_mode):
+        self.calls.append(("shared", correlation_id, route_mode))
+
     async def route_bundled_results(self, request_id, individual_results, combined_result, bundle_screenshot):
         self.calls.append(("bundled", request_id))
 
@@ -70,7 +73,7 @@ async def test_process_frontend_tool_result_routes_individual():
     )
 
     assert ("individual", "req-1") in receiver.calls
-    assert ("individual", "req-1") in router.calls
+    assert ("shared", "req-1", "individual") in router.calls
 
 
 @pytest.mark.asyncio
@@ -88,7 +91,7 @@ async def test_process_frontend_tool_result_routes_individual_for_non_dict_paylo
     )
 
     assert ("individual", "req-2") in receiver.calls
-    assert ("individual", "req-2") in router.calls
+    assert ("shared", "req-2", "individual") in router.calls
 
 
 @pytest.mark.asyncio
@@ -152,4 +155,4 @@ async def test_process_frontend_tool_bundle_result():
     )
 
     assert ("bundle", "bundle-1") in receiver.calls
-    assert ("bundle", "bundle-1") in router.calls
+    assert ("shared", "bundle-1", "bundle") in router.calls
