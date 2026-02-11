@@ -4,10 +4,10 @@ OCR Coordinator.
 Coordinates OCR result acquisition and waiting for proactive OCR.
 Handles OCR service access and synchronization.
 """
-import asyncio
 import logging
 import time
 from typing import List, Dict, Any, Optional, TYPE_CHECKING
+import asyncio
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -48,33 +48,26 @@ class OcrCoordinator:
         if screenshot_id is None:
             screenshot_id = session.get_current_screenshot_id()
         
-        # Wait for proactive OCR to complete if it's still running
-        # This ensures we use the latest OCR results from the current screenshot
-        # Proactive OCR is triggered automatically by ToolResultHandler when screenshots arrive
+        # Wait for in-flight OCR task for this screenshot (if any).
+        # Use shielded wait to avoid cancelling background OCR on timeout.
         ocr_wait_start = time.perf_counter()
-        if not hasattr(session, "ocr_completion_event") or session.ocr_completion_event is None:
-            session.ocr_completion_event = asyncio.Event()
-            session.ocr_completion_event.set()  # Set it (no OCR in progress initially)
-        else:
-            # Event exists - wait for it (OCR might be in progress)
-            # This is the synchronization point: we wait here until proactive OCR completes
-            # PROACTIVE OCR DEADLOCK FIX: Add timeout to prevent infinite hang if OCR worker fails
-            logger.info("Waiting for proactive OCR to complete...")
+        active_ocr_task = session.get_active_ocr_task(screenshot_id)
+        if active_ocr_task:
+            logger.info("Waiting for proactive OCR task to complete...")
             try:
-                # Wait up to 5 seconds for proactive OCR
-                # If timeout expires, fall through to on-demand OCR
-                await asyncio.wait_for(session.ocr_completion_event.wait(), timeout=5.0)
+                await asyncio.wait_for(asyncio.shield(active_ocr_task), timeout=5.0)
                 ocr_wait_time = time.perf_counter() - ocr_wait_start
-                logger.info(f"[Timing] Proactive OCR wait completed in {ocr_wait_time:.3f}s")
-                logger.info("Proactive OCR completed, proceeding with coordinate resolution")
+                logger.info(
+                    "[Timing] Proactive OCR task wait completed in %.3fs",
+                    ocr_wait_time,
+                )
             except asyncio.TimeoutError:
                 ocr_wait_time = time.perf_counter() - ocr_wait_start
                 logger.warning(
-                    f"[Timing] Proactive OCR wait timed out after {ocr_wait_time:.3f}s. "
-                    f"OCR worker may have failed. Falling back to on-demand OCR."
+                    "[Timing] Proactive OCR task wait timed out after %.3fs. "
+                    "Falling back to on-demand OCR.",
+                    ocr_wait_time,
                 )
-                # Event not set - OCR worker likely failed or crashed
-                # Fall through to on-demand OCR below
 
         # SIMPLIFIED: Get OCR results for current screenshot only
         # Verify screenshot_id matches current screenshot (if provided)

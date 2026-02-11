@@ -83,11 +83,10 @@ class ResultTransformer:
         Side Effects: None (pure function contract)
         """
         transform_start = time.perf_counter()
-        if tool_result.artifacts is None:
-            tool_result.artifacts = {}
+        artifacts = dict(tool_result.artifacts or {})
 
         # Extract screenshot data (helper method to avoid nested checks)
-        screenshot_data = self._extract_screenshot_data(tool_result)
+        screenshot_data = self._extract_screenshot_data(tool_result, artifacts)
 
         # 2. Get pre-formatted message for history
         # Frontend should pre-format messages with system context XML embedded in llm_content.
@@ -103,11 +102,13 @@ class ResultTransformer:
             screenshot_data=screenshot_data,
             success=tool_result.success,
             error=tool_result.error or "",
-            artifacts=tool_result.artifacts,
+            artifacts=artifacts,
         )
 
     def _extract_screenshot_data(
-        self, tool_result: ToolResult
+        self,
+        tool_result: ToolResult,
+        artifacts: Dict[str, Any],
     ) -> Optional[str]:
         """
         Extract screenshot data from tool result.
@@ -122,9 +123,9 @@ class ResultTransformer:
         Side Effects: None (pure function contract)
         """
         # Check tool result artifacts
-        if tool_result.artifacts and "screenshot" in tool_result.artifacts:
+        if "screenshot" in artifacts:
             logger.debug("Found screenshot in tool result artifacts")
-            return tool_result.artifacts["screenshot"]
+            return artifacts["screenshot"]
         
         # Check tool result data dict (SDK tools often return it here, including frontend tools)
         if isinstance(tool_result.data, dict):
@@ -138,10 +139,10 @@ class ResultTransformer:
         
         # Debug logging for troubleshooting
         logger.debug(
-            f"No screenshot found in tool result. "
-            f"Data type: {type(tool_result.data)}, "
-            f"Data keys: {list(tool_result.data.keys()) if isinstance(tool_result.data, dict) else 'N/A'}, "
-            f"Artifacts: {list(tool_result.artifacts.keys()) if tool_result.artifacts else None}"
+                f"No screenshot found in tool result. "
+                f"Data type: {type(tool_result.data)}, "
+                f"Data keys: {list(tool_result.data.keys()) if isinstance(tool_result.data, dict) else 'N/A'}, "
+                f"Artifacts: {list(artifacts.keys()) if artifacts else None}"
         )
         
         return None

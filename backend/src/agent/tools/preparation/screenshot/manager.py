@@ -7,7 +7,7 @@ Centralizes storage of the active screenshot and OCR triggering.
 import asyncio
 import hashlib
 import logging
-from typing import TYPE_CHECKING, AsyncGenerator
+from typing import TYPE_CHECKING, Any, AsyncGenerator
 
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.events.streaming_events import AgentStreamingEvent
@@ -118,6 +118,7 @@ class ScreenshotManager:
         if not ocr_service or not ocr_service.enabled:
             # OCR disabled: keep event set so tools don't block unnecessarily.
             session.ocr_completion_event.set()
+            self._cancel_active_ocr_task(session)
             return
 
         async def run_ocr_task():
@@ -141,8 +142,14 @@ class ScreenshotManager:
             finally:
                 # Always set the event, even if OCR failed, to unblock waiting tools
                 session.ocr_completion_event.set()
-        
-        asyncio.create_task(run_ocr_task())
+                current_task = asyncio.current_task()
+                if current_task is not None:
+                    self._clear_active_ocr_task(session, current_task)
+
+        # Cancel stale OCR task before scheduling next one.
+        self._cancel_active_ocr_task(session)
+        task: asyncio.Task[Any] = asyncio.create_task(run_ocr_task())
+        self._set_active_ocr_task(session, task, screenshot_id)
     
     def _generate_screenshot_id(self, screenshot_data: str) -> str:
         """
@@ -158,3 +165,28 @@ class ScreenshotManager:
         # This is sufficient to uniquely identify different screenshots
         sample = screenshot_data[:1024] if len(screenshot_data) > 1024 else screenshot_data
         return hashlib.sha256(sample.encode('utf-8')).hexdigest()[:16]  # 16 chars is sufficient
+
+    @staticmethod
+    def _cancel_active_ocr_task(session: "AgentSession") -> None:
+        cancel = getattr(session, "cancel_active_ocr_task", None)
+        if callable(cancel):
+            cancel()
+
+    @staticmethod
+    def _set_active_ocr_task(
+        session: "AgentSession",
+        task: asyncio.Task[Any],
+        screenshot_id: str,
+    ) -> None:
+        setter = getattr(session, "set_active_ocr_task", None)
+        if callable(setter):
+            setter(task, screenshot_id)
+
+    @staticmethod
+    def _clear_active_ocr_task(
+        session: "AgentSession",
+        task: asyncio.Task[Any],
+    ) -> None:
+        clearer = getattr(session, "clear_active_ocr_task", None)
+        if callable(clearer):
+            clearer(task)

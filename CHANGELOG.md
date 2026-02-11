@@ -125,6 +125,7 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- refactor(agent-runtime): split session runtime concerns into `runtime_state`/`config_runtime`/`lifecycle`, extract interaction-loop policies, and normalize prepared tool execution IDs via `ExecutionRef`
 - refactor(api-runtime): split API schemas into `api/schemas/*`, extract query/wakeword/semantic orchestration into `api/services/*` and route helpers, and make API deps prefer `app.state.container` with global fallback
 - refactor(core-runtime): switch `backend/src/core/container/api_container.py` WebSocket handler wiring from manual registrations to a declarative binding map for easier feature add/remove changes
 - refactor(remote-tools): split `backend/src/tools/remote.py` into focused domain modules (`remote_tools/base|computer|filesystem|system|browser|registry`) while preserving public remote tool exports

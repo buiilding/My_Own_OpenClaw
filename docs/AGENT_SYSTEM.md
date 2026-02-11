@@ -2,6 +2,7 @@
 summary: "Agent System"
 read_when:
   - When updating agent protocols or tool execution flow.
+  - When refactoring session runtime state, tool preparation metadata, or interaction-loop policies.
 ---
 
 # Agent System
@@ -39,6 +40,26 @@ Key entry points:
 
 Frontend settings are sent via `update-settings` and applied to the user session before the next query.
 
+## Runtime Seams (2026-02-11)
+
+Recent backend-agent refactors split mutable session/runtime concerns into focused modules:
+
+- `backend/src/agent/session/runtime_state.py` — `SessionRuntimeState` owns screenshot state, resolved-call storage, tool-result storage, current `system_state`, and OCR completion signaling.
+- `backend/src/agent/session/config_runtime.py` — `SessionConfigRuntime` applies live config updates (LLM client, prompt constructor, parser, and loop dependencies) in one place.
+- `backend/src/agent/session/lifecycle.py` — `SessionLifecycle` centralizes best-effort cleanup for runtime stores and legacy futures.
+
+Interaction-loop control policies were also extracted from `InteractionLoop`:
+
+- `backend/src/agent/execution/policies.py`:
+  - `IterationPolicy` (max-iteration and extra-turn behavior)
+  - `ParseRecoveryPolicy` (parser-error corrective messaging)
+  - `ToolExecutionPolicy` (bundle-vs-single decision)
+
+Tool preparation metadata now uses a typed execution reference:
+
+- `backend/src/agent/tools/preparation/types/execution_ref.py` (`ExecutionRef`) to normalize `request_id`/`bundle_id` handling.
+- Bundle detection and result processing now consume that shared type to reduce ad-hoc metadata branching.
+
 ## Tool Lifecycle (Backend)
 
 The backend owns the preparation and result handling pipeline:
@@ -47,5 +68,10 @@ The backend owns the preparation and result handling pipeline:
 - **Sending**: tool calls/bundles to the frontend
 - **Waiting**: wait for tool results from the sidecar
 - **Processing**: transform tool outputs into history entries
+
+`ToolPreparer` now exposes:
+
+- `prepare(...) -> PreparationOutcome` as the primary structured API
+- `prepare_tools(...)` as the compatibility wrapper for existing tuple-stream consumers
 
 See `backend/src/agent/folder_stucture.md` for a full module map.

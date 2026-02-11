@@ -114,10 +114,7 @@ class ToolResultRouter:
         """Best-effort session state update from tool result payload."""
         if not isinstance(tool_result.data, dict):
             return
-        # Some tests/mocks provide lightweight session doubles without this API.
-        set_current_system_state = getattr(self.session, "set_current_system_state", None)
-        if callable(set_current_system_state):
-            set_current_system_state(tool_result.data.get("system_state"))
+        self.session.set_current_system_state(tool_result.data.get("system_state"))
 
     def _extract_screenshot_from_result_data(
         self,

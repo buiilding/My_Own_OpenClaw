@@ -8,6 +8,7 @@ Transforms high-level tool intents into concrete executable instructions.
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
+from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 from backend.src.llm.parser import ParsedToolCall
 
 
@@ -27,6 +28,11 @@ class ResolvedToolCall:
     parameters: Dict[str, Any]
     raw_call: str
     metadata: Optional[Dict[str, Any]] = None
+
+    @property
+    def execution_ref(self) -> Optional[ExecutionRef]:
+        """Typed execution reference parsed from metadata."""
+        return ExecutionRef.from_metadata(self.metadata)
     
     @classmethod
     def from_parsed_call(cls, parsed_call: ParsedToolCall) -> "ResolvedToolCall":
@@ -51,7 +57,7 @@ class ResolvedToolCall:
         # Copy metadata from parsed call (for computer-use tools: description, explanation, expectation)
         # Metadata may also contain request_id and other fields
         # Use shallow copy for performance (metadata is usually flat)
-        parsed_metadata = getattr(parsed_call, "metadata", None)
+        parsed_metadata = parsed_call.metadata
         if parsed_metadata:
             metadata = dict(parsed_metadata)
         else:
