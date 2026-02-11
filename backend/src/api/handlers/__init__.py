@@ -5,7 +5,8 @@ This module provides handlers for different WebSocket message types,
 organized using the registry pattern for easy extensibility.
 
 Handler Architecture:
-- core.base: MessageHandler base class and MessageHandlerRegistry
+- infrastructure.handler: MessageHandler + TypedMessageHandler bases
+- infrastructure.registry: MessageHandlerRegistry
 - Each handler implements MessageHandler.handle() method
 - Handlers are stateless singletons (state in SessionManager/AgentSession)
 - Registry routes messages by type to appropriate handler
@@ -26,7 +27,8 @@ Related Components:
 
 Handlers are registered in ApiContainer and accessed via MessageHandlerRegistry.
 """
-from backend.src.api.infrastructure.handler import MessageHandler
+
+from backend.src.api.infrastructure.handler import MessageHandler, TypedMessageHandler
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
 from backend.src.api.handlers.query import QueryMessageHandler
 from backend.src.api.handlers.settings import (
@@ -37,6 +39,7 @@ from backend.src.api.handlers.tool_result import ToolResultHandler
 
 __all__ = [
     "MessageHandler",
+    "TypedMessageHandler",
     "MessageHandlerRegistry",
     "QueryMessageHandler",
     "ListModelsHandler",

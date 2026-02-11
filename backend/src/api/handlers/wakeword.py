@@ -3,13 +3,14 @@ Wakeword Message Handler.
 
 Handles wakeword detection and activation messages.
 """
+
 import logging
 
-from backend.src.api.infrastructure.handler import MessageHandler
+from backend.src.api.infrastructure.handler import TypedMessageHandler
 from backend.src.api.infrastructure.errors import send_error_response
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.processing.tts.manager import TTSManager
-from backend.src.api.schema import BaseMessage, WakewordDetectedMessage
+from backend.src.api.schema import WakewordDetectedMessage
 from backend.src.api.services.wakeword_execution import WakewordExecutionService
 from backend.src.core.services.wakeword_service import WakewordService
 from backend.src.core.validation.validators import ValidationError
@@ -17,7 +18,7 @@ from backend.src.core.validation.validators import ValidationError
 logger = logging.getLogger(__name__)
 
 
-class WakewordHandler(MessageHandler):
+class WakewordHandler(TypedMessageHandler[WakewordDetectedMessage]):
     """
     Handler for wakeword detection and activation.
 
@@ -38,12 +39,10 @@ class WakewordHandler(MessageHandler):
         """
         self.execution_service = WakewordExecutionService(tts_manager, wakeword_service)
 
-    def validate_message(self, message: BaseMessage) -> bool:
-        """Validate wakeword message structure."""
-        return isinstance(message, WakewordDetectedMessage)
+    message_model = WakewordDetectedMessage
 
-    async def handle(
-        self, message: BaseMessage, websocket: WebSocketSender, user_id: str
+    async def handle_typed(
+        self, message: WakewordDetectedMessage, websocket: WebSocketSender, user_id: str
     ) -> None:
         """
         Handle wakeword detection.
@@ -56,26 +55,16 @@ class WakewordHandler(MessageHandler):
             user_id: User ID from connection context
         """
         try:
-            # Type assertion - message is already validated as WakewordDetectedMessage
-            validated: WakewordDetectedMessage = message  # type: ignore
-            await self.execution_service.execute(validated, websocket, user_id)
+            await self.execution_service.execute(message, websocket, user_id)
 
         except ValidationError as e:
             # Validation error - send using canonical utility
             await send_error_response(
-                websocket,
-                message.id,
-                f"Invalid wakeword message: {e.message}"
+                websocket, message.id, f"Invalid wakeword message: {e.message}"
             )
         except Exception as e:
             # Unexpected error - send sanitized error to prevent information leakage
-            await send_error_response(
-                websocket,
-                message.id,
-                None,
-                exception=e
-            )
+            await send_error_response(websocket, message.id, None, exception=e)
         finally:
             # No-op: execution service owns TTS session cleanup.
             logger.debug("Wakeword handler execution finalized for user %s", user_id)
-
