@@ -26,22 +26,13 @@ def _coerce_resolved_call(
     fallback_call: ParsedToolCall,
 ) -> ParsedToolCall:
     """
-    Convert resolved-call representations into ParsedToolCall.
+    Convert a resolved-call object into ParsedToolCall.
 
-    Supports both legacy objects exposing ``to_parsed_call()`` and
-    current ``ResolvedToolCall`` dataclass instances that only expose
-    plain attributes.
+    Uses the current ``ResolvedToolCall`` attribute contract
+    (tool_name, parameters, raw_call, metadata) and falls back
+    field-by-field to the original parsed call if any attribute
+    is missing or invalid.
     """
-    to_parsed_call = getattr(resolved_call, "to_parsed_call", None)
-    if callable(to_parsed_call):
-        parsed_call = to_parsed_call()
-        if isinstance(parsed_call, ParsedToolCall):
-            return parsed_call
-        logger.warning(
-            "Resolved call to_parsed_call() returned %s; falling back to attribute coercion",
-            type(parsed_call).__name__,
-        )
-
     tool_name = getattr(resolved_call, "tool_name", fallback_call.tool_name)
     raw_call = getattr(resolved_call, "raw_call", fallback_call.raw_call)
 
