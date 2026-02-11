@@ -9,9 +9,14 @@ import time
 from typing import AsyncGenerator, Optional, Tuple, TYPE_CHECKING
 
 from backend.src.agent.tools.preparation.helpers.coordinate_resolution_helper import resolve_coordinates
+from backend.src.agent.tools.preparation.helpers.image_dimensions import (
+    get_image_dimensions_from_screenshot_b64,
+    parse_screen_resolution,
+)
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.events.streaming_events import AgentStreamingEvent
+from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
 
 if TYPE_CHECKING:
@@ -84,6 +89,14 @@ async def resolve_tool_with_coordinates(
         vision_service_provider,
         context_id,
     )
+
+    # Normalize to frontend mouse coordinate space when screenshot pixel space differs
+    # (common with HiDPI scaling where screenshot is physical pixels).
+    if tool_call.parameters.get("find_coordinates_by") in (
+        CoordinateFindingMethod.OCR,
+        CoordinateFindingMethod.PREDICTION,
+    ):
+        x, y = _maybe_scale_coordinates_to_screen(session, screenshot_data, x, y, context_id)
     
     # 5. Rewrite to manual mode
     _rewrite_to_manual(resolved_call, x, y)
@@ -93,6 +106,51 @@ async def resolve_tool_with_coordinates(
     logger.info(
         f"[context_id={short_id(context_id)}] Resolved coordinates for {tool_call.tool_name}: ({x}, {y}) using screenshot {screenshot_id[:8]}"
     )
+
+
+def _maybe_scale_coordinates_to_screen(
+    session: "AgentSession",
+    screenshot_b64: str,
+    x: int,
+    y: int,
+    context_id: str,
+) -> Tuple[int, int]:
+    system_state = session.get_current_system_state()
+    screen_res = parse_screen_resolution(
+        system_state.get("screen_resolution") if isinstance(system_state, dict) else None
+    )
+    if not screen_res:
+        return x, y
+    screen_w, screen_h = screen_res
+
+    screenshot_res = get_image_dimensions_from_screenshot_b64(screenshot_b64)
+    if not screenshot_res:
+        return x, y
+    shot_w, shot_h = screenshot_res
+
+    if screen_w <= 0 or screen_h <= 0 or shot_w <= 0 or shot_h <= 0:
+        return x, y
+
+    if (screen_w, screen_h) == (shot_w, shot_h):
+        return x, y
+
+    scale_x = screen_w / shot_w
+    scale_y = screen_h / shot_h
+    scaled_x = int(round(x * scale_x))
+    scaled_y = int(round(y * scale_y))
+    logger.info(
+        "[context_id=%s] Scaled coordinates from screenshot %sx%s to screen %sx%s: (%s,%s)->(%s,%s)",
+        short_id(context_id),
+        shot_w,
+        shot_h,
+        screen_w,
+        screen_h,
+        x,
+        y,
+        scaled_x,
+        scaled_y,
+    )
+    return scaled_x, scaled_y
 
 
 def _rewrite_to_manual(resolved_call: ResolvedToolCall, x: int, y: int):
