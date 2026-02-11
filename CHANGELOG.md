@@ -42,6 +42,7 @@ Includes the last 300 commits on `main`.
 - refactor(agent-runtime): track session-scoped background tasks for cleanup, centralize loop error recording, and enforce strict LLM stream event handling in agent execution
 
 ### Fixed
+- fix(frontend-ipc): strip unsupported `screenshot_url` from outbound `query` / `tool-bundle-result` payloads to match backend incoming schema
 - fix(tool-orchestrator): skip non-bundle tool calls that arrive without `request_id` metadata instead of emitting placeholder pending results
 - fix(api-schema): set frontend settings payload validators to `protected_namespaces=()` so `model_*` fields validate cleanly without namespace warnings
 - fix(api-schema): remove unsupported incoming `screenshot_url` fields (`query`, `tool-bundle-result`), align docs, and add parse-time regression coverage

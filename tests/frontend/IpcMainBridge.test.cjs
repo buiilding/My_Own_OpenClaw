@@ -183,6 +183,36 @@ describe('ipc.cjs bridge', () => {
     expect(lastMessage.payload.content).toContain('<user_query>\nhello\n</user_query>');
   });
 
+  test('strips query screenshot_url before sending to backend', async () => {
+    const { handlers, ws, backendBridge } = initIpc();
+    ws.triggerOpen();
+
+    backendBridge.getSystemState.mockResolvedValue({
+      active_window: 'App',
+      mouse_position: '0,0',
+      screen_resolution: '1920x1080',
+      windows: ['A'],
+    });
+    backendBridge.searchMemory.mockResolvedValue({
+      success: true,
+      data: { memories: { episodic: [], semantic: [] } },
+    });
+
+    await handlers['to-backend']({ sender: null }, {
+      type: 'query',
+      payload: {
+        text: 'hello',
+        screenshot_ref: 'art_123',
+        screenshot_url: 'http://localhost:8765/api/artifacts/art_123',
+      },
+    });
+
+    const lastMessage = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(lastMessage.type).toBe('query');
+    expect(lastMessage.payload.screenshot_ref).toBe('art_123');
+    expect(lastMessage.payload).not.toHaveProperty('screenshot_url');
+  });
+
   test('builds query with fallback system context on system state error', async () => {
     const { handlers, ws, backendBridge } = initIpc();
     ws.triggerOpen();
