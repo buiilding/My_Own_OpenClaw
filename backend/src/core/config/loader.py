@@ -4,6 +4,7 @@ Configuration Loader.
 This module handles loading application configuration from Python config files.
 Configuration is loaded from backend.src.core.config.app_config module.
 """
+
 import importlib
 import logging
 import os
@@ -12,6 +13,10 @@ import platform
 from typing import Optional
 
 from backend.src.core.config.models import AppConfig
+from backend.src.core.config.runtime import (
+    apply_runtime_policies,
+    assemble_runtime_config,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,22 +24,50 @@ logger = logging.getLogger(__name__)
 def get_default_tts_model_path() -> str:
     """
     Get the default TTS model path.
-    
+
     Returns:
         Default TTS model path string
     """
     if os.name == "nt":  # Windows
         appdata = os.getenv("APPDATA")
         if appdata:
-            return str(Path(appdata) / "DesktopAssistant" / "tts_models" / "piper" / "en_GB-jenny_dioco-medium.onnx")
+            return str(
+                Path(appdata)
+                / "DesktopAssistant"
+                / "tts_models"
+                / "piper"
+                / "en_GB-jenny_dioco-medium.onnx"
+            )
     elif os.name == "posix":
         home_dir = Path.home()
         if platform.system() == "Darwin":  # macOS
-            return str(home_dir / "Library" / "Application Support" / "DesktopAssistant" / "tts_models" / "piper" / "en_GB-jenny_dioco-medium.onnx")
+            return str(
+                home_dir
+                / "Library"
+                / "Application Support"
+                / "DesktopAssistant"
+                / "tts_models"
+                / "piper"
+                / "en_GB-jenny_dioco-medium.onnx"
+            )
         else:  # Linux
-            return str(home_dir / ".config" / "DesktopAssistant" / "tts_models" / "piper" / "en_GB-jenny_dioco-medium.onnx")
+            return str(
+                home_dir
+                / ".config"
+                / "DesktopAssistant"
+                / "tts_models"
+                / "piper"
+                / "en_GB-jenny_dioco-medium.onnx"
+            )
     # Fallback
-    return str(Path.home() / ".config" / "DesktopAssistant" / "tts_models" / "piper" / "en_GB-jenny_dioco-medium.onnx")
+    return str(
+        Path.home()
+        / ".config"
+        / "DesktopAssistant"
+        / "tts_models"
+        / "piper"
+        / "en_GB-jenny_dioco-medium.onnx"
+    )
 
 
 def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
@@ -89,7 +122,9 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
         return cfg.model_copy(update={"api_key": api_key})
     else:
         # This case is for local models like Ollama that don't require an API key
-        logger.info(f"[API Key Load] No API key environment variable for provider '{provider_name}'.")
+        logger.info(
+            f"[API Key Load] No API key environment variable for provider '{provider_name}'."
+        )
         return cfg.model_copy(update={"api_key": None})
 
 
@@ -98,21 +133,21 @@ def load_settings_from_file(reload_module: bool = False) -> AppConfig:
     Loads the application configuration from Python config file.
     This function should only be called once at startup.
     Use ConfigManager for runtime config access.
-    
+
     Configuration is loaded from backend.src.core.config.app_config.APP_CONFIG.
     To change configuration, edit that file and restart the application.
-    
+
     Args:
         reload_module: If True, reload the config module to pick up changes.
                       Only use this when explicitly reloading config.
-    
+
     Returns:
         AppConfig instance with API key loaded
     """
     try:
         # Import the config module to get the APP_CONFIG
         from backend.src.core.config import app_config as config_module
-        
+
         # Reload module only if explicitly requested (for reload_config)
         if reload_module:
             try:
@@ -123,37 +158,39 @@ def load_settings_from_file(reload_module: bool = False) -> AppConfig:
                     f"Failed to reload config module (may not be loaded yet): {reload_error}"
                 )
                 # Continue with current module state
-        
+
         app_config = config_module.APP_CONFIG
-        
-        # Ensure tts_enabled is True (hardcoded)
-        if not app_config.tts_enabled:
-            app_config = app_config.model_copy(update={"tts_enabled": True})
-        
-        # Set default TTS model path if not set
-        if app_config.tts_model_path is None:
-            default_path = get_default_tts_model_path()
-            logger.info(f"Setting default TTS model path: {default_path}")
-            app_config = app_config.model_copy(update={"tts_model_path": default_path})
-        
+
+        app_config = apply_runtime_policies(
+            app_config,
+            get_default_tts_model_path=get_default_tts_model_path,
+            force_tts_enabled=True,
+        )
+
         logger.info("Configuration loaded from Python config file")
-        
+
     except ImportError as e:
         logger.error("Failed to import config module: %s", e, exc_info=True)
         logger.warning("Falling back to default configuration.")
         app_config = AppConfig()
-        # Set default TTS model path
-        if app_config.tts_model_path is None:
-            default_path = get_default_tts_model_path()
-            app_config = app_config.model_copy(update={"tts_model_path": default_path})
+        app_config = apply_runtime_policies(
+            app_config,
+            get_default_tts_model_path=get_default_tts_model_path,
+            force_tts_enabled=True,
+        )
     except Exception as e:
         logger.error("Failed to load config from Python file: %s", e, exc_info=True)
         logger.warning("Falling back to default configuration.")
         app_config = AppConfig()
-        # Set default TTS model path
-        if app_config.tts_model_path is None:
-            default_path = get_default_tts_model_path()
-            app_config = app_config.model_copy(update={"tts_model_path": default_path})
+        app_config = apply_runtime_policies(
+            app_config,
+            get_default_tts_model_path=get_default_tts_model_path,
+            force_tts_enabled=True,
+        )
 
-    # Load API key for the selected provider (returns new instance)
-    return load_api_key_for_provider(app_config)
+    return assemble_runtime_config(
+        app_config,
+        get_default_tts_model_path=get_default_tts_model_path,
+        load_api_key_for_provider=load_api_key_for_provider,
+        force_tts_enabled=True,
+    )

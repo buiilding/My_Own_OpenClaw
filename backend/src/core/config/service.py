@@ -5,6 +5,7 @@ This module provides a centralized configuration service with change notificatio
 and type-safe access. It wraps ConfigManager and provides a cleaner interface
 for components that need to react to configuration changes.
 """
+
 import asyncio
 import logging
 import threading
@@ -18,6 +19,7 @@ from backend.src.core.config.subscriptions import (
     ConfigSubscriber,
     ConfigSubscriptionManager,
 )
+from backend.src.core.config.runtime import assemble_runtime_config
 from backend.src.core.events.bus_events import ConfigChanged
 
 logger = logging.getLogger(__name__)
@@ -29,7 +31,7 @@ class ConfigurationService:
 
     Provides a single source of truth for configuration access, including:
     - Application configuration (AppConfig)
-    
+
     Delegates subscriber management to ConfigSubscriptionManager.
     """
 
@@ -49,7 +51,9 @@ class ConfigurationService:
         self._config: Optional[AppConfig] = None
         self._subscription_manager = ConfigSubscriptionManager()
         self._event_bus = event_bus
-        self._lock = threading.RLock()  # Reentrant lock for thread-safe config reads/writes
+        self._lock = (
+            threading.RLock()
+        )  # Reentrant lock for thread-safe config reads/writes
         # Single-writer gate for async update/reload operations.
         self._update_lock = asyncio.Lock()
 
@@ -161,7 +165,9 @@ class ConfigurationService:
 
             # Notify subscribers outside lock to avoid deadlocks
             # (subscribers may need to acquire other locks)
-            await self._subscription_manager.notify_subscribers(old_config, updated_config)
+            await self._subscription_manager.notify_subscribers(
+                old_config, updated_config
+            )
 
             # Publish event for event bus subscribers
             if self._event_bus:
@@ -193,10 +199,10 @@ class ConfigurationService:
         with self._lock:
             if self._config is None:
                 raise RuntimeError("ConfigurationService not initialized")
-            
+
             # Get reference to config while holding lock
             config = self._config
-        
+
         # Access config attributes outside lock (AppConfig is immutable)
         try:
             parts = path.split(".")
@@ -239,7 +245,9 @@ class ConfigurationService:
 
             # Notify subscribers outside lock to avoid deadlocks
             # (subscribers may need to acquire other locks)
-            await self._subscription_manager.notify_subscribers(old_config, reloaded_config)
+            await self._subscription_manager.notify_subscribers(
+                old_config, reloaded_config
+            )
 
             logger.info("Configuration reloaded and subscribers notified")
             return reloaded_config
@@ -253,55 +261,51 @@ class ConfigurationService:
             Current AppConfig instance
         """
         return self.get_config()
-    
+
     def get_default_tts_model_path(self) -> str:
         """
         Get default TTS model path if none is configured.
-        
+
         Policy: Default TTS model path for Piper TTS.
         This policy is centralized here so it can be configured or changed
         without modifying handler code.
-        
+
         Returns:
             Default TTS model path
         """
-        from backend.src.core.config.loader import get_default_tts_model_path as _get_default_tts_model_path
+        from backend.src.core.config.loader import (
+            get_default_tts_model_path as _get_default_tts_model_path,
+        )
+
         return _get_default_tts_model_path()
-    
+
     def build_user_config(self, user_config: Dict[str, Any]) -> AppConfig:
         """
         Build complete user configuration by merging global config with user overrides.
-        
+
         Applies configuration policies:
         - Sets default TTS model path if TTS is enabled and path is not set
         - Loads API keys for selected provider
-        
-        CONFIGURATION: Respects tts_enabled from config (removed hardcoded override).
-        Users can now disable TTS for headless/silent mode operation.
-        speech_mode_enabled controls whether TTS is actually used during interactions.
-        
+
+        CONFIGURATION: Runtime policy currently forces `tts_enabled=True`.
+        `speech_mode_enabled` still controls whether speech is used in interactions.
+
         This method centralizes config building logic to avoid duplication
         between handlers and session managers.
-        
+
         Args:
             user_config: User-specific configuration overrides (dict)
-            
+
         Returns:
             Complete AppConfig instance with policies applied and API keys loaded
         """
         from backend.src.core.config.loader import load_api_key_for_provider
-        
+
         global_config = self.get_config()
-        
+
         # Merge: user config overrides global
         complete_config_dict = {**global_config.model_dump(), **user_config}
-        
-        # Set default TTS model path if TTS is enabled and path is not set
-        tts_will_be_enabled = complete_config_dict.get("tts_enabled", global_config.tts_enabled)
-        if tts_will_be_enabled:
-            if not complete_config_dict.get("tts_model_path") and not global_config.tts_model_path:
-                complete_config_dict["tts_model_path"] = self.get_default_tts_model_path()
-        
+
         try:
             validated_config = AppConfig(**complete_config_dict)
         except PydanticValidationError as e:
@@ -309,11 +313,11 @@ class ConfigurationService:
             for error in e.errors():
                 field = ".".join(str(loc) for loc in error["loc"])
                 error_details[field] = error["msg"]
-            raise ValueError(
-                f"Invalid configuration: {error_details}"
-            ) from e
-        
-        # Load API key for the selected provider
-        validated_config = load_api_key_for_provider(validated_config)
-        
-        return validated_config
+            raise ValueError(f"Invalid configuration: {error_details}") from e
+
+        return assemble_runtime_config(
+            validated_config,
+            get_default_tts_model_path=self.get_default_tts_model_path,
+            load_api_key_for_provider=load_api_key_for_provider,
+            force_tts_enabled=True,
+        )
