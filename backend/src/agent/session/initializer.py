@@ -76,6 +76,7 @@ def subscribe_events(session) -> None:
 
 def init_session_state(session) -> None:
     session._screenshot_state = ScreenshotState()
+    session._current_system_state = None
     session._resolved_tool_call_storage = ResolvedToolCallStorage()
 
     # Legacy accessors for backward compatibility (delegate to storage)

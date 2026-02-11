@@ -163,6 +163,9 @@ class ToolResultRouter:
         """
         logger.info(f"Routing atomic bundle result: bundle_id={bundle_id[:15]}, status={'success' if tool_result.success else 'failure'}")
         
+        if isinstance(tool_result.data, dict):
+            self.session.set_current_system_state(tool_result.data.get("system_state"))
+
         screenshot = self._extract_screenshot_from_result_data(
             tool_result.data,
             tool_result,
