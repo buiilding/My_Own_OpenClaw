@@ -12,6 +12,7 @@ read_when:
 - **Model catalog caching**: Static online/vision model catalogs are precomputed once and returned as defensive copies (`backend/src/llm/models/model_service.py`).
 - **Parallel local model discovery**: `ollama` and `lmstudio` model listing now runs concurrently to reduce settings-load latency (`backend/src/llm/models/model_service.py`).
 - **Conversation history**: History formatting uses cached access paths for O(1) retrieval in the agent pipeline (see session/history modules).
+- **Per-turn cache diagnostics logs**: LLM requests now emit `[Cache Hint]` (prompt continuity: cold-start/append-only/prefix-mutated) and `[Provider Cache]` (provider-reported cache hit/miss + cached token counts when available) in backend logs (`backend/src/agent/llm/llm_stream_processor.py`, `backend/src/llm/providers/base.py`).
 - **Tool result storage**: Centralized storage with TTL cleanup (`backend/src/agent/tools/waiting/storage/result_storage.py`).
 
 ## Frontend

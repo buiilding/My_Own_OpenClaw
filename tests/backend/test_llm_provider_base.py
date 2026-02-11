@@ -289,6 +289,60 @@ class TestStreamDeltaHelpers:
         assert provider._extract_delta_content({"content": 123}) is None
 
 
+class TestStreamUsageDiagnostics:
+    @pytest.fixture
+    def provider(self):
+        return MockProvider()
+
+    def test_record_stream_usage_from_chunk_dict(self, provider):
+        usage = {"prompt_tokens": 100, "prompt_tokens_details": {"cached_tokens": 75}}
+        captured = provider._record_stream_usage_from_chunk({"usage": usage})
+
+        assert captured == usage
+        assert provider.get_last_stream_usage() == usage
+
+    def test_record_stream_usage_from_chunk_object_usage_metadata(self, provider):
+        usage = SimpleNamespace(
+            prompt_token_count=120,
+            cached_content_token_count=90,
+            total_token_count=180,
+        )
+        chunk = SimpleNamespace(usage_metadata=usage)
+        captured = provider._record_stream_usage_from_chunk(chunk)
+
+        assert captured == {
+            "prompt_token_count": 120,
+            "cached_content_token_count": 90,
+            "total_token_count": 180,
+        }
+
+    def test_stream_cache_diagnostics_reports_hit(self, provider):
+        provider._record_stream_usage_from_chunk(
+            {"usage": {"prompt_tokens": 100, "prompt_tokens_details": {"cached_tokens": 30}}}
+        )
+
+        diagnostics = provider.get_stream_cache_diagnostics(model="model")
+        assert diagnostics["status"] == "hit"
+        assert diagnostics["cache_hit"] is True
+        assert diagnostics["cached_tokens"] == 30
+        assert diagnostics["prompt_tokens"] == 100
+
+    def test_stream_cache_diagnostics_reports_miss(self, provider):
+        provider._record_stream_usage_from_chunk(
+            {"usage": {"prompt_tokens": 100, "prompt_tokens_details": {"cached_tokens": 0}}}
+        )
+
+        diagnostics = provider.get_stream_cache_diagnostics(model="model")
+        assert diagnostics["status"] == "miss"
+        assert diagnostics["cache_hit"] is False
+        assert diagnostics["cached_tokens"] == 0
+
+    def test_stream_cache_diagnostics_reports_unknown_without_usage(self, provider):
+        diagnostics = provider.get_stream_cache_diagnostics(model="model")
+        assert diagnostics["status"] == "unknown"
+        assert diagnostics["reason"] == "provider_usage_unavailable"
+
+
 class TestCompletionContentHelpers:
     @pytest.fixture
     def provider(self):

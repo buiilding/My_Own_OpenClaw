@@ -7,9 +7,20 @@ from backend.src.llm.client import LiteLLMClient
 
 
 class DummyProvider:
-    def __init__(self, response=None, stream_events=None):
+    def __init__(self, response=None, stream_events=None, diagnostics=None):
         self.response = response
         self.stream_events = stream_events or []
+        self.diagnostics = diagnostics or {
+            "model": "model",
+            "status": "unknown",
+            "cache_hit": None,
+            "cached_tokens": None,
+            "prompt_tokens": None,
+            "completion_tokens": None,
+            "total_tokens": None,
+            "reason": "provider_usage_unavailable",
+        }
+        self.clear_usage_called = False
 
     async def get_completion(self, model, messages):
         return self.response
@@ -17,6 +28,14 @@ class DummyProvider:
     async def get_completion_stream(self, model, messages):
         for event in self.stream_events:
             yield event
+
+    def clear_last_stream_usage(self):
+        self.clear_usage_called = True
+
+    def get_stream_cache_diagnostics(self, model):
+        payload = dict(self.diagnostics)
+        payload.setdefault("model", model)
+        return payload
 
 
 class FailingStreamProvider:
@@ -26,6 +45,21 @@ class FailingStreamProvider:
     async def get_completion_stream(self, model, messages):
         raise RuntimeError("stream exploded")
         yield ChunkEvent(content="never")  # pragma: no cover
+
+    def clear_last_stream_usage(self):
+        return None
+
+    def get_stream_cache_diagnostics(self, model):
+        return {
+            "model": model,
+            "status": "unknown",
+            "cache_hit": None,
+            "cached_tokens": None,
+            "prompt_tokens": None,
+            "completion_tokens": None,
+            "total_tokens": None,
+            "reason": "provider_usage_unavailable",
+        }
 
 
 @pytest.mark.asyncio
@@ -115,6 +149,33 @@ async def test_get_completion_stream_yields_provider_events(monkeypatch):
     assert len(events) == 1
     assert isinstance(events[0], ChunkEvent)
     assert events[0].content == "hi"
+    assert provider.clear_usage_called is True
+
+
+@pytest.mark.asyncio
+async def test_get_completion_stream_stores_cache_diagnostics(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(
+        stream_events=[ChunkEvent(content="hi")],
+        diagnostics={
+            "model": "model",
+            "status": "hit",
+            "cache_hit": True,
+            "cached_tokens": 321,
+            "prompt_tokens": 640,
+            "completion_tokens": 32,
+            "total_tokens": 672,
+            "reason": None,
+        },
+    )
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    _ = [event async for event in client.get_completion_stream("model", [])]
+    diagnostics = client.get_last_stream_cache_diagnostics()
+    assert diagnostics is not None
+    assert diagnostics["status"] == "hit"
+    assert diagnostics["cached_tokens"] == 321
 
 
 def test_extract_content_rejects_invalid_payloads():

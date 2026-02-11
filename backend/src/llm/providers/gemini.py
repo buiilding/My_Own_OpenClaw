@@ -50,8 +50,10 @@ class GeminiProvider(LLMProvider):
         """
         params = self._build_request_params(model, messages)
         params["stream"] = True
+        params["stream_options"] = {"include_usage": True}
         stream = await litellm.acompletion(**params)
         async for chunk in stream:
+            self._record_stream_usage_from_chunk(chunk)
             delta = self._extract_stream_delta(chunk)
             if not delta:
                 continue

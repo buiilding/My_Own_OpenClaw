@@ -7,7 +7,7 @@ different Large Language Models (LLMs) through the LiteLLM library.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, List, TYPE_CHECKING
+from typing import Any, AsyncGenerator, Dict, List, Optional, TYPE_CHECKING
 
 from backend.src.core.config import AppConfig
 from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
@@ -43,6 +43,12 @@ class LLMClient(ABC):
         Gets a streaming completion from the LLM, yielding StreamingEvent objects.
         """
 
+    def get_last_stream_cache_diagnostics(self) -> Optional[Dict[str, Any]]:
+        """
+        Return cache diagnostics for the last streaming request, if available.
+        """
+        return None
+
 
 class LiteLLMClient(LLMClient):
     """
@@ -66,6 +72,7 @@ class LiteLLMClient(LLMClient):
         at runtime, a new client instance must be created (see AgentSession.update_config).
         """
         self.config = cfg
+        self._last_stream_cache_diagnostics: Optional[Dict[str, Any]] = None
 
     def _get_provider(self) -> "LLMProvider":
         """
@@ -151,6 +158,8 @@ class LiteLLMClient(LLMClient):
             yield ErrorEvent(content=str(exc))
             return
 
+        provider.clear_last_stream_usage()
+        self._last_stream_cache_diagnostics = None
         try:
             # Provider's get_completion_stream handles its own exceptions and yields ErrorEvent
             async for event in provider.get_completion_stream(model, messages):
@@ -158,6 +167,16 @@ class LiteLLMClient(LLMClient):
         except Exception as exc:
             logger.error("Streaming iteration failed: %s", exc, exc_info=True)
             yield ErrorEvent(content=f"LLM streaming error: {str(exc)}")
+        finally:
+            self._last_stream_cache_diagnostics = provider.get_stream_cache_diagnostics(
+                model=model
+            )
+
+    def get_last_stream_cache_diagnostics(self) -> Optional[Dict[str, Any]]:
+        """Return cached diagnostics for the most recent streaming request."""
+        if self._last_stream_cache_diagnostics is None:
+            return None
+        return dict(self._last_stream_cache_diagnostics)
 
 
 def get_llm_client(cfg: AppConfig) -> LLMClient:
