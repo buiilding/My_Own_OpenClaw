@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(dev-tools): add backend tool-selection profiles (`full|coding|computer|browser`) and `backend/dev/run_backend_with_tools.sh` launcher for zero-edit profile switching via env override
 - feat(dev-tools): add method-level `mouse_control` dev selection (`manual|ocr|prediction`) with schema/parser enforcement and startup gating to skip OCR/Vision initialization when disabled
 - feat(dev-tools): add backend dev tool-selection config (`backend/dev/tool_selection.toml`) with allowlist/denylist filtering for injected LLM tool schemas and validator/orchestrator visibility
 - feat(tools): expose sidecar filesystem tools (`replace`, `search_file_content`, `read_many_files`) via backend remote schemas and enforce strict sidecar registry/exposed-set equality

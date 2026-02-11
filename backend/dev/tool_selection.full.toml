@@ -1,0 +1,26 @@
+# Full tool set profile
+enabled = true
+mode = "allowlist"
+tools = [
+  "browser_control",
+  "mouse_control",
+  "keyboard_control",
+  "screenshot",
+  "scroll_control",
+  "switch_tab",
+  "wait",
+  "get_open_windows",
+  "get_system_stats",
+  "run_shell_command",
+  "process",
+  "read_file",
+  "write_file",
+  "list_directory",
+  "glob",
+  "replace",
+  "search_file_content",
+  "read_many_files",
+]
+
+[tool_options.mouse_control]
+enabled_coordinate_methods = ["manual", "ocr", "prediction"]

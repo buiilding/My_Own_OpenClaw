@@ -13,6 +13,30 @@ Behavior:
 
 Tool names are the schema names (example: `mouse_control`, `browser_control`, `read_file`). Canonical list: `backend/src/tools/remote.py` (`REMOTE_TOOLS`).
 
+## Ready Profiles
+
+Prebuilt profiles:
+- `backend/dev/tool_selection.full.toml`
+- `backend/dev/tool_selection.coding.toml`
+- `backend/dev/tool_selection.computer.toml`
+- `backend/dev/tool_selection.browser.toml`
+
+Run backend with a profile:
+
+```bash
+WINDIEOS_DEV_TOOL_SELECTION_PATH=backend/dev/tool_selection.coding.toml \
+  python -m backend.src.main
+```
+
+Or use the helper script:
+
+```bash
+backend/dev/run_backend_with_tools.sh coding
+backend/dev/run_backend_with_tools.sh computer
+backend/dev/run_backend_with_tools.sh browser
+backend/dev/run_backend_with_tools.sh full
+```
+
 ## Mouse Coordinate Method Selection
 
 `mouse_control` supports method-level filtering:

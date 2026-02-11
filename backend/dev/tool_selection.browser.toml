@@ -1,0 +1,9 @@
+# Browser-only tools profile
+enabled = true
+mode = "allowlist"
+tools = [
+  "browser_control",
+]
+
+[tool_options.mouse_control]
+enabled_coordinate_methods = ["manual", "ocr", "prediction"]

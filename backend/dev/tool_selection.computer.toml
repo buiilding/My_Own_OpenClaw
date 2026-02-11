@@ -1,0 +1,16 @@
+# Computer-use tools profile
+enabled = true
+mode = "allowlist"
+tools = [
+  "mouse_control",
+  "keyboard_control",
+  "screenshot",
+  "scroll_control",
+  "switch_tab",
+  "wait",
+  "get_open_windows",
+  "get_system_stats",
+]
+
+[tool_options.mouse_control]
+enabled_coordinate_methods = ["manual", "ocr", "prediction"]
