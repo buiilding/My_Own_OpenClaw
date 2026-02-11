@@ -15,11 +15,11 @@ from pydantic import ValidationError as PydanticValidationError
 
 from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.config import AppConfig, ConfigManager
+from backend.src.core.config.loader import build_runtime_config
 from backend.src.core.config.subscriptions import (
     ConfigSubscriber,
     ConfigSubscriptionManager,
 )
-from backend.src.core.config.runtime import assemble_runtime_config
 from backend.src.core.events.bus_events import ConfigChanged
 
 logger = logging.getLogger(__name__)
@@ -299,8 +299,6 @@ class ConfigurationService:
         Returns:
             Complete AppConfig instance with policies applied and API keys loaded
         """
-        from backend.src.core.config.loader import load_api_key_for_provider
-
         global_config = self.get_config()
 
         # Merge: user config overrides global
@@ -315,9 +313,4 @@ class ConfigurationService:
                 error_details[field] = error["msg"]
             raise ValueError(f"Invalid configuration: {error_details}") from e
 
-        return assemble_runtime_config(
-            validated_config,
-            get_default_tts_model_path=self.get_default_tts_model_path,
-            load_api_key_for_provider=load_api_key_for_provider,
-            force_tts_enabled=True,
-        )
+        return build_runtime_config(validated_config)

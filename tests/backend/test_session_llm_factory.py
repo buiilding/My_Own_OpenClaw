@@ -3,6 +3,7 @@ import pytest
 from backend.src.agent.session.session import AgentSession
 from backend.src.core.config.models import AppConfig
 from backend.src.core.infrastructure.bus import EventBus
+from backend.src.core.infrastructure.cache import CacheManager
 from backend.src.llm.client import LLMClient
 from backend.src.llm.prompts.prompts import PromptManager
 from backend.src.tools.registry import ToolRegistry
@@ -30,7 +31,7 @@ def _init_prompt_manager():
 @pytest.mark.asyncio
 async def test_update_config_uses_llm_factory():
     config = AppConfig()
-    registry = ToolRegistry(config=config)
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
     event_bus = EventBus()
     calls = []
 

@@ -7,7 +7,6 @@ Edit this file to change application settings.
 Note: Changes require application restart to take effect.
 """
 from backend.src.core.config.models import AppConfig, LLMProviders, OCRConfig, SecurityLimits
-from backend.src.core.config.loader import get_default_tts_model_path
 
 
 # Default application configuration
@@ -52,7 +51,7 @@ APP_CONFIG = AppConfig(
     
     # TTS Settings
     tts_enabled=True,
-    tts_model_path=get_default_tts_model_path(),
+    tts_model_path=None,
     speech_mode_enabled=False,
     
     # Security limits

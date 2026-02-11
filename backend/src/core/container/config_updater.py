@@ -69,10 +69,8 @@ class ContainerConfigUpdater:
         else:
             self.container.embedder = None
 
-        # CRITICAL FIX: Invalidate session factory to force recreation with new config
-        # AgentSessionFactory holds a reference to the old AppConfig in self.config
-        # Without invalidation, new sessions will use stale configuration/credentials
-        self.container._session_factory = None
+        # Invalidate session factory to force recreation with new config.
+        self.container.invalidate_session_factory()
 
         logger.info("Container configuration updated")
 

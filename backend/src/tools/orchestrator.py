@@ -90,6 +90,13 @@ class ToolResultOrchestrator:
         # SINGLE TOOLS: Execute each tool individually
         results = []
         for tool_call in parsed_response.tool_calls:
+            metadata = tool_call.metadata or {}
+            if not metadata.get("request_id"):
+                logger.warning(
+                    "Skipping tool call '%s' without request_id metadata in non-bundle path",
+                    tool_call.tool_name,
+                )
+                continue
             result = await execute_single_tool(tool_call, session_ref)
             results.append(result)
         

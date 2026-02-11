@@ -19,7 +19,7 @@ def _create_agent_factory():
     return AgentFactory()
 
 
-def _create_tool_registry_with_factory(config: AppConfig, agent_factory):
+def _create_tool_registry_with_factory(config: AppConfig, agent_factory, cache_manager):
     """
     Create tool registry and context factory together.
 
@@ -40,6 +40,7 @@ def _create_tool_registry_with_factory(config: AppConfig, agent_factory):
     tool_registry = ToolRegistry(
         config=config,
         context_factory=context_factory,
+        cache_manager=cache_manager,
     )
 
     # Wire registry into context factory

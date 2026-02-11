@@ -47,6 +47,7 @@ class ApplicationContainer(containers.DeclarativeContainer):
     tools = providers.Container(
         ToolContainer,
         config=core.config,
+        cache_manager=core.cache_manager,
     )
 
     # Memory container (wired to core for config and cache_manager)

@@ -41,6 +41,7 @@ Includes the last 300 commits on `main`.
 - docs(agents): clarify that agents should continue scoped work when unrelated changes are present and report only scoped deltas
 
 ### Fixed
+- fix(tool-orchestrator): skip non-bundle tool calls that arrive without `request_id` metadata instead of emitting placeholder pending results
 - fix(api-schema): remove unsupported incoming `screenshot_url` fields (`query`, `tool-bundle-result`), align docs, and add parse-time regression coverage
 - fix(api-transport): harden `SafeWebSocket` with bounded queue backpressure, sender-failure propagation, and pending-future drain on disconnect paths
 - fix(bundle-results): normalize `tool-bundle-result` step payloads to plain dicts and harden bundle execution against Pydantic step models (`ToolBundleStepResult`) to prevent `'... has no attribute get'` crashes
@@ -134,6 +135,7 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- refactor(core-runtime): move incoming websocket handler routing into a core-owned validated spec, split `Container` runtime responsibilities (`session_runtime`/`api_runtime`), and route config/tool-schema assembly through single DI-owned paths
 - refactor(api-contract): add API-owned contract adapter seam (`api/contracts`) for message-type constants and formatter specs, then route formatter/tts/wakeword/settings/error emit paths through that registry plus drift tests
 - refactor(api): add `TypedMessageHandler` base for strongly-typed WebSocket handlers and reduce per-handler message-cast boilerplate
 - refactor(api-contract): add explicit outgoing schema models for `tool-schemas`/`token-count`/`memory-store` plus formatter-to-schema regression tests

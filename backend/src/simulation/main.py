@@ -80,7 +80,7 @@ async def lifespan(app: FastAPI):
     
     # Reset session factory so it will be recreated with MockLLMClient on next session creation
     # This ensures all new sessions use the mock client
-    container._session_factory = None
+    container.invalidate_session_factory()
     logger.info("Session factory reset - will use MockLLMClient on next session creation")
     
     logger.info("Simulation backend initialized successfully")
