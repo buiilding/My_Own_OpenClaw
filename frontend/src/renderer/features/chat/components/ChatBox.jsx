@@ -3,33 +3,114 @@ import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { selectChatBoxState } from '../utils/chatSelectors';
-import {
-  getChatBoxStatusText,
-  getInteractionModeLabel,
-  getLatestAssistantMessage,
-  trimPreview,
-} from '../utils/chatBoxPresentation';
+
+const RESPONSE_TYPES = new Set(['tool-call', 'llm-text', 'error']);
+const FIRST_CHUNK_TYPES = new Set(['llm-text', 'error']);
+
+function findLastUserIndex(messages) {
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    if (messages[i].sender === 'user') {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function findLatestMessageAfterUser(messages, lastUserIndex, allowedTypes) {
+  for (let i = messages.length - 1; i > lastUserIndex; i -= 1) {
+    const message = messages[i];
+    if (message.sender !== 'assistant') {
+      continue;
+    }
+    if (!message.text) {
+      continue;
+    }
+    if (!allowedTypes.has(message.type)) {
+      continue;
+    }
+    return message;
+  }
+  return null;
+}
+
+function SettingsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <circle cx="9" cy="6" r="2.2" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <circle cx="15" cy="12" r="2.2" />
+      <line x1="4" y1="18" x2="20" y2="18" />
+      <circle cx="11" cy="18" r="2.2" />
+    </svg>
+  );
+}
+
+function MicIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="9" y="3.5" width="6" height="11" rx="3" />
+      <path d="M6.5 11.5a5.5 5.5 0 0011 0" />
+      <line x1="12" y1="17" x2="12" y2="21" />
+      <line x1="9" y1="21" x2="15" y2="21" />
+    </svg>
+  );
+}
 
 function ChatBox() {
-  const { messages, isSending, thinkingStatus } = useChatStore(useShallow(selectChatBoxState));
-  const { config } = useAppConfigContext();
+  const { messages, isSending } = useChatStore(useShallow(selectChatBoxState));
   const { sendMessage } = useChatMessageSender();
   const [inputValue, setInputValue] = useState('');
+  const [closedResponseId, setClosedResponseId] = useState(null);
+  const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
+  const [isCaptureActive, setIsCaptureActive] = useState(false);
   const ignoreMouseRef = useRef(undefined);
   const shellRef = useRef(null);
   const inputRef = useRef(null);
+  const lastUserMessageIdRef = useRef(null);
   const lastSizeRef = useRef({ width: 0, height: 0 });
 
-  const lastAssistantMessage = useMemo(
-    () => getLatestAssistantMessage(messages),
-    [messages]
+  const lastUserIndex = useMemo(
+    () => findLastUserIndex(messages),
+    [messages],
   );
 
-  const statusText = getChatBoxStatusText(thinkingStatus, isSending);
-  const interactionMode = config?.interaction_mode || 'chat';
-  const interactionLabel = getInteractionModeLabel(interactionMode);
+  const lastUserMessageId = useMemo(() => {
+    if (lastUserIndex < 0) {
+      return null;
+    }
+    return messages[lastUserIndex]?.id || null;
+  }, [lastUserIndex, messages]);
+
+  const activeResponse = useMemo(
+    () => findLatestMessageAfterUser(messages, lastUserIndex, RESPONSE_TYPES),
+    [messages, lastUserIndex],
+  );
+
+  const firstTextOrError = useMemo(
+    () => findLatestMessageAfterUser(messages, lastUserIndex, FIRST_CHUNK_TYPES),
+    [messages, lastUserIndex],
+  );
+
+  const responseIsCloseable = useMemo(() => {
+    if (!activeResponse) {
+      return false;
+    }
+    if (activeResponse.type === 'error') {
+      return true;
+    }
+    return Boolean(activeResponse.isComplete);
+  }, [activeResponse]);
+
+  const showResponse = Boolean(
+    activeResponse
+      && !isCaptureActive
+      && !awaitingFirstChunk
+      && activeResponse.id !== closedResponseId,
+  );
+
+  const showTyping = awaitingFirstChunk && !isCaptureActive;
 
   const setOverlayIgnore = useCallback(async (ignore) => {
     if (ignoreMouseRef.current === ignore) {
@@ -106,6 +187,40 @@ function ChatBox() {
     };
   }, [setOverlayIgnore]);
 
+  useEffect(() => {
+    if (!lastUserMessageId) {
+      return;
+    }
+    if (lastUserMessageIdRef.current === lastUserMessageId) {
+      return;
+    }
+    lastUserMessageIdRef.current = lastUserMessageId;
+    setAwaitingFirstChunk(true);
+    setClosedResponseId(null);
+  }, [lastUserMessageId]);
+
+  useEffect(() => {
+    if (!awaitingFirstChunk) {
+      return;
+    }
+    if (!firstTextOrError) {
+      return;
+    }
+    setAwaitingFirstChunk(false);
+  }, [awaitingFirstChunk, firstTextOrError]);
+
+  useEffect(() => {
+    const onCaptureState = (event) => {
+      const nextActive = Boolean(event?.detail?.active);
+      setIsCaptureActive(nextActive);
+    };
+
+    window.addEventListener('windie:screenshot-capture', onCaptureState);
+    return () => {
+      window.removeEventListener('windie:screenshot-capture', onCaptureState);
+    };
+  }, []);
+
   const handleSend = useCallback(async () => {
     const trimmed = inputValue.trim();
     if (!trimmed || isSending) {
@@ -136,18 +251,41 @@ function ChatBox() {
     }
   }, []);
 
-  const preview = trimPreview(lastAssistantMessage, 140);
+  const handleCloseResponse = useCallback(() => {
+    if (!activeResponse || !responseIsCloseable) {
+      return;
+    }
+    setClosedResponseId(activeResponse.id);
+  }, [activeResponse, responseIsCloseable]);
 
   return (
     <div className="chatbox-shell-wrap">
       <div className="chatbox-shell" ref={shellRef}>
-        <div className="chatbox-row">
-          <div className="chatbox-left">
-            <span className={`chatbox-indicator ${thinkingStatus ? 'is-thinking' : isSending ? 'is-sending' : ''}`} />
-            <span className="chatbox-mode">{interactionLabel}</span>
-            <span className="chatbox-status-text">{statusText}</span>
+        {showResponse ? (
+          <div className="chatbox-response-pill">
+            <button
+              type="button"
+              className="chatbox-response-close"
+              onClick={handleCloseResponse}
+              disabled={!responseIsCloseable}
+              aria-label={responseIsCloseable ? 'Close response' : 'Response still streaming'}
+            >
+              ×
+            </button>
+            <div className="chatbox-response-text">{activeResponse.text}</div>
           </div>
-          <form className="chatbox-form" onSubmit={handleSubmit}>
+        ) : null}
+
+        {showTyping ? (
+          <div className="chatbox-typing-indicator" aria-label="Assistant is typing">
+            <span />
+            <span />
+            <span />
+          </div>
+        ) : null}
+
+        <form className="chatbox-pill" onSubmit={handleSubmit}>
+          <div className="chatbox-input-wrap">
             <input
               ref={inputRef}
               type="text"
@@ -159,22 +297,26 @@ function ChatBox() {
               className="chatbox-input"
               disabled={isSending}
             />
-          </form>
+          </div>
           <div className="chatbox-actions">
-            <button type="button" className="chatbox-icon chatbox-settings" onClick={handleOpenSettings} aria-label="Open dashboard">
-              Config
+            <button
+              type="button"
+              className="chatbox-icon chatbox-mic"
+              disabled
+              aria-label="Voice input disabled"
+            >
+              <MicIcon />
             </button>
-            <button type="button" className="chatbox-icon chatbox-mic" disabled aria-label="Voice typing disabled">
-              Mic
+            <button
+              type="button"
+              className="chatbox-icon chatbox-settings"
+              onClick={handleOpenSettings}
+              aria-label="Open settings"
+            >
+              <SettingsIcon />
             </button>
           </div>
-        </div>
-        {preview ? (
-          <div className="chatbox-preview">
-            <span className="chatbox-preview-label">Assistant</span>
-            <span className="chatbox-preview-text">{preview}</span>
-          </div>
-        ) : null}
+        </form>
       </div>
     </div>
   );
