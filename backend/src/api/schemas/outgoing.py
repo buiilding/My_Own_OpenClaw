@@ -144,6 +144,46 @@ class SystemPromptMessage(BaseMessage):
     payload: SystemPromptPayload
 
 
+class ToolSchemasPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    tool_schemas: Dict[str, Any]
+
+
+class ToolSchemasMessage(BaseMessage):
+    type: Literal["tool-schemas"]
+    payload: ToolSchemasPayload
+
+
+class TokenCountPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    input_tokens: Optional[int] = None
+    output_tokens: Optional[int] = None
+    total_tokens: Optional[int] = None
+    conversation_tokens: Optional[int] = None
+
+
+class TokenCountMessage(BaseMessage):
+    type: Literal["token-count"]
+    payload: TokenCountPayload
+
+
+class MemoryStorePayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    user_query: Optional[str] = None
+    assistant_response: Optional[str] = None
+    memory_type: Optional[str] = None
+    user_id: str
+    session_id: Optional[str] = None
+
+
+class MemoryStoreMessage(BaseMessage):
+    type: Literal["memory-store"]
+    payload: MemoryStorePayload
+
+
 class UserMessageFullMetadata(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

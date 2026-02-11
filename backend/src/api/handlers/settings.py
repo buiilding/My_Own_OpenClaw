@@ -3,14 +3,17 @@ Settings Message Handlers.
 
 Handles settings-related messages (load, update).
 """
+
 import logging
 from typing import TYPE_CHECKING, Any, Dict
 
-from backend.src.api.infrastructure.handler import MessageHandler
-from backend.src.api.infrastructure.errors import send_error_response, send_success_response
+from backend.src.api.infrastructure.handler import TypedMessageHandler
+from backend.src.api.infrastructure.errors import (
+    send_error_response,
+    send_success_response,
+)
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.schema import (
-    BaseMessage,
     LoadSettingsMessage,
     ListModelsMessage,
     UpdateSettingsMessage,
@@ -43,7 +46,7 @@ def _build_frontend_settings_payload(config: Any) -> Dict[str, Any]:
     }
 
 
-class LoadSettingsHandler(MessageHandler):
+class LoadSettingsHandler(TypedMessageHandler[LoadSettingsMessage]):
     """Handler for load-settings messages."""
 
     def __init__(self, session_manager: "SessionManager"):
@@ -55,15 +58,10 @@ class LoadSettingsHandler(MessageHandler):
         """
         self.session_manager = session_manager
 
-    def validate_message(self, message: BaseMessage) -> bool:
-        """Validate load-settings message structure."""
-        return isinstance(message, LoadSettingsMessage)
+    message_model = LoadSettingsMessage
 
-    async def handle(
-        self,
-        message: BaseMessage,
-        websocket: WebSocketSender,
-        user_id: str
+    async def handle_typed(
+        self, message: LoadSettingsMessage, websocket: WebSocketSender, user_id: str
     ) -> None:
         """
         Handle a load-settings message.
@@ -72,8 +70,6 @@ class LoadSettingsHandler(MessageHandler):
         otherwise from global app config defaults.
         """
         try:
-            validated: LoadSettingsMessage = message  # type: ignore
-
             session = self.session_manager.get_session(user_id)
             config_source = getattr(session, "cfg", None)
             if config_source is None:
@@ -81,28 +77,21 @@ class LoadSettingsHandler(MessageHandler):
 
             await send_success_response(
                 websocket,
-                validated.id,
+                message.id,
                 "settings-loaded",
                 {"config": _build_frontend_settings_payload(config_source)},
             )
         except ValidationError as e:
             await send_error_response(
-                websocket,
-                message.id,
-                f"Invalid load-settings message: {e.message}"
+                websocket, message.id, f"Invalid load-settings message: {e.message}"
             )
         except Exception as e:
-            await send_error_response(
-                websocket,
-                message.id,
-                None,
-                exception=e
-            )
+            await send_error_response(websocket, message.id, None, exception=e)
 
 
-class ListModelsHandler(MessageHandler):
+class ListModelsHandler(TypedMessageHandler[ListModelsMessage]):
     """Handler for list-models messages."""
-    
+
     def __init__(self, model_service: ModelService):
         """
         Initialize the list models handler.
@@ -111,55 +100,36 @@ class ListModelsHandler(MessageHandler):
             model_service: Model service instance
         """
         self.model_service = model_service
-    
-    def validate_message(self, message: BaseMessage) -> bool:
-        """Validate list-models message structure."""
-        return isinstance(message, ListModelsMessage)
-    
-    async def handle(
-        self, 
-        message: BaseMessage, 
-        websocket: WebSocketSender,
-        user_id: str
+
+    message_model = ListModelsMessage
+
+    async def handle_typed(
+        self, message: ListModelsMessage, websocket: WebSocketSender, user_id: str
     ) -> None:
         """
         Handle a list-models message.
-        
+
         Args:
             message: Validated ListModelsMessage Pydantic model
             websocket: WebSocketSender (thread-safe protocol implementation)
             user_id: User ID from connection context
         """
         try:
-            # Type assertion - message is already validated as ListModelsMessage
-            validated: ListModelsMessage = message  # type: ignore
             models = await self.model_service.get_all_models()
-            
+
             # Send success response using canonical utility
-            await send_success_response(
-                websocket,
-                validated.id,
-                "models-listed",
-                models
-            )
+            await send_success_response(websocket, message.id, "models-listed", models)
         except ValidationError as e:
             # Validation error - send using canonical utility
             await send_error_response(
-                websocket,
-                message.id,
-                f"Invalid list-models message: {e.message}"
+                websocket, message.id, f"Invalid list-models message: {e.message}"
             )
         except Exception as e:
             # Unexpected error - send sanitized error to prevent information leakage
-            await send_error_response(
-                websocket,
-                message.id,
-                None,
-                exception=e
-            )
+            await send_error_response(websocket, message.id, None, exception=e)
 
 
-class UpdateSettingsHandler(MessageHandler):
+class UpdateSettingsHandler(TypedMessageHandler[UpdateSettingsMessage]):
     """Handler for update-settings messages."""
 
     def __init__(self, session_manager: "SessionManager"):
@@ -171,15 +141,10 @@ class UpdateSettingsHandler(MessageHandler):
         """
         self.session_manager = session_manager
 
-    def validate_message(self, message: BaseMessage) -> bool:
-        """Validate update-settings message structure."""
-        return isinstance(message, UpdateSettingsMessage)
+    message_model = UpdateSettingsMessage
 
-    async def handle(
-        self,
-        message: BaseMessage,
-        websocket: WebSocketSender,
-        user_id: str
+    async def handle_typed(
+        self, message: UpdateSettingsMessage, websocket: WebSocketSender, user_id: str
     ) -> None:
         """
         Handle an update-settings message.
@@ -187,9 +152,8 @@ class UpdateSettingsHandler(MessageHandler):
         Applies frontend-owned config updates to the user's session.
         """
         try:
-            validated: UpdateSettingsMessage = message  # type: ignore
             updates = validate_frontend_config(
-                validated.payload.model_dump(exclude_none=True)
+                message.payload.model_dump(exclude_none=True)
             )
 
             if updates:
@@ -197,20 +161,13 @@ class UpdateSettingsHandler(MessageHandler):
 
             await send_success_response(
                 websocket,
-                validated.id,
+                message.id,
                 "settings-updated",
-                {"updated_keys": list(updates.keys())}
+                {"updated_keys": list(updates.keys())},
             )
         except ValidationError as e:
             await send_error_response(
-                websocket,
-                message.id,
-                f"Invalid settings: {e.message}"
+                websocket, message.id, f"Invalid settings: {e.message}"
             )
         except Exception as e:
-            await send_error_response(
-                websocket,
-                message.id,
-                None,
-                exception=e
-            )
+            await send_error_response(websocket, message.id, None, exception=e)

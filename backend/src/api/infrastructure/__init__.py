@@ -3,7 +3,8 @@ Infrastructure Layer.
 
 Provides base classes, registry, and error handling utilities.
 """
-from backend.src.api.infrastructure.handler import MessageHandler
+
+from backend.src.api.infrastructure.handler import MessageHandler, TypedMessageHandler
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
 from backend.src.api.infrastructure.errors import (
     send_error_response,
@@ -13,6 +14,7 @@ from backend.src.api.infrastructure.errors import (
 
 __all__ = [
     "MessageHandler",
+    "TypedMessageHandler",
     "MessageHandlerRegistry",
     "send_error_response",
     "send_success_response",

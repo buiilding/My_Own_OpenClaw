@@ -3,10 +3,11 @@ Query Message Handler.
 
 Handles user query messages and streams responses back to the client.
 """
+
 import logging
 from typing import TYPE_CHECKING, Optional
 
-from backend.src.api.infrastructure.handler import MessageHandler
+from backend.src.api.infrastructure.handler import TypedMessageHandler
 
 if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager
@@ -17,7 +18,7 @@ from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.transport.sender import WebSocketTransportSender
 from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.processing.tts.processor import TTSProcessor
-from backend.src.api.schema import BaseMessage, QueryMessage
+from backend.src.api.schema import QueryMessage
 from backend.src.api.services.query_execution import QueryExecutionService
 from backend.src.services.artifacts import ArtifactStore
 from backend.src.core.validation.validators import (
@@ -27,7 +28,7 @@ from backend.src.core.validation.validators import (
 logger = logging.getLogger(__name__)
 
 
-class QueryMessageHandler(MessageHandler):
+class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
     """
     Handler for user query messages.
 
@@ -66,12 +67,10 @@ class QueryMessageHandler(MessageHandler):
             response_formatter=response_formatter,
         )
 
-    def validate_message(self, message: BaseMessage) -> bool:
-        """Validate query message structure."""
-        return isinstance(message, QueryMessage)
+    message_model = QueryMessage
 
-    async def handle(
-        self, message: BaseMessage, websocket: WebSocketSender, user_id: str
+    async def handle_typed(
+        self, message: QueryMessage, websocket: WebSocketSender, user_id: str
     ) -> None:
         """
         Handle a query message.
@@ -81,14 +80,12 @@ class QueryMessageHandler(MessageHandler):
             websocket: WebSocket connection
             user_id: User ID from connection context
         """
-        # Type assertion - message is already validated as QueryMessage
-        validated: QueryMessage = message  # type: ignore
-        msg_id = validated.id
+        msg_id = message.id
 
         try:
             logger.info("[Timing] Query received from frontend (user_id=%s)", user_id)
             await self.execution_service.execute(
-                validated,
+                message,
                 websocket,
                 user_id,
                 pipeline_cls=StreamPipeline,
@@ -103,20 +100,20 @@ class QueryMessageHandler(MessageHandler):
             await self._send_error(websocket, msg_id, None, exception=e)
 
     async def _send_error(
-        self, 
-        websocket: WebSocketSender, 
-        msg_id: Optional[str], 
+        self,
+        websocket: WebSocketSender,
+        msg_id: Optional[str],
         message: Optional[str] = None,
-        exception: Optional[Exception] = None
+        exception: Optional[Exception] = None,
     ):
         """
         Send error response.
-        
+
         Security: If exception is provided, message is sanitized to prevent information leakage.
         Full exception details are logged server-side.
-        
+
         Handles connection errors gracefully - if connection is closed, logs and returns silently.
-        
+
         Args:
             websocket: WebSocketSender (thread-safe protocol implementation)
             msg_id: Message ID (optional)
