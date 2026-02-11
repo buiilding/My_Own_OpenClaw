@@ -103,7 +103,7 @@ body {
 .chatbox-response-pill {
   position: relative;
   padding: 14px 16px 12px;
-  max-height: min(80vh, 6400px);
+  max-height: 6400px;
   overflow-y: auto;
   scrollbar-gutter: stable;
   white-space: pre-wrap;

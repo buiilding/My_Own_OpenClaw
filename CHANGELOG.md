@@ -44,6 +44,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox): keep overlay fully interactive while preserving rounded-pill hit geometry so background windows are not blocked by rectangular shadow regions
 
 ### Fixed
+- fix(frontend-chatbox): remove `vh`-based max-height from response pill in the dedicated response window so streamed text can continue increasing overlay height instead of self-clamping early
 - fix(frontend-chatbox): increase response overlay max-height caps by 5x (`1280px` -> `6400px`, IPC clamp `1500` -> `7500`) for longer streamed outputs before clipping
 - fix(frontend-chatbox): avoid Zustand selector snapshot churn in chatbox overlay by selecting primitive `isSending` state directly (prevents React maximum-update-depth loop in dev)
 - fix(frontend-chatbox): split overlay into separate fixed input and response windows so streaming text no longer shifts chatbox Y position; response now grows smoothly upward and is hidden during Linux screenshot capture fallback
