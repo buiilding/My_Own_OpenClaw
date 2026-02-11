@@ -1,416 +1,238 @@
 """
-TTS Service for Real-time Text-to-Speech Synthesis.
+TTS Service for real-time text-to-speech synthesis.
 
-Uses Piper TTS for local, low-latency synthesis.
+Uses Piper TTS for local synthesis with CUDA->CPU fallback and periodic
+CUDA retry when fallback mode is active.
 """
+
+from __future__ import annotations
+
 import asyncio
-import logging
 import queue
-import threading
+import time
 from typing import Any, AsyncGenerator, Dict, Optional
 
 from backend.src.core.config import AppConfig
 from backend.src.core.services.tts_audio import prepare_audio_data, send_audio_chunk
 from backend.src.core.services.tts_buffer import SentenceBuffer
+from backend.src.core.services.tts_cuda import format_truncated_error, is_cuda_error
+from backend.src.core.services.tts_worker import TtsWorker
+
+import logging
 
 logger = logging.getLogger(__name__)
-
-CUDA_ERROR_KEYWORDS = (
-    "Failed to allocate memory",
-    "RUNTIME_EXCEPTION",
-    "CUBLAS_STATUS_ALLOC_FAILED",
-    "CUBLAS failure",
-    "CUDNN",
-    "CUDA",
-    "cuda_call",
-    "cublas",
-    "cudnn",
-    "CUDNN_STATUS",
-    "CUBLAS_STATUS",
-)
 
 
 class TTSService:
     """
-    Service for text-to-speech synthesis using Piper.
-
-    Handles sentence detection from text stream and processes
-    sentences in a background thread to generate audio chunks.
+    Text-to-speech service wrapper around Piper.
     """
 
     def __init__(self, config: AppConfig):
         self.config = config
         self.voice = None
         self.running = False
-        self.loop = None
-        self.use_cuda = True  # Track whether we're using CUDA or CPU
-        # PERMANENT CPU TRAP FIX: Track when we switched to CPU and last retry attempt
-        self._cuda_fallback_time: Optional[float] = None  # Timestamp when switched to CPU
-        self._cuda_retry_interval = 300.0  # Retry CUDA every 5 minutes
+        self.loop: Optional[asyncio.AbstractEventLoop] = None
+        self.use_cuda = True
+        self._cuda_fallback_time: Optional[float] = None
+        self._cuda_retry_interval = 300.0
         self._cuda_retry_task: Optional[asyncio.Task] = None
 
-        # Queues
-        self.input_queue = queue.Queue()  # Sentences to synthesize
-        self.audio_queue: Optional[asyncio.Queue] = None  # Audio chunks to stream
-
+        self.input_queue: "queue.Queue[Optional[str]]" = queue.Queue()
+        self.audio_queue: Optional[asyncio.Queue] = None
         self._buffer = SentenceBuffer(max_size=500, logger=logger)
-
-        # Thread
-        self.worker_thread: Optional[threading.Thread] = None
-        
-        # CRITICAL FIX #3: Event for waiting until processing is complete
-        # This replaces busy-wait polling and properly encapsulates TTS state
         self._processing_complete: Optional[asyncio.Event] = None
+        self._worker: Optional[TtsWorker] = None
 
     async def initialize(self):
-        """Initialize the TTS service."""
-        # tts_enabled is always True (hardcoded in code, not configurable)
-        # Only check if model path is set
+        """Initialize TTS runtime and background worker."""
         if not self.config.tts_model_path:
             logger.info(
-                f"TTS Service not initialized: tts_model_path not set. "
-                f"tts_enabled={self.config.tts_enabled} (always True), "
-                f"tts_model_path={self.config.tts_model_path}"
+                "TTS Service not initialized: tts_model_path not set. "
+                "tts_enabled=%s, tts_model_path=%s",
+                self.config.tts_enabled,
+                self.config.tts_model_path,
             )
             return
 
         self.loop = asyncio.get_running_loop()
         self.audio_queue = asyncio.Queue()
         self._processing_complete = asyncio.Event()
-        self._processing_complete.set()  # Initially idle
+        self._processing_complete.set()
 
         try:
-            # Load model in a separate thread to avoid blocking the event loop
             await self.loop.run_in_executor(None, self._start_worker)
             logger.info(
-                f"TTS Service initialized with model: {self.config.tts_model_path}"
+                "TTS Service initialized with model: %s", self.config.tts_model_path
             )
-            
-            # PERMANENT CPU TRAP FIX: Start CUDA retry task if we're in CPU mode
             if not self.use_cuda:
                 self._start_cuda_retry_task()
         except Exception as e:
             logger.error(f"Failed to initialize TTS Service: {e}", exc_info=True)
 
     def _start_worker(self):
-        """Load model and start worker thread (runs in executor)."""
+        """Load voice and start synthesis worker thread."""
         try:
             from piper import PiperVoice
 
-            # Try CUDA first, fall back to CPU if GPU errors occur
             try:
-                self.voice = PiperVoice.load(
-                    self.config.tts_model_path, use_cuda=True
-                )
+                self.voice = PiperVoice.load(self.config.tts_model_path, use_cuda=True)
                 self.use_cuda = True
                 logger.info("TTS initialized with CUDA")
             except Exception as e:
-                # If CUDA fails (any CUDA/CUDNN error), try CPU fallback
-                error_msg = str(e)
-
-                if self._is_cuda_error(e):
-                    logger.warning(
-                        f"TTS CUDA initialization failed (GPU error detected). "
-                        f"Falling back to CPU. Error: {error_msg[:200]}"
-                    )
-                    try:
-                        self.voice = PiperVoice.load(
-                            self.config.tts_model_path, use_cuda=False
-                        )
-                        self.use_cuda = False
-                        logger.info("TTS initialized with CPU fallback")
-                    except Exception as cpu_error:
-                        logger.error(f"TTS CPU initialization also failed: {cpu_error}")
-                        raise
-                else:
-                    raise  # Re-raise if it's not a CUDA/CUDNN error
+                if not is_cuda_error(e):
+                    raise
+                logger.warning(
+                    "TTS CUDA initialization failed. Falling back to CPU. Error: %s",
+                    format_truncated_error(e),
+                )
+                self.voice = PiperVoice.load(self.config.tts_model_path, use_cuda=False)
+                self.use_cuda = False
+                logger.info("TTS initialized with CPU fallback")
 
             self.running = True
-            self.worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
-            self.worker_thread.start()
-
+            self._worker = TtsWorker(
+                input_queue=self.input_queue,
+                on_synthesize=self._synthesize_with_fallback,
+                on_complete=self._signal_processing_complete,
+                logger=logger,
+            )
+            self._worker.start()
         except ImportError:
             logger.error("piper package not found. Please install piper-tts.")
         except Exception as e:
             logger.error(f"Error loading Piper model: {e}")
             raise
 
-    def _is_cuda_error(self, error: Exception) -> bool:
-        """
-        Check if an exception is a CUDA/CUDNN related error.
-        
-        Args:
-            error: Exception to check
-            
-        Returns:
-            True if error is CUDA-related, False otherwise
-        """
-        error_msg = str(error)
-        error_type = type(error).__name__
-        
-        return (
-            "ONNXRuntimeError" in error_type or
-            "ONNXRuntimeError" in error_msg or
-            any(keyword in error_msg for keyword in CUDA_ERROR_KEYWORDS)
-        )
+    def _signal_processing_complete(self) -> None:
+        if self.loop and self._processing_complete:
+            self.loop.call_soon_threadsafe(self._processing_complete.set)
 
-    def _synthesize_text(self, text: str) -> bool:
-        """
-        Synthesize text to audio chunks and send to queue.
-        
-        Args:
-            text: Text to synthesize
-            
-        Returns:
-            True if synthesis succeeded, False otherwise
-        """
+    def _synthesize_text(self, text: str) -> None:
         for audio_chunk in self.voice.synthesize(text):
             if not self.running:
                 break
             audio_data = prepare_audio_data(audio_chunk)
             send_audio_chunk(self.loop, self.audio_queue, audio_data)
-        return True
 
     def _reload_with_cpu(self) -> None:
-        """
-        Reload TTS model with CPU fallback.
-        
-        PERMANENT CPU TRAP FIX: Records timestamp when switching to CPU and starts
-        retry task to periodically attempt CUDA reload.
-        
-        Raises:
-            Exception: If reload fails
-        """
-        import time
         from piper import PiperVoice
-        self.voice = PiperVoice.load(
-            self.config.tts_model_path, use_cuda=False
-        )
+
+        self.voice = PiperVoice.load(self.config.tts_model_path, use_cuda=False)
         self.use_cuda = False
         self._cuda_fallback_time = time.time()
         logger.debug("TTS model reloaded with CPU")
-        
-        # Start retry task if not already running
         if self.loop and not self._cuda_retry_task:
             self._start_cuda_retry_task()
-    
+
     def _start_cuda_retry_task(self) -> None:
-        """
-        Start background task to periodically retry CUDA initialization.
-        
-        PERMANENT CPU TRAP FIX: After switching to CPU due to transient GPU errors,
-        this task periodically attempts to reload with CUDA to recover performance.
-        """
         if not self.loop:
             return
-        
+
         async def _cuda_retry_loop():
-            """Background task that periodically attempts CUDA reload."""
             while self.running and not self.use_cuda:
                 try:
-                    # Wait for retry interval
                     await asyncio.sleep(self._cuda_retry_interval)
-                    
                     if not self.running or self.use_cuda:
                         break
-                    
-                    # Check if enough time has passed since fallback
-                    import time
                     if self._cuda_fallback_time is None:
                         break
-                    
                     elapsed = time.time() - self._cuda_fallback_time
                     if elapsed < self._cuda_retry_interval:
                         continue
-                    
-                    logger.info("Attempting to reload TTS model with CUDA after CPU fallback...")
-                    
-                    # Try to reload with CUDA in executor
+
+                    logger.info(
+                        "Attempting to reload TTS model with CUDA after CPU fallback..."
+                    )
                     try:
                         await self.loop.run_in_executor(None, self._try_reload_cuda)
                         if self.use_cuda:
-                            logger.info("TTS successfully reloaded with CUDA - performance restored")
+                            logger.info(
+                                "TTS successfully reloaded with CUDA - performance restored"
+                            )
                             self._cuda_fallback_time = None
                             break
                     except Exception as e:
                         logger.debug(f"CUDA retry failed (will retry later): {e}")
-                
                 except asyncio.CancelledError:
                     break
                 except Exception as e:
                     logger.error(f"Error in CUDA retry loop: {e}", exc_info=True)
-        
+
         self._cuda_retry_task = self.loop.create_task(_cuda_retry_loop())
-    
+
     def _try_reload_cuda(self) -> None:
-        """
-        Attempt to reload TTS model with CUDA.
-        
-        Called from executor thread to avoid blocking event loop.
-        """
         from piper import PiperVoice
+
         try:
-            self.voice = PiperVoice.load(
-                self.config.tts_model_path, use_cuda=True
-            )
+            self.voice = PiperVoice.load(self.config.tts_model_path, use_cuda=True)
             self.use_cuda = True
             logger.info("TTS model reloaded with CUDA successfully")
         except Exception as e:
-            # Still a CUDA error - keep using CPU
-            if self._is_cuda_error(e):
+            if is_cuda_error(e):
                 logger.debug(f"CUDA reload still failing: {e}")
                 raise
-            else:
-                # Non-CUDA error - unexpected, but keep using CPU
-                logger.warning(f"Unexpected error during CUDA reload: {e}")
-                raise
+            logger.warning(f"Unexpected error during CUDA reload: {e}")
+            raise
 
-    def _synthesize_with_fallback(self, text: str) -> bool:
-        """
-        Synthesize text with CUDA fallback logic.
-        
-        Handles CUDA errors by falling back to CPU and retrying.
-        This method encapsulates all the retry logic to keep the worker loop clean.
-        
-        Args:
-            text: Text to synthesize
-            
-        Returns:
-            True if synthesis succeeded, False otherwise
-        """
+    def _synthesize_with_fallback(self, text: str) -> None:
         try:
-            # Try synthesis with current voice (CUDA or CPU)
             self._synthesize_text(text)
-            return True
+            return
         except Exception as e:
-            # Check if it's a CUDA error
-            if not self._is_cuda_error(e):
-                # Non-CUDA error - log and fail
+            if not is_cuda_error(e):
                 logger.error(
-                    f"TTS synthesis error (non-CUDA): {str(e)[:200]}. "
-                    f"Skipping this text.",
-                    exc_info=True
+                    "TTS synthesis error (non-CUDA): %s. Skipping this text.",
+                    format_truncated_error(e),
+                    exc_info=True,
                 )
-                return False
-            
-            # CUDA error detected
+                return
+
             if not self.use_cuda:
-                # Already using CPU but still getting CUDA errors - this is unexpected
                 logger.warning(
-                    f"TTS synthesis failed (already using CPU but CUDA error persists): "
-                    f"{str(e)[:200]}. Skipping this text."
+                    "TTS synthesis failed (already using CPU but CUDA error persists): %s",
+                    format_truncated_error(e),
                 )
-                return False
-            
-            # CUDA error and we're using CUDA - try CPU fallback
+                return
+
             logger.debug(
-                f"TTS CUDA error during synthesis for text: '{text[:50]}...'. "
-                f"GPU error detected. Reloading TTS model with CPU fallback. "
-                f"Error: {str(e)[:200]}"
+                "TTS CUDA error during synthesis for text: '%s...'. "
+                "Reloading TTS model with CPU fallback. Error: %s",
+                text[:50],
+                format_truncated_error(e),
             )
-            
+
             try:
-                # Reload with CPU
                 self._reload_with_cpu()
-                logger.debug("TTS model reloaded with CPU - retrying synthesis")
-                
-                # Retry synthesis with CPU
-                try:
-                    self._synthesize_text(text)
-                    logger.debug("TTS synthesis completed successfully with CPU fallback")
-                    return True
-                except Exception as retry_error:
-                    # CPU retry failed - this is a real problem
-                    logger.error(
-                        f"TTS CPU retry also failed after CUDA error: {retry_error}. "
-                        f"Skipping synthesis for this text.",
-                        exc_info=True
-                    )
-                    return False
-            except Exception as reload_error:
-                # Reload failed - this is a real problem
+                self._synthesize_text(text)
+                logger.debug("TTS synthesis completed successfully with CPU fallback")
+            except Exception as retry_error:
                 logger.error(
-                    f"Failed to reload TTS model with CPU after CUDA error: {reload_error}. "
-                    f"Skipping synthesis for this text.",
-                    exc_info=True
+                    "TTS CPU retry failed after CUDA error: %s. Skipping synthesis.",
+                    retry_error,
+                    exc_info=True,
                 )
-                return False
-
-    def _worker_loop(self):
-        """Background thread loop for synthesis."""
-        logger.debug("TTS Worker thread started")
-        while self.running:
-            try:
-                # Get sentence from queue
-                text = self.input_queue.get()
-                
-                # Check for sentinel (None) which means end of current stream
-                # We don't break the loop (keep thread alive), just mark task done
-                if text is None:
-                    self.input_queue.task_done()
-                    # CRITICAL FIX #3: Signal completion when sentinel is processed
-                    # This indicates all text has been processed
-                    if self.loop and self._processing_complete:
-                        self.loop.call_soon_threadsafe(self._processing_complete.set)
-                    continue
-
-                if not text.strip():
-                    self.input_queue.task_done()
-                    # Check if queue is now empty (after processing empty text)
-                    if self.input_queue.empty() and self.loop and self._processing_complete:
-                        self.loop.call_soon_threadsafe(self._processing_complete.set)
-                    continue
-
-                logger.debug(f"Synthesizing: {text}")
-
-                # Synthesize with fallback logic (handles CUDA errors internally)
-                self._synthesize_with_fallback(text)
-
-                # Mark task done
-                self.input_queue.task_done()
-                
-                # CRITICAL FIX #3: Check if queue is empty and signal completion
-                # This allows wait_until_finished() to properly detect when processing is done
-                if self.input_queue.empty() and self.loop and self._processing_complete:
-                    # Queue is empty, all processing complete
-                    self.loop.call_soon_threadsafe(self._processing_complete.set)
-
-            except Exception as e:
-                logger.error(f"TTS Worker Error: {e}", exc_info=True)
-                # Ensure task is marked done even on error
-                try:
-                    self.input_queue.task_done()
-                except ValueError:
-                    pass  # Task already done
-
-        logger.debug("TTS Worker thread stopped")
 
     async def shutdown(self):
-        """Shutdown the service."""
+        """Shutdown worker and retry task."""
         self.running = False
-        
-        # PERMANENT CPU TRAP FIX: Cancel CUDA retry task
+        if self._worker:
+            self._worker.stop()
+
         if self._cuda_retry_task:
             self._cuda_retry_task.cancel()
             try:
                 await self._cuda_retry_task
             except asyncio.CancelledError:
                 pass
-        
+
         self.input_queue.put(None)
-        if self.worker_thread:
-            # We can't join the thread if we are in the loop calling this,
-            # if this was running in the thread... but it's not.
-            pass
 
     async def process_text(self, text_chunk: str):
-        """
-        Process a text chunk: buffer -> detect sentences -> queue for synthesis.
-        """
+        """Buffer incoming text and enqueue complete sentences for synthesis."""
         if not self.running:
             return
 
-        # CRITICAL FIX #3: Clear completion event when new text arrives
         if self._processing_complete:
             self._processing_complete.clear()
 
@@ -418,54 +240,25 @@ class TTSService:
             self.input_queue.put(sentence)
 
     async def flush(self):
-        """
-        Flush any remaining text in the buffer.
-        
-        PREMATURE TTS FLUSH FIX: Clears _processing_complete before waiting to ensure
-        we wait for the flushed text to be processed, not a previous completion signal.
-        """
+        """Flush remaining sentence buffer and wait for processing completion."""
         text = self._buffer.flush()
         if text:
             logger.debug(f"Flushing TTS buffer: {text}")
             self.input_queue.put(text)
 
-        # Sentinel to signal end of stream to worker
         self.input_queue.put(None)
-        
-        # PREMATURE TTS FLUSH FIX: Clear completion event before waiting
-        # This ensures we wait for the flushed text to be processed, not a previous
-        # completion signal that was already set. Without this, if the event was set
-        # from a previous operation, wait() returns immediately and shutdown() is called
-        # before the flushed text is synthesized, causing audio truncation.
+
         if self._processing_complete:
-            # Clear the event to ensure we wait for new completion signal
             self._processing_complete.clear()
-            # Wait for queue to drain (with timeout to prevent hanging)
             try:
-                await asyncio.wait_for(
-                    self._processing_complete.wait(),
-                    timeout=5.0  # Maximum 5 seconds for flush
-                )
+                await asyncio.wait_for(self._processing_complete.wait(), timeout=5.0)
             except asyncio.TimeoutError:
                 logger.warning("TTS flush timeout - queue may still be processing")
-    
+
     async def wait_until_finished(self, timeout: float = 10.0) -> bool:
-        """
-        Wait until all queued text has been processed and audio generated.
-        
-        CRITICAL FIX #3: Replaces busy-wait polling with proper async wait.
-        This method properly encapsulates TTS state and avoids coupling callers
-        to internal queue implementation.
-        
-        Args:
-            timeout: Maximum time to wait in seconds
-            
-        Returns:
-            True if processing completed, False if timeout occurred
-        """
         if not self._processing_complete:
-            return True  # Not initialized, consider it "done"
-        
+            return True
+
         try:
             await asyncio.wait_for(self._processing_complete.wait(), timeout=timeout)
             return True
@@ -474,16 +267,12 @@ class TTSService:
             return False
 
     async def stream_audio(self) -> AsyncGenerator[Dict[str, Any], None]:
-        """
-        Stream generated audio chunks from the queue.
-        """
+        """Stream generated audio chunks from queue."""
         if not self.audio_queue:
             return
 
         while self.running:
             try:
-                # Wait for audio data with timeout to allow checking running state
-                # But queue.get() is a coroutine
                 try:
                     data = await asyncio.wait_for(self.audio_queue.get(), timeout=0.5)
                     yield data
