@@ -39,10 +39,11 @@ Includes the last 300 commits on `main`.
 - refactor(agent-tools): remove legacy session/tool-preparation compatibility paths and standardize screenshot preparation flow on a single async API
 - refactor(tool-results): replace `SimpleNamespace` execution payloads with typed result models and simplify waiting-result storage internals to single future maps
 - docs(agents): clarify that agents should continue scoped work when unrelated changes are present and report only scoped deltas
+- refactor(agent-runtime): track session-scoped background tasks for cleanup, centralize loop error recording, and enforce strict LLM stream event handling in agent execution
 
 ### Fixed
 - fix(tool-orchestrator): skip non-bundle tool calls that arrive without `request_id` metadata instead of emitting placeholder pending results
-- fix(api-schema): set incoming payload models to `protected_namespaces=()` so frontend `model_*` fields validate cleanly without namespace collisions
+- fix(api-schema): set frontend settings payload validators to `protected_namespaces=()` so `model_*` fields validate cleanly without namespace warnings
 - fix(api-schema): remove unsupported incoming `screenshot_url` fields (`query`, `tool-bundle-result`), align docs, and add parse-time regression coverage
 - fix(api-transport): harden `SafeWebSocket` with bounded queue backpressure, sender-failure propagation, and pending-future drain on disconnect paths
 - fix(bundle-results): normalize `tool-bundle-result` step payloads to plain dicts and harden bundle execution against Pydantic step models (`ToolBundleStepResult`) to prevent `'... has no attribute get'` crashes
