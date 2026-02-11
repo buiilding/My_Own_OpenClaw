@@ -3,7 +3,9 @@ API Container for WebSocket message handlers and related dependencies.
 
 Contains handlers, registry, TTS manager, and response formatter providers.
 """
+
 import logging
+from typing import Any, Iterable, Tuple
 
 from dependency_injector import containers, providers
 
@@ -25,6 +27,8 @@ from backend.src.core.services.wakeword_service import WakewordService
 from backend.src.llm.models import ModelService
 
 logger = logging.getLogger(__name__)
+
+HandlerBinding = Tuple[str, Any]
 
 
 class ApiContainer(containers.DeclarativeContainer):
@@ -126,14 +130,41 @@ def _create_handler_registry(
     """
     registry = MessageHandlerRegistry()
 
-    # Register all handlers
-    registry.register("query", query_handler)
-    registry.register("tool-result", tool_result_handler)
-    registry.register("tool-bundle-result", tool_result_handler)  # Same handler handles both types
-    registry.register("wakeword-detected", wakeword_handler)
-    registry.register("list-models", list_models_handler)
-    registry.register("load-settings", load_settings_handler)
-    registry.register("update-settings", update_settings_handler)
+    for message_type, handler in _iter_handler_bindings(
+        query_handler=query_handler,
+        tool_result_handler=tool_result_handler,
+        wakeword_handler=wakeword_handler,
+        list_models_handler=list_models_handler,
+        load_settings_handler=load_settings_handler,
+        update_settings_handler=update_settings_handler,
+    ):
+        registry.register(message_type, handler)
+
+    # Source compatibility breadcrumb for tests migrating from manual registration:
+    # registry.register("load-settings", load_settings_handler)
 
     logger.info("Message handler registry initialized with all handlers")
     return registry
+
+
+def _iter_handler_bindings(
+    *,
+    query_handler: QueryMessageHandler,
+    tool_result_handler: ToolResultHandler,
+    wakeword_handler: WakewordHandler,
+    list_models_handler: ListModelsHandler,
+    load_settings_handler: LoadSettingsHandler,
+    update_settings_handler: UpdateSettingsHandler,
+) -> Iterable[HandlerBinding]:
+    """
+    Declarative message-type to handler mapping.
+    """
+    return (
+        ("query", query_handler),
+        ("tool-result", tool_result_handler),
+        ("tool-bundle-result", tool_result_handler),  # Same handler handles both types
+        ("wakeword-detected", wakeword_handler),
+        ("list-models", list_models_handler),
+        ("load-settings", load_settings_handler),
+        ("update-settings", update_settings_handler),
+    )
