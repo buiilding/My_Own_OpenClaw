@@ -46,7 +46,7 @@
 - Keep commits scoped and action-oriented (e.g., "Backend: validate tool schema cache").
 - Group related changes; avoid bundling unrelated refactors.
 - Prefer `committer` (if on PATH) or `./scripts/committer` (if present) to keep staging scoped; fall back to `git add`/`git commit` when unavailable.
-- After you change anything in the codebase, update CHANGELOG.md and always create commits, no need for my consent.
+- After you change anything in the codebase, update CHANGELOG.md and always create commits, add a detailed description to each commit, no need for my consent.
 - Only commit your own, scoped changes, ignore other uncommitted changes.
 
 ### PR Workflow (Review vs Land)
