@@ -69,6 +69,7 @@ function ChatBox() {
   const shellRef = useRef(null);
   const inputRef = useRef(null);
   const lastUserMessageIdRef = useRef(null);
+  const inputFocusedRef = useRef(false);
   const lastSizeRef = useRef({ width: 0, height: 0 });
 
   const lastUserIndex = useMemo(
@@ -125,9 +126,8 @@ function ChatBox() {
   }, []);
 
   useEffect(() => {
-    // Default: overlay is interactive. We resize the window to the pill, so it shouldn't
-    // block clicks outside the UI.
-    setOverlayIgnore(false);
+    // Default to click-through and only activate pointer capture over pill hit areas.
+    setOverlayIgnore(true);
     return () => {
       setOverlayIgnore(false);
     };
@@ -176,7 +176,25 @@ function ChatBox() {
   }, []);
 
   useEffect(() => {
+    const onMouseMove = (event) => {
+      if (inputFocusedRef.current) {
+        setOverlayIgnore(false);
+        return;
+      }
+      const target = document.elementFromPoint(event.clientX, event.clientY);
+      const overHitZone = Boolean(target?.closest('[data-chatbox-hit="true"]'));
+      setOverlayIgnore(!overHitZone);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+    };
+  }, [setOverlayIgnore]);
+
+  useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.CHATBOX_FOCUS, () => {
+      inputFocusedRef.current = true;
       setOverlayIgnore(false);
       if (inputRef.current) {
         inputRef.current.focus();
@@ -236,12 +254,14 @@ function ChatBox() {
   }, [handleSend]);
 
   const handleInputFocus = useCallback(() => {
+    inputFocusedRef.current = true;
     setOverlayIgnore(false);
   }, [setOverlayIgnore]);
 
   const handleInputBlur = useCallback(() => {
-    // no-op; placeholder if we want click-through behavior later
-  }, []);
+    inputFocusedRef.current = false;
+    setOverlayIgnore(true);
+  }, [setOverlayIgnore]);
 
   const handleOpenSettings = useCallback(async () => {
     try {
@@ -262,7 +282,7 @@ function ChatBox() {
     <div className="chatbox-shell-wrap">
       <div className="chatbox-shell" ref={shellRef}>
         {showResponse ? (
-          <div className="chatbox-response-pill">
+          <div className="chatbox-response-pill" data-chatbox-hit="true">
             <button
               type="button"
               className="chatbox-response-close"
@@ -277,14 +297,14 @@ function ChatBox() {
         ) : null}
 
         {showTyping ? (
-          <div className="chatbox-typing-indicator" aria-label="Assistant is typing">
+          <div className="chatbox-typing-indicator" data-chatbox-hit="true" aria-label="Assistant is typing">
             <span />
             <span />
             <span />
           </div>
         ) : null}
 
-        <form className="chatbox-pill" onSubmit={handleSubmit}>
+        <form className="chatbox-pill" data-chatbox-hit="true" onSubmit={handleSubmit}>
           <div className="chatbox-input-wrap">
             <input
               ref={inputRef}
