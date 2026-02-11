@@ -3,9 +3,11 @@ LLM Stream Processor.
 
 Handles LLM streaming, text aggregation, and token counting.
 """
+import hashlib
+import json
 import logging
 import time
-from typing import TYPE_CHECKING, AsyncGenerator, List, NamedTuple
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, NamedTuple, Optional
 
 from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
@@ -58,6 +60,8 @@ class LLMStreamProcessor:
         """
         self.llm_client = llm_client
         self.session = session
+        self._llm_turn_counter = 0
+        self._last_prompt_fingerprints: Optional[List[str]] = None
 
     async def get_response(
         self, prompt: List[LLMMessage]
@@ -78,8 +82,13 @@ class LLMStreamProcessor:
         first_token_time = None
         full_text = ""
         model_id = self.session.cfg.selected_model_id
-        
-        logger.info(f"[Timing] LLM request started (model={model_id})")
+        turn = self._log_prompt_cache_hint(prompt, model_id)
+        logger.info(
+            "[Timing] LLM request started (session=%s, turn=%s, model=%s)",
+            self.session.session_id,
+            turn,
+            model_id,
+        )
         
         try:
             async for event in self.llm_client.get_completion_stream(
@@ -115,6 +124,8 @@ class LLMStreamProcessor:
                         chunk = ChunkEvent(content=str(event))
                         full_text += chunk.content
                         yield chunk
+
+            self._log_provider_cache_diagnostics(model_id, turn)
             
             # Streaming complete - yield full response
             yield FullResponseEvent(content=full_text)
@@ -138,6 +149,146 @@ class LLMStreamProcessor:
             logger.error(f"LLM error: {e}", exc_info=True)
             yield ErrorEvent(content=f"LLM error: {str(e)}")
             raise
+
+    def _log_prompt_cache_hint(self, prompt: List[LLMMessage], model_id: str) -> int:
+        """
+        Emit prompt continuity diagnostics to estimate cache-eligibility across turns.
+
+        This is a local heuristic:
+        - `append_only` means prompt grew by appending new messages (best cache-eligibility)
+        - `prefix_mutated` means earlier messages changed (likely cache invalidation from that point)
+        """
+        self._llm_turn_counter += 1
+        turn = self._llm_turn_counter
+        current_fingerprints = self._fingerprint_prompt(prompt)
+        previous_fingerprints = self._last_prompt_fingerprints
+        self._last_prompt_fingerprints = current_fingerprints
+
+        if previous_fingerprints is None:
+            status = "cold_start"
+            common_prefix_messages = 0
+            first_changed_message = None
+            previous_count = 0
+        else:
+            previous_count = len(previous_fingerprints)
+            common_prefix_messages = self._common_prefix_length(
+                previous_fingerprints, current_fingerprints
+            )
+            if (
+                common_prefix_messages == len(previous_fingerprints)
+                and len(current_fingerprints) >= len(previous_fingerprints)
+            ):
+                status = "append_only"
+            elif (
+                common_prefix_messages == len(current_fingerprints)
+                and len(current_fingerprints) < len(previous_fingerprints)
+            ):
+                status = "history_shortened"
+            else:
+                status = "prefix_mutated"
+            first_changed_message = (
+                common_prefix_messages + 1
+                if common_prefix_messages < max(previous_count, len(current_fingerprints))
+                else None
+            )
+
+        logger.info(
+            "[Cache Hint] session=%s turn=%s model=%s status=%s "
+            "prev_messages=%s current_messages=%s common_prefix_messages=%s "
+            "first_changed_message=%s",
+            self.session.session_id,
+            turn,
+            model_id,
+            status,
+            previous_count,
+            len(current_fingerprints),
+            common_prefix_messages,
+            first_changed_message if first_changed_message is not None else "none",
+        )
+        return turn
+
+    def _log_provider_cache_diagnostics(self, model_id: str, turn: int) -> None:
+        """
+        Log provider-reported cache diagnostics (when exposed by provider/LiteLLM).
+        """
+        diagnostics = self.llm_client.get_last_stream_cache_diagnostics()
+        if diagnostics is None:
+            logger.info(
+                "[Provider Cache] session=%s turn=%s model=%s status=unknown "
+                "reason=client_diagnostics_unavailable",
+                self.session.session_id,
+                turn,
+                model_id,
+            )
+            return
+
+        logger.info(
+            "[Provider Cache] session=%s turn=%s model=%s status=%s cache_hit=%s "
+            "cached_tokens=%s prompt_tokens=%s completion_tokens=%s total_tokens=%s reason=%s",
+            self.session.session_id,
+            turn,
+            diagnostics.get("model", model_id),
+            diagnostics.get("status", "unknown"),
+            diagnostics.get("cache_hit"),
+            diagnostics.get("cached_tokens"),
+            diagnostics.get("prompt_tokens"),
+            diagnostics.get("completion_tokens"),
+            diagnostics.get("total_tokens"),
+            diagnostics.get("reason"),
+        )
+
+    @staticmethod
+    def _common_prefix_length(first: List[str], second: List[str]) -> int:
+        """Return number of leading messages that are identical."""
+        matched = 0
+        for left, right in zip(first, second):
+            if left != right:
+                break
+            matched += 1
+        return matched
+
+    def _fingerprint_prompt(self, prompt: List[LLMMessage]) -> List[str]:
+        """Generate stable message fingerprints for continuity comparison."""
+        return [self._fingerprint_message(message) for message in prompt]
+
+    @staticmethod
+    def _fingerprint_message(message: LLMMessage) -> str:
+        """Generate a short hash for one prompt message."""
+        role = str(message.get("role", ""))
+        compact_content = LLMStreamProcessor._compact_for_fingerprint(
+            message.get("content", "")
+        )
+        encoded = json.dumps(
+            {"role": role, "content": compact_content},
+            sort_keys=True,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )
+        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _compact_for_fingerprint(value: Any) -> Any:
+        """
+        Compact potentially huge content (for example base64 images) before hashing.
+        """
+        if isinstance(value, str):
+            max_chars = 2048
+            if len(value) <= max_chars:
+                return value
+            head = value[:1024]
+            tail = value[-1024:]
+            return f"{head}<len={len(value)}>{tail}"
+
+        if isinstance(value, list):
+            return [LLMStreamProcessor._compact_for_fingerprint(item) for item in value]
+
+        if isinstance(value, dict):
+            return {
+                str(key): LLMStreamProcessor._compact_for_fingerprint(value[key])
+                for key in sorted(value.keys(), key=str)
+            }
+
+        return value
 
     async def _count_tokens(
         self, prompt: List[LLMMessage], full_text: str
