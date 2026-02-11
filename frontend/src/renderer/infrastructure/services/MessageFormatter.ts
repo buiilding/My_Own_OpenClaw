@@ -10,6 +10,7 @@
 export interface SystemState {
   active_window?: string;
   mouse_position?: string;
+  screen_resolution?: string;
   time?: string;
   clipboard?: string;
 }
