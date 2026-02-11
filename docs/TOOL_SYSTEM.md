@@ -343,7 +343,7 @@ Tool schemas follow JSON Schema format:
 
 - **get_system_stats**: System statistics
 - **get_open_windows**: List open windows
-- **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; use `process` for background sessions)
+- **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; defaults to user home directory when `directory` is omitted; use `process` for background sessions)
 - **process**: Manage background shell sessions (poll/log/write/kill)
 
 **Note**: The backend advertises a fixed set of remote tool schemas (LLM-callable). The sidecar may register additional helpers, but only tools listed in `frontend/src/main/python/tools/registry.py` `EXPOSED_TO_BACKEND_TOOLS` are available for LLM tool calling.

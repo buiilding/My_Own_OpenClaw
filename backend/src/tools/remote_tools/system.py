@@ -32,7 +32,7 @@ class RemoteShellTool(RemoteToolBase, Tool[RunShellCommandArgs]):
     name = "run_shell_command"
     description = (
         "This tool executes shell commands on the local system. "
-        "Commands are executed in the specified directory (or current directory if not specified).\n\n"
+        "Commands are executed in the specified directory (or OS user home directory if not specified).\n\n"
         "Execution Modes:\n"
         "- Foreground (run_in_background=False): Waits for command completion and returns output. "
         "Use terminate_after_seconds to set a timeout (default 120 seconds). If timeout is reached, "
