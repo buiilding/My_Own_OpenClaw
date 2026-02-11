@@ -41,11 +41,6 @@ class ToolResultHandler:
         self.router = router
 
     @staticmethod
-    def _is_bundled_result_data(result_data: Optional[Dict[str, Any]]) -> bool:
-        """Return True when result payload is a bundled-tool result envelope."""
-        return isinstance(result_data, dict) and bool(result_data.get("bundled"))
-
-    @staticmethod
     def _normalize_metadata(metadata: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         """Return a mutable metadata dict, tolerating malformed payloads."""
         if not isinstance(metadata, dict):
@@ -87,22 +82,11 @@ class ToolResultHandler:
         Args:
             request_id: Request ID for the tool result
             success: Whether tool execution succeeded
-            result_data: Tool result data (may contain bundled flag)
+            result_data: Tool result data
             error: Error message if execution failed
             metadata: Additional metadata
         """
-        # Route to appropriate handler based on result type
-        if self._is_bundled_result_data(result_data):
-            # Handle bundled results
-            individual_results, combined_result, bundle_screenshot = self.receiver.receive_bundled_results(
-                result_data, request_id
-            )
-            await self.router.route_bundled_results(
-                request_id, individual_results, combined_result, bundle_screenshot
-            )
-            return
-        
-        # Handle individual tool result
+        # tool-result messages are always individual.
         normalized_metadata = self._normalize_metadata(metadata)
         tool_result = self.receiver.receive_individual_result(
             request_id, success, result_data, error, normalized_metadata

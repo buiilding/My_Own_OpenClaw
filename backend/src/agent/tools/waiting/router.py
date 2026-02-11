@@ -4,7 +4,7 @@ Tool result router.
 Routes tool results to appropriate handlers.
 """
 import logging
-from typing import Any, Dict, List, Literal, Optional, TYPE_CHECKING
+from typing import Any, Literal, Optional, TYPE_CHECKING
 
 from backend.src.services.artifacts import ArtifactStore
 
@@ -215,50 +215,3 @@ class ToolResultRouter:
             self._store_and_resolve_bundle_result(correlation_id, tool_result)
             return
         self._store_and_resolve_individual_result(correlation_id, tool_result)
-
-    async def route_bundled_results(
-        self,
-        bundle_request_id: str,
-        individual_results: List[tuple[str, "ToolResult"]],
-        combined_result: Optional["ToolResult"],
-        bundle_screenshot: Optional[str],
-    ) -> None:
-        """
-        Route bundled tool results: process screenshot, store individual and combined results.
-        
-        Args:
-            bundle_request_id: Request ID of the bundle
-            individual_results: List of (request_id, tool_result) tuples
-            combined_result: Combined result if available
-            bundle_screenshot: Screenshot from bundle if present
-        """
-        resolved_bundle_screenshot = bundle_screenshot
-        if self._looks_like_artifact_id(bundle_screenshot):
-            resolved_bundle_screenshot = self._resolve_screenshot_ref(bundle_screenshot)
-        if resolved_bundle_screenshot and combined_result:
-            self._inject_screenshot_artifact(combined_result, resolved_bundle_screenshot)
-        await self._process_screenshot(resolved_bundle_screenshot, bundle_request_id, "Bundle result")
-        
-        # Store individual tool results for orchestrator matching
-        for tool_request_id, tool_result in individual_results:
-            metadata = tool_result.metadata or {}
-            logger.debug(
-                f"Storing bundled tool result for orchestrator: request_id={tool_request_id[:15]}, "
-                f"tool={metadata.get('tool_name', 'unknown')}, success={tool_result.success}"
-            )
-            
-            if resolved_bundle_screenshot:
-                self._inject_screenshot_artifact(tool_result, resolved_bundle_screenshot)
-            self._store_and_resolve_individual_result(
-                tool_request_id,
-                tool_result,
-                log_on_miss=True,
-                log_context="bundled tool",
-            )
-        
-        # Store combined result if available
-        if combined_result:
-            self.result_storage.store_bundled_result(bundle_request_id, combined_result)
-            logger.info(f"Stored combined bundled result for history (bundle_id={bundle_request_id[:15]})")
-        else:
-            logger.warning("Bundle result missing combined_llm_content, cannot create combined history message")
