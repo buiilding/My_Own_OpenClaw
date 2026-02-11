@@ -58,10 +58,4 @@ def is_atomic_bundle_from_results(tool_results: List[ToolExecutionResult]) -> bo
 
 def _is_bundle_metadata(metadata) -> bool:
     ref = ExecutionRef.from_metadata(metadata)
-    if ref is not None:
-        return ref.kind == "bundle"
-
-    # Legacy compatibility: treat explicit bundle marker (even None) as bundle metadata.
-    if not isinstance(metadata, dict):
-        return False
-    return "bundle_id" in metadata and "request_id" not in metadata
+    return ref is not None and ref.kind == "bundle"

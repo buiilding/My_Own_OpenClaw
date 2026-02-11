@@ -45,6 +45,7 @@ Frontend settings are sent via `update-settings` and applied to the user session
 Recent backend-agent refactors split mutable session/runtime concerns into focused modules:
 
 - `backend/src/agent/session/runtime_state.py` — `SessionRuntimeState` owns screenshot state, resolved-call storage, tool-result storage, current `system_state`, and OCR completion signaling.
+- `backend/src/agent/session/runtime_state.py` also tracks session-scoped background tasks for deterministic shutdown.
 - `backend/src/agent/session/config_runtime.py` — `SessionConfigRuntime` applies live config updates (LLM client, prompt constructor, parser, and loop dependencies) in one place.
 - `backend/src/agent/session/lifecycle.py` — `SessionLifecycle` centralizes best-effort cleanup for runtime stores and legacy futures.
 
@@ -71,7 +72,6 @@ The backend owns the preparation and result handling pipeline:
 
 `ToolPreparer` now exposes:
 
-- `prepare(...) -> PreparationOutcome` as the primary structured API
-- `prepare_tools(...)` as the compatibility wrapper for existing tuple-stream consumers
+- `prepare(...) -> PreparationResult` as the canonical structured API
 
 See `backend/src/agent/folder_stucture.md` for a full module map.

@@ -209,15 +209,15 @@ class AgentExecutor:
                         yield memory_event
                     except GeneratorExit:
                         # Client disconnected before we could yield the event
-                        # FRAGILE ASYNC CLEANUP FIX: Use fire-and-forget task to ensure
-                        # critical cleanup (memory storage) runs even if parent task is cancelled.
-                        # If we await here, cancellation can interrupt the await and lose the event.
+                        # Route fallback publish through session-managed task tracking so
+                        # lifecycle cleanup can cancel/drain it deterministically.
                         logger.warning(
                             "Client disconnected before MemoryStoreEvent could be yielded. "
-                            "Publishing to event bus as fallback (fire-and-forget)."
+                            "Publishing to event bus as fallback."
                         )
-                        # Create fire-and-forget task to ensure it runs even if we're cancelled
-                        asyncio.create_task(self.event_bus.publish(memory_event))
+                        self.session.register_background_task(
+                            asyncio.create_task(self.event_bus.publish(memory_event))
+                        )
                 except Exception as e:
                     # Log but don't re-raise - we're in finally block
                     logger.error(

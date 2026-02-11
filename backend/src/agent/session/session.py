@@ -70,7 +70,7 @@ class AgentSession:
         llm_client_factory: Optional[Callable[[AppConfig], LLMClient]] = None,
         tool_orchestrator: Optional[ToolResultOrchestrator] = None,
         event_bus: Optional[EventBus] = None,
-        metrics_service: Optional[Any] = None,  # MetricsService (optional for backward compatibility)
+        metrics_service: Optional[Any] = None,
         user_id: str = "default_user",
         session_id: Optional[str] = None,
     ) -> None:
@@ -275,6 +275,11 @@ class AgentSession:
     def cancel_active_ocr_task(self) -> bool:
         """Cancel active OCR task if running."""
         return self.runtime.screenshot.cancel_active_ocr_task()
+
+    def register_background_task(self, task: asyncio.Task[Any]) -> asyncio.Task[Any]:
+        """Register session-scoped background task for lifecycle cleanup."""
+        self.runtime.register_background_task(task)
+        return task
 
     async def _on_interaction_completed(self, event: InteractionCompleted) -> None:
         """Handle interaction completed event."""

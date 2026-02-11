@@ -14,7 +14,6 @@ from backend.src.core.events.streaming_events import (
     ChunkEvent,
     ErrorEvent,
     FullResponseEvent,
-    StreamingEvent,
     ThinkingEvent,
     TokenCountEvent,
 )
@@ -113,17 +112,10 @@ class LLMStreamProcessor:
                     full_text = event.content  # Use the full response from the event
                     # Don't yield the event - we'll yield our own FullResponseEvent below
                 else:
-                    # Fallback for any unexpected event types
-                    logger.warning(f"Unexpected event type from LLM client: {type(event)}")
-                    # Try to extract content if it's a known event type
-                    if isinstance(event, StreamingEvent) and hasattr(event, 'content'):
-                        chunk = ChunkEvent(content=str(event.content))
-                        full_text += chunk.content
-                        yield chunk
-                    else:
-                        chunk = ChunkEvent(content=str(event))
-                        full_text += chunk.content
-                        yield chunk
+                    raise TypeError(
+                        "Unsupported stream event type from LLM client: "
+                        f"{type(event).__name__}"
+                    )
 
             self._log_provider_cache_diagnostics(model_id, turn)
             
@@ -303,9 +295,9 @@ class LLMStreamProcessor:
         - Non-English languages (CJK characters map 1 char to 1-2 tokens, causing
           400-800% underestimation)
         
-        BLOCKING TOKEN COUNTING FIX: Offloads token counting to thread pool to prevent
-        event loop blocking. Token counting (encoding) is CPU-intensive and can take
-        50-500ms for large prompts, causing jitter for all concurrent operations.
+        Runtime stability note:
+        - Token counting runs inline in the current task to avoid executor hangs
+          observed in this runtime when dispatching repeated `run_in_executor` calls.
         
         Args:
             prompt: Input messages sent to LLM
@@ -314,17 +306,9 @@ class LLMStreamProcessor:
         Returns:
             TokenCounts named tuple with all token counts
         """
-        import asyncio
         model_id = self.session.cfg.selected_model_id
         token_service = get_token_service()
-        loop = asyncio.get_running_loop()
-
-        # BLOCKING TOKEN COUNTING FIX: Offload token counting to thread pool
-        # This prevents blocking the event loop during CPU-intensive encoding operations
-        # Count tokens in the input messages (prompt)
-        input_tokens = await loop.run_in_executor(
-            None, token_service.count_tokens, prompt, model_id
-        )
+        input_tokens = token_service.count_tokens(prompt, model_id)
 
         # ACCURACY FIX: Use token_service for output tokens instead of heuristic
         # This ensures accurate counting for code, non-English languages, and
@@ -335,10 +319,7 @@ class LLMStreamProcessor:
             "role": "assistant",
             "content": full_text
         }
-        # BLOCKING TOKEN COUNTING FIX: Offload output token counting to thread pool
-        output_tokens = await loop.run_in_executor(
-            None, token_service.count_tokens, [output_message], model_id
-        )
+        output_tokens = token_service.count_tokens([output_message], model_id)
 
         # Count total conversation tokens (uses cached count to avoid O(N^2) re-encoding)
         # This is already fast (O(1) cache lookup), so no need to offload

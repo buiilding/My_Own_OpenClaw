@@ -16,7 +16,7 @@ from backend.src.llm.parser import ParsedToolCall
 class ResolvedToolCall:
     """
     A tool call after resolution (coordinate resolution, etc.).
-    
+
     This is an immutable structure that contains the resolved parameters
     ready for execution. The original ParsedToolCall is preserved for reference.
     
@@ -71,17 +71,3 @@ class ResolvedToolCall:
             metadata=metadata,
         )
     
-    def to_parsed_call(self) -> ParsedToolCall:
-        """
-        Convert back to ParsedToolCall format (for backward compatibility).
-        
-        Returns:
-            ParsedToolCall with prepared parameters and metadata
-        """
-        return ParsedToolCall(
-            tool_name=self.tool_name,
-            parameters=self.parameters,
-            raw_call=self.raw_call,
-            confidence=getattr(self.original_call, "confidence", 1.0),
-            metadata=self.metadata,
-        )

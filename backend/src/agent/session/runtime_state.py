@@ -27,6 +27,7 @@ class SessionRuntimeState:
     )
     system_state: Optional[Dict[str, Any]] = None
     ocr_completion_event: asyncio.Event = field(default_factory=asyncio.Event)
+    background_tasks: set[asyncio.Task[Any]] = field(default_factory=set)
 
     def __post_init__(self) -> None:
         self.ocr_completion_event.set()
@@ -49,5 +50,21 @@ class SessionRuntimeState:
         self.screenshot.clear()
         self.resolved_calls.clear()
         self.tool_results.clear_all()
+        self.background_tasks.clear()
         self.system_state = None
         self.ocr_completion_event.set()
+
+    def register_background_task(self, task: asyncio.Task[Any]) -> None:
+        """Track a background task and auto-remove it when done."""
+        self.background_tasks.add(task)
+
+        def _cleanup(done_task: asyncio.Task[Any]) -> None:
+            self.background_tasks.discard(done_task)
+
+        task.add_done_callback(_cleanup)
+
+    def drain_background_tasks(self) -> list[asyncio.Task[Any]]:
+        """Return and clear tracked background tasks."""
+        tasks = list(self.background_tasks)
+        self.background_tasks.clear()
+        return tasks

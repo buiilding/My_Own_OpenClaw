@@ -111,52 +111,22 @@ class InteractionLoop:
 
             except LLMRateLimitError:
                 error_msg = "Rate limit exceeded. Please wait."
-                async for event in self.event_presenter.present_error(error_msg):
+                async for event in self._emit_error_and_record(error_msg):
                     yield event
-                # CONVERSATION STATE: Add error to history to maintain state consistency
-                self.session.history.add_assistant_message(
-                    f"[System Error: {error_msg}]"
-                )
                 return
             except Exception as e:
                 logger.error(f"LLM error: {e}", exc_info=True)
                 error_msg = f"LLM error: {str(e)}"
-                async for event in self.event_presenter.present_error(error_msg):
+                async for event in self._emit_error_and_record(error_msg):
                     yield event
-                # CONVERSATION STATE: Add error to history to maintain state consistency
-                self.session.history.add_assistant_message(
-                    f"[System Error: {error_msg}]"
-                )
                 return
 
             # Step 3: Parse response (async, offloaded to thread pool)
             try:
                 parsed_response = await self.response_parser.parse_response(llm_response_text)
             except (ParseValidationError, ParseTimeoutError, InputSizeLimitError) as e:
-                # Parser validation error - create user message to remind LLM of correct format
-                logger.warning(f"Parser validation error: {e}")
-                
-                # Create detailed error message for LLM
-                error_details = str(e)
-                if hasattr(e, 'validation_errors') and e.validation_errors:
-                    error_details = "; ".join(e.validation_errors)
-                
-                error_user_message = parse_recovery.build_validation_error_user_message(
-                    error_details
-                )
-                
-                # Add error message to conversation history as user message
-                # This ensures LLM sees the error in next turn and can correct its format
-                self.session.history.add_user_message(error_user_message)
-                
-                # Send error event to frontend
-                async for event in self.event_presenter.present_error(
-                    f"Tool call format validation failed: {error_details}"
-                ):
+                async for event in self._handle_parse_validation_error(parse_recovery, e):
                     yield event
-                
-                # Continue loop - allow LLM to retry with corrected format
-                # Loop will continue to next iteration where LLM sees the error message
                 continue
 
             # Present assistant message event
@@ -226,12 +196,8 @@ class InteractionLoop:
             except Exception as e:
                 logger.error(f"Critical tool execution error: {e}", exc_info=True)
                 error_msg = f"Tool execution error: {str(e)}"
-                async for event in self.event_presenter.present_error(error_msg):
+                async for event in self._emit_error_and_record(error_msg):
                     yield event
-                # CONVERSATION STATE: Add error to history to maintain state consistency
-                self.session.history.add_assistant_message(
-                    f"[System Error: {error_msg}]"
-                )
                 break
             finally:
                 # SESSION STATE LEAK FIX: Always process results for cleanup, even if
@@ -259,10 +225,37 @@ class InteractionLoop:
         if iteration_policy.reached_hard_limit(iteration):
             logger.warning("Max iterations reached in agent loop.")
             error_msg = "I reached the maximum number of steps without finishing."
-            async for event in self.event_presenter.present_error(error_msg):
+            async for event in self._emit_error_and_record(error_msg):
                 yield event
-            # CONVERSATION STATE: Add error to history to maintain state consistency
-            self.session.history.add_assistant_message(
-                f"[System Error: {error_msg}]"
-            )
             return
+
+    async def _emit_error_and_record(
+        self, error_msg: str
+    ) -> AsyncGenerator[AgentStreamingEvent, None]:
+        """Emit an error event and persist it in assistant history."""
+        async for event in self.event_presenter.present_error(error_msg):
+            yield event
+        self.session.history.add_assistant_message(f"[System Error: {error_msg}]")
+
+    async def _handle_parse_validation_error(
+        self,
+        parse_recovery: ParseRecoveryPolicy,
+        error: Exception,
+    ) -> AsyncGenerator[AgentStreamingEvent, None]:
+        """Record parser-validation failures and notify frontend."""
+        logger.warning("Parser validation error: %s", error)
+
+        error_details = str(error)
+        validation_errors = getattr(error, "validation_errors", None)
+        if validation_errors:
+            error_details = "; ".join(validation_errors)
+
+        error_user_message = parse_recovery.build_validation_error_user_message(
+            error_details
+        )
+        self.session.history.add_user_message(error_user_message)
+
+        async for event in self.event_presenter.present_error(
+            f"Tool call format validation failed: {error_details}"
+        ):
+            yield event
