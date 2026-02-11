@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.src.api.deps import set_container
 from backend.src.api.routes import websocket
 from backend.src.api.routes import artifacts
 from backend.src.api.routes.memory import embeddings, semantic
@@ -26,13 +27,16 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # Startup
     coordinator = InitializationCoordinator()
-    _, session_manager = await coordinator.initialize(app)
+    container, _session_manager = await coordinator.initialize(app)
+    set_container(container, app=app, force=True)
 
-    yield
-
-    # Shutdown
-    logger.info("Shutting down...")
-    logger.info("Shutdown complete.")
+    try:
+        yield
+    finally:
+        # Shutdown
+        logger.info("Shutting down...")
+        set_container(None, app=app, force=True)
+        logger.info("Shutdown complete.")
 
 
 app = FastAPI(title="Desktop Assistant", lifespan=lifespan)
