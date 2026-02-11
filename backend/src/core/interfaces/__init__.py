@@ -1,4 +1,3 @@
-from .llm import LLMClientInterface
 from .tool import Kind, ToolContext, ToolInterface, ToolResult
 
 __all__ = [
@@ -6,5 +5,4 @@ __all__ = [
     "ToolResult",
     "ToolContext",
     "Kind",
-    "LLMClientInterface",
 ]

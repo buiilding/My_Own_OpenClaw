@@ -35,6 +35,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- fix(ocr): add canonical coordinate-space normalization contract (`screenshot_px` -> `display_px`) with explicit source/target dimensions and normalization status metadata on resolved mouse calls
 - fix(orchestrator): avoid test-order circular import during `ToolResultOrchestrator` module load by lazy-loading bundle detection/execution helpers
 - fix(frontend-dashboard): replace semantic memory placeholder with live sidecar-backed semantic memory listing and detail view
 - fix(frontend-chatbox): auto-resize the chatbox overlay window to the pill bounds to avoid blocking background clicks
@@ -123,6 +124,8 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- refactor(tool-results): route single `tool-result` and atomic `tool-bundle-result` through one shared backend router path and refresh session `system_state` from both paths
+- refactor(backend-cleanup): remove unused legacy tool implementations (`computer_legacy`, `filesystem_legacy`, `system_legacy`) and stale back-compat/unused modules (`remote_browser_tool` re-export, unused SDK/interface helpers, unused GPU memory manager)
 - refactor(dev-tools): centralize tool filtering, mouse-method validation, and OCR/Vision startup gating in `ToolPolicy` used by prompt construction, parser validation, orchestrator visibility, and container initialization
 - refactor(dev-workflow): route `scripts/test` and `scripts/check` through backend/sidecar-specific runners and update docs to match non-activation flow
 - refactor(sidecar-registry): remove central schema map validation and keep backend as the source of truth for remote tool schemas
