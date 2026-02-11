@@ -1,4 +1,5 @@
 from backend.src.agent.tools.waiting.receiver import ToolResultReceiver
+from backend.src.api.schemas.incoming import ToolBundleStepResult
 
 
 class DummySession:
@@ -46,3 +47,25 @@ def test_receive_bundle_result_success_and_failure():
         error=None,
     )
     assert failure_result.success is False
+
+
+def test_receive_bundle_result_accepts_pydantic_step_models():
+    receiver = ToolResultReceiver(DummySession())
+
+    result = receiver.receive_bundle_result(
+        bundle_id="bundle-3",
+        status="success",
+        step_results=[
+            ToolBundleStepResult(tool="read_file", status="ok", output="done"),
+            ToolBundleStepResult(tool="write_file", status="ok", output="saved"),
+        ],
+        screenshot=None,
+        screenshot_ref=None,
+        system_state=None,
+        error=None,
+    )
+
+    assert result.success is True
+    assert isinstance(result.data, dict)
+    assert isinstance(result.data["step_results"], list)
+    assert result.data["step_results"][0]["status"] == "ok"
