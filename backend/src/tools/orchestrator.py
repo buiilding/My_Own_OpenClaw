@@ -97,7 +97,27 @@ class ToolResultOrchestrator:
             List of tool information dictionaries
         """
         tools = []
-        for tool_name in self.tool_registry.get_tool_names():
+        tool_names = self.tool_registry.get_tool_names()
+
+        allowlist = None
+        try:
+            allowlist = self.config.get_tool_allowlist()
+        except Exception:
+            allowlist = None
+        if allowlist is not None:
+            tool_names = [name for name in tool_names if name in allowlist]
+
+        # Dev-only selection (filters further; never widens allowlist).
+        try:
+            from backend.src.tools.tool_selection import load_tool_selection
+
+            selection = load_tool_selection()
+            if selection is not None:
+                tool_names = selection.filter_tool_names(tool_names)
+        except Exception:
+            logger.debug("Dev tool selection filtering failed; continuing without it.", exc_info=True)
+
+        for tool_name in tool_names:
             capabilities = self.tool_registry.get_tool_capabilities(tool_name)
             if capabilities:
                 tools.append(capabilities)

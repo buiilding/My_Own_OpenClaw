@@ -16,10 +16,6 @@ class ToolCallValidator:
         self.tool_registry = tool_registry
         self.metrics = metrics
         self.limits = limits
-        self._allowed_tools = config.get_tool_allowlist()
-        self._allowed_tools_set = (
-            set(self._allowed_tools) if self._allowed_tools is not None else None
-        )
 
     def validate_tool_call(self, tool_name: str, args: Dict[str, Any]) -> None:
         """
@@ -131,10 +127,20 @@ class ToolCallValidator:
             name for name in raw_tool_names if isinstance(name, str)
         ]
         deduped_tool_names = sorted(set(valid_tool_names))
-        if self._allowed_tools_set is not None:
-            deduped_tool_names = [
-                name for name in deduped_tool_names if name in self._allowed_tools_set
-            ]
+        allowlist = self.config.get_tool_allowlist()
+        if allowlist is not None:
+            deduped_tool_names = [name for name in deduped_tool_names if name in allowlist]
+
+        # Dev-only tool selection (filters further; never widens allowlist).
+        try:
+            from backend.src.tools.tool_selection import load_tool_selection
+
+            selection = load_tool_selection()
+            if selection is not None:
+                deduped_tool_names = selection.filter_tool_names(deduped_tool_names)
+        except Exception:
+            logger.debug("Dev tool selection filtering failed; continuing without it.", exc_info=True)
+
         return deduped_tool_names
 
     def validate_metadata(
