@@ -35,6 +35,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- fix(api-transport): harden `SafeWebSocket` with bounded queue backpressure, sender-failure propagation, and pending-future drain on disconnect paths
 - fix(bundle-results): normalize `tool-bundle-result` step payloads to plain dicts and harden bundle execution against Pydantic step models (`ToolBundleStepResult`) to prevent `'... has no attribute get'` crashes
 - fix(tool-results): remove legacy bundled `tool-result` payload handling and require atomic bundle results via `tool-bundle-result` path only
 - fix(ocr): add canonical coordinate-space normalization contract (`screenshot_px` -> `display_px`) with explicit source/target dimensions and normalization status metadata on resolved mouse calls
@@ -126,6 +127,9 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- refactor(api): add `TypedMessageHandler` base for strongly-typed WebSocket handlers and reduce per-handler message-cast boilerplate
+- refactor(api-contract): add explicit outgoing schema models for `tool-schemas`/`token-count`/`memory-store` plus formatter-to-schema regression tests
+- refactor(api-transport): centralize websocket envelope/context attachment via shared transport envelope helpers
 - refactor(agent-runtime): split session runtime concerns into `runtime_state`/`config_runtime`/`lifecycle`, extract interaction-loop policies, and normalize prepared tool execution IDs via `ExecutionRef`
 - refactor(api-runtime): split API schemas into `api/schemas/*`, extract query/wakeword/semantic orchestration into `api/services/*` and route helpers, and make API deps prefer `app.state.container` with global fallback
 - refactor(core-runtime): switch `backend/src/core/container/api_container.py` WebSocket handler wiring from manual registrations to a declarative binding map for easier feature add/remove changes
