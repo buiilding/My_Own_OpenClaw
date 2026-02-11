@@ -62,6 +62,16 @@ async def test_run_shell_command_yield_backgrounds():
 
 
 @pytest.mark.asyncio
+async def test_run_shell_command_defaults_to_user_home_directory():
+    cmd = f'{sys.executable} -c "import os; print(os.getcwd())"'
+    result = await run_shell_command(
+        {"command": cmd, "run_in_background": False, "terminate_after_seconds": 5}
+    )
+    assert result["success"] is True
+    assert result["data"]["output"].strip() == str(Path.home())
+
+
+@pytest.mark.asyncio
 async def test_run_shell_command_env_override_and_pty_warning():
     cmd = f'{sys.executable} -c "import os; print(os.getenv(\'WINDIE_TEST\'))"'
     result = await run_shell_command(

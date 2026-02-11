@@ -61,7 +61,8 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             if not working_path.exists() or not working_path.is_dir():
                 return {"success": False, "error": f"Directory does not exist or is not a directory: {working_dir}"}
         else:
-            working_dir = Path.cwd()
+            # Use OS home directory as stable default for new shell invocations.
+            working_dir = Path.home()
         
         warnings = []
         if pty_requested and (IS_WINDOWS or pty is None):

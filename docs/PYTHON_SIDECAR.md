@@ -84,5 +84,6 @@ Wakeword detection runs as a separate Python subprocess:
   - `tests/sidecar/test_memory_service.py` (search/store validation, error handling)
 - Shell command sessions:
   - `run_shell_command` supports `yield_after_seconds`, `env`, and best-effort `pty` (PTY on Unix; fallback on Windows).
+  - If `directory` is omitted, `run_shell_command` starts in the OS user home directory.
   - Use `process` to list/poll/log/write/kill backgrounded shell sessions.
 - Run: `pytest tests/sidecar` (after activating the Python env with sidecar deps).
