@@ -53,6 +53,18 @@ class ToolResultOrchestrator:
             self.context_factory = tool_registry.context_factory
         else:
             self.context_factory = context_factory
+        self._dev_tool_selection = self._load_dev_tool_selection()
+
+    @staticmethod
+    def _load_dev_tool_selection():
+        """Load dev tool selection once for orchestrator lifetime."""
+        try:
+            from backend.src.tools.tool_selection import load_tool_selection
+
+            return load_tool_selection()
+        except Exception:
+            logger.debug("Dev tool selection lookup failed during orchestrator init.", exc_info=True)
+            return None
 
     async def execute_tools_from_response(
         self,
@@ -108,14 +120,9 @@ class ToolResultOrchestrator:
             tool_names = [name for name in tool_names if name in allowlist]
 
         # Dev-only selection (filters further; never widens allowlist).
-        try:
-            from backend.src.tools.tool_selection import load_tool_selection
-
-            selection = load_tool_selection()
-            if selection is not None:
-                tool_names = selection.filter_tool_names(tool_names)
-        except Exception:
-            logger.debug("Dev tool selection filtering failed; continuing without it.", exc_info=True)
+        selection = self._dev_tool_selection
+        if selection is not None:
+            tool_names = selection.filter_tool_names(tool_names)
 
         for tool_name in tool_names:
             capabilities = self.tool_registry.get_tool_capabilities(tool_name)

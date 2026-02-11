@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 import json
 import logging
 
+from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.core.infrastructure.exceptions import ParseValidationError
 
 logger = logging.getLogger(__name__)
@@ -16,6 +17,7 @@ class ToolCallValidator:
         self.tool_registry = tool_registry
         self.metrics = metrics
         self.limits = limits
+        self._dev_tool_selection = self._load_dev_tool_selection()
 
     def validate_tool_call(self, tool_name: str, args: Dict[str, Any]) -> None:
         """
@@ -75,6 +77,11 @@ class ToolCallValidator:
             )
             return validation_errors
 
+        if tool_name in valid_tool_name_set:
+            validation_errors.extend(
+                self._collect_method_level_validation_errors(tool_name, args)
+            )
+
         if len(args) > self.limits.max_parameter_count:
             validation_errors.append(
                 f"Parameter count {len(args)} exceeds maximum {self.limits.max_parameter_count}"
@@ -99,6 +106,68 @@ class ToolCallValidator:
                     )
 
         return validation_errors
+
+    def _collect_method_level_validation_errors(
+        self,
+        tool_name: str,
+        args: Dict[str, Any],
+    ) -> List[str]:
+        """
+        Collect tool-specific validation errors (dev-time method filtering).
+
+        Applies currently to mouse_control.find_coordinates_by.
+        """
+        if tool_name != "mouse_control":
+            return []
+
+        selection = self._dev_tool_selection
+
+        if selection is None:
+            return []
+
+        allowed_methods = selection.get_allowed_mouse_coordinate_methods()
+        if not allowed_methods:
+            return [
+                "Tool name 'mouse_control' is disabled by dev tool selection (no coordinate methods enabled)"
+            ]
+
+        raw_method = args.get(
+            "find_coordinates_by",
+            CoordinateFindingMethod.MANUAL.value,
+        )
+        method = self._normalize_coordinate_method(raw_method)
+
+        if method in allowed_methods:
+            return []
+
+        allowed_display = ", ".join(
+            method_name for method_name in ("manual", "ocr", "prediction")
+            if method_name in allowed_methods
+        )
+        return [
+            f"mouse_control.find_coordinates_by='{raw_method}' is disabled by dev tool selection. "
+            f"Allowed methods: {allowed_display or 'none'}"
+        ]
+
+    @staticmethod
+    def _normalize_coordinate_method(value: Any) -> str:
+        """Normalize enum/string coordinate method value to lowercase string."""
+        if isinstance(value, CoordinateFindingMethod):
+            return value.value
+        if isinstance(value, str):
+            return value.strip().lower()
+        return str(value).strip().lower()
+
+    @staticmethod
+    def _load_dev_tool_selection():
+        """Load dev tool selection once for validator lifetime."""
+        try:
+            from backend.src.tools.tool_selection import load_tool_selection
+
+            return load_tool_selection()
+        except Exception:
+            logger.debug("Dev tool selection lookup failed during validator initialization.", exc_info=True)
+            return None
 
     @staticmethod
     def _serialized_param_size(param_value: Any) -> Optional[int]:
@@ -132,14 +201,9 @@ class ToolCallValidator:
             deduped_tool_names = [name for name in deduped_tool_names if name in allowlist]
 
         # Dev-only tool selection (filters further; never widens allowlist).
-        try:
-            from backend.src.tools.tool_selection import load_tool_selection
-
-            selection = load_tool_selection()
-            if selection is not None:
-                deduped_tool_names = selection.filter_tool_names(deduped_tool_names)
-        except Exception:
-            logger.debug("Dev tool selection filtering failed; continuing without it.", exc_info=True)
+        selection = self._dev_tool_selection
+        if selection is not None:
+            deduped_tool_names = selection.filter_tool_names(deduped_tool_names)
 
         return deduped_tool_names
 

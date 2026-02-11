@@ -57,6 +57,26 @@ This includes:
 
         logger.info("Container initialization complete")
 
+    def _should_initialize_vision_service(self) -> bool:
+        """Return whether vision startup initialization should run."""
+        try:
+            from backend.src.tools.tool_selection import should_initialize_vision
+
+            return should_initialize_vision()
+        except Exception:
+            logger.debug("Failed to read dev tool selection for vision initialization.", exc_info=True)
+            return True
+
+    def _should_initialize_ocr_service(self) -> bool:
+        """Return whether OCR startup initialization should run."""
+        try:
+            from backend.src.tools.tool_selection import should_initialize_ocr
+
+            return should_initialize_ocr()
+        except Exception:
+            logger.debug("Failed to read dev tool selection for OCR initialization.", exc_info=True)
+            return True
+
     async def _initialize_config_service(self) -> None:
         """
         Initialize the configuration service by loading configuration.
@@ -88,6 +108,13 @@ This includes:
         The vision service is obtained from the DI container and initialized.
         """
         try:
+            if not self._should_initialize_vision_service():
+                logger.info(
+                    "Skipping vision service startup initialization due to dev tool selection "
+                    "(mouse_control prediction disabled)"
+                )
+                return
+
             # Get vision service from DI container
             vision_service = self.container.vision_service
             
@@ -146,6 +173,16 @@ This includes:
 
             if ocr_service is None:
                 logger.warning("OCR service not available in DI container")
+                return
+
+            if not self._should_initialize_ocr_service():
+                # Disable OCR service to prevent proactive/lazy OCR engine initialization.
+                if hasattr(ocr_service, "enabled"):
+                    ocr_service.enabled = False
+                logger.info(
+                    "Skipping OCR service startup initialization due to dev tool selection "
+                    "(mouse_control OCR disabled)"
+                )
                 return
 
             await ocr_service.initialize(self.container.config.ocr_config)

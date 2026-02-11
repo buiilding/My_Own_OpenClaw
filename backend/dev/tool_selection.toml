@@ -12,6 +12,7 @@
 # - Tool names are the tool schema names (e.g. "mouse_control", "browser_control",
 #   "read_file"). See `backend/src/tools/remote.py` for the canonical list.
 # - This is intended for development/testing. For normal behavior, keep disabled.
+# - Method-level options are available under [tool_options.<tool_name>].
 
 enabled = false
 mode = "denylist" # "denylist" | "allowlist"
@@ -23,3 +24,10 @@ tools = [
   # "keyboard_control",
 ]
 
+# Optional method-level controls for mouse_control.
+# If omitted, all methods are enabled.
+[tool_options.mouse_control]
+enabled_coordinate_methods = [
+  "manual",
+  "ocr",
+]

@@ -96,6 +96,79 @@ def test_validate_tool_call_applies_chat_mode_allowlist():
         validator.validate_tool_call("secret_tool", {})
 
 
+def test_validate_tool_call_rejects_disabled_mouse_prediction_method(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+):
+    config_path = tmp_path / "tool_selection.toml"
+    config_path.write_text(
+        (
+            'enabled = true\n'
+            'mode = "allowlist"\n'
+            'tools = ["mouse_control"]\n'
+            "[tool_options.mouse_control]\n"
+            'enabled_coordinate_methods = ["manual", "ocr"]\n'
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(config_path))
+
+    validator, _metrics = _make_validator(["mouse_control"], interaction_mode="agent")
+
+    with pytest.raises(ParseValidationError, match="find_coordinates_by"):
+        validator.validate_tool_call(
+            "mouse_control",
+            {"action": "click", "find_coordinates_by": "prediction", "description": "submit button"},
+        )
+
+
+def test_validate_tool_call_rejects_implicit_manual_when_manual_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+):
+    config_path = tmp_path / "tool_selection.toml"
+    config_path.write_text(
+        (
+            'enabled = true\n'
+            'mode = "allowlist"\n'
+            'tools = ["mouse_control"]\n'
+            "[tool_options.mouse_control]\n"
+            'enabled_coordinate_methods = ["ocr"]\n'
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(config_path))
+
+    validator, _metrics = _make_validator(["mouse_control"], interaction_mode="agent")
+
+    with pytest.raises(ParseValidationError, match="find_coordinates_by"):
+        validator.validate_tool_call("mouse_control", {"action": "click", "x": 10, "y": 20})
+
+
+def test_validate_tool_call_accepts_enabled_mouse_ocr_method(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+):
+    config_path = tmp_path / "tool_selection.toml"
+    config_path.write_text(
+        (
+            'enabled = true\n'
+            'mode = "allowlist"\n'
+            'tools = ["mouse_control"]\n'
+            "[tool_options.mouse_control]\n"
+            'enabled_coordinate_methods = ["ocr"]\n'
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(config_path))
+
+    validator, _metrics = _make_validator(["mouse_control"], interaction_mode="agent")
+    validator.validate_tool_call(
+        "mouse_control",
+        {"action": "click", "find_coordinates_by": "ocr", "ocr_text": "Submit"},
+    )
+
+
 def test_validate_tool_call_handles_non_iterable_registry_tool_names():
     config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
     metrics = DummyMetrics()
