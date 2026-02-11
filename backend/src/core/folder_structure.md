@@ -65,9 +65,7 @@ backend/src/core/
 │
 ├── interfaces/                        # Protocol definitions (interfaces/contracts)
 │   ├── __init__.py                    # Package exports
-│   ├── config.py                      # ConfigInterface - configuration interface protocol
 │   ├── embedding.py                   # EmbeddingProvider - embedding provider abstract base class
-│   ├── llm.py                         # LLMClientInterface - LLM client interface protocol
 │   ├── tool.py                        # ToolInterface - tool interface protocol with ToolResult and ToolContext
 │   └── vision.py                      # IVisionService - vision service interface protocol
 │
@@ -75,7 +73,6 @@ backend/src/core/
 │   ├── __init__.py                    # Package exports
 │   ├── agent_factory.py               # AgentFactory - creates sub-agent sessions (scoped AgentSessions) with restricted tools
 │   ├── context_factory.py             # ContextFactory - creates execution contexts for tools
-│   ├── gpu_memory_manager.py          # GPUMemoryManager - manages GPU memory allocation
 │   ├── tts_service.py                 # TTSService - text-to-speech service implementation
 │   └── wakeword_service.py            # WakewordService - wakeword activation logic and greeting selection policy
 │

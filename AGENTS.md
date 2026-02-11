@@ -32,6 +32,7 @@
 - Frontend: TypeScript/JavaScript (ESM) with React; keep renderer logic in `src/renderer` and main/IPC in `src/main`.
 - Formatting: use `black`/`isort` for backend, `eslint` for frontend when touching related code.
 - Keep modules focused; split large files when it improves clarity/testability.
+- When modifying code, do not keep backward compatibility, remove anything unused.
 
 ## Testing Guidelines
 
