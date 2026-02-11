@@ -14,16 +14,14 @@ export const ApiClient = {
    */
   sendQuery: async (
     text: string,
-    screenshotRef: string | null = null,
-    screenshotUrl: string | null = null
+    screenshotRef: string | null = null
   ): Promise<void> => {
     // System state and memories are automatically added by ipc.cjs
     IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
       type: 'query',
       payload: {
         text,
-        screenshot_ref: screenshotRef,  // Optional screenshot reference
-        screenshot_url: screenshotUrl
+        screenshot_ref: screenshotRef  // Optional screenshot reference
       }
     });
   },

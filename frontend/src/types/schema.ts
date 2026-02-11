@@ -81,7 +81,6 @@ export interface QueryMessage {
 export interface QueryPayload {
   text: Text;
   screenshot_ref?: string | null;
-  screenshot_url?: string | null;
   screenshot?: string | null;
   [k: string]: unknown;
 }

@@ -351,10 +351,11 @@ function sendMessageToBackend(type, payload) {
   }
 
   const msgId = uuidv4();
+  const normalizedPayload = normalizeBackendPayload(type, payload);
   const message = {
     id: msgId,
     type,
-    payload: payload || {},
+    payload: normalizedPayload,
     user_id: currentUserId,
     timestamp: new Date().toISOString(),
   };
@@ -367,6 +368,23 @@ function sendMessageToBackend(type, payload) {
     log(`Error sending message to backend: ${error}`);
     return null;
   }
+}
+
+/**
+ * Normalize outbound payloads to backend-supported schema fields.
+ */
+function normalizeBackendPayload(type, payload) {
+  if (!payload || typeof payload !== 'object') {
+    return {};
+  }
+
+  const normalized = { ...payload };
+
+  if (type === 'query' || type === 'tool-bundle-result') {
+    delete normalized.screenshot_url;
+  }
+
+  return normalized;
 }
 
 /**

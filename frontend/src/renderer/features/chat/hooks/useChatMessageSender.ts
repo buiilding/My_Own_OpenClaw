@@ -109,7 +109,7 @@ export function useChatMessageSender(
     
     // Send query with screenshot to backend
     try {
-      await ApiClient.sendQuery(text, screenshotRef, screenshotUrl);
+      await ApiClient.sendQuery(text, screenshotRef);
     } catch (error) {
       console.error('[useChatMessageSender] Failed to send query:', error);
       setIsSending(false);
