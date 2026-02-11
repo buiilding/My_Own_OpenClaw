@@ -188,7 +188,9 @@ class UpdateSettingsHandler(MessageHandler):
         """
         try:
             validated: UpdateSettingsMessage = message  # type: ignore
-            updates = validate_frontend_config(validated.payload)
+            updates = validate_frontend_config(
+                validated.payload.model_dump(exclude_none=True)
+            )
 
             if updates:
                 await self.session_manager.update_session_config(user_id, updates)

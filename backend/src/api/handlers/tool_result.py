@@ -7,13 +7,9 @@ The handler is a pure coordinator - all tool result processing logic lives in th
 import logging
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from fastapi import WebSocketDisconnect
-
 from backend.src.api.infrastructure.handler import MessageHandler
-from backend.src.api.infrastructure.errors import send_error_response
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.schema import BaseMessage, ToolResultMessage, ToolBundleResultMessage
-from backend.src.core.validation.validators import ValidationError
 
 if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager
@@ -69,19 +65,6 @@ class ToolResultHandler(MessageHandler):
         
         return validated
     
-    async def _send_error(self, websocket: WebSocketSender, msg_id: Optional[str], message: str) -> None:
-        """
-        Send error response to client.
-        
-        Handles connection errors gracefully - if connection is closed, logs and returns silently.
-        
-        Args:
-            websocket: WebSocketSender (thread-safe protocol implementation)
-            msg_id: Message ID (optional)
-            message: Error message
-        """
-        await send_error_response(websocket, msg_id, message)
-    
     async def handle(
         self,
         message: BaseMessage,
@@ -119,9 +102,12 @@ class ToolResultHandler(MessageHandler):
                 return
             
             # Validate and sanitize metadata before passing to domain layer
-            message_dict = validated.model_dump()
-            raw_payload = message_dict.get("payload", {})
-            metadata = self._validate_metadata(raw_payload.get("metadata", {}))
+            raw_metadata = (
+                validated.payload.metadata.model_dump(exclude_none=True)
+                if validated.payload.metadata is not None
+                else {}
+            )
+            metadata = self._validate_metadata(raw_metadata)
             
             # Delegate to session (handler no longer knows about internals)
             await session.process_frontend_tool_result(
