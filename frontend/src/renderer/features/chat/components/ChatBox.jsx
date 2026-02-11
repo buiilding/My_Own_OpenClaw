@@ -28,7 +28,7 @@ function MicIcon() {
 }
 
 function ChatBox() {
-  const { isSending } = useChatStore((state) => ({ isSending: state.isSending }));
+  const isSending = useChatStore((state) => state.isSending);
   const { sendMessage } = useChatMessageSender();
   const [inputValue, setInputValue] = useState('');
   const ignoreMouseRef = useRef(undefined);
