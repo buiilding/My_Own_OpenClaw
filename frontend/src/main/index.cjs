@@ -456,7 +456,7 @@ function initializeOverlayHandlers() {
       return { success: false, reason: 'Chat window not available' };
     }
     const nextWidth = Math.max(1, Math.min(900, Math.round(Number(width) || 0)));
-    const nextHeight = Math.max(1, Math.min(1500, Math.round(Number(height) || 0)));
+    const nextHeight = Math.max(1, Math.min(7500, Math.round(Number(height) || 0)));
     try {
       const [curWidth, curHeight] = chatWindow.getSize();
       if (curWidth === nextWidth && curHeight === nextHeight) {
