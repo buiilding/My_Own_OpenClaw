@@ -45,7 +45,7 @@ describe('ChatBox overlay mouse ignore', () => {
     mockInvoke.mockClear();
   });
 
-  test('defaults to interactive overlay and requests window resize to match pill', () => {
+  test('defaults to click-through overlay and requests window resize to match pill', () => {
     const rafQueue = [];
     global.requestAnimationFrame = (cb) => {
       rafQueue.push(cb);
@@ -54,11 +54,11 @@ describe('ChatBox overlay mouse ignore', () => {
 
     const { container } = render(<ChatBox />);
 
-    // default: interactive (not click-through)
-    const sawInteractive = mockInvoke.mock.calls.some(
-      ([channel, payload]) => channel === 'set-overlay-ignore-mouse' && payload?.ignore === false,
+    // default: click-through until pointer enters a pill hit zone
+    const sawClickThrough = mockInvoke.mock.calls.some(
+      ([channel, payload]) => channel === 'set-overlay-ignore-mouse' && payload?.ignore === true,
     );
-    expect(sawInteractive).toBe(true);
+    expect(sawClickThrough).toBe(true);
 
     const shell = container.querySelector('.chatbox-shell');
     expect(shell).toBeTruthy();

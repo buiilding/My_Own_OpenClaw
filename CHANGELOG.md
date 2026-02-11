@@ -40,7 +40,7 @@ Includes the last 300 commits on `main`.
 - refactor(tool-results): replace `SimpleNamespace` execution payloads with typed result models and simplify waiting-result storage internals to single future maps
 - docs(agents): clarify that agents should continue scoped work when unrelated changes are present and report only scoped deltas
 - refactor(agent-runtime): track session-scoped background tasks for cleanup, centralize loop error recording, and enforce strict LLM stream event handling in agent execution
-- feat(frontend-chatbox): redesign overlay into a single input pill with mic/settings icons, add stacked assistant-response pill with close-on-complete behavior, and add typing/screenshot-hide states for response rendering
+- feat(frontend-chatbox): redesign overlay into a single input pill with mic/settings icons, add stacked assistant-response pill with close-on-complete behavior, add typing/screenshot-hide states for response rendering, and switch to click-through outside pill hit-zones
 
 ### Fixed
 - fix(frontend-ipc): strip unsupported `screenshot_url` from outbound `query` / `tool-bundle-result` payloads to match backend incoming schema
