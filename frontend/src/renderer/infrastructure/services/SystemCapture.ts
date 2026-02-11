@@ -76,14 +76,15 @@ export async function extractOSstate(
     }
   }
 
-  // Regular extraction (for tool outputs: only active_window and mouse_position)
+  // Regular extraction for tool outputs.
+  // Include screen_resolution for backend-only coordinate normalization (HiDPI-safe clicks).
   try {
     const promises: Array<Promise<any>> = [];
 
     if (enable_system_state) {
       promises.push(
         IpcBridge.invoke<SystemState>(INVOKE_CHANNELS.GET_SYSTEM_STATE, {
-          fields: ['active_window', 'mouse_position'],
+          fields: ['active_window', 'mouse_position', 'screen_resolution'],
         }),
       );
     }

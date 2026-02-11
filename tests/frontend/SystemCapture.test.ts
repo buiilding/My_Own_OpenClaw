@@ -84,7 +84,7 @@ describe('SystemCapture', () => {
     const result = await extractOSstate(false, true, 0, false);
 
     expect(invokeSpy).toHaveBeenCalledWith(INVOKE_CHANNELS.GET_SYSTEM_STATE, {
-      fields: ['active_window', 'mouse_position'],
+      fields: ['active_window', 'mouse_position', 'screen_resolution'],
     });
     expect(result.systemState).toEqual({ active_window: 'App', mouse_position: '1,1' });
     expect(result.screenshot).toBeNull();
