@@ -94,6 +94,18 @@ class PromptConstructor:
             metrics_service = MetricsService()
         self.metrics = metrics_service.get_metrics("prompt_constructor")
         self.limits = config.security_limits
+        self._dev_tool_selection = self._load_dev_tool_selection()
+
+    @staticmethod
+    def _load_dev_tool_selection():
+        """Load dev tool selection once for prompt constructor lifetime."""
+        try:
+            from backend.src.tools.tool_selection import load_tool_selection
+
+            return load_tool_selection()
+        except Exception:
+            logger.debug("Dev tool selection lookup failed during prompt constructor init.", exc_info=True)
+            return None
 
     def _get_filtered_tool_schemas(self) -> List[Dict[str, Any]]:
         """Return tool schemas filtered by interaction-mode allowlist and dev tool selection (when enabled)."""
@@ -103,15 +115,9 @@ class PromptConstructor:
             tool_schemas = [schema for schema in tool_schemas if schema.get("name") in allowlist]
 
         # Dev-only tool selection (filters further; never widens allowlist).
-        try:
-            from backend.src.tools.tool_selection import load_tool_selection
-
-            selection = load_tool_selection()
-            if selection is not None:
-                tool_schemas = selection.filter_tool_schemas(tool_schemas)
-        except Exception:
-            # Never fail prompt construction due to dev tooling.
-            logger.debug("Dev tool selection filtering failed; continuing without it.", exc_info=True)
+        selection = self._dev_tool_selection
+        if selection is not None:
+            tool_schemas = selection.filter_tool_schemas(tool_schemas)
 
         return tool_schemas
 

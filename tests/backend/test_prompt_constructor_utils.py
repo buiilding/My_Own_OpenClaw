@@ -1,8 +1,11 @@
 import json
 
+import pytest
+
 from backend.src.core.config.models import AppConfig
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
+from backend.src.tools.remote import RemoteMouseTool
 
 
 class DummyRegistry:
@@ -113,6 +116,51 @@ def test_format_user_message_content_respects_allowlist_for_tool_schemas():
     schemas = json.loads(encoded)
 
     assert [schema["name"] for schema in schemas] == ["read_file"]
+
+
+def test_format_user_message_content_filters_mouse_coordinate_methods(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+):
+    config_path = tmp_path / "tool_selection.toml"
+    config_path.write_text(
+        (
+            'enabled = true\n'
+            'mode = "allowlist"\n'
+            'tools = ["mouse_control"]\n'
+            "[tool_options.mouse_control]\n"
+            'enabled_coordinate_methods = ["manual"]\n'
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("WINDIEOS_DEV_TOOL_SELECTION_PATH", str(config_path))
+
+    constructor = PromptConstructor(
+        tool_registry=DummyRegistry([RemoteMouseTool().get_json_schema()]),
+        config=AppConfig(interaction_mode="agent"),
+        system_prompt="system",
+    )
+
+    first_content = constructor.format_user_message_content(
+        message_content="<user_query>hello</user_query>",
+        query="hello",
+        is_first_message=True,
+    )
+    encoded = first_content.split("<tool_schemas>\n", 1)[1].split("\n</tool_schemas>", 1)[0]
+    schemas = json.loads(encoded)
+    mouse_schema = schemas[0]
+
+    args_props = (
+        mouse_schema["parameters"]["properties"]["action"]["properties"]["functionCall"]["properties"]["args"]["properties"]
+    )
+    method_schema = args_props["find_coordinates_by"]
+
+    assert method_schema["enum"] == ["manual"]
+    assert "x" in args_props
+    assert "y" in args_props
+    assert "ocr_text" not in args_props
+    assert "description" not in args_props
+    assert "model_name" not in args_props
 
 
 def test_build_prompt_populates_user_message_metadata_from_history():
