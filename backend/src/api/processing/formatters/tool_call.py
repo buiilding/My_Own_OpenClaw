@@ -2,6 +2,7 @@
 import logging
 from typing import Any, Dict, Optional, Union
 
+from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.processing.formatters.base import EventFormatter
 from backend.src.core.events import AgentStreamingEvent
 
@@ -50,7 +51,7 @@ class ToolCallEventFormatter(EventFormatter):
             payload["metadata"] = event_dict.get("metadata")
         
         return {
-            "type": "tool-call",
+            "type": OutgoingMessageType.TOOL_CALL,
             "id": msg_id,
             "payload": payload,
         }

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 
+from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.infrastructure.errors import send_success_response
 from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.api.schema import WakewordDetectedMessage
@@ -40,14 +41,14 @@ class WakewordExecutionService:
             await send_success_response(
                 websocket,
                 msg_id,
-                "wakeword-activated",
+                OutgoingMessageType.WAKEWORD_ACTIVATED,
                 self._wakeword_service.get_activation_payload(greeting),
             )
 
             await send_success_response(
                 websocket,
                 msg_id,
-                "wakeword-greeting",
+                OutgoingMessageType.WAKEWORD_GREETING,
                 {"text": greeting},
             )
 

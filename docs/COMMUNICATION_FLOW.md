@@ -273,7 +273,7 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
    ↓
 3. Screenshot captured (always for visual context)
    ↓
-4. Screenshot uploaded via HTTP `/api/artifacts` → returns `screenshot_ref` (client may derive `screenshot_url`)
+4. Screenshot uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`
    ↓
 5. IpcBridge.send('to-backend', { type: 'query', payload: { screenshot_ref, ... } })
    ↓
@@ -329,7 +329,7 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
    ↓
 10. MessageFormatter formats result
    ↓
-11. Screenshot uploaded via HTTP `/api/artifacts` → returns `screenshot_ref` (client may derive `screenshot_url`)
+11. Screenshot uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`
     ↓
 12. Result displayed in UI via callback
    ↓

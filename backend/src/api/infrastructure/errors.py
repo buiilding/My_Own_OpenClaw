@@ -37,6 +37,7 @@ from typing import Optional, Any, Dict
 
 from fastapi import WebSocketDisconnect
 
+from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.core.validation.validators import ValidationError
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.transport.sender import WebSocketTransportSender
@@ -95,7 +96,7 @@ async def send_error_response(
     websocket: WebSocketSender,
     msg_id: Optional[str],
     message: str,
-    error_type: str = "error",
+    error_type: str = OutgoingMessageType.ERROR,
     exception: Optional[Exception] = None,
 ) -> None:
     """

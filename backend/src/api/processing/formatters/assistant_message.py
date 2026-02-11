@@ -2,6 +2,7 @@
 import logging
 from typing import Any, Dict, Optional, Union
 
+from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.processing.formatters.base import EventFormatter
 from backend.src.core.events import AgentStreamingEvent
 
@@ -23,7 +24,7 @@ class AssistantMessageFullEventFormatter(EventFormatter):
             return None
         
         return {
-            "type": "assistant-message-full",
+            "type": OutgoingMessageType.ASSISTANT_MESSAGE_FULL,
             "id": msg_id,
             "payload": {
                 "content": content,

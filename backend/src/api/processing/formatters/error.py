@@ -1,6 +1,7 @@
 """Formatter for error events."""
 from typing import Any, Dict, Optional, Union
 
+from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.processing.formatters.base import EventFormatter
 from backend.src.core.events import AgentStreamingEvent
 
@@ -13,7 +14,7 @@ class ErrorEventFormatter(EventFormatter):
         # FIX: Map content to 'message' to match ErrorPayload schema
         # schema.py: class ErrorPayload(BaseModel): message: str; content: Optional[str]
         return {
-            "type": "error",
+            "type": OutgoingMessageType.ERROR,
             "id": msg_id,
             "payload": {
                 "message": event_dict.get("content", "An unexpected error occurred"),

@@ -2,6 +2,7 @@
 import logging
 from typing import Any, Dict, Optional, Union
 
+from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.processing.formatters.base import EventFormatter
 from backend.src.core.events import AgentStreamingEvent
 
@@ -19,7 +20,7 @@ class MemoryStoreEventFormatter(EventFormatter):
             logger.warning(f"MemoryStoreEvent missing or invalid user_id (msg_id={msg_id}), skipping")
             return None
         return {
-            "type": "memory-store",
+            "type": OutgoingMessageType.MEMORY_STORE,
             "id": msg_id,
             "payload": {
                 "user_query": event_dict.get("user_query"),

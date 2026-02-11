@@ -6,46 +6,12 @@ Formats agent events into WebSocket response messages.
 
 from typing import Any, Dict, Optional, Union
 
+from backend.src.api.contracts.formatter_specs import get_formatter_specs
 from backend.src.core.events import (
     AgentStreamingEvent,
-    ThinkingEvent,
-    ChunkEvent,
-    ErrorEvent,
-    StreamingCompleteEvent,
-    ToolCallEvent,
-    ToolOutputEvent,
-    SystemPromptEvent,
-    ToolSchemasEvent,
-    UserMessageFullEvent,
-    AssistantMessageFullEvent,
-    TokenCountEvent,
-    MemoryStoreEvent,
-    ToolBundleEvent,
 )
-from backend.src.core.types import StreamingEventType
 
 from backend.src.api.processing.formatters.base import EventFormatter
-from backend.src.api.processing.formatters.thinking import ThinkingEventFormatter
-from backend.src.api.processing.formatters.chunk import ChunkEventFormatter
-from backend.src.api.processing.formatters.error import ErrorEventFormatter
-from backend.src.api.processing.formatters.complete import (
-    StreamingCompleteEventFormatter,
-)
-from backend.src.api.processing.formatters.tool_call import ToolCallEventFormatter
-from backend.src.api.processing.formatters.tool_output import ToolOutputEventFormatter
-from backend.src.api.processing.formatters.system_prompt import (
-    SystemPromptEventFormatter,
-)
-from backend.src.api.processing.formatters.tool_schemas import ToolSchemasEventFormatter
-from backend.src.api.processing.formatters.user_message import (
-    UserMessageFullEventFormatter,
-)
-from backend.src.api.processing.formatters.assistant_message import (
-    AssistantMessageFullEventFormatter,
-)
-from backend.src.api.processing.formatters.token_count import TokenCountEventFormatter
-from backend.src.api.processing.formatters.memory_store import MemoryStoreEventFormatter
-from backend.src.api.processing.formatters.tool_bundle import ToolBundleEventFormatter
 from backend.src.api.transport.envelope import attach_context_fields
 
 
@@ -59,38 +25,20 @@ class ResponseFormatter:
 
     def __init__(self):
         """Initialize the formatter with a registry of event formatters."""
-        self._formatters: Dict[str, EventFormatter] = {
-            StreamingEventType.THINKING.value: ThinkingEventFormatter(),
-            StreamingEventType.CHUNK.value: ChunkEventFormatter(),
-            StreamingEventType.ERROR.value: ErrorEventFormatter(),
-            StreamingEventType.STREAMING_COMPLETE.value: StreamingCompleteEventFormatter(),
-            StreamingEventType.TOOL_CALL.value: ToolCallEventFormatter(),
-            StreamingEventType.TOOL_OUTPUT.value: ToolOutputEventFormatter(),
-            StreamingEventType.SYSTEM_PROMPT.value: SystemPromptEventFormatter(),
-            StreamingEventType.TOOL_SCHEMAS.value: ToolSchemasEventFormatter(),
-            StreamingEventType.USER_MESSAGE_FULL.value: UserMessageFullEventFormatter(),
-            StreamingEventType.ASSISTANT_MESSAGE_FULL.value: AssistantMessageFullEventFormatter(),
-            StreamingEventType.TOKEN_COUNT.value: TokenCountEventFormatter(),
-            StreamingEventType.MEMORY_STORE.value: MemoryStoreEventFormatter(),
-            StreamingEventType.TOOL_BUNDLE.value: ToolBundleEventFormatter(),
-        }
+        self._formatters: Dict[str, EventFormatter] = {}
+        self._typed_formatters: Dict[type, EventFormatter] = {}
+        self._register_formatters()
 
-        # Dispatch table: event class -> formatter key (for O(1) lookup)
-        self._event_type_map: Dict[type, str] = {
-            ThinkingEvent: StreamingEventType.THINKING.value,
-            ChunkEvent: StreamingEventType.CHUNK.value,
-            ErrorEvent: StreamingEventType.ERROR.value,
-            StreamingCompleteEvent: StreamingEventType.STREAMING_COMPLETE.value,
-            ToolCallEvent: StreamingEventType.TOOL_CALL.value,
-            ToolOutputEvent: StreamingEventType.TOOL_OUTPUT.value,
-            SystemPromptEvent: StreamingEventType.SYSTEM_PROMPT.value,
-            ToolSchemasEvent: StreamingEventType.TOOL_SCHEMAS.value,
-            UserMessageFullEvent: StreamingEventType.USER_MESSAGE_FULL.value,
-            AssistantMessageFullEvent: StreamingEventType.ASSISTANT_MESSAGE_FULL.value,
-            TokenCountEvent: StreamingEventType.TOKEN_COUNT.value,
-            MemoryStoreEvent: StreamingEventType.MEMORY_STORE.value,
-            ToolBundleEvent: StreamingEventType.TOOL_BUNDLE.value,
-        }
+    def _register_formatters(self) -> None:
+        """Register typed and dict formatter dispatch tables from one source."""
+        for event_cls, event_type, formatter_cls, _ in get_formatter_specs():
+            if event_type in self._formatters:
+                raise ValueError(f"Duplicate formatter registration for type: {event_type}")
+            if event_cls in self._typed_formatters:
+                raise ValueError(f"Duplicate formatter registration for class: {event_cls}")
+            formatter = formatter_cls()
+            self._formatters[event_type] = formatter
+            self._typed_formatters[event_cls] = formatter
 
     def format(
         self,
@@ -108,10 +56,9 @@ class ResponseFormatter:
         Returns:
             Formatted response dictionary or None if event type not recognized
         """
-        # O(1) dispatch for typed events using dispatch table
-        event_type = self._event_type_map.get(type(event))
-        if event_type:
-            response = self._formatters[event_type].format(event, msg_id)
+        formatter = self._typed_formatters.get(type(event))
+        if formatter:
+            response = formatter.format(event, msg_id)
             return self._attach_context(response, context)
 
         # Backward compatibility with dict events

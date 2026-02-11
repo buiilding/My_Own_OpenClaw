@@ -13,6 +13,11 @@ backend/src/api/
 ├── __init__.py                        # Package initialization and exports
 ├── schema.py                          # Pydantic models for all WebSocket message types (incoming/outgoing)
 ├── deps.py                            # FastAPI dependency injection (app-lifespan-scoped container access)
+├── contracts/                         # CONTRACT ADAPTER - API-local seam for message/formatter registries
+│   ├── __init__.py                    # Package marker and migration note (future core-owned source)
+│   ├── message_types.py               # Canonical incoming/outgoing message type constants
+│   ├── formatter_specs.py             # Canonical event->formatter registration spec
+│   └── registry.py                    # Contract views and drift-validation helpers
 │
 ├── transport/                         # TRANSPORT LAYER - Thread-safe WebSocket communication
 │   ├── __init__.py                    # Exports: WebSocketSender, TransportSender, WebSocketTransportSender, SafeWebSocket
@@ -67,7 +72,6 @@ backend/src/api/
     │   ├── user_message.py             # UserMessageFullEventFormatter - Formats full user message events
     │   ├── assistant_message.py       # AssistantMessageFullEventFormatter - Formats full assistant message events
     │   ├── token_count.py             # TokenCountEventFormatter - Formats token usage statistics
-    │   ├── screenshot.py              # RequestScreenshotEventFormatter - Formats screenshot request events
     │   ├── memory_store.py            # MemoryStoreEventFormatter - Formats memory storage events
     │   └── tool_bundle.py             # ToolBundleEventFormatter - Formats tool bundle events
     │
@@ -75,9 +79,6 @@ backend/src/api/
         ├── __init__.py                # Exports: TTSManager, TTSProcessor
         ├── manager.py                 # TTSManager - Manages TTS service lifecycle (init, streaming, cleanup)
         └── processor.py               # TTSProcessor - Filters code blocks and JSON from TTS output
-│
-└── query/                              # DEPRECATED - Backward compatibility shim
-    └── __init__.py                     # Re-exports from processing/ for backward compatibility
 ```
 
 ---
@@ -185,7 +186,7 @@ backend/src/api/
 4. **Thread Safety**: All WebSocket operations go through SafeWebSocket
 5. **Type Safety**: Pydantic models ensure message validation at boundaries
 6. **Error Handling**: Standardized error responses prevent information leakage
-7. **Backward Compatibility**: Old import paths maintained via shim modules
+7. **Extensibility**: Message and event contracts are centralized in schema/formatter registries
 
 ---
 

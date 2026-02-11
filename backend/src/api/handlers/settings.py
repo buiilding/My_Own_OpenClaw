@@ -7,6 +7,7 @@ Handles settings-related messages (load, update).
 import logging
 from typing import TYPE_CHECKING, Any, Dict
 
+from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.infrastructure.handler import TypedMessageHandler
 from backend.src.api.infrastructure.errors import (
     send_error_response,
@@ -78,7 +79,7 @@ class LoadSettingsHandler(TypedMessageHandler[LoadSettingsMessage]):
             await send_success_response(
                 websocket,
                 message.id,
-                "settings-loaded",
+                OutgoingMessageType.SETTINGS_LOADED,
                 {"config": _build_frontend_settings_payload(config_source)},
             )
         except ValidationError as e:
@@ -118,7 +119,9 @@ class ListModelsHandler(TypedMessageHandler[ListModelsMessage]):
             models = await self.model_service.get_all_models()
 
             # Send success response using canonical utility
-            await send_success_response(websocket, message.id, "models-listed", models)
+            await send_success_response(
+                websocket, message.id, OutgoingMessageType.MODELS_LISTED, models
+            )
         except ValidationError as e:
             # Validation error - send using canonical utility
             await send_error_response(
@@ -162,7 +165,7 @@ class UpdateSettingsHandler(TypedMessageHandler[UpdateSettingsMessage]):
             await send_success_response(
                 websocket,
                 message.id,
-                "settings-updated",
+                OutgoingMessageType.SETTINGS_UPDATED,
                 {"updated_keys": list(updates.keys())},
             )
         except ValidationError as e:
