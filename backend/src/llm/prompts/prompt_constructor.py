@@ -96,16 +96,24 @@ class PromptConstructor:
         self.limits = config.security_limits
 
     def _get_filtered_tool_schemas(self) -> List[Dict[str, Any]]:
-        """Return tool schemas filtered by interaction-mode allowlist when configured."""
+        """Return tool schemas filtered by interaction-mode allowlist and dev tool selection (when enabled)."""
         tool_schemas = self.tool_registry.get_function_declarations() or []
         allowlist = self.config.get_tool_allowlist()
-        if allowlist is None:
-            return tool_schemas
-        return [
-            schema
-            for schema in tool_schemas
-            if schema.get("name") in allowlist
-        ]
+        if allowlist is not None:
+            tool_schemas = [schema for schema in tool_schemas if schema.get("name") in allowlist]
+
+        # Dev-only tool selection (filters further; never widens allowlist).
+        try:
+            from backend.src.tools.tool_selection import load_tool_selection
+
+            selection = load_tool_selection()
+            if selection is not None:
+                tool_schemas = selection.filter_tool_schemas(tool_schemas)
+        except Exception:
+            # Never fail prompt construction due to dev tooling.
+            logger.debug("Dev tool selection filtering failed; continuing without it.", exc_info=True)
+
+        return tool_schemas
 
     def build_prompt(
         self,

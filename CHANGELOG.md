@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(dev-tools): add backend dev tool-selection config (`backend/dev/tool_selection.toml`) with allowlist/denylist filtering for injected LLM tool schemas and validator/orchestrator visibility
 - feat(tools): expose sidecar filesystem tools (`replace`, `search_file_content`, `read_many_files`) via backend remote schemas and enforce strict sidecar registry/exposed-set equality
 - feat(browser): add stable-ish browser snapshot refs, structured `dom_compact` format, and hide executor ref maps from LLM tool results
 - docs(legal): add founder equity and collaboration agreement for WindieOS with matching PDF artifact
