@@ -6,7 +6,7 @@ Pure infrastructure code - no side effects beyond tool resolution.
 """
 import logging
 import time
-from typing import AsyncGenerator, Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
     CoordinateContract,
@@ -20,7 +20,6 @@ from backend.src.agent.tools.preparation.helpers.image_dimensions import (
 )
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.agent.tools.shared.logging_utils import short_id
-from backend.src.core.events.streaming_events import AgentStreamingEvent
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
 
@@ -44,7 +43,7 @@ async def resolve_tool_with_coordinates(
     vision_service: Optional["IVisionService"],
     vision_service_provider,
     context_id: str,  # bundle_id or request_id for logging
-) -> AsyncGenerator[AgentStreamingEvent, None]:
+) -> None:
     """
     Resolve a tool call that requires coordinate resolution.
     
@@ -70,8 +69,7 @@ async def resolve_tool_with_coordinates(
     """
     # 1. Ensure we have a screenshot
     screenshot_start_time = time.perf_counter()
-    async for event in screenshot_manager.get_screenshot(session):
-        yield event
+    await screenshot_manager.ensure_screenshot(session)
     screenshot_time = time.perf_counter() - screenshot_start_time
     if screenshot_time > 0.001:  # Only log if significant
         logger.info(f"[Timing] Screenshot acquisition took {screenshot_time:.3f}s (context_id={short_id(context_id)})")

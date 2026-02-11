@@ -66,10 +66,7 @@ class ToolSender:
         Yields:
             AgentStreamingEvent: ToolCallEvent, ToolBundleEvent, ToolOutputEvent (frontend)
         """
-        outcome = await self.preparer.prepare(tool_calls, session)
-        for event in outcome.infra_events:
-            yield event
-        preparation_result = outcome.result
+        preparation_result = await self.preparer.prepare(tool_calls, session)
         
         # Handle errors: create synthetic results and yield error events
         for tool_call, error_msg in preparation_result.errors:

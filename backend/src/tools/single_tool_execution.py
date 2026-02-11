@@ -7,13 +7,13 @@ No side effects beyond result creation.
 import asyncio
 import logging
 import time
-from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING
 
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.llm.parser import ParsedToolCall
 from backend.src.tools.result_helpers import create_tool_result_object
+from backend.src.tools.result_types import ToolExecutionResult
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 async def execute_single_tool(
     tool_call: ParsedToolCall,
     session_ref: "AgentSession",
-) -> Any:
+) -> ToolExecutionResult:
     """
     Execute a single tool and wait for its result.
     
@@ -81,31 +81,21 @@ async def execute_single_tool(
     # The resolved call has the same structure but with resolved coordinates
     effective_tool_call = resolved_call.to_parsed_call() if resolved_call else tool_call
 
-    # Initialize session attributes if needed
-    if not hasattr(session_ref, '_pending_tool_results'):
-        session_ref._pending_tool_results = {}
-    if not hasattr(session_ref, '_tool_result_futures'):
-        session_ref._tool_result_futures = {}
-    
+    result_storage = session_ref.get_result_storage()
+
     # Create future FIRST to avoid race condition where result arrives
     # between checking storage and creating the future
-    # Use centralized storage for futures
-    future = session_ref._tool_result_storage.create_result_future(request_id)
-    # Also maintain legacy dict for backward compatibility
-    session_ref._tool_result_futures[request_id] = future
+    future = result_storage.create_result_future(request_id)
 
     def _cleanup_future() -> None:
-        # Use centralized storage for cleanup
-        session_ref._tool_result_storage.remove_result_future(request_id)
-        # Also clean up legacy dict
-        session_ref._tool_result_futures.pop(request_id, None)
+        result_storage.remove_result_future(request_id)
     
     # Check if result already exists (may have arrived before we created the future)
     # This handles the race condition where frontend executes tool very quickly
-    tool_result = session_ref._tool_result_storage.get_pending_result(request_id)
+    tool_result = result_storage.get_pending_result(request_id)
     if tool_result:
         # Remove from storage and resolve the future immediately
-        session_ref._tool_result_storage.remove_pending_result(request_id)
+        result_storage.remove_pending_result(request_id)
         if not future.done():
             future.set_result(tool_result)
         logger.info(f"Found already completed result for request_id {request_id_short}")

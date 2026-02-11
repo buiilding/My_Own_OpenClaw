@@ -1,5 +1,4 @@
 """Tests for tool result helper functions."""
-from types import SimpleNamespace
 import pytest
 from unittest.mock import MagicMock
 
@@ -7,6 +6,7 @@ from backend.src.tools.result_helpers import (
     create_tool_result_object,
     create_empty_tool_results,
 )
+from backend.src.tools.result_types import ToolExecutionBatch, ToolExecutionResult
 from backend.src.core.interfaces.tool import ToolResult
 
 
@@ -37,7 +37,7 @@ class TestCreateToolResultObject:
     def test_create_with_defaults(self, mock_tool_call, success_tool_result):
         result = create_tool_result_object(mock_tool_call, success_tool_result)
         
-        assert isinstance(result, SimpleNamespace)
+        assert isinstance(result, ToolExecutionResult)
         assert result.tool_call is mock_tool_call
         assert result.result is success_tool_result
         assert result.success is True
@@ -66,10 +66,10 @@ class TestCreateToolResultObject:
 class TestCreateEmptyToolResults:
     """Tests for create_empty_tool_results function."""
 
-    def test_create_returns_simple_namespace(self):
+    def test_create_returns_batch(self):
         result = create_empty_tool_results()
         
-        assert isinstance(result, SimpleNamespace)
+        assert isinstance(result, ToolExecutionBatch)
 
     def test_create_has_empty_tool_results(self):
         result = create_empty_tool_results()

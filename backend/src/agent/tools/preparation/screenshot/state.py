@@ -24,46 +24,18 @@ class ScreenshotState:
         self._active_ocr_task: Optional[asyncio.Task[Any]] = None
         self._active_ocr_task_screenshot_id: Optional[str] = None
     
-    def get_screenshot(self, screenshot_id: Optional[str] = None) -> Optional[str]:
+    def get_screenshot(self) -> Optional[str]:
         """
         Get current screenshot data.
-        
-        SIMPLIFIED: Only current screenshot is stored. Previous screenshots are discarded.
-        screenshot_id parameter is ignored (kept for API compatibility).
-        
-        Args:
-            screenshot_id: Ignored (kept for backward compatibility)
-            
-        Returns:
-            Base64-encoded screenshot data or None if no current screenshot
         """
         return self._current_screenshot
-    
-    def get_ocr_results(self, screenshot_id: Optional[str] = None) -> Optional[list[dict]]:
+
+    def get_ocr_results(self) -> Optional[list[dict]]:
         """
         Get OCR results for current screenshot.
-        
-        SIMPLIFIED: Only current OCR results are stored. Previous results are discarded.
-        screenshot_id parameter is ignored (kept for API compatibility).
-        
-        Args:
-            screenshot_id: Ignored (kept for backward compatibility)
-            
-        Returns:
-            List of OCR results or None if no current OCR results
         """
         return self._current_ocr_results
-    
-    @property
-    def latest_screenshot(self) -> Optional[str]:
-        """Legacy property: Returns current screenshot (deprecated, use get_screenshot instead)."""
-        return self.get_screenshot()
-    
-    @property
-    def latest_ocr_results(self) -> Optional[list[dict]]:
-        """Legacy property: Returns OCR for current screenshot (deprecated, use get_ocr_results instead)."""
-        return self.get_ocr_results()
-    
+
     def get_current_screenshot_id(self) -> Optional[str]:
         """
         Get the ID of the current screenshot.

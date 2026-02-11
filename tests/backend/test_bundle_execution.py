@@ -11,7 +11,10 @@ from backend.src.agent.tools.waiting.storage.result_storage import ToolResultSto
 
 class DummySession:
     def __init__(self):
-        self._tool_result_storage = ToolResultStorage()
+        self._result_storage = ToolResultStorage()
+
+    def get_result_storage(self):
+        return self._result_storage
 
 
 def _make_response(bundle_id="bundle"):
@@ -49,12 +52,12 @@ async def test_execute_bundle_uses_existing_result():
             "screenshot": "shot",
         },
     )
-    session._tool_result_storage.store_bundled_result("bundle", bundle_result)
+    session.get_result_storage().store_bundled_result("bundle", bundle_result)
 
     result = await execute_bundle(response, "bundle", session)
 
     assert len(result.tool_results) == 2
-    assert session._tool_result_storage.get_bundle_future("bundle") is None
+    assert session.get_result_storage().get_bundle_future("bundle") is None
     assert result.tool_results[0].result.success is True
     assert "done" in (result.tool_results[0].result.llm_content or "")
     assert result.tool_results[1].result.success is True
@@ -92,7 +95,7 @@ async def test_execute_bundle_handles_pydantic_step_results():
             "screenshot": "shot",
         },
     )
-    session._tool_result_storage.store_bundled_result(
+    session.get_result_storage().store_bundled_result(
         "bundle-model-steps", bundle_result
     )
 

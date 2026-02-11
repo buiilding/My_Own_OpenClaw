@@ -21,9 +21,9 @@ def test_init_session_state_sets_fields():
     session = SimpleNamespace()
     init_session_state(session)
 
-    assert session._screenshot_state is not None
-    assert session._resolved_tool_call_storage is not None
-    assert session._tool_result_futures == {}
+    assert session.runtime.screenshot is not None
+    assert session.runtime.resolved_calls is not None
+    assert session.runtime.tool_results is not None
     assert session.ocr_completion_event.is_set()
 
 

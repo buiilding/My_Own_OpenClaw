@@ -125,7 +125,7 @@ tools/orchestrator.py
     └── tools/sending/sender.py
         └── ToolSender.send_tools() → AsyncGenerator[AgentStreamingEvent]
             ├── tools/preparation/preparer.py
-            │   └── ToolPreparer.prepare_tools() → returns PreparationResult
+            │   └── ToolPreparer.prepare() → returns PreparationResult
             │       └── tools/preparation/helpers/preparation_helper.py
             │           └── resolve_tool_with_coordinates() → coordinates resolved
             └── ToolSender yields ToolCallEvent | ToolBundleEvent | ToolOutputEvent
@@ -151,19 +151,17 @@ tools/sending/sender.py
     └── ToolSender.send_tools()
         ↓
     └── tools/preparation/preparer.py
-        └── ToolPreparer.prepare_tools()
+        └── ToolPreparer.prepare()
             ↓
 1. Screenshot Acquisition
     └── tools/preparation/screenshot/manager.py
-        └── ScreenshotManager.get_screenshot() → AsyncGenerator[AgentStreamingEvent]
-            └── session/session.py
-                └── AgentSession._pending_screenshots → Future created
+        └── ScreenshotManager.ensure_screenshot() → validates current screenshot state
         ↓
 2. Coordinate Resolution (if needed)
     └── tools/preparation/helpers/preparation_helper.py
         └── resolve_tool_with_coordinates()
             ├── tools/preparation/screenshot/manager.py
-            │   └── ScreenshotManager.get_screenshot() → screenshot_data
+            │   └── ScreenshotManager.ensure_screenshot() → screenshot_data available
             └── tools/preparation/helpers/coordinate_resolution_helper.py
                 └── resolve_coordinates()
                     ├── tools/preparation/ocr/coordinator.py (if OCR method)
@@ -258,7 +256,7 @@ session/session.py
 tools/sending/sender.py
     └── ToolSender.send_tools() (multiple tools)
         └── tools/preparation/preparer.py
-            └── ToolPreparer.prepare_tools() → all tools resolved with bundle_id
+            └── ToolPreparer.prepare() → all tools resolved with bundle_id
                 └── ToolSender yields ToolBundleEvent
                     └── Frontend executes bundle atomically
         ↓

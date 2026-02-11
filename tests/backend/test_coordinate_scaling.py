@@ -33,10 +33,8 @@ def _fake_jpeg_bytes(width: int, height: int) -> bytes:
 
 
 class _StubScreenshotManager:
-    async def get_screenshot(self, _session):
-        if False:
-            yield None
-        return
+    async def ensure_screenshot(self, _session):
+        return None
 
 
 class _StubSession:
@@ -45,7 +43,7 @@ class _StubSession:
         self._screenshot_id = "deadbeef"
         self._system_state = system_state
 
-    def get_screenshot(self, _screenshot_id=None):
+    def get_screenshot(self):
         return self._screenshot_b64
 
     def get_current_screenshot_id(self):
@@ -83,7 +81,7 @@ async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeyp
         _fake_resolve_coordinates,
     )
 
-    async for _event in resolve_tool_with_coordinates(
+    await resolve_tool_with_coordinates(
         tool_call=tool_call,
         resolved_call=resolved_call,
         session=session,
@@ -93,8 +91,7 @@ async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeyp
         vision_service=None,
         vision_service_provider=lambda _s: None,
         context_id="bundle-id",
-    ):
-        pass
+    )
 
     assert resolved_call.parameters["x"] == 500
     assert resolved_call.parameters["y"] == 500
@@ -129,7 +126,7 @@ async def test_resolve_tool_with_coordinates_keeps_contract_when_target_missing(
         _fake_resolve_coordinates,
     )
 
-    async for _event in resolve_tool_with_coordinates(
+    await resolve_tool_with_coordinates(
         tool_call=tool_call,
         resolved_call=resolved_call,
         session=session,
@@ -139,8 +136,7 @@ async def test_resolve_tool_with_coordinates_keeps_contract_when_target_missing(
         vision_service=None,
         vision_service_provider=lambda _s: None,
         context_id="single-id",
-    ):
-        pass
+    )
 
     assert resolved_call.parameters["x"] == 1000
     assert resolved_call.parameters["y"] == 600
@@ -172,7 +168,7 @@ async def test_resolve_tool_with_coordinates_uses_latest_system_resolution_each_
     )
 
     first = ResolvedToolCall.from_parsed_call(tool_call)
-    async for _event in resolve_tool_with_coordinates(
+    await resolve_tool_with_coordinates(
         tool_call=tool_call,
         resolved_call=first,
         session=session,
@@ -182,12 +178,11 @@ async def test_resolve_tool_with_coordinates_uses_latest_system_resolution_each_
         vision_service=None,
         vision_service_provider=lambda _s: None,
         context_id="first",
-    ):
-        pass
+    )
 
     session.set_current_system_state({"screen_resolution": "2560x1440"})
     second = ResolvedToolCall.from_parsed_call(tool_call)
-    async for _event in resolve_tool_with_coordinates(
+    await resolve_tool_with_coordinates(
         tool_call=tool_call,
         resolved_call=second,
         session=session,
@@ -197,8 +192,7 @@ async def test_resolve_tool_with_coordinates_uses_latest_system_resolution_each_
         vision_service=None,
         vision_service_provider=lambda _s: None,
         context_id="second",
-    ):
-        pass
+    )
 
     assert first.parameters["x"] == 500
     assert first.parameters["y"] == 500

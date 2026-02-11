@@ -30,6 +30,7 @@ from backend.src.tools.registry import ToolRegistry
 if TYPE_CHECKING:
     from backend.src.core.infrastructure.bus import EventBus
     from backend.src.core.interfaces.tool import ToolResult
+    from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
     from backend.src.tools.orchestrator import ToolResultOrchestrator
     from backend.src.services.ocr.ocr_service import OcrService
 
@@ -105,79 +106,35 @@ class AgentSession:
 
         subscribe_events(self)
 
-    def get_screenshot(self, screenshot_id: Optional[str] = None) -> Optional[str]:
+    def get_screenshot(self) -> Optional[str]:
         """
         Get current screenshot data.
-        
-        Delegates to ScreenshotState for state management.
-        
-        Args:
-            screenshot_id: Ignored (kept for backward compatibility)
-            
-        Returns:
-            Base64-encoded screenshot data or None if no current screenshot
         """
-        return self._screenshot_state.get_screenshot(screenshot_id)
-    
-    def get_ocr_results(self, screenshot_id: Optional[str] = None) -> Optional[list[dict]]:
+        return self.runtime.screenshot.get_screenshot()
+
+    def get_ocr_results(self) -> Optional[list[dict]]:
         """
         Get OCR results for current screenshot.
-        
-        Delegates to ScreenshotState for state management.
-        
-        Args:
-            screenshot_id: Ignored (kept for backward compatibility)
-            
-        Returns:
-            List of OCR results or None if no current OCR results
         """
-        return self._screenshot_state.get_ocr_results(screenshot_id)
-    
-    @property
-    def latest_screenshot(self) -> Optional[str]:
-        """Legacy property: Returns current screenshot (deprecated, use get_screenshot instead)."""
-        return self._screenshot_state.latest_screenshot
-    
-    @property
-    def latest_ocr_results(self) -> Optional[list[dict]]:
-        """Legacy property: Returns OCR for current screenshot (deprecated, use get_ocr_results instead)."""
-        return self._screenshot_state.latest_ocr_results
-    
+        return self.runtime.screenshot.get_ocr_results()
+
     def get_current_screenshot_id(self) -> Optional[str]:
         """
         Get the ID of the current screenshot.
-        
-        ENCAPSULATION: Public method to access current screenshot ID without
-        exposing private implementation details. This allows ToolPreparer and
-        other components to access screenshot state without tight coupling.
-        
-        Returns:
-            Current screenshot ID or None if no screenshot is available
         """
-        return self._screenshot_state.get_current_screenshot_id()
-    
+        return self.runtime.screenshot.get_current_screenshot_id()
+
     def set_current_screenshot(self, screenshot_id: str, screenshot_data: str) -> None:
         """
         Set the current screenshot, discarding any previous screenshot.
-        
-        Delegates to ScreenshotState for state management.
-        
-        Args:
-            screenshot_id: Unique ID for the screenshot
-            screenshot_data: Base64-encoded screenshot data
         """
-        self._screenshot_state.set_current_screenshot(screenshot_id, screenshot_data)
-    
+        self.runtime.screenshot.set_current_screenshot(screenshot_id, screenshot_data)
+
     def set_current_ocr_results(self, ocr_results: list[dict]) -> None:
         """
         Set OCR results for the current screenshot.
-        
-        Delegates to ScreenshotState for state management.
-        
-        Args:
-            ocr_results: List of OCR results
         """
-        self._screenshot_state.set_current_ocr_results(ocr_results)
+        self.runtime.screenshot.set_current_ocr_results(ocr_results)
 
     def set_current_system_state(self, system_state: Optional[Dict[str, Any]]) -> None:
         """
@@ -265,7 +222,7 @@ class AgentSession:
         """
         self.runtime.resolved_calls.remove(request_id)
 
-    def get_result_storage(self):
+    def get_result_storage(self) -> "ToolResultStorage":
         """Return session tool-result storage."""
         return self.runtime.tool_results
 

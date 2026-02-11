@@ -6,18 +6,16 @@ from backend.src.llm.parser import ParsedToolCall
 
 
 class DummySession:
-    pass
+    def __init__(self):
+        self.resolved_calls = {}
+
+    def register_resolved_tool_call(self, request_id, resolved_call):
+        self.resolved_calls[request_id] = resolved_call
 
 
 async def _collect_preparation(preparer, tool_calls):
-    events = []
-    result = None
-    async for event, final in preparer.prepare_tools(tool_calls, DummySession()):
-        if event is not None:
-            events.append(event)
-        if final is not None:
-            result = final
-    return events, result
+    result = await preparer.prepare(tool_calls, DummySession())
+    return [], result
 
 
 @pytest.mark.asyncio
@@ -62,7 +60,7 @@ async def test_prepare_mouse_control_uses_coordinate_resolution(monkeypatch):
     )
 
     async def fake_resolver(*_args, **_kwargs):
-        yield "event"
+        return None
 
     monkeypatch.setattr(
         "backend.src.agent.tools.preparation.preparer.resolve_tool_with_coordinates",
@@ -71,6 +69,6 @@ async def test_prepare_mouse_control_uses_coordinate_resolution(monkeypatch):
 
     events, result = await _collect_preparation(preparer, [tool_call])
 
-    assert events == ["event"]
+    assert events == []
     assert result is not None
     assert result.resolved_calls

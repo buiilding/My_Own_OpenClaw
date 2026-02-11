@@ -4,11 +4,12 @@ Tool processing coordinator.
 Coordinates result processing only.
 """
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
     from backend.src.agent.tools.processing.processor import ToolResultProcessor
+    from backend.src.tools.result_types import ToolExecutionBatch
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class ToolProcessingCoordinator:
         self.processor = processor
 
     async def process(
-        self, orchestration_result: Any, session: "AgentSession"
+        self, orchestration_result: "ToolExecutionBatch", session: "AgentSession"
     ) -> None:
         """
         Coordinate result processing.

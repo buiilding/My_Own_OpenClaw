@@ -26,26 +26,6 @@ class SessionLifecycle:
             runtime = getattr(session, "runtime", None)
             if runtime is not None and hasattr(runtime, "clear"):
                 runtime.clear()
-            else:
-                screenshot_state = getattr(session, "_screenshot_state", None)
-                if screenshot_state is not None and hasattr(screenshot_state, "clear"):
-                    screenshot_state.clear()
-
-                resolved_storage = getattr(session, "_resolved_tool_call_storage", None)
-                if resolved_storage is not None and hasattr(resolved_storage, "clear"):
-                    resolved_storage.clear()
-
-                result_storage = getattr(session, "_tool_result_storage", None)
-                if result_storage is not None and hasattr(result_storage, "clear_all"):
-                    result_storage.clear_all()
-
-            # Legacy fields remain for external callers outside the agent package.
-            for future in session._tool_result_futures.values():
-                if not future.done():
-                    future.cancel()
-            session._tool_result_futures.clear()
-            session._pending_tool_results.clear()
-            session._bundled_results.clear()
             logger.debug("Session %s cleanup completed", session.session_id)
         except Exception as exc:
             logger.error(

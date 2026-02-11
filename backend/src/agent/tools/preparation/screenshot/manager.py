@@ -7,10 +7,9 @@ Centralizes storage of the active screenshot and OCR triggering.
 import asyncio
 import hashlib
 import logging
-from typing import TYPE_CHECKING, Any, AsyncGenerator
+from typing import TYPE_CHECKING, Any
 
 from backend.src.agent.tools.shared.logging_utils import short_id
-from backend.src.core.events.streaming_events import AgentStreamingEvent
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -34,30 +33,21 @@ class ScreenshotManager:
         """
         self.timeout = timeout
 
-    async def get_screenshot(
-        self, session: "AgentSession"
-    ) -> AsyncGenerator[AgentStreamingEvent, None]:
+    async def ensure_screenshot(self, session: "AgentSession") -> None:
         """
         Ensure an active screenshot is available in session.
-        
-        Args:
-            session: Agent session with screenshot state
-            
+
         Raises:
             ValueError: If no active screenshot is available
         """
-        # Check if we have a current screenshot
         current_screenshot_id = session.get_current_screenshot_id()
         if current_screenshot_id:
-            screenshot_data = session.get_screenshot(current_screenshot_id)
+            screenshot_data = session.get_screenshot()
             if screenshot_data:
-                # Screenshot already available - no events to yield
-                if False:
-                    yield None
                 return
 
         raise ValueError("No active screenshot available for coordinate resolution")
-    
+
     async def process_screenshot(
         self,
         session: "AgentSession",

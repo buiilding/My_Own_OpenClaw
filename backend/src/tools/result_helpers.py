@@ -4,20 +4,18 @@ Result creation helpers for tool orchestration.
 Pure helper functions for creating tool result objects in a consistent format.
 No side effects beyond object creation.
 """
-from types import SimpleNamespace
-from typing import Any
-
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.llm.parser import ParsedToolCall
+from backend.src.tools.result_types import ToolExecutionBatch, ToolExecutionResult
 
 
 def create_tool_result_object(
     tool_call: ParsedToolCall,
     tool_result: ToolResult,
     execution_time: float = 0.1,
-) -> Any:
+) -> ToolExecutionResult:
     """
-    Create a SimpleNamespace object compatible with InteractionLoop's expectations.
+    Create a typed tool execution result object.
     
     This is the standard format for tool execution results used throughout the orchestrator.
     
@@ -27,9 +25,9 @@ def create_tool_result_object(
         execution_time: Execution time in seconds (default 0.1 for frontend-executed tools)
         
     Returns:
-        SimpleNamespace with tool_call, result, success, execution_time, and context fields
+        ToolExecutionResult object
     """
-    return SimpleNamespace(
+    return ToolExecutionResult(
         tool_call=tool_call,
         result=tool_result,
         success=tool_result.success,
@@ -38,11 +36,11 @@ def create_tool_result_object(
     )
 
 
-def create_empty_tool_results() -> Any:
+def create_empty_tool_results() -> ToolExecutionBatch:
     """
     Create an empty tool results container.
     
     Returns:
-        SimpleNamespace with empty tool_results list
+        ToolExecutionBatch with empty `tool_results`
     """
-    return SimpleNamespace(tool_results=[])
+    return ToolExecutionBatch()

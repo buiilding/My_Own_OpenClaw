@@ -10,7 +10,6 @@ import asyncio
 import logging
 import time
 from typing import Any, Dict, Optional
-from weakref import WeakValueDictionary
 
 from backend.src.core.interfaces.tool import ToolResult
 
@@ -40,17 +39,13 @@ class ToolResultStorage:
         self._pending_results: Dict[str, ToolResult] = {}
         
         # Tool result futures: request_id -> asyncio.Future
-        # Use WeakValueDictionary to allow automatic cleanup when futures are garbage collected
-        self._result_futures: WeakValueDictionary[str, asyncio.Future] = WeakValueDictionary()
-        # Also maintain a regular dict for futures that need explicit tracking
-        self._futures_dict: Dict[str, asyncio.Future] = {}
+        self._result_futures: Dict[str, asyncio.Future] = {}
         
         # Bundled results: bundle_request_id -> ToolResult
         self._bundled_results: Dict[str, ToolResult] = {}
         
         # Bundle futures: bundle_id -> asyncio.Future (for atomic bundle waiting)
-        self._bundle_futures: WeakValueDictionary[str, asyncio.Future] = WeakValueDictionary()
-        self._bundle_futures_dict: Dict[str, asyncio.Future] = {}
+        self._bundle_futures: Dict[str, asyncio.Future] = {}
         
         # Timestamps for TTL-based cleanup
         self._result_timestamps: Dict[str, float] = {}
@@ -125,7 +120,6 @@ class ToolResultStorage:
         """
         future = self._create_future()
         self._result_futures[request_id] = future
-        self._futures_dict[request_id] = future
         self._result_timestamps.setdefault(request_id, time.time())
         logger.debug(f"Created result future for request_id {request_id[:15]}")
         return future
@@ -141,11 +135,10 @@ class ToolResultStorage:
         Returns:
             True if future was found and resolved, False otherwise
         """
-        future = self._futures_dict.get(request_id)
+        future = self._result_futures.get(request_id)
         if future and not future.done():
             future.set_result(result)
-            # Clean up from tracking dict (future may still be in weak dict)
-            self._futures_dict.pop(request_id, None)
+            self._result_futures.pop(request_id, None)
             if request_id not in self._pending_results:
                 self._result_timestamps.pop(request_id, None)
             logger.debug(f"Resolved result future for request_id {request_id[:15]}")
@@ -162,7 +155,7 @@ class ToolResultStorage:
         Returns:
             asyncio.Future if found, None otherwise
         """
-        return self._futures_dict.get(request_id)
+        return self._result_futures.get(request_id)
     
     def remove_result_future(self, request_id: str) -> bool:
         """
@@ -174,11 +167,10 @@ class ToolResultStorage:
         Returns:
             True if future was found and removed, False otherwise
         """
-        future = self._futures_dict.pop(request_id, None)
+        future = self._result_futures.pop(request_id, None)
         if future is not None:
             if request_id not in self._pending_results:
                 self._result_timestamps.pop(request_id, None)
-            # Weak dict will clean up automatically
             logger.debug(f"Removed result future for request_id {request_id[:15]}")
             return True
         return False
@@ -236,7 +228,6 @@ class ToolResultStorage:
         """
         future = self._create_future()
         self._bundle_futures[bundle_id] = future
-        self._bundle_futures_dict[bundle_id] = future
         self._bundle_timestamps.setdefault(bundle_id, time.time())
         logger.debug(f"Created bundle future for bundle_id {bundle_id[:15]}")
         return future
@@ -252,11 +243,10 @@ class ToolResultStorage:
         Returns:
             True if future was found and resolved, False otherwise
         """
-        future = self._bundle_futures_dict.get(bundle_id)
+        future = self._bundle_futures.get(bundle_id)
         if future and not future.done():
             future.set_result(result)
-            # Clean up from tracking dict (future may still be in weak dict)
-            self._bundle_futures_dict.pop(bundle_id, None)
+            self._bundle_futures.pop(bundle_id, None)
             if bundle_id not in self._bundled_results:
                 self._bundle_timestamps.pop(bundle_id, None)
             logger.debug(f"Resolved bundle future for bundle_id {bundle_id[:15]}")
@@ -273,7 +263,7 @@ class ToolResultStorage:
         Returns:
             asyncio.Future if found, None otherwise
         """
-        return self._bundle_futures_dict.get(bundle_id)
+        return self._bundle_futures.get(bundle_id)
     
     def remove_bundle_future(self, bundle_id: str) -> bool:
         """
@@ -285,11 +275,10 @@ class ToolResultStorage:
         Returns:
             True if future was found and removed, False otherwise
         """
-        future = self._bundle_futures_dict.pop(bundle_id, None)
+        future = self._bundle_futures.pop(bundle_id, None)
         if future is not None:
             if bundle_id not in self._bundled_results:
                 self._bundle_timestamps.pop(bundle_id, None)
-            # Weak dict will clean up automatically
             logger.debug(f"Removed bundle future for bundle_id {bundle_id[:15]}")
             return True
         return False
@@ -358,10 +347,8 @@ class ToolResultStorage:
         """Clear all stored results (used for session cleanup)."""
         self._pending_results.clear()
         self._result_futures.clear()
-        self._futures_dict.clear()
         self._bundled_results.clear()
         self._bundle_futures.clear()
-        self._bundle_futures_dict.clear()
         self._result_timestamps.clear()
         self._bundle_timestamps.clear()
         logger.debug("Cleared all tool result storage")
@@ -375,7 +362,7 @@ class ToolResultStorage:
         """
         return {
             "pending_results": len(self._pending_results),
-            "result_futures": len(self._futures_dict),
+            "result_futures": len(self._result_futures),
             "bundled_results": len(self._bundled_results),
-            "bundle_futures": len(self._bundle_futures_dict),
+            "bundle_futures": len(self._bundle_futures),
         }

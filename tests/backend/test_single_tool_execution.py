@@ -9,14 +9,15 @@ from backend.src.tools.single_tool_execution import execute_single_tool
 
 class DummySession:
     def __init__(self, resolved_call=None, current_screenshot_id=None):
-        self._tool_result_storage = ToolResultStorage()
-        self._tool_result_futures = {}
-        self._pending_tool_results = {}
+        self._result_storage = ToolResultStorage()
         self._resolved_call = resolved_call
         self._current_screenshot_id = current_screenshot_id
 
     def get_resolved_tool_call(self, request_id):
         return self._resolved_call
+
+    def get_result_storage(self):
+        return self._result_storage
 
     def get_current_screenshot_id(self):
         return self._current_screenshot_id
@@ -63,11 +64,10 @@ async def test_execute_single_tool_uses_pending_result():
         metadata={"request_id": "req-1"},
     )
     pending_result = ToolResult(success=True, data={"ok": True})
-    session._tool_result_storage.store_pending_result("req-1", pending_result)
+    session.get_result_storage().store_pending_result("req-1", pending_result)
 
     result_obj = await execute_single_tool(tool_call, session)
 
     assert result_obj.result is pending_result
-    assert session._tool_result_storage.get_pending_result("req-1") is None
-    assert session._tool_result_storage.get_result_future("req-1") is None
-    assert "req-1" not in session._tool_result_futures
+    assert session.get_result_storage().get_pending_result("req-1") is None
+    assert session.get_result_storage().get_result_future("req-1") is None
