@@ -164,8 +164,7 @@ Send a user query with optional screenshot.
   "text": "User query text",
   "content": "<system_context>...</system_context> ...", // Optional, built by Electron main process
   "screenshot": "base64-encoded-screenshot", // Optional (legacy)
-  "screenshot_ref": "uuid.jpg", // Preferred
-  "screenshot_url": "http://127.0.0.1:8765/api/artifacts/uuid.jpg" // Optional (client hint, ignored by backend)
+  "screenshot_ref": "uuid.jpg" // Preferred
 }
 ```
 
@@ -361,7 +360,6 @@ Send tool execution result from frontend.
     "llm_content": "Preformatted tool output",
     "screenshot": "base64-encoded-screenshot", // Optional (legacy)
     "screenshot_ref": "uuid.jpg",
-    "screenshot_url": "http://127.0.0.1:8765/api/artifacts/uuid.jpg",
     "system_state": { "active_window": "...", "mouse_position": "..." }
   },
   "error": null,
@@ -384,7 +382,6 @@ Send tool execution result from frontend.
     "data": {
       "llm_content": "Clicked submit button",
       "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg",
-      "screenshot_url": "http://127.0.0.1:8765/api/artifacts/1f2c3a4b5d6e7f8a.jpg",
       "system_state": {
         "active_window": "Browser",
         "mouse_position": "(100, 200)"
@@ -408,7 +405,6 @@ Result of an atomic tool bundle executed on the frontend.
   "bundle_id": "bundle-123",
   "status": "success", // success | partial_failure | failure
   "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg",
-  "screenshot_url": "http://127.0.0.1:8765/api/artifacts/1f2c3a4b5d6e7f8a.jpg",
   "system_state": { "active_window": "...", "mouse_position": "..." },
   "step_results": [ { "tool": "mouse_control", "status": "success" } ],
   "error": null

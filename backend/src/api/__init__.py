@@ -9,17 +9,18 @@ Architecture:
 - handlers/: Message handlers for WebSocket message types
 - schema.py: Pydantic models for message validation
 - deps.py: FastAPI dependency injection (app-lifespan-scoped container)
+- contracts/: API-owned contract adapter for message/formatter registries
 
 Message Flow:
-1. Client connects via WebSocket → routes/websocket.py
+1. Client connects via WebSocket → routes/websocket/__init__.py
 2. Message validated via Pydantic → schema.py
-3. Message routed to handler → handlers/base.py (MessageHandlerRegistry)
+3. Message routed to handler → infrastructure/registry.py (MessageHandlerRegistry)
 4. Handler processes → interacts with agent/core services
-5. Response sent via transport → handlers/transport.py
+5. Response sent via transport → transport/sender.py
 
 Key Design Decisions:
 - Container is app-lifespan-scoped (set once at startup, shared across requests)
 - Handlers are stateless singletons (state lives in SessionManager/AgentSession)
 - Transport abstraction exists for testing, not transport-agnostic architecture
-- Error handling is standardized via handlers/error_utils.py
+- Error handling is standardized via infrastructure/errors.py
 """

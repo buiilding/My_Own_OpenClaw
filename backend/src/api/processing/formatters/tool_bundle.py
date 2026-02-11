@@ -1,6 +1,7 @@
 """Formatter for tool bundle events."""
 from typing import Any, Dict, Optional, Union
 
+from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.processing.formatters.base import EventFormatter
 from backend.src.core.events import AgentStreamingEvent, ToolBundleEvent
 
@@ -17,7 +18,7 @@ class ToolBundleEventFormatter(EventFormatter):
             tools = event.tools
         
         return {
-            "type": "tool-bundle",
+            "type": OutgoingMessageType.TOOL_BUNDLE,
             "id": msg_id,
             "payload": {
                 "bundle_id": bundle_id,

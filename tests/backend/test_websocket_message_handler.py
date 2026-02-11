@@ -103,6 +103,52 @@ async def test_parse_and_validate_message_rejects_non_object_json_root() -> None
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_rejects_query_screenshot_url_field() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_query_screenshot_url",
+            "type": "query",
+            "payload": {
+                "text": "hello",
+                "screenshot_url": "http://127.0.0.1:8765/api/artifacts/shot.jpg",
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=4096
+    )
+
+    assert message is None
+    assert error is not None
+    assert "screenshot_url" in error
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_rejects_tool_bundle_screenshot_url_field() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_bundle_screenshot_url",
+            "type": "tool-bundle-result",
+            "payload": {
+                "bundle_id": "bundle-1",
+                "status": "success",
+                "step_results": [],
+                "screenshot_url": "http://127.0.0.1:8765/api/artifacts/shot.jpg",
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=4096
+    )
+
+    assert message is None
+    assert error is not None
+    assert "screenshot_url" in error
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_small_payload_parses_inline(monkeypatch) -> None:
     payload = json.dumps(
         {

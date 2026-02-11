@@ -273,7 +273,7 @@ For tools using vision models:
      - Parallel system state + screenshot capture
      - Consistent error handling
      - Proper timing logs
-3. **WS Reference**: WebSocket payloads carry `screenshot_ref` (optionally `screenshot_url` for UI) instead of base64 blobs
+3. **WS Reference**: WebSocket payloads carry `screenshot_ref` instead of base64 blobs
 4. **OCR Processing**: Screenshot processed for OCR (backend, resolved from artifact store)
 5. **Storage**: Screenshot stored in session with unique ID (backend)
 

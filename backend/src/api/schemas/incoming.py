@@ -18,7 +18,6 @@ class QueryPayload(BaseModel):
     content: Optional[str] = None
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
-    screenshot_url: Optional[str] = None
 
 
 class QueryMessage(BaseMessage):
@@ -124,7 +123,6 @@ class ToolBundleResultPayload(BaseModel):
     status: Literal["success", "partial_failure", "failure"]
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
-    screenshot_url: Optional[str] = None
     system_state: Optional[Dict[str, Any]] = None
     step_results: List[ToolBundleStepResult]
     error: Optional[str] = None

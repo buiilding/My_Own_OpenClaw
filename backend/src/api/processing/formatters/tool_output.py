@@ -2,6 +2,7 @@
 import logging
 from typing import Any, Dict, Optional, Union
 
+from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.processing.formatters.base import EventFormatter
 from backend.src.core.events import AgentStreamingEvent
 
@@ -36,7 +37,7 @@ class ToolOutputEventFormatter(EventFormatter):
             return None
         
         return {
-            "type": "tool-output",
+            "type": OutgoingMessageType.TOOL_OUTPUT,
             "id": msg_id,
             "payload": {
                 "tool_name": tool_name,

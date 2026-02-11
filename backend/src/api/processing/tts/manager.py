@@ -7,9 +7,11 @@ import asyncio
 import logging
 from typing import Any, Dict, Optional, Union
 
+from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.core.config import AppConfig
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent
+from backend.src.core.types import StreamingEventType
 from backend.src.core.services.tts_service import TTSService
 
 logger = logging.getLogger(__name__)
@@ -78,7 +80,10 @@ class TTSManager:
         # Use isinstance check for type safety
         if isinstance(event, ChunkEvent):
             await tts_service.process_text(event.content)
-        elif isinstance(event, dict) and event.get("type") == "chunk":
+        elif (
+            isinstance(event, dict)
+            and event.get("type") == StreamingEventType.CHUNK.value
+        ):
             # Backward compatibility with dict events
             await tts_service.process_text(event.get("content", ""))
 
@@ -135,7 +140,11 @@ class TTSManager:
             async for audio_chunk in tts_service.stream_audio():
                 try:
                     await websocket.send_json(
-                        {"type": "audio-chunk", "id": msg_id, "payload": audio_chunk}
+                        {
+                            "type": OutgoingMessageType.AUDIO_CHUNK,
+                            "id": msg_id,
+                            "payload": audio_chunk,
+                        }
                     )
                 except (RuntimeError, ConnectionError):
                     # Protocol implementations raise these on disconnection
