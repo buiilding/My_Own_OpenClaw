@@ -44,6 +44,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox): keep overlay fully interactive while preserving rounded-pill hit geometry so background windows are not blocked by rectangular shadow regions
 
 ### Fixed
+- fix(frontend-chatbox): avoid Zustand selector snapshot churn in chatbox overlay by selecting primitive `isSending` state directly (prevents React maximum-update-depth loop in dev)
 - fix(frontend-chatbox): split overlay into separate fixed input and response windows so streaming text no longer shifts chatbox Y position; response now grows smoothly upward and is hidden during Linux screenshot capture fallback
 - fix(frontend-chatbox): apply chat overlay resize+reposition atomically via `setBounds` to keep the input pill anchored at a consistent Y position across typing/idle/response states
 - fix(frontend-ipc): strip unsupported `screenshot_url` from outbound `query` / `tool-bundle-result` payloads to match backend incoming schema
