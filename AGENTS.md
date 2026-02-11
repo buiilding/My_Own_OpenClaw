@@ -73,3 +73,4 @@
 - Never edit `node_modules` or vendored dependency output; changes will be overwritten.
 - Dependency patching (overrides/patches/vendored changes) requires explicit approval.
 - When answering questions, verify in code first; avoid guessing.
+- If unrelated changes from other agents are present, continue with your scoped task and report only the files/behavior you changed.

@@ -34,6 +34,11 @@ Includes the last 300 commits on `main`.
 - dbbd1e9 feat(browser): add ToolDomain.BROWSER, docs, and module init
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
+### Changed
+- refactor(agent-tools): remove legacy session/tool-preparation compatibility paths and standardize screenshot preparation flow on a single async API
+- refactor(tool-results): replace `SimpleNamespace` execution payloads with typed result models and simplify waiting-result storage internals to single future maps
+- docs(agents): clarify that agents should continue scoped work when unrelated changes are present and report only scoped deltas
+
 ### Fixed
 - fix(api-transport): harden `SafeWebSocket` with bounded queue backpressure, sender-failure propagation, and pending-future drain on disconnect paths
 - fix(bundle-results): normalize `tool-bundle-result` step payloads to plain dicts and harden bundle execution against Pydantic step models (`ToolBundleStepResult`) to prevent `'... has no attribute get'` crashes
