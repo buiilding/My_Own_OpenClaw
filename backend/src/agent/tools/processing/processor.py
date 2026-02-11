@@ -7,6 +7,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from backend.src.agent.history.history_committer import HistoryCommitter
+from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 from backend.src.agent.tools.shared.bundle_detection import is_atomic_bundle_from_results
 from backend.src.agent.tools.processing.transformer import ResultTransformer
 
@@ -59,9 +60,10 @@ class ToolResultProcessor:
         if is_atomic_bundle_from_results(orchestration_result.tool_results):
             # ATOMIC BUNDLE: Use bundle result from storage
             first_tool_call = orchestration_result.tool_results[0].tool_call
-            bundle_id = first_tool_call.metadata.get('bundle_id') if (hasattr(first_tool_call, 'metadata') and first_tool_call.metadata is not None) else None
+            execution_ref = ExecutionRef.from_metadata(first_tool_call.metadata)
+            bundle_id = execution_ref.bundle_id if execution_ref else None
             if bundle_id:
-                bundled_result = session._tool_result_storage.get_bundled_result(bundle_id)
+                bundled_result = session.get_bundle_result(bundle_id)
                 if bundled_result:
                     logger.info(f"Found atomic bundle result for history (bundle_id={bundle_id[:15]}, {len(orchestration_result.tool_results)} tools)")
                     
@@ -100,7 +102,7 @@ class ToolResultProcessor:
                     logger.info(f"Committed atomic bundle result to history ({len(orchestration_result.tool_results)} tools as single message)")
                     
                     # Remove from storage after use
-                    session._tool_result_storage.remove_bundled_result(bundle_id)
+                    session.remove_bundle_result(bundle_id)
                     return
         
         # Process individual results (non-bundled or bundled result not found)
@@ -108,10 +110,9 @@ class ToolResultProcessor:
         # even if transform or commit raises an exception on any result
         all_request_ids = set()
         for result in orchestration_result.tool_results:
-            if hasattr(result.tool_call, 'metadata') and result.tool_call.metadata:
-                request_id = result.tool_call.metadata.get('request_id') if (hasattr(result.tool_call, 'metadata') and result.tool_call.metadata is not None) else None
-                if request_id:
-                    all_request_ids.add(request_id)
+            execution_ref = ExecutionRef.from_metadata(result.tool_call.metadata)
+            if execution_ref and execution_ref.request_id:
+                all_request_ids.add(execution_ref.request_id)
         
         try:
             for result in orchestration_result.tool_results:
@@ -131,7 +132,7 @@ class ToolResultProcessor:
             # sessions with many tool executions.
             
             # Use centralized storage for cleanup
-            cleaned_count = session._tool_result_storage.cleanup_request_ids(all_request_ids)
+            cleaned_count = session.get_result_storage().cleanup_request_ids(all_request_ids)
             if cleaned_count > 0:
                 logger.debug(f"Cleaned up {cleaned_count} tool results after processing")
             
@@ -142,4 +143,4 @@ class ToolResultProcessor:
             
             # Periodic cleanup of old results (TTL-based)
             # This is a safety net for results that weren't properly cleaned up
-            session._tool_result_storage.cleanup_old_results(max_age_seconds=300)
+            session.get_result_storage().cleanup_old_results(max_age_seconds=300)

@@ -6,6 +6,7 @@ No side effects beyond boolean checks.
 """
 from typing import List
 
+from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 from backend.src.llm.parser import ParsedResponse, ParsedToolCall
 
 
@@ -27,13 +28,7 @@ def is_atomic_bundle(parsed_response: ParsedResponse) -> bool:
     if len(parsed_response.tool_calls) <= 1:
         return False
     
-    return all(
-        hasattr(tc, 'metadata') and 
-        tc.metadata and 
-        'bundle_id' in tc.metadata and 
-        'request_id' not in tc.metadata
-        for tc in parsed_response.tool_calls
-    )
+    return all(_is_bundle_metadata(tc.metadata) for tc in parsed_response.tool_calls)
 
 
 def is_atomic_bundle_from_results(tool_results: List) -> bool:
@@ -51,10 +46,21 @@ def is_atomic_bundle_from_results(tool_results: List) -> bool:
     if len(tool_results) <= 1:
         return False
     
-    return all(
-        hasattr(r.tool_call, 'metadata') and 
-        r.tool_call.metadata and 
-        'bundle_id' in r.tool_call.metadata and 
-        'request_id' not in r.tool_call.metadata
-        for r in tool_results
-    )
+    for result in tool_results:
+        tool_call = getattr(result, "tool_call", None)
+        if not isinstance(tool_call, ParsedToolCall):
+            return False
+        if not _is_bundle_metadata(tool_call.metadata):
+            return False
+    return True
+
+
+def _is_bundle_metadata(metadata) -> bool:
+    ref = ExecutionRef.from_metadata(metadata)
+    if ref is not None:
+        return ref.kind == "bundle"
+
+    # Legacy compatibility: treat explicit bundle marker (even None) as bundle metadata.
+    if not isinstance(metadata, dict):
+        return False
+    return "bundle_id" in metadata and "request_id" not in metadata

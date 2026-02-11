@@ -8,6 +8,11 @@ All content, I/O, and presentation is delegated to specialized components.
 import logging
 from typing import TYPE_CHECKING, AsyncGenerator
 
+from backend.src.agent.execution.policies import (
+    IterationPolicy,
+    ParseRecoveryPolicy,
+    ToolExecutionPolicy,
+)
 from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
     FullResponseEvent,
@@ -72,13 +77,14 @@ class InteractionLoop:
         Controls the state machine and delegates all work to specialized components.
         """
         iteration = 0
-        max_iterations = self.session.cfg.max_agent_iterations
-        # Track if we're in the extra turn after executing tools on the final iteration
-        # This allows one final "answer only" turn after the last tool execution
-        in_extra_turn_after_final_tools = False
+        iteration_policy = IterationPolicy(
+            max_iterations=self.session.cfg.max_agent_iterations
+        )
+        parse_recovery = ParseRecoveryPolicy()
+        tool_execution_policy = ToolExecutionPolicy()
 
-        while iteration < max_iterations or in_extra_turn_after_final_tools:
-            iteration += 1
+        while iteration_policy.should_continue(iteration):
+            iteration = iteration_policy.begin_next_iteration(iteration)
 
             # Step 1: Get prompt (delegated to PromptCoordinator)
             prompt, tool_schemas, prompt_metadata = self.prompt_coordinator.get_prompt(
@@ -135,15 +141,8 @@ class InteractionLoop:
                 if hasattr(e, 'validation_errors') and e.validation_errors:
                     error_details = "; ".join(e.validation_errors)
                 
-                error_user_message = (
-                    f"[System Validation Error: {error_details}]\n\n"
-                    "Your tool call format was invalid. "
-                    "For computer-use tools (mouse_control, keyboard_control, screenshot, scroll_control, switch_tab, wait), "
-                    "you MUST use this format:\n"
-                    '{"metadata": {"description": "...", "explanation": "...", "expectation": "..."}, '
-                    '"action": {"functionCall": {"name": "tool_name", "args": {...}}}}\n\n'
-                    "Metadata MUST come first, otherwise the tool call will be rejected. "
-                    "Please correct your format and try again."
+                error_user_message = parse_recovery.build_validation_error_user_message(
+                    error_details
                 )
                 
                 # Add error message to conversation history as user message
@@ -180,7 +179,7 @@ class InteractionLoop:
             # Step 5: Tool execution path
             # PREMATURE TERMINATION FIX: If we're in the extra turn after final tool execution,
             # do not allow more tools - force final answer to prevent infinite loops
-            if in_extra_turn_after_final_tools:
+            if not iteration_policy.can_execute_tools():
                 logger.warning(
                     "Agent attempted to execute tools in extra turn after max_iterations. "
                     "Forcing final answer instead."
@@ -195,11 +194,7 @@ class InteractionLoop:
 
             # Check if this is the final iteration and we're executing tools
             # If so, set flag to allow one more turn after tool execution
-            is_final_iteration = iteration >= max_iterations
-            if is_final_iteration:
-                # This is the final allowed iteration and we're executing tools
-                # Allow one more turn after this to process tool results
-                in_extra_turn_after_final_tools = True
+            iteration_policy.mark_tool_execution(iteration)
 
             # Add assistant message with tool calls to history (context is king!)
             self.session.history.add_assistant_message(llm_response_text)
@@ -214,7 +209,7 @@ class InteractionLoop:
             results_processed = False
             try:
                 # Check if this is a bundle before executing
-                is_bundle = len(parsed_response.tool_calls) > 1
+                is_bundle = tool_execution_policy.is_bundle(len(parsed_response.tool_calls))
                 
                 # Yield all resolution events (ToolBundleEvent or ToolCallEvent)
                 async for event in self.tool_executor.execute(parsed_response, self.session):
@@ -261,7 +256,7 @@ class InteractionLoop:
                         )
 
         # Max iterations reached
-        if iteration >= max_iterations and not in_extra_turn_after_final_tools:
+        if iteration_policy.reached_hard_limit(iteration):
             logger.warning("Max iterations reached in agent loop.")
             error_msg = "I reached the maximum number of steps without finishing."
             async for event in self.event_presenter.present_error(error_msg):

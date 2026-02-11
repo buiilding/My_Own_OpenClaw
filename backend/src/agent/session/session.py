@@ -10,6 +10,7 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, Optional, List, Callable
 
+from backend.src.agent.session.config_runtime import SessionConfigRuntime
 from backend.src.agent.session.initializer import (
     init_event_bus,
     init_executor,
@@ -20,15 +21,15 @@ from backend.src.agent.session.initializer import (
     init_tooling,
     subscribe_events,
 )
+from backend.src.agent.session.lifecycle import SessionLifecycle
 from backend.src.core.config import AppConfig
 from backend.src.core.events.bus_events import InteractionCompleted
 from backend.src.llm.client import LLMClient, get_llm_client
-from backend.src.llm.parser import ResponseParser
-from backend.src.llm.prompts import PromptConstructor
 from backend.src.tools.registry import ToolRegistry
 
 if TYPE_CHECKING:
     from backend.src.core.infrastructure.bus import EventBus
+    from backend.src.core.interfaces.tool import ToolResult
     from backend.src.tools.orchestrator import ToolResultOrchestrator
     from backend.src.services.ocr.ocr_service import OcrService
 
@@ -97,12 +98,12 @@ class AgentSession:
         init_event_bus(self, event_bus)
         self.ocr_service = ocr_service
         init_executor(self, self.ocr_service)
+        init_session_state(self)
 
         # Initialize tool result handler after executor creation.
         init_tool_result_handler(self)
 
         subscribe_events(self)
-        init_session_state(self)
 
     def get_screenshot(self, screenshot_id: Optional[str] = None) -> Optional[str]:
         """
@@ -186,7 +187,7 @@ class AgentSession:
         OS coordinate space (common with HiDPI scaling on Linux).
         """
         if system_state is None:
-            self._current_system_state = None
+            self.runtime.set_system_state(None)
             return
         if not isinstance(system_state, dict):
             logger.warning(
@@ -194,14 +195,13 @@ class AgentSession:
                 type(system_state).__name__,
             )
             return
-        self._current_system_state = dict(system_state)
+        self.runtime.set_system_state(system_state)
 
     def get_current_system_state(self) -> Optional[Dict[str, Any]]:
         """Return the last system_state payload captured by the frontend, if any."""
-        state = getattr(self, "_current_system_state", None)
-        return dict(state) if isinstance(state, dict) else None
+        return self.runtime.get_system_state()
     
-    def register_pending_tool_result(self, request_id: str, result: Any) -> None:
+    def register_pending_tool_result(self, request_id: str, result: "ToolResult") -> None:
         """
         Register a pending tool result in the session.
         
@@ -214,7 +214,7 @@ class AgentSession:
             result: Tool result to store
         """
         # Use centralized storage
-        self._tool_result_storage.store_pending_result(request_id, result)
+        self.runtime.tool_results.store_pending_result(request_id, result)
     
     def register_resolved_tool_call(self, request_id: str, resolved_call: Any) -> None:
         """
@@ -230,7 +230,7 @@ class AgentSession:
             request_id: Request ID for the tool call
             resolved_call: Resolved tool call to store
         """
-        self._resolved_tool_call_storage.register(request_id, resolved_call)
+        self.runtime.resolved_calls.register(request_id, resolved_call)
     
     def get_resolved_tool_call(self, request_id: str) -> Optional[Any]:
         """
@@ -248,7 +248,7 @@ class AgentSession:
         Returns:
             Resolved tool call or None if not found
         """
-        return self._resolved_tool_call_storage.get(request_id)
+        return self.runtime.resolved_calls.get(request_id)
     
     def remove_resolved_tool_call(self, request_id: str) -> None:
         """
@@ -263,7 +263,61 @@ class AgentSession:
         Args:
             request_id: Request ID for the tool call to remove
         """
-        self._resolved_tool_call_storage.remove(request_id)
+        self.runtime.resolved_calls.remove(request_id)
+
+    def get_result_storage(self):
+        """Return session tool-result storage."""
+        return self.runtime.tool_results
+
+    def get_pending_tool_result(self, request_id: str) -> Optional["ToolResult"]:
+        """Get pending tool result if available."""
+        return self.runtime.tool_results.get_pending_result(request_id)
+
+    def remove_pending_tool_result(self, request_id: str) -> bool:
+        """Remove pending tool result."""
+        return self.runtime.tool_results.remove_pending_result(request_id)
+
+    def create_tool_result_future(self, request_id: str):
+        """Create future for a single-tool result."""
+        return self.runtime.tool_results.create_result_future(request_id)
+
+    def remove_tool_result_future(self, request_id: str) -> bool:
+        """Remove result future tracking for request_id."""
+        return self.runtime.tool_results.remove_result_future(request_id)
+
+    def create_bundle_result_future(self, bundle_id: str):
+        """Create future for bundle result."""
+        return self.runtime.tool_results.create_bundle_future(bundle_id)
+
+    def remove_bundle_result_future(self, bundle_id: str) -> bool:
+        """Remove bundle future tracking for bundle_id."""
+        return self.runtime.tool_results.remove_bundle_future(bundle_id)
+
+    def get_bundle_result(self, bundle_id: str) -> Optional["ToolResult"]:
+        """Get stored bundle result."""
+        return self.runtime.tool_results.get_bundled_result(bundle_id)
+
+    def remove_bundle_result(self, bundle_id: str) -> bool:
+        """Remove stored bundle result."""
+        return self.runtime.tool_results.remove_bundled_result(bundle_id)
+
+    def set_active_ocr_task(self, task: asyncio.Task[Any], screenshot_id: str) -> None:
+        """Track active OCR task."""
+        self.runtime.screenshot.set_active_ocr_task(task, screenshot_id)
+
+    def get_active_ocr_task(
+        self, screenshot_id: Optional[str] = None
+    ) -> Optional[asyncio.Task[Any]]:
+        """Return active OCR task."""
+        return self.runtime.screenshot.get_active_ocr_task(screenshot_id)
+
+    def clear_active_ocr_task(self, task: Optional[asyncio.Task[Any]] = None) -> None:
+        """Clear active OCR task tracking."""
+        self.runtime.screenshot.clear_active_ocr_task(task)
+
+    def cancel_active_ocr_task(self) -> bool:
+        """Cancel active OCR task if running."""
+        return self.runtime.screenshot.cancel_active_ocr_task()
 
     async def _on_interaction_completed(self, event: InteractionCompleted) -> None:
         """Handle interaction completed event."""
@@ -284,52 +338,7 @@ class AgentSession:
         causing settings updates (API keys, models) to not take effect until restart.
         """
         async with self._lock:
-            old_provider = self.cfg.model_provider
-            old_model = self.cfg.selected_model_id
-            old_mode = self.cfg.interaction_mode
-            self.cfg = new_cfg
-            
-            logger.info(
-                f"[AgentSession] Updating config: "
-                f"model_provider {old_provider} → {new_cfg.model_provider}, "
-                f"selected_model_id {old_model} → {new_cfg.selected_model_id}, "
-                f"interaction_mode {old_mode} → {new_cfg.interaction_mode}"
-            )
-            
-            # Re-initialize LLM client with new config
-            self.llm_client = self.llm_client_factory(self.cfg)
-            logger.info(
-                f"[AgentSession] LLM client recreated with provider={new_cfg.model_provider}, "
-                f"model={new_cfg.selected_model_id}"
-            )
-            self.executor.llm_client = self.llm_client
-            # STALE CONFIGURATION FIX: Update LLMInteractionHandler's reference
-            # This ensures settings updates (API keys, models) take effect immediately
-            if hasattr(self.executor, 'interaction_loop') and self.executor.interaction_loop:
-                if hasattr(self.executor.interaction_loop, 'llm_handler') and self.executor.interaction_loop.llm_handler:
-                    self.executor.interaction_loop.llm_handler.llm_client = self.llm_client
-                    logger.debug("Updated LLMInteractionHandler with new LLM client")
-
-                # Rebuild prompt constructor and parser to apply config changes immediately.
-                previous_prompt = self.prompt_builder
-                self.prompt_builder = PromptConstructor(
-                    self.tool_registry,
-                    self.cfg,
-                    system_prompt=previous_prompt.system_prompt,
-                )
-                self.response_parser = ResponseParser(self.cfg, self.tool_registry)
-
-                self.executor.prompt_builder = self.prompt_builder
-                self.executor.response_parser = self.response_parser
-                self.executor.interaction_loop.response_parser = self.response_parser
-
-                from backend.src.agent.llm.conversation_context import ConversationContext
-
-                self.executor.interaction_loop.prompt_coordinator = ConversationContext(
-                    prompt_constructor=self.prompt_builder,
-                    history=self.history,
-                )
-                logger.debug("Updated prompt constructor and response parser with new config")
+            SessionConfigRuntime.apply(self, new_cfg)
 
     async def process_query(
         self, 
@@ -422,49 +431,4 @@ class AgentSession:
         This method should be called before the session is removed from active_sessions
         to ensure resources are freed immediately rather than waiting for GC.
         """
-        logger.debug(f"Cleaning up session {self.session_id} for user {self.user_id}")
-        
-        try:
-            # Unsubscribe from event bus to prevent memory leaks
-            if hasattr(self, 'event_bus') and self.event_bus:
-                self.event_bus.unsubscribe(InteractionCompleted, self._on_interaction_completed)
-            
-            # Shutdown response parser (may have thread pool executor)
-            if hasattr(self, 'response_parser') and self.response_parser:
-                self.response_parser.shutdown()
-
-            # Clear conversation history state
-            if hasattr(self, 'history') and self.history:
-                self.history.clear()
-            
-            # Clear current screenshot/OCR state
-            if hasattr(self, '_screenshot_state') and self._screenshot_state:
-                self._screenshot_state.clear()
-
-            # Clear resolved tool-call cache
-            if hasattr(self, '_resolved_tool_call_storage') and self._resolved_tool_call_storage:
-                self._resolved_tool_call_storage.clear()
-
-            # Clear tool-result storage
-            if hasattr(self, '_tool_result_storage'):
-                self._tool_result_storage.clear_all()
-            
-            # Legacy cleanup (for backward compatibility during migration)
-            if hasattr(self, '_tool_result_futures'):
-                # Cancel any pending futures
-                for future in self._tool_result_futures.values():
-                    if not future.done():
-                        future.cancel()
-                self._tool_result_futures.clear()
-            if hasattr(self, '_pending_tool_results'):
-                self._pending_tool_results.clear()
-            if hasattr(self, '_bundled_results'):
-                self._bundled_results.clear()
-            
-            logger.debug(f"Session {self.session_id} cleanup completed")
-        except Exception as e:
-            logger.error(
-                f"Error during session cleanup for {self.session_id}: {e}",
-                exc_info=True
-            )
-            # Don't re-raise - cleanup should be best-effort
+        await SessionLifecycle.cleanup(self)

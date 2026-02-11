@@ -14,6 +14,7 @@ from backend.src.core.events.streaming_events import (
     ToolCallEvent,
     ToolOutputEvent,
 )
+from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -65,26 +66,15 @@ class ToolSender:
         Yields:
             AgentStreamingEvent: ToolCallEvent, ToolBundleEvent, ToolOutputEvent (frontend)
         """
-        # Prepare tools
-        preparation_result = None
-        async for event_or_result in self.preparer.prepare_tools(tool_calls, session):
-            event, result = event_or_result
-            
-            # Yield infrastructure events
-            if event is not None:
-                yield event
-            
-            # Capture preparation result when ready
-            if result is not None:
-                preparation_result = result
-        
-        if preparation_result is None:
-            logger.error("Tool preparation did not return a result")
-            return
+        outcome = await self.preparer.prepare(tool_calls, session)
+        for event in outcome.infra_events:
+            yield event
+        preparation_result = outcome.result
         
         # Handle errors: create synthetic results and yield error events
         for tool_call, error_msg in preparation_result.errors:
-            request_id = tool_call.metadata.get("request_id") if (hasattr(tool_call, "metadata") and tool_call.metadata is not None) else None
+            execution_ref = ExecutionRef.from_metadata(tool_call.metadata)
+            request_id = execution_ref.request_id if execution_ref else None
             if not request_id:
                 logger.warning(f"Error tool call missing request_id: {tool_call.tool_name}")
                 continue
@@ -99,7 +89,7 @@ class ToolSender:
             # Frontend expects a tool call event before any output event to maintain
             # the request/response state machine.
             # Extract metadata from tool_call if present
-            tool_metadata = getattr(tool_call, "metadata", None)
+            tool_metadata = tool_call.metadata
             yield ToolCallEvent(
                 tool_name=tool_call.tool_name,
                 parameters=tool_call.parameters,  # Use original parameters (coordinate resolution failed)
@@ -149,7 +139,8 @@ class ToolSender:
             # Single tool: send ToolCallEvent
             if preparation_result.resolved_calls:
                 resolved_call = preparation_result.resolved_calls[0]
-                request_id = resolved_call.metadata.get("request_id") if resolved_call.metadata else None
+                execution_ref = resolved_call.execution_ref
+                request_id = execution_ref.request_id if execution_ref else None
                 
                 if request_id:
                     yield ToolCallEvent(
