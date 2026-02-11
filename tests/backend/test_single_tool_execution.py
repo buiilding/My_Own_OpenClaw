@@ -71,3 +71,35 @@ async def test_execute_single_tool_uses_pending_result():
     assert result_obj.result is pending_result
     assert session.get_result_storage().get_pending_result("req-1") is None
     assert session.get_result_storage().get_result_future("req-1") is None
+
+
+@pytest.mark.asyncio
+async def test_execute_single_tool_resolved_call_without_to_parsed_call():
+    resolved_call = SimpleNamespace(
+        tool_name="click",
+        parameters={"x": 100, "y": 200},
+        raw_call='{"functionCall":{"name":"click","args":{"x":100,"y":200}}}',
+        metadata={
+            "request_id": "req-1",
+            "coordinate_resolution_screenshot_id": "same-shot",
+        },
+    )
+    session = DummySession(
+        resolved_call=resolved_call,
+        current_screenshot_id="same-shot",
+    )
+
+    tool_call = ParsedToolCall(
+        tool_name="click",
+        parameters={"x": 1, "y": 2},
+        raw_call="{}",
+        metadata={"request_id": "req-1"},
+    )
+    pending_result = ToolResult(success=True, data={"ok": True})
+    session.get_result_storage().store_pending_result("req-1", pending_result)
+
+    result_obj = await execute_single_tool(tool_call, session)
+
+    assert result_obj.result is pending_result
+    assert result_obj.tool_call.parameters == {"x": 100, "y": 200}
+    assert result_obj.tool_call.metadata == resolved_call.metadata
