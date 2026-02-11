@@ -222,7 +222,7 @@ class TestAppConfig:
     def test_get_tool_allowlist_chat_mode(self):
         config = AppConfig(interaction_mode="chat")
         allowlist = config.get_tool_allowlist()
-        assert allowlist == {"read_file", "list_directory", "glob", "screenshot"}
+        assert allowlist == {"read_file", "replace", "run_shell_command", "process", "screenshot"}
 
     def test_get_tool_allowlist_agent_mode(self):
         config = AppConfig(interaction_mode="agent")

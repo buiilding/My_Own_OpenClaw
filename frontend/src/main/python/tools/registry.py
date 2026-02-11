@@ -24,12 +24,7 @@ EXPOSED_TO_BACKEND_TOOLS = frozenset({
     "run_shell_command",
     "process",
     "read_file",
-    "write_file",
-    "list_directory",
-    "glob",
     "replace",
-    "search_file_content",
-    "read_many_files",
     "browser_control",
 })
 
@@ -80,40 +75,10 @@ class ToolRegistry:
             logger.warning(f"Failed to import read_file_tool: {e}")
         
         try:
-            from tools.filesystem.write_file_tool import write_file
-            self.tools["write_file"] = write_file
-        except ImportError as e:
-            logger.warning(f"Failed to import write_file_tool: {e}")
-        
-        try:
-            from tools.filesystem.list_directory_tool import list_directory
-            self.tools["list_directory"] = list_directory
-        except ImportError as e:
-            logger.warning(f"Failed to import list_directory_tool: {e}")
-        
-        try:
             from tools.filesystem.replace_tool import replace
             self.tools["replace"] = replace
         except ImportError as e:
             logger.warning(f"Failed to import replace_tool: {e}")
-        
-        try:
-            from tools.filesystem.search_file_content_tool import search_file_content
-            self.tools["search_file_content"] = search_file_content
-        except ImportError as e:
-            logger.warning(f"Failed to import search_file_content_tool: {e}")
-        
-        try:
-            from tools.filesystem.glob_tool import glob
-            self.tools["glob"] = glob
-        except ImportError as e:
-            logger.warning(f"Failed to import glob_tool: {e}")
-        
-        try:
-            from tools.filesystem.read_many_files_tool import read_many_files
-            self.tools["read_many_files"] = read_many_files
-        except ImportError as e:
-            logger.warning(f"Failed to import read_many_files_tool: {e}")
         
         # System tools
         try:

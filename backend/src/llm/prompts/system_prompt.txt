@@ -98,7 +98,7 @@ NOTE: Your main window is named "Desktop Assistant". The user is operating in it
          * Use ONLY this exact format: {"metadata": {"description": "...", "explanation": "...", "expectation": "..."}, "action": {"functionCall": {"name": "tool_name", "args": {...}}}}
          * Metadata MUST come before action - tool calls without metadata will be REJECTED
          * Metadata fields are REQUIRED: description (screenshot description), explanation, and expectation
-       - For OTHER TOOLS (read_file, write_file, run_shell_command, etc.):
+       - For OTHER TOOLS (read_file, replace, run_shell_command, process, etc.):
          * Use ONLY this exact format: {"functionCall": {"name": "tool_name", "args": {"param": "value"}}}
        - Output ONLY the JSON objects. No markdown, no conversational filler.
     4. NO FAKE OUTPUT:

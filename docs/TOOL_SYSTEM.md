@@ -67,7 +67,7 @@ For planned schema-ownership migration (frontend-sourced runtime tool catalogs),
 Most tools are executed on the frontend Python sidecar:
 
 - **Computer Control Tools**: `mouse_control`, `keyboard_control`, `scroll_control`
-- **File System Tools**: `read_file`, `write_file`, `list_directory`, `search_file_content`
+- **File System Tools**: `read_file`, `replace`
 - **System Tools**: `screenshot`, `get_system_stats`, `get_open_windows`
 - **Terminal Tools**: `run_shell_command`, `process`
 
@@ -337,12 +337,7 @@ Tool schemas follow JSON Schema format:
 ### File System Tools
 
 - **read_file**: Read file contents
-- **write_file**: Write file contents
-- **list_directory**: List directory contents
-- **glob**: Find files by glob pattern
-- **search_file_content**: Search for a regex pattern in file contents
 - **replace**: Replace exact text in a file (surgical edit)
-- **read_many_files**: Read multiple files/directories/globs and return concatenated content
 
 ### System Tools
 
