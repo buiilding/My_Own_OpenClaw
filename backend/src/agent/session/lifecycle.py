@@ -1,6 +1,7 @@
 """Session lifecycle operations."""
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import TYPE_CHECKING
 
@@ -24,6 +25,13 @@ class SessionLifecycle:
             session.response_parser.shutdown()
             session.history.clear()
             runtime = getattr(session, "runtime", None)
+            if runtime is not None and hasattr(runtime, "drain_background_tasks"):
+                tasks = runtime.drain_background_tasks()
+                for task in tasks:
+                    if not task.done():
+                        task.cancel()
+                if tasks:
+                    await asyncio.gather(*tasks, return_exceptions=True)
             if runtime is not None and hasattr(runtime, "clear"):
                 runtime.clear()
             logger.debug("Session %s cleanup completed", session.session_id)

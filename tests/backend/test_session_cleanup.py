@@ -1,3 +1,4 @@
+import asyncio
 from unittest.mock import MagicMock
 
 import pytest
@@ -47,3 +48,28 @@ async def test_agent_session_cleanup_clears_active_state_stores() -> None:
         "bundled_results": 0,
         "bundle_futures": 0,
     }
+
+
+@pytest.mark.asyncio
+async def test_agent_session_cleanup_cancels_tracked_background_tasks() -> None:
+    session = AgentSession.__new__(AgentSession)
+    session.session_id = "session-2"
+    session.user_id = "user-2"
+    session.event_bus = MagicMock()
+    session.response_parser = MagicMock()
+    session.history = MagicMock()
+    session.runtime = SessionRuntimeState()
+    session.ocr_completion_event = session.runtime.ocr_completion_event
+
+    blocker = asyncio.Event()
+
+    async def _background_job() -> None:
+        await blocker.wait()
+
+    task = asyncio.create_task(_background_job())
+    session.register_background_task(task)
+
+    await AgentSession.cleanup(session)
+
+    assert task.cancelled()
+    assert session.runtime.background_tasks == set()

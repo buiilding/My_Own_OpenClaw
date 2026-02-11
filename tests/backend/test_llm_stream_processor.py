@@ -5,7 +5,12 @@ import logging
 import pytest
 
 from backend.src.agent.llm.llm_stream_processor import LLMStreamProcessor
-from backend.src.core.events.streaming_events import ChunkEvent, FullResponseEvent, TokenCountEvent
+from backend.src.core.events.streaming_events import (
+    ChunkEvent,
+    ErrorEvent,
+    FullResponseEvent,
+    TokenCountEvent,
+)
 
 
 class _FakeTokenService:
@@ -61,6 +66,14 @@ class _FakeLLMClient:
         }
 
 
+class _UnsupportedEventLLMClient:
+    async def get_completion_stream(self, model, messages):
+        yield {"event": "unsupported"}
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
 @pytest.mark.asyncio
 async def test_logs_cache_hint_and_provider_cache_diagnostics(caplog, monkeypatch):
     monkeypatch.setattr(
@@ -95,3 +108,23 @@ async def test_logs_cache_hint_and_provider_cache_diagnostics(caplog, monkeypatc
     assert "status=prefix_mutated" in log_text
     assert "[Provider Cache]" in log_text
     assert "cached_tokens=128" in log_text
+
+
+@pytest.mark.asyncio
+async def test_rejects_unsupported_stream_event_types(monkeypatch):
+    monkeypatch.setattr(
+        "backend.src.agent.llm.llm_stream_processor.get_token_service",
+        lambda: _FakeTokenService(),
+    )
+
+    processor = LLMStreamProcessor(
+        llm_client=_UnsupportedEventLLMClient(),
+        session=_FakeSession(),
+    )
+
+    events = []
+    with pytest.raises(TypeError, match="Unsupported stream event type"):
+        async for event in processor.get_response([{"role": "user", "content": "hello"}]):
+            events.append(event)
+
+    assert any(isinstance(event, ErrorEvent) for event in events)
