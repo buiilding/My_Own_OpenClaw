@@ -72,13 +72,6 @@ def subscribe_events(session) -> None:
 
 def init_session_state(session) -> None:
     session.runtime = SessionRuntimeState()
-    session._screenshot_state = session.runtime.screenshot
-    session._resolved_tool_call_storage = session.runtime.resolved_calls
-
-    # Legacy accessors for backward compatibility (delegate to storage)
-    session._tool_result_futures = {}  # Deprecated
-    session._pending_tool_results = {}  # Deprecated
-    session._bundled_results = {}  # Deprecated
 
     session.ocr_completion_event = session.runtime.ocr_completion_event
 
@@ -91,7 +84,6 @@ def init_tool_result_handler(session) -> None:
     from backend.src.agent.tools.waiting import ToolResultReceiver, ToolResultRouter
     if not hasattr(session, "runtime"):
         init_session_state(session)
-    session._tool_result_storage = session.runtime.tool_results
 
     tool_result_receiver = ToolResultReceiver(session)
     screenshot_processor = ScreenshotProcessor(session.executor.screenshot_manager)

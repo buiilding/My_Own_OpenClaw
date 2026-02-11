@@ -4,7 +4,7 @@ Tool result processor.
 Processes tool execution results: transforms and commits to history.
 """
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from backend.src.agent.history.history_committer import HistoryCommitter
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
@@ -13,6 +13,7 @@ from backend.src.agent.tools.processing.transformer import ResultTransformer
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
+    from backend.src.tools.result_types import ToolExecutionBatch
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ class ToolResultProcessor:
         self.history_committer = history_committer
 
     async def process(
-        self, orchestration_result: Any, session: "AgentSession"
+        self, orchestration_result: "ToolExecutionBatch", session: "AgentSession"
     ) -> None:
         """
         Process tool execution results for history storage.

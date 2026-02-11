@@ -6,7 +6,6 @@ tool results and assembling tool result objects for the agent loop.
 """
 
 import logging
-from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
@@ -17,6 +16,7 @@ from backend.src.llm.parser import ParsedResponse
 from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.result_helpers import create_empty_tool_results
+from backend.src.tools.result_types import ToolExecutionBatch
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class ToolResultOrchestrator:
         user_id: str = "default_user",
         session_id: str = "default_session",
         session_ref: Optional["AgentSession"] = None,
-    ) -> Any:
+    ) -> ToolExecutionBatch:
         """
         Execute all tool calls from a parsed LLM response by waiting for frontend results.
         
@@ -93,7 +93,7 @@ class ToolResultOrchestrator:
             result = await execute_single_tool(tool_call, session_ref)
             results.append(result)
         
-        return SimpleNamespace(tool_results=results)
+        return ToolExecutionBatch(tool_results=results)
 
     def get_available_tools(self) -> List[Dict[str, Any]]:
         """

@@ -11,7 +11,7 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, AsyncGenerator, Callable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 
 from backend.src.agent.tools.preparation.coordinate_resolution import CoordinateResolver
 from backend.src.agent.tools.preparation.helpers.preparation_helper import (
@@ -25,7 +25,6 @@ from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.agent.tools.shared.logging_utils import short_id
-from backend.src.core.events.streaming_events import AgentStreamingEvent
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
 
@@ -43,14 +42,6 @@ class PreparationResult:
     resolved_calls: List[ResolvedToolCall]
     errors: List[Tuple[ParsedToolCall, str]]  # (tool_call, error_message)
     bundle_id: Optional[str] = None
-
-
-@dataclass
-class PreparationOutcome:
-    """Structured preparation output with infra events and final result."""
-
-    infra_events: List[AgentStreamingEvent]
-    result: PreparationResult
 
 
 class ToolPreparer:
@@ -82,19 +73,15 @@ class ToolPreparer:
         self,
         tool_calls: List[ParsedToolCall],
         session: "AgentSession",
-    ) -> PreparationOutcome:
-        """
-        Prepare all calls and return a structured outcome.
-
-        Preferred API. Keeps result and infra-event channels separate.
-        """
+    ) -> PreparationResult:
+        """Prepare all calls and return resolved calls + preparation errors."""
         preparation_start_time = time.perf_counter()
         logger.info("[Timing] Tool preparation started: %s tool(s)", len(tool_calls))
 
         if len(tool_calls) > 1:
-            outcome = await self._prepare_bundle(tool_calls, session)
+            result = await self._prepare_bundle(tool_calls, session)
         else:
-            outcome = await self._prepare_single(tool_calls[0], session)
+            result = await self._prepare_single(tool_calls[0], session)
 
         preparation_total_time = time.perf_counter() - preparation_start_time
         logger.info(
@@ -102,28 +89,13 @@ class ToolPreparer:
             len(tool_calls),
             preparation_total_time,
         )
-        return outcome
-
-    async def prepare_tools(
-        self,
-        tool_calls: List[ParsedToolCall],
-        session: "AgentSession",
-    ) -> AsyncGenerator[Tuple[Optional[AgentStreamingEvent], Optional[PreparationResult]], None]:
-        """
-        Legacy wrapper API.
-
-        Yields `(event, None)` for infrastructure events and `(None, result)` at the end.
-        """
-        outcome = await self.prepare(tool_calls, session)
-        for event in outcome.infra_events:
-            yield (event, None)
-        yield (None, outcome.result)
+        return result
 
     async def _prepare_bundle(
         self,
         tool_calls: List[ParsedToolCall],
         session: "AgentSession",
-    ) -> PreparationOutcome:
+    ) -> PreparationResult:
         bundle_id = str(uuid.uuid4())
         execution_ref = ExecutionRef.bundle(bundle_id)
         logger.info(
@@ -132,7 +104,6 @@ class ToolPreparer:
             short_id(bundle_id),
         )
 
-        infra_events: List[AgentStreamingEvent] = []
         resolved_calls: List[ResolvedToolCall] = []
         errors: List[Tuple[ParsedToolCall, str]] = []
 
@@ -143,7 +114,7 @@ class ToolPreparer:
 
             if self._needs_coordinate_resolution(tool_call):
                 try:
-                    async for event in resolve_tool_with_coordinates(
+                    await resolve_tool_with_coordinates(
                         tool_call,
                         resolved_call,
                         session,
@@ -153,8 +124,7 @@ class ToolPreparer:
                         self.vision_service,
                         self.vision_service_provider,
                         bundle_id,
-                    ):
-                        infra_events.append(event)
+                    )
                 except Exception as exc:
                     logger.error(
                         "[bundle_id=%s] Failed to resolve tool %s in bundle: %s",
@@ -174,20 +144,17 @@ class ToolPreparer:
             len(errors),
             short_id(bundle_id),
         )
-        return PreparationOutcome(
-            infra_events=infra_events,
-            result=PreparationResult(
-                resolved_calls=resolved_calls,
-                errors=errors,
-                bundle_id=bundle_id,
-            ),
+        return PreparationResult(
+            resolved_calls=resolved_calls,
+            errors=errors,
+            bundle_id=bundle_id,
         )
 
     async def _prepare_single(
         self,
         tool_call: ParsedToolCall,
         session: "AgentSession",
-    ) -> PreparationOutcome:
+    ) -> PreparationResult:
         request_id = str(uuid.uuid4())
         execution_ref = ExecutionRef.single(request_id)
         tool_preparation_start_time = time.perf_counter()
@@ -196,10 +163,9 @@ class ToolPreparer:
         resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
         resolved_call.metadata = execution_ref.apply_to_metadata(resolved_call.metadata)
 
-        infra_events: List[AgentStreamingEvent] = []
         if self._needs_coordinate_resolution(tool_call):
             try:
-                async for event in resolve_tool_with_coordinates(
+                await resolve_tool_with_coordinates(
                     tool_call,
                     resolved_call,
                     session,
@@ -209,8 +175,7 @@ class ToolPreparer:
                     self.vision_service,
                     self.vision_service_provider,
                     request_id,
-                ):
-                    infra_events.append(event)
+                )
                 tool_preparation_time = time.perf_counter() - tool_preparation_start_time
                 logger.info(
                     "[Timing] Tool preparation completed in %.3fs (request_id=%s, tool=%s)",
@@ -226,21 +191,15 @@ class ToolPreparer:
                     exc,
                     exc_info=True,
                 )
-                return PreparationOutcome(
-                    infra_events=infra_events,
-                    result=PreparationResult(
-                        resolved_calls=[],
-                        errors=[(tool_call, str(exc))],
-                    ),
+                return PreparationResult(
+                    resolved_calls=[],
+                    errors=[(tool_call, str(exc))],
                 )
 
         self._register_resolved_call(session, request_id, resolved_call)
-        return PreparationOutcome(
-            infra_events=infra_events,
-            result=PreparationResult(
-                resolved_calls=[resolved_call],
-                errors=[],
-            ),
+        return PreparationResult(
+            resolved_calls=[resolved_call],
+            errors=[],
         )
 
     @staticmethod
@@ -249,15 +208,8 @@ class ToolPreparer:
         request_id: str,
         resolved_call: ResolvedToolCall,
     ) -> None:
-        """Register resolved calls across runtime and legacy session shapes."""
-        register_call = getattr(session, "register_resolved_tool_call", None)
-        if callable(register_call):
-            register_call(request_id, resolved_call)
-            return
-
-        storage = getattr(session, "_resolved_tool_call_storage", None)
-        if storage is not None and hasattr(storage, "register"):
-            storage.register(request_id, resolved_call)
+        """Register resolved call in session runtime storage."""
+        session.register_resolved_tool_call(request_id, resolved_call)
 
     def _needs_coordinate_resolution(self, tool_call: ParsedToolCall) -> bool:
         """Check if the tool call requires coordinate resolution."""

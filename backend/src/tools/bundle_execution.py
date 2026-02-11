@@ -8,13 +8,13 @@ No side effects beyond result creation.
 import asyncio
 import logging
 import time
-from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, List
 
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.interfaces.tool import ToolResult
-from backend.src.llm.parser import ParsedResponse, ParsedToolCall
+from backend.src.llm.parser import ParsedResponse
 from backend.src.tools.result_helpers import create_tool_result_object
+from backend.src.tools.result_types import ToolExecutionBatch
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -35,7 +35,7 @@ async def execute_bundle(
     parsed_response: ParsedResponse,
     bundle_id: str,
     session_ref: "AgentSession",
-) -> Any:
+) -> ToolExecutionBatch:
     """
     Execute an atomic bundle of tools and wait for the combined result.
 
@@ -45,21 +45,21 @@ async def execute_bundle(
         session_ref: Agent session reference
 
     Returns:
-        SimpleNamespace with tool_results list
+        ToolExecutionBatch with tool_results
     """
     bundle_id_short = short_id(bundle_id)
     logger.info(
         f"Processing atomic bundle: {len(parsed_response.tool_calls)} tools (bundle_id={bundle_id_short})"
     )
 
-    # Create single bundle future
-    bundle_future = session_ref._tool_result_storage.create_bundle_future(bundle_id)
+    result_storage = session_ref.get_result_storage()
+    bundle_future = result_storage.create_bundle_future(bundle_id)
 
     try:
         # Check if bundle result already exists
-        bundle_result = session_ref._tool_result_storage.get_bundled_result(bundle_id)
+        bundle_result = result_storage.get_bundled_result(bundle_id)
         if bundle_result:
-            session_ref._tool_result_storage.remove_bundled_result(bundle_id)
+            result_storage.remove_bundled_result(bundle_id)
             if not bundle_future.done():
                 bundle_future.set_result(bundle_result)
             logger.info(
@@ -87,7 +87,7 @@ async def execute_bundle(
                     llm_content="Error: Bundle execution timed out on frontend.",
                 )
     finally:
-        session_ref._tool_result_storage.remove_bundle_future(bundle_id)
+        result_storage.remove_bundle_future(bundle_id)
 
     # Extract step_results from bundle result and create individual results
     # This maintains compatibility with existing code that expects individual tool results
@@ -121,4 +121,4 @@ async def execute_bundle(
             create_tool_result_object(tool_call, tool_result, execution_time=0.1)
         )
 
-    return SimpleNamespace(tool_results=results)
+    return ToolExecutionBatch(tool_results=results)

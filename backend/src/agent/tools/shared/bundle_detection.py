@@ -8,6 +8,7 @@ from typing import List
 
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
 from backend.src.llm.parser import ParsedResponse, ParsedToolCall
+from backend.src.tools.result_types import ToolExecutionResult
 
 
 def is_atomic_bundle(parsed_response: ParsedResponse) -> bool:
@@ -31,7 +32,7 @@ def is_atomic_bundle(parsed_response: ParsedResponse) -> bool:
     return all(_is_bundle_metadata(tc.metadata) for tc in parsed_response.tool_calls)
 
 
-def is_atomic_bundle_from_results(tool_results: List) -> bool:
+def is_atomic_bundle_from_results(tool_results: List[ToolExecutionResult]) -> bool:
     """
     Check if tool results represent an atomic bundle.
     
