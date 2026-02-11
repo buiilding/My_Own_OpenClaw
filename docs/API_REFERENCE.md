@@ -147,6 +147,8 @@ All messages follow this structure:
 **Notes**:
 - `user_id` is injected server-side from the handshake connection context (client-provided, validated at handshake).
 - `timestamp` is optional and ignored by the backend if present.
+- Unknown top-level envelope fields are rejected.
+- Incoming schema source lives in `backend/src/api/schemas/` (`common.py`, `incoming.py`, `outgoing.py`), with compatibility exports from `backend/src/api/schema.py`.
 
 ## Client Messages (Frontend → Backend)
 
@@ -306,6 +308,7 @@ Update application configuration.
 **Response**: `settings-updated`
 
 **Status**: Handled by the backend. Updates apply to the user session on the next query.
+Payload shape is validated at message-parse time; value semantics are validated in backend settings validators.
 
 **Example**:
 ```json
@@ -361,9 +364,12 @@ Send tool execution result from frontend.
     "screenshot_url": "http://127.0.0.1:8765/api/artifacts/uuid.jpg",
     "system_state": { "active_window": "...", "mouse_position": "..." }
   },
-  "error": null
+  "error": null,
+  "metadata": { "is_preformatted": true }
 }
 ```
+
+`metadata` currently accepts only `is_preformatted` (optional).
 
 **Response**: Acknowledgment (no specific response type)
 
@@ -400,7 +406,7 @@ Result of an atomic tool bundle executed on the frontend.
 ```json
 {
   "bundle_id": "bundle-123",
-  "status": "success",
+  "status": "success", // success | partial_failure | failure
   "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg",
   "screenshot_url": "http://127.0.0.1:8765/api/artifacts/1f2c3a4b5d6e7f8a.jpg",
   "system_state": { "active_window": "...", "mouse_position": "..." },
