@@ -2,13 +2,11 @@
 FastAPI dependencies for dependency injection.
 
 Provides app-lifespan-scoped container access via FastAPI dependency injection.
-The container is set once during application startup and remains valid for the
-entire application lifetime.
+The container lives on ``app.state.container`` for the FastAPI app lifecycle.
 """
 import logging
-import threading
 from typing import Annotated
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request, WebSocket, FastAPI
 
 from backend.src.agent.session.manager import SessionManager
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
@@ -16,78 +14,85 @@ from backend.src.core.container import Container
 
 logger = logging.getLogger(__name__)
 
-# App-lifespan-scoped container instance (set once during startup)
-# Thread-safe initialization lock ensures visibility guarantees
-_container: Container | None = None
-_container_lock = threading.Lock()
-_container_initialized = False
-
-
-def set_container(container: Container, force: bool = False) -> None:
+def set_container(
+    container: Container | None,
+    *,
+    app: FastAPI | None = None,
+    force: bool = False,
+) -> None:
     """
-    Set the app-lifespan-scoped container instance.
-    
-    Called once during application startup. The container remains valid for the
-    entire application lifetime and is shared across all requests.
-    
-    Thread-safe: Uses lock to ensure visibility guarantees and prevent race conditions
-    during initialization (though initialization should happen single-threaded at startup).
-    
+    Set or clear app-lifespan-scoped container on ``app.state``.
+
     Args:
-        container: Application container instance
-        force: If True, allow override of existing container (for testing/simulation).
-               If False, raises RuntimeError if container is already set.
-        
+        container: Application container instance, or ``None`` to clear.
+        app: FastAPI app whose lifespan owns the container.
+        force: If True, allow overriding an existing container.
+
     Raises:
-        RuntimeError: If container is already set and force=False
+        RuntimeError: If container already exists and force=False.
     """
-    global _container, _container_initialized
-    
-    with _container_lock:
-        if _container is not None and not force:
-            raise RuntimeError(
-                "Container already set. This should only happen once at startup. "
-                "Use force=True only for testing/simulation scenarios."
-            )
-        if _container is not None and force:
-            logger.warning("Container override forced - this should only happen in testing/simulation")
-        
-        _container = container
-        _container_initialized = True
-        logger.debug("Container set for app-lifespan scope")
+    if app is None:
+        logger.debug("set_container called without app; ignoring legacy global path")
+        return
+
+    existing_container = getattr(app.state, "container", None)
+    if existing_container is not None and container is not existing_container and not force:
+        raise RuntimeError(
+            "Container already set on app.state. "
+            "Use force=True only for controlled replacement."
+        )
+
+    if container is None:
+        if hasattr(app.state, "container"):
+            delattr(app.state, "container")
+        logger.debug("Container cleared from app.state")
+        return
+
+    app.state.container = container
+    logger.debug("Container set on app.state")
 
 
-async def get_container() -> Container:
+def _resolve_app(
+    request: Request | None,
+    websocket: WebSocket | None,
+) -> FastAPI | None:
+    """Resolve FastAPI app from request or websocket context."""
+    if request is not None:
+        return request.app
+    if websocket is not None:
+        return websocket.app
+    return None
+
+
+async def get_container(
+    request: Request = None,
+    websocket: WebSocket = None,
+) -> Container:
     """
-    Get the application container (app-lifespan-scoped).
-    
-    The container is initialized once at startup and remains valid for the
-    entire application lifetime. This is not request-scoped - all requests
-    share the same container instance.
-    
-    CRITICAL FIX #3: Removed blocking threading.Lock from async function.
-    Variable assignment/reading of _container is atomic in Python (CPython GIL).
-    For a read-mostly singleton initialized at startup, a lock in the getter
-    blocks the entire asyncio event loop, creating latency spikes.
-    
+    Get the application container from ``app.state``.
+
     Returns:
         Container instance
-        
+
     Raises:
-        HTTPException: If container is not initialized (503 Service Unavailable)
+        HTTPException: If app context or container is not available.
     """
-    # CRITICAL FIX #3: Removed blocking lock - variable reads are atomic in Python
-    # The container is set once at startup (single-threaded), so race conditions
-    # are not possible during normal operation. Even if a race occurred, the worst
-    # case is returning None (caught below) or the old container (acceptable during
-    # the brief initialization window).
-    if _container is None:
-        logger.error("Container accessed before initialization - application not ready")
+    app = _resolve_app(request, websocket)
+    if app is None:
+        logger.error("Container dependency resolved without request/websocket context")
+        raise HTTPException(
+            status_code=500,
+            detail="Container dependency requires request or websocket context.",
+        )
+
+    container = getattr(app.state, "container", None)
+    if container is None:
+        logger.error("Container accessed before initialization - app.state.container missing")
         raise HTTPException(
             status_code=503,
-            detail="Application not initialized. Container not available."
+            detail="Application not initialized. Container not available.",
         )
-    return _container
+    return container
 
 
 async def get_session_manager(container: Container = Depends(get_container)) -> SessionManager:
