@@ -69,7 +69,6 @@ function ChatBox() {
   const shellRef = useRef(null);
   const inputRef = useRef(null);
   const lastUserMessageIdRef = useRef(null);
-  const inputFocusedRef = useRef(false);
   const lastSizeRef = useRef({ width: 0, height: 0 });
 
   const lastUserIndex = useMemo(
@@ -126,8 +125,8 @@ function ChatBox() {
   }, []);
 
   useEffect(() => {
-    // Default to click-through and only activate pointer capture over pill hit areas.
-    setOverlayIgnore(true);
+    // Keep the chat overlay fully interactive.
+    setOverlayIgnore(false);
     return () => {
       setOverlayIgnore(false);
     };
@@ -176,25 +175,7 @@ function ChatBox() {
   }, []);
 
   useEffect(() => {
-    const onMouseMove = (event) => {
-      if (inputFocusedRef.current) {
-        setOverlayIgnore(false);
-        return;
-      }
-      const target = document.elementFromPoint(event.clientX, event.clientY);
-      const overHitZone = Boolean(target?.closest('[data-chatbox-hit="true"]'));
-      setOverlayIgnore(!overHitZone);
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-    };
-  }, [setOverlayIgnore]);
-
-  useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.CHATBOX_FOCUS, () => {
-      inputFocusedRef.current = true;
       setOverlayIgnore(false);
       if (inputRef.current) {
         inputRef.current.focus();
@@ -254,14 +235,12 @@ function ChatBox() {
   }, [handleSend]);
 
   const handleInputFocus = useCallback(() => {
-    inputFocusedRef.current = true;
     setOverlayIgnore(false);
   }, [setOverlayIgnore]);
 
   const handleInputBlur = useCallback(() => {
-    inputFocusedRef.current = false;
-    setOverlayIgnore(true);
-  }, [setOverlayIgnore]);
+    // no-op
+  }, []);
 
   const handleOpenSettings = useCallback(async () => {
     try {
