@@ -1,19 +1,47 @@
 # Dev tool selection (backend-only)
 #
-# Keep this template disabled by default.
-# Use one of the profile files instead:
-# - backend/dev/tool_selection.full.toml
-# - backend/dev/tool_selection.coding.toml
-# - backend/dev/tool_selection.computer.toml
-# - backend/dev/tool_selection.browser.toml
+# Goal: make it easy to test isolated tool subsets by controlling which tool
+# schemas get injected into the LLM prompt (and which tool calls are accepted).
 #
-# Quick start:
-#   WINDIEOS_DEV_TOOL_SELECTION_PATH=backend/dev/tool_selection.coding.toml \
-#     python -m backend.src.main
+# How it works:
+# - If `enabled = false` (default), no filtering is applied.
+# - If `mode = "denylist"`, every tool is available except those listed in `tools`.
+# - If `mode = "allowlist"`, ONLY tools listed in `tools` are available.
+#
+# Notes:
+# - Tool names are the tool schema names (e.g. "mouse_control", "browser_control",
+#   "read_file"). See `backend/src/tools/remote.py` for the canonical list.
+# - This is intended for development/testing. For normal behavior, keep disabled.
+# - Method-level options are available under [tool_options.<tool_name>].
 
-enabled = false
-mode = "denylist" # "denylist" | "allowlist"
-tools = []
+enabled = true
+mode = "allowlist" # "denylist" | "allowlist"
 
+# Tools to disable (denylist) or enable (allowlist).
+tools = [
+  "browser_control",
+  "mouse_control",
+  "keyboard_control",
+  "screenshot",
+  "scroll_control",
+  "switch_tab",
+  "wait",
+  "get_open_windows",
+  "get_system_stats",
+  "run_shell_command",
+  "process",
+  "read_file",
+  "write_file",
+  "list_directory",
+  "glob",
+  "replace",
+  "search_file_content",
+  "read_many_files",
+]
+# Optional method-level controls for mouse_control.
+# If omitted, all methods are enabled.
 [tool_options.mouse_control]
-enabled_coordinate_methods = ["manual", "ocr", "prediction"]
+enabled_coordinate_methods = [
+  "manual",
+  "ocr",
+]
