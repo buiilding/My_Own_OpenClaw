@@ -11,6 +11,7 @@ from typing import Any, Dict, Optional
 from backend.src.agent.session.session import AgentSession
 from backend.src.core.config import AppConfig
 from backend.src.core.config.loader import get_default_tts_model_path, load_api_key_for_provider
+from backend.src.core.config.runtime import assemble_runtime_config
 from backend.src.core.config.subscriptions import ConfigSubscriber
 
 logger = logging.getLogger(__name__)
@@ -62,6 +63,16 @@ class SessionManager(ConfigSubscriber):
                 self._user_locks[user_id] = asyncio.Lock()
             return self._user_locks[user_id]
 
+    @staticmethod
+    def _assemble_runtime_session_config(config: AppConfig) -> AppConfig:
+        """Apply shared runtime config policies for session-scoped config creation."""
+        return assemble_runtime_config(
+            config,
+            get_default_tts_model_path=get_default_tts_model_path,
+            load_api_key_for_provider=load_api_key_for_provider,
+            force_tts_enabled=True,
+        )
+
     async def get_or_create_session(
         self,
         user_id: str,
@@ -103,16 +114,10 @@ class SessionManager(ConfigSubscriber):
                     f"model_provider={config_dict.get('model_provider')}, "
                     f"selected_model_id={config_dict.get('selected_model_id')}"
                 )
-                
-                # Set default TTS model path if TTS is enabled and path is not set
-                tts_will_be_enabled = config_dict.get("tts_enabled", self.config.tts_enabled)
-                if tts_will_be_enabled:
-                    if not config_dict.get("tts_model_path") and not self.config.tts_model_path:
-                        config_dict["tts_model_path"] = get_default_tts_model_path()
-                
-                # Load API key for provider (if model_provider is in config)
-                session_config = AppConfig(**config_dict)
-                session_config = load_api_key_for_provider(session_config)
+
+                session_config = self._assemble_runtime_session_config(
+                    AppConfig(**config_dict)
+                )
                 
                 logger.info(
                     f"[Session Config] Final session config (user_id={user_id}): "
@@ -183,8 +188,9 @@ class SessionManager(ConfigSubscriber):
             if not changes:
                 return
 
-            updated_config = AppConfig(**config_dict)
-            updated_config = load_api_key_for_provider(updated_config)
+            updated_config = self._assemble_runtime_session_config(
+                AppConfig(**config_dict)
+            )
 
             logger.info(
                 f"[Session Config] Session updated (user_id={user_id}, fields={len(changes)})"
