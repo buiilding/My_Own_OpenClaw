@@ -177,6 +177,29 @@ class AgentSession:
             ocr_results: List of OCR results
         """
         self._screenshot_state.set_current_ocr_results(ocr_results)
+
+    def set_current_system_state(self, system_state: Optional[Dict[str, Any]]) -> None:
+        """
+        Store the most recent system_state payload from the frontend.
+
+        Used for coordinate normalization when screenshot pixel space differs from
+        OS coordinate space (common with HiDPI scaling on Linux).
+        """
+        if system_state is None:
+            self._current_system_state = None
+            return
+        if not isinstance(system_state, dict):
+            logger.warning(
+                "Ignoring invalid system_state payload type: %s",
+                type(system_state).__name__,
+            )
+            return
+        self._current_system_state = dict(system_state)
+
+    def get_current_system_state(self) -> Optional[Dict[str, Any]]:
+        """Return the last system_state payload captured by the frontend, if any."""
+        state = getattr(self, "_current_system_state", None)
+        return dict(state) if isinstance(state, dict) else None
     
     def register_pending_tool_result(self, request_id: str, result: Any) -> None:
         """
