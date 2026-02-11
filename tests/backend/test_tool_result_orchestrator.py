@@ -98,7 +98,7 @@ async def test_execute_tools_from_response_calls_execute_single_tool(monkeypatch
         return SimpleNamespace(tool_call=tool_call, result="ok", success=True)
 
     monkeypatch.setattr(
-        "backend.src.tools.orchestrator.execute_single_tool",
+        "backend.src.tools.single_tool_execution.execute_single_tool",
         fake_execute_single_tool,
     )
 

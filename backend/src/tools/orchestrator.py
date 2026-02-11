@@ -12,14 +12,11 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
 
-from backend.src.agent.tools.shared.bundle_detection import is_atomic_bundle
 from backend.src.core.services.context_factory import ContextFactory
 from backend.src.llm.parser import ParsedResponse
-from backend.src.tools.bundle_execution import execute_bundle
 from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.result_helpers import create_empty_tool_results
-from backend.src.tools.single_tool_execution import execute_single_tool
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +68,11 @@ class ToolResultOrchestrator:
         NOTE: In the new architecture, actual execution happens on the frontend.
         This method waits for the results to be returned via the ToolResultHandler.
         """
+        # Lazy import avoids package-init circular import during selective test collection.
+        from backend.src.agent.tools.shared.bundle_detection import is_atomic_bundle
+        from backend.src.tools.bundle_execution import execute_bundle
+        from backend.src.tools.single_tool_execution import execute_single_tool
+
         if not session_ref:
             logger.error("session_ref is required for execute_tools_from_response")
             return create_empty_tool_results()
