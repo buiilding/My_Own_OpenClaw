@@ -35,6 +35,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Fixed
+- fix(bundle-results): normalize `tool-bundle-result` step payloads to plain dicts and harden bundle execution against Pydantic step models (`ToolBundleStepResult`) to prevent `'... has no attribute get'` crashes
 - fix(tool-results): remove legacy bundled `tool-result` payload handling and require atomic bundle results via `tool-bundle-result` path only
 - fix(ocr): add canonical coordinate-space normalization contract (`screenshot_px` -> `display_px`) with explicit source/target dimensions and normalization status metadata on resolved mouse calls
 - fix(orchestrator): avoid test-order circular import during `ToolResultOrchestrator` module load by lazy-loading bundle detection/execution helpers

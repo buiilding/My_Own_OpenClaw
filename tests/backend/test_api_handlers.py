@@ -82,8 +82,12 @@ class DummySessionManager:
     def get_session(self, user_id: str):
         return getattr(self, "session_instance", None)
 
-    async def update_session_config(self, user_id: str, updates: Dict[str, Any]) -> None:
-        await self.session.update_config(AppConfig(**{**self.session.cfg.model_dump(), **updates}))
+    async def update_session_config(
+        self, user_id: str, updates: Dict[str, Any]
+    ) -> None:
+        await self.session.update_config(
+            AppConfig(**{**self.session.cfg.model_dump(), **updates})
+        )
 
 
 class DummySession:
@@ -124,7 +128,9 @@ class DummyWakewordService:
 async def test_query_handler_success(monkeypatch):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
-    handler = QueryMessageHandler(session_manager, DummyTTSManager(), ResponseFormatter())
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
     created_pipelines = []
 
     class DummyPipeline:
@@ -164,7 +170,9 @@ async def test_query_handler_success(monkeypatch):
 @pytest.mark.asyncio
 async def test_query_handler_invalid_text():
     websocket = FakeWebSocket()
-    handler = QueryMessageHandler(DummySessionManager(), DummyTTSManager(), ResponseFormatter())
+    handler = QueryMessageHandler(
+        DummySessionManager(), DummyTTSManager(), ResponseFormatter()
+    )
 
     message = QueryMessage(
         id="msg_2",
@@ -186,7 +194,9 @@ async def test_query_handler_loads_screenshot_from_artifact_ref(monkeypatch):
     session_manager = DummySessionManager()
     session_manager.session = DummyCaptureAgent()
     session_manager.config = AppConfig()
-    handler = QueryMessageHandler(session_manager, DummyTTSManager(), ResponseFormatter())
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
 
     class DummyPipeline:
         def __init__(self, *_args, **_kwargs):
@@ -233,7 +243,9 @@ async def test_query_handler_continues_when_artifact_load_fails(monkeypatch):
     session_manager = DummySessionManager()
     session_manager.session = DummyCaptureAgent()
     session_manager.config = AppConfig()
-    handler = QueryMessageHandler(session_manager, DummyTTSManager(), ResponseFormatter())
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
 
     class DummyPipeline:
         def __init__(self, *_args, **_kwargs):
@@ -279,7 +291,9 @@ async def test_query_handler_prefers_inline_screenshot_over_artifact_ref(monkeyp
     session_manager = DummySessionManager()
     session_manager.session = DummyCaptureAgent()
     session_manager.config = AppConfig()
-    handler = QueryMessageHandler(session_manager, DummyTTSManager(), ResponseFormatter())
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
 
     class DummyPipeline:
         def __init__(self, *_args, **_kwargs):
@@ -295,7 +309,11 @@ async def test_query_handler_prefers_inline_screenshot_over_artifact_ref(monkeyp
     monkeypatch.setattr(
         query_handler_module.ArtifactStore,
         "from_config",
-        classmethod(lambda _cls, _cfg: (_ for _ in ()).throw(RuntimeError("should not be called"))),
+        classmethod(
+            lambda _cls, _cfg: (_ for _ in ()).throw(
+                RuntimeError("should not be called")
+            )
+        ),
     )
 
     message = QueryMessage(
@@ -359,6 +377,9 @@ async def test_tool_bundle_result_handler_routes_to_session():
     await handler.handle(message, websocket, "user_1")
     assert session_manager.session_instance.bundle_calls
     assert session_manager.session_instance.bundle_calls[0]["bundle_id"] == "bundle_1"
+    assert isinstance(
+        session_manager.session_instance.bundle_calls[0]["step_results"][0], dict
+    )
 
 
 @pytest.mark.asyncio
@@ -387,7 +408,10 @@ async def test_tool_bundle_result_handler_forwards_screenshot_ref():
 
     assert session_manager.session_instance.bundle_calls
     assert session_manager.session_instance.bundle_calls[0]["bundle_id"] == "bundle_2"
-    assert session_manager.session_instance.bundle_calls[0]["screenshot_ref"] == "artifact-1.png"
+    assert (
+        session_manager.session_instance.bundle_calls[0]["screenshot_ref"]
+        == "artifact-1.png"
+    )
 
 
 def test_tool_result_handler_validate_metadata_filters_unknown_keys():
@@ -514,7 +538,9 @@ async def test_load_settings_handler_returns_frontend_config():
 async def test_wakeword_handler_sends_activation_and_greeting():
     websocket = FakeWebSocket()
     handler = WakewordHandler(DummyTTSManager(), DummyWakewordService())
-    message = WakewordDetectedMessage(id="msg_8", type="wakeword-detected", user_id="user_1")
+    message = WakewordDetectedMessage(
+        id="msg_8", type="wakeword-detected", user_id="user_1"
+    )
 
     await handler.handle(message, websocket, "user_1")
     assert len(websocket.sent) == 2
