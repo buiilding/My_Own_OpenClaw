@@ -16,6 +16,7 @@ from backend.src.agent.tools.shared.bundle_detection import is_atomic_bundle
 from backend.src.core.services.context_factory import ContextFactory
 from backend.src.llm.parser import ParsedResponse
 from backend.src.tools.bundle_execution import execute_bundle
+from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.result_helpers import create_empty_tool_results
 from backend.src.tools.single_tool_execution import execute_single_tool
@@ -53,18 +54,9 @@ class ToolResultOrchestrator:
             self.context_factory = tool_registry.context_factory
         else:
             self.context_factory = context_factory
-        self._dev_tool_selection = self._load_dev_tool_selection()
-
-    @staticmethod
-    def _load_dev_tool_selection():
-        """Load dev tool selection once for orchestrator lifetime."""
-        try:
-            from backend.src.tools.tool_selection import load_tool_selection
-
-            return load_tool_selection()
-        except Exception:
-            logger.debug("Dev tool selection lookup failed during orchestrator init.", exc_info=True)
-            return None
+        self._tool_policy = ToolPolicy.from_config(config)
+        # Backward-compatible test seam; some tests override this directly.
+        self._dev_tool_selection = self._tool_policy.selection
 
     async def execute_tools_from_response(
         self,
@@ -110,19 +102,10 @@ class ToolResultOrchestrator:
         """
         tools = []
         tool_names = self.tool_registry.get_tool_names()
-
-        allowlist = None
-        try:
-            allowlist = self.config.get_tool_allowlist()
-        except Exception:
-            allowlist = None
-        if allowlist is not None:
-            tool_names = [name for name in tool_names if name in allowlist]
-
-        # Dev-only selection (filters further; never widens allowlist).
-        selection = self._dev_tool_selection
-        if selection is not None:
-            tool_names = selection.filter_tool_names(tool_names)
+        tool_names = self._tool_policy.filter_tool_names(
+            tool_names,
+            selection=self._dev_tool_selection,
+        )
 
         for tool_name in tool_names:
             capabilities = self.tool_registry.get_tool_capabilities(tool_name)

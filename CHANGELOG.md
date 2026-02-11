@@ -122,6 +122,7 @@ Includes the last 300 commits on `main`.
 - fdfe329 perf(llm): cache model catalogs and parallelize local provider discovery
 
 ### Refactoring
+- refactor(dev-tools): centralize tool filtering, mouse-method validation, and OCR/Vision startup gating in `ToolPolicy` used by prompt construction, parser validation, orchestrator visibility, and container initialization
 - refactor(dev-workflow): route `scripts/test` and `scripts/check` through backend/sidecar-specific runners and update docs to match non-activation flow
 - refactor(sidecar-registry): remove central schema map validation and keep backend as the source of truth for remote tool schemas
 - refactor(frontend-endpoints): centralize backend ws/http endpoint resolution across Electron main process and sidecar bootstrap

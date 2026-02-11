@@ -27,6 +27,7 @@ from typing import List, Dict, Any, Optional, Union
 from backend.src.core.config import AppConfig
 from backend.src.llm.prompts.prompts import get_system_prompt
 from backend.src.llm.prompts.prompt_metadata import PromptMetadata, UserMessageMetadata
+from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.registry import ToolRegistry
 from backend.src.core.messages.converters import content_to_message_content
 from backend.src.core.messages.structures import StoredMessage
@@ -94,32 +95,12 @@ class PromptConstructor:
             metrics_service = MetricsService()
         self.metrics = metrics_service.get_metrics("prompt_constructor")
         self.limits = config.security_limits
-        self._dev_tool_selection = self._load_dev_tool_selection()
-
-    @staticmethod
-    def _load_dev_tool_selection():
-        """Load dev tool selection once for prompt constructor lifetime."""
-        try:
-            from backend.src.tools.tool_selection import load_tool_selection
-
-            return load_tool_selection()
-        except Exception:
-            logger.debug("Dev tool selection lookup failed during prompt constructor init.", exc_info=True)
-            return None
+        self.tool_policy = ToolPolicy.from_config(config)
 
     def _get_filtered_tool_schemas(self) -> List[Dict[str, Any]]:
-        """Return tool schemas filtered by interaction-mode allowlist and dev tool selection (when enabled)."""
+        """Return tool schemas filtered by centralized tool policy."""
         tool_schemas = self.tool_registry.get_function_declarations() or []
-        allowlist = self.config.get_tool_allowlist()
-        if allowlist is not None:
-            tool_schemas = [schema for schema in tool_schemas if schema.get("name") in allowlist]
-
-        # Dev-only tool selection (filters further; never widens allowlist).
-        selection = self._dev_tool_selection
-        if selection is not None:
-            tool_schemas = selection.filter_tool_schemas(tool_schemas)
-
-        return tool_schemas
+        return self.tool_policy.filter_tool_schemas(tool_schemas)
 
     def build_prompt(
         self,

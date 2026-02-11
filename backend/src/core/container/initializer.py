@@ -6,6 +6,8 @@ Handles async initialization of container components including vision service in
 import logging
 from typing import Any
 
+from backend.src.tools.tool_policy import ToolPolicy
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,6 +26,7 @@ class ContainerInitializer:
             container: Container instance to initialize
         """
         self.container = container
+        self._tool_policy = ToolPolicy.from_config(getattr(container, "config", None))
 
     async def initialize(self) -> None:
         """
@@ -59,23 +62,11 @@ This includes:
 
     def _should_initialize_vision_service(self) -> bool:
         """Return whether vision startup initialization should run."""
-        try:
-            from backend.src.tools.tool_selection import should_initialize_vision
-
-            return should_initialize_vision()
-        except Exception:
-            logger.debug("Failed to read dev tool selection for vision initialization.", exc_info=True)
-            return True
+        return self._tool_policy.should_initialize_vision()
 
     def _should_initialize_ocr_service(self) -> bool:
         """Return whether OCR startup initialization should run."""
-        try:
-            from backend.src.tools.tool_selection import should_initialize_ocr
-
-            return should_initialize_ocr()
-        except Exception:
-            logger.debug("Failed to read dev tool selection for OCR initialization.", exc_info=True)
-            return True
+        return self._tool_policy.should_initialize_ocr()
 
     async def _initialize_config_service(self) -> None:
         """

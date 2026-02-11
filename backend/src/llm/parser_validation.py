@@ -5,6 +5,7 @@ import logging
 
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.core.infrastructure.exceptions import ParseValidationError
+from backend.src.tools.tool_policy import ToolPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,9 @@ class ToolCallValidator:
         self.tool_registry = tool_registry
         self.metrics = metrics
         self.limits = limits
-        self._dev_tool_selection = self._load_dev_tool_selection()
+        self._tool_policy = ToolPolicy.from_config(config)
+        # Backward-compatible test seam; some tests override this directly.
+        self._dev_tool_selection = self._tool_policy.selection
 
     def validate_tool_call(self, tool_name: str, args: Dict[str, Any]) -> None:
         """
@@ -120,34 +123,11 @@ class ToolCallValidator:
         if tool_name != "mouse_control":
             return []
 
-        selection = self._dev_tool_selection
-
-        if selection is None:
-            return []
-
-        allowed_methods = selection.get_allowed_mouse_coordinate_methods()
-        if not allowed_methods:
-            return [
-                "Tool name 'mouse_control' is disabled by dev tool selection (no coordinate methods enabled)"
-            ]
-
-        raw_method = args.get(
-            "find_coordinates_by",
-            CoordinateFindingMethod.MANUAL.value,
+        return self._tool_policy.get_method_validation_errors(
+            tool_name=tool_name,
+            args=args,
+            selection=self._dev_tool_selection,
         )
-        method = self._normalize_coordinate_method(raw_method)
-
-        if method in allowed_methods:
-            return []
-
-        allowed_display = ", ".join(
-            method_name for method_name in ("manual", "ocr", "prediction")
-            if method_name in allowed_methods
-        )
-        return [
-            f"mouse_control.find_coordinates_by='{raw_method}' is disabled by dev tool selection. "
-            f"Allowed methods: {allowed_display or 'none'}"
-        ]
 
     @staticmethod
     def _normalize_coordinate_method(value: Any) -> str:
@@ -157,17 +137,6 @@ class ToolCallValidator:
         if isinstance(value, str):
             return value.strip().lower()
         return str(value).strip().lower()
-
-    @staticmethod
-    def _load_dev_tool_selection():
-        """Load dev tool selection once for validator lifetime."""
-        try:
-            from backend.src.tools.tool_selection import load_tool_selection
-
-            return load_tool_selection()
-        except Exception:
-            logger.debug("Dev tool selection lookup failed during validator initialization.", exc_info=True)
-            return None
 
     @staticmethod
     def _serialized_param_size(param_value: Any) -> Optional[int]:
@@ -196,16 +165,10 @@ class ToolCallValidator:
             name for name in raw_tool_names if isinstance(name, str)
         ]
         deduped_tool_names = sorted(set(valid_tool_names))
-        allowlist = self.config.get_tool_allowlist()
-        if allowlist is not None:
-            deduped_tool_names = [name for name in deduped_tool_names if name in allowlist]
-
-        # Dev-only tool selection (filters further; never widens allowlist).
-        selection = self._dev_tool_selection
-        if selection is not None:
-            deduped_tool_names = selection.filter_tool_names(deduped_tool_names)
-
-        return deduped_tool_names
+        return self._tool_policy.filter_tool_names(
+            deduped_tool_names,
+            selection=self._dev_tool_selection,
+        )
 
     def validate_metadata(
         self, tool_name: str, metadata: Optional[Dict[str, Any]]
