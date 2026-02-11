@@ -12,7 +12,10 @@ from backend.src.api.schemas.common import BaseMessage
 class QueryPayload(BaseModel):
     """Payload for `query` messages."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        protected_namespaces=(),
+    )
 
     text: str
     content: Optional[str] = None
@@ -52,7 +55,10 @@ class ListModelsMessage(BaseMessage):
 class UpdateSettingsPayload(BaseModel):
     """Frontend-owned config update payload."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        protected_namespaces=(),
+    )
 
     model_mode: Optional[str] = None
     model_provider: Optional[str] = None
