@@ -44,6 +44,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox): keep overlay fully interactive while preserving rounded-pill hit geometry so background windows are not blocked by rectangular shadow regions
 
 ### Fixed
+- fix(frontend-chatbox): split overlay into separate fixed input and response windows so streaming text no longer shifts chatbox Y position; response now grows smoothly upward and is hidden during Linux screenshot capture fallback
 - fix(frontend-chatbox): apply chat overlay resize+reposition atomically via `setBounds` to keep the input pill anchored at a consistent Y position across typing/idle/response states
 - fix(frontend-ipc): strip unsupported `screenshot_url` from outbound `query` / `tool-bundle-result` payloads to match backend incoming schema
 - fix(tool-results): accept attribute-only `ResolvedToolCall` objects in single-tool execution (no `to_parsed_call()` requirement)

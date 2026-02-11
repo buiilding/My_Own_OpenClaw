@@ -1,38 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useShallow } from 'zustand/react/shallow';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { selectChatBoxState } from '../utils/chatSelectors';
-
-const RESPONSE_TYPES = new Set(['tool-call', 'llm-text', 'error']);
-const FIRST_CHUNK_TYPES = new Set(['llm-text', 'error']);
-
-function findLastUserIndex(messages) {
-  for (let i = messages.length - 1; i >= 0; i -= 1) {
-    if (messages[i].sender === 'user') {
-      return i;
-    }
-  }
-  return -1;
-}
-
-function findLatestMessageAfterUser(messages, lastUserIndex, allowedTypes) {
-  for (let i = messages.length - 1; i > lastUserIndex; i -= 1) {
-    const message = messages[i];
-    if (message.sender !== 'assistant') {
-      continue;
-    }
-    if (!message.text) {
-      continue;
-    }
-    if (!allowedTypes.has(message.type)) {
-      continue;
-    }
-    return message;
-  }
-  return null;
-}
 
 function SettingsIcon() {
   return (
@@ -59,58 +28,13 @@ function MicIcon() {
 }
 
 function ChatBox() {
-  const { messages, isSending } = useChatStore(useShallow(selectChatBoxState));
+  const { isSending } = useChatStore((state) => ({ isSending: state.isSending }));
   const { sendMessage } = useChatMessageSender();
   const [inputValue, setInputValue] = useState('');
-  const [closedResponseId, setClosedResponseId] = useState(null);
-  const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
-  const [isCaptureActive, setIsCaptureActive] = useState(false);
   const ignoreMouseRef = useRef(undefined);
   const shellRef = useRef(null);
   const inputRef = useRef(null);
-  const lastUserMessageIdRef = useRef(null);
   const lastSizeRef = useRef({ width: 0, height: 0 });
-
-  const lastUserIndex = useMemo(
-    () => findLastUserIndex(messages),
-    [messages],
-  );
-
-  const lastUserMessageId = useMemo(() => {
-    if (lastUserIndex < 0) {
-      return null;
-    }
-    return messages[lastUserIndex]?.id || null;
-  }, [lastUserIndex, messages]);
-
-  const activeResponse = useMemo(
-    () => findLatestMessageAfterUser(messages, lastUserIndex, RESPONSE_TYPES),
-    [messages, lastUserIndex],
-  );
-
-  const firstTextOrError = useMemo(
-    () => findLatestMessageAfterUser(messages, lastUserIndex, FIRST_CHUNK_TYPES),
-    [messages, lastUserIndex],
-  );
-
-  const responseIsCloseable = useMemo(() => {
-    if (!activeResponse) {
-      return false;
-    }
-    if (activeResponse.type === 'error') {
-      return true;
-    }
-    return Boolean(activeResponse.isComplete);
-  }, [activeResponse]);
-
-  const showResponse = Boolean(
-    activeResponse
-      && !isCaptureActive
-      && !awaitingFirstChunk
-      && activeResponse.id !== closedResponseId,
-  );
-
-  const showTyping = awaitingFirstChunk && !isCaptureActive;
 
   const setOverlayIgnore = useCallback(async (ignore) => {
     if (ignoreMouseRef.current === ignore) {
@@ -125,7 +49,6 @@ function ChatBox() {
   }, []);
 
   useEffect(() => {
-    // Keep the chat overlay fully interactive.
     setOverlayIgnore(false);
     return () => {
       setOverlayIgnore(false);
@@ -142,8 +65,8 @@ function ChatBox() {
       if (!rect) {
         return;
       }
-      const width = Math.max(1, Math.ceil(rect.width));
-      const height = Math.max(1, Math.ceil(rect.height));
+      const width = Math.max(1, Math.round(rect.width));
+      const height = Math.max(1, Math.round(rect.height));
 
       if (lastSizeRef.current.width === width && lastSizeRef.current.height === height) {
         return;
@@ -157,13 +80,11 @@ function ChatBox() {
     };
 
     if (typeof ResizeObserver === 'undefined') {
-      // JSDOM doesn't implement ResizeObserver; Electron/Chromium does.
       window.requestAnimationFrame(updateSize);
       return () => {};
     }
 
     const observer = new ResizeObserver(() => {
-      // Collapse bursts into one update per frame.
       window.requestAnimationFrame(updateSize);
     });
     observer.observe(shellRef.current);
@@ -177,48 +98,12 @@ function ChatBox() {
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.CHATBOX_FOCUS, () => {
       setOverlayIgnore(false);
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
+      inputRef.current?.focus();
     });
     return () => {
       removeListener?.();
     };
   }, [setOverlayIgnore]);
-
-  useEffect(() => {
-    if (!lastUserMessageId) {
-      return;
-    }
-    if (lastUserMessageIdRef.current === lastUserMessageId) {
-      return;
-    }
-    lastUserMessageIdRef.current = lastUserMessageId;
-    setAwaitingFirstChunk(true);
-    setClosedResponseId(null);
-  }, [lastUserMessageId]);
-
-  useEffect(() => {
-    if (!awaitingFirstChunk) {
-      return;
-    }
-    if (!firstTextOrError) {
-      return;
-    }
-    setAwaitingFirstChunk(false);
-  }, [awaitingFirstChunk, firstTextOrError]);
-
-  useEffect(() => {
-    const onCaptureState = (event) => {
-      const nextActive = Boolean(event?.detail?.active);
-      setIsCaptureActive(nextActive);
-    };
-
-    window.addEventListener('windie:screenshot-capture', onCaptureState);
-    return () => {
-      window.removeEventListener('windie:screenshot-capture', onCaptureState);
-    };
-  }, []);
 
   const handleSend = useCallback(async () => {
     const trimmed = inputValue.trim();
@@ -231,16 +116,8 @@ function ChatBox() {
 
   const handleSubmit = useCallback((event) => {
     event.preventDefault();
-    handleSend();
+    void handleSend();
   }, [handleSend]);
-
-  const handleInputFocus = useCallback(() => {
-    setOverlayIgnore(false);
-  }, [setOverlayIgnore]);
-
-  const handleInputBlur = useCallback(() => {
-    // no-op
-  }, []);
 
   const handleOpenSettings = useCallback(async () => {
     try {
@@ -250,48 +127,16 @@ function ChatBox() {
     }
   }, []);
 
-  const handleCloseResponse = useCallback(() => {
-    if (!activeResponse || !responseIsCloseable) {
-      return;
-    }
-    setClosedResponseId(activeResponse.id);
-  }, [activeResponse, responseIsCloseable]);
-
   return (
     <div className="chatbox-shell-wrap">
       <div className="chatbox-shell" ref={shellRef}>
-        {showResponse ? (
-          <div className="chatbox-response-pill" data-chatbox-hit="true">
-            <button
-              type="button"
-              className="chatbox-response-close"
-              onClick={handleCloseResponse}
-              disabled={!responseIsCloseable}
-              aria-label={responseIsCloseable ? 'Close response' : 'Response still streaming'}
-            >
-              ×
-            </button>
-            <div className="chatbox-response-text">{activeResponse.text}</div>
-          </div>
-        ) : null}
-
-        {showTyping ? (
-          <div className="chatbox-typing-indicator" data-chatbox-hit="true" aria-label="Assistant is typing">
-            <span />
-            <span />
-            <span />
-          </div>
-        ) : null}
-
-        <form className="chatbox-pill" data-chatbox-hit="true" onSubmit={handleSubmit}>
+        <form className="chatbox-pill" onSubmit={handleSubmit}>
           <div className="chatbox-input-wrap">
             <input
               ref={inputRef}
               type="text"
               value={inputValue}
               onChange={(event) => setInputValue(event.target.value)}
-              onFocus={handleInputFocus}
-              onBlur={handleInputBlur}
               placeholder="Type a command…"
               className="chatbox-input"
               disabled={isSending}
