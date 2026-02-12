@@ -70,6 +70,7 @@ class QueryExecutionService:
                 query_text,
                 image_data=screenshot,
                 message_content=message.payload.content,
+                conversation_ref=message.payload.conversation_ref,
             ):
                 await pipeline.process(
                     event,
@@ -78,6 +79,8 @@ class QueryExecutionService:
                     context={
                         "user_id": agent_instance.user_id,
                         "session_id": agent_instance.session_id,
+                        "conversation_ref": message.payload.conversation_ref,
+                        "turn_ref": msg_id,
                     },
                 )
 

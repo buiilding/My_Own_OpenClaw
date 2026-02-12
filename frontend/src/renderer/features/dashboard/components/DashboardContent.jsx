@@ -7,10 +7,10 @@ import UsageSection from './sections/UsageSection';
 import SettingsSection from './sections/SettingsSection';
 import '../../../styles/SettingsPanel.css';
 
-function DashboardContent({ sectionId, config, availableModels, onConfigChange }) {
+function DashboardContent({ sectionId, config, availableModels, onConfigChange, onSelectSection }) {
   switch (sectionId) {
     case 'episodic':
-      return <EpisodicMemorySection />;
+      return <EpisodicMemorySection onSelectSection={onSelectSection} />;
     case 'semantic':
       return <SemanticMemorySection />;
     case 'procedural':
@@ -54,6 +54,7 @@ DashboardContent.propTypes = {
     online: PropTypes.array,
   }),
   onConfigChange: PropTypes.func.isRequired,
+  onSelectSection: PropTypes.func,
 };
 
 export default DashboardContent;

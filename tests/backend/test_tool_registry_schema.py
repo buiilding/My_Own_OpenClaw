@@ -40,15 +40,15 @@ def test_tool_schema_standard_format():
     assert "metadata" not in schema.get("parameters", {})
 
 
-def test_tool_schema_computer_format_wrapped():
+def test_tool_schema_computer_format_native():
     tool = DummyComputerTool()
     schema = tool.get_json_schema()
     assert schema["name"] == "dummy_computer"
     params = schema["parameters"]
-    assert "metadata" in params["properties"]
-    assert "action" in params["properties"]
-    action = params["properties"]["action"]["properties"]["functionCall"]["properties"]
-    assert action["name"]["const"] == "dummy_computer"
+    assert "metadata" not in params.get("properties", {})
+    assert "action" not in params.get("properties", {})
+    assert params["properties"]["path"]["type"] == "string"
+    assert "path" in params.get("required", [])
 
 
 def test_schema_registry_caches_schemas():

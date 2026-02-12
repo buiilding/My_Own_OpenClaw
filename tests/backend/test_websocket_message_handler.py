@@ -39,7 +39,7 @@ async def test_parse_and_validate_message_success() -> None:
         {
             "id": "msg_1",
             "type": "query",
-            "payload": {"text": "hello"},
+            "payload": {"text": "hello", "conversation_ref": "conv_test"},
         }
     )
 
@@ -110,6 +110,7 @@ async def test_parse_and_validate_message_rejects_query_screenshot_url_field() -
             "type": "query",
             "payload": {
                 "text": "hello",
+                "conversation_ref": "conv_test",
                 "screenshot_url": "http://127.0.0.1:8765/api/artifacts/shot.jpg",
             },
         }
@@ -154,7 +155,7 @@ async def test_parse_and_validate_message_small_payload_parses_inline(monkeypatc
         {
             "id": "msg_inline",
             "type": "query",
-            "payload": {"text": "hello"},
+            "payload": {"text": "hello", "conversation_ref": "conv_test"},
         }
     )
     monkeypatch.setattr(mh.asyncio, "get_running_loop", lambda: (_ for _ in ()).throw(RuntimeError("should not be used")))
@@ -173,7 +174,7 @@ async def test_parse_and_validate_message_large_payload_uses_executor(monkeypatc
         {
             "id": "msg_large",
             "type": "query",
-            "payload": {"text": "hello"},
+            "payload": {"text": "hello", "conversation_ref": "conv_test"},
         }
     )
     monkeypatch.setattr(mh, "_JSON_PARSE_OFFLOAD_BYTES", 1)
@@ -204,7 +205,7 @@ async def test_handle_message_routes_to_registry() -> None:
         id="msg_100",
         type="query",
         user_id="user_1",
-        payload={"text": "test"},
+        payload={"text": "test", "conversation_ref": "conv_test"},
     )
 
     await mh.handle_message(websocket, message, registry, "user_1")
@@ -221,7 +222,7 @@ async def test_handle_message_sends_value_error_message(monkeypatch) -> None:
         id="msg_101",
         type="query",
         user_id="user_1",
-        payload={"text": "test"},
+        payload={"text": "test", "conversation_ref": "conv_test"},
     )
     sent_errors = []
 
@@ -243,7 +244,7 @@ async def test_handle_message_sends_sanitized_unexpected_error(monkeypatch) -> N
         id="msg_102",
         type="query",
         user_id="user_1",
-        payload={"text": "test"},
+        payload={"text": "test", "conversation_ref": "conv_test"},
     )
     sent_errors = []
 
@@ -287,7 +288,7 @@ async def test_handle_message_does_not_raise_if_send_error_fails_for_value_error
         id="msg_103",
         type="query",
         user_id="user_1",
-        payload={"text": "test"},
+        payload={"text": "test", "conversation_ref": "conv_test"},
     )
 
     async def failing_send_error(_ws, _msg_id, _error_message):
@@ -307,7 +308,7 @@ async def test_handle_message_does_not_raise_if_send_error_fails_for_unexpected_
         id="msg_104",
         type="query",
         user_id="user_1",
-        payload={"text": "test"},
+        payload={"text": "test", "conversation_ref": "conv_test"},
     )
 
     async def failing_send_error(_ws, _msg_id, _error_message):

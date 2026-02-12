@@ -13,6 +13,7 @@ class IncomingMessageType:
     """Incoming WebSocket message type names."""
 
     QUERY: Final[str] = "query"
+    REHYDRATE_CONVERSATION: Final[str] = "rehydrate-conversation"
     LOAD_SETTINGS: Final[str] = "load-settings"
     LIST_MODELS: Final[str] = "list-models"
     UPDATE_SETTINGS: Final[str] = "update-settings"
@@ -23,6 +24,7 @@ class IncomingMessageType:
 
 INCOMING_MESSAGE_TYPES: Final[tuple[str, ...]] = (
     IncomingMessageType.QUERY,
+    IncomingMessageType.REHYDRATE_CONVERSATION,
     IncomingMessageType.LOAD_SETTINGS,
     IncomingMessageType.LIST_MODELS,
     IncomingMessageType.UPDATE_SETTINGS,
@@ -74,4 +76,3 @@ OUTGOING_SCHEMA_MESSAGE_TYPES: Final[tuple[str, ...]] = (
     OutgoingMessageType.USER_MESSAGE_FULL,
     OutgoingMessageType.ASSISTANT_MESSAGE_FULL,
 )
-

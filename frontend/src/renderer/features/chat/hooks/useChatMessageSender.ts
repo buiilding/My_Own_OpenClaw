@@ -10,6 +10,12 @@ import { extractOSstate } from '../../../infrastructure/services/SystemCapture';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { uploadArtifactBase64 } from '../../../infrastructure/services/ArtifactUploader';
 import {
+  getActiveConversationRef,
+  getTranscriptSessionInfo,
+  recordUserMessage,
+  setActiveConversationRef,
+} from '../../../infrastructure/transcript/TranscriptWriter';
+import {
   buildArtifactUploadMeta,
   buildPendingUserMessage,
   hasUserMessages,
@@ -44,6 +50,16 @@ export function useChatMessageSender(
     });
   }, [addMessage]);
 
+  const ensureConversationRef = useCallback((): string => {
+    const activeRef = getActiveConversationRef();
+    if (activeRef) {
+      return activeRef;
+    }
+    const generatedRef = `conv_${crypto.randomUUID()}`;
+    setActiveConversationRef(generatedRef);
+    return generatedRef;
+  }, []);
+
   const sendMessage = useCallback(async (text: string) => {
     // Stop audio playback if provided
     if (stopPlayback) {
@@ -51,10 +67,15 @@ export function useChatMessageSender(
     }
 
     const hadUserMessages = hasUserMessages(useChatStore.getState().messages);
+    const conversationRef = ensureConversationRef();
     
     // Create user message immediately (without screenshot) for instant UI display
     const userMessageId = crypto.randomUUID();
-    const userMessage: ChatMessage = buildPendingUserMessage(userMessageId, text);
+    const messageTimestamp = new Date().toISOString();
+    const userMessage: ChatMessage = {
+      ...buildPendingUserMessage(userMessageId, text),
+      timestamp: messageTimestamp,
+    };
     
     // Display message immediately
     addMessage(userMessage);
@@ -106,10 +127,18 @@ export function useChatMessageSender(
     
     // Update message with screenshot
     updateMessage(userMessage.id, { screenshotRef, screenshotUrl });
+
+    const sessionInfo = getTranscriptSessionInfo();
+    recordUserMessage(text, {
+      conversationRef,
+      userId: sessionInfo.userId,
+      timestamp: messageTimestamp,
+      screenshotRef,
+    });
     
     // Send query with screenshot to backend
     try {
-      await ApiClient.sendQuery(text, screenshotRef, screenshotUrl);
+      await ApiClient.sendQuery(text, conversationRef, screenshotRef, screenshotUrl);
     } catch (error) {
       console.error('[useChatMessageSender] Failed to send query:', error);
       setIsSending(false);
@@ -124,6 +153,7 @@ export function useChatMessageSender(
     setThinkingStatus,
     stopPlayback,
     returnToChatboxOnSend,
+    ensureConversationRef,
   ]);
 
   return { sendMessage };

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(conversation-resume): add conversation_ref identity across query/transcript flow, add backend rehydrate-conversation handling, and support episodic continue-to-chat resume with history rehydration
 - feat(llm-native-tools): wire native LiteLLM tool-calling transport (`tools`, `tool_choice`, `parallel_tool_calls`), normalize structured provider tool-call payloads (`OpenAI tool_calls` + Anthropic `tool_use`) into `{id,name,arguments}`, and respect rollback gate `native_tool_calling_enabled` in client transport
 - feat(llm): add native SDK tool-calling migration contracts (`NormalizedToolCall`, extended `NormalizedLLMResponse`), tool-role history message typing, and `LLMClient.get_completion_response()` normalized interface with migration flag `native_tool_calling_enabled`
 - feat(observability): add per-turn LLM cache diagnostics logs (`[Cache Hint]` + `[Provider Cache]`) and enable streamed usage capture (`stream_options.include_usage`) across provider adapters
@@ -38,6 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- test(llm-native-tools): align backend prompt/schema tests with native tool-calling contracts (no <tool_schemas> prompt embedding, direct parameters shape)
 - refactor(agent-runtime): migrate interaction loop from parser-driven JSON extraction to native normalized tool-calls, bridge to existing tool orchestrator types, and persist assistant/tool-call history linkage for follow-up turns
 - refactor(llm-native-tools): remove parser-era JSON tool protocol from system prompt, stop first-message `<tool_schemas>` embedding, emit native direct-argument tool schemas, and add tool-selection compatibility for native mouse schema filtering
 - docs(prompts): mark native SDK tool-calling migration Agent 1 complete and add explicit Agent 2 handoff contract notes

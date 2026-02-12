@@ -22,6 +22,9 @@ class BaseMessage(BaseModel):
     type: str
     payload: Dict[str, Any] = Field(default_factory=dict)
     user_id: str
+    session_id: Optional[str] = None
+    conversation_ref: Optional[str] = None
+    turn_ref: Optional[str] = None
     timestamp: Optional[str] = None
 
     @field_validator("id")

@@ -1,7 +1,11 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { createPendingUserQueue } from './pendingUserQueue';
 import { createPendingToolQueue } from './pendingToolQueue';
-import { emitSessionUpdateEvent, persistSessionInfoToStorage, readSessionInfoFromStorage } from './sessionInfoStorage';
+import {
+  emitSessionUpdateEvent,
+  persistSessionInfoToStorage,
+  readSessionInfoFromStorage,
+} from './sessionInfoStorage';
 import { createTranscriptSessionState } from './sessionInfoState';
 import type { SessionInfo, TranscriptEntry } from './types';
 
@@ -12,7 +16,7 @@ const pendingToolQueue = createPendingToolQueue();
 const flushPendingMessages = async () => {
   const currentInfo = sessionState.get();
   if (
-    !currentInfo.sessionId
+    !currentInfo.conversationRef
     || !currentInfo.userId
     || (pendingUserQueue.size() === 0 && pendingToolQueue.size() === 0)
   ) {
@@ -47,11 +51,25 @@ const flushPendingMessages = async () => {
   }
 };
 
-export const updateTranscriptSession = (sessionId?: string | null, userId?: string | null) => {
-  const info = sessionState.update(sessionId, userId);
+export const updateTranscriptSession = (
+  conversationRef?: string | null,
+  userId?: string | null,
+) => {
+  const info = sessionState.update(conversationRef, userId);
   persistSessionInfoToStorage(info);
   emitSessionUpdateEvent(info);
   void flushPendingMessages();
+};
+
+export const setActiveConversationRef = (conversationRef: string | null) => {
+  const info = sessionState.update(conversationRef, null);
+  persistSessionInfoToStorage(info);
+  emitSessionUpdateEvent(info);
+  void flushPendingMessages();
+};
+
+export const getActiveConversationRef = (): string | null => {
+  return sessionState.get().conversationRef;
 };
 
 export const getTranscriptSessionInfo = (): SessionInfo => {
@@ -62,20 +80,32 @@ export const recordUserMessage = (
   text: string,
   options: {
     timestamp?: string;
+    conversationRef?: string | null;
     sessionId?: string | null;
     userId?: string | null;
     modelId?: string | null;
     modelProvider?: string | null;
     screenshotRef?: string | null;
-  } = {}
+  } = {},
 ) => {
   if (!text) {
     return;
   }
-  const { sessionId, userId, timestamp, modelId, modelProvider, screenshotRef } = options;
-  const info = sessionState.resolve({ sessionId: sessionId ?? null, userId: userId ?? null });
+  const {
+    conversationRef,
+    sessionId,
+    userId,
+    timestamp,
+    modelId,
+    modelProvider,
+    screenshotRef,
+  } = options;
+  const info = sessionState.resolve({
+    conversationRef: conversationRef ?? sessionId ?? null,
+    userId: userId ?? null,
+  });
 
-  if (!info.sessionId || !info.userId) {
+  if (!info.conversationRef || !info.userId) {
     pendingUserQueue.enqueue({ text, timestamp, modelId, modelProvider, screenshotRef });
     return;
   }
@@ -88,7 +118,7 @@ export const recordUserMessage = (
     modelId,
     modelProvider,
     screenshotRef,
-    sessionId: info.sessionId,
+    conversationRef: info.conversationRef,
     userId: info.userId,
   });
 };
@@ -97,18 +127,22 @@ export const recordAssistantMessage = (
   text: string,
   options: {
     messageType?: string;
+    conversationRef?: string | null;
     sessionId?: string | null;
     userId?: string | null;
     modelId?: string | null;
     modelProvider?: string | null;
     screenshotRef?: string | null;
-  } = {}
+  } = {},
 ) => {
   if (!text) {
     return;
   }
-  const info = sessionState.resolve({ sessionId: options.sessionId ?? null, userId: options.userId ?? null });
-  if (!info.sessionId || !info.userId) {
+  const info = sessionState.resolve({
+    conversationRef: options.conversationRef ?? options.sessionId ?? null,
+    userId: options.userId ?? null,
+  });
+  if (!info.conversationRef || !info.userId) {
     return;
   }
 
@@ -119,7 +153,7 @@ export const recordAssistantMessage = (
     modelId: options.modelId,
     modelProvider: options.modelProvider,
     screenshotRef: options.screenshotRef,
-    sessionId: info.sessionId,
+    conversationRef: info.conversationRef,
     userId: info.userId,
   });
 };
@@ -130,18 +164,22 @@ export const recordToolMessage = (
     messageType: string;
     toolName?: string;
     correlationId?: string;
+    conversationRef?: string | null;
     sessionId?: string | null;
     userId?: string | null;
     modelId?: string | null;
     modelProvider?: string | null;
     screenshotRef?: string | null;
-  }
+  },
 ) => {
   if (!text) {
     return;
   }
-  const info = sessionState.resolve({ sessionId: options.sessionId ?? null, userId: options.userId ?? null });
-  if (!info.sessionId || !info.userId) {
+  const info = sessionState.resolve({
+    conversationRef: options.conversationRef ?? options.sessionId ?? null,
+    userId: options.userId ?? null,
+  });
+  if (!info.conversationRef || !info.userId) {
     pendingToolQueue.enqueue({
       text,
       messageType: options.messageType,
@@ -163,21 +201,24 @@ export const recordToolMessage = (
     modelId: options.modelId,
     modelProvider: options.modelProvider,
     screenshotRef: options.screenshotRef,
-    sessionId: info.sessionId,
+    conversationRef: info.conversationRef,
     userId: info.userId,
   });
 };
 
 const storeTranscriptEntry = async (entry: TranscriptEntry) => {
-  const info = sessionState.resolve({ sessionId: entry.sessionId ?? null, userId: entry.userId ?? null });
-  if (!info.sessionId || !info.userId) {
+  const info = sessionState.resolve({
+    conversationRef: entry.conversationRef ?? null,
+    userId: entry.userId ?? null,
+  });
+  if (!info.conversationRef || !info.userId) {
     return;
   }
 
   await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
     content: entry.content,
     userId: info.userId,
-    sessionId: info.sessionId,
+    conversationRef: info.conversationRef,
     role: entry.role,
     messageType: entry.messageType,
     toolName: entry.toolName,
