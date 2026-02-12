@@ -3,6 +3,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 import logging
 import re
 import copy
+import json
 
 import litellm
 from litellm import exceptions as litellm_exceptions
@@ -59,7 +60,12 @@ class LLMProvider(ABC):
 
     @abstractmethod
     async def get_completion(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> NormalizedLLMResponse:
         """
         Gets a completion from the LLM and returns a normalized response.
@@ -85,14 +91,13 @@ class LLMProvider(ABC):
         """Execute a completion request with consistent error mapping."""
         try:
             response = await litellm.acompletion(**params)
-            content = self._extract_completion_content(
+            return self._extract_completion_response(
                 response,
                 model=model,
                 invalid_response_message=(
                     invalid_response_message or f"Invalid response from {provider_label}"
                 ),
             )
-            return {"content": content}
         except litellm_exceptions.RateLimitError as e:
             raise LLMRateLimitError(
                 f"{provider_label} rate limit exceeded",
@@ -115,7 +120,12 @@ class LLMProvider(ABC):
             )
 
     async def get_completion_stream(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Public streaming method with uniform error handling.
@@ -128,7 +138,13 @@ class LLMProvider(ABC):
         rather than via exception handling.
         """
         try:
-            async for event in self._stream_internal(model, messages):
+            async for event in self._stream_internal(
+                model,
+                messages,
+                tools=tools,
+                tool_choice=tool_choice,
+                parallel_tool_calls=parallel_tool_calls,
+            ):
                 yield event
         except litellm_exceptions.RateLimitError as e:
             logger.error(f"Rate limit error in {self.__class__.__name__}: {e}")
@@ -334,7 +350,12 @@ class LLMProvider(ABC):
 
     @abstractmethod
     async def _stream_internal(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Internal streaming implementation.
@@ -359,6 +380,9 @@ class LLMProvider(ABC):
         model: str,
         messages: List[LLMMessage],
         model_string: Optional[str] = None,
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> dict:
         """
         Helper to construct the basic request parameters for LiteLLM.
@@ -385,12 +409,283 @@ class LLMProvider(ABC):
         
         params = {
             "model": model_string or self._get_full_model_string(model),
-            "messages": messages,
+            "messages": self._normalize_messages_for_provider(messages, model=model),
             "api_key": self.api_key,
             "base_url": self.base_url,
             "timeout": self.timeout,
         }
+        if tools is not None:
+            params["tools"] = self._normalize_tools_for_litellm(tools, model=model)
+        if tool_choice is not None:
+            params["tool_choice"] = tool_choice
+        if parallel_tool_calls is not None:
+            params["parallel_tool_calls"] = parallel_tool_calls
         return params
+
+    @staticmethod
+    def _normalize_messages_for_provider(
+        messages: List[LLMMessage],
+        *,
+        model: str,
+    ) -> List[LLMMessage]:
+        """
+        Normalize message payloads for provider compatibility.
+
+        - Convert assistant tool_calls from internal shape
+          `{id,name,arguments}` into OpenAI shape
+          `{id,type=function,function:{name,arguments:<json-string>}}`.
+        - Drop orphan/invalid `role=tool` messages that reference missing
+          assistant tool_call ids (Anthropic-compatible providers reject these).
+        """
+        if not isinstance(messages, list):
+            raise TypeError(f"messages must be list, got {type(messages).__name__}")
+
+        assistant_tool_call_ids: set[str] = set()
+        normalized_messages: List[LLMMessage] = []
+        changed = False
+
+        for index, message in enumerate(messages):
+            if not isinstance(message, dict):
+                raise LLMAPIError(
+                    f"Invalid message at index {index}: expected object",
+                    model=model,
+                )
+
+            role = message.get("role")
+            if role == "assistant":
+                normalized_message, message_changed, tool_call_ids = (
+                    LLMProvider._normalize_assistant_message_tool_calls(
+                        message, index=index, model=model
+                    )
+                )
+                assistant_tool_call_ids.update(tool_call_ids)
+                normalized_messages.append(normalized_message)
+                changed = changed or message_changed
+                continue
+
+            if role == "tool":
+                tool_call_id = message.get("tool_call_id")
+                if not isinstance(tool_call_id, str) or not tool_call_id.strip():
+                    logger.warning(
+                        "Dropping invalid tool message at index=%s: missing tool_call_id (model=%s)",
+                        index,
+                        model,
+                    )
+                    changed = True
+                    continue
+                if tool_call_id not in assistant_tool_call_ids:
+                    logger.warning(
+                        "Dropping orphan tool message at index=%s: tool_call_id='%s' has no assistant tool_calls match (model=%s)",
+                        index,
+                        tool_call_id,
+                        model,
+                    )
+                    changed = True
+                    continue
+
+            normalized_messages.append(message)
+
+        return normalized_messages if changed else messages
+
+    @staticmethod
+    def _normalize_assistant_message_tool_calls(
+        message: Dict[str, Any],
+        *,
+        index: int,
+        model: str,
+    ) -> tuple[LLMMessage, bool, set[str]]:
+        """Normalize assistant `tool_calls` entry and collect call ids."""
+        raw_tool_calls = message.get("tool_calls")
+        if raw_tool_calls is None:
+            return message, False, set()
+        if not isinstance(raw_tool_calls, list):
+            raise LLMAPIError(
+                f"Invalid assistant.tool_calls at message index {index}: expected list",
+                model=model,
+            )
+
+        normalized_tool_calls: List[Dict[str, Any]] = []
+        tool_call_ids: set[str] = set()
+        changed = False
+        for call_index, raw_call in enumerate(raw_tool_calls):
+            normalized_call, was_changed = LLMProvider._normalize_assistant_tool_call_entry(
+                raw_call,
+                message_index=index,
+                call_index=call_index,
+                model=model,
+            )
+            changed = changed or was_changed
+            normalized_tool_calls.append(normalized_call)
+            call_id = normalized_call.get("id")
+            if isinstance(call_id, str) and call_id:
+                tool_call_ids.add(call_id)
+
+        if changed:
+            normalized_message = dict(message)
+            normalized_message["tool_calls"] = normalized_tool_calls
+            return normalized_message, True, tool_call_ids
+        return message, False, tool_call_ids
+
+    @staticmethod
+    def _normalize_assistant_tool_call_entry(
+        raw_call: Any,
+        *,
+        message_index: int,
+        call_index: int,
+        model: str,
+    ) -> tuple[Dict[str, Any], bool]:
+        """Normalize one assistant tool-call entry into OpenAI-compatible shape."""
+        if not isinstance(raw_call, dict):
+            raise LLMAPIError(
+                f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: expected object",
+                model=model,
+            )
+
+        # Already OpenAI-compatible shape.
+        if raw_call.get("type") == "function" and isinstance(raw_call.get("function"), dict):
+            function_block = raw_call["function"]
+            name = function_block.get("name")
+            if not isinstance(name, str) or not name.strip():
+                raise LLMAPIError(
+                    f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: function.name must be non-empty string",
+                    model=model,
+                )
+            arguments = function_block.get("arguments")
+            if isinstance(arguments, dict):
+                normalized = copy.deepcopy(raw_call)
+                normalized["function"]["arguments"] = json.dumps(
+                    arguments, ensure_ascii=False, separators=(",", ":")
+                )
+                return normalized, True
+            if arguments is None:
+                normalized = copy.deepcopy(raw_call)
+                normalized["function"]["arguments"] = "{}"
+                return normalized, True
+            if not isinstance(arguments, str):
+                raise LLMAPIError(
+                    f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: function.arguments must be string/object",
+                    model=model,
+                )
+            return raw_call, False
+
+        # Internal runtime shape: {id, name, arguments}
+        call_id = raw_call.get("id")
+        if not isinstance(call_id, str) or not call_id.strip():
+            raise LLMAPIError(
+                f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: id must be non-empty string",
+                model=model,
+            )
+        name = raw_call.get("name")
+        if not isinstance(name, str) or not name.strip():
+            raise LLMAPIError(
+                f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: name must be non-empty string",
+                model=model,
+            )
+        arguments = raw_call.get("arguments", {})
+        if not isinstance(arguments, dict):
+            raise LLMAPIError(
+                f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: arguments must be object",
+                model=model,
+            )
+
+        return (
+            {
+                "id": call_id,
+                "type": "function",
+                "function": {
+                    "name": name,
+                    "arguments": json.dumps(
+                        arguments, ensure_ascii=False, separators=(",", ":")
+                    ),
+                },
+            },
+            True,
+        )
+
+    @staticmethod
+    def _normalize_tools_for_litellm(
+        tools: List[Dict[str, Any]],
+        *,
+        model: str,
+    ) -> List[Dict[str, Any]]:
+        """
+        Validate canonical tool schemas for LiteLLM transport.
+
+        Runtime contract is strict: each entry must be
+        `{type: "function", function: {name, description?, parameters}}`.
+        """
+        if not isinstance(tools, list):
+            raise LLMAPIError(
+                "Invalid tools payload: expected list of canonical tool objects",
+                model=model,
+            )
+
+        normalized: List[Dict[str, Any]] = []
+        for index, tool in enumerate(tools):
+            normalized.append(
+                LLMProvider._normalize_single_tool_for_litellm(
+                    tool,
+                    index=index,
+                    model=model,
+                )
+            )
+        return normalized
+
+    @staticmethod
+    def _normalize_single_tool_for_litellm(
+        tool: Any,
+        *,
+        index: int,
+        model: str,
+    ) -> Dict[str, Any]:
+        """Validate one canonical tool schema and return a deep copy."""
+        if not isinstance(tool, dict):
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: expected object",
+                model=model,
+            )
+
+        tool_type = tool.get("type")
+        if tool_type != "function":
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: field 'type' must be 'function'",
+                model=model,
+            )
+
+        function_payload = tool.get("function")
+        if not isinstance(function_payload, dict):
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: missing or invalid 'function' object",
+                model=model,
+            )
+
+        function_name = function_payload.get("name")
+        if not isinstance(function_name, str) or not function_name.strip():
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: function.name must be a non-empty string",
+                model=model,
+            )
+
+        if "parameters" not in function_payload:
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: function.parameters is required",
+                model=model,
+            )
+        parameters = function_payload.get("parameters")
+        if not isinstance(parameters, dict):
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: function.parameters must be an object",
+                model=model,
+            )
+
+        description = function_payload.get("description")
+        if description is not None and not isinstance(description, str):
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: function.description must be a string when provided",
+                model=model,
+            )
+
+        return copy.deepcopy(tool)
 
     @abstractmethod
     def _get_full_model_string(self, model_id: str) -> str:
@@ -482,10 +777,12 @@ class LLMProvider(ABC):
         """Extract stream delta payload from one LiteLLM stream chunk."""
         if not chunk:
             return None
-        choices = getattr(chunk, "choices", None)
+        choices = chunk.get("choices") if isinstance(chunk, dict) else getattr(chunk, "choices", None)
         first_choice = LLMProvider._first_item(choices)
         if not first_choice:
             return None
+        if isinstance(first_choice, dict):
+            return first_choice.get("delta")
         return getattr(first_choice, "delta", None)
 
     @staticmethod
@@ -497,8 +794,26 @@ class LLMProvider(ABC):
             content = delta.get("content")
         else:
             content = getattr(delta, "content", None)
-        if isinstance(content, str) and content:
-            return content
+
+        if isinstance(content, str):
+            return content if content else None
+
+        if isinstance(content, list):
+            text_parts: List[str] = []
+            for block in content:
+                block_type = LLMProvider._get_value(block, "type")
+                if block_type not in (None, "text"):
+                    continue
+                text_value = LLMProvider._get_value(block, "text")
+                if isinstance(text_value, str) and text_value:
+                    text_parts.append(text_value)
+            if text_parts:
+                return "".join(text_parts)
+
+        if LLMProvider._delta_contains_tool_calls(delta):
+            logger.info(
+                "Streaming tool-call deltas detected; suppressing non-text delta content for safety."
+            )
         return None
 
     @staticmethod
@@ -509,21 +824,261 @@ class LLMProvider(ABC):
         invalid_response_message: str,
     ) -> str:
         """Extract completion text content from a LiteLLM response object."""
+        normalized = LLMProvider._extract_completion_response(
+            response,
+            model=model,
+            invalid_response_message=invalid_response_message,
+        )
+        return normalized["content"]
+
+    @staticmethod
+    def _extract_completion_response(
+        response: Any,
+        *,
+        model: str,
+        invalid_response_message: str,
+    ) -> NormalizedLLMResponse:
+        """Extract normalized completion payload from a LiteLLM response object."""
         if not response:
             raise LLMAPIError(invalid_response_message, model=model)
 
-        choices = getattr(response, "choices", None)
+        choices = LLMProvider._get_value(response, "choices")
         first_choice = LLMProvider._first_item(choices)
-        message = getattr(first_choice, "message", None) if first_choice else None
+        message = LLMProvider._get_value(first_choice, "message") if first_choice else None
         if message is None:
             raise LLMAPIError(invalid_response_message, model=model)
 
-        content = getattr(message, "content", None)
+        content = LLMProvider._extract_message_content(message)
+        normalized: NormalizedLLMResponse = {"content": content}
+
+        tool_calls = LLMProvider._extract_message_tool_calls(
+            message,
+            model=model,
+            invalid_response_message=invalid_response_message,
+        )
+        if tool_calls:
+            normalized["tool_calls"] = tool_calls
+
+        finish_reason = LLMProvider._get_value(first_choice, "finish_reason")
+        if finish_reason is not None:
+            normalized["finish_reason"] = str(finish_reason)
+
+        return normalized
+
+    @staticmethod
+    def _extract_message_content(message: Any) -> str:
+        """Extract assistant text content from a message payload."""
+        content = LLMProvider._get_value(message, "content")
         if content is None:
             return ""
+
         if isinstance(content, str):
             return content
+
+        if isinstance(content, list):
+            text_parts: List[str] = []
+            for item in content:
+                item_type = LLMProvider._get_value(item, "type")
+                if item_type not in (None, "text"):
+                    continue
+                text_value = LLMProvider._get_value(item, "text")
+                if isinstance(text_value, str) and text_value:
+                    text_parts.append(text_value)
+            return "".join(text_parts)
+
+        if isinstance(content, dict):
+            text_value = content.get("text") or content.get("content")
+            if isinstance(text_value, str):
+                return text_value
+
         return str(content)
+
+    @staticmethod
+    def _extract_message_tool_calls(
+        message: Any,
+        *,
+        model: str,
+        invalid_response_message: str,
+    ) -> List[Dict[str, Any]]:
+        """
+        Normalize tool calls from OpenAI-style `message.tool_calls` or Anthropic-style
+        `content` blocks (`type == tool_use`).
+        """
+        raw_tool_calls = LLMProvider._get_value(message, "tool_calls")
+        normalized_calls: List[Dict[str, Any]] = []
+
+        if raw_tool_calls:
+            normalized_calls.extend(
+                LLMProvider._normalize_raw_tool_calls(
+                    raw_tool_calls,
+                    model=model,
+                    invalid_response_message=invalid_response_message,
+                )
+            )
+
+        content_blocks = LLMProvider._get_value(message, "content")
+        if isinstance(content_blocks, list):
+            anthropic_blocks = [
+                block
+                for block in content_blocks
+                if LLMProvider._get_value(block, "type") == "tool_use"
+            ]
+            if anthropic_blocks:
+                normalized_calls.extend(
+                    LLMProvider._normalize_raw_tool_calls(
+                        anthropic_blocks,
+                        model=model,
+                        invalid_response_message=invalid_response_message,
+                    )
+                )
+
+        deduped: List[Dict[str, Any]] = []
+        seen: set[tuple[str, str]] = set()
+        for call in normalized_calls:
+            key = (call["id"], call["name"])
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append(call)
+        return deduped
+
+    @staticmethod
+    def _normalize_raw_tool_calls(
+        raw_tool_calls: Any,
+        *,
+        model: str,
+        invalid_response_message: str,
+    ) -> List[Dict[str, Any]]:
+        """Normalize heterogeneous raw tool-call payloads into canonical shape."""
+        if isinstance(raw_tool_calls, (str, bytes, dict)):
+            raise LLMAPIError(invalid_response_message, model=model)
+
+        normalized_calls: List[Dict[str, Any]] = []
+        for index, raw_tool_call in enumerate(raw_tool_calls):
+            tool_id = LLMProvider._get_value(raw_tool_call, "id")
+            function_payload = LLMProvider._get_value(raw_tool_call, "function")
+            if function_payload is None and LLMProvider._get_value(raw_tool_call, "type") == "tool_use":
+                function_payload = raw_tool_call
+
+            tool_name = (
+                LLMProvider._get_value(function_payload, "name")
+                if function_payload is not None
+                else LLMProvider._get_value(raw_tool_call, "name")
+            )
+            raw_arguments = (
+                LLMProvider._get_value(function_payload, "arguments")
+                if function_payload is not None
+                else LLMProvider._get_value(raw_tool_call, "arguments")
+            )
+            if raw_arguments is None:
+                raw_arguments = LLMProvider._get_value(raw_tool_call, "input")
+
+            if not isinstance(tool_name, str) or not tool_name.strip():
+                raise LLMAPIError(
+                    f"{invalid_response_message}: invalid tool name at index {index}",
+                    model=model,
+                )
+
+            if not isinstance(tool_id, str) or not tool_id.strip():
+                tool_id = f"tool_call_{index}"
+                logger.warning(
+                    "Tool-call payload missing id; synthesizing fallback id='%s' (model=%s, name=%s)",
+                    tool_id,
+                    model,
+                    tool_name,
+                )
+
+            arguments = LLMProvider._normalize_tool_arguments(
+                raw_arguments,
+                model=model,
+                invalid_response_message=invalid_response_message,
+            )
+            normalized_calls.append(
+                {
+                    "id": tool_id,
+                    "name": tool_name.strip(),
+                    "arguments": arguments,
+                }
+            )
+
+        return normalized_calls
+
+    @staticmethod
+    def _normalize_tool_arguments(
+        raw_arguments: Any,
+        *,
+        model: str,
+        invalid_response_message: str,
+    ) -> Dict[str, Any]:
+        """Normalize tool call arguments to a dictionary payload."""
+        if raw_arguments is None:
+            return {}
+
+        if isinstance(raw_arguments, dict):
+            return copy.deepcopy(raw_arguments)
+
+        if hasattr(raw_arguments, "model_dump"):
+            try:
+                dumped = raw_arguments.model_dump()
+                if isinstance(dumped, dict):
+                    return dumped
+            except Exception:
+                pass
+        if hasattr(raw_arguments, "dict"):
+            try:
+                dumped = raw_arguments.dict()
+                if isinstance(dumped, dict):
+                    return dumped
+            except Exception:
+                pass
+
+        if isinstance(raw_arguments, str):
+            payload = raw_arguments.strip()
+            if not payload:
+                return {}
+            try:
+                decoded = json.loads(payload)
+            except json.JSONDecodeError as exc:
+                raise LLMAPIError(
+                    f"{invalid_response_message}: invalid tool arguments JSON ({exc.msg})",
+                    model=model,
+                ) from exc
+            if not isinstance(decoded, dict):
+                raise LLMAPIError(
+                    f"{invalid_response_message}: tool arguments must decode to object",
+                    model=model,
+                )
+            return decoded
+
+        raise LLMAPIError(
+            f"{invalid_response_message}: unsupported tool arguments type {type(raw_arguments).__name__}",
+            model=model,
+        )
+
+    @staticmethod
+    def _get_value(source: Any, key: str) -> Any:
+        """Get value from dict-like or object-like sources."""
+        if source is None:
+            return None
+        if isinstance(source, dict):
+            return source.get(key)
+        return getattr(source, key, None)
+
+    @staticmethod
+    def _delta_contains_tool_calls(delta: Any) -> bool:
+        """Best-effort detection for streaming tool-call deltas."""
+        tool_calls = LLMProvider._get_value(delta, "tool_calls")
+        if tool_calls:
+            return True
+        if LLMProvider._get_value(delta, "function_call"):
+            return True
+
+        content = LLMProvider._get_value(delta, "content")
+        if isinstance(content, list):
+            for block in content:
+                if LLMProvider._get_value(block, "type") == "tool_use":
+                    return True
+        return False
 
     @staticmethod
     def _extract_tagged_thinking_from_content(delta: Any) -> Optional[str]:

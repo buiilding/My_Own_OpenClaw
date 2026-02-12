@@ -72,7 +72,15 @@ def test_extract_xml_tag_content_returns_stripped_inner_text():
 
 
 def test_format_user_message_content_adds_tool_schemas_only_for_first_message():
-    tool_schemas = [{"name": "read_file", "parameters": {"type": "object"}}]
+    tool_schemas = [
+        {
+            "type": "function",
+            "function": {
+                "name": "read_file",
+                "parameters": {"type": "object"},
+            },
+        }
+    ]
     constructor = _make_constructor(tool_schemas)
 
     first_content = constructor.format_user_message_content(
@@ -96,8 +104,20 @@ def test_format_user_message_content_respects_allowlist_for_tool_schemas():
     constructor = PromptConstructor(
         tool_registry=DummyRegistry(
             [
-                {"name": "read_file", "parameters": {"type": "object"}},
-                {"name": "secret_tool", "parameters": {"type": "object"}},
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "read_file",
+                        "parameters": {"type": "object"},
+                    },
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "secret_tool",
+                        "parameters": {"type": "object"},
+                    },
+                },
             ]
         ),
         config=AppConfig(interaction_mode="chat"),
@@ -106,7 +126,7 @@ def test_format_user_message_content_respects_allowlist_for_tool_schemas():
 
     _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
 
-    assert [schema["name"] for schema in schemas] == ["read_file"]
+    assert [schema["function"]["name"] for schema in schemas] == ["read_file"]
 
 
 def test_format_user_message_content_filters_mouse_coordinate_methods(
@@ -135,7 +155,7 @@ def test_format_user_message_content_filters_mouse_coordinate_methods(
     _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
     mouse_schema = schemas[0]
 
-    args_props = mouse_schema["parameters"]["properties"]
+    args_props = mouse_schema["function"]["parameters"]["properties"]
     method_schema = args_props["find_coordinates_by"]
 
     assert method_schema["enum"] == ["manual"]
@@ -147,7 +167,17 @@ def test_format_user_message_content_filters_mouse_coordinate_methods(
 
 
 def test_build_prompt_populates_user_message_metadata_from_history():
-    constructor = _make_constructor([{"name": "read_file", "parameters": {"type": "object"}}])
+    constructor = _make_constructor(
+        [
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_file",
+                    "parameters": {"type": "object"},
+                },
+            }
+        ]
+    )
     history = DummyHistory(
         history=[
             {
@@ -165,7 +195,15 @@ def test_build_prompt_populates_user_message_metadata_from_history():
     prompt_messages, tool_schemas, metadata = constructor.build_prompt(history, include_tools=True)
 
     assert prompt_messages == history.get_history()
-    assert tool_schemas == [{"name": "read_file", "parameters": {"type": "object"}}]
+    assert tool_schemas == [
+        {
+            "type": "function",
+            "function": {
+                "name": "read_file",
+                "parameters": {"type": "object"},
+            },
+        }
+    ]
     assert metadata.user_message_metadata is not None
     assert metadata.user_message_metadata.original_query == "open file"
     assert metadata.user_message_metadata.context_type == "initial"

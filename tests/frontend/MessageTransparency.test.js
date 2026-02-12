@@ -9,7 +9,7 @@ describe('messageTransparency utils', () => {
     const metadata = { user_id: 'user-1' };
     const sections = buildTransparencySectionConfigs({
       systemPrompt: { content: 'prompt text' },
-      toolSchemas: { tools: [{ name: 'read_file' }] },
+      toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
       fullUserMessage: { content: '<message/>', metadata },
       fullAssistantMessage: { content: 'assistant full output' },
     });
@@ -25,7 +25,7 @@ describe('messageTransparency utils', () => {
       {
         key: 'tool-schemas',
         title: 'Tool Schemas (Available Tools - Embedded in Initial User Message)',
-        content: { tools: [{ name: 'read_file' }] },
+        content: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
         type: 'json',
       },
       {
@@ -60,5 +60,13 @@ describe('messageTransparency utils', () => {
         type: 'xml',
       },
     ]);
+  });
+
+  test('drops tool schemas section for non-canonical payload', () => {
+    const sections = buildTransparencySectionConfigs({
+      toolSchemas: ['not-canonical'],
+    });
+
+    expect(sections).toEqual([]);
   });
 });

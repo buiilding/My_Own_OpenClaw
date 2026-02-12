@@ -337,7 +337,14 @@ class MockLLMBrowserClient(LLMClient):
         self._max_iterations = len(BROWSER_SIMULATION_RESPONSES)
         logger.info(f"MockLLMBrowserClient initialized with {self._max_iterations} hardcoded responses")
     
-    async def get_completion(self, model: str, messages: List[LLMMessage]) -> str:
+    async def get_completion(
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ) -> str:
         """
         Get a non-streaming completion.
         
@@ -358,7 +365,12 @@ class MockLLMBrowserClient(LLMClient):
         return response
     
     async def get_completion_stream(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Get a streaming completion (used by InteractionLoop).

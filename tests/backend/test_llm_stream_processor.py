@@ -38,7 +38,14 @@ class _FakeLLMClient:
     def __init__(self):
         self._turn = 0
 
-    async def get_completion_stream(self, model, messages):
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
         self._turn += 1
         yield ChunkEvent(content=f"resp-{self._turn}")
 
@@ -67,7 +74,14 @@ class _FakeLLMClient:
 
 
 class _UnsupportedEventLLMClient:
-    async def get_completion_stream(self, model, messages):
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
         yield {"event": "unsupported"}
 
     def get_last_stream_cache_diagnostics(self):

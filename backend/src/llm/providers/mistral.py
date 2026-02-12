@@ -1,5 +1,5 @@
 import logging
-from typing import AsyncGenerator, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import litellm
 
@@ -30,9 +30,20 @@ class MistralProvider(LLMProvider):
             raise ValueError("MistralProvider requires an 'api_key'.")
 
     async def get_completion(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> NormalizedLLMResponse:
-        params = self._build_request_params(model, messages)
+        params = self._build_request_params(
+            model,
+            messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+        )
         return await self._get_completion_with_standard_errors(
             provider_label="Mistral",
             model=model,
@@ -40,10 +51,21 @@ class MistralProvider(LLMProvider):
         )
 
     async def _stream_internal(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Internal streaming implementation. Exceptions bubble up to base class."""
-        params = self._build_request_params(model, messages)
+        params = self._build_request_params(
+            model,
+            messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+        )
         params["stream"] = True
         params["stream_options"] = {"include_usage": True}
         stream = await litellm.acompletion(**params)

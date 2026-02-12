@@ -225,6 +225,106 @@ def test_count_tokens_strips_whitespace_from_object_role(monkeypatch):
     assert captured["messages"] == [{"role": "assistant", "content": "hello"}]
 
 
+def test_count_tokens_normalizes_internal_assistant_tool_calls_for_litellm(monkeypatch):
+    captured = {}
+
+    def fake_counter(*, model, messages, use_default_image_token_count):
+        captured["messages"] = messages
+        return 9
+
+    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+
+    token_count = TokenService.count_tokens(
+        [
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "tool_abc123",
+                        "name": "run_shell_command",
+                        "arguments": {
+                            "command": "ls -la",
+                            "explanation": "List the current directory",
+                            "run_in_background": False,
+                        },
+                    }
+                ],
+            }
+        ],
+        model="gpt-4o-mini",
+    )
+
+    assert token_count == 9
+    assert captured["messages"] == [
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "tool_abc123",
+                    "type": "function",
+                    "function": {
+                        "name": "run_shell_command",
+                        "arguments": (
+                            '{"command":"ls -la","explanation":"List the current directory",'
+                            '"run_in_background":false}'
+                        ),
+                    },
+                }
+            ],
+        }
+    ]
+
+
+def test_count_tokens_stringifies_canonical_assistant_tool_call_arguments(monkeypatch):
+    captured = {}
+
+    def fake_counter(*, model, messages, use_default_image_token_count):
+        captured["messages"] = messages
+        return 4
+
+    monkeypatch.setattr(litellm, "token_counter", fake_counter)
+
+    token_count = TokenService.count_tokens(
+        [
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "tool_xyz",
+                        "type": "function",
+                        "function": {
+                            "name": "read_file",
+                            "arguments": {"file_path": "/tmp/a.txt"},
+                        },
+                    }
+                ],
+            }
+        ],
+        model="gpt-4o-mini",
+    )
+
+    assert token_count == 4
+    assert captured["messages"] == [
+        {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "tool_xyz",
+                    "type": "function",
+                    "function": {
+                        "name": "read_file",
+                        "arguments": '{"file_path":"/tmp/a.txt"}',
+                    },
+                }
+            ],
+        }
+    ]
+
+
 def test_get_token_service_singleton_thread_safe(monkeypatch):
     creation_count = {"value": 0}
     barrier = threading.Barrier(16)

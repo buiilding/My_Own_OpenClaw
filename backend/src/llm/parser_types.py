@@ -11,7 +11,7 @@ class ParsedToolCall:
 
     tool_name: str
     parameters: Dict[str, Any]
-    raw_call: str
+    raw_call: str = ""
     confidence: float = 1.0  # 0.0 to 1.0, how confident we are in this parse
     metadata: Optional[Dict[str, Any]] = None  # Metadata for computer-use tools
 

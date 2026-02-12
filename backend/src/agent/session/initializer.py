@@ -7,7 +7,6 @@ from backend.src.agent.session.state import ConversationHistory
 from backend.src.agent.tools.waiting import ToolResultHandler
 from backend.src.core.infrastructure.bus import EventBus
 from backend.src.core.events.bus_events import InteractionCompleted
-from backend.src.llm.parser import ResponseParser
 from backend.src.llm.prompts import PromptConstructor
 from backend.src.tools.registry import ToolRegistry
 
@@ -28,10 +27,7 @@ def init_tooling(
         session.tool_orchestrator = tool_orchestrator
 
 
-def init_parsing_and_prompt(session, metrics_service: Optional[Any]) -> None:
-    session.response_parser = ResponseParser(
-        session.cfg, session.tool_registry, metrics_service=metrics_service
-    )
+def init_prompt_and_history(session, metrics_service: Optional[Any]) -> None:
     session.prompt_builder = PromptConstructor(
         session.tool_registry, session.cfg, metrics_service=metrics_service
     )
@@ -60,7 +56,6 @@ def init_executor(session, ocr_service) -> None:
         llm_client=session.llm_client,
         tool_orchestrator=session.tool_orchestrator,
         prompt_constructor=session.prompt_builder,
-        response_parser=session.response_parser,
         ocr_service=ocr_service,
         event_bus=session.event_bus,
     )

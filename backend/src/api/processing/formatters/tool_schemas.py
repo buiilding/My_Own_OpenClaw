@@ -11,10 +11,14 @@ class ToolSchemasEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        tool_schemas = event_dict.get("tool_schemas")
+        if not isinstance(tool_schemas, list):
+            raise ValueError("tool_schemas event payload must be a canonical tool object list")
+
         return {
             "type": OutgoingMessageType.TOOL_SCHEMAS,
             "id": msg_id,
             "payload": {
-                "tool_schemas": event_dict.get("tool_schemas"),
+                "tool_schemas": tool_schemas,
             },
         }

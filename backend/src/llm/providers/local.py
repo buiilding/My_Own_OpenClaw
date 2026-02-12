@@ -2,7 +2,7 @@ import asyncio
 import logging
 import weakref
 from abc import abstractmethod
-from typing import AsyncGenerator, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import httpx
 import litellm
@@ -130,9 +130,20 @@ class LocalLLMProvider(LLMProvider):
                 logger.debug(f"Error running HTTP client cleanup: {e}")
 
     async def get_completion(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> NormalizedLLMResponse:
-        params = self._build_request_params(model, messages)
+        params = self._build_request_params(
+            model,
+            messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+        )
         return await self._get_completion_with_standard_errors(
             provider_label=self._provider_name(),
             model=model,
@@ -140,13 +151,24 @@ class LocalLLMProvider(LLMProvider):
         )
 
     async def _stream_internal(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Internal streaming implementation for local providers.
         Exceptions bubble up to base class for uniform error handling.
         """
-        params = self._build_request_params(model, messages)
+        params = self._build_request_params(
+            model,
+            messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+        )
         params["stream"] = True
         params["stream_options"] = {"include_usage": True}
         stream = await litellm.acompletion(**params)
@@ -222,8 +244,21 @@ class LocalLLMProvider(LLMProvider):
             logger.warning(f"Error listing {provider_label} models: {e}")
             return []
 
-    def _build_request_params(self, model: str, messages: List[LLMMessage]) -> dict:
-        params = super()._build_request_params(model, messages)
+    def _build_request_params(
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
+    ) -> dict:
+        params = super()._build_request_params(
+            model,
+            messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+        )
         # Local models often need to be told they are compatible with OpenAI's API
         params["custom_llm_provider"] = "openai"
         if not params.get("api_key"):

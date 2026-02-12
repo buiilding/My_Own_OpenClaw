@@ -19,10 +19,24 @@ class MockProvider(LLMProvider):
     def _validate_dependencies(self) -> None:
         pass
     
-    async def get_completion(self, model, messages):
+    async def get_completion(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
         return {"content": "test", "tool_calls": None}
     
-    async def _stream_internal(self, model, messages):
+    async def _stream_internal(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
         yield ChunkEvent(content="Hello")
         yield StreamingCompleteEvent()
     
@@ -115,6 +129,138 @@ class TestBuildRequestParams:
     def test_build_raises_on_non_list_messages(self, provider):
         with pytest.raises(TypeError, match="messages must be list"):
             provider._build_request_params("gpt-4", {"role": "user", "content": "Hello"})
+
+    def test_build_includes_native_tool_calling_params(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_file",
+                    "parameters": {"type": "object"},
+                },
+            }
+        ]
+        params = provider._build_request_params(
+            "gpt-4",
+            messages,
+            tools=tools,
+            tool_choice="auto",
+            parallel_tool_calls=True,
+        )
+
+        assert params["tools"] == tools
+        assert params["tool_choice"] == "auto"
+        assert params["parallel_tool_calls"] is True
+
+    def test_build_rejects_legacy_top_level_tool_schema(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = [
+            {
+                "name": "read_file",
+                "description": "Read file contents",
+                "parameters": {"type": "object", "properties": {"path": {"type": "string"}}},
+            }
+        ]
+
+        with pytest.raises(LLMAPIError, match="field 'type' must be 'function'"):
+            provider._build_request_params("gpt-4", messages, tools=tools)
+
+    def test_build_rejects_non_object_tool_entry(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = ["invalid-tool"]
+
+        with pytest.raises(LLMAPIError, match="expected object"):
+            provider._build_request_params("gpt-4", messages, tools=tools)
+
+    def test_build_rejects_missing_function_object(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = [{"type": "function"}]
+
+        with pytest.raises(LLMAPIError, match="missing or invalid 'function' object"):
+            provider._build_request_params("gpt-4", messages, tools=tools)
+
+    def test_build_rejects_missing_function_parameters(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = [{"type": "function", "function": {"name": "read_file"}}]
+
+        with pytest.raises(LLMAPIError, match="function.parameters is required"):
+            provider._build_request_params("gpt-4", messages, tools=tools)
+
+    def test_build_rejects_non_object_function_parameters(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_file",
+                    "parameters": "not-an-object",
+                },
+            }
+        ]
+
+        with pytest.raises(LLMAPIError, match="function.parameters must be an object"):
+            provider._build_request_params("gpt-4", messages, tools=tools)
+
+    def test_build_normalizes_assistant_tool_calls_to_openai_shape(self, provider):
+        messages = [
+            {"role": "user", "content": "List files"},
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_1",
+                        "name": "run_shell_command",
+                        "arguments": {"command": "ls -la"},
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "tool_call_id": "call_1",
+                "content": "total 0",
+            },
+        ]
+
+        params = provider._build_request_params("gpt-4", messages)
+        assistant_tool_calls = params["messages"][1]["tool_calls"]
+        assert assistant_tool_calls == [
+            {
+                "id": "call_1",
+                "type": "function",
+                "function": {
+                    "name": "run_shell_command",
+                    "arguments": "{\"command\":\"ls -la\"}",
+                },
+            }
+        ]
+        assert params["messages"][2]["tool_call_id"] == "call_1"
+
+    def test_build_drops_orphan_tool_messages_without_matching_tool_call_id(self, provider):
+        messages = [
+            {"role": "user", "content": "List files"},
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_1",
+                        "name": "run_shell_command",
+                        "arguments": {"command": "ls -la"},
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "tool_call_id": "missing_call",
+                "content": "orphan",
+            },
+        ]
+
+        params = provider._build_request_params("gpt-4", messages)
+        assert len(params["messages"]) == 2
+        assert params["messages"][-1]["role"] == "assistant"
 
 
 class TestExtractThinkingContent:
@@ -382,6 +528,110 @@ class TestCompletionContentHelpers:
             )
 
 
+class TestCompletionResponseHelpers:
+    @pytest.fixture
+    def provider(self):
+        return MockProvider()
+
+    def test_extract_completion_response_parses_openai_style_tool_calls(self, provider):
+        response = SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    finish_reason="tool_calls",
+                    message=SimpleNamespace(
+                        content=None,
+                        tool_calls=[
+                            SimpleNamespace(
+                                id="call_1",
+                                function=SimpleNamespace(
+                                    name="read_file",
+                                    arguments='{"path":"/tmp/demo.txt"}',
+                                ),
+                            )
+                        ],
+                    ),
+                )
+            ]
+        )
+
+        normalized = provider._extract_completion_response(
+            response,
+            model="model",
+            invalid_response_message="Invalid response",
+        )
+
+        assert normalized["content"] == ""
+        assert normalized["finish_reason"] == "tool_calls"
+        assert normalized["tool_calls"] == [
+            {
+                "id": "call_1",
+                "name": "read_file",
+                "arguments": {"path": "/tmp/demo.txt"},
+            }
+        ]
+
+    def test_extract_completion_response_parses_anthropic_tool_use_blocks(self, provider):
+        response = SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(
+                        content=[
+                            {"type": "text", "text": "Running tool"},
+                            {
+                                "type": "tool_use",
+                                "id": "toolu_1",
+                                "name": "read_file",
+                                "input": {"path": "/tmp/demo.txt"},
+                            },
+                        ]
+                    )
+                )
+            ]
+        )
+
+        normalized = provider._extract_completion_response(
+            response,
+            model="model",
+            invalid_response_message="Invalid response",
+        )
+
+        assert normalized["content"] == "Running tool"
+        assert normalized["tool_calls"] == [
+            {
+                "id": "toolu_1",
+                "name": "read_file",
+                "arguments": {"path": "/tmp/demo.txt"},
+            }
+        ]
+
+    def test_extract_completion_response_raises_on_invalid_tool_arguments_json(self, provider):
+        response = SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(
+                        content=None,
+                        tool_calls=[
+                            SimpleNamespace(
+                                id="call_1",
+                                function=SimpleNamespace(
+                                    name="read_file",
+                                    arguments="{bad json}",
+                                ),
+                            )
+                        ],
+                    )
+                )
+            ]
+        )
+
+        with pytest.raises(LLMAPIError, match="invalid tool arguments JSON"):
+            provider._extract_completion_response(
+                response,
+                model="model",
+                invalid_response_message="Invalid response",
+            )
+
+
 class TestGetCompletionStream:
     """Tests for get_completion_stream method."""
 
@@ -405,7 +655,14 @@ class TestGetCompletionStream:
         import litellm
         
         class ErrorProvider(MockProvider):
-            async def _stream_internal(self, model, messages):
+            async def _stream_internal(
+                self,
+                model,
+                messages,
+                tools=None,
+                tool_choice=None,
+                parallel_tool_calls=None,
+            ):
                 # Must raise immediately before any yield
                 raise litellm.RateLimitError(
                     message="Rate limit exceeded",
@@ -430,7 +687,14 @@ class TestGetCompletionStream:
         import litellm
         
         class ErrorProvider(MockProvider):
-            async def _stream_internal(self, model, messages):
+            async def _stream_internal(
+                self,
+                model,
+                messages,
+                tools=None,
+                tool_choice=None,
+                parallel_tool_calls=None,
+            ):
                 raise litellm.APIError(
                     message="API error",
                     llm_provider="test",
@@ -452,7 +716,14 @@ class TestGetCompletionStream:
     async def test_stream_handles_generic_error(self):
         """Test that generic errors are converted to ErrorEvent."""
         class ErrorProvider(MockProvider):
-            async def _stream_internal(self, model, messages):
+            async def _stream_internal(
+                self,
+                model,
+                messages,
+                tools=None,
+                tool_choice=None,
+                parallel_tool_calls=None,
+            ):
                 raise ValueError("Generic error")
                 yield ChunkEvent(content="")  # pragma: no cover
         

@@ -21,11 +21,15 @@ class DummyProvider:
             "reason": "provider_usage_unavailable",
         }
         self.clear_usage_called = False
+        self.last_completion_kwargs = None
+        self.last_stream_kwargs = None
 
-    async def get_completion(self, model, messages):
+    async def get_completion(self, model, messages, **kwargs):
+        self.last_completion_kwargs = kwargs
         return self.response
 
-    async def get_completion_stream(self, model, messages):
+    async def get_completion_stream(self, model, messages, **kwargs):
+        self.last_stream_kwargs = kwargs
         for event in self.stream_events:
             yield event
 
@@ -39,10 +43,10 @@ class DummyProvider:
 
 
 class FailingStreamProvider:
-    async def get_completion(self, model, messages):
+    async def get_completion(self, model, messages, **kwargs):
         return {"content": "ok"}
 
-    async def get_completion_stream(self, model, messages):
+    async def get_completion_stream(self, model, messages, **kwargs):
         raise RuntimeError("stream exploded")
         yield ChunkEvent(content="never")  # pragma: no cover
 
@@ -104,6 +108,17 @@ async def test_get_completion_non_string_content(monkeypatch):
 
     with pytest.raises(LLMAPIError):
         await client.get_completion("model", [])
+
+
+@pytest.mark.asyncio
+async def test_get_completion_response_normalizes_none_content(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(response={"content": None})
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    result = await client.get_completion_response("model", [])
+    assert result["content"] == ""
 
 
 @pytest.mark.asyncio
@@ -228,3 +243,98 @@ async def test_get_completion_stream_handles_iteration_error(monkeypatch):
     assert len(events) == 1
     assert isinstance(events[0], ErrorEvent)
     assert "LLM streaming error" in events[0].content
+
+
+@pytest.mark.asyncio
+async def test_get_completion_response_forwards_native_tool_calling_params(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(response={"content": "", "tool_calls": []})
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    tools = [{"type": "function", "function": {"name": "read_file", "parameters": {"type": "object"}}}]
+    _ = await client.get_completion_response(
+        "model",
+        [],
+        tools=tools,
+        tool_choice="auto",
+        parallel_tool_calls=True,
+    )
+
+    assert provider.last_completion_kwargs == {
+        "tools": tools,
+        "tool_choice": "auto",
+        "parallel_tool_calls": True,
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_completion_response_normalizes_tool_calls(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(
+        response={
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_1",
+                    "name": "read_file",
+                    "arguments": {"path": "/tmp/a.txt"},
+                }
+            ],
+            "finish_reason": "tool_calls",
+        }
+    )
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    result = await client.get_completion_response("model", [])
+
+    assert result["content"] == ""
+    assert result["tool_calls"][0]["id"] == "call_1"
+    assert result["tool_calls"][0]["name"] == "read_file"
+    assert result["tool_calls"][0]["arguments"]["path"] == "/tmp/a.txt"
+    assert result["finish_reason"] == "tool_calls"
+
+
+@pytest.mark.asyncio
+async def test_native_tool_calling_params_and_tool_calls_always_preserved(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(
+        response={
+            "content": "",
+            "tool_calls": [{"id": "call_1", "name": "read_file", "arguments": {}}],
+        },
+        stream_events=[ChunkEvent(content="ok")],
+    )
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    response = await client.get_completion_response(
+        "model",
+        [],
+        tools=[{"type": "function", "function": {"name": "read_file"}}],
+        tool_choice="required",
+        parallel_tool_calls=True,
+    )
+    _ = [
+        event
+        async for event in client.get_completion_stream(
+            "model",
+            [],
+            tools=[{"type": "function", "function": {"name": "read_file"}}],
+            tool_choice="required",
+            parallel_tool_calls=True,
+        )
+    ]
+
+    assert provider.last_completion_kwargs == {
+        "tools": [{"type": "function", "function": {"name": "read_file"}}],
+        "tool_choice": "required",
+        "parallel_tool_calls": True,
+    }
+    assert provider.last_stream_kwargs == {
+        "tools": [{"type": "function", "function": {"name": "read_file"}}],
+        "tool_choice": "required",
+        "parallel_tool_calls": True,
+    }
+    assert response["tool_calls"] == [{"id": "call_1", "name": "read_file", "arguments": {}}]

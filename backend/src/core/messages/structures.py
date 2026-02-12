@@ -34,6 +34,9 @@ class StoredMessage:
     episodic_memory: Optional[List[str]] = None
     semantic_memory: Optional[List[str]] = None
     injected_context: Optional[str] = None
+    tool_calls: Optional[List[Dict[str, Any]]] = None
+    tool_call_id: Optional[str] = None
+    tool_name: Optional[str] = None
     
     def to_llm_message(self) -> LLMMessage:
         """
@@ -48,6 +51,26 @@ class StoredMessage:
             If image_data exists, returns multimodal content with text and image.
             Otherwise, returns simple text content.
         """
+        if self.role == MessageRole.ASSISTANT and self.tool_calls:
+            assistant_message: Dict[str, Any] = {
+                "role": self.role.value,
+                "content": self.content,
+                "tool_calls": self._normalize_tool_calls(self.tool_calls),
+            }
+            if self.tool_name:
+                assistant_message["name"] = self.tool_name
+            return assistant_message
+
+        if self.role == MessageRole.TOOL:
+            tool_message: Dict[str, Any] = {
+                "role": self.role.value,
+                "content": self.content,
+                "tool_call_id": self.tool_call_id or "unknown_tool_call",
+            }
+            if self.tool_name:
+                tool_message["name"] = self.tool_name
+            return tool_message
+
         if self.image_data:
             # Convert to multimodal format - screenshots are included here
             if not self.image_data.startswith("data:image/"):
@@ -70,6 +93,33 @@ class StoredMessage:
                 "role": self.role.value,
                 "content": self.content
             }
+
+    @staticmethod
+    def _normalize_tool_calls(
+        tool_calls: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Normalize assistant tool_calls payload for history serialization."""
+        normalized_calls: List[Dict[str, Any]] = []
+        for index, call in enumerate(tool_calls):
+            if not isinstance(call, dict):
+                continue
+            call_id = call.get("id")
+            if not isinstance(call_id, str) or not call_id:
+                call_id = f"tool_call_{index}"
+            name = call.get("name")
+            if not isinstance(name, str) or not name:
+                name = "unknown_tool"
+            arguments = call.get("arguments")
+            if not isinstance(arguments, dict):
+                arguments = {}
+            normalized_calls.append(
+                {
+                    "id": call_id,
+                    "name": name,
+                    "arguments": dict(arguments),
+                }
+            )
+        return normalized_calls
 
 
 class MessageContent(ABC):

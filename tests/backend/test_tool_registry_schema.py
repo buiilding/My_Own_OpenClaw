@@ -34,17 +34,21 @@ class DummyComputerTool(DummyTool):
 def test_tool_schema_standard_format():
     tool = DummyTool()
     schema = tool.get_json_schema()
-    assert schema["name"] == "dummy_tool"
-    assert schema["description"] == "Dummy tool"
-    assert "parameters" in schema
-    assert "metadata" not in schema.get("parameters", {})
+    assert schema["type"] == "function"
+    function_schema = schema["function"]
+    assert function_schema["name"] == "dummy_tool"
+    assert function_schema["description"] == "Dummy tool"
+    assert "parameters" in function_schema
+    assert "metadata" not in function_schema.get("parameters", {})
 
 
 def test_tool_schema_computer_format_native():
     tool = DummyComputerTool()
     schema = tool.get_json_schema()
-    assert schema["name"] == "dummy_computer"
-    params = schema["parameters"]
+    assert schema["type"] == "function"
+    function_schema = schema["function"]
+    assert function_schema["name"] == "dummy_computer"
+    params = function_schema["parameters"]
     assert "metadata" not in params.get("properties", {})
     assert "action" not in params.get("properties", {})
     assert params["properties"]["path"]["type"] == "string"
@@ -90,7 +94,7 @@ def test_tool_registry_declarations_and_capabilities():
 
     declarations = registry.get_function_declarations_filtered(["dummy_tool"])
     assert len(declarations) == 1
-    assert declarations[0]["name"] == "dummy_tool"
+    assert declarations[0]["function"]["name"] == "dummy_tool"
 
     capabilities = registry.get_tool_capabilities("dummy_tool")
     assert capabilities is not None

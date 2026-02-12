@@ -53,7 +53,7 @@ def _xml_tag_pattern(tag_name: str) -> re.Pattern[str]:
 
 class PromptConstructor:
     """
-    Constructs prompts for LLM interactions, including system prompts, tool schemas, and images.
+    Constructs prompts for LLM interactions, including system prompts and tool schemas.
     
     SECURITY: This is a trust boundary. All inputs are validated with size limits.
     Violations raise hard errors.
@@ -116,12 +116,12 @@ class PromptConstructor:
         - Total prompt size limits (max_prompt_size)
 
         Gets conversation history and returns tool schemas for transparency.
-        Tool schemas are embedded in the first user message, not passed as a
-        separate LLM API parameter.
+        Tool schemas are returned separately so callers can pass them through
+        native LLM API tool-calling parameters.
 
         Args:
             stored_messages: ConversationHistory instance - provides conversation history
-            include_tools: Whether to include tool schemas (always True)
+            include_tools: Whether to include tool schemas in metadata + API params
 
         Returns:
             Tuple of (List of LLMMessage dicts ready to send to LLM,
@@ -315,11 +315,10 @@ class PromptConstructor:
         is_first_message: bool,
     ) -> str:
         """
-        Format user message content with tool schemas if needed.
-        
+        Format user message content.
+
         This method handles the formatting logic for user messages, including:
         - Fallback formatting when message_content is not provided
-        - Adding tool schemas to the first message only
         
         Args:
             message_content: Complete message content from frontend (system state + memories + query)
@@ -338,11 +337,6 @@ class PromptConstructor:
             logger.warning("No message content provided by frontend, using query only")
             final_content = f"<user_query>\n{query}\n</user_query>"
         
-        # Add tool schemas to first message only
-        if is_first_message:
-            tool_schemas = self._get_filtered_tool_schemas()
-            if tool_schemas:
-                tool_schemas_json = json.dumps(tool_schemas, indent=2)
-                final_content = f"{final_content}\n\n<tool_schemas>\n{tool_schemas_json}\n</tool_schemas>"
-        
+        # Tool schemas are passed via native API params, not embedded in user content.
+        _ = is_first_message
         return final_content

@@ -15,7 +15,7 @@ from backend.src.agent.session.initializer import (
     init_event_bus,
     init_executor,
     init_identity,
-    init_parsing_and_prompt,
+    init_prompt_and_history,
     init_session_state,
     init_tool_result_handler,
     init_tooling,
@@ -94,7 +94,7 @@ class AgentSession:
         self._lock = asyncio.Lock()
 
         init_tooling(self, tool_registry, tool_orchestrator)
-        init_parsing_and_prompt(self, metrics_service)
+        init_prompt_and_history(self, metrics_service)
         init_identity(self, user_id, session_id)
         init_event_bus(self, event_bus)
         self.ocr_service = ocr_service

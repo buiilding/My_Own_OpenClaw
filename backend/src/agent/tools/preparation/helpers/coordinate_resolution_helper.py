@@ -14,7 +14,7 @@ from backend.src.core.types.enums import CoordinateFindingMethod
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
     from backend.src.core.interfaces.vision import IVisionService
-    from backend.src.llm.parser import ParsedToolCall
+    from backend.src.llm.parser_types import ParsedToolCall
 
 logger = logging.getLogger(__name__)
 

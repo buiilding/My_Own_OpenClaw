@@ -15,7 +15,6 @@ async def test_agent_session_cleanup_clears_active_state_stores() -> None:
     session.session_id = "session-1"
     session.user_id = "user-1"
     session.event_bus = MagicMock()
-    session.response_parser = MagicMock()
     session.history = MagicMock()
     session.runtime = SessionRuntimeState()
     session.ocr_completion_event = session.runtime.ocr_completion_event
@@ -34,7 +33,6 @@ async def test_agent_session_cleanup_clears_active_state_stores() -> None:
         InteractionCompleted,
         session._on_interaction_completed,
     )
-    session.response_parser.shutdown.assert_called_once()
     session.history.clear.assert_called_once()
 
     assert session.get_screenshot() is None
@@ -56,7 +54,6 @@ async def test_agent_session_cleanup_cancels_tracked_background_tasks() -> None:
     session.session_id = "session-2"
     session.user_id = "user-2"
     session.event_bus = MagicMock()
-    session.response_parser = MagicMock()
     session.history = MagicMock()
     session.runtime = SessionRuntimeState()
     session.ocr_completion_event = session.runtime.ocr_completion_event

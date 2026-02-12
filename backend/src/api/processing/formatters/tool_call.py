@@ -18,7 +18,6 @@ class ToolCallEventFormatter(EventFormatter):
         # Validate required fields
         tool_name = event_dict.get("tool_name")
         parameters = event_dict.get("parameters")
-        raw_call = event_dict.get("raw_call")
 
         missing_fields = []
         if not tool_name:
@@ -27,8 +26,6 @@ class ToolCallEventFormatter(EventFormatter):
             missing_fields.append("parameters")
         elif not isinstance(parameters, dict):
             missing_fields.append("parameters(type)")
-        if not raw_call:
-            missing_fields.append("raw_call")
 
         if missing_fields:
             # Missing required fields - log warning and skip formatting
@@ -41,7 +38,6 @@ class ToolCallEventFormatter(EventFormatter):
         payload = {
             "tool_name": tool_name,
             "parameters": parameters,
-            "raw_call": raw_call,
         }
         # Include request_id if present (for remote tools to match results)
         if event_dict.get("request_id"):

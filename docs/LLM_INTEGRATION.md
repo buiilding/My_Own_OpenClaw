@@ -144,6 +144,61 @@ messages = [
 ]
 ```
 
+## Native Tool-Calling Contract
+
+Migration contract for backend-native SDK tool calling.
+
+### Canonical Tool Schema Object (Strict Replacement)
+
+Tool schemas now use one canonical provider-facing shape:
+
+```python
+{
+    "type": "function",
+    "function": {
+        "name": "tool_name",
+        "description": "Optional description",
+        "parameters": {...}  # JSON Schema object
+    }
+}
+```
+
+Legacy top-level tool schema shape (`{name, description, parameters}`) is removed from runtime-critical paths.
+
+Canonical shape is required in:
+- tool registry/schema production paths
+- LLM request params (`tools`, optional `tool_choice`, optional `parallel_tool_calls`)
+- transparency/event payloads that expose tool schemas
+- provider transport boundaries (validation + forwarding)
+
+### Normalized Completion Response
+
+`LiteLLMClient.get_completion_response()` returns:
+
+- `content: str`
+- `tool_calls?: List[{id: str, name: str, arguments: Dict[str, Any]}]`
+- `finish_reason?: str | None`
+
+Notes:
+- `content` is always present (`""` when provider omits text).
+- `tool_calls` is structured and validated before it leaves the client layer.
+- `get_completion()` remains backward-compatible and returns only `content`.
+
+### LLM Message Typing (History / Follow-up Turns)
+
+Canonical message union now supports:
+
+- `system` and `user` messages with text/multimodal content.
+- `assistant` messages with optional `tool_calls`.
+- `tool` role messages with `tool_call_id` + `content` for tool results.
+
+This enables follow-up turns that continue after tool execution without text-JSON parser coupling.
+
+### Cutover Rules
+
+- Native SDK tool-calling is always-on in runtime-critical paths.
+- Provider request/response behavior uses structured `tool_calls` only (no parser fallback path).
+
 ## Provider Details
 
 ### OpenAI
@@ -391,36 +446,57 @@ ThinkingEvent(content="reasoning")
 ErrorEvent(content="error message")
 ```
 
-## Tool Calling (Prompt-Embedded Schemas)
+## Tool Calling (Native API Tool Objects)
 
 ### Tool Schema Injection
 
-Tool schemas are embedded in the initial user message (as a `<tool_schemas>` XML section). They are not passed as a separate LLM API parameter.
+Tool schemas are passed to LiteLLM via request params:
+- `tools`
+- optional `tool_choice`
+- optional `parallel_tool_calls`
+
+Canonical schema shape:
+```json
+{
+  "type": "function",
+  "function": {
+    "name": "read_file",
+    "description": "Read file contents",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "file_path": { "type": "string" }
+      },
+      "required": ["file_path"]
+    }
+  }
+}
+```
 
 ### Tool Call Format
 
-The parser accepts two JSON formats:
-
-**Standard tools**:
-```json
-{ "functionCall": { "name": "read_file", "args": { "path": "/tmp/a.txt" } } }
-```
-
-**Computer-use tools (requires metadata)**:
+Provider responses are normalized to:
 ```json
 {
-  "metadata": { "description": "...", "explanation": "...", "expectation": "..." },
-  "action": { "functionCall": { "name": "mouse_control", "args": { "x": 10, "y": 20, "action": "click" } } }
+  "content": "",
+  "tool_calls": [
+    {
+      "id": "call_123",
+      "name": "read_file",
+      "arguments": { "file_path": "/tmp/a.txt" }
+    }
+  ],
+  "finish_reason": "tool_calls"
 }
 ```
 
 ### Tool Calling Flow
 
-1. LLM reads `<tool_schemas>` from the first user message.
-2. LLM generates tool calls
-3. Tools executed
-4. Results sent back to LLM
-5. LLM generates final response
+1. Backend sends canonical `tools[]` to provider.
+2. Provider returns structured tool calls.
+3. Backend executes tool orchestration path.
+4. Tool results are appended to history with `role=tool` + `tool_call_id`.
+5. LLM receives follow-up context and returns final response.
 
 ## Error Handling
 

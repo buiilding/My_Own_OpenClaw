@@ -6,11 +6,10 @@ Only responsible for loop control, sequencing, and termination decisions.
 All content, I/O, and presentation is delegated to specialized components.
 """
 import logging
-from typing import TYPE_CHECKING, AsyncGenerator
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List
 
 from backend.src.agent.execution.policies import (
     IterationPolicy,
-    ParseRecoveryPolicy,
     ToolExecutionPolicy,
 )
 from backend.src.core.events.streaming_events import (
@@ -18,11 +17,10 @@ from backend.src.core.events.streaming_events import (
     FullResponseEvent,
 )
 from backend.src.core.infrastructure.exceptions import (
-    InputSizeLimitError,
     LLMRateLimitError,
-    ParseTimeoutError,
-    ParseValidationError,
 )
+from backend.src.core.types.schemas import NormalizedLLMResponse
+from backend.src.llm.parser_types import ParsedResponse, ParsedToolCall
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -30,7 +28,6 @@ if TYPE_CHECKING:
     from backend.src.agent.llm.event_presenter import EventPresenter
     from backend.src.agent.llm.llm_stream_processor import LLMStreamProcessor
     from backend.src.agent.tools.orchestrator import ToolOrchestrator
-    from backend.src.llm.parser import ResponseParser
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +45,6 @@ class InteractionLoop:
         session: "AgentSession",
         prompt_coordinator: "ConversationContext",
         llm_handler: "LLMStreamProcessor",
-        response_parser: "ResponseParser",
         tool_executor: "ToolOrchestrator",
         event_presenter: "EventPresenter",
     ):
@@ -59,14 +55,12 @@ class InteractionLoop:
             session: Agent session for state access
             prompt_coordinator: Manages conversation context
             llm_handler: Processes LLM streaming and token counting
-            response_parser: Parses LLM responses
             tool_executor: Orchestrates tool execution
             event_presenter: Presents frontend events
         """
         self.session = session
         self.prompt_coordinator = prompt_coordinator
         self.llm_handler = llm_handler
-        self.response_parser = response_parser
         self.tool_executor = tool_executor
         self.event_presenter = event_presenter
 
@@ -80,7 +74,6 @@ class InteractionLoop:
         iteration_policy = IterationPolicy(
             max_iterations=self.session.cfg.max_agent_iterations
         )
-        parse_recovery = ParseRecoveryPolicy()
         tool_execution_policy = ToolExecutionPolicy()
 
         while iteration_policy.should_continue(iteration):
@@ -101,7 +94,10 @@ class InteractionLoop:
             # Step 2: Get LLM response (delegated to LLMInteractionHandler)
             llm_response_text = ""
             try:
-                async for event in self.llm_handler.get_response(prompt):
+                async for event in self.llm_handler.get_response(
+                    prompt,
+                    tools=tool_schemas,
+                ):
                     # Forward streaming events
                     yield event
 
@@ -121,27 +117,24 @@ class InteractionLoop:
                     yield event
                 return
 
-            # Step 3: Parse response (async, offloaded to thread pool)
-            try:
-                parsed_response = await self.response_parser.parse_response(llm_response_text)
-            except (ParseValidationError, ParseTimeoutError, InputSizeLimitError) as e:
-                async for event in self._handle_parse_validation_error(parse_recovery, e):
-                    yield event
-                continue
+            normalized_response = self.llm_handler.get_last_response_payload() or {
+                "content": llm_response_text
+            }
+            parsed_response = self._to_parsed_response(normalized_response)
+            llm_response_text = parsed_response.text_content
 
-            # Present assistant message event
-            async for event in self.event_presenter.present_assistant_message(
-                llm_response_text
-            ):
-                yield event
+            if llm_response_text:
+                async for event in self.event_presenter.present_assistant_message(
+                    llm_response_text
+                ):
+                    yield event
 
             # Step 4: Decision - final answer or tools?
             if not parsed_response.has_tool_calls:
                 # Final answer - update history and present completion
-                # Use llm_response_text for consistency (text_content should match when no tools)
                 self.session.history.add_assistant_message(llm_response_text)
                 async for event in self.event_presenter.present_completion(
-                    parsed_response.text_content
+                    llm_response_text
                 ):
                     yield event
                 return
@@ -157,7 +150,7 @@ class InteractionLoop:
                 # Treat as final answer (no tools)
                 self.session.history.add_assistant_message(llm_response_text)
                 async for event in self.event_presenter.present_completion(
-                    parsed_response.text_content or llm_response_text
+                    llm_response_text
                 ):
                     yield event
                 return
@@ -167,7 +160,10 @@ class InteractionLoop:
             iteration_policy.mark_tool_execution(iteration)
 
             # Add assistant message with tool calls to history (context is king!)
-            self.session.history.add_assistant_message(llm_response_text)
+            self.session.history.add_assistant_message(
+                llm_response_text,
+                tool_calls=self._to_history_tool_calls(parsed_response.tool_calls),
+            )
 
             # Execute tools (yields execution-time events)
             # BUNDLE EXECUTION FIX: Wait for bundle results before processing next response.
@@ -180,6 +176,11 @@ class InteractionLoop:
             try:
                 # Check if this is a bundle before executing
                 is_bundle = tool_execution_policy.is_bundle(len(parsed_response.tool_calls))
+                tool_call_ids = self._extract_tool_call_ids(parsed_response.tool_calls)
+                self.session.history.stage_tool_call_ids(
+                    tool_call_ids,
+                    consume_all_on_next_output=is_bundle,
+                )
                 
                 # Yield all resolution events (ToolBundleEvent or ToolCallEvent)
                 async for event in self.tool_executor.execute(parsed_response, self.session):
@@ -237,25 +238,80 @@ class InteractionLoop:
             yield event
         self.session.history.add_assistant_message(f"[System Error: {error_msg}]")
 
-    async def _handle_parse_validation_error(
-        self,
-        parse_recovery: ParseRecoveryPolicy,
-        error: Exception,
-    ) -> AsyncGenerator[AgentStreamingEvent, None]:
-        """Record parser-validation failures and notify frontend."""
-        logger.warning("Parser validation error: %s", error)
-
-        error_details = str(error)
-        validation_errors = getattr(error, "validation_errors", None)
-        if validation_errors:
-            error_details = "; ".join(validation_errors)
-
-        error_user_message = parse_recovery.build_validation_error_user_message(
-            error_details
+    def _to_parsed_response(
+        self, normalized_response: NormalizedLLMResponse
+    ) -> ParsedResponse:
+        """
+        Bridge native SDK tool calls into existing ParsedResponse-based tool pipeline.
+        """
+        content = normalized_response.get("content", "")
+        tool_calls_payload = normalized_response.get("tool_calls") or []
+        parsed_tool_calls = [
+            self._to_parsed_tool_call(tool_call) for tool_call in tool_calls_payload
+        ]
+        return ParsedResponse(
+            original_response=content,
+            text_content=content,
+            tool_calls=parsed_tool_calls,
+            has_tool_calls=len(parsed_tool_calls) > 0,
         )
-        self.session.history.add_user_message(error_user_message)
 
-        async for event in self.event_presenter.present_error(
-            f"Tool call format validation failed: {error_details}"
-        ):
-            yield event
+    def _to_parsed_tool_call(self, tool_call: Dict[str, Any]) -> ParsedToolCall:
+        """Normalize one native tool call into ParsedToolCall shape."""
+        normalized_tool_name = str(tool_call.get("name", "")).strip()
+        if not normalized_tool_name:
+            normalized_tool_name = "unknown_tool"
+
+        parameters = tool_call.get("arguments") or {}
+        if not isinstance(parameters, dict):
+            parameters = {}
+
+        metadata: Dict[str, Any] = {}
+        tool_call_id = tool_call.get("id")
+        if isinstance(tool_call_id, str) and tool_call_id:
+            metadata["tool_call_id"] = tool_call_id
+
+        metadata_payload = parameters.get("metadata")
+        if isinstance(metadata_payload, dict):
+            metadata.update(metadata_payload)
+        return ParsedToolCall(
+            tool_name=normalized_tool_name,
+            parameters=parameters,
+            metadata=metadata or None,
+        )
+
+    @staticmethod
+    def _to_history_tool_calls(
+        parsed_tool_calls: List[ParsedToolCall],
+    ) -> List[Dict[str, Any]]:
+        """Render parsed tool calls into assistant-history tool_calls format."""
+        history_calls: List[Dict[str, Any]] = []
+        for index, tool_call in enumerate(parsed_tool_calls):
+            tool_call_id = None
+            if isinstance(tool_call.metadata, dict):
+                candidate = tool_call.metadata.get("tool_call_id")
+                if isinstance(candidate, str) and candidate:
+                    tool_call_id = candidate
+            if tool_call_id is None:
+                tool_call_id = f"tool_call_{index}"
+
+            history_calls.append(
+                {
+                    "id": tool_call_id,
+                    "name": tool_call.tool_name,
+                    "arguments": dict(tool_call.parameters or {}),
+                }
+            )
+        return history_calls
+
+    @staticmethod
+    def _extract_tool_call_ids(parsed_tool_calls: List[ParsedToolCall]) -> List[str]:
+        """Collect tool-call ids in emission order for tool-result linkage."""
+        tool_call_ids: List[str] = []
+        for tool_call in parsed_tool_calls:
+            if not isinstance(tool_call.metadata, dict):
+                continue
+            candidate = tool_call.metadata.get("tool_call_id")
+            if isinstance(candidate, str) and candidate:
+                tool_call_ids.append(candidate)
+        return tool_call_ids
