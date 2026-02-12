@@ -97,7 +97,7 @@ class LLMStreamProcessor:
         )
 
         try:
-            if self._should_use_native_completion_path(tools):
+            if self._should_use_native_completion_path(tools, model_id):
                 response = await self._get_completion_response(
                     model_id=model_id,
                     prompt=prompt,
@@ -147,7 +147,23 @@ class LLMStreamProcessor:
                             f"{type(event).__name__}"
                         )
 
-                self._last_response_payload = {"content": full_text}
+                stream_payload_getter = getattr(
+                    self.llm_client,
+                    "get_last_stream_response_payload",
+                    None,
+                )
+                stream_payload = (
+                    stream_payload_getter()
+                    if callable(stream_payload_getter)
+                    else None
+                )
+                if isinstance(stream_payload, dict):
+                    normalized_stream_payload = dict(stream_payload)
+                    if not isinstance(normalized_stream_payload.get("content"), str):
+                        normalized_stream_payload["content"] = full_text
+                    self._last_response_payload = normalized_stream_payload
+                else:
+                    self._last_response_payload = {"content": full_text}
                 self._log_provider_cache_diagnostics(model_id, turn)
 
             yield FullResponseEvent(content=full_text)
@@ -190,10 +206,25 @@ class LLMStreamProcessor:
         return dict(self._last_response_payload)
 
     def _should_use_native_completion_path(
-        self, tools: Optional[List[Dict[str, Any]]]
+        self,
+        tools: Optional[List[Dict[str, Any]]],
+        model_id: str,
     ) -> bool:
-        """Use non-stream completion whenever tool schemas are provided."""
-        return bool(tools)
+        """
+        Use non-stream completion for tool turns except Kimi, which supports
+        streaming with tool calls and reasoning deltas.
+        """
+        return bool(tools) and not self._should_stream_with_tools(model_id)
+
+    def _should_stream_with_tools(self, model_id: str) -> bool:
+        """Kimi coding supports streaming tool-call + thinking deltas."""
+        provider_name = str(getattr(self.session.cfg, "model_provider", "")).strip().lower()
+        normalized_model_id = str(model_id).strip().lower()
+        if provider_name in {"kimi-coding", "kimi_coding"}:
+            return True
+        if normalized_model_id in {"k2p5", "kimi-for-coding"}:
+            return True
+        return normalized_model_id.startswith(("kimi-coding/", "kimi-code/"))
 
     async def _iter_completion_stream(
         self,

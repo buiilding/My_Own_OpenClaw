@@ -49,6 +49,7 @@ class LLMProvider(ABC):
         self.timeout = timeout
         self._last_stream_usage: Optional[Dict[str, Any]] = None
         self._last_usage: Optional[Dict[str, Any]] = None
+        self._last_stream_response_payload: Optional[NormalizedLLMResponse] = None
         self._validate_dependencies()
 
     @abstractmethod
@@ -177,6 +178,7 @@ class LLMProvider(ABC):
         """Reset stored usage payload for the next streaming request."""
         self._last_stream_usage = None
         self._last_usage = None
+        self._last_stream_response_payload = None
 
     def get_last_stream_usage(self) -> Optional[Dict[str, Any]]:
         """Return a copy of the last captured usage payload."""
@@ -189,6 +191,18 @@ class LLMProvider(ABC):
         if self._last_usage is None:
             return None
         return copy.deepcopy(self._last_usage)
+
+    def get_last_stream_response_payload(self) -> Optional[NormalizedLLMResponse]:
+        """Return normalized payload captured from the most recent streaming request."""
+        if self._last_stream_response_payload is None:
+            return None
+        return copy.deepcopy(self._last_stream_response_payload)
+
+    def _set_last_stream_response_payload(
+        self, payload: NormalizedLLMResponse
+    ) -> None:
+        """Store normalized stream payload for downstream tool-call handling."""
+        self._last_stream_response_payload = copy.deepcopy(payload)
 
     def get_stream_cache_diagnostics(self, model: str) -> Dict[str, Any]:
         """
