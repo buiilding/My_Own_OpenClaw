@@ -177,6 +177,10 @@ class AppConfig(BaseModel):
     llm_timeout: int = 300
     query_timeout: int = 600  # New field for query timeout
     debug_litellm: bool = False  # Enable LiteLLM debug logging
+    native_tool_calling_enabled: bool = Field(
+        default=True,
+        description="Enable native SDK/API tool-calling path (fallback toggle during migration)",
+    )
 
     # Provider Configurations
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
