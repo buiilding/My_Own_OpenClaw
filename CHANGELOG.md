@@ -39,6 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- test(frontend): suppress noisy Jest console output for `[Wakeword]`, `[DisplaySelection]`, and `[IPC Bridge]` prefixes in shared test setup
 - docs(prompts): mark native SDK tool-calling migration Agent 5 complete with full-gate validation results and final sequential hand-off notes
 - test(llm-native-tools): align backend prompt/schema tests with native tool-calling contracts (no <tool_schemas> prompt embedding, direct parameters shape)
 - refactor(agent-runtime): migrate interaction loop from parser-driven JSON extraction to native normalized tool-calls, bridge to existing tool orchestrator types, and persist assistant/tool-call history linkage for follow-up turns
