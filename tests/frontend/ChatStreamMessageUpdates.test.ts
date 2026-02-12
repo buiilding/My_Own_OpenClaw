@@ -60,9 +60,18 @@ describe('chatStreamMessageUpdates', () => {
   });
 
   test('payload update builders normalize missing or non-string content', () => {
+    expect(
+      buildSystemPromptUpdate({
+        content: 'prompt',
+        tool_schemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+      }),
+    ).toEqual({
+      content: 'prompt',
+      toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+    });
     expect(buildSystemPromptUpdate({ content: 'prompt', tool_schemas: ['a'] })).toEqual({
       content: 'prompt',
-      toolSchemas: ['a'],
+      toolSchemas: undefined,
     });
     expect(buildSystemPromptUpdate({ content: 5 as any })).toEqual({
       content: '',

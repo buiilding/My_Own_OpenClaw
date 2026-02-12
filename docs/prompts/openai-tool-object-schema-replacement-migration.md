@@ -414,7 +414,44 @@ Rewrite tests and remove legacy assertions that depend on old shape.
 
 ### Status
 
-- `PENDING`
+- `COMPLETE` on 2026-02-12.
+- Files changed:
+  - `tests/backend/test_tool_registry_schema.py`
+  - `tests/backend/test_tool_policy.py`
+  - `tests/backend/test_prompt_constructor_utils.py`
+  - `tests/backend/test_llm_provider_base.py`
+  - `tests/backend/test_outgoing_schema_contract.py`
+  - `tests/frontend/ChatStreamMessageUpdates.test.ts`
+  - `tests/frontend/MessageTransparency.test.js`
+  - `tests/frontend/ChatStreamThinkingStatus.test.tsx`
+  - `docs/prompts/openai-tool-object-schema-replacement-migration.md`
+- Behavior delta:
+  - Migrated legacy top-level schema assertions (`name`, `parameters`) to canonical OpenAI/LiteLLM tool-object assertions (`type=function`, nested `function.name/function.parameters`) across backend/frontend migration-owned tests.
+  - Replaced provider-base tests that expected legacy adapter behavior with strict validation tests for malformed tool objects:
+    - reject legacy top-level tool schema (missing `type`)
+    - reject non-object tool entries
+    - reject missing/invalid `function` object
+    - reject missing/non-object `function.parameters`
+  - Updated outgoing formatter contract tests to assert canonical tool-schema payload acceptance and non-list payload rejection.
+  - Updated chat-stream/transparency frontend tests to assert canonical tool-schema arrays and `undefined` behavior for non-canonical payloads.
+- Tests run + results:
+  - `./scripts/python-in-env backend pytest -q tests/backend/test_tool_registry_schema.py tests/backend/test_tool_policy.py tests/backend/test_prompt_constructor_utils.py tests/backend/test_llm_provider_base.py tests/backend/test_llm_client.py tests/backend/test_outgoing_schema_contract.py`
+  - Result: pass.
+  - `cd frontend && npm run test:ci -- tests/frontend/ChatStreamMessageUpdates.test.ts tests/frontend/MessageTransparency.test.js tests/frontend/ChatStreamThinkingStatus.test.tsx`
+  - Result: pass.
+  - `./scripts/test-backend`
+  - Result: pass (`713 passed`).
+  - `cd frontend && npm run test:ci`
+  - Result: pass (`69 passed`).
+- Risks left:
+  - Full `./scripts/test` orchestration was interrupted on request; sidecar suite is known to intermittently fail in constrained PTY environments (`out of pty devices`) when multiple long-running test invocations overlap.
+- Agent 5 -> Agent 6 Handoff:
+  - Run full gate serially (`./scripts/test`) from a clean shell with no parallel pytest/jest processes to avoid PTY exhaustion false negatives.
+  - If sidecar PTY failure reappears, verify no stale processes and rerun `./scripts/test-sidecar`; this is environment-capacity risk, not tool-schema contract logic.
+  - Perform final Kimi/Anthropic native-tool smoke to confirm canonical tool objects flow end-to-end with strict validation intact.
+- Agent 5 Source Pack Evidence (Read Before Coding):
+  - LiteLLM/OpenAI docs require `tools[]` entries in canonical object form (`type: "function"`, nested `function` payload).
+  - LiteLLM Anthropic path supports `tools`, `tool_choice`, `parallel_tool_calls`; strict test expectations were aligned to this canonical request contract.
 
 ## Agent 6: Integration QA + CI Green (Sequential Final)
 

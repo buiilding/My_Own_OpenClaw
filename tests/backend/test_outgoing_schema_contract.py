@@ -1,5 +1,7 @@
 """Contract checks between formatter outputs and outgoing WebSocket schemas."""
 
+import pytest
+
 from backend.src.api.processing.formatters.memory_store import MemoryStoreEventFormatter
 from backend.src.api.processing.formatters.token_count import TokenCountEventFormatter
 from backend.src.api.processing.formatters.tool_schemas import ToolSchemasEventFormatter
@@ -13,7 +15,18 @@ from backend.src.api.schema import (
 def test_tool_schemas_formatter_output_matches_schema() -> None:
     formatter = ToolSchemasEventFormatter()
     payload = formatter.format(
-        {"tool_schemas": {"read_file": {"type": "object"}}}, "msg_1"
+        {
+            "tool_schemas": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "read_file",
+                        "parameters": {"type": "object"},
+                    },
+                }
+            ]
+        },
+        "msg_1",
     )
 
     assert payload is not None
@@ -24,6 +37,13 @@ def test_tool_schemas_formatter_output_matches_schema() -> None:
         }
     )
     assert parsed.type == "tool-schemas"
+
+
+def test_tool_schemas_formatter_rejects_non_list_payload() -> None:
+    formatter = ToolSchemasEventFormatter()
+
+    with pytest.raises(ValueError, match="canonical tool object list"):
+        formatter.format({"tool_schemas": {"read_file": {"type": "object"}}}, "msg_1")
 
 
 def test_token_count_formatter_output_matches_schema() -> None:

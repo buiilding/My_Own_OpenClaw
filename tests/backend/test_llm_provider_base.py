@@ -132,7 +132,15 @@ class TestBuildRequestParams:
 
     def test_build_includes_native_tool_calling_params(self, provider):
         messages = [{"role": "user", "content": "Hello"}]
-        tools = [{"type": "function", "function": {"name": "read_file"}}]
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_file",
+                    "parameters": {"type": "object"},
+                },
+            }
+        ]
         params = provider._build_request_params(
             "gpt-4",
             messages,
@@ -145,7 +153,7 @@ class TestBuildRequestParams:
         assert params["tool_choice"] == "auto"
         assert params["parallel_tool_calls"] is True
 
-    def test_build_normalizes_native_tool_schema_to_openai_tool_format(self, provider):
+    def test_build_rejects_legacy_top_level_tool_schema(self, provider):
         messages = [{"role": "user", "content": "Hello"}]
         tools = [
             {
@@ -155,41 +163,44 @@ class TestBuildRequestParams:
             }
         ]
 
-        params = provider._build_request_params("gpt-4", messages, tools=tools)
+        with pytest.raises(LLMAPIError, match="field 'type' must be 'function'"):
+            provider._build_request_params("gpt-4", messages, tools=tools)
 
-        assert params["tools"] == [
+    def test_build_rejects_non_object_tool_entry(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = ["invalid-tool"]
+
+        with pytest.raises(LLMAPIError, match="expected object"):
+            provider._build_request_params("gpt-4", messages, tools=tools)
+
+    def test_build_rejects_missing_function_object(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = [{"type": "function"}]
+
+        with pytest.raises(LLMAPIError, match="missing or invalid 'function' object"):
+            provider._build_request_params("gpt-4", messages, tools=tools)
+
+    def test_build_rejects_missing_function_parameters(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = [{"type": "function", "function": {"name": "read_file"}}]
+
+        with pytest.raises(LLMAPIError, match="function.parameters is required"):
+            provider._build_request_params("gpt-4", messages, tools=tools)
+
+    def test_build_rejects_non_object_function_parameters(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = [
             {
                 "type": "function",
                 "function": {
                     "name": "read_file",
-                    "description": "Read file contents",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {"path": {"type": "string"}},
-                    },
+                    "parameters": "not-an-object",
                 },
             }
         ]
 
-    def test_build_skips_invalid_tool_entries(self, provider):
-        messages = [{"role": "user", "content": "Hello"}]
-        tools = [
-            {"name": "valid_tool", "parameters": {"type": "object"}},
-            {"parameters": {"type": "object"}},
-            "invalid-tool",
-        ]
-
-        params = provider._build_request_params("gpt-4", messages, tools=tools)
-
-        assert params["tools"] == [
-            {
-                "type": "function",
-                "function": {
-                    "name": "valid_tool",
-                    "parameters": {"type": "object"},
-                },
-            }
-        ]
+        with pytest.raises(LLMAPIError, match="function.parameters must be an object"):
+            provider._build_request_params("gpt-4", messages, tools=tools)
 
 
 class TestExtractThinkingContent:
