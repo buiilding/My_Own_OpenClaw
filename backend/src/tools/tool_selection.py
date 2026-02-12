@@ -149,17 +149,28 @@ class ToolSelection:
 
     @staticmethod
     def _get_mouse_args_properties(schema: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Navigate to mouse_control args.properties in wrapped computer-use schema."""
+        """Navigate to mouse_control args.properties in wrapped or native schema."""
         try:
+            # Legacy wrapped computer-use schema
             args_schema = (
                 schema["parameters"]["properties"]["action"]["properties"]["functionCall"]["properties"]["args"]
             )
             properties = args_schema.get("properties")
             if isinstance(properties, dict):
                 return properties
-            return None
         except (KeyError, TypeError):
-            return None
+            pass
+
+        try:
+            # Native function-calling schema (direct args in parameters)
+            params = schema["parameters"]
+            properties = params.get("properties") if isinstance(params, dict) else None
+            if isinstance(properties, dict):
+                return properties
+        except (KeyError, TypeError):
+            pass
+
+        return None
 
 
 _CACHE: dict[Path, tuple[float, Optional[ToolSelection]]] = {}

@@ -21,7 +21,7 @@ Key entry points:
 ## Core Responsibilities
 
 - **Session management**: create/reuse sessions per `user_id`, apply session config updates.
-- **Prompt assembly**: build messages + system context, embed tool schemas in the initial user message (also emitted as a transparency event).
+- **Prompt assembly**: build messages + system context, pass tool schemas via native LLM tool params (also emitted as a transparency event).
 - **LLM streaming**: stream tokens and transform into events.
 - **Tool lifecycle**: prepare → send → wait → process results.
 - **History**: append assistant/tool outputs to conversation history.
