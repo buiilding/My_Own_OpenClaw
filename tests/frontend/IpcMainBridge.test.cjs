@@ -171,11 +171,12 @@ describe('ipc.cjs bridge', () => {
 
     await handlers['to-backend']({ sender: null }, {
       type: 'query',
-      payload: { text: 'hello' },
+      payload: { text: 'hello', conversation_ref: 'conv-1' },
     });
 
     const lastMessage = JSON.parse(ws.sent[ws.sent.length - 1]);
     expect(lastMessage.type).toBe('query');
+    expect(lastMessage.payload.conversation_ref).toBe('conv-1');
     expect(lastMessage.payload.content).toContain('<system_context>');
     expect(lastMessage.payload.content).toContain('<episodic_memory>');
     expect(lastMessage.payload.content).toContain('- e1');
@@ -202,6 +203,7 @@ describe('ipc.cjs bridge', () => {
       type: 'query',
       payload: {
         text: 'hello',
+        conversation_ref: 'conv-2',
         screenshot_ref: 'art_123',
         screenshot_url: 'http://localhost:8765/api/artifacts/art_123',
       },
@@ -209,6 +211,7 @@ describe('ipc.cjs bridge', () => {
 
     const lastMessage = JSON.parse(ws.sent[ws.sent.length - 1]);
     expect(lastMessage.type).toBe('query');
+    expect(lastMessage.payload.conversation_ref).toBe('conv-2');
     expect(lastMessage.payload.screenshot_ref).toBe('art_123');
     expect(lastMessage.payload).not.toHaveProperty('screenshot_url');
   });
@@ -225,7 +228,7 @@ describe('ipc.cjs bridge', () => {
 
     await handlers['to-backend']({ sender: null }, {
       type: 'query',
-      payload: { text: 'hi' },
+      payload: { text: 'hi', conversation_ref: 'conv-3' },
     });
 
     const lastMessage = JSON.parse(ws.sent[ws.sent.length - 1]);
@@ -246,7 +249,7 @@ describe('ipc.cjs bridge', () => {
 
     await handlers['to-backend']({ sender: null }, {
       type: 'query',
-      payload: { text: 'memory fail' },
+      payload: { text: 'memory fail', conversation_ref: 'conv-4' },
     });
 
     const lastMessage = JSON.parse(ws.sent[ws.sent.length - 1]);
@@ -275,7 +278,7 @@ describe('ipc.cjs bridge', () => {
 
     const queryPromise = handlers['to-backend']({ sender: null }, {
       type: 'query',
-      payload: { text: 'mode check' },
+      payload: { text: 'mode check', conversation_ref: 'conv-5' },
     });
 
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -323,7 +326,7 @@ describe('ipc.cjs bridge', () => {
 
     const queryPromise = handlers['to-backend']({ sender: null }, {
       type: 'query',
-      payload: { text: 'after settings update' },
+      payload: { text: 'after settings update', conversation_ref: 'conv-6' },
     });
 
     await new Promise((resolve) => setTimeout(resolve, 0));

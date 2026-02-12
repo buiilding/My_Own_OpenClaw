@@ -133,3 +133,35 @@ def test_prune_invalidates_token_cache(monkeypatch):
     history.add_tool_output("tool output")
     assert history.get_token_count("model-a") == 7
     assert service.count_tokens_calls == 2
+
+
+def test_replace_with_entries_rehydrates_order_and_images():
+    history = ConversationHistory(max_length=10)
+    history.set_image_trimming_enabled(False)
+
+    history.replace_with_entries(
+        [
+            {
+                "role": "user",
+                "content": "u1",
+                "message_type": "user",
+                "image_data": "img-1",
+            },
+            {
+                "role": "tool",
+                "content": "tool-1",
+                "message_type": "tool-output",
+                "image_data": "img-2",
+            },
+            {
+                "role": "assistant",
+                "content": "a1",
+                "message_type": "llm-text",
+            },
+        ]
+    )
+
+    stored = history.get_stored_messages()
+    assert [msg.content for msg in stored] == ["u1", "tool-1", "a1"]
+    assert stored[0].image_data == "img-1"
+    assert stored[1].image_data == "img-2"

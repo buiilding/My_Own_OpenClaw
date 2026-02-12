@@ -335,6 +335,28 @@
   color: rgba(244, 242, 238, 0.85);
 }
 
+.memory-continue-button {
+  border: 1px solid rgba(28, 98, 80, 0.95);
+  background: #1f6d5a;
+  color: #ffffff;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  box-shadow: 0 2px 6px rgba(31, 109, 90, 0.28);
+}
+
+.memory-continue-button:hover:not(:disabled) {
+  background: #185a4a;
+  color: #ffffff;
+  border-color: rgba(24, 90, 74, 0.95);
+}
+
+.memory-continue-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .memory-meta-pill {
   padding: 6px 12px;
   border-radius: 999px;

@@ -583,7 +583,7 @@ function initializeLocalBackendBridge(getWindows) {
   registerRpcHandler('store-transcript', 'store_transcript', ({
     content,
     userId,
-    sessionId,
+    conversationRef,
     role,
     messageType,
     toolName,
@@ -596,7 +596,7 @@ function initializeLocalBackendBridge(getWindows) {
   } = {}) => ({
     content: content,
     user_id: userId,
-    session_id: sessionId,
+    conversation_ref: conversationRef,
     role: role,
     message_type: messageType,
     tool_name: toolName,

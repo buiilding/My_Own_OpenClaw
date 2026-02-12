@@ -12,7 +12,7 @@ describe('transcript session info storage', () => {
 
   test('reads null session info when storage key is missing', () => {
     expect(readSessionInfoFromStorage()).toEqual({
-      sessionId: null,
+      conversationRef: null,
       userId: null,
     });
   });
@@ -20,11 +20,23 @@ describe('transcript session info storage', () => {
   test('reads valid session info payload from sessionStorage', () => {
     window.sessionStorage.setItem(
       TRANSCRIPT_SESSION_STORAGE_KEY,
-      JSON.stringify({ sessionId: 'session-1', userId: 'user-1' }),
+      JSON.stringify({ conversationRef: 'conv-1', userId: 'user-1' }),
     );
 
     expect(readSessionInfoFromStorage()).toEqual({
-      sessionId: 'session-1',
+      conversationRef: 'conv-1',
+      userId: 'user-1',
+    });
+  });
+
+  test('reads legacy sessionId payloads for backward compatibility', () => {
+    window.sessionStorage.setItem(
+      TRANSCRIPT_SESSION_STORAGE_KEY,
+      JSON.stringify({ sessionId: 'legacy-session-1', userId: 'user-1' }),
+    );
+
+    expect(readSessionInfoFromStorage()).toEqual({
+      conversationRef: 'legacy-session-1',
       userId: 'user-1',
     });
   });
@@ -32,7 +44,7 @@ describe('transcript session info storage', () => {
   test('returns null fields for malformed payloads', () => {
     window.sessionStorage.setItem(TRANSCRIPT_SESSION_STORAGE_KEY, '{bad json');
     expect(readSessionInfoFromStorage()).toEqual({
-      sessionId: null,
+      conversationRef: null,
       userId: null,
     });
   });
@@ -40,20 +52,20 @@ describe('transcript session info storage', () => {
   test('returns null fields when payload types are invalid', () => {
     window.sessionStorage.setItem(
       TRANSCRIPT_SESSION_STORAGE_KEY,
-      JSON.stringify({ sessionId: 123, userId: { id: 'user' } }),
+      JSON.stringify({ conversationRef: 123, userId: { id: 'user' } }),
     );
 
     expect(readSessionInfoFromStorage()).toEqual({
-      sessionId: null,
+      conversationRef: null,
       userId: null,
     });
   });
 
   test('persists session info payload to sessionStorage', () => {
-    persistSessionInfoToStorage({ sessionId: 'session-2', userId: 'user-2' });
+    persistSessionInfoToStorage({ conversationRef: 'conv-2', userId: 'user-2' });
 
     expect(window.sessionStorage.getItem(TRANSCRIPT_SESSION_STORAGE_KEY)).toBe(
-      JSON.stringify({ sessionId: 'session-2', userId: 'user-2' }),
+      JSON.stringify({ conversationRef: 'conv-2', userId: 'user-2' }),
     );
   });
 
@@ -64,7 +76,7 @@ describe('transcript session info storage', () => {
     }) as any;
 
     expect(() => {
-      persistSessionInfoToStorage({ sessionId: 'session-err', userId: 'user-err' });
+      persistSessionInfoToStorage({ conversationRef: 'conv-err', userId: 'user-err' });
     }).not.toThrow();
 
     window.sessionStorage.setItem = originalSetItem;
@@ -77,7 +89,7 @@ describe('transcript session info storage', () => {
     }) as any;
 
     expect(readSessionInfoFromStorage()).toEqual({
-      sessionId: null,
+      conversationRef: null,
       userId: null,
     });
 
@@ -85,15 +97,15 @@ describe('transcript session info storage', () => {
   });
 
   test('emits transcript-session-update custom event', () => {
-    const updates: Array<{ sessionId: string | null; userId: string | null }> = [];
+    const updates: Array<{ conversationRef: string | null; userId: string | null }> = [];
     const handler = (event: Event) => {
-      updates.push((event as CustomEvent<{ sessionId: string | null; userId: string | null }>).detail);
+      updates.push((event as CustomEvent<{ conversationRef: string | null; userId: string | null }>).detail);
     };
 
     window.addEventListener('transcript-session-update', handler);
-    emitSessionUpdateEvent({ sessionId: 'session-3', userId: 'user-3' });
+    emitSessionUpdateEvent({ conversationRef: 'conv-3', userId: 'user-3' });
     window.removeEventListener('transcript-session-update', handler);
 
-    expect(updates).toEqual([{ sessionId: 'session-3', userId: 'user-3' }]);
+    expect(updates).toEqual([{ conversationRef: 'conv-3', userId: 'user-3' }]);
   });
 });

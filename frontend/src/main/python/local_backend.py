@@ -374,6 +374,7 @@ class LocalBackend:
         self,
         content: str,
         user_id: str = "default_user",
+        conversation_ref: Optional[str] = None,
         session_id: Optional[str] = None,
         role: Optional[str] = None,
         message_type: Optional[str] = None,
@@ -401,6 +402,7 @@ class LocalBackend:
 
         try:
             record_kind = "transcript"
+            conversation_id = conversation_ref or session_id
             metadata = {
                 "type": "episodic",
                 "record_kind": record_kind,
@@ -416,14 +418,14 @@ class LocalBackend:
 
             if message_index is None:
                 message_index = await self.memory_store.get_next_message_index(
-                    user_id, session_id
+                    user_id, conversation_id
                 )
 
             memory_id = await self.memory_store.add(
                 content,
                 user_id,
                 metadata,
-                conversation_id=session_id,
+                conversation_id=conversation_id,
                 record_kind=record_kind,
                 role=role,
                 message_index=message_index,
