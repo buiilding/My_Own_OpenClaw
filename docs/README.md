@@ -51,6 +51,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 ### Additional Resources
 - [**Testing Guide**](TESTING.md) - Testing strategies and practices
 - [**Security Guide**](SECURITY.md) - Security considerations and best practices
+- [**Multi-User Runtime Hardening**](MULTI_USER_RUNTIME_HARDENING.md) - Session identity, multi-device policy, and per-user model isolation guidance
 - [**Performance Guide**](PERFORMANCE.md) - Performance optimization strategies
 - [**Contributing Guide**](CONTRIBUTING.md) - How to contribute to the project
 
