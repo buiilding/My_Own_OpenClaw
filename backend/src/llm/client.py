@@ -30,25 +30,48 @@ class LLMClient(ABC):
     """
 
     @abstractmethod
-    async def get_completion(self, model: str, messages: List[LLMMessage]) -> str:
+    async def get_completion(
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
+    ) -> str:
         """
         Gets a completion from the LLM based on a list of messages.
         """
 
     async def get_completion_response(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> NormalizedLLMResponse:
         """
         Gets a normalized completion payload.
 
         Default compatibility path for clients that only expose text completion.
         """
-        content = await self.get_completion(model, messages)
+        content = await self.get_completion(
+            model=model,
+            messages=messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+        )
         return {"content": content}
 
     @abstractmethod
     async def get_completion_stream(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Gets a streaming completion from the LLM, yielding StreamingEvent objects.
@@ -198,22 +221,51 @@ class LiteLLMClient(LLMClient):
         return normalized["content"]
 
     async def get_completion_response(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> NormalizedLLMResponse:
         """
         Delegates completion to provider and validates canonical response payload.
         """
         provider = self._resolve_provider(model)
+        native_tool_calling_enabled = getattr(
+            self.config, "native_tool_calling_enabled", True
+        )
+        if not native_tool_calling_enabled:
+            tools = None
+            tool_choice = None
+            parallel_tool_calls = None
+
         try:
-            response = await provider.get_completion(model, messages)
+            response = await provider.get_completion(
+                model,
+                messages,
+                tools=tools,
+                tool_choice=tool_choice,
+                parallel_tool_calls=parallel_tool_calls,
+            )
         except LLMAPIError:
             raise
         except Exception as exc:
             raise LLMAPIError(f"LLM completion error: {exc}", model=model) from exc
 
-        return self._normalize_response_payload(response, model)
+        normalized = self._normalize_response_payload(response, model)
+        if not native_tool_calling_enabled and "tool_calls" in normalized:
+            normalized.pop("tool_calls", None)
+        return normalized
 
-    async def get_completion(self, model: str, messages: List[LLMMessage]) -> str:
+    async def get_completion(
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
+    ) -> str:
         """
         Delegates getting a completion to the appropriate provider.
         
@@ -222,11 +274,22 @@ class LiteLLMClient(LLMClient):
         Raises:
             LLMAPIError: If response structure is invalid
         """
-        response = await self.get_completion_response(model, messages)
+        response = await self.get_completion_response(
+            model=model,
+            messages=messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+        )
         return response["content"]
 
     async def get_completion_stream(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Delegates getting a streaming completion to the appropriate provider.
@@ -241,11 +304,25 @@ class LiteLLMClient(LLMClient):
             yield ErrorEvent(content=str(exc))
             return
 
+        native_tool_calling_enabled = getattr(
+            self.config, "native_tool_calling_enabled", True
+        )
+        if not native_tool_calling_enabled:
+            tools = None
+            tool_choice = None
+            parallel_tool_calls = None
+
         provider.clear_last_stream_usage()
         self._last_stream_cache_diagnostics = None
         try:
             # Provider's get_completion_stream handles its own exceptions and yields ErrorEvent
-            async for event in provider.get_completion_stream(model, messages):
+            async for event in provider.get_completion_stream(
+                model,
+                messages,
+                tools=tools,
+                tool_choice=tool_choice,
+                parallel_tool_calls=parallel_tool_calls,
+            ):
                 yield event
         except Exception as exc:
             logger.error("Streaming iteration failed: %s", exc, exc_info=True)

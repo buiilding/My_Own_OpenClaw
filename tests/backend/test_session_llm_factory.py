@@ -13,10 +13,24 @@ class DummyLLMClient(LLMClient):
     def __init__(self, tag: str) -> None:
         self.tag = tag
 
-    async def get_completion(self, model, messages):
+    async def get_completion(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
         return "ok"
 
-    async def get_completion_stream(self, model, messages):
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
         if False:
             yield
 
