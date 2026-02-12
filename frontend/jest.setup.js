@@ -17,6 +17,9 @@ const suppressedPrefixes = [
   '[useChatMessageSender]',
   '[VoiceMode]',
   '[Timing]',
+  '[Wakeword]',
+  '[DisplaySelection]',
+  '[IPC Bridge]',
 ];
 
 const originalConsole = {
