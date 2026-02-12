@@ -67,6 +67,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox): keep overlay fully interactive while preserving rounded-pill hit geometry so background windows are not blocked by rectangular shadow regions
 
 ### Fixed
+- fix(kimi-coding): catch upstream Cloudflare HTTP 520 failures in provider/stream error handling and surface a retry-friendly message instead of raw HTML-heavy error output
 - fix(frontend-tool-output): preserve bundle step output text during normalization so bundled `run_shell_command` results render real output instead of `No output` in chat transcript cards
 - fix(rehydrate): allow `rehydrate-conversation` to continue when `screenshot_ref` artifacts are missing by logging and falling back to text-only history instead of failing session restore
 - fix(agent-final-response): enforce terminal query events (always emit `streaming-complete`/`error`) and guarantee at least one displayable assistant chunk before completion (derived from streamed text, `assistant_message_full`, or fallback) to prevent indefinite frontend waiting after tool output; also broaden Anthropic/Kimi completion text extraction (`choice.text`, `content[].content`, `output_text`)

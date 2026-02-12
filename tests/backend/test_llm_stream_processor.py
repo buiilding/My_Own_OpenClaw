@@ -11,6 +11,7 @@ from backend.src.core.events.streaming_events import (
     FullResponseEvent,
     TokenCountEvent,
 )
+from backend.src.core.infrastructure.exceptions import LLMAPIError
 
 
 class _FakeTokenService:
@@ -88,6 +89,25 @@ class _UnsupportedEventLLMClient:
         return None
 
 
+class _Api520LLMClient:
+    async def get_completion_response(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        raise LLMAPIError(
+            "Kimi Coding upstream service is temporarily unavailable (HTTP 520). Please retry.",
+            model=model,
+            status_code=520,
+        )
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
 @pytest.mark.asyncio
 async def test_logs_cache_hint_and_provider_cache_diagnostics(caplog, monkeypatch):
     monkeypatch.setattr(
@@ -142,3 +162,31 @@ async def test_rejects_unsupported_stream_event_types(monkeypatch):
             events.append(event)
 
     assert any(isinstance(event, ErrorEvent) for event in events)
+
+
+@pytest.mark.asyncio
+async def test_maps_http_520_api_error_to_retry_friendly_error_event(monkeypatch):
+    monkeypatch.setattr(
+        "backend.src.agent.llm.llm_stream_processor.get_token_service",
+        lambda: _FakeTokenService(),
+    )
+
+    processor = LLMStreamProcessor(llm_client=_Api520LLMClient(), session=_FakeSession())
+    events = []
+
+    with pytest.raises(LLMAPIError, match="HTTP 520"):
+        noop_tools = [
+            {
+                "type": "function",
+                "function": {"name": "noop", "parameters": {"type": "object"}},
+            }
+        ]
+        async for event in processor.get_response(
+            [{"role": "user", "content": "hello"}],
+            tools=noop_tools,
+        ):
+            events.append(event)
+
+    assert len(events) == 1
+    assert isinstance(events[0], ErrorEvent)
+    assert events[0].content == "Kimi Coding is temporarily unavailable (HTTP 520). Please retry shortly."

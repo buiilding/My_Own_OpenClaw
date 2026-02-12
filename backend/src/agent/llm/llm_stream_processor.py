@@ -17,7 +17,7 @@ from backend.src.core.events.streaming_events import (
     ThinkingEvent,
     TokenCountEvent,
 )
-from backend.src.core.infrastructure.exceptions import LLMRateLimitError
+from backend.src.core.infrastructure.exceptions import LLMAPIError, LLMRateLimitError
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.services.token_service import get_token_service
 
@@ -168,6 +168,10 @@ class LLMStreamProcessor:
         except LLMRateLimitError:
             yield ErrorEvent(content="Rate limit exceeded. Please wait.")
             raise
+        except LLMAPIError as e:
+            logger.error(f"LLM API error: {e}", exc_info=True)
+            yield ErrorEvent(content=self._build_llm_api_error_message(e))
+            raise
         except Exception as e:
             logger.error(f"LLM error: {e}", exc_info=True)
             yield ErrorEvent(content=f"LLM error: {str(e)}")
@@ -306,6 +310,15 @@ class LLMStreamProcessor:
             diagnostics.get("total_tokens"),
             diagnostics.get("reason"),
         )
+
+    @staticmethod
+    def _build_llm_api_error_message(error: LLMAPIError) -> str:
+        """Return a concise user-facing error for known API failure classes."""
+        if error.status_code == 520:
+            return "Kimi Coding is temporarily unavailable (HTTP 520). Please retry shortly."
+        if error.status_code is not None:
+            return f"LLM API error (HTTP {error.status_code}). Please retry."
+        return f"LLM API error: {error.message}"
 
     @staticmethod
     def _common_prefix_length(first: List[str], second: List[str]) -> int:
