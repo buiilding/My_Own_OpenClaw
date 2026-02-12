@@ -479,7 +479,30 @@ Run full validation, fix regressions, and close migration.
 
 ### Status
 
-- `PENDING`
+- `COMPLETE` on 2026-02-12.
+- Files changed:
+  - `docs/prompts/openai-tool-object-schema-replacement-migration.md`
+- Behavior delta:
+  - Completed final integration audit for migration-owned runtime paths after Agents 1-5:
+    - provider boundary enforces canonical tool object validation (`type=function`, nested `function.name`, `function.parameters`)
+    - transparency/event contract remains canonical end-to-end for `tool_schemas`
+    - no migration-owned runtime adapter reintroducing legacy top-level `{name, description, parameters}` tool schema shape
+  - Final migration orchestrator doc now records end-state closure under Agent 6.
+- Tests run + results:
+  - No new test execution in Agent 6 by explicit user request ("no need to run tests, they all work").
+  - Relied on latest completed evidence from prior agents/user-run commands:
+    - backend suite pass (`./scripts/test-backend`: `713 passed`)
+    - frontend suite pass (`cd frontend && npm run test:ci`: `69 passed`)
+    - migration-focused backend/frontend suites passed in Agent 5 scope.
+- Risks left:
+  - Full `./scripts/test` umbrella command was not re-run in Agent 6 after user request to skip tests.
+  - Prior environment-level PTY saturation/hanging behavior remains an execution-environment risk, not a schema-contract regression.
+- Agent 6 -> Sequential Agents Handoff:
+  - No further migration agents; implementation and test-contract migration are closed.
+  - If future regressions appear, enforce canonical input at boundaries and avoid dual-shape fallback reintroduction.
+- Agent 6 Source Pack Evidence (Applied):
+  - OpenAI/LiteLLM canonical request shape remains `{type: "function", function: {...}}`; final integration confirms WindieOS migration-owned codepaths align with that contract.
+  - `tool_choice`/provider translation semantics were preserved by earlier agents and not altered in Agent 6 closure pass.
 
 ## File Ownership Matrix (Conflict Avoidance)
 
