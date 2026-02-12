@@ -198,6 +198,55 @@ Send a user query with optional screenshot.
 }
 ```
 
+### Rehydrate Conversation Message
+
+Rebuild backend in-memory conversation history from a frontend transcript snapshot.
+Used when switching or resuming conversations from episodic memory.
+
+**Type**: `rehydrate-conversation`
+
+**Payload**:
+```json
+{
+  "conversation_ref": "conv_123",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Earlier prompt",
+      "message_type": "user",
+      "timestamp": "2026-02-02T20:00:00Z",
+      "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg"
+    },
+    {
+      "role": "assistant",
+      "content": "Earlier reply",
+      "message_type": "llm-text",
+      "timestamp": "2026-02-02T20:00:01Z"
+    }
+  ],
+  "rehydrate_mode": "replace"
+}
+```
+
+**Message entry fields**:
+- `role`: `user | assistant | tool`
+- `content`: message text/content
+- `message_type`: optional frontend message type
+- `tool_name`: optional tool name (tool entries)
+- `correlation_id`: optional call correlation id
+- `timestamp`: optional timestamp
+- `screenshot_ref`: optional artifact id
+- `screenshot`: optional inline base64 screenshot fallback
+
+**Behavior**:
+- Backend replaces session history for `conversation_ref` with provided message list.
+- For entries with `screenshot_ref`, backend attempts artifact lookup and inlines base64 for model history.
+- If artifact lookup fails, backend logs a warning and continues rehydrate with `image_data=None` for that entry (text history still restored).
+
+**Response**:
+- Success: no dedicated success event (rehydrate is applied silently).
+- Failure: standard `error` event.
+
 ### Frontend Tool Schemas Message (Planned)
 
 Send frontend runtime tool schemas after handshake so backend can build prompt/tool validation from the active client catalog.

@@ -39,6 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- docs(api,troubleshooting): add `rehydrate-conversation` API contract and troubleshooting notes for local model discovery warnings plus missing screenshot artifact fallback during resume
 - docs(runtime-behavior): document structured bundle step output semantics, bundle-step fallback output text, non-stream tool-calling path when tools are present, and Kimi base-url/HTTP-520 runtime handling notes
 - docs(tool-call-ids): clarify ID provenance in API/flow docs (`request_id` backend-generated correlation id; `metadata.tool_call_id` provider-origin with backend fallback when missing)
 - test(tool-output): add backend parse/handler regression coverage for structured bundle step outputs and frontend bundle-output creation assertions to catch subtle `No output` drift
