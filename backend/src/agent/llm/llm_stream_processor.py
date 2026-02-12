@@ -18,7 +18,7 @@ from backend.src.core.events.streaming_events import (
     TokenCountEvent,
 )
 from backend.src.core.infrastructure.exceptions import LLMRateLimitError
-from backend.src.core.types.schemas import LLMMessage
+from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.services.token_service import get_token_service
 
 if TYPE_CHECKING:
@@ -61,9 +61,14 @@ class LLMStreamProcessor:
         self.session = session
         self._llm_turn_counter = 0
         self._last_prompt_fingerprints: Optional[List[str]] = None
+        self._last_response_payload: Optional[NormalizedLLMResponse] = None
 
     async def get_response(
-        self, prompt: List[LLMMessage]
+        self,
+        prompt: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
         Streams LLM response, aggregates text, and counts tokens.
@@ -78,51 +83,72 @@ class LLMStreamProcessor:
             Streaming events: ChunkEvent, ThinkingEvent, ErrorEvent, FullResponseEvent, TokenCountEvent
         """
         llm_start_time = time.perf_counter()
-        first_token_time = None
-        full_text = ""
         model_id = self.session.cfg.selected_model_id
         turn = self._log_prompt_cache_hint(prompt, model_id)
+        self._last_response_payload = None
         logger.info(
             "[Timing] LLM request started (session=%s, turn=%s, model=%s)",
             self.session.session_id,
             turn,
             model_id,
         )
-        
-        try:
-            async for event in self.llm_client.get_completion_stream(
-                model=model_id, messages=prompt
-            ):
-                if first_token_time is None:
-                    first_token_time = time.perf_counter()
-                    first_token_latency = first_token_time - llm_start_time
-                    logger.info(f"[Timing] LLM first token received in {first_token_latency:.3f}s")
-                # LLM client returns StreamingEvent objects directly
-                if isinstance(event, ChunkEvent):
-                    full_text += event.content
-                    yield event
-                elif isinstance(event, ThinkingEvent):
-                    yield event
-                elif isinstance(event, ErrorEvent):
-                    yield event
-                elif isinstance(event, FullResponseEvent):
-                    # LLM client may yield FullResponseEvent (e.g., mock client)
-                    # Extract content but don't yield it yet - we'll yield our own at the end
-                    # This prevents duplication
-                    full_text = event.content  # Use the full response from the event
-                    # Don't yield the event - we'll yield our own FullResponseEvent below
-                else:
-                    raise TypeError(
-                        "Unsupported stream event type from LLM client: "
-                        f"{type(event).__name__}"
-                    )
 
-            self._log_provider_cache_diagnostics(model_id, turn)
-            
-            # Streaming complete - yield full response
+        try:
+            if self._should_use_native_completion_path(tools):
+                response = await self._get_completion_response(
+                    model_id=model_id,
+                    prompt=prompt,
+                    tools=tools,
+                    tool_choice=tool_choice,
+                    parallel_tool_calls=parallel_tool_calls,
+                )
+                full_text = response.get("content", "")
+                self._last_response_payload = response
+
+                if full_text:
+                    # Preserve frontend chunk contract for non-stream path.
+                    yield ChunkEvent(content=full_text)
+
+                self._log_provider_cache_diagnostics(model_id, turn)
+            else:
+                first_token_time = None
+                full_text = ""
+                async for event in self._iter_completion_stream(
+                    model_id=model_id,
+                    prompt=prompt,
+                    tools=tools,
+                    tool_choice=tool_choice,
+                    parallel_tool_calls=parallel_tool_calls,
+                ):
+                    if first_token_time is None:
+                        first_token_time = time.perf_counter()
+                        first_token_latency = first_token_time - llm_start_time
+                        logger.info(
+                            "[Timing] LLM first token received in %.3fs",
+                            first_token_latency,
+                        )
+
+                    if isinstance(event, ChunkEvent):
+                        full_text += event.content
+                        yield event
+                    elif isinstance(event, ThinkingEvent):
+                        yield event
+                    elif isinstance(event, ErrorEvent):
+                        yield event
+                    elif isinstance(event, FullResponseEvent):
+                        # LLM client may emit full response directly (e.g., mock client).
+                        full_text = event.content
+                    else:
+                        raise TypeError(
+                            "Unsupported stream event type from LLM client: "
+                            f"{type(event).__name__}"
+                        )
+
+                self._last_response_payload = {"content": full_text}
+                self._log_provider_cache_diagnostics(model_id, turn)
+
             yield FullResponseEvent(content=full_text)
-            
-            # Count tokens for the conversation (now async to prevent blocking)
+
             token_counts = await self._count_tokens(prompt, full_text)
             yield TokenCountEvent(
                 input_tokens=token_counts.input_tokens,
@@ -130,10 +156,15 @@ class LLMStreamProcessor:
                 total_tokens=token_counts.total_tokens,
                 conversation_tokens=token_counts.conversation_tokens,
             )
-            
+
             llm_total_time = time.perf_counter() - llm_start_time
-            logger.info(f"[Timing] LLM response completed in {llm_total_time:.3f}s (model={model_id}, tokens={token_counts.total_tokens})")
-            
+            logger.info(
+                "[Timing] LLM response completed in %.3fs (model=%s, tokens=%s)",
+                llm_total_time,
+                model_id,
+                token_counts.total_tokens,
+            )
+
         except LLMRateLimitError:
             yield ErrorEvent(content="Rate limit exceeded. Please wait.")
             raise
@@ -141,6 +172,90 @@ class LLMStreamProcessor:
             logger.error(f"LLM error: {e}", exc_info=True)
             yield ErrorEvent(content=f"LLM error: {str(e)}")
             raise
+
+    def get_last_response_payload(self) -> Optional[NormalizedLLMResponse]:
+        """Return normalized payload captured for the most recent LLM turn."""
+        if self._last_response_payload is None:
+            return None
+        return dict(self._last_response_payload)
+
+    def _should_use_native_completion_path(
+        self, tools: Optional[List[Dict[str, Any]]]
+    ) -> bool:
+        """Use non-stream completion when native tool-calling is active."""
+        if not tools:
+            return False
+        return bool(getattr(self.session.cfg, "native_tool_calling_enabled", True))
+
+    async def _iter_completion_stream(
+        self,
+        model_id: str,
+        prompt: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]],
+        tool_choice: Optional[Any],
+        parallel_tool_calls: Optional[bool],
+    ) -> AsyncGenerator[AgentStreamingEvent, None]:
+        """
+        Stream with backward compatibility for older mock clients that only accept
+        `(model, messages)` positional args.
+        """
+        try:
+            async for event in self.llm_client.get_completion_stream(
+                model=model_id,
+                messages=prompt,
+                tools=tools,
+                tool_choice=tool_choice,
+                parallel_tool_calls=parallel_tool_calls,
+            ):
+                yield event
+            return
+        except TypeError as exc:
+            if not self._is_legacy_signature_type_error(exc):
+                raise
+
+        async for event in self.llm_client.get_completion_stream(
+            model=model_id,
+            messages=prompt,
+        ):
+            yield event
+
+    async def _get_completion_response(
+        self,
+        model_id: str,
+        prompt: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]],
+        tool_choice: Optional[Any],
+        parallel_tool_calls: Optional[bool],
+    ) -> NormalizedLLMResponse:
+        """
+        Completion call with compatibility fallback for older client signatures.
+        """
+        try:
+            return await self.llm_client.get_completion_response(
+                model=model_id,
+                messages=prompt,
+                tools=tools,
+                tool_choice=tool_choice,
+                parallel_tool_calls=parallel_tool_calls,
+            )
+        except TypeError as exc:
+            if not self._is_legacy_signature_type_error(exc):
+                raise
+        return await self.llm_client.get_completion_response(
+            model=model_id,
+            messages=prompt,
+        )
+
+    @staticmethod
+    def _is_legacy_signature_type_error(exc: TypeError) -> bool:
+        message = str(exc)
+        return (
+            "unexpected keyword argument" in message
+            and any(
+                arg_name in message
+                for arg_name in ("tools", "tool_choice", "parallel_tool_calls")
+            )
+        )
 
     def _log_prompt_cache_hint(self, prompt: List[LLMMessage], model_id: str) -> int:
         """

@@ -7,7 +7,7 @@ context window overflow.
 
 import copy
 import logging
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType
@@ -38,6 +38,9 @@ class ConversationHistory:
         self._llm_history_cache: List[LLMMessage] = []
         self.max_length = max_length
         self.system_prompt: Optional[str] = system_prompt
+        self._image_trimming_enabled = True
+        self._pending_tool_call_ids: List[str] = []
+        self._consume_all_tool_call_ids_on_next_output = False
         
         # Running token count to avoid O(N^2) re-encoding on every turn
         # Updated incrementally when messages are added
@@ -83,7 +86,7 @@ class ConversationHistory:
         # Invalidate token count cache (new message added)
         self._invalidate_token_cache()
         self._prune_if_needed()
-        self._trim_old_images()
+        self._maybe_trim_old_images()
 
     def add_tool_output(self, message: str, image_data: Optional[str] = None) -> None:
         """
@@ -104,32 +107,45 @@ class ConversationHistory:
                        by the frontend after tool execution. Included in history
                        and sent to LLM as multimodal content.
         """
-        stored_msg = self._build_tool_output_message(message, image_data)
-        
+        tool_call_ids = self._consume_tool_call_ids_for_next_output()
+        stored_messages: List[StoredMessage] = []
+        if tool_call_ids:
+            for tool_call_id in tool_call_ids:
+                stored_messages.append(
+                    self._build_tool_result_message(
+                        message=message,
+                        tool_call_id=tool_call_id,
+                    )
+                )
+
+        # Keep legacy user-role multimodal message for screenshot continuity.
+        stored_messages.append(self._build_tool_output_message(message, image_data))
+
         # INCREMENTAL TOKEN COUNT: If cache is valid, count new message before pruning
         # This avoids O(N) re-counting when multiple tools are called in sequence
-        new_message_token_count = None
+        new_message_token_count = 0
         cache_was_valid = (
             self._cached_token_count is not None 
             and self._cached_token_count_model is not None
         )
-        
-        # Convert to LLM format once (used for both token counting and cache)
-        llm_msg = stored_msg.to_llm_message()
-        
+
+        llm_messages = [stored_msg.to_llm_message() for stored_msg in stored_messages]
+
         if cache_was_valid:
             # Count tokens for the new message only (O(1) operation)
             from backend.src.services.token_service import get_token_service
             token_service = get_token_service()
-            new_message_token_count = token_service.count_message_tokens(
-                llm_msg, 
-                self._cached_token_count_model
-            )
+            for llm_msg in llm_messages:
+                new_message_token_count += token_service.count_message_tokens(
+                    llm_msg,
+                    self._cached_token_count_model,
+                )
         
         # Store history length before pruning to detect if pruning occurred
         history_length_before = len(self.history)
-        
-        self._append_message(stored_msg, llm_msg)
+
+        for stored_msg, llm_msg in zip(stored_messages, llm_messages):
+            self._append_message(stored_msg, llm_msg)
         
         # Prune if needed (this may invalidate cache if pruning occurs)
         self._prune_if_needed()
@@ -139,8 +155,7 @@ class ConversationHistory:
         history_length_after = len(self.history)
         if (
             cache_was_valid 
-            and history_length_before + 1 == history_length_after  # No pruning occurred
-            and new_message_token_count is not None
+            and history_length_before + len(stored_messages) == history_length_after
         ):
             # Incrementally update cache instead of invalidating
             self._cached_token_count += new_message_token_count
@@ -148,24 +163,49 @@ class ConversationHistory:
                 f"Incrementally updated token count cache: +{new_message_token_count} tokens "
                 f"(total: {self._cached_token_count})"
             )
-        elif cache_was_valid and history_length_before + 1 != history_length_after:
+        elif (
+            cache_was_valid
+            and history_length_before + len(stored_messages) != history_length_after
+        ):
             # Pruning occurred, cache already invalidated by _prune_if_needed
             logger.debug("Token count cache invalidated due to history pruning")
         
-        self._trim_old_images()
+        self._maybe_trim_old_images()
 
-    def add_assistant_message(self, message: str) -> None:
+    def add_assistant_message(
+        self,
+        message: str,
+        tool_calls: Optional[List[Dict[str, Any]]] = None,
+    ) -> None:
         """
         Add an assistant response to the conversation history.
 
         Args:
             message: Assistant response text
+            tool_calls: Optional native tool_calls payload for assistant tool turns
         """
-        stored_msg = self._build_assistant_message(message)
+        stored_msg = self._build_assistant_message(message, tool_calls=tool_calls)
         self._append_message(stored_msg)
         # Invalidate token count cache (new message added)
         self._invalidate_token_cache()
         self._prune_if_needed()
+
+    def stage_tool_call_ids(
+        self,
+        tool_call_ids: List[str],
+        consume_all_on_next_output: bool = False,
+    ) -> None:
+        """
+        Stage tool-call ids so tool outputs can be recorded as `role=tool` messages.
+        """
+        self._pending_tool_call_ids = [
+            tool_call_id
+            for tool_call_id in tool_call_ids
+            if isinstance(tool_call_id, str) and tool_call_id
+        ]
+        self._consume_all_tool_call_ids_on_next_output = (
+            bool(consume_all_on_next_output) and bool(self._pending_tool_call_ids)
+        )
 
     def get_history(self) -> List[LLMMessage]:
         """
@@ -283,8 +323,43 @@ class ConversationHistory:
         """Clear all conversation history."""
         self.history = []
         self._llm_history_cache = []
+        self._pending_tool_call_ids = []
+        self._consume_all_tool_call_ids_on_next_output = False
         self._invalidate_token_cache()
         # Note: system_prompt is preserved on clear
+
+    def set_image_trimming_enabled(self, enabled: bool) -> None:
+        """Enable or disable automatic image trimming."""
+        self._image_trimming_enabled = bool(enabled)
+        if self._image_trimming_enabled:
+            self._trim_old_images()
+
+    def replace_with_entries(self, entries: List[Dict[str, Any]]) -> None:
+        """Replace conversation history with provided stored entries."""
+        self.clear()
+        for entry in entries:
+            message_type = self._normalize_message_type(
+                role=entry.get("role"),
+                message_type=entry.get("message_type"),
+            )
+            normalized_role = str(entry.get("role") or "").strip().lower()
+            if normalized_role == MessageRole.TOOL.value:
+                stored_role = MessageRole.TOOL
+            elif message_type == MessageType.ASSISTANT_RESPONSE:
+                stored_role = MessageRole.ASSISTANT
+            else:
+                stored_role = MessageRole.USER
+            stored_msg = StoredMessage(
+                role=stored_role,
+                content=str(entry.get("content") or ""),
+                message_type=message_type,
+                image_data=entry.get("image_data"),
+                tool_call_id=entry.get("tool_call_id"),
+                tool_name=entry.get("name"),
+                tool_calls=entry.get("tool_calls"),
+            )
+            self._append_message(stored_msg)
+        self._invalidate_token_cache()
 
     def _prune_if_needed(self) -> None:
         """Remove the oldest messages if the history exceeds the max length."""
@@ -327,6 +402,31 @@ class ConversationHistory:
                 f"(keeping last {keep_recent_images} images) to limit memory and context size"
             )
 
+    def _maybe_trim_old_images(self) -> None:
+        if not self._image_trimming_enabled:
+            return
+        self._trim_old_images()
+
+    def _normalize_message_type(
+        self,
+        role: Optional[Any],
+        message_type: Optional[Any],
+    ) -> MessageType:
+        normalized = str(message_type or "").strip().lower().replace("-", "_")
+        if normalized in {"tool", "tool_output", "tool_call"}:
+            return MessageType.TOOL_OUTPUT
+        if normalized in {"assistant", "assistant_response", "llm_text", "error"}:
+            return MessageType.ASSISTANT_RESPONSE
+        if normalized in {"user", "user_query", "query"}:
+            return MessageType.USER_QUERY
+
+        normalized_role = str(role or "").strip().lower()
+        if normalized_role == "assistant":
+            return MessageType.ASSISTANT_RESPONSE
+        if normalized_role == "tool":
+            return MessageType.TOOL_OUTPUT
+        return MessageType.USER_QUERY
+
     def _invalidate_token_cache(self) -> None:
         self._cached_token_count = None
         self._cached_token_count_model = None
@@ -367,10 +467,43 @@ class ConversationHistory:
             image_data=image_data,
         )
 
-    def _build_assistant_message(self, message: str) -> StoredMessage:
+    def _build_tool_result_message(
+        self,
+        message: str,
+        tool_call_id: str,
+    ) -> StoredMessage:
+        return StoredMessage(
+            role=MessageRole.TOOL,
+            content=message,
+            message_type=MessageType.TOOL_OUTPUT,
+            image_data=None,
+            tool_call_id=tool_call_id,
+        )
+
+    def _build_assistant_message(
+        self,
+        message: str,
+        tool_calls: Optional[List[Dict[str, Any]]] = None,
+    ) -> StoredMessage:
         return StoredMessage(
             role=MessageRole.ASSISTANT,
             content=message,
             message_type=MessageType.ASSISTANT_RESPONSE,
             image_data=None,
+            tool_calls=tool_calls,
         )
+
+    def _consume_tool_call_ids_for_next_output(self) -> List[str]:
+        """Consume staged tool-call ids for the next tool output message."""
+        if not self._pending_tool_call_ids:
+            return []
+        if self._consume_all_tool_call_ids_on_next_output:
+            tool_call_ids = list(self._pending_tool_call_ids)
+            self._pending_tool_call_ids = []
+            self._consume_all_tool_call_ids_on_next_output = False
+            return tool_call_ids
+
+        tool_call_id = self._pending_tool_call_ids.pop(0)
+        if not self._pending_tool_call_ids:
+            self._consume_all_tool_call_ids_on_next_output = False
+        return [tool_call_id]

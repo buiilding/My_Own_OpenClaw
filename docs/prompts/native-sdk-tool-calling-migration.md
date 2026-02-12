@@ -222,6 +222,47 @@ Cut agent runtime from parser-driven tool detection to native structured tool ca
 - Agent can do multi-turn tool workflows without text-JSON parser.
 - Tool execution loop stable for single + bundle flows.
 
+### Status
+- `COMPLETE` on 2026-02-12.
+- Files changed:
+  - `backend/src/agent/execution/interaction_loop.py`
+  - `backend/src/agent/llm/llm_stream_processor.py`
+  - `backend/src/agent/execution/executor.py`
+  - `backend/src/agent/session/state.py`
+  - `backend/src/core/messages/structures.py`
+  - `docs/prompts/native-sdk-tool-calling-migration.md`
+- Behavior delta:
+  - Interaction loop no longer parses assistant text for tool calls; it consumes normalized payloads from LLM layer and bridges native tool calls into existing `ParsedToolCall` orchestration types.
+  - Parser-recovery retry behavior removed from loop; parse-validation corrective user-message injection path no longer runs in Agent loop.
+  - `LLMStreamProcessor` now supports native completion payload path (when tools + native flag enabled) and still preserves legacy stream path for non-tooling/legacy callers.
+  - Conversation history now stores assistant tool-call metadata (`assistant.tool_calls`) and tool result linkage (`tool_call_id`) for follow-up turns.
+  - Tool-result history now emits `role=tool` messages first (per staged tool-call ids) and still keeps legacy user-role tool-output message for screenshot continuity.
+- Tests run + results:
+  - `pytest -q tests/backend/test_llm_stream_processor.py` -> passed (`2 passed`).
+  - `pytest -q tests/backend/test_conversation_history.py` -> passed (`8 passed`).
+  - `pytest -q tests/backend/test_session_cleanup.py` -> passed (`2 passed`).
+  - `pytest -q tests/backend/test_conversation_history.py tests/backend/test_prompt_constructor_utils.py tests/backend/test_session_llm_factory.py` -> `3 failed, 14 passed`; failures are Agent-4-era prompt schema expectation changes (`<tool_schemas>` embedding removed), not Agent 3 loop/history regressions.
+- Risks left:
+  - Native-tool path currently returns one synthesized `ChunkEvent` for content instead of provider token-by-token chunks.
+  - History currently stores both `role=tool` and legacy user tool-output messages; this keeps screenshot context but increases context size and may need cleanup once prompt/schema migration stabilizes.
+  - Bundle mode maps one bundled result across staged tool-call ids; integration tests should verify provider-specific expectations.
+
+### Agent 3 -> Agent 5 Handoff
+- Add integration tests for:
+  - assistant tool-only turns (`content == ""` + non-empty `tool_calls`) through full Agent loop.
+  - follow-up request message order: assistant tool_calls -> tool result messages with matching `tool_call_id`.
+  - bundle tool-call turns with multiple ids and one bundled frontend result path.
+- Validate whether keeping legacy user tool-output messages is still needed after native prompt/schema cutover; remove if redundant.
+- Keep rollback gate test path (`native_tool_calling_enabled=false`) on interaction-loop/history behavior.
+
+### Agent 3 Source Pack Evidence (Read Before Coding)
+- LiteLLM function calling docs: request params confirmed as `tools` + `tool_choice`; response shape normalized around `message.tool_calls[].id`, `.function.name`, `.function.arguments`.
+- LiteLLM Anthropic provider docs: Anthropic path supports `tools`, `tool_choice`, `parallel_tool_calls` through LiteLLM translation.
+- Anthropic tool-use docs: tool-result ordering rule captured (`tool_result` must immediately follow `tool_use`), with known invalid payload string:
+  - ``messages.6: `tool_use` ids were found without `tool_result` blocks immediately after: toolu_01A09q90qw90lq917835lq9``.
+- Anthropic OpenAI-compat endpoint notes: confirms compatibility layer framing for OpenAI-style normalized tool-call contracts.
+- OpenAI function-calling guide: canonical function call payloads include stable call id, function name, and JSON arguments.
+
 ## Agent 4: Prompt/Schema Cleanup + Docs (Parallel after Agent 2)
 
 ### Mission
@@ -248,6 +289,60 @@ Delete obsolete prompt protocol instructions and schema wrapping patterns tied t
 ### Done Criteria
 - Prompt docs and runtime prompt generation no longer depend on custom JSON parser format.
 - Tool schema path aligns with API-native tool-calling.
+
+### Status
+- `COMPLETE` on 2026-02-12.
+- Files changed:
+  - `backend/src/llm/prompts/system_prompt.txt`
+  - `backend/src/llm/prompts/prompt_constructor.py`
+  - `backend/src/sdk/tool.py`
+  - `backend/src/tools/tool_selection.py` (compat helper for dev mouse-method filtering with native schema)
+  - `docs/TOOL_SYSTEM.md`
+  - `docs/AGENT_SYSTEM.md`
+  - `docs/prompts/native-sdk-tool-calling-migration.md`
+- Behavior delta:
+  - Removed parser-era prompt requirements that forced literal JSON tool-call text output and metadata/action wrapper format.
+  - Prompt constructor no longer injects `<tool_schemas>` into first user message; schemas remain returned for native API `tools` params + transparency events.
+  - SDK tool schema generation now emits native direct argument schema for all tools (no computer-tool wrapper object).
+  - Tool-selection mouse arg filtering supports both legacy wrapped schema and native direct-args schema.
+  - Docs updated to describe native tool-calling transport (`tools`, optional `tool_choice`, optional `parallel_tool_calls`) and structured response flow.
+- Tests run + results:
+  - Ran:
+    - `./scripts/python-in-env backend pytest tests/backend/test_prompt_constructor_utils.py tests/backend/test_tool_registry_schema.py tests/backend/test_tool_policy.py`
+  - Result: `5 failed, 13 passed`.
+  - Failures are expected parser-era assertions in tests still expecting:
+    - `<tool_schemas>` embedding in user content.
+    - wrapped computer-tool schema (`metadata` + `action.functionCall.args`) instead of native direct args.
+- Risks left:
+  - Agent runtime (`InteractionLoop`) is still parser-driven until Agent 3 lands, so old parser behavior remains in-flight elsewhere by design.
+  - Parser-era test suites still assert removed behavior; migration-aligned test updates remain for Agent 5.
+  - `tests/backend/test_tool_policy.py` currently asserts legacy wrapped schema paths and must be updated to native schema expectations.
+
+### Agent 4 -> Agent 5 Handoff (Sequential)
+- Update parser-era tests to native contracts:
+  - `tests/backend/test_prompt_constructor_utils.py` (remove `<tool_schemas>` embedding assertions).
+  - `tests/backend/test_tool_registry_schema.py` (assert direct `parameters` shape for computer tools).
+  - `tests/backend/test_tool_policy.py` (assert method filtering against native `parameters.properties`).
+- Add integration regression coverage once Agent 3 lands:
+  - tool-only assistant turns (`content == ""`, non-empty `tool_calls`).
+  - follow-up turn tool-result message ordering constraints for Anthropic paths.
+- Keep rollback gate coverage (`native_tool_calling_enabled == false`) intact while removing parser assumptions.
+
+### Agent 4 Source Pack Evidence (Read Before Coding)
+- LiteLLM function-calling docs:
+  - request params confirmed: `tools`, `tool_choice`.
+  - structured tool-call response fields normalized from `choices[0].message.tool_calls`.
+- LiteLLM Anthropic provider docs:
+  - supported params include `tools`, `tool_choice`, `parallel_tool_calls`.
+  - confirms translation path can stay in shared LiteLLM abstraction.
+- Anthropic tool-use implementation docs:
+  - strict follow-up ordering caveat: `tool_result` blocks must immediately follow prior `tool_use`.
+  - exact invalid payload error string recorded:
+    - ``messages.6: `tool_use` ids were found without `tool_result` blocks immediately after: toolu_01A09q90qw90lq917835lq9``.
+- Anthropic OpenAI-compatible endpoint notes:
+  - compatibility context supports normalized OpenAI-style tool-call assumptions across translation layers.
+- OpenAI function-calling guide:
+  - canonical tool-call shape aligns with contract used by Agents 1/2 (`id`, function/tool `name`, JSON `arguments`).
 
 ## Agent 5: Integration QA + Regression Net (Sequential Final)
 
