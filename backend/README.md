@@ -43,14 +43,14 @@ There is no YAML config file. Backend configuration lives in:
 
 ## Running the Application
 
-### Development Mode (with auto-reload)
+### Development Mode
 
 ```powershell
 cd backend
 python -m backend.src.main
 ```
 
-Or using uvicorn directly:
+If you explicitly want auto-reload, use uvicorn directly:
 
 ```powershell
 cd backend
