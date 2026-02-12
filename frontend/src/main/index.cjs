@@ -569,7 +569,7 @@ function initializeOverlayHandlers() {
     }
 
     const nextWidth = Math.max(1, Math.min(900, Math.round(Number(width) || 0)));
-    const nextHeight = Math.max(1, Math.min(1500, Math.round(Number(height) || 0)));
+    const nextHeight = Math.max(1, Math.min(750, Math.round(Number(height) || 0)));
     try {
       const bounds = getResponseWindowBounds(nextWidth, nextHeight);
       responseWindow.setBounds(bounds, false);
