@@ -8,7 +8,9 @@ export type NormalizedBundleResult = {
   _rawResult: ToolResult;
   success: boolean;
   error: string | null;
-  data: null;
+  data: {
+    output: string;
+  };
 };
 
 export function buildToolResultPayloadData(
@@ -58,11 +60,15 @@ export function normalizeBundleStepResults(
     _rawResult: {
       success: step.status === 'ok',
       error: step.status === 'error' ? step.output : null,
-      data: null,
+      data: {
+        output: step.output,
+      },
     },
     success: step.status === 'ok',
     error: step.status === 'error' ? step.output : null,
-    data: null,
+    data: {
+      output: step.output,
+    },
   }));
 }
 
