@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../stores/chatStore';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatBoxState } from '../utils/chatSelectors';
 
 const RESPONSE_TYPES = new Set(['tool-call', 'llm-text', 'error']);
@@ -40,6 +40,7 @@ function ChatBoxResponse() {
   const { messages } = useChatStore(useShallow(selectChatBoxState));
   const [closedResponseId, setClosedResponseId] = useState(null);
   const [awaitingFirstChunk, setAwaitingFirstChunk] = useState(false);
+  const [overlayPhase, setOverlayPhase] = useState('idle');
   const shellRef = useRef(null);
   const lastUserMessageIdRef = useRef(null);
   const lastFrameRef = useRef({ width: 0, height: 0, visible: null });
@@ -82,7 +83,9 @@ function ChatBoxResponse() {
       && activeResponse.id !== closedResponseId,
   );
 
-  const showAwaitingReply = awaitingFirstChunk && !showResponse;
+  const showAwaitingReply = (
+    awaitingFirstChunk || overlayPhase === 'awaiting-first-chunk'
+  ) && !showResponse;
   const isVisible = showResponse || showAwaitingReply;
 
   const reportOverlaySize = useCallback(async (visible) => {
@@ -131,6 +134,25 @@ function ChatBoxResponse() {
   }, []);
 
   useEffect(() => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_PHASE, (payload) => {
+      const phase = typeof payload?.phase === 'string' ? payload.phase : null;
+      if (!phase) {
+        return;
+      }
+      setOverlayPhase(phase);
+      if (phase === 'awaiting-first-chunk') {
+        setAwaitingFirstChunk(true);
+        setClosedResponseId(null);
+      } else if (phase === 'streaming' || phase === 'complete' || phase === 'error' || phase === 'idle') {
+        setAwaitingFirstChunk(false);
+      }
+    });
+    return () => {
+      removeListener?.();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!lastUserMessageId) {
       return;
     }
@@ -168,6 +190,7 @@ function ChatBoxResponse() {
       observer.observe(shellRef.current);
     }
 
+    updateSize();
     window.requestAnimationFrame(updateSize);
 
     return () => {

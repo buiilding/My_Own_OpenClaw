@@ -44,6 +44,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox): keep overlay fully interactive while preserving rounded-pill hit geometry so background windows are not blocked by rectangular shadow regions
 
 ### Fixed
+- fix(frontend-chatbox): make response overlay/dashboard transitions robust by syncing an explicit main-process response phase (`idle|awaiting-first-chunk|streaming|complete|error`) so typing dots and streamed response pill reliably restore after returning from dashboard
 - fix(sidecar-shell): default `run_shell_command` to OS user home when `directory` is omitted, align remote schema descriptions, and add sidecar regression coverage
 - fix(frontend-chat): restore `ApiClient.sendQuery(text, screenshotRef, screenshotUrl)` caller compatibility in message sender while still transmitting only schema-supported `screenshot_ref`
 - fix(frontend-chatbox): remove `vh`-based max-height from response pill in the dedicated response window so streamed text can continue increasing overlay height instead of self-clamping early

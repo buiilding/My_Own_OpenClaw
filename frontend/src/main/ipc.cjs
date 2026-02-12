@@ -29,6 +29,16 @@ let latestFrontendConfig = null; // Last known frontend config for session boots
 let hasAttemptedInitialSettingsSync = false; // One-time per connection query gate
 let pendingSettingsSyncPromise = null; // Last outbound update-settings ACK promise
 const pendingSettingsSyncs = new Map(); // msg_id -> { resolve, timer }
+let onResponseOverlayPhaseChange = null;
+let responseOverlayPhase = 'idle';
+
+const RESPONSE_OVERLAY_PHASES = new Set([
+  'idle',
+  'awaiting-first-chunk',
+  'streaming',
+  'complete',
+  'error',
+]);
 
 const FRONTEND_CONFIG_FILENAME = 'frontend-config.json';
 
@@ -201,7 +211,40 @@ function trackRendererWindow(win) {
     return;
   }
   rendererWindows.add(win);
+  const webContents = win.webContents;
+  const canSubscribeToLoad = Boolean(
+    webContents
+      && typeof webContents.on === 'function'
+      && typeof webContents.removeListener === 'function',
+  );
+  const canCheckLoadingState = Boolean(
+    webContents && typeof webContents.isLoadingMainFrame === 'function',
+  );
+  const syncResponseOverlayPhase = () => {
+    if (!win || win.isDestroyed()) {
+      return;
+    }
+    if (!webContents || typeof webContents.send !== 'function') {
+      return;
+    }
+    webContents.send('response-overlay-phase', {
+      phase: responseOverlayPhase,
+      source: 'sync',
+    });
+  };
+  if (canSubscribeToLoad) {
+    webContents.on('did-finish-load', syncResponseOverlayPhase);
+  }
+  if (!canCheckLoadingState || !webContents.isLoadingMainFrame()) {
+    syncResponseOverlayPhase();
+  }
+  if (typeof win.on !== 'function') {
+    return;
+  }
   win.on('closed', () => {
+    if (canSubscribeToLoad) {
+      webContents.removeListener('did-finish-load', syncResponseOverlayPhase);
+    }
     rendererWindows.delete(win);
   });
 }
@@ -217,6 +260,25 @@ function broadcastToRenderers(channel, payload, sourceWebContents = null) {
     }
     win.webContents.send(channel, payload);
   }
+}
+
+function setResponseOverlayPhase(phase, source = 'ipc') {
+  if (!RESPONSE_OVERLAY_PHASES.has(phase)) {
+    return;
+  }
+  if (responseOverlayPhase === phase) {
+    return;
+  }
+  responseOverlayPhase = phase;
+  const payload = { phase, source };
+  if (typeof onResponseOverlayPhaseChange === 'function') {
+    try {
+      onResponseOverlayPhaseChange(payload);
+    } catch (error) {
+      log(`Response overlay phase callback failed: ${error.message}`);
+    }
+  }
+  broadcastToRenderers('response-overlay-phase', payload);
 }
 
 /**
@@ -255,6 +317,7 @@ function connect() {
     hasAttemptedInitialSettingsSync = false;
     pendingSettingsSyncPromise = null;
     clearPendingSettingsSyncs();
+    setResponseOverlayPhase('idle', 'ws-open');
     log('Successfully connected to Python backend.');
 
     // Generate valid user_id (backend rejects 'default_user', empty, or whitespace-only)
@@ -300,6 +363,13 @@ function connect() {
       } else if (data.type === 'error' && data.id) {
         resolveSettingsSync(data.id, false);
       }
+      if (data.type === 'streaming-response') {
+        setResponseOverlayPhase('streaming', 'backend');
+      } else if (data.type === 'streaming-complete') {
+        setResponseOverlayPhase('complete', 'backend');
+      } else if (data.type === 'error' && responseOverlayPhase !== 'idle') {
+        setResponseOverlayPhase('error', 'backend');
+      }
       broadcastToRenderers('from-backend', data);
     } catch (error) {
       log(`Error parsing message from backend: ${error}`);
@@ -313,6 +383,7 @@ function connect() {
     clearPendingSettingsSyncs();
     currentSessionId = null;
     currentServerUserId = null;
+    setResponseOverlayPhase('idle', 'ws-close');
     log('Disconnected from Python backend. Attempting to reconnect...');
     broadcastToRenderers('ipc-status', {
       isConnected: false,
@@ -392,9 +463,13 @@ function normalizeBackendPayload(type, payload) {
  * This function should be called once when the main Electron window is created.
  *
  * @param {BrowserWindow} win - The main Electron BrowserWindow instance.
+ * @param {object} options - Optional lifecycle callbacks.
  */
-function initializeIpc(win) {
+function initializeIpc(win, options = {}) {
   mainWindow = win;
+  onResponseOverlayPhaseChange = typeof options.onResponseOverlayPhaseChange === 'function'
+    ? options.onResponseOverlayPhaseChange
+    : null;
   rendererWindows = new Set();
   trackRendererWindow(win);
   connect();
@@ -438,6 +513,7 @@ function initializeIpc(win) {
     // Build complete user message content with system state and memories
     // System context MUST be retrieved - never skip it
     if (type === 'query') {
+      setResponseOverlayPhase('awaiting-first-chunk', 'query');
       if (payload?.text) {
         broadcastToRenderers('from-backend', {
           type: 'local-user-message',
@@ -580,7 +656,10 @@ function initializeIpc(win) {
     // System context is now pre-formatted in llm_content by ChatContext.jsx
     // No need to extract or add system_context here - backend expects pre-formatted messages
     
-    sendMessageToBackend(type, payload);
+    const messageId = sendMessageToBackend(type, payload);
+    if (!messageId && type === 'query') {
+      setResponseOverlayPhase('idle', 'query-send-failed');
+    }
   });
 }
 
