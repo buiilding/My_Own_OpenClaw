@@ -277,6 +277,21 @@ read_when:
    - Verify not rate limited
    - Check API usage
 
+#### Local Provider Discovery Warnings
+
+**Symptoms**:
+- Backend logs warnings like:
+  - `Error listing Ollama models: All connection attempts failed`
+  - `Error listing LM Studio models: All connection attempts failed`
+
+**What It Means**:
+- Expected when Ollama/LM Studio are not running locally.
+- Not fatal if you are using a cloud provider (OpenAI, Anthropic, Kimi, etc.).
+
+**When to Act**:
+1. If you need local models, start Ollama/LM Studio and verify they are reachable.
+2. If you do not use local models, you can ignore these warnings.
+
 #### Streaming Issues
 
 **Symptoms**:
@@ -320,6 +335,19 @@ read_when:
 3. **Check Embeddings**:
    - Verify the backend is running and `/api/embeddings/health` is healthy
    - If you don’t have CUDA, set `device="cpu"` in `backend/src/core/container/factories.py`
+
+#### Continue Conversation Fails on Missing Screenshot Artifact
+
+**Symptoms**:
+- Error during resume/rehydrate mentioning unresolved `screenshot_ref` or "Artifact not found".
+
+**Current Behavior**:
+- Backend now logs a warning and continues rehydrate with text-only entries when a screenshot artifact is missing.
+- Conversation resume should continue instead of failing the whole restore.
+
+**If You Still See Hard Failures**:
+1. Ensure backend includes the fallback fix from `backend/src/api/services/rehydrate_execution.py`.
+2. Restart backend after pulling latest changes.
 
 #### Slow Memory Search
 
