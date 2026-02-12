@@ -415,7 +415,7 @@ class LLMProvider(ABC):
             "timeout": self.timeout,
         }
         if tools is not None:
-            params["tools"] = self._normalize_tools_for_litellm(tools)
+            params["tools"] = self._normalize_tools_for_litellm(tools, model=model)
         if tool_choice is not None:
             params["tool_choice"] = tool_choice
         if parallel_tool_calls is not None:
@@ -423,48 +423,89 @@ class LLMProvider(ABC):
         return params
 
     @staticmethod
-    def _normalize_tools_for_litellm(tools: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _normalize_tools_for_litellm(
+        tools: List[Dict[str, Any]],
+        *,
+        model: str,
+    ) -> List[Dict[str, Any]]:
         """
-        Normalize tool schemas to OpenAI-compatible tool definitions for LiteLLM.
+        Validate canonical tool schemas for LiteLLM transport.
 
-        LiteLLM Anthropic-compatible paths require each tool entry to include
-        `type: "function"` and nested `function` payload fields.
+        Runtime contract is strict: each entry must be
+        `{type: "function", function: {name, description?, parameters}}`.
         """
+        if not isinstance(tools, list):
+            raise LLMAPIError(
+                "Invalid tools payload: expected list of canonical tool objects",
+                model=model,
+            )
+
         normalized: List[Dict[str, Any]] = []
-        for tool in tools:
-            normalized_tool = LLMProvider._normalize_single_tool_for_litellm(tool)
-            if normalized_tool is not None:
-                normalized.append(normalized_tool)
+        for index, tool in enumerate(tools):
+            normalized.append(
+                LLMProvider._normalize_single_tool_for_litellm(
+                    tool,
+                    index=index,
+                    model=model,
+                )
+            )
         return normalized
 
     @staticmethod
-    def _normalize_single_tool_for_litellm(tool: Any) -> Optional[Dict[str, Any]]:
-        """Normalize one tool schema, preserving already-compatible entries."""
+    def _normalize_single_tool_for_litellm(
+        tool: Any,
+        *,
+        index: int,
+        model: str,
+    ) -> Dict[str, Any]:
+        """Validate one canonical tool schema and return a deep copy."""
         if not isinstance(tool, dict):
-            logger.warning("Skipping non-dict tool schema in request payload: %r", tool)
-            return None
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: expected object",
+                model=model,
+            )
 
         tool_type = tool.get("type")
-        if isinstance(tool_type, str) and tool_type in {"function", "custom"}:
-            return copy.deepcopy(tool)
+        if tool_type != "function":
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: field 'type' must be 'function'",
+                model=model,
+            )
 
-        function_name = tool.get("name")
+        function_payload = tool.get("function")
+        if not isinstance(function_payload, dict):
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: missing or invalid 'function' object",
+                model=model,
+            )
+
+        function_name = function_payload.get("name")
         if not isinstance(function_name, str) or not function_name.strip():
-            logger.warning("Skipping tool schema without valid name field: %r", tool)
-            return None
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: function.name must be a non-empty string",
+                model=model,
+            )
 
-        function_payload: Dict[str, Any] = {
-            "name": function_name,
-            "parameters": tool.get("parameters", {}),
-        }
-        description = tool.get("description")
-        if isinstance(description, str) and description.strip():
-            function_payload["description"] = description
+        if "parameters" not in function_payload:
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: function.parameters is required",
+                model=model,
+            )
+        parameters = function_payload.get("parameters")
+        if not isinstance(parameters, dict):
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: function.parameters must be an object",
+                model=model,
+            )
 
-        return {
-            "type": "function",
-            "function": function_payload,
-        }
+        description = function_payload.get("description")
+        if description is not None and not isinstance(description, str):
+            raise LLMAPIError(
+                f"Invalid tool schema at index {index}: function.description must be a string when provided",
+                model=model,
+            )
+
+        return copy.deepcopy(tool)
 
     @abstractmethod
     def _get_full_model_string(self, model_id: str) -> str:
