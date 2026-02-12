@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(llm): add native SDK tool-calling migration contracts (`NormalizedToolCall`, extended `NormalizedLLMResponse`), tool-role history message typing, and `LLMClient.get_completion_response()` normalized interface with migration flag `native_tool_calling_enabled`
 - feat(observability): add per-turn LLM cache diagnostics logs (`[Cache Hint]` + `[Provider Cache]`) and enable streamed usage capture (`stream_options.include_usage`) across provider adapters
 - feat(dev-tools): add backend tool-selection profiles (`full|coding|computer|browser`) and `backend/dev/run_backend_with_tools.sh` launcher for zero-edit profile switching via env override
 - feat(dev-tools): add method-level `mouse_control` dev selection (`manual|ocr|prediction`) with schema/parser enforcement and startup gating to skip OCR/Vision initialization when disabled
@@ -36,6 +37,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- docs(prompts): mark native SDK tool-calling migration Agent 1 complete and add explicit Agent 2 handoff contract notes
 - refactor(agent-tools): remove legacy session/tool-preparation compatibility paths and standardize screenshot preparation flow on a single async API
 - refactor(tool-results): replace `SimpleNamespace` execution payloads with typed result models and simplify waiting-result storage internals to single future maps
 - docs(agents): clarify that agents should continue scoped work when unrelated changes are present and report only scoped deltas
