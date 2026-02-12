@@ -631,6 +631,46 @@ class TestCompletionResponseHelpers:
                 invalid_response_message="Invalid response",
             )
 
+    def test_extract_completion_response_reads_choice_level_text_fallback(self, provider):
+        response = SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    text="legacy text payload",
+                    message=SimpleNamespace(content=None),
+                )
+            ]
+        )
+
+        normalized = provider._extract_completion_response(
+            response,
+            model="model",
+            invalid_response_message="Invalid response",
+        )
+
+        assert normalized["content"] == "legacy text payload"
+
+    def test_extract_completion_response_reads_message_content_block_content_key(self, provider):
+        response = SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(
+                        content=[
+                            {"type": "text", "content": "hello"},
+                            {"type": "output_text", "content": {"text": " world"}},
+                        ]
+                    )
+                )
+            ]
+        )
+
+        normalized = provider._extract_completion_response(
+            response,
+            model="model",
+            invalid_response_message="Invalid response",
+        )
+
+        assert normalized["content"] == "hello world"
+
 
 class TestGetCompletionStream:
     """Tests for get_completion_stream method."""

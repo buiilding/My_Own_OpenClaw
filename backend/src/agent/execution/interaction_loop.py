@@ -12,6 +12,7 @@ from backend.src.agent.execution.policies import (
     IterationPolicy,
     ToolExecutionPolicy,
 )
+from backend.src.core.types.enums import MessageType
 from backend.src.core.events.streaming_events import (
     AgentStreamingEvent,
     FullResponseEvent,
@@ -131,6 +132,12 @@ class InteractionLoop:
 
             # Step 4: Decision - final answer or tools?
             if not parsed_response.has_tool_calls:
+                if not llm_response_text.strip():
+                    llm_response_text = self._build_empty_final_response_fallback()
+                    async for event in self.event_presenter.present_assistant_message(
+                        llm_response_text
+                    ):
+                        yield event
                 # Final answer - update history and present completion
                 self.session.history.add_assistant_message(llm_response_text)
                 async for event in self.event_presenter.present_completion(
@@ -315,3 +322,39 @@ class InteractionLoop:
             if isinstance(candidate, str) and candidate:
                 tool_call_ids.append(candidate)
         return tool_call_ids
+
+    def _build_empty_final_response_fallback(self) -> str:
+        """
+        Provide a deterministic user-facing fallback when model returns empty final text.
+        """
+        tool_output_summary = self._extract_last_tool_output_summary()
+        if tool_output_summary:
+            return (
+                "I completed the requested tool action(s), but the model returned an empty "
+                "final response. Latest tool output:\n\n"
+                f"{tool_output_summary}"
+            )
+        return (
+            "I completed the requested action(s), but the model returned an empty "
+            "final response."
+        )
+
+    def _extract_last_tool_output_summary(self) -> str:
+        """Return a concise summary from the most recent tool-output history entry."""
+        try:
+            stored_messages = self.session.history.get_stored_messages()
+        except Exception:
+            return ""
+
+        for message in reversed(stored_messages):
+            if message.message_type != MessageType.TOOL_OUTPUT:
+                continue
+            content = (message.content or "").strip()
+            if not content:
+                continue
+            if "<system_context>" in content:
+                content = content.split("<system_context>", 1)[0].strip()
+            if len(content) > 600:
+                content = f"{content[:597]}..."
+            return content
+        return ""
