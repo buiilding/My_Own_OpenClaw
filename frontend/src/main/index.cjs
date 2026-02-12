@@ -17,7 +17,36 @@ let responseWindow = null;
 let tray = null;
 let overlayHandlersInitialized = false;
 let responseOverlayVisible = false;
+let responseOverlayPhase = 'idle';
 const WAKEWORD_HOTKEY = 'Super+Alt+W';
+const RESPONSE_OVERLAY_PHASE = Object.freeze({
+  IDLE: 'idle',
+  AWAITING_FIRST_CHUNK: 'awaiting-first-chunk',
+  STREAMING: 'streaming',
+  COMPLETE: 'complete',
+  ERROR: 'error',
+});
+
+function isResponseOverlayStreamingPhase() {
+  return (
+    responseOverlayPhase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK
+    || responseOverlayPhase === RESPONSE_OVERLAY_PHASE.STREAMING
+  );
+}
+
+function ensureResponseOverlayFallbackBounds() {
+  if (!responseWindow || responseWindow.isDestroyed()) {
+    return;
+  }
+  const defaultWidth = chatWindow && !chatWindow.isDestroyed()
+    ? chatWindow.getSize()[0]
+    : 520;
+  const [currentWidth, currentHeight] = responseWindow.getSize();
+  const width = Math.max(1, currentWidth || defaultWidth);
+  const height = Math.max(42, currentHeight || 0);
+  const bounds = getResponseWindowBounds(width, height);
+  responseWindow.setBounds(bounds, false);
+}
 
 function positionChatWindow() {
   if (!chatWindow) {
@@ -91,6 +120,18 @@ function ensureResponseWindowOnTop() {
   }
 }
 
+function showResponseWindowInactive() {
+  if (!responseWindow || responseWindow.isDestroyed()) {
+    return;
+  }
+  if (typeof responseWindow.showInactive === 'function') {
+    responseWindow.showInactive();
+  } else {
+    responseWindow.show();
+  }
+  ensureResponseWindowOnTop();
+}
+
 function sendWakewordToggle(enabled) {
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
@@ -109,13 +150,13 @@ function showChatWindow({ focus = true } = {}) {
     chatWindow.show();
   }
   ensureChatWindowOnTop();
-  if (responseWindow && !responseWindow.isDestroyed() && responseOverlayVisible) {
-    if (typeof responseWindow.showInactive === 'function') {
-      responseWindow.showInactive();
-    } else {
-      responseWindow.show();
+  const shouldRestoreResponse = responseOverlayVisible || isResponseOverlayStreamingPhase();
+  if (responseWindow && !responseWindow.isDestroyed() && shouldRestoreResponse) {
+    if (isResponseOverlayStreamingPhase()) {
+      responseOverlayVisible = true;
+      ensureResponseOverlayFallbackBounds();
     }
-    ensureResponseWindowOnTop();
+    showResponseWindowInactive();
   }
   if (focus) {
     chatWindow.focus();
@@ -155,6 +196,45 @@ function showMainWindow({ focus = true } = {}) {
   return { success: true };
 }
 
+function handleResponseOverlayPhaseChange(event = {}) {
+  const nextPhase = event?.phase;
+  if (!Object.values(RESPONSE_OVERLAY_PHASE).includes(nextPhase)) {
+    return;
+  }
+  responseOverlayPhase = nextPhase;
+
+  if (nextPhase === RESPONSE_OVERLAY_PHASE.IDLE) {
+    responseOverlayVisible = false;
+    if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
+      responseWindow.hide();
+    }
+    return;
+  }
+
+  if (isResponseOverlayStreamingPhase()) {
+    responseOverlayVisible = true;
+    if (!responseWindow || responseWindow.isDestroyed()) {
+      return;
+    }
+    ensureResponseOverlayFallbackBounds();
+    if (chatWindow && !chatWindow.isDestroyed() && chatWindow.isVisible()) {
+      showResponseWindowInactive();
+    }
+    return;
+  }
+
+  if (
+    responseOverlayVisible
+    && responseWindow
+    && !responseWindow.isDestroyed()
+    && chatWindow
+    && !chatWindow.isDestroyed()
+    && chatWindow.isVisible()
+  ) {
+    showResponseWindowInactive();
+  }
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1000, // Increased width to accommodate sidebar
@@ -185,7 +265,9 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../../dist/index.html'));
   }
 
-  initializeIpc(mainWindow);
+  initializeIpc(mainWindow, {
+    onResponseOverlayPhaseChange: handleResponseOverlayPhaseChange,
+  });
   initializeWakewordBridge(mainWindow, () => showChatWindow({ focus: true }));
   initializeLocalBackendBridge(() => ({ mainWindow, chatWindow, responseWindow }));
   initializeOverlayHandlers();

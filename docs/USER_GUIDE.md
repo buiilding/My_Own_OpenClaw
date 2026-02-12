@@ -28,6 +28,7 @@ read_when:
 - **Mic** button is disabled (voice typing off).
 - Closing the dashboard restores the chatbox.
 - Sending a message from the dashboard closes it and returns to the chatbox.
+- While waiting for a reply, the typing indicator and response overlay continue to work even when transitioning from dashboard back to chatbox.
 
 ## Dashboard Layout
 
