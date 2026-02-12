@@ -253,19 +253,28 @@ class PluginResultDict(TypedDict, total=False):
 
 
 class ToolParameterSchema(TypedDict, total=False):
-    """JSON schema for a tool parameter."""
+    """JSON Schema node used inside tool function parameters."""
 
     type: str
     description: NotRequired[str]
+    properties: NotRequired[Dict[str, Any]]
+    items: NotRequired[Any]
     enum: NotRequired[List[Any]]
     default: NotRequired[Any]
-    required: NotRequired[bool]
+    required: NotRequired[List[str]]
+    additionalProperties: NotRequired[Union[bool, Dict[str, Any]]]
 
 
-class ToolSchema(TypedDict, total=False):
-    """JSON schema for a tool."""
+class ToolFunctionSchema(TypedDict, total=False):
+    """Canonical function definition nested under a provider tool object."""
 
     name: str
-    description: str
-    parameters: Dict[str, ToolParameterSchema]
-    required: NotRequired[List[str]]
+    description: NotRequired[str]
+    parameters: Dict[str, Any]
+
+
+class ToolSchema(TypedDict):
+    """Canonical provider-facing tool object (OpenAI/LiteLLM compatible)."""
+
+    type: Literal["function"]
+    function: ToolFunctionSchema

@@ -148,6 +148,29 @@ messages = [
 
 Migration contract for backend-native SDK tool calling.
 
+### Canonical Tool Schema Object (Strict Replacement)
+
+Tool schemas now use one canonical provider-facing shape:
+
+```python
+{
+    "type": "function",
+    "function": {
+        "name": "tool_name",
+        "description": "Optional description",
+        "parameters": {...}  # JSON Schema object
+    }
+}
+```
+
+Legacy top-level tool schema shape (`{name, description, parameters}`) is removed from runtime-critical paths.
+
+Canonical shape is required in:
+- tool registry/schema production paths
+- LLM request params (`tools`, optional `tool_choice`, optional `parallel_tool_calls`)
+- transparency/event payloads that expose tool schemas
+- provider transport boundaries (validation + forwarding)
+
 ### Normalized Completion Response
 
 `LiteLLMClient.get_completion_response()` returns:

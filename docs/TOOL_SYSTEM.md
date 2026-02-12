@@ -298,29 +298,39 @@ For tools using vision models:
 
 ### Schema Format
 
-Tool schemas follow JSON Schema format:
+Tool schemas use canonical OpenAI/LiteLLM `tools[]` objects:
 
 ```json
 {
-  "type": "object",
-  "properties": {
-    "action": {
-      "type": "string",
-      "enum": ["click", "double_click", "right_click"],
-      "description": "Mouse action to perform"
-    },
-    "x": {
-      "type": "integer",
-      "description": "X coordinate"
-    },
-    "y": {
-      "type": "integer",
-      "description": "Y coordinate"
+  "type": "function",
+  "function": {
+    "name": "mouse_control",
+    "description": "Control mouse actions",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["click", "double_click", "right_click"],
+          "description": "Mouse action to perform"
+        },
+        "x": {
+          "type": "integer",
+          "description": "X coordinate"
+        },
+        "y": {
+          "type": "integer",
+          "description": "Y coordinate"
+        }
+      },
+      "required": ["action"]
     }
-  },
-  "required": ["action"]
+  }
 }
 ```
+
+Legacy top-level shape (`{name, description, parameters}`) is deprecated/removed for runtime-critical flows.
+No dual-shape fallback is supported in provider transport.
 
 ### Schema Registry
 
