@@ -10,11 +10,11 @@ import {
 
 describe('chatStreamMessageUpdates', () => {
   const messages = [
-    { id: 'u1', sender: 'user', text: 'hello' },
-    { id: 'a1', sender: 'assistant', text: 'one', type: 'llm-text', isComplete: true },
-    { id: 'u2', sender: 'user', text: 'again' },
-    { id: 'a2', sender: 'assistant', text: 'two', type: 'tool-output' },
-    { id: 'a3', sender: 'assistant', text: 'three', type: 'llm-text', isComplete: false },
+    { id: 'u1', sender: 'user', text: 'hello', turnRef: 'turn-1' },
+    { id: 'a1', sender: 'assistant', text: 'one', type: 'llm-text', isComplete: true, turnRef: 'turn-1' },
+    { id: 'u2', sender: 'user', text: 'again', turnRef: 'turn-2' },
+    { id: 'a2', sender: 'assistant', text: 'two', type: 'tool-output', turnRef: 'turn-2' },
+    { id: 'a3', sender: 'assistant', text: 'three', type: 'llm-text', isComplete: false, turnRef: 'turn-2' },
   ] as any;
 
   test('findLastMessageIdBySender and findFirstMessageIdBySender select expected ids', () => {
@@ -22,6 +22,8 @@ describe('chatStreamMessageUpdates', () => {
     expect(findLastMessageIdBySender(messages, 'user')).toBe('u2');
     expect(findFirstMessageIdBySender(messages, 'assistant')).toBe('a1');
     expect(findLastMessageIdBySender(messages, 'assistant')).toBe('a3');
+    expect(findLastMessageIdBySender(messages, 'assistant', 'turn-1')).toBe('a1');
+    expect(findLastMessageIdBySender(messages, 'assistant', 'turn-3')).toBeNull();
     expect(findFirstMessageIdBySender([], 'assistant')).toBeNull();
   });
 
@@ -47,11 +49,19 @@ describe('chatStreamMessageUpdates', () => {
     expect(resolveStreamingResponseAction([], undefined)).toEqual({
       type: 'new',
       text: '',
+      turnRef: undefined,
+    });
+
+    expect(resolveStreamingResponseAction(messages, 'fresh', 'turn-9')).toEqual({
+      type: 'new',
+      text: 'fresh',
+      turnRef: 'turn-9',
     });
   });
 
   test('findStreamingCompleteAssistantMessage returns last assistant llm-text candidate', () => {
     expect(findStreamingCompleteAssistantMessage(messages)?.id).toBe('a3');
+    expect(findStreamingCompleteAssistantMessage(messages, 'turn-1')?.id).toBe('a1');
     expect(
       findStreamingCompleteAssistantMessage([
         { id: 't1', sender: 'assistant', text: 'tool', type: 'tool-output' },

@@ -6,7 +6,12 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { useChatStore, type ChatMessage } from '../stores/chatStore';
+import {
+  useChatStore,
+  type ChatMessage,
+  type StreamPhase,
+  type StreamTracking,
+} from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
   recordAssistantMessage,
@@ -58,6 +63,37 @@ type TranscriptModelContext = {
   modelProvider: string | null;
 };
 
+type StreamTrackingOptions = {
+  phase?: StreamPhase;
+  chunkSize?: number;
+  toolCall?: boolean;
+  toolOutput?: boolean;
+  errorText?: string | null;
+  resetForTurn?: boolean;
+};
+
+function createTrackingForNewTurn(
+  eventType: BackendEventType,
+  now: string,
+  turnRef: string | null,
+): StreamTracking {
+  return {
+    activeTurnRef: turnRef,
+    phase: 'awaiting-first-chunk',
+    startedAt: now,
+    firstChunkAt: null,
+    completedAt: null,
+    lastEventAt: now,
+    lastEventType: eventType,
+    eventCount: 1,
+    chunkCount: 0,
+    toolCallCount: 0,
+    toolOutputCount: 0,
+    lastChunkSize: 0,
+    lastError: null,
+  };
+}
+
 /**
  * Custom hook for managing streaming message responses.
  * Handles LLM thoughts, streaming chunks, and completion states.
@@ -68,6 +104,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
+  const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { config } = useAppConfigContext();
   const modelId = config?.selected_model_id || null;
   const modelProvider = config?.model_provider || null;
@@ -83,8 +120,81 @@ export function useChatStream(enableTranscript: boolean = true) {
     };
   }, [modelId, modelProvider]);
 
-  const updateLastMessageBySender = useCallback((sender: ChatMessage['sender'], updates: Partial<ChatMessage>) => {
-    const messageId = findLastMessageIdBySender(useChatStore.getState().messages, sender);
+  const recordTrackingEvent = useCallback((
+    eventType: BackendEventType,
+    turnRef: string | null | undefined,
+    options: StreamTrackingOptions = {},
+  ) => {
+    const now = new Date().toISOString();
+    updateStreamTracking((current) => {
+      const resolvedTurnRef = turnRef ?? current.activeTurnRef;
+      const base = options.resetForTurn
+        ? createTrackingForNewTurn(eventType, now, resolvedTurnRef ?? null)
+        : {
+          ...current,
+          activeTurnRef: resolvedTurnRef ?? current.activeTurnRef,
+          lastEventAt: now,
+          lastEventType: eventType,
+          eventCount: current.eventCount + 1,
+        };
+
+      const next: StreamTracking = {
+        ...base,
+      };
+
+      if (options.phase) {
+        next.phase = options.phase;
+      }
+
+      if (eventType === 'streaming-response') {
+        next.chunkCount += 1;
+        next.lastChunkSize = options.chunkSize ?? 0;
+        if (!next.firstChunkAt) {
+          next.firstChunkAt = now;
+        }
+        if (!options.phase) {
+          next.phase = 'streaming';
+        }
+      }
+
+      if (options.toolCall) {
+        next.toolCallCount += 1;
+        if (!options.phase) {
+          next.phase = 'tool-call';
+        }
+      }
+
+      if (options.toolOutput) {
+        next.toolOutputCount += 1;
+        if (!options.phase) {
+          next.phase = 'tool-output';
+        }
+      }
+
+      if (options.errorText !== undefined) {
+        next.lastError = options.errorText;
+        next.phase = options.phase ?? 'error';
+        next.completedAt = now;
+      }
+
+      if (next.phase === 'complete' && !next.completedAt) {
+        next.completedAt = now;
+      }
+
+      return next;
+    });
+  }, [updateStreamTracking]);
+
+  const updateLastMessageBySender = useCallback((
+    sender: ChatMessage['sender'],
+    updates: Partial<ChatMessage>,
+    turnRef?: string,
+  ) => {
+    const messageId = findLastMessageIdBySender(
+      useChatStore.getState().messages,
+      sender,
+      turnRef,
+    );
     if (messageId) {
       updateMessage(messageId, updates);
     }
@@ -100,7 +210,8 @@ export function useChatStream(enableTranscript: boolean = true) {
   const handleLlmThought = useCallback((event: LlmThoughtEvent) => {
     const currentStatus = useChatStore.getState().thinkingStatus;
     setThinkingStatus(buildThinkingStatus(currentStatus, event.payload?.status));
-  }, [setThinkingStatus]);
+    recordTrackingEvent('llm-thought', event.turn_ref);
+  }, [setThinkingStatus, recordTrackingEvent]);
 
   const handleStreamingResponse = useCallback((event: StreamingResponseEvent) => {
     setIsSending(false);
@@ -109,6 +220,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     const action = resolveStreamingResponseAction(
       useChatStore.getState().messages,
       event.payload?.text,
+      event.turn_ref,
     );
     if (action.type === 'append') {
       updateMessage(action.messageId, {
@@ -122,10 +234,22 @@ export function useChatStream(enableTranscript: boolean = true) {
         sender: 'assistant',
         isComplete: false,
         type: 'llm-text',
+        turnRef: action.turnRef,
       };
       addMessage(newMessage);
     }
-  }, [addMessage, updateMessage, setIsSending, setThinkingStatus]);
+
+    recordTrackingEvent('streaming-response', event.turn_ref, {
+      phase: 'streaming',
+      chunkSize: (event.payload?.text || '').length,
+    });
+  }, [
+    addMessage,
+    updateMessage,
+    setIsSending,
+    setThinkingStatus,
+    recordTrackingEvent,
+  ]);
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
     setThinkingStatus(null);
@@ -136,8 +260,11 @@ export function useChatStream(enableTranscript: boolean = true) {
       text: formattedText,
       sender: 'assistant',
       type: 'tool-call',
+      turnRef: event.turn_ref,
     };
     addMessage(newMessage);
+
+    recordTrackingEvent('tool-call', event.turn_ref, { toolCall: true });
 
     const correlationId = event.payload?.correlation_id || event.payload?.request_id;
 
@@ -153,7 +280,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, setThinkingStatus]);
+  }, [addMessage, enableTranscript, setThinkingStatus, recordTrackingEvent]);
 
   const handleToolOutput = useCallback((event: ToolOutputEvent) => {
     setThinkingStatus(null);
@@ -172,9 +299,12 @@ export function useChatStream(enableTranscript: boolean = true) {
       executionTime: event.payload?.execution_time,
       success: event.payload?.success,
       correlationId: resolveToolOutputCorrelationId(event.payload, event.id),
+      turnRef: event.turn_ref,
     };
 
     addMessage(newMessage);
+    recordTrackingEvent('tool-output', event.turn_ref, { toolOutput: true });
+
     const correlationId = resolveToolOutputCorrelationId(event.payload, event.id) || undefined;
 
     if (enableTranscript) {
@@ -190,7 +320,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, setThinkingStatus]);
+  }, [addMessage, enableTranscript, setThinkingStatus, recordTrackingEvent]);
 
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
     setThinkingStatus(null);
@@ -201,8 +331,11 @@ export function useChatStream(enableTranscript: boolean = true) {
       text: formattedText,
       sender: 'assistant',
       type: 'tool-call',
+      turnRef: event.turn_ref,
     };
     addMessage(newMessage);
+
+    recordTrackingEvent('tool-bundle', event.turn_ref, { phase: 'tool-call', toolCall: true });
 
     if (enableTranscript) {
       const modelContext = modelContextRef.current;
@@ -216,31 +349,35 @@ export function useChatStream(enableTranscript: boolean = true) {
         modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, setThinkingStatus]);
+  }, [addMessage, enableTranscript, setThinkingStatus, recordTrackingEvent]);
 
   const handleSystemPrompt = useCallback((event: SystemPromptEvent) => {
     updateLastMessageBySender('user', {
       systemPrompt: buildSystemPromptUpdate(event.payload),
-    });
-  }, [updateLastMessageBySender]);
+    }, event.turn_ref || undefined);
+    recordTrackingEvent('system-prompt', event.turn_ref);
+  }, [updateLastMessageBySender, recordTrackingEvent]);
 
   const handleUserMessageFull = useCallback((event: UserMessageFullEvent) => {
     updateLastMessageBySender('user', {
       fullUserMessage: buildUserMessageFullUpdate(event.payload),
-    });
-  }, [updateLastMessageBySender]);
+    }, event.turn_ref || undefined);
+    recordTrackingEvent('user-message-full', event.turn_ref);
+  }, [updateLastMessageBySender, recordTrackingEvent]);
 
   const handleAssistantMessageFull = useCallback((event: AssistantMessageFullEvent) => {
     updateLastMessageBySender('assistant', {
       fullAssistantMessage: buildAssistantMessageFullUpdate(event.payload),
-    });
-  }, [updateLastMessageBySender]);
+    }, event.turn_ref || undefined);
+    recordTrackingEvent('assistant-message-full', event.turn_ref);
+  }, [updateLastMessageBySender, recordTrackingEvent]);
 
   const handleToolSchemas = useCallback((event: ToolSchemasEvent) => {
     updateFirstMessageBySender('user', {
       toolSchemas: event.payload?.tool_schemas,
     });
-  }, [updateFirstMessageBySender]);
+    recordTrackingEvent('tool-schemas', event.turn_ref);
+  }, [updateFirstMessageBySender, recordTrackingEvent]);
 
   const handleLocalUserMessage = useCallback((event: LocalUserMessageEvent) => {
     const text = event.payload?.text;
@@ -258,16 +395,24 @@ export function useChatStream(enableTranscript: boolean = true) {
       screenshotRef,
       screenshotUrl,
       timestamp: event.payload?.timestamp,
+      turnRef: event.turn_ref,
     };
     addMessage(newMessage);
 
-  }, [addMessage]);
+    recordTrackingEvent('local-user-message', event.turn_ref, {
+      phase: 'awaiting-first-chunk',
+      resetForTurn: true,
+    });
+  }, [addMessage, recordTrackingEvent]);
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     setIsSending(false);
     setThinkingStatus(null);
 
-    const lastMessage = findStreamingCompleteAssistantMessage(useChatStore.getState().messages);
+    const lastMessage = findStreamingCompleteAssistantMessage(
+      useChatStore.getState().messages,
+      event.turn_ref,
+    );
     if (lastMessage && lastMessage.sender === 'assistant') {
       updateMessage(lastMessage.id, { isComplete: true });
       if (lastMessage.text && enableTranscript) {
@@ -281,11 +426,20 @@ export function useChatStream(enableTranscript: boolean = true) {
         });
       }
     }
-  }, [enableTranscript, setIsSending, setThinkingStatus, updateMessage]);
+
+    recordTrackingEvent('streaming-complete', event.turn_ref, { phase: 'complete' });
+  }, [
+    enableTranscript,
+    setIsSending,
+    setThinkingStatus,
+    updateMessage,
+    recordTrackingEvent,
+  ]);
 
   const handleTokenCount = useCallback((event: TokenCountEvent) => {
     setTokenCounts(event.payload ?? null);
-  }, [setTokenCounts]);
+    recordTrackingEvent('token-count', event.turn_ref);
+  }, [setTokenCounts, recordTrackingEvent]);
 
   const handleError = useCallback((event: ErrorEvent) => {
     setIsSending(false);
@@ -296,8 +450,14 @@ export function useChatStream(enableTranscript: boolean = true) {
       text: errorText,
       sender: 'assistant',
       type: 'error',
+      turnRef: event.turn_ref,
     };
     addMessage(newMessage);
+
+    recordTrackingEvent('error', event.turn_ref, {
+      phase: 'error',
+      errorText,
+    });
 
     if (enableTranscript) {
       const modelContext = modelContextRef.current;
@@ -309,7 +469,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         modelProvider: modelContext.modelProvider,
       });
     }
-  }, [addMessage, enableTranscript, setIsSending, setThinkingStatus]);
+  }, [addMessage, enableTranscript, setIsSending, setThinkingStatus, recordTrackingEvent]);
 
   const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => ({
     'llm-thought': event => handleLlmThought(event as LlmThoughtEvent),

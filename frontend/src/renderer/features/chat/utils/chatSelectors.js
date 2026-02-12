@@ -14,3 +14,7 @@ export function selectChatBoxState(state) {
     thinkingStatus: state.thinkingStatus,
   };
 }
+
+export function selectStreamTracking(state) {
+  return state.streamTracking;
+}

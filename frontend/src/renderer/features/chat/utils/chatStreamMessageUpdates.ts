@@ -17,7 +17,7 @@ type AssistantMessageFullPayload = {
 
 export type StreamingResponseAction =
   | { type: 'append'; messageId: string; nextText: string }
-  | { type: 'new'; text: string };
+  | { type: 'new'; text: string; turnRef?: string };
 
 function normalizeToolSchemas(value: unknown): ToolSchema[] | undefined {
   if (!Array.isArray(value)) {
@@ -44,8 +44,14 @@ function normalizeToolSchemas(value: unknown): ToolSchema[] | undefined {
 export function findLastMessageIdBySender(
   messages: ChatMessage[],
   sender: ChatMessage['sender'],
+  turnRef?: string,
 ): string | null {
-  const lastMessage = messages.findLast((message) => message.sender === sender);
+  const lastMessage = messages.findLast(
+    (message) => (
+      message.sender === sender
+      && (!turnRef || message.turnRef === turnRef)
+    ),
+  );
   return lastMessage ? lastMessage.id : null;
 }
 
@@ -60,9 +66,19 @@ export function findFirstMessageIdBySender(
 export function resolveStreamingResponseAction(
   messages: ChatMessage[],
   chunkText: unknown,
+  turnRef?: string,
 ): StreamingResponseAction {
   const normalizedChunkText = typeof chunkText === 'string' ? chunkText : '';
-  const lastMessage = messages[messages.length - 1];
+  const lastMessage = turnRef
+    ? messages.findLast(
+      (message) => (
+        message.sender === 'assistant'
+        && !message.isComplete
+        && message.type === 'llm-text'
+        && message.turnRef === turnRef
+      ),
+    )
+    : messages[messages.length - 1];
   if (
     lastMessage
     && lastMessage.sender === 'assistant'
@@ -78,10 +94,26 @@ export function resolveStreamingResponseAction(
   return {
     type: 'new',
     text: normalizedChunkText,
+    turnRef,
   };
 }
 
-export function findStreamingCompleteAssistantMessage(messages: ChatMessage[]): ChatMessage | null {
+export function findStreamingCompleteAssistantMessage(
+  messages: ChatMessage[],
+  turnRef?: string,
+): ChatMessage | null {
+  const withTurnRef = turnRef
+    ? messages.findLast(
+      (message) => (
+        message.sender === 'assistant'
+        && (!message.type || message.type === 'llm-text')
+        && message.turnRef === turnRef
+      ),
+    )
+    : null;
+  if (withTurnRef) {
+    return withTurnRef;
+  }
   return (
     messages.findLast(
       (message) => message.sender === 'assistant' && (!message.type || message.type === 'llm-text'),
