@@ -409,7 +409,7 @@ class LLMProvider(ABC):
         
         params = {
             "model": model_string or self._get_full_model_string(model),
-            "messages": messages,
+            "messages": self._normalize_messages_for_provider(messages, model=model),
             "api_key": self.api_key,
             "base_url": self.base_url,
             "timeout": self.timeout,
@@ -421,6 +421,186 @@ class LLMProvider(ABC):
         if parallel_tool_calls is not None:
             params["parallel_tool_calls"] = parallel_tool_calls
         return params
+
+    @staticmethod
+    def _normalize_messages_for_provider(
+        messages: List[LLMMessage],
+        *,
+        model: str,
+    ) -> List[LLMMessage]:
+        """
+        Normalize message payloads for provider compatibility.
+
+        - Convert assistant tool_calls from internal shape
+          `{id,name,arguments}` into OpenAI shape
+          `{id,type=function,function:{name,arguments:<json-string>}}`.
+        - Drop orphan/invalid `role=tool` messages that reference missing
+          assistant tool_call ids (Anthropic-compatible providers reject these).
+        """
+        if not isinstance(messages, list):
+            raise TypeError(f"messages must be list, got {type(messages).__name__}")
+
+        assistant_tool_call_ids: set[str] = set()
+        normalized_messages: List[LLMMessage] = []
+        changed = False
+
+        for index, message in enumerate(messages):
+            if not isinstance(message, dict):
+                raise LLMAPIError(
+                    f"Invalid message at index {index}: expected object",
+                    model=model,
+                )
+
+            role = message.get("role")
+            if role == "assistant":
+                normalized_message, message_changed, tool_call_ids = (
+                    LLMProvider._normalize_assistant_message_tool_calls(
+                        message, index=index, model=model
+                    )
+                )
+                assistant_tool_call_ids.update(tool_call_ids)
+                normalized_messages.append(normalized_message)
+                changed = changed or message_changed
+                continue
+
+            if role == "tool":
+                tool_call_id = message.get("tool_call_id")
+                if not isinstance(tool_call_id, str) or not tool_call_id.strip():
+                    logger.warning(
+                        "Dropping invalid tool message at index=%s: missing tool_call_id (model=%s)",
+                        index,
+                        model,
+                    )
+                    changed = True
+                    continue
+                if tool_call_id not in assistant_tool_call_ids:
+                    logger.warning(
+                        "Dropping orphan tool message at index=%s: tool_call_id='%s' has no assistant tool_calls match (model=%s)",
+                        index,
+                        tool_call_id,
+                        model,
+                    )
+                    changed = True
+                    continue
+
+            normalized_messages.append(message)
+
+        return normalized_messages if changed else messages
+
+    @staticmethod
+    def _normalize_assistant_message_tool_calls(
+        message: Dict[str, Any],
+        *,
+        index: int,
+        model: str,
+    ) -> tuple[LLMMessage, bool, set[str]]:
+        """Normalize assistant `tool_calls` entry and collect call ids."""
+        raw_tool_calls = message.get("tool_calls")
+        if raw_tool_calls is None:
+            return message, False, set()
+        if not isinstance(raw_tool_calls, list):
+            raise LLMAPIError(
+                f"Invalid assistant.tool_calls at message index {index}: expected list",
+                model=model,
+            )
+
+        normalized_tool_calls: List[Dict[str, Any]] = []
+        tool_call_ids: set[str] = set()
+        changed = False
+        for call_index, raw_call in enumerate(raw_tool_calls):
+            normalized_call, was_changed = LLMProvider._normalize_assistant_tool_call_entry(
+                raw_call,
+                message_index=index,
+                call_index=call_index,
+                model=model,
+            )
+            changed = changed or was_changed
+            normalized_tool_calls.append(normalized_call)
+            call_id = normalized_call.get("id")
+            if isinstance(call_id, str) and call_id:
+                tool_call_ids.add(call_id)
+
+        if changed:
+            normalized_message = dict(message)
+            normalized_message["tool_calls"] = normalized_tool_calls
+            return normalized_message, True, tool_call_ids
+        return message, False, tool_call_ids
+
+    @staticmethod
+    def _normalize_assistant_tool_call_entry(
+        raw_call: Any,
+        *,
+        message_index: int,
+        call_index: int,
+        model: str,
+    ) -> tuple[Dict[str, Any], bool]:
+        """Normalize one assistant tool-call entry into OpenAI-compatible shape."""
+        if not isinstance(raw_call, dict):
+            raise LLMAPIError(
+                f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: expected object",
+                model=model,
+            )
+
+        # Already OpenAI-compatible shape.
+        if raw_call.get("type") == "function" and isinstance(raw_call.get("function"), dict):
+            function_block = raw_call["function"]
+            name = function_block.get("name")
+            if not isinstance(name, str) or not name.strip():
+                raise LLMAPIError(
+                    f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: function.name must be non-empty string",
+                    model=model,
+                )
+            arguments = function_block.get("arguments")
+            if isinstance(arguments, dict):
+                normalized = copy.deepcopy(raw_call)
+                normalized["function"]["arguments"] = json.dumps(
+                    arguments, ensure_ascii=False, separators=(",", ":")
+                )
+                return normalized, True
+            if arguments is None:
+                normalized = copy.deepcopy(raw_call)
+                normalized["function"]["arguments"] = "{}"
+                return normalized, True
+            if not isinstance(arguments, str):
+                raise LLMAPIError(
+                    f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: function.arguments must be string/object",
+                    model=model,
+                )
+            return raw_call, False
+
+        # Internal runtime shape: {id, name, arguments}
+        call_id = raw_call.get("id")
+        if not isinstance(call_id, str) or not call_id.strip():
+            raise LLMAPIError(
+                f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: id must be non-empty string",
+                model=model,
+            )
+        name = raw_call.get("name")
+        if not isinstance(name, str) or not name.strip():
+            raise LLMAPIError(
+                f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: name must be non-empty string",
+                model=model,
+            )
+        arguments = raw_call.get("arguments", {})
+        if not isinstance(arguments, dict):
+            raise LLMAPIError(
+                f"Invalid tool_calls[{call_index}] at assistant message index {message_index}: arguments must be object",
+                model=model,
+            )
+
+        return (
+            {
+                "id": call_id,
+                "type": "function",
+                "function": {
+                    "name": name,
+                    "arguments": json.dumps(
+                        arguments, ensure_ascii=False, separators=(",", ":")
+                    ),
+                },
+            },
+            True,
+        )
 
     @staticmethod
     def _normalize_tools_for_litellm(
