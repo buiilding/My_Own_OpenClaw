@@ -31,7 +31,7 @@ export function buildTransparencySectionConfigs(message) {
   if (isCanonicalToolSchemas(message.toolSchemas)) {
     sections.push({
       key: 'tool-schemas',
-      title: 'Tool Schemas (Available Tools - Embedded in Initial User Message)',
+      title: 'Tool Schemas (Available Tools)',
       content: message.toolSchemas,
       type: 'json',
     });

@@ -62,14 +62,13 @@ class ConversationHistory:
         """
         Add an actual user message to the conversation history.
         Content includes context XML, memory sections, and user query.
-        For the first message only, tool schemas are embedded in content as a <tool_schemas> XML section.
 
         MEMORY DOS PROTECTION: Only the two most recent images are kept. When a new screenshot
         arrives, the LLM compares previous state vs current state to verify actions; older
         images add no value to that comparison. Text content is preserved for context.
 
         Args:
-            content: Message content (context + memory + query, WITH tool schemas for first message only)
+            content: Message content (context + memory + query)
             image_data: Optional base64 image data (cleared except for the 2 most recent images to limit memory DoS)
             episodic_memory: Optional list of episodic memory strings (structured data)
             semantic_memory: Optional list of semantic memory strings (structured data)

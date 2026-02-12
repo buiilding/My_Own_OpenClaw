@@ -88,7 +88,7 @@ class EventPresenter:
         # Present system prompt event
         yield SystemPromptEvent(
             content=metadata.system_prompt,
-            tool_schemas=None,  # Tool schemas are in user message, not system prompt
+            tool_schemas=None,  # Tool schemas are emitted via dedicated tool-schemas event
         )
 
         # Present user message event

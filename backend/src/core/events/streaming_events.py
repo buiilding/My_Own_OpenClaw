@@ -111,7 +111,7 @@ class SystemPromptEvent(StreamingEvent):
 
 @dataclass
 class ToolSchemasEvent(StreamingEvent):
-    """Event emitted with tool schemas embedded in the initial user message (transparency only)."""
+    """Event emitted with canonical tool schemas for transparency display."""
     tool_schemas: List[ToolSchema]
 
     def __post_init__(self):

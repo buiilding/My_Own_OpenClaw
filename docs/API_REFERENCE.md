@@ -857,7 +857,7 @@ Greeting message sent when wakeword is detected.
 
 ### System Prompt Message
 
-System prompt sent to frontend for transparency display. Tool schemas are emitted separately as a `tool-schemas` event and embedded in the initial user message.
+System prompt sent to frontend for transparency display. Tool schemas are emitted separately as a `tool-schemas` event.
 
 **Type**: `system-prompt`
 
@@ -940,20 +940,26 @@ Full assistant message content for transparency display.
 
 ### Tool Schemas Message
 
-Tool schemas sent to frontend for transparency display (first message only). Schemas are embedded in the initial user message, not passed as an LLM API parameter.
+Tool schemas sent to frontend for transparency display (first message metadata window). These are canonical OpenAI/LiteLLM tool objects.
 
 **Type**: `tool-schemas`
 
 **Payload**:
 ```json
 {
-  "tool_schemas": {
-    "mouse_control": {
-      "type": "object",
-      "properties": { ... }
-    },
-    "keyboard_control": { ... }
-  }
+  "tool_schemas": [
+    {
+      "type": "function",
+      "function": {
+        "name": "mouse_control",
+        "description": "Control mouse actions",
+        "parameters": {
+          "type": "object",
+          "properties": { ... }
+        }
+      }
+    }
+  ]
 }
 ```
 
@@ -963,17 +969,23 @@ Tool schemas sent to frontend for transparency display (first message only). Sch
   "id": "123e4567-e89b-12d3-a456-426614174022",
   "type": "tool-schemas",
   "payload": {
-    "tool_schemas": {
-      "mouse_control": {
-        "type": "object",
-        "properties": {
-          "action": {
-            "type": "string",
-            "enum": ["click", "double_click", "right_click"]
+    "tool_schemas": [
+      {
+        "type": "function",
+        "function": {
+          "name": "mouse_control",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "enum": ["click", "double_click", "right_click"]
+              }
+            }
           }
         }
       }
-    }
+    ]
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }
