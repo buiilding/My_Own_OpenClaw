@@ -159,16 +159,24 @@ describe('useChatStream', () => {
         type: 'token-count',
         payload: {
           prompt_tokens: 12,
-          completion_tokens: 5,
+          visible_output_tokens: 3,
+          thinking_tokens: 2,
+          output_tokens_total: 5,
           total_tokens: 17,
+          conversation_tokens: 120,
+          usage_source: 'provider',
         },
       });
     });
 
     expect(useChatStore.getState().tokenCounts).toEqual({
       prompt_tokens: 12,
-      completion_tokens: 5,
+      visible_output_tokens: 3,
+      thinking_tokens: 2,
+      output_tokens_total: 5,
       total_tokens: 17,
+      conversation_tokens: 120,
+      usage_source: 'provider',
     });
   });
 
@@ -575,7 +583,15 @@ describe('useChatStream', () => {
         type: 'token-count',
         conversation_ref: 'conv-2',
         user_id: 'user-2',
-        payload: { total_tokens: 5 },
+        payload: {
+          prompt_tokens: 2,
+          visible_output_tokens: 2,
+          thinking_tokens: 1,
+          output_tokens_total: 3,
+          total_tokens: 5,
+          conversation_tokens: 5,
+          usage_source: 'provider',
+        },
       });
     });
 
