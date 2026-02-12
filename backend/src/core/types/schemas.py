@@ -107,7 +107,6 @@ class ToolCallChunk(TypedDict):
     type: Literal["tool_call"]
     tool_name: str
     parameters: Dict
-    raw_call: str
 
 
 class ErrorChunk(TypedDict):

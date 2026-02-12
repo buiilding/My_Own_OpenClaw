@@ -37,7 +37,6 @@ from backend.src.core.events import (
     StreamingCompleteEvent,
 )
 from backend.src.llm.client import LLMClient
-from backend.src.llm.parser import ResponseParser
 from backend.src.llm.prompts import PromptConstructor
 from backend.src.tools.orchestrator import ToolResultOrchestrator
 
@@ -60,7 +59,6 @@ class AgentExecutor:
         llm_client: LLMClient,
         tool_orchestrator: ToolResultOrchestrator,
         prompt_constructor: PromptConstructor,
-        response_parser: ResponseParser,
         ocr_service: Optional["OcrService"],
         event_bus: EventBus,
     ):
@@ -68,7 +66,6 @@ class AgentExecutor:
         self.llm_client = llm_client
         self.tool_orchestrator = tool_orchestrator
         self.prompt_builder = prompt_constructor
-        self.response_parser = response_parser
         self.event_bus = event_bus
 
         self.ocr_service = ocr_service
@@ -136,7 +133,6 @@ class AgentExecutor:
             session=session,
             prompt_coordinator=conversation_context,
             llm_handler=llm_stream_processor,
-            response_parser=response_parser,
             tool_executor=agent_tool_orchestrator,
             event_presenter=event_presenter,
         )

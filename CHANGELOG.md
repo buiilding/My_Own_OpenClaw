@@ -39,6 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(llm-native-tools): remove runtime parser wiring and native-tool rollback gate (`native_tool_calling_enabled`), route agent turns through native structured tool-calls only, and drop transport `raw_call` from tool-call events while preserving computer-use metadata passthrough
 - docs(llm,api): align tool-calling docs and examples to canonical OpenAI/LiteLLM tool object shape; remove stale `<tool_schemas>` embedding references
 - docs(prompts): mark OpenAI tool-object schema replacement migration Agent 6 complete with final integration closure notes and residual environment-risk documentation
 - test(tool-schema): migrate backend/frontend assertions to canonical OpenAI/LiteLLM tool-object shape, add strict malformed-tool rejection coverage, and align chat transparency stream tests with canonical `tool_schemas`

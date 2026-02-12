@@ -39,7 +39,6 @@ export type UserId8 = string;
 export type Id9 = string;
 export type Type9 = "tool-call";
 export type ToolName = string;
-export type RawCall = string;
 export type UserId9 = string;
 export type Id10 = string;
 export type Type10 = "tool-output";
@@ -166,7 +165,6 @@ export interface ToolCallMessage {
 export interface ToolCallPayload {
   tool_name: ToolName;
   parameters: Parameters;
-  raw_call: RawCall;
   [k: string]: unknown;
 }
 export interface Parameters {

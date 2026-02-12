@@ -182,10 +182,8 @@ class LLMStreamProcessor:
     def _should_use_native_completion_path(
         self, tools: Optional[List[Dict[str, Any]]]
     ) -> bool:
-        """Use non-stream completion when native tool-calling is active."""
-        if not tools:
-            return False
-        return bool(getattr(self.session.cfg, "native_tool_calling_enabled", True))
+        """Use non-stream completion whenever tool schemas are provided."""
+        return bool(tools)
 
     async def _iter_completion_stream(
         self,
@@ -195,27 +193,13 @@ class LLMStreamProcessor:
         tool_choice: Optional[Any],
         parallel_tool_calls: Optional[bool],
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
-        """
-        Stream with backward compatibility for older mock clients that only accept
-        `(model, messages)` positional args.
-        """
-        try:
-            async for event in self.llm_client.get_completion_stream(
-                model=model_id,
-                messages=prompt,
-                tools=tools,
-                tool_choice=tool_choice,
-                parallel_tool_calls=parallel_tool_calls,
-            ):
-                yield event
-            return
-        except TypeError as exc:
-            if not self._is_legacy_signature_type_error(exc):
-                raise
-
+        """Stream completion using native tool-calling transport params."""
         async for event in self.llm_client.get_completion_stream(
             model=model_id,
             messages=prompt,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
         ):
             yield event
 
@@ -227,34 +211,13 @@ class LLMStreamProcessor:
         tool_choice: Optional[Any],
         parallel_tool_calls: Optional[bool],
     ) -> NormalizedLLMResponse:
-        """
-        Completion call with compatibility fallback for older client signatures.
-        """
-        try:
-            return await self.llm_client.get_completion_response(
-                model=model_id,
-                messages=prompt,
-                tools=tools,
-                tool_choice=tool_choice,
-                parallel_tool_calls=parallel_tool_calls,
-            )
-        except TypeError as exc:
-            if not self._is_legacy_signature_type_error(exc):
-                raise
+        """Completion call using native tool-calling transport params."""
         return await self.llm_client.get_completion_response(
             model=model_id,
             messages=prompt,
-        )
-
-    @staticmethod
-    def _is_legacy_signature_type_error(exc: TypeError) -> bool:
-        message = str(exc)
-        return (
-            "unexpected keyword argument" in message
-            and any(
-                arg_name in message
-                for arg_name in ("tools", "tool_choice", "parallel_tool_calls")
-            )
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
         )
 
     def _log_prompt_cache_hint(self, prompt: List[LLMMessage], model_id: str) -> int:

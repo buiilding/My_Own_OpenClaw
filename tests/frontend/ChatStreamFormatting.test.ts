@@ -19,19 +19,12 @@ describe('chatStreamFormatting utils', () => {
     expect(buildThinkingStatus('base', undefined)).toBe('base');
   });
 
-  test('formats raw tool call payload JSON and falls back to raw text on parse error', () => {
-    expect(formatToolCallPayload({ raw_call: '{"tool":"read_file"}' })).toBe(
-      JSON.stringify({ tool: 'read_file' }, null, 2),
-    );
-    expect(formatToolCallPayload({ raw_call: 'not-json' })).toBe('not-json');
-  });
-
-  test('formats non-raw tool call payload into canonical name/args object', () => {
+  test('formats tool call payload into canonical name/args object', () => {
     expect(
       formatToolCallPayload({ tool_name: 'read_file', parameters: { file_path: '/tmp/a' } }),
     ).toBe(
       JSON.stringify(
-        { name: 'read_file', args: { file_path: '/tmp/a' } },
+        { name: 'read_file', args: { file_path: '/tmp/a' }, metadata: undefined },
         null,
         2,
       ),

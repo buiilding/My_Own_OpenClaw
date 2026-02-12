@@ -76,7 +76,6 @@ class ToolCallEvent(StreamingEvent):
     """Event emitted when a tool is called."""
     tool_name: str
     parameters: Dict[str, Any]
-    raw_call: str
     request_id: Optional[str] = None  # For remote tools, the request_id to match results
     metadata: Optional[Dict[str, Any]] = None  # Metadata for computer-use tools (description, explanation, expectation)
     

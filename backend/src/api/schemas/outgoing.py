@@ -52,7 +52,6 @@ class ToolCallPayload(BaseModel):
 
     tool_name: str
     parameters: Dict[str, Any]
-    raw_call: str
 
 
 class ToolCallMessage(BaseMessage):

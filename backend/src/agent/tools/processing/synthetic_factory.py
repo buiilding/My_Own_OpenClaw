@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from backend.src.core.interfaces.tool import ToolResult
 
 if TYPE_CHECKING:
-    from backend.src.llm.parser import ParsedToolCall
+    from backend.src.llm.parser_types import ParsedToolCall
 
 logger = logging.getLogger(__name__)
 
