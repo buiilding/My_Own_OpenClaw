@@ -263,11 +263,10 @@ class MemorySummarizer:
     def _build_conversation_chunks(self, memories: Sequence[dict]) -> List[str]:
         lines: List[str] = []
         for memory in memories:
-            content = (memory.get("content") or "").strip()
-            if not content:
+            line = self._format_memory_line(memory)
+            if not line:
                 continue
-            timestamp = memory.get("timestamp") or ""
-            lines.append(f"[{timestamp}] {content}")
+            lines.append(line)
 
         if not lines:
             return []
@@ -292,6 +291,47 @@ class MemorySummarizer:
             chunks.append(current)
 
         return chunks
+
+    def _format_memory_line(self, memory: dict) -> Optional[str]:
+        """Normalize episodic rows into stable summarization lines."""
+        content = (memory.get("content") or "").strip()
+        if not content:
+            return None
+
+        role = (memory.get("role") or memory.get("metadata", {}).get("role") or "").strip().lower()
+        message_type = (
+            memory.get("message_type")
+            or memory.get("metadata", {}).get("message_type")
+            or ""
+        ).strip().lower()
+        record_kind = (
+            memory.get("record_kind")
+            or memory.get("metadata", {}).get("record_kind")
+            or "memory"
+        ).strip().lower()
+        tool_name = (memory.get("tool_name") or memory.get("metadata", {}).get("tool_name") or "").strip()
+
+        if (
+            record_kind == "transcript"
+            and role == "tool"
+            and message_type in ("tool-call", "tool-bundle")
+        ):
+            return None
+
+        if (
+            record_kind == "transcript"
+            and role == "assistant"
+            and message_type in ("tool-call", "tool-bundle")
+        ):
+            return None
+
+        if len(content) > 1600:
+            content = content[:1597] + "..."
+
+        timestamp = memory.get("timestamp") or ""
+        prefix_parts = [part for part in (role or None, message_type or None, tool_name or None) if part]
+        prefix = "|".join(prefix_parts) if prefix_parts else record_kind
+        return f"[{timestamp}] ({prefix}) {content}"
 
     def _format_semantic_content(self, summary: str, facts: Sequence[str]) -> str:
         parts = []

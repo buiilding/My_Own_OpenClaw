@@ -257,56 +257,69 @@ class LocalMemoryStore:
         next_vector_id: int,
     ) -> int:
         async with aiosqlite.connect(db_path) as conn:
+            conn.row_factory = aiosqlite.Row
             cursor = await conn.cursor()
             if memory_type == "episodic":
-                # Skip transcript rows (no embeddings needed)
+                # Backfill embeddings for semantic candidates in transcript storage.
                 await cursor.execute(
                     """
-                    SELECT id FROM memories
+                    SELECT id, content, record_kind, role, message_type
+                    FROM memories
                     WHERE embedding_id IS NULL
-                      AND (record_kind IS NULL OR record_kind = 'memory')
                 """
                 )
             else:
                 await cursor.execute(
                     """
-                    SELECT id FROM memories
+                    SELECT id, content
+                    FROM memories
                     WHERE embedding_id IS NULL
                 """
                 )
 
             rows = await cursor.fetchall()
-            missing_ids = [row[0] for row in rows]
+            embedded_count = 0
 
-            for memory_id in missing_ids:
+            for row in rows:
+                memory_id = row["id"]
+                content = row["content"]
+                if memory_type == "episodic":
+                    record_kind = row["record_kind"]
+                    role = row["role"]
+                    message_type = row["message_type"]
+                    if not self._should_embed_episodic_entry(
+                        record_kind=record_kind,
+                        role=role,
+                        message_type=message_type,
+                    ):
+                        continue
+
+                if not content:
+                    continue
+
+                embedding = await self.embedder.embed_text(content)
+                embedding = embedding.reshape(1, -1)
+                faiss.normalize_L2(embedding)
+
+                vector_id = next_vector_id
+                index.add(embedding)
+
                 await cursor.execute(
-                    "SELECT content FROM memories WHERE id = ?", (memory_id,)
+                    """
+                    UPDATE memories SET embedding_id = ? WHERE id = ?
+                """,
+                    (vector_id, memory_id),
                 )
-                row = await cursor.fetchone()
-                if row:
-                    content = row[0]
-                    embedding = await self.embedder.embed_text(content)
-                    embedding = embedding.reshape(1, -1)
-                    faiss.normalize_L2(embedding)
 
-                    vector_id = next_vector_id
-                    index.add(embedding)
-
-                    await cursor.execute(
-                        """
-                        UPDATE memories SET embedding_id = ? WHERE id = ?
-                    """,
-                        (vector_id, memory_id),
-                    )
-
-                    vector_id_to_memory_id[vector_id] = memory_id
-                    memory_id_to_vector_id[memory_id] = vector_id
-                    next_vector_id += 1
+                vector_id_to_memory_id[vector_id] = memory_id
+                memory_id_to_vector_id[memory_id] = vector_id
+                next_vector_id += 1
+                embedded_count += 1
 
             await conn.commit()
 
             # Save index if we added any vectors
-            if missing_ids:
+            if embedded_count > 0:
                 await self._save_faiss_indices()
 
         return next_vector_id
@@ -376,6 +389,34 @@ class LocalMemoryStore:
         if memory_type_value in ("episodic", "semantic"):
             return memory_type_value
         return None
+
+    @staticmethod
+    def _should_embed_episodic_entry(
+        *,
+        record_kind: Optional[str],
+        role: Optional[str],
+        message_type: Optional[str],
+    ) -> bool:
+        """
+        Determine whether an episodic row should have vector embeddings.
+
+        Transcript storage includes low-signal tool chatter (tool-call JSON, verbose logs).
+        We index user turns and assistant natural-language responses for memory recall.
+        """
+        normalized_kind = (record_kind or "memory").strip().lower()
+        if normalized_kind != "transcript":
+            return True
+
+        normalized_role = (role or "").strip().lower()
+        normalized_type = (message_type or "").strip().lower()
+
+        if normalized_role == "user":
+            return True
+
+        if normalized_role == "assistant":
+            return normalized_type in ("", "llm-text", "error")
+
+        return False
 
     async def _rebuild_index(self, memory_type: str) -> None:
         """Rebuild FAISS index from database for a given memory type."""
@@ -1045,7 +1086,11 @@ class LocalMemoryStore:
                 SELECT DISTINCT user_id
                 FROM memories
                 WHERE is_semanticized = 0
-                  AND (record_kind IS NULL OR record_kind = 'memory')
+                  AND (
+                      record_kind IS NULL
+                      OR record_kind = 'memory'
+                      OR record_kind = 'transcript'
+                  )
                 LIMIT ?
             """,
                 (limit,),
@@ -1500,7 +1545,11 @@ class LocalMemoryStore:
                 SELECT conversation_id, MIN(timestamp) as earliest_timestamp
                 FROM memories
                 WHERE user_id = ? AND is_semanticized = 0
-                  AND (record_kind IS NULL OR record_kind = 'memory')
+                  AND (
+                      record_kind IS NULL
+                      OR record_kind = 'memory'
+                      OR record_kind = 'transcript'
+                  )
                 GROUP BY conversation_id
                 ORDER BY earliest_timestamp ASC
             """,
@@ -1531,10 +1580,23 @@ class LocalMemoryStore:
             if conversation_id is None:
                 await cursor.execute(
                     """
-                    SELECT id, content, timestamp, metadata, conversation_id
+                    SELECT
+                        id,
+                        content,
+                        timestamp,
+                        metadata,
+                        conversation_id,
+                        record_kind,
+                        role,
+                        message_type,
+                        tool_name
                     FROM memories
                     WHERE user_id = ? AND is_semanticized = 0
-                      AND (record_kind IS NULL OR record_kind = 'memory')
+                      AND (
+                          record_kind IS NULL
+                          OR record_kind = 'memory'
+                          OR record_kind = 'transcript'
+                      )
                       AND conversation_id IS NULL
                     ORDER BY timestamp ASC
                     LIMIT ?
@@ -1544,10 +1606,23 @@ class LocalMemoryStore:
             else:
                 await cursor.execute(
                     """
-                    SELECT id, content, timestamp, metadata, conversation_id
+                    SELECT
+                        id,
+                        content,
+                        timestamp,
+                        metadata,
+                        conversation_id,
+                        record_kind,
+                        role,
+                        message_type,
+                        tool_name
                     FROM memories
                     WHERE user_id = ? AND is_semanticized = 0
-                      AND (record_kind IS NULL OR record_kind = 'memory')
+                      AND (
+                          record_kind IS NULL
+                          OR record_kind = 'memory'
+                          OR record_kind = 'transcript'
+                      )
                       AND conversation_id = ?
                     ORDER BY timestamp ASC
                     LIMIT ?
@@ -1566,6 +1641,10 @@ class LocalMemoryStore:
                     "timestamp": row["timestamp"],
                     "metadata": metadata,
                     "conversation_id": row["conversation_id"],
+                    "record_kind": row["record_kind"] or metadata.get("record_kind"),
+                    "role": row["role"] or metadata.get("role"),
+                    "message_type": row["message_type"] or metadata.get("message_type"),
+                    "tool_name": row["tool_name"] or metadata.get("tool_name"),
                 })
             
             return results
@@ -1589,10 +1668,14 @@ class LocalMemoryStore:
             cursor = await conn.cursor()
             await cursor.execute(
                 """
-                SELECT id, content, timestamp, metadata
+                SELECT id, content, timestamp, metadata, record_kind, role, message_type, tool_name
                 FROM memories
                 WHERE user_id = ? AND is_semanticized = 0
-                  AND (record_kind IS NULL OR record_kind = 'memory')
+                  AND (
+                      record_kind IS NULL
+                      OR record_kind = 'memory'
+                      OR record_kind = 'transcript'
+                  )
                 ORDER BY timestamp ASC
                 LIMIT ?
             """,
@@ -1608,6 +1691,10 @@ class LocalMemoryStore:
                     "content": row["content"],
                     "timestamp": row["timestamp"],
                     "metadata": metadata,
+                    "record_kind": row["record_kind"] or metadata.get("record_kind"),
+                    "role": row["role"] or metadata.get("role"),
+                    "message_type": row["message_type"] or metadata.get("message_type"),
+                    "tool_name": row["tool_name"] or metadata.get("tool_name"),
                 })
             
             return results
@@ -1692,10 +1779,23 @@ class LocalMemoryStore:
                 # No watermark - get all unprocessed memories
                 await cursor.execute(
                     """
-                    SELECT id, content, timestamp, metadata, conversation_id
+                    SELECT
+                        id,
+                        content,
+                        timestamp,
+                        metadata,
+                        conversation_id,
+                        record_kind,
+                        role,
+                        message_type,
+                        tool_name
                     FROM memories
                     WHERE user_id = ? AND is_semanticized = 0
-                      AND (record_kind IS NULL OR record_kind = 'memory')
+                      AND (
+                          record_kind IS NULL
+                          OR record_kind = 'memory'
+                          OR record_kind = 'transcript'
+                      )
                     ORDER BY timestamp ASC, id ASC
                     LIMIT ?
                 """,
@@ -1715,11 +1815,24 @@ class LocalMemoryStore:
                     # Get all memories with timestamp > watermark, or same timestamp but id > watermark
                     await cursor.execute(
                         """
-                        SELECT id, content, timestamp, metadata, conversation_id
+                        SELECT
+                            id,
+                            content,
+                            timestamp,
+                            metadata,
+                            conversation_id,
+                            record_kind,
+                            role,
+                            message_type,
+                            tool_name
                         FROM memories
                         WHERE user_id = ? 
                           AND is_semanticized = 0
-                          AND (record_kind IS NULL OR record_kind = 'memory')
+                          AND (
+                              record_kind IS NULL
+                              OR record_kind = 'memory'
+                              OR record_kind = 'transcript'
+                          )
                           AND (
                               timestamp > ?
                               OR (timestamp = ? AND id > ?)
@@ -1734,10 +1847,23 @@ class LocalMemoryStore:
                     logger.warning(f"Watermark ID {last_id} not found in database, treating as no watermark")
                     await cursor.execute(
                         """
-                        SELECT id, content, timestamp, metadata, conversation_id
+                        SELECT
+                            id,
+                            content,
+                            timestamp,
+                            metadata,
+                            conversation_id,
+                            record_kind,
+                            role,
+                            message_type,
+                            tool_name
                         FROM memories
                         WHERE user_id = ? AND is_semanticized = 0
-                          AND (record_kind IS NULL OR record_kind = 'memory')
+                          AND (
+                              record_kind IS NULL
+                              OR record_kind = 'memory'
+                              OR record_kind = 'transcript'
+                          )
                         ORDER BY timestamp ASC, id ASC
                         LIMIT ?
                     """,
@@ -1755,6 +1881,10 @@ class LocalMemoryStore:
                     "timestamp": row["timestamp"],
                     "metadata": metadata,
                     "conversation_id": row["conversation_id"],
+                    "record_kind": row["record_kind"] or metadata.get("record_kind"),
+                    "role": row["role"] or metadata.get("role"),
+                    "message_type": row["message_type"] or metadata.get("message_type"),
+                    "tool_name": row["tool_name"] or metadata.get("tool_name"),
                 })
             
             return results

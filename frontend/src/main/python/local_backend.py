@@ -69,6 +69,23 @@ class LocalBackend:
         # Health check and diagnostics
         self.protocol.register_method("ping", self._handle_ping)
         self.protocol.register_method("get_status", self._handle_get_status)
+
+    @staticmethod
+    def _is_semantic_transcript_candidate(
+        role: Optional[str],
+        message_type: Optional[str],
+    ) -> bool:
+        """Return True when a transcript entry should be embedded/summarized."""
+        normalized_role = (role or "").strip().lower()
+        normalized_type = (message_type or "").strip().lower()
+
+        if normalized_role == "user":
+            return True
+
+        if normalized_role == "assistant":
+            return normalized_type in ("", "llm-text", "error")
+
+        return False
     
     async def initialize(self) -> None:
         """Initialize the backend services."""
@@ -387,7 +404,7 @@ class LocalBackend:
         timestamp: Optional[str] = None,
         **kwargs,
     ) -> Dict[str, Any]:
-        """Store a transcript entry (no embeddings)."""
+        """Store a transcript entry with selective embeddings for recall/summarization."""
         if not self.memory_store:
             return {
                 "success": False,
@@ -421,6 +438,8 @@ class LocalBackend:
                     user_id, conversation_id
                 )
 
+            semantic_candidate = self._is_semantic_transcript_candidate(role, message_type)
+
             memory_id = await self.memory_store.add(
                 content,
                 user_id,
@@ -435,9 +454,17 @@ class LocalBackend:
                 model_id=model_id,
                 model_provider=model_provider,
                 screenshot=screenshot,
-                skip_embedding=True,
+                skip_embedding=not semantic_candidate,
                 timestamp=timestamp,
             )
+
+            if semantic_candidate:
+                try:
+                    await self.memory_store.increment_pending_count()
+                    if self._summarizer:
+                        self._summarizer.notify_new_memory(user_id)
+                except Exception as e:
+                    logger.warning(f"Failed to update summarization watermark: {e}")
 
             return {
                 "success": True,
@@ -445,6 +472,7 @@ class LocalBackend:
                     "memory_id": memory_id,
                     "message_index": message_index,
                     "record_kind": record_kind,
+                    "semantic_candidate": semantic_candidate,
                 }
             }
         except Exception as e:
