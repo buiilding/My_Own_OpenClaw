@@ -1,5 +1,5 @@
 export type SessionInfo = {
-  sessionId: string | null;
+  conversationRef: string | null;
   userId: string | null;
 };
 
@@ -27,7 +27,7 @@ export type TranscriptEntry = {
   messageType?: string | null;
   toolName?: string | null;
   correlationId?: string | null;
-  sessionId?: string | null;
+  conversationRef?: string | null;
   userId?: string | null;
   timestamp?: string;
   modelId?: string | null;

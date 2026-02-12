@@ -31,6 +31,7 @@ Handlers are registered in ApiContainer and accessed via MessageHandlerRegistry.
 from backend.src.api.infrastructure.handler import MessageHandler, TypedMessageHandler
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
 from backend.src.api.handlers.query import QueryMessageHandler
+from backend.src.api.handlers.rehydrate import RehydrateConversationHandler
 from backend.src.api.handlers.settings import (
     ListModelsHandler,
 )
@@ -42,6 +43,7 @@ __all__ = [
     "TypedMessageHandler",
     "MessageHandlerRegistry",
     "QueryMessageHandler",
+    "RehydrateConversationHandler",
     "ListModelsHandler",
     "WakewordHandler",
     "ToolResultHandler",

@@ -356,9 +356,21 @@ describe('local_backend_bridge', () => {
     const promise = handlers['store-transcript'](null, {
       content: 'hello',
       userId: 'u-1',
-      sessionId: 's-1',
+      conversationRef: 'conv-1',
       role: 'assistant',
     });
+
+    const request = getLastWrittenRequest();
+    expect(request).toEqual(
+      expect.objectContaining({
+        method: 'store_transcript',
+        params: expect.objectContaining({
+          user_id: 'u-1',
+          conversation_ref: 'conv-1',
+          role: 'assistant',
+        }),
+      }),
+    );
 
     stdoutHandler(
       Buffer.from(

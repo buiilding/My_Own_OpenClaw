@@ -2,10 +2,32 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../stores/chatStore';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { selectChatBoxState } from '../utils/chatSelectors';
 
 const RESPONSE_TYPES = new Set(['tool-call', 'llm-text', 'error']);
 const FIRST_CHUNK_TYPES = new Set(['llm-text', 'error']);
+
+function renderResponseContent(response, markdownHtml) {
+  if (!response) {
+    return null;
+  }
+
+  if (response.type === 'tool-call') {
+    return <pre className="chatbox-response-text chatbox-response-pre">{response.text}</pre>;
+  }
+
+  if (response.type === 'error') {
+    return <div className="chatbox-response-text chatbox-response-plain">{response.text}</div>;
+  }
+
+  return (
+    <div
+      className="chatbox-response-text chatbox-response-markdown"
+      dangerouslySetInnerHTML={{ __html: markdownHtml }}
+    />
+  );
+}
 
 function findLastUserIndex(messages) {
   for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -87,6 +109,12 @@ function ChatBoxResponse() {
     awaitingFirstChunk || overlayPhase === 'awaiting-first-chunk'
   ) && !showResponse;
   const isVisible = showResponse || showAwaitingReply;
+  const responseMarkdownHtml = useMemo(() => {
+    if (!activeResponse || activeResponse.type === 'tool-call' || activeResponse.type === 'error') {
+      return '';
+    }
+    return toSanitizedMarkdownHtml(activeResponse.text ?? '');
+  }, [activeResponse]);
 
   const reportOverlaySize = useCallback(async (visible) => {
     if (!visible) {
@@ -231,7 +259,7 @@ function ChatBoxResponse() {
             >
               ×
             </button>
-            <div className="chatbox-response-text">{activeResponse.text}</div>
+            {renderResponseContent(activeResponse, responseMarkdownHtml)}
           </div>
         ) : null}
 

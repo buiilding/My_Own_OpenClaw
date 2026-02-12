@@ -9,7 +9,12 @@ def test_build_transport_message_includes_context_fields() -> None:
         "settings-updated",
         "msg_1",
         {"updated_keys": ["model_provider"]},
-        context={"session_id": "session_1", "user_id": "user_1"},
+        context={
+            "session_id": "session_1",
+            "user_id": "user_1",
+            "conversation_ref": "conv_1",
+            "turn_ref": "turn_1",
+        },
     )
 
     assert message == {
@@ -18,6 +23,8 @@ def test_build_transport_message_includes_context_fields() -> None:
         "payload": {"updated_keys": ["model_provider"]},
         "session_id": "session_1",
         "user_id": "user_1",
+        "conversation_ref": "conv_1",
+        "turn_ref": "turn_1",
     }
 
 

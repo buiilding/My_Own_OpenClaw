@@ -12,7 +12,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  getTranscriptSessionInfo: () => ({ sessionId: 'session-1', userId: 'peter-bui' }),
+  getTranscriptSessionInfo: () => ({ conversationRef: null, userId: 'peter-bui' }),
 }));
 
 describe('SemanticMemorySection', () => {

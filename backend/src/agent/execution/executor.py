@@ -201,7 +201,10 @@ class AgentExecutor:
                         assistant_response=final_response,
                         memory_type="episodic",  # Store interactions as episodic memory
                         user_id=self.session.user_id,
-                        session_id=self.session.session_id,  # Track conversation window
+                        session_id=(
+                            self.session.runtime.active_conversation_ref
+                            or self.session.session_id
+                        ),
                     )
                     
                     # Try to yield the memory event, but handle GeneratorExit gracefully

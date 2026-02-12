@@ -302,11 +302,32 @@ class AgentSession:
         async with self._lock:
             SessionConfigRuntime.apply(self, new_cfg)
 
+    def _switch_conversation_ref(self, conversation_ref: str) -> None:
+        """Switch active conversation and clear history when thread changes."""
+        if self.runtime.active_conversation_ref == conversation_ref:
+            return
+        self.runtime.active_conversation_ref = conversation_ref
+        self.history.set_image_trimming_enabled(True)
+        self.history.clear()
+
+    async def rehydrate_conversation(
+        self,
+        conversation_ref: str,
+        entries: List[Dict[str, Any]],
+    ) -> None:
+        """Replace in-memory history with frontend-provided transcript snapshot."""
+        async with self._lock:
+            self.runtime.active_conversation_ref = conversation_ref
+            # Resume path keeps all restored screenshots available to the model.
+            self.history.set_image_trimming_enabled(False)
+            self.history.replace_with_entries(entries)
+
     async def process_query(
         self, 
         query: str, 
         image_data: Optional[str] = None,
         message_content: Optional[str] = None,
+        conversation_ref: Optional[str] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Processes a user query and yields status updates and response chunks.
@@ -315,8 +336,11 @@ class AgentSession:
             query: The user's query text (for reference)
             image_data: Optional base64-encoded image data for multimodal queries
             message_content: Complete message content from frontend (system state + memories + query)
+            conversation_ref: Active conversation identity from frontend.
         """
         async with self._lock:
+            if conversation_ref:
+                self._switch_conversation_ref(conversation_ref)
             if not self.cfg.selected_model_id:
                 yield {
                     "type": "thinking",

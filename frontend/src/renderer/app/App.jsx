@@ -42,6 +42,7 @@ function AppContent() {
           config={config}
           availableModels={availableModels}
           onConfigChange={updateConfig}
+          onSelectSection={setActiveSection}
         />
       </Suspense>
     );

@@ -157,7 +157,7 @@ function SemanticMemorySection() {
     const handleSessionUpdate = (event) => {
       if (event?.detail) {
         setSessionInfo({
-          sessionId: event.detail.sessionId || null,
+          conversationRef: event.detail.conversationRef || null,
           userId: event.detail.userId || null,
         });
       }

@@ -20,6 +20,7 @@ def test_build_handler_bindings_supports_shared_handler_keys() -> None:
     bindings = build_handler_bindings(
         {
             "query_handler": object(),
+            "rehydrate_conversation_handler": object(),
             "tool_result_handler": shared,
             "wakeword_handler": object(),
             "list_models_handler": object(),
@@ -31,4 +32,3 @@ def test_build_handler_bindings_supports_shared_handler_keys() -> None:
     binding_map = dict(bindings)
     assert binding_map["tool-result"] is shared
     assert binding_map["tool-bundle-result"] is shared
-

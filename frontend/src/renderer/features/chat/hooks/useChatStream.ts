@@ -11,7 +11,6 @@ import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
   recordAssistantMessage,
   recordToolMessage,
-  recordUserMessage,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import {
@@ -148,7 +147,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         messageType: 'tool-call',
         toolName: event.payload?.tool_name,
         correlationId,
-        sessionId: event.session_id,
+        conversationRef: event.conversation_ref,
         userId: event.user_id,
         modelId: modelContext.modelId,
         modelProvider: modelContext.modelProvider,
@@ -184,7 +183,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         messageType: 'tool-output',
         toolName: event.payload?.tool_name,
         correlationId,
-        sessionId: event.session_id,
+        conversationRef: event.conversation_ref,
         userId: event.user_id,
         screenshotRef,
         modelId: modelContext.modelId,
@@ -211,7 +210,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         messageType: 'tool-call',
         toolName: 'tool-bundle',
         correlationId: event.payload?.bundle_id,
-        sessionId: event.session_id,
+        conversationRef: event.conversation_ref,
         userId: event.user_id,
         modelId: modelContext.modelId,
         modelProvider: modelContext.modelProvider,
@@ -262,18 +261,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     };
     addMessage(newMessage);
 
-    if (enableTranscript) {
-      const modelContext = modelContextRef.current;
-      recordUserMessage(text, {
-        timestamp: event.payload?.timestamp,
-        sessionId: event.payload?.session_id ?? event.session_id ?? null,
-        userId: event.payload?.user_id ?? event.user_id ?? null,
-        screenshotRef,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      });
-    }
-  }, [addMessage, enableTranscript]);
+  }, [addMessage]);
 
   const handleStreamingComplete = useCallback((event: StreamingCompleteEvent) => {
     setIsSending(false);
@@ -286,7 +274,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         const modelContext = modelContextRef.current;
         recordAssistantMessage(lastMessage.text, {
           messageType: lastMessage.type || 'llm-text',
-          sessionId: event.session_id,
+          conversationRef: event.conversation_ref,
           userId: event.user_id,
           modelId: modelContext.modelId,
           modelProvider: modelContext.modelProvider,
@@ -315,7 +303,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       const modelContext = modelContextRef.current;
       recordAssistantMessage(errorText, {
         messageType: 'error',
-        sessionId: event.session_id,
+        conversationRef: event.conversation_ref,
         userId: event.user_id,
         modelId: modelContext.modelId,
         modelProvider: modelContext.modelProvider,
@@ -364,7 +352,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         return;
       }
       if (enableTranscript) {
-        updateTranscriptSession(data.session_id ?? null, data.user_id ?? null);
+        updateTranscriptSession(data.conversation_ref ?? null, data.user_id ?? null);
       }
       const handler = handlers[data.type];
       if (handler) {

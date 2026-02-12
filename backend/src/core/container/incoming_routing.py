@@ -23,6 +23,10 @@ class IncomingRoute:
 
 INCOMING_ROUTES: tuple[IncomingRoute, ...] = (
     IncomingRoute(message_type="query", handler_key="query_handler"),
+    IncomingRoute(
+        message_type="rehydrate-conversation",
+        handler_key="rehydrate_conversation_handler",
+    ),
     IncomingRoute(message_type="tool-result", handler_key="tool_result_handler"),
     IncomingRoute(message_type="tool-bundle-result", handler_key="tool_result_handler"),
     IncomingRoute(message_type="wakeword-detected", handler_key="wakeword_handler"),
@@ -99,4 +103,3 @@ def build_handler_bindings(
         (route.message_type, handlers_by_key[route.handler_key])
         for route in INCOMING_ROUTES
     )
-

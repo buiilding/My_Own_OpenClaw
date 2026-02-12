@@ -5,51 +5,51 @@ type ReadSessionInfo = () => SessionInfo;
 export type TranscriptSessionState = {
   get: () => SessionInfo;
   resolve: (override?: Partial<SessionInfo>) => SessionInfo;
-  update: (sessionId?: string | null, userId?: string | null) => SessionInfo;
+  update: (conversationRef?: string | null, userId?: string | null) => SessionInfo;
 };
 
 export function createTranscriptSessionState(readStoredSessionInfo: ReadSessionInfo): TranscriptSessionState {
-  let currentSessionId: string | null = null;
+  let currentConversationRef: string | null = null;
   let currentUserId: string | null = null;
 
   const ensureLoaded = () => {
-    if (currentSessionId || currentUserId) {
+    if (currentConversationRef || currentUserId) {
       return;
     }
 
     const stored = readStoredSessionInfo();
-    currentSessionId = stored.sessionId;
+    currentConversationRef = stored.conversationRef;
     currentUserId = stored.userId;
   };
 
   const get = (): SessionInfo => {
     ensureLoaded();
-    return { sessionId: currentSessionId, userId: currentUserId };
+    return { conversationRef: currentConversationRef, userId: currentUserId };
   };
 
   const resolve = (override?: Partial<SessionInfo>): SessionInfo => {
     const current = get();
     return {
-      sessionId: override?.sessionId ?? current.sessionId,
+      conversationRef: override?.conversationRef ?? current.conversationRef,
       userId: override?.userId ?? current.userId,
     };
   };
 
-  const update = (sessionId?: string | null, userId?: string | null): SessionInfo => {
+  const update = (conversationRef?: string | null, userId?: string | null): SessionInfo => {
     ensureLoaded();
 
-    const nextSessionId = sessionId || currentSessionId;
+    const nextConversationRef = conversationRef || currentConversationRef;
     const nextUserId = userId || currentUserId;
 
-    if (nextSessionId) {
-      currentSessionId = nextSessionId;
+    if (nextConversationRef) {
+      currentConversationRef = nextConversationRef;
     }
 
-    if (nextUserId && !currentUserId) {
+    if (nextUserId) {
       currentUserId = nextUserId;
     }
 
-    return { sessionId: currentSessionId, userId: currentUserId };
+    return { conversationRef: currentConversationRef, userId: currentUserId };
   };
 
   return {

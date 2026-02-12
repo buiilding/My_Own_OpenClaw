@@ -5,7 +5,6 @@ import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/c
 import { recordToolMessage } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 import {
   recordAssistantMessage,
-  recordUserMessage,
   updateTranscriptSession,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 
@@ -22,7 +21,6 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
   recordAssistantMessage: jest.fn(),
   recordToolMessage: jest.fn(),
-  recordUserMessage: jest.fn(),
   updateTranscriptSession: jest.fn(),
 }));
 
@@ -371,7 +369,7 @@ describe('useChatStream', () => {
       });
       emitBackendEvent({
         type: 'streaming-complete',
-        session_id: 'session-1',
+        conversation_ref: 'conv-1',
         user_id: 'user-1',
       });
     });
@@ -382,7 +380,7 @@ describe('useChatStream', () => {
     expect(recordAssistantMessage).toHaveBeenCalledWith(
       'answer',
       expect.objectContaining({
-        sessionId: 'session-1',
+        conversationRef: 'conv-1',
         userId: 'user-1',
       }),
     );
@@ -400,7 +398,6 @@ describe('useChatStream', () => {
     });
 
     expect(useChatStore.getState().messages).toHaveLength(before);
-    expect(recordUserMessage).not.toHaveBeenCalled();
   });
 
   test('does not write transcript entries when transcript is disabled', () => {
@@ -552,12 +549,12 @@ describe('useChatStream', () => {
     act(() => {
       emitBackendEvent({
         type: 'token-count',
-        session_id: 'session-2',
+        conversation_ref: 'conv-2',
         user_id: 'user-2',
         payload: { total_tokens: 5 },
       });
     });
 
-    expect(updateTranscriptSession).toHaveBeenCalledWith('session-2', 'user-2');
+    expect(updateTranscriptSession).toHaveBeenCalledWith('conv-2', 'user-2');
   });
 });

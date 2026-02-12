@@ -310,7 +310,7 @@ async def test_handle_store_transcript_success():
     result = await backend._handle_store_transcript(
         content="hello",
         user_id="user-1",
-        session_id="session-1",
+        conversation_ref="conv-1",
         role="user",
         message_type="user",
         tool_name=None,
@@ -325,7 +325,8 @@ async def test_handle_store_transcript_success():
     assert result["success"] is True
     assert result["data"]["record_kind"] == "transcript"
     assert backend.memory_store.added
-    _, _, _, _, kwargs = backend.memory_store.added[-1]
+    _, _, _, conversation_id, kwargs = backend.memory_store.added[-1]
+    assert conversation_id == "conv-1"
     assert kwargs["model_id"] == "gpt-test"
     assert kwargs["model_provider"] == "openai"
     assert kwargs["screenshot"] == "base64-shot"
