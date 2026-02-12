@@ -15,12 +15,16 @@ from backend.src.api.services.tts_session import TTSSession
 from backend.src.api.transport.protocol import WebSocketSender
 from backend.src.api.transport.sender import WebSocketTransportSender
 from backend.src.core.validation.validators import validate_query_text
+from backend.src.core.events.streaming_events import ChunkEvent, StreamingCompleteEvent
 from backend.src.services.artifacts import ArtifactStore
 
 if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager
 
 logger = logging.getLogger(__name__)
+EMPTY_FINAL_RESPONSE_FALLBACK = (
+    "I completed the requested action(s), but the model returned an empty final response."
+)
 
 
 class QueryExecutionService:
@@ -53,6 +57,8 @@ class QueryExecutionService:
 
         query_text = validate_query_text(message.payload.text)
         agent_instance = await self._session_manager.get_or_create_session(user_id)
+        saw_terminal_event = False
+        saw_text_chunk = False
 
         async with TTSSession(
             self._tts_manager,
@@ -72,8 +78,44 @@ class QueryExecutionService:
                 message_content=message.payload.content,
                 conversation_ref=message.payload.conversation_ref,
             ):
+                if self._is_terminal_event(event):
+                    saw_terminal_event = True
+                if self._is_non_empty_text_chunk(event):
+                    saw_text_chunk = True
                 await pipeline.process(
                     event,
+                    tts_session.service,
+                    msg_id,
+                    context={
+                        "user_id": agent_instance.user_id,
+                        "session_id": agent_instance.session_id,
+                        "conversation_ref": message.payload.conversation_ref,
+                        "turn_ref": msg_id,
+                    },
+                )
+
+            if not saw_terminal_event:
+                logger.warning(
+                    "Agent stream ended without terminal event; emitting fallback completion "
+                    "(user_id=%s, turn_ref=%s)",
+                    agent_instance.user_id,
+                    msg_id,
+                )
+                fallback_text = EMPTY_FINAL_RESPONSE_FALLBACK
+                if not saw_text_chunk:
+                    await pipeline.process(
+                        ChunkEvent(content=fallback_text),
+                        tts_session.service,
+                        msg_id,
+                        context={
+                            "user_id": agent_instance.user_id,
+                            "session_id": agent_instance.session_id,
+                            "conversation_ref": message.payload.conversation_ref,
+                            "turn_ref": msg_id,
+                        },
+                    )
+                await pipeline.process(
+                    StreamingCompleteEvent(final_response=fallback_text),
                     tts_session.service,
                     msg_id,
                     context={
@@ -113,3 +155,35 @@ class QueryExecutionService:
         except Exception as e:
             logger.warning("Failed to load screenshot artifact %s: %s", screenshot_ref, e)
             return None
+
+    @staticmethod
+    def _extract_event_type(event: Any) -> Optional[str]:
+        if isinstance(event, dict):
+            value = event.get("type")
+            return str(value) if isinstance(value, str) else None
+
+        event_type = getattr(event, "type", None)
+        if isinstance(event_type, str):
+            return event_type
+        value = getattr(event_type, "value", None)
+        return str(value) if isinstance(value, str) else None
+
+    @classmethod
+    def _is_terminal_event(cls, event: Any) -> bool:
+        event_type = cls._extract_event_type(event)
+        return event_type in {"streaming-complete", "error"}
+
+    @classmethod
+    def _is_non_empty_text_chunk(cls, event: Any) -> bool:
+        event_type = cls._extract_event_type(event)
+        if event_type not in {"chunk", "content", "streaming-response"}:
+            return False
+
+        if isinstance(event, dict):
+            content = event.get("content")
+            if not content and isinstance(event.get("payload"), dict):
+                content = event["payload"].get("text")
+            return isinstance(content, str) and bool(content.strip())
+
+        content = getattr(event, "content", None)
+        return isinstance(content, str) and bool(content.strip())

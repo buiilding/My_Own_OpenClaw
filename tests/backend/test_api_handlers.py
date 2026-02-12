@@ -25,6 +25,7 @@ from backend.src.api.schema import (
 )
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.core.config.models import AppConfig
+from backend.src.core.events.streaming_events import ChunkEvent, StreamingCompleteEvent
 
 
 class FakeWebSocket:
@@ -91,6 +92,29 @@ class DummyCaptureAgent:
             }
         )
         yield {"type": "chunk", "content": "ok"}
+
+
+class DummySilentAgent:
+    def __init__(self):
+        self.cfg = AppConfig()
+        self.user_id = "user_1"
+        self.session_id = "session_1"
+
+    async def process_query(
+        self,
+        text,
+        image_data=None,
+        message_content=None,
+        conversation_ref=None,
+    ):
+        if False:
+            yield {
+                "type": "chunk",
+                "content": text,
+                "image_data": image_data,
+                "message_content": message_content,
+                "conversation_ref": conversation_ref,
+            }
 
 
 class DummySessionManager:
@@ -185,16 +209,76 @@ async def test_query_handler_success(monkeypatch):
     await handler.handle(message, websocket, "user_1")
 
     assert len(created_pipelines) == 1
-    assert len(created_pipelines[0].processed) == 1
-    event, msg_id, context = created_pipelines[0].processed[0]
-    assert event == {"type": "chunk", "content": "ok"}
-    assert msg_id == "msg_1"
-    assert context == {
+    assert len(created_pipelines[0].processed) == 2
+    first_event, first_msg_id, first_context = created_pipelines[0].processed[0]
+    second_event, second_msg_id, second_context = created_pipelines[0].processed[1]
+    assert first_event == {"type": "chunk", "content": "ok"}
+    assert isinstance(second_event, StreamingCompleteEvent)
+    assert first_msg_id == second_msg_id == "msg_1"
+    assert first_context == second_context == {
         "user_id": "user_1",
         "session_id": "session_1",
         "conversation_ref": "conv_test",
         "turn_ref": "msg_1",
     }
+    assert second_event.final_response
+    assert "empty final response" in second_event.final_response
+
+
+@pytest.mark.asyncio
+async def test_query_handler_emits_fallback_chunk_and_completion_when_agent_stream_is_silent(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session = DummySilentAgent()
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+    created_pipelines = []
+
+    class DummyPipeline:
+        def __init__(self, *_args, **_kwargs):
+            self.processed = []
+            created_pipelines.append(self)
+
+        async def process(self, event, tts_service, msg_id, context=None):
+            self.processed.append((event, msg_id, context))
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    monkeypatch.setattr(
+        "backend.src.api.handlers.query.StreamPipeline",
+        DummyPipeline,
+    )
+
+    message = QueryMessage(
+        id="msg_silent_1",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "hi",
+            "conversation_ref": "conv_test",
+            "content": "<user_query>hi</user_query>",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert len(created_pipelines) == 1
+    assert len(created_pipelines[0].processed) == 2
+    first_event, first_msg_id, first_context = created_pipelines[0].processed[0]
+    second_event, second_msg_id, second_context = created_pipelines[0].processed[1]
+    assert isinstance(first_event, ChunkEvent)
+    assert isinstance(second_event, StreamingCompleteEvent)
+    assert "empty final response" in first_event.content
+    assert first_msg_id == second_msg_id == "msg_silent_1"
+    assert first_context == second_context == {
+        "user_id": "user_1",
+        "session_id": "session_1",
+        "conversation_ref": "conv_test",
+        "turn_ref": "msg_silent_1",
+    }
+    assert second_event.final_response == first_event.content
 
 
 @pytest.mark.asyncio

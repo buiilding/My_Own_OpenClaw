@@ -849,6 +849,12 @@ class LLMProvider(ABC):
             raise LLMAPIError(invalid_response_message, model=model)
 
         content = LLMProvider._extract_message_content(message)
+        if not content:
+            # Compatibility fallback for completion-style payloads that expose plain
+            # text directly on the choice object instead of message.content.
+            choice_text = LLMProvider._get_value(first_choice, "text")
+            if isinstance(choice_text, str):
+                content = choice_text
         normalized: NormalizedLLMResponse = {"content": content}
 
         tool_calls = LLMProvider._extract_message_tool_calls(
@@ -868,6 +874,14 @@ class LLMProvider(ABC):
     @staticmethod
     def _extract_message_content(message: Any) -> str:
         """Extract assistant text content from a message payload."""
+        # Some providers expose text directly on the message object.
+        direct_text = (
+            LLMProvider._get_value(message, "output_text")
+            or LLMProvider._get_value(message, "text")
+        )
+        if isinstance(direct_text, str) and direct_text:
+            return direct_text
+
         content = LLMProvider._get_value(message, "content")
         if content is None:
             return ""
@@ -879,11 +893,20 @@ class LLMProvider(ABC):
             text_parts: List[str] = []
             for item in content:
                 item_type = LLMProvider._get_value(item, "type")
-                if item_type not in (None, "text"):
+                if item_type not in (None, "text", "output_text"):
                     continue
-                text_value = LLMProvider._get_value(item, "text")
-                if isinstance(text_value, str) and text_value:
-                    text_parts.append(text_value)
+                text_value = (
+                    LLMProvider._get_value(item, "text")
+                    or LLMProvider._get_value(item, "content")
+                )
+                if isinstance(text_value, str):
+                    if text_value:
+                        text_parts.append(text_value)
+                    continue
+                if isinstance(text_value, dict):
+                    nested_text = text_value.get("text") or text_value.get("content")
+                    if isinstance(nested_text, str) and nested_text:
+                        text_parts.append(nested_text)
             return "".join(text_parts)
 
         if isinstance(content, dict):
