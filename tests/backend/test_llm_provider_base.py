@@ -202,6 +202,66 @@ class TestBuildRequestParams:
         with pytest.raises(LLMAPIError, match="function.parameters must be an object"):
             provider._build_request_params("gpt-4", messages, tools=tools)
 
+    def test_build_normalizes_assistant_tool_calls_to_openai_shape(self, provider):
+        messages = [
+            {"role": "user", "content": "List files"},
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_1",
+                        "name": "run_shell_command",
+                        "arguments": {"command": "ls -la"},
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "tool_call_id": "call_1",
+                "content": "total 0",
+            },
+        ]
+
+        params = provider._build_request_params("gpt-4", messages)
+        assistant_tool_calls = params["messages"][1]["tool_calls"]
+        assert assistant_tool_calls == [
+            {
+                "id": "call_1",
+                "type": "function",
+                "function": {
+                    "name": "run_shell_command",
+                    "arguments": "{\"command\":\"ls -la\"}",
+                },
+            }
+        ]
+        assert params["messages"][2]["tool_call_id"] == "call_1"
+
+    def test_build_drops_orphan_tool_messages_without_matching_tool_call_id(self, provider):
+        messages = [
+            {"role": "user", "content": "List files"},
+            {
+                "role": "assistant",
+                "content": "",
+                "tool_calls": [
+                    {
+                        "id": "call_1",
+                        "name": "run_shell_command",
+                        "arguments": {"command": "ls -la"},
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "tool_call_id": "missing_call",
+                "content": "orphan",
+            },
+        ]
+
+        params = provider._build_request_params("gpt-4", messages)
+        assert len(params["messages"]) == 2
+        assert params["messages"][-1]["role"] == "assistant"
+
 
 class TestExtractThinkingContent:
     """Tests for _extract_thinking_content method."""
