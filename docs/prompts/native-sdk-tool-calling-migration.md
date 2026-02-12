@@ -33,6 +33,20 @@ Rationale:
 - Anthropic OpenAI-compatible endpoint (context for normalization compatibility): https://docs.anthropic.com/en/release-notes/api
 - OpenAI function-calling concepts: https://platform.openai.com/docs/guides/function-calling
 
+### Web Research Gate (Mandatory Before Coding, All Agents)
+
+Before starting implementation, every agent must:
+
+1. Open and read all links in **Source Pack**.
+2. Capture short implementation notes in the PR/handoff with:
+   - exact param names to send (`tools`, `tool_choice`, `parallel_tool_calls` where supported)
+   - expected tool-call response fields to normalize (`id`, function/tool `name`, parsed `arguments`)
+   - any provider-specific caveats that affect streaming or tool-call deltas
+3. Quote exact error strings from docs for known invalid tool-call payload patterns when relevant.
+
+Hard rule:
+- No implementation starts until this research step is complete.
+
 ## Agent Count
 
 Use **5 agents**.
@@ -107,6 +121,7 @@ Implement native tool-calling in provider/client layer.
 - `backend/src/tools/registry.py` (only if tool schema payload accessor needed)
 
 ### Tasks
+0. Complete **Web Research Gate** and include notes in handoff.
 1. Pass tool schemas via request params (`tools`, `tool_choice`).
 2. Parse structured tool calls from model response objects instead of extracting from text.
 3. Keep streaming text behavior where possible; if streaming tool-call deltas are provider-inconsistent, implement safe fallback path with clear logs.
@@ -121,6 +136,7 @@ Implement native tool-calling in provider/client layer.
 - OpenAI + Anthropic paths both return structured tool calls in normalized format.
 - Non-tool responses unaffected.
 - Existing non-tool streaming remains functional.
+- Handoff includes brief evidence that all Source Pack links were read first and applied.
 
 ### Agent 1 -> Agent 2 Handoff
 - Use Agent 1 contract exactly:
@@ -233,6 +249,7 @@ Each agent must return:
 3. Tests run + results.
 4. Risks left.
 5. Exact follow-up expected from next agent.
+6. Source Pack evidence: what was read first and which doc details affected implementation.
 
 ## Notes for Orchestration
 

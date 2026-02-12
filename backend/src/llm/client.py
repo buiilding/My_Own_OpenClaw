@@ -129,6 +129,8 @@ class LiteLLMClient(LLMClient):
             )
 
         content = response["content"]
+        if content is None:
+            content = ""
         if not isinstance(content, str):
             raise LLMAPIError(
                 f"Invalid content type from provider: expected str, got {type(content).__name__}",
