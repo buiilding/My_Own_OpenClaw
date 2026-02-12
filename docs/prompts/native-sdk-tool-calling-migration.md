@@ -99,6 +99,7 @@ Define canonical backend contracts for native tool-calling responses and tool me
 
 ### Status
 - `COMPLETE` on 2026-02-12.
+- Revalidated by Agent 1 on 2026-02-12 (doc pass for orchestration sync; no contract changes required).
 - Implemented:
   - `NormalizedToolCall` + expanded `NormalizedLLMResponse` contract (`content`, optional `tool_calls`, optional `finish_reason`).
   - `LLMMessage` union support for assistant `tool_calls` and `tool` role follow-up messages.
@@ -145,6 +146,7 @@ Implement native tool-calling in provider/client layer.
 - Ensure provider responses always include `content` key (empty string is acceptable for tool-only turns).
 - Wire `tools` + `tool_choice` through provider params and normalize provider-specific tool-call payloads at provider boundary.
 - Respect `AppConfig.native_tool_calling_enabled` as rollback gate during transport cutover.
+- No additional Agent 1 contract deltas in this pass; proceed against the existing contract and keep adapter logic localized to provider/client boundaries.
 
 ### Status
 - `COMPLETE` on 2026-02-12.
