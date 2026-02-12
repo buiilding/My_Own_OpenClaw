@@ -5,6 +5,12 @@ import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/
 import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
 import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
+import {
+  getActiveConversationRef,
+  getTranscriptSessionInfo,
+  recordUserMessage,
+  setActiveConversationRef,
+} from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 
 jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', () => ({
   extractOSstate: jest.fn(),
@@ -20,14 +26,39 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader'
   uploadArtifactBase64: jest.fn(),
 }));
 
+let mockActiveConversationRef: string | null = null;
+jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
+  getActiveConversationRef: jest.fn(() => mockActiveConversationRef),
+  setActiveConversationRef: jest.fn((ref: string | null) => {
+    mockActiveConversationRef = ref;
+  }),
+  getTranscriptSessionInfo: jest.fn(() => ({
+    conversationRef: mockActiveConversationRef,
+    userId: null,
+  })),
+  recordUserMessage: jest.fn(),
+}));
+
 const mockExtractOSstate = extractOSstate as jest.MockedFunction<typeof extractOSstate>;
 const mockSendQuery = ApiClient.sendQuery as jest.MockedFunction<typeof ApiClient.sendQuery>;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
+const mockRecordUserMessage = recordUserMessage as jest.MockedFunction<typeof recordUserMessage>;
+const mockGetActiveConversationRef = getActiveConversationRef as jest.MockedFunction<typeof getActiveConversationRef>;
+const mockSetActiveConversationRef = setActiveConversationRef as jest.MockedFunction<typeof setActiveConversationRef>;
+const mockGetTranscriptSessionInfo = getTranscriptSessionInfo as jest.MockedFunction<typeof getTranscriptSessionInfo>;
 
 describe('useChatMessageSender', () => {
   beforeEach(() => {
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockExtractOSstate.mockReset();
+    mockSendQuery.mockReset();
+    mockUploadArtifactBase64.mockReset();
+    mockActiveConversationRef = null;
+    mockGetActiveConversationRef.mockClear();
+    mockSetActiveConversationRef.mockClear();
+    mockGetTranscriptSessionInfo.mockClear();
+    mockRecordUserMessage.mockClear();
 
     useChatStore.setState({
       messages: [],
@@ -36,9 +67,7 @@ describe('useChatMessageSender', () => {
       tokenCounts: null,
     });
 
-    (global as any).crypto = {
-      randomUUID: jest.fn(() => 'msg-1'),
-    };
+    jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('msg-1');
 
     (window as any).ipc = {
       send: jest.fn(),
@@ -83,7 +112,8 @@ describe('useChatMessageSender', () => {
       INVOKE_CHANNELS.SHOW_CHATBOX,
       expect.anything(),
     );
-    expect(mockSendQuery).toHaveBeenCalledWith('hello', null, null);
+    expect(mockSendQuery.mock.calls.length).toBe(1);
+    expect(mockSendQuery.mock.calls[0]).toEqual(['hello', 'conv_msg-1', null, null]);
   });
 
   test('continues send flow when return-to-chatbox invoke fails', async () => {
@@ -97,7 +127,8 @@ describe('useChatMessageSender', () => {
       await result.current.sendMessage('hello');
     });
 
-    expect(mockSendQuery).toHaveBeenCalledWith('hello', null, null);
+    expect(mockSendQuery.mock.calls.length).toBe(1);
+    expect(mockSendQuery.mock.calls[0]).toEqual(['hello', 'conv_msg-1', null, null]);
     expect(warnSpy).toHaveBeenCalledWith(
       '[useChatMessageSender] Failed to show chatbox:',
       expect.any(Error),
@@ -178,7 +209,8 @@ describe('useChatMessageSender', () => {
     });
 
     expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
-    expect(mockSendQuery).toHaveBeenCalledWith('hello', null, null);
+    expect(mockSendQuery.mock.calls.length).toBe(1);
+    expect(mockSendQuery.mock.calls[0]).toEqual(['hello', 'conv_msg-1', null, null]);
     expect(errorSpy).toHaveBeenCalledWith(
       '[useChatMessageSender] Failed to extract OS state:',
       expect.any(Error),
@@ -208,7 +240,8 @@ describe('useChatMessageSender', () => {
       'image/png',
       'user-message.png',
     );
-    expect(mockSendQuery).toHaveBeenCalledWith('hello', null, null);
+    expect(mockSendQuery.mock.calls.length).toBe(1);
+    expect(mockSendQuery.mock.calls[0]).toEqual(['hello', 'conv_msg-1', null, null]);
   });
 
   test('sends uploaded screenshot refs to backend and updates message attachment', async () => {
@@ -230,15 +263,25 @@ describe('useChatMessageSender', () => {
       await result.current.sendMessage('hello');
     });
 
-    expect(mockSendQuery).toHaveBeenCalledWith(
+    expect(mockSendQuery.mock.calls.length).toBe(1);
+    expect(mockSendQuery.mock.calls[0]).toEqual([
       'hello',
+      'conv_msg-1',
       'artifact-1',
       '/api/artifacts/artifact-1',
-    );
+    ]);
     expect(useChatStore.getState().messages[0]).toEqual(
       expect.objectContaining({
         screenshotRef: 'artifact-1',
         screenshotUrl: '/api/artifacts/artifact-1',
+      }),
+    );
+    expect(mockRecordUserMessage.mock.calls.length).toBe(1);
+    expect(mockRecordUserMessage.mock.calls[0][0]).toBe('hello');
+    expect(mockRecordUserMessage.mock.calls[0][1]).toEqual(
+      expect.objectContaining({
+        conversationRef: 'conv_msg-1',
+        screenshotRef: 'artifact-1',
       }),
     );
   });

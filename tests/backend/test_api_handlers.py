@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 import pytest
 
 from backend.src.api.handlers.query import QueryMessageHandler
+from backend.src.api.handlers.rehydrate import RehydrateConversationHandler
 from backend.src.api.handlers.settings import (
     ListModelsHandler,
     LoadSettingsHandler,
@@ -16,6 +17,7 @@ from backend.src.api.schema import (
     ListModelsMessage,
     LoadSettingsMessage,
     QueryMessage,
+    RehydrateConversationMessage,
     ToolBundleResultMessage,
     ToolResultMessage,
     UpdateSettingsMessage,
@@ -45,13 +47,25 @@ class DummyAgent:
         self.updated_configs = []
         self.user_id = "user_1"
         self.session_id = "session_1"
+        self.rehydrate_calls = []
 
-    async def process_query(self, _text, image_data=None, message_content=None):
+    async def process_query(
+        self,
+        _text,
+        image_data=None,
+        message_content=None,
+        conversation_ref=None,
+    ):
         yield {"type": "chunk", "content": "ok"}
 
     async def update_config(self, new_cfg):
         self.cfg = new_cfg
         self.updated_configs.append(new_cfg)
+
+    async def rehydrate_conversation(self, conversation_ref, entries):
+        self.rehydrate_calls.append(
+            {"conversation_ref": conversation_ref, "entries": entries}
+        )
 
 
 class DummyCaptureAgent:
@@ -61,12 +75,19 @@ class DummyCaptureAgent:
         self.session_id = "session_1"
         self.calls = []
 
-    async def process_query(self, text, image_data=None, message_content=None):
+    async def process_query(
+        self,
+        text,
+        image_data=None,
+        message_content=None,
+        conversation_ref=None,
+    ):
         self.calls.append(
             {
                 "text": text,
                 "image_data": image_data,
                 "message_content": message_content,
+                "conversation_ref": conversation_ref,
             }
         )
         yield {"type": "chunk", "content": "ok"}
@@ -154,7 +175,11 @@ async def test_query_handler_success(monkeypatch):
         id="msg_1",
         type="query",
         user_id="user_1",
-        payload={"text": "hi", "content": "<user_query>hi</user_query>"},
+        payload={
+            "text": "hi",
+            "conversation_ref": "conv_test",
+            "content": "<user_query>hi</user_query>",
+        },
     )
 
     await handler.handle(message, websocket, "user_1")
@@ -164,7 +189,12 @@ async def test_query_handler_success(monkeypatch):
     event, msg_id, context = created_pipelines[0].processed[0]
     assert event == {"type": "chunk", "content": "ok"}
     assert msg_id == "msg_1"
-    assert context == {"user_id": "user_1", "session_id": "session_1"}
+    assert context == {
+        "user_id": "user_1",
+        "session_id": "session_1",
+        "conversation_ref": "conv_test",
+        "turn_ref": "msg_1",
+    }
 
 
 @pytest.mark.asyncio
@@ -178,7 +208,7 @@ async def test_query_handler_invalid_text():
         id="msg_2",
         type="query",
         user_id="user_1",
-        payload={"text": "   ", "content": ""},
+        payload={"text": "   ", "conversation_ref": "conv_test", "content": ""},
     )
 
     await handler.handle(message, websocket, "user_1")
@@ -226,6 +256,7 @@ async def test_query_handler_loads_screenshot_from_artifact_ref(monkeypatch):
         user_id="user_1",
         payload={
             "text": "use artifact screenshot",
+            "conversation_ref": "conv_test",
             "content": "<user_query>use artifact screenshot</user_query>",
             "screenshot_ref": "shot_1.png",
         },
@@ -235,6 +266,7 @@ async def test_query_handler_loads_screenshot_from_artifact_ref(monkeypatch):
 
     assert len(session_manager.session.calls) == 1
     assert session_manager.session.calls[0]["image_data"] == "artifact-base64"
+    assert session_manager.session.calls[0]["conversation_ref"] == "conv_test"
 
 
 @pytest.mark.asyncio
@@ -274,6 +306,7 @@ async def test_query_handler_continues_when_artifact_load_fails(monkeypatch):
         user_id="user_1",
         payload={
             "text": "continue despite artifact error",
+            "conversation_ref": "conv_test",
             "content": "<user_query>continue despite artifact error</user_query>",
             "screenshot_ref": "missing.png",
         },
@@ -322,6 +355,7 @@ async def test_query_handler_prefers_inline_screenshot_over_artifact_ref(monkeyp
         user_id="user_1",
         payload={
             "text": "inline screenshot should win",
+            "conversation_ref": "conv_test",
             "content": "<user_query>inline screenshot should win</user_query>",
             "screenshot": "inline-base64",
             "screenshot_ref": "unused.png",
@@ -546,3 +580,40 @@ async def test_wakeword_handler_sends_activation_and_greeting():
     assert len(websocket.sent) == 2
     assert websocket.sent[0]["type"] == "wakeword-activated"
     assert websocket.sent[1]["type"] == "wakeword-greeting"
+
+
+@pytest.mark.asyncio
+async def test_rehydrate_handler_rebuilds_session_history():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = RehydrateConversationHandler(session_manager)
+
+    message = RehydrateConversationMessage(
+        id="msg_rehydrate_1",
+        type="rehydrate-conversation",
+        user_id="user_1",
+        payload={
+            "conversation_ref": "conv_resume_1",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "hello",
+                    "message_type": "user",
+                    "timestamp": "2026-02-02T20:00:00Z",
+                },
+                {
+                    "role": "assistant",
+                    "content": "hi",
+                    "message_type": "llm-text",
+                    "timestamp": "2026-02-02T20:00:01Z",
+                },
+            ],
+            "rehydrate_mode": "replace",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert session_manager.session.rehydrate_calls
+    assert session_manager.session.rehydrate_calls[0]["conversation_ref"] == "conv_resume_1"
+    assert len(session_manager.session.rehydrate_calls[0]["entries"]) == 2

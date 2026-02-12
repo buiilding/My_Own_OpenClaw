@@ -6,15 +6,28 @@
 
 import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
 
+export type RehydrateConversationEntry = {
+  role: 'user' | 'assistant' | 'tool';
+  content: string;
+  message_type?: string;
+  tool_name?: string | null;
+  correlation_id?: string | null;
+  timestamp?: string | null;
+  screenshot_ref?: string | null;
+  screenshot?: string | null;
+};
+
 export const ApiClient = {
   /**
    * Send a user query to the backend
    * @param {string} text
+   * @param {string} conversationRef
    * @param {string|null} screenshotRef - Optional artifact reference for screenshot data
    * @param {string|null} screenshotUrl - Optional artifact URL (kept for caller compatibility; not sent)
    */
   sendQuery: async (
     text: string,
+    conversationRef: string,
     screenshotRef: string | null = null,
     screenshotUrl: string | null = null
   ): Promise<void> => {
@@ -24,8 +37,23 @@ export const ApiClient = {
       type: 'query',
       payload: {
         text,
+        conversation_ref: conversationRef,
         screenshot_ref: screenshotRef  // Optional screenshot reference
       }
+    });
+  },
+
+  sendRehydrateConversation: async (
+    conversationRef: string,
+    messages: RehydrateConversationEntry[]
+  ): Promise<void> => {
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+      type: 'rehydrate-conversation',
+      payload: {
+        conversation_ref: conversationRef,
+        messages,
+        rehydrate_mode: 'replace',
+      },
     });
   },
 

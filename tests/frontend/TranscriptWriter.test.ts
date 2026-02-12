@@ -26,17 +26,17 @@ describe('TranscriptWriter', () => {
   test('loads session info from sessionStorage', () => {
     window.sessionStorage.setItem(
       TRANSCRIPT_SESSION_STORAGE_KEY,
-      JSON.stringify({ sessionId: 'stored-session', userId: 'stored-user' }),
+      JSON.stringify({ conversationRef: 'conv-stored', userId: 'stored-user' }),
     );
 
     const { writer } = loadTranscriptWriter();
     expect(writer.getTranscriptSessionInfo()).toEqual({
-      sessionId: 'stored-session',
+      conversationRef: 'conv-stored',
       userId: 'stored-user',
     });
   });
 
-  test('queues user messages until session/user ids are available, then flushes', async () => {
+  test('queues user messages until conversation/user ids are available, then flushes', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
 
     writer.recordUserMessage('queued user message', {
@@ -47,13 +47,13 @@ describe('TranscriptWriter', () => {
     });
     expect(invokeMock).not.toHaveBeenCalled();
 
-    writer.updateTranscriptSession('session-1', 'user-1');
+    writer.updateTranscriptSession('conv-1', 'user-1');
     await Promise.resolve();
 
     expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
       content: 'queued user message',
       userId: 'user-1',
-      sessionId: 'session-1',
+      conversationRef: 'conv-1',
       role: 'user',
       messageType: 'user',
       toolName: undefined,
@@ -67,42 +67,42 @@ describe('TranscriptWriter', () => {
 
   test('emits transcript-session-update event and persists session info on update', () => {
     const { writer } = loadTranscriptWriter();
-    const updates: Array<{ sessionId: string | null; userId: string | null }> = [];
+    const updates: Array<{ conversationRef: string | null; userId: string | null }> = [];
     const handler = (event: Event) => {
-      updates.push((event as CustomEvent<{ sessionId: string | null; userId: string | null }>).detail);
+      updates.push((event as CustomEvent<{ conversationRef: string | null; userId: string | null }>).detail);
     };
     window.addEventListener('transcript-session-update', handler);
 
-    writer.updateTranscriptSession('session-2', 'user-2');
+    writer.updateTranscriptSession('conv-2', 'user-2');
 
-    expect(updates).toEqual([{ sessionId: 'session-2', userId: 'user-2' }]);
+    expect(updates).toEqual([{ conversationRef: 'conv-2', userId: 'user-2' }]);
     expect(window.sessionStorage.getItem(TRANSCRIPT_SESSION_STORAGE_KEY)).toBe(
-      JSON.stringify({ sessionId: 'session-2', userId: 'user-2' }),
+      JSON.stringify({ conversationRef: 'conv-2', userId: 'user-2' }),
     );
 
     window.removeEventListener('transcript-session-update', handler);
   });
 
-  test('preserves stored session id when update only provides user id', () => {
+  test('preserves stored conversation ref when update only provides user id', () => {
     window.sessionStorage.setItem(
       TRANSCRIPT_SESSION_STORAGE_KEY,
-      JSON.stringify({ sessionId: 'stored-session', userId: null }),
+      JSON.stringify({ conversationRef: 'conv-stored', userId: null }),
     );
     const { writer } = loadTranscriptWriter();
 
     writer.updateTranscriptSession(undefined, 'new-user');
 
     expect(writer.getTranscriptSessionInfo()).toEqual({
-      sessionId: 'stored-session',
+      conversationRef: 'conv-stored',
       userId: 'new-user',
     });
   });
 
-  test('recordUserMessage writes immediately when session/user provided in options', async () => {
+  test('recordUserMessage writes immediately when conversation/user provided in options', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
 
     writer.recordUserMessage('direct user message', {
-      sessionId: 'session-direct',
+      conversationRef: 'conv-direct',
       userId: 'user-direct',
       timestamp: '2026-02-01T00:00:00Z',
     });
@@ -111,7 +111,7 @@ describe('TranscriptWriter', () => {
     expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
       content: 'direct user message',
       userId: 'user-direct',
-      sessionId: 'session-direct',
+      conversationRef: 'conv-direct',
       role: 'user',
       messageType: 'user',
       toolName: undefined,
@@ -125,7 +125,7 @@ describe('TranscriptWriter', () => {
 
   test('recordUserMessage ignores empty text payloads', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
-    writer.updateTranscriptSession('session-1', 'user-1');
+    writer.updateTranscriptSession('conv-1', 'user-1');
 
     writer.recordUserMessage('');
     await Promise.resolve();
@@ -133,7 +133,7 @@ describe('TranscriptWriter', () => {
     expect(invokeMock).not.toHaveBeenCalled();
   });
 
-  test('recordAssistantMessage is ignored when session info is unavailable', async () => {
+  test('recordAssistantMessage is ignored when conversation info is unavailable', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
 
     writer.recordAssistantMessage('assistant message');
@@ -145,7 +145,7 @@ describe('TranscriptWriter', () => {
   test('recordAssistantMessage uses default message type llm-text', async () => {
     window.sessionStorage.setItem(
       TRANSCRIPT_SESSION_STORAGE_KEY,
-      JSON.stringify({ sessionId: 'stored-session', userId: 'stored-user' }),
+      JSON.stringify({ conversationRef: 'conv-stored', userId: 'stored-user' }),
     );
     const { writer, invokeMock } = loadTranscriptWriter();
 
@@ -155,7 +155,7 @@ describe('TranscriptWriter', () => {
     expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
       content: 'assistant message',
       userId: 'stored-user',
-      sessionId: 'stored-session',
+      conversationRef: 'conv-stored',
       role: 'assistant',
       messageType: 'llm-text',
       toolName: undefined,
@@ -169,7 +169,7 @@ describe('TranscriptWriter', () => {
 
   test('recordAssistantMessage ignores empty text payloads', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
-    writer.updateTranscriptSession('session-1', 'user-1');
+    writer.updateTranscriptSession('conv-1', 'user-1');
 
     writer.recordAssistantMessage('');
     await Promise.resolve();
@@ -177,9 +177,9 @@ describe('TranscriptWriter', () => {
     expect(invokeMock).not.toHaveBeenCalled();
   });
 
-  test('recordToolMessage stores tool metadata when session is available', async () => {
+  test('recordToolMessage stores tool metadata when conversation is available', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
-    writer.updateTranscriptSession('session-tool', 'user-tool');
+    writer.updateTranscriptSession('conv-tool', 'user-tool');
 
     writer.recordToolMessage('tool output', {
       messageType: 'tool-output',
@@ -194,7 +194,7 @@ describe('TranscriptWriter', () => {
     expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
       content: 'tool output',
       userId: 'user-tool',
-      sessionId: 'session-tool',
+      conversationRef: 'conv-tool',
       role: 'tool',
       messageType: 'tool-output',
       toolName: 'read_file',
@@ -208,7 +208,7 @@ describe('TranscriptWriter', () => {
 
   test('recordToolMessage ignores empty text payloads', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
-    writer.updateTranscriptSession('session-1', 'user-1');
+    writer.updateTranscriptSession('conv-1', 'user-1');
 
     writer.recordToolMessage('', { messageType: 'tool-output' });
     await Promise.resolve();
@@ -216,7 +216,7 @@ describe('TranscriptWriter', () => {
     expect(invokeMock).not.toHaveBeenCalled();
   });
 
-  test('queues tool messages until session/user ids are available, then flushes', async () => {
+  test('queues tool messages until conversation/user ids are available, then flushes', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
 
     writer.recordToolMessage('tool call payload', {
@@ -231,13 +231,13 @@ describe('TranscriptWriter', () => {
 
     expect(invokeMock).not.toHaveBeenCalled();
 
-    writer.updateTranscriptSession('session-tool-queued', 'user-tool-queued');
+    writer.updateTranscriptSession('conv-tool-queued', 'user-tool-queued');
     await Promise.resolve();
 
     expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
       content: 'tool call payload',
       userId: 'user-tool-queued',
-      sessionId: 'session-tool-queued',
+      conversationRef: 'conv-tool-queued',
       role: 'tool',
       messageType: 'tool-call',
       toolName: 'mouse_control',
@@ -246,6 +246,19 @@ describe('TranscriptWriter', () => {
       modelProvider: 'provider-z',
       screenshot: 'artifact-tool',
       timestamp: undefined,
+    });
+  });
+
+  test('setActiveConversationRef updates only conversation identity', () => {
+    const { writer } = loadTranscriptWriter();
+    writer.updateTranscriptSession(null, 'user-1');
+
+    writer.setActiveConversationRef('conv-active');
+
+    expect(writer.getActiveConversationRef()).toBe('conv-active');
+    expect(writer.getTranscriptSessionInfo()).toEqual({
+      conversationRef: 'conv-active',
+      userId: 'user-1',
     });
   });
 });

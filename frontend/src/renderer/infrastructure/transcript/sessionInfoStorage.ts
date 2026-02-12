@@ -4,22 +4,25 @@ export const TRANSCRIPT_SESSION_STORAGE_KEY = 'transcript-session-info';
 
 export function readSessionInfoFromStorage(): SessionInfo {
   if (typeof window === 'undefined') {
-    return { sessionId: null, userId: null };
+    return { conversationRef: null, userId: null };
   }
 
   try {
     const raw = window.sessionStorage.getItem(TRANSCRIPT_SESSION_STORAGE_KEY);
     if (!raw) {
-      return { sessionId: null, userId: null };
+      return { conversationRef: null, userId: null };
     }
 
     const parsed = JSON.parse(raw);
+    const conversationRef = typeof parsed?.conversationRef === 'string'
+      ? parsed.conversationRef
+      : (typeof parsed?.sessionId === 'string' ? parsed.sessionId : null);
     return {
-      sessionId: typeof parsed?.sessionId === 'string' ? parsed.sessionId : null,
+      conversationRef,
       userId: typeof parsed?.userId === 'string' ? parsed.userId : null,
     };
   } catch (error) {
-    return { sessionId: null, userId: null };
+    return { conversationRef: null, userId: null };
   }
 }
 

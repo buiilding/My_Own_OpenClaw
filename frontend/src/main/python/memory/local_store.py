@@ -1109,14 +1109,19 @@ class LocalMemoryStore:
 
             results = []
             for row in rows:
+                conversation_id = row["conversation_id"]
                 results.append({
-                    "conversation_id": row["conversation_id"],
+                    "conversation_id": conversation_id,
                     "first_timestamp": row["first_timestamp"],
                     "last_timestamp": row["last_timestamp"],
                     "entry_count": row["entry_count"],
                     "record_kind": row["record_kind"],
                     "model_id": row["model_id"],
                     "model_provider": row["model_provider"],
+                    "is_resumable": bool(
+                        isinstance(conversation_id, str)
+                        and conversation_id.startswith("conv_")
+                    ),
                 })
 
             return results

@@ -10,17 +10,23 @@ def attach_context_fields(
     context: Optional[Dict[str, Any]],
 ) -> Dict[str, Any]:
     """
-    Attach optional session/user context to an existing transport message.
+    Attach optional session/conversation/user context to an existing transport message.
     """
     if not context:
         return message
 
     session_id = context.get("session_id")
     user_id = context.get("user_id")
+    conversation_ref = context.get("conversation_ref")
+    turn_ref = context.get("turn_ref")
     if session_id:
         message["session_id"] = session_id
     if user_id:
         message["user_id"] = user_id
+    if conversation_ref:
+        message["conversation_ref"] = conversation_ref
+    if turn_ref:
+        message["turn_ref"] = turn_ref
     return message
 
 

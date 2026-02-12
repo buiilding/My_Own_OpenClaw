@@ -1,5 +1,3 @@
-import json
-
 import pytest
 
 from backend.src.core.config.models import AppConfig
@@ -88,10 +86,10 @@ def test_format_user_message_content_adds_tool_schemas_only_for_first_message():
         is_first_message=False,
     )
 
-    assert "<tool_schemas>" in first_content
+    assert first_content == "<user_query>hello</user_query>"
+    assert later_content == "<user_query>hello</user_query>"
+    assert "<tool_schemas>" not in first_content
     assert "<tool_schemas>" not in later_content
-    encoded = first_content.split("<tool_schemas>\n", 1)[1].split("\n</tool_schemas>", 1)[0]
-    assert json.loads(encoded) == tool_schemas
 
 
 def test_format_user_message_content_respects_allowlist_for_tool_schemas():
@@ -106,14 +104,7 @@ def test_format_user_message_content_respects_allowlist_for_tool_schemas():
         system_prompt="system",
     )
 
-    first_content = constructor.format_user_message_content(
-        message_content="<user_query>hello</user_query>",
-        query="hello",
-        is_first_message=True,
-    )
-
-    encoded = first_content.split("<tool_schemas>\n", 1)[1].split("\n</tool_schemas>", 1)[0]
-    schemas = json.loads(encoded)
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
 
     assert [schema["name"] for schema in schemas] == ["read_file"]
 
@@ -141,18 +132,10 @@ def test_format_user_message_content_filters_mouse_coordinate_methods(
         system_prompt="system",
     )
 
-    first_content = constructor.format_user_message_content(
-        message_content="<user_query>hello</user_query>",
-        query="hello",
-        is_first_message=True,
-    )
-    encoded = first_content.split("<tool_schemas>\n", 1)[1].split("\n</tool_schemas>", 1)[0]
-    schemas = json.loads(encoded)
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
     mouse_schema = schemas[0]
 
-    args_props = (
-        mouse_schema["parameters"]["properties"]["action"]["properties"]["functionCall"]["properties"]["args"]["properties"]
-    )
+    args_props = mouse_schema["parameters"]["properties"]
     method_schema = args_props["find_coordinates_by"]
 
     assert method_schema["enum"] == ["manual"]

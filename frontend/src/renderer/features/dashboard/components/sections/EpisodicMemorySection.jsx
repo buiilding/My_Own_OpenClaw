@@ -1,7 +1,14 @@
+import PropTypes from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import MessageList from '../../../chat/components/MessageList';
+import { useChatStore } from '../../../chat/stores/chatStore';
+import { ApiClient } from '../../../../infrastructure/api/client';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
-import { getTranscriptSessionInfo } from '../../../../infrastructure/transcript/TranscriptWriter';
+import {
+  getTranscriptSessionInfo,
+  setActiveConversationRef,
+  updateTranscriptSession,
+} from '../../../../infrastructure/transcript/TranscriptWriter';
 import {
   buildConversationKey,
   DEFAULT_USER_ID,
@@ -13,18 +20,55 @@ import {
 import '../../../../styles/SettingsPanel.css';
 import '../../../../styles/ChatInterface.css';
 
-function EpisodicMemorySection() {
+function looksLikeInlineImageData(value) {
+  if (!value || typeof value !== 'string') {
+    return false;
+  }
+  if (value.startsWith('data:image/')) {
+    return true;
+  }
+  return /^[A-Za-z0-9+/]+={0,2}$/.test(value) && value.length >= 128;
+}
+
+function toRehydrateMessage(memory) {
+  const metadata = memory?.metadata || {};
+  const role = memory?.role || metadata?.role || 'assistant';
+  const messageType = memory?.message_type || metadata?.message_type || null;
+  const rawScreenshot = memory?.screenshot || metadata?.screenshot || null;
+  const screenshotInline = looksLikeInlineImageData(rawScreenshot);
+  const screenshotRef = memory?.screenshot_ref
+    || metadata?.screenshot_ref
+    || (!screenshotInline && typeof rawScreenshot === 'string' ? rawScreenshot : null);
+
+  return {
+    role,
+    content: memory?.content || '',
+    message_type: messageType,
+    tool_name: memory?.tool_name || metadata?.tool_name || null,
+    correlation_id: memory?.correlation_id || metadata?.correlation_id || null,
+    timestamp: memory?.timestamp || null,
+    screenshot_ref: screenshotRef,
+    screenshot: screenshotInline ? rawScreenshot : null,
+  };
+}
+
+function EpisodicMemorySection({ onSelectSection }) {
   const [conversations, setConversations] = useState([]);
   const [selectedConversationKey, setSelectedConversationKey] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [rawConversationMemories, setRawConversationMemories] = useState([]);
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
   const [listError, setListError] = useState(null);
   const [conversationError, setConversationError] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isResumingConversation, setIsResumingConversation] = useState(false);
 
   const [sessionInfo, setSessionInfo] = useState(() => getTranscriptSessionInfo());
+  const setChatMessages = useChatStore((state) => state.setMessages);
+  const setChatIsSending = useChatStore((state) => state.setIsSending);
+  const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
 
   const closeContextMenu = useCallback(() => {
     setContextMenu(null);
@@ -121,6 +165,7 @@ function EpisodicMemorySection() {
     setIsLoadingConversation(true);
     setConversationError(null);
     setMessages([]);
+    setRawConversationMemories([]);
 
     const conversation = conversations.find((item) => buildConversationKey(item) === conversationKey);
     const conversationId = conversation?.conversation_id ?? null;
@@ -142,6 +187,7 @@ function EpisodicMemorySection() {
       const memories = result?.data?.memories ?? [];
       const parsedMessages = parseMemoriesToMessages(memories);
 
+      setRawConversationMemories(memories);
       setMessages(parsedMessages);
     } catch (error) {
       setConversationError(error.message || 'Failed to load conversation');
@@ -175,6 +221,7 @@ function EpisodicMemorySection() {
   useEffect(() => {
     if (!selectedConversationKey) {
       setMessages([]);
+      setRawConversationMemories([]);
       return;
     }
     loadConversation(selectedConversationKey);
@@ -184,7 +231,7 @@ function EpisodicMemorySection() {
     const handleSessionUpdate = (event) => {
       if (event?.detail) {
         setSessionInfo({
-          sessionId: event.detail.sessionId || null,
+          conversationRef: event.detail.conversationRef || null,
           userId: event.detail.userId || null,
         });
       }
@@ -207,6 +254,51 @@ function EpisodicMemorySection() {
 
   const activeConversationCount = activeConversation?.entry_count || 0;
   const activeConversationModel = formatModelLabel(activeConversation);
+  const isLegacyConversation = Boolean(activeConversation && !activeConversation?.is_resumable);
+  const canContinueConversation = Boolean(
+    activeConversation?.conversation_id
+    && activeConversation?.is_resumable
+    && !isLoadingConversation
+    && !isResumingConversation,
+  );
+
+  const continueConversation = useCallback(async () => {
+    const conversationRef = activeConversation?.conversation_id;
+    if (!conversationRef || !activeConversation?.is_resumable) {
+      return;
+    }
+
+    setIsResumingConversation(true);
+    setConversationError(null);
+
+    try {
+      await ApiClient.sendRehydrateConversation(
+        conversationRef,
+        rawConversationMemories.map(toRehydrateMessage),
+      );
+      setActiveConversationRef(conversationRef);
+      updateTranscriptSession(conversationRef, sessionInfo.userId || null);
+      setChatMessages(messages);
+      setChatIsSending(false);
+      setChatThinkingStatus(null);
+      if (typeof onSelectSection === 'function') {
+        onSelectSection('chat');
+      }
+    } catch (error) {
+      setConversationError(error?.message || 'Failed to continue conversation');
+    } finally {
+      setIsResumingConversation(false);
+    }
+  }, [
+    activeConversation,
+    rawConversationMemories,
+    sessionInfo.userId,
+    setChatMessages,
+    setChatIsSending,
+    setChatThinkingStatus,
+    messages,
+    onSelectSection,
+  ]);
 
   return (
     <div className="settings-panel memory-panel">
@@ -287,6 +379,19 @@ function EpisodicMemorySection() {
               <div className="chat-meta">
                 <div className="memory-meta-pill">Model: {activeConversationModel}</div>
                 <div className="memory-meta-pill">Messages: {activeConversationCount}</div>
+                {canContinueConversation ? (
+                  <button
+                    type="button"
+                    className="memory-back-button memory-continue-button"
+                    onClick={continueConversation}
+                    disabled={isResumingConversation}
+                  >
+                    {isResumingConversation ? 'Preparing conversation...' : 'Continue conversation'}
+                  </button>
+                ) : null}
+                {isLegacyConversation ? (
+                  <div className="memory-meta-pill">Legacy conversation (view-only)</div>
+                ) : null}
               </div>
             </header>
             {isLoadingConversation ? (
@@ -354,5 +459,9 @@ function EpisodicMemorySection() {
     </div>
   );
 }
+
+EpisodicMemorySection.propTypes = {
+  onSelectSection: PropTypes.func,
+};
 
 export default EpisodicMemorySection;

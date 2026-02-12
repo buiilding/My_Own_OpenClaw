@@ -25,6 +25,7 @@ let isFirstQuery = true; // Track if this is the first user query in the session
 let currentUserId = null; // Store user_id after successful handshake
 let currentSessionId = null; // Store session_id from backend responses
 let currentServerUserId = null; // Store server-assigned user_id from backend responses
+let currentConversationRef = null; // Store active conversation_ref from backend responses
 let latestFrontendConfig = null; // Last known frontend config for session bootstrap
 let hasAttemptedInitialSettingsSync = false; // One-time per connection query gate
 let pendingSettingsSyncPromise = null; // Last outbound update-settings ACK promise
@@ -353,6 +354,9 @@ function connect() {
         if (data.user_id) {
           currentServerUserId = data.user_id;
         }
+        if (data.conversation_ref) {
+          currentConversationRef = data.conversation_ref;
+        }
       }
       // Only log errors or important message types
       if (data.type === 'error') {
@@ -383,6 +387,7 @@ function connect() {
     clearPendingSettingsSyncs();
     currentSessionId = null;
     currentServerUserId = null;
+    currentConversationRef = null;
     setResponseOverlayPhase('idle', 'ws-close');
     log('Disconnected from Python backend. Attempting to reconnect...');
     broadcastToRenderers('ipc-status', {
@@ -515,10 +520,12 @@ function initializeIpc(win, options = {}) {
     if (type === 'query') {
       setResponseOverlayPhase('awaiting-first-chunk', 'query');
       if (payload?.text) {
+        const conversationRef = payload?.conversation_ref || currentConversationRef || null;
         broadcastToRenderers('from-backend', {
           type: 'local-user-message',
           session_id: currentSessionId || null,
           user_id: currentServerUserId || null,
+          conversation_ref: conversationRef,
           payload: {
             text: payload.text,
             screenshot_ref: payload.screenshot_ref || null,
@@ -526,6 +533,7 @@ function initializeIpc(win, options = {}) {
             timestamp: new Date().toISOString(),
             session_id: currentSessionId || null,
             user_id: currentServerUserId || null,
+            conversation_ref: conversationRef,
           },
         }, event.sender);
       }

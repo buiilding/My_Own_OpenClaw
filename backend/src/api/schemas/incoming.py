@@ -18,6 +18,7 @@ class QueryPayload(BaseModel):
     )
 
     text: str
+    conversation_ref: str
     content: Optional[str] = None
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
@@ -26,6 +27,36 @@ class QueryPayload(BaseModel):
 class QueryMessage(BaseMessage):
     type: Literal["query"]
     payload: QueryPayload
+
+
+class RehydrateConversationEntry(BaseModel):
+    """One transcript row used to rebuild conversation history."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    role: Literal["user", "assistant", "tool"]
+    content: str
+    message_type: Optional[str] = None
+    tool_name: Optional[str] = None
+    correlation_id: Optional[str] = None
+    timestamp: Optional[str] = None
+    screenshot_ref: Optional[str] = None
+    screenshot: Optional[str] = None
+
+
+class RehydrateConversationPayload(BaseModel):
+    """Payload for `rehydrate-conversation` messages."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    conversation_ref: str
+    messages: List[RehydrateConversationEntry]
+    rehydrate_mode: Literal["replace"]
+
+
+class RehydrateConversationMessage(BaseMessage):
+    type: Literal["rehydrate-conversation"]
+    payload: RehydrateConversationPayload
 
 
 class LoadSettingsPayload(BaseModel):
@@ -142,6 +173,7 @@ class ToolBundleResultMessage(BaseMessage):
 IncomingMessage = Annotated[
     Union[
         QueryMessage,
+        RehydrateConversationMessage,
         LoadSettingsMessage,
         ListModelsMessage,
         UpdateSettingsMessage,
