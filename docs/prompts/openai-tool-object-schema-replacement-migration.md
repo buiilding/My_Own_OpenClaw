@@ -332,7 +332,57 @@ Replace tool-schema transparency payload consumers to canonical tool object.
 
 ### Status
 
-- `PENDING`
+- `COMPLETE` on 2026-02-12.
+- Files changed:
+  - `backend/src/core/events/streaming_events.py`
+  - `backend/src/agent/llm/event_presenter.py`
+  - `backend/src/api/processing/formatters/tool_schemas.py`
+  - `backend/src/api/schemas/outgoing.py`
+  - `frontend/src/renderer/types/backendEvents.ts`
+  - `frontend/src/renderer/features/chat/utils/chatStreamMessageUpdates.ts`
+  - `frontend/src/renderer/features/chat/utils/messageTransparency.js`
+  - `docs/prompts/openai-tool-object-schema-replacement-migration.md`
+- Behavior delta:
+  - Streaming event dataclasses now type transparency schemas as canonical `List[ToolSchema]` instead of dict-shaped payloads.
+  - `EventPresenter` now validates transparency tool schemas as canonical OpenAI/LiteLLM tool objects and fails fast with explicit path-level errors.
+  - Tool-schema formatter now rejects non-list payloads and only emits canonical list payloads.
+  - Outgoing WebSocket schema now enforces canonical nested tool schema objects:
+    - `ToolSchemaPayload = {type: "function", function: {...}}`
+    - `ToolSchemasPayload.tool_schemas: List[ToolSchemaPayload]`
+    - `SystemPromptPayload.tool_schemas: Optional[List[ToolSchemaPayload]]`
+  - Frontend backend event typing now models canonical tool schema shape (`tool_schemas?: ToolSchema[]`).
+  - Frontend transparency utilities now only accept/render canonical tool schema lists; non-canonical legacy payloads are dropped.
+- Tests run + results:
+  - `./scripts/python-in-env backend python -m py_compile backend/src/core/events/streaming_events.py backend/src/agent/llm/event_presenter.py backend/src/api/processing/formatters/tool_schemas.py backend/src/api/schemas/outgoing.py`
+  - Result: pass.
+  - `./scripts/python-in-env backend pytest -q tests/backend/test_outgoing_schema_contract.py`
+  - Result: 1 failing test (`test_tool_schemas_formatter_output_matches_schema`) due legacy dict payload fixture.
+  - `cd frontend && npm run test:ci -- tests/frontend/ChatStreamMessageUpdates.test.ts tests/frontend/MessageTransparency.test.js`
+  - Result: 2 failing tests due legacy non-canonical payload expectations (`tool_schemas: ['a']`, object-wrapped tool schema content).
+- Risks left:
+  - Agent 5 must migrate failing backend/frontend tests to canonical tool object payload fixtures/assertions.
+  - `useChatStream` still forwards `tool-schemas` payload directly into message state (typed as canonical, but runtime validation remains adapter-local in updated transparency helpers).
+
+### Agent 4 -> Agent 5 Handoff
+
+- Update test fixtures/assertions from legacy tool schema shape to canonical objects in:
+  - `tests/backend/test_outgoing_schema_contract.py`
+  - `tests/frontend/ChatStreamMessageUpdates.test.ts`
+  - `tests/frontend/MessageTransparency.test.js`
+- Add/adjust regression coverage to assert formatter/presenter reject non-canonical transparency payloads (non-list payload, missing `type`, missing nested `function.name`/`function.parameters`).
+- Keep strict replacement: do not reintroduce top-level `name/parameters` shape into event payload assertions.
+
+### Agent 4 -> Agent 6 Handoff
+
+- Integration smoke should verify transparency pane still shows canonical tool schemas emitted from first-turn metadata.
+- Confirm no transport/event boundary emits legacy dict-mapped tool schemas.
+
+### Agent 4 Source Pack Evidence (Read Before Coding)
+
+- LiteLLM function-calling docs: request `tools` entries use canonical object shape with `type: "function"` + nested `function`, and `tool_choice` is a first-class request control.
+- LiteLLM Anthropic provider docs: translated provider path supports `tools`, `tool_choice`, and `parallel_tool_calls`; canonical tool object shape is required at boundary.
+- OpenAI function-calling docs: canonical tool object shape plus `tool_choice` modes (`auto`, `required`, `none`, forced function) match replacement target.
+- Anthropic tool-use docs: tool result ordering constraints still apply (tool results must follow prior tool use blocks in sequence). Agent 4 changes did not alter message ordering logic.
 
 ## Agent 5: Test Migration + Dead-Path Cleanup (Sequential)
 

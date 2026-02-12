@@ -1,3 +1,20 @@
+function isCanonicalToolSchemas(value) {
+  if (!Array.isArray(value)) {
+    return false;
+  }
+
+  return value.every((item) => (
+    item
+    && typeof item === 'object'
+    && item.type === 'function'
+    && item.function
+    && typeof item.function === 'object'
+    && typeof item.function.name === 'string'
+    && item.function.parameters
+    && typeof item.function.parameters === 'object'
+  ));
+}
+
 export function buildTransparencySectionConfigs(message) {
   const sections = [];
 
@@ -11,7 +28,7 @@ export function buildTransparencySectionConfigs(message) {
     });
   }
 
-  if (message.toolSchemas) {
+  if (isCanonicalToolSchemas(message.toolSchemas)) {
     sections.push({
       key: 'tool-schemas',
       title: 'Tool Schemas (Available Tools - Embedded in Initial User Message)',

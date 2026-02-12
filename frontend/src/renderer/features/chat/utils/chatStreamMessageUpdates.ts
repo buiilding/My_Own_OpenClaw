@@ -1,3 +1,4 @@
+import type { ToolSchema } from '../../../types/backendEvents';
 import type { ChatMessage } from '../stores/chatStore';
 
 type SystemPromptPayload = {
@@ -17,6 +18,28 @@ type AssistantMessageFullPayload = {
 export type StreamingResponseAction =
   | { type: 'append'; messageId: string; nextText: string }
   | { type: 'new'; text: string };
+
+function normalizeToolSchemas(value: unknown): ToolSchema[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const isCanonicalList = value.every((item) => {
+    if (!item || typeof item !== 'object') {
+      return false;
+    }
+
+    const tool = item as { type?: unknown; function?: unknown };
+    if (tool.type !== 'function' || !tool.function || typeof tool.function !== 'object') {
+      return false;
+    }
+
+    const fn = tool.function as { name?: unknown; parameters?: unknown };
+    return typeof fn.name === 'string' && typeof fn.parameters === 'object' && fn.parameters !== null;
+  });
+
+  return isCanonicalList ? (value as ToolSchema[]) : undefined;
+}
 
 export function findLastMessageIdBySender(
   messages: ChatMessage[],
@@ -70,7 +93,7 @@ export function findStreamingCompleteAssistantMessage(messages: ChatMessage[]): 
 export function buildSystemPromptUpdate(payload: SystemPromptPayload | null | undefined) {
   return {
     content: typeof payload?.content === 'string' ? payload.content : '',
-    toolSchemas: payload?.tool_schemas,
+    toolSchemas: normalizeToolSchemas(payload?.tool_schemas),
   };
 }
 
