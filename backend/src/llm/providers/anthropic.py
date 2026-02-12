@@ -34,9 +34,20 @@ class AnthropicProvider(LLMProvider):
             raise ValueError("AnthropicProvider requires an 'api_key'.")
 
     async def get_completion(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> NormalizedLLMResponse:
-        params = self._build_request_params(model, messages)
+        params = self._build_request_params(
+            model,
+            messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+        )
         return await self._get_completion_with_standard_errors(
             provider_label="Anthropic",
             model=model,
@@ -44,10 +55,21 @@ class AnthropicProvider(LLMProvider):
         )
 
     async def _stream_internal(
-        self, model: str, messages: List[LLMMessage]
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Internal streaming implementation. Exceptions bubble up to base class."""
-        params = self._build_request_params(model, messages)
+        params = self._build_request_params(
+            model,
+            messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+        )
         params["stream"] = True
         params["stream_options"] = {"include_usage": True}
         stream = await litellm.acompletion(**params)
@@ -67,8 +89,21 @@ class AnthropicProvider(LLMProvider):
         """Lists available Anthropic models."""
         return []
 
-    def _build_request_params(self, model: str, messages: List[LLMMessage]) -> dict:
-        params = super()._build_request_params(model, messages)
+    def _build_request_params(
+        self,
+        model: str,
+        messages: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
+    ) -> dict:
+        params = super()._build_request_params(
+            model,
+            messages,
+            tools=tools,
+            tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
+        )
         provider_name = "anthropic"
         if (
             provider_name in ONLINE_THINKING_MODELS

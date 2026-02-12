@@ -146,6 +146,54 @@ Implement native tool-calling in provider/client layer.
 - Wire `tools` + `tool_choice` through provider params and normalize provider-specific tool-call payloads at provider boundary.
 - Respect `AppConfig.native_tool_calling_enabled` as rollback gate during transport cutover.
 
+### Status
+- `COMPLETE` on 2026-02-12.
+- Implemented:
+  - Provider/client native tool-calling transport params wired end-to-end (`tools`, `tool_choice`, `parallel_tool_calls`) with optional args/default no-op behavior.
+  - Structured tool-call extraction/normalization at provider boundary from response objects (OpenAI `message.tool_calls` and Anthropic-style `content[type=tool_use]` fallback) into canonical shape:
+    - `{id, name, arguments: Dict[str, Any]}`.
+  - Normalized completion payload extraction now returns:
+    - `content` (always present, `""` allowed),
+    - optional `tool_calls`,
+    - optional `finish_reason`.
+  - Streaming safety fallback retained:
+    - text streaming unchanged,
+    - tool-call deltas detected/logged and suppressed from text chunks (non-stream completion remains source of structured tool calls).
+  - Rollback gate enforced in client transport:
+    - when `AppConfig.native_tool_calling_enabled == false`, native tool-calling params are not sent and normalized `tool_calls` are suppressed from client output.
+  - Coverage added/updated:
+    - `tests/backend/test_llm_client.py`
+    - `tests/backend/test_llm_provider_base.py`
+    - targeted provider regression check: `tests/backend/test_local_llm_providers.py`.
+
+### Agent 2 Source Pack Evidence (Read Before Coding)
+- LiteLLM function-calling docs:
+  - request params confirmed: `tools`, `tool_choice`.
+  - response normalization target confirmed: `choices[0].message.tool_calls[].id`, `.function.name`, `.function.arguments`.
+- LiteLLM Anthropic provider docs:
+  - supported Anthropic params via LiteLLM include `tools`, `tool_choice`, `parallel_tool_calls`.
+  - translation path allows keeping provider abstraction without app-layer Anthropic branching.
+- Anthropic tool-use docs:
+  - message ordering caveat for follow-up turn: `tool_result` blocks must immediately follow prior `tool_use` and come first in the next user message content.
+  - exact known invalid payload error string captured:
+    - ``messages.6: `tool_use` ids were found without `tool_result` blocks immediately after: toolu_01A09q90qw90lq917835lq9``.
+- Anthropic OpenAI-compatible endpoint notes:
+  - compatibility supports normalized OpenAI-style tooling contract assumptions for translation layers.
+- OpenAI function-calling guide:
+  - canonical function/tool-call object shape aligns with Agent 1 contract mapping (`id`, `name`, parsed JSON `arguments`).
+
+### Agent 2 -> Agent 3/4/5 Handoff
+- Agent 3:
+  - Start consuming `LLMClient.get_completion_response(..., tools=..., tool_choice=..., parallel_tool_calls=...)` normalized payload.
+  - Trust provider boundary normalization; do not re-parse tool calls from assistant text.
+  - Keep fallback behavior if migration flag disabled (`tool_calls` absent by design).
+- Agent 4:
+  - Prompt cleanup can proceed assuming transport now supports native tool-calling params + structured response parsing.
+  - Keep any prompt guidance about tool-result ordering constraints (Anthropic strictness) even after removing JSON text protocol instructions.
+- Agent 5:
+  - Expand integration tests from provider/client unit coverage to full loop/history paths once Agent 3 lands.
+  - Include regression for tool-only assistant turns (`content == ""`, non-empty `tool_calls`) and rollback gate behavior.
+
 ## Agent 3: Interaction Loop + History Integration (Parallel after Agent 2)
 
 ### Mission

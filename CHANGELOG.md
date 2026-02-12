@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(llm-native-tools): wire native LiteLLM tool-calling transport (`tools`, `tool_choice`, `parallel_tool_calls`), normalize structured provider tool-call payloads (`OpenAI tool_calls` + Anthropic `tool_use`) into `{id,name,arguments}`, and respect rollback gate `native_tool_calling_enabled` in client transport
 - feat(llm): add native SDK tool-calling migration contracts (`NormalizedToolCall`, extended `NormalizedLLMResponse`), tool-role history message typing, and `LLMClient.get_completion_response()` normalized interface with migration flag `native_tool_calling_enabled`
 - feat(observability): add per-turn LLM cache diagnostics logs (`[Cache Hint]` + `[Provider Cache]`) and enable streamed usage capture (`stream_options.include_usage`) across provider adapters
 - feat(dev-tools): add backend tool-selection profiles (`full|coding|computer|browser`) and `backend/dev/run_backend_with_tools.sh` launcher for zero-edit profile switching via env override
