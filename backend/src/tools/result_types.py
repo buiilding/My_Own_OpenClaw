@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from backend.src.core.interfaces.tool import ToolResult
-from backend.src.llm.parser import ParsedToolCall
+from backend.src.llm.parser_types import ParsedToolCall
 
 
 @dataclass(slots=True)

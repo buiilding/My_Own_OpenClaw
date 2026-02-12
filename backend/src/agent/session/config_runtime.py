@@ -5,7 +5,6 @@ import logging
 from typing import TYPE_CHECKING
 
 from backend.src.agent.llm.conversation_context import ConversationContext
-from backend.src.llm.parser import ResponseParser
 from backend.src.llm.prompts import PromptConstructor
 
 if TYPE_CHECKING:
@@ -50,13 +49,10 @@ class SessionConfigRuntime:
             session.cfg,
             system_prompt=previous_prompt.system_prompt,
         )
-        session.response_parser = ResponseParser(session.cfg, session.tool_registry)
 
         session.executor.prompt_builder = session.prompt_builder
-        session.executor.response_parser = session.response_parser
-        session.executor.interaction_loop.response_parser = session.response_parser
         session.executor.interaction_loop.prompt_coordinator = ConversationContext(
             prompt_constructor=session.prompt_builder,
             history=session.history,
         )
-        logger.debug("Updated prompt constructor and parser with new config")
+        logger.debug("Updated prompt constructor with new config")

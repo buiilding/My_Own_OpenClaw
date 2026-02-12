@@ -5,7 +5,7 @@ Pure helper functions for creating tool result objects in a consistent format.
 No side effects beyond object creation.
 """
 from backend.src.core.interfaces.tool import ToolResult
-from backend.src.llm.parser import ParsedToolCall
+from backend.src.llm.parser_types import ParsedToolCall
 from backend.src.tools.result_types import ToolExecutionBatch, ToolExecutionResult
 
 

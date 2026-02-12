@@ -39,6 +39,18 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(llm-native-tools): remove runtime parser wiring and native-tool rollback gate (`native_tool_calling_enabled`), route agent turns through native structured tool-calls only, and drop transport `raw_call` from tool-call events while preserving computer-use metadata passthrough
+- docs(llm,api): align tool-calling docs and examples to canonical OpenAI/LiteLLM tool object shape; remove stale `<tool_schemas>` embedding references
+- docs(prompts): mark OpenAI tool-object schema replacement migration Agent 6 complete with final integration closure notes and residual environment-risk documentation
+- test(tool-schema): migrate backend/frontend assertions to canonical OpenAI/LiteLLM tool-object shape, add strict malformed-tool rejection coverage, and align chat transparency stream tests with canonical `tool_schemas`
+- refactor(transparency-tool-schemas): enforce canonical OpenAI/LiteLLM `type=function` nested `function` schema across transparency events, outgoing API payload models, and frontend transparency adapters; add strict event payload validation and Agent 4 migration status/handoff updates
+- refactor(tool-schema): switch backend tool schema source + policy filtering to canonical OpenAI/LiteLLM tool objects (`type=function`, nested `function`), with strict schema validation in registry cache path
+- refactor(tool-schema): freeze canonical OpenAI/LiteLLM tool object contract in shared types and migration docs for strict replacement rollout
+- refactor(llm-transport): enforce canonical OpenAI/LiteLLM tool-object validation at provider boundary and remove legacy top-level tool-shape adapter behavior before LiteLLM requests
+- docs(prompts): revalidate native SDK tool-calling migration Agent 1 status and add explicit no-delta handoff note for Agent 2
+- docs(prompts): add strict replacement migration plan for canonical OpenAI/LiteLLM tool-object schemas (`docs/prompts/openai-tool-object-schema-replacement-migration.md`)
+- test(frontend): suppress noisy Jest console output for `[Wakeword]`, `[DisplaySelection]`, and `[IPC Bridge]` prefixes in shared test setup
+- docs(prompts): mark native SDK tool-calling migration Agent 5 complete with full-gate validation results and final sequential hand-off notes
 - test(llm-native-tools): align backend prompt/schema tests with native tool-calling contracts (no <tool_schemas> prompt embedding, direct parameters shape)
 - refactor(agent-runtime): migrate interaction loop from parser-driven JSON extraction to native normalized tool-calls, bridge to existing tool orchestrator types, and persist assistant/tool-call history linkage for follow-up turns
 - refactor(llm-native-tools): remove parser-era JSON tool protocol from system prompt, stop first-message `<tool_schemas>` embedding, emit native direct-argument tool schemas, and add tool-selection compatibility for native mouse schema filtering
@@ -53,6 +65,11 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox): keep overlay fully interactive while preserving rounded-pill hit geometry so background windows are not blocked by rectangular shadow regions
 
 ### Fixed
+- fix(frontend-chat-stream): make stream assembly turn-aware via `turn_ref` (including local-user-message correlation), prevent cross-turn chunk/complete misattachment, and add `streamTracking` diagnostics state (`phase/timestamps/counters/lastError`) for deterministic streaming observability
+- fix(frontend-chatbox): reduce response window pill and IPC response overlay height caps by 2x (`1280px` -> `640px`, `1500` -> `750`) to tighten response-window growth
+- fix(token-service): normalize assistant history `tool_calls` into OpenAI/LiteLLM `function` shape before `litellm.token_counter` to prevent non-fatal `Unsupported tool call ... must contain a function key` errors
+- fix(kimi-tool-results): normalize assistant history tool_calls to OpenAI shape and drop orphan `role=tool` messages without matching prior tool-call ids to prevent Anthropic/Kimi `tool_call_id ... is not found` 400 errors
+- fix(llm-kimi): normalize native tool schemas into OpenAI/LiteLLM `tools[].type=function` format before provider calls to prevent Kimi/Anthropic KeyError `'type'`
 - fix(llm-client): normalize `content: null` completion payloads to empty string for native tool-calling compatibility
 - test(backend): add regression coverage for `get_completion_response()` null-content normalization path
 - fix(frontend-chatbox): make response overlay/dashboard transitions robust by syncing an explicit main-process response phase (`idle|awaiting-first-chunk|streaming|complete|error`) so typing dots and streamed response pill reliably restore after returning from dashboard

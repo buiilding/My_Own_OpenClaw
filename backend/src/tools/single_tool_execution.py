@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.interfaces.tool import ToolResult
-from backend.src.llm.parser import ParsedToolCall
+from backend.src.llm.parser_types import ParsedToolCall
 from backend.src.tools.result_helpers import create_tool_result_object
 from backend.src.tools.result_types import ToolExecutionResult
 
@@ -29,12 +29,11 @@ def _coerce_resolved_call(
     Convert a resolved-call object into ParsedToolCall.
 
     Uses the current ``ResolvedToolCall`` attribute contract
-    (tool_name, parameters, raw_call, metadata) and falls back
+    (tool_name, parameters, metadata) and falls back
     field-by-field to the original parsed call if any attribute
     is missing or invalid.
     """
     tool_name = getattr(resolved_call, "tool_name", fallback_call.tool_name)
-    raw_call = getattr(resolved_call, "raw_call", fallback_call.raw_call)
 
     raw_parameters = getattr(resolved_call, "parameters", fallback_call.parameters)
     parameters = dict(raw_parameters) if isinstance(raw_parameters, dict) else dict(
@@ -51,7 +50,6 @@ def _coerce_resolved_call(
     return ParsedToolCall(
         tool_name=tool_name,
         parameters=parameters,
-        raw_call=raw_call,
         confidence=fallback_call.confidence,
         metadata=metadata,
     )

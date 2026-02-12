@@ -31,11 +31,57 @@ class ImageContent(TypedDict):
 MultimodalContent = List[Union[TextContent, ImageContent]]
 
 
-class LLMMessage(TypedDict):
-    """Standard LLM message format."""
+class NormalizedToolCall(TypedDict):
+    """Canonical backend representation of a model-emitted tool call."""
 
-    role: Literal["system", "user", "assistant"]
+    id: str
+    name: str
+    arguments: Dict[str, Any]
+
+
+class SystemLLMMessage(TypedDict):
+    """System message for LLM APIs."""
+
+    role: Literal["system"]
     content: Union[str, MultimodalContent]
+
+
+class UserLLMMessage(TypedDict):
+    """User message for LLM APIs."""
+
+    role: Literal["user"]
+    content: Union[str, MultimodalContent]
+
+
+class AssistantLLMMessageBase(TypedDict):
+    """Base assistant message shape with required role."""
+
+    role: Literal["assistant"]
+
+
+class AssistantLLMMessage(AssistantLLMMessageBase, total=False):
+    """Assistant message supporting native tool-call metadata."""
+
+    content: Union[str, MultimodalContent]
+    tool_calls: List[NormalizedToolCall]
+    name: str
+
+
+class ToolLLMMessage(TypedDict):
+    """Tool result message for follow-up turns after tool execution."""
+
+    role: Literal["tool"]
+    content: str
+    tool_call_id: str
+    name: NotRequired[str]
+
+
+LLMMessage = Union[
+    SystemLLMMessage,
+    UserLLMMessage,
+    AssistantLLMMessage,
+    ToolLLMMessage,
+]
 
 
 # --- Normalized Streaming Chunks ---
@@ -61,7 +107,6 @@ class ToolCallChunk(TypedDict):
     type: Literal["tool_call"]
     tool_name: str
     parameters: Dict
-    raw_call: str
 
 
 class ErrorChunk(TypedDict):
@@ -76,7 +121,7 @@ class SystemPromptChunk(TypedDict):
 
     type: Literal["system_prompt"]
     content: str
-    tool_schemas: Optional[Dict[str, Any]]
+    tool_schemas: Optional[List["ToolSchema"]]
 
 
 class UserMessageFullChunk(TypedDict):
@@ -108,10 +153,11 @@ StreamingChunk = Union[
 
 
 class NormalizedLLMResponse(TypedDict):
-    """Dictionary representation of a tool execution result."""
+    """Canonical provider response shape used by LLM client + runtime."""
 
     content: str
-    # Future additions could include token counts, stop reason, etc.
+    tool_calls: NotRequired[List[NormalizedToolCall]]
+    finish_reason: NotRequired[Optional[str]]
 
 
 # ============================================================================
@@ -206,19 +252,28 @@ class PluginResultDict(TypedDict, total=False):
 
 
 class ToolParameterSchema(TypedDict, total=False):
-    """JSON schema for a tool parameter."""
+    """JSON Schema node used inside tool function parameters."""
 
     type: str
     description: NotRequired[str]
+    properties: NotRequired[Dict[str, Any]]
+    items: NotRequired[Any]
     enum: NotRequired[List[Any]]
     default: NotRequired[Any]
-    required: NotRequired[bool]
+    required: NotRequired[List[str]]
+    additionalProperties: NotRequired[Union[bool, Dict[str, Any]]]
 
 
-class ToolSchema(TypedDict, total=False):
-    """JSON schema for a tool."""
+class ToolFunctionSchema(TypedDict, total=False):
+    """Canonical function definition nested under a provider tool object."""
 
     name: str
-    description: str
-    parameters: Dict[str, ToolParameterSchema]
-    required: NotRequired[List[str]]
+    description: NotRequired[str]
+    parameters: Dict[str, Any]
+
+
+class ToolSchema(TypedDict):
+    """Canonical provider-facing tool object (OpenAI/LiteLLM compatible)."""
+
+    type: Literal["function"]
+    function: ToolFunctionSchema

@@ -177,7 +177,6 @@ class AppConfig(BaseModel):
     llm_timeout: int = 300
     query_timeout: int = 600  # New field for query timeout
     debug_litellm: bool = False  # Enable LiteLLM debug logging
-
     # Provider Configurations
     llm_providers: LLMProviders = Field(default_factory=LLMProviders)
 

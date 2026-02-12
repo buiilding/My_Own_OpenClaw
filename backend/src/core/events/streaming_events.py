@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
 from backend.src.core.types.enums import StreamingEventType
+from backend.src.core.types.schemas import ToolSchema
 
 
 @dataclass
@@ -75,7 +76,6 @@ class ToolCallEvent(StreamingEvent):
     """Event emitted when a tool is called."""
     tool_name: str
     parameters: Dict[str, Any]
-    raw_call: str
     request_id: Optional[str] = None  # For remote tools, the request_id to match results
     metadata: Optional[Dict[str, Any]] = None  # Metadata for computer-use tools (description, explanation, expectation)
     
@@ -102,7 +102,7 @@ class ToolOutputEvent(StreamingEvent):
 class SystemPromptEvent(StreamingEvent):
     """Event emitted with full system prompt sent to LLM."""
     content: str
-    tool_schemas: Optional[Dict[str, Any]] = None
+    tool_schemas: Optional[List[ToolSchema]] = None
     
     def __post_init__(self):
         self.type = StreamingEventType.SYSTEM_PROMPT
@@ -110,8 +110,8 @@ class SystemPromptEvent(StreamingEvent):
 
 @dataclass
 class ToolSchemasEvent(StreamingEvent):
-    """Event emitted with tool schemas embedded in the initial user message (transparency only)."""
-    tool_schemas: List[Dict[str, Any]]
+    """Event emitted with canonical tool schemas for transparency display."""
+    tool_schemas: List[ToolSchema]
 
     def __post_init__(self):
         self.type = StreamingEventType.TOOL_SCHEMAS

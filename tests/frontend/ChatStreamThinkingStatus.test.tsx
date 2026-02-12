@@ -61,6 +61,21 @@ describe('useChatStream', () => {
       isSending: false,
       thinkingStatus: null,
       tokenCounts: null,
+      streamTracking: {
+        activeTurnRef: null,
+        phase: 'idle',
+        startedAt: null,
+        firstChunkAt: null,
+        completedAt: null,
+        lastEventAt: null,
+        lastEventType: null,
+        eventCount: 0,
+        chunkCount: 0,
+        toolCallCount: 0,
+        toolOutputCount: 0,
+        lastChunkSize: 0,
+        lastError: null,
+      },
     });
   });
 
@@ -466,14 +481,17 @@ describe('useChatStream', () => {
       });
       emitBackendEvent({
         type: 'system-prompt',
-        payload: { content: 'prompt text', tool_schemas: [{ name: 'tool-a' }] },
+        payload: {
+          content: 'prompt text',
+          tool_schemas: [{ type: 'function', function: { name: 'tool-a', parameters: { type: 'object' } } }],
+        },
       });
     });
 
     const userMessage = useChatStore.getState().messages[0];
     expect(userMessage.systemPrompt).toEqual({
       content: 'prompt text',
-      toolSchemas: [{ name: 'tool-a' }],
+      toolSchemas: [{ type: 'function', function: { name: 'tool-a', parameters: { type: 'object' } } }],
     });
   });
 
@@ -518,11 +536,15 @@ describe('useChatStream', () => {
       });
       emitBackendEvent({
         type: 'tool-schemas',
-        payload: { tool_schemas: [{ name: 'tool-x' }] },
+        payload: {
+          tool_schemas: [{ type: 'function', function: { name: 'tool-x', parameters: { type: 'object' } } }],
+        },
       });
     });
 
-    expect(useChatStore.getState().messages[0].toolSchemas).toEqual([{ name: 'tool-x' }]);
+    expect(useChatStore.getState().messages[0].toolSchemas).toEqual([
+      { type: 'function', function: { name: 'tool-x', parameters: { type: 'object' } } },
+    ]);
     expect(useChatStore.getState().messages[2].toolSchemas).toBeUndefined();
   });
 
@@ -556,5 +578,66 @@ describe('useChatStream', () => {
     });
 
     expect(updateTranscriptSession).toHaveBeenCalledWith('conv-2', 'user-2');
+  });
+
+  test('routes streaming chunks to assistant message with matching turn_ref', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          { id: 'user-1', sender: 'user', text: 'old', turnRef: 'turn-old' },
+          {
+            id: 'assistant-old',
+            sender: 'assistant',
+            text: 'old answer',
+            type: 'llm-text',
+            isComplete: false,
+            turnRef: 'turn-old',
+          },
+          { id: 'user-2', sender: 'user', text: 'new', turnRef: 'turn-new' },
+        ],
+      });
+
+      emitBackendEvent({
+        type: 'streaming-response',
+        turn_ref: 'turn-old',
+        payload: { text: ' +next' },
+      });
+    });
+
+    const assistantOld = useChatStore.getState().messages.find((message) => message.id === 'assistant-old');
+    expect(assistantOld).toEqual(expect.objectContaining({ text: 'old answer +next' }));
+  });
+
+  test('tracks stream lifecycle fields across local-user-message and chunks', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'local-user-message',
+        turn_ref: 'turn-123',
+        payload: { text: 'hello' },
+      });
+      emitBackendEvent({
+        type: 'streaming-response',
+        turn_ref: 'turn-123',
+        payload: { text: 'chunk' },
+      });
+      emitBackendEvent({
+        type: 'streaming-complete',
+        turn_ref: 'turn-123',
+        payload: {},
+      });
+    });
+
+    expect(useChatStore.getState().streamTracking).toEqual(
+      expect.objectContaining({
+        activeTurnRef: 'turn-123',
+        phase: 'complete',
+        chunkCount: 1,
+        eventCount: 3,
+      }),
+    );
   });
 });

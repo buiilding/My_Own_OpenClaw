@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
-from backend.src.llm.parser import ParsedToolCall
+from backend.src.llm.parser_types import ParsedToolCall
 
 
 @dataclass
@@ -26,7 +26,6 @@ class ResolvedToolCall:
     original_call: ParsedToolCall
     tool_name: str
     parameters: Dict[str, Any]
-    raw_call: str
     metadata: Optional[Dict[str, Any]] = None
 
     @property
@@ -67,7 +66,6 @@ class ResolvedToolCall:
             original_call=parsed_call,
             tool_name=parsed_call.tool_name,
             parameters=parameters,
-            raw_call=parsed_call.raw_call,
             metadata=metadata,
         )
     

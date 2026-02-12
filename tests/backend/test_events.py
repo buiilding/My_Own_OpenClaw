@@ -167,12 +167,10 @@ class TestToolCallEvent:
         event = ToolCallEvent(
             tool_name="read_file",
             parameters={"path": "/test.txt"},
-            raw_call='<read_file path="/test.txt"/>'
         )
         
         assert event.tool_name == "read_file"
         assert event.parameters == {"path": "/test.txt"}
-        assert event.raw_call == '<read_file path="/test.txt"/>'
         assert event.request_id is None
         assert event.metadata is None
         assert event.type.value == "tool_call"
@@ -181,7 +179,6 @@ class TestToolCallEvent:
         event = ToolCallEvent(
             tool_name="click",
             parameters={"x": 100, "y": 200},
-            raw_call='<click x="100" y="200"/>',
             request_id="req-123",
             metadata={"description": "Click button"}
         )
@@ -193,14 +190,12 @@ class TestToolCallEvent:
         event = ToolCallEvent(
             tool_name="read_file",
             parameters={"path": "/test.txt"},
-            raw_call='<read_file path="/test.txt"/>'
         )
         result = event.to_dict()
         
         assert result["type"] == "tool_call"
         assert result["tool_name"] == "read_file"
         assert result["parameters"] == {"path": "/test.txt"}
-        assert result["raw_call"] == '<read_file path="/test.txt"/>'
 
 
 class TestToolOutputEvent:
@@ -349,7 +344,6 @@ class TestStreamingEventToDict:
         event = ToolCallEvent(
             tool_name="test",
             parameters={"nested": {"key": "value"}},
-            raw_call="raw"
         )
         result = event.to_dict()
         

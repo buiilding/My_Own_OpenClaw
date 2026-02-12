@@ -21,7 +21,7 @@ from backend.src.agent.tools.preparation.helpers.image_dimensions import (
 from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
 from backend.src.agent.tools.shared.logging_utils import short_id
 from backend.src.core.types.enums import CoordinateFindingMethod
-from backend.src.llm.parser import ParsedToolCall
+from backend.src.llm.parser_types import ParsedToolCall
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession

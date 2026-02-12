@@ -10,7 +10,7 @@ import time
 from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING
 
 from backend.src.core.types.enums import CoordinateFindingMethod
-from backend.src.llm.parser import ParsedToolCall
+from backend.src.llm.parser_types import ParsedToolCall
 
 if TYPE_CHECKING:
     from backend.src.core.interfaces.vision import IVisionService

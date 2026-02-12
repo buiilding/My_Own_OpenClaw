@@ -1,6 +1,7 @@
 import {
   selectChatBoxState,
   selectChatInterfaceState,
+  selectStreamTracking,
 } from '../../frontend/src/renderer/features/chat/utils/chatSelectors';
 
 describe('chatSelectors', () => {
@@ -10,6 +11,7 @@ describe('chatSelectors', () => {
       isSending: true,
       thinkingStatus: 'thinking',
       tokenCounts: { total_tokens: 42 },
+      streamTracking: { phase: 'streaming' },
       addMessage: jest.fn(),
       clearMessages: jest.fn(),
     };
@@ -28,6 +30,7 @@ describe('chatSelectors', () => {
       isSending: false,
       thinkingStatus: null,
       tokenCounts: { total_tokens: 42 },
+      streamTracking: { phase: 'idle' },
       addMessage: jest.fn(),
     };
 
@@ -46,6 +49,7 @@ describe('chatSelectors', () => {
       isSending: false,
       thinkingStatus: null,
       tokenCounts,
+      streamTracking: { phase: 'idle' },
       addMessage: jest.fn(),
     };
 
@@ -70,5 +74,11 @@ describe('chatSelectors', () => {
       thinkingStatus: null,
       tokenCounts: undefined,
     });
+  });
+
+  test('returns stream tracking reference directly', () => {
+    const streamTracking = { phase: 'streaming', chunkCount: 2 };
+    const state = { streamTracking };
+    expect(selectStreamTracking(state)).toBe(streamTracking);
   });
 });

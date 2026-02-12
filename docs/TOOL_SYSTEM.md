@@ -74,7 +74,7 @@ Most tools are executed on the frontend Python sidecar:
 ### Backend Responsibilities (No Tool Execution)
 
 The backend does not directly execute tools. It:
-- Builds tool schemas and embeds them in the initial user message (`<tool_schemas>`)
+- Builds tool schemas and passes them to LiteLLM via native request params (`tools`, optional `tool_choice`, optional `parallel_tool_calls`)
 - Emits tool schemas as a transparency event (`tool-schemas`)
 - Resolves coordinates and screenshots
 - Waits for results from the frontend sidecar
@@ -83,17 +83,24 @@ The backend does not directly execute tools. It:
 
 ### 1. Tool Call Generation
 
-LLM generates tool call in response format:
+LLM returns structured tool calls from the API response object (native tool-calling):
 
 ```json
 {
-  "tool_calls": [
+  "id": "chatcmpl-...",
+  "choices": [
     {
-      "tool_name": "mouse_control",
-      "arguments": {
-        "action": "click",
-        "find_coordinates_by": "ocr",
-        "target_text": "Submit"
+      "message": {
+        "tool_calls": [
+          {
+            "id": "call_abc123",
+            "type": "function",
+            "function": {
+              "name": "mouse_control",
+              "arguments": "{\"action\":\"click\",\"find_coordinates_by\":\"ocr\",\"ocr_text\":\"Submit\"}"
+            }
+          }
+        ]
       }
     }
   ]
@@ -287,40 +294,50 @@ For tools using vision models:
 
 ## Tool Schemas
 
-**Note**: Tool schemas are embedded in the first user message (as a `<tool_schemas>` XML section). They are not passed as a separate LLM API parameter.
+**Note**: Tool schemas are passed as native LLM API tool params (`tools`) and are not embedded in user-message content.
 
 ### Schema Format
 
-Tool schemas follow JSON Schema format:
+Tool schemas use canonical OpenAI/LiteLLM `tools[]` objects:
 
 ```json
 {
-  "type": "object",
-  "properties": {
-    "action": {
-      "type": "string",
-      "enum": ["click", "double_click", "right_click"],
-      "description": "Mouse action to perform"
-    },
-    "x": {
-      "type": "integer",
-      "description": "X coordinate"
-    },
-    "y": {
-      "type": "integer",
-      "description": "Y coordinate"
+  "type": "function",
+  "function": {
+    "name": "mouse_control",
+    "description": "Control mouse actions",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["click", "double_click", "right_click"],
+          "description": "Mouse action to perform"
+        },
+        "x": {
+          "type": "integer",
+          "description": "X coordinate"
+        },
+        "y": {
+          "type": "integer",
+          "description": "Y coordinate"
+        }
+      },
+      "required": ["action"]
     }
-  },
-  "required": ["action"]
+  }
 }
 ```
+
+Legacy top-level shape (`{name, description, parameters}`) is deprecated/removed for runtime-critical flows.
+No dual-shape fallback is supported in provider transport.
 
 ### Schema Registry
 
 **SchemaRegistry** (`tools/schema_registry.py`) manages tool schemas:
 
 - Registers tool schemas
-- Provides schemas to the LLM via the initial user message (and for transparency)
+- Provides schemas to the LLM via native tool params (and for transparency)
 - Validates tool call arguments
 
 ## Built-in Tools

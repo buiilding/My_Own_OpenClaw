@@ -53,12 +53,18 @@ def test_filter_tool_schemas_filters_mouse_method_fields(tmp_path: Path):
     policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=selection)
 
     mouse_schema = RemoteMouseTool().get_json_schema()
-    read_schema = {"name": "read_file", "parameters": {"type": "object"}}
+    read_schema = {
+        "type": "function",
+        "function": {
+            "name": "read_file",
+            "parameters": {"type": "object"},
+        },
+    }
     schemas = policy.filter_tool_schemas([mouse_schema, read_schema])
 
     assert len(schemas) == 1
-    assert schemas[0]["name"] == "mouse_control"
-    args_props = schemas[0]["parameters"]["properties"]
+    assert schemas[0]["function"]["name"] == "mouse_control"
+    args_props = schemas[0]["function"]["parameters"]["properties"]
     assert args_props["find_coordinates_by"]["enum"] == ["manual"]
     assert "x" in args_props
     assert "y" in args_props

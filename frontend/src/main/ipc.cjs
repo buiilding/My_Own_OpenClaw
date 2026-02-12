@@ -415,7 +415,7 @@ function connect() {
  * @param {string} type - The message type (e.g., 'query').
  * @param {object} payload - The JSON object payload for the message.
  */
-function sendMessageToBackend(type, payload) {
+function sendMessageToBackend(type, payload, messageId = null) {
   if (!isConnected || !ws || ws.readyState !== WebSocket.OPEN) {
     log('Cannot send message: WebSocket is not connected.');
     return null;
@@ -426,7 +426,7 @@ function sendMessageToBackend(type, payload) {
     return null;
   }
 
-  const msgId = uuidv4();
+  const msgId = messageId || uuidv4();
   const normalizedPayload = normalizeBackendPayload(type, payload);
   const message = {
     id: msgId,
@@ -515,14 +515,18 @@ function initializeIpc(win, options = {}) {
       }
     }
 
+    let queryMessageId = null;
+
     // Build complete user message content with system state and memories
     // System context MUST be retrieved - never skip it
     if (type === 'query') {
+      queryMessageId = uuidv4();
       setResponseOverlayPhase('awaiting-first-chunk', 'query');
       if (payload?.text) {
         const conversationRef = payload?.conversation_ref || currentConversationRef || null;
         broadcastToRenderers('from-backend', {
           type: 'local-user-message',
+          turn_ref: queryMessageId,
           session_id: currentSessionId || null,
           user_id: currentServerUserId || null,
           conversation_ref: conversationRef,
@@ -664,7 +668,7 @@ function initializeIpc(win, options = {}) {
     // System context is now pre-formatted in llm_content by ChatContext.jsx
     // No need to extract or add system_context here - backend expects pre-formatted messages
     
-    const messageId = sendMessageToBackend(type, payload);
+    const messageId = sendMessageToBackend(type, payload, queryMessageId);
     if (!messageId && type === 'query') {
       setResponseOverlayPhase('idle', 'query-send-failed');
     }

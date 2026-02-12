@@ -13,6 +13,7 @@ export interface ChatMessage {
   id: string;
   text: string;
   sender: 'user' | 'assistant';
+  turnRef?: string;
   type?: 'llm-text' | 'tool-call' | 'tool-output' | 'error';
   isComplete?: boolean;
   screenshot?: string | null;
@@ -47,6 +48,31 @@ export interface TokenCounts {
   total_tokens?: number;
 }
 
+export type StreamPhase =
+  | 'idle'
+  | 'awaiting-first-chunk'
+  | 'streaming'
+  | 'tool-call'
+  | 'tool-output'
+  | 'complete'
+  | 'error';
+
+export interface StreamTracking {
+  activeTurnRef: string | null;
+  phase: StreamPhase;
+  startedAt: string | null;
+  firstChunkAt: string | null;
+  completedAt: string | null;
+  lastEventAt: string | null;
+  lastEventType: string | null;
+  eventCount: number;
+  chunkCount: number;
+  toolCallCount: number;
+  toolOutputCount: number;
+  lastChunkSize: number;
+  lastError: string | null;
+}
+
 /**
  * Chat store state
  */
@@ -56,6 +82,7 @@ interface ChatState {
   isSending: boolean;
   thinkingStatus: string | null;
   tokenCounts: TokenCounts | null;
+  streamTracking: StreamTracking;
 
   // Actions
   addMessage: (message: ChatMessage) => void;
@@ -64,6 +91,7 @@ interface ChatState {
   setIsSending: (isSending: boolean) => void;
   setThinkingStatus: (status: string | null) => void;
   setTokenCounts: (counts: TokenCounts | null) => void;
+  updateStreamTracking: (updater: (current: StreamTracking) => StreamTracking) => void;
   clearMessages: () => void;
 }
 
@@ -78,6 +106,24 @@ function createInitialMessage(): ChatMessage {
   };
 }
 
+function createInitialStreamTracking(): StreamTracking {
+  return {
+    activeTurnRef: null,
+    phase: 'idle',
+    startedAt: null,
+    firstChunkAt: null,
+    completedAt: null,
+    lastEventAt: null,
+    lastEventType: null,
+    eventCount: 0,
+    chunkCount: 0,
+    toolCallCount: 0,
+    toolOutputCount: 0,
+    lastChunkSize: 0,
+    lastError: null,
+  };
+}
+
 /**
  * Chat store
  * Uses shallow equality for better performance with Zustand
@@ -88,6 +134,7 @@ export const useChatStore = create<ChatState>((set) => ({
   isSending: false,
   thinkingStatus: null,
   tokenCounts: null,
+  streamTracking: createInitialStreamTracking(),
 
   // Actions
   addMessage: (message) =>
@@ -119,5 +166,13 @@ export const useChatStore = create<ChatState>((set) => ({
   setTokenCounts: (tokenCounts) =>
     set((state) => (state.tokenCounts === tokenCounts ? state : { tokenCounts })),
 
-  clearMessages: () => set({ messages: [createInitialMessage()] }),
+  updateStreamTracking: (updater) =>
+    set((state) => ({
+      streamTracking: updater(state.streamTracking),
+    })),
+
+  clearMessages: () => set({
+    messages: [createInitialMessage()],
+    streamTracking: createInitialStreamTracking(),
+  }),
 }));

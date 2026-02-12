@@ -74,7 +74,7 @@ class ToolPolicy:
             filtered = [
                 schema
                 for schema in filtered
-                if schema.get("name") in allowlist
+                if self._extract_tool_name(schema) in allowlist
             ]
 
         effective_selection = self._resolve_selection(selection)
@@ -178,3 +178,12 @@ class ToolPolicy:
         if isinstance(value, str):
             return value.strip().lower()
         return str(value).strip().lower()
+
+    @staticmethod
+    def _extract_tool_name(schema: Dict[str, Any]) -> Optional[str]:
+        """Extract canonical tool name from OpenAI/LiteLLM tool object."""
+        function_schema = schema.get("function")
+        if not isinstance(function_schema, dict):
+            return None
+        tool_name = function_schema.get("name")
+        return tool_name if isinstance(tool_name, str) else None
