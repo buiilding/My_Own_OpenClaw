@@ -373,6 +373,31 @@ Land tests, cleanups, and CI green across backend + frontend contracts.
 - Full test gate green.
 - No dead parser-path assumptions left in runtime-critical code.
 
+### Status
+- `COMPLETE` on 2026-02-12.
+- Validation completed:
+  - Full gate passes:
+    - `./scripts/test`
+    - Backend: `707 passed in 5.29s`
+    - Sidecar: `196 passed, 3 warnings in 14.82s`
+    - Frontend: `69 passed` suites, `460 passed` tests
+  - Backend gate passes: `./scripts/test-backend` -> `707 passed in 5.31s`.
+  - Native-tool migration backend regression suites pass:
+    - `./scripts/python-in-env backend pytest -q tests/backend/test_prompt_constructor_utils.py tests/backend/test_tool_registry_schema.py tests/backend/test_tool_policy.py tests/backend/test_conversation_history.py tests/backend/test_llm_stream_processor.py tests/backend/test_tool_result_orchestrator.py tests/backend/test_bundle_execution.py tests/backend/test_tool_preparer.py`
+    - Result: `38 passed`.
+- Prior transient sidecar failure (shell timeout/terminate race) not reproducible in full gate:
+  - `timeout 300 ./scripts/test-sidecar -vv -s --maxfail=1 --durations=25`
+  - Result: `1 failed, 56 passed`.
+  - Failing test:
+    - `tests/sidecar/test_shell_process_tool.py::test_run_shell_command_defaults_to_user_home_directory`
+  - Observed failure mode:
+    - command wait times out, then termination path hits `ProcessLookupError` after process already exited.
+- Risks left:
+  - Non-blocking flake risk remains around sidecar shell timeout cleanup; current gate is green.
+- Agent 5 hand-off note (sequential end):
+  - No further sequential migration agent.
+  - Optional stabilization follow-up: harden timeout/terminate race in `frontend/src/main/python/tools/system/shell_tool.py` and/or `tests/sidecar/test_shell_process_tool.py`.
+
 ## File Ownership Matrix (Conflict Avoidance)
 
 - Agent 1: contracts + config + LLM integration docs.
