@@ -13,6 +13,21 @@ describe('chatStore', () => {
       isSending: false,
       thinkingStatus: null,
       tokenCounts: null,
+      streamTracking: {
+        activeTurnRef: null,
+        phase: 'idle',
+        startedAt: null,
+        firstChunkAt: null,
+        completedAt: null,
+        lastEventAt: null,
+        lastEventType: null,
+        eventCount: 0,
+        chunkCount: 0,
+        toolCallCount: 0,
+        toolOutputCount: 0,
+        lastChunkSize: 0,
+        lastError: null,
+      },
     });
   });
 
@@ -122,5 +137,24 @@ describe('chatStore', () => {
     const secondReset = useChatStore.getState().messages;
     expect(secondReset).toHaveLength(1);
     expect(secondReset[0].id).not.toEqual(firstReset[0].id);
+  });
+
+  test('updateStreamTracking applies updater result', () => {
+    useChatStore.getState().updateStreamTracking((current) => ({
+      ...current,
+      phase: 'streaming',
+      activeTurnRef: 'turn-1',
+      chunkCount: current.chunkCount + 1,
+      eventCount: current.eventCount + 1,
+    }));
+
+    expect(useChatStore.getState().streamTracking).toEqual(
+      expect.objectContaining({
+        phase: 'streaming',
+        activeTurnRef: 'turn-1',
+        chunkCount: 1,
+        eventCount: 1,
+      }),
+    );
   });
 });
