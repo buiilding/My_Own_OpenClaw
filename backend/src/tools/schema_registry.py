@@ -27,10 +27,22 @@ class SchemaRegistry:
             # Try cache first
             cache_key = self._cache_manager.get_tool_schema_key(tool.name)
             schema = self._cache_manager.tool_schemas.get(cache_key)
-            
+
+            if schema is not None and not self._is_canonical_tool_schema(schema):
+                logger.warning(
+                    "Cached schema for tool %s is not canonical tool object; regenerating.",
+                    tool.name,
+                )
+                schema = None
+
             if schema is None:
                 # Cache miss - generate schema
                 schema = tool.get_json_schema()
+                if not self._is_canonical_tool_schema(schema):
+                    raise ValueError(
+                        f"Tool {tool.name} emitted non-canonical schema. "
+                        "Expected {type:'function', function:{name, parameters}}."
+                    )
                 self._cache_manager.tool_schemas.set(cache_key, schema)
             
             return schema
@@ -48,3 +60,22 @@ class SchemaRegistry:
             if schema:
                 declarations.append(schema)
         return declarations
+
+    @staticmethod
+    def _is_canonical_tool_schema(schema: Any) -> bool:
+        """Validate canonical OpenAI/LiteLLM tool object shape."""
+        if not isinstance(schema, dict):
+            return False
+        if schema.get("type") != "function":
+            return False
+        function_schema = schema.get("function")
+        if not isinstance(function_schema, dict):
+            return False
+        if not isinstance(function_schema.get("name"), str):
+            return False
+        if not isinstance(function_schema.get("parameters"), dict):
+            return False
+        description = function_schema.get("description")
+        if description is not None and not isinstance(description, str):
+            return False
+        return True

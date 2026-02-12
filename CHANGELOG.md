@@ -39,6 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(tool-schema): switch backend tool schema source + policy filtering to canonical OpenAI/LiteLLM tool objects (`type=function`, nested `function`), with strict schema validation in registry cache path
 - refactor(tool-schema): freeze canonical OpenAI/LiteLLM tool object contract in shared types and migration docs for strict replacement rollout
 - docs(prompts): revalidate native SDK tool-calling migration Agent 1 status and add explicit no-delta handoff note for Agent 2
 - docs(prompts): add strict replacement migration plan for canonical OpenAI/LiteLLM tool-object schemas (`docs/prompts/openai-tool-object-schema-replacement-migration.md`)

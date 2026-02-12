@@ -175,7 +175,50 @@ Replace tool schema creation path to emit canonical OpenAI/LiteLLM tool object.
 
 ### Status
 
-- `PENDING`
+- `COMPLETE` on 2026-02-12.
+- Files changed:
+  - `backend/src/sdk/tool.py`
+  - `backend/src/tools/schema_registry.py`
+  - `backend/src/tools/registry.py`
+  - `backend/src/tools/tool_policy.py`
+  - `backend/src/tools/tool_selection.py`
+  - `docs/prompts/openai-tool-object-schema-replacement-migration.md`
+- Behavior delta:
+  - `Tool.get_json_schema()` now emits canonical provider tool objects only:
+    - `{type: "function", function: {name, description, parameters}}`
+  - `SchemaRegistry` now validates canonical shape, regenerates stale non-canonical cache entries, and rejects non-canonical tool schema output.
+  - Tool schema filtering paths now read nested names/parameters from canonical shape:
+    - `ToolPolicy.filter_tool_schemas()` allowlist checks `schema.function.name`.
+    - `ToolSelection.filter_tool_schemas()` and mouse-method narrowing now operate on `schema.function.parameters`.
+  - `ToolRegistry.get_tool_capabilities()` now reads parameters from `schema.function.parameters`.
+  - No dual-shape runtime fallback was introduced.
+- Tests run + results:
+  - `./scripts/python-in-env backend python -m py_compile backend/src/sdk/tool.py backend/src/tools/schema_registry.py backend/src/tools/registry.py backend/src/tools/tool_policy.py backend/src/tools/tool_selection.py`
+  - Result: pass.
+  - `./scripts/python-in-env backend pytest -q tests/backend/test_tool_policy.py tests/backend/test_tool_registry_schema.py`
+  - Result: 4 failing tests, all due assertions expecting legacy top-level schema fields (`schema["name"]`, `schema["parameters"]`).
+- Risks left:
+  - Legacy-shape expectations remain in tests until Agent 5 migration.
+  - Downstream runtime consumers outside Agent 2 ownership may still read legacy fields until Agents 3 and 4 complete their contract updates.
+
+### Agent 2 -> Agent 3/4 Handoff
+
+- Agent 3:
+  - Assume `tools` now arrive in canonical shape from registry path; remove/avoid provider adapters for legacy top-level fields.
+  - Keep strict validation/erroring for missing `type`/`function` fields in transport boundary.
+- Agent 4:
+  - Update transparency/outgoing/frontend event typing/rendering to canonical nested structure (`tool.function.*`), not top-level name/parameters.
+- Shared:
+  - Do not add dual-shape fallback in runtime-critical paths.
+
+### Agent 2 Source Pack Evidence (Read Before Coding)
+
+- LiteLLM function-calling request examples show `tools` entries as `{ "type": "function", "function": { ... } }`.
+- LiteLLM Anthropic provider docs list `tools`, `tool_choice`, and `parallel_tool_calls` as supported params in translated requests.
+- OpenAI function-calling docs define same canonical `tools` object shape and `tool_choice` controls (`auto`/`required`/`none`/forced function).
+- Applied implication in Agent 2:
+  - Schema production moved to canonical provider contract at source.
+  - Internal filtering logic moved from top-level `name/parameters` to nested `function.name/function.parameters`.
 
 ## Agent 3: LLM Transport Simplification (Parallel after Agent 2)
 
