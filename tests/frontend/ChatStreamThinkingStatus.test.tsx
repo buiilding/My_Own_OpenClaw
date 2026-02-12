@@ -466,14 +466,17 @@ describe('useChatStream', () => {
       });
       emitBackendEvent({
         type: 'system-prompt',
-        payload: { content: 'prompt text', tool_schemas: [{ name: 'tool-a' }] },
+        payload: {
+          content: 'prompt text',
+          tool_schemas: [{ type: 'function', function: { name: 'tool-a', parameters: { type: 'object' } } }],
+        },
       });
     });
 
     const userMessage = useChatStore.getState().messages[0];
     expect(userMessage.systemPrompt).toEqual({
       content: 'prompt text',
-      toolSchemas: [{ name: 'tool-a' }],
+      toolSchemas: [{ type: 'function', function: { name: 'tool-a', parameters: { type: 'object' } } }],
     });
   });
 
@@ -518,11 +521,15 @@ describe('useChatStream', () => {
       });
       emitBackendEvent({
         type: 'tool-schemas',
-        payload: { tool_schemas: [{ name: 'tool-x' }] },
+        payload: {
+          tool_schemas: [{ type: 'function', function: { name: 'tool-x', parameters: { type: 'object' } } }],
+        },
       });
     });
 
-    expect(useChatStore.getState().messages[0].toolSchemas).toEqual([{ name: 'tool-x' }]);
+    expect(useChatStore.getState().messages[0].toolSchemas).toEqual([
+      { type: 'function', function: { name: 'tool-x', parameters: { type: 'object' } } },
+    ]);
     expect(useChatStore.getState().messages[2].toolSchemas).toBeUndefined();
   });
 
