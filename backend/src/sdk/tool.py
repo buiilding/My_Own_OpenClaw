@@ -137,8 +137,9 @@ class Tool(ABC, Generic[TArgs]):
         Returns the JSON Schema for the tool's arguments.
         Used by the LLM to understand how to call the tool.
 
-        Returns native function-calling schema shape. Tool arguments must map
-        directly to runtime execution arguments.
+        Returns canonical OpenAI/LiteLLM tool object shape:
+        - type=function
+        - function.{name, description, parameters}
 
         Returns a cleaned, optimized schema format.
         """
@@ -157,7 +158,10 @@ class Tool(ABC, Generic[TArgs]):
             cleaned_params.pop("type", None)
         
         return {
-            "name": self.name,
-            "description": self.description,
-            "parameters": cleaned_params
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description,
+                "parameters": cleaned_params,
+            },
         }

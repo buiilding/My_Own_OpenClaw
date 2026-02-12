@@ -154,10 +154,16 @@ class ToolRegistry:
         if tool:
             schema = self.schema_registry.get_schema(tool)
             if schema:
+                function_schema = schema.get("function", {})
+                parameters = (
+                    function_schema.get("parameters", {})
+                    if isinstance(function_schema, dict)
+                    else {}
+                )
                 return {
                     "name": tool.name,
                     "description": tool.description,
-                    "parameters": schema.get("parameters", {}),
+                    "parameters": parameters,
                     "requires_context": True,
                 }
         return None

@@ -83,13 +83,13 @@ class ToolSelection:
         return filtered
 
     def filter_tool_schemas(self, tool_schemas: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Filter tool schema dicts (expects each schema to have a 'name')."""
+        """Filter canonical tool objects by nested function.name."""
         if not self.enabled:
             return list(tool_schemas)
 
         filtered: List[Dict[str, Any]] = []
         for schema in tool_schemas:
-            tool_name = schema.get("name")
+            tool_name = self._get_tool_name(schema)
             if not isinstance(tool_name, str):
                 # Keep non-standard schema entries unless explicitly in allowlist mode.
                 if self.mode != "allowlist":
@@ -149,11 +149,18 @@ class ToolSelection:
 
     @staticmethod
     def _get_mouse_args_properties(schema: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Navigate to mouse_control args.properties in wrapped or native schema."""
+        """Navigate to mouse_control args.properties from canonical tool schema."""
+        function_schema = schema.get("function")
+        if not isinstance(function_schema, dict):
+            return None
+        parameters = function_schema.get("parameters")
+        if not isinstance(parameters, dict):
+            return None
+
         try:
             # Legacy wrapped computer-use schema
             args_schema = (
-                schema["parameters"]["properties"]["action"]["properties"]["functionCall"]["properties"]["args"]
+                parameters["properties"]["action"]["properties"]["functionCall"]["properties"]["args"]
             )
             properties = args_schema.get("properties")
             if isinstance(properties, dict):
@@ -163,14 +170,21 @@ class ToolSelection:
 
         try:
             # Native function-calling schema (direct args in parameters)
-            params = schema["parameters"]
-            properties = params.get("properties") if isinstance(params, dict) else None
+            properties = parameters.get("properties")
             if isinstance(properties, dict):
                 return properties
         except (KeyError, TypeError):
             pass
 
         return None
+
+    @staticmethod
+    def _get_tool_name(schema: Dict[str, Any]) -> Optional[str]:
+        function_schema = schema.get("function")
+        if not isinstance(function_schema, dict):
+            return None
+        tool_name = function_schema.get("name")
+        return tool_name if isinstance(tool_name, str) else None
 
 
 _CACHE: dict[Path, tuple[float, Optional[ToolSelection]]] = {}
