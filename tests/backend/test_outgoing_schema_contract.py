@@ -50,10 +50,13 @@ def test_token_count_formatter_output_matches_schema() -> None:
     formatter = TokenCountEventFormatter()
     payload = formatter.format(
         {
-            "input_tokens": 12,
-            "output_tokens": 4,
+            "prompt_tokens": 12,
+            "visible_output_tokens": 3,
+            "thinking_tokens": 1,
+            "output_tokens_total": 4,
             "total_tokens": 16,
             "conversation_tokens": 200,
+            "usage_source": "provider",
         },
         "msg_2",
     )
@@ -66,6 +69,7 @@ def test_token_count_formatter_output_matches_schema() -> None:
         }
     )
     assert parsed.payload.total_tokens == 16
+    assert parsed.payload.thinking_tokens == 1
 
 
 def test_memory_store_formatter_output_matches_schema() -> None:

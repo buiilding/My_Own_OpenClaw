@@ -232,6 +232,8 @@ class LiteLLMClient(LLMClient):
         Delegates completion to provider and validates canonical response payload.
         """
         provider = self._resolve_provider(model)
+        provider.clear_last_stream_usage()
+        self._last_stream_cache_diagnostics = None
 
         try:
             response = await provider.get_completion(
@@ -247,6 +249,9 @@ class LiteLLMClient(LLMClient):
             raise LLMAPIError(f"LLM completion error: {exc}", model=model) from exc
 
         normalized = self._normalize_response_payload(response, model)
+        self._last_stream_cache_diagnostics = provider.get_stream_cache_diagnostics(
+            model=model
+        )
         return normalized
 
     async def get_completion(

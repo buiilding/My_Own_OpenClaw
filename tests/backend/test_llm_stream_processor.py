@@ -59,6 +59,7 @@ class _FakeLLMClient:
                 "cached_tokens": 128,
                 "prompt_tokens": 256,
                 "completion_tokens": 8,
+                "thinking_tokens": None,
                 "total_tokens": 264,
                 "reason": None,
             }
@@ -69,6 +70,7 @@ class _FakeLLMClient:
             "cached_tokens": 0,
             "prompt_tokens": 256,
             "completion_tokens": 8,
+            "thinking_tokens": None,
             "total_tokens": 264,
             "reason": None,
         }
@@ -103,6 +105,46 @@ class _Api520LLMClient:
             model=model,
             status_code=520,
         )
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
+class _ProviderUsageLLMClient:
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        yield ChunkEvent(content="visible")
+
+    def get_last_stream_cache_diagnostics(self):
+        return {
+            "model": "gpt-test",
+            "status": "hit",
+            "cache_hit": True,
+            "cached_tokens": 0,
+            "prompt_tokens": 50,
+            "completion_tokens": 20,
+            "thinking_tokens": 9,
+            "total_tokens": 70,
+            "reason": None,
+        }
+
+
+class _MissingUsageLLMClient:
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        yield ChunkEvent(content="visible")
 
     def get_last_stream_cache_diagnostics(self):
         return None
@@ -190,3 +232,47 @@ async def test_maps_http_520_api_error_to_retry_friendly_error_event(monkeypatch
     assert len(events) == 1
     assert isinstance(events[0], ErrorEvent)
     assert events[0].content == "Kimi Coding is temporarily unavailable (HTTP 520). Please retry shortly."
+
+
+@pytest.mark.asyncio
+async def test_token_count_prefers_provider_usage_and_reasoning_tokens(monkeypatch):
+    monkeypatch.setattr(
+        "backend.src.agent.llm.llm_stream_processor.get_token_service",
+        lambda: _FakeTokenService(),
+    )
+    processor = LLMStreamProcessor(
+        llm_client=_ProviderUsageLLMClient(),
+        session=_FakeSession(),
+    )
+
+    events = [event async for event in processor.get_response([{"role": "user", "content": "hello"}])]
+    token_event = next(event for event in events if isinstance(event, TokenCountEvent))
+
+    assert token_event.prompt_tokens == 50
+    assert token_event.visible_output_tokens == 1
+    assert token_event.thinking_tokens == 9
+    assert token_event.output_tokens_total == 20
+    assert token_event.total_tokens == 70
+    assert token_event.usage_source == "provider"
+
+
+@pytest.mark.asyncio
+async def test_token_count_falls_back_to_estimate_when_provider_usage_missing(monkeypatch):
+    monkeypatch.setattr(
+        "backend.src.agent.llm.llm_stream_processor.get_token_service",
+        lambda: _FakeTokenService(),
+    )
+    processor = LLMStreamProcessor(
+        llm_client=_MissingUsageLLMClient(),
+        session=_FakeSession(),
+    )
+
+    events = [event async for event in processor.get_response([{"role": "user", "content": "hello"}])]
+    token_event = next(event for event in events if isinstance(event, TokenCountEvent))
+
+    assert token_event.prompt_tokens == 1
+    assert token_event.visible_output_tokens == 1
+    assert token_event.thinking_tokens is None
+    assert token_event.output_tokens_total == 1
+    assert token_event.total_tokens == 2
+    assert token_event.usage_source == "estimated"

@@ -48,6 +48,7 @@ class LLMProvider(ABC):
         self.base_url = base_url
         self.timeout = timeout
         self._last_stream_usage: Optional[Dict[str, Any]] = None
+        self._last_usage: Optional[Dict[str, Any]] = None
         self._validate_dependencies()
 
     @abstractmethod
@@ -93,6 +94,7 @@ class LLMProvider(ABC):
         """Execute a completion request with consistent error mapping."""
         try:
             response = await litellm.acompletion(**params)
+            self._record_usage_from_payload_container(response)
             return self._extract_completion_response(
                 response,
                 model=model,
@@ -174,12 +176,19 @@ class LLMProvider(ABC):
     def clear_last_stream_usage(self) -> None:
         """Reset stored usage payload for the next streaming request."""
         self._last_stream_usage = None
+        self._last_usage = None
 
     def get_last_stream_usage(self) -> Optional[Dict[str, Any]]:
         """Return a copy of the last captured usage payload."""
         if self._last_stream_usage is None:
             return None
         return copy.deepcopy(self._last_stream_usage)
+
+    def get_last_usage(self) -> Optional[Dict[str, Any]]:
+        """Return the most recent usage payload from stream or completion responses."""
+        if self._last_usage is None:
+            return None
+        return copy.deepcopy(self._last_usage)
 
     def get_stream_cache_diagnostics(self, model: str) -> Dict[str, Any]:
         """
@@ -188,7 +197,7 @@ class LLMProvider(ABC):
         Returns:
             Dict with normalized cache diagnostics fields.
         """
-        usage = self.get_last_stream_usage()
+        usage = self.get_last_usage()
         if usage is None:
             return {
                 "model": model,
@@ -197,6 +206,7 @@ class LLMProvider(ABC):
                 "cached_tokens": None,
                 "prompt_tokens": None,
                 "completion_tokens": None,
+                "thinking_tokens": None,
                 "total_tokens": None,
                 "reason": "provider_usage_unavailable",
             }
@@ -236,6 +246,18 @@ class LLMProvider(ABC):
                 ("usageMetadata", "candidatesTokenCount"),
             ],
         )
+        thinking_tokens = self._extract_usage_int(
+            usage,
+            [
+                ("completion_tokens_details", "reasoning_tokens"),
+                ("output_tokens_details", "reasoning_tokens"),
+                ("reasoning_tokens",),
+                ("usage_metadata", "thoughts_token_count"),
+                ("usageMetadata", "thoughtsTokenCount"),
+                ("thoughts_token_count",),
+                ("thoughtsTokenCount",),
+            ],
+        )
         total_tokens = self._extract_usage_int(
             usage,
             [
@@ -264,6 +286,7 @@ class LLMProvider(ABC):
             "cached_tokens": cached_tokens,
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
+            "thinking_tokens": thinking_tokens,
             "total_tokens": total_tokens,
             "reason": None,
         }
@@ -272,24 +295,34 @@ class LLMProvider(ABC):
         """
         Capture usage payload if the provider includes one in a stream chunk.
         """
+        captured = self._record_usage_from_payload_container(chunk)
+        if captured:
+            self._last_stream_usage = captured
+        return captured
+
+    def _record_usage_from_payload_container(
+        self,
+        payload_container: Any,
+    ) -> Optional[Dict[str, Any]]:
+        """Capture usage payloads from stream chunks or non-stream responses."""
         payload_candidates: List[Any] = []
-        if isinstance(chunk, dict):
+        if isinstance(payload_container, dict):
             payload_candidates.extend(
                 [
-                    chunk.get("usage"),
-                    chunk.get("usage_metadata"),
-                    chunk.get("usageMetadata"),
+                    payload_container.get("usage"),
+                    payload_container.get("usage_metadata"),
+                    payload_container.get("usageMetadata"),
                 ]
             )
         else:
             payload_candidates.extend(
                 [
-                    getattr(chunk, "usage", None),
-                    getattr(chunk, "usage_metadata", None),
-                    getattr(chunk, "usageMetadata", None),
+                    getattr(payload_container, "usage", None),
+                    getattr(payload_container, "usage_metadata", None),
+                    getattr(payload_container, "usageMetadata", None),
                 ]
             )
-            model_extra = getattr(chunk, "model_extra", None)
+            model_extra = getattr(payload_container, "model_extra", None)
             if isinstance(model_extra, dict):
                 payload_candidates.extend(
                     [
@@ -302,7 +335,7 @@ class LLMProvider(ABC):
         for payload in payload_candidates:
             normalized = self._normalize_usage_payload(payload)
             if normalized:
-                self._last_stream_usage = normalized
+                self._last_usage = normalized
                 return normalized
         return None
 

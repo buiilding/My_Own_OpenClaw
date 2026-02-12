@@ -446,6 +446,7 @@ class TestStreamUsageDiagnostics:
 
         assert captured == usage
         assert provider.get_last_stream_usage() == usage
+        assert provider.get_last_usage() == usage
 
     def test_record_stream_usage_from_chunk_object_usage_metadata(self, provider):
         usage = SimpleNamespace(
@@ -472,6 +473,7 @@ class TestStreamUsageDiagnostics:
         assert diagnostics["cache_hit"] is True
         assert diagnostics["cached_tokens"] == 30
         assert diagnostics["prompt_tokens"] == 100
+        assert diagnostics["thinking_tokens"] is None
 
     def test_stream_cache_diagnostics_reports_miss(self, provider):
         provider._record_stream_usage_from_chunk(
@@ -487,6 +489,38 @@ class TestStreamUsageDiagnostics:
         diagnostics = provider.get_stream_cache_diagnostics(model="model")
         assert diagnostics["status"] == "unknown"
         assert diagnostics["reason"] == "provider_usage_unavailable"
+        assert diagnostics["thinking_tokens"] is None
+
+    def test_stream_cache_diagnostics_extracts_openai_reasoning_tokens(self, provider):
+        provider._record_stream_usage_from_chunk(
+            {
+                "usage": {
+                    "prompt_tokens": 100,
+                    "completion_tokens": 40,
+                    "total_tokens": 140,
+                    "completion_tokens_details": {"reasoning_tokens": 12},
+                }
+            }
+        )
+
+        diagnostics = provider.get_stream_cache_diagnostics(model="model")
+        assert diagnostics["thinking_tokens"] == 12
+
+    def test_stream_cache_diagnostics_extracts_gemini_thoughts_tokens(self, provider):
+        provider._record_stream_usage_from_chunk(
+            {"usageMetadata": {"thoughtsTokenCount": 9, "totalTokenCount": 99}}
+        )
+
+        diagnostics = provider.get_stream_cache_diagnostics(model="model")
+        assert diagnostics["thinking_tokens"] == 9
+
+    def test_record_usage_from_completion_response(self, provider):
+        response = {"usage": {"prompt_tokens": 5, "completion_tokens": 2, "total_tokens": 7}}
+
+        captured = provider._record_usage_from_payload_container(response)
+
+        assert captured == response["usage"]
+        assert provider.get_last_usage() == response["usage"]
 
 
 class TestCompletionContentHelpers:

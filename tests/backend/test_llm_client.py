@@ -17,6 +17,7 @@ class DummyProvider:
             "cached_tokens": None,
             "prompt_tokens": None,
             "completion_tokens": None,
+            "thinking_tokens": None,
             "total_tokens": None,
             "reason": "provider_usage_unavailable",
         }
@@ -61,6 +62,7 @@ class FailingStreamProvider:
             "cached_tokens": None,
             "prompt_tokens": None,
             "completion_tokens": None,
+            "thinking_tokens": None,
             "total_tokens": None,
             "reason": "provider_usage_unavailable",
         }
@@ -122,6 +124,33 @@ async def test_get_completion_response_normalizes_none_content(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_completion_response_stores_usage_diagnostics(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(
+        response={"content": "ok"},
+        diagnostics={
+            "model": "model",
+            "status": "hit",
+            "cache_hit": False,
+            "cached_tokens": 0,
+            "prompt_tokens": 10,
+            "completion_tokens": 5,
+            "thinking_tokens": 2,
+            "total_tokens": 15,
+            "reason": None,
+        },
+    )
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    _ = await client.get_completion_response("model", [])
+    diagnostics = client.get_last_stream_cache_diagnostics()
+    assert diagnostics is not None
+    assert diagnostics["prompt_tokens"] == 10
+    assert diagnostics["thinking_tokens"] == 2
+
+
+@pytest.mark.asyncio
 async def test_get_completion_stream_provider_error(monkeypatch):
     cfg = AppConfig()
     client = LiteLLMClient(cfg)
@@ -180,6 +209,7 @@ async def test_get_completion_stream_stores_cache_diagnostics(monkeypatch):
             "cached_tokens": 321,
             "prompt_tokens": 640,
             "completion_tokens": 32,
+            "thinking_tokens": 7,
             "total_tokens": 672,
             "reason": None,
         },
@@ -224,6 +254,9 @@ async def test_get_completion_wraps_unexpected_provider_completion_error(monkeyp
     client = LiteLLMClient(cfg)
 
     class ExplodingProvider:
+        def clear_last_stream_usage(self):
+            return None
+
         async def get_completion(self, model, messages):
             raise RuntimeError("boom")
 

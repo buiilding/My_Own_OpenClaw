@@ -15,9 +15,12 @@ class TokenCountEventFormatter(EventFormatter):
             "type": OutgoingMessageType.TOKEN_COUNT,
             "id": msg_id,
             "payload": {
-                "input_tokens": event_dict.get("input_tokens"),
-                "output_tokens": event_dict.get("output_tokens"),
+                "prompt_tokens": event_dict.get("prompt_tokens"),
+                "visible_output_tokens": event_dict.get("visible_output_tokens"),
+                "thinking_tokens": event_dict.get("thinking_tokens"),
+                "output_tokens_total": event_dict.get("output_tokens_total"),
                 "total_tokens": event_dict.get("total_tokens"),
                 "conversation_tokens": event_dict.get("conversation_tokens"),
+                "usage_source": event_dict.get("usage_source"),
             },
         }
