@@ -64,6 +64,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox): keep overlay fully interactive while preserving rounded-pill hit geometry so background windows are not blocked by rectangular shadow regions
 
 ### Fixed
+- fix(frontend-chatbox): reduce response window pill and IPC response overlay height caps by 2x (`1280px` -> `640px`, `1500` -> `750`) to tighten response-window growth
 - fix(token-service): normalize assistant history `tool_calls` into OpenAI/LiteLLM `function` shape before `litellm.token_counter` to prevent non-fatal `Unsupported tool call ... must contain a function key` errors
 - fix(kimi-tool-results): normalize assistant history tool_calls to OpenAI shape and drop orphan `role=tool` messages without matching prior tool-call ids to prevent Anthropic/Kimi `tool_call_id ... is not found` 400 errors
 - fix(llm-kimi): normalize native tool schemas into OpenAI/LiteLLM `tools[].type=function` format before provider calls to prevent Kimi/Anthropic KeyError `'type'`
