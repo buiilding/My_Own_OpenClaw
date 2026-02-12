@@ -233,6 +233,10 @@ describe('ToolExecutionService', () => {
         payload: expect.objectContaining({
           bundle_id: 'bundle-1',
           status: 'success',
+          step_results: [
+            { tool: 'read_file', status: 'ok', output: 'a' },
+            { tool: 'mouse_control', status: 'ok', output: 'b' },
+          ],
         }),
       }),
     );
@@ -242,11 +246,19 @@ describe('ToolExecutionService', () => {
           tool_name: 'read_file',
           success: true,
           error: null,
+          data: { output: 'a' },
+          _rawResult: expect.objectContaining({
+            data: { output: 'a' },
+          }),
         }),
         expect.objectContaining({
           tool_name: 'mouse_control',
           success: true,
           error: null,
+          data: { output: 'b' },
+          _rawResult: expect.objectContaining({
+            data: { output: 'b' },
+          }),
         }),
       ],
       { active_window: 'App' },
