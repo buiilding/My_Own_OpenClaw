@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
     from backend.src.agent.tools.preparation.preparer import ToolPreparer
     from backend.src.agent.tools.processing.synthetic_factory import SyntheticResultFactory
-    from backend.src.llm.parser import ParsedToolCall
+    from backend.src.llm.parser_types import ParsedToolCall
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,6 @@ class ToolSender:
             yield ToolCallEvent(
                 tool_name=tool_call.tool_name,
                 parameters=tool_call.parameters,  # Use original parameters (coordinate resolution failed)
-                raw_call=tool_call.raw_call,
                 request_id=request_id,
                 metadata=tool_metadata,
             )
@@ -143,7 +142,6 @@ class ToolSender:
                     yield ToolCallEvent(
                         tool_name=resolved_call.tool_name,
                         parameters=resolved_call.parameters,
-                        raw_call=resolved_call.raw_call,
                         request_id=request_id,
                         metadata=resolved_call.metadata,
                     )

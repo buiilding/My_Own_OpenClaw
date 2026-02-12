@@ -42,9 +42,9 @@ export type StreamingCompleteEvent = BackendEventBase<'streaming-complete'>;
 export type ToolCallEvent = BackendEventBase<'tool-call', {
   tool_name?: string;
   parameters?: Record<string, unknown>;
-  raw_call?: string;
   correlation_id?: string;
   request_id?: string;
+  metadata?: Record<string, unknown>;
 }>;
 export type ToolOutputEvent = BackendEventBase<'tool-output', {
   tool_name?: string;

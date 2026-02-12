@@ -5,7 +5,6 @@ Controls the agent execution state machine.
 Only responsible for loop control, sequencing, and termination decisions.
 All content, I/O, and presentation is delegated to specialized components.
 """
-import json
 import logging
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List
 
@@ -29,7 +28,6 @@ if TYPE_CHECKING:
     from backend.src.agent.llm.event_presenter import EventPresenter
     from backend.src.agent.llm.llm_stream_processor import LLMStreamProcessor
     from backend.src.agent.tools.orchestrator import ToolOrchestrator
-    from backend.src.llm.parser import ResponseParser
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +45,6 @@ class InteractionLoop:
         session: "AgentSession",
         prompt_coordinator: "ConversationContext",
         llm_handler: "LLMStreamProcessor",
-        response_parser: "ResponseParser",
         tool_executor: "ToolOrchestrator",
         event_presenter: "EventPresenter",
     ):
@@ -58,14 +55,12 @@ class InteractionLoop:
             session: Agent session for state access
             prompt_coordinator: Manages conversation context
             llm_handler: Processes LLM streaming and token counting
-            response_parser: Deprecated parser dependency retained for compatibility
             tool_executor: Orchestrates tool execution
             event_presenter: Presents frontend events
         """
         self.session = session
         self.prompt_coordinator = prompt_coordinator
         self.llm_handler = llm_handler
-        self.response_parser = response_parser
         self.tool_executor = tool_executor
         self.event_presenter = event_presenter
 
@@ -262,7 +257,7 @@ class InteractionLoop:
         )
 
     def _to_parsed_tool_call(self, tool_call: Dict[str, Any]) -> ParsedToolCall:
-        """Normalize one native tool call into legacy ParsedToolCall shape."""
+        """Normalize one native tool call into ParsedToolCall shape."""
         normalized_tool_name = str(tool_call.get("name", "")).strip()
         if not normalized_tool_name:
             normalized_tool_name = "unknown_tool"
@@ -276,29 +271,12 @@ class InteractionLoop:
         if isinstance(tool_call_id, str) and tool_call_id:
             metadata["tool_call_id"] = tool_call_id
 
-        action = parameters.get("action")
         metadata_payload = parameters.get("metadata")
         if isinstance(metadata_payload, dict):
             metadata.update(metadata_payload)
-        if isinstance(action, dict):
-            function_call = action.get("functionCall")
-            if isinstance(function_call, dict):
-                nested_name = function_call.get("name")
-                nested_args = function_call.get("args")
-                if isinstance(nested_name, str) and nested_name.strip():
-                    normalized_tool_name = nested_name.strip()
-                if isinstance(nested_args, dict):
-                    parameters = nested_args
-
-        raw_call = json.dumps(
-            {"functionCall": {"name": normalized_tool_name, "args": parameters}},
-            ensure_ascii=False,
-            separators=(",", ":"),
-        )
         return ParsedToolCall(
             tool_name=normalized_tool_name,
             parameters=parameters,
-            raw_call=raw_call,
             metadata=metadata or None,
         )
 

@@ -297,8 +297,8 @@ async def test_get_completion_response_normalizes_tool_calls(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_native_tool_calling_flag_disables_native_params_and_output(monkeypatch):
-    cfg = AppConfig(native_tool_calling_enabled=False)
+async def test_native_tool_calling_params_and_tool_calls_always_preserved(monkeypatch):
+    cfg = AppConfig()
     client = LiteLLMClient(cfg)
     provider = DummyProvider(
         response={
@@ -316,16 +316,25 @@ async def test_native_tool_calling_flag_disables_native_params_and_output(monkey
         tool_choice="required",
         parallel_tool_calls=True,
     )
-    _ = [event async for event in client.get_completion_stream("model", [], tools=[{"x": 1}])]
+    _ = [
+        event
+        async for event in client.get_completion_stream(
+            "model",
+            [],
+            tools=[{"type": "function", "function": {"name": "read_file"}}],
+            tool_choice="required",
+            parallel_tool_calls=True,
+        )
+    ]
 
     assert provider.last_completion_kwargs == {
-        "tools": None,
-        "tool_choice": None,
-        "parallel_tool_calls": None,
+        "tools": [{"type": "function", "function": {"name": "read_file"}}],
+        "tool_choice": "required",
+        "parallel_tool_calls": True,
     }
     assert provider.last_stream_kwargs == {
-        "tools": None,
-        "tool_choice": None,
-        "parallel_tool_calls": None,
+        "tools": [{"type": "function", "function": {"name": "read_file"}}],
+        "tool_choice": "required",
+        "parallel_tool_calls": True,
     }
-    assert "tool_calls" not in response
+    assert response["tool_calls"] == [{"id": "call_1", "name": "read_file", "arguments": {}}]

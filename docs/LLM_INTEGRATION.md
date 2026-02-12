@@ -196,9 +196,8 @@ This enables follow-up turns that continue after tool execution without text-JSO
 
 ### Cutover Rules
 
-- Migration toggle: `AppConfig.native_tool_calling_enabled` (default `true`).
-- Agent 2 must wire provider request/response behavior to this contract.
-- Agent 3 must consume structured `tool_calls` from normalized response instead of parser output.
+- Native SDK tool-calling is always-on in runtime-critical paths.
+- Provider request/response behavior uses structured `tool_calls` only (no parser fallback path).
 
 ## Provider Details
 

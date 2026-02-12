@@ -228,7 +228,6 @@ class TestToolCallEventFormatter:
             "type": "tool_call",
             "tool_name": "read_file",
             "parameters": {"path": "/test.txt"},
-            "raw_call": '<read_file path="/test.txt"/>',
         }
         msg_id = "msg-123"
         
@@ -240,7 +239,6 @@ class TestToolCallEventFormatter:
             "payload": {
                 "tool_name": "read_file",
                 "parameters": {"path": "/test.txt"},
-                "raw_call": '<read_file path="/test.txt"/>',
             },
         }
 
@@ -249,7 +247,6 @@ class TestToolCallEventFormatter:
             "type": "tool_call",
             "tool_name": "read_file",
             "parameters": {"path": "/test.txt"},
-            "raw_call": '<read_file path="/test.txt"/>',
             "request_id": "req-456",
         }
         msg_id = "msg-123"
@@ -263,7 +260,6 @@ class TestToolCallEventFormatter:
             "type": "tool_call",
             "tool_name": "click",
             "parameters": {"x": 100, "y": 200},
-            "raw_call": '<click x="100" y="200"/>',
             "metadata": {"description": "Click button"},
         }
         msg_id = "msg-123"
@@ -276,7 +272,6 @@ class TestToolCallEventFormatter:
         event = {
             "type": "tool_call",
             "parameters": {"path": "/test.txt"},
-            "raw_call": '<read_file path="/test.txt"/>',
         }
         msg_id = "msg-123"
         
@@ -288,19 +283,6 @@ class TestToolCallEventFormatter:
         event = {
             "type": "tool_call",
             "tool_name": "read_file",
-            "raw_call": '<read_file path="/test.txt"/>',
-        }
-        msg_id = "msg-123"
-        
-        result = formatter.format(event, msg_id)
-        
-        assert result is None
-
-    def test_format_missing_raw_call(self, formatter):
-        event = {
-            "type": "tool_call",
-            "tool_name": "read_file",
-            "parameters": {"path": "/test.txt"},
         }
         msg_id = "msg-123"
         
@@ -313,7 +295,6 @@ class TestToolCallEventFormatter:
             "type": "tool_call",
             "tool_name": "",
             "parameters": {"path": "/test.txt"},
-            "raw_call": '<read_file path="/test.txt"/>',
         }
         msg_id = "msg-123"
         
@@ -327,7 +308,6 @@ class TestToolCallEventFormatter:
             "type": "tool_call",
             "tool_name": "read_file",
             "parameters": {},
-            "raw_call": '<read_file path="/test.txt"/>',
         }
         msg_id = "msg-123"
         
@@ -338,7 +318,6 @@ class TestToolCallEventFormatter:
             "payload": {
                 "tool_name": "read_file",
                 "parameters": {},
-                "raw_call": '<read_file path="/test.txt"/>',
             },
         }
 
@@ -347,7 +326,6 @@ class TestToolCallEventFormatter:
             "type": "tool_call",
             "tool_name": "read_file",
             "parameters": "not-a-dict",
-            "raw_call": '<read_file path="/test.txt"/>',
         }
         msg_id = "msg-123"
 

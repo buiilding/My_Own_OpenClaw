@@ -22,7 +22,6 @@ class SessionLifecycle:
         logger.debug("Cleaning up session %s for user %s", session.session_id, session.user_id)
         try:
             session.event_bus.unsubscribe(InteractionCompleted, session._on_interaction_completed)
-            session.response_parser.shutdown()
             session.history.clear()
             runtime = getattr(session, "runtime", None)
             if runtime is not None and hasattr(runtime, "drain_background_tasks"):

@@ -232,13 +232,6 @@ class LiteLLMClient(LLMClient):
         Delegates completion to provider and validates canonical response payload.
         """
         provider = self._resolve_provider(model)
-        native_tool_calling_enabled = getattr(
-            self.config, "native_tool_calling_enabled", True
-        )
-        if not native_tool_calling_enabled:
-            tools = None
-            tool_choice = None
-            parallel_tool_calls = None
 
         try:
             response = await provider.get_completion(
@@ -254,8 +247,6 @@ class LiteLLMClient(LLMClient):
             raise LLMAPIError(f"LLM completion error: {exc}", model=model) from exc
 
         normalized = self._normalize_response_payload(response, model)
-        if not native_tool_calling_enabled and "tool_calls" in normalized:
-            normalized.pop("tool_calls", None)
         return normalized
 
     async def get_completion(
@@ -303,14 +294,6 @@ class LiteLLMClient(LLMClient):
             logger.error("Provider initialization failed: %s", exc)
             yield ErrorEvent(content=str(exc))
             return
-
-        native_tool_calling_enabled = getattr(
-            self.config, "native_tool_calling_enabled", True
-        )
-        if not native_tool_calling_enabled:
-            tools = None
-            tool_choice = None
-            parallel_tool_calls = None
 
         provider.clear_last_stream_usage()
         self._last_stream_cache_diagnostics = None
