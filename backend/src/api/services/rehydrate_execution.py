@@ -82,6 +82,11 @@ class RehydrateExecutionService:
         try:
             return artifact_store.load_base64(screenshot_ref)
         except Exception as exc:
-            raise ValueError(
-                f"Unable to resolve screenshot_ref at message index {index}: {screenshot_ref}"
-            ) from exc
+            logger.warning(
+                "Failed to resolve screenshot_ref during rehydrate (index=%s, ref=%s): %s. "
+                "Continuing without screenshot.",
+                index,
+                screenshot_ref,
+                exc,
+            )
+            return None
