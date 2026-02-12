@@ -1070,10 +1070,20 @@ Token usage information for the current interaction.
 ```json
 {
   "prompt_tokens": 150,
-  "completion_tokens": 50,
-  "total_tokens": 200
+  "visible_output_tokens": 38,
+  "thinking_tokens": 12,
+  "output_tokens_total": 50,
+  "total_tokens": 200,
+  "conversation_tokens": 3200,
+  "usage_source": "provider"
 }
 ```
+
+Notes:
+- `visible_output_tokens` counts only assistant text shown to users.
+- `thinking_tokens` is provider-reported reasoning/thought token usage. It may be `null` when unavailable.
+- `output_tokens_total` includes visible output plus hidden reasoning where the provider reports it.
+- `usage_source` is `provider` when prompt/output/total counts come fully from provider usage; otherwise `estimated`.
 
 **Example**:
 ```json
@@ -1082,8 +1092,12 @@ Token usage information for the current interaction.
   "type": "token-count",
   "payload": {
     "prompt_tokens": 150,
-    "completion_tokens": 50,
-    "total_tokens": 200
+    "visible_output_tokens": 38,
+    "thinking_tokens": null,
+    "output_tokens_total": 38,
+    "total_tokens": 188,
+    "conversation_tokens": 3200,
+    "usage_source": "estimated"
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }

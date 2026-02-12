@@ -184,6 +184,7 @@ Notes:
 - `tool_calls` is structured and validated before it leaves the client layer.
 - `get_completion()` remains backward-compatible and returns only `content`.
 - Runtime behavior: when tool schemas are present for a turn, backend uses non-stream `get_completion_response()` to receive structured `tool_calls`; pure text turns keep streaming path.
+- Token usage behavior: backend now captures provider usage for both streaming and non-stream turns and emits `token-count` with split fields (`visible_output_tokens`, `thinking_tokens`, `output_tokens_total`) plus `usage_source` (`provider` or `estimated`).
 
 ### LLM Message Typing (History / Follow-up Turns)
 
