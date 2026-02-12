@@ -39,6 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- docs(prompts): revalidate native SDK tool-calling migration Agent 1 status and add explicit no-delta handoff note for Agent 2
 - docs(prompts): add strict replacement migration plan for canonical OpenAI/LiteLLM tool-object schemas (`docs/prompts/openai-tool-object-schema-replacement-migration.md`)
 - test(frontend): suppress noisy Jest console output for `[Wakeword]`, `[DisplaySelection]`, and `[IPC Bridge]` prefixes in shared test setup
 - docs(prompts): mark native SDK tool-calling migration Agent 5 complete with full-gate validation results and final sequential hand-off notes
