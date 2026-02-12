@@ -848,6 +848,22 @@ class TestStandardCompletionHelper:
             )
 
     @pytest.mark.asyncio
+    async def test_maps_generic_http_520_exception_to_llm_api_error(self, provider, monkeypatch):
+        async def raise_http_520(**_kwargs):
+            error = RuntimeError("transport failed")
+            error.response = SimpleNamespace(status_code=520)
+            raise error
+
+        monkeypatch.setattr(litellm, "acompletion", raise_http_520)
+
+        with pytest.raises(LLMAPIError, match="HTTP 520"):
+            await provider._get_completion_with_standard_errors(
+                provider_label="Mock",
+                model="model",
+                params={"model": "mock/model", "messages": []},
+            )
+
+    @pytest.mark.asyncio
     async def test_maps_generic_exception_to_llm_error(self, provider, monkeypatch):
         async def raise_generic(**_kwargs):
             raise RuntimeError("boom")
