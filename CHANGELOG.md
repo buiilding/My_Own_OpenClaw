@@ -39,6 +39,7 @@ Includes the last 300 commits on `main`.
 ### Changed
 - docs(prompts): mark native SDK tool-calling migration Agent 1 complete and add explicit Agent 2 handoff contract notes
 - docs(prompts): enforce Source Pack web-research gate for all migration agents and require source-evidence in each handoff
+- docs(changelog): add AGENTS.md process-alignment note so migration execution explicitly follows repo-local agent instructions
 - refactor(agent-tools): remove legacy session/tool-preparation compatibility paths and standardize screenshot preparation flow on a single async API
 - refactor(tool-results): replace `SimpleNamespace` execution payloads with typed result models and simplify waiting-result storage internals to single future maps
 - docs(agents): clarify that agents should continue scoped work when unrelated changes are present and report only scoped deltas
