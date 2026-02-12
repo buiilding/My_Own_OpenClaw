@@ -14,7 +14,7 @@ fake_deps.HandlerRegistryDep = object
 sys.modules["backend.src.api.deps"] = fake_deps
 
 from backend.src.api.routes.websocket import message_handler as mh
-from backend.src.api.schema import QueryMessage
+from backend.src.api.schema import QueryMessage, ToolBundleResultMessage
 
 if _original_deps is not None:
     sys.modules["backend.src.api.deps"] = _original_deps
@@ -147,6 +147,39 @@ async def test_parse_and_validate_message_rejects_tool_bundle_screenshot_url_fie
     assert message is None
     assert error is not None
     assert "screenshot_url" in error
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_accepts_structured_bundle_step_output() -> None:
+    payload = json.dumps(
+        {
+            "id": "msg_bundle_output",
+            "type": "tool-bundle-result",
+            "payload": {
+                "bundle_id": "bundle-structured-1",
+                "status": "success",
+                "step_results": [
+                    {
+                        "tool": "run_shell_command",
+                        "status": "ok",
+                        "output": {"stdout": "line-1", "exit_code": 0},
+                        "debug_trace": "trace-1",
+                    }
+                ],
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=4096
+    )
+
+    assert error is None
+    assert isinstance(message, ToolBundleResultMessage)
+    assert message.payload.bundle_id == "bundle-structured-1"
+    serialized_step = message.payload.step_results[0].model_dump()
+    assert serialized_step["output"] == {"stdout": "line-1", "exit_code": 0}
+    assert serialized_step["debug_trace"] == "trace-1"
 
 
 @pytest.mark.asyncio

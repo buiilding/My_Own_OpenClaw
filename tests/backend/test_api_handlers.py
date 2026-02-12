@@ -601,6 +601,44 @@ async def test_tool_bundle_result_handler_forwards_screenshot_ref():
     )
 
 
+@pytest.mark.asyncio
+async def test_tool_bundle_result_handler_preserves_step_output_content():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session_instance = DummySession()
+    handler = ToolResultHandler(session_manager)
+
+    message = ToolBundleResultMessage(
+        id="msg_5c",
+        type="tool-bundle-result",
+        user_id="user_1",
+        payload={
+            "bundle_id": "bundle_3",
+            "status": "success",
+            "step_results": [
+                {
+                    "tool": "run_shell_command",
+                    "status": "ok",
+                    "output": {"stdout": "line-1", "exit_code": 0},
+                    "debug_trace": "trace-1",
+                }
+            ],
+            "screenshot": None,
+            "system_state": None,
+            "error": None,
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert session_manager.session_instance.bundle_calls
+    first_step = session_manager.session_instance.bundle_calls[0]["step_results"][0]
+    assert first_step["tool"] == "run_shell_command"
+    assert first_step["status"] == "ok"
+    assert first_step["output"] == {"stdout": "line-1", "exit_code": 0}
+    assert first_step["debug_trace"] == "trace-1"
+
+
 def test_tool_result_handler_validate_metadata_filters_unknown_keys():
     session_manager = DummySessionManager()
     handler = ToolResultHandler(session_manager)
