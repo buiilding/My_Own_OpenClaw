@@ -39,6 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- docs(prompts): mark native SDK tool-calling migration Agent 5 complete with full-gate validation results and final sequential hand-off notes
 - test(llm-native-tools): align backend prompt/schema tests with native tool-calling contracts (no <tool_schemas> prompt embedding, direct parameters shape)
 - refactor(agent-runtime): migrate interaction loop from parser-driven JSON extraction to native normalized tool-calls, bridge to existing tool orchestrator types, and persist assistant/tool-call history linkage for follow-up turns
 - refactor(llm-native-tools): remove parser-era JSON tool protocol from system prompt, stop first-message `<tool_schemas>` embedding, emit native direct-argument tool schemas, and add tool-selection compatibility for native mouse schema filtering
