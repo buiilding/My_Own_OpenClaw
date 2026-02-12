@@ -27,12 +27,24 @@ class _FakeHistory:
 
 class _FakeConfig:
     selected_model_id = "gpt-test"
+    model_provider = "openai"
 
 
 class _FakeSession:
     cfg = _FakeConfig()
     history = _FakeHistory()
     session_id = "session-test"
+
+
+class _KimiConfig:
+    selected_model_id = "k2p5"
+    model_provider = "kimi-coding"
+
+
+class _KimiSession:
+    cfg = _KimiConfig()
+    history = _FakeHistory()
+    session_id = "session-kimi"
 
 
 class _FakeLLMClient:
@@ -148,6 +160,44 @@ class _MissingUsageLLMClient:
 
     def get_last_stream_cache_diagnostics(self):
         return None
+
+
+class _KimiStreamWithToolsLLMClient:
+    async def get_completion_response(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        raise AssertionError("Kimi tool turns should use stream path")
+
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        yield ChunkEvent(content="streamed-kimi")
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+    def get_last_stream_response_payload(self):
+        return {
+            "content": "streamed-kimi",
+            "tool_calls": [
+                {
+                    "id": "call_1",
+                    "name": "read_file",
+                    "arguments": {"path": "/tmp/demo.txt"},
+                }
+            ],
+            "finish_reason": "tool_calls",
+        }
 
 
 @pytest.mark.asyncio
@@ -276,3 +326,35 @@ async def test_token_count_falls_back_to_estimate_when_provider_usage_missing(mo
     assert token_event.output_tokens_total == 1
     assert token_event.total_tokens == 2
     assert token_event.usage_source == "estimated"
+
+
+@pytest.mark.asyncio
+async def test_kimi_streams_when_tools_present_and_preserves_stream_tool_calls(monkeypatch):
+    monkeypatch.setattr(
+        "backend.src.agent.llm.llm_stream_processor.get_token_service",
+        lambda: _FakeTokenService(),
+    )
+    processor = LLMStreamProcessor(
+        llm_client=_KimiStreamWithToolsLLMClient(),
+        session=_KimiSession(),
+    )
+
+    noop_tools = [
+        {
+            "type": "function",
+            "function": {"name": "read_file", "parameters": {"type": "object"}},
+        }
+    ]
+    events = [
+        event
+        async for event in processor.get_response(
+            [{"role": "user", "content": "hello"}],
+            tools=noop_tools,
+        )
+    ]
+    assert any(isinstance(event, ChunkEvent) for event in events)
+    payload = processor.get_last_response_payload()
+    assert payload is not None
+    assert payload["content"] == "streamed-kimi"
+    assert payload["finish_reason"] == "tool_calls"
+    assert payload["tool_calls"][0]["id"] == "call_1"

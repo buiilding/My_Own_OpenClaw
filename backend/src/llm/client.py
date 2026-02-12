@@ -83,6 +83,12 @@ class LLMClient(ABC):
         """
         return None
 
+    def get_last_stream_response_payload(self) -> Optional[NormalizedLLMResponse]:
+        """
+        Return normalized payload for the last streaming request, if available.
+        """
+        return None
+
 
 class LiteLLMClient(LLMClient):
     """
@@ -107,6 +113,7 @@ class LiteLLMClient(LLMClient):
         """
         self.config = cfg
         self._last_stream_cache_diagnostics: Optional[Dict[str, Any]] = None
+        self._last_stream_response_payload: Optional[NormalizedLLMResponse] = None
 
     def _get_provider(self) -> "LLMProvider":
         """
@@ -234,6 +241,7 @@ class LiteLLMClient(LLMClient):
         provider = self._resolve_provider(model)
         provider.clear_last_stream_usage()
         self._last_stream_cache_diagnostics = None
+        self._last_stream_response_payload = None
 
         try:
             response = await provider.get_completion(
@@ -252,6 +260,7 @@ class LiteLLMClient(LLMClient):
         self._last_stream_cache_diagnostics = provider.get_stream_cache_diagnostics(
             model=model
         )
+        self._last_stream_response_payload = normalized
         return normalized
 
     async def get_completion(
@@ -302,6 +311,7 @@ class LiteLLMClient(LLMClient):
 
         provider.clear_last_stream_usage()
         self._last_stream_cache_diagnostics = None
+        self._last_stream_response_payload = None
         try:
             # Provider's get_completion_stream handles its own exceptions and yields ErrorEvent
             async for event in provider.get_completion_stream(
@@ -319,12 +329,21 @@ class LiteLLMClient(LLMClient):
             self._last_stream_cache_diagnostics = provider.get_stream_cache_diagnostics(
                 model=model
             )
+            self._last_stream_response_payload = (
+                provider.get_last_stream_response_payload()
+            )
 
     def get_last_stream_cache_diagnostics(self) -> Optional[Dict[str, Any]]:
         """Return cached diagnostics for the most recent streaming request."""
         if self._last_stream_cache_diagnostics is None:
             return None
         return dict(self._last_stream_cache_diagnostics)
+
+    def get_last_stream_response_payload(self) -> Optional[NormalizedLLMResponse]:
+        """Return normalized payload captured for the most recent stream turn."""
+        if self._last_stream_response_payload is None:
+            return None
+        return dict(self._last_stream_response_payload)
 
 
 def get_llm_client(cfg: AppConfig) -> LLMClient:

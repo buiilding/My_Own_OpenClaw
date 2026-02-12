@@ -7,9 +7,10 @@ from backend.src.llm.client import LiteLLMClient
 
 
 class DummyProvider:
-    def __init__(self, response=None, stream_events=None, diagnostics=None):
+    def __init__(self, response=None, stream_events=None, diagnostics=None, stream_payload=None):
         self.response = response
         self.stream_events = stream_events or []
+        self.stream_payload = stream_payload
         self.diagnostics = diagnostics or {
             "model": "model",
             "status": "unknown",
@@ -42,6 +43,9 @@ class DummyProvider:
         payload.setdefault("model", model)
         return payload
 
+    def get_last_stream_response_payload(self):
+        return self.stream_payload
+
 
 class FailingStreamProvider:
     async def get_completion(self, model, messages, **kwargs):
@@ -66,6 +70,9 @@ class FailingStreamProvider:
             "total_tokens": None,
             "reason": "provider_usage_unavailable",
         }
+
+    def get_last_stream_response_payload(self):
+        return None
 
 
 @pytest.mark.asyncio
@@ -221,6 +228,28 @@ async def test_get_completion_stream_stores_cache_diagnostics(monkeypatch):
     assert diagnostics is not None
     assert diagnostics["status"] == "hit"
     assert diagnostics["cached_tokens"] == 321
+
+
+@pytest.mark.asyncio
+async def test_get_completion_stream_stores_last_stream_response_payload(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(
+        stream_events=[ChunkEvent(content="partial")],
+        stream_payload={
+            "content": "final",
+            "tool_calls": [{"id": "call_1", "name": "read_file", "arguments": {}}],
+            "finish_reason": "tool_calls",
+        },
+    )
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    _ = [event async for event in client.get_completion_stream("model", [])]
+    payload = client.get_last_stream_response_payload()
+    assert payload is not None
+    assert payload["content"] == "final"
+    assert payload["finish_reason"] == "tool_calls"
+    assert payload["tool_calls"][0]["id"] == "call_1"
 
 
 def test_extract_content_rejects_invalid_payloads():
