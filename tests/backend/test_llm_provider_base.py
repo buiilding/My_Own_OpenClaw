@@ -145,6 +145,52 @@ class TestBuildRequestParams:
         assert params["tool_choice"] == "auto"
         assert params["parallel_tool_calls"] is True
 
+    def test_build_normalizes_native_tool_schema_to_openai_tool_format(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = [
+            {
+                "name": "read_file",
+                "description": "Read file contents",
+                "parameters": {"type": "object", "properties": {"path": {"type": "string"}}},
+            }
+        ]
+
+        params = provider._build_request_params("gpt-4", messages, tools=tools)
+
+        assert params["tools"] == [
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_file",
+                    "description": "Read file contents",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"path": {"type": "string"}},
+                    },
+                },
+            }
+        ]
+
+    def test_build_skips_invalid_tool_entries(self, provider):
+        messages = [{"role": "user", "content": "Hello"}]
+        tools = [
+            {"name": "valid_tool", "parameters": {"type": "object"}},
+            {"parameters": {"type": "object"}},
+            "invalid-tool",
+        ]
+
+        params = provider._build_request_params("gpt-4", messages, tools=tools)
+
+        assert params["tools"] == [
+            {
+                "type": "function",
+                "function": {
+                    "name": "valid_tool",
+                    "parameters": {"type": "object"},
+                },
+            }
+        ]
+
 
 class TestExtractThinkingContent:
     """Tests for _extract_thinking_content method."""

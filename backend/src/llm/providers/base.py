@@ -415,12 +415,56 @@ class LLMProvider(ABC):
             "timeout": self.timeout,
         }
         if tools is not None:
-            params["tools"] = tools
+            params["tools"] = self._normalize_tools_for_litellm(tools)
         if tool_choice is not None:
             params["tool_choice"] = tool_choice
         if parallel_tool_calls is not None:
             params["parallel_tool_calls"] = parallel_tool_calls
         return params
+
+    @staticmethod
+    def _normalize_tools_for_litellm(tools: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Normalize tool schemas to OpenAI-compatible tool definitions for LiteLLM.
+
+        LiteLLM Anthropic-compatible paths require each tool entry to include
+        `type: "function"` and nested `function` payload fields.
+        """
+        normalized: List[Dict[str, Any]] = []
+        for tool in tools:
+            normalized_tool = LLMProvider._normalize_single_tool_for_litellm(tool)
+            if normalized_tool is not None:
+                normalized.append(normalized_tool)
+        return normalized
+
+    @staticmethod
+    def _normalize_single_tool_for_litellm(tool: Any) -> Optional[Dict[str, Any]]:
+        """Normalize one tool schema, preserving already-compatible entries."""
+        if not isinstance(tool, dict):
+            logger.warning("Skipping non-dict tool schema in request payload: %r", tool)
+            return None
+
+        tool_type = tool.get("type")
+        if isinstance(tool_type, str) and tool_type in {"function", "custom"}:
+            return copy.deepcopy(tool)
+
+        function_name = tool.get("name")
+        if not isinstance(function_name, str) or not function_name.strip():
+            logger.warning("Skipping tool schema without valid name field: %r", tool)
+            return None
+
+        function_payload: Dict[str, Any] = {
+            "name": function_name,
+            "parameters": tool.get("parameters", {}),
+        }
+        description = tool.get("description")
+        if isinstance(description, str) and description.strip():
+            function_payload["description"] = description
+
+        return {
+            "type": "function",
+            "function": function_payload,
+        }
 
     @abstractmethod
     def _get_full_model_string(self, model_id: str) -> str:
