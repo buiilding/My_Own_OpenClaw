@@ -225,4 +225,27 @@ describe('MessageFormatter', () => {
     expect(output).toContain('status: failed');
     expect(output).not.toContain('outer-success');
   });
+
+  test('formatBundledToolOutputMessage renders _rawResult output content for successful steps', () => {
+    const output = formatBundledToolOutputMessage(
+      [
+        {
+          tool_name: 'run_shell_command',
+          success: true,
+          data: null,
+          _rawResult: {
+            success: true,
+            data: { output: 'ls output line' },
+          },
+        },
+      ],
+      null,
+      null,
+    );
+
+    expect(output).toContain('run_shell_command output:');
+    expect(output).toContain('ls output line');
+    expect(output).toContain('status: successful');
+    expect(output).not.toContain('No output');
+  });
 });

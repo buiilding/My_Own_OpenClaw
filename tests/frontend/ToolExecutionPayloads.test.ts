@@ -84,11 +84,19 @@ describe('ToolExecutionPayloads', () => {
         tool_name: 'read_file',
         success: true,
         error: null,
+        data: { output: 'done' },
+        _rawResult: expect.objectContaining({
+          data: { output: 'done' },
+        }),
       }),
       expect.objectContaining({
         tool_name: 'mouse_control',
         success: false,
         error: 'failed',
+        data: { output: 'failed' },
+        _rawResult: expect.objectContaining({
+          data: { output: 'failed' },
+        }),
       }),
     ]);
 
@@ -98,11 +106,13 @@ describe('ToolExecutionPayloads', () => {
         tool_name: 'read_file',
         request_id: '',
         executionTime: 0,
+        data: { output: 'done' },
       }),
       expect.objectContaining({
         tool_name: 'mouse_control',
         request_id: '',
         executionTime: 0,
+        data: { output: 'failed' },
       }),
     ]);
   });
