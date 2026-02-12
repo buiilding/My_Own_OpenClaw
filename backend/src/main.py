@@ -65,6 +65,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8765,
         access_log=access_log,
-        reload=True,
-        reload_dirs=["backend/src"]
+        reload=False,
     )
