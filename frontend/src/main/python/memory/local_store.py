@@ -1083,7 +1083,7 @@ class LocalMemoryStore:
             cursor = await conn.cursor()
             await cursor.execute(
                 """
-                SELECT DISTINCT user_id
+                SELECT user_id, MAX(timestamp) as latest_timestamp
                 FROM memories
                 WHERE is_semanticized = 0
                   AND (
@@ -1091,6 +1091,8 @@ class LocalMemoryStore:
                       OR record_kind = 'memory'
                       OR record_kind = 'transcript'
                   )
+                GROUP BY user_id
+                ORDER BY latest_timestamp DESC
                 LIMIT ?
             """,
                 (limit,),

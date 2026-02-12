@@ -55,8 +55,9 @@ class FakeLLMClient:
 
 
 class FakeSessionManager:
-    def __init__(self, session=None):
+    def __init__(self, session=None, active_sessions=None):
         self._session = session
+        self.active_sessions = active_sessions or {}
 
     def get_session(self, _user_id):
         return self._session
@@ -155,6 +156,44 @@ async def test_summarize_conversations_uses_session_config(monkeypatch) -> None:
     assert "likes tests" in response.facts
     assert fake_client.calls
     assert fake_client.calls[0][0] == "session-model"
+
+
+@pytest.mark.asyncio
+async def test_summarize_conversations_does_not_use_other_active_session(monkeypatch) -> None:
+    other_session_cfg = AppConfig(
+        model_mode="local",
+        model_provider="ollama",
+        selected_model_id="other-active-session-model",
+    )
+    container_cfg = AppConfig(
+        model_mode="local",
+        model_provider="ollama",
+        selected_model_id="container-model",
+    )
+    fake_client = FakeLLMClient("SUMMARY: container summary\n\nFACTS:\n- from container config\n")
+
+    monkeypatch.setattr(semantic_routes, "get_llm_client", lambda cfg: fake_client)
+    monkeypatch.setattr(semantic_routes, "load_api_key_for_provider", lambda cfg: cfg)
+
+    container = SimpleNamespace(config=container_cfg, llm_client=object())
+    other_active_session = SimpleNamespace(cfg=other_session_cfg)
+    session_manager = FakeSessionManager(
+        session=None,
+        active_sessions={"some-other-user": other_active_session},
+    )
+    request = semantic_routes.SummarizeRequest(
+        conversations=["User: hi\nAssistant: hello"],
+        user_id="request-user-without-session",
+    )
+
+    response = await semantic_routes.summarize_conversations(
+        request, container, session_manager
+    )
+
+    assert response.success is True
+    assert response.summary == "container summary"
+    assert fake_client.calls
+    assert fake_client.calls[0][0] == "container-model"
 
 
 @pytest.mark.asyncio

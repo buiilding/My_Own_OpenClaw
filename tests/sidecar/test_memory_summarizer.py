@@ -46,6 +46,35 @@ class FakeSemanticClient:
         return "User is building an F1 dashboard.", ["User wants local dashboard runs."]
 
 
+class FakeCycleMemoryStore:
+    def __init__(self):
+        self.watermark_updates = []
+
+    async def get_watermark(self):
+        return {"pending_message_count": 10}
+
+    async def get_unsemanticized_conversation_windows(self, user_id):
+        return [f"conv-for-{user_id}"]
+
+    async def update_watermark(self, last_semanticized_id=None, pending_message_count=0):
+        self.watermark_updates.append(
+            {
+                "last_semanticized_id": last_semanticized_id,
+                "pending_message_count": pending_message_count,
+            }
+        )
+
+
+class FakeUserIdMemoryStore:
+    def __init__(self, discovered_user_ids):
+        self.discovered_user_ids = list(discovered_user_ids)
+        self.discovery_calls = []
+
+    async def get_user_ids_with_unsemanticized_memories(self, limit=100):
+        self.discovery_calls.append(limit)
+        return self.discovered_user_ids[:limit]
+
+
 @pytest.mark.asyncio
 async def test_summarizer_processes_transcript_batch_and_skips_tool_calls():
     memories = [
@@ -96,3 +125,70 @@ async def test_summarizer_processes_transcript_batch_and_skips_tool_calls():
     assert len(memory_store.add_calls) == 1
     assert memory_store.add_calls[0]["metadata"]["source_memory_count"] == 3
     assert memory_store.marked_ids == ["1", "2", "3"]
+
+
+@pytest.mark.asyncio
+async def test_summarizer_continues_when_one_user_batch_fails(monkeypatch):
+    memory_store = FakeCycleMemoryStore()
+    semantic_client = FakeSemanticClient()
+    summarizer = MemorySummarizer(
+        memory_store=memory_store,
+        semantic_client=semantic_client,
+        settings=SummarizerSettings(
+            min_batch_size=1,
+            min_batch_size_idle=1,
+            max_summaries_per_cycle=2,
+            max_conversations_per_cycle=1,
+        ),
+    )
+
+    async def fake_get_user_ids():
+        return ["broken-user", "healthy-user"]
+
+    calls = []
+
+    async def fake_summarize_batch(user_id, conversation_id):
+        calls.append((user_id, conversation_id))
+        if user_id == "broken-user":
+            raise RuntimeError("intentional-failure")
+        return 1
+
+    monkeypatch.setattr(summarizer, "_get_user_ids_with_work", fake_get_user_ids)
+    monkeypatch.setattr(summarizer, "_summarize_conversation_batch", fake_summarize_batch)
+
+    await summarizer._maybe_summarize()
+
+    assert ("broken-user", "conv-for-broken-user") in calls
+    assert ("healthy-user", "conv-for-healthy-user") in calls
+    assert memory_store.watermark_updates == [
+        {"last_semanticized_id": None, "pending_message_count": 0}
+    ]
+
+
+@pytest.mark.asyncio
+async def test_get_user_ids_with_work_prefers_known_ids_and_skips_discovery():
+    memory_store = FakeUserIdMemoryStore(["stale-a", "stale-b"])
+    summarizer = MemorySummarizer(
+        memory_store=memory_store,
+        semantic_client=FakeSemanticClient(),
+    )
+    summarizer.notify_new_memory("current-user")
+
+    user_ids = await summarizer._get_user_ids_with_work()
+
+    assert user_ids == ["current-user"]
+    assert memory_store.discovery_calls == []
+
+
+@pytest.mark.asyncio
+async def test_get_user_ids_with_work_cold_start_discovers_only_one_user():
+    memory_store = FakeUserIdMemoryStore(["first-user", "second-user"])
+    summarizer = MemorySummarizer(
+        memory_store=memory_store,
+        semantic_client=FakeSemanticClient(),
+    )
+
+    user_ids = await summarizer._get_user_ids_with_work()
+
+    assert user_ids == ["first-user"]
+    assert memory_store.discovery_calls == [1]
