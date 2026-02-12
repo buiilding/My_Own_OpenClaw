@@ -45,6 +45,7 @@ Includes the last 300 commits on `main`.
 - docs(api,llm): document new breaking `token-count` payload fields and `usage_source` semantics for provider-vs-estimated token accounting
 - feat(kimi-streaming): enable Kimi tool turns to use streaming transport, forward Kimi thinking deltas as `llm-thought`, and preserve streamed tool-call payloads for downstream tool execution
 - docs(api,troubleshooting): add `rehydrate-conversation` API contract and troubleshooting notes for local model discovery warnings plus missing screenshot artifact fallback during resume
+- docs(security): add multi-user runtime hardening guide covering session identity, multi-device policy, and per-user semantic summarization model isolation
 - docs(runtime-behavior): document structured bundle step output semantics, bundle-step fallback output text, non-stream tool-calling path when tools are present, and Kimi base-url/HTTP-520 runtime handling notes
 - docs(tool-call-ids): clarify ID provenance in API/flow docs (`request_id` backend-generated correlation id; `metadata.tool_call_id` provider-origin with backend fallback when missing)
 - test(tool-output): add backend parse/handler regression coverage for structured bundle step outputs and frontend bundle-output creation assertions to catch subtle `No output` drift
