@@ -25,6 +25,17 @@ export type BackendEventBase<TType extends BackendEventType, TPayload = undefine
   turn_ref?: string;
 };
 
+export type ToolFunctionSchema = {
+  name: string;
+  description?: string;
+  parameters: Record<string, unknown>;
+};
+
+export type ToolSchema = {
+  type: 'function';
+  function: ToolFunctionSchema;
+};
+
 export type LlmThoughtEvent = BackendEventBase<'llm-thought', { status?: string }>;
 export type StreamingResponseEvent = BackendEventBase<'streaming-response', { text?: string }>;
 export type StreamingCompleteEvent = BackendEventBase<'streaming-complete'>;
@@ -62,7 +73,7 @@ export type LocalUserMessageEvent = BackendEventBase<'local-user-message', {
 }>;
 export type SystemPromptEvent = BackendEventBase<'system-prompt', {
   content?: string;
-  tool_schemas?: unknown;
+  tool_schemas?: ToolSchema[];
 }>;
 export type UserMessageFullEvent = BackendEventBase<'user-message-full', {
   content?: string;
@@ -73,7 +84,7 @@ export type AssistantMessageFullEvent = BackendEventBase<'assistant-message-full
 }>;
 export type TokenCountEvent = BackendEventBase<'token-count', TokenCounts>;
 export type ToolSchemasEvent = BackendEventBase<'tool-schemas', {
-  tool_schemas?: unknown;
+  tool_schemas?: ToolSchema[];
 }>;
 export type ErrorEvent = BackendEventBase<'error', {
   message?: string;

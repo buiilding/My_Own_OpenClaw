@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from backend.src.api.schemas.common import BaseMessage
 
@@ -132,11 +132,26 @@ class WakewordGreetingMessage(BaseMessage):
     payload: WakewordGreetingPayload
 
 
+class ToolFunctionSchemaPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    description: Optional[str] = None
+    parameters: Dict[str, Any]
+
+
+class ToolSchemaPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["function"]
+    function: ToolFunctionSchemaPayload
+
+
 class SystemPromptPayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     content: str
-    tool_schemas: Optional[Dict[str, Any]] = None
+    tool_schemas: Optional[List[ToolSchemaPayload]] = None
 
 
 class SystemPromptMessage(BaseMessage):
@@ -147,7 +162,7 @@ class SystemPromptMessage(BaseMessage):
 class ToolSchemasPayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    tool_schemas: Dict[str, Any]
+    tool_schemas: List[ToolSchemaPayload]
 
 
 class ToolSchemasMessage(BaseMessage):

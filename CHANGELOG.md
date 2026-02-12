@@ -39,6 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(transparency-tool-schemas): enforce canonical OpenAI/LiteLLM `type=function` nested `function` schema across transparency events, outgoing API payload models, and frontend transparency adapters; add strict event payload validation and Agent 4 migration status/handoff updates
 - refactor(tool-schema): switch backend tool schema source + policy filtering to canonical OpenAI/LiteLLM tool objects (`type=function`, nested `function`), with strict schema validation in registry cache path
 - refactor(tool-schema): freeze canonical OpenAI/LiteLLM tool object contract in shared types and migration docs for strict replacement rollout
 - refactor(llm-transport): enforce canonical OpenAI/LiteLLM tool-object validation at provider boundary and remove legacy top-level tool-shape adapter behavior before LiteLLM requests
