@@ -55,6 +55,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox): keep overlay fully interactive while preserving rounded-pill hit geometry so background windows are not blocked by rectangular shadow regions
 
 ### Fixed
+- fix(llm-kimi): normalize native tool schemas into OpenAI/LiteLLM `tools[].type=function` format before provider calls to prevent Kimi/Anthropic KeyError `'type'`
 - fix(llm-client): normalize `content: null` completion payloads to empty string for native tool-calling compatibility
 - test(backend): add regression coverage for `get_completion_response()` null-content normalization path
 - fix(frontend-chatbox): make response overlay/dashboard transitions robust by syncing an explicit main-process response phase (`idle|awaiting-first-chunk|streaming|complete|error`) so typing dots and streamed response pill reliably restore after returning from dashboard
