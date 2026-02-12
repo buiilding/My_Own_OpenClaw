@@ -24,7 +24,7 @@ describe('messageTransparency utils', () => {
       },
       {
         key: 'tool-schemas',
-        title: 'Tool Schemas (Available Tools - Embedded in Initial User Message)',
+        title: 'Tool Schemas (Available Tools)',
         content: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
         type: 'json',
       },
