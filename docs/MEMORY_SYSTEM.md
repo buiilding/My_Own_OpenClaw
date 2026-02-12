@@ -57,6 +57,14 @@ Files created per user:
 - Manages SQLite + FAISS indices
 - Supports search, add, update, delete
 - Generates embeddings via `RemoteEmbeddingClient`
+- Transcript-aware indexing behavior:
+  - `record_kind='transcript'` rows are stored in episodic SQLite.
+  - Only semantic-candidate transcript rows are embedded for retrieval
+    (user turns + assistant `llm-text` / `error` turns).
+  - Tool-call/tool-bundle transcript rows remain unembedded to avoid low-signal
+    JSON chatter in episodic retrieval.
+  - On startup, sidecar backfills missing embeddings for existing transcript
+    semantic-candidate rows.
 
 ### MemorySummarizer
 
@@ -69,6 +77,10 @@ Files created per user:
 - Deduplicates summaries using a `summary_hash` over source memory IDs.
 - Marks episodic memories as semanticized only after a successful summary write.
 - Uses `watermark_state.json` to track progress and resumes safely after restarts.
+- Summarizes both legacy episodic rows (`record_kind='memory'`) and transcript
+  rows (`record_kind='transcript'`).
+- Transcript summarization excludes tool-call/tool-bundle chatter when building
+  summary chunks, while still marking the full processed batch semanticized.
 
 ### MemoryTool
 

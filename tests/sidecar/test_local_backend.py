@@ -306,6 +306,7 @@ async def test_handle_store_memory_fails_without_store():
 async def test_handle_store_transcript_success():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
+    backend._summarizer = DummySummarizer()
 
     result = await backend._handle_store_transcript(
         content="hello",
@@ -330,6 +331,30 @@ async def test_handle_store_transcript_success():
     assert kwargs["model_id"] == "gpt-test"
     assert kwargs["model_provider"] == "openai"
     assert kwargs["screenshot"] == "base64-shot"
+    assert kwargs["skip_embedding"] is False
+    assert backend.memory_store.pending_count == 1
+    assert backend._summarizer.notified == ["user-1"]
+
+
+@pytest.mark.asyncio
+async def test_handle_store_transcript_skips_non_semantic_candidate():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+    backend._summarizer = DummySummarizer()
+
+    result = await backend._handle_store_transcript(
+        content='{"name":"run_shell_command"}',
+        user_id="user-1",
+        conversation_ref="conv-1",
+        role="tool",
+        message_type="tool-call",
+    )
+
+    assert result["success"] is True
+    _, _, _, _, kwargs = backend.memory_store.added[-1]
+    assert kwargs["skip_embedding"] is True
+    assert backend.memory_store.pending_count == 0
+    assert backend._summarizer.notified == []
 
 
 @pytest.mark.asyncio
