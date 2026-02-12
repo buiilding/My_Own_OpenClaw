@@ -110,7 +110,37 @@ Define canonical schema type contract and replacement boundaries.
 
 ### Status
 
-- `PENDING`
+- `COMPLETE` on 2026-02-12.
+- Files changed:
+  - `backend/src/core/types/schemas.py`
+  - `backend/src/core/types/__init__.py`
+  - `docs/LLM_INTEGRATION.md`
+  - `docs/TOOL_SYSTEM.md`
+  - `docs/prompts/openai-tool-object-schema-replacement-migration.md`
+- Behavior delta:
+  - Added canonical typed contract:
+    - `ToolSchema = {type: "function", function: {name, description?, parameters}}`
+    - `ToolFunctionSchema` exported in `backend/src/core/types/__init__.py`.
+  - Updated docs to declare strict replacement of legacy top-level tool schema shape (`{name, description, parameters}`) in runtime-critical paths.
+  - Documented canonical-shape required boundaries: registry/schema source, LLM transport params, transparency/events, provider boundary validation.
+- Tests run + results:
+  - `./scripts/python-in-env backend python -m py_compile backend/src/core/types/schemas.py backend/src/core/types/__init__.py`
+  - Result: pass.
+- Risks left:
+  - Runtime schema producers/consumers are not switched yet; legacy shape assumptions still exist outside Agent 1 ownership and must be removed by downstream agents.
+
+### Agent 1 -> Agent 2 Handoff
+
+- Treat `ToolSchema` in `backend/src/core/types/schemas.py` as the canonical runtime contract; do not emit legacy top-level `name/description/parameters` objects.
+- Update schema generation and policy/filtering to read/write nested `tool["function"]["parameters"]`.
+- Keep strict replacement behavior: no dual-shape fallback in runtime-critical paths.
+
+### Agent 1 Source Pack Evidence (Read Before Coding)
+
+- LiteLLM function-calling docs: canonical `tools[]` entries include `type: "function"` with nested `function` object; `tool_choice` is sent as request param.
+- LiteLLM Anthropic provider docs: provider supports `tools`, `tool_choice`, and `parallel_tool_calls` in translated path.
+- OpenAI function-calling docs: `tool_choice` semantics include `auto`, `required`, `none`, and forced function object.
+- Anthropic tool-use docs: follow-up ordering constraint still applies (`tool_result` blocks must directly follow prior `tool_use` chain), so schema replacement must not break message-order logic downstream.
 
 ## Agent 2: Schema Source Replacement (Sequential)
 
