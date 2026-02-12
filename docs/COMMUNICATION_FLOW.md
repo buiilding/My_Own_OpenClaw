@@ -195,8 +195,12 @@ so memory embedding/summarization calls target the same backend host.
 
 **`tool-call`**
 - Purpose: Tool execution request
-- Payload: `{ tool_name, parameters, raw_call, request_id?, metadata? }`
+- Payload: `{ tool_name, parameters, request_id, metadata? }`
 - Usage: Request tool execution
+
+Identity notes:
+- `request_id` is backend-generated and used to correlate the later `tool-result`.
+- `metadata.tool_call_id` is provider-origin when available (LLM/provider tool-call `id`); backend falls back to `tool_call_<index>` if absent.
 
 **`tool-bundle`**
 - Purpose: Atomic bundle of tools (single message)
