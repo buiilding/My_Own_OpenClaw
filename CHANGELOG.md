@@ -38,6 +38,7 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 - docs(prompts): mark native SDK tool-calling migration Agent 1 complete and add explicit Agent 2 handoff contract notes
+- docs(prompts): enforce Source Pack web-research gate for all migration agents and require source-evidence in each handoff
 - refactor(agent-tools): remove legacy session/tool-preparation compatibility paths and standardize screenshot preparation flow on a single async API
 - refactor(tool-results): replace `SimpleNamespace` execution payloads with typed result models and simplify waiting-result storage internals to single future maps
 - docs(agents): clarify that agents should continue scoped work when unrelated changes are present and report only scoped deltas
@@ -46,6 +47,8 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox): keep overlay fully interactive while preserving rounded-pill hit geometry so background windows are not blocked by rectangular shadow regions
 
 ### Fixed
+- fix(llm-client): normalize `content: null` completion payloads to empty string for native tool-calling compatibility
+- test(backend): add regression coverage for `get_completion_response()` null-content normalization path
 - fix(frontend-chatbox): make response overlay/dashboard transitions robust by syncing an explicit main-process response phase (`idle|awaiting-first-chunk|streaming|complete|error`) so typing dots and streamed response pill reliably restore after returning from dashboard
 - fix(sidecar-shell): default `run_shell_command` to OS user home when `directory` is omitted, align remote schema descriptions, and add sidecar regression coverage
 - fix(frontend-chat): restore `ApiClient.sendQuery(text, screenshotRef, screenshotUrl)` caller compatibility in message sender while still transmitting only schema-supported `screenshot_ref`

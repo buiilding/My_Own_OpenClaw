@@ -107,6 +107,17 @@ async def test_get_completion_non_string_content(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_completion_response_normalizes_none_content(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(response={"content": None})
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    result = await client.get_completion_response("model", [])
+    assert result["content"] == ""
+
+
+@pytest.mark.asyncio
 async def test_get_completion_stream_provider_error(monkeypatch):
     cfg = AppConfig()
     client = LiteLLMClient(cfg)
