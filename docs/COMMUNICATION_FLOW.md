@@ -184,7 +184,11 @@ so memory embedding/summarization calls target the same backend host.
 
 **`tool-bundle-result`**
 - Purpose: Result of atomic tool bundle
-- Payload: `{ bundle_id, status, screenshot?, system_state?, step_results, error? }`
+- Payload: `{ bundle_id, status, screenshot?, system_state?, step_results: [{ tool, status, output?, ...extra_fields }], error? }`
+- Notes:
+  - Step `status` convention is `ok` / `error`.
+  - Step `output` may be string or structured object.
+  - Frontend may synthesize step output `Tool <tool_name> executed successfully` when a tool succeeds with no explicit output.
 
 #### Server Message Types
 

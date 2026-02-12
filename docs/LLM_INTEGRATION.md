@@ -183,6 +183,7 @@ Notes:
 - `content` is always present (`""` when provider omits text).
 - `tool_calls` is structured and validated before it leaves the client layer.
 - `get_completion()` remains backward-compatible and returns only `content`.
+- Runtime behavior: when tool schemas are present for a turn, backend uses non-stream `get_completion_response()` to receive structured `tool_calls`; pure text turns keep streaming path.
 
 ### LLM Message Typing (History / Follow-up Turns)
 
@@ -289,9 +290,13 @@ APP_CONFIG = AppConfig(
 )
 ```
 
+Base URL note:
+- `https://api.kimi.com/coding` and `https://api.kimi.com/coding/v1` are both accepted in config; provider canonicalizes to `/coding` at runtime.
+
 **Features**:
 - Anthropic-compatible API
 - Optimized for coding tasks
+- Upstream outage handling: HTTP 520 responses are normalized to retry-friendly API errors (instead of forwarding raw HTML error pages).
 
 ### Ollama
 

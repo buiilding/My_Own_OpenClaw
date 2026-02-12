@@ -407,10 +407,23 @@ Result of an atomic tool bundle executed on the frontend.
   "status": "success", // success | partial_failure | failure
   "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg",
   "system_state": { "active_window": "...", "mouse_position": "..." },
-  "step_results": [ { "tool": "mouse_control", "status": "success" } ],
+  "step_results": [
+    {
+      "tool": "run_shell_command",
+      "status": "ok",
+      "output": { "stdout": "line-1", "exit_code": 0 },
+      "debug_trace": "optional-debug-info"
+    }
+  ],
   "error": null
 }
 ```
+
+`step_results` notes:
+- `status` convention from frontend bundle runner is `ok` / `error` (bundle-level `status` remains `success` / `partial_failure` / `failure`).
+- `output` may be a string or structured object.
+- additional per-step fields are allowed and preserved.
+- if a step succeeds without explicit `output`, frontend uses fallback text: `Tool <tool_name> executed successfully`.
 
 ### Wakeword Detected Message
 
