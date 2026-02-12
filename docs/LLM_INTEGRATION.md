@@ -144,6 +144,39 @@ messages = [
 ]
 ```
 
+## Native Tool-Calling Contract
+
+Migration contract for backend-native SDK tool calling.
+
+### Normalized Completion Response
+
+`LiteLLMClient.get_completion_response()` returns:
+
+- `content: str`
+- `tool_calls?: List[{id: str, name: str, arguments: Dict[str, Any]}]`
+- `finish_reason?: str | None`
+
+Notes:
+- `content` is always present (`""` when provider omits text).
+- `tool_calls` is structured and validated before it leaves the client layer.
+- `get_completion()` remains backward-compatible and returns only `content`.
+
+### LLM Message Typing (History / Follow-up Turns)
+
+Canonical message union now supports:
+
+- `system` and `user` messages with text/multimodal content.
+- `assistant` messages with optional `tool_calls`.
+- `tool` role messages with `tool_call_id` + `content` for tool results.
+
+This enables follow-up turns that continue after tool execution without text-JSON parser coupling.
+
+### Cutover Rules
+
+- Migration toggle: `AppConfig.native_tool_calling_enabled` (default `true`).
+- Agent 2 must wire provider request/response behavior to this contract.
+- Agent 3 must consume structured `tool_calls` from normalized response instead of parser output.
+
 ## Provider Details
 
 ### OpenAI
