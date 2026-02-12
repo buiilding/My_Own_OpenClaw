@@ -51,6 +51,7 @@ import {
 import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
+  findLastAssistantLlmTextMessageId,
   buildUserMessageFullUpdate,
   findFirstMessageIdBySender,
   findLastMessageIdBySender,
@@ -202,6 +203,19 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const updateFirstMessageBySender = useCallback((sender: ChatMessage['sender'], updates: Partial<ChatMessage>) => {
     const messageId = findFirstMessageIdBySender(useChatStore.getState().messages, sender);
+    if (messageId) {
+      updateMessage(messageId, updates);
+    }
+  }, [updateMessage]);
+
+  const updateLastAssistantLlmTextMessage = useCallback((
+    updates: Partial<ChatMessage>,
+    turnRef?: string,
+  ) => {
+    const messageId = findLastAssistantLlmTextMessageId(
+      useChatStore.getState().messages,
+      turnRef,
+    );
     if (messageId) {
       updateMessage(messageId, updates);
     }
@@ -366,11 +380,11 @@ export function useChatStream(enableTranscript: boolean = true) {
   }, [updateLastMessageBySender, recordTrackingEvent]);
 
   const handleAssistantMessageFull = useCallback((event: AssistantMessageFullEvent) => {
-    updateLastMessageBySender('assistant', {
+    updateLastAssistantLlmTextMessage({
       fullAssistantMessage: buildAssistantMessageFullUpdate(event.payload),
     }, event.turn_ref || undefined);
     recordTrackingEvent('assistant-message-full', event.turn_ref);
-  }, [updateLastMessageBySender, recordTrackingEvent]);
+  }, [updateLastAssistantLlmTextMessage, recordTrackingEvent]);
 
   const handleToolSchemas = useCallback((event: ToolSchemasEvent) => {
     updateFirstMessageBySender('user', {

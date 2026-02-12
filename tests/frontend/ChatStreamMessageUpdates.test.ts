@@ -2,6 +2,7 @@ import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
   buildUserMessageFullUpdate,
+  findLastAssistantLlmTextMessageId,
   findFirstMessageIdBySender,
   findLastMessageIdBySender,
   findStreamingCompleteAssistantMessage,
@@ -24,6 +25,7 @@ describe('chatStreamMessageUpdates', () => {
     expect(findLastMessageIdBySender(messages, 'assistant')).toBe('a3');
     expect(findLastMessageIdBySender(messages, 'assistant', 'turn-1')).toBe('a1');
     expect(findLastMessageIdBySender(messages, 'assistant', 'turn-3')).toBeNull();
+    expect(findLastAssistantLlmTextMessageId(messages, 'turn-2')).toBe('a3');
     expect(findFirstMessageIdBySender([], 'assistant')).toBeNull();
   });
 
@@ -56,6 +58,15 @@ describe('chatStreamMessageUpdates', () => {
       type: 'new',
       text: 'fresh',
       turnRef: 'turn-9',
+    });
+
+    expect(resolveStreamingResponseAction([
+      { id: 'a1', sender: 'assistant', text: 'preface', type: 'llm-text', isComplete: false, turnRef: 'turn-1' },
+      { id: 't1', sender: 'assistant', text: '{}', type: 'tool-output', turnRef: 'turn-1' },
+    ] as any, 'final', 'turn-1')).toEqual({
+      type: 'new',
+      text: 'final',
+      turnRef: 'turn-1',
     });
   });
 
