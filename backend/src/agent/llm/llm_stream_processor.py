@@ -31,10 +31,13 @@ logger = logging.getLogger(__name__)
 
 class TokenCounts(NamedTuple):
     """Token count information."""
-    input_tokens: int
-    output_tokens: int
+    prompt_tokens: int
+    visible_output_tokens: int
+    thinking_tokens: Optional[int]
+    output_tokens_total: int
     total_tokens: int
     conversation_tokens: int
+    usage_source: str
 
 
 class LLMStreamProcessor:
@@ -151,10 +154,13 @@ class LLMStreamProcessor:
 
             token_counts = await self._count_tokens(prompt, full_text)
             yield TokenCountEvent(
-                input_tokens=token_counts.input_tokens,
-                output_tokens=token_counts.output_tokens,
+                prompt_tokens=token_counts.prompt_tokens,
+                visible_output_tokens=token_counts.visible_output_tokens,
+                thinking_tokens=token_counts.thinking_tokens,
+                output_tokens_total=token_counts.output_tokens_total,
                 total_tokens=token_counts.total_tokens,
                 conversation_tokens=token_counts.conversation_tokens,
+                usage_source=token_counts.usage_source,
             )
 
             llm_total_time = time.perf_counter() - llm_start_time
@@ -399,7 +405,7 @@ class LLMStreamProcessor:
         """
         model_id = self.session.cfg.selected_model_id
         token_service = get_token_service()
-        input_tokens = token_service.count_tokens(prompt, model_id)
+        estimated_prompt_tokens = token_service.count_tokens(prompt, model_id)
 
         # ACCURACY FIX: Use token_service for output tokens instead of heuristic
         # This ensures accurate counting for code, non-English languages, and
@@ -410,15 +416,64 @@ class LLMStreamProcessor:
             "role": "assistant",
             "content": full_text
         }
-        output_tokens = token_service.count_tokens([output_message], model_id)
+        visible_output_tokens = token_service.count_tokens([output_message], model_id)
 
         # Count total conversation tokens (uses cached count to avoid O(N^2) re-encoding)
         # This is already fast (O(1) cache lookup), so no need to offload
         conversation_tokens = self.session.history.get_token_count(model_id)
 
-        return TokenCounts(
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            total_tokens=input_tokens + output_tokens,
-            conversation_tokens=conversation_tokens,
+        diagnostics = self.llm_client.get_last_stream_cache_diagnostics() or {}
+        provider_prompt_tokens = self._safe_int(diagnostics.get("prompt_tokens"))
+        provider_output_tokens = self._safe_int(diagnostics.get("completion_tokens"))
+        provider_total_tokens = self._safe_int(diagnostics.get("total_tokens"))
+        thinking_tokens = self._safe_int(diagnostics.get("thinking_tokens"))
+
+        prompt_tokens = (
+            provider_prompt_tokens
+            if provider_prompt_tokens is not None
+            else estimated_prompt_tokens
         )
+        output_tokens_total = (
+            provider_output_tokens
+            if provider_output_tokens is not None
+            else visible_output_tokens + (thinking_tokens or 0)
+        )
+        total_tokens = (
+            provider_total_tokens
+            if provider_total_tokens is not None
+            else prompt_tokens + output_tokens_total
+        )
+        usage_source = (
+            "provider"
+            if (
+                provider_prompt_tokens is not None
+                and provider_output_tokens is not None
+                and provider_total_tokens is not None
+            )
+            else "estimated"
+        )
+
+        return TokenCounts(
+            prompt_tokens=prompt_tokens,
+            visible_output_tokens=visible_output_tokens,
+            thinking_tokens=thinking_tokens,
+            output_tokens_total=output_tokens_total,
+            total_tokens=total_tokens,
+            conversation_tokens=conversation_tokens,
+            usage_source=usage_source,
+        )
+
+    @staticmethod
+    def _safe_int(value: Any) -> Optional[int]:
+        """Parse positive integer-ish values from provider diagnostics."""
+        if isinstance(value, bool) or value is None:
+            return None
+        if isinstance(value, int):
+            return value
+        if isinstance(value, float) and value.is_integer():
+            return int(value)
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped.isdigit():
+                return int(stripped)
+        return None

@@ -148,10 +148,13 @@ class FullResponseEvent(StreamingEvent):
 @dataclass
 class TokenCountEvent(StreamingEvent):
     """Event containing token usage information."""
-    input_tokens: int
-    output_tokens: int
+    prompt_tokens: int
+    visible_output_tokens: int
+    thinking_tokens: Optional[int]
+    output_tokens_total: int
     total_tokens: int
     conversation_tokens: int
+    usage_source: str
 
     def __post_init__(self):
         self.type = StreamingEventType.TOKEN_COUNT

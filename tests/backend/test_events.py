@@ -267,32 +267,44 @@ class TestTokenCountEvent:
 
     def test_init(self):
         event = TokenCountEvent(
-            input_tokens=100,
-            output_tokens=50,
+            prompt_tokens=100,
+            visible_output_tokens=38,
+            thinking_tokens=12,
+            output_tokens_total=50,
             total_tokens=150,
-            conversation_tokens=1000
+            conversation_tokens=1000,
+            usage_source="provider",
         )
         
-        assert event.input_tokens == 100
-        assert event.output_tokens == 50
+        assert event.prompt_tokens == 100
+        assert event.visible_output_tokens == 38
+        assert event.thinking_tokens == 12
+        assert event.output_tokens_total == 50
         assert event.total_tokens == 150
         assert event.conversation_tokens == 1000
+        assert event.usage_source == "provider"
         assert event.type.value == "token_count"
 
     def test_to_dict(self):
         event = TokenCountEvent(
-            input_tokens=100,
-            output_tokens=50,
+            prompt_tokens=100,
+            visible_output_tokens=50,
+            thinking_tokens=None,
+            output_tokens_total=50,
             total_tokens=150,
-            conversation_tokens=1000
+            conversation_tokens=1000,
+            usage_source="estimated",
         )
         result = event.to_dict()
         
         assert result["type"] == "token_count"
-        assert result["input_tokens"] == 100
-        assert result["output_tokens"] == 50
+        assert result["prompt_tokens"] == 100
+        assert result["visible_output_tokens"] == 50
+        assert result["thinking_tokens"] is None
+        assert result["output_tokens_total"] == 50
         assert result["total_tokens"] == 150
         assert result["conversation_tokens"] == 1000
+        assert result["usage_source"] == "estimated"
 
 
 class TestMemoryStoreEvent:

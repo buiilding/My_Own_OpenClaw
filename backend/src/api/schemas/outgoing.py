@@ -172,10 +172,13 @@ class ToolSchemasMessage(BaseMessage):
 class TokenCountPayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    input_tokens: Optional[int] = None
-    output_tokens: Optional[int] = None
-    total_tokens: Optional[int] = None
-    conversation_tokens: Optional[int] = None
+    prompt_tokens: int
+    visible_output_tokens: int
+    thinking_tokens: Optional[int]
+    output_tokens_total: int
+    total_tokens: int
+    conversation_tokens: int
+    usage_source: Literal["provider", "estimated"]
 
 
 class TokenCountMessage(BaseMessage):
