@@ -13,6 +13,7 @@ from backend.src.api.handlers.settings import (
 from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.api.handlers import query as query_handler_module
+from backend.src.api.services import rehydrate_execution as rehydrate_execution_module
 from backend.src.api.schema import (
     ListModelsMessage,
     LoadSettingsMessage,
@@ -769,3 +770,53 @@ async def test_rehydrate_handler_rebuilds_session_history():
     assert session_manager.session.rehydrate_calls
     assert session_manager.session.rehydrate_calls[0]["conversation_ref"] == "conv_resume_1"
     assert len(session_manager.session.rehydrate_calls[0]["entries"]) == 2
+
+
+@pytest.mark.asyncio
+async def test_rehydrate_handler_ignores_missing_screenshot_ref(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = RehydrateConversationHandler(session_manager)
+
+    class MissingArtifactStore:
+        def load_base64(self, artifact_id: str):  # pragma: no cover - defensive shape
+            raise RuntimeError(f"artifact missing: {artifact_id}")
+
+    monkeypatch.setattr(
+        rehydrate_execution_module.RehydrateExecutionService,
+        "_build_artifact_store",
+        lambda self, artifact_store_cls: MissingArtifactStore(),
+    )
+
+    message = RehydrateConversationMessage(
+        id="msg_rehydrate_2",
+        type="rehydrate-conversation",
+        user_id="user_1",
+        payload={
+            "conversation_ref": "conv_resume_2",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "hello",
+                    "message_type": "user",
+                    "timestamp": "2026-02-02T20:00:00Z",
+                    "screenshot_ref": "missing-artifact.jpg",
+                },
+                {
+                    "role": "assistant",
+                    "content": "hi",
+                    "message_type": "llm-text",
+                    "timestamp": "2026-02-02T20:00:01Z",
+                },
+            ],
+            "rehydrate_mode": "replace",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert not websocket.sent
+    assert session_manager.session.rehydrate_calls
+    entries = session_manager.session.rehydrate_calls[0]["entries"]
+    assert entries[0]["image_data"] is None
+    assert entries[1]["image_data"] is None
