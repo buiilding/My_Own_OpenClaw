@@ -55,6 +55,20 @@ export function findLastMessageIdBySender(
   return lastMessage ? lastMessage.id : null;
 }
 
+export function findLastAssistantLlmTextMessageId(
+  messages: ChatMessage[],
+  turnRef?: string,
+): string | null {
+  const lastMessage = messages.findLast(
+    (message) => (
+      message.sender === 'assistant'
+      && message.type === 'llm-text'
+      && (!turnRef || message.turnRef === turnRef)
+    ),
+  );
+  return lastMessage ? lastMessage.id : null;
+}
+
 export function findFirstMessageIdBySender(
   messages: ChatMessage[],
   sender: ChatMessage['sender'],
@@ -69,21 +83,13 @@ export function resolveStreamingResponseAction(
   turnRef?: string,
 ): StreamingResponseAction {
   const normalizedChunkText = typeof chunkText === 'string' ? chunkText : '';
-  const lastMessage = turnRef
-    ? messages.findLast(
-      (message) => (
-        message.sender === 'assistant'
-        && !message.isComplete
-        && message.type === 'llm-text'
-        && message.turnRef === turnRef
-      ),
-    )
-    : messages[messages.length - 1];
+  const lastMessage = messages[messages.length - 1];
   if (
     lastMessage
     && lastMessage.sender === 'assistant'
     && !lastMessage.isComplete
     && lastMessage.type === 'llm-text'
+    && (!turnRef || lastMessage.turnRef === turnRef)
   ) {
     return {
       type: 'append',

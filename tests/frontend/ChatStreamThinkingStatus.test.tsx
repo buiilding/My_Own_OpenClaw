@@ -500,16 +500,18 @@ describe('useChatStream', () => {
     act(() => {
       useChatStore.setState({
         messages: [
-          { id: 'user-1', sender: 'user', text: 'ask' },
-          { id: 'assistant-1', sender: 'assistant', text: 'reply' },
+          { id: 'user-1', sender: 'user', text: 'ask', turnRef: 'turn-1' },
+          { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-1' },
         ],
       });
       emitBackendEvent({
         type: 'user-message-full',
+        turn_ref: 'turn-1',
         payload: { content: 'raw user', metadata: { a: 1 } },
       });
       emitBackendEvent({
         type: 'assistant-message-full',
+        turn_ref: 'turn-1',
         payload: { content: 'raw assistant' },
       });
     });
@@ -580,7 +582,7 @@ describe('useChatStream', () => {
     expect(updateTranscriptSession).toHaveBeenCalledWith('conv-2', 'user-2');
   });
 
-  test('routes streaming chunks to assistant message with matching turn_ref', () => {
+  test('does not append chunk to non-contiguous older llm-text for same turn_ref', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -606,8 +608,90 @@ describe('useChatStream', () => {
       });
     });
 
-    const assistantOld = useChatStore.getState().messages.find((message) => message.id === 'assistant-old');
-    expect(assistantOld).toEqual(expect.objectContaining({ text: 'old answer +next' }));
+    const messages = useChatStore.getState().messages;
+    const assistantOld = messages.find((message) => message.id === 'assistant-old');
+    expect(assistantOld).toEqual(expect.objectContaining({ text: 'old answer' }));
+    expect(messages.at(-1)).toEqual(
+      expect.objectContaining({
+        sender: 'assistant',
+        type: 'llm-text',
+        text: ' +next',
+        turnRef: 'turn-old',
+      }),
+    );
+  });
+
+  test('creates a new llm-text message when latest turn message is tool output', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          { id: 'user-1', sender: 'user', text: 'check', turnRef: 'turn-1' },
+          {
+            id: 'assistant-preface',
+            sender: 'assistant',
+            text: 'I will check that.',
+            type: 'llm-text',
+            isComplete: false,
+            turnRef: 'turn-1',
+          },
+          {
+            id: 'tool-output-1',
+            sender: 'assistant',
+            text: 'tool output',
+            type: 'tool-output',
+            turnRef: 'turn-1',
+          },
+        ],
+      });
+
+      emitBackendEvent({
+        type: 'streaming-response',
+        turn_ref: 'turn-1',
+        payload: { text: 'Here is the final answer.' },
+      });
+    });
+
+    const messages = useChatStore.getState().messages;
+    const preface = messages.find((message) => message.id === 'assistant-preface');
+    expect(preface).toEqual(expect.objectContaining({ text: 'I will check that.' }));
+    expect(messages.at(-1)).toEqual(
+      expect.objectContaining({
+        sender: 'assistant',
+        type: 'llm-text',
+        text: 'Here is the final answer.',
+        turnRef: 'turn-1',
+      }),
+    );
+  });
+
+  test('assistant-message-full does not attach to tool-output messages', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          { id: 'user-1', sender: 'user', text: 'check', turnRef: 'turn-1' },
+          {
+            id: 'tool-output-1',
+            sender: 'assistant',
+            text: 'tool output',
+            type: 'tool-output',
+            turnRef: 'turn-1',
+          },
+        ],
+      });
+
+      emitBackendEvent({
+        type: 'assistant-message-full',
+        turn_ref: 'turn-1',
+        payload: { content: 'final text' },
+      });
+    });
+
+    const toolOutput = useChatStore.getState().messages.find((message) => message.id === 'tool-output-1');
+    expect(toolOutput?.fullAssistantMessage).toBeUndefined();
   });
 
   test('tracks stream lifecycle fields across local-user-message and chunks', () => {
