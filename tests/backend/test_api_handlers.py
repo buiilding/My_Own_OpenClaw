@@ -117,6 +117,23 @@ class DummySilentAgent:
             }
 
 
+class DummyAssistantFullThenCompleteAgent:
+    def __init__(self):
+        self.cfg = AppConfig()
+        self.user_id = "user_1"
+        self.session_id = "session_1"
+
+    async def process_query(
+        self,
+        text,
+        image_data=None,
+        message_content=None,
+        conversation_ref=None,
+    ):
+        yield {"type": "assistant_message_full", "content": "Final answer from assistant full"}
+        yield {"type": "streaming-complete", "payload": {}}
+
+
 class DummySessionManager:
     def __init__(self):
         self.session = DummyAgent()
@@ -221,8 +238,7 @@ async def test_query_handler_success(monkeypatch):
         "conversation_ref": "conv_test",
         "turn_ref": "msg_1",
     }
-    assert second_event.final_response
-    assert "empty final response" in second_event.final_response
+    assert second_event.final_response == "ok"
 
 
 @pytest.mark.asyncio
@@ -279,6 +295,58 @@ async def test_query_handler_emits_fallback_chunk_and_completion_when_agent_stre
         "turn_ref": "msg_silent_1",
     }
     assert second_event.final_response == first_event.content
+
+
+@pytest.mark.asyncio
+async def test_query_handler_backfills_chunk_from_assistant_full_before_completion(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session = DummyAssistantFullThenCompleteAgent()
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+    created_pipelines = []
+
+    class DummyPipeline:
+        def __init__(self, *_args, **_kwargs):
+            self.processed = []
+            created_pipelines.append(self)
+
+        async def process(self, event, tts_service, msg_id, context=None):
+            self.processed.append((event, msg_id, context))
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    monkeypatch.setattr(
+        "backend.src.api.handlers.query.StreamPipeline",
+        DummyPipeline,
+    )
+
+    message = QueryMessage(
+        id="msg_assistant_full_1",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "hi",
+            "conversation_ref": "conv_test",
+            "content": "<user_query>hi</user_query>",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert len(created_pipelines) == 1
+    assert len(created_pipelines[0].processed) == 3
+    first_event, *_ = created_pipelines[0].processed[0]
+    second_event, *_ = created_pipelines[0].processed[1]
+    third_event, *_ = created_pipelines[0].processed[2]
+
+    assert first_event == {"type": "assistant_message_full", "content": "Final answer from assistant full"}
+    assert isinstance(second_event, ChunkEvent)
+    assert second_event.content == "Final answer from assistant full"
+    assert isinstance(third_event, StreamingCompleteEvent)
+    assert third_event.final_response == "Final answer from assistant full"
 
 
 @pytest.mark.asyncio
