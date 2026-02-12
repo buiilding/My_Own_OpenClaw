@@ -447,36 +447,57 @@ ThinkingEvent(content="reasoning")
 ErrorEvent(content="error message")
 ```
 
-## Tool Calling (Prompt-Embedded Schemas)
+## Tool Calling (Native API Tool Objects)
 
 ### Tool Schema Injection
 
-Tool schemas are embedded in the initial user message (as a `<tool_schemas>` XML section). They are not passed as a separate LLM API parameter.
+Tool schemas are passed to LiteLLM via request params:
+- `tools`
+- optional `tool_choice`
+- optional `parallel_tool_calls`
+
+Canonical schema shape:
+```json
+{
+  "type": "function",
+  "function": {
+    "name": "read_file",
+    "description": "Read file contents",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "file_path": { "type": "string" }
+      },
+      "required": ["file_path"]
+    }
+  }
+}
+```
 
 ### Tool Call Format
 
-The parser accepts two JSON formats:
-
-**Standard tools**:
-```json
-{ "functionCall": { "name": "read_file", "args": { "path": "/tmp/a.txt" } } }
-```
-
-**Computer-use tools (requires metadata)**:
+Provider responses are normalized to:
 ```json
 {
-  "metadata": { "description": "...", "explanation": "...", "expectation": "..." },
-  "action": { "functionCall": { "name": "mouse_control", "args": { "x": 10, "y": 20, "action": "click" } } }
+  "content": "",
+  "tool_calls": [
+    {
+      "id": "call_123",
+      "name": "read_file",
+      "arguments": { "file_path": "/tmp/a.txt" }
+    }
+  ],
+  "finish_reason": "tool_calls"
 }
 ```
 
 ### Tool Calling Flow
 
-1. LLM reads `<tool_schemas>` from the first user message.
-2. LLM generates tool calls
-3. Tools executed
-4. Results sent back to LLM
-5. LLM generates final response
+1. Backend sends canonical `tools[]` to provider.
+2. Provider returns structured tool calls.
+3. Backend executes tool orchestration path.
+4. Tool results are appended to history with `role=tool` + `tool_call_id`.
+5. LLM receives follow-up context and returns final response.
 
 ## Error Handling
 

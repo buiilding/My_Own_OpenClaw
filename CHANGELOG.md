@@ -39,6 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- docs(llm,api): align tool-calling docs and examples to canonical OpenAI/LiteLLM tool object shape; remove stale `<tool_schemas>` embedding references
 - docs(prompts): mark OpenAI tool-object schema replacement migration Agent 6 complete with final integration closure notes and residual environment-risk documentation
 - test(tool-schema): migrate backend/frontend assertions to canonical OpenAI/LiteLLM tool-object shape, add strict malformed-tool rejection coverage, and align chat transparency stream tests with canonical `tool_schemas`
 - refactor(transparency-tool-schemas): enforce canonical OpenAI/LiteLLM `type=function` nested `function` schema across transparency events, outgoing API payload models, and frontend transparency adapters; add strict event payload validation and Agent 4 migration status/handoff updates

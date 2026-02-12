@@ -122,7 +122,7 @@ class SystemPromptChunk(TypedDict):
 
     type: Literal["system_prompt"]
     content: str
-    tool_schemas: Optional[Dict[str, Any]]
+    tool_schemas: Optional[List["ToolSchema"]]
 
 
 class UserMessageFullChunk(TypedDict):
