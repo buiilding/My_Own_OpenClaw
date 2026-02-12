@@ -44,8 +44,12 @@ export interface ChatMessage {
  */
 export interface TokenCounts {
   prompt_tokens?: number;
-  completion_tokens?: number;
+  visible_output_tokens?: number;
+  thinking_tokens?: number | null;
+  output_tokens_total?: number;
   total_tokens?: number;
+  conversation_tokens?: number;
+  usage_source?: 'provider' | 'estimated';
 }
 
 export type StreamPhase =

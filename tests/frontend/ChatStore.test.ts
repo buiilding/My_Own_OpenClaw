@@ -108,7 +108,15 @@ describe('chatStore', () => {
   });
 
   test('setTokenCounts is a no-op when value reference is unchanged', () => {
-    const tokenCounts = { prompt_tokens: 5, completion_tokens: 2, total_tokens: 7 };
+    const tokenCounts = {
+      prompt_tokens: 5,
+      visible_output_tokens: 1,
+      thinking_tokens: 1,
+      output_tokens_total: 2,
+      total_tokens: 7,
+      conversation_tokens: 7,
+      usage_source: 'provider' as const,
+    };
     useChatStore.setState({ tokenCounts });
     const beforeSnapshot = useChatStore.getState();
     useChatStore.getState().setTokenCounts(tokenCounts);
