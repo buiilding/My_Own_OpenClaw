@@ -108,7 +108,16 @@ class MemorySummarizer:
                     if summaries_done >= self.settings.max_summaries_per_cycle:
                         break
 
-                    conversation_ids = await self.memory_store.get_unsemanticized_conversation_windows(user_id)
+                    try:
+                        conversation_ids = await self.memory_store.get_unsemanticized_conversation_windows(user_id)
+                    except Exception as e:
+                        logger.warning(
+                            "Failed to load unsemanticized conversation windows "
+                            "(user_id=%s): %s",
+                            user_id,
+                            e,
+                        )
+                        continue
                     if not conversation_ids:
                         continue
 
@@ -116,10 +125,20 @@ class MemorySummarizer:
                         if summaries_done >= self.settings.max_summaries_per_cycle:
                             break
 
-                        summaries_done += await self._summarize_conversation_batch(
-                            user_id=user_id,
-                            conversation_id=conversation_id,
-                        )
+                        try:
+                            summaries_done += await self._summarize_conversation_batch(
+                                user_id=user_id,
+                                conversation_id=conversation_id,
+                            )
+                        except Exception as e:
+                            logger.warning(
+                                "Failed semantic summarization batch "
+                                "(user_id=%s, conversation_id=%s): %s",
+                                user_id,
+                                conversation_id,
+                                e,
+                            )
+                            continue
 
                 if summaries_done:
                     await self.memory_store.update_watermark(last_semanticized_id=None, pending_message_count=0)
@@ -162,13 +181,27 @@ class MemorySummarizer:
         return idle_seconds >= self.settings.idle_seconds
 
     async def _get_user_ids_with_work(self) -> List[str]:
-        user_ids = set(self._known_user_ids)
+        ordered_user_ids: List[str] = []
+        seen: Set[str] = set()
+
+        for user_id in self._known_user_ids:
+            if user_id and user_id not in seen:
+                ordered_user_ids.append(user_id)
+                seen.add(user_id)
+
+        if ordered_user_ids:
+            return ordered_user_ids
+
         try:
-            discovered = await self.memory_store.get_user_ids_with_unsemanticized_memories()
-            user_ids.update(discovered)
+            # Cold-start fallback: process only the most recent user id.
+            discovered = await self.memory_store.get_user_ids_with_unsemanticized_memories(limit=1)
+            for user_id in discovered:
+                if user_id and user_id not in seen:
+                    ordered_user_ids.append(user_id)
+                    seen.add(user_id)
         except Exception as e:
             logger.warning(f"Failed to discover user IDs for summarization: {e}")
-        return [uid for uid in user_ids if uid]
+        return ordered_user_ids
 
     async def _summarize_conversation_batch(
         self,

@@ -40,25 +40,11 @@ class SemanticSummarizationService:
     ) -> tuple[str, List[str]]:
         """Summarize conversations and extract semantic facts."""
         try:
-            session = session_manager.get_session(user_id)
-            if session:
-                merged_config = session.cfg
-                logger.debug(
-                    "Semantic summarize using session config "
-                    "(user_id=%s, provider=%s, model=%s)",
-                    user_id,
-                    merged_config.model_provider,
-                    merged_config.selected_model_id,
-                )
-            else:
-                merged_config = container.config
-                logger.debug(
-                    "Semantic summarize using global config (no active session) "
-                    "(user_id=%s, provider=%s, model=%s)",
-                    user_id,
-                    merged_config.model_provider,
-                    merged_config.selected_model_id,
-                )
+            merged_config = self._resolve_effective_config(
+                user_id=user_id,
+                session_manager=session_manager,
+                container=container,
+            )
 
             if merged_config.model_mode != "local" and not merged_config.api_key:
                 merged_config = self._load_api_key_for_provider(merged_config)
@@ -92,6 +78,29 @@ class SemanticSummarizationService:
                 status_code=500,
                 detail="Summarization failed: An internal error occurred",
             ) from e
+
+    def _resolve_effective_config(self, *, user_id: str, session_manager: Any, container: Any):
+        session = session_manager.get_session(user_id)
+        if session:
+            merged_config = session.cfg
+            logger.debug(
+                "Semantic summarize using session config "
+                "(user_id=%s, provider=%s, model=%s)",
+                user_id,
+                merged_config.model_provider,
+                merged_config.selected_model_id,
+            )
+            return merged_config
+
+        merged_config = container.config
+        logger.debug(
+            "Semantic summarize using global config (no active session) "
+            "(user_id=%s, provider=%s, model=%s)",
+            user_id,
+            merged_config.model_provider,
+            merged_config.selected_model_id,
+        )
+        return merged_config
 
     @staticmethod
     def _build_prompt(conversations: List[str]) -> str:
