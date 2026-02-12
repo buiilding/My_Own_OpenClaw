@@ -256,7 +256,48 @@ Consume canonical tools directly in provider path; remove schema-shape adapters.
 
 ### Status
 
-- `PENDING`
+- `COMPLETE` on 2026-02-12.
+- Files changed:
+  - `backend/src/llm/providers/base.py`
+  - `docs/prompts/openai-tool-object-schema-replacement-migration.md`
+- Behavior delta:
+  - Removed provider-boundary legacy schema adapter behavior that converted top-level `{name, description, parameters}` tool entries into canonical shape.
+  - `LLMProvider._build_request_params()` now validates `tools` entries against canonical contract and fails fast with actionable `LLMAPIError`s.
+  - Canonical validation now requires:
+    - `tool.type == "function"`
+    - `tool.function` object present
+    - `tool.function.name` non-empty string
+    - `tool.function.parameters` present and object
+    - `tool.function.description` string when provided
+  - Forwarding semantics for `tools`, `tool_choice`, and `parallel_tool_calls` remain unchanged after validation.
+- Tests run + results:
+  - `./scripts/python-in-env backend python -m py_compile backend/src/llm/client.py backend/src/llm/providers/base.py backend/src/llm/providers/openai.py backend/src/llm/providers/anthropic.py backend/src/llm/providers/kimi_coding.py backend/src/llm/providers/gemini.py backend/src/llm/providers/openrouter.py backend/src/llm/providers/mistral.py backend/src/llm/providers/local.py`
+  - Result: pass.
+  - `./scripts/python-in-env backend pytest -q tests/backend/test_llm_provider_base.py tests/backend/test_llm_client.py`
+  - Result: 3 failing tests in `tests/backend/test_llm_provider_base.py`, all expected from strict replacement (tests still assert legacy normalization/skip behavior or missing `function.parameters` acceptance).
+  - `./scripts/python-in-env backend python - <<'PY' ... AnthropicProvider/KimiCodingProvider _build_request_params() validation probe ... PY`
+  - Result: both providers reject legacy top-level tool schema with clear `LLMAPIError`, and accept canonical schema with `type=function`, preventing downstream `KeyError: 'type'` transport path.
+- Risks left:
+  - Provider-base tests still encode legacy adapter expectations and must be migrated by Agent 5.
+  - Some canonical test fixtures still omit `function.parameters`; strict contract now rejects these.
+  - Agent 4 transparency/event migration remains required for end-to-end contract alignment.
+
+### Agent 3 -> Agent 5/6 Handoff
+
+- Agent 5:
+  - Update `tests/backend/test_llm_provider_base.py` expectations from adapter behavior to strict canonical validation errors.
+  - Add/adjust regression tests for missing `type`, missing `function`, missing `function.parameters`, and non-object `function.parameters`.
+  - Ensure canonical tool fixtures always include `function.parameters` object.
+- Agent 6:
+  - Re-run full gate after Agent 4 + Agent 5 land to confirm no remaining runtime/test legacy-shape assumptions.
+  - Include a provider smoke (Anthropic/Kimi path) to verify strict validation catches malformed tool objects before LiteLLM boundary.
+
+### Agent 3 Source Pack Evidence (Read Before Coding)
+
+- LiteLLM function-calling docs define `tools` entries in OpenAI tool-object form with `type: "function"` + nested `function` payload.
+- LiteLLM Anthropic provider docs list `tools`, `tool_choice`, and `parallel_tool_calls` as supported translated request params.
+- OpenAI function-calling docs describe same canonical tool-object shape and `tool_choice` modes (`auto`, `required`, `none`, forced function).
+- Anthropic tool-use docs emphasize follow-up message ordering (`tool_result` after `tool_use`); Agent 3 made no ordering changes, only request-schema validation.
 
 ## Agent 4: Transparency/Event Contract Replacement (Parallel after Agent 2)
 
