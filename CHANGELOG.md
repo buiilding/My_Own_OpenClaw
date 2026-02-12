@@ -42,6 +42,7 @@ Includes the last 300 commits on `main`.
 - refactor(token-count-contract): replace `token-count` payload fields with `prompt_tokens`, `visible_output_tokens`, `thinking_tokens`, `output_tokens_total`, `total_tokens`, `conversation_tokens`, and `usage_source` (breaking schema change)
 - feat(token-usage): capture provider usage on both streaming and non-stream completion paths, extract reasoning/thinking token counters from provider usage payloads, and prefer provider totals when available
 - feat(frontend-token-display): render `prompt`, `output (visible)`, `thinking`, and `output (total)` counters in chat token stats and display missing `thinking_tokens` as `N/A`
+- docs(api,llm): document new breaking `token-count` payload fields and `usage_source` semantics for provider-vs-estimated token accounting
 - docs(api,troubleshooting): add `rehydrate-conversation` API contract and troubleshooting notes for local model discovery warnings plus missing screenshot artifact fallback during resume
 - docs(runtime-behavior): document structured bundle step output semantics, bundle-step fallback output text, non-stream tool-calling path when tools are present, and Kimi base-url/HTTP-520 runtime handling notes
 - docs(tool-call-ids): clarify ID provenance in API/flow docs (`request_id` backend-generated correlation id; `metadata.tool_call_id` provider-origin with backend fallback when missing)
