@@ -115,12 +115,25 @@ class WakewordDetectedMessage(BaseMessage):
     payload: WakewordDetectedPayload = Field(default_factory=WakewordDetectedPayload)
 
 
-class ToolResultMetadata(BaseModel):
-    """Allowed metadata keys for tool results from frontend."""
+class ToolResultSystemState(BaseModel):
+    """Model-facing system state attached to each tool-result payload."""
 
     model_config = ConfigDict(extra="forbid")
 
-    is_preformatted: Optional[bool] = None
+    active_window: str
+    mouse_position: str
+
+
+class ToolResultData(BaseModel):
+    """Tool-result data emitted by frontend and consumed by backend."""
+
+    # Keep open for tool-specific data fields while freezing shared contract keys.
+    model_config = ConfigDict(extra="allow")
+
+    llm_content: str
+    system_state: ToolResultSystemState
+    screenshot: Optional[str] = None
+    screenshot_ref: Optional[str] = None
 
 
 class ToolResultPayload(BaseModel):
@@ -130,9 +143,8 @@ class ToolResultPayload(BaseModel):
 
     request_id: str
     success: bool
-    data: Optional[Dict[str, Any]] = None
+    data: Optional[ToolResultData] = None
     error: Optional[str] = None
-    metadata: Optional[ToolResultMetadata] = None
 
 
 class ToolResultMessage(BaseMessage):
@@ -158,6 +170,7 @@ class ToolBundleResultPayload(BaseModel):
 
     bundle_id: str
     status: Literal["success", "partial_failure", "failure"]
+    # Screenshot fields are conditional: include only for computer-use bundles.
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
     system_state: Optional[Dict[str, Any]] = None
