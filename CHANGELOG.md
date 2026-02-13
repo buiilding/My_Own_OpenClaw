@@ -39,6 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(prompts,tools): move shell/computer tool operation guidance from global system prompt into backend tool descriptions and argument schemas (`run_shell_command`, `process`, `mouse_control`, `keyboard_control`, `switch_tab`, `get_open_windows`)
 - fix(filesystem): upgrade sidecar `replace` with context-aware matching (`before_context`/`after_context`/`occurrence_index`/`require_eof`), strict-vs-lenient match modes, atomic `replacements[]` batch execution, and structured result payloads (`matched_spans` + `unified_diff`)
 - fix(llm-stream): route all tool-calling turns (including Kimi Coding) through non-stream completion to avoid streamed tool-argument concat/JSON-parse fallback (`{}`) while keeping non-tool turns on streaming path
 - refactor(tool-result-contract): freeze incoming `tool-result` schema by removing `metadata.is_preformatted`, requiring typed `system_state` (`active_window`, `mouse_position`), and documenting Agent 1 migration status/handoff in the prompt runbook
@@ -83,6 +84,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(memory-summarizer): exclude tool output/result transcript rows (single and bundled) from semantic summarization chunk input
 - fix(memory-summarizer): raise idle semantic summarization threshold to 6 transcript messages
 - refactor(memory-sidecar): remove legacy episodic-memory fallback paths and run transcript-only filtering for conversation APIs and semantic summarization selectors
 - fix(memory-summarizer): count pending semantic summarization work per completed assistant turn (assistant `llm-text`/`error`) instead of counting both user+assistant transcript rows
