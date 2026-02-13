@@ -921,3 +921,72 @@ async def test_rehydrate_handler_ignores_missing_screenshot_ref(monkeypatch):
     entries = session_manager.session.rehydrate_calls[0]["entries"]
     assert entries[0]["image_data"] is None
     assert entries[1]["image_data"] is None
+
+
+@pytest.mark.asyncio
+async def test_rehydrate_handler_rebuilds_tool_linkage_for_resumed_transcript():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = RehydrateConversationHandler(session_manager)
+
+    message = RehydrateConversationMessage(
+        id="msg_rehydrate_tool_linkage",
+        type="rehydrate-conversation",
+        user_id="user_1",
+        payload={
+            "conversation_ref": "conv_resume_tool_linkage",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "please read the file",
+                    "message_type": "user",
+                    "timestamp": "2026-02-12T10:00:00Z",
+                },
+                {
+                    "role": "tool",
+                    "content": "{\"name\":\"read_file\",\"args\":{\"file_path\":\"/tmp/a.txt\"}}",
+                    "message_type": "tool-call",
+                    "timestamp": "2026-02-12T10:00:01Z",
+                },
+                {
+                    "role": "tool",
+                    "content": "read_file output:\nFile path: /tmp/a.txt\n\nalpha",
+                    "message_type": "tool-output",
+                    "timestamp": "2026-02-12T10:00:02Z",
+                },
+                {
+                    "role": "tool",
+                    "content": "replace output:\nstatus: successful",
+                    "message_type": "tool-output",
+                    "tool_name": "replace",
+                    "correlation_id": "call_replace_1",
+                    "timestamp": "2026-02-12T10:00:03Z",
+                },
+            ],
+            "rehydrate_mode": "replace",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert not websocket.sent
+    assert session_manager.session.rehydrate_calls
+
+    entries = session_manager.session.rehydrate_calls[0]["entries"]
+    assert [entry["role"] for entry in entries] == [
+        "user",
+        "assistant",
+        "tool",
+        "assistant",
+        "tool",
+    ]
+
+    first_call = entries[1]["tool_calls"][0]
+    assert first_call["name"] == "read_file"
+    assert first_call["arguments"] == {"file_path": "/tmp/a.txt"}
+    assert entries[2]["tool_call_id"] == first_call["id"]
+
+    second_call = entries[3]["tool_calls"][0]
+    assert second_call["id"] == "call_replace_1"
+    assert second_call["name"] == "replace"
+    assert entries[4]["tool_call_id"] == "call_replace_1"

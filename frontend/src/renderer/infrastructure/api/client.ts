@@ -12,6 +12,8 @@ export type RehydrateConversationEntry = {
   message_type?: string;
   tool_name?: string | null;
   correlation_id?: string | null;
+  tool_call_id?: string | null;
+  tool_calls?: Array<Record<string, unknown>> | null;
   timestamp?: string | null;
   screenshot_ref?: string | null;
   screenshot?: string | null;

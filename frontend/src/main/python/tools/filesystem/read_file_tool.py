@@ -108,6 +108,8 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
         content_text = "".join(content_lines)
         is_truncated = effective_start > 0 or end < total_lines
 
+        llm_header = f"File path: {path}\n\n"
+
         # Build llm_content with exact SDK format if truncated
         if is_truncated:
             lines_shown = len(content_lines)
@@ -130,6 +132,7 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
                 )
             
             llm_content = (
+                f"{llm_header}"
                 "IMPORTANT: The file content has been truncated.\n"
                 f"{status_line}"
                 "Action: To read more of the file, you can use the 'offset' and 'limit' parameters in a subsequent 'read_file' call. "
@@ -141,11 +144,15 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
         else:
             if truncated_line_count > 0:
                 llm_content = (
+                    f"{llm_header}"
                     f"Note: {truncated_line_count} line(s) were truncated to {MAX_LINE_LENGTH} characters.\n\n"
                     f"{content_text}"
                 )
             else:
-                llm_content = content_text or "File is empty."
+                if content_text:
+                    llm_content = f"{llm_header}{content_text}"
+                else:
+                    llm_content = f"{llm_header}File is empty."
         
         return ToolResult.success_result({
             "content": content_text,

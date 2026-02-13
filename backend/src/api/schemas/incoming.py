@@ -39,6 +39,8 @@ class RehydrateConversationEntry(BaseModel):
     message_type: Optional[str] = None
     tool_name: Optional[str] = None
     correlation_id: Optional[str] = None
+    tool_call_id: Optional[str] = None
+    tool_calls: Optional[List[Dict[str, Any]]] = None
     timestamp: Optional[str] = None
     screenshot_ref: Optional[str] = None
     screenshot: Optional[str] = None
