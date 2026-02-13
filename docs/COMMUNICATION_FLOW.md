@@ -179,16 +179,21 @@ so memory embedding/summarization calls target the same backend host.
 
 **`tool-result`**
 - Purpose: Tool execution result from frontend
-- Payload: `{ request_id, success, data?, error? }`
+- Payload: `{ request_id, success, data?: { llm_content, system_state: { active_window, mouse_position }, screenshot_ref?, screenshot? }, error? }`
+- Notes:
+  - when `data` is present, `system_state.active_window` and `system_state.mouse_position` are required.
+  - `screenshot_ref`/`screenshot` are only sent for computer-use tool results.
 - Response: Acknowledgment
 
 **`tool-bundle-result`**
 - Purpose: Result of atomic tool bundle
-- Payload: `{ bundle_id, status, screenshot?, system_state?, step_results: [{ tool, status, output?, ...extra_fields }], error? }`
+- Payload: `{ bundle_id, status, screenshot_ref?, screenshot?, system_state?, step_results: [{ tool, status, output?, ...extra_fields }], error? }`
 - Notes:
   - Step `status` convention is `ok` / `error`.
   - Step `output` may be string or structured object.
   - Frontend may synthesize step output `Tool <tool_name> executed successfully` when a tool succeeds with no explicit output.
+  - Screenshot fields are only sent when the bundle includes computer-use actions.
+  - When `system_state` is present, it uses `{ active_window, mouse_position }`.
 
 #### Server Message Types
 
@@ -337,11 +342,11 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
    ↓
 10. MessageFormatter formats result
    ↓
-11. Screenshot uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`
+11. If captured, screenshot uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`
     ↓
 12. Result displayed in UI via callback
    ↓
-13. Result sent to backend via IpcBridge.send() with `screenshot_ref`
+13. Result sent to backend via IpcBridge.send() (includes `screenshot_ref` only for computer-use tools)
     ↓
 14. Main process sends tool-result to backend via WebSocket
     ↓
