@@ -111,10 +111,14 @@ function EpisodicMemorySection({ onSelectSection }) {
       }
 
       const list = result?.data?.conversations ?? [];
-      setConversations(list);
+      const activeConversationRef = sessionInfo.conversationRef || null;
+      const filteredList = activeConversationRef
+        ? list.filter((conversation) => conversation?.conversation_id !== activeConversationRef)
+        : list;
+      setConversations(filteredList);
 
       const hasSelection = selectedConversationKey
-        && list.some((conversation) => buildConversationKey(conversation) === selectedConversationKey);
+        && filteredList.some((conversation) => buildConversationKey(conversation) === selectedConversationKey);
       if (!hasSelection && selectedConversationKey) {
         setSelectedConversationKey(null);
       }
@@ -123,7 +127,7 @@ function EpisodicMemorySection({ onSelectSection }) {
     } finally {
       setIsLoadingList(false);
     }
-  }, [selectedConversationKey, sessionInfo.userId]);
+  }, [selectedConversationKey, sessionInfo.conversationRef, sessionInfo.userId]);
 
   const deleteConversation = useCallback(async (conversation) => {
     if (!conversation) {

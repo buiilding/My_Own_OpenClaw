@@ -4,6 +4,7 @@ const mockInvoke = jest.fn();
 const mockSendRehydrateConversation = jest.fn();
 const mockSetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();
+let mockSessionInfo = { conversationRef: null, userId: 'peter-bui' };
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
@@ -23,7 +24,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  getTranscriptSessionInfo: () => ({ conversationRef: null, userId: 'peter-bui' }),
+  getTranscriptSessionInfo: () => mockSessionInfo,
   setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
   updateTranscriptSession: (...args) => mockUpdateTranscriptSession(...args),
 }));
@@ -36,6 +37,7 @@ describe('EpisodicMemorySection delete', () => {
     mockSendRehydrateConversation.mockReset();
     mockSetActiveConversationRef.mockReset();
     mockUpdateTranscriptSession.mockReset();
+    mockSessionInfo = { conversationRef: null, userId: 'peter-bui' };
     Object.defineProperty(window.HTMLElement.prototype, 'scrollIntoView', {
       configurable: true,
       writable: true,
@@ -175,6 +177,68 @@ describe('EpisodicMemorySection delete', () => {
       });
       expect(screen.getByText('hello')).toBeInTheDocument();
       expect(screen.getByText('hi')).toBeInTheDocument();
+    });
+  });
+
+  test('does not show the currently active conversation in episodic list', async () => {
+    mockSessionInfo = { conversationRef: 'conv_active', userId: 'peter-bui' };
+
+    mockInvoke.mockImplementation((channel) => {
+      if (channel === 'list-conversations') {
+        return Promise.resolve({
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv_active',
+                first_timestamp: '2026-02-02T21:00:00Z',
+                last_timestamp: '2026-02-02T21:10:00Z',
+                entry_count: 4,
+                record_kind: 'transcript',
+                model_id: 'gpt-4o-mini',
+                model_provider: 'openai',
+              },
+              {
+                conversation_id: 'conv_old',
+                first_timestamp: '2026-02-02T20:00:00Z',
+                last_timestamp: '2026-02-02T20:10:00Z',
+                entry_count: 3,
+                record_kind: 'transcript',
+                model_id: 'gpt-4o-mini',
+                model_provider: 'openai',
+              },
+            ],
+          },
+        });
+      }
+      if (channel === 'get-conversation') {
+        return Promise.resolve({
+          success: true,
+          data: {
+            memories: [],
+          },
+        });
+      }
+      return Promise.resolve({ success: true, data: {} });
+    });
+
+    const { default: EpisodicMemorySection } = await import(
+      '../../frontend/src/renderer/features/dashboard/components/sections/EpisodicMemorySection'
+    );
+
+    render(<EpisodicMemorySection />);
+
+    await screen.findByText('1 conversation');
+    expect(screen.queryByText('Conversation 2')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Conversation 1'));
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('get-conversation', {
+        userId: 'peter-bui',
+        conversationId: 'conv_old',
+        limit: 1000,
+        recordKind: 'transcript',
+      });
     });
   });
 });
