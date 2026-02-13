@@ -83,6 +83,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(memory-summarizer): count pending semantic summarization work per completed assistant turn (assistant `llm-text`/`error`) instead of counting both user+assistant transcript rows
 - fix(memory): restore episodic retrieval and semantic rollups for transcript-based conversations by indexing semantic-candidate transcript turns, queuing transcript writes for summarization, and semanticizing transcript batches
 - fix(memory-semantic): enforce per-user session model selection for semantic summarization (no cross-user session fallback) and scope sidecar summarization user discovery to known/current user IDs to avoid stale-user provider mismatches
 - fix(memory-summarizer): normalize mixed naive/aware episodic timestamps in sidecar summarization to UTC-aware datetimes to prevent `can't subtract offset-naive and offset-aware datetimes` batch failures
