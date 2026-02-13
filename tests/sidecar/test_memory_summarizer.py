@@ -76,6 +76,19 @@ class FakeUserIdMemoryStore:
         return self.discovered_user_ids[:limit]
 
 
+class FakeShouldRunMemoryStore:
+    def __init__(self, pending_message_count):
+        self.pending_message_count = pending_message_count
+        self.discovery_calls = []
+
+    async def get_watermark(self):
+        return {"pending_message_count": self.pending_message_count}
+
+    async def get_user_ids_with_unsemanticized_memories(self, limit=100):
+        self.discovery_calls.append(limit)
+        return ["user-1"]
+
+
 @pytest.mark.asyncio
 async def test_summarizer_processes_transcript_batch_and_skips_tool_calls():
     memories = [
@@ -248,3 +261,31 @@ async def test_should_summarize_batch_handles_naive_timestamp_without_error():
     memories = [{"id": "1", "timestamp": naive_timestamp, "content": "hello"}]
 
     assert summarizer._should_summarize_batch(memories) is True
+
+
+@pytest.mark.asyncio
+async def test_should_run_requires_pending_threshold_when_below_min_batch_size():
+    memory_store = FakeShouldRunMemoryStore(pending_message_count=5)
+    summarizer = MemorySummarizer(
+        memory_store=memory_store,
+        semantic_client=FakeSemanticClient(),
+    )
+
+    should_run = await summarizer._should_run()
+
+    assert should_run is False
+    assert memory_store.discovery_calls == []
+
+
+@pytest.mark.asyncio
+async def test_should_run_when_pending_reaches_min_batch_size():
+    memory_store = FakeShouldRunMemoryStore(pending_message_count=6)
+    summarizer = MemorySummarizer(
+        memory_store=memory_store,
+        semantic_client=FakeSemanticClient(),
+    )
+
+    should_run = await summarizer._should_run()
+
+    assert should_run is True
+    assert memory_store.discovery_calls == []
