@@ -24,9 +24,8 @@ from backend.src.tools.system.schemas import GetOpenWindowsArgs
 class RemoteMouseTool(RemoteToolBase, Tool[MouseControlArgs]):
     name = "mouse_control"
     description = (
-        "Control mouse actions with schema-guided coordinate targeting. "
-        "Prefer OCR for visible text targets, prediction for non-text UI targets, "
-        "and manual coordinates only as fallback."
+        "Control mouse actions with manual coordinates. Supports clicking, "
+        "double-clicking, right-clicking, moving, dragging, and scrolling."
     )
     args_model = MouseControlArgs
     category = ToolDomain.COMPUTER
@@ -41,10 +40,7 @@ class RemoteMouseTool(RemoteToolBase, Tool[MouseControlArgs]):
 
 class RemoteKeyboardTool(RemoteToolBase, Tool[KeyboardControlArgs]):
     name = "keyboard_control"
-    description = (
-        "Control keyboard input including typing text, pressing keys, and shortcuts. "
-        "Use deterministic action sequences for predictable flows (for example, type then press Enter)."
-    )
+    description = "Control keyboard input including typing text, pressing keys, and keyboard shortcuts."
     args_model = KeyboardControlArgs
     category = ToolDomain.COMPUTER
 
@@ -83,8 +79,8 @@ class RemoteScrollTool(RemoteToolBase, Tool[ScrollControlArgs]):
 class RemoteSwitchTabTool(RemoteToolBase, Tool[SwitchTabArgs]):
     name = "switch_tab"
     description = (
-        "Switch focus to a specific window/tab by exact title. "
-        "Get valid titles from get_open_windows and switch by name instead of blind OS-level cycling."
+        "Switch focus to a specific window/tab by name. Use this to navigate between open "
+        "windows or browser tabs using the exact name shown in get_open_windows."
     )
     args_model = SwitchTabArgs
     category = ToolDomain.COMPUTER
@@ -120,7 +116,7 @@ class RemoteGetOpenWindowsTool(RemoteToolBase, Tool[GetOpenWindowsArgs]):
     name = "get_open_windows"
     description = (
         "Lists all currently open window titles. Use this to check if an app is already open "
-        "before launching a new instance, and as the source of exact target names for switch_tab."
+        "before launching a new instance."
     )
     args_model = GetOpenWindowsArgs
     category = ToolDomain.COMPUTER
