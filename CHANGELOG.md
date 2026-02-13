@@ -85,6 +85,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(tool-bundle): preserve rich step output in bundled execution by preferring `llm_content`/`content`/`output`-style fields and use fallback text `Tool <tool_name> executed successfully (no output)` only when no explicit step output exists; align frontend/backend tests and API docs
 - fix(frontend-dashboard): exclude the active `conversation_ref` session from Episodic Memory conversation list so working-memory chat does not appear as historical episodic memory (with frontend regression coverage)
 - fix(memory-summarizer): exclude tool output/result transcript rows (single and bundled) from semantic summarization chunk input
 - fix(memory-summarizer): raise idle semantic summarization threshold to 6 transcript messages
