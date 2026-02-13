@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(readme): add ChatGPT pitch message emphasizing no copy-paste workflow - 'Think ChatGPT, but you never have to copy-paste again'
 - feat(landing): add dedicated WindieOS landing page entrypoint with modular marketing sections, responsive styling, and frontend coverage in `tests/frontend/landing/LandingPage.test.jsx`
 - feat(conversation-resume): add conversation_ref identity across query/transcript flow, add backend rehydrate-conversation handling, and support episodic continue-to-chat resume with history rehydration
 - feat(llm-native-tools): wire native LiteLLM tool-calling transport (`tools`, `tool_choice`, `parallel_tool_calls`), normalize structured provider tool-call payloads (`OpenAI tool_calls` + Anthropic `tool_use`) into `{id,name,arguments}`, and respect rollback gate `native_tool_calling_enabled` in client transport
