@@ -1058,13 +1058,13 @@ class LocalMemoryStore:
                 await cursor.execute(
                     """
                     SELECT COUNT(*) FROM memories
-                    WHERE user_id = ? AND (record_kind IS NULL OR record_kind = 'memory')
+                    WHERE user_id = ? AND record_kind = 'transcript'
                     """,
                     (user_id,),
                 )
             else:
                 await cursor.execute(
-                    "SELECT COUNT(*) FROM memories WHERE record_kind IS NULL OR record_kind = 'memory'"
+                    "SELECT COUNT(*) FROM memories WHERE record_kind = 'transcript'"
                 )
             row = await cursor.fetchone()
             episodic_count = row[0] if row else 0
@@ -1112,11 +1112,7 @@ class LocalMemoryStore:
                 SELECT user_id, MAX(timestamp) as latest_timestamp
                 FROM memories
                 WHERE is_semanticized = 0
-                  AND (
-                      record_kind IS NULL
-                      OR record_kind = 'memory'
-                      OR record_kind = 'transcript'
-                  )
+                  AND record_kind = 'transcript'
                 GROUP BY user_id
                 ORDER BY latest_timestamp DESC
                 LIMIT ?
@@ -1157,7 +1153,7 @@ class LocalMemoryStore:
         Args:
             user_id: User identifier
             limit: Maximum number of conversations to return
-            record_kind: Optional filter ("transcript" or "memory"). Defaults to transcript.
+            record_kind: Optional filter. Transcript-only; non-transcript values are ignored.
 
         Returns:
             List of conversation summaries with timestamps and entry counts
@@ -1165,20 +1161,13 @@ class LocalMemoryStore:
         async with aiosqlite.connect(self.episodic_db_path) as conn:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.cursor()
+            normalized_record_kind = "transcript"
             rows = await self._list_conversations_with_record_kind(
                 cursor,
                 user_id=user_id,
                 limit=limit,
-                record_kind=record_kind,
+                record_kind=normalized_record_kind,
             )
-
-            if record_kind == "transcript" and not rows:
-                rows = await self._list_conversations_with_record_kind(
-                    cursor,
-                    user_id=user_id,
-                    limit=limit,
-                    record_kind="memory",
-                )
 
             results = []
             for row in rows:
@@ -1296,16 +1285,13 @@ class LocalMemoryStore:
         Args:
             user_id: User identifier
             conversation_id: Conversation window identifier (None deletes rows with NULL conversation_id)
-            record_kind: Optional filter ("transcript" or "memory"). Defaults to transcript.
+            record_kind: Optional filter. Transcript-only; non-transcript values are ignored.
 
         Returns:
             Number of rows deleted.
         """
-        record_kind_clause = ""
-        if record_kind == "transcript":
-            record_kind_clause = "AND record_kind = 'transcript'"
-        elif record_kind == "memory":
-            record_kind_clause = "AND (record_kind IS NULL OR record_kind = 'memory')"
+        normalized_record_kind = "transcript"
+        record_kind_clause = "AND record_kind = 'transcript'"
 
         deleted_count = 0
 
@@ -1380,7 +1366,7 @@ class LocalMemoryStore:
             "Deleted conversation (user_id=%s conversation_id=%s record_kind=%s) -> %s rows",
             user_id,
             conversation_id,
-            record_kind,
+            normalized_record_kind,
             deleted_count,
         )
         return int(deleted_count)
@@ -1392,56 +1378,38 @@ class LocalMemoryStore:
         limit: int,
         record_kind: Optional[str],
     ) -> List[Any]:
-        if record_kind == "transcript":
-            await cursor.execute(
-                """
-                SELECT conversation_id,
-                       MIN(timestamp) as first_timestamp,
-                       MAX(timestamp) as last_timestamp,
-                       COUNT(*) as entry_count,
-                       record_kind,
-                       (
-                         SELECT model_id FROM memories m2
-                         WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
-                           AND m2.record_kind = 'transcript'
-                           AND m2.model_id IS NOT NULL AND m2.model_id != ''
-                         ORDER BY m2.timestamp DESC, m2.message_index DESC
-                         LIMIT 1
-                       ) as model_id,
-                       (
-                         SELECT model_provider FROM memories m2
-                         WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
-                           AND m2.record_kind = 'transcript'
-                           AND m2.model_provider IS NOT NULL AND m2.model_provider != ''
-                         ORDER BY m2.timestamp DESC, m2.message_index DESC
-                         LIMIT 1
-                       ) as model_provider
-                FROM memories
-                WHERE user_id = ? AND record_kind = 'transcript'
-                GROUP BY conversation_id
-                ORDER BY last_timestamp DESC
-                LIMIT ?
-            """,
-                (user_id, user_id, user_id, limit),
-            )
-        else:
-            await cursor.execute(
-                """
-                SELECT conversation_id,
-                       MIN(timestamp) as first_timestamp,
-                       MAX(timestamp) as last_timestamp,
-                       COUNT(*) as entry_count,
-                       COALESCE(record_kind, 'memory') as record_kind,
-                       NULL as model_id,
-                       NULL as model_provider
-                FROM memories
-                WHERE user_id = ? AND (record_kind IS NULL OR record_kind = 'memory')
-                GROUP BY conversation_id
-                ORDER BY last_timestamp DESC
-                LIMIT ?
-            """,
-                (user_id, limit),
-            )
+        _ = record_kind  # API compatibility; transcript is the only supported kind.
+        await cursor.execute(
+            """
+            SELECT conversation_id,
+                   MIN(timestamp) as first_timestamp,
+                   MAX(timestamp) as last_timestamp,
+                   COUNT(*) as entry_count,
+                   record_kind,
+                   (
+                     SELECT model_id FROM memories m2
+                     WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
+                       AND m2.record_kind = 'transcript'
+                       AND m2.model_id IS NOT NULL AND m2.model_id != ''
+                     ORDER BY m2.timestamp DESC, m2.message_index DESC
+                     LIMIT 1
+                   ) as model_id,
+                   (
+                     SELECT model_provider FROM memories m2
+                     WHERE m2.user_id = ? AND m2.conversation_id = memories.conversation_id
+                       AND m2.record_kind = 'transcript'
+                       AND m2.model_provider IS NOT NULL AND m2.model_provider != ''
+                     ORDER BY m2.timestamp DESC, m2.message_index DESC
+                     LIMIT 1
+                   ) as model_provider
+            FROM memories
+            WHERE user_id = ? AND record_kind = 'transcript'
+            GROUP BY conversation_id
+            ORDER BY last_timestamp DESC
+            LIMIT ?
+        """,
+            (user_id, user_id, user_id, limit),
+        )
         return await cursor.fetchall()
 
     async def get_next_message_index(
@@ -1489,7 +1457,7 @@ class LocalMemoryStore:
             user_id: User identifier
             conversation_id: Conversation window identifier (None for memories without conversation_id)
             limit: Maximum number of memories to return (for safety)
-            record_kind: Optional filter ("transcript" or "memory"). Defaults to transcript.
+            record_kind: Optional filter. Transcript-only; non-transcript values are ignored.
 
         Returns:
             List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata', 'conversation_id'
@@ -1498,11 +1466,8 @@ class LocalMemoryStore:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.cursor()
 
-            record_kind_clause = ""
-            if record_kind == "transcript":
-                record_kind_clause = "AND record_kind = 'transcript'"
-            elif record_kind == "memory":
-                record_kind_clause = "AND (record_kind IS NULL OR record_kind = 'memory')"
+            _ = record_kind  # API compatibility; transcript is the only supported kind.
+            record_kind_clause = "AND record_kind = 'transcript'"
 
             if conversation_id is None:
                 await cursor.execute(
@@ -1573,11 +1538,7 @@ class LocalMemoryStore:
                 SELECT conversation_id, MIN(timestamp) as earliest_timestamp
                 FROM memories
                 WHERE user_id = ? AND is_semanticized = 0
-                  AND (
-                      record_kind IS NULL
-                      OR record_kind = 'memory'
-                      OR record_kind = 'transcript'
-                  )
+                  AND record_kind = 'transcript'
                 GROUP BY conversation_id
                 ORDER BY earliest_timestamp ASC
             """,
@@ -1620,11 +1581,7 @@ class LocalMemoryStore:
                         tool_name
                     FROM memories
                     WHERE user_id = ? AND is_semanticized = 0
-                      AND (
-                          record_kind IS NULL
-                          OR record_kind = 'memory'
-                          OR record_kind = 'transcript'
-                      )
+                      AND record_kind = 'transcript'
                       AND conversation_id IS NULL
                     ORDER BY timestamp ASC
                     LIMIT ?
@@ -1646,11 +1603,7 @@ class LocalMemoryStore:
                         tool_name
                     FROM memories
                     WHERE user_id = ? AND is_semanticized = 0
-                      AND (
-                          record_kind IS NULL
-                          OR record_kind = 'memory'
-                          OR record_kind = 'transcript'
-                      )
+                      AND record_kind = 'transcript'
                       AND conversation_id = ?
                     ORDER BY timestamp ASC
                     LIMIT ?
@@ -1681,7 +1634,6 @@ class LocalMemoryStore:
         self, user_id: str, limit: int = 10
     ) -> List[Dict[str, Any]]:
         """
-        DEPRECATED: Use get_unsemanticized_episodic_memories_by_conversation instead.
         Get episodic memories that haven't been processed into semantic memory.
         
         Args:
@@ -1699,11 +1651,7 @@ class LocalMemoryStore:
                 SELECT id, content, timestamp, metadata, record_kind, role, message_type, tool_name
                 FROM memories
                 WHERE user_id = ? AND is_semanticized = 0
-                  AND (
-                      record_kind IS NULL
-                      OR record_kind = 'memory'
-                      OR record_kind = 'transcript'
-                  )
+                  AND record_kind = 'transcript'
                 ORDER BY timestamp ASC
                 LIMIT ?
             """,
@@ -1819,11 +1767,7 @@ class LocalMemoryStore:
                         tool_name
                     FROM memories
                     WHERE user_id = ? AND is_semanticized = 0
-                      AND (
-                          record_kind IS NULL
-                          OR record_kind = 'memory'
-                          OR record_kind = 'transcript'
-                      )
+                      AND record_kind = 'transcript'
                     ORDER BY timestamp ASC, id ASC
                     LIMIT ?
                 """,
@@ -1856,11 +1800,7 @@ class LocalMemoryStore:
                         FROM memories
                         WHERE user_id = ? 
                           AND is_semanticized = 0
-                          AND (
-                              record_kind IS NULL
-                              OR record_kind = 'memory'
-                              OR record_kind = 'transcript'
-                          )
+                          AND record_kind = 'transcript'
                           AND (
                               timestamp > ?
                               OR (timestamp = ? AND id > ?)
@@ -1887,11 +1827,7 @@ class LocalMemoryStore:
                             tool_name
                         FROM memories
                         WHERE user_id = ? AND is_semanticized = 0
-                          AND (
-                              record_kind IS NULL
-                              OR record_kind = 'memory'
-                              OR record_kind = 'transcript'
-                          )
+                          AND record_kind = 'transcript'
                         ORDER BY timestamp ASC, id ASC
                         LIMIT ?
                     """,
