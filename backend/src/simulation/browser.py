@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.src.api.deps import set_container
 from backend.src.api.routes import websocket
 from backend.src.api.routes import artifacts
 from backend.src.api.routes.memory import embeddings, semantic
@@ -46,40 +47,40 @@ async def lifespan(app: FastAPI):
             logger.info("Phase 2: Initializing container (simulation mode)...")
 
             from backend.src.core.container.facade import Container
-            from backend.src.api.deps import set_container
 
             self.container = Container()
 
             # Initialize container normally (including vision service)
             await self.container.initialize()
 
-            # Set container in DI system (force=True since parent class may have already set it)
-            set_container(self.container, force=True)
             logger.info("Container initialized (simulation mode).")
 
     coordinator = SimulationInitializationCoordinator()
-    container, session_manager = await coordinator.initialize(app)
+    container, _session_manager = await coordinator.initialize(app)
+    set_container(container, app=app, force=True)
 
-    def mock_llm_client_factory(session_config=None):
-        """Factory that always returns MockLLMBrowserClient, accepting optional session config."""
-        cfg = session_config if session_config is not None else container._di_container.core.config()
-        return get_mock_llm_browser_client(cfg)
+    try:
+        def mock_llm_client_factory(session_config=None):
+            """Factory that always returns MockLLMBrowserClient, accepting optional session config."""
+            cfg = session_config if session_config is not None else container._di_container.core.config()
+            return get_mock_llm_browser_client(cfg)
 
-    container._di_container.core.llm_client.override(
-        providers.Factory(mock_llm_client_factory)
-    )
-    container._mock_llm_factory = mock_llm_client_factory
-    container.invalidate_session_factory()
-    logger.info("LLM client factory overridden to use MockLLMBrowserClient")
-    logger.info("Session factory reset - will use MockLLMBrowserClient on next session creation")
+        container._di_container.core.llm_client.override(
+            providers.Factory(mock_llm_client_factory)
+        )
+        container._mock_llm_factory = mock_llm_client_factory
+        container.invalidate_session_factory()
+        logger.info("LLM client factory overridden to use MockLLMBrowserClient")
+        logger.info("Session factory reset - will use MockLLMBrowserClient on next session creation")
 
-    logger.info("Browser simulation backend initialized successfully")
-    logger.info("Waiting for WebSocket connections on ws://0.0.0.0:8765/ws")
+        logger.info("Browser simulation backend initialized successfully")
+        logger.info("Waiting for WebSocket connections on ws://0.0.0.0:8765/ws")
 
-    yield
-
-    logger.info("Shutting down browser simulation backend...")
-    logger.info("Shutdown complete.")
+        yield
+    finally:
+        logger.info("Shutting down browser simulation backend...")
+        set_container(None, app=app, force=True)
+        logger.info("Shutdown complete.")
 
 
 app = FastAPI(title="Desktop Assistant (Browser Simulation)", lifespan=lifespan)
