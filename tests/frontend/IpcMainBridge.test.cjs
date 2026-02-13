@@ -182,6 +182,9 @@ describe('ipc.cjs bridge', () => {
     expect(lastMessage.payload.content).toContain('- e1');
     expect(lastMessage.payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
     expect(lastMessage.payload.content).toContain('<user_query>\nhello\n</user_query>');
+    expect(lastMessage.payload.system_state_internal).toEqual({
+      screen_resolution: '1920x1080',
+    });
   });
 
   test('strips query screenshot_url before sending to backend', async () => {
@@ -256,6 +259,7 @@ describe('ipc.cjs bridge', () => {
     expect(lastMessage.payload.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
     expect(lastMessage.payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
     expect(lastMessage.payload.content).toContain('<user_query>\nmemory fail\n</user_query>');
+    expect(lastMessage.payload).not.toHaveProperty('system_state_internal');
   });
 
   test('gates first query behind settings-updated ack when frontend config exists', async () => {

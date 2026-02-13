@@ -96,6 +96,20 @@ class DummyCaptureAgent:
         yield {"type": "chunk", "content": "ok"}
 
 
+class DummyRuntimeStateAgent(DummyCaptureAgent):
+    def __init__(self):
+        super().__init__()
+        self.current_system_state = {}
+        self.runtime_state_updates = []
+
+    def set_current_system_state(self, system_state):
+        self.current_system_state = dict(system_state or {})
+        self.runtime_state_updates.append(dict(self.current_system_state))
+
+    def get_current_system_state(self):
+        return dict(self.current_system_state)
+
+
 class DummySilentAgent:
     def __init__(self):
         self.cfg = AppConfig()
@@ -520,6 +534,47 @@ async def test_query_handler_prefers_inline_screenshot_over_artifact_ref(monkeyp
 
     assert len(session_manager.session.calls) == 1
     assert session_manager.session.calls[0]["image_data"] == "inline-base64"
+
+
+@pytest.mark.asyncio
+async def test_query_handler_applies_runtime_system_state_internal(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session = DummyRuntimeStateAgent()
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+
+    class DummyPipeline:
+        def __init__(self, *_args, **_kwargs):
+            return None
+
+        async def process(self, *_args, **_kwargs):
+            return None
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    monkeypatch.setattr("backend.src.api.handlers.query.StreamPipeline", DummyPipeline)
+
+    message = QueryMessage(
+        id="msg_runtime_state_1",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "runtime state",
+            "conversation_ref": "conv_test",
+            "content": "<user_query>runtime state</user_query>",
+            "system_state_internal": {
+                "screen_resolution": "2560x1440",
+            },
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert len(session_manager.session.calls) == 1
+    assert session_manager.session.runtime_state_updates[-1]["screen_resolution"] == "2560x1440"
 
 
 @pytest.mark.asyncio

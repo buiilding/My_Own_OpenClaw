@@ -95,6 +95,7 @@ async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeyp
 
     assert resolved_call.parameters["x"] == 500
     assert resolved_call.parameters["y"] == 500
+    assert resolved_call.metadata["coordinate_method"] == "ocr"
     contract = resolved_call.metadata["coordinate_contract"]
     assert contract["coordinate_space"] == "screenshot_px"
     assert contract["source_image_size"] == {"width": screenshot_w, "height": screenshot_h}
@@ -140,6 +141,7 @@ async def test_resolve_tool_with_coordinates_keeps_contract_when_target_missing(
 
     assert resolved_call.parameters["x"] == 1000
     assert resolved_call.parameters["y"] == 600
+    assert resolved_call.metadata["coordinate_method"] == "ocr"
     contract = resolved_call.metadata["coordinate_contract"]
     assert contract["source_image_size"] == {"width": screenshot_w, "height": screenshot_h}
     assert contract["target_display_size"] is None
@@ -198,6 +200,8 @@ async def test_resolve_tool_with_coordinates_uses_latest_system_resolution_each_
     assert first.parameters["y"] == 500
     assert second.parameters["x"] == 667
     assert second.parameters["y"] == 667
+    assert first.metadata["coordinate_method"] == "ocr"
+    assert second.metadata["coordinate_method"] == "ocr"
     assert first.metadata["coordinate_contract"]["target_display_size"] == {
         "width": 1920,
         "height": 1080,

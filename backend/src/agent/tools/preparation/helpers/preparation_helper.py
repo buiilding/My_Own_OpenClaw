@@ -6,7 +6,7 @@ Pure infrastructure code - no side effects beyond tool resolution.
 """
 import logging
 import time
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Any
 
 from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
     CoordinateContract,
@@ -31,6 +31,34 @@ if TYPE_CHECKING:
     from backend.src.core.interfaces.vision import IVisionService
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_coordinate_method(value: Any) -> str:
+    if isinstance(value, CoordinateFindingMethod):
+        return value.value
+    if isinstance(value, str) and value.strip():
+        return value.strip().lower()
+    return CoordinateFindingMethod.MANUAL.value
+
+
+def attach_coordinate_method_metadata(
+    tool_call: ParsedToolCall,
+    resolved_call: ResolvedToolCall,
+) -> None:
+    """
+    Persist the mouse coordinate method in metadata for tool-call transparency.
+
+    We rewrite mouse calls to manual x/y before execution, so we must keep the
+    original resolution method (`manual|ocr|prediction`) separately in metadata.
+    """
+    if tool_call.tool_name != "mouse_control":
+        return
+
+    if not resolved_call.metadata:
+        resolved_call.metadata = {}
+
+    method = _normalize_coordinate_method(tool_call.parameters.get("find_coordinates_by"))
+    resolved_call.metadata["coordinate_method"] = method
 
 
 async def resolve_tool_with_coordinates(
@@ -67,6 +95,8 @@ async def resolve_tool_with_coordinates(
         ValueError: If screenshot data is unavailable
         Exception: If coordinate resolution fails
     """
+    attach_coordinate_method_metadata(tool_call, resolved_call)
+
     # 1. Ensure we have a screenshot
     screenshot_start_time = time.perf_counter()
     await screenshot_manager.ensure_screenshot(session)

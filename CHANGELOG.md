@@ -41,6 +41,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- fix(mouse-coordinates): include `metadata.coordinate_method` (`manual|ocr|prediction`) on `mouse_control` tool-call events and seed backend query runtime state with `payload.system_state_internal.screen_resolution` so first-turn coordinate normalization can target display size
 - fix(tool-runtime-state): keep `screen_resolution` in backend-only `data.system_state_internal` on tool-result payloads while keeping model-facing `data.system_state` limited to `active_window` and `mouse_position`
 - fix(frontend-screenshot): increase Linux UI hide-settle delay before screenshot capture from 120ms to 320ms so dashboard/chat pill windows clear more reliably before capture
 - docs(memory): clarify semanticization pending-count behavior as assistant-turn based (not user+assistant row pairs), including explicit `4 user messages + 4 assistant replies => pending 4` examples in memory docs
