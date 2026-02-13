@@ -106,6 +106,12 @@ describe('ToolExecutionService', () => {
 
     expect(mockExtractOSstate).not.toHaveBeenCalled();
     expect(result.screenshot).toBeNull();
+    expect(mockFormatToolOutputMessage).toHaveBeenCalledWith(
+      'read_file',
+      expect.objectContaining({ success: true }),
+      null,
+      false,
+    );
   });
 
   test('executeTool omits screenshot_ref for non computer-use tool results', async () => {
@@ -128,12 +134,9 @@ describe('ToolExecutionService', () => {
     const payload = sendToBackend.mock.calls[0][0].payload.data;
     expect(payload).toMatchObject({
       llm_content: 'formatted',
-      system_state: {
-        active_window: 'Unknown',
-        mouse_position: 'Unknown',
-      },
     });
     expect(payload).not.toHaveProperty('screenshot_ref');
+    expect(payload).not.toHaveProperty('system_state');
   });
 
   test('executeTool reuses system_state and screenshot from tool result', async () => {
@@ -157,6 +160,7 @@ describe('ToolExecutionService', () => {
       'mouse_control',
       expect.objectContaining({ success: true }),
       { active_window: 'App', mouse_position: '1,1' },
+      true,
     );
   });
 
@@ -221,11 +225,8 @@ describe('ToolExecutionService', () => {
     const errorPayload = sendToBackend.mock.calls[0][0].payload.data;
     expect(errorPayload).toMatchObject({
       llm_content: 'formatted',
-      system_state: {
-        active_window: 'Unknown',
-        mouse_position: 'Unknown',
-      },
     });
+    expect(errorPayload).not.toHaveProperty('system_state');
     expect(errorPayload).not.toHaveProperty('is_preformatted');
   });
 
@@ -301,6 +302,7 @@ describe('ToolExecutionService', () => {
       ],
       { active_window: 'App' },
       'bundle-shot',
+      true,
     );
   });
 

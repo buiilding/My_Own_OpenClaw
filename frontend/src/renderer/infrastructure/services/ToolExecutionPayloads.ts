@@ -17,6 +17,7 @@ export type ToolResultPayloadOptions = {
   screenshotRef?: string | null;
   systemState?: SystemState | null;
   includeScreenshot?: boolean;
+  includeSystemState?: boolean;
 };
 
 type RequiredSystemState = {
@@ -85,8 +86,11 @@ export function buildToolResultPayloadData(
   const normalizedPayload: Record<string, unknown> = {
     ...payloadData,
     llm_content: formattedMessage,
-    system_state: asRequiredSystemState(options.systemState, rawSystemState),
   };
+
+  if (options.includeSystemState) {
+    normalizedPayload.system_state = asRequiredSystemState(options.systemState, rawSystemState);
+  }
 
   if (options.includeScreenshot) {
     const selectedScreenshotRef =

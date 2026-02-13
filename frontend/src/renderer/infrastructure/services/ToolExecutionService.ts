@@ -19,6 +19,7 @@ import {
 } from './ToolExecutionTypes';
 import {
   ensureAutoCapture,
+  isComputerUseTool,
   resolveSystemState,
 } from './ToolExecutionCapture';
 import { invokeTool } from './ToolExecutionInvoker';
@@ -109,7 +110,8 @@ export class ToolExecutionService {
       const formattedMessage = formatToolOutputMessage(
         toolName,
         result,
-        finalSystemState
+        finalSystemState,
+        isComputerTool,
       );
 
       const executionResult = this._buildExecutionResult(
@@ -133,6 +135,7 @@ export class ToolExecutionService {
         finalSystemState,
         isComputerTool,
         screenshotRef,
+        isComputerTool,
       );
 
       // Calculate total execution time AFTER sending to backend (execution is complete when backend receives result)
@@ -164,6 +167,8 @@ export class ToolExecutionService {
         options.correlationId,
         errorResult.result,
         errorResult.formattedMessage,
+        null,
+        false,
         null,
         false,
       );
@@ -241,7 +246,8 @@ export class ToolExecutionService {
     formattedMessage: string,
     systemState: SystemState | null,
     includeScreenshot: boolean,
-    screenshotRef?: string | null
+    screenshotRef?: string | null,
+    includeSystemState: boolean = false,
   ): void {
     if (!this.callbacks.sendToBackend) {
       return;
@@ -251,6 +257,7 @@ export class ToolExecutionService {
       screenshotRef,
       systemState,
       includeScreenshot,
+      includeSystemState,
     });
 
     this.callbacks.sendToBackend({
@@ -270,23 +277,32 @@ export class ToolExecutionService {
     stepResults: Array<{ tool: string; status: string; output: string }>,
     screenshotRef: string | null,
     systemState: SystemState | null,
-    error: string | null
+    error: string | null,
+    includeScreenshot: boolean,
+    includeSystemState: boolean,
   ): void {
     if (!this.callbacks.sendToBackend) {
       return;
     }
 
+    const payload: Record<string, unknown> = {
+      bundle_id: bundleId,
+      status,
+      step_results: stepResults,
+      error,
+    };
+
+    if (includeScreenshot && screenshotRef) {
+      payload.screenshot_ref = screenshotRef;
+    }
+
+    if (includeSystemState && systemState) {
+      payload.system_state = systemState;
+    }
+
     this.callbacks.sendToBackend({
       type: 'tool-bundle-result',
-      payload: {
-        bundle_id: bundleId,
-        status,
-        step_results: stepResults,
-        screenshot: null,
-        screenshot_ref: screenshotRef || null,
-        system_state: systemState || null,
-        error
-      }
+      payload
     });
   }
 
@@ -300,6 +316,9 @@ export class ToolExecutionService {
     bundleId: string
   ): Promise<BundleExecutionResult> {
     const bundleStartTime = performance.now();
+    const bundleHasComputerTool = bundle.some((tool) =>
+      isComputerUseTool(tool.toolName, tool.args),
+    );
     let stepResults: Array<{ tool: string; status: string; output: string }> = [];
     logBundleStart(bundle.length, bundleId);
 
@@ -324,7 +343,8 @@ export class ToolExecutionService {
       const combinedFormattedMessage = formatBundledToolOutputMessage(
         normalizedResults,
         systemState,
-        screenshot
+        screenshot,
+        bundleHasComputerTool,
       );
       const formattingTime = (performance.now() - formattingStartTime) / 1000;
       logBundleFormatting(formattingTime);
@@ -369,7 +389,9 @@ export class ToolExecutionService {
         stepResults,
         bundleScreenshotRef,
         systemState,
-        errorMessage
+        errorMessage,
+        bundleHasComputerTool,
+        bundleHasComputerTool,
       );
 
       // Calculate bundle execution time AFTER sending to backend (execution is complete when backend receives result)
@@ -402,7 +424,9 @@ export class ToolExecutionService {
         stepResults,
         null,
         null,
-        errorMessage
+        errorMessage,
+        bundleHasComputerTool,
+        bundleHasComputerTool,
       );
 
       throw error;

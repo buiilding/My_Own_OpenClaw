@@ -131,7 +131,7 @@ class ToolResultData(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     llm_content: str
-    system_state: ToolResultSystemState
+    system_state: Optional[ToolResultSystemState] = None
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
 

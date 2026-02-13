@@ -24,10 +24,6 @@ describe('ToolExecutionPayloads', () => {
     expect(payload).toEqual({
       output: 'ok',
       llm_content: 'formatted',
-      system_state: {
-        active_window: 'Unknown',
-        mouse_position: 'Unknown',
-      },
     });
   });
 
@@ -44,6 +40,7 @@ describe('ToolExecutionPayloads', () => {
       {
         screenshotRef: 'new-ref',
         includeScreenshot: true,
+        includeSystemState: true,
       },
     );
 
@@ -58,7 +55,7 @@ describe('ToolExecutionPayloads', () => {
     });
   });
 
-  test('buildToolResultPayloadData includes required system_state fields with fallback values', () => {
+  test('buildToolResultPayloadData includes system_state with fallback values when requested', () => {
     const payload = buildToolResultPayloadData(
       {
         success: true,
@@ -70,6 +67,7 @@ describe('ToolExecutionPayloads', () => {
         },
       },
       'formatted',
+      { includeSystemState: true },
     );
 
     expect(payload).toEqual({
