@@ -407,17 +407,17 @@ Send tool execution result from frontend.
   "success": true,
   "data": {
     "llm_content": "Preformatted tool output",
-    "screenshot": "base64-encoded-screenshot", // Optional (legacy)
-    "screenshot_ref": "uuid.jpg",
+    "screenshot_ref": "uuid.jpg", // Optional, computer-use tools only
+    "screenshot": "base64-encoded-screenshot", // Optional legacy fallback, computer-use tools only
     "system_state": { "active_window": "...", "mouse_position": "..." }
   },
-  "error": null,
-  "metadata": { "is_preformatted": true }
+  "error": null
 }
 ```
 
-`metadata` currently accepts only `is_preformatted` (optional).
 `request_id` must echo the `tool-call` payload `request_id` value for correlation.
+`data.system_state.active_window` and `data.system_state.mouse_position` are required when `data` is present.
+For non-computer tools, omit `data.screenshot_ref` and `data.screenshot`.
 
 **Response**: Acknowledgment (no specific response type)
 
@@ -454,7 +454,8 @@ Result of an atomic tool bundle executed on the frontend.
 {
   "bundle_id": "bundle-123",
   "status": "success", // success | partial_failure | failure
-  "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg",
+  "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg", // Optional, computer-use bundles only
+  "screenshot": "base64-encoded-screenshot", // Optional legacy fallback, computer-use bundles only
   "system_state": { "active_window": "...", "mouse_position": "..." },
   "step_results": [
     {
@@ -473,6 +474,8 @@ Result of an atomic tool bundle executed on the frontend.
 - `output` may be a string or structured object.
 - additional per-step fields are allowed and preserved.
 - if a step succeeds without explicit `output`, frontend uses fallback text: `Tool <tool_name> executed successfully`.
+- screenshot fields are omitted for bundles without computer-use actions.
+- when `system_state` is present, it uses `{ active_window, mouse_position }`.
 
 ### Wakeword Detected Message
 

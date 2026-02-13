@@ -466,4 +466,37 @@ Validation run:
   - no `is_preformatted` path in backend/frontend touched tests.
   - `tool-result.payload.data.system_state.active_window` and `.mouse_position` asserted as required.
   - bundle behavior assertions for `bundle_id`/`step_results` remain intact.
+
+### Agent 5 Status (Completed on February 13, 2026)
+
+Completed:
+- Updated `docs/API_REFERENCE.md`:
+  - removed `tool-result` `metadata.is_preformatted` from payload docs/examples.
+  - clarified required `tool-result.data.system_state.active_window` and `.mouse_position` when `data` is present.
+  - clarified screenshot fields are conditional for computer-use tool results/bundles.
+  - clarified bundle `system_state` shape when present.
+- Updated `docs/COMMUNICATION_FLOW.md`:
+  - updated `tool-result`/`tool-bundle-result` payload contracts to reflect flagless shape.
+  - added conditional screenshot notes for both individual and bundled tool results.
+  - updated tool execution flow steps to show `screenshot_ref` upload/send only when captured.
+
+Integration verification note:
+- Single non-computer tool result:
+  - payload shape uses `{ request_id, success, data: { llm_content, system_state }, error }`.
+  - screenshot fields are omitted.
+- Single computer-use tool result:
+  - payload shape includes `data.screenshot_ref` (and optional legacy `data.screenshot`) when capture/upload is available.
+  - `data.system_state` still includes required `active_window` + `mouse_position`.
+- Bundled execution result:
+  - preserves `bundle_id`, `status`, and `step_results`.
+  - screenshot fields are included only when bundle includes computer-use actions.
+  - `system_state` uses `{ active_window, mouse_position }` when present.
+
+Validation run:
+- `rg -n "is_preformatted" docs/API_REFERENCE.md docs/COMMUNICATION_FLOW.md docs/TOOL_SYSTEM.md docs/FRONTEND_ARCHITECTURE.md docs/BACKEND_ARCHITECTURE.md` passed with no matches.
+
+### Handoff (Post-Agent-5)
+
+- No further sequential agent handoff required for this migration pass.
+- Optional follow-up (if strict always-present bundle system_state is desired): enforce `"Unknown"` fallback on bundle `system_state` in frontend sender to match the stricter narrative used for individual `tool-result` payloads.
 - Docs work can proceed with high confidence that backend/frontend contract behavior is covered by the migrated tests above.
