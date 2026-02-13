@@ -66,6 +66,28 @@ class ReplaceOperationArgs(BaseModel):
     )
 
 
+class ReplacePatchChunkArgs(BaseModel):
+    """One structured patch chunk for apply_patch-style ordered updates."""
+    model_config = ConfigDict(extra='forbid')
+
+    change_context: Optional[str] = Field(
+        None,
+        description="Optional single-line context anchor. Matching starts after this line."
+    )
+    old_lines: List[str] = Field(
+        ...,
+        description="Exact old lines to replace (line content only; no newline characters)."
+    )
+    new_lines: List[str] = Field(
+        ...,
+        description="Replacement lines (line content only; no newline characters)."
+    )
+    is_end_of_file: bool = Field(
+        False,
+        description="If true, old_lines must match at end-of-file."
+    )
+
+
 class ReplaceArgs(BaseModel):
     """Arguments for replace tool."""
     model_config = ConfigDict(extra='forbid')
@@ -115,6 +137,13 @@ class ReplaceArgs(BaseModel):
         description=(
             "Optional batched replacements applied atomically in order. "
             "When provided, these operations are used instead of top-level old/new fields."
+        )
+    )
+    patch_chunks: Optional[List[ReplacePatchChunkArgs]] = Field(
+        None,
+        description=(
+            "Optional apply_patch-style ordered update chunks for robust multi-region edits. "
+            "When provided, patch_chunks cannot be combined with old_string/new_string/replacements."
         )
     )
     explanation: str = Field(

@@ -365,9 +365,10 @@ No dual-shape fallback is supported in provider transport.
 - First attempts exact text replacement after normalizing line endings (`\r\n`/`\r` -> `\n`).
 - Supports `match_mode`:
   - `strict`: exact-only matching.
-  - `lenient`: exact first, then line-sequence fallback with progressively lenient comparison (exact, trailing-space-insensitive, trim-insensitive, Unicode punctuation normalization).
+  - `lenient`: exact first, then line-sequence fallback with progressively lenient comparison (exact, trailing-space-insensitive, trim-insensitive, Unicode punctuation normalization). Context constraints (`before_context`/`after_context`) also use lenient matching.
 - Supports contextual targeting with `before_context`, `after_context`, `occurrence_index` (1-based), and `require_eof`.
 - Supports atomic batch edits via `replacements: [...]`; either all operations apply or no file write occurs.
+- Supports apply_patch-style structured updates via `patch_chunks: [...]` with ordered chunk application (`change_context`, `old_lines`, `new_lines`, `is_end_of_file`) for robust multi-region edits.
 - Returns structured edit metadata including `matched_spans`, per-operation details, and `unified_diff`.
 - Allows `old_string=""` only for new-file creation (existing-file edits must provide a non-empty match string).
 
