@@ -91,6 +91,7 @@ Includes the last 300 commits on `main`.
 - fix(memory-summarizer): exclude tool output/result transcript rows (single and bundled) from semantic summarization chunk input
 - fix(memory-summarizer): raise idle semantic summarization threshold to 6 transcript messages
 - fix(memory-summarizer): remove idle-triggered summarize runs so sidecar summarization only starts when `pending_message_count >= min_batch_size` (default `6`); add sidecar regression tests and docs clarifications
+- fix(memory-storage): clear FAISS index artifacts when episodic/semantic indexed rows reach zero after UI deletes, so deleting all memory also removes persisted vector files for that memory type
 - refactor(memory-sidecar): remove legacy episodic-memory fallback paths and run transcript-only filtering for conversation APIs and semantic summarization selectors
 - fix(memory-summarizer): count pending semantic summarization work per completed assistant turn (assistant `llm-text`/`error`) instead of counting both user+assistant transcript rows
 - fix(memory): restore episodic retrieval and semantic rollups for transcript-based conversations by indexing semantic-candidate transcript turns, queuing transcript writes for summarization, and semanticizing transcript batches

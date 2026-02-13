@@ -90,7 +90,8 @@ Files created per user:
 - Deleting an episodic conversation removes matching rows from `episodic.db`.
 - Deleting a semantic memory removes the matching row from `semantic.db`.
 - There is no cross-delete cascade between episodic and semantic memory.
-- FAISS vectors are not compacted immediately; DB rows and in-memory ID mappings are removed so deleted records are no longer resolvable.
+- For partial deletes, stale vectors may remain in existing FAISS index files.
+- When a memory type reaches zero indexed rows, WindieOS clears in-memory vector mappings and removes that FAISS index file from disk.
 
 #### Does pending count increase for every assistant message?
 

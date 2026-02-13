@@ -1018,6 +1018,7 @@ class LocalMemoryStore:
             if deleted:
                 self.episodic_vector_id_to_memory_id.pop(vector_id, None)
                 self.episodic_memory_id_to_vector_id.pop(memory_id, None)
+                await self._cleanup_index_artifacts_if_empty("episodic")
                 logger.debug(f"Deleted episodic memory {memory_id}")
                 return True
 
@@ -1033,6 +1034,7 @@ class LocalMemoryStore:
             if deleted:
                 self.semantic_vector_id_to_memory_id.pop(vector_id, None)
                 self.semantic_memory_id_to_vector_id.pop(memory_id, None)
+                await self._cleanup_index_artifacts_if_empty("semantic")
                 logger.debug(f"Deleted semantic memory {memory_id}")
                 return True
 
@@ -1267,6 +1269,7 @@ class LocalMemoryStore:
             self.semantic_memory_id_to_vector_id.pop(memory_id, None)
 
         if deleted:
+            await self._cleanup_index_artifacts_if_empty("semantic")
             logger.debug("Deleted semantic memory %s (user_id=%s)", memory_id, user_id)
         return bool(deleted)
 
@@ -1362,6 +1365,9 @@ class LocalMemoryStore:
         for memory_id in memory_ids:
             self.episodic_memory_id_to_vector_id.pop(memory_id, None)
 
+        if deleted_count > 0:
+            await self._cleanup_index_artifacts_if_empty("episodic")
+
         logger.debug(
             "Deleted conversation (user_id=%s conversation_id=%s record_kind=%s) -> %s rows",
             user_id,
@@ -1370,6 +1376,64 @@ class LocalMemoryStore:
             deleted_count,
         )
         return int(deleted_count)
+
+    async def _cleanup_index_artifacts_if_empty(self, memory_type: str) -> None:
+        """
+        Drop in-memory/disk FAISS artifacts when a memory type has no indexed rows left.
+
+        This ensures "delete everything" workflows also remove persisted vector artifacts.
+        """
+        db_path, _, vector_id_to_memory_id, memory_id_to_vector_id, _ = self._get_memory_state(
+            memory_type
+        )
+
+        try:
+            async with aiosqlite.connect(db_path) as conn:
+                cursor = await conn.cursor()
+                await cursor.execute(
+                    "SELECT COUNT(*) FROM memories WHERE embedding_id IS NOT NULL"
+                )
+                row = await cursor.fetchone()
+                indexed_rows = int(row[0]) if row and row[0] is not None else 0
+        except Exception as e:
+            logger.warning(
+                "Failed to check remaining indexed rows for %s cleanup: %s",
+                memory_type,
+                e,
+            )
+            return
+
+        if indexed_rows > 0:
+            return
+
+        self._set_memory_index(memory_type, faiss.IndexFlatIP(self.embedder.dimension))
+        vector_id_to_memory_id.clear()
+        memory_id_to_vector_id.clear()
+        self._set_next_vector_id(memory_type, 0)
+
+        index_path = (
+            self.episodic_index_path
+            if memory_type == "episodic"
+            else self.semantic_index_path
+        )
+        try:
+            index_path.unlink(missing_ok=True)
+        except TypeError:
+            # Python fallback when missing_ok is unavailable.
+            if index_path.exists():
+                index_path.unlink()
+        except Exception as e:
+            logger.warning(
+                "Failed to delete %s FAISS index file %s: %s",
+                memory_type,
+                index_path,
+                e,
+            )
+
+        logger.debug(
+            "Cleared %s FAISS index artifacts after indexed rows reached zero",
+            memory_type,
+        )
 
     async def _list_conversations_with_record_kind(
         self,
