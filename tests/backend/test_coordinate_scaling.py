@@ -80,6 +80,10 @@ async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeyp
         "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
         _fake_resolve_coordinates,
     )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
+        lambda: "Windows",
+    )
 
     await resolve_tool_with_coordinates(
         tool_call=tool_call,
@@ -126,6 +130,10 @@ async def test_resolve_tool_with_coordinates_keeps_contract_when_target_missing(
         "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
         _fake_resolve_coordinates,
     )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
+        lambda: "Windows",
+    )
 
     await resolve_tool_with_coordinates(
         tool_call=tool_call,
@@ -167,6 +175,10 @@ async def test_resolve_tool_with_coordinates_uses_latest_system_resolution_each_
     monkeypatch.setattr(
         "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
         _fake_resolve_coordinates,
+    )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
+        lambda: "Windows",
     )
 
     first = ResolvedToolCall.from_parsed_call(tool_call)
@@ -210,3 +222,52 @@ async def test_resolve_tool_with_coordinates_uses_latest_system_resolution_each_
         "width": 2560,
         "height": 1440,
     }
+
+
+@pytest.mark.asyncio
+async def test_resolve_tool_with_coordinates_disables_scaling_on_linux(monkeypatch):
+    screenshot_w, screenshot_h = 3840, 2160
+    screen_w, screen_h = 1920, 1080
+
+    screenshot_b64 = base64.b64encode(_fake_jpeg_bytes(screenshot_w, screenshot_h)).decode("ascii")
+    session = _StubSession(screenshot_b64, {"screen_resolution": f"{screen_w}x{screen_h}"})
+    screenshot_manager = _StubScreenshotManager()
+
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={"find_coordinates_by": CoordinateFindingMethod.OCR, "ocr_text": "Submit"},
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+
+    async def _fake_resolve_coordinates(*_args, **_kwargs):
+        return 1000, 1000
+
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
+        _fake_resolve_coordinates,
+    )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
+        lambda: "Linux",
+    )
+
+    await resolve_tool_with_coordinates(
+        tool_call=tool_call,
+        resolved_call=resolved_call,
+        session=session,
+        screenshot_manager=screenshot_manager,
+        ocr_coordinator=object(),
+        coordinate_resolver=object(),
+        vision_service=None,
+        vision_service_provider=lambda _s: None,
+        context_id="linux-id",
+    )
+
+    assert resolved_call.parameters["x"] == 1000
+    assert resolved_call.parameters["y"] == 1000
+    contract = resolved_call.metadata["coordinate_contract"]
+    assert contract["source_image_size"] == {"width": screenshot_w, "height": screenshot_h}
+    assert contract["target_display_size"] == {"width": screen_w, "height": screen_h}
+    assert contract["normalized_coordinates"] == {"x": 1000, "y": 1000}
+    assert contract["normalization_status"] == "disabled_on_linux"
