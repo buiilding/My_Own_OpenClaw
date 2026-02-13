@@ -26,6 +26,7 @@ async def test_read_file_uses_default_limit_when_not_provided(tmp_path: Path):
     assert result.data["is_truncated"] is True
     assert result.data["content"].splitlines()[0] == "line-0001"
     assert result.data["content"].splitlines()[-1] == "line-2000"
+    assert f"File path: {target}" in result.data["llm_content"]
     assert "offset: 2000" in result.data["llm_content"]
 
 
@@ -47,6 +48,7 @@ async def test_read_file_respects_offset_and_limit_window(tmp_path: Path):
     assert result.data["read_lines"] == 2
     assert result.data["is_truncated"] is True
     assert result.data["content"] == "beta\ngamma\n"
+    assert f"File path: {target}" in result.data["llm_content"]
 
 
 @pytest.mark.asyncio
@@ -62,6 +64,7 @@ async def test_read_file_truncates_very_long_lines(tmp_path: Path):
     assert lines[1] == "short"
     assert result.data["truncated_line_count"] == 1
     assert result.data["line_truncation_limit"] == 500
+    assert f"File path: {target}" in result.data["llm_content"]
     assert "truncated to 500 characters" in result.data["llm_content"]
 
 
@@ -83,6 +86,7 @@ async def test_read_file_offset_past_eof_returns_empty_window(tmp_path: Path):
     assert result.data["total_lines"] == 2
     assert result.data["read_lines"] == 0
     assert result.data["is_truncated"] is True
+    assert f"File path: {target}" in result.data["llm_content"]
     assert "Showing 0 lines" in result.data["llm_content"]
 
 
@@ -98,7 +102,7 @@ async def test_read_file_empty_file_returns_empty_message(tmp_path: Path):
     assert result.data["total_lines"] == 0
     assert result.data["read_lines"] == 0
     assert result.data["is_truncated"] is False
-    assert result.data["llm_content"] == "File is empty."
+    assert result.data["llm_content"] == f"File path: {target}\n\nFile is empty."
 
 
 @pytest.mark.asyncio
@@ -112,3 +116,4 @@ async def test_read_file_allows_large_files_with_paging(tmp_path: Path):
     assert result.data["total_lines"] == 11000
     assert result.data["read_lines"] == 1
     assert result.data["is_truncated"] is True
+    assert f"File path: {target}" in result.data["llm_content"]

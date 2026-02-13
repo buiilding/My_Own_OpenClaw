@@ -199,6 +199,13 @@ so memory embedding/summarization calls target the same backend host.
   - Screenshot fields are only sent when the bundle includes computer-use actions.
   - When `system_state` is present, it uses `{ active_window, mouse_position }`.
 
+**`rehydrate-conversation`**
+- Purpose: Restore a transcript snapshot into backend session history when resuming a past conversation.
+- Payload: `{ conversation_ref, rehydrate_mode: "replace", messages: [{ role, content, message_type?, tool_name?, correlation_id?, tool_call_id?, tool_calls?, timestamp?, screenshot_ref?, screenshot? }] }`
+- Notes:
+  - `tool_call_id` and `tool_calls` are optional linkage fields for native tool-calling history.
+  - If omitted, backend reconstructs valid tool-call linkage from transcript `message_type` + `correlation_id` and synthesizes missing IDs as needed.
+
 #### Server Message Types
 
 **`streaming-response`**

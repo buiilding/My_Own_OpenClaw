@@ -40,6 +40,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- feat(filesystem-read-file): include `File path: <absolute-path>` in sidecar `read_file` `llm_content` for truncated, non-truncated, and empty-file responses so bundled tool output clearly identifies source files
 - feat(filesystem-read-file): stream `read_file` line-by-line with default paging (`limit=2000`), truncate returned lines at 500 chars, remove 10MB hard-stop, and add sidecar regression coverage for default windowing/EOF/large-file behavior
 - feat(system-shell): add Codex-style foreground output truncation controls to `run_shell_command` with `max_output_tokens` (default 10000), token truncation markers in `llm_content`, and output-token metadata fields for diagnostics
 - refactor(prompts,tools): move shell/computer tool operation guidance from global system prompt into backend tool descriptions and argument schemas (`run_shell_command`, `process`, `mouse_control`, `keyboard_control`, `switch_tab`, `get_open_windows`)
@@ -88,6 +89,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(rehydrate-history): repair resumed transcript tool linkage by reconstructing assistant `tool_calls` + matching `tool_call_id` for tool outputs (with synthesized IDs when missing) to prevent orphan tool-message drops on native tool-calling providers
 - fix(tool-bundle): preserve rich step output in bundled execution by preferring `llm_content`/`content`/`output`-style fields and use fallback text `Tool <tool_name> executed successfully (no output)` only when no explicit step output exists; align frontend/backend tests and API docs
 - fix(memory-search): exclude active `conversation_ref` episodic transcript entries from query-time `<episodic_memory>` enrichment by propagating `exclude_conversation_id` through Electron IPC and sidecar search filtering
 - fix(frontend-dashboard): exclude the active `conversation_ref` session from Episodic Memory conversation list so working-memory chat does not appear as historical episodic memory (with frontend regression coverage)
