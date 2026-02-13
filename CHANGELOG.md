@@ -39,7 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
-- fix(filesystem): harden sidecar `replace` matching with line-sequence fallback (whitespace/Unicode-tolerant), enforce non-empty `old_string` for existing-file edits, and switch writes to atomic replace
+- fix(filesystem): upgrade sidecar `replace` with context-aware matching (`before_context`/`after_context`/`occurrence_index`/`require_eof`), strict-vs-lenient match modes, atomic `replacements[]` batch execution, and structured result payloads (`matched_spans` + `unified_diff`)
 - fix(llm-stream): route all tool-calling turns (including Kimi Coding) through non-stream completion to avoid streamed tool-argument concat/JSON-parse fallback (`{}`) while keeping non-tool turns on streaming path
 - refactor(tool-result-contract): freeze incoming `tool-result` schema by removing `metadata.is_preformatted`, requiring typed `system_state` (`active_window`, `mouse_position`), and documenting Agent 1 migration status/handoff in the prompt runbook
 - refactor(frontend-tool-result-contract): stop emitting `is_preformatted`, require fallback-populated `system_state` on all frontend `tool-result` payloads, and include `screenshot_ref` only for computer-use tools

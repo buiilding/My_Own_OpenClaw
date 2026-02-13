@@ -358,12 +358,16 @@ No dual-shape fallback is supported in provider transport.
 ### File System Tools
 
 - **read_file**: Read file contents
-- **replace**: Replace exact text in a file (surgical edit)
+- **replace**: Replace text in a file (single operation or batched operations)
 
 `replace` matching behavior:
 - First attempts exact text replacement after normalizing line endings (`\r\n`/`\r` -> `\n`).
-- If exact match fails, falls back to line-sequence matching with progressively lenient comparison (exact, trailing-space-insensitive, trim-insensitive, and Unicode punctuation normalization).
-- Rejects ambiguous single-replace calls when multiple matches are found; use `replace_all=true` for intentional multi-replace.
+- Supports `match_mode`:
+  - `strict`: exact-only matching.
+  - `lenient`: exact first, then line-sequence fallback with progressively lenient comparison (exact, trailing-space-insensitive, trim-insensitive, Unicode punctuation normalization).
+- Supports contextual targeting with `before_context`, `after_context`, `occurrence_index` (1-based), and `require_eof`.
+- Supports atomic batch edits via `replacements: [...]`; either all operations apply or no file write occurs.
+- Returns structured edit metadata including `matched_spans`, per-operation details, and `unified_diff`.
 - Allows `old_string=""` only for new-file creation (existing-file edits must provide a non-empty match string).
 
 ### System Tools
