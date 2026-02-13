@@ -12,7 +12,9 @@ from pathlib import Path
 from typing import Any, Dict
 
 from tools.filesystem.replace_engine import ReplaceOperation
+from tools.filesystem.replace_engine import apply_patch_chunks
 from tools.filesystem.replace_engine import apply_operations
+from tools.filesystem.replace_engine import build_patch_chunks
 from tools.filesystem.replace_engine import build_operations
 from tools.filesystem.replace_engine import build_unified_diff
 from tools.filesystem.replace_engine import normalize_line_endings
@@ -61,11 +63,27 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
         if not isinstance(file_path, str) or not file_path:
             return ToolResult.error_result('file_path parameter is required')
 
-        operations, operations_error = build_operations(args)
-        if operations_error is not None:
-            return ToolResult.error_result(operations_error)
-        if operations is None:
-            return ToolResult.error_result('No replacement operations provided')
+        patch_chunks, patch_chunks_error = build_patch_chunks(args)
+        if patch_chunks_error is not None:
+            return ToolResult.error_result(patch_chunks_error)
+
+        using_patch_chunks = patch_chunks is not None
+        if using_patch_chunks and (
+            args.get('replacements') is not None
+            or args.get('old_string') is not None
+            or args.get('new_string') is not None
+        ):
+            return ToolResult.error_result(
+                'patch_chunks cannot be combined with old_string/new_string/replacements'
+            )
+
+        operations: list[ReplaceOperation] | None = None
+        if not using_patch_chunks:
+            operations, operations_error = build_operations(args)
+            if operations_error is not None:
+                return ToolResult.error_result(operations_error)
+            if operations is None:
+                return ToolResult.error_result('No replacement operations provided')
 
         path = Path(file_path)
         if not path.is_absolute():
@@ -73,6 +91,11 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
 
         file_exists = path.exists()
         if not file_exists:
+            if using_patch_chunks:
+                return ToolResult.error_result(
+                    'File does not exist. patch_chunks updates require an existing file.'
+                )
+
             if len(operations) == 1 and _can_create_new_file_from_operation(operations[0]):
                 try:
                     path.parent.mkdir(parents=True, exist_ok=True)
@@ -106,10 +129,16 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
         current_content = await loop.run_in_executor(None, _read_file)
         normalized_content = normalize_line_endings(current_content)
 
-        new_content, total_replacements, all_spans, operation_payloads, apply_error = apply_operations(
-            normalized_content,
-            operations,
-        )
+        if using_patch_chunks:
+            new_content, total_replacements, all_spans, operation_payloads, apply_error = apply_patch_chunks(
+                normalized_content,
+                patch_chunks,
+            )
+        else:
+            new_content, total_replacements, all_spans, operation_payloads, apply_error = apply_operations(
+                normalized_content,
+                operations,
+            )
         if apply_error is not None:
             return ToolResult.error_result(apply_error)
 

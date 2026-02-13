@@ -23,6 +23,22 @@ class ReplaceOperation:
     match_mode: str
 
 
+@dataclass(frozen=True)
+class ReplacePatchChunk:
+    change_context: str | None
+    old_lines: list[str]
+    new_lines: list[str]
+    is_end_of_file: bool
+
+
+@dataclass(frozen=True)
+class _ChunkReplacement:
+    chunk_index: int
+    start_idx: int
+    old_len: int
+    new_lines: list[str]
+
+
 def normalize_line_endings(text: str) -> str:
     """
     Normalize line endings to Unix newlines.
@@ -90,20 +106,71 @@ def _filter_spans_with_context(
     before_context: str | None,
     after_context: str | None,
     require_eof: bool,
+    match_mode: str,
 ) -> list[tuple[int, int]]:
+    def _line_match(lhs: str, rhs: str) -> bool:
+        if lhs == rhs:
+            return True
+        if match_mode == 'strict':
+            return False
+        if lhs.rstrip() == rhs.rstrip():
+            return True
+        if lhs.strip() == rhs.strip():
+            return True
+        return _normalize_for_lenient_line_match(lhs) == _normalize_for_lenient_line_match(rhs)
+
+    def _matches_anchored_line_context(segment: str, pattern_text: str, anchor_end: bool) -> bool:
+        pattern_lines = _split_lines_for_matching(pattern_text)
+        if not pattern_lines:
+            return True
+
+        segment_lines = _split_lines_for_matching(segment)
+        if len(pattern_lines) > len(segment_lines):
+            return False
+
+        if anchor_end:
+            segment_slice = segment_lines[-len(pattern_lines):]
+        else:
+            segment_slice = segment_lines[:len(pattern_lines)]
+
+        return all(_line_match(segment_slice[idx], pattern_lines[idx]) for idx in range(len(pattern_lines)))
+
+    def _context_matches_before(start: int) -> bool:
+        if before_context is None:
+            return True
+        before_len = len(before_context)
+        if start >= before_len and content[start - before_len:start] == before_context:
+            return True
+        if match_mode == 'strict':
+            return False
+        if (
+            start >= before_len
+            and _normalize_for_lenient_line_match(content[start - before_len:start])
+            == _normalize_for_lenient_line_match(before_context)
+        ):
+            return True
+        return _matches_anchored_line_context(content[:start], before_context, anchor_end=True)
+
+    def _context_matches_after(end: int) -> bool:
+        if after_context is None:
+            return True
+        after_len = len(after_context)
+        if content[end:end + after_len] == after_context:
+            return True
+        if match_mode == 'strict':
+            return False
+        if _normalize_for_lenient_line_match(content[end:end + after_len]) == _normalize_for_lenient_line_match(
+            after_context
+        ):
+            return True
+        return _matches_anchored_line_context(content[end:], after_context, anchor_end=False)
+
     filtered: list[tuple[int, int]] = []
     for start, end in spans:
-        if before_context is not None:
-            before_len = len(before_context)
-            if start < before_len:
-                continue
-            if content[start - before_len:start] != before_context:
-                continue
-
-        if after_context is not None:
-            after_len = len(after_context)
-            if content[end:end + after_len] != after_context:
-                continue
+        if not _context_matches_before(start):
+            continue
+        if not _context_matches_after(end):
+            continue
 
         if require_eof and content[end:].strip('\n') != '':
             continue
@@ -125,36 +192,40 @@ def _seek_line_sequence(
     pattern: list[str],
     start: int,
     mode: str,
+    eof: bool = False,
 ) -> int | None:
     if not pattern:
         return start
     if len(pattern) > len(lines):
         return None
 
+    search_start = len(lines) - len(pattern) if eof and len(lines) >= len(pattern) else start
+    if search_start < 0:
+        search_start = 0
     upper_bound = len(lines) - len(pattern)
 
-    for index in range(start, upper_bound + 1):
+    for index in range(search_start, upper_bound + 1):
         if lines[index:index + len(pattern)] == pattern:
             return index
 
     if mode == 'strict':
         return None
 
-    for index in range(start, upper_bound + 1):
+    for index in range(search_start, upper_bound + 1):
         if all(
             lines[index + offset].rstrip() == pattern[offset].rstrip()
             for offset in range(len(pattern))
         ):
             return index
 
-    for index in range(start, upper_bound + 1):
+    for index in range(search_start, upper_bound + 1):
         if all(
             lines[index + offset].strip() == pattern[offset].strip()
             for offset in range(len(pattern))
         ):
             return index
 
-    for index in range(start, upper_bound + 1):
+    for index in range(search_start, upper_bound + 1):
         if all(
             _normalize_for_lenient_line_match(lines[index + offset])
             == _normalize_for_lenient_line_match(pattern[offset])
@@ -325,6 +396,83 @@ def _build_operation(
     ), None
 
 
+def _normalize_line_array(
+    value: Any,
+    field_name: str,
+    chunk_index: int,
+) -> tuple[list[str] | None, str | None]:
+    if not isinstance(value, list):
+        return None, f'patch_chunks[{chunk_index}].{field_name} must be a list of strings'
+
+    normalized: list[str] = []
+    for line_index, line in enumerate(value, start=1):
+        if not isinstance(line, str):
+            return None, (
+                f'patch_chunks[{chunk_index}].{field_name}[{line_index}] '
+                'must be a string'
+            )
+        normalized_line = normalize_line_endings(line)
+        if '\n' in normalized_line:
+            return None, (
+                f'patch_chunks[{chunk_index}].{field_name}[{line_index}] '
+                'must contain exactly one line (no newline characters)'
+            )
+        normalized.append(normalized_line)
+
+    return normalized, None
+
+
+def build_patch_chunks(args: dict[str, Any]) -> tuple[list[ReplacePatchChunk] | None, str | None]:
+    raw_chunks = args.get('patch_chunks')
+    if raw_chunks is None:
+        return None, None
+
+    if not isinstance(raw_chunks, list) or not raw_chunks:
+        return None, 'patch_chunks must be a non-empty list when provided'
+
+    chunks: list[ReplacePatchChunk] = []
+    for chunk_index, raw_chunk in enumerate(raw_chunks, start=1):
+        if not isinstance(raw_chunk, dict):
+            return None, f'patch_chunks[{chunk_index}] must be an object'
+
+        change_context_value = raw_chunk.get('change_context')
+        if change_context_value is not None and not isinstance(change_context_value, str):
+            return None, f'patch_chunks[{chunk_index}].change_context must be a string when provided'
+        change_context = (
+            normalize_line_endings(change_context_value)
+            if isinstance(change_context_value, str)
+            else None
+        )
+        if change_context is not None and '\n' in change_context:
+            return None, (
+                f'patch_chunks[{chunk_index}].change_context '
+                'must contain exactly one line (no newline characters)'
+            )
+
+        old_lines, old_lines_error = _normalize_line_array(raw_chunk.get('old_lines'), 'old_lines', chunk_index)
+        if old_lines_error is not None:
+            return None, old_lines_error
+        if old_lines is None:
+            return None, f'patch_chunks[{chunk_index}].old_lines is required'
+
+        new_lines, new_lines_error = _normalize_line_array(raw_chunk.get('new_lines'), 'new_lines', chunk_index)
+        if new_lines_error is not None:
+            return None, new_lines_error
+        if new_lines is None:
+            return None, f'patch_chunks[{chunk_index}].new_lines is required'
+
+        chunks.append(
+            ReplacePatchChunk(
+                change_context=change_context,
+                old_lines=old_lines,
+                new_lines=new_lines,
+                is_end_of_file=_coerce_bool(raw_chunk.get('is_end_of_file'), default=False),
+            )
+        )
+
+    return chunks, None
+
+
 def build_operations(args: dict[str, Any]) -> tuple[list[ReplaceOperation] | None, str | None]:
     """
     Parse top-level payload into one or more operations.
@@ -357,6 +505,149 @@ def build_operations(args: dict[str, Any]) -> tuple[list[ReplaceOperation] | Non
     return [operation], None
 
 
+def _compute_patch_chunk_replacements(
+    lines: list[str],
+    chunks: list[ReplacePatchChunk],
+) -> tuple[list[_ChunkReplacement] | None, str | None]:
+    replacements: list[_ChunkReplacement] = []
+    line_index = 0
+
+    for chunk_index, chunk in enumerate(chunks, start=1):
+        if chunk.change_context is not None:
+            context_index = _seek_line_sequence(
+                lines,
+                [chunk.change_context],
+                line_index,
+                'lenient',
+            )
+            if context_index is None:
+                return None, (
+                    f"Chunk {chunk_index}: Failed to find context '{chunk.change_context}'"
+                )
+            line_index = context_index + 1
+
+        if not chunk.old_lines:
+            insertion_index = len(lines) - 1 if lines and lines[-1] == '' else len(lines)
+            replacements.append(
+                _ChunkReplacement(
+                    chunk_index=chunk_index,
+                    start_idx=insertion_index,
+                    old_len=0,
+                    new_lines=list(chunk.new_lines),
+                )
+            )
+            continue
+
+        pattern = list(chunk.old_lines)
+        new_lines = list(chunk.new_lines)
+        found_index = _seek_line_sequence(
+            lines,
+            pattern,
+            line_index,
+            'lenient',
+            eof=chunk.is_end_of_file,
+        )
+
+        if found_index is None and pattern and pattern[-1] == '':
+            pattern = pattern[:-1]
+            if new_lines and new_lines[-1] == '':
+                new_lines = new_lines[:-1]
+            found_index = _seek_line_sequence(
+                lines,
+                pattern,
+                line_index,
+                'lenient',
+                eof=chunk.is_end_of_file,
+            )
+
+        if found_index is None:
+            expected = '\n'.join(chunk.old_lines)
+            return None, (
+                f'Chunk {chunk_index}: Failed to find expected lines:\n{expected}'
+            )
+
+        replacements.append(
+            _ChunkReplacement(
+                chunk_index=chunk_index,
+                start_idx=found_index,
+                old_len=len(pattern),
+                new_lines=new_lines,
+            )
+        )
+        line_index = found_index + len(pattern)
+
+    replacements.sort(key=lambda replacement: replacement.start_idx)
+    return replacements, None
+
+
+def _apply_line_replacements(lines: list[str], replacements: list[_ChunkReplacement]) -> list[str]:
+    updated = list(lines)
+    for replacement in reversed(replacements):
+        for _ in range(replacement.old_len):
+            if replacement.start_idx < len(updated):
+                updated.pop(replacement.start_idx)
+        for offset, line in enumerate(replacement.new_lines):
+            updated.insert(replacement.start_idx + offset, line)
+    return updated
+
+
+def _line_replacements_to_spans(
+    content: str,
+    lines: list[str],
+    replacements: list[_ChunkReplacement],
+) -> list[dict[str, int]]:
+    if not replacements:
+        return []
+    offsets = _compute_line_offsets(content, lines)
+    spans: list[dict[str, int]] = []
+    for replacement in replacements:
+        if replacement.old_len == 0:
+            start_char = offsets[replacement.start_idx] if replacement.start_idx < len(offsets) else len(content)
+            spans.append({'start': start_char, 'end': start_char})
+            continue
+        end_line = replacement.start_idx + replacement.old_len - 1
+        if replacement.start_idx >= len(offsets) or end_line >= len(lines):
+            spans.append({'start': 0, 'end': 0})
+            continue
+        start_char = offsets[replacement.start_idx]
+        end_char = offsets[end_line] + len(lines[end_line])
+        if end_char < len(content) and content[end_char] == '\n':
+            end_char += 1
+        spans.append({'start': start_char, 'end': end_char})
+    return spans
+
+
+def apply_patch_chunks(
+    content: str,
+    chunks: list[ReplacePatchChunk],
+) -> tuple[str, int, list[dict[str, int]], list[dict[str, Any]], str | None]:
+    source_lines = _split_lines_for_matching(content)
+    replacements, replacements_error = _compute_patch_chunk_replacements(source_lines, chunks)
+    if replacements_error is not None:
+        return content, 0, [], [], replacements_error
+    if replacements is None:
+        return content, 0, [], [], 'Failed to apply patch chunks'
+
+    matched_spans = _line_replacements_to_spans(content, source_lines, replacements)
+    operation_payloads: list[dict[str, Any]] = []
+    for replacement, span in zip(replacements, matched_spans):
+        operation_payloads.append(
+            {
+                'index': replacement.chunk_index,
+                'mode': 'patch_chunk',
+                'applied_replacements': 1,
+                'matched_spans': [span],
+            }
+        )
+
+    updated_lines = _apply_line_replacements(source_lines, replacements)
+    if not updated_lines or updated_lines[-1] != '':
+        updated_lines.append('')
+    updated_content = '\n'.join(updated_lines)
+
+    return updated_content, len(replacements), matched_spans, operation_payloads, None
+
+
 def _perform_replacement_operation(
     content: str,
     operation: ReplaceOperation,
@@ -374,6 +665,7 @@ def _perform_replacement_operation(
         operation.before_context,
         operation.after_context,
         operation.require_eof,
+        operation.match_mode,
     )
 
     if not candidate_spans and operation.match_mode == 'lenient':
@@ -384,6 +676,7 @@ def _perform_replacement_operation(
             operation.before_context,
             operation.after_context,
             operation.require_eof,
+            operation.match_mode,
         )
 
     if not candidate_spans:

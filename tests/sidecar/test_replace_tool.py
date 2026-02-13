@@ -150,6 +150,44 @@ async def test_replace_before_after_context_disambiguates_matches(tmp_path: Path
 
 
 @pytest.mark.asyncio
+async def test_replace_lenient_before_context_allows_whitespace_and_unicode_variants(tmp_path: Path):
+    target = tmp_path / "context-lenient-before.txt"
+    target.write_text("header \u2013 one\nheader two   \ntarget\ntail\n", encoding="utf-8")
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "old_string": "target\n",
+            "new_string": "TARGET\n",
+            "before_context": "header - one\nheader two\n",
+        }
+    )
+
+    assert result.success is True
+    assert result.data["replacements"] == 1
+    assert target.read_text(encoding="utf-8") == "header \u2013 one\nheader two   \nTARGET\ntail\n"
+
+
+@pytest.mark.asyncio
+async def test_replace_lenient_after_context_allows_whitespace_variants(tmp_path: Path):
+    target = tmp_path / "context-lenient-after.txt"
+    target.write_text("start\ntarget\nafter line   \nfinish\n", encoding="utf-8")
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "old_string": "target\n",
+            "new_string": "UPDATED\n",
+            "after_context": "after line\nfinish\n",
+        }
+    )
+
+    assert result.success is True
+    assert result.data["replacements"] == 1
+    assert target.read_text(encoding="utf-8") == "start\nUPDATED\nafter line   \nfinish\n"
+
+
+@pytest.mark.asyncio
 async def test_replace_occurrence_index_targets_specific_match(tmp_path: Path):
     target = tmp_path / "occurrence.txt"
     target.write_text("x\ny\nx\n", encoding="utf-8")
@@ -279,3 +317,224 @@ async def test_replace_creates_new_file_when_old_string_empty(tmp_path: Path):
     assert result.success is True
     assert result.data["is_new_file"] is True
     assert target.read_text(encoding="utf-8") == "fresh file"
+
+
+@pytest.mark.asyncio
+async def test_replace_patch_chunks_update_file_hunk_modifies_content(tmp_path: Path):
+    target = tmp_path / "update.txt"
+    target.write_text("foo\nbar\n", encoding="utf-8")
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "patch_chunks": [
+                {
+                    "old_lines": ["foo", "bar"],
+                    "new_lines": ["foo", "baz"],
+                }
+            ],
+        }
+    )
+
+    assert result.success is True
+    assert result.data["replacements"] == 1
+    assert target.read_text(encoding="utf-8") == "foo\nbaz\n"
+
+
+@pytest.mark.asyncio
+async def test_replace_patch_chunks_multiple_update_chunks_apply_to_single_file(tmp_path: Path):
+    target = tmp_path / "multi.txt"
+    target.write_text("foo\nbar\nbaz\nqux\n", encoding="utf-8")
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "patch_chunks": [
+                {
+                    "old_lines": ["foo", "bar"],
+                    "new_lines": ["foo", "BAR"],
+                },
+                {
+                    "old_lines": ["baz", "qux"],
+                    "new_lines": ["baz", "QUX"],
+                },
+            ],
+        }
+    )
+
+    assert result.success is True
+    assert result.data["replacements"] == 2
+    assert target.read_text(encoding="utf-8") == "foo\nBAR\nbaz\nQUX\n"
+
+
+@pytest.mark.asyncio
+async def test_replace_patch_chunks_interleaved_changes(tmp_path: Path):
+    target = tmp_path / "interleaved.txt"
+    target.write_text("a\nb\nc\nd\ne\nf\n", encoding="utf-8")
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "patch_chunks": [
+                {
+                    "old_lines": ["a", "b"],
+                    "new_lines": ["a", "B"],
+                },
+                {
+                    "old_lines": ["c", "d", "e"],
+                    "new_lines": ["c", "d", "E"],
+                },
+                {
+                    "old_lines": ["f"],
+                    "new_lines": ["f", "g"],
+                    "is_end_of_file": True,
+                },
+            ],
+        }
+    )
+
+    assert result.success is True
+    assert result.data["replacements"] == 3
+    assert target.read_text(encoding="utf-8") == "a\nB\nc\nd\nE\nf\ng\n"
+
+
+@pytest.mark.asyncio
+async def test_replace_patch_chunks_pure_addition_followed_by_removal(tmp_path: Path):
+    target = tmp_path / "panic.txt"
+    target.write_text("line1\nline2\nline3\n", encoding="utf-8")
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "patch_chunks": [
+                {
+                    "old_lines": [],
+                    "new_lines": ["after-context", "second-line"],
+                },
+                {
+                    "old_lines": ["line1", "line2", "line3"],
+                    "new_lines": ["line1", "line2-replacement"],
+                },
+            ],
+        }
+    )
+
+    assert result.success is True
+    assert result.data["replacements"] == 2
+    assert target.read_text(encoding="utf-8") == "line1\nline2-replacement\nafter-context\nsecond-line\n"
+
+
+@pytest.mark.asyncio
+async def test_replace_patch_chunks_unicode_dash_line_match(tmp_path: Path):
+    target = tmp_path / "unicode.py"
+    target.write_text(
+        "import asyncio  # local import \u2013 avoids top\u2011level dep\n",
+        encoding="utf-8",
+    )
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "patch_chunks": [
+                {
+                    "old_lines": ["import asyncio  # local import - avoids top-level dep"],
+                    "new_lines": ["import asyncio  # HELLO"],
+                }
+            ],
+        }
+    )
+
+    assert result.success is True
+    assert result.data["replacements"] == 1
+    assert target.read_text(encoding="utf-8") == "import asyncio  # HELLO\n"
+
+
+@pytest.mark.asyncio
+async def test_replace_patch_chunks_first_line_replacement(tmp_path: Path):
+    target = tmp_path / "first.txt"
+    target.write_text("foo\nbar\nbaz\n", encoding="utf-8")
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "patch_chunks": [
+                {
+                    "old_lines": ["foo", "bar"],
+                    "new_lines": ["FOO", "bar"],
+                }
+            ],
+        }
+    )
+
+    assert result.success is True
+    assert target.read_text(encoding="utf-8") == "FOO\nbar\nbaz\n"
+
+
+@pytest.mark.asyncio
+async def test_replace_patch_chunks_last_line_replacement(tmp_path: Path):
+    target = tmp_path / "last.txt"
+    target.write_text("foo\nbar\nbaz\n", encoding="utf-8")
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "patch_chunks": [
+                {
+                    "old_lines": ["bar", "baz"],
+                    "new_lines": ["bar", "BAZ"],
+                }
+            ],
+        }
+    )
+
+    assert result.success is True
+    assert target.read_text(encoding="utf-8") == "foo\nbar\nBAZ\n"
+
+
+@pytest.mark.asyncio
+async def test_replace_patch_chunks_insert_at_eof(tmp_path: Path):
+    target = tmp_path / "insert.txt"
+    target.write_text("foo\nbar\nbaz\n", encoding="utf-8")
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "patch_chunks": [
+                {
+                    "old_lines": [],
+                    "new_lines": ["quux"],
+                    "is_end_of_file": True,
+                }
+            ],
+        }
+    )
+
+    assert result.success is True
+    assert target.read_text(encoding="utf-8") == "foo\nbar\nbaz\nquux\n"
+
+
+@pytest.mark.asyncio
+async def test_replace_patch_chunks_uses_change_context_anchor(tmp_path: Path):
+    target = tmp_path / "context-anchor.txt"
+    target.write_text("marker\nx\nmarker\nx\n", encoding="utf-8")
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "patch_chunks": [
+                {
+                    "change_context": "marker",
+                    "old_lines": ["x"],
+                    "new_lines": ["X"],
+                },
+                {
+                    "change_context": "marker",
+                    "old_lines": ["x"],
+                    "new_lines": ["Y"],
+                },
+            ],
+        }
+    )
+
+    assert result.success is True
+    assert target.read_text(encoding="utf-8") == "marker\nX\nmarker\nY\n"
