@@ -94,7 +94,7 @@ export class ToolExecutionService {
       );
       const { screenshot, screenshotContentType, systemState, waitDelay, captureTime, isComputerTool } = capture;
 
-      const uploaded = screenshot
+      const uploaded = isComputerTool && screenshot
         ? await uploadArtifactBase64(
             screenshot,
             normalizeArtifactImageContentType(screenshotContentType),
@@ -121,12 +121,19 @@ export class ToolExecutionService {
         screenshotRef,
         screenshotUrl,
         screenshotContentType,
-        systemState
+        finalSystemState
       );
       this._emitToolResult(executionResult);
 
       // Send result to backend
-      this._sendToolResult(options.correlationId, result, formattedMessage, screenshotRef);
+      this._sendToolResult(
+        options.correlationId,
+        result,
+        formattedMessage,
+        finalSystemState,
+        isComputerTool,
+        screenshotRef,
+      );
 
       // Calculate total execution time AFTER sending to backend (execution is complete when backend receives result)
       // This includes: tool IPC + wait delay + screenshot capture + formatting + backend send
@@ -153,7 +160,13 @@ export class ToolExecutionService {
         totalStartTime,
         error
       );
-      this._sendToolResult(options.correlationId, errorResult.result, errorResult.formattedMessage);
+      this._sendToolResult(
+        options.correlationId,
+        errorResult.result,
+        errorResult.formattedMessage,
+        null,
+        false,
+      );
       throw error;
     }
   }
@@ -226,13 +239,19 @@ export class ToolExecutionService {
     correlationId: string | undefined,
     result: ToolResult,
     formattedMessage: string,
+    systemState: SystemState | null,
+    includeScreenshot: boolean,
     screenshotRef?: string | null
   ): void {
     if (!this.callbacks.sendToBackend) {
       return;
     }
 
-    const payloadData = buildToolResultPayloadData(result, formattedMessage, screenshotRef);
+    const payloadData = buildToolResultPayloadData(result, formattedMessage, {
+      screenshotRef,
+      systemState,
+      includeScreenshot,
+    });
 
     this.callbacks.sendToBackend({
       type: 'tool-result',

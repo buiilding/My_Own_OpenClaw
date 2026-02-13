@@ -76,13 +76,18 @@ describe('ToolExecutionService', () => {
         payload: expect.objectContaining({
           request_id: 'req-123',
           success: true,
-          data: expect.objectContaining({
-            llm_content: 'formatted',
-            is_preformatted: true,
-          }),
         }),
       }),
     );
+    const firstSentPayload = sendToBackend.mock.calls[0][0];
+    expect(firstSentPayload.payload.data).toMatchObject({
+      llm_content: 'formatted',
+      system_state: {
+        active_window: 'App',
+        mouse_position: 'Unknown',
+      },
+    });
+    expect(firstSentPayload.payload.data).not.toHaveProperty('is_preformatted');
     expect(mockFormatToolOutputMessage).toHaveBeenCalled();
   });
 
@@ -101,6 +106,34 @@ describe('ToolExecutionService', () => {
 
     expect(mockExtractOSstate).not.toHaveBeenCalled();
     expect(result.screenshot).toBeNull();
+  });
+
+  test('executeTool omits screenshot_ref for non computer-use tool results', async () => {
+    jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
+      success: true,
+      data: {
+        output: 'ok',
+        screenshot_ref: 'should-not-be-forwarded',
+      },
+    });
+
+    const sendToBackend = jest.fn();
+    const service = new ToolExecutionService({ sendToBackend });
+    await service.executeTool(
+      'read_file',
+      { file_path: '/tmp/a' },
+      { correlationId: 'req-no-shot', skipAutoCapture: false },
+    );
+
+    const payload = sendToBackend.mock.calls[0][0].payload.data;
+    expect(payload).toMatchObject({
+      llm_content: 'formatted',
+      system_state: {
+        active_window: 'Unknown',
+        mouse_position: 'Unknown',
+      },
+    });
+    expect(payload).not.toHaveProperty('screenshot_ref');
   });
 
   test('executeTool reuses system_state and screenshot from tool result', async () => {
@@ -182,13 +215,18 @@ describe('ToolExecutionService', () => {
         payload: expect.objectContaining({
           request_id: 'req-err',
           success: false,
-          data: expect.objectContaining({
-            llm_content: 'formatted',
-            is_preformatted: true,
-          }),
         }),
       }),
     );
+    const errorPayload = sendToBackend.mock.calls[0][0].payload.data;
+    expect(errorPayload).toMatchObject({
+      llm_content: 'formatted',
+      system_state: {
+        active_window: 'Unknown',
+        mouse_position: 'Unknown',
+      },
+    });
+    expect(errorPayload).not.toHaveProperty('is_preformatted');
   });
 
   test('executeToolBundle executes sequentially and captures state on last computer-use tool', async () => {

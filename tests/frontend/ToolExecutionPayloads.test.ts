@@ -7,7 +7,7 @@ import {
 } from '../../frontend/src/renderer/infrastructure/services/ToolExecutionPayloads';
 
 describe('ToolExecutionPayloads', () => {
-  test('buildToolResultPayloadData strips raw screenshot payload fields', () => {
+  test('buildToolResultPayloadData strips raw screenshot payload fields for non-computer tools', () => {
     const payload = buildToolResultPayloadData(
       {
         success: true,
@@ -23,13 +23,15 @@ describe('ToolExecutionPayloads', () => {
 
     expect(payload).toEqual({
       output: 'ok',
-      screenshot_ref: 'existing-ref',
       llm_content: 'formatted',
-      is_preformatted: true,
+      system_state: {
+        active_window: 'Unknown',
+        mouse_position: 'Unknown',
+      },
     });
   });
 
-  test('buildToolResultPayloadData overrides screenshot_ref with uploaded artifact id', () => {
+  test('buildToolResultPayloadData includes screenshot_ref for computer-use tools and overrides with uploaded artifact id', () => {
     const payload = buildToolResultPayloadData(
       {
         success: true,
@@ -39,14 +41,44 @@ describe('ToolExecutionPayloads', () => {
         },
       },
       'formatted',
-      'new-ref',
+      {
+        screenshotRef: 'new-ref',
+        includeScreenshot: true,
+      },
     );
 
     expect(payload).toEqual({
       output: 'ok',
       screenshot_ref: 'new-ref',
       llm_content: 'formatted',
-      is_preformatted: true,
+      system_state: {
+        active_window: 'Unknown',
+        mouse_position: 'Unknown',
+      },
+    });
+  });
+
+  test('buildToolResultPayloadData includes required system_state fields with fallback values', () => {
+    const payload = buildToolResultPayloadData(
+      {
+        success: true,
+        data: {
+          output: 'ok',
+          system_state: {
+            active_window: 'Editor',
+          },
+        },
+      },
+      'formatted',
+    );
+
+    expect(payload).toEqual({
+      output: 'ok',
+      llm_content: 'formatted',
+      system_state: {
+        active_window: 'Editor',
+        mouse_position: 'Unknown',
+      },
     });
   });
 

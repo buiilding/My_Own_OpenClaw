@@ -1,4 +1,4 @@
-import type { BundledToolResult, ToolResult } from './MessageFormatter';
+import type { BundledToolResult, SystemState, ToolResult } from './MessageFormatter';
 import type { BundleStepResult } from './ToolExecutionBundleRunner';
 
 export type BundleStatus = 'success' | 'partial_failure' | 'failure';
@@ -13,25 +13,92 @@ export type NormalizedBundleResult = {
   };
 };
 
+export type ToolResultPayloadOptions = {
+  screenshotRef?: string | null;
+  systemState?: SystemState | null;
+  includeScreenshot?: boolean;
+};
+
+type RequiredSystemState = {
+  active_window: string;
+  mouse_position: string;
+};
+
+function pickSystemStateCandidate(
+  preferred: SystemState | null | undefined,
+  fallback: unknown,
+): Record<string, unknown> {
+  if (preferred && typeof preferred === 'object') {
+    return preferred as Record<string, unknown>;
+  }
+  if (fallback && typeof fallback === 'object' && !Array.isArray(fallback)) {
+    return fallback as Record<string, unknown>;
+  }
+  return {};
+}
+
+function asRequiredSystemState(
+  preferred: SystemState | null | undefined,
+  fallback: unknown,
+): RequiredSystemState {
+  const candidate = pickSystemStateCandidate(preferred, fallback);
+  const activeWindowValue = candidate['active_window'];
+  const activeWindowCamelValue = candidate['activeWindow'];
+  const mousePositionValue = candidate['mouse_position'];
+  const mousePositionCamelValue = candidate['mousePosition'];
+  const activeWindow =
+    typeof activeWindowValue === 'string' && activeWindowValue.length > 0
+      ? activeWindowValue
+      : typeof activeWindowCamelValue === 'string' && activeWindowCamelValue.length > 0
+        ? activeWindowCamelValue
+        : 'Unknown';
+  const mousePosition =
+    typeof mousePositionValue === 'string' && mousePositionValue.length > 0
+      ? mousePositionValue
+      : typeof mousePositionCamelValue === 'string' && mousePositionCamelValue.length > 0
+        ? mousePositionCamelValue
+        : 'Unknown';
+
+  return {
+    active_window: activeWindow,
+    mouse_position: mousePosition,
+  };
+}
+
 export function buildToolResultPayloadData(
   result: ToolResult,
   formattedMessage: string,
-  screenshotRef?: string | null,
+  options: ToolResultPayloadOptions = {},
 ): Record<string, unknown> {
   const rawData =
     result.data && typeof result.data === 'object' && !Array.isArray(result.data)
       ? (result.data as Record<string, unknown>)
       : {};
-  const { screenshot: _screenshot, image_data: _imageData, ...payloadData } = rawData;
+  const {
+    screenshot: _screenshot,
+    image_data: _imageData,
+    screenshot_ref: rawScreenshotRef,
+    system_state: rawSystemState,
+    ...payloadData
+  } = rawData;
 
   const normalizedPayload: Record<string, unknown> = {
     ...payloadData,
     llm_content: formattedMessage,
-    is_preformatted: true,
+    system_state: asRequiredSystemState(options.systemState, rawSystemState),
   };
-  if (screenshotRef) {
-    normalizedPayload.screenshot_ref = screenshotRef;
+
+  if (options.includeScreenshot) {
+    const selectedScreenshotRef =
+      options.screenshotRef ||
+      (typeof rawScreenshotRef === 'string' && rawScreenshotRef.length > 0
+        ? rawScreenshotRef
+        : null);
+    if (selectedScreenshotRef) {
+      normalizedPayload.screenshot_ref = selectedScreenshotRef;
+    }
   }
+
   return normalizedPayload;
 }
 
