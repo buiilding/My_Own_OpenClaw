@@ -3,6 +3,8 @@ import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
+const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
+
 function SettingsIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -29,6 +31,7 @@ function MicIcon() {
 
 function ChatBox() {
   const isSending = useChatStore((state) => state.isSending);
+  const streamPhase = useChatStore((state) => state.streamTracking.phase);
   const { sendMessage } = useChatMessageSender();
   const [inputValue, setInputValue] = useState('');
   const ignoreMouseRef = useRef(undefined);
@@ -54,6 +57,11 @@ function ChatBox() {
       setOverlayIgnore(false);
     };
   }, [setOverlayIgnore]);
+
+  useEffect(() => {
+    const shouldIgnore = isSending || CLICK_THROUGH_PHASES.has(streamPhase);
+    void setOverlayIgnore(shouldIgnore);
+  }, [isSending, setOverlayIgnore, streamPhase]);
 
   useEffect(() => {
     if (!shellRef.current) {
