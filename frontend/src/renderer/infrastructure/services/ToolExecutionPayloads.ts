@@ -25,6 +25,10 @@ type RequiredSystemState = {
   mouse_position: string;
 };
 
+type InternalSystemState = RequiredSystemState & {
+  screen_resolution?: string;
+};
+
 function pickSystemStateCandidate(
   preferred: SystemState | null | undefined,
   fallback: unknown,
@@ -66,6 +70,25 @@ function asRequiredSystemState(
   };
 }
 
+function asInternalSystemState(
+  preferred: SystemState | null | undefined,
+  fallback: unknown,
+): InternalSystemState {
+  const candidate = pickSystemStateCandidate(preferred, fallback);
+  const modelState = asRequiredSystemState(preferred, fallback);
+  const screenResolutionValue = candidate['screen_resolution'];
+  const screenResolutionCamelValue = candidate['screenResolution'];
+  const screenResolution =
+    typeof screenResolutionValue === 'string' && screenResolutionValue.length > 0
+      ? screenResolutionValue
+      : typeof screenResolutionCamelValue === 'string' && screenResolutionCamelValue.length > 0
+        ? screenResolutionCamelValue
+        : null;
+  return screenResolution
+    ? { ...modelState, screen_resolution: screenResolution }
+    : modelState;
+}
+
 export function buildToolResultPayloadData(
   result: ToolResult,
   formattedMessage: string,
@@ -89,7 +112,13 @@ export function buildToolResultPayloadData(
   };
 
   if (options.includeSystemState) {
-    normalizedPayload.system_state = asRequiredSystemState(options.systemState, rawSystemState);
+    const modelState = asRequiredSystemState(options.systemState, rawSystemState);
+    const internalState = asInternalSystemState(options.systemState, rawSystemState);
+    normalizedPayload.system_state = modelState;
+    if (internalState.screen_resolution) {
+      // Keep display sizing data available for backend runtime normalization only.
+      normalizedPayload.system_state_internal = internalState;
+    }
   }
 
   if (options.includeScreenshot) {

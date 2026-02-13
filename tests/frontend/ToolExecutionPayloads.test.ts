@@ -80,6 +80,38 @@ describe('ToolExecutionPayloads', () => {
     });
   });
 
+  test('buildToolResultPayloadData keeps screen_resolution in internal runtime state only', () => {
+    const payload = buildToolResultPayloadData(
+      {
+        success: true,
+        data: {
+          output: 'ok',
+          system_state: {
+            active_window: 'Editor',
+            mouse_position: '(10, 20)',
+            screen_resolution: '1920x1080',
+          },
+        },
+      },
+      'formatted',
+      { includeSystemState: true },
+    );
+
+    expect(payload).toEqual({
+      output: 'ok',
+      llm_content: 'formatted',
+      system_state: {
+        active_window: 'Editor',
+        mouse_position: '(10, 20)',
+      },
+      system_state_internal: {
+        active_window: 'Editor',
+        mouse_position: '(10, 20)',
+        screen_resolution: '1920x1080',
+      },
+    });
+  });
+
   test('resolveBundleStatus returns success/partial/failure states', () => {
     expect(
       resolveBundleStatus(

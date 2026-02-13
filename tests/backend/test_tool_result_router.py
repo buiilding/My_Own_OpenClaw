@@ -95,6 +95,28 @@ async def test_route_individual_result_updates_session_system_state():
 
 
 @pytest.mark.asyncio
+async def test_route_individual_result_prefers_internal_system_state():
+    router = ToolResultRouter(
+        receiver=None,
+        screenshot_processor=FakeScreenshotProcessor(),
+        result_storage=FakeResultStorage(),
+        session=DummySession(),
+    )
+    result = ToolResult(
+        success=True,
+        data={
+            "output": "ok",
+            "system_state": {"active_window": "Terminal", "mouse_position": "(1, 1)"},
+            "system_state_internal": {"screen_resolution": "2560x1440"},
+        },
+    )
+
+    await router.route_individual_result("req-1", result)
+
+    assert router.session.current_system_state == {"screen_resolution": "2560x1440"}
+
+
+@pytest.mark.asyncio
 async def test_route_individual_result_resolves_screenshot_ref(monkeypatch):
     router = ToolResultRouter(
         receiver=None,
