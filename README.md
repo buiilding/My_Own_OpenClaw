@@ -11,7 +11,9 @@
 
 ## 🎯 Vision
 
-**Desktop Assistant** is an AI-powered personal assistant that provides intelligent computer control and automation at the **OS-level** - unlike IDE-based tools like Claude Code or Cursor, it operates across your entire operating system. **The system uses primarily vision (screenshots) to navigate through your computer** - capturing screenshots, analyzing them with vision models and OCR, and using visual understanding to interact with UI elements. 
+**Desktop Assistant** is an AI-powered personal assistant that provides intelligent computer control and automation at the **OS-level** - unlike IDE-based tools like Claude Code or Cursor, it operates across your entire operating system.
+
+> 💡 **Think ChatGPT, but you never have to copy-paste again.** Just ask, and it does the work directly on your computer. **The system uses primarily vision (screenshots) to navigate through your computer** - capturing screenshots, analyzing them with vision models and OCR, and using visual understanding to interact with UI elements. 
 
 **Key Differentiators:**
 - **Code Editing & Command Execution**: Edit code files, execute shell commands, and automate tasks just like Claude Code or Cursor, but at the OS-level across any application
