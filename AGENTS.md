@@ -77,6 +77,8 @@
 
 ## Git
 - Safe by default: `git status/diff/log`. Push only when user asks.
+- Commits are pre-authorized: make commits automatically for completed work without waiting for additional user confirmation.
+- Prefer small, frequent commits during code changes so each commit is easy to review and revert.
 - `git checkout` ok for PR review / explicit request.
 - Branch changes require user consent.
 - Destructive ops forbidden unless explicit (`reset --hard`, `clean`, `restore`, `rm`, …).
