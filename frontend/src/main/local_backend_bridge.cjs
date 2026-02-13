@@ -461,7 +461,7 @@ function initializeLocalBackendBridge(getWindows) {
         state.win.hide();
       }
     }
-    await new Promise((resolve) => setTimeout(resolve, 120));
+    await new Promise((resolve) => setTimeout(resolve, 320));
 
     try {
       return await task();

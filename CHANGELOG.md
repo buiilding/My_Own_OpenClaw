@@ -41,6 +41,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- fix(frontend-screenshot): increase Linux UI hide-settle delay before screenshot capture from 120ms to 320ms so dashboard/chat pill windows clear more reliably before capture
 - docs(memory): clarify semanticization pending-count behavior as assistant-turn based (not user+assistant row pairs), including explicit `4 user messages + 4 assistant replies => pending 4` examples in memory docs
 - docs(agents): update Git workflow guidance to pre-authorize automatic commits and require smaller, frequent commits for easier rollback
 - feat(filesystem-read-file): include `File path: <absolute-path>` in sidecar `read_file` `llm_content` for truncated, non-truncated, and empty-file responses so bundled tool output clearly identifies source files
