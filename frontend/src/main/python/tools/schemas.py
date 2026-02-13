@@ -141,8 +141,14 @@ class ReadFileArgs(BaseModel):
     model_config = ConfigDict(extra='ignore')
     
     file_path: str = Field(..., description="Absolute path to the file to read")
-    offset: Optional[int] = Field(None, description="Line offset to start reading from (0-indexed)")
-    limit: Optional[int] = Field(None, description="Maximum number of lines to read")
+    offset: Optional[int] = Field(
+        None,
+        description="0-based line offset to start reading from (defaults to 0)",
+    )
+    limit: Optional[int] = Field(
+        None,
+        description="Maximum number of lines to read (defaults to 2000 when omitted)",
+    )
     explanation: Optional[str] = Field(
         None,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
@@ -162,6 +168,13 @@ class RunShellCommandArgs(BaseModel):
     yield_after_seconds: Optional[float] = Field(
         None,
         description="(OPTIONAL) Return early if command runs longer than this (seconds). The command continues in the background.",
+    )
+    max_output_tokens: Optional[int] = Field(
+        None,
+        description=(
+            "(OPTIONAL) Maximum number of output tokens to include in llm_content for foreground responses. "
+            "Defaults to 10000 when omitted."
+        ),
     )
     env: Optional[dict[str, str]] = Field(
         None,

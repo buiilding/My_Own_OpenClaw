@@ -15,9 +15,13 @@ class ReadFileArgs(BaseModel):
         description="The path to the file to read (absolute path)"
     )
     offset: Optional[int] = Field(
-        None, ge=0, description="Line number to start reading from (0-based)"
+        None, ge=0, description="0-based line offset to start reading from (defaults to 0)"
     )
-    limit: Optional[int] = Field(None, gt=0, description="Number of lines to read")
+    limit: Optional[int] = Field(
+        None,
+        gt=0,
+        description="Maximum number of lines to read (defaults to 2000 when omitted)",
+    )
 
     explanation: str = Field(
         ...,

@@ -96,6 +96,58 @@ async def test_run_shell_command_env_override_and_pty_warning():
 
 
 @pytest.mark.asyncio
+async def test_run_shell_command_applies_default_output_token_truncation():
+    cmd = f'{sys.executable} -c "print(\'token \' * 25000)"'
+    result = await run_shell_command(
+        {"command": cmd, "run_in_background": False, "terminate_after_seconds": 5}
+    )
+
+    assert result["success"] is True
+    data = result["data"]
+    assert data["output_token_limit"] == 10000
+    assert data["output_truncated"] is True
+    assert data["original_output_tokens"] > 10000
+    assert "tokens truncated" in data["llm_content"]
+    assert "Original output token count" in data["llm_content"]
+
+
+@pytest.mark.asyncio
+async def test_run_shell_command_respects_custom_output_token_limit():
+    cmd = f'{sys.executable} -c "print(\'token \' * 500)"'
+    result = await run_shell_command(
+        {
+            "command": cmd,
+            "run_in_background": False,
+            "terminate_after_seconds": 5,
+            "max_output_tokens": 6,
+        }
+    )
+
+    assert result["success"] is True
+    data = result["data"]
+    assert data["output_token_limit"] == 6
+    assert data["output_truncated"] is True
+    assert data["original_output_tokens"] > 6
+    assert "tokens truncated" in data["llm_content"]
+
+
+@pytest.mark.asyncio
+async def test_run_shell_command_rejects_invalid_max_output_tokens():
+    cmd = f'{sys.executable} -c "print(\'ok\')"'
+    result = await run_shell_command(
+        {
+            "command": cmd,
+            "run_in_background": False,
+            "terminate_after_seconds": 5,
+            "max_output_tokens": "bad",
+        }
+    )
+
+    assert result["success"] is False
+    assert "max_output_tokens must be an integer" in result["error"]
+
+
+@pytest.mark.asyncio
 async def test_process_list_includes_running_session():
     cmd = f'{sys.executable} -c "import time; print(\'hi\'); time.sleep(0.2)"'
     result = await run_shell_command({"command": cmd, "run_in_background": True})

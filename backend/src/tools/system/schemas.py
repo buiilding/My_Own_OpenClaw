@@ -31,6 +31,14 @@ class RunShellCommandArgs(BaseModel):
             "The process keeps running in the background and can be managed with the process tool."
         ),
     )
+    max_output_tokens: Optional[int] = Field(
+        None,
+        gt=0,
+        description=(
+            "(OPTIONAL) Maximum number of output tokens to include in llm_content for foreground responses. "
+            "Defaults to 10000 when omitted. Excess output is truncated with a marker."
+        ),
+    )
     env: Optional[dict[str, str]] = Field(
         None,
         description="(OPTIONAL) Environment variable overrides for the command.",
