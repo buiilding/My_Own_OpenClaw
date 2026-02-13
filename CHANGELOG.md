@@ -78,6 +78,7 @@ Includes the last 300 commits on `main`.
 - refactor(agent-runtime): track session-scoped background tasks for cleanup, centralize loop error recording, and enforce strict LLM stream event handling in agent execution
 - feat(frontend-chatbox): redesign overlay into a single input pill with mic/settings icons, add stacked assistant-response pill with close-on-complete behavior, and add typing/screenshot-hide states for response rendering
 - fix(frontend-chatbox): keep overlay fully interactive while preserving rounded-pill hit geometry so background windows are not blocked by rectangular shadow regions
+- fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
 - fix(memory): restore episodic retrieval and semantic rollups for transcript-based conversations by indexing semantic-candidate transcript turns, queuing transcript writes for summarization, and semanticizing transcript batches
