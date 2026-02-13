@@ -99,6 +99,8 @@ Files created per user:
 - Pending count increments only for assistant terminal transcript entries:
   - `role="assistant"` and `message_type` in `""`, `"llm-text"`, or `"error"`.
 - Tool-call/tool-output entries do not increment pending count.
+- User transcript rows do not increment pending count.
+- Example: if you send 4 user messages and receive 4 assistant replies, pending count is `4` (not `8`).
 
 #### Does idle mode trigger summarization?
 
