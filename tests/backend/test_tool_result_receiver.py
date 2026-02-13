@@ -6,20 +6,26 @@ class DummySession:
     pass
 
 
-def test_receive_individual_result_sets_preformatted_metadata():
+def test_receive_individual_result_preserves_required_system_state_without_metadata_injection():
     receiver = ToolResultReceiver(DummySession())
-    metadata = {}
     result = receiver.receive_individual_result(
         request_id="req-1",
         success=True,
-        result_data={"is_preformatted": True, "output": "ok"},
+        result_data={
+            "llm_content": "ok",
+            "system_state": {
+                "active_window": "Terminal",
+                "mouse_position": "(845, 512)",
+            },
+            "output": "ok",
+        },
         error=None,
-        metadata=metadata,
     )
 
     assert result.success is True
-    assert result.metadata == {"is_preformatted": True}
-    assert metadata == {"is_preformatted": True}
+    assert result.metadata is None
+    assert result.data["system_state"]["active_window"] == "Terminal"
+    assert result.data["system_state"]["mouse_position"] == "(845, 512)"
 
 
 def test_receive_bundle_result_success_and_failure():

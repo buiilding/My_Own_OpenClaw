@@ -438,3 +438,32 @@ Validation run:
   - `llm_content` preferred.
   - error fallback.
   - data text fallback.
+
+### Agent 4 Status (Completed on February 13, 2026)
+
+Completed:
+- Updated `tests/backend/test_tool_result_receiver.py`:
+  - removed legacy metadata-injection expectation (`is_preformatted`).
+  - added assertions that individual tool-result data preserves required `system_state.active_window` and `system_state.mouse_position`.
+- Updated `tests/backend/test_tool_result_formatting.py`:
+  - removed preformatted-flag-oriented formatting assertion and kept `llm_content` preference check without metadata flags.
+- Updated `tests/backend/test_api_handlers.py`:
+  - updated `ToolResultMessage` fixtures to include required `data.llm_content` and `data.system_state` keys.
+  - added route assertions that serialized `result_data` retains both required system-state fields.
+  - removed deleted `_validate_metadata` test and replaced it with `_serialize_tool_result_data` typed-model serialization coverage.
+  - updated missing-session no-op fixture to valid tool-result payload shape.
+- Revalidated Agent 2-owned frontend contract tests (no changes required):
+  - `tests/frontend/ToolExecutionPayloads.test.ts`
+  - `tests/frontend/ToolExecutionService.test.ts`
+
+Validation run:
+- `./scripts/python-in-env backend pytest tests/backend/test_tool_result_receiver.py tests/backend/test_tool_result_formatting.py tests/backend/test_api_handlers.py -q` passed.
+- `npm --prefix frontend run test -- tests/frontend/ToolExecutionPayloads.test.ts tests/frontend/ToolExecutionService.test.ts` passed.
+
+### Handoff to Agent 5 (Post-Agent-4 Delta)
+
+- Test suite expectations are now fully aligned with the runtime contract:
+  - no `is_preformatted` path in backend/frontend touched tests.
+  - `tool-result.payload.data.system_state.active_window` and `.mouse_position` asserted as required.
+  - bundle behavior assertions for `bundle_id`/`step_results` remain intact.
+- Docs work can proceed with high confidence that backend/frontend contract behavior is covered by the migrated tests above.
