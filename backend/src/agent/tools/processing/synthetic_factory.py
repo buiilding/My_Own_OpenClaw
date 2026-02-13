@@ -30,7 +30,7 @@ class SyntheticResultFactory:
         """
         Create a synthetic tool result for coordinate resolution failures.
         
-        Creates a pre-formatted error result that can be sent to LLM as tool output.
+        Creates an error result that can be sent to LLM as tool output.
         No system context or screenshot needed for error results.
         
         Args:
@@ -45,5 +45,4 @@ class SyntheticResultFactory:
             error=error_msg,
             llm_content=f"Error: {error_msg}",
             data={"error": error_msg, "tool_name": tool_call.tool_name},
-            metadata={"is_preformatted": True},
         )

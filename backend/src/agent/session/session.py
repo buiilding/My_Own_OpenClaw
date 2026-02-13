@@ -361,7 +361,6 @@ class AgentSession:
         success: bool,
         result_data: Optional[Dict[str, Any]],
         error: Optional[str],
-        metadata: Dict[str, Any]
     ) -> None:
         """
         Process a tool result from the frontend.
@@ -373,10 +372,9 @@ class AgentSession:
             success: Whether tool execution succeeded
             result_data: Tool result data (may contain bundled flag)
             error: Error message if execution failed
-            metadata: Additional metadata
         """
         await self.tool_result_handler.process_frontend_tool_result(
-            request_id, success, result_data, error, metadata
+            request_id, success, result_data, error
         )
     
     async def process_frontend_tool_bundle_result(
