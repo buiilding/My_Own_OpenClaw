@@ -40,6 +40,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- docs(agents): update Git workflow guidance to pre-authorize automatic commits and require smaller, frequent commits for easier rollback
 - feat(filesystem-read-file): include `File path: <absolute-path>` in sidecar `read_file` `llm_content` for truncated, non-truncated, and empty-file responses so bundled tool output clearly identifies source files
 - feat(filesystem-read-file): stream `read_file` line-by-line with default paging (`limit=2000`), truncate returned lines at 500 chars, remove 10MB hard-stop, and add sidecar regression coverage for default windowing/EOF/large-file behavior
 - feat(system-shell): add Codex-style foreground output truncation controls to `run_shell_command` with `max_output_tokens` (default 10000), token truncation markers in `llm_content`, and output-token metadata fields for diagnostics
