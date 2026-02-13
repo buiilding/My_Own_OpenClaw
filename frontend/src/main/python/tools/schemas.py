@@ -245,11 +245,78 @@ class WaitToolArgs(BaseModel):
 
 # --- Additional Filesystem Tool Schemas ---
 
+class ReplaceOperationArgs(BaseModel):
+    """Arguments for one replacement operation in a batched replace call."""
+    model_config = ConfigDict(extra='ignore')
+
+    old_string: str = Field(..., description="The string to search for and replace")
+    new_string: str = Field(..., description="The replacement string")
+    replace_all: bool = Field(
+        False,
+        description="If true, replace all occurrences in this operation",
+    )
+    before_context: Optional[str] = Field(
+        None,
+        description="Optional exact text that must appear immediately before old_string",
+    )
+    after_context: Optional[str] = Field(
+        None,
+        description="Optional exact text that must appear immediately after old_string",
+    )
+    occurrence_index: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Optional 1-based match index to replace when multiple matches exist",
+    )
+    require_eof: bool = Field(
+        False,
+        description="If true, match must end at file EOF (allowing trailing newline)",
+    )
+    match_mode: Optional[Literal['strict', 'lenient']] = Field(
+        None,
+        description="Matching mode override for this operation",
+    )
+
+
 class ReplaceArgs(BaseModel):
     """Arguments for replace tool."""
     model_config = ConfigDict(extra='ignore')
     
     file_path: str = Field(..., description="Absolute path to the file to modify")
-    old_string: str = Field(..., description="The string to search for and replace")
-    new_string: str = Field(..., description="The replacement string")
-    replace_all: bool = Field(False, description="If true, replace all occurrences; if false, replace only the first occurrence")
+    old_string: Optional[str] = Field(
+        None,
+        description="Single-operation string to search for and replace",
+    )
+    new_string: Optional[str] = Field(
+        None,
+        description="Single-operation replacement string",
+    )
+    replace_all: bool = Field(
+        False,
+        description="If true, replace all occurrences; if false, replace only the first occurrence",
+    )
+    before_context: Optional[str] = Field(
+        None,
+        description="Optional exact text that must appear immediately before old_string",
+    )
+    after_context: Optional[str] = Field(
+        None,
+        description="Optional exact text that must appear immediately after old_string",
+    )
+    occurrence_index: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Optional 1-based match index to replace when multiple matches exist",
+    )
+    require_eof: bool = Field(
+        False,
+        description="If true, match must end at file EOF (allowing trailing newline)",
+    )
+    match_mode: Literal['strict', 'lenient'] = Field(
+        'lenient',
+        description="Matching mode for single operation and default for replacements[]",
+    )
+    replacements: Optional[List[ReplaceOperationArgs]] = Field(
+        None,
+        description="Optional batched replacement operations applied atomically",
+    )

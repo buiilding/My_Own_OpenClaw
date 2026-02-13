@@ -31,8 +31,8 @@ class RemoteReadFileTool(RemoteToolBase, Tool[ReadFileArgs]):
 class RemoteReplaceTool(RemoteToolBase, Tool[ReplaceArgs]):
     name = "replace"
     description = (
-        "Replace exact text in a file. Use for surgical edits when you know the exact "
-        "old_string and the desired new_string."
+        "Replace text in a file using exact or context-anchored matching. Supports "
+        "single edits and batched replacements."
     )
     args_model = ReplaceArgs
     category = ToolDomain.FILESYSTEM
