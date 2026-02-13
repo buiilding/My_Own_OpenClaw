@@ -90,6 +90,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-dashboard): exclude the active `conversation_ref` session from Episodic Memory conversation list so working-memory chat does not appear as historical episodic memory (with frontend regression coverage)
 - fix(memory-summarizer): exclude tool output/result transcript rows (single and bundled) from semantic summarization chunk input
 - fix(memory-summarizer): raise idle semantic summarization threshold to 6 transcript messages
+- fix(memory-summarizer): remove idle-triggered summarize runs so sidecar summarization only starts when `pending_message_count >= min_batch_size` (default `6`); add sidecar regression tests and docs clarifications
 - refactor(memory-sidecar): remove legacy episodic-memory fallback paths and run transcript-only filtering for conversation APIs and semantic summarization selectors
 - fix(memory-summarizer): count pending semantic summarization work per completed assistant turn (assistant `llm-text`/`error`) instead of counting both user+assistant transcript rows
 - fix(memory): restore episodic retrieval and semantic rollups for transcript-based conversations by indexing semantic-candidate transcript turns, queuing transcript writes for summarization, and semanticizing transcript batches

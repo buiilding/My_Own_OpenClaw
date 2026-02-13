@@ -73,7 +73,7 @@ Files created per user:
 - Calls backend `/api/semantic/summarize` via `RemoteSemanticClient`
 
 **Behavior notes**:
-- Runs on a fixed interval and also when the app is idle (to avoid interrupting active sessions).
+- Runs on a fixed interval; summarization only proceeds when pending count reaches the configured threshold (`min_batch_size`, default `6`).
 - Deduplicates summaries using a `summary_hash` over source memory IDs.
 - Marks episodic memories as semanticized only after a successful summary write.
 - Uses `watermark_state.json` to track progress and resumes safely after restarts.
@@ -81,6 +81,64 @@ Files created per user:
 - Transcript summarization excludes tool-call/tool-output chatter (single and
   bundled) when building summary chunks, while still marking the full processed
   batch semanticized.
+
+### Summarization and Deletion FAQ (Current Behavior)
+
+#### Does deleting memory in the UI delete it from the database?
+
+- Yes.
+- Deleting an episodic conversation removes matching rows from `episodic.db`.
+- Deleting a semantic memory removes the matching row from `semantic.db`.
+- There is no cross-delete cascade between episodic and semantic memory.
+- FAISS vectors are not compacted immediately; DB rows and in-memory ID mappings are removed so deleted records are no longer resolvable.
+
+#### Does pending count increase for every assistant message?
+
+- No.
+- Pending count increments only for assistant terminal transcript entries:
+  - `role="assistant"` and `message_type` in `""`, `"llm-text"`, or `"error"`.
+- Tool-call/tool-output entries do not increment pending count.
+
+#### Does idle mode trigger summarization?
+
+- No.
+- Run gate now only checks pending count threshold (`pending_message_count >= min_batch_size`, default `6`).
+- Batch gate still applies after run gate: a conversation batch is summarized only if batch size and age checks pass.
+- Batch gate defaults:
+  - Immediate summarize when batch size `>= min_batch_size` (`6`).
+  - Otherwise requires `>= min_batch_size_idle` (`6`) plus age checks.
+- Because both defaults are `6`, the effective per-conversation requirement is typically at least 6 unsemanticized transcript rows.
+
+#### If pending count is 10, are exactly those 10 rows sent to one prompt?
+
+- Not necessarily.
+- Pending count is only a cadence signal; it is not a direct batch size.
+- Actual summarization input is fetched per conversation window, up to `max_batch_size=30`, ordered oldest to newest by timestamp.
+- Tool chatter may be filtered out before prompt chunks are built.
+
+#### Can one summarization request mix different conversation histories?
+
+- No.
+- Summarization batches are scoped to a single `conversation_id`.
+- Pending count can include activity from multiple conversations, but each request summarizes one conversation window at a time.
+
+#### Are messages ordered like conversation history?
+
+- Yes.
+- Rows are loaded in ascending timestamp order for each conversation window.
+- After filtering tool chatter, remaining rows keep chronological order in summary chunks.
+
+#### Is low-signal filtering currently implemented?
+
+- No.
+- Current logic skips write only when both summary and facts are empty.
+- If summary/facts are non-empty (even if low value), a semantic memory is written.
+
+#### Idle-trigger removal status
+
+- Implemented.
+- Summarization runs only when pending count reaches threshold.
+- With current defaults, pending `>= 6` is required even after long idle periods.
 
 ### MemoryTool
 

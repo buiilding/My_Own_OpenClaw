@@ -161,18 +161,7 @@ class MemorySummarizer:
             state = {"pending_message_count": 0}
 
         pending = int(state.get("pending_message_count", 0))
-
-        if pending >= self.settings.min_batch_size:
-            return True
-
-        if self._is_idle():
-            try:
-                user_ids = await self.memory_store.get_user_ids_with_unsemanticized_memories(limit=1)
-                return len(user_ids) > 0
-            except Exception:
-                return pending >= self.settings.min_batch_size_idle
-
-        return False
+        return pending >= self.settings.min_batch_size
 
     def _is_idle(self) -> bool:
         if not self._last_activity_at:
