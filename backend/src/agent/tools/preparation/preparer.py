@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 
 from backend.src.agent.tools.preparation.coordinate_resolution import CoordinateResolver
 from backend.src.agent.tools.preparation.helpers.preparation_helper import (
+    attach_coordinate_method_metadata,
     resolve_tool_with_coordinates,
 )
 from backend.src.agent.tools.preparation.helpers.vision_service_provider import (
@@ -111,6 +112,7 @@ class ToolPreparer:
             tool_call.metadata = execution_ref.apply_to_metadata(tool_call.metadata)
             resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
             resolved_call.metadata = execution_ref.apply_to_metadata(resolved_call.metadata)
+            attach_coordinate_method_metadata(tool_call, resolved_call)
 
             if self._needs_coordinate_resolution(tool_call):
                 try:
@@ -162,6 +164,7 @@ class ToolPreparer:
         tool_call.metadata = execution_ref.apply_to_metadata(tool_call.metadata)
         resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
         resolved_call.metadata = execution_ref.apply_to_metadata(resolved_call.metadata)
+        attach_coordinate_method_metadata(tool_call, resolved_call)
 
         if self._needs_coordinate_resolution(tool_call):
             try:

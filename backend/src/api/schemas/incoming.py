@@ -22,6 +22,7 @@ class QueryPayload(BaseModel):
     content: Optional[str] = None
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
+    system_state_internal: Optional[Dict[str, Any]] = None
 
 
 class QueryMessage(BaseMessage):

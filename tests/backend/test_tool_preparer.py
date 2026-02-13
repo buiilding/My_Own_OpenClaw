@@ -72,3 +72,21 @@ async def test_prepare_mouse_control_uses_coordinate_resolution(monkeypatch):
     assert events == []
     assert result is not None
     assert result.resolved_calls
+    assert result.resolved_calls[0].metadata["coordinate_method"] == "ocr"
+
+
+@pytest.mark.asyncio
+async def test_prepare_mouse_control_manual_sets_coordinate_method_metadata():
+    preparer = ToolPreparer(object(), object(), object())
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={"action": "click", "x": 100, "y": 200},
+        raw_call="{}",
+    )
+
+    events, result = await _collect_preparation(preparer, [tool_call])
+
+    assert events == []
+    assert result is not None
+    assert result.resolved_calls
+    assert result.resolved_calls[0].metadata["coordinate_method"] == "manual"

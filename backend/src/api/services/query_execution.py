@@ -57,6 +57,7 @@ class QueryExecutionService:
 
         query_text = validate_query_text(message.payload.text)
         agent_instance = await self._session_manager.get_or_create_session(user_id)
+        self._apply_query_runtime_system_state(agent_instance, message)
         saw_terminal_event = False
         saw_text_chunk = False
         text_chunks: list[str] = []
@@ -206,6 +207,46 @@ class QueryExecutionService:
         except Exception as e:
             logger.warning("Failed to load screenshot artifact %s: %s", screenshot_ref, e)
             return None
+
+    @staticmethod
+    def _resolve_query_runtime_system_state(message: QueryMessage) -> Optional[dict[str, str]]:
+        """Extract backend-only runtime state (not model-facing prompt content)."""
+        payload_state = getattr(message.payload, "system_state_internal", None)
+        if not isinstance(payload_state, dict):
+            return None
+
+        runtime_state: dict[str, str] = {}
+        for key in ("active_window", "mouse_position", "screen_resolution"):
+            value = payload_state.get(key)
+            if isinstance(value, str) and value.strip():
+                runtime_state[key] = value.strip()
+
+        return runtime_state or None
+
+    def _apply_query_runtime_system_state(self, agent_instance: Any, message: QueryMessage) -> None:
+        """Best-effort seed of session runtime state before tool preparation."""
+        runtime_state = self._resolve_query_runtime_system_state(message)
+        if not runtime_state:
+            return
+
+        setter = getattr(agent_instance, "set_current_system_state", None)
+        if not callable(setter):
+            return
+
+        getter = getattr(agent_instance, "get_current_system_state", None)
+        existing_state = getter() if callable(getter) else None
+        merged_state: dict[str, str] = {}
+        if isinstance(existing_state, dict):
+            for key in ("active_window", "mouse_position", "screen_resolution"):
+                value = existing_state.get(key)
+                if isinstance(value, str) and value.strip():
+                    merged_state[key] = value.strip()
+        merged_state.update(runtime_state)
+
+        try:
+            setter(merged_state)
+        except Exception as exc:
+            logger.warning("Failed to apply query runtime system state: %s", exc)
 
     @staticmethod
     def _extract_event_type(event: Any) -> Optional[str]:

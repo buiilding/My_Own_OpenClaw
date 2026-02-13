@@ -556,21 +556,16 @@ function initializeIpc(win, options = {}) {
           return { success: false, data: { memories: { episodic: [], semantic: [] } } };
         }); // Start memory search immediately
         // Request only needed fields based on context type
-        const requestedFields = contextType === 'initial' 
+        const requestedFields = contextType === 'initial'
           ? ['active_window', 'mouse_position', 'screen_resolution', 'windows']
-          : ['active_window', 'mouse_position'];
+          : ['active_window', 'mouse_position', 'screen_resolution'];
         
-        const statePromise = getSystemState(requestedFields).then(state => {
-          // Format system state as XML based on context type
-          if (contextType === 'initial') {
-            return formatInitialStateXml(state);
-          } else {
-            return formatSequentialStateXml(state);
-          }
-        }).catch(err => {
-          log(`System state failed: ${err.message}`);
-          return formatFallbackStateXml();
-        }); // Start system state immediately (parallel)
+        const statePromise = getSystemState(requestedFields).then(state => ({
+          systemStateXml: contextType === 'initial'
+            ? formatInitialStateXml(state)
+            : formatSequentialStateXml(state),
+          runtimeSystemState: extractQueryRuntimeSystemState(state),
+        })); // Start system state immediately (parallel)
         
         // Wait for both to complete - system context is REQUIRED, memories are optional
         const [stateResponse, memoryResponse] = await Promise.allSettled([
@@ -583,8 +578,10 @@ function initializeIpc(win, options = {}) {
 
         // 1. System state XML (REQUIRED - must be present)
         let systemStateXml = null;
+        let runtimeSystemState = null;
         if (stateResponse.status === 'fulfilled' && stateResponse.value) {
-          systemStateXml = stateResponse.value;
+          systemStateXml = stateResponse.value.systemStateXml;
+          runtimeSystemState = stateResponse.value.runtimeSystemState || null;
           parts.push(systemStateXml.trim());
           log('System state added to message');
         } else {
@@ -654,6 +651,11 @@ function initializeIpc(win, options = {}) {
         // Replace payload with complete content
         payload.content = completeContent;
         payload.text = payload.text; // Keep original text for reference
+        if (runtimeSystemState) {
+          payload.system_state_internal = runtimeSystemState;
+        } else {
+          delete payload.system_state_internal;
+        }
         
         log('Complete user message built successfully');
       } catch (error) {
@@ -661,6 +663,7 @@ function initializeIpc(win, options = {}) {
         // Fallback: include minimal system context even on error
         const fallbackContext = formatFallbackStateXml();
         payload.content = `${fallbackContext}\n\n<user_query>\n${payload.text}\n</user_query>`;
+        delete payload.system_state_internal;
         log('Using fallback system context in error handler');
       }
     }
@@ -704,6 +707,21 @@ function formatSequentialStateXml(state) {
         <mouse_position>${state.mouse_position || 'Unknown'}</mouse_position>
     </os_state>
 </system_context>`;
+}
+
+function extractQueryRuntimeSystemState(state) {
+  if (!state || typeof state !== 'object') {
+    return null;
+  }
+  const resolution = typeof state.screen_resolution === 'string'
+    ? state.screen_resolution.trim()
+    : '';
+  if (!resolution) {
+    return null;
+  }
+  return {
+    screen_resolution: resolution,
+  };
 }
 
 /**

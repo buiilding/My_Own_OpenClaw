@@ -164,7 +164,8 @@ Send a user query with optional screenshot.
   "text": "User query text",
   "content": "<system_context>...</system_context> ...", // Optional, built by Electron main process
   "screenshot": "base64-encoded-screenshot", // Optional (legacy)
-  "screenshot_ref": "uuid.jpg" // Preferred
+  "screenshot_ref": "uuid.jpg", // Preferred
+  "system_state_internal": { "screen_resolution": "1920x1080" } // Optional backend-only runtime state
 }
 ```
 
@@ -184,6 +185,7 @@ Send a user query with optional screenshot.
 - `token-count`: Token usage information
 
 **Note**: The Electron main process enriches `query` payloads by adding `content` (system context + memory + user query).
+`system_state_internal` is backend-only runtime state and is not model-facing prompt/tool-output content.
 
 **Example**:
 ```json
