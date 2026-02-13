@@ -50,7 +50,6 @@ class ToolResultReceiver:
         success: bool,
         result_data: Optional[Dict[str, Any]],
         error: Optional[str],
-        metadata: Optional[Dict[str, Any]],
     ) -> ToolResult:
         """
         Receive and convert individual tool result from frontend.
@@ -60,24 +59,15 @@ class ToolResultReceiver:
             success: Whether tool execution succeeded
             result_data: Tool result data
             error: Error message if execution failed
-            metadata: Additional metadata
 
         Returns:
             ToolResult object
         """
-        # Convert frontend result to ToolResult format
-        # Frontend pre-formats messages with system context XML and sets is_preformatted flag
-        if metadata is None:
-            metadata = {}
-        if isinstance(result_data, dict) and result_data.get("is_preformatted"):
-            metadata["is_preformatted"] = True
-
         tool_result = ToolResult.from_dict(
             {
                 "success": success,
                 "data": result_data,
                 "error": error,
-                "metadata": metadata,
             }
         )
 

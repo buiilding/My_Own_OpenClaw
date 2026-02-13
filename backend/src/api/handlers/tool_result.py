@@ -43,33 +43,6 @@ class ToolResultHandler(MessageHandler):
         """Validate tool-result or tool-bundle-result message structure."""
         return isinstance(message, (ToolResultMessage, ToolBundleResultMessage))
 
-    def _validate_metadata(self, metadata: Any) -> Dict[str, Any]:
-        """
-        Validate and sanitize metadata dict.
-
-        Only allows known metadata keys to prevent injection of unexpected data
-        into domain layer.
-
-        Args:
-            metadata: Metadata value to validate
-
-        Returns:
-            Validated metadata dictionary with only allowed keys
-        """
-        if not isinstance(metadata, dict):
-            return {}
-
-        # Only allow known metadata keys
-        allowed_keys = {"is_preformatted"}
-        validated = {k: v for k, v in metadata.items() if k in allowed_keys}
-
-        # Warn on unknown keys
-        unknown_keys = set(metadata.keys()) - allowed_keys
-        if unknown_keys:
-            logger.warning(f"Unknown metadata keys ignored: {unknown_keys}")
-
-        return validated
-
     @staticmethod
     def _serialize_step_results(step_results: Any) -> List[Dict[str, Any]]:
         """Normalize bundle step results to plain dicts for domain-layer consumers."""
@@ -89,6 +62,23 @@ class ToolResultHandler(MessageHandler):
                     continue
             normalized.append({})
         return normalized
+
+    @staticmethod
+    def _serialize_tool_result_data(data: Any) -> Optional[Dict[str, Any]]:
+        """Normalize tool-result data payload to plain dict for domain-layer consumers."""
+        if data is None:
+            return None
+        if isinstance(data, dict):
+            return dict(data)
+
+        model_dump = getattr(data, "model_dump", None)
+        if callable(model_dump):
+            dumped = model_dump(exclude_none=True)
+            if isinstance(dumped, dict):
+                return dumped
+
+        logger.warning(f"Unexpected tool-result data type: {type(data)}")
+        return None
 
     async def handle(
         self, message: BaseMessage, websocket: WebSocketSender, user_id: str
@@ -123,21 +113,14 @@ class ToolResultHandler(MessageHandler):
                 )
                 return
 
-            # Validate and sanitize metadata before passing to domain layer
-            raw_metadata = (
-                validated.payload.metadata.model_dump(exclude_none=True)
-                if validated.payload.metadata is not None
-                else {}
-            )
-            metadata = self._validate_metadata(raw_metadata)
+            result_data = self._serialize_tool_result_data(payload.data)
 
             # Delegate to session (handler no longer knows about internals)
             await session.process_frontend_tool_result(
                 request_id=request_id,
                 success=payload.success,
-                result_data=payload.data,
+                result_data=result_data,
                 error=payload.error,
-                metadata=metadata,
             )
 
     async def _handle_tool_bundle_result(

@@ -106,43 +106,33 @@ class ToolResult:
         """
         Get pre-formatted message for conversation history.
         
-        Frontend tools should pre-format messages with system context XML embedded in llm_content.
-        However, the backend accepts whatever the frontend sends - no validation is performed.
-        The frontend is responsible for formatting correctly.
-        
-        For error results (synthetic results), simple error messages without system context are acceptable.
+        Frontend tools should pre-format messages with system context XML embedded
+        in llm_content. Backend trusts llm_content when present.
         
         Args:
             tool_name: Name of the tool that produced this result (for error messages only)
             
         Returns:
-            Pre-formatted message string for history (llm_content as-is, no validation)
-            
-        Raises:
-            ValueError: If llm_content is missing entirely
+            Message string for history.
         """
-        # If marked as pre-formatted, use llm_content as-is (no validation)
-        if self.metadata and self.metadata.get("is_preformatted"):
-            if self.llm_content:
-                return self.llm_content
-            # Fallback to error message if llm_content missing
-            if self.error:
-                return f"Error: {self.error}"
-            return f"Tool {tool_name} executed"
-        
-        # Not pre-formatted - use llm_content if available, otherwise generate from error/data
+        # Trust frontend-provided llm_content when available.
         if self.llm_content:
             return self.llm_content
-        
+
         if self.error:
             return f"Error: {self.error}"
-        
-        # Last resort: generate from data
+
+        # Fallback to meaningful text from data for synthetic or legacy results.
         if self.data:
             if isinstance(self.data, dict):
-                return str(self.data.get("output") or self.data.get("message") or self.data)
+                output = (
+                    self.data.get("output")
+                    or self.data.get("message")
+                    or self.data.get("llm_content")
+                )
+                return str(output) if output is not None else str(self.data)
             return str(self.data)
-        
+
         return f"Tool {tool_name} executed"
 
 @dataclass
@@ -189,4 +179,3 @@ class ToolInterface(Protocol):
     def get_capabilities(self) -> Dict[str, Any]:
         """Get the tool's capabilities and requirements."""
         ...
-

@@ -40,13 +40,6 @@ class ToolResultHandler:
         self.receiver = receiver
         self.router = router
 
-    @staticmethod
-    def _normalize_metadata(metadata: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-        """Return a mutable metadata dict, tolerating malformed payloads."""
-        if not isinstance(metadata, dict):
-            return {}
-        return dict(metadata)
-
     async def _route_single_or_bundle_result(
         self,
         correlation_id: str,
@@ -72,7 +65,6 @@ class ToolResultHandler:
         success: bool,
         result_data: Optional[Dict[str, Any]],
         error: Optional[str],
-        metadata: Optional[Dict[str, Any]]
     ) -> None:
         """
         Process a tool result from the frontend.
@@ -84,12 +76,10 @@ class ToolResultHandler:
             success: Whether tool execution succeeded
             result_data: Tool result data
             error: Error message if execution failed
-            metadata: Additional metadata
         """
         # tool-result messages are always individual.
-        normalized_metadata = self._normalize_metadata(metadata)
         tool_result = self.receiver.receive_individual_result(
-            request_id, success, result_data, error, normalized_metadata
+            request_id, success, result_data, error
         )
         await self._route_single_or_bundle_result(
             request_id,
