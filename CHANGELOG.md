@@ -83,6 +83,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(memory-summarizer): raise idle semantic summarization threshold to 6 transcript messages
 - refactor(memory-sidecar): remove legacy episodic-memory fallback paths and run transcript-only filtering for conversation APIs and semantic summarization selectors
 - fix(memory-summarizer): count pending semantic summarization work per completed assistant turn (assistant `llm-text`/`error`) instead of counting both user+assistant transcript rows
 - fix(memory): restore episodic retrieval and semantic rollups for transcript-based conversations by indexing semantic-candidate transcript turns, queuing transcript writes for summarization, and semanticizing transcript batches
