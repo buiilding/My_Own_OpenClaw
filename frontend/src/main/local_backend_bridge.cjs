@@ -345,13 +345,20 @@ async function getSystemStateFromBackend(fields) {
   }
 }
 
-async function sendMemorySearchRequest({ query, user_id, limit, memory_type }) {
+async function sendMemorySearchRequest({
+  query,
+  user_id,
+  limit,
+  memory_type,
+  exclude_conversation_id,
+}) {
   try {
     return await sendRequest('search_memory', {
       query: query,
       user_id: user_id,
       limit: limit,
       memory_type: memory_type,
+      exclude_conversation_id: exclude_conversation_id,
     });
   } catch (error) {
     return toErrorResponse(error);
@@ -533,8 +540,21 @@ function initializeLocalBackendBridge(getWindows) {
   });
 
   // Handle memory search requests (integrated into local backend)
-  ipcMain.handle('search-memory', async (event, { query, user_id, limit, memory_type } = {}) => (
-    sendMemorySearchRequest({ query, user_id, limit, memory_type })
+  ipcMain.handle('search-memory', async (event, {
+    query,
+    user_id,
+    limit,
+    memory_type,
+    excludeConversationId,
+    exclude_conversation_id,
+  } = {}) => (
+    sendMemorySearchRequest({
+      query,
+      user_id,
+      limit,
+      memory_type,
+      exclude_conversation_id: excludeConversationId ?? exclude_conversation_id,
+    })
   ));
 
   // Handle conversation list requests
@@ -624,8 +644,20 @@ async function getSystemState(fields = null) {
 /**
  * Helper function to search memory (for use in ipc.cjs)
  */
-async function searchMemory(query, user_id, limit, memory_type) {
-  return sendMemorySearchRequest({ query, user_id, limit, memory_type });
+async function searchMemory(
+  query,
+  user_id,
+  limit,
+  memory_type,
+  exclude_conversation_id,
+) {
+  return sendMemorySearchRequest({
+    query,
+    user_id,
+    limit,
+    memory_type,
+    exclude_conversation_id,
+  });
 }
 
 module.exports = {

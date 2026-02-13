@@ -551,7 +551,7 @@ function initializeIpc(win, options = {}) {
         // Start memory search first since it's slower (needs backend API call + FAISS search)
         // Then start system state in parallel - both run concurrently
         const userId = currentUserId || generateUserId();
-        const memoryPromise = searchMemory(payload.text, userId, 5, null).catch(err => {
+        const memoryPromise = searchMemory(payload.text, userId, 5, null, conversationRef).catch(err => {
           log(`Memory search failed: ${err.message}`);
           return { success: false, data: { memories: { episodic: [], semantic: [] } } };
         }); // Start memory search immediately

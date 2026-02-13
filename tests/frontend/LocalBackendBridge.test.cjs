@@ -195,18 +195,32 @@ describe('local_backend_bridge', () => {
     initBridge();
     markReady();
 
-    const response = {
-      jsonrpc: '2.0',
-      id: 'req-1',
-      error: { message: 'nope' },
-    };
-
     const promise = handlers['search-memory'](null, {
       query: 'q',
       user_id: 'u',
       limit: 3,
       memory_type: 'semantic',
+      excludeConversationId: 'conv-active',
     });
+    const request = getLastWrittenRequest();
+    expect(request).toEqual(
+      expect.objectContaining({
+        method: 'search_memory',
+        params: {
+          query: 'q',
+          user_id: 'u',
+          limit: 3,
+          memory_type: 'semantic',
+          exclude_conversation_id: 'conv-active',
+        },
+      }),
+    );
+
+    const response = {
+      jsonrpc: '2.0',
+      id: 'req-1',
+      error: { message: 'nope' },
+    };
     stdoutHandler(Buffer.from(`${JSON.stringify(response)}\n`));
 
     const result = await promise;
