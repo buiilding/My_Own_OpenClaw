@@ -25,11 +25,10 @@ def test_from_dict_screenshot_only_generates_generic_message():
     assert result.return_display == "Tool executed successfully"
 
 
-def test_format_for_history_preformatted_prefers_llm_content():
+def test_format_for_history_prefers_llm_content_without_preformatted_flags():
     result = ToolResult(
         success=True,
         llm_content="<xml />",
-        metadata={"is_preformatted": True},
     )
 
     assert result.format_for_history("click") == "<xml />"

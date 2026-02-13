@@ -14,6 +14,7 @@ from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.api.handlers import query as query_handler_module
 from backend.src.api.services import rehydrate_execution as rehydrate_execution_module
+from backend.src.api.schemas.incoming import ToolResultData, ToolResultSystemState
 from backend.src.api.schema import (
     ListModelsMessage,
     LoadSettingsMessage,
@@ -532,12 +533,27 @@ async def test_tool_result_handler_routes_to_session():
         id="msg_4",
         type="tool-result",
         user_id="user_1",
-        payload={"request_id": "req_1", "success": True, "data": {"ok": True}},
+        payload={
+            "request_id": "req_1",
+            "success": True,
+            "data": {
+                "llm_content": "ok",
+                "system_state": {
+                    "active_window": "Terminal",
+                    "mouse_position": "(845, 512)",
+                },
+                "output": "ok",
+            },
+        },
     )
 
     await handler.handle(message, websocket, "user_1")
     assert session_manager.session_instance.tool_calls
-    assert session_manager.session_instance.tool_calls[0]["request_id"] == "req_1"
+    routed_call = session_manager.session_instance.tool_calls[0]
+    assert routed_call["request_id"] == "req_1"
+    assert routed_call["result_data"]["system_state"]["active_window"] == "Terminal"
+    assert routed_call["result_data"]["system_state"]["mouse_position"] == "(845, 512)"
+    assert "metadata" not in routed_call
 
 
 @pytest.mark.asyncio
@@ -639,20 +655,29 @@ async def test_tool_bundle_result_handler_preserves_step_output_content():
     assert first_step["debug_trace"] == "trace-1"
 
 
-def test_tool_result_handler_validate_metadata_filters_unknown_keys():
+def test_tool_result_handler_serializes_tool_result_data_model():
     session_manager = DummySessionManager()
     handler = ToolResultHandler(session_manager)
 
-    validated = handler._validate_metadata(
-        {
-            "is_preformatted": True,
-            "is_bundled": False,
-            "bundle_request_id": "bundle-123",
-            "ignored_key": "ignored",
-        }
+    serialized = handler._serialize_tool_result_data(
+        ToolResultData(
+            llm_content="done",
+            system_state=ToolResultSystemState(
+                active_window="Terminal",
+                mouse_position="(1, 1)",
+            ),
+            screenshot_ref="artifact-1.png",
+        )
     )
 
-    assert validated == {"is_preformatted": True}
+    assert serialized == {
+        "llm_content": "done",
+        "system_state": {
+            "active_window": "Terminal",
+            "mouse_position": "(1, 1)",
+        },
+        "screenshot_ref": "artifact-1.png",
+    }
 
 
 @pytest.mark.asyncio
@@ -666,7 +691,17 @@ async def test_tool_result_handler_missing_session_is_noop():
         id="msg_6",
         type="tool-result",
         user_id="user_1",
-        payload={"request_id": "req_2", "success": True, "data": {"ok": True}},
+        payload={
+            "request_id": "req_2",
+            "success": True,
+            "data": {
+                "llm_content": "ok",
+                "system_state": {
+                    "active_window": "Unknown",
+                    "mouse_position": "Unknown",
+                },
+            },
+        },
     )
 
     await handler.handle(message, websocket, "user_1")
