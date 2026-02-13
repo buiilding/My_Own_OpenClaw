@@ -77,8 +77,7 @@ Files created per user:
 - Deduplicates summaries using a `summary_hash` over source memory IDs.
 - Marks episodic memories as semanticized only after a successful summary write.
 - Uses `watermark_state.json` to track progress and resumes safely after restarts.
-- Summarizes both legacy episodic rows (`record_kind='memory'`) and transcript
-  rows (`record_kind='transcript'`).
+- Summarizes transcript episodic rows only (`record_kind='transcript'`).
 - Transcript summarization excludes tool-call/tool-bundle chatter when building
   summary chunks, while still marking the full processed batch semanticized.
 
