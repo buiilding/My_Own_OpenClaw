@@ -39,6 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- fix(llm-stream): route all tool-calling turns (including Kimi Coding) through non-stream completion to avoid streamed tool-argument concat/JSON-parse fallback (`{}`) while keeping non-tool turns on streaming path
 - refactor(tool-result-contract): freeze incoming `tool-result` schema by removing `metadata.is_preformatted`, requiring typed `system_state` (`active_window`, `mouse_position`), and documenting Agent 1 migration status/handoff in the prompt runbook
 - refactor(frontend-tool-result-contract): stop emitting `is_preformatted`, require fallback-populated `system_state` on all frontend `tool-result` payloads, and include `screenshot_ref` only for computer-use tools
 - test(tool-result-contract): migrate backend receiver/formatter/api handler tests to flagless `tool-result` payloads with required `system_state` keys, and replace removed metadata-sanitizer assertions with typed payload-serialization checks
