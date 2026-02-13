@@ -57,9 +57,10 @@ Local memory is implemented in the sidecar:
 - Summarization worker in `frontend/src/main/python/memory/summarizer.py`
 - Uses backend `/api/embeddings` and `/api/semantic/summarize` APIs
 - Backend base URL comes from `WINDIE_BACKEND_HTTP_URL` (set by Electron main process), then `BACKEND_HTTP_URL`, then default `http://127.0.0.1:8765`
-- Summarizer runs periodically and when idle, deduplicates via summary hashes, and updates `watermark_state.json` safely on shutdown
+- Summarizer runs on a fixed interval, deduplicates via summary hashes, and updates `watermark_state.json` safely on shutdown
 - Pending summarization cadence is turn-based: watermark pending count increments
   on assistant terminal transcript turns (`llm-text`, `error`, or empty type).
+- User transcript rows do not increment pending count. Example: 4 user messages with 4 assistant replies yields pending count `4`.
 
 Memory storage path:
 - Linux: `~/.config/desktop-assistant/memory/`
