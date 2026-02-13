@@ -162,7 +162,7 @@ class _MissingUsageLLMClient:
         return None
 
 
-class _KimiStreamWithToolsLLMClient:
+class _KimiToolCompletionLLMClient:
     async def get_completion_response(
         self,
         model,
@@ -171,24 +171,8 @@ class _KimiStreamWithToolsLLMClient:
         tool_choice=None,
         parallel_tool_calls=None,
     ):
-        raise AssertionError("Kimi tool turns should use stream path")
-
-    async def get_completion_stream(
-        self,
-        model,
-        messages,
-        tools=None,
-        tool_choice=None,
-        parallel_tool_calls=None,
-    ):
-        yield ChunkEvent(content="streamed-kimi")
-
-    def get_last_stream_cache_diagnostics(self):
-        return None
-
-    def get_last_stream_response_payload(self):
         return {
-            "content": "streamed-kimi",
+            "content": "",
             "tool_calls": [
                 {
                     "id": "call_1",
@@ -199,6 +183,18 @@ class _KimiStreamWithToolsLLMClient:
             "finish_reason": "tool_calls",
         }
 
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        raise AssertionError("Tool turns should use non-stream completion path")
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
 
 @pytest.mark.asyncio
 async def test_logs_cache_hint_and_provider_cache_diagnostics(caplog, monkeypatch):
@@ -329,13 +325,13 @@ async def test_token_count_falls_back_to_estimate_when_provider_usage_missing(mo
 
 
 @pytest.mark.asyncio
-async def test_kimi_streams_when_tools_present_and_preserves_stream_tool_calls(monkeypatch):
+async def test_kimi_uses_non_stream_completion_when_tools_present(monkeypatch):
     monkeypatch.setattr(
         "backend.src.agent.llm.llm_stream_processor.get_token_service",
         lambda: _FakeTokenService(),
     )
     processor = LLMStreamProcessor(
-        llm_client=_KimiStreamWithToolsLLMClient(),
+        llm_client=_KimiToolCompletionLLMClient(),
         session=_KimiSession(),
     )
 
@@ -352,9 +348,9 @@ async def test_kimi_streams_when_tools_present_and_preserves_stream_tool_calls(m
             tools=noop_tools,
         )
     ]
-    assert any(isinstance(event, ChunkEvent) for event in events)
+    assert not any(isinstance(event, ChunkEvent) for event in events)
     payload = processor.get_last_response_payload()
     assert payload is not None
-    assert payload["content"] == "streamed-kimi"
+    assert payload["content"] == ""
     assert payload["finish_reason"] == "tool_calls"
     assert payload["tool_calls"][0]["id"] == "call_1"
