@@ -86,6 +86,25 @@ class LocalBackend:
             return normalized_type in ("", "llm-text", "error")
 
         return False
+
+    @staticmethod
+    def _counts_toward_pending_turns(
+        role: Optional[str],
+        message_type: Optional[str],
+    ) -> bool:
+        """
+        Return True when a transcript entry represents a completed assistant turn.
+
+        Pending counts are used as summarization cadence, so this tracks turns
+        (assistant terminal text/error) instead of every stored transcript row.
+        """
+        normalized_role = (role or "").strip().lower()
+        normalized_type = (message_type or "").strip().lower()
+
+        if normalized_role != "assistant":
+            return False
+
+        return normalized_type in ("", "llm-text", "error")
     
     async def initialize(self) -> None:
         """Initialize the backend services."""
@@ -458,7 +477,9 @@ class LocalBackend:
                 timestamp=timestamp,
             )
 
-            if semantic_candidate:
+            counts_pending = self._counts_toward_pending_turns(role, message_type)
+
+            if counts_pending:
                 try:
                     await self.memory_store.increment_pending_count()
                     if self._summarizer:
