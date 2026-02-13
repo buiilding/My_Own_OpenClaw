@@ -6,6 +6,7 @@ tools = [
   "process",
   "read_file",
   "replace",
+  "screenshot",
 ]
 
 [tool_options.mouse_control]

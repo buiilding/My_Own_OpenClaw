@@ -78,6 +78,7 @@ The backend does not directly execute tools. It:
 - Emits tool schemas as a transparency event (`tool-schemas`)
 - Resolves coordinates and screenshots
 - Waits for results from the frontend sidecar
+- Keeps tool-specific usage guidance (operational rules, parameter strategy, verification hints) in tool descriptions and argument schema descriptions, not in the global system prompt
 
 ## Tool Execution Flow
 

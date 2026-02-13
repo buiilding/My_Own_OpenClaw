@@ -34,20 +34,18 @@
 - Keep modules focused; split large files when it improves clarity/testability.
 - When modifying code, do not keep backward compatibility, remove anything unused.
 
+## Docs
+- Start: run docs list (`docs:list` script, or `bin/docs-list` here if present; ignore if not installed); open docs before coding.
+- Follow links until domain makes sense; honor `Read when` hints.
+- Keep notes short; update docs when behavior/API changes (no ship w/o docs).
+- Add `read_when` hints on cross-cutting docs.
+
 ## Testing Guidelines
 
 - Use `pytest` for backend/sidecar tests and `jest` for frontend tests.
 - New tests go into the `tests/new_*` suites unless you are extending an existing test module.
 - Prefer unit-level tests with minimal I/O; mock network and system calls.
 - If you change tool parsing/execution or IPC, add tests across backend + sidecar + frontend as needed.
-
-## Commit & Pull Request Guidelines
-
-- Keep commits scoped and action-oriented (e.g., "Backend: validate tool schema cache").
-- Group related changes; avoid bundling unrelated refactors.
-- Prefer `committer` (if on PATH) or `./scripts/committer` (if present) to keep staging scoped; fall back to `git add`/`git commit` when unavailable.
-- After you change anything in the codebase, update CHANGELOG.md and always create commits, add a detailed description to each commit, no need for my consent.
-- Only commit your own, scoped changes, ignore other uncommitted changes.
 
 ### PR Workflow (Review vs Land)
 
@@ -76,3 +74,45 @@
 - Dependency patching (overrides/patches/vendored changes) requires explicit approval.
 - When answering questions, verify in code first; avoid guessing.
 - If unrelated changes from other agents are present, continue with your scoped task and report only the files/behavior you changed.
+
+## Git
+- Safe by default: `git status/diff/log`. Push only when user asks.
+- `git checkout` ok for PR review / explicit request.
+- Branch changes require user consent.
+- Destructive ops forbidden unless explicit (`reset --hard`, `clean`, `restore`, `rm`, …).
+- Prefer HTTPS remotes; flip SSH->HTTPS before pull/push.
+- Commit helper on PATH: `committer` (bash). Prefer it; if repo has `./scripts/committer`, use that.
+- Commit message: Conventional Commit subject + short description body (when it helps review). Example:
+  - `feat(frontend-dashboard): delete semantic memory entries`
+  - blank line
+  - bullets: what changed, where wired, tests added
+- After committing work, update `CHANGELOG.md` with the changes.
+- Don’t delete/rename unexpected stuff; stop + ask.
+- No repo-wide S/R scripts; keep edits small/reviewable.
+- Avoid manual `git stash`; if Git auto-stashes during pull/rebase, that’s fine (hint, not hard guardrail).
+- If user types a command (“pull and push”), that’s consent for that command.
+- No amend unless asked.
+- Big review: `git --no-pager diff --color=never`.
+- Multi-agent: check `git status/diff` before edits; ship small commits.
+
+### bin/docs-list / scripts/docs-list.ts
+- Optional. Lists `docs/` + enforces front-matter. Ignore if `bin/docs-list` not installed. Rebuild: `bun build scripts/docs-list.ts --compile --outfile bin/docs-list`.
+
+### tmux
+- Use only when you need persistence/interaction (debugger/server).
+- Quick refs: `tmux new -d -s codex-shell`, `tmux attach -t codex-shell`, `tmux list-sessions`, `tmux kill-session -t codex-shell`.
+
+<frontend_aesthetics>
+Avoid “AI slop” UI. Be opinionated + distinctive.
+
+### committer
+- Commit helper (PATH). Stages only listed paths; required here. Repo may also ship `./scripts/committer`.
+
+Do:
+- Typography: pick a real font; avoid Inter/Roboto/Arial/system defaults.
+- Theme: commit to a palette; use CSS vars; bold accents > timid gradients.
+- Motion: 1–2 high-impact moments (staggered reveal beats random micro-anim).
+- Background: add depth (gradients/patterns), not flat default.
+
+Avoid: purple-on-white clichés, generic component grids, predictable layouts.
+</frontend_aesthetics>
