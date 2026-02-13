@@ -518,15 +518,20 @@ function initializeOverlayHandlers() {
   }
   overlayHandlersInitialized = true;
   ipcMain.handle('set-overlay-ignore-mouse', async (event, { ignore } = {}) => {
-    if (!chatWindow || chatWindow.isDestroyed()) {
-      return { success: false, reason: 'Chat window not available' };
+    const targetWindows = [chatWindow, responseWindow].filter(
+      (win) => win && !win.isDestroyed(),
+    );
+    if (targetWindows.length === 0) {
+      return { success: false, reason: 'Overlay windows not available' };
     }
     try {
-      if (ignore) {
-        chatWindow.setIgnoreMouseEvents(true, { forward: true });
-      } else {
-        chatWindow.setIgnoreMouseEvents(false);
-      }
+      targetWindows.forEach((win) => {
+        if (ignore) {
+          win.setIgnoreMouseEvents(true, { forward: true });
+        } else {
+          win.setIgnoreMouseEvents(false);
+        }
+      });
       return { success: true };
     } catch (error) {
       return { success: false, reason: `Failed to update ignore state: ${error.message}` };
