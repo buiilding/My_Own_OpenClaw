@@ -353,3 +353,88 @@ No-op notes for Agent 1 owned frontend files:
 
 - Reflect that `tool-result` no longer carries metadata flags and now requires `system_state` keys.
 - Keep bundle envelope docs intact, with screenshot conditional guidance only.
+
+### Agent 2 Status (Completed on February 13, 2026)
+
+Completed:
+- Updated `frontend/src/renderer/infrastructure/services/ToolExecutionPayloads.ts`:
+  - removed `is_preformatted` emission from `tool-result` payload data.
+  - enforced required `data.system_state` shape with fallback `"Unknown"` for missing `active_window`/`mouse_position`.
+  - made `screenshot_ref` conditional via `includeScreenshot`; omitted for non-computer tools.
+- Updated `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`:
+  - gated screenshot artifact upload/reference to computer-use tools only.
+  - passed normalized system state into `tool-result` payload creation.
+  - preserved existing `llm_content` formatting path (frontend remains source of truth).
+- Updated frontend tests:
+  - `tests/frontend/ToolExecutionPayloads.test.ts`
+  - `tests/frontend/ToolExecutionService.test.ts`
+  - removed positive `is_preformatted` assertions.
+  - added assertions for required `system_state` and non-computer screenshot omission.
+
+Validation run:
+- `npm --prefix frontend run test -- tests/frontend/ToolExecutionPayloads.test.ts tests/frontend/ToolExecutionService.test.ts` passed.
+
+### Handoff to Agent 3 (Post-Agent-2 Delta)
+
+- Backend can now rely on frontend `tool-result.payload.data` always containing:
+  - `llm_content`
+  - `system_state.active_window`
+  - `system_state.mouse_position`
+- Frontend no longer emits `is_preformatted` anywhere in tool-result payloads.
+- `screenshot_ref` appears only for computer-use tool results; backend should not infer screenshot presence for non-computer tools.
+
+### Handoff to Agent 4 (Post-Agent-2 Delta)
+
+- Frontend expectations are now:
+  - no `is_preformatted`.
+  - required `data.system_state` keys in all `tool-result` payloads.
+  - non-computer tool results omit `screenshot_ref`.
+
+### Agent 3 Status (Completed on February 13, 2026)
+
+Completed:
+- Updated `backend/src/api/handlers/tool_result.py`:
+  - removed metadata sanitizer path and deleted `_validate_metadata`.
+  - added typed payload normalization (`_serialize_tool_result_data`) to convert `ToolResultData` models into plain dicts via `model_dump(exclude_none=True)` before domain-layer routing.
+  - stopped reading `payload.metadata` and stopped forwarding metadata in `process_frontend_tool_result`.
+- Updated `backend/src/agent/session/session.py`:
+  - removed `metadata` parameter from `process_frontend_tool_result`.
+- Updated `backend/src/agent/tools/waiting/handler.py`:
+  - removed metadata normalization path and removed metadata from receiver call.
+- Updated `backend/src/agent/tools/waiting/receiver.py`:
+  - removed logic copying `data.is_preformatted` into metadata.
+  - now builds `ToolResult` from `success/data/error` only for individual results.
+- Updated `backend/src/core/interfaces/tool.py`:
+  - simplified `ToolResult.format_for_history()`:
+    - trust `llm_content` when present.
+    - fallback to `Error: ...` when error exists.
+    - fallback to data text (`output`, `message`, `llm_content`, or raw data string) when needed.
+    - removed all `is_preformatted` branching.
+- Updated `backend/src/agent/tools/processing/synthetic_factory.py`:
+  - removed synthetic metadata flag injection (`metadata={"is_preformatted": True}`).
+
+Validation run:
+- `python -m compileall backend/src/api/handlers/tool_result.py backend/src/agent/tools/waiting/receiver.py backend/src/agent/tools/waiting/handler.py backend/src/agent/session/session.py backend/src/core/interfaces/tool.py backend/src/agent/tools/processing/synthetic_factory.py` passed.
+- `./scripts/python-in-env backend pytest tests/backend/test_tool_result_receiver.py tests/backend/test_tool_result_formatting.py tests/backend/test_api_handlers.py -q` failed with expected contract-drift failures (tests still expecting old contract).
+
+### Handoff to Agent 4 (Post-Agent-3 Delta)
+
+- Update tests for removed metadata path:
+  - remove direct calls passing `metadata=` into `ToolResultReceiver.receive_individual_result`.
+  - remove/replace `ToolResultHandler._validate_metadata` assertions (method removed).
+- Update API handler tests constructing `ToolResultMessage`:
+  - `payload.data` must now include required `llm_content` and `system_state` with `active_window` + `mouse_position`.
+- Known failing tests after Agent 3 changes:
+  - `tests/backend/test_tool_result_receiver.py::test_receive_individual_result_sets_preformatted_metadata`
+  - `tests/backend/test_api_handlers.py::test_tool_result_handler_routes_to_session`
+  - `tests/backend/test_api_handlers.py::test_tool_result_handler_validate_metadata_filters_unknown_keys`
+  - `tests/backend/test_api_handlers.py::test_tool_result_handler_missing_session_is_noop`
+
+### Handoff to Agent 5 (Post-Agent-3 Delta)
+
+- Backend runtime no longer supports/mentions `is_preformatted`; docs should remove this term from backend flow descriptions.
+- Backend `tool-result` handler now normalizes typed `ToolResultData` via `model_dump(exclude_none=True)` before routing; if API docs describe handler behavior, align with this.
+- History formatting behavior is now:
+  - `llm_content` preferred.
+  - error fallback.
+  - data text fallback.
