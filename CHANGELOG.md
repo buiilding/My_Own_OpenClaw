@@ -87,6 +87,7 @@ Includes the last 300 commits on `main`.
 
 ### Fixed
 - fix(tool-bundle): preserve rich step output in bundled execution by preferring `llm_content`/`content`/`output`-style fields and use fallback text `Tool <tool_name> executed successfully (no output)` only when no explicit step output exists; align frontend/backend tests and API docs
+- fix(memory-search): exclude active `conversation_ref` episodic transcript entries from query-time `<episodic_memory>` enrichment by propagating `exclude_conversation_id` through Electron IPC and sidecar search filtering
 - fix(frontend-dashboard): exclude the active `conversation_ref` session from Episodic Memory conversation list so working-memory chat does not appear as historical episodic memory (with frontend regression coverage)
 - fix(memory-summarizer): exclude tool output/result transcript rows (single and bundled) from semantic summarization chunk input
 - fix(memory-summarizer): raise idle semantic summarization threshold to 6 transcript messages

@@ -204,7 +204,15 @@ class LocalBackend:
                 "error": str(e)
             }
     
-    async def _handle_search_memory(self, query: str, user_id: str = "default_user", limit: int = 5, memory_type: str = None, **kwargs) -> Dict[str, Any]:
+    async def _handle_search_memory(
+        self,
+        query: str,
+        user_id: str = "default_user",
+        limit: int = 5,
+        memory_type: str = None,
+        exclude_conversation_id: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
         """Search memory."""
         if not self.memory_store:
             return {
@@ -219,6 +227,16 @@ class LocalBackend:
             
             results = await self.memory_store.search(query, user_id, filters, limit)
             
+            if exclude_conversation_id:
+                results = [
+                    result
+                    for result in results
+                    if not (
+                        result.get("type") == "episodic"
+                        and result.get("conversation_id") == exclude_conversation_id
+                    )
+                ]
+
             # Group results by type
             memories = {"semantic": [], "episodic": []}
             for res in results:

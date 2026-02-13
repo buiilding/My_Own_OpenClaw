@@ -745,7 +745,11 @@ class LocalMemoryStore:
         memory_ids = self._map_memory_ids(valid_indices, vector_id_to_memory_id)
 
         # Batch retrieval from SQLite
-        rows_map = await self._fetch_rows_map(db_path, memory_ids)
+        rows_map = await self._fetch_rows_map(
+            db_path,
+            memory_ids,
+            include_conversation_id=(memory_type == "episodic"),
+        )
         results: List[Dict[str, Any]] = []
         # Reconstruct results in order of similarity
         for memory_id, similarity in zip(memory_ids, valid_similarities):
@@ -854,7 +858,7 @@ class LocalMemoryStore:
 
     def _build_search_result(
         self,
-        row: Any,
+        row: Dict[str, Any],
         metadata: Dict[str, Any],
         similarity: float,
         memory_type: str,
@@ -866,25 +870,32 @@ class LocalMemoryStore:
             "score": float(similarity),
             "timestamp": row["timestamp"],
             "type": memory_type,
+            "conversation_id": row.get("conversation_id"),
         }
 
     async def _fetch_rows_map(
-        self, db_path: str, memory_ids: List[str]
-    ) -> Dict[str, Any]:
+        self,
+        db_path: str,
+        memory_ids: List[str],
+        include_conversation_id: bool = False,
+    ) -> Dict[str, Dict[str, Any]]:
         async with aiosqlite.connect(db_path) as conn:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.cursor()
 
             placeholders = ",".join(["?"] * len(memory_ids))
+            select_columns = "id, user_id, content, timestamp, metadata"
+            if include_conversation_id:
+                select_columns += ", conversation_id"
             query = f"""
-                SELECT id, user_id, content, timestamp, metadata
+                SELECT {select_columns}
                 FROM memories WHERE id IN ({placeholders})
             """
 
             await cursor.execute(query, memory_ids)
             rows = await cursor.fetchall()
 
-            return {row["id"]: row for row in rows}
+            return {row["id"]: dict(row) for row in rows}
 
     def _matches_filters(
         self, metadata: Dict[str, Any], filters: Dict[str, Any]

@@ -29,7 +29,7 @@ class DummyMemoryStore:
     async def search(self, query, user_id, filters, limit):
         return [
             {"type": "semantic", "text": "fact"},
-            {"type": "episodic", "text": "event"},
+            {"type": "episodic", "text": "event", "conversation_id": "conv-1"},
         ]
 
     async def add(self, content, user_id, metadata, conversation_id=None, **kwargs):
@@ -222,6 +222,27 @@ async def test_handle_search_memory_ignores_unknown_type():
     assert result["success"] is True
     assert result["data"]["memories"]["semantic"] == []
     assert result["data"]["memories"]["episodic"] == ["fallback"]
+
+
+@pytest.mark.asyncio
+async def test_handle_search_memory_excludes_active_conversation():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreCapturing(
+        [
+            {"type": "episodic", "text": "from active", "conversation_id": "conv-active"},
+            {"type": "episodic", "text": "from old", "conversation_id": "conv-old"},
+            {"type": "semantic", "text": "semantic fact"},
+        ]
+    )
+
+    result = await backend._handle_search_memory(
+        "query",
+        user_id="user-1",
+        exclude_conversation_id="conv-active",
+    )
+    assert result["success"] is True
+    assert result["data"]["memories"]["episodic"] == ["from old"]
+    assert result["data"]["memories"]["semantic"] == ["semantic fact"]
 
 
 @pytest.mark.asyncio
