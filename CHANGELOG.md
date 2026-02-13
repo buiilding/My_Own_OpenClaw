@@ -41,6 +41,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- fix(simulation): bind simulation DI container to FastAPI app lifespan (`app.state.container`) in computer/browser simulation entrypoints and clear it on shutdown so `/ws` no longer fails with 503 `app.state.container missing`
 - fix(mouse-coordinates): include `metadata.coordinate_method` (`manual|ocr|prediction`) on `mouse_control` tool-call events and seed backend query runtime state with `payload.system_state_internal.screen_resolution` so first-turn coordinate normalization can target display size
 - fix(tool-runtime-state): keep `screen_resolution` in backend-only `data.system_state_internal` on tool-result payloads while keeping model-facing `data.system_state` limited to `active_window` and `mouse_position`
 - fix(frontend-screenshot): increase Linux UI hide-settle delay before screenshot capture from 120ms to 320ms so dashboard/chat pill windows clear more reliably before capture
