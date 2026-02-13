@@ -5,11 +5,13 @@ Extracts shared logic for resolving a tool call that requires coordinate resolut
 Pure infrastructure code - no side effects beyond tool resolution.
 """
 import logging
+import platform
 import time
 from typing import Optional, TYPE_CHECKING, Any
 
 from backend.src.agent.tools.preparation.helpers.coordinate_contract import (
     CoordinateContract,
+    NormalizedCoordinates,
     build_contract_metadata,
     normalize_to_display_space,
 )
@@ -39,6 +41,11 @@ def _normalize_coordinate_method(value: Any) -> str:
     if isinstance(value, str) and value.strip():
         return value.strip().lower()
     return CoordinateFindingMethod.MANUAL.value
+
+
+def _should_disable_coordinate_normalization() -> bool:
+    """Disable screenshot->display coordinate scaling on Linux."""
+    return platform.system().lower() == "linux"
 
 
 def attach_coordinate_method_metadata(
@@ -131,29 +138,42 @@ async def resolve_tool_with_coordinates(
     )
     if requires_coordinate_normalization:
         contract = _build_coordinate_contract(session, screenshot_data, x, y)
-        normalized = normalize_to_display_space(contract)
-        if normalized.status == "scaled_to_display":
+        if _should_disable_coordinate_normalization():
+            normalized = NormalizedCoordinates(
+                x=x,
+                y=y,
+                status="disabled_on_linux",
+            )
             logger.info(
-                "[context_id=%s] Scaled coordinates from screenshot %sx%s to display %sx%s: (%s,%s)->(%s,%s)",
+                "[context_id=%s] Coordinate normalization disabled on Linux; using raw resolved coordinates (%s,%s)",
                 short_id(context_id),
-                contract.source_image_size[0] if contract.source_image_size else "?",
-                contract.source_image_size[1] if contract.source_image_size else "?",
-                contract.target_display_size[0] if contract.target_display_size else "?",
-                contract.target_display_size[1] if contract.target_display_size else "?",
                 x,
                 y,
-                normalized.x,
-                normalized.y,
             )
-        elif normalized.status not in ("source_equals_target", "already_display_space"):
-            logger.warning(
-                "[context_id=%s] Coordinate normalization fallback: status=%s "
-                "(source_size=%s, target_size=%s)",
-                short_id(context_id),
-                normalized.status,
-                contract.source_image_size,
-                contract.target_display_size,
-            )
+        else:
+            normalized = normalize_to_display_space(contract)
+            if normalized.status == "scaled_to_display":
+                logger.info(
+                    "[context_id=%s] Scaled coordinates from screenshot %sx%s to display %sx%s: (%s,%s)->(%s,%s)",
+                    short_id(context_id),
+                    contract.source_image_size[0] if contract.source_image_size else "?",
+                    contract.source_image_size[1] if contract.source_image_size else "?",
+                    contract.target_display_size[0] if contract.target_display_size else "?",
+                    contract.target_display_size[1] if contract.target_display_size else "?",
+                    x,
+                    y,
+                    normalized.x,
+                    normalized.y,
+                )
+            elif normalized.status not in ("source_equals_target", "already_display_space"):
+                logger.warning(
+                    "[context_id=%s] Coordinate normalization fallback: status=%s "
+                    "(source_size=%s, target_size=%s)",
+                    short_id(context_id),
+                    normalized.status,
+                    contract.source_image_size,
+                    contract.target_display_size,
+                )
         x, y = normalized.x, normalized.y
     
     # 5. Rewrite to manual mode
