@@ -10,7 +10,7 @@ import json
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -517,7 +517,7 @@ class LocalMemoryStore:
             Memory ID string
         """
         memory_id = str(uuid.uuid4())
-        timestamp_value = timestamp or datetime.now().isoformat()
+        timestamp_value = self._normalize_timestamp(timestamp)
 
         # Extract memory type from metadata (default to episodic for backward compatibility)
         memory_type_str = metadata.get("type", "episodic") if metadata else "episodic"
@@ -620,6 +620,32 @@ class LocalMemoryStore:
 
         logger.debug(f"Stored {memory_type} memory {memory_id} for user {user_id}")
         return memory_id
+
+    @staticmethod
+    def _normalize_timestamp(timestamp: Optional[str]) -> str:
+        """
+        Normalize timestamps to ISO-8601 with timezone info (UTC preferred).
+
+        Existing rows may contain naive timestamps; we keep read-path tolerant, but
+        new writes should always include an explicit timezone to avoid mixed arithmetic.
+        """
+        if not timestamp:
+            return datetime.now(timezone.utc).isoformat()
+
+        text = timestamp.strip()
+        if not text:
+            return datetime.now(timezone.utc).isoformat()
+
+        try:
+            if text.endswith("Z"):
+                text = text.replace("Z", "+00:00")
+            parsed = datetime.fromisoformat(text)
+            if parsed.tzinfo is None:
+                local_tz = datetime.now().astimezone().tzinfo or timezone.utc
+                parsed = parsed.replace(tzinfo=local_tz)
+            return parsed.astimezone(timezone.utc).isoformat()
+        except Exception:
+            return timestamp
 
     async def search(
         self,

@@ -9,7 +9,7 @@ import hashlib
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, Sequence, Set
 
 from core.remote_semantic_client import RemoteSemanticClient
@@ -55,7 +55,7 @@ class MemorySummarizer:
     def notify_new_memory(self, user_id: str) -> None:
         if user_id:
             self._known_user_ids.add(user_id)
-        self._last_activity_at = datetime.now()
+        self._last_activity_at = datetime.now(timezone.utc)
 
     async def start(self) -> None:
         if self._task and not self._task.done():
@@ -177,7 +177,9 @@ class MemorySummarizer:
     def _is_idle(self) -> bool:
         if not self._last_activity_at:
             return True
-        idle_seconds = (datetime.now() - self._last_activity_at).total_seconds()
+        idle_seconds = (
+            datetime.now(timezone.utc) - self._last_activity_at
+        ).total_seconds()
         return idle_seconds >= self.settings.idle_seconds
 
     async def _get_user_ids_with_work(self) -> List[str]:
@@ -248,7 +250,7 @@ class MemorySummarizer:
             "source_conversation_id": conversation_id,
             "source_memory_ids": [m["id"] for m in memories],
             "source_memory_count": len(memories),
-            "summary_created_at": datetime.now().isoformat(),
+            "summary_created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         await self.memory_store.add(
@@ -273,7 +275,7 @@ class MemorySummarizer:
         if not last_ts:
             return self._is_idle()
 
-        age_seconds = (datetime.now() - last_ts).total_seconds()
+        age_seconds = (datetime.now(timezone.utc) - last_ts).total_seconds()
         if age_seconds < self.settings.min_memory_age_seconds:
             return False
 
@@ -385,7 +387,11 @@ class MemorySummarizer:
         try:
             if timestamp.endswith("Z"):
                 timestamp = timestamp.replace("Z", "+00:00")
-            return datetime.fromisoformat(timestamp)
+            parsed = datetime.fromisoformat(timestamp)
+            if parsed.tzinfo is None:
+                local_tz = datetime.now().astimezone().tzinfo or timezone.utc
+                parsed = parsed.replace(tzinfo=local_tz)
+            return parsed.astimezone(timezone.utc)
         except Exception:
             return None
 

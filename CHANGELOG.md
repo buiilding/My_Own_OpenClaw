@@ -83,6 +83,7 @@ Includes the last 300 commits on `main`.
 ### Fixed
 - fix(memory): restore episodic retrieval and semantic rollups for transcript-based conversations by indexing semantic-candidate transcript turns, queuing transcript writes for summarization, and semanticizing transcript batches
 - fix(memory-semantic): enforce per-user session model selection for semantic summarization (no cross-user session fallback) and scope sidecar summarization user discovery to known/current user IDs to avoid stale-user provider mismatches
+- fix(memory-summarizer): normalize mixed naive/aware episodic timestamps in sidecar summarization to UTC-aware datetimes to prevent `can't subtract offset-naive and offset-aware datetimes` batch failures
 - fix(kimi-coding): catch upstream Cloudflare HTTP 520 failures in provider/stream error handling and surface a retry-friendly message instead of raw HTML-heavy error output
 - fix(frontend-tool-output): preserve bundle step output text during normalization so bundled `run_shell_command` results render real output instead of `No output` in chat transcript cards
 - fix(rehydrate): allow `rehydrate-conversation` to continue when `screenshot_ref` artifacts are missing by logging and falling back to text-only history instead of failing session restore

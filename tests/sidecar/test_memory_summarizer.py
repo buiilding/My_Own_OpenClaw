@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -192,3 +193,38 @@ async def test_get_user_ids_with_work_cold_start_discovers_only_one_user():
 
     assert user_ids == ["first-user"]
     assert memory_store.discovery_calls == [1]
+
+
+@pytest.mark.asyncio
+async def test_parse_timestamp_normalizes_mixed_timezone_formats():
+    summarizer = MemorySummarizer(
+        memory_store=FakeUserIdMemoryStore([]),
+        semantic_client=FakeSemanticClient(),
+    )
+
+    naive = summarizer._parse_timestamp("2026-02-12T01:28:18.489995")
+    aware = summarizer._parse_timestamp("2026-02-12T06:28:11.875Z")
+
+    assert naive is not None
+    assert aware is not None
+    assert naive.tzinfo is not None
+    assert aware.tzinfo is not None
+
+
+@pytest.mark.asyncio
+async def test_should_summarize_batch_handles_naive_timestamp_without_error():
+    summarizer = MemorySummarizer(
+        memory_store=FakeUserIdMemoryStore([]),
+        semantic_client=FakeSemanticClient(),
+        settings=SummarizerSettings(
+            min_batch_size=10,
+            min_batch_size_idle=1,
+            idle_seconds=0,
+            min_memory_age_seconds=0,
+        ),
+    )
+
+    naive_timestamp = datetime.now().replace(tzinfo=None).isoformat()
+    memories = [{"id": "1", "timestamp": naive_timestamp, "content": "hello"}]
+
+    assert summarizer._should_summarize_batch(memories) is True
