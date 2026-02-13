@@ -7,6 +7,7 @@ Performs surgical find-and-replace operations with line ending normalization.
 import asyncio
 import logging
 import os
+import tempfile
 from pathlib import Path
 from typing import Dict, Any
 
@@ -32,19 +33,172 @@ def _normalize_line_endings(text: str) -> str:
     return text.replace('\r\n', '\n').replace('\r', '\n')
 
 
-def _normalize_whitespace(text: str) -> str:
+def _normalize_for_lenient_line_match(text: str) -> str:
     """
-    Normalize whitespace by stripping trailing whitespace from each line.
-    
-    Args:
-        text: Text to normalize
-        
-    Returns:
-        Text with normalized whitespace
+    Normalize common punctuation and spacing for lenient line matching.
+    """
+    normalized = text.strip()
+    translations = {
+        # Dash variants
+        '\u2010': '-',
+        '\u2011': '-',
+        '\u2012': '-',
+        '\u2013': '-',
+        '\u2014': '-',
+        '\u2015': '-',
+        '\u2212': '-',
+        # Fancy single quotes
+        '\u2018': "'",
+        '\u2019': "'",
+        '\u201A': "'",
+        '\u201B': "'",
+        # Fancy double quotes
+        '\u201C': '"',
+        '\u201D': '"',
+        '\u201E': '"',
+        '\u201F': '"',
+        # Space variants
+        '\u00A0': ' ',
+        '\u2002': ' ',
+        '\u2003': ' ',
+        '\u2004': ' ',
+        '\u2005': ' ',
+        '\u2006': ' ',
+        '\u2007': ' ',
+        '\u2008': ' ',
+        '\u2009': ' ',
+        '\u200A': ' ',
+        '\u202F': ' ',
+        '\u205F': ' ',
+        '\u3000': ' ',
+    }
+    return ''.join(translations.get(char, char) for char in normalized)
+
+
+def _split_lines_for_matching(text: str) -> list[str]:
+    """
+    Split text into lines while removing the split() trailing sentinel.
     """
     lines = text.split('\n')
-    normalized_lines = [line.rstrip() for line in lines]
-    return '\n'.join(normalized_lines)
+    if lines and lines[-1] == '':
+        lines.pop()
+    return lines
+
+
+def _seek_line_sequence(lines: list[str], pattern: list[str], start: int) -> int | None:
+    """
+    Find a line sequence using progressively lenient matching.
+    """
+    if not pattern:
+        return start
+    if len(pattern) > len(lines):
+        return None
+
+    upper_bound = len(lines) - len(pattern)
+
+    # Exact match
+    for index in range(start, upper_bound + 1):
+        if lines[index:index + len(pattern)] == pattern:
+            return index
+
+    # Ignore trailing whitespace
+    for index in range(start, upper_bound + 1):
+        if all(
+            lines[index + offset].rstrip() == pattern[offset].rstrip()
+            for offset in range(len(pattern))
+        ):
+            return index
+
+    # Ignore leading/trailing whitespace
+    for index in range(start, upper_bound + 1):
+        if all(
+            lines[index + offset].strip() == pattern[offset].strip()
+            for offset in range(len(pattern))
+        ):
+            return index
+
+    # Unicode punctuation/space normalization
+    for index in range(start, upper_bound + 1):
+        if all(
+            _normalize_for_lenient_line_match(lines[index + offset])
+            == _normalize_for_lenient_line_match(pattern[offset])
+            for offset in range(len(pattern))
+        ):
+            return index
+
+    return None
+
+
+def _compute_line_offsets(text: str, lines: list[str]) -> list[int]:
+    """
+    Compute character offsets for each line start in text.
+    """
+    offsets: list[int] = []
+    cursor = 0
+    for line in lines:
+        offsets.append(cursor)
+        cursor += len(line)
+        if cursor < len(text) and text[cursor] == '\n':
+            cursor += 1
+    return offsets
+
+
+def _find_line_sequence_spans(content: str, old_string: str) -> list[tuple[int, int]]:
+    """
+    Find matching line-sequence spans for old_string in content.
+    """
+    content_lines = _split_lines_for_matching(content)
+    pattern_lines = _split_lines_for_matching(old_string)
+
+    if not content_lines or not pattern_lines:
+        return []
+    if len(pattern_lines) > len(content_lines):
+        return []
+
+    offsets = _compute_line_offsets(content, content_lines)
+    spans: list[tuple[int, int]] = []
+    line_cursor = 0
+    include_trailing_newline = old_string.endswith('\n')
+    max_start = len(content_lines) - len(pattern_lines)
+
+    while line_cursor <= max_start:
+        start_index = _seek_line_sequence(content_lines, pattern_lines, line_cursor)
+        if start_index is None:
+            break
+        end_line = start_index + len(pattern_lines) - 1
+        start_char = offsets[start_index]
+        end_char = offsets[end_line] + len(content_lines[end_line])
+        if include_trailing_newline and end_char < len(content) and content[end_char] == '\n':
+            end_char += 1
+        spans.append((start_char, end_char))
+        line_cursor = start_index + len(pattern_lines)
+
+    return spans
+
+
+def _apply_spans(content: str, spans: list[tuple[int, int]], new_string: str) -> str:
+    """
+    Apply replacement spans in reverse order to avoid index shifting.
+    """
+    updated = content
+    for start, end in reversed(spans):
+        updated = f"{updated[:start]}{new_string}{updated[end:]}"
+    return updated
+
+
+def _write_file_atomic(path: Path, content: str) -> None:
+    """
+    Atomically write file content to reduce partial-write risk.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp_path = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, 'w', encoding=DEFAULT_ENCODING) as handle:
+            handle.write(content)
+        os.replace(temp_path, path)
+    finally:
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
 
 
 def _perform_replacement(
@@ -73,20 +227,17 @@ def _perform_replacement(
     count = normalized_content.count(normalized_old)
     
     if count == 0:
-        # Try with whitespace normalization as fallback
-        normalized_content_ws = _normalize_whitespace(normalized_content)
-        normalized_old_ws = _normalize_whitespace(normalized_old)
-        count_ws = normalized_content_ws.count(normalized_old_ws)
-        
-        if count_ws > 0:
-            # Use whitespace-normalized version
-            if replace_all:
-                new_content = normalized_content_ws.replace(normalized_old_ws, new_string, -1)
-            else:
-                new_content = normalized_content_ws.replace(normalized_old_ws, new_string, 1)
-            # Restore original line endings structure (approximate)
-            return new_content, count_ws if replace_all else min(count_ws, 1)
-        
+        fallback_spans = _find_line_sequence_spans(normalized_content, normalized_old)
+        fallback_count = len(fallback_spans)
+        if fallback_count == 0:
+            return content, 0
+
+        if not replace_all and fallback_count > 1:
+            return content, fallback_count
+
+        spans_to_apply = fallback_spans if replace_all else [fallback_spans[0]]
+        return _apply_spans(normalized_content, spans_to_apply, new_string), len(spans_to_apply)
+
         return content, 0
     
     # Validate uniqueness when replace_all=False
@@ -167,6 +318,12 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
         loop = asyncio.get_event_loop()
         current_content = await loop.run_in_executor(None, _read_file)
         
+        if file_exists and old_string == "":
+            return ToolResult.error_result(
+                "old_string cannot be empty when editing an existing file. "
+                "Use old_string='' only when creating a new file."
+            )
+
         # Perform replacement
         new_content, replacements = _perform_replacement(
             current_content, old_string, new_string, replace_all
@@ -186,7 +343,7 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
         
         # Write back the modified content
         def _write_file():
-            path.write_text(new_content, encoding=DEFAULT_ENCODING)
+            _write_file_atomic(path, new_content)
         
         await loop.run_in_executor(None, _write_file)
         
