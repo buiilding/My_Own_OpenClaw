@@ -6,7 +6,7 @@ import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { selectChatBoxState } from '../utils/chatSelectors';
 
 const RESPONSE_TYPES = new Set(['tool-call', 'llm-text', 'error']);
-const FIRST_CHUNK_TYPES = new Set(['llm-text', 'error']);
+const FIRST_CHUNK_TYPES = new Set(['llm-text', 'tool-call', 'error']);
 
 function renderResponseContent(response, markdownHtml) {
   if (!response) {
