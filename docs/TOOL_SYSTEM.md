@@ -361,6 +361,12 @@ No dual-shape fallback is supported in provider transport.
 - **read_file**: Read file contents
 - **replace**: Replace text in a file (single operation or batched operations)
 
+`read_file` behavior:
+- Reads file content as line slices with `offset` (0-based) and `limit`.
+- Defaults to `offset=0`, `limit=2000` when omitted.
+- Truncates each returned line to 500 characters to keep outputs bounded.
+- For large files, use follow-up calls with increasing `offset` values to page through content.
+
 `replace` matching behavior:
 - First attempts exact text replacement after normalizing line endings (`\r\n`/`\r` -> `\n`).
 - Supports `match_mode`:
@@ -376,7 +382,7 @@ No dual-shape fallback is supported in provider transport.
 
 - **get_system_stats**: System statistics
 - **get_open_windows**: List open windows
-- **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; defaults to user home directory when `directory` is omitted; use `process` for background sessions)
+- **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; defaults to user home directory when `directory` is omitted; foreground `llm_content` is truncated by default to ~10,000 tokens with marker support via `max_output_tokens`; use `process` for background sessions)
 - **process**: Manage background shell sessions (poll/log/write/kill)
 
 **Note**: The backend advertises a fixed set of remote tool schemas (LLM-callable). The sidecar may register additional helpers, but only tools listed in `frontend/src/main/python/tools/registry.py` `EXPOSED_TO_BACKEND_TOOLS` are available for LLM tool calling.

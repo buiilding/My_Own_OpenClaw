@@ -40,6 +40,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- feat(filesystem-read-file): stream `read_file` line-by-line with default paging (`limit=2000`), truncate returned lines at 500 chars, remove 10MB hard-stop, and add sidecar regression coverage for default windowing/EOF/large-file behavior
+- feat(system-shell): add Codex-style foreground output truncation controls to `run_shell_command` with `max_output_tokens` (default 10000), token truncation markers in `llm_content`, and output-token metadata fields for diagnostics
 - refactor(prompts,tools): move shell/computer tool operation guidance from global system prompt into backend tool descriptions and argument schemas (`run_shell_command`, `process`, `mouse_control`, `keyboard_control`, `switch_tab`, `get_open_windows`)
 - fix(filesystem): upgrade sidecar `replace` with context-aware matching (`before_context`/`after_context`/`occurrence_index`/`require_eof`), strict-vs-lenient match modes, atomic `replacements[]` batch execution, and structured result payloads (`matched_spans` + `unified_diff`)
 - feat(filesystem): add apply_patch-style `patch_chunks` update mode to sidecar `replace` with ordered chunk application (`change_context`, `old_lines`, `new_lines`, `is_end_of_file`), extend backend/frontend tool schemas, and add codex-aligned sidecar regression coverage for first/last-line, EOF insert, interleaved multi-chunk, and unicode-dash update cases
