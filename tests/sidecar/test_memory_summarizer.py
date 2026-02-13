@@ -89,6 +89,22 @@ async def test_summarizer_processes_transcript_batch_and_skips_tool_calls():
         },
         {
             "id": "2",
+            "content": "stdout: npm run dev\nexit code: 0",
+            "timestamp": "2026-02-12T10:00:00.500Z",
+            "record_kind": "transcript",
+            "role": "tool",
+            "message_type": "tool-output",
+        },
+        {
+            "id": "3",
+            "content": "Bundle output: 3 tools succeeded",
+            "timestamp": "2026-02-12T10:00:00.900Z",
+            "record_kind": "transcript",
+            "role": "tool",
+            "message_type": "tool-bundle-result",
+        },
+        {
+            "id": "4",
             "content": "Please stop the dashboard server.",
             "timestamp": "2026-02-12T10:00:01Z",
             "record_kind": "transcript",
@@ -96,7 +112,7 @@ async def test_summarizer_processes_transcript_batch_and_skips_tool_calls():
             "message_type": "user",
         },
         {
-            "id": "3",
+            "id": "5",
             "content": "Done. Port 8050 is now free.",
             "timestamp": "2026-02-12T10:00:02Z",
             "record_kind": "transcript",
@@ -121,11 +137,15 @@ async def test_summarizer_processes_transcript_batch_and_skips_tool_calls():
     assert len(semantic_client.requests) == 1
     chunk_payload = "\n".join(semantic_client.requests[0]["conversations"])
     assert "tool-call" not in chunk_payload
+    assert "tool-output" not in chunk_payload
+    assert "tool-bundle-result" not in chunk_payload
+    assert "stdout: npm run dev" not in chunk_payload
+    assert "Bundle output: 3 tools succeeded" not in chunk_payload
     assert "Please stop the dashboard server." in chunk_payload
     assert "Done. Port 8050 is now free." in chunk_payload
     assert len(memory_store.add_calls) == 1
-    assert memory_store.add_calls[0]["metadata"]["source_memory_count"] == 3
-    assert memory_store.marked_ids == ["1", "2", "3"]
+    assert memory_store.add_calls[0]["metadata"]["source_memory_count"] == 5
+    assert memory_store.marked_ids == ["1", "2", "3", "4", "5"]
 
 
 @pytest.mark.asyncio

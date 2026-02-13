@@ -78,8 +78,9 @@ Files created per user:
 - Marks episodic memories as semanticized only after a successful summary write.
 - Uses `watermark_state.json` to track progress and resumes safely after restarts.
 - Summarizes transcript episodic rows only (`record_kind='transcript'`).
-- Transcript summarization excludes tool-call/tool-bundle chatter when building
-  summary chunks, while still marking the full processed batch semanticized.
+- Transcript summarization excludes tool-call/tool-output chatter (single and
+  bundled) when building summary chunks, while still marking the full processed
+  batch semanticized.
 
 ### MemoryTool
 
