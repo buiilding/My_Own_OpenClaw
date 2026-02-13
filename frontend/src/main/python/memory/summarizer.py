@@ -346,18 +346,7 @@ class MemorySummarizer:
         ).strip().lower()
         tool_name = (memory.get("tool_name") or memory.get("metadata", {}).get("tool_name") or "").strip()
 
-        if (
-            record_kind == "transcript"
-            and role == "tool"
-            and message_type in ("tool-call", "tool-bundle")
-        ):
-            return None
-
-        if (
-            record_kind == "transcript"
-            and role == "assistant"
-            and message_type in ("tool-call", "tool-bundle")
-        ):
+        if self._is_filtered_tool_transcript_entry(record_kind, role, message_type):
             return None
 
         if len(content) > 1600:
@@ -367,6 +356,29 @@ class MemorySummarizer:
         prefix_parts = [part for part in (role or None, message_type or None, tool_name or None) if part]
         prefix = "|".join(prefix_parts) if prefix_parts else record_kind
         return f"[{timestamp}] ({prefix}) {content}"
+
+    @staticmethod
+    def _is_filtered_tool_transcript_entry(
+        record_kind: str,
+        role: str,
+        message_type: str,
+    ) -> bool:
+        if record_kind != "transcript":
+            return False
+
+        # Tool role rows are tool execution chatter (calls/outputs/results).
+        if role == "tool":
+            return True
+
+        # Defensive filtering for older or alternate transcript encodings.
+        return message_type in {
+            "tool-call",
+            "tool-bundle",
+            "tool-output",
+            "tool-result",
+            "tool-bundle-output",
+            "tool-bundle-result",
+        }
 
     def _format_semantic_content(self, summary: str, facts: Sequence[str]) -> str:
         parts = []
