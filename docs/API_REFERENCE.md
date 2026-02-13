@@ -409,7 +409,8 @@ Send tool execution result from frontend.
     "llm_content": "Preformatted tool output",
     "screenshot_ref": "uuid.jpg", // Optional, computer-use tools only
     "screenshot": "base64-encoded-screenshot", // Optional legacy fallback, computer-use tools only
-    "system_state": { "active_window": "...", "mouse_position": "..." }
+    "system_state": { "active_window": "...", "mouse_position": "..." },
+    "system_state_internal": { "active_window": "...", "mouse_position": "...", "screen_resolution": "..." } // Optional backend-only runtime state
   },
   "error": null
 }
@@ -417,6 +418,7 @@ Send tool execution result from frontend.
 
 `request_id` must echo the `tool-call` payload `request_id` value for correlation.
 `data.system_state.active_window` and `data.system_state.mouse_position` are required when `data` is present.
+`data.system_state_internal` is optional backend-only runtime state and is not model-facing tool-output content.
 For non-computer tools, omit `data.screenshot_ref` and `data.screenshot`.
 
 **Response**: Acknowledgment (no specific response type)
