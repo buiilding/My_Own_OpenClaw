@@ -41,10 +41,6 @@ class RemoteShellTool(RemoteToolBase, Tool[RunShellCommandArgs]):
         "Does not wait for output or completion.\n"
         "- Yield (yield_after_seconds): Returns early if the command runs longer than the yield time; "
         "the command continues in the background and can be managed with the process tool.\n\n"
-        "Operational Guidance:\n"
-        "- For GUI app launches or long-running processes, set run_in_background=True.\n"
-        "- After launch, capture a screenshot with wait to verify expected UI state.\n"
-        "- Use get_open_windows + switch_tab for deterministic window focus.\n\n"
         "Optional wait parameter: If 'wait' is provided (in seconds), the tool will wait and capture a screenshot "
         "after execution, similar to computer-use tools. This is useful when the command opens a GUI application "
         "or makes visual changes that need to be captured.\n\n"
@@ -64,8 +60,8 @@ class RemoteShellTool(RemoteToolBase, Tool[RunShellCommandArgs]):
 class RemoteProcessTool(RemoteToolBase, Tool[ProcessShellCommandArgs]):
     name = "process"
     description = (
-        "Manage background shell command sessions started by run_shell_command: "
-        "list, poll, log, write, send-keys, submit, paste, kill, clear, remove."
+        "Manage background shell command sessions: list, poll, log, write, "
+        "send-keys, submit, paste, kill, clear, remove."
     )
     args_model = ProcessShellCommandArgs
     category = ToolDomain.SYSTEM

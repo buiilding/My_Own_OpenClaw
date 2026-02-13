@@ -16,47 +16,22 @@ from backend.src.core.types.enums import (
 class MouseControlArgs(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
-    action: MouseAction = Field(
-        ...,
-        description="Mouse action to perform (click, double_click, right_click, move, drag, or scroll).",
-    )
+    action: MouseAction = Field(..., description="Mouse action to perform")
 
     # Coordinate finding method
     find_coordinates_by: CoordinateFindingMethod = Field(
-        CoordinateFindingMethod.MANUAL,
-        description=(
-            "Coordinate targeting strategy. Prefer 'ocr' for visible text targets, "
-            "'prediction' for non-text UI elements, and 'manual' only as fallback."
-        ),
+        CoordinateFindingMethod.MANUAL, description="Method to find the target coordinates for the mouse action"
     )
 
     # Manual coordinate fields
-    x: Optional[int] = Field(
-        None,
-        description="X coordinate in screen pixels. Required when find_coordinates_by='manual'.",
-    )
-    y: Optional[int] = Field(
-        None,
-        description="Y coordinate in screen pixels. Required when find_coordinates_by='manual'.",
-    )
+    x: Optional[int] = Field(None, description="X coordinate (required when find_coordinates_by='manual')")
+    y: Optional[int] = Field(None, description="Y coordinate (required when find_coordinates_by='manual')")
 
     # OCR coordinate fields
-    ocr_text: Optional[str] = Field(
-        None,
-        description=(
-            "Exact on-screen text for OCR targeting. Required for find_coordinates_by='ocr'. "
-            "Do not combine with prediction-only fields."
-        ),
-    )
+    ocr_text: Optional[str] = Field(None, description="Exact text to search for on screen using OCR. Required for 'ocr' method. Do NOT use for 'prediction'.")
 
     # Prediction coordinate fields
-    description: Optional[str] = Field(
-        None,
-        description=(
-            "Detailed visual description of a non-text target (icon, image, shape, relative location). "
-            "Required for find_coordinates_by='prediction'. Do not combine with ocr_text."
-        ),
-    )
+    description: Optional[str] = Field(None, description="Highly detailed visual description of the non-text element (icon, image). Required for 'prediction' method. Do NOT use for 'ocr'.")
     model_name: Optional[str] = Field(None, description="Optional specific vision model to use for prediction")
 
     # Action-specific fields
@@ -65,7 +40,7 @@ class MouseControlArgs(BaseModel):
     duration: float = Field(0.5, description="Duration for drag operations")
     wait: float = Field(
         0.0,
-        description="Delay in seconds before automatic post-action screenshot capture."
+        description="Delay in seconds before taking a screenshot after tool execution."
     )
 
     @model_validator(mode='after')
@@ -93,30 +68,13 @@ class MouseControlArgs(BaseModel):
 class KeyboardControlArgs(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
-    action: KeyboardAction = Field(
-        ...,
-        description=(
-            "Keyboard action to perform: type (text input), press (single key), or hotkey (combined keys)."
-        ),
-    )
-    text: Optional[str] = Field(
-        None,
-        description=(
-            "Text payload for action='type'. Use with deterministic follow-up key presses when needed "
-            "(for example, submit after input)."
-        ),
-    )
-    key: Optional[str] = Field(
-        None,
-        description="Single key for action='press' (for example: enter, esc, tab).",
-    )
-    keys: Optional[List[str]] = Field(
-        None,
-        description="Ordered key list for action='hotkey' (for example: ['ctrl', 'l']).",
-    )
+    action: KeyboardAction = Field(..., description="Keyboard action to perform")
+    text: Optional[str] = Field(None, description="Text to type (required for 'type' action)")
+    key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
+    keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
     wait: float = Field(
         0.0,
-        description="Delay in seconds before automatic post-action screenshot capture."
+        description="Delay in seconds before taking a screenshot after tool execution."
     )
 
 
@@ -150,7 +108,7 @@ class ScrollControlArgs(BaseModel):
     )
     wait: float = Field(
         0.0,
-        description="Delay in seconds before automatic post-action screenshot capture."
+        description="Delay in seconds before taking a screenshot after tool execution."
     )
 
 
@@ -162,13 +120,11 @@ class SwitchTabArgs(BaseModel):
 
     tab_name: str = Field(
         ...,
-        description=(
-            "Exact window or tab title to focus, matching get_open_windows output exactly."
-        ),
+        description="The exact name of the tab/window to switch to, as it appears in get_open_windows output."
     )
     wait: float = Field(
         0.0,
-        description="Delay in seconds before automatic post-action screenshot capture."
+        description="Delay in seconds before taking a screenshot after tool execution."
     )
 
 
