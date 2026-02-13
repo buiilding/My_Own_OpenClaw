@@ -129,6 +129,7 @@ Includes the last 300 commits on `main`.
 - fix(api): register and handle `load-settings` with `settings-loaded` responses
 - fix(vision-internvl): disable flash-attn runtime flags on CUDA kernel-image mismatch and retry chat inference
 - fix(frontend-config): send list-models only from main window to avoid duplicate local-model probes from chatbox
+- fix(frontend-config): stop `chatbox-response` model-list probes and add per-renderer one-shot guard so React StrictMode remounts do not duplicate Ollama/LM Studio discovery warnings
 - fix(frontend-transcript): queue tool transcript entries until session/user ids are available to avoid missing tool-call history in episodic memory
 - 4169acf fix(frontend-ipc): gate first query on settings sync ack
 - d0dd0a6 fix(frontend-config): apply config sync when renderer attaches after backend connection

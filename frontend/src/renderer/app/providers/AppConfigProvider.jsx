@@ -14,6 +14,8 @@ import {
   sanitizeFrontendProviderConfig,
 } from './appConfigPersistence';
 
+const LIST_MODELS_REQUEST_GUARD_KEY = '__windie_models_list_requested__';
+
 function logConfigInfo(message, ...args) {
   if (
     typeof process !== 'undefined' &&
@@ -84,8 +86,11 @@ export function AppConfigProvider({ children }) {
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, onBackendEvent);
     const view = new URLSearchParams(window.location.search).get('view');
-    if (view !== 'chatbox') {
+    const isMainView = !view;
+    const hasRequestedModels = Boolean(window[LIST_MODELS_REQUEST_GUARD_KEY]);
+    if (isMainView && !hasRequestedModels) {
       logConfigInfo('[Config] Requesting available models...');
+      window[LIST_MODELS_REQUEST_GUARD_KEY] = true;
       IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
     }
 
