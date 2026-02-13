@@ -83,6 +83,23 @@ async def test_execute_tool_handles_dict_results_and_errors():
     assert result.success is False
     assert result.error == "bad"
 
+    registry.tools["read_file"] = lambda _args: {
+        "success": False,
+        "data": {
+            "error": 'Usage: scripts/committer "<message>" <file> [file ...]',
+            "exit_code": 1,
+            "output": "",
+        },
+    }
+    result = await registry.execute_tool("read_file", {"file_path": "/tmp/a"})
+    assert result.success is False
+    assert result.error == 'Usage: scripts/committer "<message>" <file> [file ...]'
+    assert result.data == {
+        "error": 'Usage: scripts/committer "<message>" <file> [file ...]',
+        "exit_code": 1,
+        "output": "",
+    }
+
 
 @pytest.mark.asyncio
 async def test_execute_tool_handles_invalid_result_format():
