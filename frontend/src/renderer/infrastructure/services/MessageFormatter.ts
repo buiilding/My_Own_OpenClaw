@@ -114,7 +114,8 @@ export function formatSequentialStateXml(state: SystemState | null): string {
 export function formatToolOutputMessage(
   toolName: string,
   result: ToolResult,
-  systemState: SystemState | null
+  systemState: SystemState | null,
+  includeSystemContext: boolean = true,
 ): string {
   const parts = [`${toolName} output:`];
   
@@ -127,9 +128,10 @@ export function formatToolOutputMessage(
     parts.push('status: failed');
   }
   
-  // Add system context XML
-  const systemContextXml = formatSequentialStateXml(systemState);
-  parts.push(systemContextXml);
+  if (includeSystemContext) {
+    const systemContextXml = formatSequentialStateXml(systemState);
+    parts.push(systemContextXml);
+  }
   
   // Add screenshot indicator if screenshot is present
   if (hasScreenshotData(result.data)) {
@@ -159,7 +161,8 @@ export interface BundledToolResult {
 export function formatBundledToolOutputMessage(
   tools: BundledToolResult[],
   systemState: SystemState | null,
-  screenshot: string | null
+  screenshot: string | null,
+  includeSystemContext: boolean = true,
 ): string {
   const parts = ['Bundled tool execution output:'];
   
@@ -184,9 +187,10 @@ export function formatBundledToolOutputMessage(
     }
   }
   
-  // Add single system context XML (shared across all tools in bundle)
-  const systemContextXml = formatSequentialStateXml(systemState);
-  parts.push('\n' + systemContextXml);
+  if (includeSystemContext) {
+    const systemContextXml = formatSequentialStateXml(systemState);
+    parts.push('\n' + systemContextXml);
+  }
   
   // Add screenshot indicator if screenshot is present
   if (screenshot) {

@@ -79,7 +79,7 @@ describe('useChatStream', () => {
     });
   });
 
-  test('clears thinking status on streaming response', () => {
+  test('preserves thinking status on streaming response chunks', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -90,7 +90,7 @@ describe('useChatStream', () => {
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBeNull();
+    expect(useChatStore.getState().thinkingStatus).toBe('thinking');
   });
 
   test('updates thinking status from llm-thought events', () => {
@@ -105,6 +105,20 @@ describe('useChatStream', () => {
     });
 
     expect(useChatStore.getState().thinkingStatus).toContain('thinking');
+  });
+
+  test('accepts llm-thought payload content fallback', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({ thinkingStatus: null });
+      emitBackendEvent({
+        type: 'llm-thought',
+        payload: { content: 'reasoning step' },
+      });
+    });
+
+    expect(useChatStore.getState().thinkingStatus).toContain('reasoning step');
   });
 
   test('clears thinking status on tool call', () => {
@@ -531,6 +545,29 @@ describe('useChatStream', () => {
     });
     expect(assistantMessage.fullAssistantMessage).toEqual({
       content: 'raw assistant',
+    });
+  });
+
+  test('user-message-full falls back to latest user message when turn_ref has no match', () => {
+    const { emitBackendEvent } = registerBackendListener();
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          { id: 'user-1', sender: 'user', text: 'ask without turn ref' },
+          { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-1' },
+        ],
+      });
+      emitBackendEvent({
+        type: 'user-message-full',
+        turn_ref: 'turn-1',
+        payload: { content: 'raw user fallback', metadata: { a: 1 } },
+      });
+    });
+
+    const userMessage = useChatStore.getState().messages[0];
+    expect(userMessage.fullUserMessage).toEqual({
+      content: 'raw user fallback',
+      metadata: { a: 1 },
     });
   });
 

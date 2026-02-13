@@ -191,11 +191,18 @@ export function useChatStream(enableTranscript: boolean = true) {
     updates: Partial<ChatMessage>,
     turnRef?: string,
   ) => {
-    const messageId = findLastMessageIdBySender(
+    const scopedMessageId = findLastMessageIdBySender(
       useChatStore.getState().messages,
       sender,
       turnRef,
     );
+    const fallbackMessageId = turnRef
+      ? findLastMessageIdBySender(
+        useChatStore.getState().messages,
+        sender,
+      )
+      : null;
+    const messageId = scopedMessageId || fallbackMessageId;
     if (messageId) {
       updateMessage(messageId, updates);
     }
@@ -223,13 +230,19 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handleLlmThought = useCallback((event: LlmThoughtEvent) => {
     const currentStatus = useChatStore.getState().thinkingStatus;
-    setThinkingStatus(buildThinkingStatus(currentStatus, event.payload?.status));
+    const payload = event.payload as { status?: string; content?: string } | undefined;
+    const thoughtChunk =
+      typeof payload?.status === 'string'
+        ? payload.status
+        : typeof payload?.content === 'string'
+          ? payload.content
+          : undefined;
+    setThinkingStatus(buildThinkingStatus(currentStatus, thoughtChunk));
     recordTrackingEvent('llm-thought', event.turn_ref);
   }, [setThinkingStatus, recordTrackingEvent]);
 
   const handleStreamingResponse = useCallback((event: StreamingResponseEvent) => {
     setIsSending(false);
-    setThinkingStatus(null);
 
     const action = resolveStreamingResponseAction(
       useChatStore.getState().messages,
@@ -261,7 +274,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     addMessage,
     updateMessage,
     setIsSending,
-    setThinkingStatus,
     recordTrackingEvent,
   ]);
 

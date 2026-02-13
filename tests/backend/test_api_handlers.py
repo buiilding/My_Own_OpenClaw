@@ -557,6 +557,34 @@ async def test_tool_result_handler_routes_to_session():
 
 
 @pytest.mark.asyncio
+async def test_tool_result_handler_routes_without_system_state_for_non_computer_tools():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session_instance = DummySession()
+    handler = ToolResultHandler(session_manager)
+
+    message = ToolResultMessage(
+        id="msg_4b",
+        type="tool-result",
+        user_id="user_1",
+        payload={
+            "request_id": "req_1b",
+            "success": True,
+            "data": {
+                "llm_content": "ok",
+                "output": "ok",
+            },
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+    assert session_manager.session_instance.tool_calls
+    routed_call = session_manager.session_instance.tool_calls[0]
+    assert routed_call["request_id"] == "req_1b"
+    assert "system_state" not in routed_call["result_data"]
+
+
+@pytest.mark.asyncio
 async def test_tool_bundle_result_handler_routes_to_session():
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
