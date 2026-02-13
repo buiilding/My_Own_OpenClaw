@@ -98,7 +98,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
-- fix(frontend-overlay): restore chat/response pill click-through during active agent loop phases (`awaiting-first-chunk|streaming|tool-call|tool-output`) and re-enable overlay interactivity when the loop completes; apply ignore-mouse IPC toggle to both chat and response overlay windows
+- fix(frontend-overlay): restore chat/response pill click-through during active agent loop phases (`awaiting-first-chunk|streaming|tool-call|tool-output`), force pills clickable again in terminal phases (`idle|complete|error`), and apply ignore-mouse IPC toggle to both chat and response overlay windows
 - fix(sidecar-tool-errors): preserve detailed failure messages from legacy dict tool results (including nested `data.error` from `run_shell_command`) instead of collapsing to generic `Tool execution failed`
 - fix(rehydrate-history): repair resumed transcript tool linkage by reconstructing assistant `tool_calls` + matching `tool_call_id` for tool outputs (with synthesized IDs when missing) to prevent orphan tool-message drops on native tool-calling providers
 - fix(tool-bundle): preserve rich step output in bundled execution by preferring `llm_content`/`content`/`output`-style fields and use fallback text `Tool <tool_name> executed successfully (no output)` only when no explicit step output exists; align frontend/backend tests and API docs
