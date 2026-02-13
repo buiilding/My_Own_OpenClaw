@@ -473,7 +473,7 @@ Result of an atomic tool bundle executed on the frontend.
 - `status` convention from frontend bundle runner is `ok` / `error` (bundle-level `status` remains `success` / `partial_failure` / `failure`).
 - `output` may be a string or structured object.
 - additional per-step fields are allowed and preserved.
-- if a step succeeds without explicit `output`, frontend uses fallback text: `Tool <tool_name> executed successfully`.
+- if a step succeeds without explicit `output`, frontend uses fallback text: `Tool <tool_name> executed successfully (no output)`.
 - screenshot fields are omitted for bundles without computer-use actions.
 - when `system_state` is present, it uses `{ active_window, mouse_position }`.
 

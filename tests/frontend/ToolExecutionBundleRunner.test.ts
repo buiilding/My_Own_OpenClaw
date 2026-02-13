@@ -135,7 +135,7 @@ describe('ToolExecutionBundleRunner', () => {
     ]);
   });
 
-  test('uses generic success text when tool succeeds without output payload', async () => {
+  test('uses no-output success fallback when tool succeeds without output payload', async () => {
     mockInvokeTool.mockResolvedValueOnce({
       result: { success: true, data: { value: 'no-output-field' } },
       toolInvokeTime: 0.01,
@@ -146,7 +146,22 @@ describe('ToolExecutionBundleRunner', () => {
     ]);
 
     expect(outcome.stepResults).toEqual([
-      { tool: 'read_file', status: 'ok', output: 'Tool read_file executed successfully' },
+      { tool: 'read_file', status: 'ok', output: 'Tool read_file executed successfully (no output)' },
+    ]);
+  });
+
+  test('uses llm_content for success output when output field is missing', async () => {
+    mockInvokeTool.mockResolvedValueOnce({
+      result: { success: true, data: { content: 'raw-file-content', llm_content: 'formatted-file-content' } },
+      toolInvokeTime: 0.01,
+    });
+
+    const outcome = await runToolBundle([
+      { toolName: 'read_file', args: { file_path: '/tmp/a' } },
+    ]);
+
+    expect(outcome.stepResults).toEqual([
+      { tool: 'read_file', status: 'ok', output: 'formatted-file-content' },
     ]);
   });
 

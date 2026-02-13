@@ -52,11 +52,24 @@ function getErrorMessage(err: unknown): string {
 }
 
 function resolveStepOutput(result: ToolResult, toolName: string): string {
-  if (result.data && typeof result.data === 'object' && result.data.output) {
-    return String(result.data.output);
+  if (typeof result.data === 'string' && result.data.length > 0) {
+    return result.data;
+  }
+
+  if (result.data && typeof result.data === 'object') {
+    const preferredKeys = ['llm_content', 'output', 'content', 'message', 'result', 'return_display'];
+    for (const key of preferredKeys) {
+      const value = (result.data as Record<string, unknown>)[key];
+      if (typeof value === 'string' && value.length > 0) {
+        return value;
+      }
+      if (value !== undefined && value !== null) {
+        return String(value);
+      }
+    }
   }
   if (result.success) {
-    return `Tool ${toolName} executed successfully`;
+    return `Tool ${toolName} executed successfully (no output)`;
   }
   return result.error || 'Unknown error';
 }

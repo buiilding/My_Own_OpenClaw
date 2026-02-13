@@ -195,7 +195,7 @@ so memory embedding/summarization calls target the same backend host.
 - Notes:
   - Step `status` convention is `ok` / `error`.
   - Step `output` may be string or structured object.
-  - Frontend may synthesize step output `Tool <tool_name> executed successfully` when a tool succeeds with no explicit output.
+  - Frontend may synthesize step output `Tool <tool_name> executed successfully (no output)` when a tool succeeds with no explicit output.
   - Screenshot fields are only sent when the bundle includes computer-use actions.
   - When `system_state` is present, it uses `{ active_window, mouse_position }`.
 
