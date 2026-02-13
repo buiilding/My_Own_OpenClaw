@@ -4,6 +4,8 @@ import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
 const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
+const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
+const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
 
 function SettingsIcon() {
   return (
@@ -34,6 +36,7 @@ function ChatBox() {
   const streamPhase = useChatStore((state) => state.streamTracking.phase);
   const { sendMessage } = useChatMessageSender();
   const [inputValue, setInputValue] = useState('');
+  const [overlayPhase, setOverlayPhase] = useState('idle');
   const ignoreMouseRef = useRef(undefined);
   const shellRef = useRef(null);
   const inputRef = useRef(null);
@@ -59,9 +62,12 @@ function ChatBox() {
   }, [setOverlayIgnore]);
 
   useEffect(() => {
-    const shouldIgnore = isSending || CLICK_THROUGH_PHASES.has(streamPhase);
+    const overlayIsTerminal = OVERLAY_TERMINAL_PHASES.has(overlayPhase);
+    const shouldIgnore = !overlayIsTerminal && (
+      OVERLAY_ACTIVE_PHASES.has(overlayPhase) || CLICK_THROUGH_PHASES.has(streamPhase)
+    );
     void setOverlayIgnore(shouldIgnore);
-  }, [isSending, setOverlayIgnore, streamPhase]);
+  }, [overlayPhase, setOverlayIgnore, streamPhase]);
 
   useEffect(() => {
     if (!shellRef.current) {
@@ -100,6 +106,19 @@ function ChatBox() {
 
     return () => {
       observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const removePhaseListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_PHASE, (payload) => {
+      const phase = typeof payload?.phase === 'string' ? payload.phase : null;
+      if (!phase) {
+        return;
+      }
+      setOverlayPhase(phase);
+    });
+    return () => {
+      removePhaseListener?.();
     };
   }, []);
 
