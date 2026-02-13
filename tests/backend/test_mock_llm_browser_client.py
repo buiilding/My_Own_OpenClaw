@@ -75,6 +75,38 @@ class TestMockLLMBrowserClient:
         assert len(chunks) > 0
         full_response = "".join(chunks)
         assert "browser_control" in full_response
+
+    @pytest.mark.asyncio
+    async def test_get_completion_response_returns_native_tool_calls(self):
+        """Native completion payload should expose structured tool calls."""
+        mock_cfg = mock.Mock()
+        client = MockLLMBrowserClient(mock_cfg)
+
+        result = await client.get_completion_response("gpt-4", [], tools=[{}])
+
+        assert result["content"] == ""
+        assert result["finish_reason"] == "tool_calls"
+        assert len(result["tool_calls"]) == 1
+        tool_call = result["tool_calls"][0]
+        assert tool_call["id"].startswith("browser_simulation_call_0_")
+        assert tool_call["name"] == "browser_control"
+        assert tool_call["arguments"]["action"] == "connect"
+
+    @pytest.mark.asyncio
+    async def test_get_completion_response_defers_text_when_tool_and_text_same_turn(self):
+        """Final descriptive text should be emitted after close tool call turn."""
+        mock_cfg = mock.Mock()
+        client = MockLLMBrowserClient(mock_cfg)
+        client._iteration = client._max_iterations - 1
+
+        tool_turn = await client.get_completion_response("gpt-4", [], tools=[{}])
+        assert tool_turn["content"] == ""
+        assert tool_turn["tool_calls"][0]["name"] == "browser_control"
+        assert tool_turn["tool_calls"][0]["arguments"]["action"] == "close"
+
+        final_turn = await client.get_completion_response("gpt-4", [], tools=[{}])
+        assert "tool_calls" not in final_turn
+        assert "task is complete" in final_turn["content"].lower()
     
     def test_reset(self):
         """Test reset functionality."""
