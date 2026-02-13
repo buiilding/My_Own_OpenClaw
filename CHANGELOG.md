@@ -39,6 +39,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(tool-result-contract): freeze incoming `tool-result` schema by removing `metadata.is_preformatted`, requiring typed `system_state` (`active_window`, `mouse_position`), and documenting Agent 1 migration status/handoff in the prompt runbook
 - refactor(token-count-contract): replace `token-count` payload fields with `prompt_tokens`, `visible_output_tokens`, `thinking_tokens`, `output_tokens_total`, `total_tokens`, `conversation_tokens`, and `usage_source` (breaking schema change)
 - feat(token-usage): capture provider usage on both streaming and non-stream completion paths, extract reasoning/thinking token counters from provider usage payloads, and prefer provider totals when available
 - feat(frontend-token-display): render `prompt`, `output (visible)`, `thinking`, and `output (total)` counters in chat token stats and display missing `thinking_tokens` as `N/A`
