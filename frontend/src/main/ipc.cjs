@@ -522,8 +522,8 @@ function initializeIpc(win, options = {}) {
     if (type === 'query') {
       queryMessageId = uuidv4();
       setResponseOverlayPhase('awaiting-first-chunk', 'query');
+      const conversationRef = payload?.conversation_ref || currentConversationRef || null;
       if (payload?.text) {
-        const conversationRef = payload?.conversation_ref || currentConversationRef || null;
         broadcastToRenderers('from-backend', {
           type: 'local-user-message',
           turn_ref: queryMessageId,
