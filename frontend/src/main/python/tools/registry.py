@@ -132,6 +132,31 @@ class ToolRegistry:
     def get_exposed_tool_names() -> set[str]:
         """Return sidecar tools that are expected to be exposed by backend schemas."""
         return set(EXPOSED_TO_BACKEND_TOOLS)
+
+    @staticmethod
+    def _extract_failure_payload(result: Dict[str, Any]) -> tuple[str, Dict[str, Any] | None]:
+        """Extract the most useful failure message from legacy dict tool results."""
+        data = result.get("data")
+        payload_data = data if isinstance(data, dict) else None
+
+        top_level_error = result.get("error")
+        if isinstance(top_level_error, str) and top_level_error.strip():
+            return top_level_error.strip(), payload_data
+
+        if isinstance(data, str) and data.strip():
+            return data.strip(), payload_data
+
+        if payload_data:
+            for key in ("error", "return_display", "llm_content", "output", "message"):
+                value = payload_data.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value.strip(), payload_data
+
+            exit_code = payload_data.get("exit_code")
+            if isinstance(exit_code, int):
+                return f"Tool execution failed with exit code {exit_code}", payload_data
+
+        return "Tool execution failed", payload_data
     
     async def execute_tool(self, tool_name: str, args: Dict[str, Any]) -> ToolResult:
         """
@@ -165,7 +190,8 @@ class ToolRegistry:
             elif isinstance(result, dict):
                 # Handle legacy dict format
                 if result.get("success") is False:
-                    return ToolResult.error_result(result.get("error", "Tool execution failed"))
+                    error_message, failure_data = self._extract_failure_payload(result)
+                    return ToolResult(success=False, error=error_message, data=failure_data)
                 else:
                     return ToolResult.success_result(result.get("data", result))
             else:
