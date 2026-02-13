@@ -211,20 +211,10 @@ class LLMStreamProcessor:
         model_id: str,
     ) -> bool:
         """
-        Use non-stream completion for tool turns except Kimi, which supports
-        streaming with tool calls and reasoning deltas.
+        Use non-stream completion whenever tool-calling is enabled.
         """
-        return bool(tools) and not self._should_stream_with_tools(model_id)
-
-    def _should_stream_with_tools(self, model_id: str) -> bool:
-        """Kimi coding supports streaming tool-call + thinking deltas."""
-        provider_name = str(getattr(self.session.cfg, "model_provider", "")).strip().lower()
-        normalized_model_id = str(model_id).strip().lower()
-        if provider_name in {"kimi-coding", "kimi_coding"}:
-            return True
-        if normalized_model_id in {"k2p5", "kimi-for-coding"}:
-            return True
-        return normalized_model_id.startswith(("kimi-coding/", "kimi-code/"))
+        _ = model_id  # Reserved for future provider-specific routing.
+        return bool(tools)
 
     async def _iter_completion_stream(
         self,
