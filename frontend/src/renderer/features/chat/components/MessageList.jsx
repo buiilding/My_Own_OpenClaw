@@ -48,8 +48,8 @@ function MessageList({ messages, thinkingStatus }) {
   return (
     <div className="message-list">
       {renderedMessages}
-      <div ref={messagesEndRef} />
       <ThinkingDisplay status={thinkingStatus} />
+      <div ref={messagesEndRef} data-testid="message-list-end" />
     </div>
   );
 }
