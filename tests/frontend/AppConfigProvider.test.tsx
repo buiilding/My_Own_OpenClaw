@@ -50,6 +50,8 @@ describe('AppConfigProvider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     listeners.clear();
+    window.history.pushState({}, '', '/');
+    delete (window as Window & { __windie_models_list_requested__?: boolean }).__windie_models_list_requested__;
     removeBackendListener = jest.fn();
     loadFrontendConfigResponse = null;
     clientUserIdResponse = null;
@@ -90,6 +92,28 @@ describe('AppConfigProvider', () => {
       SEND_CHANNELS.TO_BACKEND,
       { type: 'list-models' },
     );
+  });
+
+  test('does not request model list from chatbox-response view', () => {
+    window.history.pushState({}, '', '/?view=chatbox-response');
+
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    expect(IpcBridge.send).not.toHaveBeenCalledWith(
+      SEND_CHANNELS.TO_BACKEND,
+      { type: 'list-models' },
+    );
+  });
+
+  test('requests model list only once per renderer session', () => {
+    const firstRender = renderHook(() => useAppConfigContext(), { wrapper });
+    firstRender.unmount();
+    renderHook(() => useAppConfigContext(), { wrapper });
+
+    const listModelCalls = (IpcBridge.send as jest.Mock).mock.calls.filter(
+      ([channel, payload]) => channel === SEND_CHANNELS.TO_BACKEND && payload?.type === 'list-models',
+    );
+    expect(listModelCalls).toHaveLength(1);
   });
 
   test('routes models-listed event to settings handler', () => {

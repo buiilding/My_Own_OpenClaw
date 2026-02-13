@@ -162,6 +162,10 @@ so memory embedding/summarization calls target the same backend host.
 - Purpose: Request available models
 - Payload: `{}`
 - Response: `models-listed`
+- Notes:
+  - Sent only by the main dashboard renderer (`view` query param absent).
+  - Chat overlay renderers (`view=chatbox`, `view=chatbox-response`) do not request models.
+  - Renderer startup guards this request to one-shot per renderer lifecycle to avoid duplicate local-provider probes in React StrictMode.
 
 **`load-settings`**
 - Purpose: Request frontend-owned settings snapshot from backend session/default config.
