@@ -1164,7 +1164,7 @@ class BrowserController:
             )
         return await self._get_ai_snapshot(max_chars)
     
-    async def _get_ai_snapshot(self, max_chars: int = 80000) -> PageSnapshot:
+    async def _get_ai_snapshot(self, max_chars: int = 12000) -> PageSnapshot:
         """Build a flat interactive snapshot with stable-ish refs."""
         title = await self._page.title()
         url = self._page.url
@@ -1179,7 +1179,7 @@ class BrowserController:
         
         lines = []
         seen_refs: set[str] = set()
-        max_elements = 250
+        max_elements = 100
         
         for elem in elements:
             try:
@@ -1278,24 +1278,6 @@ class BrowserController:
         snapshot_text += "Interactive elements:\n"
         snapshot_text += "\n".join(lines) if lines else "(none found)"
 
-        # Add contextual structure to match richer OpenClaw snapshot context.
-        try:
-            root_locator = self._page.locator(":root")
-            if inspect.isawaitable(root_locator):
-                root_locator = await root_locator
-
-            aria_snapshot_fn = getattr(root_locator, "aria_snapshot", None)
-            if callable(aria_snapshot_fn):
-                root_snapshot = aria_snapshot_fn()
-                if inspect.isawaitable(root_snapshot):
-                    root_snapshot = await root_snapshot
-                root_text = str(root_snapshot or "").strip()
-                if root_text:
-                    snapshot_text += "\n\nPage structure:\n"
-                    snapshot_text += root_text
-        except Exception as e:
-            logger.debug(f"Failed to append aria context to AI snapshot: {e}")
-        
         # Truncate if too long
         if len(snapshot_text) > max_chars:
             snapshot_text = snapshot_text[:max_chars] + "\n... (truncated)"
@@ -1344,7 +1326,7 @@ class BrowserController:
     async def _get_role_snapshot(
         self,
         *,
-        max_chars: int = 80000,
+        max_chars: int = 12000,
         refs_mode: Optional[str] = None,
         interactive: Optional[bool] = None,
         compact: Optional[bool] = None,

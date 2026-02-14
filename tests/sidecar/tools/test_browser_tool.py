@@ -355,6 +355,16 @@ class TestSnapshotAction:
             assert result.data["ref_count"] == 1
             assert "refs" not in result.data
             assert "stats" not in result.data
+            mock_controller.get_page_snapshot.assert_awaited_once_with(
+                format_type="ai",
+                max_chars=8000,
+                refs_mode=None,
+                interactive=True,
+                compact=True,
+                depth=4,
+                selector=None,
+                frame_selector=None,
+            )
 
     @pytest.mark.asyncio
     async def test_snapshot_efficient_role_output(self):
@@ -401,6 +411,40 @@ class TestSnapshotAction:
             
             assert result.success is False
             assert "not connected" in result.error.lower()
+
+    @pytest.mark.asyncio
+    async def test_snapshot_aria_does_not_force_efficient_defaults(self):
+        """Test aria snapshot keeps non-efficient defaults."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+
+            from tools.browser.controller import PageSnapshot
+            mock_controller.get_page_snapshot.return_value = PageSnapshot(
+                text='- button "Submit"',
+                url="https://example.com",
+                title="Example",
+                ref_count=0,
+            )
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "snapshot",
+                "format": "aria",
+            })
+
+            assert result.success is True
+            assert result.data["format"] == "aria"
+            mock_controller.get_page_snapshot.assert_awaited_once_with(
+                format_type="aria",
+                max_chars=12000,
+                refs_mode=None,
+                interactive=None,
+                compact=None,
+                depth=None,
+                selector=None,
+                frame_selector=None,
+            )
 
 
 class TestClickAction:

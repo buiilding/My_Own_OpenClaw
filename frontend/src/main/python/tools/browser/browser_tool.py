@@ -18,9 +18,9 @@ from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_AI_SNAPSHOT_MAX_CHARS = 80_000
-DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS = 10_000
-DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH = 6
+DEFAULT_AI_SNAPSHOT_MAX_CHARS = 12_000
+DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS = 8_000
+DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH = 4
 
 
 async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
@@ -329,9 +329,13 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
     if format_type not in ("ai", "aria"):
         return ToolResult.error_result("Invalid snapshot format. Use 'ai' or 'aria'.")
 
-    mode = args.get("mode")
-    if mode != "efficient":
-        mode = None
+    mode_raw = args.get("mode")
+    mode: str | None = None
+    if mode_raw == "efficient":
+        mode = "efficient"
+    elif format_type == "ai" and mode_raw in (None, "", "user_chrome"):
+        # Keep default snapshots compact/actionable unless caller explicitly opts out.
+        mode = "efficient"
 
     if mode == "efficient" and format_type == "aria":
         return ToolResult.error_result("mode='efficient' requires format='ai'.")
