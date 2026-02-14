@@ -547,6 +547,13 @@ class InternVLModel(BaseVisionModel):
             if not output_text:
                 logger.error("Empty output from model")
                 return None
+            raw_output_preview = output_text[:1000]
+            if len(output_text) > 1000:
+                raw_output_preview += "... [truncated]"
+            logger.warning(
+                "InternVL raw prediction response: %s",
+                repr(raw_output_preview),
+            )
 
             point = extract_point_or_bbox_center(output_text)
             logger.info(f"Extracted point: {point}")

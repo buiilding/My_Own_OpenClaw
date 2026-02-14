@@ -42,6 +42,7 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 - fix(sidecar-linux): make `switch_tab` title matching tolerant to Unicode punctuation/case differences and conservative fuzzy matches (with ambiguity rejection) by selecting best window from `get_open_windows` and activating its `hwnd`
+- fix(vision-logging): surface raw InternVL/Venus prediction responses as truncated warning logs so model output text is visible under the default `important` log profile
 - fix(coordinates-linux): disable screenshot-to-display coordinate normalization on Linux for OCR/prediction mouse resolution (preserve raw resolved coordinates; metadata now reports `normalization_status=disabled_on_linux`)
 - fix(simulation-tool-calling): route mock simulation clients through native `NormalizedLLMResponse.tool_calls` (with deterministic tool-call ids and preserved computer-use metadata) so simulation no longer surfaces legacy `{"functionCall": ...}` JSON as assistant text during tool turns
 - fix(simulation): bind simulation DI container to FastAPI app lifespan (`app.state.container`) in computer/browser simulation entrypoints and clear it on shutdown so `/ws` no longer fails with 503 `app.state.container missing`
