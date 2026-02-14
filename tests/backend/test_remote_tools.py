@@ -1,10 +1,11 @@
 import uuid
 
 import pytest
+from pydantic import ValidationError
 
 from backend.src.sdk.context import ExecutionRuntime, SessionContext, ToolContext, UserContext
 from backend.src.tools.remote import RemoteMouseTool
-from backend.src.tools.computer.schemas import MouseControlArgs
+from backend.src.tools.computer.schemas import MouseControlArgs, ScrollControlArgs
 
 
 def _make_context(metadata=None):
@@ -40,3 +41,20 @@ async def test_remote_tool_generates_request_id_when_missing(monkeypatch):
 
     result = await tool.run(args, ctx)
     assert result.request_id == "fixed-uuid"
+
+
+def test_scroll_control_requires_manual_coordinates():
+    with pytest.raises(ValidationError):
+        ScrollControlArgs(action="scroll_down")
+
+    args = ScrollControlArgs(action="scroll_down", x=10, y=20)
+    assert args.x == 10
+    assert args.y == 20
+
+
+def test_scroll_control_requires_direction_for_scroll_action():
+    with pytest.raises(ValidationError):
+        ScrollControlArgs(action="scroll", x=10, y=20)
+
+    args = ScrollControlArgs(action="scroll", x=10, y=20, direction="down")
+    assert args.direction == "down"

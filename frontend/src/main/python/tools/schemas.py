@@ -107,8 +107,8 @@ class ScrollControlArgs(BaseModel):
     model_config = ConfigDict(extra='ignore')
     
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(..., description="Scroll action to perform")
-    x: Optional[int] = Field(None, description="X coordinate to scroll at (optional)")
-    y: Optional[int] = Field(None, description="Y coordinate to scroll at (optional)")
+    x: int = Field(..., description="X coordinate to move to before scrolling (manual coordinates only)")
+    y: int = Field(..., description="Y coordinate to move to before scrolling (manual coordinates only)")
     clicks: int = Field(
         5,
         description=(

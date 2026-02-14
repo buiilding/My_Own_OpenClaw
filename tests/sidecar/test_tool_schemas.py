@@ -51,7 +51,19 @@ def test_keyboard_control_validates_action_fields_and_length():
 
 def test_scroll_control_requires_direction_for_scroll_action():
     with pytest.raises(ValidationError):
-        ScrollControlArgs(action="scroll")
+        ScrollControlArgs(action="scroll", x=100, y=200)
 
-    args = ScrollControlArgs(action="scroll", direction="down")
+    args = ScrollControlArgs(action="scroll", x=100, y=200, direction="down")
     assert args.direction == "down"
+
+
+def test_scroll_control_requires_manual_coordinates_for_all_actions():
+    with pytest.raises(ValidationError):
+        ScrollControlArgs(action="scroll_up")
+
+    with pytest.raises(ValidationError):
+        ScrollControlArgs(action="scroll_down")
+
+    args = ScrollControlArgs(action="scroll_up", x=10, y=20)
+    assert args.x == 10
+    assert args.y == 20
