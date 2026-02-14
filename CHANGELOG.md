@@ -41,6 +41,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- feat(scroll-control): require manual `x`/`y` coordinates for `scroll_control` on backend + sidecar schemas, always move cursor to target before scrolling (including `scroll_up`/`scroll_down`), and add regression coverage
 - fix(sidecar-linux): make `switch_tab` title matching tolerant to Unicode punctuation/case differences and conservative fuzzy matches (with ambiguity rejection) by selecting best window from `get_open_windows` and activating its `hwnd`
 - fix(vision-logging): surface raw InternVL/Venus prediction responses as truncated warning logs so model output text is visible under the default `important` log profile
 - fix(coordinates-linux): disable screenshot-to-display coordinate normalization on Linux for OCR/prediction mouse resolution (preserve raw resolved coordinates; metadata now reports `normalization_status=disabled_on_linux`)
