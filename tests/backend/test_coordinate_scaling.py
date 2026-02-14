@@ -99,6 +99,8 @@ async def test_resolve_tool_with_coordinates_scales_to_screen_resolution(monkeyp
 
     assert resolved_call.parameters["x"] == 500
     assert resolved_call.parameters["y"] == 500
+    assert resolved_call.parameters["ocr_text"] == "Submit"
+    assert "find_coordinates_by" not in resolved_call.parameters
     assert resolved_call.metadata["coordinate_method"] == "ocr"
     contract = resolved_call.metadata["coordinate_contract"]
     assert contract["coordinate_space"] == "screenshot_px"
@@ -271,3 +273,54 @@ async def test_resolve_tool_with_coordinates_disables_scaling_on_linux(monkeypat
     assert contract["target_display_size"] == {"width": screen_w, "height": screen_h}
     assert contract["normalized_coordinates"] == {"x": 1000, "y": 1000}
     assert contract["normalization_status"] == "disabled_on_linux"
+
+
+@pytest.mark.asyncio
+async def test_resolve_tool_with_coordinates_preserves_prediction_description(monkeypatch):
+    screenshot_w, screenshot_h = 1920, 1080
+    screenshot_b64 = base64.b64encode(_fake_jpeg_bytes(screenshot_w, screenshot_h)).decode("ascii")
+    session = _StubSession(screenshot_b64, {"screen_resolution": "1920x1080"})
+    screenshot_manager = _StubScreenshotManager()
+
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={
+            "find_coordinates_by": CoordinateFindingMethod.PREDICTION,
+            "description": "the cheapest shoe listing card",
+        },
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+
+    async def _fake_resolve_coordinates(*_args, **_kwargs):
+        return 743, 873
+
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.resolve_coordinates",
+        _fake_resolve_coordinates,
+    )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.platform.system",
+        lambda: "Windows",
+    )
+
+    await resolve_tool_with_coordinates(
+        tool_call=tool_call,
+        resolved_call=resolved_call,
+        session=session,
+        screenshot_manager=screenshot_manager,
+        ocr_coordinator=object(),
+        coordinate_resolver=object(),
+        vision_service=None,
+        vision_service_provider=lambda _s: None,
+        context_id="prediction-id",
+    )
+
+    assert resolved_call.parameters["x"] == 743
+    assert resolved_call.parameters["y"] == 873
+    assert (
+        resolved_call.parameters["description"]
+        == "the cheapest shoe listing card"
+    )
+    assert "find_coordinates_by" not in resolved_call.parameters
+    assert resolved_call.metadata["coordinate_method"] == "prediction"

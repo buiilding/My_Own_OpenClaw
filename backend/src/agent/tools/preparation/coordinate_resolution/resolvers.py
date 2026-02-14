@@ -44,7 +44,7 @@ class OcrCoordinateResolver:
             Tuple of (x, y) center coordinates
             
         Raises:
-            ValueError: If text not found or match score below threshold
+            ValueError: If text not found or multiple fuzzy matches exceed threshold
         """
         ocr_match_start = time.perf_counter()
         if not ocr_results:
@@ -53,29 +53,94 @@ class OcrCoordinateResolver:
         if not text:
             raise ValueError("ocr_text parameter is required for OCR method")
         
-        best_match = None
         best_score = 0.0
         target = text.lower().strip()
+        fuzzy_matches: List[Dict[str, Any]] = []
         
         for item in ocr_results:
             current = item.get("text", "").lower().strip()
             score = difflib.SequenceMatcher(None, target, current).ratio()
+            if score >= threshold:
+                fuzzy_matches.append({"item": item, "score": score})
             if score > best_score:
                 best_score = score
-                best_match = item
         
         ocr_match_time = time.perf_counter() - ocr_match_start
-        logger.info(f"[Timing] OCR text matching took {ocr_match_time:.3f}s (searched {len(ocr_results)} items, best_score={best_score:.2f})")
-        
-        if best_match and best_score >= threshold:
-            bbox = best_match["bbox"]
+        logger.info(
+            "[Timing] OCR text matching took %.3fs (searched %s items, fuzzy_matches=%s, best_score=%.2f)",
+            ocr_match_time,
+            len(ocr_results),
+            len(fuzzy_matches),
+            best_score,
+        )
+
+        if len(fuzzy_matches) > 1:
+            raise ValueError(
+                OcrCoordinateResolver._build_ambiguous_match_error(
+                    text,
+                    fuzzy_matches,
+                    threshold,
+                )
+            )
+
+        if len(fuzzy_matches) == 1:
+            bbox = fuzzy_matches[0]["item"]["bbox"]
             x = bbox["x"] + bbox["width"] // 2
             y = bbox["y"] + bbox["height"] // 2
             return x, y
-        
+
         raise ValueError(
             f"Could not find text '{text}' on screen (best match: {best_score:.2f})"
         )
+
+    @staticmethod
+    def _build_ambiguous_match_error(
+        requested_text: str,
+        matches: List[Dict[str, Any]],
+        threshold: float,
+    ) -> str:
+        """Build an actionable error message for ambiguous fuzzy OCR matches."""
+        max_listed = 8
+        formatted_matches: List[str] = []
+        ordered_matches = sorted(
+            matches,
+            key=lambda match: float(match.get("score", 0.0)),
+            reverse=True,
+        )
+        for match in ordered_matches[:max_listed]:
+            item = match.get("item") if isinstance(match, dict) else {}
+            score = float(match.get("score", 0.0)) if isinstance(match, dict) else 0.0
+            text = str(item.get("text", "")).strip() or "<empty>"
+            center = OcrCoordinateResolver._extract_bbox_center(item.get("bbox"))
+            if center is None:
+                formatted_matches.append(f"{text} (unknown coordinates, score={score:.2f})")
+            else:
+                formatted_matches.append(
+                    f"{text} ({center[0]}, {center[1]}, score={score:.2f})"
+                )
+
+        hidden_count = len(ordered_matches) - max_listed
+        if hidden_count > 0:
+            formatted_matches.append(f"+{hidden_count} more")
+
+        candidates = ", ".join(formatted_matches)
+        return (
+            f"Multiple OCR instances matched '{requested_text}' above threshold {threshold:.2f}: {candidates}. "
+            "Choose which one by calling click again with manual coordinates "
+            "(find_coordinates_by='manual', x=..., y=...)."
+        )
+
+    @staticmethod
+    def _extract_bbox_center(bbox: Any) -> Optional[Tuple[int, int]]:
+        """Extract bbox center as integer screen coordinates."""
+        if not isinstance(bbox, dict):
+            return None
+        try:
+            x = int(bbox["x"]) + int(bbox["width"]) // 2
+            y = int(bbox["y"]) + int(bbox["height"]) // 2
+        except (KeyError, TypeError, ValueError):
+            return None
+        return x, y
 
 
 class VisionCoordinateResolver:

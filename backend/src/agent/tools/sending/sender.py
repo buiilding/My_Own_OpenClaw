@@ -15,6 +15,7 @@ from backend.src.core.events.streaming_events import (
     ToolOutputEvent,
 )
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
+from backend.src.core.interfaces.tool import ToolResult
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -114,7 +115,16 @@ class ToolSender:
                     "request_id": request_id,
                 },
             )
-        
+
+        if preparation_result.errors and preparation_result.bundle_id:
+            self._store_failed_bundle_result(
+                session=session,
+                bundle_id=preparation_result.bundle_id,
+                tool_calls=tool_calls,
+                errors=preparation_result.errors,
+            )
+            return
+
         # If there were errors and this was a single tool, we're done (already yielded error events above)
         if preparation_result.errors and not preparation_result.bundle_id:
             return
@@ -153,3 +163,51 @@ class ToolSender:
                         metadata=resolved_call.metadata,
                     )
                     logger.debug(f"Sent tool call event: {resolved_call.tool_name} (request_id={request_id[:15]})")
+
+    def _store_failed_bundle_result(
+        self,
+        *,
+        session: "AgentSession",
+        bundle_id: str,
+        tool_calls: List["ParsedToolCall"],
+        errors: List[tuple["ParsedToolCall", str]],
+    ) -> None:
+        """
+        Store a synthetic bundle failure result so orchestration can continue
+        without dispatching any frontend sidecar actions.
+        """
+        first_error = errors[0][1] if errors else "Tool preparation failed"
+        failed_call = errors[0][0] if errors else None
+        failed_tool_name = failed_call.tool_name if failed_call else "unknown"
+        skipped_reason = (
+            "Skipped because bundle preparation failed before frontend dispatch"
+        )
+        step_results = []
+        for call in tool_calls:
+            if call is failed_call:
+                output = first_error
+            else:
+                output = f"{skipped_reason} ({failed_tool_name})"
+            step_results.append(
+                {
+                    "tool": call.tool_name,
+                    "status": "error",
+                    "output": output,
+                }
+            )
+
+        bundle_result = ToolResult(
+            success=False,
+            error=first_error,
+            llm_content=f"Error: {first_error}",
+            data={
+                "bundle_id": bundle_id,
+                "status": "failure",
+                "step_results": step_results,
+                "error": first_error,
+            },
+        )
+        result_storage = session.get_result_storage()
+        result_storage.store_bundled_result(bundle_id, bundle_result)
+        # Resolve waiting future immediately if it already exists.
+        result_storage.resolve_bundle_future(bundle_id, bundle_result)
