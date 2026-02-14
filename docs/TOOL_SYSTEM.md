@@ -238,7 +238,7 @@ For tools requiring coordinate resolution via OCR:
     "arguments": {
         "action": "click",
         "find_coordinates_by": "ocr",
-        "target_text": "Submit Button"
+        "ocr_text": "Submit Button"
     }
 }
 ```
@@ -249,6 +249,10 @@ For tools requiring coordinate resolution via OCR:
 3. Text searched in OCR results
 4. Coordinates extracted
 5. Tool call prepared with coordinates
+
+If multiple OCR rows match the target text above the configured similarity threshold,
+resolution fails with an ambiguity error that lists candidate `(x, y)` positions.
+The agent must retry using manual coordinates (`find_coordinates_by="manual"`).
 
 ### Vision-Based Resolution
 

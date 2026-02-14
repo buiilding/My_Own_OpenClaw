@@ -226,8 +226,8 @@ def _rewrite_to_manual(resolved_call: ResolvedToolCall, x: int, y: int):
     Rewrite the resolved tool call parameters to use manual coordinates.
     
     Modifies the resolved call's parameters (immutable - original ParsedToolCall unchanged).
-    Removes backend-only fields (find_coordinates_by, ocr_text, description) since
-    the frontend MouseControlArgs schema only accepts x, y coordinates.
+    Removes backend-only routing fields while preserving model-generated OCR/prediction
+    target text for transparency in the emitted tool-call payload.
     
     Args:
         resolved_call: The resolved tool call to modify
@@ -238,9 +238,7 @@ def _rewrite_to_manual(resolved_call: ResolvedToolCall, x: int, y: int):
     resolved_call.parameters["x"] = x
     resolved_call.parameters["y"] = y
 
-    # Remove backend-only fields that frontend doesn't understand
-    # Frontend schema only accepts x, y, action, and action-specific fields
+    # Remove backend-only routing fields.
+    # Keep ocr_text/description so the tool-call payload shows what the model generated.
     resolved_call.parameters.pop("find_coordinates_by", None)
-    resolved_call.parameters.pop("ocr_text", None)
-    resolved_call.parameters.pop("description", None)
     resolved_call.parameters.pop("model_name", None)

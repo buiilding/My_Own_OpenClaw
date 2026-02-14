@@ -100,6 +100,9 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(ocr-click): treat OCR coordinate resolution as ambiguous when multiple fuzzy matches are above threshold, return actionable manual-coordinate retry errors, and log fuzzy match counts in resolver timing output
+- fix(tool-sender): prevent frontend sidecar execution for bundles when preparation/coordinate resolution fails by short-circuiting bundle dispatch and storing a synthetic failed bundle result for backend orchestration
+- fix(mouse-control-payload): preserve model-provided `ocr_text`/`description` in resolved `mouse_control` parameters while still rewriting coordinates to manual `x/y`
 - fix(tool-runner): prevent sidecar execution for backend-marked coordinate-resolution failures by emitting `metadata.skip_frontend_execution=true` on failed `tool-call` events and skipping those calls in frontend `useToolRunner`
 - fix(frontend-overlay): restore chat/response pill click-through during active agent loop phases (`awaiting-first-chunk|streaming|tool-call|tool-output`), force pills clickable again in terminal phases (`idle|complete|error`), and apply ignore-mouse IPC toggle to both chat and response overlay windows
 - fix(sidecar-tool-errors): preserve detailed failure messages from legacy dict tool results (including nested `data.error` from `run_shell_command`) instead of collapsing to generic `Tool execution failed`
