@@ -1505,6 +1505,83 @@ class BrowserController:
                     logger.debug(f"Role ref resolution failed for {ref}: {e}")
 
         return self._page.locator(f"[data-windie-ref='{ref}'], [aria-ref='{ref}']")
+
+    async def _resolve_click_locator(self, ref: str):
+        """
+        Resolve locator for click operations.
+
+        For role refs without explicit nth, prefer a visible in-viewport candidate.
+        This avoids Playwright repeatedly scrolling between hidden/duplicate matches
+        on pages with cloned controls (e.g., sticky headers/footers/carousels).
+        """
+        locator = self._resolve_ref_locator(ref)
+        role_ref_key = parse_role_ref(ref)
+        if not role_ref_key or not self._page:
+            return locator
+
+        role_ref = self._get_role_ref(role_ref_key, self._page)
+        if role_ref and role_ref.nth is not None:
+            return locator
+
+        try:
+            count = await locator.count()
+        except Exception:
+            return locator
+
+        if count <= 1:
+            return locator
+
+        viewport_width = 0.0
+        viewport_height = 0.0
+        try:
+            viewport = getattr(self._page, "viewport_size", None)
+            if isinstance(viewport, dict):
+                viewport_width = float(viewport.get("width") or 0.0)
+                viewport_height = float(viewport.get("height") or 0.0)
+        except Exception:
+            viewport_width = 0.0
+            viewport_height = 0.0
+
+        first_visible = None
+        max_probe = min(count, 25)
+        for idx in range(max_probe):
+            candidate = locator.nth(idx)
+            try:
+                if not await candidate.is_visible():
+                    continue
+            except Exception:
+                continue
+
+            if first_visible is None:
+                first_visible = candidate
+
+            if viewport_width <= 0 or viewport_height <= 0:
+                return candidate
+
+            try:
+                box = await candidate.bounding_box()
+                if not isinstance(box, dict):
+                    continue
+                x = float(box.get("x") or 0.0)
+                y = float(box.get("y") or 0.0)
+                w = float(box.get("width") or 0.0)
+                h = float(box.get("height") or 0.0)
+                intersects_viewport = (
+                    w > 0
+                    and h > 0
+                    and x < viewport_width
+                    and y < viewport_height
+                    and (x + w) > 0
+                    and (y + h) > 0
+                )
+                if intersects_viewport:
+                    return candidate
+            except Exception:
+                continue
+
+        if first_visible is not None:
+            return first_visible
+        return locator
     
     async def click(
         self,
@@ -1516,7 +1593,7 @@ class BrowserController:
         if not self._page:
             raise RuntimeError("Browser not connected")
         
-        locator = self._resolve_ref_locator(ref)
+        locator = await self._resolve_click_locator(ref)
 
         try:
             if double_click:
