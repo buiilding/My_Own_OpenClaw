@@ -176,6 +176,55 @@ class TestCompatibilityActions:
             assert result.success is True
             assert result.data["action"] == "hover"
 
+    @pytest.mark.asyncio
+    async def test_console_action(self):
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.get_console_messages.return_value = [
+                {"type": "log", "text": "hello", "timestamp": "2026-02-14T00:00:00+00:00"}
+            ]
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({"action": "console", "limit": 50})
+            assert result.success is True
+            assert result.data["action"] == "console"
+            assert result.data["count"] == 1
+
+    @pytest.mark.asyncio
+    async def test_dialog_action_armed(self):
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.get_dialog_events.return_value = []
+            mock_controller.arm_dialog = mock.Mock()
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({"action": "dialog", "accept": False})
+            assert result.success is True
+            assert result.data["action"] == "dialog"
+            assert result.data["armed"] is True
+
+    @pytest.mark.asyncio
+    async def test_dialog_action_wait(self):
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.arm_dialog = mock.Mock()
+            mock_controller.wait_for_dialog.return_value = {
+                "type": "alert",
+                "message": "hi",
+                "handled_as": "accept",
+            }
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control(
+                {"action": "dialog", "accept": True, "timeoutMs": 1000}
+            )
+            assert result.success is True
+            assert result.data["armed"] is False
+            assert result.data["handled"]["type"] == "alert"
+
 
 class TestNavigateAction:
     """Test navigate action."""

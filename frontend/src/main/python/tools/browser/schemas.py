@@ -223,6 +223,13 @@ class BrowserOpenClawCompatArgs(BaseModel):
     input_ref: Optional[str] = Field(None, description="Input ref for upload")
     inputRef: Optional[str] = Field(None, description="Input ref for upload (camelCase)")
     paths: Optional[List[str]] = Field(None, description="File paths for upload")
+    level: Optional[str] = Field(None, description="Console log level filter")
+    clear: Optional[bool] = Field(None, description="Clear retained console/dialog events")
+    timeoutMs: Optional[int] = Field(None, description="Timeout in milliseconds")
+    timeout_ms: Optional[int] = Field(None, description="Timeout in milliseconds (snake_case)")
+    accept: Optional[bool] = Field(None, description="Dialog accept/dismiss policy")
+    promptText: Optional[str] = Field(None, description="Prompt text for dialog.accept()")
+    prompt_text: Optional[str] = Field(None, description="Prompt text for dialog.accept() (snake_case)")
     request: Optional[Dict[str, Any]] = Field(
         None,
         description="Nested action payload for act."

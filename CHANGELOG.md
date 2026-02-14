@@ -41,6 +41,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- feat(browser-compat): implement functional `console` (captured page console messages with filter/limit/clear) and `dialog` (arm + optional timeout wait for next JS dialog with accept/dismiss/prompt handling) for OpenClaw-compatible browser actions
 - feat(browser-compat): add OpenClaw-style browser action compatibility (`status/start/stop/profiles/tabs/open/focus/console/pdf/upload/dialog/act`) with mapped WindieOS handlers, plus controller support for open-tab status, PDF export, hover/drag/select/fill/resize/upload primitives
 - feat(browser-snapshot): remove `dom_compact` snapshot format and port OpenClaw-style contextual snapshots into `browser_control` with role snapshot options (`mode=efficient`, `interactive`, `compact`, `depth`, `selector`, `frame`, `refs`), richer AI snapshot context, default AI budget increase to `80000` chars (`10000` in efficient mode), role refs (`eN`) support for click/type/screenshot, and updated browser docs/tests
 - docs(tool-system): clarify `read_file` output budget details (default `offset=0`, `limit=2000`, per-line truncation at 500 chars) and add a worst-case token approximation note (~250k tokens at 4 chars/token)

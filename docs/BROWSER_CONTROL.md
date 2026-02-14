@@ -348,10 +348,11 @@ WindieOS now supports OpenClaw-style action names (compatibility layer):
 - `act` -> envelope action with `request.kind`
 - `profiles` -> returns WindieOS profile equivalents
 - `upload` -> set file input files by `inputRef`/`ref`
+- `console` -> returns captured console messages for the active tab (`level`, `limit`, `clear`)
+- `dialog` -> arms next JS dialog handling (`accept`, `promptText`) and can optionally wait (`timeoutMs`)
 
 Notes:
-- `dialog` is recognized for compatibility but not implemented yet in WindieOS.
-- `console` currently returns an empty list with a compatibility message.
+- `dialog` is one-shot per arm call; call it again to arm the next dialog.
 
 ## Example Workflows
 
