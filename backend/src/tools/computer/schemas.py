@@ -44,8 +44,7 @@ class MouseControlArgs(BaseModel):
     ocr_text: Optional[str] = Field(
         None,
         description=(
-            "Exact on-screen text for OCR targeting. Required for find_coordinates_by='ocr'. "
-            "Do not combine with prediction-only fields."
+            "Exact on-screen text for OCR targeting. Required for find_coordinates_by='ocr'. Generate the exact text that you see on the image, the text should be on the same line, the ocr doesnt work well with multi-line text."
         ),
     )
 
