@@ -77,7 +77,7 @@ class TestBrowserNavigateArgs:
             url="https://example.com",
         )
         assert args.url == "https://example.com"
-        assert args.wait_until == "networkidle"
+        assert args.wait_until == "load"
     
     def test_valid_with_wait_until(self):
         """Test navigate with custom wait_until."""

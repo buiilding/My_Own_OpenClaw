@@ -649,7 +649,7 @@ class BrowserController:
                 return True
         return False
     
-    async def navigate(self, url: str, wait_until: str = "networkidle") -> Dict[str, Any]:
+    async def navigate(self, url: str, wait_until: str = "load") -> Dict[str, Any]:
         """
         Navigate to a URL.
         

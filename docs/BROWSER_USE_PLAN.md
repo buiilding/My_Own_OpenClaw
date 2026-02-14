@@ -26,7 +26,7 @@ Date locked for this plan: **February 14, 2026**.
 ### WindieOS
 
 - `navigate.wait_until` supports: `load`, `domcontentloaded`, `networkidle`, `commit`.
-- Default `navigate.wait_until` is `networkidle`.
+- Default `navigate.wait_until` is `load`.
 - `open_tab` default wait is `domcontentloaded`.
 - `wait.state` supports `load`, `domcontentloaded`, `networkidle` with default `networkidle`.
 - `click`, `type`, `scroll` return when the action completes; no automatic post-action load wait.
@@ -141,4 +141,3 @@ If implemented, enforce these rules:
 2. Tool schema remains understandable and model-friendly.
 3. Action docs explicitly explain wait semantics and anti-patterns (`networkidle` on noisy sites).
 4. Parity tests cover added actions and alias behavior.
-
