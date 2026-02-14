@@ -140,8 +140,8 @@ class ScrollControlArgs(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(..., description="Scroll action to perform")
-    x: Optional[int] = Field(None, description="X coordinate to scroll at (optional, uses current cursor if not provided)")
-    y: Optional[int] = Field(None, description="Y coordinate to scroll at (optional, uses current cursor if not provided)")
+    x: int = Field(..., description="X coordinate to move to before scrolling (manual coordinates only)")
+    y: int = Field(..., description="Y coordinate to move to before scrolling (manual coordinates only)")
     clicks: int = Field(5, description="Number of scroll clicks (positive=up/right, negative=down/left)")
     direction: Optional[ScrollToolDirection] = Field(
         None,
@@ -151,6 +151,12 @@ class ScrollControlArgs(BaseModel):
         0.0,
         description="Delay in seconds before automatic post-action screenshot capture."
     )
+
+    @model_validator(mode='after')
+    def validate_direction(self):
+        if self.action == "scroll" and not self.direction:
+            raise ValueError("direction required for scroll action")
+        return self
 
 
 # --- Switch Tab Tool Schemas ---

@@ -30,8 +30,8 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
     Args:
         args: Dictionary with:
             - 'action': "scroll", "scroll_up", or "scroll_down"
-            - 'x': Optional X coordinate to scroll at
-            - 'y': Optional Y coordinate to scroll at
+            - 'x': Required X coordinate to move to before scrolling
+            - 'y': Required Y coordinate to move to before scrolling
             - 'clicks': Number of scroll units (default 5, ~15 lines visually)
             - 'direction': "up", "down", "left", or "right" (for "scroll" action)
 
@@ -57,15 +57,16 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
         pyautogui.FAILSAFE = False
 
         def _execute_action():
+            if x is None or y is None:
+                raise ValueError("x and y are required for scroll_control")
+
+            pyautogui.moveTo(x, y)
+            # Let cursor/window settle before scroll (consistent across polling rates)
+            time.sleep(0.5)
+
             if action == "scroll":
                 if not direction:
                     raise ValueError("direction required for scroll action")
-
-                if x is not None and y is not None:
-                    pyautogui.moveTo(x, y)
-                    # Let cursor/window settle before scroll
-                    # (consistent across polling rates)
-                    time.sleep(0.5)
 
                 # Convert standardized units to OS-specific clicks
                 clicks = calculate_scroll_clicks(scroll_units, direction)
@@ -95,7 +96,7 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "action": "scroll",
                     "scroll_units": scroll_units,
                     "os_clicks": clicks,
-                    "coordinates": [x, y] if x is not None and y is not None else None,
+                    "coordinates": [x, y],
                     "direction": direction,
                     "message": f"Scrolled {direction} {scroll_units} units",
                     "llm_content": (
@@ -112,6 +113,7 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "action": "scroll_up",
                     "scroll_units": scroll_units,
                     "os_clicks": clicks,
+                    "coordinates": [x, y],
                     "message": f"Scrolled up {scroll_units} units",
                     "llm_content": (
                         f"Scrolled up {scroll_units} units ({clicks} OS clicks)"
@@ -126,6 +128,7 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "action": "scroll_down",
                     "scroll_units": scroll_units,
                     "os_clicks": clicks,
+                    "coordinates": [x, y],
                     "message": f"Scrolled down {scroll_units} units",
                     "llm_content": (
                         f"Scrolled down {scroll_units} units ({clicks} OS clicks)"
