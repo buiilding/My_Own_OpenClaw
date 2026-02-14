@@ -368,7 +368,7 @@ class TestSnapshotAction:
 
     @pytest.mark.asyncio
     async def test_snapshot_efficient_role_output(self):
-        """Test efficient role snapshot output includes refs and stats."""
+        """Test efficient role snapshot output returns text payload only."""
         with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
@@ -394,8 +394,8 @@ class TestSnapshotAction:
             assert result.success is True
             assert result.data["format"] == "ai"
             assert result.data["ref_count"] == 1
-            assert "refs" in result.data
-            assert "stats" in result.data
+            assert "refs" not in result.data
+            assert "stats" not in result.data
     
     @pytest.mark.asyncio
     async def test_snapshot_not_connected(self):
