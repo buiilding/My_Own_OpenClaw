@@ -44,7 +44,7 @@ class BrowserNavigateArgs(BaseModel):
         description="URL to navigate to"
     )
     wait_until: Literal["load", "domcontentloaded", "networkidle", "commit"] = Field(
-        "networkidle",
+        "load",
         description="When to consider navigation complete"
     )
 
@@ -414,7 +414,7 @@ class BrowserControlArgs(BaseModel):
         description="URL for navigate action"
     )
     wait_until: Literal["load", "domcontentloaded", "networkidle", "commit"] = Field(
-        "networkidle",
+        "load",
         description="Navigation wait condition"
     )
     

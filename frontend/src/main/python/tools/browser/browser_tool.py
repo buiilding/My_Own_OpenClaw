@@ -280,7 +280,7 @@ async def _handle_navigate(args: Dict[str, Any]) -> ToolResult:
     if not isinstance(url, str) or not url:
         return ToolResult.error_result("Missing required 'url' parameter")
 
-    result = await controller.navigate(url, args.get("wait_until", "networkidle"))
+    result = await controller.navigate(url, args.get("wait_until", "load"))
     
     if result.get("success"):
         return ToolResult.success_result({
