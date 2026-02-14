@@ -49,7 +49,10 @@ async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
         if not success:
             return {
                 "success": False,
-                "error": f"Could not find or switch to window/tab with name: {tab_name}. Make sure the tab/window name matches exactly what appears in get_open_windows output.",
+                "error": (
+                    f"Could not find or switch to window/tab with name: {tab_name}. "
+                    "Use the full window title from get_open_windows output for best results."
+                ),
             }
         
         return {
