@@ -4,7 +4,6 @@ Chrome launcher with auto-detection and CDP support.
 Provides automatic Chrome detection, launch, and connection:
 - Detects Chrome running with CDP
 - Auto-launches Chrome if not running
-- Restores user session after restart
 - Transparent fallback to managed browser
 """
 
@@ -130,44 +129,26 @@ def is_chrome_running_with_cdp(port: int = DEFAULT_CDP_PORT) -> bool:
         return False
 
 
-def get_chrome_user_data_dir() -> Optional[Path]:
+def get_chrome_user_data_dir() -> Path:
     """
-    Get Chrome's user data directory for the current platform.
-    
-    Returns:
-        Path to user data directory if found
+    Get dedicated Chrome user data directory for CDP launches.
+
+    This avoids launching CDP against the default profile directory.
     """
     system = platform.system()
     home = Path.home()
-    
-    paths = []
-    
+
     if system == "Windows":
         local_app_data = os.environ.get("LOCALAPPDATA", home / "AppData" / "Local")
-        paths = [
-            Path(local_app_data) / "Google" / "Chrome" / "User Data",
-        ]
-    elif system == "Darwin":
-        paths = [
-            home / "Library" / "Application Support" / "Google" / "Chrome",
-        ]
-    else:  # Linux
-        paths = [
-            home / ".config" / "google-chrome",
-            home / ".var" / "app" / "com.google.Chrome" / "config" / "google-chrome",  # Flatpak
-        ]
-    
-    for path in paths:
-        if path.exists():
-            return path
-    
-    return None
+        return Path(local_app_data) / "Google" / "Chrome" / "User Data-cdp"
+    if system == "Darwin":
+        return home / "Library" / "Application Support" / "Google" / "Chrome-cdp"
+    return home / ".config" / "google-chrome-cdp"
 
 
 async def launch_chrome_with_cdp(
     cdp_port: int = DEFAULT_CDP_PORT,
     headless: bool = False,
-    restore_session: bool = True,
     executable_path: Optional[str] = None,
     extra_args: Optional[List[str]] = None,
 ) -> Tuple[subprocess.Popen, str]:
@@ -177,7 +158,6 @@ async def launch_chrome_with_cdp(
     Args:
         cdp_port: Port for Chrome DevTools Protocol
         headless: Run without UI
-        restore_session: Restore previous session (tabs)
         executable_path: Optional path to Chrome executable
         extra_args: Additional Chrome arguments
     
@@ -198,38 +178,22 @@ async def launch_chrome_with_cdp(
         executable_path = exe.path
     
     logger.info(f"Launching Chrome with CDP on port {cdp_port}")
+
+    user_data_dir = get_chrome_user_data_dir()
+    user_data_dir.mkdir(parents=True, exist_ok=True)
     
     # Build command arguments
     args = [
         executable_path,
         f"--remote-debugging-port={cdp_port}",
-        "--no-first-run",
-        "--no-default-browser-check",
-        "--disable-sync",  # Don't sync with Google account for automation
-        "--disable-background-networking",
-        "--disable-component-update",
-        "--disable-features=Translate,MediaRouter",
-        "--password-store=basic",
+        f"--user-data-dir={user_data_dir}",
+        "--profile-directory=Default",
     ]
     
     if headless:
         args.append("--headless=new")
         args.append("--disable-gpu")
-    else:
-        args.append("--start-maximized")
-    
-    if restore_session:
-        args.append("--restore-last-session")
-    
-    # Use existing user data dir to maintain logins/extensions
-    user_data_dir = get_chrome_user_data_dir()
-    if user_data_dir:
-        args.append(f"--user-data-dir={user_data_dir}")
-    
-    # Platform-specific args
-    if platform.system() == "Linux":
-        args.append("--disable-dev-shm-usage")
-    
+
     if extra_args:
         args.extend(extra_args)
     
@@ -360,7 +324,6 @@ async def ensure_chrome_with_cdp(
             _, cdp_url = await launch_chrome_with_cdp(
                 cdp_port=cdp_port,
                 headless=headless,
-                restore_session=True,
             )
             return cdp_url
         else:
@@ -376,7 +339,6 @@ async def ensure_chrome_with_cdp(
         _, cdp_url = await launch_chrome_with_cdp(
             cdp_port=cdp_port,
             headless=headless,
-            restore_session=True,
         )
         return cdp_url
     
@@ -428,7 +390,6 @@ class ChromeLauncher:
             self.process, self.cdp_url = await launch_chrome_with_cdp(
                 cdp_port=self.cdp_port,
                 headless=self.headless,
-                restore_session=True,
             )
             self._launched_by_us = True
             return self.cdp_url

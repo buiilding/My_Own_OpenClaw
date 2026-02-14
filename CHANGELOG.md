@@ -42,6 +42,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- feat(browser-connect): switch user_chrome auto-launch to dedicated CDP profile dir (`~/.config/google-chrome-cdp` on Linux), add `--profile-directory=Default`, and remove extra Chrome startup flags from CDP launch args
 - feat(browser-compat): add OpenClaw-like debug/state actions (`errors`, `requests`, `trace_start/stop`, `cookies*`, `storage*`, `set_*`, `highlight`) and screenshot parameter parity (`type`/`quality`/`element`)
 - feat(browser-compat): implement functional `console` (captured page console messages with filter/limit/clear) and `dialog` (arm + optional timeout wait for next JS dialog with accept/dismiss/prompt handling) for OpenClaw-compatible browser actions
 - feat(browser-compat): add OpenClaw-style browser action compatibility (`status/start/stop/profiles/tabs/open/focus/console/pdf/upload/dialog/act`) with mapped WindieOS handlers, plus controller support for open-tab status, PDF export, hover/drag/select/fill/resize/upload primitives
