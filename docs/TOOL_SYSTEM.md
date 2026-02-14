@@ -369,6 +369,8 @@ No dual-shape fallback is supported in provider transport.
 - Reads file content as line slices with `offset` (0-based) and `limit`.
 - Defaults to `offset=0`, `limit=2000` when omitted.
 - Truncates each returned line to 500 characters to keep outputs bounded.
+- Uses a line/character budget (not a direct token cap): at defaults, worst-case content is about 1,000,000 characters (2000 * ~500 chars/line), which is roughly ~250,000 tokens using a 4 chars/token approximation.
+- Typical code/text files are usually much lower than the worst case, but still large enough that paging with `offset` is recommended.
 - For large files, use follow-up calls with increasing `offset` values to page through content.
 
 `replace` matching behavior:
