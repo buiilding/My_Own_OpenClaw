@@ -347,6 +347,11 @@ class TestSchemaRegistry:
         """Test getting valid schema."""
         schema = get_browser_schema("click")
         assert schema is BrowserClickArgs
+
+    def test_get_browser_schema_compat_action(self):
+        """Test getting compat schema for OpenClaw action names."""
+        schema = get_browser_schema("act")
+        assert schema is not None
     
     def test_get_browser_schema_invalid(self):
         """Test getting invalid schema."""
@@ -356,6 +361,15 @@ class TestSchemaRegistry:
     def test_validate_browser_args_valid(self):
         """Test validating valid args."""
         is_valid, error = validate_browser_args("click", {"ref": "5"})
+        assert is_valid is True
+        assert error is None
+
+    def test_validate_browser_args_act_valid(self):
+        """Test validating compat act arguments."""
+        is_valid, error = validate_browser_args(
+            "act",
+            {"request": {"kind": "click", "ref": "1"}},
+        )
         assert is_valid is True
         assert error is None
     

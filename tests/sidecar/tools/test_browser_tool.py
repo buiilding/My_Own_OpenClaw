@@ -119,6 +119,64 @@ class TestConnectAction:
             assert "Failed to connect to Chrome" in result.error
 
 
+class TestCompatibilityActions:
+    """Test OpenClaw-compatible action names."""
+
+    @pytest.mark.asyncio
+    async def test_status_action(self):
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.get_status.return_value = {
+                "connected": True,
+                "mode": "user_chrome",
+                "url": "https://example.com",
+                "title": "Example",
+                "tab_count": 1,
+                "target_id": "t1",
+            }
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({"action": "status"})
+            assert result.success is True
+            assert result.data["action"] == "status"
+            assert result.data["connected"] is True
+
+    @pytest.mark.asyncio
+    async def test_open_action(self):
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.open_tab.return_value = {
+                "success": True,
+                "target_id": "tab1",
+                "url": "https://example.com",
+                "title": "Example",
+                "status": 200,
+            }
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control(
+                {"action": "open", "targetUrl": "https://example.com"}
+            )
+            assert result.success is True
+            assert result.data["action"] == "open"
+            assert result.data["target_id"] == "tab1"
+
+    @pytest.mark.asyncio
+    async def test_act_hover(self):
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.hover.return_value = {"success": True, "action": "hover", "ref": "e1"}
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control(
+                {"action": "act", "request": {"kind": "hover", "ref": "e1"}}
+            )
+            assert result.success is True
+            assert result.data["action"] == "hover"
+
+
 class TestNavigateAction:
     """Test navigate action."""
     

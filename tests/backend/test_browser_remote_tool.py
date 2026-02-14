@@ -84,6 +84,11 @@ class TestBrowserControlArgs:
         )
         assert args.action == "navigate"
         assert args.url == "https://example.com"
+
+    def test_status_action(self):
+        """Test OpenClaw-compatible status action args."""
+        args = BrowserControlArgs(action="status")
+        assert args.action == "status"
     
     def test_click_action(self):
         """Test click action args."""
