@@ -344,6 +344,9 @@ class ConversationHistory:
             normalized_role = str(entry.get("role") or "").strip().lower()
             if normalized_role == MessageRole.TOOL.value:
                 stored_role = MessageRole.TOOL
+            elif normalized_role == MessageRole.ASSISTANT.value:
+                # Preserve explicit assistant role for rehydrated tool-call turns.
+                stored_role = MessageRole.ASSISTANT
             elif message_type == MessageType.ASSISTANT_RESPONSE:
                 stored_role = MessageRole.ASSISTANT
             else:
