@@ -355,7 +355,7 @@ No dual-shape fallback is supported in provider transport.
 
 - **mouse_control**: Mouse actions (click, drag, move)
 - **keyboard_control**: Keyboard input
-- **scroll_control**: Scroll actions
+- **scroll_control**: Scroll actions. Manual coordinates only: model must provide `x` and `y`, sidecar moves cursor to that location before every scroll action (`scroll`, `scroll_up`, `scroll_down`).
 - **screenshot**: Capture screenshot
 - **switch_tab**: Switch between tabs/windows
 - **wait**: Pause for a specified duration
