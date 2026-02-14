@@ -189,6 +189,7 @@ Defaults:
 - `ai` snapshots default to `mode="efficient"` when mode is omitted
 - `ai` snapshot default budget: `8000` chars (efficient default behavior)
 - `ai` non-efficient budget: `12000` chars
+- Snapshot tool output returns `snapshot` text + lightweight metadata (`ref_count`) only; detailed ref/stats maps remain internal to reduce token usage.
 
 ### 4. Click
 

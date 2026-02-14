@@ -389,10 +389,6 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
         "snapshot": snapshot.text,
         "ref_count": snapshot.ref_count,
     }
-    if snapshot.refs:
-        result["refs"] = snapshot.refs
-    if snapshot.stats:
-        result["stats"] = snapshot.stats
 
     return ToolResult.success_result(result)
 
