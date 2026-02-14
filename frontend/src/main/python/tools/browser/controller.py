@@ -1594,21 +1594,54 @@ class BrowserController:
             raise RuntimeError("Browser not connected")
         
         locator = await self._resolve_click_locator(ref)
+        default_click_timeout_ms = 2500
+        force_click_timeout_ms = 1500
+        prefer_force_click = False
+        force_attempted = False
+        role_ref_key = parse_role_ref(ref)
+        if role_ref_key and self._page:
+            role_ref = self._get_role_ref(role_ref_key, self._page)
+            if role_ref and role_ref.role in {"combobox", "listbox", "option"}:
+                prefer_force_click = True
+        if not prefer_force_click:
+            try:
+                tag_name = await locator.evaluate("(el) => (el.tagName || '').toLowerCase()")
+                if str(tag_name).lower() == "select":
+                    prefer_force_click = True
+            except Exception:
+                pass
 
         try:
             if double_click:
-                await locator.dblclick(button=button)
+                await locator.dblclick(button=button, timeout=default_click_timeout_ms)
             else:
-                await locator.click(button=button)
+                if prefer_force_click:
+                    force_attempted = True
+                    await locator.click(
+                        button=button,
+                        force=True,
+                        timeout=force_click_timeout_ms,
+                    )
+                    return {
+                        "success": True,
+                        "action": "click",
+                        "ref": ref,
+                        "forced": True,
+                    }
+                await locator.click(button=button, timeout=default_click_timeout_ms)
             return {"success": True, "action": "click", "ref": ref}
         except Exception as e:
             error_text = str(e)
             logger.warning(f"Click failed, retrying with fallback: {error_text}")
 
             # Fallback 1: force click to bypass actionability checks
-            if not double_click:
+            if not double_click and not force_attempted:
                 try:
-                    await locator.click(button=button, force=True)
+                    await locator.click(
+                        button=button,
+                        force=True,
+                        timeout=force_click_timeout_ms,
+                    )
                     return {
                         "success": True,
                         "action": "click",

@@ -199,7 +199,7 @@ class TestBrowserControllerActions:
         result = await self.controller.click("1")
         
         assert result["success"] is True
-        mock_locator.click.assert_awaited_once_with(button="left")
+        mock_locator.click.assert_awaited_once_with(button="left", timeout=2500)
     
     @pytest.mark.asyncio
     async def test_click_failure(self):
@@ -272,7 +272,7 @@ class TestBrowserControllerActions:
         result = await self.controller.click("e9")
 
         assert result["success"] is True
-        onscreen.click.assert_awaited_once_with(button="left")
+        onscreen.click.assert_awaited_once_with(button="left", force=True, timeout=1500)
         offscreen.click.assert_not_called()
     
     @pytest.mark.asyncio

@@ -42,6 +42,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- fix(browser-click): reduce click oscillation on intercepted controls (e.g., Amazon sort combobox) by preferring fast force-click for combobox/select-like targets and shortening initial click retry timeouts
 - fix(browser-click): make role-ref clicks prefer visible in-viewport matches when duplicate role/name elements exist, reducing scroll/retry oscillation on pages like Amazon
 - feat(browser-snapshot-output): remove verbose `refs` and `stats` maps from model-facing `snapshot` tool output, returning snapshot text plus lightweight metadata only
 - feat(browser-snapshot): reduce default snapshot token footprint by removing appended AI page-structure tree, lowering AI budgets (`12000` standard / `8000` efficient), capping flat interactive extraction to 100 elements, and defaulting `snapshot(format=\"ai\")` to efficient-mode shaping when mode is omitted
