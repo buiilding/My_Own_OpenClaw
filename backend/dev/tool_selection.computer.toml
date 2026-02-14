@@ -10,6 +10,7 @@ tools = [
   "wait",
   "get_open_windows",
   "get_system_stats",
+  "run_shell_command",
 ]
 
 [tool_options.mouse_control]
