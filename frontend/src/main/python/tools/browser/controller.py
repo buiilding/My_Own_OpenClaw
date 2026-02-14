@@ -9,9 +9,11 @@ Supports two modes:
 import logging
 import inspect
 import tempfile
+import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from datetime import datetime, UTC
+from typing import Any, Dict, List, Optional, Set
 from urllib.parse import urlparse
 
 # Playwright imports
@@ -91,6 +93,11 @@ class BrowserController:
         # Per-tab role refs from role snapshots (e.g., e1/e2), with optional iframe scope.
         self._role_refs_by_tab: Dict[str, Dict[str, RoleRef]] = {}
         self._role_refs_frame_by_tab: Dict[str, Optional[str]] = {}
+        self._observed_tabs: Set[str] = set()
+        self._console_messages_by_tab: Dict[str, List[Dict[str, Any]]] = {}
+        self._dialog_events_by_tab: Dict[str, List[Dict[str, Any]]] = {}
+        self._dialog_arms_by_tab: Dict[str, Dict[str, Any]] = {}
+        self._dialog_waiters_by_tab: Dict[str, List[asyncio.Future]] = {}
         
     @property
     def is_connected(self) -> bool:
@@ -137,6 +144,106 @@ class BrowserController:
         reg.reset()
         self._role_refs_by_tab.pop(target_id, None)
         self._role_refs_frame_by_tab.pop(target_id, None)
+
+    def _record_console_message(self, page: Page, entry: Dict[str, Any]) -> None:
+        target_id = self._get_target_id(page)
+        if not target_id:
+            return
+        messages = self._console_messages_by_tab.setdefault(target_id, [])
+        messages.append(entry)
+        if len(messages) > 500:
+            del messages[0 : len(messages) - 500]
+
+    def _record_dialog_event(self, page: Page, entry: Dict[str, Any]) -> None:
+        target_id = self._get_target_id(page)
+        if not target_id:
+            return
+        events = self._dialog_events_by_tab.setdefault(target_id, [])
+        events.append(entry)
+        if len(events) > 100:
+            del events[0 : len(events) - 100]
+
+    async def _handle_dialog_event(self, page: Page, dialog) -> None:
+        target_id = self._get_target_id(page)
+        if not target_id:
+            return
+
+        arm = self._dialog_arms_by_tab.pop(
+            target_id,
+            {"accept": True, "prompt_text": None},
+        )
+        accept = bool(arm.get("accept", True))
+        prompt_text = arm.get("prompt_text")
+        handled_as = "dismiss"
+        error: Optional[str] = None
+
+        try:
+            if accept:
+                await dialog.accept(prompt_text)
+                handled_as = "accept"
+            else:
+                await dialog.dismiss()
+        except Exception as e:
+            error = str(e)
+
+        event: Dict[str, Any] = {
+            "type": dialog.type,
+            "message": dialog.message,
+            "default_value": dialog.default_value,
+            "handled_as": handled_as,
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
+        if prompt_text is not None:
+            event["prompt_text"] = prompt_text
+        if error:
+            event["error"] = error
+
+        self._record_dialog_event(page, event)
+
+        waiters = self._dialog_waiters_by_tab.get(target_id, [])
+        for waiter in waiters:
+            if waiter.done():
+                continue
+            waiter.set_result(event)
+        self._dialog_waiters_by_tab[target_id] = [w for w in waiters if not w.done()]
+
+    def _ensure_page_observers(self, page: Optional[Page]) -> None:
+        if not page:
+            return
+
+        target_id = self._get_target_id(page)
+        if not target_id or target_id in self._observed_tabs:
+            return
+
+        self._observed_tabs.add(target_id)
+
+        def _on_console(msg) -> None:
+            try:
+                self._record_console_message(
+                    page,
+                    {
+                        "type": msg.type,
+                        "text": msg.text,
+                        "location": msg.location,
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    },
+                )
+            except Exception as e:
+                logger.debug(f"Failed to record console message: {e}")
+
+        def _on_dialog(dialog) -> None:
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(self._handle_dialog_event(page, dialog))
+            except Exception as e:
+                logger.debug(f"Failed to schedule dialog handler: {e}")
+
+        on_method = getattr(page, "on", None)
+        if not callable(on_method) or inspect.iscoroutinefunction(on_method):
+            return
+
+        on_method("console", _on_console)
+        on_method("dialog", _on_dialog)
 
     def _store_role_refs(
         self,
@@ -231,6 +338,8 @@ class BrowserController:
                 self._page = pages[0]
             else:
                 self._page = await self._context.new_page()
+            for page in self._context.pages:
+                self._ensure_page_observers(page)
             
             self._cdp_url = actual_cdp_url
             self._mode = "user_chrome"
@@ -305,6 +414,8 @@ class BrowserController:
                 self._page = pages[0]
             else:
                 self._page = await self._context.new_page()
+            for page in self._context.pages:
+                self._ensure_page_observers(page)
             
             self._cdp_url = cdp_url
             self._mode = "user_chrome"
@@ -383,6 +494,7 @@ class BrowserController:
                 viewport={"width": 1920, "height": 1080}
             )
             self._page = await self._context.new_page()
+            self._ensure_page_observers(self._page)
             self._mode = "managed"
             self._reset_ref_registry(self._page)
             
@@ -408,6 +520,7 @@ class BrowserController:
         
         tabs = []
         for page in self._context.pages:
+            self._ensure_page_observers(page)
             tabs.append(BrowserTab(
                 target_id=str(id(page)),  # Simple ID for now
                 title=await page.title(),
@@ -423,6 +536,7 @@ class BrowserController:
         for page in self._context.pages:
             if str(id(page)) == target_id:
                 self._page = page
+                self._ensure_page_observers(page)
                 _ = self._get_ref_registry(page)
                 await page.bring_to_front()
                 return True
@@ -475,6 +589,7 @@ class BrowserController:
 
         try:
             page = await self._context.new_page()
+            self._ensure_page_observers(page)
             self._page = page
             response = None
             if url:
@@ -516,6 +631,79 @@ class BrowserController:
             "tab_count": len(self._context.pages) if self._context else 0,
             "target_id": str(id(self._page)),
         }
+
+    def get_console_messages(
+        self,
+        *,
+        level: Optional[str] = None,
+        limit: int = 100,
+        clear: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """Get console messages for the active tab."""
+        target_id = self._get_target_id(self._page)
+        if not target_id:
+            return []
+
+        messages = list(self._console_messages_by_tab.get(target_id, []))
+        if level:
+            lvl = level.lower()
+            messages = [m for m in messages if str(m.get("type", "")).lower() == lvl]
+
+        if limit > 0:
+            messages = messages[-limit:]
+
+        if clear:
+            self._console_messages_by_tab[target_id] = []
+
+        return messages
+
+    def arm_dialog(
+        self,
+        *,
+        accept: bool = True,
+        prompt_text: Optional[str] = None,
+    ) -> None:
+        """Arm handling for the next dialog in the active tab."""
+        target_id = self._get_target_id(self._page)
+        if not target_id:
+            return
+        self._dialog_arms_by_tab[target_id] = {
+            "accept": accept,
+            "prompt_text": prompt_text,
+        }
+
+    async def wait_for_dialog(self, timeout_ms: int = 10000) -> Optional[Dict[str, Any]]:
+        """Wait for next dialog event in the active tab."""
+        target_id = self._get_target_id(self._page)
+        if not target_id:
+            return None
+
+        loop = asyncio.get_running_loop()
+        waiter: asyncio.Future = loop.create_future()
+        self._dialog_waiters_by_tab.setdefault(target_id, []).append(waiter)
+        try:
+            result = await asyncio.wait_for(waiter, timeout=max(1, timeout_ms) / 1000.0)
+            return result if isinstance(result, dict) else None
+        except asyncio.TimeoutError:
+            return None
+        finally:
+            waiters = self._dialog_waiters_by_tab.get(target_id, [])
+            self._dialog_waiters_by_tab[target_id] = [w for w in waiters if w is not waiter]
+
+    def get_dialog_events(self, limit: int = 20, clear: bool = False) -> List[Dict[str, Any]]:
+        """Get recent handled dialog events for the active tab."""
+        target_id = self._get_target_id(self._page)
+        if not target_id:
+            return []
+
+        events = list(self._dialog_events_by_tab.get(target_id, []))
+        if limit > 0:
+            events = events[-limit:]
+
+        if clear:
+            self._dialog_events_by_tab[target_id] = []
+
+        return events
     
     async def get_page_snapshot(
         self,
@@ -1211,6 +1399,11 @@ class BrowserController:
             self._ref_registry_by_tab.clear()
             self._role_refs_by_tab.clear()
             self._role_refs_frame_by_tab.clear()
+            self._observed_tabs.clear()
+            self._console_messages_by_tab.clear()
+            self._dialog_events_by_tab.clear()
+            self._dialog_arms_by_tab.clear()
+            self._dialog_waiters_by_tab.clear()
             
         except Exception as e:
             logger.error(f"Error during browser close: {e}")

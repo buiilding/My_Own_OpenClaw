@@ -10,6 +10,7 @@ Provides web browser automation capabilities including:
 
 import base64
 import logging
+import inspect
 from typing import Any, Dict, List, Optional
 
 from tools.browser.controller import get_browser_controller
@@ -112,6 +113,12 @@ def _extract_target_id(args: Dict[str, Any]) -> Optional[str]:
         if isinstance(value, str) and value.strip():
             return value.strip()
     return None
+
+
+async def _maybe_await(value: Any) -> Any:
+    if inspect.isawaitable(value):
+        return await value
+    return value
 
 
 async def _focus_target_if_requested(controller, args: Dict[str, Any]) -> Optional[ToolResult]:
@@ -622,14 +629,34 @@ async def _handle_evaluate(args: Dict[str, Any]) -> ToolResult:
 
 
 async def _handle_console(args: Dict[str, Any]) -> ToolResult:
-    """Return console logs (not yet recorded in WindieOS sidecar)."""
+    """Return console logs for the current tab."""
     controller = get_browser_controller()
     if not controller.is_connected:
         return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    level = args.get("level")
+    if not isinstance(level, str):
+        level = None
+
+    limit_raw = args.get("limit")
+    limit = int(limit_raw) if isinstance(limit_raw, (int, float)) else 100
+    clear = bool(args.get("clear", False))
+    messages = await _maybe_await(
+        controller.get_console_messages(level=level, limit=limit, clear=clear)
+    )
+    if not isinstance(messages, list):
+        messages = []
+
     return ToolResult.success_result({
         "action": "console",
-        "messages": [],
-        "message": "Console history is not yet tracked in WindieOS browser sidecar.",
+        "level": level,
+        "count": len(messages),
+        "messages": messages,
+        "cleared": clear,
     })
 
 
@@ -677,14 +704,53 @@ async def _handle_upload(args: Dict[str, Any]) -> ToolResult:
 
 
 async def _handle_dialog(args: Dict[str, Any]) -> ToolResult:
-    """Dialog arming placeholder for OpenClaw-compat action name."""
+    """Arm and/or wait for JS dialogs (alert/confirm/prompt)."""
     controller = get_browser_controller()
     if not controller.is_connected:
         return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
-    return ToolResult.error_result(
-        "dialog action is not implemented in WindieOS yet. "
-        "Use evaluate/wait workarounds or extend sidecar dialog hooks."
-    )
+
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    accept = bool(args.get("accept", True))
+    prompt_text = args.get("promptText")
+    if prompt_text is None:
+        prompt_text = args.get("prompt_text")
+    if prompt_text is not None and not isinstance(prompt_text, str):
+        return ToolResult.error_result("promptText/prompt_text must be a string when provided")
+
+    timeout_raw = args.get("timeoutMs")
+    if timeout_raw is None:
+        timeout_raw = args.get("timeout_ms")
+    timeout_ms = int(timeout_raw) if isinstance(timeout_raw, (int, float)) else 0
+
+    clear = bool(args.get("clear", False))
+    if clear:
+        _ = await _maybe_await(controller.get_dialog_events(clear=True))
+
+    controller.arm_dialog(accept=accept, prompt_text=prompt_text)
+
+    if timeout_ms > 0:
+        event = await controller.wait_for_dialog(timeout_ms=timeout_ms)
+        if not event:
+            return ToolResult.error_result(f"No dialog received within {timeout_ms}ms")
+        return ToolResult.success_result({
+            "action": "dialog",
+            "armed": False,
+            "accept": accept,
+            "handled": event,
+        })
+
+    return ToolResult.success_result({
+        "action": "dialog",
+        "armed": True,
+        "accept": accept,
+        "prompt_text": prompt_text,
+        "recent": (
+            await _maybe_await(controller.get_dialog_events(limit=10, clear=False))
+        ) or [],
+    })
 
 
 async def _handle_act(args: Dict[str, Any]) -> ToolResult:
