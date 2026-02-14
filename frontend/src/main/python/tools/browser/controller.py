@@ -10,6 +10,7 @@ import logging
 import inspect
 import tempfile
 import asyncio
+from weakref import WeakKeyDictionary
 from dataclasses import dataclass, field
 from pathlib import Path
 from datetime import datetime, UTC
@@ -98,6 +99,11 @@ class BrowserController:
         self._dialog_events_by_tab: Dict[str, List[Dict[str, Any]]] = {}
         self._dialog_arms_by_tab: Dict[str, Dict[str, Any]] = {}
         self._dialog_waiters_by_tab: Dict[str, List[asyncio.Future]] = {}
+        self._page_errors_by_tab: Dict[str, List[Dict[str, Any]]] = {}
+        self._network_requests_by_tab: Dict[str, List[Dict[str, Any]]] = {}
+        self._network_request_id_by_req: WeakKeyDictionary = WeakKeyDictionary()
+        self._next_request_id_by_tab: Dict[str, int] = {}
+        self._trace_active: bool = False
         
     @property
     def is_connected(self) -> bool:
@@ -162,6 +168,73 @@ class BrowserController:
         events.append(entry)
         if len(events) > 100:
             del events[0 : len(events) - 100]
+
+    def _record_page_error(self, page: Page, entry: Dict[str, Any]) -> None:
+        target_id = self._get_target_id(page)
+        if not target_id:
+            return
+        errors = self._page_errors_by_tab.setdefault(target_id, [])
+        errors.append(entry)
+        if len(errors) > 200:
+            del errors[0 : len(errors) - 200]
+
+    def _record_network_request(self, page: Page, req: Any) -> None:
+        target_id = self._get_target_id(page)
+        if not target_id:
+            return
+
+        next_id = self._next_request_id_by_tab.get(target_id, 0) + 1
+        self._next_request_id_by_tab[target_id] = next_id
+        req_id = f"r{next_id}"
+        self._network_request_id_by_req[req] = req_id
+
+        records = self._network_requests_by_tab.setdefault(target_id, [])
+        records.append(
+            {
+                "id": req_id,
+                "timestamp": datetime.now(UTC).isoformat(),
+                "method": req.method,
+                "url": req.url,
+                "resource_type": req.resource_type,
+            }
+        )
+        if len(records) > 500:
+            del records[0 : len(records) - 500]
+
+    def _record_network_response(self, page: Page, response: Any) -> None:
+        target_id = self._get_target_id(page)
+        if not target_id:
+            return
+        req = response.request
+        req_id = self._network_request_id_by_req.get(req)
+        if not req_id:
+            return
+        records = self._network_requests_by_tab.get(target_id, [])
+        for record in reversed(records):
+            if record.get("id") == req_id:
+                record["status"] = response.status
+                record["ok"] = response.ok
+                break
+
+    def _record_network_request_failed(self, page: Page, req: Any) -> None:
+        target_id = self._get_target_id(page)
+        if not target_id:
+            return
+        req_id = self._network_request_id_by_req.get(req)
+        if not req_id:
+            return
+        records = self._network_requests_by_tab.get(target_id, [])
+        failure_text = None
+        try:
+            failure = req.failure
+            failure_text = failure.get("errorText") if isinstance(failure, dict) else None
+        except Exception:
+            failure_text = None
+        for record in reversed(records):
+            if record.get("id") == req_id:
+                record["failure_text"] = failure_text or "request failed"
+                record["ok"] = False
+                break
 
     async def _handle_dialog_event(self, page: Page, dialog) -> None:
         target_id = self._get_target_id(page)
@@ -238,12 +311,46 @@ class BrowserController:
             except Exception as e:
                 logger.debug(f"Failed to schedule dialog handler: {e}")
 
+        def _on_page_error(err) -> None:
+            try:
+                self._record_page_error(
+                    page,
+                    {
+                        "message": str(err),
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    },
+                )
+            except Exception as e:
+                logger.debug(f"Failed to record page error: {e}")
+
+        def _on_request(req) -> None:
+            try:
+                self._record_network_request(page, req)
+            except Exception as e:
+                logger.debug(f"Failed to record request: {e}")
+
+        def _on_response(response) -> None:
+            try:
+                self._record_network_response(page, response)
+            except Exception as e:
+                logger.debug(f"Failed to record response: {e}")
+
+        def _on_request_failed(req) -> None:
+            try:
+                self._record_network_request_failed(page, req)
+            except Exception as e:
+                logger.debug(f"Failed to record failed request: {e}")
+
         on_method = getattr(page, "on", None)
         if not callable(on_method) or inspect.iscoroutinefunction(on_method):
             return
 
         on_method("console", _on_console)
         on_method("dialog", _on_dialog)
+        on_method("pageerror", _on_page_error)
+        on_method("request", _on_request)
+        on_method("response", _on_response)
+        on_method("requestfailed", _on_request_failed)
 
     def _store_role_refs(
         self,
@@ -704,6 +811,309 @@ class BrowserController:
             self._dialog_events_by_tab[target_id] = []
 
         return events
+
+    def get_page_errors(self, limit: int = 100, clear: bool = False) -> List[Dict[str, Any]]:
+        """Get captured page errors for the active tab."""
+        target_id = self._get_target_id(self._page)
+        if not target_id:
+            return []
+
+        errors = list(self._page_errors_by_tab.get(target_id, []))
+        if limit > 0:
+            errors = errors[-limit:]
+
+        if clear:
+            self._page_errors_by_tab[target_id] = []
+
+        return errors
+
+    def get_network_requests(
+        self,
+        *,
+        limit: int = 100,
+        contains: Optional[str] = None,
+        clear: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """Get captured network requests for the active tab."""
+        target_id = self._get_target_id(self._page)
+        if not target_id:
+            return []
+
+        requests = list(self._network_requests_by_tab.get(target_id, []))
+        if contains:
+            needle = contains.lower()
+            requests = [
+                r
+                for r in requests
+                if needle in str(r.get("url", "")).lower()
+                or needle in str(r.get("method", "")).lower()
+            ]
+        if limit > 0:
+            requests = requests[-limit:]
+
+        if clear:
+            self._network_requests_by_tab[target_id] = []
+
+        return requests
+
+    async def trace_start(self, *, snapshots: bool = True, screenshots: bool = True, sources: bool = True) -> Dict[str, Any]:
+        """Start Playwright tracing for current context."""
+        if not self._context:
+            raise RuntimeError("Browser not connected")
+        if self._trace_active:
+            return {"success": False, "error": "Trace already active"}
+        try:
+            await self._context.tracing.start(
+                snapshots=snapshots,
+                screenshots=screenshots,
+                sources=sources,
+            )
+            self._trace_active = True
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def trace_stop(self) -> Dict[str, Any]:
+        """Stop Playwright tracing and return trace zip bytes."""
+        if not self._context:
+            raise RuntimeError("Browser not connected")
+        if not self._trace_active:
+            return {"success": False, "error": "Trace is not active"}
+        trace_path = Path(tempfile.mkdtemp(prefix="windieos_trace_")) / "trace.zip"
+        try:
+            await self._context.tracing.stop(path=str(trace_path))
+            trace_bytes = trace_path.read_bytes()
+            self._trace_active = False
+            return {"success": True, "trace_bytes": trace_bytes}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def get_cookies(self) -> List[Dict[str, Any]]:
+        """Get cookies for current context."""
+        if not self._context:
+            raise RuntimeError("Browser not connected")
+        return await self._context.cookies()
+
+    async def set_cookies(self, cookies: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Set cookies in current context."""
+        if not self._context:
+            raise RuntimeError("Browser not connected")
+        try:
+            await self._context.add_cookies(cookies)
+            return {"success": True, "count": len(cookies)}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def clear_cookies(self) -> Dict[str, Any]:
+        """Clear cookies in current context."""
+        if not self._context:
+            raise RuntimeError("Browser not connected")
+        try:
+            await self._context.clear_cookies()
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def get_storage(self, kind: str) -> Dict[str, str]:
+        """Get localStorage/sessionStorage key-values for current page."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        storage_name = "localStorage" if kind == "local" else "sessionStorage"
+        script = f"""
+            () => {{
+                const out = {{}};
+                for (let i = 0; i < window.{storage_name}.length; i++) {{
+                    const key = window.{storage_name}.key(i);
+                    if (key !== null) {{
+                        out[key] = window.{storage_name}.getItem(key) ?? "";
+                    }}
+                }}
+                return out;
+            }}
+        """
+        result = await self._page.evaluate(script)
+        return result if isinstance(result, dict) else {}
+
+    async def set_storage(self, kind: str, values: Dict[str, str]) -> Dict[str, Any]:
+        """Set localStorage/sessionStorage values for current page."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        storage_name = "localStorage" if kind == "local" else "sessionStorage"
+        script = f"""
+            (vals) => {{
+                for (const [k, v] of Object.entries(vals)) {{
+                    window.{storage_name}.setItem(String(k), String(v));
+                }}
+                return true;
+            }}
+        """
+        await self._page.evaluate(script, values)
+        return {"success": True, "count": len(values)}
+
+    async def clear_storage(self, kind: str) -> Dict[str, Any]:
+        """Clear localStorage/sessionStorage for current page."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        storage_name = "localStorage" if kind == "local" else "sessionStorage"
+        await self._page.evaluate(f"() => window.{storage_name}.clear()")
+        return {"success": True}
+
+    async def set_offline(self, offline: bool) -> Dict[str, Any]:
+        """Set context offline mode."""
+        if not self._context:
+            raise RuntimeError("Browser not connected")
+        try:
+            await self._context.set_offline(offline)
+            return {"success": True, "offline": offline}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def set_headers(self, headers: Dict[str, str]) -> Dict[str, Any]:
+        """Set extra HTTP headers for context."""
+        if not self._context:
+            raise RuntimeError("Browser not connected")
+        try:
+            await self._context.set_extra_http_headers(headers)
+            return {"success": True, "header_count": len(headers)}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def set_http_credentials(
+        self,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        clear: bool = False,
+    ) -> Dict[str, Any]:
+        """Set or clear HTTP basic auth credentials."""
+        if not self._context:
+            raise RuntimeError("Browser not connected")
+        try:
+            if clear:
+                await self._context.set_http_credentials(None)
+            else:
+                if username is None or password is None:
+                    return {"success": False, "error": "username/password required unless clear=true"}
+                await self._context.set_http_credentials({"username": username, "password": password})
+            return {"success": True, "cleared": clear}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def set_geolocation(
+        self,
+        *,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
+        accuracy: Optional[float] = None,
+        clear: bool = False,
+    ) -> Dict[str, Any]:
+        """Set or clear context geolocation."""
+        if not self._context:
+            raise RuntimeError("Browser not connected")
+        try:
+            if clear:
+                await self._context.set_geolocation(None)
+                return {"success": True, "cleared": True}
+            if latitude is None or longitude is None:
+                return {"success": False, "error": "latitude/longitude required unless clear=true"}
+            geo: Dict[str, Any] = {"latitude": float(latitude), "longitude": float(longitude)}
+            if accuracy is not None:
+                geo["accuracy"] = float(accuracy)
+            await self._context.grant_permissions(["geolocation"])
+            await self._context.set_geolocation(geo)
+            return {"success": True, "geolocation": geo}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def set_media(self, media: Optional[str] = None, color_scheme: Optional[str] = None) -> Dict[str, Any]:
+        """Emulate media settings on current page."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        try:
+            kwargs: Dict[str, Any] = {}
+            if media:
+                kwargs["media"] = media
+            if color_scheme:
+                kwargs["color_scheme"] = color_scheme
+            await self._page.emulate_media(**kwargs)
+            return {"success": True, "media": media, "color_scheme": color_scheme}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def set_timezone(self, timezone: str) -> Dict[str, Any]:
+        """
+        Set timezone for current context.
+
+        Playwright requires timezone at context creation time; this is not mutable at runtime.
+        """
+        return {
+            "success": False,
+            "error": (
+                "Dynamic timezone updates are not supported for an already-running context. "
+                "Reconnect with a context configured for the desired timezone."
+            ),
+            "requested_timezone": timezone,
+        }
+
+    async def set_locale(self, locale: str) -> Dict[str, Any]:
+        """
+        Set locale for current context.
+
+        Playwright requires locale at context creation time; this is not mutable at runtime.
+        """
+        return {
+            "success": False,
+            "error": (
+                "Dynamic locale updates are not supported for an already-running context. "
+                "Reconnect with a context configured for the desired locale."
+            ),
+            "requested_locale": locale,
+        }
+
+    async def set_device(self, device: str) -> Dict[str, Any]:
+        """
+        Apply a device preset best-effort.
+
+        This currently supports viewport changes for common presets.
+        """
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        preset = device.strip().lower()
+        presets: Dict[str, Dict[str, int]] = {
+            "iphone 14": {"width": 390, "height": 844},
+            "iphone 14 pro": {"width": 393, "height": 852},
+            "iphone se": {"width": 375, "height": 667},
+            "pixel 7": {"width": 412, "height": 915},
+            "ipad": {"width": 810, "height": 1080},
+        }
+        target = presets.get(preset)
+        if not target:
+            return {"success": False, "error": f"Unknown device preset: {device}"}
+        return await self.resize_viewport(target["width"], target["height"])
+
+    async def highlight(self, ref: str, duration_ms: int = 1000) -> Dict[str, Any]:
+        """Highlight an element briefly."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        try:
+            locator = self._resolve_ref_locator(ref)
+            await locator.evaluate(
+                """
+                (el, durationMs) => {
+                    const prev = el.style.outline;
+                    const prevOffset = el.style.outlineOffset;
+                    el.style.outline = '3px solid #ff4500';
+                    el.style.outlineOffset = '2px';
+                    setTimeout(() => {
+                        el.style.outline = prev;
+                        el.style.outlineOffset = prevOffset;
+                    }, Math.max(50, durationMs));
+                }
+                """,
+                duration_ms,
+            )
+            return {"success": True, "ref": ref, "duration_ms": duration_ms}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
     
     async def get_page_snapshot(
         self,
@@ -1232,6 +1642,9 @@ class BrowserController:
         self,
         full_page: bool = False,
         ref: Optional[str] = None,
+        element: Optional[str] = None,
+        image_type: str = "png",
+        quality: Optional[int] = None,
     ) -> bytes:
         """
         Take a screenshot.
@@ -1239,21 +1652,35 @@ class BrowserController:
         Args:
             full_page: Capture full page height
             ref: Optional element reference to screenshot
+            element: Optional CSS selector to screenshot
+            image_type: "png" or "jpeg"
+            quality: JPEG quality (1-100)
         
         Returns:
-            PNG image bytes
+            Image bytes
         """
         if not self._page:
             raise RuntimeError("Browser not connected")
-        
+
+        if full_page and (ref or element):
+            raise ValueError("full_page cannot be combined with ref/element screenshot")
+        if ref and element:
+            raise ValueError("Specify only one of ref or element")
+
+        screenshot_args: Dict[str, Any] = {"type": "jpeg" if image_type == "jpeg" else "png"}
+        if screenshot_args["type"] == "jpeg" and quality is not None:
+            screenshot_args["quality"] = max(1, min(100, int(quality)))
+
         if ref:
             locator = self._resolve_ref_locator(ref)
-            return await locator.screenshot(type="png")
-        else:
-            return await self._page.screenshot(
-                full_page=full_page,
-                type="png",
-            )
+            return await locator.screenshot(**screenshot_args)
+        if element:
+            locator = self._page.locator(element)
+            return await locator.screenshot(**screenshot_args)
+        return await self._page.screenshot(
+            full_page=full_page,
+            **screenshot_args,
+        )
 
     async def pdf(self) -> bytes:
         """Create a PDF of the current page."""
@@ -1404,6 +1831,11 @@ class BrowserController:
             self._dialog_events_by_tab.clear()
             self._dialog_arms_by_tab.clear()
             self._dialog_waiters_by_tab.clear()
+            self._page_errors_by_tab.clear()
+            self._network_requests_by_tab.clear()
+            self._network_request_id_by_req = WeakKeyDictionary()
+            self._next_request_id_by_tab.clear()
+            self._trace_active = False
             
         except Exception as e:
             logger.error(f"Error during browser close: {e}")

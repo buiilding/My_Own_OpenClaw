@@ -350,9 +350,16 @@ WindieOS now supports OpenClaw-style action names (compatibility layer):
 - `upload` -> set file input files by `inputRef`/`ref`
 - `console` -> returns captured console messages for the active tab (`level`, `limit`, `clear`)
 - `dialog` -> arms next JS dialog handling (`accept`, `promptText`) and can optionally wait (`timeoutMs`)
+- `errors` / `requests` -> page errors + network request history
+- `trace_start` / `trace_stop` -> Playwright trace capture (zip data on stop)
+- `cookies`, `cookies_set`, `cookies_clear`
+- `storage_get`, `storage_set`, `storage_clear` (`kind: local|session`)
+- `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`
+- `set_timezone`, `set_locale`, `set_device`, `highlight`
 
 Notes:
 - `dialog` is one-shot per arm call; call it again to arm the next dialog.
+- Screenshot parity: `screenshot` supports `type: "png"|"jpeg"`, `quality` (jpeg), and CSS `element` targeting.
 
 ## Example Workflows
 

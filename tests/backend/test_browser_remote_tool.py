@@ -89,6 +89,12 @@ class TestBrowserControlArgs:
         """Test OpenClaw-compatible status action args."""
         args = BrowserControlArgs(action="status")
         assert args.action == "status"
+
+    def test_requests_action(self):
+        """Test debug requests action args."""
+        args = BrowserControlArgs(action="requests", limit=50, clear=True)
+        assert args.action == "requests"
+        assert args.limit == 50
     
     def test_click_action(self):
         """Test click action args."""

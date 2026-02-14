@@ -145,6 +145,14 @@ class BrowserScreenshotArgs(BaseModel):
     action: Literal["screenshot"] = Field(..., description="Take screenshot")
     full_page: bool = Field(False, description="Capture full page height")
     ref: Optional[str] = Field(None, description="Optional element reference to screenshot")
+    element: Optional[str] = Field(None, description="Optional CSS selector to screenshot")
+    type: Literal["png", "jpeg"] = Field("png", description="Screenshot image type")
+    quality: Optional[int] = Field(
+        None,
+        description="JPEG quality (1-100)",
+        ge=1,
+        le=100,
+    )
 
 
 class BrowserWaitArgs(BaseModel):
@@ -201,7 +209,13 @@ class BrowserOpenClawCompatArgs(BaseModel):
     action: Literal[
         "status", "start", "stop", "profiles", "tabs",
         "open", "focus", "console", "pdf", "upload",
-        "dialog", "act",
+        "dialog", "act", "errors", "requests",
+        "trace_start", "trace_stop",
+        "cookies", "cookies_set", "cookies_clear",
+        "storage_get", "storage_set", "storage_clear",
+        "set_offline", "set_headers", "set_credentials",
+        "set_geolocation", "set_media", "set_timezone",
+        "set_locale", "set_device", "highlight",
     ] = Field(..., description="OpenClaw-compatible browser action")
     mode: Optional[Literal["user_chrome", "managed", "efficient"]] = Field(
         None,
@@ -224,6 +238,7 @@ class BrowserOpenClawCompatArgs(BaseModel):
     inputRef: Optional[str] = Field(None, description="Input ref for upload (camelCase)")
     paths: Optional[List[str]] = Field(None, description="File paths for upload")
     level: Optional[str] = Field(None, description="Console log level filter")
+    limit: Optional[int] = Field(None, description="Result item limit")
     clear: Optional[bool] = Field(None, description="Clear retained console/dialog events")
     timeoutMs: Optional[int] = Field(None, description="Timeout in milliseconds")
     timeout_ms: Optional[int] = Field(None, description="Timeout in milliseconds (snake_case)")
@@ -234,6 +249,36 @@ class BrowserOpenClawCompatArgs(BaseModel):
         None,
         description="Nested action payload for act."
     )
+    cookies: Optional[List[Dict[str, Any]]] = Field(None, description="Cookies payload for cookies_set")
+    kind: Optional[Literal["local", "session"]] = Field(None, description="Storage kind")
+    values: Optional[Dict[str, Any]] = Field(None, description="Storage key-values")
+    key: Optional[str] = Field(None, description="Single storage key")
+    value: Optional[Any] = Field(None, description="Single storage value")
+    contains: Optional[str] = Field(None, description="Requests contains filter")
+    filter: Optional[str] = Field(None, description="Requests filter alias")
+    snapshots: Optional[bool] = Field(None, description="Trace snapshots toggle")
+    screenshots: Optional[bool] = Field(None, description="Trace screenshots toggle")
+    sources: Optional[bool] = Field(None, description="Trace sources toggle")
+    offline: Optional[bool] = Field(None, description="Offline toggle")
+    enabled: Optional[bool] = Field(None, description="Offline alias")
+    headers: Optional[Dict[str, str]] = Field(None, description="Extra HTTP headers")
+    username: Optional[str] = Field(None, description="HTTP auth username")
+    user: Optional[str] = Field(None, description="HTTP auth username alias")
+    password: Optional[str] = Field(None, description="HTTP auth password")
+    latitude: Optional[float] = Field(None, description="Geolocation latitude")
+    longitude: Optional[float] = Field(None, description="Geolocation longitude")
+    accuracy: Optional[float] = Field(None, description="Geolocation accuracy meters")
+    media: Optional[str] = Field(None, description="Media type emulation")
+    color_scheme: Optional[str] = Field(None, description="Color scheme emulation")
+    colorScheme: Optional[str] = Field(None, description="Color scheme emulation alias")
+    timezone: Optional[str] = Field(None, description="Timezone id")
+    locale: Optional[str] = Field(None, description="Locale id")
+    device: Optional[str] = Field(None, description="Device preset name")
+    duration_ms: Optional[int] = Field(None, description="Highlight duration ms")
+    durationMs: Optional[int] = Field(None, description="Highlight duration ms alias")
+    element: Optional[str] = Field(None, description="Element selector alias")
+    type: Optional[Literal["png", "jpeg"]] = Field(None, description="Screenshot image type")
+    quality: Optional[int] = Field(None, description="JPEG quality", ge=1, le=100)
     profile: Optional[str] = Field(None, description="Compatibility field (unused in WindieOS)")
     node: Optional[str] = Field(None, description="Compatibility field (unused in WindieOS)")
     target: Optional[Literal["sandbox", "host", "node"]] = Field(
@@ -284,9 +329,28 @@ BROWSER_SCHEMAS = {
     "open": BrowserOpenClawCompatArgs,
     "focus": BrowserOpenClawCompatArgs,
     "console": BrowserOpenClawCompatArgs,
+    "errors": BrowserOpenClawCompatArgs,
+    "requests": BrowserOpenClawCompatArgs,
+    "trace_start": BrowserOpenClawCompatArgs,
+    "trace_stop": BrowserOpenClawCompatArgs,
     "pdf": BrowserOpenClawCompatArgs,
     "upload": BrowserOpenClawCompatArgs,
     "dialog": BrowserOpenClawCompatArgs,
+    "cookies": BrowserOpenClawCompatArgs,
+    "cookies_set": BrowserOpenClawCompatArgs,
+    "cookies_clear": BrowserOpenClawCompatArgs,
+    "storage_get": BrowserOpenClawCompatArgs,
+    "storage_set": BrowserOpenClawCompatArgs,
+    "storage_clear": BrowserOpenClawCompatArgs,
+    "set_offline": BrowserOpenClawCompatArgs,
+    "set_headers": BrowserOpenClawCompatArgs,
+    "set_credentials": BrowserOpenClawCompatArgs,
+    "set_geolocation": BrowserOpenClawCompatArgs,
+    "set_media": BrowserOpenClawCompatArgs,
+    "set_timezone": BrowserOpenClawCompatArgs,
+    "set_locale": BrowserOpenClawCompatArgs,
+    "set_device": BrowserOpenClawCompatArgs,
+    "highlight": BrowserOpenClawCompatArgs,
     "act": BrowserOpenClawCompatArgs,
 }
 
