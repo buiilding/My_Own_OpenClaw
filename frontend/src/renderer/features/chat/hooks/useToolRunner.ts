@@ -20,6 +20,15 @@ import {
   type TranscriptModelContext,
 } from '../utils/toolRunnerMessages';
 
+function shouldSkipToolExecution(
+  metadata: Record<string, unknown> | undefined,
+): boolean {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+    return false;
+  }
+  return metadata.skip_frontend_execution === true;
+}
+
 /**
  * Custom hook for managing tool execution.
  * Connects UI to ToolExecutionService and handles tool-related events.
@@ -101,6 +110,9 @@ export function useToolRunner(enabled = true) {
     const toolName = event.payload?.tool_name;
     const parameters = event.payload?.parameters;
     if (!toolName || !parameters || typeof parameters !== 'object' || Array.isArray(parameters)) {
+      return;
+    }
+    if (shouldSkipToolExecution(event.payload?.metadata)) {
       return;
     }
 

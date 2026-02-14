@@ -85,8 +85,11 @@ class ToolSender:
             # PROTOCOL VIOLATION FIX: Yield ToolCallEvent before ToolOutputEvent
             # Frontend expects a tool call event before any output event to maintain
             # the request/response state machine.
-            # Extract metadata from tool_call if present
-            tool_metadata = tool_call.metadata
+            # Mark failed-resolution tool calls as non-executable on frontend.
+            tool_metadata = dict(tool_call.metadata) if isinstance(tool_call.metadata, dict) else {}
+            tool_metadata["coordinate_resolution_failed"] = True
+            tool_metadata["skip_frontend_execution"] = True
+            tool_metadata.setdefault("request_id", request_id)
             yield ToolCallEvent(
                 tool_name=tool_call.tool_name,
                 parameters=tool_call.parameters,  # Use original parameters (coordinate resolution failed)
@@ -105,7 +108,11 @@ class ToolSender:
                 output=error_msg,
                 error=error_msg,
                 execution_time=0.0,
-                metadata={"coordinate_resolution_failed": True, "request_id": request_id},
+                metadata={
+                    "coordinate_resolution_failed": True,
+                    "skip_frontend_execution": True,
+                    "request_id": request_id,
+                },
             )
         
         # If there were errors and this was a single tool, we're done (already yielded error events above)

@@ -213,6 +213,27 @@ describe('useToolRunner', () => {
     );
   });
 
+  test('skips frontend execution for non-executable tool-call metadata', async () => {
+    renderHook(() => useToolRunner(true));
+
+    await act(async () => {
+      backendHandler?.({
+        type: 'tool-call',
+        id: 'event-skip',
+        payload: {
+          tool_name: 'mouse_control',
+          parameters: { action: 'click' },
+          metadata: {
+            coordinate_resolution_failed: true,
+            skip_frontend_execution: true,
+          },
+        },
+      });
+    });
+
+    expect(mockExecuteTool).not.toHaveBeenCalled();
+  });
+
   test('logs executeToolBundle failures', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     mockExecuteToolBundle.mockRejectedValueOnce(new Error('bundle-failed'));
