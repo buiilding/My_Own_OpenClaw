@@ -30,13 +30,19 @@ Workflow:
 
 Actions:
 - connect: Initialize browser (requires mode)
+- start/status/stop: OpenClaw-compatible lifecycle aliases
+- profiles: Lists WindieOS profile equivalents
 - navigate: Go to URL (requires url)
+- open/focus/tabs: OpenClaw-compatible tab aliases
 - snapshot: Get contextual page snapshot with refs (supports mode=efficient, interactive/compact/depth/selector/frame)
 - click: Click element (requires ref from snapshot)
 - type: Type text (requires ref, text)
 - press: Press key like Enter/Escape (requires key)
 - scroll: Scroll page (direction: up/down/left/right)
 - screenshot: Capture screenshot (optional full_page)
+- pdf: Capture page as PDF
+- upload/dialog: OpenClaw-compatible action names (dialog currently unsupported)
+- act: OpenClaw action envelope (`request.kind`)
 - wait: Wait for load or time
 - get_tabs: List open tabs
 - switch_tab: Switch to tab (requires target_id)

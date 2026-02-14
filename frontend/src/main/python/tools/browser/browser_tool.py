@@ -10,7 +10,7 @@ Provides web browser automation capabilities including:
 
 import base64
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 from tools.browser.controller import get_browser_controller
 from tools.result import ToolResult
@@ -43,8 +43,18 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
     try:
         if action == "connect":
             return await _handle_connect(raw_args)
+        elif action == "start":
+            return await _handle_start(raw_args)
+        elif action == "status":
+            return await _handle_status(raw_args)
+        elif action == "stop":
+            return await _handle_stop(raw_args)
+        elif action == "profiles":
+            return await _handle_profiles(raw_args)
         elif action == "navigate":
             return await _handle_navigate(raw_args)
+        elif action == "open":
+            return await _handle_open(raw_args)
         elif action == "snapshot":
             return await _handle_snapshot(raw_args)
         elif action == "click":
@@ -61,10 +71,24 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
             return await _handle_wait(raw_args)
         elif action == "get_tabs":
             return await _handle_get_tabs(raw_args)
+        elif action == "tabs":
+            return await _handle_tabs(raw_args)
         elif action == "switch_tab":
             return await _handle_switch_tab(raw_args)
+        elif action == "focus":
+            return await _handle_focus(raw_args)
         elif action == "evaluate":
             return await _handle_evaluate(raw_args)
+        elif action == "console":
+            return await _handle_console(raw_args)
+        elif action == "pdf":
+            return await _handle_pdf(raw_args)
+        elif action == "upload":
+            return await _handle_upload(raw_args)
+        elif action == "dialog":
+            return await _handle_dialog(raw_args)
+        elif action == "act":
+            return await _handle_act(raw_args)
         elif action == "close":
             return await _handle_close(raw_args)
         else:
@@ -72,6 +96,32 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
     except Exception as e:
         logger.exception(f"Browser action '{action}' failed")
         return ToolResult.error_result(f"Action failed: {str(e)}")
+
+
+def _extract_url(args: Dict[str, Any]) -> Optional[str]:
+    for key in ("url", "target_url", "targetUrl"):
+        value = args.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+def _extract_target_id(args: Dict[str, Any]) -> Optional[str]:
+    for key in ("target_id", "targetId"):
+        value = args.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+async def _focus_target_if_requested(controller, args: Dict[str, Any]) -> Optional[ToolResult]:
+    target_id = _extract_target_id(args)
+    if not target_id:
+        return None
+    switched = await controller.switch_tab(target_id)
+    if not switched:
+        return ToolResult.error_result(f"Tab not found: {target_id}")
+    return None
 
 
 async def _handle_connect(args: Dict[str, Any]) -> ToolResult:
@@ -127,6 +177,47 @@ async def _handle_connect(args: Dict[str, Any]) -> ToolResult:
         return ToolResult.error_result(str(e))
 
 
+async def _handle_start(args: Dict[str, Any]) -> ToolResult:
+    """OpenClaw-compatible alias for connect."""
+    connect_args = dict(args)
+    connect_args["action"] = "connect"
+    if "mode" not in connect_args:
+        connect_args["mode"] = "user_chrome"
+    return await _handle_connect(connect_args)
+
+
+async def _handle_status(args: Dict[str, Any]) -> ToolResult:
+    """Handle browser status action."""
+    controller = get_browser_controller()
+    status = await controller.get_status()
+    return ToolResult.success_result({
+        "action": "status",
+        "connected": status["connected"],
+        "mode": status.get("mode"),
+        "url": status.get("url", ""),
+        "title": status.get("title", ""),
+        "tab_count": status.get("tab_count", 0),
+        "target_id": status.get("target_id"),
+    })
+
+
+async def _handle_stop(args: Dict[str, Any]) -> ToolResult:
+    """OpenClaw-compatible alias for close."""
+    return await _handle_close(args)
+
+
+async def _handle_profiles(args: Dict[str, Any]) -> ToolResult:
+    """Return WindieOS browser profile equivalents."""
+    return ToolResult.success_result({
+        "action": "profiles",
+        "profiles": [
+            {"name": "user_chrome", "driver": "cdp"},
+            {"name": "managed", "driver": "playwright"},
+        ],
+        "default_profile": "user_chrome",
+    })
+
+
 async def _handle_navigate(args: Dict[str, Any]) -> ToolResult:
     """Handle browser navigate action."""
     controller = get_browser_controller()
@@ -136,7 +227,11 @@ async def _handle_navigate(args: Dict[str, Any]) -> ToolResult:
             "Browser not connected. Run 'connect' action first."
         )
     
-    url = args.get("url")
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    url = _extract_url(args)
     if not isinstance(url, str) or not url:
         return ToolResult.error_result("Missing required 'url' parameter")
 
@@ -153,6 +248,25 @@ async def _handle_navigate(args: Dict[str, Any]) -> ToolResult:
         return ToolResult.error_result(result.get("error", "Navigation failed"))
 
 
+async def _handle_open(args: Dict[str, Any]) -> ToolResult:
+    """OpenClaw-compatible open action: opens a new tab and navigates."""
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+
+    url = _extract_url(args) or "about:blank"
+    result = await controller.open_tab(url=url)
+    if not result.get("success"):
+        return ToolResult.error_result(result.get("error", "Open failed"))
+    return ToolResult.success_result({
+        "action": "open",
+        "target_id": result["target_id"],
+        "url": result["url"],
+        "title": result["title"],
+        "status": result.get("status"),
+    })
+
+
 async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
     """Handle browser snapshot action."""
     controller = get_browser_controller()
@@ -162,7 +276,11 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
             "Browser not connected. Run 'connect' action first."
         )
 
-    format_type = args.get("format", "ai")
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    format_type = args.get("format", args.get("snapshotFormat", "ai"))
     if format_type not in ("ai", "aria"):
         return ToolResult.error_result("Invalid snapshot format. Use 'ai' or 'aria'.")
 
@@ -439,6 +557,14 @@ async def _handle_get_tabs(args: Dict[str, Any]) -> ToolResult:
     })
 
 
+async def _handle_tabs(args: Dict[str, Any]) -> ToolResult:
+    """OpenClaw-compatible alias for get_tabs."""
+    result = await _handle_get_tabs(args)
+    if result.success and isinstance(result.data, dict):
+        result.data["action"] = "tabs"
+    return result
+
+
 async def _handle_switch_tab(args: Dict[str, Any]) -> ToolResult:
     """Handle browser switch_tab action."""
     controller = get_browser_controller()
@@ -448,7 +574,7 @@ async def _handle_switch_tab(args: Dict[str, Any]) -> ToolResult:
             "Browser not connected. Run 'connect' action first."
         )
     
-    target_id = args.get("target_id")
+    target_id = _extract_target_id(args)
     if not isinstance(target_id, str) or not target_id:
         return ToolResult.error_result("Missing required 'target_id' parameter")
 
@@ -463,6 +589,11 @@ async def _handle_switch_tab(args: Dict[str, Any]) -> ToolResult:
         })
     else:
         return ToolResult.error_result(f"Tab not found: {target_id}")
+
+
+async def _handle_focus(args: Dict[str, Any]) -> ToolResult:
+    """OpenClaw-compatible alias for switch_tab."""
+    return await _handle_switch_tab(args)
 
 
 async def _handle_evaluate(args: Dict[str, Any]) -> ToolResult:
@@ -490,6 +621,169 @@ async def _handle_evaluate(args: Dict[str, Any]) -> ToolResult:
         return ToolResult.error_result(result.get("error", "Evaluate failed"))
 
 
+async def _handle_console(args: Dict[str, Any]) -> ToolResult:
+    """Return console logs (not yet recorded in WindieOS sidecar)."""
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    return ToolResult.success_result({
+        "action": "console",
+        "messages": [],
+        "message": "Console history is not yet tracked in WindieOS browser sidecar.",
+    })
+
+
+async def _handle_pdf(args: Dict[str, Any]) -> ToolResult:
+    """Generate page PDF."""
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    pdf_bytes = await controller.pdf()
+    pdf_b64 = base64.b64encode(pdf_bytes).decode("utf-8")
+    return ToolResult.success_result({
+        "action": "pdf",
+        "format": "pdf",
+        "pdf_data": pdf_b64,
+        "pdf_size_bytes": len(pdf_bytes),
+    })
+
+
+async def _handle_upload(args: Dict[str, Any]) -> ToolResult:
+    """Set file inputs by element ref."""
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    paths_raw = args.get("paths")
+    if not isinstance(paths_raw, list) or not paths_raw:
+        return ToolResult.error_result("Missing required 'paths' parameter (string array)")
+    paths: List[str] = [str(p) for p in paths_raw]
+
+    ref = args.get("inputRef") or args.get("input_ref") or args.get("ref")
+    if not isinstance(ref, str) or not ref:
+        return ToolResult.error_result("Missing required input ref ('inputRef', 'input_ref', or 'ref')")
+
+    result = await controller.set_input_files(ref=ref, paths=paths)
+    if result.get("success"):
+        return ToolResult.success_result(result)
+    return ToolResult.error_result(result.get("error", "Upload failed"))
+
+
+async def _handle_dialog(args: Dict[str, Any]) -> ToolResult:
+    """Dialog arming placeholder for OpenClaw-compat action name."""
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    return ToolResult.error_result(
+        "dialog action is not implemented in WindieOS yet. "
+        "Use evaluate/wait workarounds or extend sidecar dialog hooks."
+    )
+
+
+async def _handle_act(args: Dict[str, Any]) -> ToolResult:
+    """OpenClaw-style action envelope."""
+    request = args.get("request")
+    if not isinstance(request, dict):
+        return ToolResult.error_result("act requires a 'request' object")
+
+    kind = request.get("kind")
+    if not isinstance(kind, str) or not kind:
+        return ToolResult.error_result("act.request.kind is required")
+
+    kind = kind.strip().lower()
+    merged = {**args, **request}
+
+    if kind == "click":
+        return await _handle_click(merged)
+    if kind == "type":
+        return await _handle_type(merged)
+    if kind == "press":
+        return await _handle_press({"action": "press", "key": merged.get("key"), **merged})
+    if kind == "hover":
+        controller = get_browser_controller()
+        if not controller.is_connected:
+            return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+        focus_error = await _focus_target_if_requested(controller, merged)
+        if focus_error:
+            return focus_error
+        ref = merged.get("ref")
+        if not isinstance(ref, str) or not ref:
+            return ToolResult.error_result("act.hover requires 'ref'")
+        result = await controller.hover(ref=ref)
+        return ToolResult.success_result(result) if result.get("success") else ToolResult.error_result(result.get("error", "Hover failed"))
+    if kind == "drag":
+        controller = get_browser_controller()
+        if not controller.is_connected:
+            return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+        focus_error = await _focus_target_if_requested(controller, merged)
+        if focus_error:
+            return focus_error
+        start_ref = merged.get("startRef")
+        end_ref = merged.get("endRef")
+        if not isinstance(start_ref, str) or not isinstance(end_ref, str):
+            return ToolResult.error_result("act.drag requires 'startRef' and 'endRef'")
+        result = await controller.drag(start_ref=start_ref, end_ref=end_ref)
+        return ToolResult.success_result(result) if result.get("success") else ToolResult.error_result(result.get("error", "Drag failed"))
+    if kind == "select":
+        controller = get_browser_controller()
+        if not controller.is_connected:
+            return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+        focus_error = await _focus_target_if_requested(controller, merged)
+        if focus_error:
+            return focus_error
+        ref = merged.get("ref")
+        values = merged.get("values")
+        if not isinstance(ref, str):
+            return ToolResult.error_result("act.select requires 'ref'")
+        if not isinstance(values, list) or not values:
+            return ToolResult.error_result("act.select requires non-empty 'values' array")
+        result = await controller.select_options(ref=ref, values=[str(v) for v in values])
+        return ToolResult.success_result(result) if result.get("success") else ToolResult.error_result(result.get("error", "Select failed"))
+    if kind == "fill":
+        controller = get_browser_controller()
+        if not controller.is_connected:
+            return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+        focus_error = await _focus_target_if_requested(controller, merged)
+        if focus_error:
+            return focus_error
+        fields = merged.get("fields")
+        if not isinstance(fields, list):
+            return ToolResult.error_result("act.fill requires 'fields' array")
+        result = await controller.fill_fields(fields)
+        return ToolResult.success_result(result) if result.get("success") else ToolResult.error_result("Fill completed with errors")
+    if kind == "resize":
+        controller = get_browser_controller()
+        if not controller.is_connected:
+            return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+        width = merged.get("width")
+        height = merged.get("height")
+        if not isinstance(width, (int, float)) or not isinstance(height, (int, float)):
+            return ToolResult.error_result("act.resize requires numeric width/height")
+        result = await controller.resize_viewport(int(width), int(height))
+        return ToolResult.success_result(result) if result.get("success") else ToolResult.error_result(result.get("error", "Resize failed"))
+    if kind == "wait":
+        time_ms = merged.get("timeMs")
+        if isinstance(time_ms, (int, float)):
+            return await _handle_wait({"action": "wait", "seconds": max(0.0, float(time_ms) / 1000.0), **merged})
+        return await _handle_wait({"action": "wait", **merged})
+    if kind == "evaluate":
+        fn = merged.get("fn")
+        if isinstance(fn, str):
+            return await _handle_evaluate({"action": "evaluate", "script": fn, **merged})
+        return await _handle_evaluate({"action": "evaluate", **merged})
+    if kind == "close":
+        return await _handle_close(merged)
+
+    return ToolResult.error_result(f"Unsupported act kind: {kind}")
+
+
 async def _handle_close(args: Dict[str, Any]) -> ToolResult:
     """Handle browser close action."""
     controller = get_browser_controller()
@@ -500,3 +794,30 @@ async def _handle_close(args: Dict[str, Any]) -> ToolResult:
         "action": "close",
         "status": "closed",
     })
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error

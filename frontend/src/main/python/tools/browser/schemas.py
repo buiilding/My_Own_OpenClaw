@@ -4,7 +4,7 @@ Pydantic schemas for browser control tool.
 Provides type-safe argument validation for browser automation.
 """
 
-from typing import List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
@@ -194,6 +194,47 @@ class BrowserCloseArgs(BaseModel):
     action: Literal["close"] = Field(..., description="Close browser connection")
 
 
+class BrowserOpenClawCompatArgs(BaseModel):
+    """OpenClaw-compatible browser actions and payload fields."""
+    model_config = ConfigDict(extra='ignore')
+
+    action: Literal[
+        "status", "start", "stop", "profiles", "tabs",
+        "open", "focus", "console", "pdf", "upload",
+        "dialog", "act",
+    ] = Field(..., description="OpenClaw-compatible browser action")
+    mode: Optional[Literal["user_chrome", "managed", "efficient"]] = Field(
+        None,
+        description="Connect/snapshot mode for compatible actions."
+    )
+    cdp_url: Optional[str] = Field(
+        None,
+        description="Optional CDP URL."
+    )
+    target_id: Optional[str] = Field(None, description="Tab target ID")
+    targetId: Optional[str] = Field(None, description="Tab target ID (camelCase)")
+    target_url: Optional[str] = Field(None, description="URL to open/navigate")
+    targetUrl: Optional[str] = Field(None, description="URL to open/navigate (camelCase)")
+    url: Optional[str] = Field(None, description="URL to open/navigate")
+    snapshotFormat: Optional[Literal["ai", "aria"]] = Field(
+        None,
+        description="Snapshot format alias."
+    )
+    input_ref: Optional[str] = Field(None, description="Input ref for upload")
+    inputRef: Optional[str] = Field(None, description="Input ref for upload (camelCase)")
+    paths: Optional[List[str]] = Field(None, description="File paths for upload")
+    request: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Nested action payload for act."
+    )
+    profile: Optional[str] = Field(None, description="Compatibility field (unused in WindieOS)")
+    node: Optional[str] = Field(None, description="Compatibility field (unused in WindieOS)")
+    target: Optional[Literal["sandbox", "host", "node"]] = Field(
+        None,
+        description="Compatibility field (unused in WindieOS)"
+    )
+
+
 # Union type for all browser actions
 BrowserControlArgs = (
     BrowserConnectArgs
@@ -209,6 +250,7 @@ BrowserControlArgs = (
     | BrowserSwitchTabArgs
     | BrowserEvaluateArgs
     | BrowserCloseArgs
+    | BrowserOpenClawCompatArgs
 )
 
 
@@ -227,6 +269,18 @@ BROWSER_SCHEMAS = {
     "switch_tab": BrowserSwitchTabArgs,
     "evaluate": BrowserEvaluateArgs,
     "close": BrowserCloseArgs,
+    "status": BrowserOpenClawCompatArgs,
+    "start": BrowserOpenClawCompatArgs,
+    "stop": BrowserOpenClawCompatArgs,
+    "profiles": BrowserOpenClawCompatArgs,
+    "tabs": BrowserOpenClawCompatArgs,
+    "open": BrowserOpenClawCompatArgs,
+    "focus": BrowserOpenClawCompatArgs,
+    "console": BrowserOpenClawCompatArgs,
+    "pdf": BrowserOpenClawCompatArgs,
+    "upload": BrowserOpenClawCompatArgs,
+    "dialog": BrowserOpenClawCompatArgs,
+    "act": BrowserOpenClawCompatArgs,
 }
 
 

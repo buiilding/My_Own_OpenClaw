@@ -334,6 +334,25 @@ Close browser connection.
 }
 ```
 
+## OpenClaw Compatibility Actions
+
+WindieOS now supports OpenClaw-style action names (compatibility layer):
+
+- `status` -> session status summary
+- `start` -> alias for `connect`
+- `stop` -> alias for `close`
+- `tabs` -> alias for `get_tabs`
+- `open` -> opens a new tab and navigates
+- `focus` -> alias for `switch_tab`
+- `pdf` -> returns PDF bytes (base64)
+- `act` -> envelope action with `request.kind`
+- `profiles` -> returns WindieOS profile equivalents
+- `upload` -> set file input files by `inputRef`/`ref`
+
+Notes:
+- `dialog` is recognized for compatibility but not implemented yet in WindieOS.
+- `console` currently returns an empty list with a compatibility message.
+
 ## Example Workflows
 
 ### Search on Google

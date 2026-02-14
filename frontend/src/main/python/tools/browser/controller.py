@@ -467,6 +467,55 @@ class BrowserController:
                 "success": False,
                 "error": str(e),
             }
+
+    async def open_tab(self, url: str, wait_until: str = "domcontentloaded") -> Dict[str, Any]:
+        """Open a new tab and optionally navigate to a URL."""
+        if not self._context:
+            raise RuntimeError("Browser not connected")
+
+        try:
+            page = await self._context.new_page()
+            self._page = page
+            response = None
+            if url:
+                response = await page.goto(
+                    url,
+                    wait_until=wait_until,  # type: ignore
+                    timeout=30000,
+                )
+
+            self._reset_ref_registry(page)
+            return {
+                "success": True,
+                "target_id": str(id(page)),
+                "url": page.url,
+                "title": await page.title(),
+                "status": response.status if response else None,
+            }
+        except Exception as e:
+            logger.error(f"Open tab failed: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def get_status(self) -> Dict[str, Any]:
+        """Get current browser session status."""
+        if not self.is_connected:
+            return {
+                "connected": False,
+                "mode": self._mode,
+                "url": "",
+                "title": "",
+                "tab_count": len(self._context.pages) if self._context else 0,
+            }
+
+        assert self._page is not None
+        return {
+            "connected": True,
+            "mode": self._mode,
+            "url": self._page.url,
+            "title": await self._page.title(),
+            "tab_count": len(self._context.pages) if self._context else 0,
+            "target_id": str(id(self._page)),
+        }
     
     async def get_page_snapshot(
         self,
@@ -1017,6 +1066,96 @@ class BrowserController:
                 full_page=full_page,
                 type="png",
             )
+
+    async def pdf(self) -> bytes:
+        """Create a PDF of the current page."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        return await self._page.pdf(print_background=True)
+
+    async def hover(self, ref: str) -> Dict[str, Any]:
+        """Hover on an element by reference."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        try:
+            locator = self._resolve_ref_locator(ref)
+            await locator.hover()
+            return {"success": True, "action": "hover", "ref": ref}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def drag(self, start_ref: str, end_ref: str) -> Dict[str, Any]:
+        """Drag from one referenced element to another."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        try:
+            start = self._resolve_ref_locator(start_ref)
+            end = self._resolve_ref_locator(end_ref)
+            await start.drag_to(end)
+            return {
+                "success": True,
+                "action": "drag",
+                "start_ref": start_ref,
+                "end_ref": end_ref,
+            }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def select_options(self, ref: str, values: List[str]) -> Dict[str, Any]:
+        """Select options in a <select> element by reference."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        try:
+            locator = self._resolve_ref_locator(ref)
+            selected = await locator.select_option(values)
+            return {"success": True, "action": "select", "ref": ref, "selected": selected}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def set_input_files(self, ref: str, paths: List[str]) -> Dict[str, Any]:
+        """Set file input files by reference."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        try:
+            locator = self._resolve_ref_locator(ref)
+            await locator.set_input_files(paths)
+            return {"success": True, "action": "upload", "ref": ref, "paths": paths}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    async def fill_fields(self, fields: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Fill multiple fields by ref."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+
+        filled = 0
+        errors: List[Dict[str, str]] = []
+        for item in fields:
+            ref = item.get("ref")
+            text = item.get("text")
+            if not isinstance(ref, str) or not isinstance(text, str):
+                errors.append({"ref": str(ref), "error": "Each field must include string ref/text"})
+                continue
+
+            result = await self.type_text(ref=ref, text=text, submit=False, clear_first=True)
+            if result.get("success"):
+                filled += 1
+            else:
+                errors.append({"ref": ref, "error": str(result.get("error", "fill failed"))})
+
+        return {"success": len(errors) == 0, "action": "fill", "filled": filled, "errors": errors}
+
+    async def resize_viewport(self, width: int, height: int) -> Dict[str, Any]:
+        """Resize viewport dimensions."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+        try:
+            w = max(1, int(width))
+            h = max(1, int(height))
+            await self._page.set_viewport_size({"width": w, "height": h})
+            return {"success": True, "action": "resize", "width": w, "height": h}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
     
     async def wait_for_load(
         self,

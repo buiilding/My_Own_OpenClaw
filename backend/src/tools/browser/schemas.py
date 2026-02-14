@@ -265,6 +265,50 @@ class BrowserCloseArgs(BaseModel):
     )
 
 
+class BrowserOpenClawCompatArgs(BaseModel):
+    """OpenClaw-compatible browser actions and payload fields."""
+    model_config = ConfigDict(extra='ignore')
+
+    action: Literal[
+        "status", "start", "stop", "profiles", "tabs",
+        "open", "focus", "console", "pdf", "upload",
+        "dialog", "act",
+    ] = Field(
+        ...,
+        description="OpenClaw-compatible browser action"
+    )
+    mode: Optional[Literal["user_chrome", "managed", "efficient"]] = Field(
+        None,
+        description="Connect/snapshot mode for compatible actions."
+    )
+    cdp_url: Optional[str] = Field(
+        None,
+        description="Optional CDP URL."
+    )
+    target_id: Optional[str] = Field(None, description="Tab target ID")
+    targetId: Optional[str] = Field(None, description="Tab target ID (camelCase)")
+    target_url: Optional[str] = Field(None, description="URL to open/navigate")
+    targetUrl: Optional[str] = Field(None, description="URL to open/navigate (camelCase)")
+    url: Optional[str] = Field(None, description="URL to open/navigate")
+    snapshotFormat: Optional[Literal["ai", "aria"]] = Field(
+        None,
+        description="Snapshot format alias."
+    )
+    input_ref: Optional[str] = Field(None, description="Input ref for upload")
+    inputRef: Optional[str] = Field(None, description="Input ref for upload (camelCase)")
+    paths: Optional[List[str]] = Field(None, description="File paths for upload")
+    request: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Nested action payload for act."
+    )
+    profile: Optional[str] = Field(None, description="Compatibility field (unused in WindieOS)")
+    node: Optional[str] = Field(None, description="Compatibility field (unused in WindieOS)")
+    target: Optional[Literal["sandbox", "host", "node"]] = Field(
+        None,
+        description="Compatibility field (unused in WindieOS)"
+    )
+
+
 # Unified browser control args for tool schema
 class BrowserControlArgs(BaseModel):
     """
@@ -278,7 +322,9 @@ class BrowserControlArgs(BaseModel):
     action: Literal[
         "connect", "navigate", "snapshot", "click", "type",
         "press", "scroll", "screenshot", "wait", "get_tabs",
-        "switch_tab", "evaluate", "close"
+        "switch_tab", "evaluate", "close", "status", "start",
+        "stop", "profiles", "tabs", "open", "focus",
+        "console", "pdf", "upload", "dialog", "act"
     ] = Field(
         ...,
         description="Browser action to perform"
@@ -345,6 +391,10 @@ class BrowserControlArgs(BaseModel):
         None,
         description="Optional iframe selector scope for role snapshots."
     )
+    snapshotFormat: Optional[Literal["ai", "aria"]] = Field(
+        None,
+        description="Snapshot format alias."
+    )
     
     # Element interaction args
     ref: Optional[str] = Field(
@@ -407,6 +457,46 @@ class BrowserControlArgs(BaseModel):
     target_id: Optional[str] = Field(
         None,
         description="Tab target ID"
+    )
+    targetId: Optional[str] = Field(
+        None,
+        description="Tab target ID (camelCase alias)"
+    )
+    target_url: Optional[str] = Field(
+        None,
+        description="Open/navigate URL (snake_case)"
+    )
+    targetUrl: Optional[str] = Field(
+        None,
+        description="Open/navigate URL (camelCase)"
+    )
+    profile: Optional[str] = Field(
+        None,
+        description="Compatibility field (unused in WindieOS)"
+    )
+    node: Optional[str] = Field(
+        None,
+        description="Compatibility field (unused in WindieOS)"
+    )
+    target: Optional[Literal["sandbox", "host", "node"]] = Field(
+        None,
+        description="Compatibility field (unused in WindieOS)"
+    )
+    input_ref: Optional[str] = Field(
+        None,
+        description="Input ref for upload action"
+    )
+    inputRef: Optional[str] = Field(
+        None,
+        description="Input ref for upload action (camelCase)"
+    )
+    paths: Optional[List[str]] = Field(
+        None,
+        description="File paths for upload action"
+    )
+    request: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Nested act request payload"
     )
     
     # Evaluate args
