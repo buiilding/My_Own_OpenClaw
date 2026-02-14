@@ -96,7 +96,7 @@ class TestBrowserSnapshotArgs:
         """Test valid AI snapshot args."""
         args = BrowserSnapshotArgs(action="snapshot")
         assert args.format == "ai"
-        assert args.max_chars == 5000
+        assert args.max_chars is None
     
     def test_valid_aria_snapshot(self):
         """Test valid ARIA snapshot args."""
@@ -106,13 +106,13 @@ class TestBrowserSnapshotArgs:
         )
         assert args.format == "aria"
 
-    def test_valid_dom_compact_snapshot(self):
-        """Test valid dom_compact snapshot args."""
+    def test_valid_efficient_snapshot_mode(self):
+        """Test valid efficient snapshot mode args."""
         args = BrowserSnapshotArgs(
             action="snapshot",
-            format="dom_compact",
+            mode="efficient",
         )
-        assert args.format == "dom_compact"
+        assert args.mode == "efficient"
     
     def test_max_chars_bounds(self):
         """Test max_chars validation."""
@@ -122,7 +122,7 @@ class TestBrowserSnapshotArgs:
         
         # Too high
         with pytest.raises(ValidationError):
-            BrowserSnapshotArgs(action="snapshot", max_chars=50000)
+            BrowserSnapshotArgs(action="snapshot", max_chars=200000)
         
         # Valid
         args = BrowserSnapshotArgs(action="snapshot", max_chars=10000)

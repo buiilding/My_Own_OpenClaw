@@ -10,7 +10,7 @@ from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
 from backend.src.tools.browser.schemas import BrowserControlArgs
 from backend.src.tools.categorization import ToolDomain
-from backend.src.tools.remote_tools.base import RemoteToolBase
+from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 
 
 class RemoteBrowserTool(RemoteToolBase, Tool[BrowserControlArgs]):
@@ -31,7 +31,7 @@ Workflow:
 Actions:
 - connect: Initialize browser (requires mode)
 - navigate: Go to URL (requires url)
-- snapshot: Get page overview with element refs
+- snapshot: Get contextual page snapshot with refs (supports mode=efficient, interactive/compact/depth/selector/frame)
 - click: Click element (requires ref from snapshot)
 - type: Type text (requires ref, text)
 - press: Press key like Enter/Escape (requires key)
@@ -46,8 +46,9 @@ Actions:
     category = ToolDomain.BROWSER
 
     async def execute_remote(self, args: BrowserControlArgs, ctx: ToolContext) -> Any:
-        return self._build_remote_result(
-            args,
-            ctx,
-            log_message=f"Remote browser tool call: {args.action}",
+        request_id = self._get_request_id(ctx)
+        return RemoteToolResult(
+            tool_name=self.name,
+            args=args.model_dump(exclude_defaults=True, exclude_none=True),
+            request_id=request_id,
         )

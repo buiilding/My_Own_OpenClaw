@@ -4,7 +4,7 @@ Browser automation tools for WindieOS sidecar.
 Provides web browser control via Playwright:
 - User Chrome mode: Control existing Chrome via CDP
 - Managed mode: Launch isolated Chromium instance
-- Snapshots: Stable-ish numbered element refs for reliable interaction (plus structured formats)
+- Snapshots: Stable-ish numbered refs plus OpenClaw-style contextual role snapshots
 - Full automation: click, type, scroll, screenshot, evaluate
 """
 

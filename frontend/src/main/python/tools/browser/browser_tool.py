@@ -17,6 +17,10 @@ from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_AI_SNAPSHOT_MAX_CHARS = 80_000
+DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS = 10_000
+DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH = 6
+
 
 async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
     """
@@ -157,20 +161,73 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
         return ToolResult.error_result(
             "Browser not connected. Run 'connect' action first."
         )
-    
+
+    format_type = args.get("format", "ai")
+    if format_type not in ("ai", "aria"):
+        return ToolResult.error_result("Invalid snapshot format. Use 'ai' or 'aria'.")
+
+    mode = args.get("mode")
+    if mode != "efficient":
+        mode = None
+
+    if mode == "efficient" and format_type == "aria":
+        return ToolResult.error_result("mode='efficient' requires format='ai'.")
+
+    max_chars_raw = args.get("max_chars")
+    max_chars: int | None = None
+    if isinstance(max_chars_raw, int) and max_chars_raw > 0:
+        max_chars = max_chars_raw
+
+    refs_mode_raw = args.get("refs")
+    refs_mode = refs_mode_raw if refs_mode_raw in ("role", "aria") else None
+
+    interactive = args.get("interactive") if isinstance(args.get("interactive"), bool) else None
+    compact = args.get("compact") if isinstance(args.get("compact"), bool) else None
+    depth = args.get("depth") if isinstance(args.get("depth"), int) else None
+    selector = args.get("selector") if isinstance(args.get("selector"), str) else None
+    frame_selector = args.get("frame") if isinstance(args.get("frame"), str) else None
+
+    if mode == "efficient":
+        if interactive is None:
+            interactive = True
+        if compact is None:
+            compact = True
+        if depth is None:
+            depth = DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH
+
+    resolved_max_chars = max_chars
+    if format_type == "ai" and resolved_max_chars is None:
+        resolved_max_chars = (
+            DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS
+            if mode == "efficient"
+            else DEFAULT_AI_SNAPSHOT_MAX_CHARS
+        )
+
     snapshot = await controller.get_page_snapshot(
-        format_type=args.get("format", "ai"),
-        max_chars=args.get("max_chars", 5000),
+        format_type=format_type,
+        max_chars=resolved_max_chars or DEFAULT_AI_SNAPSHOT_MAX_CHARS,
+        refs_mode=refs_mode,
+        interactive=interactive,
+        compact=compact,
+        depth=depth,
+        selector=selector,
+        frame_selector=frame_selector,
     )
-    
-    return ToolResult.success_result({
+
+    result: Dict[str, Any] = {
         "action": "snapshot",
-        "format": args.get("format", "ai"),
+        "format": format_type,
         "url": snapshot.url,
         "title": snapshot.title,
         "snapshot": snapshot.text,
         "ref_count": snapshot.ref_count,
-    })
+    }
+    if snapshot.refs:
+        result["refs"] = snapshot.refs
+    if snapshot.stats:
+        result["stats"] = snapshot.stats
+
+    return ToolResult.success_result(result)
 
 
 async def _handle_click(args: Dict[str, Any]) -> ToolResult:

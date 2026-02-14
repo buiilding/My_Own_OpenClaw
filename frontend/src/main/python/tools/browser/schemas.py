@@ -58,15 +58,45 @@ class BrowserSnapshotArgs(BaseModel):
     model_config = ConfigDict(extra='ignore')
     
     action: Literal["snapshot"] = Field(..., description="Get page snapshot")
-    format: Literal["ai", "dom_compact", "aria"] = Field(
+    format: Literal["ai", "aria"] = Field(
         "ai",
-        description="Snapshot format: 'ai' (flat interactive list), 'dom_compact' (grouped), or 'aria' (accessibility tree)"
+        description="Snapshot format: 'ai' (interactive + contextual snapshot) or 'aria' (accessibility tree)"
     )
-    max_chars: int = Field(
-        5000,
-        description="Maximum characters in snapshot",
+    mode: Optional[Literal["efficient"]] = Field(
+        None,
+        description="Optional snapshot mode. 'efficient' enables interactive+compact+depth defaults."
+    )
+    max_chars: Optional[int] = Field(
+        None,
+        description="Optional maximum characters in snapshot (defaults to 80,000 for ai; 10,000 in efficient mode)",
         ge=100,
-        le=20000,
+        le=120000,
+    )
+    refs: Optional[Literal["role", "aria"]] = Field(
+        None,
+        description="Reference mode for role snapshots."
+    )
+    interactive: Optional[bool] = Field(
+        None,
+        description="Only include interactive roles in role snapshot output."
+    )
+    compact: Optional[bool] = Field(
+        None,
+        description="Prune structural noise from role snapshot output."
+    )
+    depth: Optional[int] = Field(
+        None,
+        description="Maximum role snapshot depth (0=root only).",
+        ge=0,
+        le=20,
+    )
+    selector: Optional[str] = Field(
+        None,
+        description="Optional CSS selector scope for role snapshots."
+    )
+    frame: Optional[str] = Field(
+        None,
+        description="Optional iframe selector scope for role snapshots."
     )
 
 

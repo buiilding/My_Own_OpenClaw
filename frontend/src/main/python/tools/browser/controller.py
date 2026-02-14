@@ -6,12 +6,12 @@ Supports two modes:
 2. Managed Chromium: Launch isolated browser instance
 """
 
-import asyncio
 import logging
+import inspect
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 # Playwright imports
@@ -23,13 +23,19 @@ from playwright.async_api import (
     async_playwright,
 )
 
-from tools.browser.chrome_detection import ChromeExecutable, find_chrome_executable
+from tools.browser.chrome_detection import find_chrome_executable
 from tools.browser.chrome_launcher import (
     ensure_chrome_with_cdp,
-    ChromeLauncher,
     ChromeLauncherError,
 )
 from tools.browser.ref_registry import RefRegistry
+from tools.browser.role_snapshot import (
+    RoleRef,
+    RoleSnapshotOptions,
+    build_role_snapshot_from_aria_snapshot,
+    get_role_snapshot_stats,
+    parse_role_ref,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +47,8 @@ class PageSnapshot:
     url: str = ""
     title: str = ""
     ref_count: int = 0
+    refs: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    stats: Optional[Dict[str, int]] = None
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -48,6 +56,8 @@ class PageSnapshot:
             "url": self.url,
             "title": self.title,
             "ref_count": self.ref_count,
+            "refs": self.refs,
+            "stats": self.stats,
         }
 
 
@@ -78,6 +88,9 @@ class BrowserController:
         self._browser_process = None
         # Per-tab ref registries keyed by target_id (currently str(id(Page))).
         self._ref_registry_by_tab: Dict[str, RefRegistry] = {}
+        # Per-tab role refs from role snapshots (e.g., e1/e2), with optional iframe scope.
+        self._role_refs_by_tab: Dict[str, Dict[str, RoleRef]] = {}
+        self._role_refs_frame_by_tab: Dict[str, Optional[str]] = {}
         
     @property
     def is_connected(self) -> bool:
@@ -122,6 +135,35 @@ class BrowserController:
             reg = RefRegistry()
             self._ref_registry_by_tab[target_id] = reg
         reg.reset()
+        self._role_refs_by_tab.pop(target_id, None)
+        self._role_refs_frame_by_tab.pop(target_id, None)
+
+    def _store_role_refs(
+        self,
+        refs: Dict[str, RoleRef],
+        page: Optional[Page] = None,
+        frame_selector: Optional[str] = None,
+    ) -> None:
+        target_id = self._get_target_id(page)
+        if not target_id:
+            return
+        self._role_refs_by_tab[target_id] = refs
+        self._role_refs_frame_by_tab[target_id] = frame_selector
+
+    def _get_role_ref(self, ref: str, page: Optional[Page] = None) -> Optional[RoleRef]:
+        target_id = self._get_target_id(page)
+        if not target_id:
+            return None
+        refs = self._role_refs_by_tab.get(target_id)
+        if not refs:
+            return None
+        return refs.get(ref)
+
+    def _get_role_frame_selector(self, page: Optional[Page] = None) -> Optional[str]:
+        target_id = self._get_target_id(page)
+        if not target_id:
+            return None
+        return self._role_refs_frame_by_tab.get(target_id)
     
     async def auto_connect_to_chrome(
         self,
@@ -429,15 +471,20 @@ class BrowserController:
     async def get_page_snapshot(
         self,
         format_type: str = "ai",
-        max_chars: int = 5000,
+        max_chars: int = 80000,
+        refs_mode: Optional[str] = None,
+        interactive: Optional[bool] = None,
+        compact: Optional[bool] = None,
+        depth: Optional[int] = None,
+        selector: Optional[str] = None,
+        frame_selector: Optional[str] = None,
     ) -> PageSnapshot:
         """
         Get page snapshot for LLM consumption.
         
         Args:
             format_type:
-                - "ai": Flat list of interactive elements with (mostly) stable refs.
-                - "dom_compact": Shallow semantic tree grouping interactive elements.
+                - "ai": Interactive refs + optional role-based contextual snapshot.
                 - "aria": Accessibility tree snapshot (no refs).
             max_chars: Maximum characters in snapshot
         
@@ -449,11 +496,28 @@ class BrowserController:
         
         if format_type == "aria":
             return await self._get_aria_snapshot()
-        if format_type == "dom_compact":
-            return await self._get_dom_compact_snapshot(max_chars)
+
+        wants_role_snapshot = (
+            refs_mode in ("role", "aria")
+            or interactive is True
+            or compact is True
+            or depth is not None
+            or bool((selector or "").strip())
+            or bool((frame_selector or "").strip())
+        )
+        if wants_role_snapshot:
+            return await self._get_role_snapshot(
+                max_chars=max_chars,
+                refs_mode=refs_mode,
+                interactive=interactive,
+                compact=compact,
+                depth=depth,
+                selector=selector,
+                frame_selector=frame_selector,
+            )
         return await self._get_ai_snapshot(max_chars)
     
-    async def _get_ai_snapshot(self, max_chars: int = 5000) -> PageSnapshot:
+    async def _get_ai_snapshot(self, max_chars: int = 80000) -> PageSnapshot:
         """Build a flat interactive snapshot with stable-ish refs."""
         title = await self._page.title()
         url = self._page.url
@@ -564,7 +628,26 @@ class BrowserController:
         
         # Build snapshot text
         snapshot_text = f"Title: {title}\nURL: {url}\n\n"
-        snapshot_text += "\n".join(lines)
+        snapshot_text += "Interactive elements:\n"
+        snapshot_text += "\n".join(lines) if lines else "(none found)"
+
+        # Add contextual structure to match richer OpenClaw snapshot context.
+        try:
+            root_locator = self._page.locator(":root")
+            if inspect.isawaitable(root_locator):
+                root_locator = await root_locator
+
+            aria_snapshot_fn = getattr(root_locator, "aria_snapshot", None)
+            if callable(aria_snapshot_fn):
+                root_snapshot = aria_snapshot_fn()
+                if inspect.isawaitable(root_snapshot):
+                    root_snapshot = await root_snapshot
+                root_text = str(root_snapshot or "").strip()
+                if root_text:
+                    snapshot_text += "\n\nPage structure:\n"
+                    snapshot_text += root_text
+        except Exception as e:
+            logger.debug(f"Failed to append aria context to AI snapshot: {e}")
         
         # Truncate if too long
         if len(snapshot_text) > max_chars:
@@ -611,136 +694,85 @@ class BrowserController:
             parts.append(f"anc={anc_str}")
         return "|".join(parts)
 
-    async def _get_dom_compact_snapshot(self, max_chars: int = 5000) -> PageSnapshot:
-        """Structured snapshot: grouped interactive elements with a shallow semantic tree."""
+    async def _get_role_snapshot(
+        self,
+        *,
+        max_chars: int = 80000,
+        refs_mode: Optional[str] = None,
+        interactive: Optional[bool] = None,
+        compact: Optional[bool] = None,
+        depth: Optional[int] = None,
+        selector: Optional[str] = None,
+        frame_selector: Optional[str] = None,
+    ) -> PageSnapshot:
+        """
+        Build a role snapshot with OpenClaw semantics.
+
+        This path adds `eN` refs and supports:
+        - interactive-only output
+        - compact structural pruning
+        - depth limits
+        - selector/frame scoping
+        """
         title = await self._page.title()
         url = self._page.url
-        reg = self._get_ref_registry(self._page)
+        refs_mode = "aria" if refs_mode == "aria" else "role"
+        selector = (selector or "").strip()
+        frame_selector = (frame_selector or "").strip()
 
-        elements = await self._page.query_selector_all(
-            'button, input, textarea, select, a, [role="button"], '
-            '[role="link"], [role="textbox"], [role="checkbox"], '
-            '[role="radio"], [role="combobox"], [role="searchbox"]'
+        if frame_selector:
+            base_locator = self._page.frame_locator(frame_selector)
+            locator = base_locator.locator(selector or ":root")
+        else:
+            locator = self._page.locator(selector or ":root")
+
+        raw_snapshot = await locator.aria_snapshot()
+        built_snapshot, refs = build_role_snapshot_from_aria_snapshot(
+            str(raw_snapshot or ""),
+            RoleSnapshotOptions(
+                interactive=interactive,
+                compact=compact,
+                max_depth=depth,
+            ),
         )
 
-        groups: Dict[tuple[str, ...], list[tuple[str, str, bool]]] = {}
-        seen_refs: set[str] = set()
-        max_elements = 250
+        self._store_role_refs(
+            refs=refs,
+            page=self._page,
+            frame_selector=frame_selector or None,
+        )
 
-        for elem in elements:
-            if len(seen_refs) >= max_elements:
-                break
-            try:
-                info = await elem.evaluate(
-                    """
-                    (el) => {
-                      const tag = (el.tagName || "").toLowerCase();
-                      const attr = (n) => el.getAttribute(n) || "";
-                      const role = attr("role");
-                      const type = attr("type");
-                      const id = el.id || "";
-                      const nameAttr = attr("name");
-                      const placeholder = attr("placeholder");
-                      const href = tag === "a" ? (attr("href") || "") : "";
+        body_text = built_snapshot
+        if max_chars > 0 and len(body_text) > max_chars:
+            body_text = body_text[:max_chars] + "\n... (truncated)"
 
-                      const ariaLabel = attr("aria-label");
-                      const title = attr("title");
-                      const alt = attr("alt");
+        snapshot_text = f"Title: {title}\nURL: {url}\n\n{body_text}"
+        refs_dict: Dict[str, Dict[str, Any]] = {
+            key: {
+                "role": value.role,
+                **({"name": value.name} if value.name else {}),
+                **({"nth": value.nth} if value.nth is not None else {}),
+            }
+            for key, value in refs.items()
+        }
+        stats = get_role_snapshot_stats(built_snapshot, refs)
 
-                      let label = (ariaLabel || title || nameAttr || placeholder || alt || "").trim();
-                      if (!label) {
-                        const text = (el.innerText || el.textContent || "").trim();
-                        label = text;
-                      }
-                      if (label.length > 80) label = label.slice(0, 80);
-
-                      const style = window.getComputedStyle(el);
-                      const rect = el.getBoundingClientRect();
-                      const visible =
-                        style &&
-                        style.display !== "none" &&
-                        style.visibility !== "hidden" &&
-                        style.opacity !== "0" &&
-                        rect.width > 0 &&
-                        rect.height > 0;
-
-                      const interesting = new Set(["form","main","nav","header","footer","section","article","aside","dialog"]);
-                      const ancestors = [];
-                      let p = el.parentElement;
-                      while (p && ancestors.length < 5) {
-                        const ptag = (p.tagName || "").toLowerCase();
-                        const pid = p.id || "";
-                        const pclass = (p.getAttribute("class") || "").trim().split(/\\s+/).filter(Boolean)[0] || "";
-                        if (interesting.has(ptag) || pid) {
-                          let label = ptag;
-                          if (pid) label += `#${pid}`;
-                          else if (pclass && (ptag === "div" || ptag === "section")) label += `.${pclass}`;
-                          ancestors.unshift(label);
-                        }
-                        p = p.parentElement;
-                      }
-
-                      return { tag, role, type, id, nameAttr, placeholder, href, label, visible, ancestors };
-                    }
-                    """
-                )
-                if not isinstance(info, dict) or not info.get("visible"):
-                    continue
-
-                tag = str(info.get("tag") or "")
-                role = str(info.get("role") or "")
-                elem_type = str(info.get("type") or "")
-                placeholder = str(info.get("placeholder") or "")
-                name = str(info.get("label") or "")
-
-                key = self._build_element_key(info)
-                ref, is_new = reg.assign(key=key, url=url)
-                await elem.evaluate("(el, ref) => el.setAttribute('data-windie-ref', ref)", ref)
-
-                description = self._describe_element(tag, role, elem_type, name, placeholder)
-                if not description:
-                    continue
-
-                ancestors = info.get("ancestors") or []
-                if not isinstance(ancestors, list):
-                    ancestors = []
-                group_key = tuple(str(a) for a in ancestors)
-
-                groups.setdefault(group_key, []).append((ref, description, is_new))
-                seen_refs.add(ref)
-            except Exception as e:
-                logger.debug(f"Error processing element: {e}")
-                continue
-
-        reg.finalize_snapshot(seen_refs=seen_refs, url=url)
-
-        def render_group(path: tuple[str, ...], items: list[tuple[str, str, bool]]) -> list[str]:
-            out: list[str] = []
-            indent = 0
-            for part in path:
-                out.append(f"{'  ' * indent}<{part}>")
-                indent += 1
-            for ref, desc, is_new in items:
-                prefix = "*[" if is_new else "["
-                out.append(f"{'  ' * indent}{prefix}{ref}] {desc}")
-            return out
-
-        group_items = sorted(groups.items(), key=lambda kv: (len(kv[0]), kv[0]))
-        lines: list[str] = []
-        for path, items in group_items:
-            lines.extend(render_group(path, items))
-
-        snapshot_text = f"Title: {title}\nURL: {url}\n\n"
-        snapshot_text += "\n".join(lines)
-
-        if len(snapshot_text) > max_chars:
-            snapshot_text = snapshot_text[:max_chars] + "\n... (truncated)"
+        # refs=aria keeps role snapshot structure but reuses numeric refs for direct actions.
+        if refs_mode == "aria":
+            logger.debug("refs=aria requested; using role refs due sidecar aria-ref limitations")
 
         return PageSnapshot(
             text=snapshot_text,
             url=url,
             title=title,
-            ref_count=len(seen_refs),
+            ref_count=len(refs),
+            refs=refs_dict,
+            stats={
+                "lines": stats.lines,
+                "chars": stats.chars,
+                "refs": stats.refs,
+                "interactive": stats.interactive,
+            },
         )
     
     async def _get_aria_snapshot(self) -> PageSnapshot:
@@ -820,6 +852,30 @@ class BrowserController:
             parts.append(f'"{display_name}"')
         
         return " ".join(parts) if parts else ""
+
+    def _resolve_ref_locator(self, ref: str):
+        """Resolve both numeric refs and role refs (e.g., e12)."""
+        if not self._page:
+            raise RuntimeError("Browser not connected")
+
+        role_ref_key = parse_role_ref(ref)
+        if role_ref_key:
+            role_ref = self._get_role_ref(role_ref_key, self._page)
+            if role_ref:
+                try:
+                    frame_selector = self._get_role_frame_selector(self._page)
+                    root = self._page.frame_locator(frame_selector) if frame_selector else self._page
+                    role_locator_kwargs: Dict[str, Any] = {}
+                    if role_ref.name:
+                        role_locator_kwargs["name"] = role_ref.name
+                    locator = root.get_by_role(role_ref.role, **role_locator_kwargs)
+                    if role_ref.nth is not None:
+                        locator = locator.nth(role_ref.nth)
+                    return locator
+                except Exception as e:
+                    logger.debug(f"Role ref resolution failed for {ref}: {e}")
+
+        return self._page.locator(f"[data-windie-ref='{ref}'], [aria-ref='{ref}']")
     
     async def click(
         self,
@@ -831,7 +887,7 @@ class BrowserController:
         if not self._page:
             raise RuntimeError("Browser not connected")
         
-        locator = self._page.locator(f"[data-windie-ref='{ref}'], [aria-ref='{ref}']")
+        locator = self._resolve_ref_locator(ref)
 
         try:
             if double_click:
@@ -884,7 +940,7 @@ class BrowserController:
             raise RuntimeError("Browser not connected")
         
         try:
-            locator = self._page.locator(f"[data-windie-ref='{ref}'], [aria-ref='{ref}']")
+            locator = self._resolve_ref_locator(ref)
             
             if clear_first:
                 await locator.fill(text)
@@ -954,7 +1010,7 @@ class BrowserController:
             raise RuntimeError("Browser not connected")
         
         if ref:
-            locator = self._page.locator(f"[data-windie-ref='{ref}'], [aria-ref='{ref}']")
+            locator = self._resolve_ref_locator(ref)
             return await locator.screenshot(type="png")
         else:
             return await self._page.screenshot(
@@ -1014,6 +1070,8 @@ class BrowserController:
             self._mode = None
             self._cdp_url = None
             self._ref_registry_by_tab.clear()
+            self._role_refs_by_tab.clear()
+            self._role_refs_frame_by_tab.clear()
             
         except Exception as e:
             logger.error(f"Error during browser close: {e}")
