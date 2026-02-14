@@ -232,6 +232,48 @@ class TestBrowserControllerActions:
 
         assert result["success"] is True
         self.controller._page.get_by_role.assert_called_once_with("button", name="Submit")
+
+    @pytest.mark.asyncio
+    async def test_click_role_ref_prefers_visible_in_viewport_candidate(self):
+        """Test role-ref click picks visible in-viewport match when duplicates exist."""
+        base_locator = mock.MagicMock()
+        base_locator.count = mock.AsyncMock(return_value=3)
+        base_locator.evaluate = mock.AsyncMock()
+
+        offscreen = mock.MagicMock()
+        offscreen.is_visible = mock.AsyncMock(return_value=True)
+        offscreen.bounding_box = mock.AsyncMock(return_value={"x": 0, "y": 1800, "width": 120, "height": 24})
+        offscreen.click = mock.AsyncMock()
+        offscreen.dblclick = mock.AsyncMock()
+
+        onscreen = mock.MagicMock()
+        onscreen.is_visible = mock.AsyncMock(return_value=True)
+        onscreen.bounding_box = mock.AsyncMock(return_value={"x": 10, "y": 120, "width": 120, "height": 24})
+        onscreen.click = mock.AsyncMock()
+        onscreen.dblclick = mock.AsyncMock()
+        onscreen.evaluate = mock.AsyncMock()
+
+        hidden = mock.MagicMock()
+        hidden.is_visible = mock.AsyncMock(return_value=False)
+        hidden.bounding_box = mock.AsyncMock(return_value=None)
+        hidden.click = mock.AsyncMock()
+        hidden.dblclick = mock.AsyncMock()
+
+        base_locator.nth.side_effect = [hidden, offscreen, onscreen]
+        self.controller._page.viewport_size = {"width": 1280, "height": 720}
+        self.controller._page.get_by_role.return_value = base_locator
+
+        target_id = str(id(self.controller._page))
+        self.controller._role_refs_by_tab[target_id] = {
+            "e9": RoleRef(role="combobox", name="Sort by:")
+        }
+        self.controller._role_refs_frame_by_tab[target_id] = None
+
+        result = await self.controller.click("e9")
+
+        assert result["success"] is True
+        onscreen.click.assert_awaited_once_with(button="left")
+        offscreen.click.assert_not_called()
     
     @pytest.mark.asyncio
     async def test_type_text(self):
