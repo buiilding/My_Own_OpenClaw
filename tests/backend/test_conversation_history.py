@@ -1,5 +1,6 @@
 import backend.src.services.token_service as token_service
 from backend.src.agent.session.state import ConversationHistory
+from backend.src.llm.providers.base import LLMProvider
 
 
 def test_get_history_includes_system_prompt_and_messages():
@@ -165,3 +166,43 @@ def test_replace_with_entries_rehydrates_order_and_images():
     assert [msg.content for msg in stored] == ["u1", "tool-1", "a1"]
     assert stored[0].image_data == "img-1"
     assert stored[1].image_data == "img-2"
+
+
+def test_replace_with_entries_preserves_assistant_tool_call_rows():
+    history = ConversationHistory(max_length=10)
+    history.replace_with_entries(
+        [
+            {
+                "role": "assistant",
+                "content": "",
+                "message_type": "tool-call",
+                "tool_calls": [
+                    {
+                        "id": "call_1",
+                        "name": "browser_navigate",
+                        "arguments": {"url": "https://example.com"},
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "content": "ok",
+                "message_type": "tool-output",
+                "tool_call_id": "call_1",
+            },
+        ]
+    )
+
+    llm_messages = history.get_history()
+    assert llm_messages[0]["role"] == "assistant"
+    assert llm_messages[0]["tool_calls"][0]["id"] == "call_1"
+    assert llm_messages[1]["role"] == "tool"
+    assert llm_messages[1]["tool_call_id"] == "call_1"
+
+    normalized = LLMProvider._normalize_messages_for_provider(
+        llm_messages,
+        model="k2p5",
+    )
+    assert len(normalized) == 2
+    assert normalized[0]["role"] == "assistant"
+    assert normalized[1]["role"] == "tool"
