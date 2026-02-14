@@ -82,12 +82,50 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
             return await _handle_evaluate(raw_args)
         elif action == "console":
             return await _handle_console(raw_args)
+        elif action == "errors":
+            return await _handle_errors(raw_args)
+        elif action == "requests":
+            return await _handle_requests(raw_args)
+        elif action == "trace_start":
+            return await _handle_trace_start(raw_args)
+        elif action == "trace_stop":
+            return await _handle_trace_stop(raw_args)
         elif action == "pdf":
             return await _handle_pdf(raw_args)
         elif action == "upload":
             return await _handle_upload(raw_args)
         elif action == "dialog":
             return await _handle_dialog(raw_args)
+        elif action == "cookies":
+            return await _handle_cookies(raw_args)
+        elif action == "cookies_set":
+            return await _handle_cookies_set(raw_args)
+        elif action == "cookies_clear":
+            return await _handle_cookies_clear(raw_args)
+        elif action == "storage_get":
+            return await _handle_storage_get(raw_args)
+        elif action == "storage_set":
+            return await _handle_storage_set(raw_args)
+        elif action == "storage_clear":
+            return await _handle_storage_clear(raw_args)
+        elif action == "set_offline":
+            return await _handle_set_offline(raw_args)
+        elif action == "set_headers":
+            return await _handle_set_headers(raw_args)
+        elif action == "set_credentials":
+            return await _handle_set_credentials(raw_args)
+        elif action == "set_geolocation":
+            return await _handle_set_geolocation(raw_args)
+        elif action == "set_media":
+            return await _handle_set_media(raw_args)
+        elif action == "set_timezone":
+            return await _handle_set_timezone(raw_args)
+        elif action == "set_locale":
+            return await _handle_set_locale(raw_args)
+        elif action == "set_device":
+            return await _handle_set_device(raw_args)
+        elif action == "highlight":
+            return await _handle_highlight(raw_args)
         elif action == "act":
             return await _handle_act(raw_args)
         elif action == "close":
@@ -483,11 +521,20 @@ async def _handle_screenshot(args: Dict[str, Any]) -> ToolResult:
     
     full_page = bool(args.get("full_page", False))
     ref = args.get("ref")
+    element = args.get("element")
+    image_type = args.get("type", "png")
+    if image_type not in ("png", "jpeg"):
+        return ToolResult.error_result("Invalid screenshot type. Use 'png' or 'jpeg'.")
+    quality_raw = args.get("quality")
+    quality = int(quality_raw) if isinstance(quality_raw, (int, float)) else None
 
     try:
         image_bytes = await controller.screenshot(
             full_page=full_page,
             ref=ref,
+            element=element if isinstance(element, str) else None,
+            image_type=image_type,
+            quality=quality,
         )
         
         # Convert to base64 for JSON serialization
@@ -495,9 +542,10 @@ async def _handle_screenshot(args: Dict[str, Any]) -> ToolResult:
         
         return ToolResult.success_result({
             "action": "screenshot",
-            "format": "png",
+            "format": image_type,
             "full_page": full_page,
             "ref": ref,
+            "element": element if isinstance(element, str) else None,
             "image_data": image_b64,
             "image_size_bytes": len(image_bytes),
         })
@@ -611,6 +659,10 @@ async def _handle_evaluate(args: Dict[str, Any]) -> ToolResult:
         return ToolResult.error_result(
             "Browser not connected. Run 'connect' action first."
         )
+
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
     
     script = args.get("script")
     if not isinstance(script, str):
@@ -660,6 +712,107 @@ async def _handle_console(args: Dict[str, Any]) -> ToolResult:
     })
 
 
+async def _handle_errors(args: Dict[str, Any]) -> ToolResult:
+    """Return captured page errors for the current tab."""
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    limit_raw = args.get("limit")
+    limit = int(limit_raw) if isinstance(limit_raw, (int, float)) else 100
+    clear = bool(args.get("clear", False))
+    errors = await _maybe_await(controller.get_page_errors(limit=limit, clear=clear))
+    if not isinstance(errors, list):
+        errors = []
+    return ToolResult.success_result({
+        "action": "errors",
+        "count": len(errors),
+        "errors": errors,
+        "cleared": clear,
+    })
+
+
+async def _handle_requests(args: Dict[str, Any]) -> ToolResult:
+    """Return captured network requests for the current tab."""
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    limit_raw = args.get("limit")
+    limit = int(limit_raw) if isinstance(limit_raw, (int, float)) else 100
+    contains = args.get("contains")
+    if contains is None:
+        contains = args.get("filter")
+    if contains is not None and not isinstance(contains, str):
+        contains = None
+    clear = bool(args.get("clear", False))
+    requests = await _maybe_await(
+        controller.get_network_requests(limit=limit, contains=contains, clear=clear)
+    )
+    if not isinstance(requests, list):
+        requests = []
+    return ToolResult.success_result({
+        "action": "requests",
+        "count": len(requests),
+        "requests": requests,
+        "cleared": clear,
+    })
+
+
+async def _handle_trace_start(args: Dict[str, Any]) -> ToolResult:
+    """Start Playwright tracing."""
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+
+    snapshots = bool(args.get("snapshots", True))
+    screenshots = bool(args.get("screenshots", True))
+    sources = bool(args.get("sources", True))
+    result = await controller.trace_start(
+        snapshots=snapshots,
+        screenshots=screenshots,
+        sources=sources,
+    )
+    if result.get("success"):
+        return ToolResult.success_result({
+            "action": "trace_start",
+            "snapshots": snapshots,
+            "screenshots": screenshots,
+            "sources": sources,
+        })
+    return ToolResult.error_result(result.get("error", "Trace start failed"))
+
+
+async def _handle_trace_stop(args: Dict[str, Any]) -> ToolResult:
+    """Stop Playwright tracing and return trace artifact bytes."""
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+
+    result = await controller.trace_stop()
+    if not result.get("success"):
+        return ToolResult.error_result(result.get("error", "Trace stop failed"))
+    trace_bytes = result.get("trace_bytes")
+    if not isinstance(trace_bytes, (bytes, bytearray)):
+        return ToolResult.error_result("Trace stop failed: missing trace bytes")
+    trace_b64 = base64.b64encode(bytes(trace_bytes)).decode("utf-8")
+    return ToolResult.success_result({
+        "action": "trace_stop",
+        "format": "zip",
+        "trace_data": trace_b64,
+        "trace_size_bytes": len(trace_bytes),
+    })
+
+
 async def _handle_pdf(args: Dict[str, Any]) -> ToolResult:
     """Generate page PDF."""
     controller = get_browser_controller()
@@ -677,6 +830,235 @@ async def _handle_pdf(args: Dict[str, Any]) -> ToolResult:
         "pdf_data": pdf_b64,
         "pdf_size_bytes": len(pdf_bytes),
     })
+
+
+async def _handle_cookies(args: Dict[str, Any]) -> ToolResult:
+    """Get browser cookies."""
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    cookies = await controller.get_cookies()
+    return ToolResult.success_result({
+        "action": "cookies",
+        "count": len(cookies),
+        "cookies": cookies,
+    })
+
+
+async def _handle_cookies_set(args: Dict[str, Any]) -> ToolResult:
+    """Set browser cookies."""
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    cookies = args.get("cookies")
+    if not isinstance(cookies, list) or not cookies:
+        return ToolResult.error_result("cookies_set requires non-empty 'cookies' array")
+    result = await controller.set_cookies(cookies)
+    if result.get("success"):
+        return ToolResult.success_result({"action": "cookies_set", **result})
+    return ToolResult.error_result(result.get("error", "Setting cookies failed"))
+
+
+async def _handle_cookies_clear(args: Dict[str, Any]) -> ToolResult:
+    """Clear browser cookies."""
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    result = await controller.clear_cookies()
+    if result.get("success"):
+        return ToolResult.success_result({"action": "cookies_clear"})
+    return ToolResult.error_result(result.get("error", "Clearing cookies failed"))
+
+
+def _normalize_storage_kind(args: Dict[str, Any]) -> str:
+    kind = args.get("kind")
+    if not isinstance(kind, str):
+        kind = "local"
+    kind = kind.strip().lower()
+    return "session" if kind == "session" else "local"
+
+
+async def _handle_storage_get(args: Dict[str, Any]) -> ToolResult:
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    kind = _normalize_storage_kind(args)
+    data = await controller.get_storage(kind)
+    return ToolResult.success_result({
+        "action": "storage_get",
+        "kind": kind,
+        "count": len(data),
+        "values": data,
+    })
+
+
+async def _handle_storage_set(args: Dict[str, Any]) -> ToolResult:
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    kind = _normalize_storage_kind(args)
+    values = args.get("values")
+    if not isinstance(values, dict):
+        key = args.get("key")
+        value = args.get("value")
+        if isinstance(key, str):
+            values = {key: "" if value is None else str(value)}
+        else:
+            return ToolResult.error_result("storage_set requires 'values' object or 'key'/'value'")
+    normalized = {str(k): str(v) for k, v in values.items()}
+    result = await controller.set_storage(kind, normalized)
+    return ToolResult.success_result({"action": "storage_set", "kind": kind, **result})
+
+
+async def _handle_storage_clear(args: Dict[str, Any]) -> ToolResult:
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    kind = _normalize_storage_kind(args)
+    result = await controller.clear_storage(kind)
+    return ToolResult.success_result({"action": "storage_clear", "kind": kind, **result})
+
+
+async def _handle_set_offline(args: Dict[str, Any]) -> ToolResult:
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    offline = bool(args.get("offline", args.get("enabled", True)))
+    result = await controller.set_offline(offline)
+    if result.get("success"):
+        return ToolResult.success_result({"action": "set_offline", **result})
+    return ToolResult.error_result(result.get("error", "set_offline failed"))
+
+
+async def _handle_set_headers(args: Dict[str, Any]) -> ToolResult:
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    if bool(args.get("clear", False)):
+        result = await controller.set_headers({})
+    else:
+        headers = args.get("headers")
+        if not isinstance(headers, dict):
+            return ToolResult.error_result("set_headers requires 'headers' object or clear=true")
+        result = await controller.set_headers({str(k): str(v) for k, v in headers.items()})
+    if result.get("success"):
+        return ToolResult.success_result({"action": "set_headers", **result})
+    return ToolResult.error_result(result.get("error", "set_headers failed"))
+
+
+async def _handle_set_credentials(args: Dict[str, Any]) -> ToolResult:
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    clear = bool(args.get("clear", False))
+    username = args.get("username")
+    password = args.get("password")
+    if username is None:
+        username = args.get("user")
+    result = await controller.set_http_credentials(
+        username=str(username) if username is not None else None,
+        password=str(password) if password is not None else None,
+        clear=clear,
+    )
+    if result.get("success"):
+        return ToolResult.success_result({"action": "set_credentials", **result})
+    return ToolResult.error_result(result.get("error", "set_credentials failed"))
+
+
+async def _handle_set_geolocation(args: Dict[str, Any]) -> ToolResult:
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    clear = bool(args.get("clear", False))
+    lat = args.get("latitude")
+    lon = args.get("longitude")
+    acc = args.get("accuracy")
+    result = await controller.set_geolocation(
+        latitude=float(lat) if isinstance(lat, (int, float)) else None,
+        longitude=float(lon) if isinstance(lon, (int, float)) else None,
+        accuracy=float(acc) if isinstance(acc, (int, float)) else None,
+        clear=clear,
+    )
+    if result.get("success"):
+        return ToolResult.success_result({"action": "set_geolocation", **result})
+    return ToolResult.error_result(result.get("error", "set_geolocation failed"))
+
+
+async def _handle_set_media(args: Dict[str, Any]) -> ToolResult:
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    media = args.get("media")
+    if media is not None and not isinstance(media, str):
+        media = None
+    color_scheme = args.get("color_scheme")
+    if color_scheme is None:
+        color_scheme = args.get("colorScheme")
+    if color_scheme is not None and not isinstance(color_scheme, str):
+        color_scheme = None
+    result = await controller.set_media(media=media, color_scheme=color_scheme)
+    if result.get("success"):
+        return ToolResult.success_result({"action": "set_media", **result})
+    return ToolResult.error_result(result.get("error", "set_media failed"))
+
+
+async def _handle_set_timezone(args: Dict[str, Any]) -> ToolResult:
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    timezone = args.get("timezone")
+    if not isinstance(timezone, str) or not timezone.strip():
+        return ToolResult.error_result("set_timezone requires non-empty 'timezone'")
+    result = await controller.set_timezone(timezone.strip())
+    if result.get("success"):
+        return ToolResult.success_result({"action": "set_timezone", **result})
+    return ToolResult.error_result(result.get("error", "set_timezone failed"))
+
+
+async def _handle_set_locale(args: Dict[str, Any]) -> ToolResult:
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    locale = args.get("locale")
+    if not isinstance(locale, str) or not locale.strip():
+        return ToolResult.error_result("set_locale requires non-empty 'locale'")
+    result = await controller.set_locale(locale.strip())
+    if result.get("success"):
+        return ToolResult.success_result({"action": "set_locale", **result})
+    return ToolResult.error_result(result.get("error", "set_locale failed"))
+
+
+async def _handle_set_device(args: Dict[str, Any]) -> ToolResult:
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    device = args.get("device")
+    if not isinstance(device, str) or not device.strip():
+        return ToolResult.error_result("set_device requires non-empty 'device'")
+    result = await controller.set_device(device.strip())
+    if result.get("success"):
+        return ToolResult.success_result({"action": "set_device", **result})
+    return ToolResult.error_result(result.get("error", "set_device failed"))
+
+
+async def _handle_highlight(args: Dict[str, Any]) -> ToolResult:
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
+    focus_error = await _focus_target_if_requested(controller, args)
+    if focus_error:
+        return focus_error
+    ref = args.get("ref")
+    if not isinstance(ref, str) or not ref.strip():
+        return ToolResult.error_result("highlight requires 'ref'")
+    duration_raw = args.get("duration_ms")
+    if duration_raw is None:
+        duration_raw = args.get("durationMs")
+    duration_ms = int(duration_raw) if isinstance(duration_raw, (int, float)) else 1000
+    result = await controller.highlight(ref=ref.strip(), duration_ms=duration_ms)
+    if result.get("success"):
+        return ToolResult.success_result({"action": "highlight", **result})
+    return ToolResult.error_result(result.get("error", "highlight failed"))
 
 
 async def _handle_upload(args: Dict[str, Any]) -> ToolResult:

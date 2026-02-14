@@ -41,8 +41,13 @@ Actions:
 - scroll: Scroll page (direction: up/down/left/right)
 - screenshot: Capture screenshot (optional full_page)
 - pdf: Capture page as PDF
-- upload/dialog: OpenClaw-compatible action names (dialog currently unsupported)
+- upload/dialog: File-input upload and dialog arming/wait handling
 - act: OpenClaw action envelope (`request.kind`)
+- errors/requests: Captured page errors and network request history
+- trace_start/trace_stop: Playwright tracing control
+- cookies*/storage*: Cookie and storage state management
+- set_*: Environment/state setters (offline, headers, credentials, geolocation, media, timezone, locale, device)
+- highlight: Visual highlight of an element ref
 - wait: Wait for load or time
 - get_tabs: List open tabs
 - switch_tab: Switch to tab (requires target_id)

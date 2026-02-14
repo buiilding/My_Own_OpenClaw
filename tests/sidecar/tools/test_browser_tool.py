@@ -225,6 +225,44 @@ class TestCompatibilityActions:
             assert result.data["armed"] is False
             assert result.data["handled"]["type"] == "alert"
 
+    @pytest.mark.asyncio
+    async def test_errors_action(self):
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.get_page_errors.return_value = [{"message": "boom"}]
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({"action": "errors"})
+            assert result.success is True
+            assert result.data["action"] == "errors"
+            assert result.data["count"] == 1
+
+    @pytest.mark.asyncio
+    async def test_requests_action(self):
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.get_network_requests.return_value = [{"id": "r1", "url": "https://example.com"}]
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({"action": "requests"})
+            assert result.success is True
+            assert result.data["action"] == "requests"
+            assert result.data["count"] == 1
+
+    @pytest.mark.asyncio
+    async def test_trace_start_action(self):
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.trace_start.return_value = {"success": True}
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({"action": "trace_start"})
+            assert result.success is True
+            assert result.data["action"] == "trace_start"
+
 
 class TestNavigateAction:
     """Test navigate action."""
@@ -466,6 +504,23 @@ class TestScreenshotAction:
             
             assert result.success is True
             assert result.data["ref"] == "5"
+
+    @pytest.mark.asyncio
+    async def test_screenshot_jpeg(self):
+        """Test jpeg screenshot option."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.screenshot.return_value = b"jpegdata"
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "screenshot",
+                "type": "jpeg",
+            })
+
+            assert result.success is True
+            assert result.data["format"] == "jpeg"
 
 
 class TestGetTabsAction:

@@ -262,6 +262,16 @@ class TestBrowserScreenshotArgs:
         )
         assert args.ref == "5"
 
+    def test_jpeg_screenshot(self):
+        """Test jpeg screenshot args."""
+        args = BrowserScreenshotArgs(
+            action="screenshot",
+            type="jpeg",
+            quality=80,
+        )
+        assert args.type == "jpeg"
+        assert args.quality == 80
+
 
 class TestBrowserWaitArgs:
     """Test BrowserWaitArgs schema."""
@@ -352,6 +362,9 @@ class TestSchemaRegistry:
         """Test getting compat schema for OpenClaw action names."""
         schema = get_browser_schema("act")
         assert schema is not None
+        assert get_browser_schema("errors") is not None
+        assert get_browser_schema("requests") is not None
+        assert get_browser_schema("set_offline") is not None
     
     def test_get_browser_schema_invalid(self):
         """Test getting invalid schema."""
