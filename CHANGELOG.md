@@ -41,6 +41,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- docs(tool-system): clarify `read_file` output budget details (default `offset=0`, `limit=2000`, per-line truncation at 500 chars) and add a worst-case token approximation note (~250k tokens at 4 chars/token)
 - fix(ci-frontend): run frontend CI on Node 20 and set `ELECTRON_SKIP_BINARY_DOWNLOAD=1` during `npm ci` to avoid Electron binary download failures in test-only jobs
 - feat(scroll-control): require manual `x`/`y` coordinates for `scroll_control` on backend + sidecar schemas, always move cursor to target before scrolling (including `scroll_up`/`scroll_down`), add regression coverage, and document the contract in `docs/TOOL_SYSTEM.md`
 - fix(sidecar-linux): make `switch_tab` title matching tolerant to Unicode punctuation/case differences and conservative fuzzy matches (with ambiguity rejection) by selecting best window from `get_open_windows` and activating its `hwnd`
