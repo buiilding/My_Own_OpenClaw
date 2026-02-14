@@ -17,6 +17,7 @@ from tools.browser.controller import (
     get_browser_controller,
     reset_browser_controller,
 )
+from tools.browser.role_snapshot import RoleRef
 
 
 class TestPageSnapshot:
@@ -211,6 +212,26 @@ class TestBrowserControllerActions:
         result = await self.controller.click("1")
         
         assert result["success"] is False
+
+    @pytest.mark.asyncio
+    async def test_click_role_ref(self):
+        """Test clicking using role-based ref (eN)."""
+        role_locator = mock.MagicMock()
+        role_locator.click = mock.AsyncMock()
+        role_locator.dblclick = mock.AsyncMock()
+        role_locator.evaluate = mock.AsyncMock()
+        self.controller._page.get_by_role.return_value = role_locator
+
+        target_id = str(id(self.controller._page))
+        self.controller._role_refs_by_tab[target_id] = {
+            "e1": RoleRef(role="button", name="Submit")
+        }
+        self.controller._role_refs_frame_by_tab[target_id] = None
+
+        result = await self.controller.click("e1")
+
+        assert result["success"] is True
+        self.controller._page.get_by_role.assert_called_once_with("button", name="Submit")
     
     @pytest.mark.asyncio
     async def test_type_text(self):

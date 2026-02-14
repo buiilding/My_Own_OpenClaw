@@ -123,7 +123,7 @@ Wait options: `load`, `domcontentloaded`, `networkidle`, `commit`
 
 ### 3. Snapshot
 
-Get page overview with numbered element references.
+Get page overview with element references and optional rich contextual role snapshots.
 
 Notes:
 - Refs are designed to be stable across repeated snapshots on the same page/tab, but can still change if the page navigates or the DOM replaces elements.
@@ -133,7 +133,7 @@ Notes:
 {
   "action": "snapshot",
   "format": "ai",
-  "max_chars": 5000
+  "max_chars": 80000
 }
 ```
 
@@ -142,30 +142,36 @@ Notes:
 Title: GitHub
 URL: https://github.com
 
+Interactive elements:
 [1] link "Sign in"
 [2] link "Sign up"
 [3] searchbox "Search"
 [4] button "Search GitHub"
+
+Page structure:
+- banner:
+  - link "Skip to content"
+  - navigation:
+    - link "Product"
+...
 ```
 
-**DOM Compact Output (grouped):**
+**Role Snapshot (OpenClaw-style, more context control):**
 ```json
 {
   "action": "snapshot",
-  "format": "dom_compact",
-  "max_chars": 5000
+  "format": "ai",
+  "mode": "efficient"
 }
 ```
 ```
 Title: GitHub
 URL: https://github.com
 
-<main>
-  [3] searchbox "Search"
-  [4] button "Search GitHub"
-<nav>
-  [1] link "Sign in"
-  [2] link "Sign up"
+- link "Sign in" [ref=e1]
+- link "Sign up" [ref=e2]
+- searchbox "Search" [ref=e3]
+- button "Search GitHub" [ref=e4]
 ```
 
 **ARIA Format Output:**
@@ -174,6 +180,21 @@ URL: https://github.com
 - link: "Sign in"
 - searchbox: "Search"
 ```
+
+Snapshot options:
+- `format`: `ai` (default) or `aria`
+- `max_chars`: optional cap for `ai` format
+- `mode: "efficient"`: sets `interactive=true`, `compact=true`, `depth=6`, and `max_chars=10000` (unless you pass `max_chars`)
+- `interactive`: only interactive roles in role snapshot
+- `compact`: prune structural noise in role snapshot
+- `depth`: max role snapshot depth
+- `selector`: scope role snapshot to a CSS selector
+- `frame`: scope role snapshot to an iframe selector
+- `refs`: `role` (default) or `aria`
+
+Defaults:
+- `ai` snapshot default budget: `80000` chars
+- `ai` + `mode="efficient"` default budget: `10000` chars
 
 ### 4. Click
 
@@ -186,6 +207,8 @@ Click an element by reference.
   "button": "left"
 }
 ```
+
+`ref` can be numeric (`"12"`) or role-based (`"e12"`).
 
 Options:
 - `double_click: true` - Double click

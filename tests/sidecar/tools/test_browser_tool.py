@@ -209,6 +209,38 @@ class TestSnapshotAction:
             assert result.data["format"] == "ai"
             assert result.data["ref_count"] == 1
             assert "refs" not in result.data
+            assert "stats" not in result.data
+
+    @pytest.mark.asyncio
+    async def test_snapshot_efficient_role_output(self):
+        """Test efficient role snapshot output includes refs and stats."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+
+            from tools.browser.controller import PageSnapshot
+
+            mock_controller.get_page_snapshot.return_value = PageSnapshot(
+                text='- button "Submit" [ref=e1]',
+                url="https://example.com",
+                title="Example",
+                ref_count=1,
+                refs={"e1": {"role": "button", "name": "Submit"}},
+                stats={"lines": 1, "chars": 26, "refs": 1, "interactive": 1},
+            )
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "snapshot",
+                "format": "ai",
+                "mode": "efficient",
+            })
+
+            assert result.success is True
+            assert result.data["format"] == "ai"
+            assert result.data["ref_count"] == 1
+            assert "refs" in result.data
+            assert "stats" in result.data
     
     @pytest.mark.asyncio
     async def test_snapshot_not_connected(self):

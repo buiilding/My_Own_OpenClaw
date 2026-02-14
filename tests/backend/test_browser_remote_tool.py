@@ -108,7 +108,7 @@ class TestBrowserControlArgs:
         """Test default values."""
         args = BrowserControlArgs(action="snapshot")
         assert args.format == "ai"
-        assert args.max_chars == 5000
+        assert args.max_chars is None
         assert args.button == "left"
         assert args.direction == "down"
         assert args.amount == 500
