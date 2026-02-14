@@ -50,7 +50,7 @@ If you prefer to start Chrome manually:
 
 **Linux:**
 ```bash
-google-chrome --remote-debugging-port=9222
+google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.config/google-chrome-cdp" --profile-directory="Default"
 ```
 
 **macOS:**
@@ -463,7 +463,7 @@ Notes:
    /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
 
    # Linux
-   google-chrome --remote-debugging-port=9222
+   google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.config/google-chrome-cdp" --profile-directory="Default"
 
    # Windows
    "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222

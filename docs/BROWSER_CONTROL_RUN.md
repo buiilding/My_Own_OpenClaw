@@ -42,7 +42,7 @@ That's it! Chrome will be **automatically launched** with CDP enabled.
 
 **Linux:**
 ```bash
-google-chrome --remote-debugging-port=9222
+google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.config/google-chrome-cdp" --profile-directory="Default"
 ```
 
 **macOS:**
@@ -289,7 +289,7 @@ pkill chrome  # Linux/Mac
 taskkill /F /IM chrome.exe  # Windows
 
 # Start with CDP
-google-chrome --remote-debugging-port=9222
+google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.config/google-chrome-cdp" --profile-directory="Default"
 ```
 
 ### "ModuleNotFoundError: No module named 'playwright'"

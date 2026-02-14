@@ -146,43 +146,42 @@ class TestGetChromeUserDataDir:
     """Test get_chrome_user_data_dir function."""
     
     @mock.patch("platform.system")
-    @mock.patch("pathlib.Path.exists")
     @mock.patch("pathlib.Path.home")
-    def test_macos_path(self, mock_home, mock_exists, mock_system):
+    def test_macos_path(self, mock_home, mock_system):
         """Test macOS user data path."""
         mock_system.return_value = "Darwin"
         mock_home.return_value = Path("/Users/test")
-        mock_exists.return_value = True
         
         result = get_chrome_user_data_dir()
         
         assert result is not None
-        assert "Library/Application Support/Google/Chrome" in str(result)
+        assert "Library/Application Support/Google/Chrome-cdp" in str(result)
     
     @mock.patch("platform.system")
-    @mock.patch("pathlib.Path.exists")
     @mock.patch("pathlib.Path.home")
-    def test_linux_path(self, mock_home, mock_exists, mock_system):
+    def test_linux_path(self, mock_home, mock_system):
         """Test Linux user data path."""
         mock_system.return_value = "Linux"
         mock_home.return_value = Path("/home/test")
-        mock_exists.return_value = True
         
         result = get_chrome_user_data_dir()
         
         assert result is not None
-        assert ".config/google-chrome" in str(result)
+        assert ".config/google-chrome-cdp" in str(result)
     
     @mock.patch("platform.system")
-    @mock.patch("pathlib.Path.exists")
-    def test_not_found(self, mock_exists, mock_system):
-        """Test when user data dir not found."""
-        mock_system.return_value = "Linux"
-        mock_exists.return_value = False
+    @mock.patch("os.environ.get")
+    @mock.patch("pathlib.Path.home")
+    def test_windows_path(self, mock_home, mock_env_get, mock_system):
+        """Test Windows user data path."""
+        mock_system.return_value = "Windows"
+        mock_home.return_value = Path("C:/Users/test")
+        mock_env_get.return_value = "C:/Users/test/AppData/Local"
         
         result = get_chrome_user_data_dir()
         
-        assert result is None
+        assert result is not None
+        assert "Google/Chrome/User Data-cdp" in str(result)
 
 
 class TestLaunchChromeWithCdp:
@@ -190,11 +189,13 @@ class TestLaunchChromeWithCdp:
     
     @pytest.mark.asyncio
     @mock.patch("tools.browser.chrome_launcher.find_chrome_executable")
+    @mock.patch("tools.browser.chrome_launcher.get_chrome_user_data_dir")
     @mock.patch("subprocess.Popen")
     @mock.patch("tools.browser.chrome_launcher.is_cdp_available")
-    async def test_launch_success(self, mock_available, mock_popen, mock_find):
+    async def test_launch_success(self, mock_available, mock_popen, mock_user_data_dir, mock_find):
         """Test successful Chrome launch."""
         mock_find.return_value = mock.Mock(path="/usr/bin/chrome")
+        mock_user_data_dir.return_value = Path("/tmp/test-google-chrome-cdp")
         mock_process = mock.Mock()
         mock_process.poll.return_value = None
         mock_popen.return_value = mock_process
@@ -205,6 +206,10 @@ class TestLaunchChromeWithCdp:
         assert process is mock_process
         assert "9222" in cdp_url
         mock_popen.assert_called_once()
+        launch_args = mock_popen.call_args.args[0]
+        assert "--user-data-dir=/tmp/test-google-chrome-cdp" in launch_args
+        assert "--profile-directory=Default" in launch_args
+        assert "--no-first-run" not in launch_args
     
     @pytest.mark.asyncio
     @mock.patch("tools.browser.chrome_launcher.find_chrome_executable")
@@ -217,11 +222,13 @@ class TestLaunchChromeWithCdp:
     
     @pytest.mark.asyncio
     @mock.patch("tools.browser.chrome_launcher.find_chrome_executable")
+    @mock.patch("tools.browser.chrome_launcher.get_chrome_user_data_dir")
     @mock.patch("subprocess.Popen")
     @mock.patch("tools.browser.chrome_launcher.is_cdp_available")
-    async def test_launch_timeout(self, mock_available, mock_popen, mock_find):
+    async def test_launch_timeout(self, mock_available, mock_popen, mock_user_data_dir, mock_find):
         """Test when Chrome fails to start within timeout."""
         mock_find.return_value = mock.Mock(path="/usr/bin/chrome")
+        mock_user_data_dir.return_value = Path("/tmp/test-google-chrome-cdp")
         mock_process = mock.Mock()
         mock_process.poll.return_value = None
         mock_popen.return_value = mock_process
