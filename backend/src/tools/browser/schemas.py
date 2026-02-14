@@ -63,11 +63,11 @@ class BrowserSnapshotArgs(BaseModel):
     )
     mode: Optional[Literal["efficient"]] = Field(
         None,
-        description="Optional snapshot mode. 'efficient' enables interactive+compact+depth defaults."
+        description="Optional snapshot mode. 'efficient' enables interactive+compact+depth defaults (also used by default for ai snapshots when mode is omitted)."
     )
     max_chars: Optional[int] = Field(
         None,
-        description="Optional max characters in snapshot (defaults to 80,000 for ai; 10,000 in efficient mode)",
+        description="Optional max characters in snapshot (defaults to 12,000 for ai; 8,000 in efficient mode)",
         ge=100,
         le=120000,
     )
@@ -425,7 +425,7 @@ class BrowserControlArgs(BaseModel):
     )
     max_chars: Optional[int] = Field(
         None,
-        description="Optional max snapshot chars (defaults to 80,000 for ai; 10,000 in efficient mode)",
+        description="Optional max snapshot chars (defaults to 12,000 for ai; 8,000 in efficient mode)",
         ge=100,
         le=120000
     )

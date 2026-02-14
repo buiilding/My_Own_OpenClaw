@@ -133,7 +133,7 @@ Notes:
 {
   "action": "snapshot",
   "format": "ai",
-  "max_chars": 80000
+  "max_chars": 12000
 }
 ```
 
@@ -147,13 +147,6 @@ Interactive elements:
 [2] link "Sign up"
 [3] searchbox "Search"
 [4] button "Search GitHub"
-
-Page structure:
-- banner:
-  - link "Skip to content"
-  - navigation:
-    - link "Product"
-...
 ```
 
 **Role Snapshot (OpenClaw-style, more context control):**
@@ -184,7 +177,7 @@ URL: https://github.com
 Snapshot options:
 - `format`: `ai` (default) or `aria`
 - `max_chars`: optional cap for `ai` format
-- `mode: "efficient"`: sets `interactive=true`, `compact=true`, `depth=6`, and `max_chars=10000` (unless you pass `max_chars`)
+- `mode: "efficient"`: sets `interactive=true`, `compact=true`, `depth=4`, and `max_chars=8000` (unless you pass `max_chars`)
 - `interactive`: only interactive roles in role snapshot
 - `compact`: prune structural noise in role snapshot
 - `depth`: max role snapshot depth
@@ -193,8 +186,9 @@ Snapshot options:
 - `refs`: `role` (default) or `aria`
 
 Defaults:
-- `ai` snapshot default budget: `80000` chars
-- `ai` + `mode="efficient"` default budget: `10000` chars
+- `ai` snapshots default to `mode="efficient"` when mode is omitted
+- `ai` snapshot default budget: `8000` chars (efficient default behavior)
+- `ai` non-efficient budget: `12000` chars
 
 ### 4. Click
 
