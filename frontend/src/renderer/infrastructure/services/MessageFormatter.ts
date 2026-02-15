@@ -49,6 +49,14 @@ function asResultDataObject(data: ToolResult['data']): Record<string, any> | nul
   return null;
 }
 
+function renderSnapshotText(text: string): string {
+  return text
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\n')
+    .replace(/\\t/g, '\t');
+}
+
 function extractToolContent(data: ToolResult['data']): string {
   if (!data) {
     return 'No output';
@@ -80,7 +88,7 @@ function extractToolContent(data: ToolResult['data']): string {
       snapshotSections.push(JSON.stringify(snapshotMeta, null, 2));
     }
     snapshotSections.push('Snapshot:');
-    snapshotSections.push(snapshotText);
+    snapshotSections.push(renderSnapshotText(snapshotText));
     return snapshotSections.join('\n\n');
   }
 
@@ -99,7 +107,7 @@ function extractToolContent(data: ToolResult['data']): string {
     if (Object.keys(postActionMeta).length > 0) {
       snapshotSections.push(JSON.stringify(postActionMeta, null, 2));
     }
-    snapshotSections.push(postActionSnapshotText);
+    snapshotSections.push(renderSnapshotText(postActionSnapshotText));
     return snapshotSections.join('\n\n');
   }
 

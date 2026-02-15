@@ -256,6 +256,26 @@ describe('MessageFormatter', () => {
     expect(output).toContain('status: successful');
   });
 
+  test('formatToolOutputMessage unescapes literal newline sequences in snapshot text', () => {
+    const output = formatToolOutputMessage(
+      'wait',
+      {
+        success: true,
+        data: {
+          action: 'wait',
+          post_action_snapshot: {
+            action: 'snapshot',
+            snapshot: 'Title: Product\\n- link "Buy now" [ref=e2]',
+          },
+        },
+      },
+      null,
+    );
+
+    expect(output).toContain('Title: Product\n- link "Buy now" [ref=e2]');
+    expect(output).not.toContain('Title: Product\\n- link "Buy now" [ref=e2]');
+  });
+
   test('formatBundledToolOutputMessage prefers _rawResult payload when provided', () => {
     const output = formatBundledToolOutputMessage(
       [
