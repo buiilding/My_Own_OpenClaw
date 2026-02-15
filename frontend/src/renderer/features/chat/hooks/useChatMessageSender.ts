@@ -21,6 +21,7 @@ import {
   hasUserMessages,
   toScreenshotAttachment,
 } from '../utils/chatMessageSenderUtils';
+import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 
 type ChatMessageSenderOptions = {
   returnToChatboxOnSend?: boolean;
@@ -38,7 +39,9 @@ export function useChatMessageSender(
   const updateMessage = useChatStore((state) => state.updateMessage);
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const { config } = useAppConfigContext();
   const { returnToChatboxOnSend = false } = options;
+  const includeQueryScreenshot = config?.include_query_screenshot ?? true;
 
   const appendSendFailureMessage = useCallback(() => {
     addMessage({
@@ -90,24 +93,25 @@ export function useChatMessageSender(
       }
     }
     
-    // Extract OS state (screenshot and system state).
-    const isFirstUserMessage = !hadUserMessages;
-    
     let screenshot: string | null = null;
     let screenshotContentType: string | null = null;
-    try {
-      const osStateResult = await extractOSstate(
-        true,  // enable_screenshot
-        false, // enable_system_state (unused for user-message send path)
-        0,     // wait (0 seconds for user messages)
-        isFirstUserMessage  // is_first_user_message
-      );
-      
-      screenshot = osStateResult.screenshot;
-      screenshotContentType = osStateResult.screenshotContentType;
-    } catch (error) {
-      console.error('[useChatMessageSender] Failed to extract OS state:', error);
-      // Continue without screenshot/system state if capture fails
+    if (includeQueryScreenshot) {
+      // Extract OS state (screenshot and system state).
+      const isFirstUserMessage = !hadUserMessages;
+      try {
+        const osStateResult = await extractOSstate(
+          true,  // enable_screenshot
+          false, // enable_system_state (unused for user-message send path)
+          0,     // wait (0 seconds for user messages)
+          isFirstUserMessage  // is_first_user_message
+        );
+
+        screenshot = osStateResult.screenshot;
+        screenshotContentType = osStateResult.screenshotContentType;
+      } catch (error) {
+        console.error('[useChatMessageSender] Failed to extract OS state:', error);
+        // Continue without screenshot/system state if capture fails
+      }
     }
 
     let uploaded = null;
@@ -153,6 +157,7 @@ export function useChatMessageSender(
     setThinkingStatus,
     stopPlayback,
     returnToChatboxOnSend,
+    includeQueryScreenshot,
     ensureConversationRef,
   ]);
 

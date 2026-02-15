@@ -351,7 +351,8 @@ Update application configuration.
   "model_provider": "openai" | "anthropic" | ...,
   "selected_model_id": "gpt-5.1",
   "voice_mode_enabled": true | false,
-  "speech_mode_enabled": true | false
+  "speech_mode_enabled": true | false,
+  "include_query_screenshot": true | false
 }
 ```
 
@@ -370,7 +371,8 @@ Payload shape is validated at message-parse time; value semantics are validated 
     "model_provider": "openai",
     "selected_model_id": "gpt-5.1",
     "voice_mode_enabled": false,
-    "speech_mode_enabled": true
+    "speech_mode_enabled": true,
+    "include_query_screenshot": true
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }
@@ -695,7 +697,8 @@ Response to load-settings request.
     "model_provider": "openai",
     "selected_model_id": "gpt-5.1",
     "voice_mode_enabled": false,
-    "speech_mode_enabled": true
+    "speech_mode_enabled": true,
+    "include_query_screenshot": true
   }
 }
 ```
@@ -713,7 +716,8 @@ Response to load-settings request.
       "model_provider": "openai",
       "selected_model_id": "gpt-5.1",
       "voice_mode_enabled": false,
-      "speech_mode_enabled": true
+      "speech_mode_enabled": true,
+      "include_query_screenshot": true
     }
   },
   "timestamp": "2025-01-20T10:00:00Z"

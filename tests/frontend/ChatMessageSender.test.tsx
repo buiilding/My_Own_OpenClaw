@@ -12,6 +12,16 @@ import {
   setActiveConversationRef,
 } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
 
+let mockFrontendConfig: Record<string, unknown> = {
+  include_query_screenshot: true,
+};
+
+jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
+  useAppConfigContext: jest.fn(() => ({
+    config: mockFrontendConfig,
+  })),
+}));
+
 jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', () => ({
   extractOSstate: jest.fn(),
 }));
@@ -55,6 +65,7 @@ describe('useChatMessageSender', () => {
     mockSendQuery.mockReset();
     mockUploadArtifactBase64.mockReset();
     mockActiveConversationRef = null;
+    mockFrontendConfig = { include_query_screenshot: true };
     mockGetActiveConversationRef.mockClear();
     mockSetActiveConversationRef.mockClear();
     mockGetTranscriptSessionInfo.mockClear();
@@ -181,6 +192,21 @@ describe('useChatMessageSender', () => {
       0,
       false,
     );
+  });
+
+  test('skips screenshot capture when include_query_screenshot is disabled', async () => {
+    mockFrontendConfig = { include_query_screenshot: false };
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, { returnToChatboxOnSend: false }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('no image');
+    });
+
+    expect(mockExtractOSstate).not.toHaveBeenCalled();
+    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
+    expect(mockSendQuery).toHaveBeenCalledWith('no image', 'conv_msg-1', null, null);
   });
 
   test('calls stopPlayback when provided', async () => {

@@ -100,6 +100,7 @@ class UpdateSettingsPayload(BaseModel):
     interaction_mode: Optional[str] = None
     voice_mode_enabled: Optional[bool] = None
     speech_mode_enabled: Optional[bool] = None
+    include_query_screenshot: Optional[bool] = None
 
 
 class UpdateSettingsMessage(BaseMessage):

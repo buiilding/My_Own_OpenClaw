@@ -17,6 +17,7 @@ export const DEFAULT_FRONTEND_CONFIG = {
   interaction_mode: 'chat',
   voice_mode_enabled: false,
   speech_mode_enabled: false,
+  include_query_screenshot: true,
 };
 
 function buildFrontendConfig(overrides = {}) {

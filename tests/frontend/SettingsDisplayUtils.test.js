@@ -1,4 +1,5 @@
 import {
+  buildQueryScreenshotConfigUpdate,
   buildSpeechModeConfigUpdate,
   buildVoiceModeConfigUpdate,
   findDisplayById,
@@ -80,6 +81,15 @@ describe('settingsDisplayUtils', () => {
     });
     expect(buildVoiceModeConfigUpdate(null, false)).toEqual({
       voice_mode_enabled: false,
+    });
+  });
+
+  test('buildQueryScreenshotConfigUpdate updates include-query-screenshot only', () => {
+    expect(buildQueryScreenshotConfigUpdate({}, true)).toEqual({
+      include_query_screenshot: true,
+    });
+    expect(buildQueryScreenshotConfigUpdate(null, false)).toEqual({
+      include_query_screenshot: false,
     });
   });
 });

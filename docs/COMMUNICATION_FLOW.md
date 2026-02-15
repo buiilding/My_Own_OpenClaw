@@ -174,7 +174,7 @@ so memory embedding/summarization calls target the same backend host.
 
 **`update-settings`**
 - Purpose: Apply frontend-owned config fields to the active backend session.
-- Payload: `{ model_mode?, model_provider?, selected_model_id?, interaction_mode?, voice_mode_enabled?, speech_mode_enabled? }`
+- Payload: `{ model_mode?, model_provider?, selected_model_id?, interaction_mode?, voice_mode_enabled?, speech_mode_enabled?, include_query_screenshot? }`
 - Response: `settings-updated`
 
 **`wakeword-detected`**

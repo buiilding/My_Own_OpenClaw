@@ -868,6 +868,7 @@ async def test_load_settings_handler_returns_frontend_config():
     assert websocket.sent
     assert websocket.sent[0]["type"] == "settings-loaded"
     assert websocket.sent[0]["payload"]["config"] == {
+        "include_query_screenshot": True,
         "interaction_mode": "chat",
         "model_mode": "online",
         "model_provider": "openai",

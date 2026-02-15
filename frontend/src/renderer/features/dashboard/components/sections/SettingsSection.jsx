@@ -4,6 +4,7 @@ import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridg
 import { useAppConfigContext } from '../../../../app/providers/AppContextHooks';
 import { getStoredDisplayId, persistDisplaySelection } from '../../../../utils/displaySelection';
 import {
+  buildQueryScreenshotConfigUpdate,
   buildSpeechModeConfigUpdate,
   buildVoiceModeConfigUpdate,
   findDisplayById,
@@ -20,6 +21,7 @@ function SettingsSection({ config, onConfigChange }) {
 
   const speechModeEnabled = config?.speech_mode_enabled ?? false;
   const voiceModeEnabled = config?.voice_mode_enabled ?? false;
+  const includeQueryScreenshot = config?.include_query_screenshot ?? true;
 
   useEffect(() => {
     let mounted = true;
@@ -58,6 +60,10 @@ function SettingsSection({ config, onConfigChange }) {
 
   const handleVoiceModeToggle = (enabled) => {
     onConfigChange(buildVoiceModeConfigUpdate(config, enabled));
+  };
+
+  const handleQueryScreenshotToggle = (enabled) => {
+    onConfigChange(buildQueryScreenshotConfigUpdate(config, enabled));
   };
 
   return (
@@ -152,6 +158,21 @@ function SettingsSection({ config, onConfigChange }) {
             </select>
           )}
         </div>
+        <div className="settings-field">
+          <label className="toggle-label">
+            <span>Attach Image To User Query</span>
+            <div className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={includeQueryScreenshot}
+                onChange={(event) => handleQueryScreenshotToggle(event.target.checked)}
+                className="toggle-input"
+              />
+              <span className="toggle-slider"></span>
+            </div>
+          </label>
+          <p className="settings-help">When enabled, each user query includes the latest screenshot as image context.</p>
+        </div>
       </section>
 
       <section className="settings-section">
@@ -182,6 +203,7 @@ SettingsSection.propTypes = {
     interaction_mode: PropTypes.string,
     voice_mode_enabled: PropTypes.bool,
     speech_mode_enabled: PropTypes.bool,
+    include_query_screenshot: PropTypes.bool,
   }),
   onConfigChange: PropTypes.func.isRequired,
 };
