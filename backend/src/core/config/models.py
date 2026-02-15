@@ -198,6 +198,7 @@ class AppConfig(BaseModel):
     
     # Voice Mode Settings
     voice_mode_enabled: bool = False
+    include_query_screenshot: bool = True
 
     # Wakeword Settings
     wakeword_enabled: bool = True

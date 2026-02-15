@@ -32,6 +32,7 @@ class FrontendConfigPatch(BaseModel):
     interaction_mode: Optional[Literal["chat", "agent"]] = None
     voice_mode_enabled: Optional[bool] = None
     speech_mode_enabled: Optional[bool] = None
+    include_query_screenshot: Optional[bool] = None
 
 
 class ValidationError(Exception):

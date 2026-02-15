@@ -109,11 +109,13 @@ def test_validate_frontend_config_allows_subset_and_validates_values():
         "model_mode": "online",
         "selected_model_id": "gpt-5.1",
         "voice_mode_enabled": False,
+        "include_query_screenshot": True,
         "not_allowed": "ignored",
     }
     validated = validate_frontend_config(payload)
     assert "not_allowed" not in validated
     assert validated["model_mode"] == "online"
+    assert validated["include_query_screenshot"] is True
 
     with pytest.raises(ValidationError):
         validate_frontend_config({"model_mode": "invalid"})

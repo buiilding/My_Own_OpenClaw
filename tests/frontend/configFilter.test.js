@@ -11,6 +11,7 @@ describe('configFilter', () => {
       selected_model_id: 'gpt-5.1',
       voice_mode_enabled: false,
       speech_mode_enabled: true,
+      include_query_screenshot: false,
       extra: 'ignore',
     });
 
@@ -20,6 +21,7 @@ describe('configFilter', () => {
       selected_model_id: 'gpt-5.1',
       voice_mode_enabled: false,
       speech_mode_enabled: true,
+      include_query_screenshot: false,
     });
   });
 

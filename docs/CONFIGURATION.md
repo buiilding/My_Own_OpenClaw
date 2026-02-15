@@ -91,7 +91,7 @@ AppConfig controls HTTP artifact storage used for screenshots:
 
 ## Frontend Configuration (Local)
 
-The UI stores a minimal settings payload (model selection + voice toggles) locally. These values are pushed to the backend via `update-settings` and applied to the user session on the next query.
+The UI stores a minimal settings payload (model selection + voice/screenshot toggles) locally. These values are pushed to the backend via `update-settings` and applied to the user session on the next query.
 
 ### Stored Fields
 
@@ -102,6 +102,7 @@ The frontend only persists these fields:
 - `selected_model_id`
 - `voice_mode_enabled`
 - `speech_mode_enabled`
+- `include_query_screenshot` (defaults to `true`; controls whether user queries include screenshot image context)
 
 ### Storage Locations
 

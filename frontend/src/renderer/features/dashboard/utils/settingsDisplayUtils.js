@@ -37,3 +37,9 @@ export function buildVoiceModeConfigUpdate(_config, enabled) {
     voice_mode_enabled: enabled,
   };
 }
+
+export function buildQueryScreenshotConfigUpdate(_config, enabled) {
+  return {
+    include_query_screenshot: enabled,
+  };
+}
