@@ -203,6 +203,59 @@ describe('MessageFormatter', () => {
     expect(output).toContain('State of the screen after screenshot was executed:');
   });
 
+  test('formatToolOutputMessage renders top-level snapshot as readable text', () => {
+    const output = formatToolOutputMessage(
+      'snapshot',
+      {
+        success: true,
+        data: {
+          action: 'snapshot',
+          format: 'ai',
+          url: 'https://example.com',
+          snapshot: 'Title: Example\n- button "Continue" [ref=e1]',
+        },
+      },
+      null,
+    );
+
+    expect(output).toContain('snapshot output:');
+    expect(output).toContain('"action": "snapshot"');
+    expect(output).toContain('Snapshot:');
+    expect(output).toContain('Title: Example');
+    expect(output).not.toContain('"snapshot":');
+    expect(output).toContain('status: successful');
+  });
+
+  test('formatToolOutputMessage renders post_action_snapshot as readable text', () => {
+    const output = formatToolOutputMessage(
+      'wait',
+      {
+        success: true,
+        data: {
+          action: 'wait',
+          type: 'time',
+          seconds: 2,
+          post_action_snapshot: {
+            action: 'snapshot',
+            format: 'ai',
+            url: 'https://example.com/product',
+            snapshot: 'Title: Product\n- link "Buy now" [ref=e2]',
+          },
+        },
+      },
+      null,
+    );
+
+    expect(output).toContain('wait output:');
+    expect(output).toContain('"action": "wait"');
+    expect(output).toContain('"seconds": 2');
+    expect(output).toContain('Post-action snapshot:');
+    expect(output).toContain('"action": "snapshot"');
+    expect(output).toContain('Title: Product');
+    expect(output).not.toContain('"post_action_snapshot":');
+    expect(output).toContain('status: successful');
+  });
+
   test('formatBundledToolOutputMessage prefers _rawResult payload when provided', () => {
     const output = formatBundledToolOutputMessage(
       [

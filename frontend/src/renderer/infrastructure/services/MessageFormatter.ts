@@ -39,6 +39,7 @@ const NON_TEXT_DATA_KEYS = new Set([
   'screenshot_ref',
   'screenshot_content_type',
   'system_state',
+  'post_action_snapshot',
 ]);
 
 function asResultDataObject(data: ToolResult['data']): Record<string, any> | null {
@@ -60,6 +61,46 @@ function extractToolContent(data: ToolResult['data']): string {
   const objectData = asResultDataObject(data);
   if (!objectData) {
     return 'No output';
+  }
+
+  const postActionSnapshot = asResultDataObject(objectData.post_action_snapshot);
+  const postActionSnapshotText = typeof postActionSnapshot?.snapshot === 'string'
+    ? postActionSnapshot.snapshot
+    : null;
+  const snapshotText = typeof objectData.snapshot === 'string'
+    ? objectData.snapshot
+    : null;
+
+  const snapshotSections: string[] = [];
+  if (snapshotText) {
+    const snapshotMeta = Object.fromEntries(
+      Object.entries(objectData).filter(([key]) => !NON_TEXT_DATA_KEYS.has(key) && key !== 'snapshot'),
+    );
+    if (Object.keys(snapshotMeta).length > 0) {
+      snapshotSections.push(JSON.stringify(snapshotMeta, null, 2));
+    }
+    snapshotSections.push('Snapshot:');
+    snapshotSections.push(snapshotText);
+    return snapshotSections.join('\n\n');
+  }
+
+  if (postActionSnapshotText) {
+    const baseTextData = Object.fromEntries(
+      Object.entries(objectData).filter(([key]) => !NON_TEXT_DATA_KEYS.has(key)),
+    );
+    if (Object.keys(baseTextData).length > 0) {
+      snapshotSections.push(JSON.stringify(baseTextData, null, 2));
+    }
+
+    const postActionMeta = Object.fromEntries(
+      Object.entries(postActionSnapshot).filter(([key]) => key !== 'snapshot'),
+    );
+    snapshotSections.push('Post-action snapshot:');
+    if (Object.keys(postActionMeta).length > 0) {
+      snapshotSections.push(JSON.stringify(postActionMeta, null, 2));
+    }
+    snapshotSections.push(postActionSnapshotText);
+    return snapshotSections.join('\n\n');
   }
 
   for (const key of ['llm_content', 'output', 'message', 'result']) {
