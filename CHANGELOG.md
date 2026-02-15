@@ -43,6 +43,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(browser-control): remove redundant alias actions (`start`, `stop`, `tabs`, `focus`) from browser runtime routing and backend/sidecar schemas; keep canonical actions (`connect`, `close`, `get_tabs`, `switch_tab`) and align browser docs/remote tool descriptions
 - fix(browser-click): reduce click oscillation on intercepted controls (e.g., Amazon sort combobox) by preferring fast force-click for combobox/select-like targets and shortening initial click retry timeouts
 - fix(browser-click): make role-ref clicks prefer visible in-viewport matches when duplicate role/name elements exist, reducing scroll/retry oscillation on pages like Amazon
 - feat(browser-snapshot-output): remove verbose `refs` and `stats` maps from model-facing `snapshot` tool output, returning snapshot text plus lightweight metadata only
