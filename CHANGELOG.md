@@ -43,6 +43,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- fix(frontend-tool-output): format `snapshot` and nested `post_action_snapshot` payloads into readable sections (metadata + raw snapshot text) in `MessageFormatter` so browser-control post-action snapshots are clear in both chat-visible tool output and model-facing `llm_content`
 - feat(browser-control): auto-append `post_action_snapshot` (`ai` snapshot payload) to successful page-affecting browser actions, including supported `act.request.kind` interactions; `snapshot`/post-action captures now wait for `wait_until="load"` by default (configurable to `domcontentloaded`/`networkidle`), and snapshot failures degrade gracefully without failing the primary action
 - refactor(browser-control): remove `highlight` action from browser runtime routes, backend/sidecar schemas, and docs; delete unused `BrowserController.highlight()` and obsolete `duration_ms`/`durationMs` browser-control fields
 - refactor(browser-control): remove redundant alias actions (`start`, `stop`, `tabs`, `focus`) from browser runtime routing and backend/sidecar schemas; keep canonical actions (`connect`, `close`, `get_tabs`, `switch_tab`) and align browser docs/remote tool descriptions
