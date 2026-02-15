@@ -96,6 +96,7 @@ class TestBrowserSnapshotArgs:
         """Test valid AI snapshot args."""
         args = BrowserSnapshotArgs(action="snapshot")
         assert args.format == "ai"
+        assert args.wait_until == "load"
         assert args.max_chars is None
     
     def test_valid_aria_snapshot(self):
@@ -105,6 +106,14 @@ class TestBrowserSnapshotArgs:
             format="aria",
         )
         assert args.format == "aria"
+
+    def test_valid_snapshot_wait_until(self):
+        """Test snapshot with custom wait_until."""
+        args = BrowserSnapshotArgs(
+            action="snapshot",
+            wait_until="networkidle",
+        )
+        assert args.wait_until == "networkidle"
 
     def test_valid_efficient_snapshot_mode(self):
         """Test valid efficient snapshot mode args."""

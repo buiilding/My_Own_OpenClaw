@@ -62,6 +62,10 @@ class BrowserSnapshotArgs(BaseModel):
         "ai",
         description="Snapshot format: 'ai' (interactive + contextual snapshot) or 'aria' (accessibility tree)"
     )
+    wait_until: Literal["load", "domcontentloaded", "networkidle", "commit"] = Field(
+        "load",
+        description="Wait for this load state before capturing snapshot"
+    )
     mode: Optional[Literal["efficient"]] = Field(
         None,
         description="Optional snapshot mode. 'efficient' enables interactive+compact+depth defaults (also used by default for ai snapshots when mode is omitted)."

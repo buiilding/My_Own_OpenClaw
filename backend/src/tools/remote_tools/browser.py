@@ -37,7 +37,7 @@ Actions:
 - profiles: Lists WindieOS profile equivalents
 - navigate: Go to URL (requires url)
 - open: Open a new tab and navigate
-- snapshot: Get contextual page snapshot with refs (supports mode=efficient, interactive/compact/depth/selector/frame)
+- snapshot: Get contextual page snapshot with refs (waits for `wait_until=load` by default; supports mode=efficient, interactive/compact/depth/selector/frame)
 - click: Click element (requires ref from snapshot)
 - type: Type text (requires ref, text)
 - press: Press key like Enter/Escape (requires key)

@@ -176,6 +176,7 @@ URL: https://github.com
 
 Snapshot options:
 - `format`: `ai` (default) or `aria`
+- `wait_until`: load state to wait for before capture (`load` default; supports `domcontentloaded`, `networkidle`, and `commit` where `commit` is treated as `load` for snapshot capture)
 - `max_chars`: optional cap for `ai` format
 - `mode: "efficient"`: sets `interactive=true`, `compact=true`, `depth=4`, and `max_chars=8000` (unless you pass `max_chars`)
 - `interactive`: only interactive roles in role snapshot
@@ -186,6 +187,7 @@ Snapshot options:
 - `refs`: `role` (default) or `aria`
 
 Defaults:
+- Snapshot waits for `wait_until="load"` before capture (for both manual `snapshot` and automatic post-action snapshots)
 - `ai` snapshots default to `mode="efficient"` when mode is omitted
 - `ai` snapshot default budget: `8000` chars (efficient default behavior)
 - `ai` non-efficient budget: `12000` chars
