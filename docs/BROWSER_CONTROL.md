@@ -191,6 +191,11 @@ Defaults:
 - `ai` non-efficient budget: `12000` chars
 - Snapshot tool output returns `snapshot` text + lightweight metadata (`ref_count`) only; detailed ref/stats maps remain internal to reduce token usage.
 
+Automatic post-action snapshots:
+- For page-affecting actions, WindieOS automatically captures an `ai` snapshot after a successful action and appends it to tool output as `post_action_snapshot`.
+- Current auto-snapshot actions: `navigate`, `open`, `click`, `type`, `press`, `scroll`, `wait`, `switch_tab`, `evaluate`, `upload`, `set_media`, `set_device`, and `act` kinds (`click`, `type`, `press`, `hover`, `drag`, `select`, `fill`, `resize`, `wait`, `evaluate`).
+- Auto-snapshot uses efficient defaults: `interactive=true`, `compact=true`, `depth=4`, `max_chars=8000`.
+
 ### 4. Click
 
 Click an element by reference.
