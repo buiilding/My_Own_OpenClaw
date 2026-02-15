@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(settings): add `include_query_screenshot` frontend setting (default `true`) with Settings UI toggle and user-query send-path gating so screenshot image context can be enabled/disabled per session
 - docs(browser-use): add `docs/BROWSER_USE_PLAN.md` capturing WindieOS/OpenClaw/Browser Use wait semantics, action parity gaps, and phased Browser Use capability rollout plan
 - docs(readme): add ChatGPT pitch message emphasizing no copy-paste workflow - 'Think ChatGPT, but you never have to copy-paste again'
 - feat(landing): add dedicated WindieOS landing page entrypoint with modular marketing sections, responsive styling, and frontend coverage in `tests/frontend/landing/LandingPage.test.jsx`
