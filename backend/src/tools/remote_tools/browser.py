@@ -30,10 +30,10 @@ Workflow:
 
 Actions:
 - connect: Initialize browser (requires mode)
-- start/status/stop: OpenClaw-compatible lifecycle aliases
+- status: Session status summary
 - profiles: Lists WindieOS profile equivalents
 - navigate: Go to URL (requires url)
-- open/focus/tabs: OpenClaw-compatible tab aliases
+- open: Open a new tab and navigate
 - snapshot: Get contextual page snapshot with refs (supports mode=efficient, interactive/compact/depth/selector/frame)
 - click: Click element (requires ref from snapshot)
 - type: Type text (requires ref, text)

@@ -44,12 +44,8 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
     try:
         if action == "connect":
             return await _handle_connect(raw_args)
-        elif action == "start":
-            return await _handle_start(raw_args)
         elif action == "status":
             return await _handle_status(raw_args)
-        elif action == "stop":
-            return await _handle_stop(raw_args)
         elif action == "profiles":
             return await _handle_profiles(raw_args)
         elif action == "navigate":
@@ -72,12 +68,8 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
             return await _handle_wait(raw_args)
         elif action == "get_tabs":
             return await _handle_get_tabs(raw_args)
-        elif action == "tabs":
-            return await _handle_tabs(raw_args)
         elif action == "switch_tab":
             return await _handle_switch_tab(raw_args)
-        elif action == "focus":
-            return await _handle_focus(raw_args)
         elif action == "evaluate":
             return await _handle_evaluate(raw_args)
         elif action == "console":
@@ -222,15 +214,6 @@ async def _handle_connect(args: Dict[str, Any]) -> ToolResult:
         return ToolResult.error_result(str(e))
 
 
-async def _handle_start(args: Dict[str, Any]) -> ToolResult:
-    """OpenClaw-compatible alias for connect."""
-    connect_args = dict(args)
-    connect_args["action"] = "connect"
-    if "mode" not in connect_args:
-        connect_args["mode"] = "user_chrome"
-    return await _handle_connect(connect_args)
-
-
 async def _handle_status(args: Dict[str, Any]) -> ToolResult:
     """Handle browser status action."""
     controller = get_browser_controller()
@@ -244,11 +227,6 @@ async def _handle_status(args: Dict[str, Any]) -> ToolResult:
         "tab_count": status.get("tab_count", 0),
         "target_id": status.get("target_id"),
     })
-
-
-async def _handle_stop(args: Dict[str, Any]) -> ToolResult:
-    """OpenClaw-compatible alias for close."""
-    return await _handle_close(args)
 
 
 async def _handle_profiles(args: Dict[str, Any]) -> ToolResult:
@@ -612,14 +590,6 @@ async def _handle_get_tabs(args: Dict[str, Any]) -> ToolResult:
     })
 
 
-async def _handle_tabs(args: Dict[str, Any]) -> ToolResult:
-    """OpenClaw-compatible alias for get_tabs."""
-    result = await _handle_get_tabs(args)
-    if result.success and isinstance(result.data, dict):
-        result.data["action"] = "tabs"
-    return result
-
-
 async def _handle_switch_tab(args: Dict[str, Any]) -> ToolResult:
     """Handle browser switch_tab action."""
     controller = get_browser_controller()
@@ -644,11 +614,6 @@ async def _handle_switch_tab(args: Dict[str, Any]) -> ToolResult:
         })
     else:
         return ToolResult.error_result(f"Tab not found: {target_id}")
-
-
-async def _handle_focus(args: Dict[str, Any]) -> ToolResult:
-    """OpenClaw-compatible alias for switch_tab."""
-    return await _handle_switch_tab(args)
 
 
 async def _handle_evaluate(args: Dict[str, Any]) -> ToolResult:
@@ -1242,30 +1207,3 @@ async def _handle_close(args: Dict[str, Any]) -> ToolResult:
         "action": "close",
         "status": "closed",
     })
-    focus_error = await _focus_target_if_requested(controller, args)
-    if focus_error:
-        return focus_error
-
-    focus_error = await _focus_target_if_requested(controller, args)
-    if focus_error:
-        return focus_error
-
-    focus_error = await _focus_target_if_requested(controller, args)
-    if focus_error:
-        return focus_error
-
-    focus_error = await _focus_target_if_requested(controller, args)
-    if focus_error:
-        return focus_error
-
-    focus_error = await _focus_target_if_requested(controller, args)
-    if focus_error:
-        return focus_error
-
-    focus_error = await _focus_target_if_requested(controller, args)
-    if focus_error:
-        return focus_error
-
-    focus_error = await _focus_target_if_requested(controller, args)
-    if focus_error:
-        return focus_error

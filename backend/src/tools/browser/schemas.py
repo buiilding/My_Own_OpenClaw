@@ -284,8 +284,8 @@ class BrowserOpenClawCompatArgs(BaseModel):
     model_config = ConfigDict(extra='ignore')
 
     action: Literal[
-        "status", "start", "stop", "profiles", "tabs",
-        "open", "focus", "console", "pdf", "upload",
+        "status", "profiles",
+        "open", "console", "pdf", "upload",
         "dialog", "act", "errors", "requests",
         "trace_start", "trace_stop",
         "cookies", "cookies_set", "cookies_clear",
@@ -380,8 +380,8 @@ class BrowserControlArgs(BaseModel):
     action: Literal[
         "connect", "navigate", "snapshot", "click", "type",
         "press", "scroll", "screenshot", "wait", "get_tabs",
-        "switch_tab", "evaluate", "close", "status", "start",
-        "stop", "profiles", "tabs", "open", "focus",
+        "switch_tab", "evaluate", "close", "status", "profiles",
+        "open",
         "console", "pdf", "upload", "dialog", "act",
         "errors", "requests", "trace_start", "trace_stop",
         "cookies", "cookies_set", "cookies_clear",
