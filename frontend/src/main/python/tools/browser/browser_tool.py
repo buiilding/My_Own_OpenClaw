@@ -116,8 +116,6 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
             return await _handle_set_locale(raw_args)
         elif action == "set_device":
             return await _handle_set_device(raw_args)
-        elif action == "highlight":
-            return await _handle_highlight(raw_args)
         elif action == "act":
             return await _handle_act(raw_args)
         elif action == "close":
@@ -1004,26 +1002,6 @@ async def _handle_set_device(args: Dict[str, Any]) -> ToolResult:
     if result.get("success"):
         return ToolResult.success_result({"action": "set_device", **result})
     return ToolResult.error_result(result.get("error", "set_device failed"))
-
-
-async def _handle_highlight(args: Dict[str, Any]) -> ToolResult:
-    controller = get_browser_controller()
-    if not controller.is_connected:
-        return ToolResult.error_result("Browser not connected. Run 'connect' action first.")
-    focus_error = await _focus_target_if_requested(controller, args)
-    if focus_error:
-        return focus_error
-    ref = args.get("ref")
-    if not isinstance(ref, str) or not ref.strip():
-        return ToolResult.error_result("highlight requires 'ref'")
-    duration_raw = args.get("duration_ms")
-    if duration_raw is None:
-        duration_raw = args.get("durationMs")
-    duration_ms = int(duration_raw) if isinstance(duration_raw, (int, float)) else 1000
-    result = await controller.highlight(ref=ref.strip(), duration_ms=duration_ms)
-    if result.get("success"):
-        return ToolResult.success_result({"action": "highlight", **result})
-    return ToolResult.error_result(result.get("error", "highlight failed"))
 
 
 async def _handle_upload(args: Dict[str, Any]) -> ToolResult:

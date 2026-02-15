@@ -215,7 +215,7 @@ class BrowserOpenClawCompatArgs(BaseModel):
         "storage_get", "storage_set", "storage_clear",
         "set_offline", "set_headers", "set_credentials",
         "set_geolocation", "set_media", "set_timezone",
-        "set_locale", "set_device", "highlight",
+        "set_locale", "set_device",
     ] = Field(..., description="OpenClaw-compatible browser action")
     mode: Optional[Literal["user_chrome", "managed", "efficient"]] = Field(
         None,
@@ -274,8 +274,6 @@ class BrowserOpenClawCompatArgs(BaseModel):
     timezone: Optional[str] = Field(None, description="Timezone id")
     locale: Optional[str] = Field(None, description="Locale id")
     device: Optional[str] = Field(None, description="Device preset name")
-    duration_ms: Optional[int] = Field(None, description="Highlight duration ms")
-    durationMs: Optional[int] = Field(None, description="Highlight duration ms alias")
     element: Optional[str] = Field(None, description="Element selector alias")
     type: Optional[Literal["png", "jpeg"]] = Field(None, description="Screenshot image type")
     quality: Optional[int] = Field(None, description="JPEG quality", ge=1, le=100)
@@ -346,7 +344,6 @@ BROWSER_SCHEMAS = {
     "set_timezone": BrowserOpenClawCompatArgs,
     "set_locale": BrowserOpenClawCompatArgs,
     "set_device": BrowserOpenClawCompatArgs,
-    "highlight": BrowserOpenClawCompatArgs,
     "act": BrowserOpenClawCompatArgs,
 }
 

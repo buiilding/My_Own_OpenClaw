@@ -1090,31 +1090,6 @@ class BrowserController:
             return {"success": False, "error": f"Unknown device preset: {device}"}
         return await self.resize_viewport(target["width"], target["height"])
 
-    async def highlight(self, ref: str, duration_ms: int = 1000) -> Dict[str, Any]:
-        """Highlight an element briefly."""
-        if not self._page:
-            raise RuntimeError("Browser not connected")
-        try:
-            locator = self._resolve_ref_locator(ref)
-            await locator.evaluate(
-                """
-                (el, durationMs) => {
-                    const prev = el.style.outline;
-                    const prevOffset = el.style.outlineOffset;
-                    el.style.outline = '3px solid #ff4500';
-                    el.style.outlineOffset = '2px';
-                    setTimeout(() => {
-                        el.style.outline = prev;
-                        el.style.outlineOffset = prevOffset;
-                    }, Math.max(50, durationMs));
-                }
-                """,
-                duration_ms,
-            )
-            return {"success": True, "ref": ref, "duration_ms": duration_ms}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-    
     async def get_page_snapshot(
         self,
         format_type: str = "ai",
