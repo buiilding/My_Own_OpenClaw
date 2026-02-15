@@ -488,6 +488,108 @@ class TestClickAction:
             assert "Element not found" in result.error
 
 
+class TestPostActionSnapshots:
+    """Test automatic snapshots for page-affecting actions."""
+
+    @pytest.mark.asyncio
+    async def test_click_success_adds_post_action_snapshot(self):
+        """Successful click should include post-action snapshot data."""
+        from tools.browser.controller import PageSnapshot
+
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.click.return_value = {"success": True}
+            mock_controller.get_page_snapshot.return_value = PageSnapshot(
+                text="[1] button Submit",
+                url="https://example.com",
+                title="Example",
+                ref_count=1,
+            )
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "click",
+                "ref": "5",
+            })
+
+            assert result.success is True
+            assert "post_action_snapshot" in result.data
+            assert result.data["post_action_snapshot"]["action"] == "snapshot"
+            assert result.data["post_action_snapshot"]["format"] == "ai"
+            assert result.data["post_action_snapshot"]["snapshot"] == "[1] button Submit"
+            mock_controller.get_page_snapshot.assert_awaited_once_with(
+                format_type="ai",
+                max_chars=8000,
+                refs_mode=None,
+                interactive=True,
+                compact=True,
+                depth=4,
+                selector=None,
+                frame_selector=None,
+            )
+
+    @pytest.mark.asyncio
+    async def test_snapshot_failure_does_not_fail_primary_action(self):
+        """Post-action snapshot failure should not fail the original action."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.click.return_value = {"success": True}
+            mock_controller.get_page_snapshot.side_effect = RuntimeError("snapshot failed")
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "click",
+                "ref": "5",
+            })
+
+            assert result.success is True
+            assert "post_action_snapshot" not in result.data
+
+    @pytest.mark.asyncio
+    async def test_status_does_not_add_post_action_snapshot(self):
+        """Non-page-affecting actions should not include post-action snapshot data."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.get_status.return_value = {
+                "connected": True,
+                "mode": "user_chrome",
+                "url": "https://example.com",
+                "title": "Example",
+                "tab_count": 1,
+                "target_id": "t1",
+            }
+            mock_controller.get_page_snapshot = mock.AsyncMock()
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({"action": "status"})
+
+            assert result.success is True
+            assert "post_action_snapshot" not in result.data
+            mock_controller.get_page_snapshot.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_act_close_does_not_add_post_action_snapshot(self):
+        """act(close) should not request an automatic snapshot."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.close = mock.AsyncMock()
+            mock_controller.get_page_snapshot = mock.AsyncMock()
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "act",
+                "request": {"kind": "close"},
+            })
+
+            assert result.success is True
+            assert result.data["action"] == "close"
+            assert "post_action_snapshot" not in result.data
+            mock_controller.get_page_snapshot.assert_not_awaited()
+
+
 class TestTypeAction:
     """Test type action."""
     

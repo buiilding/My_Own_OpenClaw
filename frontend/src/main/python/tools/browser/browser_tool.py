@@ -22,6 +22,121 @@ DEFAULT_AI_SNAPSHOT_MAX_CHARS = 12_000
 DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS = 8_000
 DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH = 4
 
+POST_ACTION_SNAPSHOT_ACTIONS = frozenset({
+    "navigate",
+    "open",
+    "click",
+    "type",
+    "press",
+    "scroll",
+    "wait",
+    "switch_tab",
+    "evaluate",
+    "upload",
+    "set_media",
+    "set_device",
+})
+
+POST_ACTION_SNAPSHOT_ACT_KINDS = frozenset({
+    "click",
+    "type",
+    "press",
+    "hover",
+    "drag",
+    "select",
+    "fill",
+    "resize",
+    "wait",
+    "evaluate",
+})
+
+
+def _extract_act_kind(args: Dict[str, Any]) -> Optional[str]:
+    request = args.get("request")
+    if not isinstance(request, dict):
+        return None
+    kind = request.get("kind")
+    if not isinstance(kind, str):
+        return None
+    normalized = kind.strip().lower()
+    return normalized or None
+
+
+def _should_attach_post_action_snapshot(
+    action: str,
+    args: Dict[str, Any],
+    result: ToolResult,
+) -> bool:
+    if not result.success or not isinstance(result.data, dict):
+        return False
+
+    if action == "act":
+        kind = _extract_act_kind(args)
+        return kind in POST_ACTION_SNAPSHOT_ACT_KINDS
+
+    return action in POST_ACTION_SNAPSHOT_ACTIONS
+
+
+async def _build_post_action_snapshot_payload(controller) -> Optional[Dict[str, Any]]:
+    snapshot = await controller.get_page_snapshot(
+        format_type="ai",
+        max_chars=DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS,
+        refs_mode=None,
+        interactive=True,
+        compact=True,
+        depth=DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH,
+        selector=None,
+        frame_selector=None,
+    )
+
+    text = getattr(snapshot, "text", None)
+    url = getattr(snapshot, "url", None)
+    title = getattr(snapshot, "title", None)
+    ref_count = getattr(snapshot, "ref_count", None)
+    if not isinstance(text, str):
+        return None
+    if not isinstance(url, str):
+        url = ""
+    if not isinstance(title, str):
+        title = ""
+    if not isinstance(ref_count, int):
+        ref_count = 0
+
+    return {
+        "action": "snapshot",
+        "format": "ai",
+        "url": url,
+        "title": title,
+        "snapshot": text,
+        "ref_count": ref_count,
+    }
+
+
+async def _attach_post_action_snapshot_if_needed(
+    action: str,
+    args: Dict[str, Any],
+    result: ToolResult,
+) -> ToolResult:
+    if not _should_attach_post_action_snapshot(action, args, result):
+        return result
+
+    controller = get_browser_controller()
+    if not controller.is_connected:
+        return result
+
+    try:
+        payload = await _build_post_action_snapshot_payload(controller)
+    except Exception as exc:
+        logger.warning("Post-action snapshot failed for '%s': %s", action, exc)
+        return result
+
+    if not payload:
+        return result
+
+    assert isinstance(result.data, dict)
+    result.data["post_action_snapshot"] = payload
+    return result
+
 
 async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
     """
@@ -49,29 +164,38 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
         elif action == "profiles":
             return await _handle_profiles(raw_args)
         elif action == "navigate":
-            return await _handle_navigate(raw_args)
+            result = await _handle_navigate(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "open":
-            return await _handle_open(raw_args)
+            result = await _handle_open(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "snapshot":
             return await _handle_snapshot(raw_args)
         elif action == "click":
-            return await _handle_click(raw_args)
+            result = await _handle_click(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "type":
-            return await _handle_type(raw_args)
+            result = await _handle_type(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "press":
-            return await _handle_press(raw_args)
+            result = await _handle_press(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "scroll":
-            return await _handle_scroll(raw_args)
+            result = await _handle_scroll(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "screenshot":
             return await _handle_screenshot(raw_args)
         elif action == "wait":
-            return await _handle_wait(raw_args)
+            result = await _handle_wait(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "get_tabs":
             return await _handle_get_tabs(raw_args)
         elif action == "switch_tab":
-            return await _handle_switch_tab(raw_args)
+            result = await _handle_switch_tab(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "evaluate":
-            return await _handle_evaluate(raw_args)
+            result = await _handle_evaluate(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "console":
             return await _handle_console(raw_args)
         elif action == "errors":
@@ -85,7 +209,8 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
         elif action == "pdf":
             return await _handle_pdf(raw_args)
         elif action == "upload":
-            return await _handle_upload(raw_args)
+            result = await _handle_upload(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "dialog":
             return await _handle_dialog(raw_args)
         elif action == "cookies":
@@ -109,15 +234,18 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
         elif action == "set_geolocation":
             return await _handle_set_geolocation(raw_args)
         elif action == "set_media":
-            return await _handle_set_media(raw_args)
+            result = await _handle_set_media(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "set_timezone":
             return await _handle_set_timezone(raw_args)
         elif action == "set_locale":
             return await _handle_set_locale(raw_args)
         elif action == "set_device":
-            return await _handle_set_device(raw_args)
+            result = await _handle_set_device(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "act":
-            return await _handle_act(raw_args)
+            result = await _handle_act(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "close":
             return await _handle_close(raw_args)
         else:
