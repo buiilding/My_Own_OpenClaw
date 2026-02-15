@@ -335,6 +335,7 @@ class TestSnapshotAction:
         with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
             
             from tools.browser.controller import PageSnapshot
             mock_controller.get_page_snapshot.return_value = PageSnapshot(
@@ -352,9 +353,11 @@ class TestSnapshotAction:
             
             assert result.success is True
             assert result.data["format"] == "ai"
+            assert result.data["wait_until"] == "load"
             assert result.data["ref_count"] == 1
             assert "refs" not in result.data
             assert "stats" not in result.data
+            mock_controller.wait_for_load.assert_awaited_once_with("load")
             mock_controller.get_page_snapshot.assert_awaited_once_with(
                 format_type="ai",
                 max_chars=8000,
@@ -372,6 +375,7 @@ class TestSnapshotAction:
         with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
 
             from tools.browser.controller import PageSnapshot
 
@@ -393,6 +397,7 @@ class TestSnapshotAction:
 
             assert result.success is True
             assert result.data["format"] == "ai"
+            assert result.data["wait_until"] == "load"
             assert result.data["ref_count"] == 1
             assert "refs" not in result.data
             assert "stats" not in result.data
@@ -418,6 +423,7 @@ class TestSnapshotAction:
         with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
 
             from tools.browser.controller import PageSnapshot
             mock_controller.get_page_snapshot.return_value = PageSnapshot(
@@ -435,6 +441,8 @@ class TestSnapshotAction:
 
             assert result.success is True
             assert result.data["format"] == "aria"
+            assert result.data["wait_until"] == "load"
+            mock_controller.wait_for_load.assert_awaited_once_with("load")
             mock_controller.get_page_snapshot.assert_awaited_once_with(
                 format_type="aria",
                 max_chars=12000,
@@ -445,6 +453,32 @@ class TestSnapshotAction:
                 selector=None,
                 frame_selector=None,
             )
+
+    @pytest.mark.asyncio
+    async def test_snapshot_custom_wait_until(self):
+        """Test snapshot accepts custom wait_until."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "networkidle"}
+
+            from tools.browser.controller import PageSnapshot
+            mock_controller.get_page_snapshot.return_value = PageSnapshot(
+                text='- button "Submit"',
+                url="https://example.com",
+                title="Example",
+                ref_count=1,
+            )
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "snapshot",
+                "wait_until": "networkidle",
+            })
+
+            assert result.success is True
+            assert result.data["wait_until"] == "networkidle"
+            mock_controller.wait_for_load.assert_awaited_once_with("networkidle")
 
 
 class TestClickAction:
@@ -500,6 +534,7 @@ class TestPostActionSnapshots:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_controller.click.return_value = {"success": True}
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
             mock_controller.get_page_snapshot.return_value = PageSnapshot(
                 text="[1] button Submit",
                 url="https://example.com",
@@ -518,6 +553,7 @@ class TestPostActionSnapshots:
             assert result.data["post_action_snapshot"]["action"] == "snapshot"
             assert result.data["post_action_snapshot"]["format"] == "ai"
             assert result.data["post_action_snapshot"]["snapshot"] == "[1] button Submit"
+            mock_controller.wait_for_load.assert_awaited_once_with("load")
             mock_controller.get_page_snapshot.assert_awaited_once_with(
                 format_type="ai",
                 max_chars=8000,
@@ -536,7 +572,7 @@ class TestPostActionSnapshots:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_controller.click.return_value = {"success": True}
-            mock_controller.get_page_snapshot.side_effect = RuntimeError("snapshot failed")
+            mock_controller.wait_for_load.return_value = {"success": False, "error": "timed out"}
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control({
@@ -546,6 +582,7 @@ class TestPostActionSnapshots:
 
             assert result.success is True
             assert "post_action_snapshot" not in result.data
+            mock_controller.wait_for_load.assert_awaited_once_with("load")
 
     @pytest.mark.asyncio
     async def test_status_does_not_add_post_action_snapshot(self):

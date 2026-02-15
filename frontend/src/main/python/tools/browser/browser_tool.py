@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_AI_SNAPSHOT_MAX_CHARS = 12_000
 DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS = 8_000
 DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH = 4
+SNAPSHOT_WAIT_STATES = frozenset({"load", "domcontentloaded", "networkidle", "commit"})
 
 POST_ACTION_SNAPSHOT_ACTIONS = frozenset({
     "navigate",
@@ -77,7 +78,31 @@ def _should_attach_post_action_snapshot(
     return action in POST_ACTION_SNAPSHOT_ACTIONS
 
 
-async def _build_post_action_snapshot_payload(controller) -> Optional[Dict[str, Any]]:
+def _resolve_snapshot_wait_until(args: Dict[str, Any], default: str = "load") -> tuple[str, Optional[str]]:
+    candidate = args.get("wait_until")
+    if candidate is None:
+        candidate = args.get("state")
+    if candidate is None:
+        return default, None
+    if not isinstance(candidate, str):
+        return "", "wait_until must be one of: load, domcontentloaded, networkidle, commit"
+    wait_until = candidate.strip().lower()
+    if wait_until not in SNAPSHOT_WAIT_STATES:
+        return "", "wait_until must be one of: load, domcontentloaded, networkidle, commit"
+    if wait_until == "commit":
+        return "load", None
+    return wait_until, None
+
+
+async def _build_post_action_snapshot_payload(
+    controller,
+    *,
+    wait_until: str = "load",
+) -> Optional[Dict[str, Any]]:
+    wait_result = await controller.wait_for_load(wait_until)
+    if isinstance(wait_result, dict) and not wait_result.get("success", False):
+        raise RuntimeError(wait_result.get("error", f"wait_for_load({wait_until}) failed"))
+
     snapshot = await controller.get_page_snapshot(
         format_type="ai",
         max_chars=DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS,
@@ -124,8 +149,12 @@ async def _attach_post_action_snapshot_if_needed(
     if not controller.is_connected:
         return result
 
+    wait_until, wait_error = _resolve_snapshot_wait_until(args, default="load")
+    if wait_error:
+        wait_until = "load"
+
     try:
-        payload = await _build_post_action_snapshot_payload(controller)
+        payload = await _build_post_action_snapshot_payload(controller, wait_until=wait_until)
     except Exception as exc:
         logger.warning("Post-action snapshot failed for '%s': %s", action, exc)
         return result
@@ -433,6 +462,14 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
     if format_type not in ("ai", "aria"):
         return ToolResult.error_result("Invalid snapshot format. Use 'ai' or 'aria'.")
 
+    wait_until, wait_error = _resolve_snapshot_wait_until(args, default="load")
+    if wait_error:
+        return ToolResult.error_result(wait_error)
+
+    wait_result = await controller.wait_for_load(wait_until)
+    if isinstance(wait_result, dict) and not wait_result.get("success", False):
+        return ToolResult.error_result(wait_result.get("error", f"wait_for_load({wait_until}) failed"))
+
     mode_raw = args.get("mode")
     mode: str | None = None
     if mode_raw == "efficient":
@@ -488,6 +525,7 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
     result: Dict[str, Any] = {
         "action": "snapshot",
         "format": format_type,
+        "wait_until": wait_until,
         "url": snapshot.url,
         "title": snapshot.title,
         "snapshot": snapshot.text,
