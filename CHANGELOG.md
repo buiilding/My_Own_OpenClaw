@@ -43,6 +43,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- feat(browser-control): auto-append `post_action_snapshot` (`ai` snapshot payload) to successful page-affecting browser actions, including supported `act.request.kind` interactions; snapshot failures now degrade gracefully without failing the primary action
 - refactor(browser-control): remove `highlight` action from browser runtime routes, backend/sidecar schemas, and docs; delete unused `BrowserController.highlight()` and obsolete `duration_ms`/`durationMs` browser-control fields
 - refactor(browser-control): remove redundant alias actions (`start`, `stop`, `tabs`, `focus`) from browser runtime routing and backend/sidecar schemas; keep canonical actions (`connect`, `close`, `get_tabs`, `switch_tab`) and align browser docs/remote tool descriptions
 - fix(browser-click): reduce click oscillation on intercepted controls (e.g., Amazon sort combobox) by preferring fast force-click for combobox/select-like targets and shortening initial click retry timeouts
