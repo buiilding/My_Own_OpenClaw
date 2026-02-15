@@ -47,7 +47,6 @@ Actions:
 - trace_start/trace_stop: Playwright tracing control
 - cookies*/storage*: Cookie and storage state management
 - set_*: Environment/state setters (offline, headers, credentials, geolocation, media, timezone, locale, device)
-- highlight: Visual highlight of an element ref
 - wait: Wait for load or time
 - get_tabs: List open tabs
 - switch_tab: Switch to tab (requires target_id)

@@ -346,7 +346,7 @@ WindieOS now supports OpenClaw-style action names (compatibility layer):
 - `cookies`, `cookies_set`, `cookies_clear`
 - `storage_get`, `storage_set`, `storage_clear` (`kind: local|session`)
 - `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`
-- `set_timezone`, `set_locale`, `set_device`, `highlight`
+- `set_timezone`, `set_locale`, `set_device`
 
 Notes:
 - `dialog` is one-shot per arm call; call it again to arm the next dialog.
