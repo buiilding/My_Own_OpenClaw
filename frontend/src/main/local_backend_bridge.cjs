@@ -25,10 +25,15 @@ function getReadinessRetryDelay(attempt) {
   return Math.min(50 * Math.pow(2, attempt - 1), 1000);
 }
 
-function scheduleReadinessRetry(mainWindow, attempt, maxAttempts) {
+function scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken) {
   if (attempt < maxAttempts) {
     const delay = getReadinessRetryDelay(attempt);
-    setTimeout(() => checkReadiness(mainWindow, attempt + 1, maxAttempts), delay);
+    setTimeout(() => {
+      if (typeof checkToken === 'number' && checkToken !== readinessCheckToken) {
+        return;
+      }
+      checkReadiness(mainWindow, attempt + 1, maxAttempts);
+    }, delay);
     return true;
   }
   return false;
@@ -169,7 +174,7 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
     pythonProcess.stdin.write(jsonStr + '\n');
   } catch (error) {
     console.error('[LocalBackend] Failed to send ping:', error);
-    scheduleReadinessRetry(mainWindow, attempt, maxAttempts);
+    scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken);
     return;
   }
 
@@ -189,7 +194,7 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
         markBackendReady(mainWindow);
       } else {
         // Retry if ping failed
-        if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts)) {
+        if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken)) {
           // Max attempts reached, mark as ready anyway to avoid blocking
           console.warn('[LocalBackend] Backend readiness check failed after max attempts, marking as ready');
           markBackendReady(mainWindow);
@@ -206,7 +211,7 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
     if (readinessCheckCallback) {
       readinessCheckCallback = null;
       // Ping timed out, retry if attempts remain
-      if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts)) {
+      if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken)) {
         console.warn('[LocalBackend] Backend readiness check timed out after max attempts');
         // Mark as ready anyway to avoid blocking forever
         markBackendReady(mainWindow);
