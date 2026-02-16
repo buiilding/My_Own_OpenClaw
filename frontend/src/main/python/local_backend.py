@@ -20,6 +20,13 @@ sys.path.insert(0, str(frontend_python_dir))
 
 from core.ipc_protocol import JSONRPCProtocol
 from memory.local_store import LocalMemoryStore
+from memory.operations import (
+    build_interaction_metadata,
+    build_memory_filters,
+    exclude_conversation_results,
+    format_interaction_memory,
+    group_memory_texts,
+)
 from memory.summarizer import MemorySummarizer
 
 # Configure logging
@@ -223,30 +230,11 @@ class LocalBackend:
             }
         
         try:
-            filters = {}
-            if memory_type:
-                filters["type"] = memory_type
-            
+            filters = build_memory_filters(memory_type)
             results = await self.memory_store.search(query, user_id, filters, limit)
-            
-            if exclude_conversation_id:
-                results = [
-                    result
-                    for result in results
-                    if not (
-                        result.get("type") == "episodic"
-                        and result.get("conversation_id") == exclude_conversation_id
-                    )
-                ]
+            filtered_results = exclude_conversation_results(results, exclude_conversation_id)
+            memories = group_memory_texts(filtered_results)
 
-            # Group results by type
-            memories = {"semantic": [], "episodic": []}
-            for res in results:
-                m_type = res.get("type", "episodic")
-                text = res.get("text")
-                if m_type in memories and text:
-                    memories[m_type].append(text)
-            
             return {
                 "success": True,
                 "data": {
@@ -532,14 +520,9 @@ class LocalBackend:
             }
         
         try:
-            memory_content = f"User: {user_query}\nAssistant: {assistant_response}"
-            
-            metadata = {
-                "type": memory_type,
-                "source": "interaction_completed",
-                "conversation_id": session_id
-            }
-            
+            memory_content = format_interaction_memory(user_query, assistant_response)
+            metadata = build_interaction_metadata(memory_type, session_id)
+
             memory_id = await self.memory_store.add(
                 memory_content,
                 user_id,
