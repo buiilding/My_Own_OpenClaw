@@ -54,6 +54,7 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 - feat(frontend-ui): refresh renderer visuals with a ChatGPT-inspired dark shell (sidebar structure, centered conversation column, and restyled chat/status/input surfaces) while preserving existing behaviors and pill interactions
+- feat(frontend-ui): tighten ChatGPT-style proportions and tone (neutralized dark palette, denser left rail, cleaner assistant text blocks, and narrower centered composer/message column)
 - docs(frontend-bridges): document wakeword stderr-buffer reset-on-restart and token-scoped local-backend readiness retries so restart-race protections are explicit in sidecar/frontend docs
 - docs(sidecar/browser): clarify sidecar protocol internals (`core/stdout_json.py` shared JSON-line writer), local-backend/wakeword stale-callback guards, browser runbook test commands, and Browser Use plan status as a time-locked baseline
 - fix(wakeword-bridge): scope wakeword subprocess stdout/stderr/exit/error handlers to the active spawned process so stale exit/error events from older processes cannot null out a newer restarted process; add frontend regression coverage for stop/start stale-exit race
