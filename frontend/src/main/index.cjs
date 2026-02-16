@@ -240,6 +240,7 @@ function createWindow() {
     width: 1000, // Increased width to accommodate sidebar
     height: 700,
     show: false,
+    frame: false,
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload.js'),
@@ -630,5 +631,33 @@ function initializeOverlayHandlers() {
       bounds: display.bounds,
       scaleFactor: display.scaleFactor,
     }));
+  });
+
+  ipcMain.handle('window-minimize', async () => {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return { success: false, reason: 'Main window not available' };
+    }
+    mainWindow.minimize();
+    return { success: true };
+  });
+
+  ipcMain.handle('window-toggle-maximize', async () => {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return { success: false, reason: 'Main window not available', isMaximized: false };
+    }
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+    return { success: true, isMaximized: mainWindow.isMaximized() };
+  });
+
+  ipcMain.handle('window-close', async () => {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return { success: false, reason: 'Main window not available' };
+    }
+    mainWindow.close();
+    return { success: true };
   });
 }

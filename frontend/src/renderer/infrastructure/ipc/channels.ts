@@ -38,6 +38,9 @@ export const INVOKE_CHANNELS = {
   GET_DISPLAYS: 'get-displays',
   LOAD_FRONTEND_CONFIG: 'load-frontend-config',
   SAVE_FRONTEND_CONFIG: 'save-frontend-config',
+  WINDOW_MINIMIZE: 'window-minimize',
+  WINDOW_TOGGLE_MAXIMIZE: 'window-toggle-maximize',
+  WINDOW_CLOSE: 'window-close',
 } as const;
 
 /**
