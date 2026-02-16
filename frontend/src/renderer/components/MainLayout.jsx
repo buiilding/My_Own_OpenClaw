@@ -31,10 +31,6 @@ function MainLayout({ sections, activeSection, onSelectSection, content }) {
             })}
           </ul>
         </nav>
-        <div className="sidebar-footer">
-          <span className="status-dot" aria-hidden="true" />
-          <span>Ready</span>
-        </div>
       </aside>
       <main className="main-content">{content}</main>
     </div>
