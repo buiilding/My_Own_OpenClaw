@@ -66,10 +66,10 @@ For planned schema-ownership migration (frontend-sourced runtime tool catalogs),
 
 Most tools are executed on the frontend Python sidecar:
 
-- **Computer Control Tools**: `mouse_control`, `keyboard_control`, `scroll_control`
+- **Computer Control Tools**: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`
 - **File System Tools**: `read_file`, `replace`
-- **System Tools**: `screenshot`, `get_system_stats`, `get_open_windows`
-- **Terminal Tools**: `run_shell_command`, `process`
+- **System Tools**: `get_system_stats`, `get_open_windows`, `run_shell_command`, `process`
+- **Browser Tools**: `browser_control`
 
 ### Backend Responsibilities (No Tool Execution)
 
@@ -293,11 +293,9 @@ For tools using vision models:
 2. **Tool Execution**: Screenshot automatically captured after computer-use tool execution (via ToolExecutionService) and uploaded via HTTP `/api/artifacts`
    - **Individual Tools**: Screenshot captured **once** after tool execution completes
    - **Bundled Tools**: Screenshot captured **once** after all bundled tools execute (not after each tool)
-   - Both use the same helper method (`captureSystemStateAndScreenshot`) ensuring:
-     - 2 second delay before capture (for UI to update)
-     - Parallel system state + screenshot capture
-     - Consistent error handling
-     - Proper timing logs
+   - Individual tools use `ensureAutoCapture(...)` for shared capture policy and fallback behavior.
+   - Bundles use the shared bundle capture path (one capture per bundle when computer-use actions are present).
+   - Default wait is 2 seconds for most computer-use tools, 0 for `screenshot`, and may be overridden by tool args (`wait`/`seconds`).
 3. **WS Reference**: WebSocket payloads carry `screenshot_ref` instead of base64 blobs
 4. **OCR Processing**: Screenshot processed for OCR (backend, resolved from artifact store)
 5. **Storage**: Screenshot stored in session with unique ID (backend)
@@ -399,6 +397,10 @@ No dual-shape fallback is supported in provider transport.
 - **get_open_windows**: List open windows
 - **run_shell_command**: Execute shell command (supports `yield_after_seconds` + `env` overrides; defaults to user home directory when `directory` is omitted; foreground `llm_content` is truncated by default to ~10,000 tokens with marker support via `max_output_tokens`; use `process` for background sessions)
 - **process**: Manage background shell sessions (poll/log/write/kill)
+
+### Browser Tools
+
+- **browser_control**: Browser automation and extraction tool (connect/navigation/snapshot/actions/extract); see `docs/BROWSER_CONTROL.md` and `docs/BROWSER_CONTROL_RUN.md` for full action contracts and runbook usage.
 
 **Note**: The backend advertises a fixed set of remote tool schemas (LLM-callable). The sidecar may register additional helpers, but only tools listed in `frontend/src/main/python/tools/registry.py` `EXPOSED_TO_BACKEND_TOOLS` are available for LLM tool calling.
 

@@ -346,7 +346,7 @@ The main process manages the application lifecycle and IPC communication.
 - `set-overlay-ignore-mouse`: Toggle click-through behavior for the chat box overlay
 
 **Main → Renderer**:
-- `from-backend`: Messages from backend
+- `from-backend`: Backend messages plus main-process `local-user-message` query-mirror events
 - `ipc-status`: Connection status
 - `wakeword-detected`: Wakeword detection
 - `wakeword-status`: Service status
@@ -383,7 +383,7 @@ The Python sidecar handles tool execution and system state capture.
    ↓
 2. useChatMessageSender hook handles message
    ↓
-3. Screenshot captured (always for visual context)
+3. Screenshot capture runs when `include_query_screenshot=true` (default enabled)
    ↓
 4. Message sent via IpcBridge.send('to-backend')
    ↓
@@ -427,9 +427,9 @@ The Python sidecar handles tool execution and system state capture.
    ↓
 7. Python sidecar executes tool
    ↓
-8. ToolExecutionService.captureSystemStateAndScreenshot() called ONCE (if computer-use tool)
-   - 2 second delay for UI to update
-   - Parallel system state + screenshot capture
+8. `ensureAutoCapture()` runs ONCE (if computer-use tool and no screenshot already provided by the tool result)
+   - Default wait is 2 seconds for computer-use tools (0 for `screenshot`, or overridden by tool args such as `wait`/`seconds`)
+   - Captures screenshot and system state via `extractOSstate(...)`
    ↓
 9. ToolExecutionService formats result with MessageFormatter
    ↓
@@ -451,9 +451,9 @@ The Python sidecar handles tool execution and system state capture.
    ↓
 4. Step results collected in stepResults array
    ↓
-5. ToolExecutionService.captureSystemStateAndScreenshot() called ONCE (if bundle contains computer-use tool)
-   - 2 second delay for UI to update
-   - Parallel system state + screenshot capture
+5. Bundle capture path runs once for computer-use bundles (wait + screenshot/system-state capture)
+   - Wait behavior follows per-tool/bundle capture settings
+   - Captures screenshot and system state via shared capture utilities
    ↓
 6. Combined formatted message created for UI display
    ↓
@@ -542,7 +542,8 @@ Type-safe IPC bridge abstraction with channel validation.
 - Automatic screenshot capture for computer-use tools:
   - Individual tools: Screenshot captured **once** after tool execution
   - Bundled tools: Screenshot captured **once** after all bundled tools execute
-  - Both use `captureSystemStateAndScreenshot()` helper method with 2s delay and parallel capture
+  - Individual tools use `ensureAutoCapture(...)` shared capture policy helper
+  - Default wait is 2 seconds for most computer-use tools, 0 for `screenshot`, and may be overridden by `wait`/`seconds` args
 - System state capture and formatting
 - Callback-based architecture for UI updates
 - Pure infrastructure code (no React dependencies)
