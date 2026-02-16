@@ -1,3 +1,62 @@
+# Refactor: Short-Circuit Empty LocalMemoryStore Searches
+
+## Target
+Remove unnecessary embedding generation in:
+- `frontend/src/main/python/memory/local_store.py`
+
+This is a performance refactor for the sidecar memory-recall hot path.
+
+## Current Structure and Root Cause
+`LocalMemoryStore.search()` always generated a query embedding before checking whether any searchable FAISS index existed.
+
+Flow before refactor:
+1. Parse type filters.
+2. Always call `embedder.embed_text(query)`.
+3. Attempt per-database search, where each branch may immediately return because index is empty.
+
+Root cause: search target selection and index-availability checks happened after embedding creation, so the expensive remote embedding call ran even when no memory vectors were available to search.
+
+## Refactor Plan
+1. Keep existing filter behavior (`episodic`/`semantic`/both).
+2. Precompute searchable targets first (respecting filters and index readiness).
+3. Return early when no searchable targets exist.
+4. Generate query embeddings only when at least one searchable target is present.
+5. Add a regression test proving no embedding call happens on empty-index searches.
+
+## Implemented Changes
+### Search planning update
+- Updated `LocalMemoryStore.search()` to:
+  - log search start
+  - build searchable targets first
+  - short-circuit with `[]` when no indices are searchable
+  - defer embedding generation until after target selection
+
+### New helper
+- Added `LocalMemoryStore._build_search_targets(...)` to centralize:
+  - memory-type filter application
+  - index availability checks
+  - per-database search target construction
+
+### Regression coverage
+- Added `test_search_short_circuits_without_embedding_when_no_searchable_indices` in:
+  - `tests/sidecar/test_local_store_delete_cleanup.py`
+
+The test installs an embedder that raises if called, then verifies `search()` returns `[]` when both indices are unavailable.
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env sidecar pytest tests/sidecar/test_local_store_delete_cleanup.py tests/sidecar/test_memory_service.py
+```
+
+Result:
+- `18 passed, 3 warnings`
+
+This confirms the refactor preserves behavior while removing unnecessary embedding work on empty-index paths.
+
+---
+
 # Refactor: Consolidate Sidecar Memory Search/Store Transformations
 
 ## Target

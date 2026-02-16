@@ -26,6 +26,15 @@ class _DummyEmbedder:
         return np.full((self.dimension,), value, dtype=np.float32)
 
 
+class _FailOnEmbedder:
+    @property
+    def dimension(self) -> int:
+        return 8
+
+    async def embed_text(self, text: str):
+        raise AssertionError("search should not call embedder when no indices are searchable")
+
+
 def _build_store(tmp_path: Path) -> LocalMemoryStore:
     store = LocalMemoryStore.__new__(LocalMemoryStore)
 
@@ -91,6 +100,20 @@ def _create_rebuild_memories_table(db_path: Path) -> None:
             """
         )
         conn.commit()
+
+
+@pytest.mark.asyncio
+async def test_search_short_circuits_without_embedding_when_no_searchable_indices(
+    tmp_path: Path,
+):
+    store = _build_store(tmp_path)
+    store.embedder = _FailOnEmbedder()
+    store.episodic_index = None
+    store.semantic_index = None
+
+    results = await store.search("hello", "user-1")
+
+    assert results == []
 
 
 @pytest.mark.asyncio
