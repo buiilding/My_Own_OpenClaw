@@ -21,6 +21,10 @@ class ToolCallValidator:
         self._tool_policy = ToolPolicy.from_config(config)
         # Backward-compatible test seam; some tests override this directly.
         self._dev_tool_selection = self._tool_policy.selection
+        self._valid_tool_name_cache_selection = None
+        self._valid_tool_name_cache: Optional[
+            tuple[List[str], set[str]]
+        ] = None
 
     def validate_tool_call(self, tool_name: str, args: Dict[str, Any]) -> None:
         """
@@ -59,8 +63,7 @@ class ToolCallValidator:
                 f"Tool name length {len(tool_name)} exceeds maximum {self.limits.max_tool_name_length}"
             )
 
-        valid_tool_names = self._get_valid_tool_names()
-        valid_tool_name_set = set(valid_tool_names)
+        valid_tool_names, valid_tool_name_set = self._get_valid_tool_name_index()
         if tool_name not in valid_tool_name_set:
             if len(valid_tool_names) <= 15:
                 tools_display = ", ".join(valid_tool_names)
@@ -152,7 +155,7 @@ class ToolCallValidator:
         except (TypeError, ValueError):
             return None
 
-    def _get_valid_tool_names(self) -> List[str]:
+    def _compute_valid_tool_names(self) -> List[str]:
         raw_tool_names = self.tool_registry.get_tool_names() or []
         if isinstance(raw_tool_names, (str, bytes, dict)):
             raw_tool_names = []
@@ -169,6 +172,30 @@ class ToolCallValidator:
             deduped_tool_names,
             selection=self._dev_tool_selection,
         )
+
+    def _get_valid_tool_name_index(self) -> tuple[List[str], set[str]]:
+        """
+        Return cached valid tool names + set for repeated per-call lookups.
+
+        Cache is scoped to the current dev selection object. Some tests mutate
+        `_dev_tool_selection` directly; this guard preserves deterministic behavior.
+        """
+        selection = self._dev_tool_selection
+        if (
+            self._valid_tool_name_cache is not None
+            and self._valid_tool_name_cache_selection is selection
+        ):
+            return self._valid_tool_name_cache
+
+        valid_tool_names = self._compute_valid_tool_names()
+        valid_tool_name_set = set(valid_tool_names)
+        self._valid_tool_name_cache = (valid_tool_names, valid_tool_name_set)
+        self._valid_tool_name_cache_selection = selection
+        return self._valid_tool_name_cache
+
+    def _get_valid_tool_names(self) -> List[str]:
+        valid_tool_names, _valid_tool_name_set = self._get_valid_tool_name_index()
+        return list(valid_tool_names)
 
     def validate_metadata(
         self, tool_name: str, metadata: Optional[Dict[str, Any]]

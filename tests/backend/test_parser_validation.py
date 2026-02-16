@@ -4,6 +4,7 @@ from backend.src.core.config.models import AppConfig, SecurityLimits
 from backend.src.core.infrastructure.exceptions import ParseValidationError
 from backend.src.llm.parser_validation import ToolCallValidator
 from backend.src.tools.categorization import ToolDomain
+from backend.src.tools.tool_selection import ToolSelection
 
 
 class DummyMetrics:
@@ -43,6 +44,16 @@ class ComputerRegistry(DummyRegistry):
         if name == "mouse_control":
             return DummyTool(ToolDomain.COMPUTER)
         return None
+
+
+class CountingRegistry(DummyRegistry):
+    def __init__(self, tool_names):
+        super().__init__(tool_names)
+        self.calls = 0
+
+    def get_tool_names(self):
+        self.calls += 1
+        return self._tool_names
 
 
 def _make_validator(tool_names, interaction_mode="agent"):
@@ -282,3 +293,44 @@ def test_validate_tool_call_whitelist_error_truncates_sorted_tool_display():
 
     message = str(exc.value)
     assert "Valid tools (20): tool_01, tool_02, tool_03, tool_04, tool_05, tool_06, tool_07, tool_08, tool_09, tool_10... (and 10 more)" in message
+
+
+def test_validate_tool_call_reuses_valid_tool_cache_across_calls():
+    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
+    metrics = DummyMetrics()
+    registry = CountingRegistry(["read_file"])
+    validator = ToolCallValidator(
+        config=config,
+        tool_registry=registry,
+        metrics=metrics,
+        limits=config.security_limits,
+    )
+
+    validator.validate_tool_call("read_file", {"file_path": "/tmp/a"})
+    validator.validate_tool_call("read_file", {"file_path": "/tmp/b"})
+
+    assert registry.calls == 1
+
+
+def test_validate_tool_call_invalidates_cache_when_dev_selection_changes():
+    config = AppConfig(interaction_mode="agent", security_limits=SecurityLimits())
+    metrics = DummyMetrics()
+    registry = CountingRegistry(["read_file"])
+    validator = ToolCallValidator(
+        config=config,
+        tool_registry=registry,
+        metrics=metrics,
+        limits=config.security_limits,
+    )
+    validator._dev_tool_selection = None
+
+    validator.validate_tool_call("read_file", {"file_path": "/tmp/a"})
+    assert registry.calls == 1
+
+    validator._dev_tool_selection = ToolSelection(
+        enabled=True,
+        mode="allowlist",
+        tools=frozenset({"read_file"}),
+    )
+    validator.validate_tool_call("read_file", {"file_path": "/tmp/b"})
+    assert registry.calls == 2

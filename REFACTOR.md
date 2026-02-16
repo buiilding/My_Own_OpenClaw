@@ -1474,3 +1474,65 @@ Result:
 - `26 passed in 1.33s`
 
 This confirms root-key-aware fast-path optimization preserves parser correctness while reducing avoidable parse-offload work.
+
+---
+
+# Refactor: Cache Valid Tool Name Index in ToolCallValidator
+
+## Target
+Reduce repeated whitelist recomputation in:
+- `backend/src/llm/parser_validation.py`
+
+This is a performance + maintainability refactor on a central trust-boundary validation path.
+
+## Current Structure and Root Cause
+Before this refactor, every `validate_tool_call(...)` invocation rebuilt valid tool-name structures:
+1. call `tool_registry.get_tool_names()`
+2. sanitize + dedupe + sort names
+3. apply `ToolPolicy.filter_tool_names(...)`
+4. build a new `set(...)` for membership checks
+
+During parsing of responses with multiple tool calls, this repeated identical work per call.
+
+Root cause: valid tool whitelist/index lived as per-call transient data instead of validator-scoped cached policy state.
+
+## Refactor Plan
+1. Add a validator-local cache for `(valid_tool_names, valid_tool_name_set)`.
+2. Scope cache to current dev-selection object (`_dev_tool_selection`) so test/runtime selection changes refresh automatically.
+3. Keep public validation behavior and error messages unchanged.
+4. Retain `_get_valid_tool_names()` for compatibility, backed by the new cache.
+5. Add regression tests for cache reuse and selection-change invalidation.
+
+## Implemented Changes
+### Cached tool index
+- Updated `backend/src/llm/parser_validation.py`:
+  - added `_valid_tool_name_cache_selection`
+  - added `_valid_tool_name_cache`
+  - extracted `_compute_valid_tool_names()` for one-time list construction
+  - added `_get_valid_tool_name_index()` returning cached list+set
+  - rewired `_collect_tool_call_validation_errors(...)` to use cached index
+  - kept `_get_valid_tool_names()` as compatibility wrapper
+
+Result:
+- repeated tool-name sorting/filtering/set-allocation removed from per-call hot path
+- validation contracts and whitelist error formatting preserved
+
+## Added Test Coverage
+- Updated `tests/backend/test_parser_validation.py`:
+  - added `CountingRegistry` test double
+  - added `test_validate_tool_call_reuses_valid_tool_cache_across_calls`
+  - added `test_validate_tool_call_invalidates_cache_when_dev_selection_changes`
+
+These tests verify both cache-hit behavior and safe cache refresh when selection policy changes.
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_parser_validation.py tests/backend/test_response_parser.py tests/backend/test_response_parser_limits.py tests/backend/test_parser_extraction.py
+```
+
+Result:
+- `44 passed in 1.33s`
+
+This confirms validator caching reduces repeated whitelist computation while preserving parser/validation behavior.
