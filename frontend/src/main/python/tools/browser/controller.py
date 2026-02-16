@@ -1120,7 +1120,7 @@ class BrowserController:
             raise RuntimeError("Browser not connected")
         
         if format_type == "aria":
-            return await self._get_aria_snapshot()
+            return await self._get_aria_snapshot(max_chars=max_chars)
 
         wants_role_snapshot = (
             refs_mode in ("role", "aria")
@@ -1382,7 +1382,7 @@ class BrowserController:
             },
         )
     
-    async def _get_aria_snapshot(self) -> PageSnapshot:
+    async def _get_aria_snapshot(self, max_chars: int = 4000) -> PageSnapshot:
         """Build accessibility tree snapshot."""
         title = await self._page.title()
         url = self._page.url
@@ -1410,6 +1410,12 @@ class BrowserController:
         lines = format_node(snapshot)
         snapshot_text = f"Title: {title}\nURL: {url}\n\nAccessibility Tree:\n"
         snapshot_text += "\n".join(lines)
+        if max_chars > 0 and len(snapshot_text) > max_chars:
+            suffix = "\n... (truncated)"
+            if max_chars <= len(suffix):
+                snapshot_text = snapshot_text[:max_chars]
+            else:
+                snapshot_text = snapshot_text[: max_chars - len(suffix)] + suffix
         
         return PageSnapshot(
             text=snapshot_text,

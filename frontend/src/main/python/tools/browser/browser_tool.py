@@ -22,6 +22,8 @@ DEFAULT_AI_SNAPSHOT_MAX_CHARS = 12_000
 DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS = 4_000
 DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH = 4
 AI_SNAPSHOT_ZERO_REF_FALLBACK_DEPTH = 12
+DEFAULT_ARIA_SNAPSHOT_MAX_CHARS = 4_000
+MAX_ARIA_SNAPSHOT_MAX_CHARS = 4_000
 SNAPSHOT_WAIT_STATES = frozenset({"load", "domcontentloaded", "networkidle", "commit"})
 
 POST_ACTION_SNAPSHOT_ACTIONS = frozenset({
@@ -602,6 +604,11 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
             if mode == "efficient"
             else DEFAULT_AI_SNAPSHOT_MAX_CHARS
         )
+    elif format_type == "aria":
+        if resolved_max_chars is None:
+            resolved_max_chars = DEFAULT_ARIA_SNAPSHOT_MAX_CHARS
+        else:
+            resolved_max_chars = min(resolved_max_chars, MAX_ARIA_SNAPSHOT_MAX_CHARS)
 
     if format_type == "ai":
         snapshot = await _capture_ai_snapshot_with_zero_ref_fallback(

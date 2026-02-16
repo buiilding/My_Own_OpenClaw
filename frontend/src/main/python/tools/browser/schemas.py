@@ -72,7 +72,7 @@ class BrowserSnapshotArgs(BaseModel):
     )
     max_chars: Optional[int] = Field(
         None,
-        description="Optional maximum characters in snapshot (defaults to 12,000 for ai; 4,000 in efficient mode)",
+        description="Optional maximum characters in snapshot (defaults to 12,000 for ai; 4,000 in efficient mode; aria snapshots are capped at 4,000)",
         ge=100,
         le=120000,
     )
