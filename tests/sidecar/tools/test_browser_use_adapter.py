@@ -9,6 +9,7 @@ from unittest import mock
 import pytest
 
 from tools.browser_use_adapter import BrowserUseCompatibilityAdapter
+from tools.browser_use_adapter.runtime_provider import get_browser_runtime_provider
 
 
 @dataclass
@@ -25,6 +26,59 @@ def make_controller():
         controller = SimpleNamespace()
         controller.is_connected = connected
         controller.close = mock.AsyncMock()
+        controller.auto_connect_to_chrome = mock.AsyncMock(
+            return_value={
+                "status": "connected",
+                "mode": "user_chrome",
+                "url": "https://example.com",
+                "title": "Example",
+                "auto_launched": False,
+            }
+        )
+        controller.launch_managed_browser = mock.AsyncMock(
+            return_value={
+                "status": "launched",
+                "mode": "managed",
+                "url": "about:blank",
+                "title": "",
+            }
+        )
+        controller.get_status = mock.AsyncMock(
+            return_value={
+                "connected": connected,
+                "mode": "user_chrome" if connected else None,
+                "url": "https://example.com" if connected else "",
+                "title": "Example" if connected else "",
+                "tab_count": 1 if connected else 0,
+                "target_id": "tab-1" if connected else None,
+            }
+        )
+        controller.navigate = mock.AsyncMock(
+            return_value={
+                "success": True,
+                "url": "https://example.com",
+                "title": "Example",
+                "status": 200,
+            }
+        )
+        controller.open_tab = mock.AsyncMock(
+            return_value={
+                "success": True,
+                "target_id": "tab-2",
+                "url": "https://example.com/new",
+                "title": "New Tab",
+                "status": 200,
+            }
+        )
+        controller.get_tabs = mock.AsyncMock(
+            return_value=[
+                SimpleNamespace(
+                    target_id="tab-1",
+                    title="Example",
+                    url="https://example.com",
+                )
+            ]
+        )
         controller.wait_for_load = mock.AsyncMock(return_value={"success": True})
         controller.get_page_snapshot = mock.AsyncMock(
             return_value=DummySnapshot(text="snapshot", url="https://example.com", title="Example")
@@ -230,3 +284,126 @@ class TestBrowserUseCompatibilityAdapter:
             double_click=False,
             button="left",
         )
+
+    @pytest.mark.asyncio
+    async def test_runtime_provider_injection_for_core_actions(self, make_controller):
+        controller = make_controller()
+        controller.navigate = mock.AsyncMock(
+            side_effect=AssertionError("controller.navigate should not be called directly")
+        )
+        controller.open_tab = mock.AsyncMock(
+            side_effect=AssertionError("controller.open_tab should not be called directly")
+        )
+        controller.get_tabs = mock.AsyncMock(
+            side_effect=AssertionError("controller.get_tabs should not be called directly")
+        )
+        controller.switch_tab = mock.AsyncMock(
+            side_effect=AssertionError("controller.switch_tab should not be called directly")
+        )
+        controller.get_status = mock.AsyncMock(
+            side_effect=AssertionError("controller.get_status should not be called directly")
+        )
+        controller.close = mock.AsyncMock(
+            side_effect=AssertionError("controller.close should not be called directly")
+        )
+
+        runtime = SimpleNamespace()
+        runtime.is_connected = True
+        runtime.close = mock.AsyncMock()
+        runtime.connect_user_chrome = mock.AsyncMock()
+        runtime.connect_managed = mock.AsyncMock()
+        runtime.get_status = mock.AsyncMock(
+            return_value={
+                "connected": True,
+                "mode": "user_chrome",
+                "url": "https://runtime.example/status",
+                "title": "Runtime Status",
+                "tab_count": 2,
+                "target_id": "tab-2",
+            }
+        )
+        runtime.navigate = mock.AsyncMock(
+            return_value={
+                "success": True,
+                "url": "https://runtime.example/nav",
+                "title": "Runtime Navigate",
+                "status": 200,
+            }
+        )
+        runtime.open_tab = mock.AsyncMock(
+            return_value={
+                "success": True,
+                "target_id": "tab-2",
+                "url": "https://runtime.example/new",
+                "title": "Runtime New Tab",
+                "status": 200,
+            }
+        )
+        runtime.get_tabs = mock.AsyncMock(
+            return_value=[
+                {"target_id": "tab-1", "title": "One", "url": "https://runtime.example/one"},
+                SimpleNamespace(target_id="tab-2", title="Two", url="https://runtime.example/two"),
+            ]
+        )
+        runtime.switch_tab = mock.AsyncMock(return_value=True)
+
+        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+
+        status_result = await adapter.execute("status", {"action": "status"})
+        assert status_result.success is True
+        assert status_result.data["url"] == "https://runtime.example/status"
+        runtime.get_status.assert_awaited_once()
+
+        navigate_result = await adapter.execute(
+            "navigate",
+            {
+                "action": "navigate",
+                "target_id": "tab-2",
+                "url": "https://runtime.example/nav",
+            },
+        )
+        assert navigate_result.success is True
+        assert navigate_result.data["url"] == "https://runtime.example/nav"
+        runtime.switch_tab.assert_awaited_once_with("tab-2")
+        runtime.navigate.assert_awaited_once_with(
+            url="https://runtime.example/nav",
+            wait_until="load",
+        )
+
+        open_result = await adapter.execute(
+            "open",
+            {"action": "open", "url": "https://runtime.example/new"},
+        )
+        assert open_result.success is True
+        assert open_result.data["target_id"] == "tab-2"
+        runtime.open_tab.assert_awaited_once_with(url="https://runtime.example/new")
+
+        tabs_result = await adapter.execute("get_tabs", {"action": "get_tabs"})
+        assert tabs_result.success is True
+        assert tabs_result.data["tab_count"] == 2
+        assert tabs_result.data["tabs"][0]["target_id"] == "tab-1"
+        assert tabs_result.data["tabs"][1]["target_id"] == "tab-2"
+        runtime.get_tabs.assert_awaited_once()
+
+        switch_result = await adapter.execute(
+            "switch_tab",
+            {"action": "switch_tab", "target_id": "tab-1"},
+        )
+        assert switch_result.success is True
+        assert switch_result.data["target_id"] == "tab-1"
+        assert runtime.switch_tab.await_count == 2
+
+        close_result = await adapter.execute("close", {"action": "close"})
+        assert close_result.success is True
+        runtime.close.assert_awaited_once()
+
+    def test_runtime_factory_falls_back_to_controller_provider(self, make_controller):
+        controller = make_controller()
+        with mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_USE_RUNTIME": "browser_use_native"},
+            clear=False,
+        ):
+            runtime = get_browser_runtime_provider(controller)
+
+        assert runtime.__class__.__name__ == "ControllerBackedRuntimeProvider"
