@@ -494,3 +494,195 @@ In `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`, cleari
   - Result: `22 passed`
   - `cd frontend && npm run test -- ../tests/frontend/ChatMessageSender.test.tsx ../tests/frontend/TranscriptStorage.test.ts`
   - Result: `22 passed`
+
+---
+
+## [x] Bug Report: Timed-Out Foreground Shell Commands Leak Registry Sessions
+
+### Summary
+
+In `frontend/src/main/python/tools/system/shell_tool.py`, foreground commands that timed out were leaving dead sessions in `shell_process_registry._running_sessions`.
+
+### Root Cause
+
+- `run_shell_command(...)` waited with `asyncio.wait_for(wait_task, timeout=...)`.
+- On timeout, `wait_for` cancels `wait_task`.
+- `wait_task` runs `_wait_for_exit(...)`, which is the only path that calls `mark_exited(...)` and removes the session from `_running_sessions`.
+- Because the task was canceled, registry cleanup never ran for that timed-out foreground session.
+
+### Why It's Problematic
+
+- Session entries accumulate in `_running_sessions` over time, creating a memory/state leak.
+- Leaked sessions can interfere with background-session management behavior and test reliability.
+- The leak is silent, so long-running app processes can degrade without obvious errors.
+
+### Fix
+
+- Changed timeout wait to `asyncio.wait_for(asyncio.shield(wait_task), timeout=...)` so timeout does not cancel `wait_task`.
+- After forced termination, explicitly await `wait_task` so `_wait_for_exit(...)` performs normal cleanup.
+- Added a defensive fallback: if cleanup task still does not complete, call `mark_exited(...)` directly.
+- Updated `_build_result_from_session(...)` to support explicit `exit_code_override=None` while keeping existing timeout response behavior.
+
+### Validation
+
+- Added regression test in `tests/sidecar/test_shell_process_tool.py`:
+  - `test_run_shell_command_timeout_cleans_foreground_session_registry_entry`
+- Re-ran targeted sidecar suites:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py`
+  - Result: `29 passed`
+- Reproduced the timeout flow before and after patch:
+  - Before: `_running_sessions` count increased from `0` to `1`
+  - After: `_running_sessions` remains `0`
+
+---
+
+## [x] Bug Report: `process remove` Leaks PTY File Descriptors
+
+### Summary
+
+In `frontend/src/main/python/tools/system/process_tool.py`, removing an active PTY-backed background session did not close the PTY master file descriptor.
+
+### Root Cause
+
+- `process_shell_command(..., action="remove")` canceled session tasks, killed the process, and deleted the session record.
+- For PTY sessions (`session.uses_pty=True`), the code never closed `session.pty_master`.
+- The normal PTY close path lives in `_wait_for_exit(...)` (`shell_tool.py`), but `remove` cancels that task before cleanup completes.
+
+### Why It's Problematic
+
+- PTY master descriptors remain open after session removal, causing a file descriptor leak.
+- Repeated remove operations can accumulate leaked descriptors and eventually degrade sidecar stability.
+- The issue is silent because session deletion succeeds, masking the resource leak.
+
+### Fix
+
+- Updated `process_tool.py` remove action to explicitly close `session.pty_master` when present.
+- Set `session.pty_master = None` after close to avoid stale descriptor reuse.
+
+### Validation
+
+- Added regression test in `tests/sidecar/test_shell_process_tool.py`:
+  - `test_process_remove_closes_pty_master_fd`
+- Re-ran targeted sidecar suite:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py`
+  - Result: `20 passed`
+- Manual repro before/after fix:
+  - Before: `os.fstat(fd)` succeeded after `process remove` (fd still open)
+  - After: `os.fstat(fd)` raises `Errno 9` (fd closed)
+
+---
+
+## [x] Bug Report: `process kill` Returned Success While Session Still Showed Running
+
+### Summary
+
+In `frontend/src/main/python/tools/system/process_tool.py`, `process_shell_command(..., action="kill")` could return a successful `"killed"` response even though the session still appeared in the running list and polled as `"running"` immediately after.
+
+### Root Cause
+
+- The kill handler called `session.process.kill()` and awaited only `session.process.wait()`.
+- Registry state transition (`_running_sessions` -> `_finished_sessions`) happens in the background `wait_task` path (`_wait_for_exit(...)` in `shell_tool.py`), not in `process.wait()` itself.
+- Because `kill` did not await/finish `wait_task`, callers could observe stale running state right after a successful kill response.
+
+### Why It's Problematic
+
+- Produces inconsistent API behavior: kill reports success while subsequent `list`/`poll` still report running.
+- Causes racey UI/tooling behavior when callers immediately refresh process status after kill.
+- Makes process lifecycle debugging harder due to contradictory state signals.
+
+### Fix
+
+- Updated `process_tool.py` kill action to:
+  - await `session.wait_task` (with timeout) so registry cleanup completes,
+  - fallback to `mark_exited(...)` if wait-task cleanup does not finish.
+- This guarantees killed sessions leave the running registry before the kill response returns.
+
+### Validation
+
+- Added regression test in `tests/sidecar/test_shell_process_tool.py`:
+  - `test_process_kill_immediately_removes_session_from_running_registry`
+- Re-ran targeted sidecar suites:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py`
+  - Result: `31 passed`
+- Manual repro before/after fix:
+  - Before: right after kill, session remained in `running`, not `finished`, and `poll` showed `running`
+  - After: right after kill, session is absent from `running`, present in `finished`, and `poll` shows terminal status
+
+---
+
+## [x] Bug Report: Memory Service Can Crash On Valid JSON That Is Not An Object
+
+### Summary
+
+In `frontend/src/main/python/memory_service.py`, `MemoryService.handle_request(...)` assumed the decoded JSON frame was always an object (`dict`). If a client sent valid JSON with a non-object root (for example `[]`), request handling could raise unexpectedly and destabilize the service loop.
+
+### Root Cause
+
+- `handle_request(...)` accessed `request.get(...)` without validating request type.
+- When `request` was a list/string/number, `.get` raised `AttributeError`.
+- The same method also assumed `payload` was a dict; non-object payloads later caused `.get` failures in request handlers.
+
+### Why It's Problematic
+
+- A malformed-but-valid JSON frame can trigger exceptions in core request dispatch.
+- This makes protocol behavior brittle and can terminate or disrupt service handling under bad input.
+- The failure mode is avoidable and should be converted into a structured protocol error response.
+
+### Fix
+
+- Added explicit request-shape guards in `MemoryService.handle_request(...)`:
+  - reject non-object root requests with `"Request must be a JSON object"`,
+  - reject non-object payloads with `"Request payload must be a JSON object"`,
+  - keep error responses structured with stable `id` behavior.
+
+### Validation
+
+- Added regression tests in `tests/sidecar/test_memory_service.py`:
+  - `test_handle_request_rejects_non_object_request`
+  - `test_handle_request_rejects_non_object_payload`
+- Re-ran targeted sidecar suite:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_memory_service.py`
+  - Result: `16 passed`
+- Runtime check:
+  - `handle_request([])` now returns `{success: false, error: "Request must be a JSON object"}`
+  - `handle_request({... payload: "bad"})` now returns `{success: false, error: "Request payload must be a JSON object"}`
+
+---
+
+## [x] Bug Report: JSON-RPC Non-Object Requests Were Misclassified As Internal Errors
+
+### Summary
+
+In `frontend/src/main/python/core/ipc_protocol.py`, `JSONRPCProtocol.handle_request(...)` assumed parsed JSON was always an object. Sending valid JSON with a non-object root (for example `[]`) produced an internal exception and returned `-32603 Internal error` instead of `-32600 Invalid Request`.
+
+### Root Cause
+
+- `handle_request(...)` accessed `request.get(...)` without first validating that `request` is a dict.
+- For list/string/number payloads, Python raised `AttributeError`.
+- `process_line(...)` caught that exception at a higher level and wrapped it as internal error.
+
+### Why It's Problematic
+
+- Violates JSON-RPC semantics by classifying malformed request shape as server internal failure.
+- Emits noisy stack traces for client input validation errors.
+- Makes protocol diagnostics and client retry logic less reliable because input mistakes look like server faults.
+
+### Fix
+
+- Updated `JSONRPCProtocol.handle_request(...)` to validate request type up front.
+- Non-object payloads now return:
+  - error code `-32600` (`INVALID_REQUEST`)
+  - message `"Invalid request: payload must be a JSON object"`
+- Kept existing behavior unchanged for valid object requests.
+
+### Validation
+
+- Added regression tests in `tests/sidecar/test_json_rpc_protocol.py`:
+  - `test_handle_request_rejects_non_object_payload`
+  - `test_process_line_non_object_json_returns_invalid_request`
+- Re-ran targeted sidecar suites:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_local_backend.py`
+  - Result: `43 passed`
+- Runtime check:
+  - Before: `process_line('[]')` returned `-32603 Internal error` with an attribute-error trace.
+  - After: `process_line('[]')` returns `-32600 Invalid request`.

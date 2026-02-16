@@ -66,6 +66,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- fix(sidecar-jsonrpc): treat non-object JSON-RPC request payloads as `INVALID_REQUEST` (`-32600`) in `core/ipc_protocol.py` instead of surfacing `INTERNAL_ERROR` (`-32603`), with regression coverage for direct `handle_request(...)` and `process_line(...)` non-object inputs
 - fix(frontend-noise): remove unused `React` imports and unescaped apostrophes in landing components so `frontend npm run lint` is clean again; local backend bridge now appends `--no-deprecation` to sidecar `NODE_OPTIONS` and suppresses known Node `DEP0169 url.parse()` stderr lines, with regression coverage in `tests/frontend/LocalBackendBridge.test.cjs`
 - fix(browser-post-action-snapshot): switch automatic `post_action_snapshot` AI capture to flat mode (`interactive/compact/depth` unset) so it consistently uses the enhanced CDP/DOM pipeline path instead of role snapshot defaults
 - feat(browser-snapshot): port browser-use-style enhanced CDP/DOM snapshot internals into sidecar AI snapshots (`DOMSnapshot` + `DOM.getDocument` + AX tree + JS click-listener hints, parallel fetch with retry, backend-node ref attachment), keep legacy selector snapshot as automatic fallback, and add focused sidecar pipeline/controller regression coverage

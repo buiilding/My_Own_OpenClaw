@@ -97,12 +97,19 @@ class JSONRPCProtocol:
             error["data"] = data
         return self.create_response(request_id, error=error)
     
-    async def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    async def handle_request(self, request: Any) -> Dict[str, Any]:
         """
         Handle a JSON-RPC request.
         
         Returns a JSON-RPC response.
         """
+        if not isinstance(request, dict):
+            return self.create_error_response(
+                None,
+                self.INVALID_REQUEST,
+                "Invalid request: payload must be a JSON object",
+            )
+
         # Validate JSON-RPC version
         if request.get("jsonrpc") != "2.0":
             return self.create_error_response(

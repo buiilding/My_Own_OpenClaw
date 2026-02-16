@@ -110,6 +110,26 @@ async def test_process_line_empty_returns_none():
     assert await protocol.process_line("") is None
 
 
+@pytest.mark.asyncio
+async def test_handle_request_rejects_non_object_payload():
+    protocol = JSONRPCProtocol()
+
+    response = await protocol.handle_request(["bad"])
+
+    assert response["error"]["code"] == JSONRPCProtocol.INVALID_REQUEST
+    assert response["error"]["message"] == "Invalid request: payload must be a JSON object"
+
+
+@pytest.mark.asyncio
+async def test_process_line_non_object_json_returns_invalid_request():
+    protocol = JSONRPCProtocol()
+
+    response = await protocol.process_line('["bad"]')
+
+    assert response["error"]["code"] == JSONRPCProtocol.INVALID_REQUEST
+    assert response["error"]["message"] == "Invalid request: payload must be a JSON object"
+
+
 def test_create_request_omits_optional_fields_when_not_provided():
     protocol = JSONRPCProtocol()
 
