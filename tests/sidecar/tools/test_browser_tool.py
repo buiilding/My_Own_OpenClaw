@@ -536,6 +536,56 @@ class TestPostActionSnapshots:
     """Test automatic snapshots for page-affecting actions."""
 
     @pytest.mark.asyncio
+    async def test_connect_success_adds_post_action_snapshot(self):
+        """Successful connect should include post-action snapshot data."""
+        from tools.browser.controller import PageSnapshot
+
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = False
+
+            async def _auto_connect(**kwargs):
+                mock_controller.is_connected = True
+                return {
+                    "status": "connected",
+                    "mode": "user_chrome",
+                    "url": "https://example.com",
+                    "title": "Example",
+                }
+
+            mock_controller.auto_connect_to_chrome.side_effect = _auto_connect
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
+            mock_controller.get_page_snapshot.return_value = PageSnapshot(
+                text="[1] button Submit",
+                url="https://example.com",
+                title="Example",
+                ref_count=1,
+            )
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "connect",
+                "mode": "user_chrome",
+            })
+
+            assert result.success is True
+            assert "post_action_snapshot" in result.data
+            assert result.data["post_action_snapshot"]["action"] == "snapshot"
+            assert result.data["post_action_snapshot"]["format"] == "ai"
+            assert result.data["post_action_snapshot"]["snapshot"] == "[1] button Submit"
+            mock_controller.wait_for_load.assert_awaited_once_with("load")
+            mock_controller.get_page_snapshot.assert_awaited_once_with(
+                format_type="ai",
+                max_chars=8000,
+                refs_mode=None,
+                interactive=True,
+                compact=True,
+                depth=4,
+                selector=None,
+                frame_selector=None,
+            )
+
+    @pytest.mark.asyncio
     async def test_click_success_adds_post_action_snapshot(self):
         """Successful click should include post-action snapshot data."""
         from tools.browser.controller import PageSnapshot
