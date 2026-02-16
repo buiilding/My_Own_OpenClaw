@@ -84,6 +84,10 @@ def _should_attach_post_action_snapshot(
     args: Dict[str, Any],
     result: ToolResult,
 ) -> bool:
+    # Temporarily disabled for testing: do not auto-attach post-action snapshots.
+    return False
+
+    # Keep existing logic in place for easy re-enable.
     if not result.success or not isinstance(result.data, dict):
         return False
 

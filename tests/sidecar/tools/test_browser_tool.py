@@ -1014,10 +1014,8 @@ class TestPostActionSnapshots:
     """Test automatic snapshots for page-affecting actions."""
 
     @pytest.mark.asyncio
-    async def test_connect_success_adds_post_action_snapshot(self):
-        """Successful connect should include post-action snapshot data."""
-        from tools.browser.controller import PageSnapshot
-
+    async def test_connect_success_does_not_add_post_action_snapshot(self):
+        """Automatic post-action snapshots are disabled."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get:
@@ -1034,16 +1032,6 @@ class TestPostActionSnapshots:
                 }
 
             mock_controller.auto_connect_to_chrome.side_effect = _auto_connect
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-            mock_controller.get_page_snapshot.return_value = PageSnapshot(
-                text="[1] button Submit",
-                url="https://example.com",
-                title="Example",
-                ref_count=1,
-            )
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control(
@@ -1054,48 +1042,19 @@ class TestPostActionSnapshots:
             )
 
             assert result.success is True
-            assert "post_action_snapshot" in result.data
-            assert result.data["post_action_snapshot"]["action"] == "snapshot"
-            assert result.data["post_action_snapshot"]["format"] == "ai"
-            assert (
-                result.data["post_action_snapshot"]["snapshot"] == "[1] button Submit"
-            )
-            assert result.data["post_action_snapshot"]["offset"] == 0
-            assert result.data["post_action_snapshot"]["limit"] == 4000
-            assert result.data["post_action_snapshot"]["has_more"] is False
-            mock_controller.wait_for_load.assert_awaited_once_with("load")
-            mock_controller.get_page_snapshot.assert_awaited_once_with(
-                format_type="ai",
-                max_chars=4000,
-                refs_mode=None,
-                interactive=True,
-                compact=True,
-                depth=4,
-                selector=None,
-                frame_selector=None,
-            )
+            assert "post_action_snapshot" not in result.data
+            mock_controller.wait_for_load.assert_not_awaited()
+            mock_controller.get_page_snapshot.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_click_success_adds_post_action_snapshot(self):
-        """Successful click should include post-action snapshot data."""
-        from tools.browser.controller import PageSnapshot
-
+    async def test_click_success_does_not_add_post_action_snapshot(self):
+        """Automatic post-action snapshots are disabled."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_controller.click.return_value = {"success": True}
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-            mock_controller.get_page_snapshot.return_value = PageSnapshot(
-                text="[1] button Submit",
-                url="https://example.com",
-                title="Example",
-                ref_count=1,
-            )
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control(
@@ -1106,48 +1065,19 @@ class TestPostActionSnapshots:
             )
 
             assert result.success is True
-            assert "post_action_snapshot" in result.data
-            assert result.data["post_action_snapshot"]["action"] == "snapshot"
-            assert result.data["post_action_snapshot"]["format"] == "ai"
-            assert (
-                result.data["post_action_snapshot"]["snapshot"] == "[1] button Submit"
-            )
-            assert result.data["post_action_snapshot"]["offset"] == 0
-            assert result.data["post_action_snapshot"]["limit"] == 4000
-            assert result.data["post_action_snapshot"]["has_more"] is False
-            mock_controller.wait_for_load.assert_awaited_once_with("load")
-            mock_controller.get_page_snapshot.assert_awaited_once_with(
-                format_type="ai",
-                max_chars=4000,
-                refs_mode=None,
-                interactive=True,
-                compact=True,
-                depth=4,
-                selector=None,
-                frame_selector=None,
-            )
+            assert "post_action_snapshot" not in result.data
+            mock_controller.wait_for_load.assert_not_awaited()
+            mock_controller.get_page_snapshot.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_click_post_action_snapshot_uses_snapshot_retry_path(self):
-        """Post-action snapshot should use snapshot action defaults, including zero-ref retries."""
-        from tools.browser.controller import PageSnapshot
-
+    async def test_click_post_action_snapshot_retry_path_not_used_when_disabled(self):
+        """Disabled auto-snapshot should skip all snapshot-retry calls."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_controller.click.return_value = {"success": True}
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-            mock_controller.get_page_snapshot.return_value = PageSnapshot(
-                text="(no interactive elements)",
-                url="https://example.com",
-                title="Example",
-                ref_count=0,
-            )
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control(
@@ -1158,50 +1088,13 @@ class TestPostActionSnapshots:
             )
 
             assert result.success is True
-            assert "post_action_snapshot" in result.data
-            assert result.data["post_action_snapshot"]["ref_count"] == 0
-            assert (
-                result.data["post_action_snapshot"]["snapshot"]
-                == "(no interactive elements)"
-            )
-            assert result.data["post_action_snapshot"]["offset"] == 0
-            assert result.data["post_action_snapshot"]["limit"] == 4000
-            assert result.data["post_action_snapshot"]["has_more"] is False
-            assert mock_controller.get_page_snapshot.await_count == 3
-            assert mock_controller.get_page_snapshot.await_args_list[0].kwargs == {
-                "format_type": "ai",
-                "max_chars": 4000,
-                "refs_mode": None,
-                "interactive": True,
-                "compact": True,
-                "depth": 4,
-                "selector": None,
-                "frame_selector": None,
-            }
-            assert mock_controller.get_page_snapshot.await_args_list[1].kwargs == {
-                "format_type": "ai",
-                "max_chars": 4000,
-                "refs_mode": None,
-                "interactive": True,
-                "compact": True,
-                "depth": 12,
-                "selector": None,
-                "frame_selector": None,
-            }
-            assert mock_controller.get_page_snapshot.await_args_list[2].kwargs == {
-                "format_type": "ai",
-                "max_chars": 4000,
-                "refs_mode": None,
-                "interactive": None,
-                "compact": None,
-                "depth": None,
-                "selector": None,
-                "frame_selector": None,
-            }
+            assert "post_action_snapshot" not in result.data
+            mock_controller.wait_for_load.assert_not_awaited()
+            mock_controller.get_page_snapshot.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_snapshot_failure_does_not_fail_primary_action(self):
-        """Post-action snapshot failure should not fail the original action."""
+    async def test_snapshot_path_not_run_when_disabled(self):
+        """Disabled auto-snapshot should not run even if wait path would fail."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get:
@@ -1223,7 +1116,7 @@ class TestPostActionSnapshots:
 
             assert result.success is True
             assert "post_action_snapshot" not in result.data
-            mock_controller.wait_for_load.assert_awaited_once_with("load")
+            mock_controller.wait_for_load.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_status_does_not_add_post_action_snapshot(self):

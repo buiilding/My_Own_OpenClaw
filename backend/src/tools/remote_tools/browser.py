@@ -28,9 +28,8 @@ Workflow:
 4. Interact: browser_control(action="click", ref="1") or browser_control(action="type", ref="2", text="hello")
 5. Close: browser_control(action="close")
 
-For browser-mutating actions (including `connect`), successful results include
-`post_action_snapshot` generated via the same `snapshot` action code path,
-including pagination metadata (`offset`, `limit`, `has_more`, `next_offset` when present).
+Automatic `post_action_snapshot` attachment is temporarily disabled for testing.
+Use explicit `browser_control(action="snapshot", ...)` calls when snapshot data is needed.
 
 Actions:
 - connect: Initialize browser (requires mode)
