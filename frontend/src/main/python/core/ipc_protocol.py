@@ -131,6 +131,12 @@ class JSONRPCProtocol:
                 self.INVALID_REQUEST,
                 "Method name is required"
             )
+        if not isinstance(method_name, str):
+            return self.create_error_response(
+                request.get("id"),
+                self.INVALID_REQUEST,
+                "Method name must be a string"
+            )
         
         # Get method handler
         registered_method = self.methods.get(method_name)

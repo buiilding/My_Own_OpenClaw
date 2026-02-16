@@ -58,6 +58,15 @@ async def test_handle_request_method_not_found():
 
 
 @pytest.mark.asyncio
+async def test_handle_request_non_string_method_is_invalid_request():
+    protocol = JSONRPCProtocol()
+    request = {"jsonrpc": "2.0", "method": 123, "id": "1"}
+    response = await protocol.handle_request(request)
+    assert response["error"]["code"] == JSONRPCProtocol.INVALID_REQUEST
+    assert response["error"]["message"] == "Method name must be a string"
+
+
+@pytest.mark.asyncio
 async def test_handle_request_invalid_params_type():
     protocol = JSONRPCProtocol()
 

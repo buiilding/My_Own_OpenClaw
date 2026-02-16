@@ -759,3 +759,40 @@ In `backend/src/tools/tool_selection.py`, `load_tool_selection(...)` cached pars
 - Runtime repro:
   - Before: rewriting config with same `mtime` returned stale tool list (`read_file`)
   - After: same scenario returns updated tool list (`edit_file`)
+
+---
+
+## [x] Bug Report: JSON-RPC Non-String Method Names Were Misclassified
+
+### Summary
+
+In `frontend/src/main/python/core/ipc_protocol.py`, `JSONRPCProtocol.handle_request(...)` treated requests with non-string `method` values (for example `123`) as `METHOD_NOT_FOUND` instead of `INVALID_REQUEST`.
+
+### Root Cause
+
+- Method validation only checked presence/truthiness (`if not method_name`).
+- Non-string truthy values bypassed that guard.
+- The dispatcher then did `self.methods.get(method_name)` and returned `METHOD_NOT_FOUND` for invalid method types.
+
+### Why It's Problematic
+
+- Violates JSON-RPC request validation semantics (`method` must be a string).
+- Client-side input bugs are reported as missing server methods, which is misleading.
+- This can trigger incorrect retries/fallback behavior in protocol clients.
+
+### Fix
+
+- Added explicit type validation for `method` in `handle_request(...)`.
+- Non-string method values now return:
+  - error code `-32600` (`INVALID_REQUEST`)
+  - message `"Method name must be a string"`
+
+### Validation
+
+- Added regression test in `tests/sidecar/test_json_rpc_protocol.py`:
+  - `test_handle_request_non_string_method_is_invalid_request`
+- Re-ran targeted sidecar suites:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_local_backend.py`
+  - Result: `46 passed`
+- Runtime check:
+  - `handle_request({"jsonrpc":"2.0","method":123,"id":"req-1"})` now returns `-32600 Invalid request` with method-type message.

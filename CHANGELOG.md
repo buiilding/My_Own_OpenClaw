@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(browser-use-port): expand Phase 2 adapter-routing coverage so `browser_control` now dispatches most controller-backed compatibility actions through `tools/browser_use_adapter` (including click/type/screenshot, console/errors/requests, trace/pdf/upload/dialog, cookies/storage, and set_* actions), while leaving `profiles`, `snapshot`, `extract`, and `act` on direct handlers for the next slice
 - feat(browser-use-port): start Phase 2 compatibility-wrapper execution by adding `frontend/src/main/python/tools/browser_use_adapter/*`, routing `browser_control` core actions (`connect`, `status`, `navigate`, `open`, `press`, `scroll`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `close`) through adapter dispatch, adding sidecar adapter-routing regressions in `tests/sidecar/tools/test_browser_tool.py`, and documenting progress in `docs/plan/BROWSER_USE_PORT_PHASE2_COMPAT_WRAPPER_PROGRESS.md`
 - docs(browser-use-port): complete Phase 1 for `docs/BROWSER_USE_PORT_IMPLEMENTATION_PLAN.md` with architecture boundary + sequence diagram and adapter interface/normalized return schema in `docs/plan/BROWSER_USE_PORT_PHASE1_ARCHITECTURE_AND_ADAPTER_SPEC.md`, plus Phase 1 addendum in `docs/plan/BROWSER_USE_PORT_PHASE0_PARITY_LEDGER.md`
 - docs(browser-use-port): complete Phase 0 artifacts for `docs/BROWSER_USE_PORT_IMPLEMENTATION_PLAN.md` with action-level parity ledger (`docs/plan/BROWSER_USE_PORT_PHASE0_PARITY_LEDGER.md`), baseline test run log (`docs/plan/BROWSER_USE_PORT_PHASE0_BASELINE_RUN_LOG.md`), and non-direct mapping decision log (`docs/plan/BROWSER_USE_PORT_PHASE0_DECISION_LOG.md`)
@@ -71,6 +72,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- fix(sidecar-jsonrpc): validate `method` type in `JSONRPCProtocol.handle_request(...)` and return `INVALID_REQUEST` (`-32600`) for non-string method names instead of misclassifying them as `METHOD_NOT_FOUND`
 - fix(sidecar-jsonrpc): preserve valid falsy JSON-RPC request IDs (`0`, `""`) in `JSONRPCProtocol.create_request(...)` by checking `request_id is not None` so requests are not accidentally downgraded to notifications
 - fix(tool-selection): strengthen dev tool-selection cache invalidation in `backend/src/tools/tool_selection.py` by keying cache entries on `(st_mtime_ns, st_ctime_ns, st_size)` instead of only `st_mtime`, with backend regression coverage for same-mtime file rewrites
 - fix(sidecar-jsonrpc): treat non-object JSON-RPC request payloads as `INVALID_REQUEST` (`-32600`) in `core/ipc_protocol.py` instead of surfacing `INTERNAL_ERROR` (`-32603`), with regression coverage for direct `handle_request(...)` and `process_line(...)` non-object inputs
