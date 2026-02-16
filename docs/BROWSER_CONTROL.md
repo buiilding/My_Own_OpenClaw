@@ -195,7 +195,7 @@ Defaults:
 
 Automatic post-action snapshots:
 - For page-affecting actions, WindieOS automatically captures an `ai` snapshot after a successful action and appends it to tool output as `post_action_snapshot`.
-- Current auto-snapshot actions: `navigate`, `open`, `click`, `type`, `press`, `scroll`, `wait`, `switch_tab`, `evaluate`, `upload`, `set_media`, `set_device`, and `act` kinds (`click`, `type`, `press`, `hover`, `drag`, `select`, `fill`, `resize`, `wait`, `evaluate`).
+- Current auto-snapshot actions: `connect`, `navigate`, `open`, `click`, `type`, `press`, `scroll`, `wait`, `switch_tab`, `evaluate`, `upload`, `set_media`, `set_device`, and `act` kinds (`click`, `type`, `press`, `hover`, `drag`, `select`, `fill`, `resize`, `wait`, `evaluate`).
 - Auto-snapshot uses efficient defaults: `interactive=true`, `compact=true`, `depth=4`, `max_chars=8000`.
 
 ### 4. Click

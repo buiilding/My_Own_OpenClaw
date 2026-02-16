@@ -28,8 +28,9 @@ Workflow:
 4. Interact: browser_control(action="click", ref="1") or browser_control(action="type", ref="2", text="hello")
 5. Close: browser_control(action="close")
 
-For page-affecting actions, successful results include `post_action_snapshot`
-with a compact `ai` snapshot payload (`snapshot`, `url`, `title`, `ref_count`).
+For browser-mutating actions (including `connect`), successful results include
+`post_action_snapshot` with a compact `ai` snapshot payload
+(`snapshot`, `url`, `title`, `ref_count`).
 
 Actions:
 - connect: Initialize browser (requires mode)

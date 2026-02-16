@@ -24,6 +24,7 @@ DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH = 4
 SNAPSHOT_WAIT_STATES = frozenset({"load", "domcontentloaded", "networkidle", "commit"})
 
 POST_ACTION_SNAPSHOT_ACTIONS = frozenset({
+    "connect",
     "navigate",
     "open",
     "click",
@@ -187,7 +188,8 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
     # Route to appropriate handler
     try:
         if action == "connect":
-            return await _handle_connect(raw_args)
+            result = await _handle_connect(raw_args)
+            return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
         elif action == "status":
             return await _handle_status(raw_args)
         elif action == "profiles":
