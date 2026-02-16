@@ -173,7 +173,9 @@ class ToolRegistry:
         if not tool:
             return ToolResult.error_result(f"Tool not found: {tool_name}")
 
-        tool_args = args if isinstance(args, dict) else {}
+        if not isinstance(args, dict):
+            return ToolResult.error_result("Tool args must be an object")
+        tool_args = args
         
         # Execute tool (handle both sync and async)
         try:

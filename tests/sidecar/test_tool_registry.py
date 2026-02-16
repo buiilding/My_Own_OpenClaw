@@ -54,19 +54,20 @@ async def test_execute_tool_passes_args_without_schema_validation():
 
 
 @pytest.mark.asyncio
-async def test_execute_tool_coerces_non_dict_args_to_empty_dict():
+async def test_execute_tool_rejects_non_dict_args():
     registry = ToolRegistry()
-    captured = {}
+    captured = {"called": False}
 
     def read_file_tool(args):
-        captured["args"] = args
+        captured["called"] = True
         return ToolResult.success_result({"ok": True})
 
     registry.tools["read_file"] = read_file_tool
 
     result = await registry.execute_tool("read_file", "not-a-dict")
-    assert result.success is True
-    assert captured["args"] == {}
+    assert result.success is False
+    assert result.error == "Tool args must be an object"
+    assert captured["called"] is False
 
 
 @pytest.mark.asyncio

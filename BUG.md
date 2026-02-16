@@ -835,3 +835,41 @@ In `frontend/src/main/python/core/ipc_protocol.py`, `JSONRPCProtocol.handle_requ
   - Result: `48 passed`
 - Runtime check:
   - `handle_request({"jsonrpc":"2.0","method":"ping"})` now returns `None`.
+
+---
+
+## [x] Bug Report: Sidecar Tool Registry Executed Tools With Invalid Non-Object Args
+
+### Summary
+
+In `frontend/src/main/python/tools/registry.py`, `ToolRegistry.execute_tool(...)` silently coerced non-dict `args` to `{}`. Invalid requests (for example string/list args) could still execute tools instead of failing fast.
+
+### Root Cause
+
+- Argument normalization used:
+  - `tool_args = args if isinstance(args, dict) else {}`
+- This converted malformed payloads into seemingly valid empty argument objects.
+- Some tools accept empty args or have optional fields, so execution could proceed with unintended defaults.
+
+### Why It's Problematic
+
+- Invalid client/tool payloads were not rejected at the sidecar execution boundary.
+- Malformed calls could trigger real side effects (for example screenshot capture) instead of returning a validation error.
+- This masks caller bugs and makes protocol/tool debugging harder.
+
+### Fix
+
+- Updated `ToolRegistry.execute_tool(...)` to reject non-dict `args`:
+  - returns `ToolResult.error_result("Tool args must be an object")`
+  - does not invoke the target tool when args are malformed.
+
+### Validation
+
+- Updated regression test in `tests/sidecar/test_tool_registry.py`:
+  - `test_execute_tool_rejects_non_dict_args`
+  - verifies malformed args return an error and the tool callback is not executed.
+- Re-ran targeted sidecar suites:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_local_backend.py tests/sidecar/test_json_rpc_protocol.py`
+  - Result: `55 passed`
+- Runtime check:
+  - `execute_tool("read_file", "not-a-dict")` now returns `{"success": False, "error": "Tool args must be an object"}`.

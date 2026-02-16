@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(browser-use-port): make `extract` adapter-native in Phase 2 by implementing extraction semantics directly inside `tools/browser_use_adapter` and removing the `extract` legacy delegate path (leaving only `snapshot` on a delegate)
 - feat(browser-use-port): expand Phase 2 adapter-routing coverage so `browser_control` now dispatches most controller-backed compatibility actions through `tools/browser_use_adapter` (including click/type/screenshot, console/errors/requests, trace/pdf/upload/dialog, cookies/storage, and set_* actions), while leaving `profiles`, `snapshot`, `extract`, and `act` on direct handlers for the next slice
 - feat(browser-use-port): start Phase 2 compatibility-wrapper execution by adding `frontend/src/main/python/tools/browser_use_adapter/*`, routing `browser_control` core actions (`connect`, `status`, `navigate`, `open`, `press`, `scroll`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `close`) through adapter dispatch, adding sidecar adapter-routing regressions in `tests/sidecar/tools/test_browser_tool.py`, and documenting progress in `docs/plan/BROWSER_USE_PORT_PHASE2_COMPAT_WRAPPER_PROGRESS.md`
 - docs(browser-use-port): complete Phase 1 for `docs/BROWSER_USE_PORT_IMPLEMENTATION_PLAN.md` with architecture boundary + sequence diagram and adapter interface/normalized return schema in `docs/plan/BROWSER_USE_PORT_PHASE1_ARCHITECTURE_AND_ADAPTER_SPEC.md`, plus Phase 1 addendum in `docs/plan/BROWSER_USE_PORT_PHASE0_PARITY_LEDGER.md`
@@ -201,6 +202,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(sidecar-tool-registry): reject non-object tool args in `ToolRegistry.execute_tool(...)` so malformed payloads fail validation instead of being coerced to `{}` and executed
 - fix(browser-aria-snapshot): switch `browser_control(action="snapshot", format="aria")` to Playwright Locator `aria_snapshot()` API (`page.locator(":root")`) so ARIA snapshots work on current Playwright versions where `Page.accessibility` is unavailable
 - feat(browser-extract): add extract modes (`focused`, `full_text`, `structured`) with optional `selector`/`frame` scoping; `structured` now captures DOM tables/lists into JSON payloads so table rows can be extracted more completely than keyword-only text filtering
 - test(browser-control): temporarily disable automatic `post_action_snapshot` attachment for all browser actions; snapshot context must be requested explicitly via `browser_control(action="snapshot", ...)`
