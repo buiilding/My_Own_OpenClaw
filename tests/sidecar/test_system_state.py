@@ -1,0 +1,179 @@
+import sys
+from pathlib import Path
+
+import pytest
+
+frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
+sys.path.insert(0, str(frontend_python_dir))
+
+from core import system_state as system_state_module  # noqa: E402
+
+
+class _FixedNow:
+    def __init__(self, value: str):
+        self._value = value
+
+    def isoformat(self) -> str:
+        return self._value
+
+
+class _FixedDatetime:
+    @staticmethod
+    def now():
+        return _FixedNow("2026-02-16T10:11:12")
+
+
+@pytest.mark.asyncio
+async def test_get_system_state_none_fields_collects_all(monkeypatch):
+    calls = []
+
+    async def active_window():
+        calls.append("active_window")
+        return "Terminal"
+
+    async def mouse_position():
+        calls.append("mouse_position")
+        return "(10, 20)"
+
+    async def clipboard_preview():
+        calls.append("clipboard")
+        return "clip"
+
+    async def screen_resolution():
+        calls.append("screen_resolution")
+        return "1920x1080"
+
+    async def windows():
+        calls.append("windows")
+        return ["Terminal", "Browser"]
+
+    async def stats():
+        calls.append("stats")
+        return {"cpu_percent": 23.5}
+
+    monkeypatch.setattr(system_state_module, "_get_active_window", active_window)
+    monkeypatch.setattr(system_state_module, "_get_mouse_position", mouse_position)
+    monkeypatch.setattr(system_state_module, "_get_clipboard_preview", clipboard_preview)
+    monkeypatch.setattr(system_state_module, "get_screen_resolution", screen_resolution)
+    monkeypatch.setattr(system_state_module, "_get_all_open_windows", windows)
+    monkeypatch.setattr(system_state_module, "_get_system_stats", stats)
+    monkeypatch.setattr(system_state_module, "datetime", _FixedDatetime)
+
+    result = await system_state_module.get_system_state()
+
+    assert sorted(calls) == [
+        "active_window",
+        "clipboard",
+        "mouse_position",
+        "screen_resolution",
+        "stats",
+        "windows",
+    ]
+    assert result == {
+        "active_window": "Terminal",
+        "mouse_position": "(10, 20)",
+        "clipboard": "clip",
+        "screen_resolution": "1920x1080",
+        "windows": ["Terminal", "Browser"],
+        "stats": {"cpu_percent": 23.5},
+        "time": "2026-02-16T10:11:12",
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_system_state_applies_field_fallback_defaults(monkeypatch):
+    async def active_window():
+        return None
+
+    async def mouse_position():
+        raise RuntimeError("mouse boom")
+
+    async def clipboard_preview():
+        return ""
+
+    async def screen_resolution():
+        return None
+
+    async def windows():
+        return "not-a-list"
+
+    async def stats():
+        return "not-a-dict"
+
+    monkeypatch.setattr(system_state_module, "_get_active_window", active_window)
+    monkeypatch.setattr(system_state_module, "_get_mouse_position", mouse_position)
+    monkeypatch.setattr(system_state_module, "_get_clipboard_preview", clipboard_preview)
+    monkeypatch.setattr(system_state_module, "get_screen_resolution", screen_resolution)
+    monkeypatch.setattr(system_state_module, "_get_all_open_windows", windows)
+    monkeypatch.setattr(system_state_module, "_get_system_stats", stats)
+    monkeypatch.setattr(system_state_module, "datetime", _FixedDatetime)
+
+    result = await system_state_module.get_system_state(
+        [
+            "active_window",
+            "mouse_position",
+            "clipboard",
+            "screen_resolution",
+            "windows",
+            "stats",
+            "time",
+        ]
+    )
+
+    assert result == {
+        "active_window": "Unknown",
+        "mouse_position": "Unknown",
+        "clipboard": "<empty>",
+        "screen_resolution": "Unknown",
+        "windows": [],
+        "stats": {},
+        "time": "2026-02-16T10:11:12",
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_system_state_uses_minimal_fallback_after_unexpected_error(monkeypatch):
+    def clipboard_preview(*_args, **_kwargs):
+        raise RuntimeError("explode during coroutine setup")
+
+    monkeypatch.setattr(system_state_module, "_get_clipboard_preview", clipboard_preview)
+    monkeypatch.setattr(system_state_module, "datetime", _FixedDatetime)
+
+    result = await system_state_module.get_system_state(["clipboard", "time"])
+
+    assert result == {
+        "clipboard": "<error>",
+        "time": "2026-02-16T10:11:12",
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_system_state_ignores_unknown_fields(monkeypatch):
+    async def should_not_run(*_args, **_kwargs):
+        raise AssertionError("known field collector should not be called")
+
+    monkeypatch.setattr(system_state_module, "_get_active_window", should_not_run)
+    monkeypatch.setattr(system_state_module, "_get_mouse_position", should_not_run)
+    monkeypatch.setattr(system_state_module, "_get_clipboard_preview", should_not_run)
+    monkeypatch.setattr(system_state_module, "get_screen_resolution", should_not_run)
+    monkeypatch.setattr(system_state_module, "_get_all_open_windows", should_not_run)
+    monkeypatch.setattr(system_state_module, "_get_system_stats", should_not_run)
+    monkeypatch.setattr(system_state_module, "datetime", _FixedDatetime)
+
+    result = await system_state_module.get_system_state(["unknown", "time"])
+
+    assert result == {"time": "2026-02-16T10:11:12"}
+
+
+@pytest.mark.asyncio
+async def test_clipboard_preview_replaces_newlines_and_truncates(monkeypatch):
+    class _Pyperclip:
+        @staticmethod
+        def paste():
+            return "line1\nline2\r\nline3"
+
+    monkeypatch.setitem(sys.modules, "pyperclip", _Pyperclip)
+
+    result = await system_state_module._get_clipboard_preview(max_length=8)
+
+    assert result == "line1\\nl..."
