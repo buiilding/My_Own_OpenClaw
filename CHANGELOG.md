@@ -53,6 +53,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- feat(frontend-ui): refresh renderer visuals with a ChatGPT-inspired dark shell (sidebar structure, centered conversation column, and restyled chat/status/input surfaces) while preserving existing behaviors and pill interactions
+- docs(sidecar/browser): clarify sidecar protocol internals (`core/stdout_json.py` shared JSON-line writer), local-backend/wakeword stale-callback guards, browser runbook test commands, and Browser Use plan status as a time-locked baseline
 - fix(wakeword-bridge): scope wakeword subprocess stdout/stderr/exit/error handlers to the active spawned process so stale exit/error events from older processes cannot null out a newer restarted process; add frontend regression coverage for stop/start stale-exit race
 - docs(repo): audit and sync high-traffic docs with current runtime/scripts (Python 3.11 baseline, root-level `scripts/run-*` commands, frontend/sidecar/backend test split), refresh frontend/backend architecture references, and remove stale/dead documentation links
 - docs(requirements): normalize Python requirement wording to explicit `3.11` (remove `3.11+`/`or higher` phrasing in core guides)
