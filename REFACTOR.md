@@ -1536,3 +1536,70 @@ Result:
 - `44 passed in 1.33s`
 
 This confirms validator caching reduces repeated whitelist computation while preserving parser/validation behavior.
+
+---
+
+# Refactor: Skip Pure-JSON Strategy for Embedded Tool-Call Responses
+
+## Target
+Reduce redundant parse passes in:
+- `backend/src/llm/parser.py`
+
+This is a performance + maintainability refactor on the central response parsing hot path.
+
+## Current Structure and Root Cause
+Before this refactor, `_parse_sync(...)` always attempted strategies in fixed order:
+1. `parse_json_response` (full-response JSON decode)
+2. `parse_embedded_json` (scanner-based extraction)
+
+For mixed responses like:
+- plain text + embedded tool call JSON
+
+the first strategy was guaranteed to fail, but still paid full-response JSON decode exception overhead before the embedded parser handled the response.
+
+Root cause: parser strategy order did not account for coarse response shape (embedded/mixed vs object-wrapped JSON).
+
+## Refactor Plan
+1. Add coarse shape detection for object-wrapped JSON-like responses.
+2. Select parsing strategy order dynamically:
+   - object-wrapped response -> keep existing order (pure JSON first, then embedded fallback)
+   - embedded/mixed response -> skip pure JSON strategy and run embedded parser directly
+3. Keep parsing contracts unchanged (same parsed tool calls/text output).
+4. Add regression tests proving:
+   - embedded responses skip pure JSON strategy
+   - object-wrapped responses still use pure JSON strategy
+5. Run parser-focused backend tests.
+
+## Implemented Changes
+### Strategy selector
+- Updated `backend/src/llm/parser.py`:
+  - added `_select_parsing_strategies(response)`
+  - added `_should_try_parse_json_response(response)`
+  - rewired `_parse_sync(...)` to iterate selected strategies
+
+Behavior:
+- trimmed object-wrapped responses still run pure JSON strategy first
+- embedded/mixed responses skip the known-failing pure JSON pass
+
+Result:
+- removed one redundant parse attempt for embedded-response paths
+- preserved successful pure-JSON parsing behavior
+
+## Added Test Coverage
+- Updated `tests/backend/test_response_parser.py`:
+  - `test_parse_sync_skips_pure_json_strategy_for_embedded_response`
+  - `test_parse_sync_keeps_pure_json_strategy_for_object_wrapped_response`
+
+These tests lock in both optimization and backward-compatible strategy behavior.
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_response_parser.py tests/backend/test_response_parser_limits.py tests/backend/test_parser_extraction.py
+```
+
+Result:
+- `28 passed in 1.35s`
+
+This confirms dynamic strategy selection preserves parser correctness while removing redundant pure-JSON parse attempts for embedded responses.
