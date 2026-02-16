@@ -46,6 +46,24 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+async def _close_connection_on_timeout(
+    safe_ws: SafeWebSocket,
+    user_id: str,
+    websocket_receive_timeout: float,
+) -> None:
+    """Close timed-out connections with policy-violation semantics."""
+    logger.info(
+        "Connection timeout for user %s (no data received in %ss)",
+        user_id,
+        websocket_receive_timeout,
+    )
+    try:
+        await safe_ws.close(code=1008, reason="Connection timeout - no data received")
+    except Exception:
+        # Connection may already be closed.
+        pass
+
+
 @router.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
@@ -74,7 +92,7 @@ async def websocket_endpoint(
     user_id = await perform_handshake(websocket, safe_ws)
     if not user_id:
         return  # Handshake failed, connection already closed
-    
+
     # Main Loop
     try:
         while True:
@@ -86,14 +104,11 @@ async def websocket_endpoint(
                     timeout=websocket_receive_timeout
                 )
             except asyncio.TimeoutError:
-                logger.info(f"Connection timeout for user {user_id} (no data received in {websocket_receive_timeout}s)")
-                try:
-                    await safe_ws.close(code=1008, reason="Connection timeout - no data received")
-                except Exception:
-                    pass  # Connection may already be closed
-                finally:
-                    # Clean up session on timeout to prevent orphaned sessions
-                    await cleanup_connection(task_manager, session_manager, user_id)
+                await _close_connection_on_timeout(
+                    safe_ws=safe_ws,
+                    user_id=user_id,
+                    websocket_receive_timeout=websocket_receive_timeout,
+                )
                 break
             
             # Parse and validate message
@@ -124,11 +139,11 @@ async def websocket_endpoint(
                 
     except WebSocketDisconnect:
         logger.info(f"Client {user_id} disconnected")
-        await cleanup_connection(task_manager, session_manager, user_id)
     except Exception as e:
         # Handle unexpected exceptions (e.g., KeyboardInterrupt, SystemError) to ensure cleanup
         # This prevents resource leaks when unexpected errors occur
         logger.error(f"Unexpected error in WebSocket loop for user {user_id}: {e}", exc_info=True)
-        await cleanup_connection(task_manager, session_manager, user_id)
         # Re-raise to let FastAPI handle it appropriately
         raise
+    finally:
+        await cleanup_connection(task_manager, session_manager, user_id)
