@@ -16,6 +16,7 @@ let isPythonReady = false;
 let pendingRequests = new Map();
 let stdoutBuffer = '';
 let readinessCheckCallback = null;
+let readinessCheckToken = 0;
 
 // Cache Python path to avoid repeated file system checks
 let cachedPythonPath = null;
@@ -65,6 +66,7 @@ function resetBackendProcessState(reason) {
   pythonProcess = null;
   isPythonReady = false;
   readinessCheckCallback = null;
+  readinessCheckToken += 1;
   rejectPendingRequests(reason);
   stdoutBuffer = '';
 }
@@ -116,6 +118,7 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
   if (!pythonProcess) {
     return;
   }
+  const checkToken = ++readinessCheckToken;
 
   // Send ping request to check if backend is ready
   // Use a special marker ID that won't conflict with normal requests
@@ -138,6 +141,9 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
 
   // Store callback to handle ping response
   readinessCheckCallback = (response) => {
+    if (checkToken !== readinessCheckToken) {
+      return;
+    }
     if (response.id === requestId) {
       readinessCheckCallback = null;
       
@@ -160,6 +166,9 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
 
   // Set timeout for readiness check
   setTimeout(() => {
+    if (checkToken !== readinessCheckToken) {
+      return;
+    }
     if (readinessCheckCallback) {
       readinessCheckCallback = null;
       // Ping timed out, retry if attempts remain

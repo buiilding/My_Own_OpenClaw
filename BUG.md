@@ -238,3 +238,37 @@ In `frontend/src/main/local_backend_bridge.cjs`, `stopLocalBackend()` scheduled 
 - Re-ran local backend bridge tests:
   - `cd frontend && npm run test -- tests/frontend/LocalBackendBridge.test.cjs`
   - Result: `14 passed`.
+
+---
+
+## [x] Bug Report: Stale Readiness Timeout Can Break New Sidecar Startup
+
+### Summary
+
+In `frontend/src/main/local_backend_bridge.cjs`, readiness timeouts from a previous sidecar process could interfere with a newly restarted sidecar and clear its active readiness callback.
+
+### Root Cause
+
+- `checkReadiness(...)` stored a single global `readinessCheckCallback`.
+- Timeout closures did not verify they belonged to the current readiness attempt/process.
+- If process A timed out after process B had already started, process A’s timeout could null process B’s readiness callback before process B’s ping response arrived.
+
+### Why It's Problematic
+
+- Causes flaky startup/restart behavior in local sidecar readiness.
+- New sidecar can be healthy and responding, but readiness response may be dropped due to stale timeout state.
+- Produces race-condition failures that are difficult to reproduce and debug.
+
+### Fix
+
+- Added `readinessCheckToken` generation tracking.
+- Each readiness attempt captures its token and ignores callback/timeout work when token is stale.
+- On backend process reset, increment token to invalidate outstanding readiness timers from the old process.
+
+### Validation
+
+- Added regression test in `tests/frontend/LocalBackendBridge.test.cjs`:
+  - `stale readiness timeout from previous process does not cancel new readiness callback`
+- Re-ran local backend bridge tests:
+  - `cd frontend && npm run test -- tests/frontend/LocalBackendBridge.test.cjs`
+  - Result: `15 passed`.

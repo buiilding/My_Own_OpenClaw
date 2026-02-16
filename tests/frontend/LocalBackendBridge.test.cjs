@@ -449,6 +449,82 @@ describe('local_backend_bridge', () => {
     });
   });
 
+  test('stale readiness timeout from previous process does not cancel new readiness callback', () => {
+    jest.useFakeTimers();
+
+    const createProcess = () => {
+      const procHandlers = {};
+      const proc = {
+        stdin: { write: jest.fn() },
+        stdout: {
+          on: jest.fn((event, handler) => {
+            if (event === 'data') {
+              proc._stdoutHandler = handler;
+            }
+          }),
+        },
+        stderr: { on: jest.fn() },
+        on: jest.fn((event, handler) => {
+          procHandlers[event] = handler;
+        }),
+        kill: jest.fn(),
+        _handlers: procHandlers,
+        _stdoutHandler: null,
+      };
+      return proc;
+    };
+
+    const firstProcess = createProcess();
+    const secondProcess = createProcess();
+    jest.resetModules();
+    handlers = {};
+    stdoutHandler = null;
+    processHandlers = {};
+    spawn = require('child_process').spawn;
+    ipcMain = require('electron').ipcMain;
+    spawn.mockImplementationOnce(() => firstProcess);
+    spawn.mockImplementationOnce(() => secondProcess);
+    ipcMain.handle.mockImplementation((channel, handler) => {
+      handlers[channel] = handler;
+    });
+    bridge = require(path.join(
+      __dirname,
+      '../../frontend/src/main/local_backend_bridge.cjs',
+    ));
+
+    const mainWindow = {
+      webContents: {
+        send: jest.fn(),
+      },
+    };
+
+    bridge.initializeLocalBackendBridge(mainWindow);
+
+    // Move time forward before restarting so first timeout fires earlier than second.
+    jest.advanceTimersByTime(50);
+
+    firstProcess._handlers.exit?.(0, null);
+    bridge.initializeLocalBackendBridge(mainWindow);
+
+    // Fire only the first process timeout at t=500ms.
+    jest.advanceTimersByTime(450);
+
+    secondProcess._stdoutHandler?.(
+      Buffer.from(
+        `${JSON.stringify({
+          jsonrpc: '2.0',
+          id: '__readiness_check_1__',
+          result: { status: 'ok' },
+        })}\n`,
+      ),
+    );
+
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', {
+      ready: true,
+    });
+    jest.useRealTimers();
+  });
+
   test('stopLocalBackend force-kill timer does not kill restarted process', () => {
     jest.useFakeTimers();
 
