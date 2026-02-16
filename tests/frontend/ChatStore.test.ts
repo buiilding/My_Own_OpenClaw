@@ -124,7 +124,7 @@ describe('chatStore', () => {
     expect(afterSnapshot).toBe(beforeSnapshot);
   });
 
-  test('clearMessages resets to a fresh assistant greeting message', () => {
+  test('clearMessages resets to an empty message list', () => {
     useChatStore.getState().addMessage({
       id: 'user-1',
       text: 'hello',
@@ -133,18 +133,11 @@ describe('chatStore', () => {
 
     useChatStore.getState().clearMessages();
     const firstReset = useChatStore.getState().messages;
-    expect(firstReset).toHaveLength(1);
-    expect(firstReset[0]).toEqual(
-      expect.objectContaining({
-        sender: 'assistant',
-        text: 'Hello! How can I help you today?',
-      }),
-    );
+    expect(firstReset).toHaveLength(0);
 
     useChatStore.getState().clearMessages();
     const secondReset = useChatStore.getState().messages;
-    expect(secondReset).toHaveLength(1);
-    expect(secondReset[0].id).not.toEqual(firstReset[0].id);
+    expect(secondReset).toHaveLength(0);
   });
 
   test('updateStreamTracking applies updater result', () => {
