@@ -401,6 +401,96 @@ class TestSnapshotAction:
             assert result.data["ref_count"] == 1
             assert "refs" not in result.data
             assert "stats" not in result.data
+
+    @pytest.mark.asyncio
+    async def test_snapshot_efficient_zero_refs_retries_with_higher_depth(self):
+        """Efficient AI snapshot should retry with deeper role depth when refs are empty."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
+
+            from tools.browser.controller import PageSnapshot
+
+            mock_controller.get_page_snapshot.side_effect = [
+                PageSnapshot(
+                    text="(no interactive elements)",
+                    url="https://example.com",
+                    title="Example",
+                    ref_count=0,
+                ),
+                PageSnapshot(
+                    text='- button "Submit" [ref=e1]',
+                    url="https://example.com",
+                    title="Example",
+                    ref_count=1,
+                ),
+            ]
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "snapshot",
+                "format": "ai",
+                "mode": "efficient",
+            })
+
+            assert result.success is True
+            assert result.data["ref_count"] == 1
+            assert mock_controller.get_page_snapshot.await_count == 2
+            assert mock_controller.get_page_snapshot.await_args_list[0].kwargs["depth"] == 4
+            assert mock_controller.get_page_snapshot.await_args_list[1].kwargs["depth"] == 12
+
+    @pytest.mark.asyncio
+    async def test_snapshot_efficient_zero_refs_retries_flat_ai_when_depth_retry_empty(self):
+        """Efficient AI snapshot should retry flat AI extraction if role retries still have zero refs."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
+
+            from tools.browser.controller import PageSnapshot
+
+            mock_controller.get_page_snapshot.side_effect = [
+                PageSnapshot(
+                    text="(no interactive elements)",
+                    url="https://example.com",
+                    title="Example",
+                    ref_count=0,
+                ),
+                PageSnapshot(
+                    text="(still no interactive elements)",
+                    url="https://example.com",
+                    title="Example",
+                    ref_count=0,
+                ),
+                PageSnapshot(
+                    text='[1] link "Story"',
+                    url="https://example.com",
+                    title="Example",
+                    ref_count=1,
+                ),
+            ]
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "snapshot",
+                "format": "ai",
+                "mode": "efficient",
+            })
+
+            assert result.success is True
+            assert result.data["ref_count"] == 1
+            assert mock_controller.get_page_snapshot.await_count == 3
+            assert mock_controller.get_page_snapshot.await_args_list[2].kwargs == {
+                "format_type": "ai",
+                "max_chars": 4000,
+                "refs_mode": None,
+                "interactive": None,
+                "compact": None,
+                "depth": None,
+                "selector": None,
+                "frame_selector": None,
+            }
     
     @pytest.mark.asyncio
     async def test_snapshot_not_connected(self):
@@ -624,6 +714,49 @@ class TestPostActionSnapshots:
                 selector=None,
                 frame_selector=None,
             )
+
+    @pytest.mark.asyncio
+    async def test_click_post_action_snapshot_zero_refs_uses_fallback_retries(self):
+        """Post-action snapshots should retry when efficient capture returns zero refs."""
+        from tools.browser.controller import PageSnapshot
+
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.click.return_value = {"success": True}
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
+            mock_controller.get_page_snapshot.side_effect = [
+                PageSnapshot(
+                    text="(no interactive elements)",
+                    url="https://example.com",
+                    title="Example",
+                    ref_count=0,
+                ),
+                PageSnapshot(
+                    text="(still no interactive elements)",
+                    url="https://example.com",
+                    title="Example",
+                    ref_count=0,
+                ),
+                PageSnapshot(
+                    text='[1] link "Story"',
+                    url="https://example.com",
+                    title="Example",
+                    ref_count=1,
+                ),
+            ]
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "click",
+                "ref": "5",
+            })
+
+            assert result.success is True
+            assert "post_action_snapshot" in result.data
+            assert result.data["post_action_snapshot"]["ref_count"] == 1
+            assert result.data["post_action_snapshot"]["snapshot"] == '[1] link "Story"'
+            assert mock_controller.get_page_snapshot.await_count == 3
 
     @pytest.mark.asyncio
     async def test_snapshot_failure_does_not_fail_primary_action(self):

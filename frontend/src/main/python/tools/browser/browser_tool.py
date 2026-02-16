@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_AI_SNAPSHOT_MAX_CHARS = 12_000
 DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS = 4_000
 DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH = 4
+AI_SNAPSHOT_ZERO_REF_FALLBACK_DEPTH = 12
 SNAPSHOT_WAIT_STATES = frozenset({"load", "domcontentloaded", "networkidle", "commit"})
 
 POST_ACTION_SNAPSHOT_ACTIONS = frozenset({
@@ -95,6 +96,94 @@ def _resolve_snapshot_wait_until(args: Dict[str, Any], default: str = "load") ->
     return wait_until, None
 
 
+def _snapshot_ref_count(snapshot: Any) -> int:
+    ref_count = getattr(snapshot, "ref_count", None)
+    if isinstance(ref_count, int) and ref_count >= 0:
+        return ref_count
+    return 0
+
+
+async def _capture_ai_snapshot_with_zero_ref_fallback(
+    controller,
+    *,
+    max_chars: int,
+    refs_mode: Optional[str],
+    interactive: Optional[bool],
+    compact: Optional[bool],
+    depth: Optional[int],
+    selector: Optional[str],
+    frame_selector: Optional[str],
+    enable_zero_ref_fallback: bool,
+) -> Any:
+    snapshot = await controller.get_page_snapshot(
+        format_type="ai",
+        max_chars=max_chars,
+        refs_mode=refs_mode,
+        interactive=interactive,
+        compact=compact,
+        depth=depth,
+        selector=selector,
+        frame_selector=frame_selector,
+    )
+    if not enable_zero_ref_fallback or _snapshot_ref_count(snapshot) > 0:
+        return snapshot
+
+    fallback_snapshot = snapshot
+
+    # First retry: preserve role snapshot semantics but increase depth.
+    is_role_snapshot_path = (
+        refs_mode in ("role", "aria")
+        or interactive is True
+        or compact is True
+        or depth is not None
+        or bool((selector or "").strip())
+        or bool((frame_selector or "").strip())
+    )
+    effective_depth = (
+        max(depth, AI_SNAPSHOT_ZERO_REF_FALLBACK_DEPTH)
+        if isinstance(depth, int)
+        else AI_SNAPSHOT_ZERO_REF_FALLBACK_DEPTH
+    )
+    should_retry_role_depth = is_role_snapshot_path and depth != effective_depth
+    if should_retry_role_depth:
+        try:
+            fallback_snapshot = await controller.get_page_snapshot(
+                format_type="ai",
+                max_chars=max_chars,
+                refs_mode=refs_mode,
+                interactive=interactive,
+                compact=compact,
+                depth=effective_depth,
+                selector=selector,
+                frame_selector=frame_selector,
+            )
+            if _snapshot_ref_count(fallback_snapshot) > 0:
+                return fallback_snapshot
+        except Exception as exc:
+            logger.warning("Efficient AI snapshot depth retry failed: %s", exc)
+
+    # Second retry: switch to flat AI snapshot (unscoped only) to bypass role-tree filtering.
+    if selector or frame_selector:
+        return fallback_snapshot
+    try:
+        flat_snapshot = await controller.get_page_snapshot(
+            format_type="ai",
+            max_chars=max_chars,
+            refs_mode=None,
+            interactive=None,
+            compact=None,
+            depth=None,
+            selector=None,
+            frame_selector=None,
+        )
+        if _snapshot_ref_count(flat_snapshot) > 0:
+            return flat_snapshot
+        return flat_snapshot
+    except Exception as exc:
+        logger.warning("Efficient AI snapshot flat retry failed: %s", exc)
+        return fallback_snapshot
+
+
 async def _build_post_action_snapshot_payload(
     controller,
     *,
@@ -104,8 +193,8 @@ async def _build_post_action_snapshot_payload(
     if isinstance(wait_result, dict) and not wait_result.get("success", False):
         raise RuntimeError(wait_result.get("error", f"wait_for_load({wait_until}) failed"))
 
-    snapshot = await controller.get_page_snapshot(
-        format_type="ai",
+    snapshot = await _capture_ai_snapshot_with_zero_ref_fallback(
+        controller,
         max_chars=DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS,
         refs_mode=None,
         interactive=True,
@@ -113,6 +202,7 @@ async def _build_post_action_snapshot_payload(
         depth=DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH,
         selector=None,
         frame_selector=None,
+        enable_zero_ref_fallback=True,
     )
 
     text = getattr(snapshot, "text", None)
@@ -513,16 +603,29 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
             else DEFAULT_AI_SNAPSHOT_MAX_CHARS
         )
 
-    snapshot = await controller.get_page_snapshot(
-        format_type=format_type,
-        max_chars=resolved_max_chars or DEFAULT_AI_SNAPSHOT_MAX_CHARS,
-        refs_mode=refs_mode,
-        interactive=interactive,
-        compact=compact,
-        depth=depth,
-        selector=selector,
-        frame_selector=frame_selector,
-    )
+    if format_type == "ai":
+        snapshot = await _capture_ai_snapshot_with_zero_ref_fallback(
+            controller,
+            max_chars=resolved_max_chars or DEFAULT_AI_SNAPSHOT_MAX_CHARS,
+            refs_mode=refs_mode,
+            interactive=interactive,
+            compact=compact,
+            depth=depth,
+            selector=selector,
+            frame_selector=frame_selector,
+            enable_zero_ref_fallback=(mode == "efficient"),
+        )
+    else:
+        snapshot = await controller.get_page_snapshot(
+            format_type=format_type,
+            max_chars=resolved_max_chars or DEFAULT_AI_SNAPSHOT_MAX_CHARS,
+            refs_mode=refs_mode,
+            interactive=interactive,
+            compact=compact,
+            depth=depth,
+            selector=selector,
+            frame_selector=frame_selector,
+        )
 
     result: Dict[str, Any] = {
         "action": "snapshot",

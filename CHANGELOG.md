@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(websocket-route): centralize websocket connection cleanup in a single `finally` path in `api/routes/websocket/__init__.py`, extract timeout-close helper, and add timeout regression coverage for `websocket_endpoint`
 - refactor(ipc-query): extract query enrichment orchestration from `ipc.cjs` into dedicated `query_payload_builder.cjs`, reducing `to-backend` query-path complexity while preserving payload format and adding focused builder unit coverage
 - refactor(websocket-task-manager): remove per-completed-task cleanup coroutine scheduling in `TaskManager.task_done_callback`, using direct active-task discard with shutdown-safe fallback and updated websocket task-manager regression coverage
 - refactor(websocket): add shared websocket JSON parse utility (`routes/websocket/json_parse.py`), reuse it in handshake + message parsing, and remove unconditional handshake `run_in_executor` parsing for small payloads while preserving existing validation/error contracts
@@ -78,6 +79,7 @@ Includes the last 300 commits on `main`.
 - fix(browser-control): include successful `connect` in automatic `post_action_snapshot` behavior so new browser sessions immediately return a compact AI snapshot payload
 - fix(browser-snapshot): make compact role snapshots prune redundant single-path structural wrappers while preserving actionable refs and minimal branch/root context
 - fix(browser-snapshot): lower efficient AI snapshot default budget from 8,000 to 4,000 chars for manual snapshots and automatic post-action snapshots (override remains available via `max_chars`)
+- fix(browser-snapshot): add efficient AI zero-ref auto-fallback (retry `depth=12` role snapshot, then flat AI snapshot when unscoped) for both manual `snapshot` and automatic `post_action_snapshot`
 - fix(browser-click): for native `select/option` targets with recoverable click interception failures, try `select_option` fallback before force-click and surface `strategy="select_option"` in tool output
 - refactor(browser-control): remove `highlight` action from browser runtime routes, backend/sidecar schemas, and docs; delete unused `BrowserController.highlight()` and obsolete `duration_ms`/`durationMs` browser-control fields
 - refactor(browser-control): remove redundant alias actions (`start`, `stop`, `tabs`, `focus`) from browser runtime routing and backend/sidecar schemas; keep canonical actions (`connect`, `close`, `get_tabs`, `switch_tab`) and align browser docs/remote tool descriptions
