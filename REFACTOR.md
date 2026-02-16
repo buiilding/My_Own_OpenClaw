@@ -1,3 +1,69 @@
+# Refactor: Centralize Conversation SQL Clauses in LocalMemoryStore
+
+## Target
+Remove duplicated `conversation_id` SQL branching in:
+- `frontend/src/main/python/memory/local_store.py`
+
+This is a maintainability refactor in a high-churn sidecar memory module.
+
+## Current Structure and Root Cause
+Several `LocalMemoryStore` methods had duplicated `if conversation_id is None` SQL branches:
+- `delete_conversation(...)`
+- `get_next_message_index(...)`
+- `get_episodic_memories_by_conversation(...)`
+- `get_unsemanticized_episodic_memories_by_conversation(...)`
+
+Each method duplicated two query variants:
+- `conversation_id IS NULL`
+- `conversation_id = ?`
+
+Root cause: conversation-window predicate construction was inlined at each call site instead of being centralized as shared query policy.
+
+## Refactor Plan
+1. Add one helper that returns canonical SQL predicate + params for conversation filters.
+2. Replace duplicated `if conversation_id is None` SQL branches in the four methods.
+3. Keep method signatures and output contracts unchanged.
+4. Add regression coverage for NULL-conversation deletion path.
+5. Run focused sidecar tests for local store + summarizer flows.
+
+## Implemented Changes
+### Shared query helper
+- Added `LocalMemoryStore._conversation_where_clause(conversation_id)` returning:
+  - `"conversation_id IS NULL", ()` for `None`
+  - `"conversation_id = ?", (conversation_id,)` otherwise
+
+### Method rewiring
+- Replaced duplicated branches in:
+  - `delete_conversation(...)`
+  - `get_next_message_index(...)`
+  - `get_episodic_memories_by_conversation(...)`
+  - `get_unsemanticized_episodic_memories_by_conversation(...)`
+
+The methods now build SQL once using the shared clause and parameter tuple.
+
+### Regression coverage
+- Added `test_delete_conversation_with_null_conversation_id_clears_faiss_artifacts_when_empty` in:
+  - `tests/sidecar/test_local_store_delete_cleanup.py`
+
+This validates the `conversation_id IS NULL` deletion path still:
+- deletes rows
+- clears in-memory vector mappings
+- resets FAISS artifacts when index becomes empty
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env sidecar pytest tests/sidecar/test_local_store_delete_cleanup.py tests/sidecar/test_memory_summarizer.py
+```
+
+Result:
+- `13 passed, 3 warnings`
+
+This confirms behavior remains stable after query-clause centralization.
+
+---
+
 # Refactor: Reuse Parsed Event Type in QueryExecutionService Stream Loop
 
 ## Target
