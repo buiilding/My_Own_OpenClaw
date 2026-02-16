@@ -19,6 +19,12 @@ frontend_python_dir = Path(__file__).parent
 sys.path.insert(0, str(frontend_python_dir))
 
 from memory.local_store import LocalMemoryStore
+from memory.operations import (
+    build_interaction_metadata,
+    build_memory_filters,
+    format_interaction_memory,
+    group_memory_texts,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -108,21 +114,12 @@ class MemoryService:
             }
 
         try:
-            # Prepare filters
-            filters = {}
-            if memory_type:
-                filters["type"] = memory_type
+            filters = build_memory_filters(memory_type)
 
             # Search memory store
             results = await self.memory_store.search(query, user_id, filters, limit)
 
-            # Group results by type for the backend
-            memories = {"semantic": [], "episodic": []}
-            for res in results:
-                m_type = res.get("type", "episodic")
-                text = res.get("text")
-                if m_type in memories and text:
-                    memories[m_type].append(text)
+            memories = group_memory_texts(results)
 
             logger.info(f"Memory search returned {len(results)} results for query: '{query}'")
 
@@ -157,14 +154,8 @@ class MemoryService:
             }
 
         try:
-            # Format the interaction as a memory entry
-            memory_content = f"User: {user_query}\nAssistant: {assistant_response}"
-
-            metadata = {
-                "type": memory_type,
-                "source": "interaction_completed",
-                "conversation_id": session_id
-            }
+            memory_content = format_interaction_memory(user_query, assistant_response)
+            metadata = build_interaction_metadata(memory_type, session_id)
 
             memory_id = await self.memory_store.add(
                 memory_content,
