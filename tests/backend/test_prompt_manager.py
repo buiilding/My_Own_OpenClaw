@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from backend.src.llm.prompts.prompts import PromptManager
+from backend.src.llm.prompts.prompts import PromptManager, get_system_prompt
 
 
 @pytest.fixture(autouse=True)
@@ -89,3 +89,65 @@ def test_initialize_raises_for_non_file_path(tmp_path):
 
     with pytest.raises(RuntimeError, match="Cannot read system prompt file"):
         manager.initialize(directory_path)
+
+
+def test_initialize_raises_for_empty_prompt_file(tmp_path):
+    prompt_file = tmp_path / "system_prompt.txt"
+    prompt_file.write_text("   ", encoding="utf-8")
+
+    manager = PromptManager()
+    with pytest.raises(RuntimeError, match="System prompt file is empty"):
+        manager.initialize(prompt_file)
+
+
+def test_initialize_raises_for_permission_error(tmp_path, monkeypatch):
+    prompt_file = tmp_path / "system_prompt.txt"
+    prompt_file.write_text("hello {os}", encoding="utf-8")
+
+    def raise_permission_error(*_args, **_kwargs):
+        raise PermissionError("denied")
+
+    monkeypatch.setattr(type(prompt_file), "read_text", raise_permission_error)
+
+    manager = PromptManager()
+    with pytest.raises(RuntimeError, match="Permission denied"):
+        manager.initialize(prompt_file)
+
+
+def test_initialize_raises_for_unicode_decode_error(tmp_path, monkeypatch):
+    prompt_file = tmp_path / "system_prompt.txt"
+    prompt_file.write_text("hello {os}", encoding="utf-8")
+
+    def raise_decode_error(*_args, **_kwargs):
+        raise UnicodeDecodeError("utf-8", b"\x80", 0, 1, "invalid start byte")
+
+    monkeypatch.setattr(type(prompt_file), "read_text", raise_decode_error)
+
+    manager = PromptManager()
+    with pytest.raises(RuntimeError, match="not valid UTF-8"):
+        manager.initialize(prompt_file)
+
+
+def test_initialize_is_noop_after_first_success(tmp_path, monkeypatch):
+    first = tmp_path / "first.txt"
+    second = tmp_path / "second.txt"
+    first.write_text("first {os}", encoding="utf-8")
+    second.write_text("second {os}", encoding="utf-8")
+    monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "TestOS")
+
+    manager = PromptManager()
+    manager.initialize(first)
+    manager.initialize(second)
+
+    assert manager.system_prompt == "first TestOS"
+
+
+def test_get_system_prompt_global_accessor(tmp_path, monkeypatch):
+    prompt_file = tmp_path / "system_prompt.txt"
+    prompt_file.write_text("global {os}", encoding="utf-8")
+    monkeypatch.setattr("backend.src.llm.prompts.prompts.platform.system", lambda: "TestOS")
+
+    manager = PromptManager()
+    manager.initialize(prompt_file)
+
+    assert get_system_prompt() == "global TestOS"
