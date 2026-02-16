@@ -142,11 +142,12 @@ Notes:
 Title: GitHub
 URL: https://github.com
 
-Interactive elements:
-[1] link "Sign in"
-[2] link "Sign up"
-[3] searchbox "Search"
-[4] button "Search GitHub"
+DOM tree (browser-use style):
+<main#site-content>
+	[1]<a role='link' href='/login'>Sign in</a>
+	[2]<a role='link' href='/signup'>Sign up</a>
+	[3]<input role='searchbox' type='search'>Search</input>
+	[4]<button role='button'>Search GitHub</button>
 ```
 
 **Role Snapshot (OpenClaw-style, more context control):**
