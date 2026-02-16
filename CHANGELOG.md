@@ -123,6 +123,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(sidecar-shutdown): handle `SIGTERM`/`SIGINT` in `local_backend.py` by requesting graceful backend shutdown and closing stdin to unblock the JSON-RPC read loop, preventing forced-kill-only sidecar teardown
 - fix(local-backend-bridge): reject and clear in-flight JSON-RPC requests when the Python sidecar exits/errors so renderer IPC calls do not hang indefinitely
 - fix(ocr-click): treat OCR coordinate resolution as ambiguous when multiple fuzzy matches are above threshold, return actionable manual-coordinate retry errors, and log fuzzy match counts in resolver timing output
 - fix(tool-sender): prevent frontend sidecar execution for bundles when preparation/coordinate resolution fails by short-circuiting bundle dispatch and storing a synthetic failed bundle result for backend orchestration
