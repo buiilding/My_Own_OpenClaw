@@ -2,6 +2,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
@@ -19,6 +20,10 @@ class _DummyEmbedder:
     @property
     def dimension(self) -> int:
         return 8
+
+    async def embed_text(self, text: str):
+        value = float((len(text) % 9) + 1)
+        return np.full((self.dimension,), value, dtype=np.float32)
 
 
 def _build_store(tmp_path: Path) -> LocalMemoryStore:
@@ -67,6 +72,21 @@ def _create_episodic_memories_table(db_path: Path) -> None:
                 embedding_id INTEGER,
                 conversation_id TEXT,
                 record_kind TEXT
+            )
+            """
+        )
+        conn.commit()
+
+
+def _create_rebuild_memories_table(db_path: Path) -> None:
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE memories (
+                id TEXT PRIMARY KEY,
+                user_id TEXT,
+                content TEXT,
+                embedding_id INTEGER
             )
             """
         )
@@ -138,3 +158,49 @@ async def test_delete_conversation_clears_faiss_artifacts_when_empty(tmp_path: P
     assert store.episodic_index is not None
     assert store.episodic_index.ntotal == 0
     assert store.episodic_index_path.exists() is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(faiss is None, reason="faiss is required")
+async def test_rebuild_index_rewrites_sparse_embedding_ids_to_contiguous_ids(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    store = _build_store(tmp_path)
+    _create_rebuild_memories_table(store.episodic_db_path)
+
+    with sqlite3.connect(store.episodic_db_path) as conn:
+        conn.execute(
+            "INSERT INTO memories (id, user_id, content, embedding_id) VALUES (?, ?, ?, ?)",
+            ("episodic-a", "user-1", "alpha", 11),
+        )
+        conn.execute(
+            "INSERT INTO memories (id, user_id, content, embedding_id) VALUES (?, ?, ?, ?)",
+            ("episodic-b", "user-1", "bravo", 4),
+        )
+        conn.commit()
+
+    store.episodic_memory_id_to_vector_id = {"episodic-a": 11, "episodic-b": 4}
+    store.episodic_vector_id_to_memory_id = {11: "episodic-a", 4: "episodic-b"}
+    store.episodic_next_vector_id = 12
+    store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
+
+    async def _noop_save():
+        return None
+
+    monkeypatch.setattr(store, "_save_faiss_indices", _noop_save)
+
+    await store._rebuild_index("episodic")
+
+    assert store.episodic_index.ntotal == 2
+    assert store.episodic_next_vector_id == 2
+    assert set(store.episodic_vector_id_to_memory_id.keys()) == {0, 1}
+    assert set(store.episodic_memory_id_to_vector_id.values()) == {0, 1}
+
+    with sqlite3.connect(store.episodic_db_path) as conn:
+        rows = conn.execute(
+            "SELECT id, embedding_id FROM memories ORDER BY id ASC"
+        ).fetchall()
+    embedding_by_id = {row[0]: row[1] for row in rows}
+    assert embedding_by_id["episodic-b"] == 0
+    assert embedding_by_id["episodic-a"] == 1
