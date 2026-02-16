@@ -37,6 +37,11 @@ class DummySafeWebSocket:
         self.closed.append((code, reason))
 
 
+class ExplodingSafeWebSocket(DummySafeWebSocket):
+    async def close(self, code: int = 1000, reason: str | None = None) -> None:  # noqa: ARG002
+        raise RuntimeError("socket close failed")
+
+
 class DummyTaskManager:
     def __init__(self):
         self.cleaned_user_ids = []
@@ -140,6 +145,28 @@ async def test_perform_handshake_invalid_user_id_closes_socket() -> None:
     assert assigned_user_id is None
     assert safe_ws.closed
     assert safe_ws.closed[0][0] == 1008
+
+
+@pytest.mark.asyncio
+async def test_perform_handshake_handles_unexpected_errors_and_close_failures() -> None:
+    class ExplodingWebSocket:
+        async def receive_text(self) -> str:
+            raise RuntimeError("receive failed")
+
+    assigned_user_id = await perform_handshake(
+        ExplodingWebSocket(),
+        ExplodingSafeWebSocket(),
+    )
+
+    assert assigned_user_id is None
+
+
+@pytest.mark.asyncio
+async def test_close_policy_violation_swallows_close_errors() -> None:
+    await connection_module._close_policy_violation(
+        ExplodingSafeWebSocket(),
+        "test close failure",
+    )
 
 
 @pytest.mark.asyncio
