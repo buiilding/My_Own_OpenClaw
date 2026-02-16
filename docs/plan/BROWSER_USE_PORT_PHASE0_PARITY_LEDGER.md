@@ -66,7 +66,7 @@ Legend:
 ## Phase 2 Addendum (February 16, 2026)
 
 - Added sidecar adapter module (`tools/browser_use_adapter/*`) and routed initial action batch through adapter dispatch.
-- Adapter-routed actions in this slice:
-  - `connect`, `status`, `navigate`, `open`, `press`, `scroll`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `close`
+- Adapter-routed actions now cover:
+  - `connect`, `status`, `navigate`, `open`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `console`, `errors`, `requests`, `trace_start`, `trace_stop`, `pdf`, `upload`, `dialog`, `cookies`, `cookies_set`, `cookies_clear`, `storage_get`, `storage_set`, `storage_clear`, `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`, `set_timezone`, `set_locale`, `set_device`, `close`
 - Migration decisions in the ledger remain unchanged.
-- Remaining actions continue on direct handlers until subsequent Phase 2/3 migration slices.
+- Remaining direct handlers in current Phase 2 implementation: `profiles`, `snapshot`, `extract`, `act`.

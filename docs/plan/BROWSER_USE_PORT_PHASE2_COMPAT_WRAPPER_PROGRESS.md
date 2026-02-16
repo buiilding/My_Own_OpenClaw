@@ -30,7 +30,7 @@ This update delivers those tasks with compatibility-wrapper routing while preser
 - `frontend/src/main/python/tools/browser_use_adapter/__init__.py`
   - Exposes adapter types/factory.
 
-## Routed Actions (Phase 2 Batch)
+## Routed Actions (Phase 2 Coverage)
 
 `browser_tool.execute_browser_control` now routes these actions via adapter:
 
@@ -38,15 +38,45 @@ This update delivers those tasks with compatibility-wrapper routing while preser
 - `status`
 - `navigate`
 - `open`
+- `click`
+- `type`
 - `press`
 - `scroll`
+- `screenshot`
 - `wait`
 - `get_tabs`
 - `switch_tab`
 - `evaluate`
+- `console`
+- `errors`
+- `requests`
+- `trace_start`
+- `trace_stop`
+- `pdf`
+- `upload`
+- `dialog`
+- `cookies`
+- `cookies_set`
+- `cookies_clear`
+- `storage_get`
+- `storage_set`
+- `storage_clear`
+- `set_offline`
+- `set_headers`
+- `set_credentials`
+- `set_geolocation`
+- `set_media`
+- `set_timezone`
+- `set_locale`
+- `set_device`
 - `close`
 
-All other actions remain on existing direct handlers in this phase.
+Remaining direct handlers in this phase:
+
+- `profiles`
+- `snapshot`
+- `extract`
+- `act`
 
 ## Contract Compatibility
 
@@ -79,5 +109,5 @@ Additional regression assertions added in:
 ## Remaining Phase 2 Work
 
 - Current adapter implementation is still backed by legacy `BrowserController` internals.
-- Next migration slice should replace adapter internals action-by-action with Browser Use runtime primitives while preserving the same adapter return contract.
-
+- Next migration slice should route remaining direct handlers (`profiles`, `snapshot`, `extract`, `act`) through adapter while preserving payload contracts.
+- After routing completion, replace adapter internals action-by-action with Browser Use runtime primitives while preserving the same adapter return contract.

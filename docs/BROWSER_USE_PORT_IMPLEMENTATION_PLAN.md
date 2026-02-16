@@ -263,8 +263,8 @@ Delivered Phase 2 artifacts so far:
 
 Current routing coverage:
 
-- Adapter-routed actions: `connect`, `status`, `navigate`, `open`, `press`, `scroll`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `close`.
-- Remaining actions continue on direct handlers pending next migration slices.
+- Adapter-routed actions: `connect`, `status`, `navigate`, `open`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `console`, `errors`, `requests`, `trace_start`, `trace_stop`, `pdf`, `upload`, `dialog`, `cookies`, `cookies_set`, `cookies_clear`, `storage_get`, `storage_set`, `storage_clear`, `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`, `set_timezone`, `set_locale`, `set_device`, `close`.
+- Remaining actions on direct handlers: `profiles`, `snapshot`, `extract`, `act`.
 
 Validation snapshot:
 
