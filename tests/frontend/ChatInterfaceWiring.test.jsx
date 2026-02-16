@@ -7,6 +7,11 @@ const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: jest.fn(),
 }));
 const mockInvoke = jest.fn().mockResolvedValue({ success: true });
+let mockConfig = {
+  interaction_mode: 'chat',
+  voice_mode_enabled: false,
+};
+const mockMessageInput = jest.fn(() => <div data-testid="message-input" />);
 
 const mockPlayerService = {
   cleanup: jest.fn(),
@@ -29,10 +34,7 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   useAppConfigContext: () => ({
-    config: {
-      interaction_mode: 'chat',
-      voice_mode_enabled: false,
-    },
+    config: mockConfig,
   }),
 }));
 
@@ -63,9 +65,9 @@ jest.mock('../../frontend/src/renderer/features/chat/components/MessageList', ()
   <div data-testid="message-list" />
 ));
 
-jest.mock('../../frontend/src/renderer/features/chat/components/MessageInput', () => () => (
-  <div data-testid="message-input" />
-));
+jest.mock('../../frontend/src/renderer/features/chat/components/MessageInput', () => (props) =>
+  mockMessageInput(props),
+);
 
 jest.mock('../../frontend/src/renderer/features/chat/components/TokenCountDisplay', () => () => (
   <div data-testid="token-count" />
@@ -73,6 +75,11 @@ jest.mock('../../frontend/src/renderer/features/chat/components/TokenCountDispla
 
 describe('ChatInterface wiring', () => {
   beforeEach(() => {
+    mockConfig = {
+      interaction_mode: 'chat',
+      voice_mode_enabled: false,
+    };
+    mockMessageInput.mockClear();
     mockUseChatMessageSender.mockClear();
     mockInvoke.mockClear();
     mockPlayerService.cleanup.mockClear();
@@ -104,5 +111,30 @@ describe('ChatInterface wiring', () => {
         'window-close',
       ]),
     );
+  });
+
+  test('shows agent mode badge and passes enabled voice mode to input', () => {
+    mockConfig = {
+      interaction_mode: 'agent',
+      voice_mode_enabled: true,
+    };
+
+    render(<ChatInterface />);
+
+    expect(screen.getByText('Mode: Agent')).toBeInTheDocument();
+    const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
+    expect(lastInputProps.voiceModeEnabled).toBe(true);
+    expect(lastInputProps.isSending).toBe(false);
+    expect(typeof lastInputProps.onSendMessage).toBe('function');
+  });
+
+  test('falls back to chat mode label and disabled voice mode when config is missing', () => {
+    mockConfig = null;
+
+    render(<ChatInterface />);
+
+    expect(screen.getByText('Mode: Chat')).toBeInTheDocument();
+    const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
+    expect(lastInputProps.voiceModeEnabled).toBe(false);
   });
 });

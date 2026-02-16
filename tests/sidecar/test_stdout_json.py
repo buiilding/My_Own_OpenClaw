@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+import pytest
 
 frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
 sys.path.insert(0, str(frontend_python_dir))
@@ -83,4 +84,30 @@ def test_write_json_line_propagates_buffer_errors(monkeypatch):
     else:
         raise AssertionError("Expected OSError to propagate")
 
+    assert dummy_stdout.buffer.flush_calls == 0
+
+
+def test_write_json_line_propagates_json_encoding_errors(monkeypatch):
+    class DummyBuffer:
+        def __init__(self):
+            self.writes = []
+            self.flush_calls = 0
+
+        def write(self, data):
+            self.writes.append(data)
+
+        def flush(self):
+            self.flush_calls += 1
+
+    class DummyStdout:
+        def __init__(self):
+            self.buffer = DummyBuffer()
+
+    dummy_stdout = DummyStdout()
+    monkeypatch.setattr(stdout_json_module.sys, "stdout", dummy_stdout)
+
+    with pytest.raises(TypeError):
+        stdout_json_module.write_json_line({"bad": {1, 2}})
+
+    assert dummy_stdout.buffer.writes == []
     assert dummy_stdout.buffer.flush_calls == 0
