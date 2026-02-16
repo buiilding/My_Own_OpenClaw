@@ -27,6 +27,7 @@ describe('local_backend_bridge', () => {
   let uuid;
   let handlers;
   let stdoutHandler;
+  let stderrHandler;
   let processHandlers;
   let pythonProcess;
   let bridge;
@@ -54,6 +55,7 @@ describe('local_backend_bridge', () => {
     jest.resetModules();
     handlers = {};
     stdoutHandler = null;
+    stderrHandler = null;
     processHandlers = {};
 
     spawn = require('child_process').spawn;
@@ -69,7 +71,13 @@ describe('local_backend_bridge', () => {
           }
         }),
       },
-      stderr: { on: jest.fn() },
+      stderr: {
+        on: jest.fn((event, handler) => {
+          if (event === 'data') {
+            stderrHandler = handler;
+          }
+        }),
+      },
       on: jest.fn((event, handler) => {
         processHandlers[event] = handler;
       }),
@@ -167,6 +175,32 @@ describe('local_backend_bridge', () => {
         }),
       }),
     );
+  });
+
+  test('suppresses known Node deprecation stderr lines from local backend logs', () => {
+    initBridge();
+    markReady();
+
+    stderrHandler(
+      Buffer.from(
+        [
+          '(node:71611) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized',
+          '(Use `node --trace-deprecation ...` to show where the warning was created)',
+          '2026-02-16 16:24:39,551 - tools.browser.controller - INFO - Connected to Chrome: chrome://new-tab-page/',
+        ].join('\n'),
+      ),
+    );
+
+    const loggedLines = console.log.mock.calls.map((call) => call[0]);
+    expect(
+      loggedLines.some((line) => line.includes('[DEP0169] DeprecationWarning')),
+    ).toBe(false);
+    expect(
+      loggedLines.some((line) => line.includes('trace-deprecation')),
+    ).toBe(false);
+    expect(
+      loggedLines.some((line) => line.includes('Connected to Chrome')),
+    ).toBe(true);
   });
 
   test('execute-tool handler returns error on json-rpc error', async () => {
