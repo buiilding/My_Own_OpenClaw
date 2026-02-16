@@ -8,490 +8,214 @@ read_when:
 
 ## Overview
 
-This guide explains how to create custom tools for Desktop Assistant. Tools enable the assistant to interact with the computer and perform various tasks.
+WindieOS tool calling is split across backend and frontend sidecar:
 
-## Tool Architecture
+- Backend owns tool schemas, tool selection, and request correlation.
+- Frontend Python sidecar executes remote tools against the local machine.
 
-### Tool Types
+This guide documents the current tool API and registration flow.
 
-**Remote Tools** (Frontend Execution):
-- Executed on Python sidecar
-- Access to system resources
-- Automatic screenshot capture
+## Runtime Ownership
 
-**Backend Tools**:
-- Executed on backend
-- Access to backend services
-- Memory and LLM integration
+### Backend (schema + orchestration)
 
-## Preventing Schema Drift
+- SDK base class: `backend/src/sdk/tool.py`
+- Tool context: `backend/src/sdk/context.py`
+- Remote tool stubs: `backend/src/tools/remote_tools/`
+- Remote tool registry: `backend/src/tools/remote_tools/registry.py`
+- Backend-facing re-export: `backend/src/tools/remote.py`
+- Contract test: `tests/backend/test_remote_tool_contract.py`
 
-Remote-tool schema ownership stays in backend, but frontend must explicitly tag which
-sidecar tools are exposed to backend schema generation.
+### Frontend sidecar (execution)
 
-Source files:
-- `backend/src/tools/remote.py`: backend remote tools + schemas exposed to LLM.
-- `frontend/src/main/python/tools/registry.py`: `EXPOSED_TO_BACKEND_TOOLS` explicit tag set.
-- `tests/backend/test_remote_tool_contract.py`: CI contract test.
+- Sidecar tool registry: `frontend/src/main/python/tools/registry.py`
+- Tool implementations: `frontend/src/main/python/tools/`
+- LLM-callable sidecar tool allowlist:
+  `frontend/src/main/python/tools/registry.py` (`EXPOSED_TO_BACKEND_TOOLS`)
 
-Rule:
-1. Add/remove remote tool in `backend/src/tools/remote.py`.
-2. Update `EXPOSED_TO_BACKEND_TOOLS` in frontend registry.
-3. Implement sidecar handler and register it.
-4. Run `pytest tests/backend/test_remote_tool_contract.py`.
+## Current SDK Pattern
 
-CI fails if sets diverge, which blocks drift from merging.
-
-## Creating a Remote Tool
-
-### Step 1: Create Backend Stub
-
-Create a tool stub in `backend/src/tools/remote.py` (subclass `Tool` + `RemoteToolBase`):
+Use `Tool[ArgsModel]` with `args_model` and `run()`.
 
 ```python
-from pydantic import BaseModel
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
-from backend.src.tools.remote import RemoteToolBase
 
-class MyArgs(BaseModel):
-    param1: str
-    param2: int = 0
 
-class MyRemoteTool(Tool[MyArgs], RemoteToolBase):
-    name = "my_remote_tool"
-    description = "Description of my remote tool"
-    
-    def get_schema(self) -> dict:
+class ExampleArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    query: str = Field(..., description="Query text")
+
+
+class ExampleTool(Tool[ExampleArgs]):
+    name = "example_tool"
+    description = "Describe exactly when the model should use this tool."
+    args_model = ExampleArgs
+
+    async def run(self, args: ExampleArgs, ctx: ToolContext) -> dict[str, Any]:
         return {
-            "type": "object",
-            "properties": {
-                "param1": {
-                    "type": "string",
-                    "description": "Parameter 1 description"
-                },
-                "param2": {
-                    "type": "integer",
-                    "description": "Parameter 2 description"
-                }
-            },
-            "required": ["param1"]
+            "success": True,
+            "llm_content": f"Processed: {args.query}",
+            "return_display": "Success",
         }
 ```
 
-Add the class to `REMOTE_TOOLS` in the same file so the registry can discover it.
+Notes:
+- Do not implement `get_schema()` manually for SDK tools.
+- Schema is generated from `args_model` via Pydantic and normalized by `Tool.get_json_schema()`.
 
-### Step 2: Create Frontend Implementation
+## Adding an LLM-Callable Remote Tool
 
-Create tool implementation in `frontend/src/main/python/tools/my_tool.py`:
+### 1. Define args schema
+
+Create/update the args model in the domain schema module, e.g.:
+- `backend/src/tools/system/schemas.py`
+- `backend/src/tools/filesystem/schemas.py`
+- `backend/src/tools/computer/schemas.py`
+- `backend/src/tools/browser/schemas.py`
+
+Use `ConfigDict(extra='forbid')` for strict payload validation.
+
+### 2. Add backend remote stub
+
+Create the stub in `backend/src/tools/remote_tools/<domain>.py`.
 
 ```python
-"""
-My Remote Tool - Frontend implementation.
-"""
-import asyncio
-import logging
-from typing import Dict, Any
+from pydantic import BaseModel, ConfigDict, Field
 
-logger = logging.getLogger(__name__)
+from backend.src.sdk.context import ToolContext
+from backend.src.sdk.tool import Tool
+from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 
-async def execute_my_remote_tool(args: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Execute my remote tool.
-    
-    Args:
-        args: Tool arguments
-        
-    Returns:
-        Tool execution result
-    """
+
+class MyRemoteToolArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    query: str = Field(..., description="Example input")
+
+
+class RemoteMyTool(RemoteToolBase, Tool[MyRemoteToolArgs]):
+    name = "my_remote_tool"
+    description = "Precise tool description for model selection."
+    args_model = MyRemoteToolArgs
+
+    async def execute_remote(
+        self,
+        args: MyRemoteToolArgs,
+        ctx: ToolContext,
+    ) -> RemoteToolResult:
+        return self._build_remote_result(args, ctx)
+```
+
+### 3. Register backend stub
+
+- Add the tool class in `backend/src/tools/remote_tools/registry.py` (`REMOTE_TOOLS`).
+- Export from the package (`backend/src/tools/remote_tools/__init__.py`) if needed.
+
+### 4. Implement sidecar execution handler
+
+Create sidecar implementation in `frontend/src/main/python/tools/...`.
+
+```python
+from typing import Any
+
+
+async def execute_my_remote_tool(args: dict[str, Any]) -> dict[str, Any]:
     try:
-        param1 = args.get("param1")
-        param2 = args.get("param2", 0)
-        
-        # Tool execution logic
-        result = f"Processed {param1} with {param2}"
-        
+        value = args.get("query", "")
         return {
             "success": True,
             "data": {
-                "llm_content": f"My tool executed: {result}",
-                "return_display": "Success",
-                "result": result
-            }
+                "llm_content": f"Handled query: {value}",
+                "return_display": "Handled",
+            },
         }
-    except Exception as e:
-        logger.error(f"My tool failed: {e}", exc_info=True)
+    except Exception as exc:
         return {
             "success": False,
-            "error": f"My tool failed: {str(e)}"
+            "error": str(exc),
         }
 ```
 
-### Step 3: Register Tool
+### 5. Register sidecar handler + exposure
 
-Register the tool in `frontend/src/main/python/tools/registry.py`.
+In `frontend/src/main/python/tools/registry.py`:
+- Register function in `ToolRegistry._register_tools()`.
+- Add tool name to `EXPOSED_TO_BACKEND_TOOLS` if it should be LLM-callable.
 
-```python
-# frontend/src/main/python/tools/registry.py
-from tools.my_tool import execute_my_remote_tool
+### 6. Validate drift contract
 
-self.tools[\"my_remote_tool\"] = execute_my_remote_tool
+Run:
+
+```bash
+./scripts/python-in-env backend python -m pytest tests/backend/test_remote_tool_contract.py
 ```
 
-## Creating a Backend Tool
+Then run full suites relevant to your change:
 
-### Step 1: Create Tool Class
-
-Create tool class in `backend/src/tools/`:
-
-```python
-from backend.src.sdk.tool import Tool
-from backend.src.sdk.context import ToolContext
-from backend.src.core.interfaces.tool import ToolResult
-
-class MyBackendTool(Tool):
-    name = "my_backend_tool"
-    description = "Description of my backend tool"
-    
-    def get_schema(self) -> dict:
-        return {
-            "type": "object",
-            "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "Search query"
-                }
-            },
-            "required": ["query"]
-        }
-    
-    async def execute(
-        self,
-        args: dict,
-        context: ToolContext
-    ) -> ToolResult:
-        """
-        Execute my backend tool.
-        
-        Args:
-            args: Tool arguments
-            context: Tool execution context
-            
-        Returns:
-            Tool execution result
-        """
-        query = args.get("query")
-        
-        # Tool execution logic
-        result = await self._process_query(query, context)
-        
-        return ToolResult(
-            success=True,
-            llm_content=f"Found results for: {query}",
-            data={"results": result}
-        )
-    
-    async def _process_query(self, query: str, context: ToolContext) -> list:
-        """Process search query."""
-        # Implementation
-        return []
+```bash
+./scripts/test-backend
+./scripts/test-sidecar
 ```
 
-### Step 2: Register Tool
+## Sidecar Result Contract
 
-Register tool in tool registry:
+Sidecar handlers should return dictionary payloads that can be converted to the canonical result shape.
+
+Success:
 
 ```python
-from backend.src.tools.my_backend_tool import MyBackendTool
-
-tool_registry.register_tool(MyBackendTool())
-```
-
-## Tool Schema
-
-### Schema Format
-
-Tool schemas follow JSON Schema format:
-
-```json
 {
-  "type": "object",
-  "properties": {
-    "action": {
-      "type": "string",
-      "enum": ["click", "double_click", "right_click"],
-      "description": "Mouse action to perform"
-    },
-    "x": {
-      "type": "integer",
-      "description": "X coordinate",
-      "minimum": 0
-    },
-    "y": {
-      "type": "integer",
-      "description": "Y coordinate",
-      "minimum": 0
-    }
-  },
-  "required": ["action"]
+  "success": True,
+  "data": {
+    "llm_content": "Model-facing summary",
+    "return_display": "UI summary",
+    "result": {"...": "..."}
+  }
 }
 ```
 
-### Schema Best Practices
-
-1. **Clear Descriptions**: Provide clear parameter descriptions
-2. **Type Validation**: Use appropriate types
-3. **Required Fields**: Mark required fields
-4. **Enums**: Use enums for limited options
-5. **Constraints**: Add min/max constraints where appropriate
-
-## Tool Execution Context
-
-### ToolContext
-
-Tools receive a `ToolContext` object from `backend/src/sdk/context.py`:
+Failure:
 
 ```python
-from backend.src.sdk.context import ToolContext, UserContext, SessionContext, ExecutionRuntime
-
-class ToolContext:
-    user: UserContext
-    session: SessionContext
-    runtime: ExecutionRuntime
-```
-
-### Using Context
-
-```python
-async def execute(self, args: dict, context: ToolContext) -> ToolResult:
-    # Access identity
-    user_id = context.user.user_id
-    session_id = context.session.session_id
-
-    # Access runtime services (injected by ContextFactory)
-    config = context.services.get("config")
-    tool_registry = context.services.get("tool_registry")
-    agent_factory = context.agents
-    
-    ...
-```
-
-## Tool Result Format
-
-### Success Result
-
-```python
-ToolResult(
-    success=True,
-    llm_content="Tool executed successfully",
-    data={
-        "result": "...",
-        "metadata": {...}
-    }
-)
-```
-
-### Error Result
-
-```python
-ToolResult(
-    success=False,
-    llm_content="Tool execution failed: error message",
-    data={
-        "error": "error message",
-        "error_code": "ERROR_CODE"
-    }
-)
-```
-
-## Automatic Screenshot Capture
-
-### Enabling Automatic Capture
-
-For remote tools, enable automatic screenshot capture:
-
-```python
-# In tool schema or metadata
-auto_capture_image = "screenshot"
-```
-
-### Screenshot Capture Behavior
-
-Screenshots are automatically captured for computer-use tools (mouse_control, keyboard_control, scroll_control, etc.):
-
-- **Individual Tools**: Screenshot captured **once** after tool execution completes
-- **Bundled Tools**: Screenshot captured **once** after all bundled tools execute (not after each individual tool)
-
-Both use the same helper method (`captureSystemStateAndScreenshot`) which:
-- Waits 2 seconds before capture (allows UI to update)
-- Captures system state and screenshot in parallel for efficiency
-- Provides consistent error handling and timing logs
-
-### Screenshot in Results
-
-Screenshots are automatically included in tool results:
-
-```python
-return {
-    "success": True,
-    "data": {
-        "llm_content": "Tool executed",
-        "screenshot": "base64-encoded-screenshot"  # Automatic
-    }
+{
+  "success": False,
+  "error": "Actionable error message"
 }
 ```
 
-## Tool Testing
+## Screenshot Behavior
 
-### Unit Testing
+For computer-use flows, screenshot capture is orchestrated by frontend runtime services after execution. You do not enable this with a per-tool flag in schema code.
 
-```python
-import pytest
-from backend.src.tools.my_tool import MyTool
-from backend.src.sdk.context import ToolContext
+## Backend-Only Tools
 
-@pytest.mark.asyncio
-async def test_my_tool():
-    tool = MyTool()
-    context = ToolContext(...)
-    
-    result = await tool.execute(
-        {"param1": "value"},
-        context
-    )
-    
-    assert result.success
-    assert "value" in result.llm_content
-```
+The default runtime currently auto-registers remote tools for LLM calling. Backend-only tools are possible, but require explicit wiring where `ToolRegistry` is constructed/initialized and `register_tool()` is called.
 
-### Integration Testing
-
-```python
-@pytest.mark.asyncio
-async def test_tool_execution_flow():
-    # Test tool call generation
-    # Test tool preparation
-    # Test tool execution
-    # Test result processing
-```
-
-## Best Practices
-
-### Error Handling
-
-- Always handle exceptions
-- Return meaningful error messages
-- Log errors for debugging
-
-### Performance
-
-- Use async/await for I/O operations
-- Batch operations when possible
-- Cache expensive computations
-
-### Security
-
-- Validate all inputs
-- Sanitize user data
-- Set resource limits
-
-### Documentation
-
-- Document tool purpose
-- Document parameters
-- Provide examples
-
-## Examples
-
-### Example: File Reading Tool
-
-```python
-class ReadFileTool(Tool):
-    name = "read_file"
-    description = "Read file contents"
-    
-    def get_schema(self) -> dict:
-        return {
-            "type": "object",
-            "properties": {
-                "file_path": {
-                    "type": "string",
-                    "description": "Path to file"
-                }
-            },
-            "required": ["file_path"]
-        }
-    
-    async def execute(self, args: dict, context: ToolContext) -> ToolResult:
-        file_path = args["file_path"]
-        
-        try:
-            with open(file_path, "r") as f:
-                content = f.read()
-            
-            return ToolResult(
-                success=True,
-                llm_content=f"Read file: {file_path}",
-                data={"content": content}
-            )
-        except Exception as e:
-            return ToolResult(
-                success=False,
-                llm_content=f"Failed to read file: {str(e)}",
-                data={"error": str(e)}
-            )
-```
-
-### Example: API Call Tool
-
-```python
-class APICallTool(Tool):
-    name = "api_call"
-    description = "Make API call"
-    
-    async def execute(self, args: dict, context: ToolContext) -> ToolResult:
-        import aiohttp
-        
-        url = args["url"]
-        method = args.get("method", "GET")
-        
-        async with aiohttp.ClientSession() as session:
-            async with session.request(method, url) as response:
-                data = await response.json()
-                
-                return ToolResult(
-                    success=True,
-                    llm_content=f"API call successful",
-                    data={"response": data}
-                )
-```
+If you add backend-only tools, document the wiring point in the same PR.
 
 ## Troubleshooting
 
-### Tool Not Executing
+### Tool not visible to model
 
-1. Check tool registration
-2. Verify tool schema
-3. Check tool name matches
-4. Review error logs
+1. Confirm backend stub is in `REMOTE_TOOLS`.
+2. Confirm sidecar tool is listed in `EXPOSED_TO_BACKEND_TOOLS`.
+3. Confirm handler is registered in sidecar `ToolRegistry`.
+4. Run remote contract test.
 
-### Tool Execution Errors
+### Tool executes but fails in sidecar
 
-1. Check error messages
-2. Verify backend tool schema and payload shape
-3. Review tool implementation
-4. Check resource limits
-
-### Tool Not Appearing
-
-1. Check tool registration
-2. Verify tool schema
-3. Restart application
-4. Check tool registry
+1. Verify args model and sidecar arg parsing match.
+2. Return structured `success/error` payloads.
+3. Check sidecar stderr logs and `tests/sidecar` coverage.
 
 ---
 
-For more information, see:
+See also:
 - [Tool System](TOOL_SYSTEM.md)
+- [Python Sidecar](PYTHON_SIDECAR.md)
 - [API Reference](API_REFERENCE.md)
-- [Developer Guide](DEVELOPER_GUIDE.md)

@@ -358,9 +358,9 @@ class Container(containers.DeclarativeContainer):
 Event bus for component communication:
 
 ```python
-from backend.src.core.bus import EventBus
+from backend.src.core.infrastructure.bus import EventBus
 
-event_bus.emit(InteractionCompleted(session_id=session_id))
+await event_bus.publish(InteractionCompleted(session_id=session_id))
 ```
 
 ### Protocol-Based Interfaces
@@ -407,21 +407,32 @@ const addMessage = useChatStore((state) => state.addMessage);
 
 1. **Create Tool Class**:
    ```python
+   from pydantic import BaseModel, ConfigDict, Field
    from backend.src.sdk.tool import Tool
+   from backend.src.sdk.context import ToolContext
    
-   class MyTool(Tool):
+   class MyToolArgs(BaseModel):
+       model_config = ConfigDict(extra="forbid")
+       param1: str = Field(..., description="Parameter description")
+
+   class MyTool(Tool[MyToolArgs]):
        name = "my_tool"
        description = "My tool description"
-       
-       def get_schema(self) -> dict:
-           return {...}
-       
-       async def execute(self, args: dict, context: ToolContext) -> ToolResult:
+       args_model = MyToolArgs
+
+       async def run(self, args: MyToolArgs, context: ToolContext) -> dict:
            ...
    ```
 
-2. **Register Tool**:
+2. **Wire Tool**:
    ```python
+   # LLM-callable remote tools:
+   # - add backend stub in backend/src/tools/remote_tools/
+   # - register in backend/src/tools/remote_tools/registry.py
+   # - add sidecar implementation + frontend/src/main/python/tools/registry.py entry
+   # - keep EXPOSED_TO_BACKEND_TOOLS in sync
+
+   # Backend-only tools (not auto-discovered by default runtime):
    tool_registry.register_tool(MyTool())
    ```
 
