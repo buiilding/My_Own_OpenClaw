@@ -40,6 +40,7 @@ npm test
   - `tests/backend` runs with `jarvis`
   - `tests/sidecar` runs with `frontend_jarvis`
 - `scripts/python-in-env` uses `conda run` when envs exist, otherwise falls back to the current shell env (CI-friendly).
+- Sidecar protocol output normalization is covered by `tests/sidecar/test_stdout_json.py` (shared JSON-line writer).
 - For CI parity: `cd frontend && npm run test:ci`.
 - Frontend tests use Jest + React Testing Library.
 - `tests/frontend/ToolRunnerHook.test.ts` covers backend-listener cleanup and malformed tool event guards to prevent false-positive dispatch behavior.
