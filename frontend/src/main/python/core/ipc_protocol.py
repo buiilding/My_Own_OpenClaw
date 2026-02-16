@@ -7,10 +7,11 @@ with Electron main process.
 
 import json
 import logging
-import sys
 from dataclasses import dataclass
 from inspect import iscoroutinefunction
 from typing import Any, Callable, Dict, Optional
+
+from core.stdout_json import write_json_line
 
 logger = logging.getLogger(__name__)
 
@@ -191,11 +192,6 @@ class JSONRPCProtocol:
     def send_response(self, response: Dict[str, Any]) -> None:
         """Send a JSON-RPC response to stdout."""
         try:
-            response_json = json.dumps(response, ensure_ascii=False)
-            # Use buffer.write() with explicit UTF-8 encoding to avoid Windows console encoding issues
-            # This bypasses cp1252 encoding limitations and handles all Unicode characters
-            response_bytes = (response_json + "\n").encode('utf-8')
-            sys.stdout.buffer.write(response_bytes)
-            sys.stdout.buffer.flush()
+            write_json_line(response)
         except Exception as e:
             logger.error(f"Error sending response: {e}", exc_info=True)

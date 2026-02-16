@@ -1,0 +1,33 @@
+import sys
+from pathlib import Path
+
+
+frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
+sys.path.insert(0, str(frontend_python_dir))
+
+from core import stdout_json as stdout_json_module  # noqa: E402
+
+
+def test_write_json_line_writes_utf8_json_with_newline(monkeypatch):
+    class DummyBuffer:
+        def __init__(self):
+            self.writes = []
+            self.flush_calls = 0
+
+        def write(self, data):
+            self.writes.append(data)
+
+        def flush(self):
+            self.flush_calls += 1
+
+    class DummyStdout:
+        def __init__(self):
+            self.buffer = DummyBuffer()
+
+    dummy_stdout = DummyStdout()
+    monkeypatch.setattr(stdout_json_module.sys, "stdout", dummy_stdout)
+
+    stdout_json_module.write_json_line({"message": "héllo"})
+
+    assert dummy_stdout.buffer.writes == [b'{"message": "h\xc3\xa9llo"}\n']
+    assert dummy_stdout.buffer.flush_calls == 1
