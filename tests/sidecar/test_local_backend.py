@@ -1,4 +1,5 @@
 import sys
+import signal
 from pathlib import Path
 
 import pytest
@@ -7,6 +8,7 @@ import pytest
 frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
 sys.path.insert(0, str(frontend_python_dir))
 
+import local_backend as local_backend_module  # noqa: E402
 from local_backend import LocalBackend  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
 
@@ -407,3 +409,41 @@ async def test_handle_store_transcript_requires_content():
     result = await backend._handle_store_transcript(content="")
     assert result["success"] is False
     assert "Content is required" in result["error"]
+
+
+def test_signal_handler_requests_shutdown(monkeypatch):
+    backend = LocalBackend()
+    called = []
+
+    def fake_request_shutdown(signum):
+        called.append(signum)
+
+    monkeypatch.setattr(backend, "request_shutdown", fake_request_shutdown)
+    monkeypatch.setattr(local_backend_module, "_active_backend", backend)
+
+    local_backend_module.signal_handler(signal.SIGTERM, None)
+
+    assert called == [signal.SIGTERM]
+
+
+def test_request_shutdown_marks_backend_and_closes_stdin(monkeypatch):
+    backend = LocalBackend()
+
+    class DummyStdin:
+        def __init__(self):
+            self.closed = False
+            self.close_calls = 0
+
+        def close(self):
+            self.closed = True
+            self.close_calls += 1
+
+    dummy_stdin = DummyStdin()
+    monkeypatch.setattr(local_backend_module.sys, "stdin", dummy_stdin)
+
+    backend.request_shutdown(signal.SIGTERM)
+
+    assert backend.running is False
+    assert backend._shutdown_requested is True
+    assert dummy_stdin.closed is True
+    assert dummy_stdin.close_calls == 1
