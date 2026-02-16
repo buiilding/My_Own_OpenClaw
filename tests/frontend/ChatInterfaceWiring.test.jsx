@@ -1,11 +1,12 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import ChatInterface from '../../frontend/src/renderer/features/chat/components/ChatInterface';
 
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: jest.fn(),
 }));
+const mockInvoke = jest.fn().mockResolvedValue({ success: true });
 
 const mockPlayerService = {
   cleanup: jest.fn(),
@@ -42,7 +43,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/audio/PlayerService', () =
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     on: () => () => {},
-    invoke: jest.fn().mockResolvedValue({ success: true }),
+    invoke: (...args) => mockInvoke(...args),
   },
   INVOKE_CHANNELS: {
     WINDOW_MINIMIZE: 'window-minimize',
@@ -73,6 +74,7 @@ jest.mock('../../frontend/src/renderer/features/chat/components/TokenCountDispla
 describe('ChatInterface wiring', () => {
   beforeEach(() => {
     mockUseChatMessageSender.mockClear();
+    mockInvoke.mockClear();
     mockPlayerService.cleanup.mockClear();
     mockPlayerService.enqueueAudio.mockClear();
     mockPlayerService.stopPlayback.mockClear();
@@ -84,6 +86,23 @@ describe('ChatInterface wiring', () => {
     expect(mockUseChatMessageSender).toHaveBeenCalledWith(
       expect.any(Function),
       { senderSurface: 'main-window' },
+    );
+  });
+
+  test('window controls invoke matching IPC channels', () => {
+    render(<ChatInterface />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Minimize window' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle maximize window' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close window' }));
+
+    const invokedChannels = mockInvoke.mock.calls.map(([channel]) => channel);
+    expect(invokedChannels).toEqual(
+      expect.arrayContaining([
+        'window-minimize',
+        'window-toggle-maximize',
+        'window-close',
+      ]),
     );
   });
 });
