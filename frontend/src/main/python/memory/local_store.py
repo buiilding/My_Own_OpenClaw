@@ -427,51 +427,56 @@ class LocalMemoryStore:
             memory_id_to_vector_id,
             _,
         ) = self._get_memory_state(memory_type)
-        
-        # Clear existing index
+
+        # Reset index and in-memory mappings so FAISS position IDs stay aligned.
         dimension = self.embedder.dimension
         index = faiss.IndexFlatIP(dimension)
         self._set_memory_index(memory_type, index)
-        
+        vector_id_to_memory_id.clear()
+        memory_id_to_vector_id.clear()
+        next_vector_id = 0
+
         # Rebuild from database
         async with aiosqlite.connect(db_path) as conn:
             cursor = await conn.cursor()
-            await cursor.execute("SELECT id, content FROM memories WHERE embedding_id IS NOT NULL")
+            await cursor.execute(
+                """
+                SELECT id, content
+                FROM memories
+                WHERE embedding_id IS NOT NULL
+                ORDER BY embedding_id ASC, id ASC
+                """
+            )
             rows = await cursor.fetchall()
-            
+
             for memory_id, content in rows:
+                if not content:
+                    await cursor.execute(
+                        "UPDATE memories SET embedding_id = NULL WHERE id = ?",
+                        (memory_id,),
+                    )
+                    continue
+
                 # Generate embedding
                 embedding = await self.embedder.embed_text(content)
                 embedding = embedding.reshape(1, -1)
                 faiss.normalize_L2(embedding)
-                
-                # Get or create vector ID
-                vector_id = memory_id_to_vector_id.get(memory_id)
-                if vector_id is None:
-                    # Find next available vector ID
-                    vector_id = max(vector_id_to_memory_id.keys(), default=-1) + 1
-                    memory_id_to_vector_id[memory_id] = vector_id
-                    vector_id_to_memory_id[vector_id] = memory_id
-                
-                # Add to index (resize if needed)
-                if vector_id >= index.ntotal:
-                    # Index needs to be resized - FAISS doesn't support this directly
-                    # So we need to rebuild the entire index
-                    pass
-                
+
                 # Add embedding to index
                 index.add(embedding)
-        
-        # Update database with vector IDs
-        async with aiosqlite.connect(db_path) as conn:
-            cursor = await conn.cursor()
-            for memory_id, vector_id in memory_id_to_vector_id.items():
+
+                vector_id = next_vector_id
+                next_vector_id += 1
+                vector_id_to_memory_id[vector_id] = memory_id
+                memory_id_to_vector_id[memory_id] = vector_id
+
                 await cursor.execute(
                     "UPDATE memories SET embedding_id = ? WHERE id = ?",
-                    (vector_id, memory_id)
+                    (vector_id, memory_id),
                 )
             await conn.commit()
-        
+
+        self._set_next_vector_id(memory_type, next_vector_id)
         logger.info(f"Rebuilt {memory_type} FAISS index with {index.ntotal} vectors")
         await self._save_faiss_indices()
 

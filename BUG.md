@@ -308,3 +308,113 @@ In `frontend/src/main/wakeword_bridge.cjs`, lifecycle handlers (`stdout`, `stder
 - Re-ran wakeword bridge tests:
   - `cd frontend && npm run test -- tests/frontend/WakewordBridge.test.cjs`
   - Result: `5 passed`.
+
+---
+
+## [x] Bug Report: Stale Wakeword `stderr` Buffer Can Break Ready Signal After Restart
+
+### Summary
+
+In `frontend/src/main/wakeword_bridge.cjs`, the parser buffer used for wakeword process `stderr` logs (`stderrBuffer`) was not reset during manual stop/start. Partial JSON from the previous process could corrupt the first JSON status line from the new process.
+
+### Root Cause
+
+- Wakeword status is parsed from newline-delimited JSON on `stderr`.
+- `stderrBuffer` is module-scoped and accumulates partial chunks.
+- `stopWakewordService()` did not clear `stderrBuffer`.
+- On restart, the new process appended fresh status JSON to stale bytes, making the first line invalid and unparseable.
+
+### Why It's Problematic
+
+- The new wakeword process can be healthy, but the bridge may miss its `{"status":"ready"}` message.
+- `isPythonReady` may remain `false`, so audio chunks are ignored even though the process is running.
+- This creates intermittent post-restart wakeword outages that are hard to diagnose.
+
+### Fix
+
+- Reset `stderrBuffer` when starting a wakeword process (`startWakewordService(...)`).
+- Reset `stderrBuffer` when stopping the wakeword process (`stopWakewordService()`).
+- This guarantees each process instance begins with a clean `stderr` parser state.
+
+### Validation
+
+- Added regression test in `tests/frontend/WakewordBridge.test.cjs`:
+  - `clears stale partial stderr buffer across stop/start restart`
+- Re-ran wakeword bridge tests:
+  - `cd frontend && npm run test -- tests/frontend/WakewordBridge.test.cjs`
+  - Result: `6 passed`.
+
+---
+
+## [x] Bug Report: Stale Readiness Retry Timer Can Override New Sidecar Readiness Attempt
+
+### Summary
+
+In `frontend/src/main/local_backend_bridge.cjs`, a retry timer created by an old sidecar readiness attempt could still run after process restart and overwrite readiness tracking for the new process.
+
+### Root Cause
+
+- `checkReadiness(...)` uses a token (`readinessCheckToken`) to reject stale callbacks/timeouts.
+- But `scheduleReadinessRetry(...)` queued `setTimeout(() => checkReadiness(...))` without carrying/verifying that token.
+- If process A scheduled a retry, then exited, and process B started before that retry fired, the stale retry still executed against process B.
+- That stale retry replaced `readinessCheckCallback` with a new request id (e.g. `__readiness_check_2__`), so process B’s valid response for `__readiness_check_1__` could be ignored.
+
+### Why It's Problematic
+
+- Sidecar readiness can become flaky during restart races even when the new sidecar is healthy.
+- Frontend may delay or miss transition to ready state due to overwritten callback state.
+- Produces intermittent startup failures that are hard to diagnose.
+
+### Fix
+
+- Updated `scheduleReadinessRetry(...)` to accept the originating readiness token.
+- Retry timer now verifies token still matches `readinessCheckToken` before invoking `checkReadiness(...)`.
+- Passed the current `checkToken` to all retry scheduling call sites:
+  - ping write failure path,
+  - non-ok ping response path,
+  - ping timeout path.
+
+### Validation
+
+- Added regression test in `tests/frontend/LocalBackendBridge.test.cjs`:
+  - `stale readiness retry timer from previous process does not override new readiness request`
+- Re-ran local backend bridge tests:
+  - `cd frontend && npm run test -- tests/frontend/LocalBackendBridge.test.cjs`
+  - Result: `18 passed`.
+
+---
+
+## [x] Bug Report: FAISS Rebuild Kept Stale `embedding_id` Values and Broke Recall
+
+### Summary
+
+In `frontend/src/main/python/memory/local_store.py`, `_rebuild_index(...)` reused historical `embedding_id` mappings while rebuilding FAISS vectors from scratch. When IDs were sparse/non-contiguous (common after deletes), FAISS result positions no longer matched mapping keys.
+
+### Root Cause
+
+- FAISS `IndexFlatIP` returns positional indices (`0..ntotal-1`) for search results.
+- `_rebuild_index(...)` added vectors sequentially, but preserved old DB IDs (for example `4`, `11`) in `vector_id_to_memory_id`.
+- Search then filtered out valid results because returned FAISS positions (for example `0`, `1`) were absent from the mapping.
+
+### Why It's Problematic
+
+- Memory search can return empty/incomplete results after index rebuild/recovery.
+- A DB may contain valid embedded memories, but recall appears broken until new writes repopulate contiguous IDs.
+- Failure is subtle and state-dependent, making incident diagnosis difficult.
+
+### Fix
+
+- Reworked `_rebuild_index(...)` to fully reset mapping state and assign fresh contiguous vector IDs during rebuild.
+- Persisted rebuilt IDs back into SQLite `embedding_id`.
+- Ordered rebuild input by prior `embedding_id` for deterministic remap.
+- Rows with missing content now clear `embedding_id` instead of leaving stale mapped IDs.
+
+### Validation
+
+- Added regression test in `tests/sidecar/test_local_store_delete_cleanup.py`:
+  - `test_rebuild_index_rewrites_sparse_embedding_ids_to_contiguous_ids`
+- Re-ran targeted sidecar tests:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_local_store_delete_cleanup.py`
+  - Result: `3 passed`
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py`
+  - Result: `25 passed`
