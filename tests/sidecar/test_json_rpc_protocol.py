@@ -42,6 +42,39 @@ async def test_handle_request_success_sync():
 
 
 @pytest.mark.asyncio
+async def test_handle_request_notification_returns_none_and_executes_handler():
+    protocol = JSONRPCProtocol()
+    calls = []
+
+    async def handler(value):
+        calls.append(value)
+        return {"value": value}
+
+    protocol.register_method("echo", handler)
+
+    response = await protocol.handle_request(
+        {"jsonrpc": "2.0", "method": "echo", "params": {"value": 7}}
+    )
+
+    assert response is None
+    assert calls == [7]
+
+
+@pytest.mark.asyncio
+async def test_process_line_notification_returns_none():
+    protocol = JSONRPCProtocol()
+
+    async def handler():
+        return {"status": "ok"}
+
+    protocol.register_method("ping", handler)
+
+    response = await protocol.process_line('{"jsonrpc":"2.0","method":"ping"}')
+
+    assert response is None
+
+
+@pytest.mark.asyncio
 async def test_handle_request_invalid_version():
     protocol = JSONRPCProtocol()
     request = {"jsonrpc": "1.0", "method": "echo", "id": "1"}

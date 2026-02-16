@@ -102,7 +102,7 @@ class JSONRPCProtocol:
             error["data"] = data
         return self.create_response(request_id, error=error)
     
-    async def handle_request(self, request: Any) -> Dict[str, Any]:
+    async def handle_request(self, request: Any) -> Optional[Dict[str, Any]]:
         """
         Handle a JSON-RPC request.
         
@@ -114,50 +114,56 @@ class JSONRPCProtocol:
                 self.INVALID_REQUEST,
                 "Invalid request: payload must be a JSON object",
             )
+        is_notification = "id" not in request
+        request_id = request.get("id")
 
         # Validate JSON-RPC version
         if request.get("jsonrpc") != "2.0":
-            return self.create_error_response(
-                request.get("id"),
+            response = self.create_error_response(
+                request_id,
                 self.INVALID_REQUEST,
                 "Invalid JSON-RPC version. Must be '2.0'"
             )
+            return None if is_notification else response
         
         # Get method name
         method_name = request.get("method")
         if not method_name:
-            return self.create_error_response(
-                request.get("id"),
+            response = self.create_error_response(
+                request_id,
                 self.INVALID_REQUEST,
                 "Method name is required"
             )
+            return None if is_notification else response
         if not isinstance(method_name, str):
-            return self.create_error_response(
-                request.get("id"),
+            response = self.create_error_response(
+                request_id,
                 self.INVALID_REQUEST,
                 "Method name must be a string"
             )
+            return None if is_notification else response
         
         # Get method handler
         registered_method = self.methods.get(method_name)
         if registered_method is None:
-            return self.create_error_response(
-                request.get("id"),
+            response = self.create_error_response(
+                request_id,
                 self.METHOD_NOT_FOUND,
                 f"Method not found: {method_name}"
             )
+            return None if is_notification else response
         
         # Get params
         params = request.get("params", {})
         if not isinstance(params, dict):
-            return self.create_error_response(
-                request.get("id"),
+            response = self.create_error_response(
+                request_id,
                 self.INVALID_PARAMS,
                 "Params must be an object"
             )
+            return None if is_notification else response
         
         # Call handler
-        request_id = request.get("id")
         try:
             handler = registered_method.handler
             if registered_method.is_async_callable:
@@ -167,16 +173,19 @@ class JSONRPCProtocol:
             else:
                 result = handler
             
-            return self.create_response(request_id, result=result)
+            response = self.create_response(request_id, result=result)
+            return None if is_notification else response
         except JSONRPCError as e:
-            return self.create_error_response(request_id, e.code, e.message, e.data)
+            response = self.create_error_response(request_id, e.code, e.message, e.data)
+            return None if is_notification else response
         except Exception as e:
             logger.error(f"Error executing method {method_name}: {e}", exc_info=True)
-            return self.create_error_response(
+            response = self.create_error_response(
                 request_id,
                 self.INTERNAL_ERROR,
                 f"Internal error: {str(e)}"
             )
+            return None if is_notification else response
     
     async def process_line(self, line: str) -> Optional[Dict[str, Any]]:
         """
