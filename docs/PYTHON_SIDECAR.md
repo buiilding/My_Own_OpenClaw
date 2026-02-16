@@ -13,6 +13,7 @@ The Electron app spawns a **local Python sidecar** that executes tools, captures
 **Key files:**
 - Sidecar entrypoint: `frontend/src/main/python/local_backend.py`
 - Electron bridge: `frontend/src/main/local_backend_bridge.cjs`
+- Shared stdout writer: `frontend/src/main/python/core/stdout_json.py`
 - Tool implementations: `frontend/src/main/python/tools/`
 - Memory system: `frontend/src/main/python/memory/`
 
@@ -28,6 +29,7 @@ Electron Main (Node)  ── JSON-RPC (stdin/stdout) ──>  local_backend.py
 The bridge:
 - Spawns Python using `CONDA_PREFIX` if available, otherwise `python3`/`py`.
 - Sends `ping` until ready, then marks the sidecar as ready.
+- Uses bounded exponential-backoff retries and stale-callback guards in readiness checks to avoid old timeout callbacks marking restarted processes incorrectly.
 
 ## JSON-RPC Methods
 
@@ -39,6 +41,10 @@ Registered in `LocalBackend._initialize_methods()`:
 - `get_system_state`: capture system state (optional field selection)
 - `search_memory`: query local memory
 - `store_memory`: store episodic/semantic memory
+
+Protocol output notes:
+- JSON-RPC responses are emitted as one JSON line per message.
+- `core/stdout_json.py::write_json_line()` is the shared writer used by both JSON-RPC (`local_backend.py`/`core/ipc_protocol.py`) and line-based memory service responses (`memory_service.py`) to keep UTF-8 encoding and flush behavior consistent.
 
 ## Tools
 
@@ -72,6 +78,7 @@ Memory storage path:
 Wakeword detection runs as a separate Python subprocess:
 - `frontend/src/main/python/wakeword_service.py`
 - Managed by `frontend/src/main/wakeword_bridge.cjs`
+- Bridge event handlers ignore stdout/stderr/exit events from stale process instances after restart, so old process callbacks cannot flip active service state.
 
 ## Troubleshooting
 
@@ -85,8 +92,9 @@ Wakeword detection runs as a separate Python subprocess:
 - Core coverage:
   - `tests/sidecar/test_local_backend.py` (JSON-RPC handlers, tool execution, memory wiring)
   - `tests/sidecar/test_memory_service.py` (search/store validation, error handling)
+  - `tests/sidecar/test_stdout_json.py` (shared JSON-line stdout writer behavior)
 - Shell command sessions:
   - `run_shell_command` supports `yield_after_seconds`, `env`, and best-effort `pty` (PTY on Unix; fallback on Windows).
   - If `directory` is omitted, `run_shell_command` starts in the OS user home directory.
   - Use `process` to list/poll/log/write/kill backgrounded shell sessions.
-- Run: `pytest tests/sidecar` (after activating the Python env with sidecar deps).
+- Run: `./scripts/test-sidecar` (preferred), or `./scripts/python-in-env sidecar python -m pytest tests/sidecar`.

@@ -192,22 +192,23 @@ asyncio.run(test())
 cd WindieOS
 
 # Chrome detection tests
-python -m pytest tests/sidecar/tools/test_chrome_detection.py -v
+./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_chrome_detection.py -v
 
 # Browser schema tests
-python -m pytest tests/sidecar/tools/test_browser_schemas.py -v
+./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_schemas.py -v
 
 # Browser tool tests (requires playwright)
-python -m pytest tests/sidecar/tools/test_browser_tool.py -v
+./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py -v
 
 # Backend browser tests
-python -m pytest tests/backend/test_browser_remote_tool.py -v
+./scripts/python-in-env backend python -m pytest tests/backend/test_browser_remote_tool.py -v
 
 # Mock browser client tests
-python -m pytest tests/backend/test_mock_llm_browser_client.py -v
+./scripts/python-in-env backend python -m pytest tests/backend/test_mock_llm_browser_client.py -v
 
 # All browser tests
-python -m pytest tests/ -k browser -v
+./scripts/python-in-env backend python -m pytest tests/backend -k browser -v
+./scripts/python-in-env sidecar python -m pytest tests/sidecar -k browser -v
 ```
 
 ## Using Browser Control via Chat

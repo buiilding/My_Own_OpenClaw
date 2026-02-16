@@ -14,6 +14,9 @@ Capture the current comparison between WindieOS, OpenClaw, and Browser Use, then
 
 Date locked for this plan: **February 14, 2026**.
 
+This document is a **time-locked planning baseline**, not the canonical runtime contract.  
+For current browser behavior and supported actions/defaults, see `docs/BROWSER_CONTROL.md`.
+
 ## Current Behavior Baseline
 
 ### OpenClaw

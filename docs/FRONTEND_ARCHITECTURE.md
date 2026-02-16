@@ -325,6 +325,13 @@ The main process manages the application lifecycle and IPC communication.
 - Audio chunk forwarding
 - Detection result handling
 - Service status management
+- Guards against stale process callbacks by ignoring stdout/stderr/exit events from superseded wakeword process instances
+
+**local_backend_bridge.cjs**
+- Python sidecar lifecycle management for `local_backend.py`
+- JSON-RPC request/response correlation and timeout handling
+- Readiness probing via `ping` with bounded exponential-backoff retries
+- Stale readiness-timeout callback guards so restarted processes do not inherit old readiness state
 
 #### IPC Channels
 

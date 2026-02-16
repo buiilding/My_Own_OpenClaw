@@ -57,6 +57,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Security Guide**](SECURITY.md) - Security considerations and best practices
 - [**Multi-User Runtime Hardening**](MULTI_USER_RUNTIME_HARDENING.md) - Session identity, multi-device policy, and per-user model isolation guidance
 - [**Performance Guide**](PERFORMANCE.md) - Performance optimization strategies
+- [**Browser-Use Plan (Time-Locked Baseline)**](BROWSER_USE_PLAN.md) - Historical parity baseline and phased Browser Use capability plan
 - [**Contributing Guide**](CONTRIBUTING.md) - How to contribute to the project
 
 ### Hosted Platform (Planned)
