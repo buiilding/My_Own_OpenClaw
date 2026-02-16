@@ -11,6 +11,7 @@ const { v4: uuidv4 } = require('uuid');
 const os = require('os');
 const { getSystemState, searchMemory } = require('./local_backend_bridge.cjs');
 const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
+const { buildQueryPayloadContent } = require('./query_payload_builder.cjs');
 
 const BACKEND_ENDPOINTS = resolveBackendEndpoints();
 const BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
@@ -463,28 +464,6 @@ function normalizeBackendPayload(type, payload) {
   return normalized;
 }
 
-function escapeXml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-function formatMemorySection(tagName, entries) {
-  if (!Array.isArray(entries) || entries.length === 0) {
-    return `<${tagName}>\nNone\n</${tagName}>`;
-  }
-  const sectionText = entries.map((entry) => `- ${escapeXml(entry)}`).join('\n');
-  return `<${tagName}>\n${sectionText}\n</${tagName}>`;
-}
-
-function appendMemorySections(parts, memories = null) {
-  parts.push(formatMemorySection('episodic_memory', memories?.episodic));
-  parts.push(formatMemorySection('semantic_memory', memories?.semantic));
-}
-
 /**
  * Initializes the IPC bridge and establishes the WebSocket connection.
  * This function should be called once when the main Electron window is created.
@@ -563,113 +542,28 @@ function initializeIpc(win, options = {}) {
           },
         }, event.sender);
       }
-      try {
-        log('Building complete user message with system state and memories...');
-        
-        // Determine context type: 'initial' for first query, 'sequential' for subsequent
-        const contextType = isFirstQuery ? 'initial' : 'sequential';
-        isFirstQuery = false; // Mark that we've sent at least one query
-        
-        // Start memory search first since it's slower (needs backend API call + FAISS search)
-        // Then start system state in parallel - both run concurrently
-        const userId = currentUserId || generateUserId();
-        const memoryPromise = searchMemory(payload.text, userId, 5, null, conversationRef).catch(err => {
-          log(`Memory search failed: ${err.message}`);
-          return { success: false, data: { memories: { episodic: [], semantic: [] } } };
-        }); // Start memory search immediately
-        // Request only needed fields based on context type
-        const requestedFields = contextType === 'initial'
-          ? ['active_window', 'mouse_position', 'screen_resolution', 'windows']
-          : ['active_window', 'mouse_position', 'screen_resolution'];
-        
-        const statePromise = getSystemState(requestedFields).then(state => ({
-          systemStateXml: contextType === 'initial'
-            ? formatInitialStateXml(state)
-            : formatSequentialStateXml(state),
-          runtimeSystemState: extractQueryRuntimeSystemState(state),
-        })); // Start system state immediately (parallel)
-        
-        // Wait for both to complete - system context is REQUIRED, memories are optional
-        const [stateResponse, memoryResponse] = await Promise.allSettled([
-          statePromise,   // REQUIRED - must complete
-          memoryPromise   // Optional - can fail
-        ]);
-
-        // Build message content parts
-        const parts = [];
-
-        // 1. System state XML (REQUIRED - must be present)
-        let systemStateXml = null;
-        let runtimeSystemState = null;
-        if (stateResponse.status === 'fulfilled' && stateResponse.value) {
-          systemStateXml = stateResponse.value.systemStateXml;
-          runtimeSystemState = stateResponse.value.runtimeSystemState || null;
-          parts.push(systemStateXml.trim());
-          log('System state added to message');
-        } else {
-          // System context is REQUIRED - log error but continue with fallback
-          const errorMsg = stateResponse.status === 'rejected' 
-            ? stateResponse.reason?.message || 'Unknown error'
-            : 'No system state data in response';
-          log(`ERROR: System state enrichment failed: ${errorMsg}`);
-          // Add minimal fallback system context
-          systemStateXml = formatFallbackStateXml();
-          parts.push(systemStateXml);
-          log('Using fallback system context');
-        }
-
-        // 2. Memory sections
-        // Response structure: { success: true, data: { memories: {...} } }
-        const responseData = memoryResponse.status === 'fulfilled' ? memoryResponse.value : null;
-        if (responseData?.success && responseData?.data?.memories) {
-          const memories = responseData.data.memories;
-          log(`Memory response received - episodic: ${memories.episodic?.length || 0}, semantic: ${memories.semantic?.length || 0}`);
-          appendMemorySections(parts, memories);
-          log('Memories added to message');
-        } else {
-          // Log why memories weren't added
-          if (memoryResponse.status === 'rejected') {
-            log(`Memory enrichment failed: ${memoryResponse.reason?.message || 'Unknown error'}`);
-          } else if (memoryResponse.status === 'fulfilled') {
-            const data = memoryResponse.value;
-            log(`Memory response structure: success=${data?.success}, hasData=${!!data?.data}, hasMemories=${!!data?.data?.memories}`);
-            if (data && !data.data?.memories) {
-              log(`Memory data keys: ${Object.keys(data).join(', ')}`);
-              if (data.data) {
-                log(`Memory data keys: ${Object.keys(data.data).join(', ')}`);
-              }
-            }
-          } else {
-            log(`Memory response status: ${memoryResponse.status}`);
-          }
-          // Add empty memory sections if search failed
-          appendMemorySections(parts);
-        }
-
-        // 3. User query
-        parts.push(`<user_query>\n${escapeXml(payload.text)}\n</user_query>`);
-
-        // Build complete content
-        const completeContent = parts.join('\n\n');
-        
-        // Replace payload with complete content
-        payload.content = completeContent;
-        payload.text = payload.text; // Keep original text for reference
-        if (runtimeSystemState) {
-          payload.system_state_internal = runtimeSystemState;
-        } else {
-          delete payload.system_state_internal;
-        }
-        
-        log('Complete user message built successfully');
-      } catch (error) {
-        log(`ERROR: Failed to build user message: ${error.message}`);
-        // Fallback: include minimal system context even on error
-        const fallbackContext = formatFallbackStateXml();
-        payload.content = `${fallbackContext}\n\n<user_query>\n${escapeXml(payload.text)}\n</user_query>`;
+      const contextType = isFirstQuery ? 'initial' : 'sequential';
+      isFirstQuery = false;
+      const userId = currentUserId || generateUserId();
+      const {
+        content: completeContent,
+        runtimeSystemState,
+      } = await buildQueryPayloadContent({
+        text: payload.text,
+        conversationRef,
+        userId,
+        contextType,
+        getSystemState,
+        searchMemory,
+        log,
+      });
+      payload.content = completeContent;
+      if (runtimeSystemState) {
+        payload.system_state_internal = runtimeSystemState;
+      } else {
         delete payload.system_state_internal;
-        log('Using fallback system context in error handler');
       }
+      log('Complete user message built successfully');
     }
 
     // System context is now pre-formatted in llm_content by ChatContext.jsx
@@ -680,63 +574,6 @@ function initializeIpc(win, options = {}) {
       setResponseOverlayPhase('idle', 'query-send-failed');
     }
   });
-}
-
-/**
- * Format system state as initial XML (with all windows and stats)
- */
-function formatInitialStateXml(state) {
-  const windows = state.windows || [];
-  const windowsXml = windows.map((w) => `        <window>${escapeXml(w)}</window>`).join('\n');
-  
-  return `<system_context>
-    <os_state>
-        <active_window>${escapeXml(state.active_window || 'Unknown')}</active_window>
-        <mouse_position>${escapeXml(state.mouse_position || 'Unknown')}</mouse_position>
-        <screen_resolution>${escapeXml(state.screen_resolution || 'Unknown')}</screen_resolution>
-        <all_open_windows>
-${windowsXml}
-        </all_open_windows>
-    </os_state>
-</system_context>`;
-}
-
-/**
- * Format system state as sequential XML (minimal)
- */
-function formatSequentialStateXml(state) {
-  return `<system_context>
-    <os_state>
-        <active_window>${escapeXml(state.active_window || 'Unknown')}</active_window>
-        <mouse_position>${escapeXml(state.mouse_position || 'Unknown')}</mouse_position>
-    </os_state>
-</system_context>`;
-}
-
-function extractQueryRuntimeSystemState(state) {
-  if (!state || typeof state !== 'object') {
-    return null;
-  }
-  const resolution = typeof state.screen_resolution === 'string'
-    ? state.screen_resolution.trim()
-    : '';
-  if (!resolution) {
-    return null;
-  }
-  return {
-    screen_resolution: resolution,
-  };
-}
-
-/**
- * Format fallback system state XML
- */
-function formatFallbackStateXml() {
-  return `<system_context>
-    <os_state>
-        <active_window>Unknown</active_window>
-    </os_state>
-</system_context>`;
 }
 
 function registerRendererWindow(win) {
