@@ -210,6 +210,30 @@ async def test_handle_request_invalid_type():
     assert response["error"] == "Unknown request type: unknown"
 
 
+@pytest.mark.asyncio
+async def test_handle_request_rejects_non_object_request():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_request(["not", "an", "object"])
+    assert response["success"] is False
+    assert response["id"] == "unknown"
+    assert response["error"] == "Request must be a JSON object"
+
+
+@pytest.mark.asyncio
+async def test_handle_request_rejects_non_object_payload():
+    service = MemoryService()
+    service.memory_store = DummyStore()
+
+    response = await service.handle_request(
+        {"id": "req-4", "type": "search", "payload": "not-an-object"}
+    )
+    assert response["success"] is False
+    assert response["id"] == "req-4"
+    assert response["error"] == "Request payload must be a JSON object"
+
+
 def test_signal_handler_requests_shutdown(monkeypatch):
     service = MemoryService()
     called = []

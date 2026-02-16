@@ -18,7 +18,7 @@ timm==1.0.22
 onnxruntime-gpu
 # onnxruntime
 # openwakeword==0.6.0  # Not used in backend - only needed in frontend wakeword_service.py
-flash-attn  # Optional: improves performance but may have installation issues on Windows
+#flash-attn  # Optional: improves performance but may have installation issues on Windows
 numpy<2.3.0,>=2
 
 # System integration

@@ -18,6 +18,7 @@ from tools.system.shell_process_registry import (
     get_session,
     list_finished_sessions,
     list_running_sessions,
+    mark_exited,
 )
 
 logger = logging.getLogger(__name__)
@@ -318,6 +319,16 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             }
         session.process.kill()
         await session.process.wait()
+        if session.wait_task and not session.wait_task.done():
+            try:
+                await asyncio.wait_for(session.wait_task, timeout=2.0)
+            except asyncio.TimeoutError:
+                session.wait_task.cancel()
+                await asyncio.gather(session.wait_task, return_exceptions=True)
+        if not session.exited:
+            exit_code = session.process.returncode
+            status = "completed" if exit_code == 0 else "failed"
+            mark_exited(session, exit_code, status)
         return {
             "success": True,
             "data": {
@@ -336,6 +347,12 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                     task.cancel()
             session.process.kill()
             await session.process.wait()
+        if session and session.uses_pty and session.pty_master is not None:
+            try:
+                os.close(session.pty_master)
+            except OSError:
+                pass
+            session.pty_master = None
         delete_session(session_id)
         return {
             "success": True,

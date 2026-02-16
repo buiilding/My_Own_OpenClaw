@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Build a packaged Python runtime for the frontend sidecar.
+#
+# This script is intentionally opt-in and does not run as part of normal
+# development or standard packaging commands.
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REQ_FILE="${REQ_FILE:-$ROOT/frontend/src/main/python/requirements.runtime.txt}"
+PACK_PATH="${PACK_PATH:-$ROOT/frontend/python-runtime.tar.gz}"
+RUNTIME_DIR="${RUNTIME_DIR:-$ROOT/frontend/python-runtime}"
+
+if [ ! -f "$REQ_FILE" ]; then
+  echo "Runtime requirements file not found: $REQ_FILE" >&2
+  exit 2
+fi
+
+if [ -d "$RUNTIME_DIR" ] && [ "$(ls -A "$RUNTIME_DIR" 2>/dev/null)" ]; then
+  echo "Runtime directory is not empty: $RUNTIME_DIR" >&2
+  echo "Use an empty directory or set RUNTIME_DIR to a new path." >&2
+  exit 2
+fi
+
+echo "[build-sidecar-runtime] Installing runtime dependencies..."
+"$ROOT/scripts/python-in-env" sidecar python -m pip install -r "$REQ_FILE"
+
+echo "[build-sidecar-runtime] Installing Playwright browser runtime..."
+"$ROOT/scripts/python-in-env" sidecar python -m playwright install chromium
+
+echo "[build-sidecar-runtime] Downloading wakeword model assets..."
+"$ROOT/scripts/python-in-env" sidecar python -c "from openwakeword.utils import download_models; download_models(['hey_jarvis'])"
+
+echo "[build-sidecar-runtime] Ensuring conda-pack is available in sidecar env..."
+"$ROOT/scripts/python-in-env" sidecar python -m pip install conda-pack
+
+echo "[build-sidecar-runtime] Packing sidecar environment..."
+"$ROOT/scripts/python-in-env" sidecar python -m conda_pack -o "$PACK_PATH"
+
+mkdir -p "$RUNTIME_DIR"
+echo "[build-sidecar-runtime] Extracting runtime to $RUNTIME_DIR..."
+tar -xzf "$PACK_PATH" -C "$RUNTIME_DIR"
+
+echo "[build-sidecar-runtime] Runtime bundle created."
+echo "[build-sidecar-runtime] Next: run bundled-python packaging scripts from frontend/."

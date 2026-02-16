@@ -145,3 +145,14 @@ See:
 
 - The backend does **not** persist user config changes at runtime.
 - `query` messages do **not** accept config overrides.
+
+## Desktop Runtime Environment Variables
+
+When launching Electron (dev or packaged), these env vars can override defaults:
+
+- `BACKEND_HTTP_URL`: full backend HTTP base URL.
+- `BACKEND_WS_URL`: full backend WebSocket URL (`/ws`).
+- `BACKEND_HOST` and `BACKEND_PORT`: fallback host/port when full URLs are unset.
+- `WINDIE_PYTHON_PATH`: explicit Python executable path for sidecar processes.
+
+For bundled runtime packaging details, see `docs/SIDECAR_RUNTIME_PACKAGING.md`.

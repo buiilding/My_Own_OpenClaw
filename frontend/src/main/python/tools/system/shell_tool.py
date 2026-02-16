@@ -29,6 +29,7 @@ DEFAULT_SHELL_TIMEOUT = 120.0
 IS_WINDOWS = platform.system() == "Windows"
 DEFAULT_MAX_OUTPUT_TOKENS = 10_000
 APPROX_BYTES_PER_TOKEN = 4
+_USE_SESSION_EXIT_CODE = object()
 
 
 def _approx_token_count(text: str) -> int:
@@ -140,11 +141,20 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             if timeout is None:
                 await wait_task
             else:
-                await asyncio.wait_for(wait_task, timeout=timeout)
+                await asyncio.wait_for(asyncio.shield(wait_task), timeout=timeout)
             result = _build_result_from_session(session, timed_out=False)
         except asyncio.TimeoutError:
             await _terminate_session(session)
-            # wait_task was cancelled by wait_for; don't await it
+            if not wait_task.done():
+                try:
+                    await asyncio.wait_for(wait_task, timeout=2.0)
+                except asyncio.TimeoutError:
+                    wait_task.cancel()
+                    await asyncio.gather(wait_task, return_exceptions=True)
+            if not session.exited:
+                exit_code = session.process.returncode
+                status = "completed" if exit_code == 0 else "failed"
+                mark_exited(session, exit_code, status)
             result = _build_result_from_session(
                 session,
                 timed_out=True,
@@ -363,11 +373,11 @@ def _build_foreground_response(
 def _build_result_from_session(
     session: ProcessSession,
     timed_out: bool,
-    exit_code_override: Optional[int] = None,
+    exit_code_override: Any = _USE_SESSION_EXIT_CODE,
     error_override: Optional[str] = None,
 ) -> Dict[str, Any]:
     execution_time = time.time() - session.started_at
-    exit_code = exit_code_override if exit_code_override is not None else session.exit_code
+    exit_code = session.exit_code if exit_code_override is _USE_SESSION_EXIT_CODE else exit_code_override
     error_text = error_override if error_override is not None else session.stderr_aggregated
     return {
         "output": session.stdout_aggregated,
