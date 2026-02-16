@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-runtime): extract shared shutdown/signal helpers (`core/runtime_shutdown.py`) and reuse them across `local_backend.py` and `memory_service.py` to remove duplicated stdin-unblock and signal-forwarding logic
 - refactor(sidecar-memory): extract shared memory search/store transformation helpers (`memory/operations.py`) and reuse them in both `local_backend.py` and `memory_service.py` to remove duplicated logic and reduce behavior drift risk
 - docs(repo): add empty `REFACTOR.md` scaffold for upcoming refactor notes
 - feat(settings): add `include_query_screenshot` frontend setting (default `true`) with Settings UI toggle and user-query send-path gating so screenshot image context can be enabled/disabled per session
