@@ -598,13 +598,11 @@ class TestBrowserControllerSnapshot:
     @pytest.mark.asyncio
     async def test_get_aria_snapshot(self):
         """Test ARIA snapshot generation."""
-        self.controller._page.accessibility.snapshot.return_value = {
-            "role": "WebArea",
-            "name": "Example",
-            "children": [
-                {"role": "button", "name": "Submit"},
-            ],
-        }
+        mock_locator = mock.MagicMock()
+        mock_locator.aria_snapshot = mock.AsyncMock(
+            return_value='- button "Submit"'
+        )
+        self.controller._page.locator = mock.MagicMock(return_value=mock_locator)
         
         snapshot = await self.controller.get_page_snapshot(format_type="aria")
         
@@ -615,11 +613,10 @@ class TestBrowserControllerSnapshot:
     @pytest.mark.asyncio
     async def test_get_aria_snapshot_truncates_to_max_chars(self):
         """ARIA snapshot should respect max_chars truncation."""
-        self.controller._page.accessibility.snapshot.return_value = {
-            "role": "WebArea",
-            "name": "Example",
-            "children": [{"role": "button", "name": f"Item {i}"} for i in range(200)],
-        }
+        long_snapshot = "\n".join([f'- button "Item {i}"' for i in range(200)])
+        mock_locator = mock.MagicMock()
+        mock_locator.aria_snapshot = mock.AsyncMock(return_value=long_snapshot)
+        self.controller._page.locator = mock.MagicMock(return_value=mock_locator)
 
         snapshot = await self.controller.get_page_snapshot(format_type="aria", max_chars=200)
 
