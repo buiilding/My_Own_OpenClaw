@@ -398,4 +398,21 @@ describe('local_backend_bridge', () => {
 
     await expect(promise).resolves.toEqual({ success: false, error: 'store failed' });
   });
+
+  test('execute-tool rejects in-flight request when sidecar exits', async () => {
+    initBridge();
+    markReady();
+
+    const promise = handlers['execute-tool'](null, {
+      toolName: 'read_file',
+      args: { file_path: '/tmp/a' },
+    });
+
+    processHandlers.exit?.(1, null);
+
+    await expect(promise).resolves.toEqual({
+      success: false,
+      error: 'Local backend process exited',
+    });
+  });
 });
