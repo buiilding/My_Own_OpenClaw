@@ -191,6 +191,7 @@ Defaults:
 - `ai` snapshots default to `mode="efficient"` when mode is omitted
 - `ai` snapshot default budget: `4000` chars (efficient default behavior)
 - `ai` non-efficient budget: `12000` chars
+- If efficient AI snapshot capture returns `ref_count=0`, WindieOS retries with a deeper role snapshot (`depth=12`) and then an unscoped flat AI snapshot fallback.
 - Snapshot tool output returns `snapshot` text + lightweight metadata (`ref_count`) only; detailed ref/stats maps remain internal to reduce token usage.
 
 Automatic post-action snapshots:
