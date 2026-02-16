@@ -47,14 +47,5 @@ export function buildTransparencySectionConfigs(message) {
     });
   }
 
-  if (message.fullAssistantMessage) {
-    sections.push({
-      key: 'assistant-message-full',
-      title: 'Full Assistant Response',
-      content: message.fullAssistantMessage.content,
-      type: 'text',
-    });
-  }
-
   return sections;
 }

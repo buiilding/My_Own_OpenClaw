@@ -11,7 +11,6 @@ describe('messageTransparency utils', () => {
       systemPrompt: { content: 'prompt text' },
       toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
       fullUserMessage: { content: '<message/>', metadata },
-      fullAssistantMessage: { content: 'assistant full output' },
     });
 
     expect(sections).toEqual([
@@ -34,12 +33,6 @@ describe('messageTransparency utils', () => {
         content: '<message/>',
         metadata: { user_id: 'user-1' },
         type: 'xml',
-      },
-      {
-        key: 'assistant-message-full',
-        title: 'Full Assistant Response',
-        content: 'assistant full output',
-        type: 'text',
       },
     ]);
 

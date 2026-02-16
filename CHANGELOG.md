@@ -43,6 +43,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- fix(frontend-navigation): remove sidebar `Active` status pill from section list items while preserving selected-section highlighting
+- fix(frontend-transparency): remove the `Full Assistant Response` transparency section from chat UI to reduce unnecessary debug tags in the active conversation view
 - feat(frontend-token-display): simplify chat token stats UI to show only active-conversation total tokens (`conversation_tokens`, with `total_tokens` fallback)
 - fix(frontend-tool-output): format `snapshot` and nested `post_action_snapshot` payloads into readable sections (metadata + raw snapshot text) in `MessageFormatter`, including unescaping literal `\n`/`\r\n` so browser-control post-action snapshots render with visible line breaks in both chat-visible tool output and model-facing `llm_content`
 - feat(browser-control): auto-append `post_action_snapshot` (`ai` snapshot payload) to successful page-affecting browser actions, including supported `act.request.kind` interactions; `snapshot`/post-action captures now wait for `wait_until="load"` by default (configurable to `domcontentloaded`/`networkidle`), and snapshot failures degrade gracefully without failing the primary action
@@ -120,6 +122,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(local-backend-bridge): reject and clear in-flight JSON-RPC requests when the Python sidecar exits/errors so renderer IPC calls do not hang indefinitely
 - fix(ocr-click): treat OCR coordinate resolution as ambiguous when multiple fuzzy matches are above threshold, return actionable manual-coordinate retry errors, and log fuzzy match counts in resolver timing output
 - fix(tool-sender): prevent frontend sidecar execution for bundles when preparation/coordinate resolution fails by short-circuiting bundle dispatch and storing a synthetic failed bundle result for backend orchestration
 - fix(mouse-control-payload): preserve model-provided `ocr_text`/`description` in resolved `mouse_control` parameters while still rewriting coordinates to manual `x/y`

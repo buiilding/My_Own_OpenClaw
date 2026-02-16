@@ -25,7 +25,6 @@ function MainLayout({ sections, activeSection, onSelectSection, content }) {
                 <li key={section.id} className={isActive ? 'active' : ''}>
                   <button type="button" onClick={() => onSelectSection(section.id)}>
                     <span className="nav-label">{section.label}</span>
-                    {isActive ? <span className="nav-status">Active</span> : null}
                   </button>
                 </li>
               );
