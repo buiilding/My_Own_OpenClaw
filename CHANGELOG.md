@@ -163,6 +163,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(frontend-chat): keep main dashboard visible when `include_query_screenshot` is disabled by skipping return-to-chatbox window switch on send, so dashboard chat no longer hides the main window in no-image mode
 - fix(sidecar-memory): rebuild FAISS indices with contiguous remapped `embedding_id` values in `LocalMemoryStore._rebuild_index()` so post-rebuild search results continue resolving to stored memories (no stale sparse vector-id mapping drift)
 - fix(local-backend-stop): bind delayed force-kill to the original sidecar process instance so shutdown timers cannot SIGKILL a newly restarted local backend process
 - fix(sidecar-memory): reject `store_memory` requests in `local_backend.py` when `user_query` or `assistant_response` is empty to avoid persisting invalid interaction memories

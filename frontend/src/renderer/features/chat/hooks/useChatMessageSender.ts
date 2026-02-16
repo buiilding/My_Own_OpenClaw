@@ -42,6 +42,7 @@ export function useChatMessageSender(
   const { config } = useAppConfigContext();
   const { returnToChatboxOnSend = false } = options;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
+  const shouldReturnToChatboxOnSend = returnToChatboxOnSend && includeQueryScreenshot;
 
   const appendSendFailureMessage = useCallback(() => {
     addMessage({
@@ -85,7 +86,7 @@ export function useChatMessageSender(
     setIsSending(true);
     setThinkingStatus(null);
 
-    if (returnToChatboxOnSend) {
+    if (shouldReturnToChatboxOnSend) {
       try {
         await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: false });
       } catch (error) {
@@ -156,7 +157,7 @@ export function useChatMessageSender(
     setIsSending,
     setThinkingStatus,
     stopPlayback,
-    returnToChatboxOnSend,
+    shouldReturnToChatboxOnSend,
     includeQueryScreenshot,
     ensureConversationRef,
   ]);
