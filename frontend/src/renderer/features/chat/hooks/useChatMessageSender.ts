@@ -24,8 +24,21 @@ import {
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 
 type ChatMessageSenderOptions = {
-  returnToChatboxOnSend?: boolean;
+  returnToChatboxPolicy?: 'never' | 'auto' | 'always';
 };
+
+export function resolveReturnToChatboxOnSend(
+  returnToChatboxPolicy: 'never' | 'auto' | 'always',
+  includeQueryScreenshot: boolean,
+): boolean {
+  if (returnToChatboxPolicy === 'always') {
+    return true;
+  }
+  if (returnToChatboxPolicy === 'never') {
+    return false;
+  }
+  return includeQueryScreenshot;
+}
 
 /**
  * Custom hook for sending chat messages.
@@ -40,9 +53,12 @@ export function useChatMessageSender(
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const { config } = useAppConfigContext();
-  const { returnToChatboxOnSend = false } = options;
+  const { returnToChatboxPolicy = 'never' } = options;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
-  const shouldReturnToChatboxOnSend = returnToChatboxOnSend && includeQueryScreenshot;
+  const shouldReturnToChatboxOnSend = resolveReturnToChatboxOnSend(
+    returnToChatboxPolicy,
+    includeQueryScreenshot,
+  );
 
   const appendSendFailureMessage = useCallback(() => {
     addMessage({

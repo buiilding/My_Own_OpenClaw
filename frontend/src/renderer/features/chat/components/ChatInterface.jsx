@@ -72,7 +72,7 @@ function ChatInterface() {
   }, []);
 
   const { sendMessage } = useChatMessageSender(stopPlayback, {
-    returnToChatboxOnSend: true,
+    returnToChatboxPolicy: 'auto',
   });
 
   return (
