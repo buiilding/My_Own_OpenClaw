@@ -1603,3 +1603,71 @@ Result:
 - `28 passed in 1.35s`
 
 This confirms dynamic strategy selection preserves parser correctness while removing redundant pure-JSON parse attempts for embedded responses.
+
+---
+
+# Refactor: Centralize Summarization Watermark Updates in LocalBackend
+
+## Target
+Remove duplicated pending-count/summarizer-update logic in:
+- `frontend/src/main/python/local_backend.py`
+
+This is a maintainability refactor in a central sidecar memory-write path.
+
+## Current Structure and Root Cause
+Before this refactor, both handlers implemented identical best-effort watermark logic:
+- `_handle_store_transcript(...)`
+- `_handle_store_memory(...)`
+
+Each method repeated:
+1. conditionally call `memory_store.increment_pending_count()`
+2. conditionally notify summarizer (`notify_new_memory(user_id)`)
+3. swallow/log failures as warning so writes still succeed
+
+Root cause: summarization watermark policy lived inline at each memory-write call site instead of one shared helper. This duplicates behavior in a high-churn module and increases drift risk when watermark semantics change.
+
+## Refactor Plan
+1. Add one `LocalBackend` helper for best-effort watermark updates.
+2. Keep existing behavior:
+   - update only when caller says update is required
+   - never fail memory writes due to watermark update errors
+3. Rewire transcript and memory handlers to delegate to helper.
+4. Add regression coverage for transcript pending-update failure path.
+5. Run focused sidecar local-backend tests.
+
+## Implemented Changes
+### Shared watermark helper
+- Added `LocalBackend._maybe_update_summarization_watermark(...)` in:
+  - `frontend/src/main/python/local_backend.py`
+
+Helper responsibilities:
+- early return when update is not required
+- increment pending counter
+- notify summarizer when available
+- catch/log failures without failing storage handlers
+
+### Handler rewiring
+- Updated `_handle_store_transcript(...)` to call shared helper with:
+  - `should_update=self._counts_toward_pending_turns(...)`
+- Updated `_handle_store_memory(...)` to call shared helper with:
+  - `should_update=(memory_type == "episodic")`
+
+No request/response schema changes were introduced.
+
+### Added test coverage
+- Updated `tests/sidecar/test_local_backend.py`:
+  - `test_handle_store_transcript_pending_failure_still_succeeds`
+
+This verifies transcript writes remain successful when pending-count update fails, matching existing best-effort behavior.
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py
+```
+
+Result:
+- `27 passed, 3 warnings`
+
+This confirms behavior is preserved while consolidating duplicated watermark update policy.

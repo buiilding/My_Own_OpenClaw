@@ -438,6 +438,24 @@ async def test_handle_store_transcript_user_message_does_not_increment_pending()
 
 
 @pytest.mark.asyncio
+async def test_handle_store_transcript_pending_failure_still_succeeds():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStorePendingFails()
+    backend._summarizer = DummySummarizer()
+
+    result = await backend._handle_store_transcript(
+        content="assistant reply",
+        user_id="user-1",
+        conversation_ref="conv-1",
+        role="assistant",
+        message_type="llm-text",
+    )
+
+    assert result["success"] is True
+    assert backend._summarizer.notified == []
+
+
+@pytest.mark.asyncio
 async def test_handle_store_transcript_requires_content():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
