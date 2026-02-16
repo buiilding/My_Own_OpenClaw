@@ -29,7 +29,10 @@ This update delivers those tasks with compatibility-wrapper routing while preser
   - Adds factory seam `get_browser_use_adapter(...)` for testable injection.
 - `frontend/src/main/python/tools/browser_use_adapter/runtime_provider.py`
   - Adds runtime-provider seam for adapter internals.
-  - Defaults to controller-backed provider and exposes future Browser Use runtime selection hook (`WINDIE_BROWSER_USE_RUNTIME`) with safe fallback.
+  - Defaults to controller-backed provider and exposes Browser Use runtime selection hook (`WINDIE_BROWSER_USE_RUNTIME`) with safe fallback.
+  - Adds strict-selection mode (`WINDIE_BROWSER_USE_RUNTIME_STRICT`) to fail fast instead of silently falling back when Browser Use runtime is explicitly requested.
+- `frontend/src/main/python/tools/browser_use_adapter/browser_use_native_runtime.py`
+  - Adds optional Browser Use-native runtime factory entrypoint (`create_browser_use_native_runtime_provider`) for incremental action-level migration.
 - `frontend/src/main/python/tools/browser_use_adapter/__init__.py`
   - Exposes adapter types/factory.
 

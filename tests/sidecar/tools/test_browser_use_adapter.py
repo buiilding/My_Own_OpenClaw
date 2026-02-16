@@ -475,3 +475,49 @@ class TestBrowserUseCompatibilityAdapter:
             runtime = get_browser_runtime_provider(controller)
 
         assert runtime.__class__.__name__ == "ControllerBackedRuntimeProvider"
+
+    def test_runtime_factory_browser_use_strict_raises_when_unavailable(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        with mock.patch.dict(
+            "os.environ",
+            {
+                "WINDIE_BROWSER_USE_RUNTIME": "browser_use_native",
+                "WINDIE_BROWSER_USE_RUNTIME_STRICT": "1",
+            },
+            clear=False,
+        ):
+            with pytest.raises(RuntimeError, match="unavailable"):
+                get_browser_runtime_provider(controller)
+
+    def test_runtime_factory_unknown_runtime_strict_raises(self, make_controller):
+        controller = make_controller()
+        with mock.patch.dict(
+            "os.environ",
+            {
+                "WINDIE_BROWSER_USE_RUNTIME": "unknown_runtime",
+                "WINDIE_BROWSER_USE_RUNTIME_STRICT": "true",
+            },
+            clear=False,
+        ):
+            with pytest.raises(RuntimeError, match="Unknown browser runtime"):
+                get_browser_runtime_provider(controller)
+
+    def test_runtime_factory_import_failure_falls_back_without_strict(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        with mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_USE_RUNTIME": "browser_use_native"},
+            clear=False,
+        ), mock.patch(
+            "tools.browser_use_adapter.runtime_provider.import_module",
+            side_effect=ImportError("simulated import failure"),
+        ):
+            runtime = get_browser_runtime_provider(controller)
+
+        assert runtime.__class__.__name__ == "ControllerBackedRuntimeProvider"
