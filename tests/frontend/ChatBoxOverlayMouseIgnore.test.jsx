@@ -1,9 +1,13 @@
 import React from 'react';
-import { act, render } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import ChatBox from '../../frontend/src/renderer/features/chat/components/ChatBox';
 
 const mockInvoke = jest.fn().mockResolvedValue({ success: true });
+const mockSendMessage = jest.fn();
+const mockUseChatMessageSender = jest.fn(() => ({
+  sendMessage: mockSendMessage,
+}));
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
@@ -20,12 +24,15 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
+const mockChatState = {
+  messages: [],
+  isSending: false,
+  thinkingStatus: null,
+  streamTracking: { phase: 'idle' },
+};
+
 jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
-  useChatStore: () => ({
-    messages: [],
-    isSending: false,
-    thinkingStatus: null,
-  }),
+  useChatStore: (selector) => (typeof selector === 'function' ? selector(mockChatState) : mockChatState),
 }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
@@ -35,14 +42,14 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender', () => ({
-  useChatMessageSender: () => ({
-    sendMessage: jest.fn(),
-  }),
+  useChatMessageSender: (...args) => mockUseChatMessageSender(...args),
 }));
 
 describe('ChatBox overlay mouse ignore', () => {
   beforeEach(() => {
     mockInvoke.mockClear();
+    mockUseChatMessageSender.mockClear();
+    mockSendMessage.mockClear();
   });
 
   test('defaults to interactive overlay and requests window resize to match pill', () => {
@@ -83,5 +90,24 @@ describe('ChatBox overlay mouse ignore', () => {
         && payload?.height === 100,
     );
     expect(sawResize).toBe(true);
+  });
+
+  test('wires overlay sender surface for centralized UI send behavior', () => {
+    render(<ChatBox />);
+
+    expect(mockUseChatMessageSender).toHaveBeenCalledWith(undefined, {
+      senderSurface: 'overlay-chatbox',
+    });
+  });
+
+  test('settings button invokes show-main-window', () => {
+    render(<ChatBox />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open settings' }));
+
+    const sawShowMainWindow = mockInvoke.mock.calls.some(
+      ([channel]) => channel === 'show-main-window',
+    );
+    expect(sawShowMainWindow).toBe(true);
   });
 });

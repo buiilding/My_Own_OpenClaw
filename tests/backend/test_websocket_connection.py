@@ -148,6 +148,35 @@ async def test_perform_handshake_invalid_user_id_closes_socket() -> None:
 
 
 @pytest.mark.asyncio
+async def test_perform_handshake_non_object_payload_closes_socket() -> None:
+    websocket = DummyWebSocket(json.dumps(["handshake", "client_user"]))
+    safe_ws = DummySafeWebSocket()
+
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id is None
+    assert safe_ws.closed
+    assert safe_ws.closed[0][0] == 1008
+
+
+@pytest.mark.asyncio
+async def test_perform_handshake_parse_runtime_error_closes_socket(monkeypatch) -> None:
+    websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "client_user"}))
+    safe_ws = DummySafeWebSocket()
+
+    async def fail_parse(*_args, **_kwargs):
+        raise RuntimeError("parse failed")
+
+    monkeypatch.setattr(connection_module, "parse_json_payload", fail_parse)
+
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id is None
+    assert safe_ws.closed
+    assert safe_ws.closed[0][0] == 1008
+
+
+@pytest.mark.asyncio
 async def test_perform_handshake_handles_unexpected_errors_and_close_failures() -> None:
     class ExplodingWebSocket:
         async def receive_text(self) -> str:
@@ -167,6 +196,15 @@ async def test_close_policy_violation_swallows_close_errors() -> None:
         ExplodingSafeWebSocket(),
         "test close failure",
     )
+
+
+@pytest.mark.asyncio
+async def test_close_policy_violation_closes_with_policy_code() -> None:
+    safe_ws = DummySafeWebSocket()
+
+    await connection_module._close_policy_violation(safe_ws, "policy check")
+
+    assert safe_ws.closed == [(1008, None)]
 
 
 @pytest.mark.asyncio
