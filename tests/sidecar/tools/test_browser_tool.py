@@ -490,7 +490,13 @@ class TestClickAction:
         with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.click.return_value = {"success": True}
+            mock_controller.click.return_value = {
+                "success": True,
+                "strategy": "force",
+                "forced": True,
+                "candidate_count": 2,
+                "candidate_index": 1,
+            }
             mock_get.return_value = mock_controller
             
             result = await execute_browser_control({
@@ -500,6 +506,10 @@ class TestClickAction:
             
             assert result.success is True
             assert result.data["ref"] == "5"
+            assert result.data["strategy"] == "force"
+            assert result.data["forced"] is True
+            assert result.data["candidate_count"] == 2
+            assert result.data["candidate_index"] == 1
     
     @pytest.mark.asyncio
     async def test_click_failure(self):

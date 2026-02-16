@@ -558,12 +558,16 @@ async def _handle_click(args: Dict[str, Any]) -> ToolResult:
     )
     
     if result.get("success"):
-        return ToolResult.success_result({
+        payload: Dict[str, Any] = {
             "action": "click",
             "ref": ref,
             "double_click": double_click,
             "button": button,
-        })
+        }
+        for key in ("forced", "method", "strategy", "candidate_count", "candidate_index"):
+            if key in result:
+                payload[key] = result[key]
+        return ToolResult.success_result(payload)
     else:
         return ToolResult.error_result(result.get("error", "Click failed"))
 
