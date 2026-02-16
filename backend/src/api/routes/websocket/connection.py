@@ -30,6 +30,26 @@ async def _close_policy_violation(safe_ws: SafeWebSocket, reason: str) -> None:
         logger.debug(f"Error closing WebSocket after {reason}: {close_error}")
 
 
+async def _fail_handshake(
+    *,
+    safe_ws: SafeWebSocket,
+    error: Exception,
+    close_reason: str,
+    validation_error: bool,
+) -> None:
+    """
+    Log handshake failure and close the websocket with policy-violation semantics.
+
+    Validation/JSON issues are expected client errors and log at warning level.
+    Unexpected runtime failures log at error level.
+    """
+    if validation_error:
+        logger.warning("Handshake validation failed (%s): %s", close_reason, error)
+    else:
+        logger.error("Handshake error (%s): %s", close_reason, error)
+    await _close_policy_violation(safe_ws, close_reason)
+
+
 async def perform_handshake(
     websocket: WebSocket,
     safe_ws: SafeWebSocket
@@ -60,16 +80,28 @@ async def perform_handshake(
         )
         return user_id
     except PydanticValidationError as e:
-        logger.warning(f"Handshake validation failed: {e}")
-        await _close_policy_violation(safe_ws, "handshake validation failure")
+        await _fail_handshake(
+            safe_ws=safe_ws,
+            error=e,
+            close_reason="handshake validation failure",
+            validation_error=True,
+        )
         return None
     except json.JSONDecodeError as e:
-        logger.warning(f"Handshake JSON decode failed: {e}")
-        await _close_policy_violation(safe_ws, "handshake JSON error")
+        await _fail_handshake(
+            safe_ws=safe_ws,
+            error=e,
+            close_reason="handshake JSON error",
+            validation_error=True,
+        )
         return None
     except Exception as e:
-        logger.error(f"Handshake error: {e}")
-        await _close_policy_violation(safe_ws, "handshake error")
+        await _fail_handshake(
+            safe_ws=safe_ws,
+            error=e,
+            close_reason="handshake error",
+            validation_error=False,
+        )
         return None
 
 
