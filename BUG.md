@@ -796,3 +796,42 @@ In `frontend/src/main/python/core/ipc_protocol.py`, `JSONRPCProtocol.handle_requ
   - Result: `46 passed`
 - Runtime check:
   - `handle_request({"jsonrpc":"2.0","method":123,"id":"req-1"})` now returns `-32600 Invalid request` with method-type message.
+
+---
+
+## [x] Bug Report: JSON-RPC Notifications Incorrectly Emitted Responses
+
+### Summary
+
+In `frontend/src/main/python/core/ipc_protocol.py`, `JSONRPCProtocol.handle_request(...)` returned response objects for JSON-RPC notifications (requests without an `id` field), causing the sidecar to write unsolicited responses to stdout.
+
+### Root Cause
+
+- The handler always built and returned a response for both success and error paths.
+- It did not distinguish regular requests from notifications (`id` missing).
+- `local_backend.py` sends every non-`None` protocol response, so notification requests still produced protocol output.
+
+### Why It's Problematic
+
+- Violates JSON-RPC 2.0 semantics: notifications must not receive responses.
+- Produces unnecessary stdout traffic and parser noise in the Electron bridge.
+- Increases risk of confusing protocol diagnostics, since responses can appear without any tracked pending request.
+
+### Fix
+
+- Added notification detection in `handle_request(...)` (`is_notification = "id" not in request`).
+- For notifications:
+  - still execute the registered method handler (preserving side effects),
+  - return `None` instead of a response object for success and error paths.
+- Kept normal request behavior unchanged when `id` is present.
+
+### Validation
+
+- Added regression tests in `tests/sidecar/test_json_rpc_protocol.py`:
+  - `test_handle_request_notification_returns_none_and_executes_handler`
+  - `test_process_line_notification_returns_none`
+- Re-ran targeted sidecar suites:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_local_backend.py`
+  - Result: `48 passed`
+- Runtime check:
+  - `handle_request({"jsonrpc":"2.0","method":"ping"})` now returns `None`.
