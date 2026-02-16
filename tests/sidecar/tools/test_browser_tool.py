@@ -360,7 +360,7 @@ class TestSnapshotAction:
             mock_controller.wait_for_load.assert_awaited_once_with("load")
             mock_controller.get_page_snapshot.assert_awaited_once_with(
                 format_type="ai",
-                max_chars=8000,
+                max_chars=4000,
                 refs_mode=None,
                 interactive=True,
                 compact=True,
@@ -576,7 +576,7 @@ class TestPostActionSnapshots:
             mock_controller.wait_for_load.assert_awaited_once_with("load")
             mock_controller.get_page_snapshot.assert_awaited_once_with(
                 format_type="ai",
-                max_chars=8000,
+                max_chars=4000,
                 refs_mode=None,
                 interactive=True,
                 compact=True,
@@ -616,7 +616,7 @@ class TestPostActionSnapshots:
             mock_controller.wait_for_load.assert_awaited_once_with("load")
             mock_controller.get_page_snapshot.assert_awaited_once_with(
                 format_type="ai",
-                max_chars=8000,
+                max_chars=4000,
                 refs_mode=None,
                 interactive=True,
                 compact=True,
