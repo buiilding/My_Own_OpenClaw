@@ -99,3 +99,90 @@ def test_tool_registry_declarations_and_capabilities():
     capabilities = registry.get_tool_capabilities("dummy_tool")
     assert capabilities is not None
     assert capabilities["name"] == "dummy_tool"
+
+
+def test_tool_registry_register_overwrites_existing_tool():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    first = DummyTool()
+    registry.register_tool(first)
+    assert registry.get_tool("dummy_tool") is first
+
+    class ReplacementTool(DummyTool):
+        description = "Replacement"
+
+    replacement = ReplacementTool()
+    registry.register_tool(replacement)
+
+    assert registry.get_tool("dummy_tool") is replacement
+    assert registry.get_tool("dummy_tool").description == "Replacement"
+
+
+def test_tool_registry_get_tool_names_is_sorted():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    class ToolB(DummyTool):
+        name = "z_tool"
+
+    class ToolA(DummyTool):
+        name = "a_tool"
+
+    registry.register_tool(ToolB())
+    registry.register_tool(ToolA())
+
+    names = registry.get_tool_names()
+    assert names == sorted(names)
+
+
+def test_tool_registry_filtered_declarations_include_only_requested_tool():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    class OtherDummyTool(DummyTool):
+        name = "other_dummy_tool"
+
+    registry.register_tool(DummyTool())
+    registry.register_tool(OtherDummyTool())
+
+    declarations = registry.get_function_declarations_filtered(["dummy_tool"])
+
+    assert [d["function"]["name"] for d in declarations] == ["dummy_tool"]
+
+
+def test_tool_registry_availability_and_capabilities_fallback():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+
+    assert registry.is_tool_available("dummy_tool") is False
+    assert registry.get_tool_capabilities("dummy_tool") is None
+
+    tool = DummyTool()
+    registry.register_tool(tool)
+    assert registry.is_tool_available("dummy_tool") is True
+
+    original_get_schema = registry.schema_registry.get_schema
+    registry.schema_registry.get_schema = lambda _tool: None
+    try:
+        assert registry.get_tool_capabilities("dummy_tool") is None
+    finally:
+        registry.schema_registry.get_schema = original_get_schema
+
+
+def test_tool_registry_capabilities_handles_non_dict_function_schema():
+    config = AppConfig()
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+    registry.register_tool(DummyTool())
+
+    original_get_schema = registry.schema_registry.get_schema
+    registry.schema_registry.get_schema = lambda _tool: {"function": "invalid"}
+    try:
+        capabilities = registry.get_tool_capabilities("dummy_tool")
+    finally:
+        registry.schema_registry.get_schema = original_get_schema
+
+    assert capabilities is not None
+    assert capabilities["name"] == "dummy_tool"
+    assert capabilities["parameters"] == {}
+    assert capabilities["requires_context"] is True
