@@ -7,7 +7,7 @@ import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { extractAudioChunkPayload } from '../utils/backendAudioEvents';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import '../../../styles/ChatInterface.css';
@@ -53,6 +53,24 @@ function ChatInterface() {
     audioPlayerRef.current?.stopPlayback();
   }, []);
 
+  const handleWindowMinimize = useCallback(() => {
+    IpcBridge.invoke(INVOKE_CHANNELS.WINDOW_MINIMIZE).catch((error) => {
+      console.warn('[ChatInterface] Failed to minimize window:', error);
+    });
+  }, []);
+
+  const handleWindowToggleMaximize = useCallback(() => {
+    IpcBridge.invoke(INVOKE_CHANNELS.WINDOW_TOGGLE_MAXIMIZE).catch((error) => {
+      console.warn('[ChatInterface] Failed to toggle maximize:', error);
+    });
+  }, []);
+
+  const handleWindowClose = useCallback(() => {
+    IpcBridge.invoke(INVOKE_CHANNELS.WINDOW_CLOSE).catch((error) => {
+      console.warn('[ChatInterface] Failed to close window:', error);
+    });
+  }, []);
+
   const { sendMessage } = useChatMessageSender(stopPlayback, {
     returnToChatboxOnSend: true,
   });
@@ -64,10 +82,41 @@ function ChatInterface() {
           <div className="chat-title">Conversation</div>
         </div>
         <div className="chat-meta">
-          <div className={`chat-mode-badge chat-mode-${interactionMode}`}>
-            Mode: {interactionModeLabel}
+          <div className="chat-window-controls">
+            <button
+              type="button"
+              className="chat-window-control-btn"
+              onClick={handleWindowMinimize}
+              aria-label="Minimize window"
+              title="Minimize"
+            >
+              <span className="chat-window-control-icon">-</span>
+            </button>
+            <button
+              type="button"
+              className="chat-window-control-btn"
+              onClick={handleWindowToggleMaximize}
+              aria-label="Toggle maximize window"
+              title="Maximize / Restore"
+            >
+              <span className="chat-window-control-icon chat-window-control-square">□</span>
+            </button>
+            <button
+              type="button"
+              className="chat-window-control-btn chat-window-control-close"
+              onClick={handleWindowClose}
+              aria-label="Close window"
+              title="Close"
+            >
+              <span className="chat-window-control-icon">×</span>
+            </button>
           </div>
-          <TokenCountDisplay tokenCounts={tokenCounts} />
+          <div className="chat-meta-lower">
+            <div className={`chat-mode-badge chat-mode-${interactionMode}`}>
+              Mode: {interactionModeLabel}
+            </div>
+            <TokenCountDisplay tokenCounts={tokenCounts} />
+          </div>
         </div>
       </header>
       <MessageList messages={messages} thinkingStatus={thinkingStatus} />

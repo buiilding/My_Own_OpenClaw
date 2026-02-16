@@ -15,6 +15,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
+  -webkit-app-region: drag;
 }
 
 .chat-title-block {
@@ -39,8 +40,55 @@
 
 .chat-meta {
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  -webkit-app-region: no-drag;
+}
+
+.chat-meta-lower {
+  display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.chat-window-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat-window-control-btn {
+  width: 28px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #d1d5de;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.chat-window-control-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f3f6fb;
+}
+
+.chat-window-control-close:hover {
+  background: rgba(233, 89, 89, 0.9);
+  color: #ffffff;
+}
+
+.chat-window-control-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.chat-window-control-square {
+  font-size: 12px;
 }
 
 .chat-mode-badge {
@@ -543,6 +591,11 @@
   }
 
   .chat-meta {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .chat-meta-lower {
     width: 100%;
     justify-content: space-between;
   }
