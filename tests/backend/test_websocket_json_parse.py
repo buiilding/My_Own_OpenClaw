@@ -73,5 +73,46 @@ async def test_parse_json_payload_propagates_json_decode_error():
         )
 
 
+@pytest.mark.asyncio
+async def test_parse_json_payload_propagates_loop_getter_failure_on_offload():
+    payload = json.dumps({"offload": True})
+
+    def fail_loop_getter():
+        raise RuntimeError("loop unavailable")
+
+    with pytest.raises(RuntimeError, match="loop unavailable"):
+        await json_parse_module.parse_json_payload(
+            payload,
+            offload_threshold_bytes=1,
+            loop_getter=fail_loop_getter,
+        )
+
+
+@pytest.mark.asyncio
+async def test_parse_json_payload_offload_path_propagates_decode_error():
+    class FakeLoop:
+        async def run_in_executor(self, executor, fn, data):
+            return fn(data)
+
+    with pytest.raises(json.JSONDecodeError):
+        await json_parse_module.parse_json_payload(
+            "{bad-json",
+            offload_threshold_bytes=1,
+            loop_getter=lambda: FakeLoop(),
+        )
+
+
+@pytest.mark.asyncio
+async def test_parse_json_payload_supports_non_object_roots():
+    payload = json.dumps(["a", 1, {"b": 2}])
+    result = await json_parse_module.parse_json_payload(
+        payload,
+        offload_threshold_bytes=4096,
+        loop_getter=asyncio.get_running_loop,
+    )
+
+    assert result == ["a", 1, {"b": 2}]
+
+
 def test_default_json_offload_threshold_contract():
     assert json_parse_module.DEFAULT_JSON_PARSE_OFFLOAD_BYTES == 64 * 1024

@@ -177,3 +177,18 @@ async def test_initialize_reuses_session_and_close_resets(monkeypatch):
     await client.close()
     assert first_session.closed is True
     assert client._session is None
+
+
+@pytest.mark.asyncio
+async def test_close_is_noop_when_session_not_initialized():
+    client = RemoteEmbeddingClient()
+
+    await client.close()
+
+    assert client._session is None
+
+
+def test_dimension_property_returns_expected_default():
+    client = RemoteEmbeddingClient()
+
+    assert client.dimension == 384
