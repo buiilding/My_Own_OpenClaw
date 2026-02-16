@@ -79,12 +79,37 @@ PHASE2_ADAPTER_ROUTED_ACTIONS = frozenset(
         "status",
         "navigate",
         "open",
+        "click",
+        "type",
         "press",
         "scroll",
+        "screenshot",
         "wait",
         "get_tabs",
         "switch_tab",
         "evaluate",
+        "console",
+        "errors",
+        "requests",
+        "trace_start",
+        "trace_stop",
+        "pdf",
+        "upload",
+        "dialog",
+        "cookies",
+        "cookies_set",
+        "cookies_clear",
+        "storage_get",
+        "storage_set",
+        "storage_clear",
+        "set_offline",
+        "set_headers",
+        "set_credentials",
+        "set_geolocation",
+        "set_media",
+        "set_timezone",
+        "set_locale",
+        "set_device",
         "close",
     }
 )
@@ -335,12 +360,12 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
         elif action == "extract":
             return await _handle_extract(raw_args)
         elif action == "click":
-            result = await _handle_click(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
         elif action == "type":
-            result = await _handle_type(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
@@ -355,7 +380,7 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
                 action, raw_args, result
             )
         elif action == "screenshot":
-            return await _handle_screenshot(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "wait":
             result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
@@ -374,55 +399,55 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
                 action, raw_args, result
             )
         elif action == "console":
-            return await _handle_console(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "errors":
-            return await _handle_errors(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "requests":
-            return await _handle_requests(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "trace_start":
-            return await _handle_trace_start(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "trace_stop":
-            return await _handle_trace_stop(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "pdf":
-            return await _handle_pdf(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "upload":
-            result = await _handle_upload(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
         elif action == "dialog":
-            return await _handle_dialog(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "cookies":
-            return await _handle_cookies(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "cookies_set":
-            return await _handle_cookies_set(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "cookies_clear":
-            return await _handle_cookies_clear(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "storage_get":
-            return await _handle_storage_get(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "storage_set":
-            return await _handle_storage_set(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "storage_clear":
-            return await _handle_storage_clear(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "set_offline":
-            return await _handle_set_offline(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "set_headers":
-            return await _handle_set_headers(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "set_credentials":
-            return await _handle_set_credentials(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "set_geolocation":
-            return await _handle_set_geolocation(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "set_media":
-            result = await _handle_set_media(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
         elif action == "set_timezone":
-            return await _handle_set_timezone(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "set_locale":
-            return await _handle_set_locale(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "set_device":
-            result = await _handle_set_device(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
