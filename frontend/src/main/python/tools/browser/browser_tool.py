@@ -19,7 +19,7 @@ from tools.result import ToolResult
 logger = logging.getLogger(__name__)
 
 DEFAULT_AI_SNAPSHOT_MAX_CHARS = 12_000
-DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS = 8_000
+DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS = 4_000
 DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH = 4
 SNAPSHOT_WAIT_STATES = frozenset({"load", "domcontentloaded", "networkidle", "commit"})
 

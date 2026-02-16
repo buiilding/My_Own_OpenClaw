@@ -178,7 +178,7 @@ Snapshot options:
 - `format`: `ai` (default) or `aria`
 - `wait_until`: load state to wait for before capture (`load` default; supports `domcontentloaded`, `networkidle`, and `commit` where `commit` is treated as `load` for snapshot capture)
 - `max_chars`: optional cap for `ai` format
-- `mode: "efficient"`: sets `interactive=true`, `compact=true`, `depth=4`, and `max_chars=8000` (unless you pass `max_chars`)
+- `mode: "efficient"`: sets `interactive=true`, `compact=true`, `depth=4`, and `max_chars=4000` (unless you pass `max_chars`)
 - `interactive`: only interactive roles in role snapshot
 - `compact`: prune structural noise in role snapshot
 - `depth`: max role snapshot depth
@@ -189,14 +189,14 @@ Snapshot options:
 Defaults:
 - Snapshot waits for `wait_until="load"` before capture (for both manual `snapshot` and automatic post-action snapshots)
 - `ai` snapshots default to `mode="efficient"` when mode is omitted
-- `ai` snapshot default budget: `8000` chars (efficient default behavior)
+- `ai` snapshot default budget: `4000` chars (efficient default behavior)
 - `ai` non-efficient budget: `12000` chars
 - Snapshot tool output returns `snapshot` text + lightweight metadata (`ref_count`) only; detailed ref/stats maps remain internal to reduce token usage.
 
 Automatic post-action snapshots:
 - For page-affecting actions, WindieOS automatically captures an `ai` snapshot after a successful action and appends it to tool output as `post_action_snapshot`.
 - Current auto-snapshot actions: `connect`, `navigate`, `open`, `click`, `type`, `press`, `scroll`, `wait`, `switch_tab`, `evaluate`, `upload`, `set_media`, `set_device`, and `act` kinds (`click`, `type`, `press`, `hover`, `drag`, `select`, `fill`, `resize`, `wait`, `evaluate`).
-- Auto-snapshot uses efficient defaults: `interactive=true`, `compact=true`, `depth=4`, `max_chars=8000`.
+- Auto-snapshot uses efficient defaults: `interactive=true`, `compact=true`, `depth=4`, `max_chars=4000`.
 
 ### 4. Click
 
