@@ -180,3 +180,42 @@ async def test_cleanup_logs_timeout(caplog, monkeypatch) -> None:
 
     assert "Timeout waiting for" in caplog.text
     await asyncio.sleep(0)
+
+
+@pytest.mark.asyncio
+async def test_cleanup_logs_orphaned_tasks_when_cancellation_not_observed(
+    caplog,
+    monkeypatch,
+) -> None:
+    manager = TaskManager(max_concurrent_tasks=1, task_cancellation_timeout=0.01)
+    caplog.set_level(logging.ERROR)
+
+    async def never_finishes() -> None:
+        await asyncio.sleep(10)
+
+    async def skip_wait_for(_awaitable, timeout):  # noqa: ARG001
+        return None
+
+    monkeypatch.setattr(task_manager_module.asyncio, "wait_for", skip_wait_for)
+
+    task, limit_exceeded = await manager.create_task_if_under_limit(
+        never_finishes(), "user_orphan"
+    )
+    assert task is not None
+    assert limit_exceeded is False
+
+    await manager.cleanup("user_orphan")
+
+    assert "Orphaned 1 tasks after cleanup for user user_orphan" in caplog.text
+    await asyncio.sleep(0)
+
+
+def test_task_done_callback_swallows_runtime_error_from_set_discard() -> None:
+    manager = TaskManager(max_concurrent_tasks=1, task_cancellation_timeout=0.1)
+
+    class ExplodingSet:
+        def discard(self, _task):
+            raise RuntimeError("set iterating")
+
+    manager.active_tasks = ExplodingSet()  # type: ignore[assignment]
+    manager.task_done_callback(object())  # type: ignore[arg-type]
