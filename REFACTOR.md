@@ -1215,3 +1215,61 @@ Result:
 - `45 passed in 1.59s`
 
 This confirms middleware dispatch refactoring preserved backend handler behavior while reducing per-message dispatch overhead in the registry hot path.
+
+---
+
+# Refactor: Precompile Local Backend IPC Payload Mappers
+
+## Target
+Remove repeated runtime interpretation of static IPC field maps in:
+- `frontend/src/main/local_backend_bridge.cjs`
+
+This is a maintainability + micro-performance refactor in a central Electron main-process bridge module.
+
+## Current Structure and Root Cause
+Before this refactor, payload mapping relied on `mapPayloadParams(payload, fieldMap)`:
+- `fieldMap` was traversed with `Object.entries(...)` on every IPC request
+- mapping-type checks (`function` / `array` / direct key) were re-evaluated on every call
+- fallback-key resolution setup was rebuilt every time
+
+Root cause: static mapping metadata lived as runtime work in request handlers instead of being compiled once at bridge initialization.
+
+## Refactor Plan
+1. Introduce a mapper compiler that converts static field-map definitions into compiled mapping operations once.
+2. Keep payload-shape handling unchanged (including non-object payload fallback to `{}`).
+3. Rewire mapped handler registration to use compiled mappers.
+4. Rewire `search-memory` mapping to use a compiled mapper instead of per-call field-map interpretation.
+5. Add regression coverage for non-object payload handling and run focused frontend bridge tests.
+
+## Implemented Changes
+### Compiled payload mapper path
+- Updated `frontend/src/main/local_backend_bridge.cjs`:
+  - replaced per-call field-map interpretation with `createPayloadMapper(fieldMap)`
+  - `createPayloadMapper(...)` now precomputes mapping strategy (`function`, `fallback`, `direct`) once
+  - mapping handlers now execute compiled operations per request
+
+### Handler rewiring
+- Updated `registerMappedRpcHandlers(...)` to compile each definition once and register the compiled mapper directly.
+- Updated `search-memory` IPC handler to use a precompiled `mapSearchMemoryPayload` mapper.
+
+Result:
+- removed repeated `Object.entries(...)` and mapping-type branching from hot request paths
+- preserved external IPC/RPC payload contracts and fallback semantics
+
+## Added Test Coverage
+- Updated `tests/frontend/LocalBackendBridge.test.cjs`:
+  - added `list-conversations handler safely handles non-object payloads`
+
+The test verifies mapper behavior remains stable when payloads are not objects.
+
+## Validation
+Ran:
+
+```bash
+cd frontend && npm run test -- LocalBackendBridge.test.cjs
+```
+
+Result:
+- `21 passed`
+
+This confirms bridge behavior remains stable after moving field-map interpretation from request time to initialization time.

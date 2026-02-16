@@ -74,30 +74,60 @@ function getPayloadObject(payload = {}) {
   return {};
 }
 
-function mapPayloadParams(payload, fieldMap) {
-  const source = getPayloadObject(payload);
-  const mapped = {};
-
-  for (const [targetKey, mapping] of Object.entries(fieldMap)) {
+function createPayloadMapper(fieldMap) {
+  const compiledMappings = Object.entries(fieldMap).map(([targetKey, mapping]) => {
     if (typeof mapping === 'function') {
-      mapped[targetKey] = mapping(source);
-      continue;
+      return {
+        targetKey,
+        mapperType: 'function',
+        mapping,
+      };
     }
     if (Array.isArray(mapping)) {
-      mapped[targetKey] = mapping.reduce((resolved, sourceKey) => (
-        resolved !== undefined ? resolved : source[sourceKey]
-      ), undefined);
-      continue;
+      return {
+        targetKey,
+        mapperType: 'fallback',
+        sourceKeys: mapping,
+      };
     }
-    mapped[targetKey] = source[mapping];
-  }
+    return {
+      targetKey,
+      mapperType: 'direct',
+      sourceKey: mapping,
+    };
+  });
 
-  return mapped;
+  return (payload) => {
+    const source = getPayloadObject(payload);
+    const mapped = {};
+
+    for (const compiled of compiledMappings) {
+      if (compiled.mapperType === 'function') {
+        mapped[compiled.targetKey] = compiled.mapping(source);
+        continue;
+      }
+      if (compiled.mapperType === 'fallback') {
+        let resolved;
+        for (const sourceKey of compiled.sourceKeys) {
+          if (source[sourceKey] !== undefined) {
+            resolved = source[sourceKey];
+            break;
+          }
+        }
+        mapped[compiled.targetKey] = resolved;
+        continue;
+      }
+      mapped[compiled.targetKey] = source[compiled.sourceKey];
+    }
+
+    return mapped;
+  };
 }
 
 function registerMappedRpcHandlers(registerRpcHandler, definitions) {
   for (const { channel, method, fieldMap } of definitions) {
-    registerRpcHandler(channel, method, (payload) => mapPayloadParams(payload, fieldMap));
+    const mapParams = createPayloadMapper(fieldMap);
+    registerRpcHandler(channel, method, mapParams);
   }
 }
 
@@ -642,15 +672,16 @@ function initializeLocalBackendBridge(getWindows) {
   });
 
   // Handle memory search requests (integrated into local backend)
+  const mapSearchMemoryPayload = createPayloadMapper({
+    query: 'query',
+    user_id: 'user_id',
+    limit: 'limit',
+    memory_type: 'memory_type',
+    exclude_conversation_id: ['excludeConversationId', 'exclude_conversation_id'],
+  });
   ipcMain.handle('search-memory', async (event, payload = {}) => (
     sendMemorySearchRequest(
-      mapPayloadParams(payload, {
-        query: 'query',
-        user_id: 'user_id',
-        limit: 'limit',
-        memory_type: 'memory_type',
-        exclude_conversation_id: ['excludeConversationId', 'exclude_conversation_id'],
-      }),
+      mapSearchMemoryPayload(payload),
     )
   ));
 
