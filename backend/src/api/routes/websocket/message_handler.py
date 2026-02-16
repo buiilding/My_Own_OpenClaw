@@ -123,19 +123,23 @@ async def handle_message(
     
     except ValueError as e:
         # Handler not found or validation error - safe to expose
-        # FIX #4: Ensure logging even if send fails
-        try:
-            await send_error(websocket, msg_id, str(e))
-        except Exception as send_err:
-            logger.warning(f"Failed to send error response to user {user_id} (msg_id={msg_id}): {send_err}", exc_info=True)
+        await _send_error_with_fallback_logging(
+            websocket=websocket,
+            msg_id=msg_id,
+            user_id=user_id,
+            message=str(e),
+            critical=False,
+        )
     except Exception as e:
         # Unexpected error - send sanitized error to prevent information leakage
-        # FIX #4: Ensure logging even if send fails
-        try:
-            sanitized_msg = sanitize_error_message(e)
-            await send_error(websocket, msg_id, sanitized_msg)
-        except Exception as send_err:
-            logger.error(f"Failed to send critical error response to user {user_id} (msg_id={msg_id}): {send_err}", exc_info=True)
+        sanitized_msg = sanitize_error_message(e)
+        await _send_error_with_fallback_logging(
+            websocket=websocket,
+            msg_id=msg_id,
+            user_id=user_id,
+            message=sanitized_msg,
+            critical=True,
+        )
 
 
 async def send_error(
@@ -161,3 +165,32 @@ async def send_error(
     """
     # send_error_response now accepts SafeWebSocket directly for thread-safe writes
     await send_error_response(websocket, msg_id, message or "", exception=exception)
+
+
+async def _send_error_with_fallback_logging(
+    *,
+    websocket: SafeWebSocket,
+    msg_id: Optional[str],
+    user_id: str,
+    message: str,
+    critical: bool,
+) -> None:
+    """
+    Send a client error and preserve route stability when socket writes fail.
+
+    Routing failures should never raise from the error path; if the websocket is
+    already closed we log at the appropriate severity and return.
+    """
+    try:
+        await send_error(websocket, msg_id, message)
+    except Exception as send_err:
+        log = logger.error if critical else logger.warning
+        qualifier = "critical " if critical else ""
+        log(
+            "Failed to send %serror response to user %s (msg_id=%s): %s",
+            qualifier,
+            user_id,
+            msg_id,
+            send_err,
+            exc_info=True,
+        )
