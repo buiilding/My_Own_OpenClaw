@@ -182,6 +182,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- feat(browser-extract): add extract modes (`focused`, `full_text`, `structured`) with optional `selector`/`frame` scoping; `structured` now captures DOM tables/lists into JSON payloads so table rows can be extracted more completely than keyword-only text filtering
 - test(browser-control): temporarily disable automatic `post_action_snapshot` attachment for all browser actions; snapshot context must be requested explicitly via `browser_control(action="snapshot", ...)`
 - refactor(browser-control): route automatic `post_action_snapshot` generation through the standard `snapshot` action path so post-action payloads include snapshot pagination metadata (`offset`/`limit`/`has_more`/`next_offset`) and share one implementation
 - fix(browser-control): update managed `browser_control connect` launch path to use Playwright `launch_persistent_context(user_data_dir=...)` instead of `chromium.launch` with `--user-data-dir`, restoring managed-browser startup on current Playwright versions
