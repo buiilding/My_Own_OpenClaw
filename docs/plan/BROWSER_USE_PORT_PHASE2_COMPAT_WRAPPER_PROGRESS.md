@@ -82,6 +82,7 @@ Additional routing update:
 - `snapshot` is now adapter-native (no legacy delegate).
 - Removed now-unused `legacy_handlers` seam from adapter construction after delegate retirement.
 - Core session/tab actions (`connect`, `status`, `navigate`, `open`, `get_tabs`, `switch_tab`, `close`) now execute via runtime-provider seam inside adapter.
+- Runtime-provider seam coverage expanded to interaction/capture actions as well (`click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`, `snapshot`, `extract`, `upload`).
 
 Current Phase 2 routing result:
 
@@ -120,5 +121,5 @@ Additional regression assertions added in:
 
 ## Remaining Phase 2 Work
 
-- Runtime-provider seam is now in place, but the default provider remains fully controller-backed.
+- Runtime-provider seam is now in place across most high-value actions, but the default provider remains fully controller-backed.
 - Replace controller-backed adapter internals action-by-action with Browser Use runtime primitives while preserving the same adapter return contract.

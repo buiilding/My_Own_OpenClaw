@@ -68,6 +68,7 @@ Legend:
 - Added sidecar adapter module (`tools/browser_use_adapter/*`) and routed initial action batch through adapter dispatch.
 - Added adapter-core sidecar regression module (`tests/sidecar/tools/test_browser_use_adapter.py`) as the primary Phase 2 coverage target for adapter-native behavior checks.
 - Added adapter runtime-provider seam (`tools/browser_use_adapter/runtime_provider.py`) so core session/tab actions can swap from controller internals to Browser Use primitives without changing adapter action contracts.
+- Expanded runtime-provider seam usage to interaction/capture primitives (`click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`, `snapshot`, `extract`, `upload`), still controller-backed in current Phase 2 implementation.
 - Adapter-routed actions now cover:
   - `connect`, `status`, `profiles`, `navigate`, `open`, `snapshot`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `console`, `errors`, `requests`, `trace_start`, `trace_stop`, `pdf`, `upload`, `dialog`, `cookies`, `cookies_set`, `cookies_clear`, `storage_get`, `storage_set`, `storage_clear`, `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`, `set_timezone`, `set_locale`, `set_device`, `act`, `close`
 - Migration decisions in the ledger remain unchanged.

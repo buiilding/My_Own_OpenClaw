@@ -409,7 +409,7 @@ class BrowserUseCompatibilityAdapter:
         if wait_error:
             return self._invalid_argument("snapshot", wait_error)
 
-        wait_result = await self._controller.wait_for_load(wait_until)
+        wait_result = await self._runtime.wait_for_load(state=wait_until)
         if isinstance(wait_result, dict) and not wait_result.get("success", False):
             return AdapterActionResult(
                 success=False,
@@ -533,7 +533,7 @@ class BrowserUseCompatibilityAdapter:
                 enable_zero_ref_fallback=(mode == "efficient"),
             )
         else:
-            snapshot = await self._controller.get_page_snapshot(
+            snapshot = await self._runtime.get_page_snapshot(
                 format_type=format_type,
                 max_chars=capture_max_chars,
                 refs_mode=refs_mode,
@@ -639,7 +639,7 @@ class BrowserUseCompatibilityAdapter:
         if wait_error:
             return self._invalid_argument("extract", wait_error)
 
-        wait_result = await self._controller.wait_for_load(wait_until)
+        wait_result = await self._runtime.wait_for_load(state=wait_until)
         if isinstance(wait_result, dict) and not wait_result.get("success", False):
             return AdapterActionResult(
                 success=False,
@@ -661,7 +661,7 @@ class BrowserUseCompatibilityAdapter:
             max_items_per_list=MAX_EXTRACT_STRUCTURED_ITEMS_PER_LIST,
         )
 
-        eval_result = await self._controller.evaluate(script)
+        eval_result = await self._runtime.evaluate(script=script)
         if not isinstance(eval_result, dict) or not eval_result.get("success", False):
             if isinstance(eval_result, dict):
                 return AdapterActionResult(
@@ -865,7 +865,7 @@ class BrowserUseCompatibilityAdapter:
 
         double_click = bool(args.get("double_click", False))
         button = self._value_as_str(args.get("button")) or "left"
-        result = await self._controller.click(
+        result = await self._runtime.click(
             ref=ref,
             double_click=double_click,
             button=button,
@@ -918,7 +918,7 @@ class BrowserUseCompatibilityAdapter:
 
         submit = bool(args.get("submit", False))
         clear_first = bool(args.get("clear_first", False))
-        result = await self._controller.type_text(
+        result = await self._runtime.type_text(
             ref=ref,
             text=text,
             submit=submit,
@@ -952,7 +952,7 @@ class BrowserUseCompatibilityAdapter:
         if not key:
             return self._invalid_argument("press", "Missing required 'key' parameter")
 
-        result = await self._controller.press_key(key)
+        result = await self._runtime.press_key(key)
         if not result.get("success"):
             return AdapterActionResult(
                 success=False,
@@ -979,7 +979,7 @@ class BrowserUseCompatibilityAdapter:
         direction = self._value_as_str(args.get("direction")) or "down"
         amount_raw = args.get("amount")
         amount = amount_raw if isinstance(amount_raw, int) else 500
-        result = await self._controller.scroll(direction, amount)
+        result = await self._runtime.scroll(direction=direction, amount=amount)
         if not result.get("success"):
             return AdapterActionResult(
                 success=False,
@@ -1017,7 +1017,7 @@ class BrowserUseCompatibilityAdapter:
         quality = int(quality_raw) if isinstance(quality_raw, (int, float)) else None
 
         try:
-            image_bytes = await self._controller.screenshot(
+            image_bytes = await self._runtime.screenshot(
                 full_page=full_page,
                 ref=ref,
                 element=element,
@@ -1068,7 +1068,7 @@ class BrowserUseCompatibilityAdapter:
             )
 
         state = self._value_as_str(args.get("state")) or "networkidle"
-        result = await self._controller.wait_for_load(state)
+        result = await self._runtime.wait_for_load(state=state)
         if not result.get("success"):
             return AdapterActionResult(
                 success=False,
@@ -1153,7 +1153,7 @@ class BrowserUseCompatibilityAdapter:
                 "Missing required 'script' parameter",
             )
 
-        result = await self._controller.evaluate(script)
+        result = await self._runtime.evaluate(script=script)
         if not result.get("success"):
             return AdapterActionResult(
                 success=False,
@@ -1387,7 +1387,7 @@ class BrowserUseCompatibilityAdapter:
                 "Missing required input ref ('inputRef', 'input_ref', or 'ref')",
             )
 
-        result = await self._controller.set_input_files(ref=ref, paths=paths)
+        result = await self._runtime.set_input_files(ref=ref, paths=paths)
         if result.get("success"):
             return AdapterActionResult(
                 success=True,
@@ -2103,7 +2103,7 @@ class BrowserUseCompatibilityAdapter:
         frame_selector: str | None,
         enable_zero_ref_fallback: bool,
     ) -> Any:
-        snapshot = await self._controller.get_page_snapshot(
+        snapshot = await self._runtime.get_page_snapshot(
             format_type="ai",
             max_chars=max_chars,
             refs_mode=refs_mode,
@@ -2127,7 +2127,7 @@ class BrowserUseCompatibilityAdapter:
         )
         if is_role_snapshot_path:
             try:
-                fallback_snapshot = await self._controller.get_page_snapshot(
+                fallback_snapshot = await self._runtime.get_page_snapshot(
                     format_type="ai",
                     max_chars=max_chars,
                     refs_mode=refs_mode,
@@ -2146,7 +2146,7 @@ class BrowserUseCompatibilityAdapter:
             return fallback_snapshot
 
         try:
-            flat_snapshot = await self._controller.get_page_snapshot(
+            flat_snapshot = await self._runtime.get_page_snapshot(
                 format_type="ai",
                 max_chars=max_chars,
                 refs_mode=None,
