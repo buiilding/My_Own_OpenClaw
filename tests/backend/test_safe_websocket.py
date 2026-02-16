@@ -38,6 +38,13 @@ class FakeRawWebSocket:
         self.accepted = True
 
 
+def test_safe_websocket_rejects_non_positive_queue_size() -> None:
+    raw = FakeRawWebSocket()
+
+    with pytest.raises(ValueError, match="max_queue_size must be > 0"):
+        SafeWebSocket(raw, max_queue_size=0)
+
+
 @pytest.mark.asyncio
 async def test_safe_websocket_applies_backpressure_with_bounded_queue() -> None:
     raw = FakeRawWebSocket(send_delay=0.25)
@@ -89,3 +96,36 @@ async def test_safe_websocket_close_flushes_queued_messages_before_close() -> No
 
     assert [data["index"] for data, _ in raw.sent_json] == [1, 2]
     assert raw.closed == [(1000, "done")]
+
+
+@pytest.mark.asyncio
+async def test_safe_websocket_close_without_sender_loop_closes_directly() -> None:
+    raw = FakeRawWebSocket()
+    safe = SafeWebSocket(raw, max_queue_size=2)
+
+    await safe.close(code=1001, reason="shutdown")
+
+    assert raw.closed == [(1001, "shutdown")]
+    with pytest.raises(RuntimeError, match="WebSocket sender stopped"):
+        await safe.send_json({"index": 1})
+
+
+@pytest.mark.asyncio
+async def test_safe_websocket_send_text_delegates_through_sender_loop() -> None:
+    raw = FakeRawWebSocket()
+    safe = SafeWebSocket(raw, max_queue_size=2)
+
+    await safe.send_text("hello")
+
+    assert raw.sent_text == ["hello"]
+    await safe.close()
+
+
+@pytest.mark.asyncio
+async def test_safe_websocket_accept_delegates_to_raw_socket() -> None:
+    raw = FakeRawWebSocket()
+    safe = SafeWebSocket(raw, max_queue_size=2)
+
+    await safe.accept()
+
+    assert raw.accepted is True
