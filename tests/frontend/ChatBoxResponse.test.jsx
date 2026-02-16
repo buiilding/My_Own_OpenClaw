@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import ChatBoxResponse from '../../frontend/src/renderer/features/chat/components/ChatBoxResponse';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
@@ -84,6 +84,55 @@ describe('ChatBoxResponse', () => {
 
     await waitFor(() => {
       expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+    });
+  });
+
+  test('incomplete llm response is visible but not closeable', async () => {
+    setChatState([
+      { id: 'user-1', text: 'question', sender: 'user' },
+      {
+        id: 'assistant-1',
+        text: 'partial answer',
+        sender: 'assistant',
+        type: 'llm-text',
+        isComplete: false,
+      },
+    ]);
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText('partial answer')).toBeInTheDocument();
+    });
+
+    const closeButton = screen.getByRole('button', {
+      name: 'Response still streaming',
+    });
+    expect(closeButton).toBeDisabled();
+  });
+
+  test('error response can be closed and stays dismissed', async () => {
+    setChatState([
+      { id: 'user-1', text: 'question', sender: 'user' },
+      {
+        id: 'assistant-err',
+        text: 'something failed',
+        sender: 'assistant',
+        type: 'error',
+        isComplete: true,
+      },
+    ]);
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText('something failed')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close response' }));
+
+    await waitFor(() => {
+      expect(screen.queryByText('something failed')).not.toBeInTheDocument();
     });
   });
 });
