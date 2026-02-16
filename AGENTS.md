@@ -89,7 +89,9 @@
   - blank line
   - bullets: what changed, where wired, tests added
 - After committing work, update `CHANGELOG.md` with the changes.
-- Don’t delete/rename unexpected stuff; stop + ask.
+- Don’t delete/rename unexpected stuff.
+- If unexpected workspace changes appear in files outside your current implementation scope, ignore them and continue.
+- Stop + ask only if unexpected changes touch files you are actively implementing in this task.
 - No repo-wide S/R scripts; keep edits small/reviewable.
 - Avoid manual `git stash`; if Git auto-stashes during pull/rebase, that’s fine (hint, not hard guardrail).
 - If user types a command (“pull and push”), that’s consent for that command.
