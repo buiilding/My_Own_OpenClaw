@@ -113,6 +113,43 @@ async def test_handle_request_invalid_params_type():
 
 
 @pytest.mark.asyncio
+async def test_handle_request_missing_required_param_returns_invalid_params():
+    protocol = JSONRPCProtocol()
+
+    def handler(required_value):
+        return {"value": required_value}
+
+    protocol.register_method("needs_param", handler)
+    request = {"jsonrpc": "2.0", "method": "needs_param", "params": {}, "id": "1"}
+
+    response = await protocol.handle_request(request)
+
+    assert response["error"]["code"] == JSONRPCProtocol.INVALID_PARAMS
+    assert "missing a required argument" in response["error"]["message"]
+
+
+@pytest.mark.asyncio
+async def test_handle_request_unexpected_param_returns_invalid_params():
+    protocol = JSONRPCProtocol()
+
+    def handler():
+        return {"ok": True}
+
+    protocol.register_method("no_params", handler)
+    request = {
+        "jsonrpc": "2.0",
+        "method": "no_params",
+        "params": {"unexpected": True},
+        "id": "1",
+    }
+
+    response = await protocol.handle_request(request)
+
+    assert response["error"]["code"] == JSONRPCProtocol.INVALID_PARAMS
+    assert "unexpected keyword argument" in response["error"]["message"]
+
+
+@pytest.mark.asyncio
 async def test_handle_request_jsonrpc_error_passthrough():
     protocol = JSONRPCProtocol()
 
