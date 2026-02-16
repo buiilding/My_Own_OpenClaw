@@ -895,12 +895,123 @@ class TestExtractAction:
             assert result.success is True
             assert result.data["action"] == "extract"
             assert result.data["query"] == "pro plan price"
+            assert result.data["mode"] == "focused"
             assert result.data["wait_until"] == "load"
             assert result.data["url"] == "https://example.com"
             assert "Pro plan" in result.data["result"]
             assert "extracted_content" in result.data
             mock_controller.wait_for_load.assert_awaited_once_with("load")
             mock_controller.evaluate.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_extract_full_text_mode_returns_unfiltered_content(self):
+        """full_text mode should return the source window without relevance filtering."""
+        with mock.patch(
+            "tools.browser.browser_tool.get_browser_controller"
+        ) as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.wait_for_load.return_value = {
+                "success": True,
+                "state": "load",
+            }
+            mock_controller.evaluate.return_value = {
+                "success": True,
+                "result": {
+                    "title": "Example",
+                    "url": "https://example.com",
+                    "content": "Alpha\nBeta\nGamma",
+                },
+            }
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control(
+                {
+                    "action": "extract",
+                    "query": "not-present",
+                    "mode": "full_text",
+                }
+            )
+
+            assert result.success is True
+            assert result.data["mode"] == "full_text"
+            assert result.data["result"] == "Alpha\nBeta\nGamma"
+
+    @pytest.mark.asyncio
+    async def test_extract_structured_mode_returns_structured_payload(self):
+        """structured mode should expose parsed table/list payload and JSON text window."""
+        with mock.patch(
+            "tools.browser.browser_tool.get_browser_controller"
+        ) as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.wait_for_load.return_value = {
+                "success": True,
+                "state": "load",
+            }
+            mock_controller.evaluate.return_value = {
+                "success": True,
+                "result": {
+                    "title": "Kimi",
+                    "url": "https://example.com/keys",
+                    "content": "fallback text",
+                    "structured": {
+                        "tables": [
+                            {
+                                "caption": "API Keys",
+                                "headers": ["API ID", "Name", "Key"],
+                                "row_objects": [
+                                    {
+                                        "API ID": "1",
+                                        "Name": "prod",
+                                        "Key": "sk-...1234",
+                                    }
+                                ],
+                            }
+                        ],
+                        "lists": [],
+                        "table_count": 1,
+                    },
+                },
+            }
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control(
+                {
+                    "action": "extract",
+                    "query": "api keys",
+                    "mode": "structured",
+                    "selector": "table",
+                    "frame": "#content-frame",
+                }
+            )
+
+            assert result.success is True
+            assert result.data["mode"] == "structured"
+            assert result.data["selector"] == "table"
+            assert result.data["frame"] == "#content-frame"
+            assert result.data["structured"]["table_count"] == 1
+            assert '"table_count": 1' in result.data["result"]
+            script = mock_controller.evaluate.await_args.args[0]
+            assert "table" in script
+            assert "#content-frame" in script
+
+    @pytest.mark.asyncio
+    async def test_extract_invalid_mode(self):
+        """Extract should reject unknown modes."""
+        with mock.patch(
+            "tools.browser.browser_tool.get_browser_controller"
+        ) as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control(
+                {"action": "extract", "query": "pricing", "mode": "bad_mode"}
+            )
+
+            assert result.success is False
+            assert "mode must be one of" in result.error
 
     @pytest.mark.asyncio
     async def test_extract_missing_query(self):

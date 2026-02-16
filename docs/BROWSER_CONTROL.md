@@ -216,7 +216,7 @@ Automatic post-action snapshots:
 
 ### 4. Extract
 
-Extract query-focused content from page DOM text.
+Extract page content using focused text filtering, full-text windows, or structured DOM captures.
 
 ```json
 {
@@ -227,17 +227,21 @@ Extract query-focused content from page DOM text.
 
 Extract options:
 - `query` (required): what to extract from the current page.
+- `mode`: `focused` (default keyword-focused excerpt), `full_text` (unfiltered source window), or `structured` (JSON window derived from detected tables/lists).
 - `wait_until`: load state to wait for before extraction (`load` default; supports `domcontentloaded`, `networkidle`, `commit`).
 - `extract_links`: include link lines (`text -> href`) in source text before query filtering (`false` default).
 - `start_from_char`: continue extraction from a character offset for long pages (`0` default).
 - `max_chars`: max characters returned in `result` (`12000` default).
+- `selector`: optional CSS selector to scope extraction to part of the page.
+- `frame`: optional iframe selector for scoped extraction.
 - `output_schema`: optional schema hint metadata (accepted but not enforced in sidecar extraction).
 
 Extract output includes:
-- `result`: extracted text relevant to `query`.
+- `result`: extracted text window (query-focused for `focused`, raw window for `full_text`, JSON text window for `structured`).
+- `structured`: parsed table/list payload when `mode="structured"` and DOM structures are detected.
 - `extracted_content`: tagged payload (`<url>`, `<query>`, `<result>`) for agent context.
 - pagination/source metadata: `start_from_char`, `next_start_char`, `has_more_source`, `source_window_chars`, `total_source_chars`.
-- diagnostics: `returned_chars`, `extract_links`, `wait_until`, `url`, `title`.
+- diagnostics: `returned_chars`, `extract_links`, `wait_until`, `url`, `title`, `mode`.
 
 ### 5. Click
 
