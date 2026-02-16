@@ -692,39 +692,58 @@ class LocalMemoryStore:
             elif normalized_type == "semantic":
                 search_episodic = False
 
+        self._log_search_start(query, user_id, limit)
+        search_targets = self._build_search_targets(search_episodic, search_semantic)
+        if not search_targets:
+            logger.debug("Skipping memory search embedding call: no searchable indices")
+            return []
+
         # Generate query embedding using remote client
         query_embedding = await self.embedder.embed_text(query)
         query_embedding = query_embedding.reshape(1, -1)
         faiss.normalize_L2(query_embedding)
-        
-        self._log_search_start(query, user_id, limit)
 
         # Search both databases in parallel
-        search_tasks = []
+        search_tasks = [
+            self._search_database(
+                query_embedding=query_embedding,
+                user_id=user_id,
+                db_path=db_path,
+                index=index,
+                vector_id_to_memory_id=vector_id_to_memory_id,
+                memory_type=memory_type,
+                filters=filters,
+                limit=limit,
+            )
+            for memory_type, db_path, index, vector_id_to_memory_id in search_targets
+        ]
+        all_results = await self._collect_search_results(search_tasks)
+        return self._finalize_search_results(all_results, limit)
+
+    def _build_search_targets(
+        self,
+        search_episodic: bool,
+        search_semantic: bool,
+    ) -> List[Tuple[str, str, Any, Dict[int, str]]]:
+        search_targets: List[Tuple[str, str, Any, Dict[int, str]]] = []
 
         for memory_type in self._MEMORY_ATTRS:
             if memory_type == "episodic" and not search_episodic:
                 continue
             if memory_type == "semantic" and not search_semantic:
                 continue
+
             db_path, index, vector_id_to_memory_id, _, _ = self._get_memory_state(
                 memory_type
             )
-            search_tasks.append(
-                self._search_database(
-                    query_embedding=query_embedding,
-                    user_id=user_id,
-                    db_path=db_path,
-                    index=index,
-                    vector_id_to_memory_id=vector_id_to_memory_id,
-                    memory_type=memory_type,
-                    filters=filters,
-                    limit=limit,
-                )
+            if not self._has_searchable_index(index, memory_type):
+                continue
+
+            search_targets.append(
+                (memory_type, db_path, index, vector_id_to_memory_id)
             )
 
-        all_results = await self._collect_search_results(search_tasks)
-        return self._finalize_search_results(all_results, limit)
+        return search_targets
 
     async def _search_database(
         self,
