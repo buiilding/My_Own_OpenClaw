@@ -52,6 +52,15 @@ function toErrorResponse(error) {
   };
 }
 
+function rejectPendingRequests(reason) {
+  const pendingEntries = Array.from(pendingRequests.entries());
+  for (const [requestId, pending] of pendingEntries) {
+    clearTimeout(pending.timeout);
+    pendingRequests.delete(requestId);
+    pending.reject(new Error(reason));
+  }
+}
+
 /**
  * Get Python executable path (cached after first lookup)
  */
@@ -234,7 +243,8 @@ function startLocalBackend(mainWindow) {
     console.log(`[LocalBackend] Python process exited with code ${code}, signal ${signal}`);
     pythonProcess = null;
     isPythonReady = false;
-    pendingRequests.clear();
+    readinessCheckCallback = null;
+    rejectPendingRequests('Local backend process exited');
     stdoutBuffer = '';
     
     if (code !== 0 && code !== null) {
@@ -250,7 +260,8 @@ function startLocalBackend(mainWindow) {
     console.error('[LocalBackend] Failed to start Python process:', error);
     pythonProcess = null;
     isPythonReady = false;
-    pendingRequests.clear();
+    readinessCheckCallback = null;
+    rejectPendingRequests('Local backend process error');
     stdoutBuffer = '';
     
     let errorMessage = error.message;
