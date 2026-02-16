@@ -76,6 +76,7 @@ Includes the last 300 commits on `main`.
 - fix(browser-control): include successful `connect` in automatic `post_action_snapshot` behavior so new browser sessions immediately return a compact AI snapshot payload
 - fix(browser-snapshot): make compact role snapshots prune redundant single-path structural wrappers while preserving actionable refs and minimal branch/root context
 - fix(browser-snapshot): lower efficient AI snapshot default budget from 8,000 to 4,000 chars for manual snapshots and automatic post-action snapshots (override remains available via `max_chars`)
+- fix(browser-click): for native `select/option` targets with recoverable click interception failures, try `select_option` fallback before force-click and surface `strategy="select_option"` in tool output
 - refactor(browser-control): remove `highlight` action from browser runtime routes, backend/sidecar schemas, and docs; delete unused `BrowserController.highlight()` and obsolete `duration_ms`/`durationMs` browser-control fields
 - refactor(browser-control): remove redundant alias actions (`start`, `stop`, `tabs`, `focus`) from browser runtime routing and backend/sidecar schemas; keep canonical actions (`connect`, `close`, `get_tabs`, `switch_tab`) and align browser docs/remote tool descriptions
 - fix(browser-click): reduce click oscillation on intercepted controls (e.g., Amazon sort combobox) by preferring fast force-click for combobox/select-like targets and shortening initial click retry timeouts

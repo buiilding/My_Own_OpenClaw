@@ -1593,6 +1593,100 @@ class BrowserController:
             "timeout",
         )
         return any(marker in lowered for marker in recoverable_markers)
+
+    async def _try_select_option_click_fallback(
+        self,
+        locator: Any,
+        *,
+        ref: str,
+        resolution_meta: Dict[str, Any],
+    ) -> Optional[Dict[str, Any]]:
+        """
+        For native select controls, use select_option before force-click.
+
+        This avoids pointer-interception issues on pages that style the select
+        control with overlay elements (for example Amazon sort dropdowns).
+        """
+        try:
+            select_target = await locator.evaluate(
+                """
+                (el) => {
+                  const tag = (el.tagName || "").toLowerCase();
+                  if (tag === "option") {
+                    const select = el.closest("select");
+                    if (!select) return null;
+                    const selected = select.selectedOptions && select.selectedOptions[0];
+                    const selectedLabel = selected
+                      ? (selected.textContent || "").trim()
+                      : "";
+                    return {
+                      source_tag: "option",
+                      use_ancestor_select: true,
+                      value: String(el.value || ""),
+                      label: (el.textContent || "").trim(),
+                      current_value: String(select.value || ""),
+                      current_label: selectedLabel,
+                    };
+                  }
+                  if (tag === "select") {
+                    const selected = el.selectedOptions && el.selectedOptions[0];
+                    const selectedLabel = selected
+                      ? (selected.textContent || "").trim()
+                      : "";
+                    return {
+                      source_tag: "select",
+                      use_ancestor_select: false,
+                      value: String(el.value || ""),
+                      label: selectedLabel,
+                      current_value: String(el.value || ""),
+                      current_label: selectedLabel,
+                    };
+                  }
+                  return null;
+                }
+                """
+            )
+        except Exception:
+            return None
+
+        if not isinstance(select_target, dict):
+            return None
+
+        source_tag = str(select_target.get("source_tag") or "")
+        target_locator = locator
+        if bool(select_target.get("use_ancestor_select")):
+            target_locator = locator.locator("xpath=ancestor::select[1]")
+
+        current_value = select_target.get("current_value")
+        value = select_target.get("value")
+        label = select_target.get("label")
+        current_label = select_target.get("current_label")
+
+        try:
+            selected: List[str]
+            if isinstance(value, str) and value:
+                selected = await target_locator.select_option(value=value)
+            elif isinstance(current_value, str) and current_value:
+                selected = await target_locator.select_option(value=current_value)
+            elif isinstance(label, str) and label:
+                selected = await target_locator.select_option(label=label)
+            elif isinstance(current_label, str) and current_label:
+                selected = await target_locator.select_option(label=current_label)
+            else:
+                return None
+        except Exception:
+            return None
+
+        return {
+            "success": True,
+            "action": "click",
+            "ref": ref,
+            "forced": True,
+            "strategy": "select_option",
+            "source_tag": source_tag,
+            "selected": selected,
+            **resolution_meta,
+        }
     
     async def click(
         self,
@@ -1633,6 +1727,15 @@ class BrowserController:
 
             # Fallback 1: force click to bypass actionability checks.
             if not double_click and recoverable:
+                if button == "left":
+                    select_fallback_result = await self._try_select_option_click_fallback(
+                        locator,
+                        ref=ref,
+                        resolution_meta=resolution_meta,
+                    )
+                    if select_fallback_result is not None:
+                        return select_fallback_result
+
                 try:
                     await locator.click(
                         button=button,

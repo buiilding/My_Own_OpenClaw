@@ -214,6 +214,98 @@ class TestBrowserControllerActions:
         assert result["success"] is False
 
     @pytest.mark.asyncio
+    async def test_click_option_prefers_select_option_fallback(self):
+        """Use select_option fallback for option refs when click is intercepted."""
+        mock_locator = mock.MagicMock()
+        mock_locator.click = mock.AsyncMock(side_effect=Exception("intercepts pointer events"))
+        mock_locator.dblclick = mock.AsyncMock()
+        mock_locator.evaluate = mock.AsyncMock(
+            return_value={
+                "source_tag": "option",
+                "use_ancestor_select": True,
+                "value": "price-asc-rank",
+                "label": "Price: Low to High",
+                "current_value": "featured-rank",
+                "current_label": "Featured",
+            }
+        )
+        parent_select = mock.MagicMock()
+        parent_select.select_option = mock.AsyncMock(return_value=["price-asc-rank"])
+        mock_locator.locator.return_value = parent_select
+        self.controller._page.locator.return_value = mock_locator
+
+        result = await self.controller.click("1")
+
+        assert result["success"] is True
+        assert result["strategy"] == "select_option"
+        assert result["forced"] is True
+        assert result["source_tag"] == "option"
+        assert result["selected"] == ["price-asc-rank"]
+        parent_select.select_option.assert_awaited_once_with(value="price-asc-rank")
+        assert mock_locator.click.await_count == 1
+
+    @pytest.mark.asyncio
+    async def test_click_select_prefers_select_option_fallback(self):
+        """Use select_option fallback for select refs when click is intercepted."""
+        mock_locator = mock.MagicMock()
+        mock_locator.click = mock.AsyncMock(side_effect=Exception("intercepts pointer events"))
+        mock_locator.dblclick = mock.AsyncMock()
+        mock_locator.evaluate = mock.AsyncMock(
+            return_value={
+                "source_tag": "select",
+                "use_ancestor_select": False,
+                "value": "price-desc-rank",
+                "label": "Price: High to Low",
+                "current_value": "price-desc-rank",
+                "current_label": "Price: High to Low",
+            }
+        )
+        mock_locator.select_option = mock.AsyncMock(return_value=["price-desc-rank"])
+        self.controller._page.locator.return_value = mock_locator
+
+        result = await self.controller.click("1")
+
+        assert result["success"] is True
+        assert result["strategy"] == "select_option"
+        assert result["forced"] is True
+        assert result["source_tag"] == "select"
+        assert result["selected"] == ["price-desc-rank"]
+        mock_locator.select_option.assert_awaited_once_with(value="price-desc-rank")
+        assert mock_locator.click.await_count == 1
+
+    @pytest.mark.asyncio
+    async def test_click_falls_back_to_force_when_select_option_fails(self):
+        """If select_option fallback fails, force-click should still run."""
+        mock_locator = mock.MagicMock()
+        mock_locator.click = mock.AsyncMock(
+            side_effect=[
+                Exception("intercepts pointer events"),
+                None,
+            ]
+        )
+        mock_locator.dblclick = mock.AsyncMock()
+        mock_locator.evaluate = mock.AsyncMock(
+            return_value={
+                "source_tag": "select",
+                "use_ancestor_select": False,
+                "value": "price-desc-rank",
+                "label": "Price: High to Low",
+                "current_value": "price-desc-rank",
+                "current_label": "Price: High to Low",
+            }
+        )
+        mock_locator.select_option = mock.AsyncMock(side_effect=Exception("selection failed"))
+        self.controller._page.locator.return_value = mock_locator
+
+        result = await self.controller.click("1")
+
+        assert result["success"] is True
+        assert result["strategy"] == "force"
+        assert result["forced"] is True
+        assert mock_locator.click.await_count == 2
+        assert mock_locator.click.await_args_list[1].kwargs["force"] is True
+
+    @pytest.mark.asyncio
     async def test_click_role_ref(self):
         """Test clicking using role-based ref (eN)."""
         role_locator = mock.MagicMock()

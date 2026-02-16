@@ -216,6 +216,10 @@ Options:
 - `double_click: true` - Double click
 - `button: "right"` - Right click
 
+Click fallback behavior:
+- If normal click fails with recoverable actionability errors (for example pointer interception), WindieOS may use fallback strategies.
+- For native `<select>/<option>` targets, WindieOS now attempts `select_option` before force-click; tool output reports `strategy: "select_option"` when this path is used.
+
 ### 5. Type
 
 Type text into an input.
