@@ -60,6 +60,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- docs(api-flow): fix schema-path references to current `api/schemas` modules, correct malformed user-query flow numbering/health-check notes in communication docs, and add handler-registry reference in API docs
 - docs(browser): document `browser_control` `extract` action contract (query-focused DOM extraction, pagination fields, metadata-only `output_schema`) and add runbook extraction usage example
 - docs(dev): align Dev Tool Selection canonical remote-tool source to `backend/src/tools/remote_tools/registry.py`, update Developer Guide protocol snippet to current SDK `run(args, ctx)` convention, and replace placeholder README community links with repository-tab guidance
 - docs(tooling): realign high-traffic tool docs with current SDK/runtime (`Tool[ArgsModel]` + `run()`, backend `remote_tools` registry flow, sidecar `EXPOSED_TO_BACKEND_TOOLS` contract), fix developer-guide event-bus import/publish example, add env-wrapper override vars to environment setup, and refresh README setup/community links

@@ -284,8 +284,6 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
 ### Health Checks
 - `GET /api/embeddings/health`
 - `GET /api/semantic/health`
-- Payload: `{ local: [...], online: [...] }`
-- Usage: Model selection
 
 ## Message Flow Examples
 
@@ -308,13 +306,13 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
    ↓
 8. Main process sends WebSocket message to backend
    ↓
-9. Backend validates message (schema.py)
+9. Backend validates message (`backend/src/api/schemas/incoming.py`, exposed via `backend/src/api/schema.py`)
    ↓
-9. QueryHandler processes message
+10. QueryHandler processes message
    ↓
 11. AgentSession.process_query()
     ↓
-11. LLM generates response
+12. LLM generates response
     ↓
 13. Backend streams response chunks
     ↓

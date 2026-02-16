@@ -152,7 +152,7 @@ Local-only mode remains available for privacy-first users:
    ↓
 6. Main Process → WebSocket → Backend
    ↓
-7. Backend validates message (schema.py)
+7. Backend validates message (`backend/src/api/schemas/incoming.py`, exposed via `backend/src/api/schema.py`)
    ↓
 8. Message routed to QueryHandler
    ↓
