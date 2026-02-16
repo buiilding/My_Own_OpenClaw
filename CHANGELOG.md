@@ -62,6 +62,7 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 - feat(browser-snapshot): make default `snapshot(format="ai")` emit a browser-use-style DOM tree view with tab-indented ancestor scaffolding and interactive lines in `[ref]<tag ...>text</tag>` form while preserving stable refs for click/type flows
+- docs(message-config-contract): document missing server events (`audio-chunk`, `wakeword-activated`), align wakeword response sequencing, add `interaction_mode` to settings payload docs, and clarify runtime config normalization (`tts_enabled` forced true + default `tts_model_path` injection)
 - docs(query-contract): update API/architecture/flow docs to reflect required `query.conversation_ref`, conditional user-query screenshot capture (`include_query_screenshot`, default true), and schema-accurate `tool-result.data.system_state` optionality
 - docs(api-flow): fix schema-path references to current `api/schemas` modules, correct malformed user-query flow numbering/health-check notes in communication docs, and add handler-registry reference in API docs
 - docs(browser): document `browser_control` `extract` action contract (query-focused DOM extraction, pagination fields, metadata-only `output_schema`) and add runbook extraction usage example

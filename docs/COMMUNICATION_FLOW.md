@@ -184,9 +184,9 @@ so memory embedding/summarization calls target the same backend host.
 
 **`tool-result`**
 - Purpose: Tool execution result from frontend
-- Payload: `{ request_id, success, data?: { llm_content, system_state: { active_window, mouse_position }, screenshot_ref?, screenshot? }, error? }`
+- Payload: `{ request_id, success, data?: { llm_content, system_state?: { active_window, mouse_position }, screenshot_ref?, screenshot? }, error? }`
 - Notes:
-  - when `data` is present, `system_state.active_window` and `system_state.mouse_position` are required.
+  - `system_state` is optional; when present, `active_window` and `mouse_position` are required.
   - `screenshot_ref`/`screenshot` are only sent for computer-use tool results.
 - Response: Acknowledgment
 
@@ -213,6 +213,11 @@ so memory embedding/summarization calls target the same backend host.
 - Purpose: Streaming text chunks
 - Payload: `{ text: string }`
 - Usage: Real-time response streaming
+
+**`audio-chunk`**
+- Purpose: Stream TTS audio chunks for playback in the renderer.
+- Payload: `{ audio: string, sample_rate: number }`
+- Usage: Consumed by chat audio playback handlers.
 
 **`tool-call`**
 - Purpose: Tool execution request
@@ -258,6 +263,40 @@ Identity notes:
 
 **`models-listed`**
 - Purpose: Available models response
+
+**`wakeword-activated`**
+- Purpose: Confirm wakeword activation and listening state.
+- Payload: `{ voice_mode_enabled, speech_mode_enabled, greeting, status }`
+- Usage: Emitted before `wakeword-greeting` after `wakeword-detected`.
+
+**`wakeword-greeting`**
+- Purpose: Deliver greeting text selected for wakeword activation.
+- Payload: `{ text: string }`
+- Usage: Wakeword UX messaging; may be followed by streamed `audio-chunk` events.
+
+**`system-prompt`**
+- Purpose: Transparency event with generated system prompt.
+- Payload: `{ content, tool_schemas? }`
+
+**`tool-schemas`**
+- Purpose: Current tool schema list for transparency/debug UI.
+- Payload: `{ tool_schemas }`
+
+**`token-count`**
+- Purpose: Token usage metrics for the current turn/conversation.
+- Payload: `{ prompt_tokens, output_tokens_total, total_tokens, conversation_tokens, ... }`
+
+**`memory-store`**
+- Purpose: Request sidecar memory persistence.
+- Payload: `{ user_query?, assistant_response?, memory_type?, user_id, session_id? }`
+
+**`user-message-full`**
+- Purpose: Full model-facing user message payload for transparency.
+- Payload: `{ content, metadata }`
+
+**`assistant-message-full`**
+- Purpose: Full assistant message payload for transparency.
+- Payload: `{ content }`
 
 ## Memory HTTP Flow (Sidecar ↔ Backend)
 
