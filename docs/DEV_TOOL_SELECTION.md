@@ -31,7 +31,7 @@ Run backend with a profile:
 
 ```bash
 WINDIEOS_DEV_TOOL_SELECTION_PATH=backend/dev/tool_selection.coding.toml \
-  python -m backend.src.main
+  ./scripts/python-in-env backend python -m backend.src.main
 ```
 
 Or use the helper script:

@@ -130,7 +130,7 @@ The following initiative set is being tracked in `FUTURE_PLAN.md` and `DEPLOYMEN
 │  ┌──────────────────────────────────────────┐  │
 │  │  React Components                        │  │
 │  │  - ChatInterface                         │  │
-│  │  - SettingsPanel                         │  │
+│  │  - Dashboard                             │  │
 │  │  - Screenshot Display                    │  │
 │  │  - Tool Execution Status                 │  │
 │  └──────────────────────────────────────────┘  │
@@ -262,7 +262,7 @@ The planned capability for each employee to have a tailored assistant that inter
 ## 📈 Technology Stack
 
 ### Backend
-- **Language**: Python 3.9+
+- **Language**: Python 3.11+
 - **Framework**: FastAPI
 - **AI/ML**: SentenceTransformers, FAISS, RapidOCR, InternVL
 - **Database**: SQLite (with aiosqlite)

@@ -8,7 +8,7 @@ read_when:
 
 ## Requirements
 
-- **Python** 3.9+ (backend + sidecar)
+- **Python** 3.11+ (backend + sidecar)
 - **Node.js** 18+ (frontend)
 - **npm** (included with Node)
 
@@ -38,7 +38,7 @@ pip install -r requirements.txt
 ### Option B: conda
 
 ```bash
-conda create -n jarvis python=3.9
+conda create -n jarvis python=3.11
 conda activate jarvis
 pip install -r backend/requirements.txt
 ```
@@ -46,10 +46,25 @@ pip install -r backend/requirements.txt
 If you want a separate env for the sidecar:
 
 ```bash
-conda create -n frontend_jarvis python=3.9
+conda create -n frontend_jarvis python=3.11
 conda activate frontend_jarvis
 pip install -r frontend/src/main/python/requirements.txt
 ```
+
+## Environment-Aware Helper Scripts
+
+Repo scripts can route commands into the canonical conda envs when present:
+
+- `jarvis` for backend commands
+- `frontend_jarvis` for sidecar/frontend commands
+
+Use:
+
+```bash
+./scripts/python-in-env <backend|sidecar|frontend> <cmd...>
+```
+
+If conda or the target env is unavailable, this script falls back to your current shell environment.
 
 ## Frontend Environment
 

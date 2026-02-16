@@ -22,13 +22,13 @@ playwright install chromium
 **Terminal 1 - Backend:**
 ```bash
 cd WindieOS
-python -m backend.src.main
+./scripts/run-backend
 ```
 
 **Terminal 2 - Frontend:**
 ```bash
-cd WindieOS/frontend
-npm run electron
+cd WindieOS
+./scripts/run-frontend-electron
 ```
 
 **Then in the chat:**
@@ -59,13 +59,13 @@ google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.config/google
 ```bash
 cd WindieOS
 export OPENAI_API_KEY="your-key"  # Optional, for real LLM
-python -m backend.src.main
+./scripts/run-backend
 ```
 
 **Terminal 2 - Frontend:**
 ```bash
-cd WindieOS/frontend
-npm run electron
+cd WindieOS
+./scripts/run-frontend-electron
 ```
 
 **Then in the chat:**
@@ -97,7 +97,7 @@ export WINDIEOS_LLM_CLIENT="mock_browser"
 **3. Run backend:**
 ```bash
 cd WindieOS
-python -m backend.src.main
+./scripts/run-backend
 ```
 
 The mock client will automatically:
@@ -114,7 +114,7 @@ For the original mouse/keyboard simulation:
 
 ```bash
 export WINDIEOS_LLM_CLIENT="mock"
-python -m backend.src.main
+./scripts/run-backend
 ```
 
 This opens Chrome and uses OCR/vision to navigate Amazon.

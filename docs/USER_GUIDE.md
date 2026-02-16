@@ -8,9 +8,9 @@ read_when:
 
 ## Getting Started
 
-1. Start the backend: `python -m backend.src.main`
-2. Start the frontend UI: `npm run dev`
-3. Launch Electron: `npm run electron`
+1. Start the backend: `./scripts/run-backend`
+2. Start the frontend UI: `./scripts/run-frontend-dev`
+3. Launch Electron: `./scripts/run-frontend-electron`
 
 ## Two Windows
 

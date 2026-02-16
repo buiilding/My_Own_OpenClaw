@@ -58,7 +58,7 @@ Local-only mode remains available for privacy-first users:
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │  Renderer Process (React)                          │  │
 │  │  - ChatInterface                                     │  │
-│  │  - SettingsPanel                                    │  │
+│  │  - Dashboard                                        │  │
 │  │  - MessageList                                       │  │
 │  │  - Context Providers (AppConfigContext, AppStatusContext, ChatProvider)      │  │
 │  └──────────────────────────────────────────────────────┘  │

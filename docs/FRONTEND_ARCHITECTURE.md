@@ -601,10 +601,11 @@ Type-safe IPC bridge abstraction with channel validation.
 
 ```
 tests/frontend/
-├── App.spec.jsx
-├── ChatInterface.spec.jsx
-├── MainLayout.spec.jsx
-└── SettingsPanel.spec.jsx
+├── AppProvider.test.tsx
+├── ChatStore.test.ts
+├── MessageInput.test.jsx
+├── ToolExecutionService.test.ts
+└── landing/LandingPage.test.jsx
 ```
 
 ### Testing Tools
@@ -618,9 +619,9 @@ tests/frontend/
 
 ### Development Mode
 
-1. Start backend: `python -m backend.src.main`
-2. Start Vite dev server: `npm run dev`
-3. Launch Electron: `npm run electron`
+1. Start backend: `./scripts/run-backend`
+2. Start Vite dev server: `./scripts/run-frontend-dev`
+3. Launch Electron: `./scripts/run-frontend-electron`
 
 ### Production Build
 
@@ -631,21 +632,21 @@ tests/frontend/
 
 ### Custom Components
 
-1. Create component in `components/`
-2. Add to component hierarchy
-3. Style with CSS modules
+1. Create component in `src/renderer/features/<feature>/components/` or `src/renderer/components/`.
+2. Add to feature or shared component hierarchy.
+3. Add styles in `src/renderer/styles/` (or feature-specific style files already used by that feature).
 
 ### Custom Hooks
 
-1. Create hook in `hooks/`
+1. Create hook in `src/renderer/features/<feature>/hooks/` or `src/renderer/app/providers/`.
 2. Export hook function
 3. Use in components
 
 ### Custom Tools
 
-1. Create tool in `src/main/python/tools/`
-2. Register in dispatcher
-3. Tool automatically available
+1. Create tool in `frontend/src/main/python/tools/`.
+2. Register it in `frontend/src/main/python/tools/registry.py`.
+3. Expose it to backend tool-calling via `EXPOSED_TO_BACKEND_TOOLS` when needed.
 
 ---
 

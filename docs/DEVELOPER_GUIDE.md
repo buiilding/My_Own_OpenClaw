@@ -66,12 +66,15 @@ frontend/src/
 │   │   │   ├── components/  # Chat components
 │   │   │   ├── hooks/       # Chat hooks
 │   │   │   └── stores/      # Zustand store
+│   │   ├── dashboard/ # Dashboard feature
+│   │   │   ├── components/  # Dashboard sections + content views
+│   │   │   └── utils/       # Display/model/memory helper logic
 │   │   ├── settings/  # Settings feature
-│   │   │   ├── components/
-│   │   │   └── hooks/
+│   │   │   └── hooks/ # Settings management hook
 │   │   └── voice/     # Voice feature
 │   │       ├── components/
-│   │       └── hooks/
+│   │       ├── hooks/
+│   │       └── utils/
 │   ├── infrastructure/ # Infrastructure layer
 │   │   ├── api/       # API client
 │   │   ├── ipc/       # IPC bridge abstraction
@@ -86,7 +89,7 @@ frontend/src/
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.11+
 - Node.js 18+
 - Git
 - IDE (VS Code recommended)
@@ -120,26 +123,24 @@ frontend/src/
 
 1. **Start Backend**:
    ```bash
-   python -m backend.src.main
+   ./scripts/run-backend
    ```
 
 2. **Start Frontend Dev Server**:
    ```bash
-   cd frontend
-   npm run dev
+   ./scripts/run-frontend-dev
    ```
 
 3. **Launch Electron**:
    ```bash
-   cd frontend
-   npm run electron
+   ./scripts/run-frontend-electron
    ```
 
 ### Local Automation
 
 - `bin/docs-list`: Lists docs and fails on empty/missing docs.
-- `scripts/test`: Runs backend + frontend tests.
-- `scripts/check`: Runs docs list, backend tests, frontend lint + tests.
+- `scripts/test`: Runs backend + sidecar tests, then frontend tests when `frontend/node_modules` exists.
+- `scripts/check`: Runs docs list, backend + sidecar tests, frontend lint + tests.
 - `scripts/check-loc.py --max 500`: Reports files over the LOC guideline (`--fail` to exit non-zero).
 - `scripts/committer "<msg>" <files...>`: Scoped commits using the shared `committer` helper.
 - Frontend checks auto-skip when `frontend/node_modules` is missing.
@@ -228,59 +229,75 @@ const sendMessage = async (text, screenshot = null) => {
 
 ## Testing
 
-### Backend Testing
+### Backend Tests
 
 **Run Tests**:
 ```bash
-cd backend
-pytest ../tests/backend
+./scripts/test-backend
 ```
 
 **Test Structure**:
 ```
 tests/backend/
-├── test_agent_system.py
-├── test_tool_execution.py
-├── test_llm_integration.py
-└── test_parser_helpers.py
+├── test_llm_client.py
+├── test_interaction_loop.py
+├── test_tool_result_orchestrator.py
+└── test_websocket_message_handler.py
 ```
 
-**Writing Tests**:
-```python
-import pytest
-from backend.src.agent.core.core import AgentSession
+### Sidecar Tests
 
-@pytest.mark.asyncio
-async def test_agent_query():
-    session = AgentSession(...)
-    result = await session.process_query("test query")
-    assert result is not None
+**Run Tests**:
+```bash
+./scripts/test-sidecar
 ```
 
-### Frontend Testing
+**Test Structure**:
+```
+tests/sidecar/
+├── test_local_backend.py
+├── test_tool_registry.py
+└── tools/
+    ├── test_browser_tool.py
+    └── test_chrome_detection.py
+```
+
+### Frontend Tests
 
 **Run Tests**:
 ```bash
 cd frontend
-npm test
+npm run test:ci
 ```
 
 **Test Structure**:
 ```
 tests/frontend/
-├── App.spec.jsx
-├── ChatInterface.spec.jsx
-└── MainLayout.spec.jsx
+├── ChatStore.test.ts
+├── ToolExecutionService.test.ts
+├── MessageInput.test.jsx
+└── landing/LandingPage.test.jsx
 ```
 
-**Writing Tests**:
-```javascript
-import { render, screen } from '@testing-library/react';
-import ChatInterface from '../ChatInterface';
+**Example Backend Unit Test**:
+```python
+from backend.src.tools.categorization import ToolDomain
 
-test('renders chat interface', () => {
-  render(<ChatInterface />);
-  expect(screen.getByText('Chat')).toBeInTheDocument();
+
+def test_tool_domain_values_stable():
+    assert ToolDomain.BROWSER.value == "browser"
+```
+
+**Example Frontend Unit Test**:
+```javascript
+import { buildMessageClassName } from '../../frontend/src/renderer/features/chat/utils/messageListClasses';
+
+test('adds screenshot class when screenshot data exists', () => {
+  const cls = buildMessageClassName({
+    sender: 'assistant',
+    screenshot: 'abc123',
+  });
+  expect(cls).toContain('message-has-screenshot');
 });
 ```
 
@@ -302,7 +319,7 @@ logger.error("Error message")
 **Debug Mode**:
 ```bash
 export DESKTOP_ASSISTANT_LOG_LEVEL=DEBUG
-python -m backend.src.main
+./scripts/run-backend
 ```
 
 ### Frontend Debugging

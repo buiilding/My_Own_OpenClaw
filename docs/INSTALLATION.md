@@ -11,7 +11,7 @@ read_when:
 ### System Requirements
 
 - **Operating System**: Windows 10/11, macOS 10.15+, or Linux (Ubuntu 20.04+)
-- **Python**: 3.9 or higher
+- **Python**: 3.11 or higher
 - **Node.js**: 18 or higher
 - **npm**: Included with Node.js
 - **Git**: For cloning the repository
@@ -52,14 +52,14 @@ source venv/bin/activate
 **Option B: Using conda**
 
 ```bash
-conda create -n jarvis python=3.9
+conda create -n jarvis python=3.11
 conda activate jarvis
 ```
 
 If you plan to run the Electron frontend (which spawns the Python sidecar) and want a separate env:
 
 ```bash
-conda create -n frontend_jarvis python=3.9
+conda create -n frontend_jarvis python=3.11
 conda activate frontend_jarvis
 ```
 
@@ -74,7 +74,7 @@ pip install -r requirements.txt
 
 ```bash
 cd ..
-python -m backend.src.main --help
+./scripts/python-in-env backend python -m backend.src.main --help
 ```
 
 ### 3. Frontend Installation
@@ -100,7 +100,7 @@ pip install -r requirements.txt
 #### Verify Installation
 
 ```bash
-npm run dev --version
+./scripts/python-in-env frontend npm --prefix ./frontend run dev -- --help
 ```
 
 ### 4. Configuration
@@ -179,20 +179,17 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 **Terminal 1: Backend**
 ```bash
-cd backend
-python -m backend.src.main
+./scripts/run-backend
 ```
 
 **Terminal 2: Frontend Dev Server**
 ```bash
-cd frontend
-npm run dev
+./scripts/run-frontend-dev
 ```
 
 **Terminal 3: Electron App**
 ```bash
-cd frontend
-npm run electron
+./scripts/run-frontend-electron
 ```
 
 ### Production Mode
@@ -205,14 +202,12 @@ npm run build
 
 **Run Backend**:
 ```bash
-cd backend
-python -m backend.src.main
+./scripts/run-backend
 ```
 
 **Launch Electron**:
 ```bash
-cd frontend
-npm run electron
+./scripts/run-frontend-electron
 ```
 
 ## Verification
@@ -235,9 +230,8 @@ npm run electron
 
 **Import Errors**:
 ```bash
-# Ensure you're in the correct directory
-cd backend
-python -m backend.src.main
+# Run from the repository root so the `backend` package is importable
+./scripts/run-backend
 ```
 
 **Missing Dependencies**:
@@ -247,7 +241,7 @@ pip install -r requirements.txt
 
 **Python Version**:
 ```bash
-python --version  # Should be 3.9+
+python --version  # Should be 3.11+
 ```
 
 ### Node.js Issues
