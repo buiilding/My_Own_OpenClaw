@@ -482,7 +482,7 @@ const addMessage = useChatStore((state) => state.addMessage);
 
 - **Split Contexts**: AppConfigContext and AppStatusContext separated to prevent unnecessary re-renders
 - **Zustand Store**: Direct subscriptions to store slices, no context propagation overhead
-- **Lazy Loading**: SettingsPanel loaded lazily to improve initial render time
+- **Lazy Loading**: DashboardContent loaded lazily to improve initial render time
 - **Stable IPC Listeners**: IPC callbacks use refs to maintain stable identity
 - **O(1) Channel Lookup**: IPC bridge uses Set data structures for fast channel validation
 

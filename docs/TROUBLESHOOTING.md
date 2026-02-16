@@ -134,7 +134,7 @@ read_when:
 **Solutions**:
 1. **Disable Electron sandbox (local dev)**:
    ```bash
-   ELECTRON_DISABLE_SANDBOX=1 npm run electron
+   ELECTRON_DISABLE_SANDBOX=1 ./scripts/run-frontend-electron
    ```
 2. **Set chrome-sandbox permissions** (system-specific; may require root):
    - Ensure `node_modules/electron/dist/chrome-sandbox` is owned by root and mode `4755`

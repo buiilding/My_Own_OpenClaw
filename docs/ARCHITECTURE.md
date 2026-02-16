@@ -460,12 +460,16 @@ Future architecture would support **customizable agents for enterprise teams**:
 ```
 tests/
 ├── backend/
-│   ├── test_agent_system.py
-│   ├── test_tool_execution.py
-│   └── test_llm_integration.py
+│   ├── test_llm_client.py
+│   ├── test_interaction_loop.py
+│   └── test_tool_result_orchestrator.py
+├── sidecar/
+│   ├── test_local_backend.py
+│   └── tools/
+│       └── test_browser_tool.py
 └── frontend/
-    ├── App.spec.jsx
-    └── ChatInterface.spec.jsx
+    ├── ChatStore.test.ts
+    └── MessageInput.test.jsx
 ```
 
 ### Testing Strategy

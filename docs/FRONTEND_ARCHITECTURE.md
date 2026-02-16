@@ -154,7 +154,7 @@ App
             │   ├── MessageInput
             │   │   └── VoiceStatus
             │   └── TransparencySection
-            └── SettingsPanel (lazy loaded)
+            └── DashboardContent (lazy loaded)
 ```
 
 #### Key Components
@@ -197,10 +197,10 @@ App
 **TokenCountDisplay.jsx**
 - Displays token usage counters in a table-driven render path backed by shared token-count formatting helpers
 
-**SettingsPanel.jsx**
-- Settings configuration UI
-- Model selection
-- Voice/speech mode toggles
+**DashboardContent.jsx**
+- Lazy-loaded dashboard section router
+- Renders section panels (`EpisodicMemorySection`, `SemanticMemorySection`, `ProceduralSection`, `ModelsSection`, `UsageSection`, `SettingsSection`)
+- Keeps dashboard concerns separate from chat runtime components
 
 **EpisodicMemorySection.jsx**
 - Transcript conversation browsing and replay panel in the dashboard memory section
@@ -492,7 +492,7 @@ UI Update
 
 - **Split Contexts**: AppConfigContext and AppStatusContext separated to prevent re-renders
 - **Zustand Store**: Direct subscriptions to store slices, no context propagation overhead
-- **Lazy Loading**: SettingsPanel loaded lazily to improve initial render time
+- **Lazy Loading**: DashboardContent loaded lazily to improve initial render time
 - **Stable IPC Listeners**: IPC callbacks use refs to maintain stable identity
 
 ## Infrastructure Layer
@@ -502,12 +502,13 @@ UI Update
 Typed API client for backend communication.
 
 **Methods**:
-- `sendQuery(text, screenshot)`: Send user query
+- `sendQuery(text, conversationRef, screenshotRef)`: Send user query with conversation correlation and optional screenshot artifact ref
+- `sendRehydrateConversation(conversationRef, messages)`: Rehydrate backend conversation state from transcript history
 - `updateSettings(config)`: Send frontend-managed config updates
 - `listModels()`: Request available models
 - `wakewordDetected()`: Notify wakeword detection
 
-**Note**: Settings are frontend-only and persisted locally (no `updateSettings` or `loadSettings` calls).
+**Note**: Settings are persisted locally and also sent via `update-settings` events so backend session runtime can apply relevant config changes.
 
 ### IPC Bridge (`infrastructure/ipc/bridge.ts`)
 
