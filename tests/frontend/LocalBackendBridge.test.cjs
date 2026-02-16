@@ -312,6 +312,33 @@ describe('local_backend_bridge', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { items: [] } });
   });
 
+  test('list-conversations handler safely handles non-object payloads', async () => {
+    initBridge();
+    markReady();
+
+    const promise = handlers['list-conversations'](null, 'invalid-payload');
+
+    const request = getLastWrittenRequest();
+    expect(request).toEqual(
+      expect.objectContaining({
+        method: 'list_conversations',
+        params: {},
+      }),
+    );
+
+    stdoutHandler(
+      Buffer.from(
+        `${JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'req-1',
+          result: { success: true, data: { items: [] } },
+        })}\n`,
+      ),
+    );
+
+    await expect(promise).resolves.toEqual({ success: true, data: { items: [] } });
+  });
+
   test('list-semantic-memories handler maps payload keys to backend params', async () => {
     initBridge();
     markReady();
