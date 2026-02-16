@@ -147,6 +147,22 @@ describe('useChatMessageSender', () => {
     warnSpy.mockRestore();
   });
 
+  test('does not return to chatbox when screenshots are disabled even if requested', async () => {
+    mockFrontendConfig = { include_query_screenshot: false };
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, { returnToChatboxOnSend: true }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    );
+  });
+
   test('marks first user message capture path on first send', async () => {
     const { result } = renderHook(() =>
       useChatMessageSender(undefined, { returnToChatboxOnSend: false }),
