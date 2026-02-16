@@ -245,7 +245,17 @@ Agent executes:
 {"action": "snapshot", "format": "ai"}
 ```
 
-**4. Interact with elements:**
+**4. Extract targeted content (optional, useful for long pages):**
+```
+Extract pricing tiers and monthly cost from this page
+```
+
+Agent can execute:
+```json
+{"action": "extract", "query": "pricing tiers and monthly cost", "extract_links": false}
+```
+
+**5. Interact with elements:**
 ```
 Click on the Sign in button
 ```
