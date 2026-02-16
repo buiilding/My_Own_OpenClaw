@@ -1,6 +1,7 @@
 import {
   buildTokenCountItems,
   formatTokenCount,
+  getActiveConversationTokenCount,
 } from '../../frontend/src/renderer/features/chat/utils/tokenCounts';
 
 describe('tokenCounts utils', () => {
@@ -22,7 +23,21 @@ describe('tokenCounts utils', () => {
     expect(formatTokenCount(1234.5)).toBe('1,234.5');
   });
 
-  test('builds token count items in display order with labels and classes', () => {
+  test('returns active conversation tokens when available', () => {
+    expect(getActiveConversationTokenCount({
+      total_tokens: 300,
+      conversation_tokens: 120,
+    })).toBe('120');
+  });
+
+  test('falls back to total tokens when conversation tokens are missing', () => {
+    expect(getActiveConversationTokenCount({
+      total_tokens: 300,
+      conversation_tokens: undefined,
+    })).toBe('300');
+  });
+
+  test('builds a single token count item for active conversation total', () => {
     const items = buildTokenCountItems({
       prompt_tokens: 10,
       visible_output_tokens: 12,
@@ -33,12 +48,7 @@ describe('tokenCounts utils', () => {
     });
 
     expect(items).toEqual([
-      { key: 'prompt_tokens', label: 'Prompt', className: '', value: '10' },
-      { key: 'visible_output_tokens', label: 'Output (Visible)', className: '', value: '12' },
-      { key: 'thinking_tokens', label: 'Thinking', className: '', value: 'N/A' },
-      { key: 'output_tokens_total', label: 'Output (Total)', className: '', value: '20' },
-      { key: 'total_tokens', label: 'Total', className: '', value: '30' },
-      { key: 'conversation_tokens', label: 'Conversation', className: 'conversation-total', value: '40' },
+      { key: 'conversation_tokens', label: 'Conversation Total', className: '', value: '40' },
     ]);
   });
 });

@@ -18,12 +18,6 @@
   color: var(--text-soft);
 }
 
-.token-count-item.conversation-total {
-  border-left: 1px solid var(--border);
-  padding-left: 10px;
-  margin-left: 6px;
-}
-
 .token-label {
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -40,11 +34,5 @@
   .token-count-display {
     width: 100%;
     justify-content: space-between;
-  }
-
-  .token-count-item.conversation-total {
-    border-left: none;
-    padding-left: 0;
-    margin-left: 0;
   }
 }

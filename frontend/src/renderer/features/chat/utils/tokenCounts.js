@@ -1,21 +1,27 @@
-const TOKEN_COUNT_FIELDS = [
-  { key: 'prompt_tokens', label: 'Prompt', className: '' },
-  { key: 'visible_output_tokens', label: 'Output (Visible)', className: '' },
-  { key: 'thinking_tokens', label: 'Thinking', className: '' },
-  { key: 'output_tokens_total', label: 'Output (Total)', className: '' },
-  { key: 'total_tokens', label: 'Total', className: '' },
-  { key: 'conversation_tokens', label: 'Conversation', className: 'conversation-total' },
-];
+const ACTIVE_CONVERSATION_TOTAL_FIELD = {
+  key: 'conversation_tokens',
+  label: 'Conversation Total',
+  className: '',
+};
 
 export function formatTokenCount(value, fallback = '0') {
   return typeof value === 'number' ? value.toLocaleString() : fallback;
 }
 
+export function getActiveConversationTokenCount(tokenCounts) {
+  const conversationTokens = tokenCounts?.conversation_tokens;
+  if (typeof conversationTokens === 'number') {
+    return formatTokenCount(conversationTokens);
+  }
+
+  return formatTokenCount(tokenCounts?.total_tokens);
+}
+
 export function buildTokenCountItems(tokenCounts) {
-  return TOKEN_COUNT_FIELDS.map((field) => ({
-    key: field.key,
-    label: field.label,
-    className: field.className,
-    value: formatTokenCount(tokenCounts?.[field.key], field.key === 'thinking_tokens' ? 'N/A' : '0'),
-  }));
+  return [{
+    key: ACTIVE_CONVERSATION_TOTAL_FIELD.key,
+    label: ACTIVE_CONVERSATION_TOTAL_FIELD.label,
+    className: ACTIVE_CONVERSATION_TOTAL_FIELD.className,
+    value: getActiveConversationTokenCount(tokenCounts),
+  }];
 }
