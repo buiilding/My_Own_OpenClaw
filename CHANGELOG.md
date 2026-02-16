@@ -129,6 +129,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(sidecar-memory): reject `store_memory` requests in `local_backend.py` when `user_query` or `assistant_response` is empty to avoid persisting invalid interaction memories
 - fix(wakeword-parser): clear wakeword result frame buffer on process exit/error/stop so stale partial bytes cannot poison parsing after wakeword subprocess restart
 - fix(wakeword-bridge): preserve `onWakewordDetected` callback across wakeword subprocess restarts so detections continue triggering callback-driven behavior after `wakeword-enable` recovery
 - fix(memory-service-shutdown): make `memory_service.py` honor `SIGTERM`/`SIGINT` by requesting graceful shutdown and closing stdin so its read loop exits without forced-kill-only teardown

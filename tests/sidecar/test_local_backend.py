@@ -326,6 +326,22 @@ async def test_handle_store_memory_fails_without_store():
 
 
 @pytest.mark.asyncio
+async def test_handle_store_memory_requires_query_and_response():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_memory(
+        user_query="",
+        assistant_response="hello",
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "Missing user_query or assistant_response"
+    assert backend.memory_store.added == []
+    assert backend.memory_store.pending_count == 0
+
+
+@pytest.mark.asyncio
 async def test_handle_list_conversations_fails_without_store():
     backend = LocalBackend()
     backend.memory_store = None
