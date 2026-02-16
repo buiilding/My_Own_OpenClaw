@@ -30,42 +30,18 @@ class TaskManager:
         self.active_tasks: Set[asyncio.Task] = set()
         self.tasks_lock = asyncio.Lock()
     
-    async def _remove_task_safely(self, task: asyncio.Task) -> None:
-        """
-        Remove task from active set with lock protection.
-        
-        This coroutine is scheduled from the task_done_callback to ensure
-        thread-safe removal that doesn't race with disconnect cleanup iteration.
-        """
-        async with self.tasks_lock:
-            self.active_tasks.discard(task)
-    
     def task_done_callback(self, task: asyncio.Task):
         """
         Remove task from active set when done.
-        
-        NOTE: This callback runs synchronously from the task's context.
-        To prevent race conditions with disconnect cleanup iteration, we schedule
-        a coroutine to remove the task with proper lock protection.
+
+        This callback runs in the event loop thread and performs an in-place
+        discard to avoid creating a second cleanup task per completed request.
         """
-        # Schedule removal with lock protection to prevent race with iteration
-        # The callback runs in the task's context (same event loop), so we can schedule
         try:
-            # Get the running event loop (should be available since callback runs from task)
-            loop = asyncio.get_running_loop()
-            # Schedule the async removal function as a task
-            # This ensures the lock is properly acquired before modifying the set
-            loop.create_task(self._remove_task_safely(task))
+            self.active_tasks.discard(task)
         except RuntimeError:
-            # SHUTDOWN CRASH FIX: During shutdown, loop may be closed/closing.
-            # Fallback discard must be protected to prevent "Set changed size during iteration"
-            # errors if cleanup is iterating. Wrap in try/except to handle
-            # any RuntimeError from set mutation during iteration.
-            try:
-                self.active_tasks.discard(task)
-            except RuntimeError:
-                # Set is being iterated - ignore (cleanup will handle it)
-                pass
+            # Ignore set-iteration edge cases during shutdown; cleanup() prunes done tasks.
+            pass
 
     @staticmethod
     def _close_if_coroutine(coro) -> None:

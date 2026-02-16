@@ -137,15 +137,15 @@ async def test_cleanup_prunes_completed_tasks_when_callback_cleanup_is_delayed(
 
 
 @pytest.mark.asyncio
-async def test_task_done_callback_falls_back_when_loop_unavailable(monkeypatch) -> None:
+async def test_task_done_callback_removes_task_without_event_loop_lookup(monkeypatch) -> None:
     manager = TaskManager(max_concurrent_tasks=1, task_cancellation_timeout=0.1)
     task = asyncio.create_task(asyncio.sleep(0))
     manager.active_tasks.add(task)
 
-    def raise_runtime_error():
-        raise RuntimeError("no running event loop")
+    def fail_if_called():
+        raise AssertionError("get_running_loop should not be called")
 
-    monkeypatch.setattr(asyncio, "get_running_loop", raise_runtime_error)
+    monkeypatch.setattr(asyncio, "get_running_loop", fail_if_called)
 
     manager.task_done_callback(task)
     await task

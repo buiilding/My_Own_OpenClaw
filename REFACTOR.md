@@ -558,3 +558,55 @@ Result:
 - `24 passed in 0.30s`
 
 This confirms the shared parse refactor preserved websocket behavior while reducing duplicated JSON parse policy and avoiding unnecessary handshake offload work.
+
+---
+
+# Refactor: Remove Per-Completion Cleanup Task Allocation in WebSocket TaskManager
+
+## Target
+Simplify and optimize task-completion cleanup in:
+- `backend/src/api/routes/websocket/task_manager.py`
+
+## Current Structure and Root Cause
+Before this refactor, each completed handler task triggered:
+1. `task_done_callback(...)`
+2. `asyncio.get_running_loop()`
+3. `loop.create_task(self._remove_task_safely(task))`
+4. async lock acquisition inside `_remove_task_safely(...)`
+
+Root cause: done-task removal used an extra asynchronous cleanup coroutine, even though callback execution already happens on the event loop thread and only needs an in-place `set.discard`. This added avoidable per-task scheduling overhead and extra callback complexity.
+
+## Refactor Plan
+1. Remove `_remove_task_safely(...)` helper coroutine.
+2. Make `task_done_callback(...)` discard completed tasks directly.
+3. Keep shutdown edge-case protection (`RuntimeError`) and rely on `cleanup()` deterministic done-task pruning.
+4. Update tests to validate callback behavior without event-loop lookup.
+5. Run websocket task-manager and route test suites.
+
+## Implemented Changes
+### TaskManager cleanup path simplification
+- Updated `backend/src/api/routes/websocket/task_manager.py`:
+  - removed `_remove_task_safely(...)`
+  - rewired `task_done_callback(...)` to perform direct `self.active_tasks.discard(task)`
+  - retained defensive `RuntimeError` handling for shutdown/iteration edge cases
+
+Result:
+- removed one background task allocation per completed websocket handler task
+- reduced callback complexity and lock/scheduling overhead
+- preserved external TaskManager interface and cleanup semantics
+
+## Added Test Coverage
+- Updated `tests/backend/test_websocket_task_manager.py`:
+  - `test_task_done_callback_removes_task_without_event_loop_lookup`
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_websocket_connection.py tests/backend/test_websocket_message_handler.py tests/backend/test_websocket_task_manager.py
+```
+
+Result:
+- `31 passed in 0.32s`
+
+This confirms the refactor preserved websocket task lifecycle behavior while reducing per-completion scheduler overhead.
