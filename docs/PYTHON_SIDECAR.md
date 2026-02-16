@@ -79,6 +79,7 @@ Wakeword detection runs as a separate Python subprocess:
 - `frontend/src/main/python/wakeword_service.py`
 - Managed by `frontend/src/main/wakeword_bridge.cjs`
 - Bridge event handlers ignore stdout/stderr/exit events from stale process instances after restart, so old process callbacks cannot flip active service state.
+- Bridge clears the wakeword `stderr` parser buffer on stop/start so stale partial log lines cannot suppress the next process ready signal.
 
 ## Troubleshooting
 
@@ -93,6 +94,9 @@ Wakeword detection runs as a separate Python subprocess:
   - `tests/sidecar/test_local_backend.py` (JSON-RPC handlers, tool execution, memory wiring)
   - `tests/sidecar/test_memory_service.py` (search/store validation, error handling)
   - `tests/sidecar/test_stdout_json.py` (shared JSON-line stdout writer behavior)
+- Bridge regression coverage:
+  - `tests/frontend/LocalBackendBridge.test.cjs` validates stale readiness retry timers cannot override newer process readiness checks.
+  - `tests/frontend/WakewordBridge.test.cjs` validates stale partial wakeword `stderr` buffers are cleared across stop/start restart.
 - Shell command sessions:
   - `run_shell_command` supports `yield_after_seconds`, `env`, and best-effort `pty` (PTY on Unix; fallback on Windows).
   - If `directory` is omitted, `run_shell_command` starts in the OS user home directory.
