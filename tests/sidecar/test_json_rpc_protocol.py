@@ -138,6 +138,22 @@ def test_create_request_omits_optional_fields_when_not_provided():
     assert request == {"jsonrpc": "2.0", "method": "ping"}
 
 
+def test_create_request_keeps_zero_request_id():
+    protocol = JSONRPCProtocol()
+
+    request = protocol.create_request("ping", request_id=0)
+
+    assert request == {"jsonrpc": "2.0", "method": "ping", "id": 0}
+
+
+def test_create_request_keeps_empty_string_request_id():
+    protocol = JSONRPCProtocol()
+
+    request = protocol.create_request("ping", request_id="")
+
+    assert request == {"jsonrpc": "2.0", "method": "ping", "id": ""}
+
+
 def test_create_response_prefers_error_payload_over_result():
     protocol = JSONRPCProtocol()
 

@@ -62,7 +62,12 @@ class JSONRPCProtocol:
         )
         logger.debug(f"Registered method: {name}")
     
-    def create_request(self, method: str, params: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None) -> Dict[str, Any]:
+    def create_request(
+        self,
+        method: str,
+        params: Optional[Dict[str, Any]] = None,
+        request_id: Optional[Any] = None,
+    ) -> Dict[str, Any]:
         """Create a JSON-RPC request."""
         request = {
             "jsonrpc": "2.0",
@@ -70,7 +75,7 @@ class JSONRPCProtocol:
         }
         if params:
             request["params"] = params
-        if request_id:
+        if request_id is not None:
             request["id"] = request_id
         return request
     
