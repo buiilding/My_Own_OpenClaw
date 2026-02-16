@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(local-backend-bridge): replace scattered IPC->RPC payload mapper lambdas with shared table-driven mapping utilities (`mapPayloadParams`, `registerMappedRpcHandlers`) and add bridge regression coverage for `get-conversation` null mapping + `store-memory` param wiring
+- refactor(sidecar-output): add shared JSON-line stdout writer (`core/stdout_json.py`) and reuse it in JSON-RPC + memory service paths to remove duplicated UTF-8 encode/write/flush logic
 - refactor(sidecar-jsonrpc): precompute per-method callable/async dispatch metadata in `core/ipc_protocol.py` to remove per-request async introspection/import overhead in JSON-RPC handling
 - test(backend): add direct `EventHandlerStore` and `EventBus` coverage for MRO priority ordering, handler dedup/cache invalidation, weak-reference cleanup behavior, and error-recovery publish flow
 - refactor(local-backend-bridge): centralize sidecar termination cleanup/state reset in shared helpers (`resetBackendProcessState`, `notifyBackendUnavailable`) and remove duplicated exit/error handler logic

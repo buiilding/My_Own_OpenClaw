@@ -302,3 +302,133 @@ Result:
 - `34 passed, 3 warnings`
 
 This confirms the protocol refactor preserved sidecar behavior while removing repeated async introspection overhead from the request hot path.
+
+---
+
+# Refactor: Centralize Sidecar JSON Line Output Encoding
+
+## Target
+Remove duplicated stdout JSON-line serialization/write logic across:
+- `frontend/src/main/python/core/ipc_protocol.py`
+- `frontend/src/main/python/memory_service.py`
+
+## Current Structure and Root Cause
+Before this refactor, both modules implemented their own UTF-8 JSON write blocks:
+- JSON-RPC path: `JSONRPCProtocol.send_response()`
+- Memory service path: 3 separate write blocks in `MemoryService.run()` (success + two error paths)
+
+Each path repeated:
+- `json.dumps(..., ensure_ascii=False)`
+- append newline
+- encode to UTF-8 bytes
+- write to `sys.stdout.buffer`
+- flush buffer
+
+Root cause: output transport concerns were implemented independently per module instead of a shared sidecar output utility.
+
+## Refactor Plan
+1. Add one shared writer utility in `core/` for JSON-line stdout writes.
+2. Replace all duplicated output blocks in JSON-RPC and memory service paths.
+3. Keep output format identical (UTF-8, newline-delimited JSON, flush-on-write).
+4. Add focused unit coverage for the shared writer.
+5. Run sidecar protocol/memory tests.
+
+## Implemented Changes
+### New shared utility
+- Added `frontend/src/main/python/core/stdout_json.py`:
+  - `write_json_line(payload)`
+
+### Rewired call sites
+- `frontend/src/main/python/core/ipc_protocol.py`
+  - `send_response()` now delegates to `write_json_line(response)`
+- `frontend/src/main/python/memory_service.py`
+  - `run()` now uses `write_json_line(...)` for:
+    - normal response output
+    - invalid-JSON error output
+    - unexpected processing error output
+
+Result:
+- removed duplicated serialization/write blocks across sidecar output paths
+- standardized one canonical JSON line transport implementation
+- preserved external protocol behavior
+
+## Added Test Coverage
+- Added `tests/sidecar/test_stdout_json.py`:
+  - verifies UTF-8 JSON bytes with newline and flush behavior
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_memory_service.py tests/sidecar/test_stdout_json.py
+```
+
+Result:
+- `24 passed, 3 warnings`
+
+This confirms output-path refactoring preserved sidecar behavior while reducing duplicated serialization logic.
+
+---
+
+# Refactor: Table-Driven LocalBackendBridge IPC-to-RPC Mapping
+
+## Target
+Reduce duplicated request-mapping logic in:
+- `frontend/src/main/local_backend_bridge.cjs`
+
+Specifically, refactor the repeated IPC handler payload-to-RPC-param translation for memory/conversation handlers.
+
+## Current Structure and Root Cause
+Before this refactor, each IPC handler used hand-written inline mapper lambdas:
+- `list-conversations`
+- `get-conversation`
+- `list-semantic-memories`
+- `delete-conversation`
+- `delete-semantic-memory`
+- `store-memory`
+- `store-transcript`
+- plus a one-off `search-memory` mapper with alias handling
+
+Root cause: parameter translation policy lived in many handler-local lambdas, so adding/changing one field required touching multiple ad hoc code blocks. This increases maintenance churn in a central module and makes mapping drift easier.
+
+## Refactor Plan
+1. Add one shared payload-mapping utility for IPC payloads.
+2. Add one table-driven registration utility for RPC handlers.
+3. Convert inline per-handler mappers into declarative field maps.
+4. Keep IPC channel names, RPC method names, and payload shapes unchanged.
+5. Add tests for previously uncovered mappings and run bridge tests.
+
+## Implemented Changes
+### Shared mapper utilities
+- Added in `frontend/src/main/local_backend_bridge.cjs`:
+  - `getPayloadObject(payload)`
+  - `mapPayloadParams(payload, fieldMap)`
+  - `registerMappedRpcHandlers(registerRpcHandler, definitions)`
+
+### Handler registration rewrite
+- Replaced seven inline `registerRpcHandler(..., mapParams)` lambdas with one declarative definition table and `registerMappedRpcHandlers(...)`.
+- Reworked `search-memory` payload mapping to use `mapPayloadParams(...)`, preserving `excludeConversationId`/`exclude_conversation_id` alias behavior.
+- Preserved existing null-coalescing behavior for `conversation_id` on conversation handlers.
+
+Result:
+- Centralized IPC-to-RPC field mapping logic in one reusable utility path.
+- Reduced repetitive mapping boilerplate in a high-churn bridge module.
+- Kept runtime behavior and API contracts unchanged.
+
+## Added Test Coverage
+- Updated `tests/frontend/LocalBackendBridge.test.cjs`:
+  - `get-conversation handler maps missing conversationId to null`
+  - `store-memory handler maps payload keys to backend params`
+
+## Validation
+Ran:
+
+```bash
+cd frontend && npm run test -- --runTestsByPath ../tests/frontend/LocalBackendBridge.test.cjs
+```
+
+Result:
+- `1 passed` test suite
+- `17 passed` tests
+
+This confirms the mapping refactor preserved bridge handler behavior while consolidating duplicated translation logic.
