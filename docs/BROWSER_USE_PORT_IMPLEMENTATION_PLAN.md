@@ -270,6 +270,7 @@ Validation snapshot:
 
 - Sidecar browser suites pass after routing (`tests/sidecar/tools/test_browser_tool.py`, `tests/sidecar/tools/test_browser_controller.py`).
 - Added adapter-routing regression coverage in `tests/sidecar/tools/test_browser_tool.py`.
+- Added adapter-core regression coverage in `tests/sidecar/tools/test_browser_use_adapter.py`.
 
 ## Phase 3: Core Action Migration (High-Value First)
 
