@@ -97,7 +97,7 @@ class TestPhase2AdapterRouting:
             assert isinstance(legacy_handlers, dict)
             assert "snapshot" in legacy_handlers
             assert "extract" in legacy_handlers
-            assert "act" in legacy_handlers
+            assert "act" not in legacy_handlers
             mock_adapter.execute.assert_awaited_once()
 
     @pytest.mark.asyncio

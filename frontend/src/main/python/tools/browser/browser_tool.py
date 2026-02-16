@@ -335,21 +335,12 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
             result=result,
         )
 
-    async def _act_delegate(delegate_args: Dict[str, Any]) -> AdapterActionResult:
-        result = await _handle_act(dict(delegate_args))
-        return _tool_result_to_adapter_result(
-            action="act",
-            decision="compat",
-            result=result,
-        )
-
     controller = get_browser_controller()
     adapter = get_browser_use_adapter(
         controller,
         legacy_handlers={
             "snapshot": _snapshot_delegate,
             "extract": _extract_delegate,
-            "act": _act_delegate,
         },
     )
     adapter_result = await adapter.execute(action, args)

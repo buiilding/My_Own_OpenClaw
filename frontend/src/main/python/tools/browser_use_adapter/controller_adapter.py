@@ -140,6 +140,11 @@ class BrowserControllerLike(Protocol):
     async def set_timezone(self, timezone: str) -> dict[str, Any]: ...
     async def set_locale(self, locale: str) -> dict[str, Any]: ...
     async def set_device(self, device: str) -> dict[str, Any]: ...
+    async def hover(self, ref: str) -> dict[str, Any]: ...
+    async def drag(self, start_ref: str, end_ref: str) -> dict[str, Any]: ...
+    async def select_options(self, ref: str, values: list[str]) -> dict[str, Any]: ...
+    async def fill_fields(self, fields: list[dict[str, Any]]) -> dict[str, Any]: ...
+    async def resize_viewport(self, width: int, height: int) -> dict[str, Any]: ...
 
 
 class BrowserUseCompatibilityAdapter:
@@ -234,6 +239,8 @@ class BrowserUseCompatibilityAdapter:
             return await self.set_locale(args)
         if action == "set_device":
             return await self.set_device(args)
+        if action == "act":
+            return await self.act(args)
         if action == "close":
             return await self.close()
         if action in self._legacy_handlers:
@@ -1356,6 +1363,214 @@ class BrowserUseCompatibilityAdapter:
             error_code="BROWSER_RUNTIME_ERROR",
         )
 
+    async def act(self, args: Mapping[str, Any]) -> AdapterActionResult:
+        request = args.get("request")
+        if not isinstance(request, dict):
+            return self._invalid_argument("act", "act requires a 'request' object")
+
+        kind_value = request.get("kind")
+        if not isinstance(kind_value, str) or not kind_value.strip():
+            return self._invalid_argument("act", "act.request.kind is required")
+
+        kind = kind_value.strip().lower()
+        merged: dict[str, Any] = dict(args)
+        merged.update(request)
+
+        if kind == "click":
+            click_args = {"action": "click", **merged}
+            click_result = await self.click(click_args)
+            return self._retag_action(click_result, "click")
+
+        if kind == "type":
+            type_args = {"action": "type", **merged}
+            type_result = await self.type_text(type_args)
+            return self._retag_action(type_result, "type")
+
+        if kind == "press":
+            press_args = {"action": "press", "key": merged.get("key"), **merged}
+            press_result = await self.press(press_args)
+            return self._retag_action(press_result, "press")
+
+        if kind == "hover":
+            if not self._controller.is_connected:
+                return self._not_connected("act")
+            focus_error = await self._focus_target_if_requested(merged)
+            if focus_error:
+                return focus_error
+            ref = self._value_as_str(merged.get("ref"))
+            if not ref:
+                return self._invalid_argument("act", "act.hover requires 'ref'")
+            result = await self._controller.hover(ref=ref)
+            if result.get("success"):
+                return AdapterActionResult(
+                    success=True,
+                    action="hover",
+                    decision="compat",
+                    data=result,
+                )
+            return AdapterActionResult(
+                success=False,
+                action="hover",
+                decision="compat",
+                error=result.get("error", "Hover failed"),
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+
+        if kind == "drag":
+            if not self._controller.is_connected:
+                return self._not_connected("act")
+            focus_error = await self._focus_target_if_requested(merged)
+            if focus_error:
+                return focus_error
+            start_ref = self._value_as_str(merged.get("startRef"))
+            end_ref = self._value_as_str(merged.get("endRef"))
+            if not start_ref or not end_ref:
+                return self._invalid_argument(
+                    "act",
+                    "act.drag requires 'startRef' and 'endRef'",
+                )
+            result = await self._controller.drag(start_ref=start_ref, end_ref=end_ref)
+            if result.get("success"):
+                return AdapterActionResult(
+                    success=True,
+                    action="drag",
+                    decision="compat",
+                    data=result,
+                )
+            return AdapterActionResult(
+                success=False,
+                action="drag",
+                decision="compat",
+                error=result.get("error", "Drag failed"),
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+
+        if kind == "select":
+            if not self._controller.is_connected:
+                return self._not_connected("act")
+            focus_error = await self._focus_target_if_requested(merged)
+            if focus_error:
+                return focus_error
+            ref = self._value_as_str(merged.get("ref"))
+            values = merged.get("values")
+            if not ref:
+                return self._invalid_argument("act", "act.select requires 'ref'")
+            if not isinstance(values, list) or not values:
+                return self._invalid_argument(
+                    "act",
+                    "act.select requires non-empty 'values' array",
+                )
+            result = await self._controller.select_options(
+                ref=ref,
+                values=[str(value) for value in values],
+            )
+            if result.get("success"):
+                return AdapterActionResult(
+                    success=True,
+                    action="select",
+                    decision="compat",
+                    data=result,
+                )
+            return AdapterActionResult(
+                success=False,
+                action="select",
+                decision="compat",
+                error=result.get("error", "Select failed"),
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+
+        if kind == "fill":
+            if not self._controller.is_connected:
+                return self._not_connected("act")
+            focus_error = await self._focus_target_if_requested(merged)
+            if focus_error:
+                return focus_error
+            fields = merged.get("fields")
+            if not isinstance(fields, list):
+                return self._invalid_argument(
+                    "act",
+                    "act.fill requires 'fields' array",
+                )
+            result = await self._controller.fill_fields(fields)
+            if result.get("success"):
+                return AdapterActionResult(
+                    success=True,
+                    action="fill",
+                    decision="compat",
+                    data=result,
+                )
+            return AdapterActionResult(
+                success=False,
+                action="fill",
+                decision="compat",
+                error="Fill completed with errors",
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+
+        if kind == "resize":
+            if not self._controller.is_connected:
+                return self._not_connected("act")
+            width = merged.get("width")
+            height = merged.get("height")
+            if not isinstance(width, (int, float)) or not isinstance(
+                height, (int, float)
+            ):
+                return self._invalid_argument(
+                    "act",
+                    "act.resize requires numeric width/height",
+                )
+            result = await self._controller.resize_viewport(int(width), int(height))
+            if result.get("success"):
+                return AdapterActionResult(
+                    success=True,
+                    action="resize",
+                    decision="compat",
+                    data=result,
+                )
+            return AdapterActionResult(
+                success=False,
+                action="resize",
+                decision="compat",
+                error=result.get("error", "Resize failed"),
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+
+        if kind == "wait":
+            time_ms = merged.get("timeMs")
+            if isinstance(time_ms, (int, float)):
+                wait_result = await self.wait(
+                    {
+                        "action": "wait",
+                        "seconds": max(0.0, float(time_ms) / 1000.0),
+                        **merged,
+                    }
+                )
+            else:
+                wait_result = await self.wait({"action": "wait", **merged})
+            return self._retag_action(wait_result, "wait")
+
+        if kind == "evaluate":
+            fn = merged.get("fn")
+            if isinstance(fn, str):
+                evaluate_result = await self.evaluate(
+                    {"action": "evaluate", "script": fn, **merged}
+                )
+            else:
+                evaluate_result = await self.evaluate({"action": "evaluate", **merged})
+            return self._retag_action(evaluate_result, "evaluate")
+
+        if kind == "close":
+            close_result = await self.close()
+            return self._retag_action(close_result, "close")
+
+        return AdapterActionResult(
+            success=False,
+            action="act",
+            decision="compat",
+            error=f"Unsupported act kind: {kind}",
+            error_code="ACTION_UNSUPPORTED",
+        )
+
     async def close(self) -> AdapterActionResult:
         await self._controller.close()
         return AdapterActionResult(
@@ -1422,6 +1637,27 @@ class BrowserUseCompatibilityAdapter:
             kind = "local"
         kind = kind.strip().lower()
         return "session" if kind == "session" else "local"
+
+    @staticmethod
+    def _retag_action(
+        result: AdapterActionResult,
+        action: str,
+    ) -> AdapterActionResult:
+        if result.action == action:
+            return result
+        data = dict(result.data)
+        if result.success:
+            data["action"] = action
+        return AdapterActionResult(
+            success=result.success,
+            action=action,
+            decision=result.decision,
+            data=data,
+            error=result.error,
+            error_code=result.error_code,
+            warnings=list(result.warnings),
+            deprecation=result.deprecation,
+        )
 
     @staticmethod
     def _invalid_argument(action: str, message: str) -> AdapterActionResult:
