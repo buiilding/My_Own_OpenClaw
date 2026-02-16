@@ -1671,3 +1671,70 @@ Result:
 - `27 passed, 3 warnings`
 
 This confirms behavior is preserved while consolidating duplicated watermark update policy.
+
+---
+
+# Refactor: Centralize Notification-Aware Error Responses in JSONRPCProtocol
+
+## Target
+Remove duplicated notification-response branching in:
+- `frontend/src/main/python/core/ipc_protocol.py`
+
+This is a maintainability refactor in the sidecar JSON-RPC request dispatch hot path.
+
+## Current Structure and Root Cause
+Before this refactor, `JSONRPCProtocol.handle_request(...)` repeated the same pattern for each validation/dispatch failure branch:
+1. create error response with `create_error_response(...)`
+2. return `None` for notifications or response payload for regular requests
+
+This pattern was duplicated across:
+- invalid JSON-RPC version
+- missing/non-string method
+- method not found
+- invalid params type
+- `JSONRPCError` and unexpected exception paths
+
+Root cause: notification-aware transport policy lived inline at each branch instead of one shared helper.
+
+## Refactor Plan
+1. Add one helper for notification-aware response suppression.
+2. Add one helper for notification-aware error response creation.
+3. Rewire all error branches in `handle_request(...)` to delegate to helpers.
+4. Keep external API and response shapes unchanged.
+5. Add regression coverage for notification error suppression behavior and run JSON-RPC tests.
+
+## Implemented Changes
+### Shared helpers
+- Added in `frontend/src/main/python/core/ipc_protocol.py`:
+  - `_notification_aware_response(response, is_notification=...)`
+  - `_notification_aware_error(request_id=..., code=..., message=..., data=..., is_notification=...)`
+
+### Handler rewiring
+- Updated `JSONRPCProtocol.handle_request(...)` to call helper methods for:
+  - validation errors
+  - method lookup errors
+  - params validation errors
+  - `JSONRPCError` passthrough
+  - unexpected internal errors
+
+Result:
+- removed repeated `return None if is_notification else response` blocks from central dispatch logic
+- kept response payload contract and notification behavior unchanged
+
+### Added test coverage
+- Updated `tests/sidecar/test_json_rpc_protocol.py`:
+  - `test_handle_request_notification_suppresses_error_response`
+
+This locks in the notification policy for error paths (no response emitted for notification requests).
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py
+```
+
+Result:
+- `26 passed in 0.03s`
+
+This confirms JSON-RPC behavior remains stable after centralizing notification-aware error handling.

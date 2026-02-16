@@ -110,6 +110,31 @@ class JSONRPCProtocol:
             error["data"] = data
         return self.create_response(request_id, error=error)
 
+    @staticmethod
+    def _notification_aware_response(
+        response: Dict[str, Any],
+        *,
+        is_notification: bool,
+    ) -> Optional[Dict[str, Any]]:
+        """Return None for notifications, otherwise return the response payload."""
+        return None if is_notification else response
+
+    def _notification_aware_error(
+        self,
+        *,
+        request_id: Any,
+        code: int,
+        message: str,
+        is_notification: bool,
+        data: Optional[Any] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Build an error response and suppress it for notifications."""
+        response = self.create_error_response(request_id, code, message, data)
+        return self._notification_aware_response(
+            response,
+            is_notification=is_notification,
+        )
+
     async def handle_request(self, request: Any) -> Optional[Dict[str, Any]]:
         """
         Handle a JSON-RPC request.
@@ -127,60 +152,60 @@ class JSONRPCProtocol:
 
         # Validate JSON-RPC version
         if request.get("jsonrpc") != "2.0":
-            response = self.create_error_response(
-                request_id,
-                self.INVALID_REQUEST,
-                "Invalid JSON-RPC version. Must be '2.0'",
+            return self._notification_aware_error(
+                request_id=request_id,
+                code=self.INVALID_REQUEST,
+                message="Invalid JSON-RPC version. Must be '2.0'",
+                is_notification=is_notification,
             )
-            return None if is_notification else response
         
         # Get method name
         method_name = request.get("method")
         if not method_name:
-            response = self.create_error_response(
-                request_id,
-                self.INVALID_REQUEST,
-                "Method name is required",
+            return self._notification_aware_error(
+                request_id=request_id,
+                code=self.INVALID_REQUEST,
+                message="Method name is required",
+                is_notification=is_notification,
             )
-            return None if is_notification else response
         if not isinstance(method_name, str):
-            response = self.create_error_response(
-                request_id,
-                self.INVALID_REQUEST,
-                "Method name must be a string",
+            return self._notification_aware_error(
+                request_id=request_id,
+                code=self.INVALID_REQUEST,
+                message="Method name must be a string",
+                is_notification=is_notification,
             )
-            return None if is_notification else response
         
         # Get method handler
         registered_method = self.methods.get(method_name)
         if registered_method is None:
-            response = self.create_error_response(
-                request_id,
-                self.METHOD_NOT_FOUND,
-                f"Method not found: {method_name}",
+            return self._notification_aware_error(
+                request_id=request_id,
+                code=self.METHOD_NOT_FOUND,
+                message=f"Method not found: {method_name}",
+                is_notification=is_notification,
             )
-            return None if is_notification else response
         
         # Get params
         params = request.get("params", {})
         if not isinstance(params, dict):
-            response = self.create_error_response(
-                request_id,
-                self.INVALID_PARAMS,
-                "Params must be an object",
+            return self._notification_aware_error(
+                request_id=request_id,
+                code=self.INVALID_PARAMS,
+                message="Params must be an object",
+                is_notification=is_notification,
             )
-            return None if is_notification else response
 
         if registered_method.is_callable and registered_method.handler_signature is not None:
             try:
                 registered_method.handler_signature.bind(**params)
             except TypeError as exc:
-                response = self.create_error_response(
-                    request_id,
-                    self.INVALID_PARAMS,
-                    f"Invalid params: {exc}",
+                return self._notification_aware_error(
+                    request_id=request_id,
+                    code=self.INVALID_PARAMS,
+                    message=f"Invalid params: {exc}",
+                    is_notification=is_notification,
                 )
-                return None if is_notification else response
         
         # Call handler
         try:
@@ -193,18 +218,26 @@ class JSONRPCProtocol:
                 result = handler
             
             response = self.create_response(request_id, result=result)
-            return None if is_notification else response
+            return self._notification_aware_response(
+                response,
+                is_notification=is_notification,
+            )
         except JSONRPCError as e:
-            response = self.create_error_response(request_id, e.code, e.message, e.data)
-            return None if is_notification else response
+            return self._notification_aware_error(
+                request_id=request_id,
+                code=e.code,
+                message=e.message,
+                data=e.data,
+                is_notification=is_notification,
+            )
         except Exception as e:
             logger.error(f"Error executing method {method_name}: {e}", exc_info=True)
-            response = self.create_error_response(
-                request_id,
-                self.INTERNAL_ERROR,
-                f"Internal error: {str(e)}",
+            return self._notification_aware_error(
+                request_id=request_id,
+                code=self.INTERNAL_ERROR,
+                message=f"Internal error: {str(e)}",
+                is_notification=is_notification,
             )
-            return None if is_notification else response
     
     async def process_line(self, line: str) -> Optional[Dict[str, Any]]:
         """

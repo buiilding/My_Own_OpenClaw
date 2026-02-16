@@ -61,6 +61,22 @@ async def test_handle_request_notification_returns_none_and_executes_handler():
 
 
 @pytest.mark.asyncio
+async def test_handle_request_notification_suppresses_error_response():
+    protocol = JSONRPCProtocol()
+
+    def handler():
+        return "ok"
+
+    protocol.register_method("ping", handler)
+
+    response = await protocol.handle_request(
+        {"jsonrpc": "2.0", "method": "ping", "params": ["bad"]}
+    )
+
+    assert response is None
+
+
+@pytest.mark.asyncio
 async def test_process_line_notification_returns_none():
     protocol = JSONRPCProtocol()
 
