@@ -27,6 +27,9 @@ This update delivers those tasks with compatibility-wrapper routing while preser
 - `frontend/src/main/python/tools/browser_use_adapter/controller_adapter.py`
   - Adds `BrowserUseCompatibilityAdapter` dispatch and action methods.
   - Adds factory seam `get_browser_use_adapter(...)` for testable injection.
+- `frontend/src/main/python/tools/browser_use_adapter/runtime_provider.py`
+  - Adds runtime-provider seam for adapter internals.
+  - Defaults to controller-backed provider and exposes future Browser Use runtime selection hook (`WINDIE_BROWSER_USE_RUNTIME`) with safe fallback.
 - `frontend/src/main/python/tools/browser_use_adapter/__init__.py`
   - Exposes adapter types/factory.
 
@@ -78,6 +81,7 @@ Additional routing update:
 - `extract` is now adapter-native (no legacy delegate).
 - `snapshot` is now adapter-native (no legacy delegate).
 - Removed now-unused `legacy_handlers` seam from adapter construction after delegate retirement.
+- Core session/tab actions (`connect`, `status`, `navigate`, `open`, `get_tabs`, `switch_tab`, `close`) now execute via runtime-provider seam inside adapter.
 
 Current Phase 2 routing result:
 
@@ -116,5 +120,5 @@ Additional regression assertions added in:
 
 ## Remaining Phase 2 Work
 
-- Current adapter implementation is still backed by legacy `BrowserController` internals.
+- Runtime-provider seam is now in place, but the default provider remains fully controller-backed.
 - Replace controller-backed adapter internals action-by-action with Browser Use runtime primitives while preserving the same adapter return contract.

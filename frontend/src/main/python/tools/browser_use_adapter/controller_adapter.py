@@ -13,6 +13,10 @@ import json
 import re
 from typing import Any, Mapping, Protocol
 
+from tools.browser_use_adapter.runtime_provider import (
+    BrowserRuntimeProvider,
+    get_browser_runtime_provider,
+)
 from tools.browser_use_adapter.types import AdapterActionResult
 
 SNAPSHOT_WAIT_STATES = frozenset({"load", "domcontentloaded", "networkidle", "commit"})
@@ -188,8 +192,10 @@ class BrowserUseCompatibilityAdapter:
     def __init__(
         self,
         controller: BrowserControllerLike,
+        runtime_provider: BrowserRuntimeProvider | None = None,
     ):
         self._controller = controller
+        self._runtime = runtime_provider or get_browser_runtime_provider(controller)
 
     async def execute(
         self,
@@ -286,13 +292,13 @@ class BrowserUseCompatibilityAdapter:
         )
 
     async def connect(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        if self._controller.is_connected:
-            await self._controller.close()
+        if self._runtime.is_connected:
+            await self._runtime.close()
 
         mode = self._value_as_str(args.get("mode")) or "user_chrome"
         try:
             if mode == "user_chrome":
-                result = await self._controller.auto_connect_to_chrome(
+                result = await self._runtime.connect_user_chrome(
                     cdp_url=self._value_as_str(args.get("cdp_url"))
                     or "http://127.0.0.1:9222",
                     auto_launch=True,
@@ -308,7 +314,7 @@ class BrowserUseCompatibilityAdapter:
                         "(connected to existing Chrome)"
                     )
             elif mode == "managed":
-                result = await self._controller.launch_managed_browser(
+                result = await self._runtime.connect_managed(
                     headless=bool(args.get("headless", False)),
                     executable_path=self._value_as_str(args.get("executable_path")),
                 )
@@ -353,7 +359,7 @@ class BrowserUseCompatibilityAdapter:
         )
 
     async def status(self) -> AdapterActionResult:
-        status = await self._controller.get_status()
+        status = await self._runtime.get_status()
         return AdapterActionResult(
             success=True,
             action="status",
@@ -785,7 +791,7 @@ class BrowserUseCompatibilityAdapter:
         )
 
     async def navigate(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        if not self._controller.is_connected:
+        if not self._runtime.is_connected:
             return self._not_connected("navigate")
 
         focus_error = await self._focus_target_if_requested(args)
@@ -796,9 +802,9 @@ class BrowserUseCompatibilityAdapter:
         if not url:
             return self._invalid_argument("navigate", "Missing required 'url' parameter")
 
-        result = await self._controller.navigate(
-            url,
-            self._value_as_str(args.get("wait_until")) or "load",
+        result = await self._runtime.navigate(
+            url=url,
+            wait_until=self._value_as_str(args.get("wait_until")) or "load",
         )
         if not result.get("success"):
             return AdapterActionResult(
@@ -822,11 +828,11 @@ class BrowserUseCompatibilityAdapter:
         )
 
     async def open(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        if not self._controller.is_connected:
+        if not self._runtime.is_connected:
             return self._not_connected("open")
 
         url = self._extract_url(args) or "about:blank"
-        result = await self._controller.open_tab(url=url)
+        result = await self._runtime.open_tab(url=url)
         if not result.get("success"):
             return AdapterActionResult(
                 success=False,
@@ -1083,10 +1089,10 @@ class BrowserUseCompatibilityAdapter:
         )
 
     async def get_tabs(self) -> AdapterActionResult:
-        if not self._controller.is_connected:
+        if not self._runtime.is_connected:
             return self._not_connected("get_tabs")
 
-        tabs = await self._controller.get_tabs()
+        tabs = await self._runtime.get_tabs()
         return AdapterActionResult(
             success=True,
             action="get_tabs",
@@ -1094,19 +1100,12 @@ class BrowserUseCompatibilityAdapter:
             data={
                 "action": "get_tabs",
                 "tab_count": len(tabs),
-                "tabs": [
-                    {
-                        "target_id": tab.target_id,
-                        "title": tab.title,
-                        "url": tab.url,
-                    }
-                    for tab in tabs
-                ],
+                "tabs": [self._tab_to_payload(tab) for tab in tabs],
             },
         )
 
     async def switch_tab(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        if not self._controller.is_connected:
+        if not self._runtime.is_connected:
             return self._not_connected("switch_tab")
 
         target_id = self._extract_target_id(args)
@@ -1116,7 +1115,7 @@ class BrowserUseCompatibilityAdapter:
                 "Missing required 'target_id' parameter",
             )
 
-        switched = await self._controller.switch_tab(target_id)
+        switched = await self._runtime.switch_tab(target_id)
         if not switched:
             return AdapterActionResult(
                 success=False,
@@ -1126,7 +1125,7 @@ class BrowserUseCompatibilityAdapter:
                 error_code="TAB_NOT_FOUND",
             )
 
-        status = await self._controller.get_status()
+        status = await self._runtime.get_status()
         return AdapterActionResult(
             success=True,
             action="switch_tab",
@@ -2003,7 +2002,7 @@ class BrowserUseCompatibilityAdapter:
         )
 
     async def close(self) -> AdapterActionResult:
-        await self._controller.close()
+        await self._runtime.close()
         return AdapterActionResult(
             success=True,
             action="close",
@@ -2021,7 +2020,7 @@ class BrowserUseCompatibilityAdapter:
         target_id = self._extract_target_id(args)
         if not target_id:
             return None
-        switched = await self._controller.switch_tab(target_id)
+        switched = await self._runtime.switch_tab(target_id)
         if switched:
             return None
         return AdapterActionResult(
@@ -2054,6 +2053,22 @@ class BrowserUseCompatibilityAdapter:
             stripped = value.strip()
             return stripped or None
         return None
+
+    @staticmethod
+    def _tab_to_payload(tab: Any) -> dict[str, str]:
+        if isinstance(tab, Mapping):
+            target_id = tab.get("target_id", "")
+            title = tab.get("title", "")
+            url = tab.get("url", "")
+        else:
+            target_id = getattr(tab, "target_id", "")
+            title = getattr(tab, "title", "")
+            url = getattr(tab, "url", "")
+        return {
+            "target_id": target_id if isinstance(target_id, str) else str(target_id),
+            "title": title if isinstance(title, str) else str(title),
+            "url": url if isinstance(url, str) else str(url),
+        }
 
     @staticmethod
     async def _maybe_await(value: Any) -> Any:
@@ -2530,8 +2545,10 @@ class BrowserUseCompatibilityAdapter:
 
 def get_browser_use_adapter(
     controller: BrowserControllerLike,
+    runtime_provider: BrowserRuntimeProvider | None = None,
 ) -> BrowserUseCompatibilityAdapter:
     """Factory seam for adapter injection in tests."""
     return BrowserUseCompatibilityAdapter(
         controller,
+        runtime_provider=runtime_provider,
     )
