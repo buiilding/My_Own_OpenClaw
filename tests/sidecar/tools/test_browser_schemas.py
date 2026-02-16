@@ -9,6 +9,7 @@ from tools.browser.schemas import (
     BrowserConnectArgs,
     BrowserNavigateArgs,
     BrowserSnapshotArgs,
+    BrowserExtractArgs,
     BrowserClickArgs,
     BrowserTypeArgs,
     BrowserPressArgs,
@@ -26,7 +27,7 @@ from tools.browser.schemas import (
 
 class TestBrowserConnectArgs:
     """Test BrowserConnectArgs schema."""
-    
+
     def test_valid_user_chrome(self):
         """Test valid user Chrome connect args."""
         args = BrowserConnectArgs(
@@ -36,7 +37,7 @@ class TestBrowserConnectArgs:
         )
         assert args.mode == "user_chrome"
         assert args.cdp_url == "http://127.0.0.1:9222"
-    
+
     def test_valid_managed(self):
         """Test valid managed browser args."""
         args = BrowserConnectArgs(
@@ -46,7 +47,7 @@ class TestBrowserConnectArgs:
         )
         assert args.mode == "managed"
         assert args.headless is True
-    
+
     def test_invalid_cdp_url_non_localhost(self):
         """Test that non-localhost CDP URL is rejected."""
         with pytest.raises(ValidationError, match="localhost"):
@@ -55,7 +56,7 @@ class TestBrowserConnectArgs:
                 mode="user_chrome",
                 cdp_url="http://example.com:9222",
             )
-    
+
     def test_valid_localhost_variations(self):
         """Test various localhost formats are accepted."""
         for url in ["http://localhost:9222", "http://127.0.0.1:9222"]:
@@ -69,7 +70,7 @@ class TestBrowserConnectArgs:
 
 class TestBrowserNavigateArgs:
     """Test BrowserNavigateArgs schema."""
-    
+
     def test_valid_navigate(self):
         """Test valid navigate args."""
         args = BrowserNavigateArgs(
@@ -78,7 +79,7 @@ class TestBrowserNavigateArgs:
         )
         assert args.url == "https://example.com"
         assert args.wait_until == "load"
-    
+
     def test_valid_with_wait_until(self):
         """Test navigate with custom wait_until."""
         args = BrowserNavigateArgs(
@@ -91,14 +92,14 @@ class TestBrowserNavigateArgs:
 
 class TestBrowserSnapshotArgs:
     """Test BrowserSnapshotArgs schema."""
-    
+
     def test_valid_ai_snapshot(self):
         """Test valid AI snapshot args."""
         args = BrowserSnapshotArgs(action="snapshot")
         assert args.format == "ai"
         assert args.wait_until == "load"
         assert args.max_chars is None
-    
+
     def test_valid_aria_snapshot(self):
         """Test valid ARIA snapshot args."""
         args = BrowserSnapshotArgs(
@@ -122,17 +123,17 @@ class TestBrowserSnapshotArgs:
             mode="efficient",
         )
         assert args.mode == "efficient"
-    
+
     def test_max_chars_bounds(self):
         """Test max_chars validation."""
         # Too low
         with pytest.raises(ValidationError):
             BrowserSnapshotArgs(action="snapshot", max_chars=50)
-        
+
         # Too high
         with pytest.raises(ValidationError):
             BrowserSnapshotArgs(action="snapshot", max_chars=200000)
-        
+
         # Valid
         args = BrowserSnapshotArgs(action="snapshot", max_chars=10000)
         assert args.max_chars == 10000
@@ -150,9 +151,32 @@ class TestBrowserSnapshotArgs:
             BrowserSnapshotArgs(action="snapshot", limit=0)
 
 
+class TestBrowserExtractArgs:
+    """Test BrowserExtractArgs schema."""
+
+    def test_valid_extract(self):
+        """Test valid extract args."""
+        args = BrowserExtractArgs(action="extract", query="find pricing tiers")
+        assert args.action == "extract"
+        assert args.query == "find pricing tiers"
+        assert args.extract_links is False
+        assert args.start_from_char == 0
+
+    def test_extract_bounds(self):
+        """Test extract argument bounds."""
+        with pytest.raises(ValidationError):
+            BrowserExtractArgs(action="extract", query="")
+
+        with pytest.raises(ValidationError):
+            BrowserExtractArgs(action="extract", query="ok", start_from_char=-1)
+
+        with pytest.raises(ValidationError):
+            BrowserExtractArgs(action="extract", query="ok", max_chars=50)
+
+
 class TestBrowserClickArgs:
     """Test BrowserClickArgs schema."""
-    
+
     def test_valid_click(self):
         """Test valid click args."""
         args = BrowserClickArgs(
@@ -162,7 +186,7 @@ class TestBrowserClickArgs:
         assert args.ref == "5"
         assert args.button == "left"
         assert args.double_click is False
-    
+
     def test_double_click(self):
         """Test double click args."""
         args = BrowserClickArgs(
@@ -171,7 +195,7 @@ class TestBrowserClickArgs:
             double_click=True,
         )
         assert args.double_click is True
-    
+
     def test_right_click(self):
         """Test right click args."""
         args = BrowserClickArgs(
@@ -184,7 +208,7 @@ class TestBrowserClickArgs:
 
 class TestBrowserTypeArgs:
     """Test BrowserTypeArgs schema."""
-    
+
     def test_valid_type(self):
         """Test valid type args."""
         args = BrowserTypeArgs(
@@ -195,7 +219,7 @@ class TestBrowserTypeArgs:
         assert args.ref == "3"
         assert args.text == "Hello World"
         assert args.submit is False
-    
+
     def test_type_with_submit(self):
         """Test type with submit."""
         args = BrowserTypeArgs(
@@ -205,7 +229,7 @@ class TestBrowserTypeArgs:
             submit=True,
         )
         assert args.submit is True
-    
+
     def test_text_too_long(self):
         """Test text length validation."""
         with pytest.raises(ValidationError):
@@ -218,7 +242,7 @@ class TestBrowserTypeArgs:
 
 class TestBrowserPressArgs:
     """Test BrowserPressArgs schema."""
-    
+
     def test_valid_press(self):
         """Test valid key press args."""
         args = BrowserPressArgs(
@@ -230,13 +254,13 @@ class TestBrowserPressArgs:
 
 class TestBrowserScrollArgs:
     """Test BrowserScrollArgs schema."""
-    
+
     def test_valid_scroll(self):
         """Test valid scroll args."""
         args = BrowserScrollArgs(action="scroll")
         assert args.direction == "down"
         assert args.amount == 500
-    
+
     def test_scroll_up(self):
         """Test scroll up."""
         args = BrowserScrollArgs(
@@ -246,13 +270,13 @@ class TestBrowserScrollArgs:
         )
         assert args.direction == "up"
         assert args.amount == 1000
-    
+
     def test_scroll_amount_bounds(self):
         """Test scroll amount validation."""
         # Too low
         with pytest.raises(ValidationError):
             BrowserScrollArgs(action="scroll", amount=50)
-        
+
         # Too high
         with pytest.raises(ValidationError):
             BrowserScrollArgs(action="scroll", amount=10000)
@@ -260,13 +284,13 @@ class TestBrowserScrollArgs:
 
 class TestBrowserScreenshotArgs:
     """Test BrowserScreenshotArgs schema."""
-    
+
     def test_valid_screenshot(self):
         """Test valid screenshot args."""
         args = BrowserScreenshotArgs(action="screenshot")
         assert args.full_page is False
         assert args.ref is None
-    
+
     def test_full_page_screenshot(self):
         """Test full page screenshot."""
         args = BrowserScreenshotArgs(
@@ -274,7 +298,7 @@ class TestBrowserScreenshotArgs:
             full_page=True,
         )
         assert args.full_page is True
-    
+
     def test_element_screenshot(self):
         """Test element screenshot."""
         args = BrowserScreenshotArgs(
@@ -296,12 +320,12 @@ class TestBrowserScreenshotArgs:
 
 class TestBrowserWaitArgs:
     """Test BrowserWaitArgs schema."""
-    
+
     def test_valid_wait(self):
         """Test valid wait args."""
         args = BrowserWaitArgs(action="wait")
         assert args.state == "networkidle"
-    
+
     def test_wait_seconds(self):
         """Test wait with seconds."""
         args = BrowserWaitArgs(
@@ -309,13 +333,13 @@ class TestBrowserWaitArgs:
             seconds=5.0,
         )
         assert args.seconds == 5.0
-    
+
     def test_wait_seconds_bounds(self):
         """Test wait seconds validation."""
         # Negative
         with pytest.raises(ValidationError):
             BrowserWaitArgs(action="wait", seconds=-1)
-        
+
         # Too high
         with pytest.raises(ValidationError):
             BrowserWaitArgs(action="wait", seconds=120)
@@ -323,7 +347,7 @@ class TestBrowserWaitArgs:
 
 class TestBrowserGetTabsArgs:
     """Test BrowserGetTabsArgs schema."""
-    
+
     def test_valid_get_tabs(self):
         """Test valid get_tabs args."""
         args = BrowserGetTabsArgs(action="get_tabs")
@@ -332,7 +356,7 @@ class TestBrowserGetTabsArgs:
 
 class TestBrowserSwitchTabArgs:
     """Test BrowserSwitchTabArgs schema."""
-    
+
     def test_valid_switch_tab(self):
         """Test valid switch_tab args."""
         args = BrowserSwitchTabArgs(
@@ -344,7 +368,7 @@ class TestBrowserSwitchTabArgs:
 
 class TestBrowserEvaluateArgs:
     """Test BrowserEvaluateArgs schema."""
-    
+
     def test_valid_evaluate(self):
         """Test valid evaluate args."""
         args = BrowserEvaluateArgs(
@@ -352,7 +376,7 @@ class TestBrowserEvaluateArgs:
             script="window.location.href",
         )
         assert args.script == "window.location.href"
-    
+
     def test_script_too_long(self):
         """Test script length validation."""
         with pytest.raises(ValidationError):
@@ -364,7 +388,7 @@ class TestBrowserEvaluateArgs:
 
 class TestBrowserCloseArgs:
     """Test BrowserCloseArgs schema."""
-    
+
     def test_valid_close(self):
         """Test valid close args."""
         args = BrowserCloseArgs(action="close")
@@ -373,7 +397,7 @@ class TestBrowserCloseArgs:
 
 class TestSchemaRegistry:
     """Test schema registry functions."""
-    
+
     def test_get_browser_schema_valid(self):
         """Test getting valid schema."""
         schema = get_browser_schema("click")
@@ -386,12 +410,17 @@ class TestSchemaRegistry:
         assert get_browser_schema("errors") is not None
         assert get_browser_schema("requests") is not None
         assert get_browser_schema("set_offline") is not None
-    
+
+    def test_get_browser_schema_extract(self):
+        """Test getting extract schema."""
+        schema = get_browser_schema("extract")
+        assert schema is BrowserExtractArgs
+
     def test_get_browser_schema_invalid(self):
         """Test getting invalid schema."""
         schema = get_browser_schema("nonexistent")
         assert schema is None
-    
+
     def test_validate_browser_args_valid(self):
         """Test validating valid args."""
         is_valid, error = validate_browser_args("click", {"ref": "5"})
@@ -406,13 +435,13 @@ class TestSchemaRegistry:
         )
         assert is_valid is True
         assert error is None
-    
+
     def test_validate_browser_args_invalid(self):
         """Test validating invalid args."""
         is_valid, error = validate_browser_args("click", {})
         assert is_valid is False
         assert error is not None
-    
+
     def test_validate_browser_args_unknown_action(self):
         """Test validating unknown action."""
         is_valid, error = validate_browser_args("unknown", {})
