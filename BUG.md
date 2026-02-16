@@ -171,3 +171,35 @@ In `frontend/src/main/wakeword_bridge.cjs`, `resultBuffer` was not cleared when 
 - Re-ran wakeword bridge suite:
   - `cd frontend && npm run test -- tests/frontend/WakewordBridge.test.cjs`
   - Result: `4 passed`.
+
+---
+
+## [x] Bug Report: LocalBackend Stores Invalid Memory When Query/Response Is Empty
+
+### Summary
+
+In `frontend/src/main/python/local_backend.py`, `_handle_store_memory(...)` accepted empty/missing `user_query` or `assistant_response` and still attempted to store memory content.
+
+### Root Cause
+
+- Unlike `memory_service.py`, `LocalBackend._handle_store_memory(...)` had no required-field validation.
+- Calls containing empty values could produce low-quality entries such as `"User: \nAssistant: hello"` or `"User: None\nAssistant: None"`.
+
+### Why It's Problematic
+
+- Pollutes local episodic memory with invalid interactions.
+- Can degrade retrieval quality and semantic summarization relevance.
+- Creates inconsistent behavior between sidecar memory paths (`memory_service.py` validates; `local_backend.py` did not).
+
+### Fix
+
+- Added explicit input validation in `LocalBackend._handle_store_memory(...)`:
+  - Return `{"success": false, "error": "Missing user_query or assistant_response"}` when required fields are empty/missing.
+
+### Validation
+
+- Added regression test in `tests/sidecar/test_local_backend.py`:
+  - `test_handle_store_memory_requires_query_and_response`
+- Re-ran local backend sidecar tests:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py`
+  - Result: `25 passed`.
