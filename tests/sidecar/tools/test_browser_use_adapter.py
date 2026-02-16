@@ -306,6 +306,21 @@ class TestBrowserUseCompatibilityAdapter:
         controller.close = mock.AsyncMock(
             side_effect=AssertionError("controller.close should not be called directly")
         )
+        controller.click = mock.AsyncMock(
+            side_effect=AssertionError("controller.click should not be called directly")
+        )
+        controller.wait_for_load = mock.AsyncMock(
+            side_effect=AssertionError("controller.wait_for_load should not be called directly")
+        )
+        controller.evaluate = mock.AsyncMock(
+            side_effect=AssertionError("controller.evaluate should not be called directly")
+        )
+        controller.set_input_files = mock.AsyncMock(
+            side_effect=AssertionError("controller.set_input_files should not be called directly")
+        )
+        controller.get_page_snapshot = mock.AsyncMock(
+            side_effect=AssertionError("controller.get_page_snapshot should not be called directly")
+        )
 
         runtime = SimpleNamespace()
         runtime.is_connected = True
@@ -346,6 +361,22 @@ class TestBrowserUseCompatibilityAdapter:
             ]
         )
         runtime.switch_tab = mock.AsyncMock(return_value=True)
+        runtime.click = mock.AsyncMock(return_value={"success": True})
+        runtime.type_text = mock.AsyncMock(return_value={"success": True})
+        runtime.press_key = mock.AsyncMock(return_value={"success": True})
+        runtime.scroll = mock.AsyncMock(return_value={"success": True})
+        runtime.wait_for_load = mock.AsyncMock(return_value={"success": True})
+        runtime.evaluate = mock.AsyncMock(return_value={"success": True, "result": {"ok": True}})
+        runtime.screenshot = mock.AsyncMock(return_value=b"img")
+        runtime.get_page_snapshot = mock.AsyncMock(
+            return_value=DummySnapshot(
+                text="runtime snapshot",
+                url="https://runtime.example/snapshot",
+                title="Runtime Snapshot",
+                ref_count=1,
+            )
+        )
+        runtime.set_input_files = mock.AsyncMock(return_value={"success": True, "uploaded_count": 1})
 
         adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
 
@@ -396,6 +427,43 @@ class TestBrowserUseCompatibilityAdapter:
         close_result = await adapter.execute("close", {"action": "close"})
         assert close_result.success is True
         runtime.close.assert_awaited_once()
+
+        click_result = await adapter.execute("click", {"action": "click", "ref": "e1"})
+        assert click_result.success is True
+        runtime.click.assert_awaited_once_with(
+            ref="e1",
+            double_click=False,
+            button="left",
+        )
+
+        wait_result = await adapter.execute("wait", {"action": "wait", "state": "load"})
+        assert wait_result.success is True
+        assert wait_result.data["type"] == "load_state"
+
+        evaluate_result = await adapter.execute(
+            "evaluate",
+            {"action": "evaluate", "script": "1 + 1"},
+        )
+        assert evaluate_result.success is True
+        runtime.evaluate.assert_awaited_with(script="1 + 1")
+
+        upload_result = await adapter.execute(
+            "upload",
+            {"action": "upload", "ref": "e1", "paths": ["/tmp/file.txt"]},
+        )
+        assert upload_result.success is True
+        runtime.set_input_files.assert_awaited_once_with(
+            ref="e1",
+            paths=["/tmp/file.txt"],
+        )
+
+        snapshot_result = await adapter.execute(
+            "snapshot",
+            {"action": "snapshot", "format": "ai"},
+        )
+        assert snapshot_result.success is True
+        assert snapshot_result.data["snapshot"] == "runtime snapshot"
+        runtime.get_page_snapshot.assert_awaited()
 
     def test_runtime_factory_falls_back_to_controller_provider(self, make_controller):
         controller = make_controller()
