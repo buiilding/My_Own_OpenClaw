@@ -1,4 +1,5 @@
 import sys
+import builtins
 from pathlib import Path
 
 frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
@@ -28,6 +29,77 @@ def test_is_binary_file_null_bytes(tmp_path: Path):
     assert file_utils.is_binary_file(str(binary_file)) is True
 
 
+def test_is_binary_file_recognizes_binary_extension(tmp_path: Path):
+    image_file = tmp_path / "photo.jpg"
+    image_file.write_text("plain text but binary extension")
+
+    assert file_utils.is_binary_file(str(image_file)) is True
+
+
+def test_is_binary_file_nonexistent_path_returns_false(tmp_path: Path):
+    missing = tmp_path / "missing.txt"
+
+    assert file_utils.is_binary_file(str(missing)) is False
+
+
+def test_is_binary_file_low_printable_ratio_detects_binary(tmp_path: Path):
+    suspicious = tmp_path / "payload.dat"
+    suspicious.write_bytes(b"\x01\x02\x03\x04abc")
+
+    assert file_utils.is_binary_file(str(suspicious)) is True
+
+
+def test_is_text_file_is_inverse_of_binary_detection(tmp_path: Path):
+    text_file = tmp_path / "notes.md"
+    text_file.write_text("# hello")
+
+    assert file_utils.is_text_file(str(text_file)) is True
+
+
+def test_detect_encoding_returns_detector_value(monkeypatch, tmp_path: Path):
+    text_file = tmp_path / "encoded.txt"
+    text_file.write_bytes(b"dummy-bytes")
+
+    class DummyChardet:
+        @staticmethod
+        def detect(_raw):
+            return {"encoding": "utf-16"}
+
+    monkeypatch.setitem(sys.modules, "chardet", DummyChardet)
+
+    assert file_utils.detect_encoding(str(text_file)) == "utf-16"
+
+
+def test_detect_encoding_falls_back_to_utf8_on_import_error(monkeypatch, tmp_path: Path):
+    text_file = tmp_path / "encoded.txt"
+    text_file.write_bytes(b"dummy-bytes")
+
+    original_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == "chardet":
+            raise ImportError("missing")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+
+    assert file_utils.detect_encoding(str(text_file)) == "utf-8"
+
+
+def test_detect_encoding_falls_back_to_utf8_on_runtime_error(monkeypatch, tmp_path: Path):
+    text_file = tmp_path / "encoded.txt"
+    text_file.write_bytes(b"dummy-bytes")
+
+    class BrokenChardet:
+        @staticmethod
+        def detect(_raw):
+            raise RuntimeError("boom")
+
+    monkeypatch.setitem(sys.modules, "chardet", BrokenChardet)
+
+    assert file_utils.detect_encoding(str(text_file)) == "utf-8"
+
+
 def test_gitignore_utils_without_pathspec(monkeypatch, tmp_path: Path):
     monkeypatch.setattr(gitignore_utils, "pathspec", None)
 
@@ -48,3 +120,25 @@ def test_is_ignored_by_any_uses_specs():
     specs = [("/root", DummySpec("a.txt"))]
     assert gitignore_utils.is_ignored_by_any("/root/a.txt", specs) is True
     assert gitignore_utils.is_ignored_by_any("/root/b.txt", specs) is False
+
+
+def test_is_ignored_normalizes_windows_separators():
+    class DummySpec:
+        def __init__(self):
+            self.last_path = None
+
+        def match_file(self, path):
+            self.last_path = path
+            return path == "folder/file.txt"
+
+    spec = DummySpec()
+    assert gitignore_utils.is_ignored("folder\\file.txt", spec) is True
+    assert spec.last_path == "folder/file.txt"
+
+
+def test_is_ignored_returns_false_when_spec_raises():
+    class BrokenSpec:
+        def match_file(self, _path):
+            raise RuntimeError("boom")
+
+    assert gitignore_utils.is_ignored("folder/file.txt", BrokenSpec()) is False
