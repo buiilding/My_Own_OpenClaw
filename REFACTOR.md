@@ -1410,3 +1410,67 @@ Result:
 - `24 passed in 1.40s`
 
 This confirms parser behavior is preserved while reducing unnecessary executor overhead on plain-text responses.
+
+---
+
+# Refactor: Skip Parser Executor for Responses Missing Tool-Call Root Key
+
+## Target
+Reduce unnecessary parse-offload work in:
+- `backend/src/llm/parser.py`
+
+This is a performance + maintainability refactor on a central trust-boundary parsing path.
+
+## Current Structure and Root Cause
+After the previous plain-text fast path, `ResponseParser` still offloaded many non-tool responses when they contained `{`:
+- JSON status/debug blobs like `{"status":"ok"}`
+- conversational text snippets with braces
+
+These responses cannot produce tool calls when they do not contain the configured schema root key (default: `functionCall`), but they still paid executor scheduling + parse strategy overhead.
+
+Root cause: fast-path gating checked for `{` only, without using schema-level knowledge (`ToolCallSchema.root_key`) to reject impossible tool-call payloads.
+
+## Refactor Plan
+1. Refine parser fast-path gating to require:
+   - JSON-object delimiter (`{`)
+   - configured schema root key presence in response text
+2. Keep trust-boundary behavior unchanged:
+   - type validation
+   - response size limits
+   - timeout/validation semantics for parse-capable responses
+3. Preserve custom schema support by reading `self.schema.root_key` dynamically.
+4. Add focused regression tests for:
+   - non-tool JSON skipping executor
+   - custom schema root key still parsing successfully
+5. Run parser-focused backend tests.
+
+## Implemented Changes
+### Root-key aware fast path
+- Updated `backend/src/llm/parser.py`:
+  - changed `_can_contain_tool_call(...)` from static delimiter-only check to instance method
+  - added configured `root_key` presence check before executor offload
+  - retained object-delimiter gate and debug logging for each skip reason
+
+Result:
+- parser now short-circuits more non-tool responses before executor scheduling
+- parsing behavior for tool-call-capable responses is unchanged
+- custom schema root keys remain supported
+
+## Added Test Coverage
+- Updated `tests/backend/test_response_parser.py`:
+  - `test_parse_response_non_tool_json_fast_path_skips_executor_creation`
+  - `test_parse_response_respects_custom_schema_root_key`
+
+These tests lock in both optimization behavior and schema compatibility.
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_response_parser.py tests/backend/test_response_parser_limits.py tests/backend/test_parser_extraction.py
+```
+
+Result:
+- `26 passed in 1.33s`
+
+This confirms root-key-aware fast-path optimization preserves parser correctness while reducing avoidable parse-offload work.
