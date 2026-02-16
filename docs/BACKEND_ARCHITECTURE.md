@@ -553,10 +553,10 @@ BaseException
 
 ```
 tests/backend/
-├── test_agent_system.py
-├── test_tool_execution.py
-├── test_llm_integration.py
-└── test_parser_helpers.py
+├── test_llm_client.py
+├── test_interaction_loop.py
+├── test_tool_result_orchestrator.py
+└── test_websocket_message_handler.py
 ```
 
 ### Testing Strategy
