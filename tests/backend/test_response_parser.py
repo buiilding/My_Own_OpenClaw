@@ -3,6 +3,7 @@ import pytest
 from backend.src.core.config.models import AppConfig, SecurityLimits
 from backend.src.core.infrastructure.exceptions import ParseValidationError
 from backend.src.llm.parser import ParsedToolCall, ResponseParser
+from backend.src.llm.parser_types import ToolCallSchema
 from backend.src.tools.categorization import ToolDomain
 
 
@@ -24,12 +25,16 @@ class DummyRegistry:
         return self._tools.get(name)
 
 
-def _make_parser(tools, limits=None):
+def _make_parser(tools, limits=None, schema=None):
     config = AppConfig(
         interaction_mode="agent",
         security_limits=limits or SecurityLimits(),
     )
-    return ResponseParser(config=config, tool_registry=DummyRegistry(tools))
+    return ResponseParser(
+        config=config,
+        tool_registry=DummyRegistry(tools),
+        schema=schema,
+    )
 
 
 @pytest.mark.asyncio
@@ -142,6 +147,35 @@ async def test_parse_response_plain_text_fast_path_skips_executor_creation():
     assert parsed.tool_calls == []
     assert parsed.text_content == "hello from assistant"
     assert parser._executor is None
+
+
+@pytest.mark.asyncio
+async def test_parse_response_non_tool_json_fast_path_skips_executor_creation():
+    parser = _make_parser([DummyTool("read_file", ToolDomain.FILESYSTEM)])
+    assert parser._executor is None
+
+    parsed = await parser.parse_response('{"status":"ok","count":2}')
+
+    assert parsed.has_tool_calls is False
+    assert parsed.tool_calls == []
+    assert parsed.text_content == '{"status":"ok","count":2}'
+    assert parser._executor is None
+
+
+@pytest.mark.asyncio
+async def test_parse_response_respects_custom_schema_root_key():
+    parser = _make_parser(
+        [DummyTool("read_file", ToolDomain.FILESYSTEM)],
+        schema=ToolCallSchema(root_key="tool"),
+    )
+
+    parsed = await parser.parse_response(
+        '{"tool":{"name":"read_file","args":{"file_path":"/tmp/custom"}}}'
+    )
+
+    assert parsed.has_tool_calls is True
+    assert parsed.tool_calls[0].tool_name == "read_file"
+    assert parsed.tool_calls[0].parameters["file_path"] == "/tmp/custom"
 
 
 def test_parse_sync_skips_redundant_second_pass_text_removal(monkeypatch):

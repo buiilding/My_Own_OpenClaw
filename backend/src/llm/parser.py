@@ -177,9 +177,6 @@ class ResponseParser:
             )
 
         if not self._can_contain_tool_call(response):
-            logger.debug(
-                "Skipping parser executor: response contains no JSON object start delimiter",
-            )
             return ParsedResponse(
                 original_response=response,
                 tool_calls=[],
@@ -209,15 +206,29 @@ class ResponseParser:
 
         return parsed_response
 
-    @staticmethod
-    def _can_contain_tool_call(response: str) -> bool:
+    def _can_contain_tool_call(self, response: str) -> bool:
         """
-        Fast reject for plain-text responses.
+        Fast reject for responses that cannot contain configured tool-call JSON.
 
-        Current supported tool-call schemas are JSON-object based, so responses
-        without an object start delimiter cannot contain parseable tool calls.
+        Supported schemas are JSON-object based, so we first require an object
+        start delimiter. We then require the configured root key to be present
+        in the raw response text before invoking executor-based parsing.
         """
-        return "{" in response
+        if "{" not in response:
+            logger.debug(
+                "Skipping parser executor: response contains no JSON object start delimiter",
+            )
+            return False
+
+        root_key = self.schema.root_key
+        if isinstance(root_key, str) and root_key and root_key not in response:
+            logger.debug(
+                "Skipping parser executor: response missing tool-call root key '%s'",
+                root_key,
+            )
+            return False
+
+        return True
 
     def _parse_sync(self, response: str) -> ParsedResponse:
         """
