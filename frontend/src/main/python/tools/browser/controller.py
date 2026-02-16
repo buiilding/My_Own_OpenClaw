@@ -1509,29 +1509,12 @@ class BrowserController:
         title = await self._page.title()
         url = self._page.url
 
-        # Use Playwright's accessibility snapshot
-        snapshot = await self._page.accessibility.snapshot()
-
-        def format_node(node, depth=0):
-            lines = []
-            indent = "  " * depth
-            role = node.get("role", "")
-            name = node.get("name", "")
-
-            if role and role not in ["generic", "none"]:
-                line = f"{indent}- {role}"
-                if name:
-                    line += f': "{name}"'
-                lines.append(line)
-
-            for child in node.get("children", []):
-                lines.extend(format_node(child, depth + 1))
-
-            return lines
-
-        lines = format_node(snapshot)
+        # Playwright Python now exposes aria snapshot on Locator instead of
+        # Page.accessibility.
+        raw_snapshot = await self._page.locator(":root").aria_snapshot()
+        body_text = str(raw_snapshot or "")
         snapshot_text = f"Title: {title}\nURL: {url}\n\nAccessibility Tree:\n"
-        snapshot_text += "\n".join(lines)
+        snapshot_text += body_text
         if max_chars > 0 and len(snapshot_text) > max_chars:
             suffix = "\n... (truncated)"
             if max_chars <= len(suffix):
