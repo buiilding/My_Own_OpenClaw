@@ -124,9 +124,11 @@ class TestBrowserControllerBasics:
         mock_page = mock.AsyncMock()
         
         mock_page.url = "about:blank"
-        mock_context.new_page.return_value = mock_page
-        mock_browser.new_context.return_value = mock_context
-        mock_pw.chromium.launch = mock.AsyncMock(return_value=mock_browser)
+        mock_context.pages = [mock_page]
+        mock_context.browser = mock_browser
+        mock_pw.chromium.launch_persistent_context = mock.AsyncMock(
+            return_value=mock_context
+        )
         mock_playwright.return_value.start = mock.AsyncMock(return_value=mock_pw)
         
         controller = BrowserController()
@@ -134,6 +136,10 @@ class TestBrowserControllerBasics:
         
         assert result["status"] == "launched"
         assert result["mode"] == "managed"
+        mock_pw.chromium.launch_persistent_context.assert_awaited_once()
+        _, kwargs = mock_pw.chromium.launch_persistent_context.await_args
+        assert kwargs["user_data_dir"] == "/tmp/windieos_browser_test"
+        assert "--user-data-dir=/tmp/windieos_browser_test" not in kwargs["args"]
     
     @mock.patch("tools.browser.controller.find_chrome_executable")
     async def test_launch_managed_browser_no_chrome(self, mock_find_exe):

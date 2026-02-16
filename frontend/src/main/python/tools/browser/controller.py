@@ -112,7 +112,7 @@ class BrowserController:
     @property
     def is_connected(self) -> bool:
         """Check if browser is connected."""
-        return self._browser is not None and self._page is not None
+        return self._context is not None and self._page is not None
 
     @property
     def current_url(self) -> str:
@@ -586,12 +586,13 @@ class BrowserController:
         try:
             self._playwright = await async_playwright().start()
 
-            # Launch browser with custom args
+            # Playwright requires launch_persistent_context when using a custom
+            # profile directory. Passing --user-data-dir to launch() fails.
             launch_args = {
                 "headless": headless,
                 "executable_path": executable_path,
+                "viewport": {"width": 1920, "height": 1080},
                 "args": [
-                    f"--user-data-dir={self._user_data_dir}",
                     "--no-first-run",
                     "--no-default-browser-check",
                     "--disable-sync",
@@ -604,11 +605,16 @@ class BrowserController:
             if not headless:
                 launch_args["args"].append("--start-maximized")
 
-            self._browser = await self._playwright.chromium.launch(**launch_args)
-            self._context = await self._browser.new_context(
-                viewport={"width": 1920, "height": 1080}
+            self._context = await self._playwright.chromium.launch_persistent_context(
+                user_data_dir=str(self._user_data_dir),
+                **launch_args,
             )
-            self._page = await self._context.new_page()
+            self._browser = self._context.browser
+            pages = self._context.pages
+            if pages:
+                self._page = pages[0]
+            else:
+                self._page = await self._context.new_page()
             self._ensure_page_observers(self._page)
             self._mode = "managed"
             self._reset_ref_registry(self._page)
