@@ -732,3 +732,58 @@ Result:
 - `32 passed in 0.34s`
 
 This confirms websocket route behavior remains intact while consolidating cleanup into one canonical lifecycle path.
+
+---
+
+# Refactor: Reuse Query Stream Context and Unify Completion Emission
+
+## Target
+Reduce per-event allocation and duplicated completion flow in:
+- `backend/src/api/services/query_execution.py`
+
+## Current Structure and Root Cause
+Before this refactor, `QueryExecutionService.execute()` repeatedly constructed the same context dictionary for every `pipeline.process(...)` call:
+- event-forwarding path
+- streaming-complete path
+- fallback-completion path
+
+The same context payload (`user_id`, `session_id`, `conversation_ref`, `turn_ref`) was rebuilt multiple times per query stream.
+
+Root cause: stream context and completion emission policy were inlined at each call site instead of centralized helper methods.
+
+## Refactor Plan
+1. Build stream context once per query and reuse it for all pipeline emissions.
+2. Add a helper that forwards events through the pipeline with shared context.
+3. Add a helper to emit completion events (optional backfill chunk + terminal completion) used by both normal and fallback completion paths.
+4. Preserve existing message/event contracts and completion fallback behavior.
+5. Add/extend tests to validate context reuse and run backend handler/websocket tests.
+
+## Implemented Changes
+### Query execution service simplification
+- Updated `backend/src/api/services/query_execution.py`:
+  - added `_build_stream_context(...)` to construct context once per query
+  - added `_process_pipeline_event(...)` to reuse context on every pipeline call
+  - added `_emit_completion_events(...)` to centralize completion emission flow
+  - rewired main loop + fallback path to use these helpers
+
+Result:
+- stream context allocation reduced from O(events) to O(1) per query
+- removed duplicated completion-emission blocks
+- kept external behavior unchanged (same fallback completion semantics and event ordering)
+
+## Added Test Coverage
+- Updated `tests/backend/test_api_handlers.py`:
+  - strengthened `test_query_handler_success` with context identity assertion
+  - strengthened `test_query_handler_emits_fallback_chunk_and_completion_when_agent_stream_is_silent` with context identity assertion
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_api_handlers.py tests/backend/test_websocket_route.py tests/backend/test_websocket_connection.py tests/backend/test_websocket_message_handler.py tests/backend/test_websocket_task_manager.py
+```
+
+Result:
+- `62 passed in 1.72s`
+
+This confirms query streaming behavior remains intact while reducing repeated context allocation and duplicated completion-flow logic.

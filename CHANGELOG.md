@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(query-execution): reuse a single per-query stream context in `QueryExecutionService`, centralize completion emission helpers, and add backend handler assertions proving shared context reuse across streamed events
 - refactor(ipc-query): extract query enrichment orchestration from `ipc.cjs` into dedicated `query_payload_builder.cjs`, reducing `to-backend` query-path complexity while preserving payload format and adding focused builder unit coverage
 - refactor(websocket-task-manager): remove per-completed-task cleanup coroutine scheduling in `TaskManager.task_done_callback`, using direct active-task discard with shutdown-safe fallback and updated websocket task-manager regression coverage
 - refactor(websocket): add shared websocket JSON parse utility (`routes/websocket/json_parse.py`), reuse it in handshake + message parsing, and remove unconditional handshake `run_in_executor` parsing for small payloads while preserving existing validation/error contracts
