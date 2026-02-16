@@ -68,6 +68,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-config): apply `include_query_screenshot` setting updates across renderer windows in real time via localStorage change sync (no Electron restart required)
 - feat(frontend-window): replace native main-window title bar with frameless custom chrome and app-owned top-right minimize/maximize/close controls
 - fix(frontend-window): remove standalone custom title strip and place minimize/maximize/close controls directly inside the chat content header above `Mode: AGENT`
+- fix(frontend-window): make in-content minimize/maximize/close controls fully circular (not rounded-square)
 - docs(frontend-bridges): document wakeword stderr-buffer reset-on-restart and token-scoped local-backend readiness retries so restart-race protections are explicit in sidecar/frontend docs
 - docs(api-transport): document handshake failure close semantics (`1008`) and shared WebSocket JSON parse offload policy (`api/routes/websocket/json_parse.py`)
 - docs(sidecar/browser): clarify sidecar protocol internals (`core/stdout_json.py` shared JSON-line writer), local-backend/wakeword stale-callback guards, browser runbook test commands, and Browser Use plan status as a time-locked baseline
