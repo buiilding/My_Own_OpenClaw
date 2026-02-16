@@ -65,3 +65,40 @@ In `frontend/src/main/python/local_backend.py`, the custom `SIGTERM`/`SIGINT` ha
 - Re-ran the sidecar local backend suite:
   - `./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py`
   - Result: `23 passed`.
+
+---
+
+## [x] Bug Report: Memory Service Also Ignores SIGTERM and Hangs Until Forced Exit
+
+### Summary
+
+In `frontend/src/main/python/memory_service.py`, the signal handler for `SIGTERM`/`SIGINT` logged the signal but did not request shutdown. The service loop remained blocked on stdin reads.
+
+### Root Cause
+
+- `signal_handler()` never told `MemoryService` to stop.
+- `MemoryService.run()` waits on `sys.stdin.readline()` in a thread and needs explicit shutdown signaling to exit promptly.
+
+### Why It's Problematic
+
+- Graceful teardown cannot happen reliably when the process only exits through force-kill paths.
+- Memory store cleanup can be skipped or delayed, risking stale state and slower process stop.
+
+### Fix
+
+- Added active-service tracking in `memory_service.py`.
+- Added `MemoryService.request_shutdown(signum)` to:
+  - mark shutdown requested,
+  - set `running=False`,
+  - close stdin to unblock the readline wait.
+- Updated `run()` to treat stdin close/read errors as expected when shutdown is in progress.
+- Updated `signal_handler()` to call `request_shutdown(...)`.
+
+### Validation
+
+- Added regression tests in `tests/sidecar/test_memory_service.py`:
+  - `test_signal_handler_requests_shutdown`
+  - `test_request_shutdown_marks_service_and_closes_stdin`
+- Re-ran targeted sidecar suites:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_memory_service.py tests/sidecar/test_local_backend.py`
+  - Result: `37 passed`.

@@ -27,6 +27,7 @@ logging.basicConfig(
     stream=sys.stderr  # Log to stderr to avoid interfering with stdout protocol
 )
 logger = logging.getLogger(__name__)
+_active_service: "MemoryService | None" = None
 
 
 class MemoryService:
@@ -38,6 +39,7 @@ class MemoryService:
     def __init__(self):
         self.memory_store = None
         self.running = False
+        self._shutdown_requested = False
 
     async def initialize(self) -> None:
         """Initialize the memory store."""
@@ -198,7 +200,12 @@ class MemoryService:
         try:
             while self.running:
                 # Read JSON message from stdin (one line per message)
-                line = await asyncio.to_thread(sys.stdin.readline)
+                try:
+                    line = await asyncio.to_thread(sys.stdin.readline)
+                except (OSError, ValueError):
+                    if self._shutdown_requested or not self.running:
+                        break
+                    raise
                 
                 if not line:
                     # EOF - exit
@@ -254,6 +261,24 @@ class MemoryService:
         finally:
             await self.shutdown()
 
+    def request_shutdown(self, signum: int | None = None) -> None:
+        """Request graceful shutdown, optionally from a signal handler."""
+        if self._shutdown_requested:
+            return
+        self._shutdown_requested = True
+        self.running = False
+        if signum is not None:
+            logger.info(f"Shutdown requested via signal {signum}")
+        stdin = getattr(sys, "stdin", None)
+        if stdin is None or bool(getattr(stdin, "closed", False)):
+            return
+        close = getattr(stdin, "close", None)
+        if callable(close):
+            try:
+                close()
+            except Exception as e:
+                logger.debug(f"Failed to close stdin during shutdown request: {e}")
+
     async def shutdown(self) -> None:
         """Shutdown the service gracefully."""
         logger.info("Shutting down memory service...")
@@ -269,16 +294,22 @@ class MemoryService:
 def signal_handler(signum, frame):
     """Handle system signals for graceful shutdown."""
     logger.info(f"Received signal {signum}")
+    if _active_service is not None:
+        _active_service.request_shutdown(signum)
+        return
+    raise KeyboardInterrupt
 
 
 async def main():
     """Main entry point."""
+    global _active_service
     # Set up signal handlers
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
     # Create and run the service
     service = MemoryService()
+    _active_service = service
 
     try:
         await service.initialize()
@@ -286,6 +317,8 @@ async def main():
     except Exception as e:
         logger.error(f"Service failed: {e}", exc_info=True)
         sys.exit(1)
+    finally:
+        _active_service = None
 
 
 if __name__ == "__main__":

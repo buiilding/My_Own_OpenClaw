@@ -1,4 +1,5 @@
 import sys
+import signal
 from pathlib import Path
 
 import pytest
@@ -6,6 +7,7 @@ import pytest
 frontend_python_dir = Path(__file__).resolve().parents[2] / "frontend" / "src" / "main" / "python"
 sys.path.insert(0, str(frontend_python_dir))
 
+import memory_service as memory_service_module  # noqa: E402
 from memory_service import MemoryService  # noqa: E402
 
 
@@ -206,3 +208,41 @@ async def test_handle_request_invalid_type():
     assert response["success"] is False
     assert response["id"] == "req"
     assert response["error"] == "Unknown request type: unknown"
+
+
+def test_signal_handler_requests_shutdown(monkeypatch):
+    service = MemoryService()
+    called = []
+
+    def fake_request_shutdown(signum):
+        called.append(signum)
+
+    monkeypatch.setattr(service, "request_shutdown", fake_request_shutdown)
+    monkeypatch.setattr(memory_service_module, "_active_service", service)
+
+    memory_service_module.signal_handler(signal.SIGTERM, None)
+
+    assert called == [signal.SIGTERM]
+
+
+def test_request_shutdown_marks_service_and_closes_stdin(monkeypatch):
+    service = MemoryService()
+
+    class DummyStdin:
+        def __init__(self):
+            self.closed = False
+            self.close_calls = 0
+
+        def close(self):
+            self.closed = True
+            self.close_calls += 1
+
+    dummy_stdin = DummyStdin()
+    monkeypatch.setattr(memory_service_module.sys, "stdin", dummy_stdin)
+
+    service.request_shutdown(signal.SIGTERM)
+
+    assert service.running is False
+    assert service._shutdown_requested is True
+    assert dummy_stdin.closed is True
+    assert dummy_stdin.close_calls == 1
