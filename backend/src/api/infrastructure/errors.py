@@ -128,20 +128,15 @@ async def send_error_response(
         )
         # Use sanitized message for client
         message = sanitize_error_message(exception, context=None)
-    try:
-        # WebSocketTransportSender now accepts SafeWebSocket for thread-safe writes
-        transport = WebSocketTransportSender(websocket)
-        await transport.send(
-            build_transport_message(
-                error_type,
-                msg_id,
-                {"message": message},
-            )
-        )
-    except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-        # Connection closed - expected in some cases (client disconnect, etc.)
-        # Log at debug level to avoid noise in production logs
-        logger.debug(f"Failed to send error response to closed connection: {e}")
+    await _send_transport_message(
+        websocket=websocket,
+        message=build_transport_message(
+            error_type,
+            msg_id,
+            {"message": message},
+        ),
+        failure_log_prefix="error response",
+    )
 
 
 async def send_success_response(
@@ -165,17 +160,31 @@ async def send_success_response(
         response_type: Response message type (e.g., "settings-updated")
         payload: Response payload dictionary
     """
+    await _send_transport_message(
+        websocket=websocket,
+        message=build_transport_message(
+            response_type,
+            msg_id,
+            payload,
+            context=context,
+        ),
+        failure_log_prefix="success response",
+    )
+
+
+async def _send_transport_message(
+    *,
+    websocket: WebSocketSender,
+    message: Dict[str, Any],
+    failure_log_prefix: str,
+) -> None:
+    """
+    Send one transport message and swallow expected connection-close failures.
+
+    This centralizes the canonical send path used by both success and error helpers.
+    """
     try:
-        # WebSocketTransportSender now accepts SafeWebSocket for thread-safe writes
         transport = WebSocketTransportSender(websocket)
-        await transport.send(
-            build_transport_message(
-                response_type,
-                msg_id,
-                payload,
-                context=context,
-            )
-        )
+        await transport.send(message)
     except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
-        # Connection closed - expected in some cases
-        logger.debug(f"Failed to send success response to closed connection: {e}")
+        logger.debug("Failed to send %s to closed connection: %s", failure_log_prefix, e)
