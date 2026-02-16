@@ -28,8 +28,8 @@
 .settings-chip {
   padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(16, 163, 127, 0.18);
-  color: rgba(16, 163, 127, 0.9);
+  background: rgba(142, 151, 165, 0.18);
+  color: rgba(142, 151, 165, 0.9);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -105,8 +105,8 @@
 
 .settings-field input:focus,
 .settings-field select:focus {
-  border-color: rgba(16, 163, 127, 0.5);
-  box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.2);
+  border-color: rgba(142, 151, 165, 0.5);
+  box-shadow: 0 0 0 2px rgba(142, 151, 165, 0.2);
 }
 
 .settings-help {
@@ -130,7 +130,7 @@
 }
 
 .radio-label input[type='radio'] {
-  accent-color: rgba(16, 163, 127, 0.9);
+  accent-color: rgba(142, 151, 165, 0.9);
 }
 
 .model-reset-warning {
@@ -193,7 +193,7 @@
 }
 
 .toggle-input:checked + .toggle-slider {
-  background-color: rgba(16, 163, 127, 0.6);
+  background-color: rgba(142, 151, 165, 0.6);
 }
 
 .toggle-input:checked + .toggle-slider:before {
@@ -229,13 +229,13 @@
 }
 
 .model-item:hover {
-  border-color: rgba(16, 163, 127, 0.45);
+  border-color: rgba(142, 151, 165, 0.45);
   transform: translateY(-1px);
 }
 
 .model-item.active {
-  border-color: rgba(16, 163, 127, 0.7);
-  background: rgba(16, 163, 127, 0.12);
+  border-color: rgba(142, 151, 165, 0.7);
+  background: rgba(142, 151, 165, 0.12);
   color: rgba(236, 236, 236, 1);
 }
 
@@ -281,7 +281,7 @@
 }
 
 .memory-card:hover {
-  border-color: rgba(16, 163, 127, 0.45);
+  border-color: rgba(142, 151, 165, 0.45);
   transform: translateY(-1px);
 }
 
@@ -417,13 +417,13 @@
 }
 
 .memory-item:hover {
-  border-color: rgba(16, 163, 127, 0.45);
+  border-color: rgba(142, 151, 165, 0.45);
   transform: translateY(-1px);
 }
 
 .memory-item.active {
-  border-color: rgba(16, 163, 127, 0.7);
-  background: rgba(16, 163, 127, 0.12);
+  border-color: rgba(142, 151, 165, 0.7);
+  background: rgba(142, 151, 165, 0.12);
   color: rgba(236, 236, 236, 1);
 }
 

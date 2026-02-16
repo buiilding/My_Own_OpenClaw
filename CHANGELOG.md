@@ -57,6 +57,7 @@ Includes the last 300 commits on `main`.
 - feat(frontend-ui): refresh renderer visuals with a ChatGPT-inspired dark shell (sidebar structure, centered conversation column, and restyled chat/status/input surfaces) while preserving existing behaviors and pill interactions
 - feat(frontend-ui): tighten ChatGPT-style proportions and tone (neutralized dark palette, denser left rail, cleaner assistant text blocks, and narrower centered composer/message column)
 - fix(frontend-layout): remove the sidebar bottom-left `Ready` status block from the dashboard shell
+- fix(frontend-ui): remove remaining strong green accents from renderer surfaces and controls in favor of neutral ChatGPT-style slate tones
 - docs(frontend-bridges): document wakeword stderr-buffer reset-on-restart and token-scoped local-backend readiness retries so restart-race protections are explicit in sidecar/frontend docs
 - docs(api-transport): document handshake failure close semantics (`1008`) and shared WebSocket JSON parse offload policy (`api/routes/websocket/json_parse.py`)
 - docs(sidecar/browser): clarify sidecar protocol internals (`core/stdout_json.py` shared JSON-line writer), local-backend/wakeword stale-callback guards, browser runbook test commands, and Browser Use plan status as a time-locked baseline

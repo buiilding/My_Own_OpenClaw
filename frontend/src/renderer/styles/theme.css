@@ -15,9 +15,9 @@
   --text-muted: #b9b9b9;
   --text-soft: #8b8b8b;
 
-  --accent: #10a37f;
-  --accent-strong: #0d8b6b;
-  --accent-soft: rgba(16, 163, 127, 0.16);
+  --accent: #8e97a5;
+  --accent-strong: #7a8493;
+  --accent-soft: rgba(142, 151, 165, 0.16);
 
   --warning: #e3a84f;
   --danger: #f87171;
@@ -52,7 +52,7 @@ body {
   font-family: var(--font-ui);
   color: var(--text-primary);
   background:
-    radial-gradient(900px 600px at 10% -10%, rgba(16, 163, 127, 0.12), transparent 58%),
+    radial-gradient(900px 600px at 10% -10%, rgba(142, 151, 165, 0.08), transparent 58%),
     radial-gradient(900px 600px at 100% 0%, rgba(255, 255, 255, 0.06), transparent 58%),
     linear-gradient(180deg, var(--bg-base) 0%, var(--bg-muted) 100%);
   background-attachment: fixed;
@@ -76,7 +76,7 @@ a {
 }
 
 ::selection {
-  background: rgba(16, 163, 127, 0.28);
+  background: rgba(142, 151, 165, 0.3);
 }
 
 ::-webkit-scrollbar {
