@@ -13,8 +13,13 @@ from pydantic import ValidationError as PydanticValidationError
 from backend.src.api.transport.websocket import SafeWebSocket
 from backend.src.api.schema import HandshakeMessage
 from backend.src.api.routes.websocket.task_manager import TaskManager
+from backend.src.api.routes.websocket.json_parse import (
+    DEFAULT_JSON_PARSE_OFFLOAD_BYTES,
+    parse_json_payload,
+)
 
 logger = logging.getLogger(__name__)
+_HANDSHAKE_JSON_PARSE_OFFLOAD_BYTES = DEFAULT_JSON_PARSE_OFFLOAD_BYTES
 
 
 async def _close_policy_violation(safe_ws: SafeWebSocket, reason: str) -> None:
@@ -41,9 +46,11 @@ async def perform_handshake(
     """
     try:
         raw_data = await websocket.receive_text()
-        # CRITICAL FIX #5: Offload JSON parsing to thread pool (handshake is typically small, but consistent)
-        loop = asyncio.get_running_loop()
-        handshake_data = await loop.run_in_executor(None, json.loads, raw_data)
+        handshake_data = await parse_json_payload(
+            raw_data,
+            offload_threshold_bytes=_HANDSHAKE_JSON_PARSE_OFFLOAD_BYTES,
+            loop_getter=asyncio.get_running_loop,
+        )
         handshake_msg = HandshakeMessage.model_validate(handshake_data)
         user_id = handshake_msg.user_id
         

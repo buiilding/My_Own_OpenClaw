@@ -12,6 +12,7 @@ fake_deps.SessionManagerDep = object
 fake_deps.HandlerRegistryDep = object
 sys.modules["backend.src.api.deps"] = fake_deps
 
+from backend.src.api.routes.websocket import connection as connection_module
 from backend.src.api.routes.websocket.connection import cleanup_connection, perform_handshake
 
 if _original_deps is not None:
@@ -64,6 +65,45 @@ async def test_perform_handshake_returns_client_user_id() -> None:
 
     assert assigned_user_id == "client_user"
     assert safe_ws.closed == []
+
+
+@pytest.mark.asyncio
+async def test_perform_handshake_small_payload_parses_inline(monkeypatch) -> None:
+    websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "client_user"}))
+    safe_ws = DummySafeWebSocket()
+
+    monkeypatch.setattr(
+        connection_module.asyncio,
+        "get_running_loop",
+        lambda: (_ for _ in ()).throw(RuntimeError("should not be used")),
+    )
+
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id == "client_user"
+    assert safe_ws.closed == []
+
+
+@pytest.mark.asyncio
+async def test_perform_handshake_large_payload_uses_executor(monkeypatch) -> None:
+    websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "client_user"}))
+    safe_ws = DummySafeWebSocket()
+
+    monkeypatch.setattr(connection_module, "_HANDSHAKE_JSON_PARSE_OFFLOAD_BYTES", 1)
+    called = {"executor": False}
+
+    class FakeLoop:
+        async def run_in_executor(self, executor, fn, data):
+            called["executor"] = True
+            return fn(data)
+
+    monkeypatch.setattr(connection_module.asyncio, "get_running_loop", lambda: FakeLoop())
+
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id == "client_user"
+    assert safe_ws.closed == []
+    assert called["executor"] is True
 
 
 @pytest.mark.asyncio
