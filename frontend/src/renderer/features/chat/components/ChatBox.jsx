@@ -34,7 +34,9 @@ function MicIcon() {
 function ChatBox() {
   const isSending = useChatStore((state) => state.isSending);
   const streamPhase = useChatStore((state) => state.streamTracking.phase);
-  const { sendMessage } = useChatMessageSender();
+  const { sendMessage } = useChatMessageSender(undefined, {
+    senderSurface: 'overlay-chatbox',
+  });
   const [inputValue, setInputValue] = useState('');
   const [overlayPhase, setOverlayPhase] = useState('idle');
   const ignoreMouseRef = useRef(undefined);

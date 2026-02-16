@@ -22,23 +22,16 @@ import {
   toScreenshotAttachment,
 } from '../utils/chatMessageSenderUtils';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
+import {
+  resolveMessageSendUiBehavior,
+  type ChatSendSurface,
+  type ReturnToChatboxPolicy,
+} from '../policies/messageSendUiPolicy';
 
 type ChatMessageSenderOptions = {
-  returnToChatboxPolicy?: 'never' | 'auto' | 'always';
+  senderSurface?: ChatSendSurface;
+  returnToChatboxPolicy?: ReturnToChatboxPolicy;
 };
-
-export function resolveReturnToChatboxOnSend(
-  returnToChatboxPolicy: 'never' | 'auto' | 'always',
-  includeQueryScreenshot: boolean,
-): boolean {
-  if (returnToChatboxPolicy === 'always') {
-    return true;
-  }
-  if (returnToChatboxPolicy === 'never') {
-    return false;
-  }
-  return includeQueryScreenshot;
-}
 
 /**
  * Custom hook for sending chat messages.
@@ -53,12 +46,13 @@ export function useChatMessageSender(
   const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const { config } = useAppConfigContext();
-  const { returnToChatboxPolicy = 'never' } = options;
+  const { senderSurface = 'overlay-chatbox', returnToChatboxPolicy } = options;
   const includeQueryScreenshot = config?.include_query_screenshot ?? true;
-  const shouldReturnToChatboxOnSend = resolveReturnToChatboxOnSend(
+  const { shouldReturnToChatboxOnSend } = resolveMessageSendUiBehavior({
+    senderSurface,
     returnToChatboxPolicy,
     includeQueryScreenshot,
-  );
+  });
 
   const appendSendFailureMessage = useCallback(() => {
     addMessage({
