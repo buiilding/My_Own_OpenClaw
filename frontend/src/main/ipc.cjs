@@ -105,6 +105,31 @@ function clearPendingSettingsSyncs() {
   pendingSettingsSyncs.clear();
 }
 
+function resetSettingsSyncState() {
+  hasAttemptedInitialSettingsSync = false;
+  pendingSettingsSyncPromise = null;
+  clearPendingSettingsSyncs();
+}
+
+function resetBackendSessionState() {
+  currentSessionId = null;
+  currentServerUserId = null;
+  currentConversationRef = null;
+}
+
+function buildIpcStatusPayload(connected) {
+  return {
+    isConnected: connected,
+    userId: currentUserId,
+    backendWsUrl: BACKEND_URL,
+    backendHttpUrl: BACKEND_HTTP_URL,
+  };
+}
+
+function broadcastConnectionStatus(connected) {
+  broadcastToRenderers('ipc-status', buildIpcStatusPayload(connected));
+}
+
 function resolveSettingsSync(msgId, wasSuccessful) {
   const pending = pendingSettingsSyncs.get(msgId);
   if (!pending) {
@@ -316,9 +341,7 @@ function connect() {
   ws.on('open', () => {
     isConnected = true;
     isFirstQuery = true; // Reset on new connection (new session)
-    hasAttemptedInitialSettingsSync = false;
-    pendingSettingsSyncPromise = null;
-    clearPendingSettingsSyncs();
+    resetSettingsSyncState();
     setResponseOverlayPhase('idle', 'ws-open');
     log('Successfully connected to Python backend.');
 
@@ -334,12 +357,7 @@ function connect() {
       ws.send(JSON.stringify(handshakeMessage));
       log(`Handshake sent with user_id: ${currentUserId}`);
       // Broadcast connection status after handshake send to reduce startup races.
-      broadcastToRenderers('ipc-status', {
-        isConnected: true,
-        userId: currentUserId,
-        backendWsUrl: BACKEND_URL,
-        backendHttpUrl: BACKEND_HTTP_URL,
-      });
+      broadcastConnectionStatus(true);
     } catch (error) {
       log(`Error sending handshake: ${error}`);
     }
@@ -383,20 +401,11 @@ function connect() {
 
   ws.on('close', () => {
     isConnected = false;
-    hasAttemptedInitialSettingsSync = false;
-    pendingSettingsSyncPromise = null;
-    clearPendingSettingsSyncs();
-    currentSessionId = null;
-    currentServerUserId = null;
-    currentConversationRef = null;
+    resetSettingsSyncState();
+    resetBackendSessionState();
     setResponseOverlayPhase('idle', 'ws-close');
     log('Disconnected from Python backend. Attempting to reconnect...');
-    broadcastToRenderers('ipc-status', {
-      isConnected: false,
-      userId: currentUserId,
-      backendWsUrl: BACKEND_URL,
-      backendHttpUrl: BACKEND_HTTP_URL,
-    });
+    broadcastConnectionStatus(false);
     setTimeout(connect, reconnectInterval);
   });
 

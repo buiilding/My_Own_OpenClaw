@@ -1273,3 +1273,76 @@ Result:
 - `21 passed`
 
 This confirms bridge behavior remains stable after moving field-map interpretation from request time to initialization time.
+
+---
+
+# Refactor: Centralize IPC WebSocket Lifecycle State Resets
+
+## Target
+Deduplicate connection lifecycle state-reset and status payload logic in:
+- `frontend/src/main/ipc.cjs`
+
+This is a maintainability refactor in a central main-process routing module.
+
+## Current Structure and Root Cause
+Before this refactor, `connect()` had duplicated lifecycle logic split across two handlers:
+- `ws.on('open', ...)`
+- `ws.on('close', ...)`
+
+Both handlers independently managed overlapping state concerns:
+- settings-sync lifecycle flags/promises
+- pending settings ACK cleanup
+- IPC status payload assembly (`isConnected`, `userId`, backend URLs)
+
+`close` also had extra inline session-context resets (`currentSessionId`, `currentServerUserId`, `currentConversationRef`).
+
+Root cause: connection lifecycle policy was implemented as inline mutable-state mutations per event handler, rather than centralized helpers. This increases drift risk when adding/changing lifecycle state fields.
+
+## Refactor Plan
+1. Extract shared helpers for settings-sync reset, backend-session reset, and IPC status payload construction.
+2. Rewire `ws.on('open')` and `ws.on('close')` to use these helpers.
+3. Keep runtime behavior unchanged:
+   - open resets first-query + settings-sync state
+   - close resets settings-sync + backend session context
+   - both still broadcast the same IPC status contract
+4. Add regression coverage for stale `conversation_ref` reset across reconnect.
+5. Run focused IPC bridge tests.
+
+## Implemented Changes
+### Shared lifecycle helpers
+- Updated `frontend/src/main/ipc.cjs`:
+  - added `resetSettingsSyncState()`
+  - added `resetBackendSessionState()`
+  - added `buildIpcStatusPayload(connected)`
+  - added `broadcastConnectionStatus(connected)`
+
+### Handler rewiring
+- `ws.on('open')` now reuses:
+  - `resetSettingsSyncState()`
+  - `broadcastConnectionStatus(true)`
+- `ws.on('close')` now reuses:
+  - `resetSettingsSyncState()`
+  - `resetBackendSessionState()`
+  - `broadcastConnectionStatus(false)`
+
+Result:
+- removed duplicated lifecycle state-reset code in connection handlers
+- preserved IPC/status payload contracts in one canonical path
+
+## Added Test Coverage
+- Updated `tests/frontend/IpcMainBridge.test.cjs`:
+  - added `reconnect clears stale conversation ref fallback before next query`
+
+This test verifies reconnection clears stale `currentConversationRef` state before the next query’s local mirror event is emitted.
+
+## Validation
+Ran:
+
+```bash
+cd frontend && npm run test -- IpcMainBridge.test.cjs
+```
+
+Result:
+- `18 passed`
+
+This confirms lifecycle helper extraction preserved existing IPC bridge behavior.
