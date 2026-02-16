@@ -15,7 +15,7 @@ This document describes **current** security-related behavior in the codebase.
 
 ## Backend Validation
 
-- WebSocket messages are validated by Pydantic schemas (`backend/src/api/schema.py`).
+- WebSocket messages are validated by Pydantic schemas in `backend/src/api/schemas/` (`common.py`, `incoming.py`, `outgoing.py`), with compatibility exports from `backend/src/api/schema.py`.
 - LLM response parsing uses size limits from `SecurityLimits` (`backend/src/core/config/models.py`).
 - Multi-user/session hardening guidance is documented in `docs/MULTI_USER_RUNTIME_HARDENING.md`.
 

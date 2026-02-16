@@ -10,6 +10,8 @@ read_when:
 
 Desktop Assistant uses a WebSocket-based API for real-time communication between the frontend and backend. All messages follow a consistent format with type-based routing.
 
+Backend message dispatch is handled by `MessageHandlerRegistry` in `backend/src/api/infrastructure/registry.py`.
+
 ## WebSocket Endpoint
 
 **URL**: default `ws://127.0.0.1:8765/ws`

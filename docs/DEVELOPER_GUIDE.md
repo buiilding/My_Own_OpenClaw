@@ -290,7 +290,7 @@ def test_tool_domain_values_stable():
 
 **Example Frontend Unit Test**:
 ```javascript
-import { buildMessageClassName } from '../../frontend/src/renderer/features/chat/utils/messageListClasses';
+import { buildMessageClassName } from '../../frontend/src/renderer/features/chat/utils/messageListClasses.js';
 
 test('adds screenshot class when screenshot data exists', () => {
   const cls = buildMessageClassName({
