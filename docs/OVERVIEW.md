@@ -262,7 +262,7 @@ The planned capability for each employee to have a tailored assistant that inter
 ## 📈 Technology Stack
 
 ### Backend
-- **Language**: Python 3.11+
+- **Language**: Python 3.11
 - **Framework**: FastAPI
 - **AI/ML**: SentenceTransformers, FAISS, RapidOCR, InternVL
 - **Database**: SQLite (with aiosqlite)

@@ -8,7 +8,7 @@ read_when:
 
 ## Requirements
 
-- **Python** 3.11+ (backend + sidecar)
+- **Python** 3.11 (backend + sidecar)
 - **Node.js** 18+ (frontend)
 - **npm** (included with Node)
 

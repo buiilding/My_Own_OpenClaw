@@ -3,7 +3,7 @@
 > Your AI-powered personal assistant that remembers context locally, controls your computer, and adapts to your workflow.
 
 [![Source](https://img.shields.io/badge/source-closed--source-red.svg)]()
-[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![Electron](https://img.shields.io/badge/electron-latest-brightgreen.svg)](https://www.electronjs.org/)
 [![Project Status](https://img.shields.io/badge/status-functional%20AI%20assistant-green.svg)]()
 
@@ -132,7 +132,7 @@ See our [Development Roadmap](#-development-roadmap) section below for the compl
 
 ### Prerequisites
 - **Windows 10/11, macOS, or Linux**
-- **Python 3.11+**
+- **Python 3.11**
 - **Node.js 18+** and npm
 - **Git**
 

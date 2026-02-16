@@ -44,7 +44,7 @@ read_when:
 
 4. **Check Python Version**:
    ```bash
-   python --version  # Should be 3.11+
+   python --version  # Should be 3.11
    ```
 
 #### Import Errors

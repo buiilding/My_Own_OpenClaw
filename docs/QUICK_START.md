@@ -9,7 +9,7 @@ read_when:
 ## Prerequisites
 
 - **Windows 10/11, macOS, or Linux**
-- **Python 3.11+**
+- **Python 3.11**
 - **Node.js 18+** and npm
 - **Git**
 
@@ -187,7 +187,7 @@ Read the file README.md
 
 1. **Check Python Version**:
    ```bash
-   python --version  # Should be 3.11+
+   python --version  # Should be 3.11
    ```
 
 2. **Check Dependencies**:

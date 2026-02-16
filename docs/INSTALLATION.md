@@ -11,7 +11,7 @@ read_when:
 ### System Requirements
 
 - **Operating System**: Windows 10/11, macOS 10.15+, or Linux (Ubuntu 20.04+)
-- **Python**: 3.11 or higher
+- **Python**: 3.11
 - **Node.js**: 18 or higher
 - **npm**: Included with Node.js
 - **Git**: For cloning the repository
@@ -241,7 +241,7 @@ pip install -r requirements.txt
 
 **Python Version**:
 ```bash
-python --version  # Should be 3.11+
+python --version  # Should be 3.11
 ```
 
 ### Node.js Issues
