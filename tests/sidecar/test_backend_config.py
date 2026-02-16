@@ -20,3 +20,27 @@ def test_get_backend_http_url_prefers_windie_specific_env(monkeypatch):
     monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "http://primary.example:9001/")
 
     assert get_backend_http_url() == "http://primary.example:9001"
+
+
+def test_get_backend_http_url_uses_fallback_when_windie_env_empty(monkeypatch):
+    monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "")
+    monkeypatch.setenv("BACKEND_HTTP_URL", "http://fallback.example:8765/")
+
+    assert get_backend_http_url() == "http://fallback.example:8765"
+
+
+def test_get_backend_http_url_keeps_non_trailing_path_slashes(monkeypatch):
+    monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
+    monkeypatch.setenv(
+        "WINDIE_BACKEND_HTTP_URL",
+        "http://localhost:9001/api/v1/",
+    )
+
+    assert get_backend_http_url() == "http://localhost:9001/api/v1"
+
+
+def test_get_backend_http_url_strips_multiple_trailing_slashes(monkeypatch):
+    monkeypatch.delenv("BACKEND_HTTP_URL", raising=False)
+    monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "http://localhost:9001////")
+
+    assert get_backend_http_url() == "http://localhost:9001"
