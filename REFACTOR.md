@@ -178,3 +178,74 @@ Result:
 - `43 passed, 3 warnings`
 
 This confirms the refactor did not break existing sidecar behavior and preserved memory error response semantics.
+
+---
+
+# Refactor: Unify LocalBackendBridge Process-Termination Cleanup
+
+## Target
+Deduplicate sidecar process-teardown logic in:
+- `frontend/src/main/local_backend_bridge.cjs`
+
+## Current Structure and Root Cause
+`startLocalBackend()` had duplicated teardown logic in both process event handlers:
+- `pythonProcess.on('exit', ...)`
+- `pythonProcess.on('error', ...)`
+
+Both handlers repeated state-reset + cleanup steps:
+- clear `pythonProcess`, `isPythonReady`, `readinessCheckCallback`
+- reject all in-flight requests
+- clear `stdoutBuffer`
+
+The only differences were:
+- reject reason (`exited` vs `error`)
+- renderer status error message content
+
+Root cause: process lifecycle cleanup policy was encoded directly in each event callback instead of centralized runtime helper functions.
+
+## Refactor Plan
+1. Extract shared teardown helper to reset bridge state and reject pending requests.
+2. Extract shared status-notification helper for `local-backend-status`.
+3. Rewire both `exit` and `error` callbacks to use helpers.
+4. Preserve existing event semantics and error messages.
+5. Add focused frontend bridge tests for both termination paths.
+
+## Implemented Changes
+### Shared helpers added in bridge module
+- Added `resetBackendProcessState(reason)`:
+  - resets bridge runtime state
+  - rejects pending RPC requests with provided reason
+- Added `notifyBackendUnavailable(mainWindow, error)`:
+  - emits `local-backend-status` only when an error message exists
+
+### Event handlers simplified
+- `pythonProcess.on('exit', ...)` now:
+  - calls `resetBackendProcessState('Local backend process exited')`
+  - computes optional non-zero exit error
+  - calls `notifyBackendUnavailable(...)`
+- `pythonProcess.on('error', ...)` now:
+  - calls `resetBackendProcessState('Local backend process error')`
+  - preserves existing ENOENT-friendly message behavior
+  - calls `notifyBackendUnavailable(...)`
+
+Result:
+- removed duplicated cleanup logic from both termination paths
+- centralized sidecar bridge teardown policy in one location
+- no interface or payload shape changes
+
+### Added test coverage
+- Updated `tests/frontend/LocalBackendBridge.test.cjs` with:
+  - `sidecar non-zero exit reports unavailable status`
+  - `execute-tool rejects in-flight request when sidecar emits process error`
+
+## Validation
+Ran:
+
+```bash
+cd frontend && npm run test -- LocalBackendBridge.test.cjs
+```
+
+Result:
+- `13 passed, 0 failed`
+
+This confirms bridge behavior remains intact while reducing duplicated process-lifecycle code.
