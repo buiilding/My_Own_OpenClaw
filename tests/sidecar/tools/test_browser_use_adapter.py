@@ -83,6 +83,11 @@ def make_controller():
             ]
         )
         controller.wait_for_load = mock.AsyncMock(return_value={"success": True})
+        controller.type_text = mock.AsyncMock(return_value={"success": True})
+        controller.press_key = mock.AsyncMock(return_value={"success": True})
+        controller.scroll = mock.AsyncMock(return_value={"success": True})
+        controller.screenshot = mock.AsyncMock(return_value=b"controller-image")
+        controller.set_input_files = mock.AsyncMock(return_value={"success": True})
         controller.get_page_snapshot = mock.AsyncMock(
             return_value=DummySnapshot(text="snapshot", url="https://example.com", title="Example")
         )
@@ -617,3 +622,77 @@ class TestBrowserUseCompatibilityAdapter:
 
         with pytest.raises(RuntimeError, match="no native handler"):
             await provider.navigate(url="https://example.com", wait_until="load")
+
+    @pytest.mark.asyncio
+    async def test_native_provider_enabled_overrides_for_interaction_methods(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        controller.click = mock.AsyncMock(
+            side_effect=AssertionError("controller.click should not be called")
+        )
+        controller.wait_for_load = mock.AsyncMock(
+            side_effect=AssertionError("controller.wait_for_load should not be called")
+        )
+        controller.get_page_snapshot = mock.AsyncMock(
+            side_effect=AssertionError("controller.get_page_snapshot should not be called")
+        )
+        controller.set_input_files = mock.AsyncMock(
+            side_effect=AssertionError("controller.set_input_files should not be called")
+        )
+        controller.auto_connect_to_chrome = mock.AsyncMock(
+            side_effect=AssertionError("controller.auto_connect_to_chrome should not be called")
+        )
+
+        snapshot_obj = DummySnapshot(
+            text="native snapshot",
+            url="https://native.example/snapshot",
+            title="Native Snapshot",
+            ref_count=5,
+        )
+        native_handlers = {
+            "click": mock.AsyncMock(return_value={"success": True, "method": "native"}),
+            "wait": mock.AsyncMock(return_value={"success": True}),
+            "snapshot": mock.AsyncMock(return_value=snapshot_obj),
+            "upload": mock.AsyncMock(return_value={"success": True, "uploaded_count": 2}),
+            "connect_user_chrome": mock.AsyncMock(
+                return_value={
+                    "status": "connected",
+                    "mode": "user_chrome",
+                    "url": "https://native.example",
+                    "title": "Native",
+                    "auto_launched": False,
+                }
+            ),
+        }
+
+        with mock.patch.dict(
+            "os.environ",
+            {
+                "WINDIE_BROWSER_USE_NATIVE_ACTIONS": "click,wait,snapshot,upload,connect_user_chrome",
+            },
+            clear=False,
+        ):
+            provider = BrowserUseNativeRuntimeProvider(
+                controller,
+                native_handlers=native_handlers,
+            )
+
+        click_result = await provider.click(ref="e1", double_click=False, button="left")
+        assert click_result["method"] == "native"
+
+        wait_result = await provider.wait_for_load(state="load")
+        assert wait_result["success"] is True
+
+        snapshot_result = await provider.get_page_snapshot(format_type="ai")
+        assert snapshot_result.text == "native snapshot"
+
+        upload_result = await provider.set_input_files(ref="e1", paths=["/tmp/file.txt"])
+        assert upload_result["uploaded_count"] == 2
+
+        connect_result = await provider.connect_user_chrome(
+            cdp_url="http://127.0.0.1:9222",
+            auto_launch=True,
+        )
+        assert connect_result["url"] == "https://native.example"
