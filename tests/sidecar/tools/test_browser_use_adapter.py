@@ -521,3 +521,20 @@ class TestBrowserUseCompatibilityAdapter:
             runtime = get_browser_runtime_provider(controller)
 
         assert runtime.__class__.__name__ == "ControllerBackedRuntimeProvider"
+
+    def test_runtime_factory_selects_native_provider_when_browser_use_available(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        with mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_USE_RUNTIME": "browser_use_native"},
+            clear=False,
+        ), mock.patch(
+            "tools.browser_use_adapter.browser_use_native_runtime.find_spec",
+            return_value=object(),
+        ):
+            runtime = get_browser_runtime_provider(controller)
+
+        assert runtime.__class__.__name__ == "BrowserUseNativeRuntimeProvider"

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(browser-use-port): make Browser Use runtime factory return a dedicated native-provider scaffold (`BrowserUseNativeRuntimeProvider`) when `browser_use` is installed, enabling action-by-action native overrides while preserving current controller-backed behavior
 - refactor(browser-use-port): harden adapter runtime selection with `WINDIE_BROWSER_USE_RUNTIME_STRICT`, add optional Browser Use native-runtime factory entrypoint (`browser_use_native_runtime.py`), and expand adapter regressions for strict/fallback runtime-provider behavior
 - refactor(sidecar-jsonrpc): centralize notification-aware error response handling in `core/ipc_protocol.py` with shared response/error helpers, remove duplicated notification suppression branches in `handle_request`, and add regression coverage for notification error-path suppression
 - refactor(sidecar-memory): centralize LocalBackend summarization watermark updates in shared `_maybe_update_summarization_watermark(...)`, remove duplicated pending-count/summarizer notification blocks across transcript + memory handlers, and add transcript pending-failure regression coverage
