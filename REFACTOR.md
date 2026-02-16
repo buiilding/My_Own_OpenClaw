@@ -841,3 +841,59 @@ Result:
 - `46 passed in 1.60s`
 
 This confirms centralized send-path refactoring preserved existing backend response behavior while reducing duplication in a core API utility module.
+
+---
+
+# Refactor: Precompute Middleware Dispatch Metadata in MessageHandlerRegistry
+
+## Target
+Reduce per-message middleware dispatch overhead in:
+- `backend/src/api/infrastructure/registry.py`
+
+## Current Structure and Root Cause
+Before this refactor, `MessageHandlerRegistry.handle(...)` determined middleware awaitability at runtime for every message by checking the middleware return value:
+- call middleware
+- check awaitability dynamically
+- conditionally `await`
+
+Root cause: middleware dispatch shape (async callable vs sync callable) was inferred during hot-path message handling instead of registration time.
+
+## Refactor Plan
+1. Add registration-time middleware metadata (`is_async_callable`).
+2. Compute async-callable shape once in `add_middleware(...)`.
+3. Keep support for sync middleware that returns awaitables.
+4. Keep fail-closed middleware exception propagation behavior unchanged.
+5. Add focused tests for async callable objects, sync-awaitable middleware, and fail-closed behavior.
+
+## Implemented Changes
+### Registry middleware metadata
+- Updated `backend/src/api/infrastructure/registry.py`:
+  - added `RegisteredMiddleware` dataclass
+  - changed `_middleware` storage to registered metadata entries
+  - added `_is_async_middleware(...)` registration-time classifier
+  - rewired middleware loop to:
+    - skip per-message async-callable introspection for known async middleware
+    - still await sync middleware return values when they are awaitable
+
+Result:
+- less hot-path introspection in central websocket message routing
+- clearer middleware dispatch policy in one place
+- preserved middleware compatibility and fail-closed semantics
+
+## Added Test Coverage
+- Added `tests/backend/test_message_handler_registry.py`:
+  - `test_registry_awaits_async_callable_object_middleware`
+  - `test_registry_awaits_sync_middleware_returned_awaitable`
+  - `test_registry_fail_closed_on_middleware_exception`
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_message_handler_registry.py tests/backend/test_websocket_message_handler.py tests/backend/test_api_handlers.py
+```
+
+Result:
+- `45 passed in 1.59s`
+
+This confirms middleware dispatch refactoring preserved backend handler behavior while reducing per-message dispatch overhead in the registry hot path.

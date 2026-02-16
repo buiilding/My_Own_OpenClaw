@@ -3,6 +3,8 @@ Message Handler Registry.
 
 Provides centralized registration and routing of WebSocket message handlers.
 """
+from dataclasses import dataclass
+import inspect
 import logging
 from collections.abc import Awaitable
 from typing import Callable, Optional, Union
@@ -12,6 +14,14 @@ from backend.src.api.schema import BaseMessage, IncomingMessage
 from backend.src.api.transport.protocol import WebSocketSender
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class RegisteredMiddleware:
+    """Registration-time middleware dispatch metadata."""
+
+    middleware: Callable[[IncomingMessage, WebSocketSender], Union[None, Awaitable[None]]]
+    is_async_callable: bool
 
 
 class MessageHandlerRegistry:
@@ -26,7 +36,7 @@ class MessageHandlerRegistry:
         """Initialize the handler registry."""
         self._handlers: dict[str, MessageHandler] = {}
         # Middleware receives typed Pydantic models for type safety
-        self._middleware: list[Callable[[IncomingMessage, WebSocketSender], Union[None, Awaitable[None]]]] = []
+        self._middleware: list[RegisteredMiddleware] = []
     
     def register(
         self, 
@@ -80,8 +90,23 @@ class MessageHandlerRegistry:
                 Can be either sync (returns None) or async (returns Awaitable[None]).
                 Receives typed IncomingMessage for type safety.
         """
-        self._middleware.append(middleware)
+        self._middleware.append(
+            RegisteredMiddleware(
+                middleware=middleware,
+                is_async_callable=self._is_async_middleware(middleware),
+            )
+        )
         logger.debug(f"Added middleware: {middleware}")
+
+    @staticmethod
+    def _is_async_middleware(
+        middleware: Callable[[IncomingMessage, WebSocketSender], Union[None, Awaitable[None]]]
+    ) -> bool:
+        """Determine async middleware shape once at registration time."""
+        if inspect.iscoroutinefunction(middleware):
+            return True
+        call = getattr(middleware, "__call__", None)
+        return bool(call and inspect.iscoroutinefunction(call))
     
     async def handle(
         self, 
@@ -118,11 +143,11 @@ class MessageHandlerRegistry:
         # Non-critical middleware (e.g., logging, metrics) should catch and handle their own
         # exceptions internally if they don't want to block processing.
         # Critical middleware (e.g., auth) should raise exceptions that will stop message processing.
-        for middleware in self._middleware:
+        for registered in self._middleware:
+            middleware = registered.middleware
             try:
                 result = middleware(message, websocket)
-                # Check if result is awaitable (coroutine)
-                if hasattr(result, '__await__'):
+                if registered.is_async_callable or inspect.isawaitable(result):
                     await result
             except Exception as e:
                 # Log middleware failure but propagate exception to prevent handler execution
