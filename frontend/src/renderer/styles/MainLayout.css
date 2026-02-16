@@ -95,7 +95,7 @@
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 10px 12px;
   background: transparent;
   border: none;
@@ -128,16 +128,6 @@
 .nav-label {
   font-size: 0.86rem;
   font-weight: 500;
-}
-
-.nav-status {
-  font-size: 0.62rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--accent-strong);
-  background: var(--accent-soft);
-  padding: 2px 8px;
-  border-radius: 999px;
 }
 
 .sidebar-footer {
