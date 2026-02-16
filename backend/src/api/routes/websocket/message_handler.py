@@ -14,12 +14,16 @@ from backend.src.api.infrastructure.registry import MessageHandlerRegistry
 from backend.src.api.infrastructure.errors import send_error_response, sanitize_error_message
 from backend.src.api.transport.websocket import SafeWebSocket
 from backend.src.api.schema import IncomingMessage
+from backend.src.api.routes.websocket.json_parse import (
+    DEFAULT_JSON_PARSE_OFFLOAD_BYTES,
+    parse_json_payload,
+)
 
 logger = logging.getLogger(__name__)
 
 # Create TypeAdapter once at module level for performance
 _INCOMING_MESSAGE_ADAPTER = TypeAdapter(IncomingMessage)
-_JSON_PARSE_OFFLOAD_BYTES = 64 * 1024
+_JSON_PARSE_OFFLOAD_BYTES = DEFAULT_JSON_PARSE_OFFLOAD_BYTES
 
 
 async def parse_and_validate_message(
@@ -46,13 +50,11 @@ async def parse_and_validate_message(
         )
     
     try:
-        # PERFORMANCE: Parse small payloads inline to avoid executor overhead,
-        # offload larger payloads to prevent event-loop stalls.
-        if data_size >= _JSON_PARSE_OFFLOAD_BYTES:
-            loop = asyncio.get_running_loop()
-            json_data = await loop.run_in_executor(None, json.loads, data)
-        else:
-            json_data = json.loads(data)
+        json_data = await parse_json_payload(
+            data,
+            offload_threshold_bytes=_JSON_PARSE_OFFLOAD_BYTES,
+            loop_getter=asyncio.get_running_loop,
+        )
 
         if not isinstance(json_data, dict):
             payload_type = type(json_data).__name__

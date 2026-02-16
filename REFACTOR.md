@@ -496,3 +496,65 @@ Result:
 - `17 passed` tests
 
 This confirms the refactor preserved query-enrichment behavior while consolidating duplicated memory-section logic.
+
+---
+
+# Refactor: Unify WebSocket JSON Parse Policy and Remove Unconditional Handshake Offload
+
+## Target
+Consolidate duplicated WebSocket JSON parsing policy across:
+- `backend/src/api/routes/websocket/connection.py`
+- `backend/src/api/routes/websocket/message_handler.py`
+
+## Current Structure and Root Cause
+Before this refactor:
+- `message_handler.py` used size-aware parsing (inline for small payloads, thread-pool offload for large payloads).
+- `connection.py` always offloaded handshake JSON parsing to `run_in_executor`, even for very small handshake payloads.
+
+Root cause: JSON parsing policy lived in two separate call sites with different behavior. This caused:
+- unnecessary per-connection executor scheduling overhead on normal handshake traffic
+- duplicated policy logic in a central route path
+- drift risk when parse thresholds or behavior change
+
+## Refactor Plan
+1. Add a shared WebSocket JSON parse utility module with threshold-based offload behavior.
+2. Rewire both handshake and message parsing to use the shared utility.
+3. Keep all validation/error contracts unchanged.
+4. Add handshake parse-policy tests (inline + offload) and rerun websocket route tests.
+
+## Implemented Changes
+### New shared utility
+- Added `backend/src/api/routes/websocket/json_parse.py`:
+  - `DEFAULT_JSON_PARSE_OFFLOAD_BYTES = 64 * 1024`
+  - `parse_json_payload(data, offload_threshold_bytes, loop_getter)`
+
+### Rewired call sites
+- `backend/src/api/routes/websocket/message_handler.py`
+  - now uses `parse_json_payload(...)` for inbound message parsing
+  - keeps `_JSON_PARSE_OFFLOAD_BYTES` behavior and existing error responses
+- `backend/src/api/routes/websocket/connection.py`
+  - now uses `parse_json_payload(...)` for handshake parsing
+  - adds `_HANDSHAKE_JSON_PARSE_OFFLOAD_BYTES`
+  - preserves existing handshake validation + close-on-error behavior
+
+Result:
+- one canonical parse/offload policy for websocket route modules
+- removed unconditional handshake executor offload for small payloads
+- reduced duplication and divergence risk in central connection/message code paths
+
+## Added Test Coverage
+- Updated `tests/backend/test_websocket_connection.py`:
+  - `test_perform_handshake_small_payload_parses_inline`
+  - `test_perform_handshake_large_payload_uses_executor`
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_websocket_connection.py tests/backend/test_websocket_message_handler.py
+```
+
+Result:
+- `24 passed in 0.30s`
+
+This confirms the shared parse refactor preserved websocket behavior while reducing duplicated JSON parse policy and avoiding unnecessary handshake offload work.

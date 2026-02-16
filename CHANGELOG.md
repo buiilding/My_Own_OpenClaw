@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(websocket): add shared websocket JSON parse utility (`routes/websocket/json_parse.py`), reuse it in handshake + message parsing, and remove unconditional handshake `run_in_executor` parsing for small payloads while preserving existing validation/error contracts
 - refactor(ipc-query): centralize query memory XML section rendering in `ipc.cjs` with shared `formatMemorySection`/`appendMemorySections` helpers and add malformed-memory fallback coverage in `IpcMainBridge.test.cjs`
 - refactor(local-backend-bridge): replace scattered IPC->RPC payload mapper lambdas with shared table-driven mapping utilities (`mapPayloadParams`, `registerMappedRpcHandlers`) and add bridge regression coverage for `get-conversation` null mapping + `store-memory` param wiring
 - refactor(sidecar-output): add shared JSON-line stdout writer (`core/stdout_json.py`) and reuse it in JSON-RPC + memory service paths to remove duplicated UTF-8 encode/write/flush logic
