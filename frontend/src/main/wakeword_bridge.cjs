@@ -128,6 +128,7 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     isPythonReady = false;
     pythonProcess = null;
     stderrBuffer = '';
+    clearResultBuffer();
     
     if (code !== 0 && code !== null) {
       let errorMessage = null;
@@ -153,6 +154,7 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     isPythonReady = false;
     pythonProcess = null;
     stderrBuffer = '';
+    clearResultBuffer();
     
     let errorMessage = error.message;
     if (error.code === 'ENOENT') {
@@ -262,6 +264,7 @@ function stopWakewordService() {
     pythonProcess = null;
     isPythonReady = false;
   }
+  clearResultBuffer();
 }
 
 /**
