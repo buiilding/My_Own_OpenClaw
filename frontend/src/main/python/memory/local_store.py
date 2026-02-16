@@ -1330,32 +1330,24 @@ class LocalMemoryStore:
         """
         normalized_record_kind = "transcript"
         record_kind_clause = "AND record_kind = 'transcript'"
+        conversation_clause, conversation_params = self._conversation_where_clause(
+            conversation_id
+        )
 
         deleted_count = 0
 
         async with aiosqlite.connect(self.episodic_db_path) as conn:
             cursor = await conn.cursor()
-
-            if conversation_id is None:
-                await cursor.execute(
-                    f"""
-                    SELECT id, embedding_id
-                    FROM memories
-                    WHERE user_id = ? AND conversation_id IS NULL
-                    {record_kind_clause}
-                """,
-                    (user_id,),
-                )
-            else:
-                await cursor.execute(
-                    f"""
-                    SELECT id, embedding_id
-                    FROM memories
-                    WHERE user_id = ? AND conversation_id = ?
-                    {record_kind_clause}
-                """,
-                    (user_id, conversation_id),
-                )
+            select_params = (user_id, *conversation_params)
+            await cursor.execute(
+                f"""
+                SELECT id, embedding_id
+                FROM memories
+                WHERE user_id = ? AND {conversation_clause}
+                {record_kind_clause}
+            """,
+                select_params,
+            )
 
             rows = await cursor.fetchall()
 
@@ -1370,24 +1362,14 @@ class LocalMemoryStore:
                     except Exception:
                         continue
 
-            if conversation_id is None:
-                await cursor.execute(
-                    f"""
-                    DELETE FROM memories
-                    WHERE user_id = ? AND conversation_id IS NULL
-                    {record_kind_clause}
-                """,
-                    (user_id,),
-                )
-            else:
-                await cursor.execute(
-                    f"""
-                    DELETE FROM memories
-                    WHERE user_id = ? AND conversation_id = ?
-                    {record_kind_clause}
-                """,
-                    (user_id, conversation_id),
-                )
+            await cursor.execute(
+                f"""
+                DELETE FROM memories
+                WHERE user_id = ? AND {conversation_clause}
+                {record_kind_clause}
+            """,
+                select_params,
+            )
 
             deleted_count = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
             await conn.commit()
@@ -1519,24 +1501,17 @@ class LocalMemoryStore:
         """
         async with aiosqlite.connect(self.episodic_db_path) as conn:
             cursor = await conn.cursor()
-            if conversation_id is None:
-                await cursor.execute(
-                    """
-                    SELECT MAX(message_index)
-                    FROM memories
-                    WHERE user_id = ? AND record_kind = 'transcript' AND conversation_id IS NULL
-                """,
-                    (user_id,),
-                )
-            else:
-                await cursor.execute(
-                    """
-                    SELECT MAX(message_index)
-                    FROM memories
-                    WHERE user_id = ? AND record_kind = 'transcript' AND conversation_id = ?
-                """,
-                    (user_id, conversation_id),
-                )
+            conversation_clause, conversation_params = self._conversation_where_clause(
+                conversation_id
+            )
+            await cursor.execute(
+                f"""
+                SELECT MAX(message_index)
+                FROM memories
+                WHERE user_id = ? AND record_kind = 'transcript' AND {conversation_clause}
+            """,
+                (user_id, *conversation_params),
+            )
             row = await cursor.fetchone()
             max_index = row[0] if row and row[0] is not None else 0
             return int(max_index) + 1
@@ -1567,31 +1542,21 @@ class LocalMemoryStore:
 
             _ = record_kind  # API compatibility; transcript is the only supported kind.
             record_kind_clause = "AND record_kind = 'transcript'"
+            conversation_clause, conversation_params = self._conversation_where_clause(
+                conversation_id
+            )
 
-            if conversation_id is None:
-                await cursor.execute(
-                    f"""
-                    SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind, model_id, model_provider, screenshot
-                    FROM memories
-                    WHERE user_id = ? AND conversation_id IS NULL
-                    {record_kind_clause}
-                    ORDER BY message_index ASC, timestamp ASC
-                    LIMIT ?
-                """,
-                    (user_id, limit),
-                )
-            else:
-                await cursor.execute(
-                    f"""
-                    SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind, model_id, model_provider, screenshot
-                    FROM memories
-                    WHERE user_id = ? AND conversation_id = ?
-                    {record_kind_clause}
-                    ORDER BY message_index ASC, timestamp ASC
-                    LIMIT ?
-                """,
-                    (user_id, conversation_id, limit),
-                )
+            await cursor.execute(
+                f"""
+                SELECT id, content, timestamp, metadata, conversation_id, role, message_index, message_type, tool_name, correlation_id, record_kind, model_id, model_provider, screenshot
+                FROM memories
+                WHERE user_id = ? AND {conversation_clause}
+                {record_kind_clause}
+                ORDER BY message_index ASC, timestamp ASC
+                LIMIT ?
+            """,
+                (user_id, *conversation_params, limit),
+            )
 
             rows = await cursor.fetchall()
             
@@ -1664,51 +1629,30 @@ class LocalMemoryStore:
         async with aiosqlite.connect(self.episodic_db_path) as conn:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.cursor()
-            
-            if conversation_id is None:
-                await cursor.execute(
-                    """
-                    SELECT
-                        id,
-                        content,
-                        timestamp,
-                        metadata,
-                        conversation_id,
-                        record_kind,
-                        role,
-                        message_type,
-                        tool_name
-                    FROM memories
-                    WHERE user_id = ? AND is_semanticized = 0
-                      AND record_kind = 'transcript'
-                      AND conversation_id IS NULL
-                    ORDER BY timestamp ASC
-                    LIMIT ?
-                """,
-                    (user_id, limit),
-                )
-            else:
-                await cursor.execute(
-                    """
-                    SELECT
-                        id,
-                        content,
-                        timestamp,
-                        metadata,
-                        conversation_id,
-                        record_kind,
-                        role,
-                        message_type,
-                        tool_name
-                    FROM memories
-                    WHERE user_id = ? AND is_semanticized = 0
-                      AND record_kind = 'transcript'
-                      AND conversation_id = ?
-                    ORDER BY timestamp ASC
-                    LIMIT ?
-                """,
-                    (user_id, conversation_id, limit),
-                )
+            conversation_clause, conversation_params = self._conversation_where_clause(
+                conversation_id
+            )
+            await cursor.execute(
+                f"""
+                SELECT
+                    id,
+                    content,
+                    timestamp,
+                    metadata,
+                    conversation_id,
+                    record_kind,
+                    role,
+                    message_type,
+                    tool_name
+                FROM memories
+                WHERE user_id = ? AND is_semanticized = 0
+                  AND record_kind = 'transcript'
+                  AND {conversation_clause}
+                ORDER BY timestamp ASC
+                LIMIT ?
+            """,
+                (user_id, *conversation_params, limit),
+            )
             
             rows = await cursor.fetchall()
             
@@ -1728,6 +1672,12 @@ class LocalMemoryStore:
                 })
             
             return results
+
+    @staticmethod
+    def _conversation_where_clause(conversation_id: Optional[str]) -> Tuple[str, Tuple[Any, ...]]:
+        if conversation_id is None:
+            return "conversation_id IS NULL", ()
+        return "conversation_id = ?", (conversation_id,)
     
     async def get_unsemanticized_episodic_memories(
         self, user_id: str, limit: int = 10

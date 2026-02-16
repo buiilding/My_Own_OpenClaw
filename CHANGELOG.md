@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-memory): centralize `conversation_id` SQL predicate construction in `LocalMemoryStore` with shared `_conversation_where_clause(...)`, remove duplicated NULL-vs-value query branches across transcript conversation methods, and add sidecar regression coverage for NULL-conversation delete cleanup
 - refactor(query-execution): parse stream event type once per loop iteration in `QueryExecutionService.execute()`, add shared non-empty chunk extractor with precomputed type support, and add backend regression coverage for precomputed chunk classification
 - refactor(sidecar-memory): short-circuit `LocalMemoryStore.search()` before embedding generation when no searchable FAISS indices are available, add shared search-target planner, and add sidecar regression coverage to ensure empty-index searches skip embedder calls
 - test(multi): add regression coverage for sidecar semantic-client default normalization and close-noop behavior, frontend transcript session-state cache/empty-user update behavior, and backend API error sanitization/send-failure branches
