@@ -43,6 +43,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- feat(frontend-token-display): simplify chat token stats UI to show only active-conversation total tokens (`conversation_tokens`, with `total_tokens` fallback)
 - fix(frontend-tool-output): format `snapshot` and nested `post_action_snapshot` payloads into readable sections (metadata + raw snapshot text) in `MessageFormatter`, including unescaping literal `\n`/`\r\n` so browser-control post-action snapshots render with visible line breaks in both chat-visible tool output and model-facing `llm_content`
 - feat(browser-control): auto-append `post_action_snapshot` (`ai` snapshot payload) to successful page-affecting browser actions, including supported `act.request.kind` interactions; `snapshot`/post-action captures now wait for `wait_until="load"` by default (configurable to `domcontentloaded`/`networkidle`), and snapshot failures degrade gracefully without failing the primary action
 - refactor(browser-control): remove `highlight` action from browser runtime routes, backend/sidecar schemas, and docs; delete unused `BrowserController.highlight()` and obsolete `duration_ms`/`durationMs` browser-control fields

@@ -26,13 +26,8 @@ function TokenCountDisplay({ tokenCounts }) {
 
 TokenCountDisplay.propTypes = {
   tokenCounts: PropTypes.shape({
-    prompt_tokens: PropTypes.number,
-    visible_output_tokens: PropTypes.number,
-    thinking_tokens: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])]),
-    output_tokens_total: PropTypes.number,
     total_tokens: PropTypes.number,
     conversation_tokens: PropTypes.number,
-    usage_source: PropTypes.oneOf(['provider', 'estimated']),
   }),
 };
 
