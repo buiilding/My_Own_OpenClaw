@@ -100,16 +100,19 @@ Executed tests:
 ```bash
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py -q
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_controller.py -q
+./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_use_adapter.py -q
 ```
 
 Results:
 
 - `test_browser_tool.py`: pass
 - `test_browser_tool.py` + `test_browser_controller.py`: pass
+- `test_browser_use_adapter.py`: pass
 
 Additional regression assertions added in:
 
 - `tests/sidecar/tools/test_browser_tool.py` (`TestPhase2AdapterRouting`)
+- `tests/sidecar/tools/test_browser_use_adapter.py` (`TestBrowserUseCompatibilityAdapter`)
 
 ## Remaining Phase 2 Work
 
