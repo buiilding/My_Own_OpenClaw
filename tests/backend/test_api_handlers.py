@@ -248,6 +248,7 @@ async def test_query_handler_success(monkeypatch):
     assert first_event == {"type": "chunk", "content": "ok"}
     assert isinstance(second_event, StreamingCompleteEvent)
     assert first_msg_id == second_msg_id == "msg_1"
+    assert first_context is second_context
     assert first_context == second_context == {
         "user_id": "user_1",
         "session_id": "session_1",
@@ -304,6 +305,7 @@ async def test_query_handler_emits_fallback_chunk_and_completion_when_agent_stre
     assert isinstance(second_event, StreamingCompleteEvent)
     assert "empty final response" in first_event.content
     assert first_msg_id == second_msg_id == "msg_silent_1"
+    assert first_context is second_context
     assert first_context == second_context == {
         "user_id": "user_1",
         "session_id": "session_1",
