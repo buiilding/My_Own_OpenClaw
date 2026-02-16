@@ -925,6 +925,47 @@ class TestGetTabsAction:
             assert len(result.data["tabs"]) == 2
 
 
+class TestSwitchTabAction:
+    """Test switch_tab action."""
+
+    @pytest.mark.asyncio
+    async def test_switch_tab_success_returns_status_title_and_url(self):
+        """Successful switch_tab should report URL/title from get_status."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.switch_tab.return_value = True
+            mock_controller.get_status.return_value = {
+                "connected": True,
+                "mode": "user_chrome",
+                "url": "https://example.com/switched",
+                "title": "Switched Tab",
+                "tab_count": 2,
+                "target_id": "id2",
+            }
+
+            from tools.browser.controller import PageSnapshot
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
+            mock_controller.get_page_snapshot.return_value = PageSnapshot(
+                text='[1] link "Example"',
+                url="https://example.com/switched",
+                title="Switched Tab",
+                ref_count=1,
+            )
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "switch_tab",
+                "target_id": "id2",
+            })
+
+            assert result.success is True
+            assert result.data["action"] == "switch_tab"
+            assert result.data["target_id"] == "id2"
+            assert result.data["url"] == "https://example.com/switched"
+            assert result.data["title"] == "Switched Tab"
+
+
 class TestCloseAction:
     """Test close action."""
     

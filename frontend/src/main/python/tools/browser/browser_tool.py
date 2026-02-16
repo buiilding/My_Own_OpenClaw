@@ -879,11 +879,14 @@ async def _handle_switch_tab(args: Dict[str, Any]) -> ToolResult:
     success = await controller.switch_tab(target_id)
     
     if success:
+        status = await controller.get_status()
+        url = status.get("url", "") if isinstance(status, dict) else ""
+        title = status.get("title", "") if isinstance(status, dict) else ""
         return ToolResult.success_result({
             "action": "switch_tab",
             "target_id": target_id,
-            "url": controller.current_url,
-            "title": controller.current_title,
+            "url": url,
+            "title": title,
         })
     else:
         return ToolResult.error_result(f"Tab not found: {target_id}")

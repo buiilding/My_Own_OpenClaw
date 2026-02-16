@@ -121,7 +121,10 @@ class BrowserController:
     def current_title(self) -> str:
         """Get current page title."""
         if self._page:
-            return self.title
+            # Async Playwright exposes title() as a coroutine; keep this sync
+            # property safe and let callers that need accurate title await get_status().
+            title_attr = getattr(self._page, "title", None)
+            return title_attr if isinstance(title_attr, str) else ""
         return ""
 
     def _get_target_id(self, page: Optional[Page] = None) -> str:
