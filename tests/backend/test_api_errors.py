@@ -46,6 +46,11 @@ def test_sanitize_error_message_exposes_safe_value_error_keywords() -> None:
     assert sanitize_error_message(exc) == "Invalid payload format"
 
 
+def test_sanitize_error_message_exposes_safe_key_error_keywords() -> None:
+    exc = KeyError("missing required key: user_id")
+    assert sanitize_error_message(exc) == "'missing required key: user_id'"
+
+
 def test_sanitize_error_message_hides_unsafe_value_error_details() -> None:
     exc = ValueError("database DSN password leaked")
     assert sanitize_error_message(exc) == "An internal error occurred"
@@ -96,6 +101,26 @@ async def test_send_error_response_uses_provided_message_when_no_exception() -> 
 
 
 @pytest.mark.asyncio
+async def test_send_error_response_respects_custom_error_type() -> None:
+    websocket = FakeWebSocket()
+
+    await send_error_response(
+        websocket=websocket,
+        msg_id="msg_err_custom",
+        message="validation failed",
+        error_type="validation-error",
+    )
+
+    assert websocket.sent == [
+        {
+            "type": "validation-error",
+            "id": "msg_err_custom",
+            "payload": {"message": "validation failed"},
+        }
+    ]
+
+
+@pytest.mark.asyncio
 async def test_send_success_response_attaches_context_fields() -> None:
     websocket = FakeWebSocket()
 
@@ -121,6 +146,26 @@ async def test_send_success_response_attaches_context_fields() -> None:
             "session_id": "session_1",
             "conversation_ref": "conv_1",
             "turn_ref": "turn_1",
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_send_success_response_without_context_uses_base_envelope() -> None:
+    websocket = FakeWebSocket()
+
+    await send_success_response(
+        websocket=websocket,
+        msg_id="msg_ok_2",
+        response_type="settings-loaded",
+        payload={"config": {"theme": "dark"}},
+    )
+
+    assert websocket.sent == [
+        {
+            "type": "settings-loaded",
+            "id": "msg_ok_2",
+            "payload": {"config": {"theme": "dark"}},
         }
     ]
 

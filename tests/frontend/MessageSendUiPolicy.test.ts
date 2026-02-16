@@ -49,5 +49,25 @@ describe('messageSendUiPolicy', () => {
       returnToChatboxPolicy: 'always',
       shouldReturnToChatboxOnSend: true,
     });
+
+    expect(resolveMessageSendUiBehavior({
+      senderSurface: 'overlay-chatbox',
+      includeQueryScreenshot: true,
+      returnToChatboxPolicy: 'auto',
+    })).toEqual({
+      senderSurface: 'overlay-chatbox',
+      returnToChatboxPolicy: 'auto',
+      shouldReturnToChatboxOnSend: true,
+    });
+
+    expect(resolveMessageSendUiBehavior({
+      senderSurface: 'main-window',
+      includeQueryScreenshot: true,
+      returnToChatboxPolicy: 'never',
+    })).toEqual({
+      senderSurface: 'main-window',
+      returnToChatboxPolicy: 'never',
+      shouldReturnToChatboxOnSend: false,
+    });
   });
 });

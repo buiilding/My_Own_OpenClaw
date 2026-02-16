@@ -188,6 +188,29 @@ async def test_close_is_noop_when_session_not_initialized():
     assert client._session is None
 
 
+@pytest.mark.asyncio
+async def test_embed_text_initializes_session_when_missing_and_normalizes_backend_url(monkeypatch):
+    response = DummyResponse(200, json_data={"embedding": [0.1, 0.2]})
+    session = DummySession(response)
+    client = RemoteEmbeddingClient(backend_url="http://localhost:9999/")
+    init_calls = 0
+
+    async def fake_initialize():
+        nonlocal init_calls
+        init_calls += 1
+        client._session = session
+
+    monkeypatch.setattr(client, "initialize", fake_initialize)
+
+    embedding = await client.embed_text("hello")
+
+    assert init_calls == 1
+    assert isinstance(embedding, np.ndarray)
+    assert np.allclose(embedding, np.array([0.1, 0.2], dtype=np.float32))
+    assert session.last_post[0] == "http://localhost:9999/api/embeddings/"
+    assert session.last_post[2].total == 30
+
+
 def test_dimension_property_returns_expected_default():
     client = RemoteEmbeddingClient()
 
