@@ -249,7 +249,7 @@ The core AI assistant is functional. Current development priorities include:
 
 If you want to contribute, check out:
 
-- Open Issues: https://github.com/OWNER/REPO/issues
+- Open Issues: use the repository `Issues` tab
 - Look for issues tagged with `good-first-issue`, `help-wanted`, or `enhancement`
 
 ---
@@ -460,8 +460,8 @@ Inspired by:
 
 ## 📬 Contact & Community
 
-- **Issues**: https://github.com/OWNER/REPO/issues
-- **Discussions**: https://github.com/OWNER/REPO/discussions
+- **Issues**: repository `Issues` tab
+- **Discussions**: repository `Discussions` tab
 - **Email**: contact@yourproject.com
 - **Discord**: [Join our community](#) (coming soon)
 
@@ -485,6 +485,6 @@ If this vision excites you, please star the repository! It helps others discover
 
 **🚀 Building the future of personal computing, one commit at a time**
 
-[Join Discussion](https://github.com/OWNER/REPO/discussions) · [Contribute](docs/CONTRIBUTING.md)
+Use repository `Discussions` · [Contribute](docs/CONTRIBUTING.md)
 
 </div>
