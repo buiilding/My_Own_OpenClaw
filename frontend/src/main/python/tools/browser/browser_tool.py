@@ -24,6 +24,9 @@ DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH = 4
 AI_SNAPSHOT_ZERO_REF_FALLBACK_DEPTH = 12
 DEFAULT_ARIA_SNAPSHOT_MAX_CHARS = 4_000
 MAX_ARIA_SNAPSHOT_MAX_CHARS = 4_000
+MAX_SNAPSHOT_CAPTURE_CHARS = 120_000
+SNAPSHOT_PAGINATION_OVERFETCH_CHARS = 512
+SNAPSHOT_TRUNCATION_SUFFIX = "... (truncated)"
 SNAPSHOT_WAIT_STATES = frozenset({"load", "domcontentloaded", "networkidle", "commit"})
 
 POST_ACTION_SNAPSHOT_ACTIONS = frozenset({
@@ -580,6 +583,20 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
     if isinstance(max_chars_raw, int) and max_chars_raw > 0:
         max_chars = max_chars_raw
 
+    offset_raw = args.get("offset")
+    offset = 0
+    if offset_raw is not None:
+        if not isinstance(offset_raw, int) or offset_raw < 0:
+            return ToolResult.error_result("offset must be a non-negative integer")
+        offset = offset_raw
+
+    limit_raw = args.get("limit")
+    limit: int | None = None
+    if limit_raw is not None:
+        if not isinstance(limit_raw, int) or limit_raw <= 0:
+            return ToolResult.error_result("limit must be a positive integer")
+        limit = limit_raw
+
     refs_mode_raw = args.get("refs")
     refs_mode = refs_mode_raw if refs_mode_raw in ("role", "aria") else None
 
@@ -610,10 +627,32 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
         else:
             resolved_max_chars = min(resolved_max_chars, MAX_ARIA_SNAPSHOT_MAX_CHARS)
 
+    page_limit = limit if limit is not None else (resolved_max_chars or DEFAULT_AI_SNAPSHOT_MAX_CHARS)
+    if format_type == "aria":
+        page_limit = min(page_limit, MAX_ARIA_SNAPSHOT_MAX_CHARS)
+
+    capture_max_chars = resolved_max_chars or DEFAULT_AI_SNAPSHOT_MAX_CHARS
+    pagination_requested = offset > 0 or limit is not None
+    if pagination_requested:
+        requested_window_end = offset + page_limit
+        if requested_window_end > MAX_SNAPSHOT_CAPTURE_CHARS:
+            return ToolResult.error_result(
+                f"offset + limit exceeds maximum snapshot window ({MAX_SNAPSHOT_CAPTURE_CHARS})"
+            )
+        capture_max_chars = max(
+            capture_max_chars,
+            min(
+                MAX_SNAPSHOT_CAPTURE_CHARS,
+                requested_window_end + SNAPSHOT_PAGINATION_OVERFETCH_CHARS,
+            ),
+        )
+    else:
+        capture_max_chars = min(capture_max_chars, MAX_SNAPSHOT_CAPTURE_CHARS)
+
     if format_type == "ai":
         snapshot = await _capture_ai_snapshot_with_zero_ref_fallback(
             controller,
-            max_chars=resolved_max_chars or DEFAULT_AI_SNAPSHOT_MAX_CHARS,
+            max_chars=capture_max_chars,
             refs_mode=refs_mode,
             interactive=interactive,
             compact=compact,
@@ -625,7 +664,7 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
     else:
         snapshot = await controller.get_page_snapshot(
             format_type=format_type,
-            max_chars=resolved_max_chars or DEFAULT_AI_SNAPSHOT_MAX_CHARS,
+            max_chars=capture_max_chars,
             refs_mode=refs_mode,
             interactive=interactive,
             compact=compact,
@@ -634,15 +673,31 @@ async def _handle_snapshot(args: Dict[str, Any]) -> ToolResult:
             frame_selector=frame_selector,
         )
 
+    full_snapshot = snapshot.text if isinstance(snapshot.text, str) else ""
+    total_chars = len(full_snapshot)
+    window_start = min(offset, total_chars)
+    window_end = min(total_chars, window_start + page_limit)
+    window_text = full_snapshot[window_start:window_end]
+    is_truncated_capture = full_snapshot.rstrip().endswith(SNAPSHOT_TRUNCATION_SUFFIX)
+    has_more = window_end < total_chars or (is_truncated_capture and window_end >= total_chars)
+    next_offset = window_end if has_more else None
+
     result: Dict[str, Any] = {
         "action": "snapshot",
         "format": format_type,
         "wait_until": wait_until,
         "url": snapshot.url,
         "title": snapshot.title,
-        "snapshot": snapshot.text,
+        "snapshot": window_text,
         "ref_count": snapshot.ref_count,
+        "offset": offset,
+        "limit": page_limit,
+        "returned_chars": len(window_text),
+        "total_chars": total_chars,
+        "has_more": has_more,
     }
+    if next_offset is not None:
+        result["next_offset"] = next_offset
 
     return ToolResult.success_result(result)
 

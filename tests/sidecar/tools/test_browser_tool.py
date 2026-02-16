@@ -580,6 +580,114 @@ class TestSnapshotAction:
             )
 
     @pytest.mark.asyncio
+    async def test_snapshot_ai_offset_limit_expands_capture_and_returns_window(self):
+        """AI snapshot should support offset/limit pagination with expanded capture budget."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
+
+            from tools.browser.controller import PageSnapshot
+            full_text = "x" * 6000
+            mock_controller.get_page_snapshot.return_value = PageSnapshot(
+                text=full_text,
+                url="https://example.com",
+                title="Example",
+                ref_count=10,
+            )
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "snapshot",
+                "format": "ai",
+                "offset": 4500,
+                "limit": 300,
+            })
+
+            assert result.success is True
+            assert result.data["snapshot"] == full_text[4500:4800]
+            assert result.data["offset"] == 4500
+            assert result.data["limit"] == 300
+            assert result.data["returned_chars"] == 300
+            assert result.data["total_chars"] == 6000
+            assert result.data["has_more"] is True
+            assert result.data["next_offset"] == 4800
+            mock_controller.get_page_snapshot.assert_awaited_once_with(
+                format_type="ai",
+                max_chars=5312,
+                refs_mode=None,
+                interactive=True,
+                compact=True,
+                depth=4,
+                selector=None,
+                frame_selector=None,
+            )
+
+    @pytest.mark.asyncio
+    async def test_snapshot_aria_offset_limit_caps_page_limit_and_paginates(self):
+        """ARIA snapshot should cap page limit at 4000 while allowing paged reads."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
+
+            from tools.browser.controller import PageSnapshot
+            full_text = "z" * 12000
+            mock_controller.get_page_snapshot.return_value = PageSnapshot(
+                text=full_text,
+                url="https://example.com",
+                title="Example",
+                ref_count=0,
+            )
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "snapshot",
+                "format": "aria",
+                "offset": 4000,
+                "limit": 10000,
+            })
+
+            assert result.success is True
+            assert result.data["snapshot"] == full_text[4000:8000]
+            assert result.data["offset"] == 4000
+            assert result.data["limit"] == 4000
+            assert result.data["returned_chars"] == 4000
+            assert result.data["total_chars"] == 12000
+            assert result.data["has_more"] is True
+            assert result.data["next_offset"] == 8000
+            mock_controller.get_page_snapshot.assert_awaited_once_with(
+                format_type="aria",
+                max_chars=8512,
+                refs_mode=None,
+                interactive=None,
+                compact=None,
+                depth=None,
+                selector=None,
+                frame_selector=None,
+            )
+
+    @pytest.mark.asyncio
+    async def test_snapshot_offset_limit_window_has_upper_bound(self):
+        """Snapshot pagination window should enforce a hard capture ceiling."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "snapshot",
+                "format": "ai",
+                "offset": 119900,
+                "limit": 200,
+            })
+
+            assert result.success is False
+            assert "offset + limit exceeds maximum snapshot window" in result.error
+            mock_controller.get_page_snapshot.assert_not_awaited()
+
+    @pytest.mark.asyncio
     async def test_snapshot_custom_wait_until(self):
         """Test snapshot accepts custom wait_until."""
         with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
