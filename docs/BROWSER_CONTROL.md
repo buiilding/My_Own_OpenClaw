@@ -212,7 +212,32 @@ Automatic post-action snapshots:
 - Current auto-snapshot actions: `connect`, `navigate`, `open`, `click`, `type`, `press`, `scroll`, `wait`, `switch_tab`, `evaluate`, `upload`, `set_media`, `set_device`, and `act` kinds (`click`, `type`, `press`, `hover`, `drag`, `select`, `fill`, `resize`, `wait`, `evaluate`).
 - Auto-snapshot uses efficient defaults: `interactive=true`, `compact=true`, `depth=4`, `max_chars=4000`.
 
-### 4. Click
+### 4. Extract
+
+Extract query-focused content from page DOM text.
+
+```json
+{
+  "action": "extract",
+  "query": "list all pricing tiers and monthly cost"
+}
+```
+
+Extract options:
+- `query` (required): what to extract from the current page.
+- `wait_until`: load state to wait for before extraction (`load` default; supports `domcontentloaded`, `networkidle`, `commit`).
+- `extract_links`: include link lines (`text -> href`) in source text before query filtering (`false` default).
+- `start_from_char`: continue extraction from a character offset for long pages (`0` default).
+- `max_chars`: max characters returned in `result` (`12000` default).
+- `output_schema`: optional schema hint metadata (accepted but not enforced in sidecar extraction).
+
+Extract output includes:
+- `result`: extracted text relevant to `query`.
+- `extracted_content`: tagged payload (`<url>`, `<query>`, `<result>`) for agent context.
+- pagination/source metadata: `start_from_char`, `next_start_char`, `has_more_source`, `source_window_chars`, `total_source_chars`.
+- diagnostics: `returned_chars`, `extract_links`, `wait_until`, `url`, `title`.
+
+### 5. Click
 
 Click an element by reference.
 
@@ -234,7 +259,7 @@ Click fallback behavior:
 - If normal click fails with recoverable actionability errors (for example pointer interception), WindieOS may use fallback strategies.
 - For native `<select>/<option>` targets, WindieOS now attempts `select_option` before force-click; tool output reports `strategy: "select_option"` when this path is used.
 
-### 5. Type
+### 6. Type
 
 Type text into an input.
 
@@ -247,7 +272,7 @@ Type text into an input.
 }
 ```
 
-### 6. Press
+### 7. Press
 
 Press a keyboard key.
 
@@ -260,7 +285,7 @@ Press a keyboard key.
 
 Common keys: `Enter`, `Escape`, `Tab`, `ArrowDown`, `ArrowUp`, `F5`
 
-### 7. Scroll
+### 8. Scroll
 
 Scroll the page.
 
@@ -274,7 +299,7 @@ Scroll the page.
 
 Directions: `up`, `down`, `left`, `right`
 
-### 8. Screenshot
+### 9. Screenshot
 
 Capture screenshot.
 
@@ -293,7 +318,7 @@ Or screenshot specific element:
 }
 ```
 
-### 9. Wait
+### 10. Wait
 
 Wait for load state or fixed time.
 
@@ -312,7 +337,7 @@ Or wait seconds:
 }
 ```
 
-### 10. Get Tabs
+### 11. Get Tabs
 
 List open tabs.
 
@@ -322,7 +347,7 @@ List open tabs.
 }
 ```
 
-### 11. Switch Tab
+### 12. Switch Tab
 
 Switch to a specific tab.
 
@@ -333,7 +358,7 @@ Switch to a specific tab.
 }
 ```
 
-### 12. Evaluate
+### 13. Evaluate
 
 Execute JavaScript.
 
@@ -344,7 +369,7 @@ Execute JavaScript.
 }
 ```
 
-### 13. Close
+### 14. Close
 
 Close browser connection.
 

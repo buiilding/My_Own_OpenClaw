@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(browser-control): add Browser Use-style `extract` action to `browser_control` with query-focused DOM text extraction (`query`, `extract_links`, `start_from_char`, `max_chars`, `wait_until`), plus backend/sidecar schema wiring, tests, and docs
 - refactor(api-errors): centralize websocket transport send handling in `api/infrastructure/errors.py` via shared `_send_transport_message`, remove duplicated success/error send blocks, and add focused backend coverage for sanitization/context/closed-connection behavior
 - refactor(query-execution): reuse a single per-query stream context in `QueryExecutionService`, centralize completion emission helpers, and add backend handler assertions proving shared context reuse across streamed events
 - refactor(ipc-query): extract query enrichment orchestration from `ipc.cjs` into dedicated `query_payload_builder.cjs`, reducing `to-backend` query-path complexity while preserving payload format and adding focused builder unit coverage
@@ -58,6 +59,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- docs(browser): document `browser_control` `extract` action contract (query-focused DOM extraction, pagination fields, metadata-only `output_schema`) and add runbook extraction usage example
 - docs(dev): align Dev Tool Selection canonical remote-tool source to `backend/src/tools/remote_tools/registry.py`, update Developer Guide protocol snippet to current SDK `run(args, ctx)` convention, and replace placeholder README community links with repository-tab guidance
 - docs(tooling): realign high-traffic tool docs with current SDK/runtime (`Tool[ArgsModel]` + `run()`, backend `remote_tools` registry flow, sidecar `EXPOSED_TO_BACKEND_TOOLS` contract), fix developer-guide event-bus import/publish example, add env-wrapper override vars to environment setup, and refresh README setup/community links
 - feat(frontend-ui): refresh renderer visuals with a ChatGPT-inspired dark shell (sidebar structure, centered conversation column, and restyled chat/status/input surfaces) while preserving existing behaviors and pill interactions
