@@ -43,6 +43,7 @@ To reduce feature-change friction in `backend/src/api`, WebSocket + semantic API
 - **Query and wakeword orchestration moved to services** in `backend/src/api/services/query_execution.py` and `backend/src/api/services/wakeword_execution.py`, with shared TTS lifecycle handling in `backend/src/api/services/tts_session.py`.
 - **Semantic summarization parsing/orchestration moved out of route handlers** into `backend/src/api/routes/memory/semantic_parser.py` and `backend/src/api/routes/memory/semantic_service.py`, leaving `semantic.py` as a thin HTTP layer.
 - **FastAPI dependency resolution now prefers app scope** in `backend/src/api/deps.py` (`app.state.container` first, global fallback second) so tests and request-scoped integrations can use a single container source.
+- **WebSocket JSON parse policy is shared** in `backend/src/api/routes/websocket/json_parse.py` so handshake/message parsing uses one threshold policy (inline for small payloads, executor offload for larger payloads) to protect event-loop latency.
 
 ## Future: Multi-Tenant Backend & Subscription Platform (Planned)
 

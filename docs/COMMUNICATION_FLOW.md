@@ -109,6 +109,7 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 
 1. **Connection**: Client connects to backend WebSocket (default `ws://127.0.0.1:8765/ws`)
 2. **Handshake**: Client sends handshake message (backend validates and uses client `user_id`)
+   - Invalid handshake JSON/schema closes the socket with code `1008` (policy violation)
 3. **Session Creation**: Backend creates session
 4. **Message Loop**: Continuous message exchange
 5. **Disconnection**: Cleanup on disconnect
