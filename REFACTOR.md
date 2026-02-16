@@ -432,3 +432,67 @@ Result:
 - `17 passed` tests
 
 This confirms the mapping refactor preserved bridge handler behavior while consolidating duplicated translation logic.
+
+---
+
+# Refactor: Centralize IPC Query Memory-Section Rendering
+
+## Target
+Remove duplicated memory XML rendering/fallback logic in:
+- `frontend/src/main/ipc.cjs`
+
+Specifically in the high-churn query-enrichment path that builds `<episodic_memory>` and `<semantic_memory>` blocks.
+
+## Current Structure and Root Cause
+Before this refactor, `ipc.cjs` built memory sections inline with duplicated branches:
+- one branch when memory search returned valid memories
+- another branch when memory search failed or payload shape was invalid
+
+Both branches repeated:
+- emitting section tags for episodic + semantic memory
+- rendering list items with XML escaping
+- emitting `None` fallback sections
+
+Root cause: memory-section formatting policy lived directly in the event-handler control flow instead of dedicated helpers.
+
+## Refactor Plan
+1. Introduce pure helpers for memory section formatting.
+2. Reuse those helpers in both success and fallback branches.
+3. Keep query payload contract unchanged (`payload.content`, tags, fallback behavior).
+4. Add regression coverage for malformed memory responses.
+5. Run targeted IPC bridge tests.
+
+## Implemented Changes
+### New helper utilities in IPC bridge
+- Added in `frontend/src/main/ipc.cjs`:
+  - `formatMemorySection(tagName, entries)`
+  - `appendMemorySections(parts, memories = null)`
+
+### Query-enrichment cleanup
+- Replaced duplicated inline XML section construction in the `type === 'query'` branch with helper calls.
+- Preserved behavior:
+  - valid memory arrays render bullet items
+  - missing/invalid memory data renders `None` sections
+  - tags and section names are unchanged
+
+Result:
+- one canonical implementation for memory-section rendering
+- reduced duplication and branch complexity in a central module
+- unchanged external message schema and backend contract
+
+## Added Test Coverage
+- Updated `tests/frontend/IpcMainBridge.test.cjs`:
+  - `builds query with empty memories when search response is malformed`
+
+## Validation
+Ran:
+
+```bash
+cd frontend && npm run test -- --runTestsByPath ../tests/frontend/IpcMainBridge.test.cjs
+```
+
+Result:
+- `1 passed` test suite
+- `17 passed` tests
+
+This confirms the refactor preserved query-enrichment behavior while consolidating duplicated memory-section logic.
