@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pytest
@@ -118,3 +119,27 @@ def test_tool_call_validator_applies_dev_denylist(monkeypatch: pytest.MonkeyPatc
     validator.validate_tool_call("read_file", {})
     with pytest.raises(ParseValidationError, match="not in whitelist"):
         validator.validate_tool_call("write_file", {})
+
+
+def test_load_tool_selection_refreshes_cache_when_file_rewritten_with_same_mtime(tmp_path: Path):
+    p = tmp_path / "tool_selection.toml"
+    fixed_mtime = 1_700_000_000
+
+    p.write_text(
+        'enabled = true\nmode = "allowlist"\ntools = ["read_file"]\n',
+        encoding="utf-8",
+    )
+    os.utime(p, (fixed_mtime, fixed_mtime))
+    first = load_tool_selection(p)
+    assert first is not None
+    assert first.tools == {"read_file"}
+
+    # Rewrite to same byte length and pin mtime back to the same value.
+    p.write_text(
+        'enabled = true\nmode = "allowlist"\ntools = ["edit_file"]\n',
+        encoding="utf-8",
+    )
+    os.utime(p, (fixed_mtime, fixed_mtime))
+    second = load_tool_selection(p)
+    assert second is not None
+    assert second.tools == {"edit_file"}

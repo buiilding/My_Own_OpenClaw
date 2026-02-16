@@ -187,7 +187,18 @@ class ToolSelection:
         return tool_name if isinstance(tool_name, str) else None
 
 
-_CACHE: dict[Path, tuple[float, Optional[ToolSelection]]] = {}
+_CACHE: dict[Path, tuple[tuple[int, int, int], Optional[ToolSelection]]] = {}
+
+
+def _cache_signature(stat_result: os.stat_result) -> tuple[int, int, int]:
+    """
+    Return a file-change signature robust against same-mtime rewrites.
+
+    We intentionally include ctime and size in addition to mtime so cache
+    invalidation still works when a file is rewritten and its mtime is
+    preserved (for example, via explicit utime calls in tooling/scripts).
+    """
+    return (stat_result.st_mtime_ns, stat_result.st_ctime_ns, stat_result.st_size)
 
 
 def _parse_selection(data: Dict[str, Any]) -> Optional[ToolSelection]:
@@ -270,7 +281,9 @@ def load_tool_selection(path: Optional[Path] = None) -> Optional[ToolSelection]:
         return None
 
     cached = _CACHE.get(path)
-    if cached and cached[0] == stat.st_mtime:
+    signature = _cache_signature(stat)
+
+    if cached and cached[0] == signature:
         return cached[1]
 
     selection: Optional[ToolSelection] = None
@@ -286,7 +299,7 @@ def load_tool_selection(path: Optional[Path] = None) -> Optional[ToolSelection]:
         logger.warning("Failed to load tool selection file %s: %s", path, e)
         selection = None
 
-    _CACHE[path] = (stat.st_mtime, selection)
+    _CACHE[path] = (signature, selection)
     if selection is not None and selection.mode == "allowlist" and not selection.tools:
         logger.warning("Tool selection enabled with allowlist mode but no tools configured (0 tools allowed).")
     return selection

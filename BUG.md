@@ -686,3 +686,39 @@ In `frontend/src/main/python/core/ipc_protocol.py`, `JSONRPCProtocol.handle_requ
 - Runtime check:
   - Before: `process_line('[]')` returned `-32603 Internal error` with an attribute-error trace.
   - After: `process_line('[]')` returns `-32600 Invalid request`.
+
+---
+
+## [x] Bug Report: Dev Tool Selection Cache Can Serve Stale Config After Rewrite
+
+### Summary
+
+In `backend/src/tools/tool_selection.py`, `load_tool_selection(...)` cached parsed config using only `stat.st_mtime`. If `tool_selection.toml` was rewritten while preserving `mtime`, the loader could return stale cached selection.
+
+### Root Cause
+
+- Cache key compared only `st_mtime`.
+- Some workflows can rewrite file contents and then pin `mtime` back (for example, explicit `utime` or copy/sync tooling).
+- In that case, cache invalidation did not trigger, so old parsed config was reused.
+
+### Why It's Problematic
+
+- Backend can run with outdated tool allowlist/denylist policy even though config content changed.
+- Dev/runtime behavior becomes inconsistent and hard to debug (file contents and active policy diverge).
+- This can unintentionally expose or hide tools against the expected config.
+
+### Fix
+
+- Reworked cache signature to include `(st_mtime_ns, st_ctime_ns, st_size)` instead of only `st_mtime`.
+- Added `_cache_signature(...)` helper and switched cache compare/store logic to that signature.
+
+### Validation
+
+- Added regression test in `tests/backend/test_dev_tool_selection.py`:
+  - `test_load_tool_selection_refreshes_cache_when_file_rewritten_with_same_mtime`
+- Re-ran targeted backend suites:
+  - `./scripts/python-in-env backend pytest tests/backend/test_dev_tool_selection.py tests/backend/test_tool_policy.py`
+  - Result: `12 passed`
+- Runtime repro:
+  - Before: rewriting config with same `mtime` returned stale tool list (`read_file`)
+  - After: same scenario returns updated tool list (`edit_file`)
