@@ -1481,30 +1481,32 @@ class BrowserController:
 
         return self._page.locator(f"[data-windie-ref='{ref}'], [aria-ref='{ref}']")
 
-    async def _resolve_click_locator(self, ref: str):
+    async def _resolve_click_locator(self, ref: str) -> tuple[Any, Dict[str, Any]]:
         """
         Resolve locator for click operations.
 
-        For role refs without explicit nth, prefer a visible in-viewport candidate.
-        This avoids Playwright repeatedly scrolling between hidden/duplicate matches
-        on pages with cloned controls (e.g., sticky headers/footers/carousels).
+        For role refs without explicit nth, resolve to one deterministic visible
+        candidate or fail with an ambiguity error. This avoids oscillating auto-scroll
+        retries across duplicate controls (e.g., sticky headers/footers/carousels).
         """
         locator = self._resolve_ref_locator(ref)
+        resolution_meta: Dict[str, Any] = {}
         role_ref_key = parse_role_ref(ref)
         if not role_ref_key or not self._page:
-            return locator
+            return locator, resolution_meta
 
         role_ref = self._get_role_ref(role_ref_key, self._page)
         if role_ref and role_ref.nth is not None:
-            return locator
+            return locator, resolution_meta
 
         try:
             count = await locator.count()
         except Exception:
-            return locator
+            return locator, resolution_meta
 
         if count <= 1:
-            return locator
+            return locator, resolution_meta
+        resolution_meta["candidate_count"] = count
 
         viewport_width = 0.0
         viewport_height = 0.0
@@ -1517,7 +1519,9 @@ class BrowserController:
             viewport_width = 0.0
             viewport_height = 0.0
 
-        first_visible = None
+        has_viewport = viewport_width > 0 and viewport_height > 0
+        visible_candidates: list[tuple[int, Any]] = []
+        in_viewport_candidates: list[tuple[int, Any]] = []
         max_probe = min(count, 25)
         for idx in range(max_probe):
             candidate = locator.nth(idx)
@@ -1527,11 +1531,9 @@ class BrowserController:
             except Exception:
                 continue
 
-            if first_visible is None:
-                first_visible = candidate
-
-            if viewport_width <= 0 or viewport_height <= 0:
-                return candidate
+            visible_candidates.append((idx, candidate))
+            if not has_viewport:
+                continue
 
             try:
                 box = await candidate.bounding_box()
@@ -1550,13 +1552,47 @@ class BrowserController:
                     and (y + h) > 0
                 )
                 if intersects_viewport:
-                    return candidate
+                    in_viewport_candidates.append((idx, candidate))
             except Exception:
                 continue
 
-        if first_visible is not None:
-            return first_visible
-        return locator
+        if has_viewport and len(in_viewport_candidates) == 1:
+            idx, candidate = in_viewport_candidates[0]
+            resolution_meta["candidate_index"] = idx
+            return candidate, resolution_meta
+
+        if len(visible_candidates) == 1:
+            idx, candidate = visible_candidates[0]
+            resolution_meta["candidate_index"] = idx
+            return candidate, resolution_meta
+
+        if not visible_candidates:
+            return locator, resolution_meta
+
+        visible_count = (
+            len(in_viewport_candidates) if has_viewport else len(visible_candidates)
+        )
+        scope = "in viewport" if has_viewport else "visible"
+        raise RuntimeError(
+            f"Ambiguous role ref '{ref}': matched {count} elements; "
+            f"{visible_count} are {scope}. Take a fresh snapshot and use a more specific ref."
+        )
+
+    @staticmethod
+    def _is_recoverable_click_error(error_text: str) -> bool:
+        lowered = str(error_text or "").lower()
+        if not lowered:
+            return False
+        recoverable_markers = (
+            "intercepts pointer events",
+            "another element would receive",
+            "outside of the viewport",
+            "not visible",
+            "not stable",
+            "element is detached",
+            "timeout",
+        )
+        return any(marker in lowered for marker in recoverable_markers)
     
     async def click(
         self,
@@ -1568,49 +1604,35 @@ class BrowserController:
         if not self._page:
             raise RuntimeError("Browser not connected")
         
-        locator = await self._resolve_click_locator(ref)
+        try:
+            locator, resolution_meta = await self._resolve_click_locator(ref)
+        except Exception as resolve_error:
+            return {"success": False, "error": str(resolve_error)}
+
         default_click_timeout_ms = 2500
         force_click_timeout_ms = 1500
-        prefer_force_click = False
-        force_attempted = False
-        role_ref_key = parse_role_ref(ref)
-        if role_ref_key and self._page:
-            role_ref = self._get_role_ref(role_ref_key, self._page)
-            if role_ref and role_ref.role in {"combobox", "listbox", "option"}:
-                prefer_force_click = True
-        if not prefer_force_click:
-            try:
-                tag_name = await locator.evaluate("(el) => (el.tagName || '').toLowerCase()")
-                if str(tag_name).lower() == "select":
-                    prefer_force_click = True
-            except Exception:
-                pass
 
         try:
             if double_click:
                 await locator.dblclick(button=button, timeout=default_click_timeout_ms)
+                strategy = "dblclick"
             else:
-                if prefer_force_click:
-                    force_attempted = True
-                    await locator.click(
-                        button=button,
-                        force=True,
-                        timeout=force_click_timeout_ms,
-                    )
-                    return {
-                        "success": True,
-                        "action": "click",
-                        "ref": ref,
-                        "forced": True,
-                    }
                 await locator.click(button=button, timeout=default_click_timeout_ms)
-            return {"success": True, "action": "click", "ref": ref}
+                strategy = "playwright"
+            return {
+                "success": True,
+                "action": "click",
+                "ref": ref,
+                "strategy": strategy,
+                **resolution_meta,
+            }
         except Exception as e:
             error_text = str(e)
             logger.warning(f"Click failed, retrying with fallback: {error_text}")
+            recoverable = self._is_recoverable_click_error(error_text)
 
-            # Fallback 1: force click to bypass actionability checks
-            if not double_click and not force_attempted:
+            # Fallback 1: force click to bypass actionability checks.
+            if not double_click and recoverable:
                 try:
                     await locator.click(
                         button=button,
@@ -1622,22 +1644,28 @@ class BrowserController:
                         "action": "click",
                         "ref": ref,
                         "forced": True,
+                        "strategy": "force",
+                        **resolution_meta,
                     }
                 except Exception as force_error:
                     error_text = str(force_error)
 
-                # Fallback 2: DOM click to bypass pointer interception
-                try:
-                    await locator.evaluate("el => el.click()")
-                    return {
-                        "success": True,
-                        "action": "click",
-                        "ref": ref,
-                        "forced": True,
-                        "method": "dom",
-                    }
-                except Exception as dom_error:
-                    error_text = str(dom_error)
+                # Fallback 2: DOM click to bypass pointer interception.
+                # Limit to left clicks because DOM click cannot represent right/middle.
+                if button == "left":
+                    try:
+                        await locator.evaluate("el => el.click()")
+                        return {
+                            "success": True,
+                            "action": "click",
+                            "ref": ref,
+                            "forced": True,
+                            "method": "dom",
+                            "strategy": "dom",
+                            **resolution_meta,
+                        }
+                    except Exception as dom_error:
+                        error_text = str(dom_error)
 
             logger.error(f"Click failed after fallbacks: {error_text}")
             return {"success": False, "error": error_text}

@@ -272,8 +272,67 @@ class TestBrowserControllerActions:
         result = await self.controller.click("e9")
 
         assert result["success"] is True
-        onscreen.click.assert_awaited_once_with(button="left", force=True, timeout=1500)
+        assert result["candidate_count"] == 3
+        assert result["candidate_index"] == 2
+        assert result["strategy"] == "playwright"
+        onscreen.click.assert_awaited_once_with(button="left", timeout=2500)
         offscreen.click.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_click_role_ref_returns_ambiguity_error_when_multiple_in_viewport(self):
+        """Test role-ref click fails clearly when multiple visible candidates remain."""
+        base_locator = mock.MagicMock()
+        base_locator.count = mock.AsyncMock(return_value=2)
+        base_locator.evaluate = mock.AsyncMock()
+
+        first = mock.MagicMock()
+        first.is_visible = mock.AsyncMock(return_value=True)
+        first.bounding_box = mock.AsyncMock(return_value={"x": 10, "y": 120, "width": 120, "height": 24})
+        first.click = mock.AsyncMock()
+        first.dblclick = mock.AsyncMock()
+
+        second = mock.MagicMock()
+        second.is_visible = mock.AsyncMock(return_value=True)
+        second.bounding_box = mock.AsyncMock(return_value={"x": 20, "y": 180, "width": 120, "height": 24})
+        second.click = mock.AsyncMock()
+        second.dblclick = mock.AsyncMock()
+
+        base_locator.nth.side_effect = [first, second]
+        self.controller._page.viewport_size = {"width": 1280, "height": 720}
+        self.controller._page.get_by_role.return_value = base_locator
+
+        target_id = str(id(self.controller._page))
+        self.controller._role_refs_by_tab[target_id] = {
+            "e3": RoleRef(role="button", name="Save")
+        }
+        self.controller._role_refs_frame_by_tab[target_id] = None
+
+        result = await self.controller.click("e3")
+
+        assert result["success"] is False
+        assert "Ambiguous role ref 'e3'" in result["error"]
+        first.click.assert_not_called()
+        second.click.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_click_right_button_skips_dom_fallback(self):
+        """DOM fallback should not run for non-left clicks."""
+        mock_locator = mock.MagicMock()
+        mock_locator.click = mock.AsyncMock(
+            side_effect=[
+                Exception("Element is outside of the viewport"),
+                Exception("Element is outside of the viewport"),
+            ]
+        )
+        mock_locator.dblclick = mock.AsyncMock()
+        mock_locator.evaluate = mock.AsyncMock()
+        self.controller._page.locator.return_value = mock_locator
+
+        result = await self.controller.click("1", button="right")
+
+        assert result["success"] is False
+        assert mock_locator.click.await_count == 2
+        mock_locator.evaluate.assert_not_awaited()
     
     @pytest.mark.asyncio
     async def test_type_text(self):
