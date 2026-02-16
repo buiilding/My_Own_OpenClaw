@@ -456,3 +456,41 @@ In `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`, queued
   - Result: `15 passed`
   - `cd frontend && npm run test -- ../tests/frontend/ChatMessageSender.test.tsx ../tests/frontend/TranscriptStorage.test.ts`
   - Result: `22 passed`
+
+---
+
+## [x] Bug Report: `setActiveConversationRef(null)` Failed To Clear Active Conversation
+
+### Summary
+
+In `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`, clearing the active conversation by passing `null` did not work. The previous conversation ref was retained.
+
+### Root Cause
+
+- `update(...)` used `conversationRef || currentConversationRef`.
+- When `conversationRef` was `null`, JavaScript fallback logic reused the old value instead of clearing.
+- `setActiveConversationRef(...)` passes through this state layer, so `setActiveConversationRef(null)` became a no-op for conversation identity.
+
+### Why It's Problematic
+
+- Transcript routing can leak into a stale conversation after reset/clear flows.
+- New user messages may be written immediately under an old conversation instead of staying queued until a new conversation ref is set.
+- This creates incorrect episodic history grouping in the frontend dashboard and transcript store.
+
+### Fix
+
+- Updated `sessionInfoState.update(...)` to treat `undefined` as “keep current” and `null` as an explicit clear for conversation ref.
+- Updated `setActiveConversationRef(...)` to pass `undefined` for `userId` (preserve user while clearing/setting conversation explicitly).
+
+### Validation
+
+- Added regression tests:
+  - `tests/frontend/TranscriptSessionState.test.ts`
+    - `update clears conversation ref when null is explicitly provided`
+  - `tests/frontend/TranscriptWriter.test.ts`
+    - `setActiveConversationRef(null) clears active conversation and queues new messages`
+- Re-ran targeted frontend suites:
+  - `cd frontend && npm run test -- ../tests/frontend/TranscriptSessionState.test.ts ../tests/frontend/TranscriptWriter.test.ts`
+  - Result: `22 passed`
+  - `cd frontend && npm run test -- ../tests/frontend/ChatMessageSender.test.tsx ../tests/frontend/TranscriptStorage.test.ts`
+  - Result: `22 passed`
