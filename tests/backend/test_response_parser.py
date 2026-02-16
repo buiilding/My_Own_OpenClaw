@@ -195,3 +195,51 @@ def test_parse_sync_skips_redundant_second_pass_text_removal(monkeypatch):
     assert parsed.has_tool_calls is True
     assert parsed.text_content == ""
     assert remove_calls_invocations["count"] == 0
+
+
+def test_parse_sync_skips_pure_json_strategy_for_embedded_response():
+    parser = _make_parser([DummyTool("read_file", ToolDomain.FILESYSTEM)])
+    response = (
+        "prefix text\n"
+        '{"functionCall":{"name":"read_file","args":{"file_path":"/tmp/x"}}}\n'
+        "suffix text"
+    )
+
+    strategy_calls = {"json": 0, "embedded": 0}
+    original_embedded = parser._extractor.parse_embedded_json
+
+    def fail_json(*_args, **_kwargs):
+        strategy_calls["json"] += 1
+        raise AssertionError("parse_json_response should be skipped for embedded responses")
+
+    def spy_embedded(*args, **kwargs):
+        strategy_calls["embedded"] += 1
+        return original_embedded(*args, **kwargs)
+
+    parser._parsing_strategies = (fail_json, spy_embedded)
+    parsed = parser._parse_sync(response)
+
+    assert parsed.has_tool_calls is True
+    assert parsed.tool_calls[0].tool_name == "read_file"
+    assert "functionCall" not in parsed.text_content
+    assert strategy_calls["json"] == 0
+    assert strategy_calls["embedded"] == 1
+
+
+def test_parse_sync_keeps_pure_json_strategy_for_object_wrapped_response():
+    parser = _make_parser([DummyTool("read_file", ToolDomain.FILESYSTEM)])
+    response = '{"functionCall":{"name":"read_file","args":{"file_path":"/tmp/x"}}}'
+
+    strategy_calls = {"json": 0}
+    original_json = parser._extractor.parse_json_response
+
+    def spy_json(*args, **kwargs):
+        strategy_calls["json"] += 1
+        return original_json(*args, **kwargs)
+
+    parser._parsing_strategies = (spy_json, parser._extractor.parse_embedded_json)
+    parsed = parser._parse_sync(response)
+
+    assert parsed.has_tool_calls is True
+    assert parsed.tool_calls[0].tool_name == "read_file"
+    assert strategy_calls["json"] == 1

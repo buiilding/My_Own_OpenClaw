@@ -240,7 +240,7 @@ class ResponseParser:
         start_time = time.monotonic()
         timeout = self.limits.parse_timeout_seconds
 
-        for strategy in self._parsing_strategies:
+        for strategy in self._select_parsing_strategies(response):
             calls, remaining_text = strategy(response, start_time, timeout)
             if calls:
                 call_names = [call.tool_name for call in calls]
@@ -287,6 +287,25 @@ class ResponseParser:
             text_content=text_content.strip(),
             has_tool_calls=len(tool_calls) > 0,
         )
+
+    def _select_parsing_strategies(self, response: str):
+        """
+        Select parser strategy order based on coarse response shape.
+
+        Embedded/mixed responses do not benefit from a full-response JSON decode
+        attempt, so we skip the pure-JSON strategy unless the payload is object-
+        wrapped after trimming.
+        """
+        if self._should_try_parse_json_response(response):
+            return self._parsing_strategies
+        # Skip parse_json_response for clearly embedded/mixed content.
+        return self._parsing_strategies[1:]
+
+    @staticmethod
+    def _should_try_parse_json_response(response: str) -> bool:
+        """Return True when the trimmed response is object-wrapped JSON-like text."""
+        trimmed = response.strip()
+        return bool(trimmed) and trimmed.startswith("{") and trimmed.endswith("}")
 
 
 __all__ = ["ResponseParser", "ParsedResponse", "ParsedToolCall", "ToolCallSchema"]
