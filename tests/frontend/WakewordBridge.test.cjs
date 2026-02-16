@@ -31,20 +31,27 @@ describe('wakeword_bridge', () => {
     const createPythonProcess = () => {
       const processHandlers = {};
       const pythonProcess = {
-      stdin: { write: jest.fn() },
-      stdout: {
+        stdin: { write: jest.fn() },
+        stdout: {
+          on: jest.fn((event, handler) => {
+            if (event === 'data') {
+              pythonProcess._stdoutDataHandler = handler;
+              stdoutHandler = handler;
+            }
+          }),
+        },
+        stderr: {
+          on: jest.fn((event, handler) => {
+            if (event === 'data') {
+              pythonProcess._stderrDataHandler = handler;
+            }
+          }),
+        },
         on: jest.fn((event, handler) => {
-          if (event === 'data') {
-            stdoutHandler = handler;
-          }
+          processHandlers[event] = handler;
         }),
-      },
-      stderr: { on: jest.fn() },
-      on: jest.fn((event, handler) => {
-        processHandlers[event] = handler;
-      }),
-      kill: jest.fn(),
-      _handlers: processHandlers,
+        kill: jest.fn(),
+        _handlers: processHandlers,
       };
       createdProcesses.push(pythonProcess);
       return pythonProcess;
@@ -69,7 +76,7 @@ describe('wakeword_bridge', () => {
 
     bridge.initializeWakewordBridge(mainWindow, onWakewordDetected);
 
-    return { mainWindow, onWakewordDetected, createdProcesses };
+    return { bridge, mainWindow, onWakewordDetected, createdProcesses };
   };
 
   const emitDetection = (payload) => {
@@ -173,5 +180,23 @@ describe('wakeword_bridge', () => {
         confidence: 0.95,
       }),
     );
+  });
+
+  test('ignores stale exit from old process after stop/start restart', () => {
+    const { bridge, mainWindow, onWakewordDetected, createdProcesses } = initBridge();
+
+    bridge.stopWakewordService();
+    bridge.startWakewordService(mainWindow, onWakewordDetected);
+    expect(createdProcesses).toHaveLength(2);
+
+    createdProcesses[1]._stderrDataHandler(Buffer.from('{"status":"ready"}\n'));
+
+    handlers['wakeword-audio-chunk'](null, Buffer.from([1, 2, 3, 4]));
+    expect(createdProcesses[1].stdin.write).toHaveBeenCalledTimes(2);
+
+    createdProcesses[0]._handlers.exit(0, null);
+
+    handlers['wakeword-audio-chunk'](null, Buffer.from([5, 6, 7, 8]));
+    expect(createdProcesses[1].stdin.write).toHaveBeenCalledTimes(4);
   });
 });

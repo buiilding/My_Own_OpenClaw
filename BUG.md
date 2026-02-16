@@ -272,3 +272,39 @@ In `frontend/src/main/local_backend_bridge.cjs`, readiness timeouts from a previ
 - Re-ran local backend bridge tests:
   - `cd frontend && npm run test -- tests/frontend/LocalBackendBridge.test.cjs`
   - Result: `15 passed`.
+
+---
+
+## [x] Bug Report: Stale Wakeword Process Exit Can Disable a New Restarted Process
+
+### Summary
+
+In `frontend/src/main/wakeword_bridge.cjs`, lifecycle handlers (`stdout`, `stderr`, `exit`, `error`) were not scoped to the specific spawned wakeword process instance. A delayed `exit` from an older process could overwrite state for a newly started process.
+
+### Root Cause
+
+- `startWakewordService(...)` attached handlers that mutated global state (`pythonProcess`, `isPythonReady`, buffers) without checking whether the event came from the current active process.
+- During stop/start races, an old process could emit `exit` after a new process was already running.
+- The stale `exit` handler then set `pythonProcess = null` and `isPythonReady = false`, effectively disconnecting the bridge from the live process.
+
+### Why It's Problematic
+
+- Wakeword audio chunks stop being forwarded after a restart race because `sendAudioChunk(...)` bails out when `pythonProcess` is null or not ready.
+- The new wakeword subprocess keeps running but becomes unmanaged/orphaned from bridge state.
+- This creates intermittent, hard-to-diagnose wakeword outages after lifecycle transitions.
+
+### Fix
+
+- Captured each spawned process instance in `startWakewordService(...)` (`spawnedProcess`).
+- Scoped `stdout`, `stderr`, `exit`, and `error` handlers to `spawnedProcess`.
+- Added guard checks in each handler:
+  - ignore event when `pythonProcess !== spawnedProcess`.
+- This prevents stale process events from mutating state for a newer process instance.
+
+### Validation
+
+- Added regression test in `tests/frontend/WakewordBridge.test.cjs`:
+  - `ignores stale exit from old process after stop/start restart`
+- Re-ran wakeword bridge tests:
+  - `cd frontend && npm run test -- tests/frontend/WakewordBridge.test.cjs`
+  - Result: `5 passed`.

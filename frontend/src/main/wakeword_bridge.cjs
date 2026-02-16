@@ -57,16 +57,20 @@ function startWakewordService(mainWindow, onWakewordDetected) {
   const pythonExe = getPythonPath();
 
   console.log(`[Wakeword] Starting Python service: ${pythonExe} ${pythonScript}`);
-  pythonProcess = spawn(pythonExe, [pythonScript], {
+  const spawnedProcess = spawn(pythonExe, [pythonScript], {
     stdio: ['pipe', 'pipe', 'pipe'], // stdin, stdout, stderr
     cwd: __dirname,
   });
+  pythonProcess = spawnedProcess;
 
-  console.log(`[Wakeword] Python process spawned (PID: ${pythonProcess.pid})`);
+  console.log(`[Wakeword] Python process spawned (PID: ${spawnedProcess.pid})`);
 
   // Handle stderr (status messages)
   // Buffer stderr and only parse complete JSON lines
-  pythonProcess.stderr.on('data', (data) => {
+  spawnedProcess.stderr.on('data', (data) => {
+    if (pythonProcess !== spawnedProcess) {
+      return;
+    }
     const text = data.toString();
     stderrBuffer += text;
     
@@ -118,12 +122,18 @@ function startWakewordService(mainWindow, onWakewordDetected) {
   });
 
   // Handle stdout (detection results only - ready signal now comes via stderr)
-  pythonProcess.stdout.on('data', (data) => {
+  spawnedProcess.stdout.on('data', (data) => {
+    if (pythonProcess !== spawnedProcess) {
+      return;
+    }
     processDetectionResults(data, mainWindow, onWakewordDetected || wakewordDetectedCallback);
   });
 
   // Handle process exit
-  pythonProcess.on('exit', (code, signal) => {
+  spawnedProcess.on('exit', (code, signal) => {
+    if (pythonProcess !== spawnedProcess) {
+      return;
+    }
     console.log(`[Wakeword] Python process exited - code: ${code}, signal: ${signal}`);
     isPythonReady = false;
     pythonProcess = null;
@@ -149,7 +159,10 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     }
   });
 
-  pythonProcess.on('error', (error) => {
+  spawnedProcess.on('error', (error) => {
+    if (pythonProcess !== spawnedProcess) {
+      return;
+    }
     console.error(`[Wakeword] Failed to start Python process: ${error.message} (code: ${error.code})`);
     isPythonReady = false;
     pythonProcess = null;
