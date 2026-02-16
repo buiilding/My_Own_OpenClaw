@@ -69,4 +69,4 @@ Legend:
 - Adapter-routed actions now cover:
   - `connect`, `status`, `profiles`, `navigate`, `open`, `snapshot`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `console`, `errors`, `requests`, `trace_start`, `trace_stop`, `pdf`, `upload`, `dialog`, `cookies`, `cookies_set`, `cookies_clear`, `storage_get`, `storage_set`, `storage_clear`, `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`, `set_timezone`, `set_locale`, `set_device`, `act`, `close`
 - Migration decisions in the ledger remain unchanged.
-- `snapshot` is currently adapter-routed via a compatibility delegate to the existing sidecar handler (`extract` and `act` are adapter-native in current Phase 2 implementation).
+- `snapshot`, `extract`, and `act` are adapter-native in current Phase 2 implementation (no legacy delegates in `browser_tool` routing).
