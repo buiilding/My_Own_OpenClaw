@@ -31,3 +31,56 @@ def test_write_json_line_writes_utf8_json_with_newline(monkeypatch):
 
     assert dummy_stdout.buffer.writes == [b'{"message": "h\xc3\xa9llo"}\n']
     assert dummy_stdout.buffer.flush_calls == 1
+
+
+def test_write_json_line_supports_array_payloads(monkeypatch):
+    class DummyBuffer:
+        def __init__(self):
+            self.writes = []
+            self.flush_calls = 0
+
+        def write(self, data):
+            self.writes.append(data)
+
+        def flush(self):
+            self.flush_calls += 1
+
+    class DummyStdout:
+        def __init__(self):
+            self.buffer = DummyBuffer()
+
+    dummy_stdout = DummyStdout()
+    monkeypatch.setattr(stdout_json_module.sys, "stdout", dummy_stdout)
+
+    stdout_json_module.write_json_line(["ok", {"value": 1}])
+
+    assert dummy_stdout.buffer.writes == [b'["ok", {"value": 1}]\n']
+    assert dummy_stdout.buffer.flush_calls == 1
+
+
+def test_write_json_line_propagates_buffer_errors(monkeypatch):
+    class DummyBuffer:
+        def __init__(self):
+            self.flush_calls = 0
+
+        def write(self, _data):
+            raise OSError("broken pipe")
+
+        def flush(self):
+            self.flush_calls += 1
+
+    class DummyStdout:
+        def __init__(self):
+            self.buffer = DummyBuffer()
+
+    dummy_stdout = DummyStdout()
+    monkeypatch.setattr(stdout_json_module.sys, "stdout", dummy_stdout)
+
+    try:
+        stdout_json_module.write_json_line({"message": "x"})
+    except OSError as exc:
+        assert str(exc) == "broken pipe"
+    else:
+        raise AssertionError("Expected OSError to propagate")
+
+    assert dummy_stdout.buffer.flush_calls == 0
