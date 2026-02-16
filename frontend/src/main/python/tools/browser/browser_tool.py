@@ -221,12 +221,12 @@ async def _build_post_action_snapshot_payload(
         controller,
         max_chars=DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS,
         refs_mode=None,
-        interactive=True,
-        compact=True,
-        depth=DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH,
+        interactive=None,
+        compact=None,
+        depth=None,
         selector=None,
         frame_selector=None,
-        enable_zero_ref_fallback=True,
+        enable_zero_ref_fallback=False,
     )
 
     text = getattr(snapshot, "text", None)

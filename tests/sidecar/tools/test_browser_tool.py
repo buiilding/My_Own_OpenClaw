@@ -1065,9 +1065,9 @@ class TestPostActionSnapshots:
                 format_type="ai",
                 max_chars=4000,
                 refs_mode=None,
-                interactive=True,
-                compact=True,
-                depth=4,
+                interactive=None,
+                compact=None,
+                depth=None,
                 selector=None,
                 frame_selector=None,
             )
@@ -1114,16 +1114,16 @@ class TestPostActionSnapshots:
                 format_type="ai",
                 max_chars=4000,
                 refs_mode=None,
-                interactive=True,
-                compact=True,
-                depth=4,
+                interactive=None,
+                compact=None,
+                depth=None,
                 selector=None,
                 frame_selector=None,
             )
 
     @pytest.mark.asyncio
-    async def test_click_post_action_snapshot_zero_refs_uses_fallback_retries(self):
-        """Post-action snapshots should retry when efficient capture returns zero refs."""
+    async def test_click_post_action_snapshot_keeps_zero_ref_result_without_retries(self):
+        """Post-action snapshot now uses flat AI capture and does not apply zero-ref retries."""
         from tools.browser.controller import PageSnapshot
 
         with mock.patch(
@@ -1136,26 +1136,12 @@ class TestPostActionSnapshots:
                 "success": True,
                 "state": "load",
             }
-            mock_controller.get_page_snapshot.side_effect = [
-                PageSnapshot(
-                    text="(no interactive elements)",
-                    url="https://example.com",
-                    title="Example",
-                    ref_count=0,
-                ),
-                PageSnapshot(
-                    text="(still no interactive elements)",
-                    url="https://example.com",
-                    title="Example",
-                    ref_count=0,
-                ),
-                PageSnapshot(
-                    text='[1] link "Story"',
-                    url="https://example.com",
-                    title="Example",
-                    ref_count=1,
-                ),
-            ]
+            mock_controller.get_page_snapshot.return_value = PageSnapshot(
+                text="(no interactive elements)",
+                url="https://example.com",
+                title="Example",
+                ref_count=0,
+            )
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control(
@@ -1167,9 +1153,21 @@ class TestPostActionSnapshots:
 
             assert result.success is True
             assert "post_action_snapshot" in result.data
-            assert result.data["post_action_snapshot"]["ref_count"] == 1
-            assert result.data["post_action_snapshot"]["snapshot"] == '[1] link "Story"'
-            assert mock_controller.get_page_snapshot.await_count == 3
+            assert result.data["post_action_snapshot"]["ref_count"] == 0
+            assert (
+                result.data["post_action_snapshot"]["snapshot"]
+                == "(no interactive elements)"
+            )
+            mock_controller.get_page_snapshot.assert_awaited_once_with(
+                format_type="ai",
+                max_chars=4000,
+                refs_mode=None,
+                interactive=None,
+                compact=None,
+                depth=None,
+                selector=None,
+                frame_selector=None,
+            )
 
     @pytest.mark.asyncio
     async def test_snapshot_failure_does_not_fail_primary_action(self):
