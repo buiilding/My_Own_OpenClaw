@@ -65,9 +65,9 @@ Desktop Assistant uses a multi-layered communication architecture with WebSocket
 #### Main → Renderer
 
 **`from-backend`**
-- Purpose: Receive messages from backend
+- Purpose: Receive messages from backend and local query-mirror events from main process
 - Format: `{ id, type, payload }`
-- Usage: All backend responses to renderer
+- Usage: Backend responses plus locally emitted `local-user-message` events (sent immediately when a `query` is accepted by main process, before backend streaming begins)
 
 **`ipc-status`**
 - Purpose: Connection status updates
@@ -385,9 +385,9 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
    ↓
 8. Python sidecar executes tool
    ↓
-9. ToolExecutionService.captureSystemStateAndScreenshot() called ONCE (if computer-use tool)
-   - 2 second delay for UI to update
-   - Parallel system state + screenshot capture
+9. `ensureAutoCapture()` runs ONCE for computer-use tools when screenshot is not already present in tool output
+   - Default wait is 2 seconds for most computer-use tools, 0 for `screenshot`, and may be overridden by `wait`/`seconds` args
+   - Captures screenshot/system-state via shared OS-capture path
    ↓
 10. MessageFormatter formats result
    ↓

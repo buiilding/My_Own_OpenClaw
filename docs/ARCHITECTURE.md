@@ -201,10 +201,10 @@ Screenshots are captured strategically at key points to provide visual context f
   - **Atomic Bundles**: Screenshot captured **once** after all bundled tools execute (single tool-bundle message, single tool-bundle-result response)
 - **Purpose**: Shows the result state after tool execution for verification and continued context
 - **Location**: `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
-- **Implementation**: Both individual and bundled tools use the same helper method (`captureSystemStateAndScreenshot`) which:
-  - Waits 2 seconds before capture (allows UI to update)
-  - Captures system state and screenshot in parallel for efficiency
-  - Provides consistent error handling and timing logs
+- **Implementation**:
+  - Individual tool path uses `ensureAutoCapture(...)` (shared capture policy helper) and captures once when no screenshot is already in tool output.
+  - Bundle path captures once after the full bundle run when computer-use actions are present.
+  - Default wait is 2 seconds for most computer-use tools, 0 for `screenshot`, and may be overridden by tool args (`wait`/`seconds`).
 - **Storage**: Attached to tool result data sent back to backend
 
 #### LLM-Requested Screenshots
@@ -271,27 +271,42 @@ Screenshots are captured strategically at key points to provide visual context f
 
 **Message Types**:
 - `query`: User query with optional screenshot
+- `rehydrate-conversation`: Restore transcript history for a prior conversation_ref
 - `list-models`: Request available models
 - `load-settings`: Load frontend-owned settings snapshot from backend session/default config
 - `update-settings`: Update session config (applies on next query)
 - `tool-result`: Tool execution result from frontend
+- `tool-bundle-result`: Atomic bundle execution result
 - `wakeword-detected`: Wakeword activation event
 
 **Note**: both `load-settings` and `update-settings` are handled by the backend. The frontend remains the source of truth for these config fields.
 
 **Response Types**:
 - `streaming-response`: Streaming text chunks
+- `streaming-complete`: End of stream
 - `tool-call`: Tool execution request
+- `tool-bundle`: Atomic tool bundle request
 - `tool-output`: Tool execution result
 - `llm-thought`: Thinking tokens (Gemini)
+- `audio-chunk`: TTS audio chunk
+- `wakeword-activated`: Wakeword activation status
+- `wakeword-greeting`: Wakeword greeting text
+- `settings-loaded`: Response to `load-settings`
+- `settings-updated`: Response to `update-settings`
+- `models-listed`: Response to `list-models`
+- `system-prompt`: Model-facing prompt transparency event
+- `tool-schemas`: Active tool schema transparency event
+- `token-count`: Token usage metrics
+- `memory-store`: Sidecar memory persistence request
+- `user-message-full`: Full user message transparency event
+- `assistant-message-full`: Full assistant message transparency event
 - `error`: Error response
-- `streaming-complete`: End of stream
 
 ### IPC Protocol (Electron)
 
 **Channels**:
 - `to-backend`: Renderer → Main → Backend
-- `from-backend`: Backend → Main → Renderer
+- `from-backend`: Backend → Main → Renderer, plus local `local-user-message` query-mirror events emitted by main process
 - `ipc-status`: Connection status
 - `wakeword-audio-chunk`: Audio data for wakeword
 - `wakeword-detected`: Wakeword detection event
