@@ -9,12 +9,14 @@ from backend.src.api.processing.formatters.complete import StreamingCompleteEven
 from backend.src.api.processing.formatters.error import ErrorEventFormatter
 from backend.src.api.processing.formatters.thinking import ThinkingEventFormatter
 from backend.src.api.processing.formatters.tool_call import ToolCallEventFormatter
+from backend.src.api.processing.formatters.tool_output import ToolOutputEventFormatter
 from backend.src.core.events.streaming_events import (
     ChunkEvent,
     ThinkingEvent,
     AssistantMessageFullEvent as AssistantMessageFullEventClass,
     ErrorEvent as ErrorEventClass,
     ToolCallEvent as ToolCallEventClass,
+    ToolOutputEvent as ToolOutputEventClass,
     StreamingCompleteEvent as StreamingCompleteEventClass,
 )
 
@@ -331,3 +333,80 @@ class TestToolCallEventFormatter:
 
         result = formatter.format(event, msg_id)
         assert result is None
+
+
+class TestToolOutputEventFormatter:
+    """Tests for ToolOutputEventFormatter."""
+
+    @pytest.fixture
+    def formatter(self):
+        return ToolOutputEventFormatter()
+
+    def test_format_success_with_dict_event(self, formatter):
+        event = {
+            "type": "tool_output",
+            "tool_name": "read_file",
+            "success": True,
+            "output": "file contents",
+            "execution_time": 0.12,
+            "metadata": {"source": "sidecar"},
+        }
+
+        result = formatter.format(event, "msg-1")
+
+        assert result == {
+            "type": "tool-output",
+            "id": "msg-1",
+            "payload": {
+                "tool_name": "read_file",
+                "success": True,
+                "execution_time": 0.12,
+                "output": "file contents",
+                "error": None,
+                "screenshot": None,
+                "metadata": {"source": "sidecar"},
+            },
+        }
+
+    def test_format_success_with_typed_event(self, formatter):
+        event = ToolOutputEventClass(
+            tool_name="click",
+            success=False,
+            output="",
+            error="Element not found",
+            screenshot="artifact://shot-1",
+        )
+
+        result = formatter.format(event, "msg-2")
+
+        assert result["payload"] == {
+            "tool_name": "click",
+            "success": False,
+            "execution_time": None,
+            "output": "",
+            "error": "Element not found",
+            "screenshot": "artifact://shot-1",
+            "metadata": None,
+        }
+
+    @pytest.mark.parametrize(
+        "event,missing_field",
+        [
+            ({"success": True, "output": "ok"}, "tool_name"),
+            ({"tool_name": "read_file", "output": "ok"}, "success"),
+            ({"tool_name": "read_file", "success": True}, "output"),
+        ],
+    )
+    def test_format_missing_required_fields_returns_none_and_logs_warning(
+        self,
+        formatter,
+        caplog,
+        event,
+        missing_field,
+    ):
+        with caplog.at_level("WARNING"):
+            result = formatter.format(event, "msg-3")
+
+        assert result is None
+        assert "ToolOutputEvent missing required fields" in caplog.text
+        assert missing_field in caplog.text
