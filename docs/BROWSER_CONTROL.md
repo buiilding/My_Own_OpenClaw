@@ -128,6 +128,8 @@ Get page overview with element references and optional rich contextual role snap
 Notes:
 - Refs are designed to be stable across repeated snapshots on the same page/tab, but can still change if the page navigates or the DOM replaces elements.
 - Newly-appeared interactive elements since the last snapshot are prefixed with `*` (example: `*[12]`).
+- `format="ai"` snapshots use an enhanced CDP pipeline (`DOMSnapshot` + full DOM + AX tree + JS click-listener hints) to identify interactive elements more reliably than selector-only scanning.
+- If the enhanced CDP path fails, WindieOS automatically falls back to the legacy selector-based snapshot path for resilience.
 
 ```json
 {
