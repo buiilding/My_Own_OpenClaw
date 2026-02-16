@@ -418,3 +418,41 @@ In `frontend/src/main/python/memory/local_store.py`, `_rebuild_index(...)` reuse
   - Result: `3 passed`
   - `./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py`
   - Result: `25 passed`
+
+---
+
+## [x] Bug Report: Pending Transcript Queue Drops Messages On First IPC Failure
+
+### Summary
+
+In `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`, queued transcript entries were removed from memory before persistence. If a `store-transcript` IPC call failed once, remaining queued messages were silently lost.
+
+### Root Cause
+
+- `flushPendingMessages()` called `pendingUserQueue.drain()` and `pendingToolQueue.drain()` up front.
+- It then awaited `storeTranscriptEntry(...)` in a loop without per-message error recovery.
+- Any rejection aborted the flush with the queue already emptied, so failed/current/remaining entries were no longer retained for retry.
+
+### Why It's Problematic
+
+- User/tool transcript history becomes incomplete during transient IPC failures.
+- Failures are easy to miss because flush is triggered via `void flushPendingMessages()` and happened in background session updates.
+- This can break memory quality and dashboard transcript continuity.
+
+### Fix
+
+- Added guarded flush helper in `TranscriptWriter`:
+  - on failed write, requeue the failed entry and remaining entries in original order,
+  - stop flush early and retry on next session-triggered flush.
+- Kept user and tool queue handling symmetric with explicit category logging.
+
+### Validation
+
+- Added regression tests in `tests/frontend/TranscriptWriter.test.ts`:
+  - `requeues queued user messages when a pending flush write fails`
+  - `requeues queued tool messages when a pending flush write fails`
+- Re-ran targeted frontend suites:
+  - `cd frontend && npm run test -- ../tests/frontend/TranscriptWriter.test.ts`
+  - Result: `15 passed`
+  - `cd frontend && npm run test -- ../tests/frontend/ChatMessageSender.test.tsx ../tests/frontend/TranscriptStorage.test.ts`
+  - Result: `22 passed`
