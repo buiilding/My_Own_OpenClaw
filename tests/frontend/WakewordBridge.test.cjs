@@ -199,4 +199,21 @@ describe('wakeword_bridge', () => {
     handlers['wakeword-audio-chunk'](null, Buffer.from([5, 6, 7, 8]));
     expect(createdProcesses[1].stdin.write).toHaveBeenCalledTimes(4);
   });
+
+  test('clears stale partial stderr buffer across stop/start restart', () => {
+    const { bridge, mainWindow, onWakewordDetected, createdProcesses } = initBridge();
+
+    createdProcesses[0]._stderrDataHandler(Buffer.from('{"status":"rea'));
+
+    bridge.stopWakewordService();
+    bridge.startWakewordService(mainWindow, onWakewordDetected);
+    expect(createdProcesses).toHaveLength(2);
+
+    createdProcesses[1]._stderrDataHandler(Buffer.from('{"status":"ready"}\n'));
+
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      'wakeword-status',
+      { ready: true },
+    );
+  });
 });

@@ -55,6 +55,7 @@ function startWakewordService(mainWindow, onWakewordDetected) {
 
   const pythonScript = path.join(__dirname, 'python', 'wakeword_service.py');
   const pythonExe = getPythonPath();
+  stderrBuffer = '';
 
   console.log(`[Wakeword] Starting Python service: ${pythonExe} ${pythonScript}`);
   const spawnedProcess = spawn(pythonExe, [pythonScript], {
@@ -277,6 +278,7 @@ function stopWakewordService() {
     pythonProcess = null;
     isPythonReady = false;
   }
+  stderrBuffer = '';
   clearResultBuffer();
 }
 
