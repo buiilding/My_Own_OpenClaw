@@ -30,6 +30,12 @@ This message does **not** use the base message envelope.
 The backend validates the client-provided `user_id` and uses it as the
 connection identity.
 
+Handshake validation behavior:
+- Invalid handshake JSON or invalid handshake schema closes the socket with policy-violation code `1008`.
+- Handshake JSON parsing follows the shared WebSocket parse policy:
+  - small payloads parse inline,
+  - payloads >= `64 KiB` are offloaded to the thread pool to avoid blocking the event loop.
+
 **Payload**:
 ```json
 { "type": "handshake", "user_id": "user-123" }
