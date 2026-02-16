@@ -414,6 +414,50 @@ describe('ipc.cjs bridge', () => {
     expect(queryMessage.payload.content).toContain('<user_query>\nafter settings update\n</user_query>');
   });
 
+  test('reconnect clears stale conversation ref fallback before next query', async () => {
+    jest.useFakeTimers();
+    try {
+      const { handlers, ws, backendBridge, mainWindow } = initIpc();
+      ws.triggerOpen();
+
+      backendBridge.getSystemState.mockResolvedValue({
+        active_window: 'App',
+        mouse_position: '0,0',
+      });
+      backendBridge.searchMemory.mockResolvedValue({
+        success: true,
+        data: { memories: { episodic: [], semantic: [] } },
+      });
+
+      ws.handlers.message(JSON.stringify({
+        type: 'streaming-response',
+        conversation_ref: 'conv-stale',
+      }));
+
+      ws.readyState = 3;
+      ws.handlers.close();
+      jest.advanceTimersByTime(5000);
+
+      const WebSocketMock = require('ws');
+      const reconnectedSocket = WebSocketMock.instances[1];
+      reconnectedSocket.triggerOpen();
+
+      await handlers['to-backend']({ sender: null }, {
+        type: 'query',
+        payload: { text: 'fresh query after reconnect' },
+      });
+
+      const localUserMessages = mainWindow.webContents.send.mock.calls
+        .filter(([channel, payload]) => channel === 'from-backend' && payload?.type === 'local-user-message');
+      const latestLocalUserMessage = localUserMessages[localUserMessages.length - 1][1];
+
+      expect(latestLocalUserMessage.conversation_ref).toBeNull();
+      expect(latestLocalUserMessage.payload.conversation_ref).toBeNull();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('load-frontend-config returns null when file missing', async () => {
     const { handlers } = initIpc();
     const result = await handlers['load-frontend-config']();
