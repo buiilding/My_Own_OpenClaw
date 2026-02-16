@@ -27,7 +27,7 @@ def test_prune_keeps_most_recent_messages():
     assert stored[1].content == "third"
 
 
-def test_trim_old_images_keeps_last_two():
+def test_preserves_all_images_in_history():
     history = ConversationHistory(max_length=10)
 
     history.add_user_message("one", image_data="img-1")
@@ -35,12 +35,12 @@ def test_trim_old_images_keeps_last_two():
     history.add_user_message("three", image_data="img-3")
 
     stored = history.get_stored_messages()
-    assert stored[0].image_data is None
+    assert stored[0].image_data == "img-1"
     assert stored[1].image_data == "img-2"
     assert stored[2].image_data == "img-3"
 
     llm_messages = history.get_history()
-    assert isinstance(llm_messages[0]["content"], str)
+    assert isinstance(llm_messages[0]["content"], list)
     assert isinstance(llm_messages[1]["content"], list)
     assert isinstance(llm_messages[2]["content"], list)
 
@@ -138,7 +138,6 @@ def test_prune_invalidates_token_cache(monkeypatch):
 
 def test_replace_with_entries_rehydrates_order_and_images():
     history = ConversationHistory(max_length=10)
-    history.set_image_trimming_enabled(False)
 
     history.replace_with_entries(
         [

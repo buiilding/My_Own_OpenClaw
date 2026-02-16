@@ -307,7 +307,6 @@ class AgentSession:
         if self.runtime.active_conversation_ref == conversation_ref:
             return
         self.runtime.active_conversation_ref = conversation_ref
-        self.history.set_image_trimming_enabled(True)
         self.history.clear()
 
     async def rehydrate_conversation(
@@ -318,8 +317,6 @@ class AgentSession:
         """Replace in-memory history with frontend-provided transcript snapshot."""
         async with self._lock:
             self.runtime.active_conversation_ref = conversation_ref
-            # Resume path keeps all restored screenshots available to the model.
-            self.history.set_image_trimming_enabled(False)
             self.history.replace_with_entries(entries)
 
     async def process_query(
