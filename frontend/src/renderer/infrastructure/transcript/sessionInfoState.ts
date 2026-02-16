@@ -38,12 +38,12 @@ export function createTranscriptSessionState(readStoredSessionInfo: ReadSessionI
   const update = (conversationRef?: string | null, userId?: string | null): SessionInfo => {
     ensureLoaded();
 
-    const nextConversationRef = conversationRef || currentConversationRef;
+    const nextConversationRef = conversationRef === undefined
+      ? currentConversationRef
+      : conversationRef;
     const nextUserId = userId || currentUserId;
 
-    if (nextConversationRef) {
-      currentConversationRef = nextConversationRef;
-    }
+    currentConversationRef = nextConversationRef;
 
     if (nextUserId) {
       currentUserId = nextUserId;

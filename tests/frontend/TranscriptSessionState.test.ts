@@ -40,4 +40,12 @@ describe('transcript session state', () => {
       userId: 'user-1',
     });
   });
+
+  test('update clears conversation ref when null is explicitly provided', () => {
+    const state = createTranscriptSessionState(() => ({ conversationRef: 'conv-1', userId: 'user-1' }));
+    expect(state.update(null, undefined)).toEqual({
+      conversationRef: null,
+      userId: 'user-1',
+    });
+  });
 });

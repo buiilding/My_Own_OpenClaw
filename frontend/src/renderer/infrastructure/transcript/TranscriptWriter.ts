@@ -104,7 +104,7 @@ export const updateTranscriptSession = (
 };
 
 export const setActiveConversationRef = (conversationRef: string | null) => {
-  const info = sessionState.update(conversationRef, null);
+  const info = sessionState.update(conversationRef, undefined);
   persistSessionInfoToStorage(info);
   emitSessionUpdateEvent(info);
   void flushPendingMessages();

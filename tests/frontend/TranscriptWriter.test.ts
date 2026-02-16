@@ -267,6 +267,35 @@ describe('TranscriptWriter', () => {
     });
   });
 
+  test('setActiveConversationRef(null) clears active conversation and queues new messages', async () => {
+    const { writer, invokeMock } = loadTranscriptWriter();
+    writer.updateTranscriptSession('conv-initial', 'user-1');
+    writer.setActiveConversationRef(null);
+
+    expect(writer.getActiveConversationRef()).toBeNull();
+
+    writer.recordUserMessage('message after clear');
+    await flushMicrotasks();
+    expect(invokeMock).not.toHaveBeenCalled();
+
+    writer.setActiveConversationRef('conv-new');
+    await flushMicrotasks();
+    expect(invokeMock).toHaveBeenCalledTimes(1);
+    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+      content: 'message after clear',
+      userId: 'user-1',
+      conversationRef: 'conv-new',
+      role: 'user',
+      messageType: 'user',
+      toolName: undefined,
+      correlationId: undefined,
+      modelId: undefined,
+      modelProvider: undefined,
+      screenshot: undefined,
+      timestamp: undefined,
+    });
+  });
+
   test('requeues queued user messages when a pending flush write fails', async () => {
     const error = new Error('store failed');
     const { writer, invokeMock } = loadTranscriptWriter();
