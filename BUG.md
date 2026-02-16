@@ -689,6 +689,43 @@ In `frontend/src/main/python/core/ipc_protocol.py`, `JSONRPCProtocol.handle_requ
 
 ---
 
+## [x] Bug Report: JSON-RPC Helper Dropped Valid Falsy Request IDs
+
+### Summary
+
+In `frontend/src/main/python/core/ipc_protocol.py`, `JSONRPCProtocol.create_request(...)` omitted `id` when `request_id` was falsy (`0` or empty string), silently converting a normal request into a JSON-RPC notification.
+
+### Root Cause
+
+- `create_request(...)` used truthiness checks (`if request_id:`) rather than explicit null checks.
+- JSON-RPC allows IDs such as numeric `0` and string `""`; both are valid request IDs.
+- Those values were incorrectly treated as “no id provided”.
+
+### Why It's Problematic
+
+- Requests with `id=0` or `id=""` lose correlation IDs and become notifications.
+- Callers waiting for a response can hang because the peer may not send notification responses.
+- This creates subtle protocol bugs that are hard to debug in integrations/tests using numeric IDs.
+
+### Fix
+
+- Updated `create_request(...)` to include `id` when `request_id is not None`.
+- Broadened `request_id` type hint to `Optional[Any]` to reflect valid JSON-RPC ID types.
+
+### Validation
+
+- Added regression tests in `tests/sidecar/test_json_rpc_protocol.py`:
+  - `test_create_request_keeps_zero_request_id`
+  - `test_create_request_keeps_empty_string_request_id`
+- Re-ran targeted sidecar suites:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_local_backend.py`
+  - Result: `45 passed`
+- Runtime check:
+  - `create_request("ping", request_id=0)` now includes `"id": 0`
+  - `create_request("ping", request_id="")` now includes `"id": ""`
+
+---
+
 ## [x] Bug Report: Dev Tool Selection Cache Can Serve Stale Config After Rewrite
 
 ### Summary
