@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(backend): add direct `EventHandlerStore` and `EventBus` coverage for MRO priority ordering, handler dedup/cache invalidation, weak-reference cleanup behavior, and error-recovery publish flow
 - refactor(local-backend-bridge): centralize sidecar termination cleanup/state reset in shared helpers (`resetBackendProcessState`, `notifyBackendUnavailable`) and remove duplicated exit/error handler logic
 - refactor(sidecar-memory): centralize `LocalBackend` memory-store guard policy with a shared `requires_memory_store` decorator, removing duplicated error checks across eight memory handlers
 - refactor(sidecar-runtime): extract shared shutdown/signal helpers (`core/runtime_shutdown.py`) and reuse them across `local_backend.py` and `memory_service.py` to remove duplicated stdin-unblock and signal-forwarding logic

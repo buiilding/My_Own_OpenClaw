@@ -1,10 +1,13 @@
 """Tests for EventBus and related classes."""
 import asyncio
+import gc
+import threading
 import pytest
 import weakref
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from backend.src.core.infrastructure.bus import EventBus, EventHandlerWrapper
+from backend.src.core.infrastructure.event_bus_registry import EventHandlerStore
 from backend.src.core.events.base import Event
 
 
@@ -16,6 +19,14 @@ class MockEvent(Event):
 class AnotherMockEvent(Event):
     """Another mock event for unit tests."""
     pass
+
+
+class ParentEvent(Event):
+    """Parent event for handler-store tests."""
+
+
+class ChildEvent(ParentEvent):
+    """Child event for handler-store tests."""
 
 
 class MockEventHandlerWrapper:
@@ -441,3 +452,228 @@ class MockEventBus:
         
         assert len(errors) == 0
         assert bus.get_subscriber_count(MockEvent) == 10
+
+
+class TestEventHandlerStore:
+    def test_resolve_handlers_orders_by_priority_across_mro(self):
+        store = EventHandlerStore(threading.RLock())
+
+        def parent_handler(event):
+            return None
+
+        def child_handler(event):
+            return None
+
+        store.subscribe(ParentEvent, parent_handler, priority=200)
+        store.subscribe(ChildEvent, child_handler, priority=50)
+
+        resolved = store.resolve_handlers(ChildEvent)
+
+        assert [wrapper.handler for wrapper in resolved] == [
+            child_handler,
+            parent_handler,
+        ]
+
+    def test_resolve_handlers_dedupes_same_handler_registered_twice(self):
+        store = EventHandlerStore(threading.RLock())
+
+        def shared_handler(event):
+            return None
+
+        store.subscribe(ParentEvent, shared_handler, priority=80)
+        store.subscribe(ChildEvent, shared_handler, priority=10)
+
+        resolved = store.resolve_handlers(ChildEvent)
+
+        assert len(resolved) == 1
+        assert resolved[0].handler is shared_handler
+        assert resolved[0].priority == 10
+
+    def test_handler_cache_invalidates_on_subscribe_and_unsubscribe(self):
+        store = EventHandlerStore(threading.RLock())
+
+        def handler_one(event):
+            return None
+
+        def handler_two(event):
+            return None
+
+        store.subscribe(ChildEvent, handler_one)
+        first = store.resolve_handlers(ChildEvent)
+        cached = store.resolve_handlers(ChildEvent)
+        assert cached is first
+
+        store.subscribe(ChildEvent, handler_two)
+        after_subscribe = store.resolve_handlers(ChildEvent)
+        assert after_subscribe is not first
+        assert len(after_subscribe) == 2
+
+        assert store.unsubscribe(ChildEvent, handler_two) is True
+        after_unsubscribe = store.resolve_handlers(ChildEvent)
+        assert after_unsubscribe is not after_subscribe
+        assert [wrapper.handler for wrapper in after_unsubscribe] == [handler_one]
+
+    def test_filter_active_handlers_removes_dead_bound_method_subscribers(self):
+        store = EventHandlerStore(threading.RLock())
+
+        class HandlerOwner:
+            def on_event(self, event):
+                return None
+
+        owner = HandlerOwner()
+        store.subscribe(ChildEvent, owner.on_event)
+
+        resolved = store.resolve_handlers(ChildEvent)
+        assert len(resolved) == 1
+
+        del owner
+        gc.collect()
+
+        active = store.filter_active_handlers(resolved, ChildEvent)
+
+        assert active == []
+        assert store.get_subscriber_count(ChildEvent) == 0
+        assert store.resolve_handlers(ChildEvent) == []
+
+    @pytest.mark.asyncio
+    async def test_wrapper_awaits_awaitable_return_and_honors_filter(self):
+        calls = []
+
+        async def async_target(event):
+            calls.append(type(event).__name__)
+
+        def handler(event):
+            return async_target(event)
+
+        wrapper = EventHandlerWrapper(
+            handler,
+            filter_func=lambda event: isinstance(event, ChildEvent),
+        )
+
+        await wrapper.call(ParentEvent())
+        await wrapper.call(ChildEvent())
+
+        assert calls == ["ChildEvent"]
+
+    def test_unsubscribe_bound_method_with_new_method_reference(self):
+        store = EventHandlerStore(threading.RLock())
+
+        class HandlerOwner:
+            def on_event(self, event):
+                return None
+
+        owner = HandlerOwner()
+        store.subscribe(ChildEvent, owner.on_event)
+
+        # Accessing the bound method again creates a new method object.
+        assert store.unsubscribe(ChildEvent, owner.on_event) is True
+        assert store.get_subscriber_count(ChildEvent) == 0
+
+    def test_iter_event_classes_caches_mro_without_object(self):
+        store = EventHandlerStore(threading.RLock())
+
+        classes_one = store.iter_event_classes(ChildEvent)
+        classes_two = store.iter_event_classes(ChildEvent)
+
+        assert classes_one is classes_two
+        assert classes_one[0] is ChildEvent
+        assert ParentEvent in classes_one
+        assert Event in classes_one
+        assert object not in classes_one
+
+
+class TestEventBusRuntime:
+    @pytest.mark.asyncio
+    async def test_publish_respects_priority_across_child_and_parent_handlers(self):
+        bus = EventBus()
+        calls = []
+
+        def parent_handler(event):
+            calls.append("parent")
+
+        def child_handler(event):
+            calls.append("child")
+
+        bus.subscribe(ParentEvent, parent_handler, priority=200)
+        bus.subscribe(ChildEvent, child_handler, priority=50)
+
+        await bus.publish(ChildEvent())
+
+        assert calls == ["child", "parent"]
+
+    @pytest.mark.asyncio
+    async def test_global_listener_can_block_handler_execution(self):
+        bus = EventBus()
+        calls = []
+
+        async def blocker(event):
+            return False
+
+        def handler(event):
+            calls.append("handler")
+
+        bus.add_global_listener(blocker)
+        bus.subscribe(ChildEvent, handler)
+
+        await bus.publish(ChildEvent())
+
+        assert calls == []
+
+    @pytest.mark.asyncio
+    async def test_error_recovery_continues_to_next_handler_when_enabled(self):
+        bus = EventBus(enable_error_recovery=True)
+        calls = []
+
+        def bad_handler(event):
+            raise RuntimeError("boom")
+
+        def good_handler(event):
+            calls.append("good")
+
+        bus.subscribe(ChildEvent, bad_handler, priority=10)
+        bus.subscribe(ChildEvent, good_handler, priority=20)
+
+        await bus.publish(ChildEvent())
+
+        assert calls == ["good"]
+
+    @pytest.mark.asyncio
+    async def test_error_recovery_stops_on_first_error_when_disabled(self):
+        bus = EventBus(enable_error_recovery=False)
+        calls = []
+
+        def bad_handler(event):
+            raise RuntimeError("boom")
+
+        def good_handler(event):
+            calls.append("good")
+
+        bus.subscribe(ChildEvent, bad_handler, priority=10)
+        bus.subscribe(ChildEvent, good_handler, priority=20)
+
+        await bus.publish(ChildEvent())
+
+        assert calls == []
+
+    @pytest.mark.asyncio
+    async def test_publish_ignores_dead_weak_method_handlers(self):
+        bus = EventBus()
+        calls = []
+
+        class Owner:
+            def handler(self, event):
+                return None
+
+        def live_handler(event):
+            calls.append("live")
+
+        owner = Owner()
+        bus.subscribe(ChildEvent, owner.handler)
+        bus.subscribe(ChildEvent, live_handler)
+
+        del owner
+        gc.collect()
+
+        await bus.publish(ChildEvent())
+
+        assert calls == ["live"]
