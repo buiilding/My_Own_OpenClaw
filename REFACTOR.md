@@ -787,3 +787,57 @@ Result:
 - `62 passed in 1.72s`
 
 This confirms query streaming behavior remains intact while reducing repeated context allocation and duplicated completion-flow logic.
+
+---
+
+# Refactor: Centralize API Error/Success Transport Send Path
+
+## Target
+Remove duplicated transport-send logic in:
+- `backend/src/api/infrastructure/errors.py`
+
+## Current Structure and Root Cause
+Before this refactor, both `send_error_response(...)` and `send_success_response(...)` independently repeated the same transport concerns:
+- instantiate `WebSocketTransportSender`
+- send a built envelope
+- catch the same closed-connection exception set (`WebSocketDisconnect`, `RuntimeError`, `ConnectionError`)
+- emit near-identical debug logging
+
+Root cause: canonical transport send behavior lived in two call sites instead of one shared helper in the module that already centralizes handler response policy.
+
+## Refactor Plan
+1. Extract one private helper for transport sends with closed-connection swallowing behavior.
+2. Keep `send_error_response(...)` focused on sanitization/logging + envelope construction.
+3. Keep `send_success_response(...)` focused on envelope construction.
+4. Preserve response shapes and existing error sanitization semantics.
+5. Add focused tests for sanitization, context attachment, and closed-connection behavior.
+
+## Implemented Changes
+### Shared transport helper
+- Updated `backend/src/api/infrastructure/errors.py`:
+  - added `_send_transport_message(...)`
+  - rewired both `send_error_response(...)` and `send_success_response(...)` to delegate to it
+
+Result:
+- one canonical send path for API handler success/error utilities
+- removed duplicated transport construction + exception-handling blocks
+- unchanged public helper interfaces and payload contracts
+
+## Added Test Coverage
+- Added `tests/backend/test_api_errors.py`:
+  - `test_sanitize_error_message_returns_validation_error_message`
+  - `test_send_error_response_sanitizes_internal_exception`
+  - `test_send_success_response_attaches_context_fields`
+  - `test_send_helpers_swallow_closed_connection_errors`
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_api_errors.py tests/backend/test_api_handlers.py tests/backend/test_websocket_message_handler.py
+```
+
+Result:
+- `46 passed in 1.60s`
+
+This confirms centralized send-path refactoring preserved existing backend response behavior while reducing duplication in a core API utility module.
