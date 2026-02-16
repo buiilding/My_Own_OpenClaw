@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(websocket): centralize `handle_message` error-send fallback policy in `api/routes/websocket/message_handler.py` via shared `_send_error_with_fallback_logging(...)`, remove duplicated branch-level try/catch blocks, and add backend regression assertions for warning-vs-error fallback logging paths
 - refactor(sidecar-memory): centralize `conversation_id` SQL predicate construction in `LocalMemoryStore` with shared `_conversation_where_clause(...)`, remove duplicated NULL-vs-value query branches across transcript conversation methods, and add sidecar regression coverage for NULL-conversation delete cleanup
 - refactor(query-execution): parse stream event type once per loop iteration in `QueryExecutionService.execute()`, add shared non-empty chunk extractor with precomputed type support, and add backend regression coverage for precomputed chunk classification
 - refactor(sidecar-memory): short-circuit `LocalMemoryStore.search()` before embedding generation when no searchable FAISS indices are available, add shared search-target planner, and add sidecar regression coverage to ensure empty-index searches skip embedder calls

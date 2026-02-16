@@ -389,10 +389,25 @@ async def test_handle_message_does_not_raise_if_send_error_fails_for_value_error
     async def failing_send_error(_ws, _msg_id, _error_message):
         raise RuntimeError("socket already closed")
 
+    warning_calls = []
+    error_calls = []
+
     monkeypatch.setattr(mh, "send_error", failing_send_error)
+    monkeypatch.setattr(
+        mh.logger,
+        "warning",
+        lambda *args, **kwargs: warning_calls.append((args, kwargs)),
+    )
+    monkeypatch.setattr(
+        mh.logger,
+        "error",
+        lambda *args, **kwargs: error_calls.append((args, kwargs)),
+    )
 
     # Should swallow send_error failure and not raise.
     await mh.handle_message(websocket, message, registry, "user_1")
+    assert len(warning_calls) == 1
+    assert error_calls == []
 
 
 @pytest.mark.asyncio
@@ -409,7 +424,22 @@ async def test_handle_message_does_not_raise_if_send_error_fails_for_unexpected_
     async def failing_send_error(_ws, _msg_id, _error_message):
         raise RuntimeError("socket already closed")
 
+    warning_calls = []
+    error_calls = []
+
     monkeypatch.setattr(mh, "send_error", failing_send_error)
+    monkeypatch.setattr(
+        mh.logger,
+        "warning",
+        lambda *args, **kwargs: warning_calls.append((args, kwargs)),
+    )
+    monkeypatch.setattr(
+        mh.logger,
+        "error",
+        lambda *args, **kwargs: error_calls.append((args, kwargs)),
+    )
 
     # Should swallow send_error failure and not raise.
     await mh.handle_message(websocket, message, registry, "user_1")
+    assert len(error_calls) == 1
+    assert warning_calls == []

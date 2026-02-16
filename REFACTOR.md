@@ -1,3 +1,69 @@
+# Refactor: Centralize WebSocket Error-Response Fallback Handling
+
+## Target
+Remove duplicated error-send fallback logic in:
+- `backend/src/api/routes/websocket/message_handler.py`
+
+This is a maintainability refactor on a central routing path.
+
+## Current Structure and Root Cause
+`handle_message(...)` had duplicated `try/except` blocks in both error branches:
+- `ValueError` branch (safe client-facing errors)
+- generic `Exception` branch (sanitized internal errors)
+
+Each branch repeated:
+1. call `send_error(...)`
+2. catch socket-write failures
+3. log fallback failure with branch-specific severity/message
+
+Root cause: fallback policy (don’t raise if socket send fails) was implemented inline per branch instead of as a shared helper.
+
+## Refactor Plan
+1. Add one helper to send client errors with fallback logging.
+2. Rewire both `handle_message` error branches to use that helper.
+3. Preserve current external behavior:
+  - `ValueError` sends raw message
+  - unexpected exceptions send sanitized message
+  - socket-send failures are swallowed and logged
+4. Add regression assertions for logging severity on fallback failures.
+5. Run websocket message-handler tests.
+
+## Implemented Changes
+### Shared fallback helper
+- Added `_send_error_with_fallback_logging(...)` in:
+  - `backend/src/api/routes/websocket/message_handler.py`
+
+Helper responsibilities:
+- sends error via `send_error(...)`
+- catches send failures
+- logs `warning` for non-critical path and `error` for critical path
+- never re-raises
+
+### `handle_message(...)` rewiring
+- `ValueError` path now delegates to helper with `critical=False`.
+- generic `Exception` path still sanitizes message via `sanitize_error_message(...)`, then delegates with `critical=True`.
+
+No interface changes were made to `handle_message(...)` or `send_error(...)`.
+
+### Regression coverage
+- Updated `tests/backend/test_websocket_message_handler.py` to assert:
+  - fallback send failure in `ValueError` path logs `warning` (not `error`)
+  - fallback send failure in unexpected-error path logs `error` (not `warning`)
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_websocket_message_handler.py
+```
+
+Result:
+- `19 passed`
+
+This confirms behavior is preserved while removing duplicated fallback policy code.
+
+---
+
 # Refactor: Centralize Conversation SQL Clauses in LocalMemoryStore
 
 ## Target
