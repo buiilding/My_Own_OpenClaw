@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from typing import get_args
 
+import pytest
+
+import backend.src.api.contracts.registry as registry_module
 from backend.src.api.contracts.message_types import (
     INCOMING_MESSAGE_TYPES,
     OUTGOING_SCHEMA_MESSAGE_TYPES,
@@ -15,6 +18,8 @@ from backend.src.api.contracts.registry import (
     get_outgoing_schema_message_types,
     validate_registry_alignment,
 )
+from backend.src.api.schemas.incoming import QueryMessage
+from backend.src.api.schemas.outgoing import ErrorResponse
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.schemas.incoming import IncomingMessage
 
@@ -69,3 +74,40 @@ def test_formatter_specs_align_with_response_formatter_dispatch() -> None:
 
 def test_validate_registry_alignment_passes() -> None:
     validate_registry_alignment()
+
+
+def test_get_formatter_specs_proxies_contract_registry(monkeypatch) -> None:
+    sentinel = ((object, "evt", object, "out"),)
+    monkeypatch.setattr(
+        registry_module,
+        "get_formatter_specs_from_registry",
+        lambda: sentinel,
+    )
+
+    assert registry_module.get_formatter_specs() is sentinel
+
+
+def test_validate_registry_alignment_raises_for_incoming_mismatch(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        registry_module,
+        "INCOMING_CONTRACTS",
+        (registry_module.MessageContract("query", QueryMessage),),
+    )
+
+    with pytest.raises(ValueError, match="Incoming contract type mismatch"):
+        registry_module.validate_registry_alignment()
+
+
+def test_validate_registry_alignment_raises_for_outgoing_mismatch(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        registry_module,
+        "OUTGOING_SCHEMA_CONTRACTS",
+        (registry_module.MessageContract("error", ErrorResponse),),
+    )
+
+    with pytest.raises(ValueError, match="Outgoing schema contract type mismatch"):
+        registry_module.validate_registry_alignment()
