@@ -1,7 +1,7 @@
 .main-layout {
   position: relative;
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 256px minmax(0, 1fr);
   grid-template-areas: 'sidebar main';
   gap: 0;
   height: 100vh;
@@ -13,9 +13,9 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(540px 300px at 4% -8%, rgba(25, 195, 125, 0.18), transparent 62%),
-    radial-gradient(620px 360px at 100% 0%, rgba(84, 129, 255, 0.14), transparent 65%);
-  opacity: 0.85;
+    radial-gradient(500px 280px at 4% -8%, rgba(16, 163, 127, 0.13), transparent 62%),
+    radial-gradient(620px 360px at 100% 0%, rgba(255, 255, 255, 0.05), transparent 65%);
+  opacity: 0.7;
   pointer-events: none;
   z-index: 0;
 }
@@ -28,9 +28,9 @@
 
 .sidebar {
   grid-area: sidebar;
-  background: rgba(13, 16, 23, 0.94);
+  background: rgba(23, 23, 23, 0.98);
   border-right: 1px solid var(--border);
-  padding: 14px 10px 14px 12px;
+  padding: 12px 10px 12px 12px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -45,15 +45,15 @@
   gap: 10px;
   padding: 6px 8px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .brand-mark {
   width: 34px;
   height: 34px;
   border-radius: 11px;
-  background: linear-gradient(135deg, rgba(25, 195, 125, 0.95), rgba(56, 161, 235, 0.78));
+  background: linear-gradient(135deg, rgba(16, 163, 127, 0.95), rgba(16, 163, 127, 0.65));
   color: #ffffff;
   font-size: 0.8rem;
   font-weight: 600;
@@ -114,7 +114,7 @@
 }
 
 .sidebar-nav li:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
 }
@@ -124,10 +124,10 @@
 }
 
 .sidebar-nav li.active {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.16);
   color: var(--text-primary);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-nav li.active button {
@@ -150,7 +150,7 @@
   padding: 8px 10px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.01);
 }
 
 .status-dot {
@@ -158,7 +158,7 @@
   height: 8px;
   border-radius: 999px;
   background: var(--accent);
-  box-shadow: 0 0 0 6px rgba(25, 195, 125, 0.16);
+  box-shadow: 0 0 0 6px rgba(16, 163, 127, 0.2);
 }
 
 .main-content {
@@ -166,8 +166,8 @@
   display: flex;
   flex-direction: column;
   background:
-    radial-gradient(1200px 420px at 40% -32%, rgba(25, 195, 125, 0.07), transparent 54%),
-    linear-gradient(180deg, rgba(20, 24, 33, 0.97), rgba(17, 20, 28, 0.97));
+    radial-gradient(1200px 420px at 40% -32%, rgba(16, 163, 127, 0.06), transparent 54%),
+    linear-gradient(180deg, rgba(33, 33, 33, 0.98), rgba(30, 30, 30, 0.98));
   overflow: hidden;
   min-height: 0;
   animation: fadeUp 0.5s ease-out 0.08s both;

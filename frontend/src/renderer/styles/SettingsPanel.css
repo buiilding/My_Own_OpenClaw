@@ -22,14 +22,14 @@
 .settings-header p {
   margin: 6px 0 0;
   font-size: 13px;
-  color: rgba(244, 242, 238, 0.7);
+  color: rgba(236, 236, 236, 0.7);
 }
 
 .settings-chip {
   padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(88, 196, 151, 0.18);
-  color: rgba(88, 196, 151, 0.9);
+  background: rgba(16, 163, 127, 0.18);
+  color: rgba(16, 163, 127, 0.9);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -41,7 +41,7 @@
   gap: 12px;
   padding: 14px;
   border-radius: 16px;
-  background: rgba(20, 24, 30, 0.6);
+  background: rgba(36, 36, 36, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -50,7 +50,7 @@
   font-size: 14px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(244, 242, 238, 0.8);
+  color: rgba(236, 236, 236, 0.8);
 }
 
 .settings-grid {
@@ -62,20 +62,20 @@
 .settings-card {
   padding: 12px 14px;
   border-radius: 14px;
-  background: rgba(10, 12, 16, 0.55);
+  background: rgba(27, 27, 27, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .settings-card-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(244, 242, 238, 0.9);
+  color: rgba(236, 236, 236, 0.9);
 }
 
 .settings-card-desc {
   margin-top: 6px;
   font-size: 12px;
-  color: rgba(244, 242, 238, 0.6);
+  color: rgba(236, 236, 236, 0.6);
 }
 
 .settings-field {
@@ -88,7 +88,7 @@
   font-size: 12px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(244, 242, 238, 0.7);
+  color: rgba(236, 236, 236, 0.7);
 }
 
 .settings-field input,
@@ -96,7 +96,7 @@
   width: 100%;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(8, 10, 12, 0.6);
+  background: rgba(24, 24, 24, 0.6);
   color: #f8f6f2;
   padding: 9px 12px;
   font-size: 13px;
@@ -105,14 +105,14 @@
 
 .settings-field input:focus,
 .settings-field select:focus {
-  border-color: rgba(98, 184, 255, 0.5);
-  box-shadow: 0 0 0 2px rgba(98, 184, 255, 0.2);
+  border-color: rgba(16, 163, 127, 0.5);
+  box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.2);
 }
 
 .settings-help {
   margin: 0;
   font-size: 12px;
-  color: rgba(244, 242, 238, 0.55);
+  color: rgba(236, 236, 236, 0.55);
 }
 
 .mode-toggle {
@@ -126,11 +126,11 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: rgba(244, 242, 238, 0.85);
+  color: rgba(236, 236, 236, 0.85);
 }
 
 .radio-label input[type='radio'] {
-  accent-color: rgba(88, 196, 151, 0.9);
+  accent-color: rgba(16, 163, 127, 0.9);
 }
 
 .model-reset-warning {
@@ -143,7 +143,7 @@
 
 .no-models-message {
   font-size: 12px;
-  color: rgba(244, 242, 238, 0.65);
+  color: rgba(236, 236, 236, 0.65);
 }
 
 .toggle-label {
@@ -152,7 +152,7 @@
   justify-content: space-between;
   gap: 12px;
   font-size: 13px;
-  color: rgba(244, 242, 238, 0.85);
+  color: rgba(236, 236, 236, 0.85);
 }
 
 .toggle-switch {
@@ -193,7 +193,7 @@
 }
 
 .toggle-input:checked + .toggle-slider {
-  background-color: rgba(88, 196, 151, 0.6);
+  background-color: rgba(16, 163, 127, 0.6);
 }
 
 .toggle-input:checked + .toggle-slider:before {
@@ -222,21 +222,21 @@
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(10, 12, 16, 0.55);
-  color: rgba(244, 242, 238, 0.85);
+  background: rgba(27, 27, 27, 0.55);
+  color: rgba(236, 236, 236, 0.85);
   cursor: pointer;
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 .model-item:hover {
-  border-color: rgba(98, 184, 255, 0.45);
+  border-color: rgba(16, 163, 127, 0.45);
   transform: translateY(-1px);
 }
 
 .model-item.active {
-  border-color: rgba(88, 196, 151, 0.7);
-  background: rgba(88, 196, 151, 0.12);
-  color: rgba(244, 242, 238, 1);
+  border-color: rgba(16, 163, 127, 0.7);
+  background: rgba(16, 163, 127, 0.12);
+  color: rgba(236, 236, 236, 1);
 }
 
 .memory-panel {
@@ -274,21 +274,21 @@
   padding: 14px 16px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(10, 12, 16, 0.6);
-  color: rgba(244, 242, 238, 0.9);
+  background: rgba(27, 27, 27, 0.6);
+  color: rgba(236, 236, 236, 0.9);
   cursor: pointer;
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 .memory-card:hover {
-  border-color: rgba(98, 184, 255, 0.45);
+  border-color: rgba(16, 163, 127, 0.45);
   transform: translateY(-1px);
 }
 
 .memory-card-title {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(244, 242, 238, 0.95);
+  color: rgba(236, 236, 236, 0.95);
 }
 
 .memory-card-meta {
@@ -297,7 +297,7 @@
   flex-direction: column;
   gap: 4px;
   font-size: 11px;
-  color: rgba(244, 242, 238, 0.65);
+  color: rgba(236, 236, 236, 0.65);
 }
 
 .memory-card-row {
@@ -327,12 +327,12 @@
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(244, 242, 238, 0.55);
+  color: rgba(236, 236, 236, 0.55);
   cursor: pointer;
 }
 
 .memory-back-button:hover {
-  color: rgba(244, 242, 238, 0.85);
+  color: rgba(236, 236, 236, 0.85);
 }
 
 .memory-continue-button {
@@ -394,7 +394,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(244, 242, 238, 0.6);
+  color: rgba(236, 236, 236, 0.6);
 }
 
 .memory-list-scroll {
@@ -410,33 +410,33 @@
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(10, 12, 16, 0.55);
-  color: rgba(244, 242, 238, 0.85);
+  background: rgba(27, 27, 27, 0.55);
+  color: rgba(236, 236, 236, 0.85);
   cursor: pointer;
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 .memory-item:hover {
-  border-color: rgba(98, 184, 255, 0.45);
+  border-color: rgba(16, 163, 127, 0.45);
   transform: translateY(-1px);
 }
 
 .memory-item.active {
-  border-color: rgba(88, 196, 151, 0.7);
-  background: rgba(88, 196, 151, 0.12);
-  color: rgba(244, 242, 238, 1);
+  border-color: rgba(16, 163, 127, 0.7);
+  background: rgba(16, 163, 127, 0.12);
+  color: rgba(236, 236, 236, 1);
 }
 
 .memory-item-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(244, 242, 238, 0.9);
+  color: rgba(236, 236, 236, 0.9);
 }
 
 .memory-item-meta {
   margin-top: 4px;
   font-size: 11px;
-  color: rgba(244, 242, 238, 0.6);
+  color: rgba(236, 236, 236, 0.6);
 }
 
 .memory-item-id {
@@ -444,7 +444,7 @@
   font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(244, 242, 238, 0.45);
+  color: rgba(236, 236, 236, 0.45);
 }
 
 .memory-conversation-body {
@@ -459,7 +459,7 @@
   min-height: 0;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(10, 12, 16, 0.45);
+  background: rgba(27, 27, 27, 0.45);
   overflow: hidden;
 }
 
@@ -469,7 +469,7 @@
 
 .memory-muted {
   font-size: 12px;
-  color: rgba(244, 242, 238, 0.55);
+  color: rgba(236, 236, 236, 0.55);
 }
 
 .memory-error {
@@ -484,7 +484,7 @@
   padding: 6px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(10, 12, 16, 0.95);
+  background: rgba(27, 27, 27, 0.95);
   box-shadow: 0 16px 38px rgba(0, 0, 0, 0.42);
   backdrop-filter: blur(12px);
 }
@@ -496,7 +496,7 @@
   background: transparent;
   padding: 10px 10px;
   border-radius: 10px;
-  color: rgba(244, 242, 238, 0.92);
+  color: rgba(236, 236, 236, 0.92);
   font-size: 12px;
   letter-spacing: 0.02em;
   cursor: pointer;
@@ -529,7 +529,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(244, 242, 238, 0.6);
+  color: rgba(236, 236, 236, 0.6);
 }
 
 @media (min-width: 900px) {

@@ -4,20 +4,20 @@
   --font-ui: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
 
-  --bg-base: #0d1016;
-  --bg-muted: #121620;
-  --surface: #1a1f2b;
-  --surface-strong: #1f2531;
-  --surface-muted: #171c25;
-  --surface-ink: #111620;
+  --bg-base: #141414;
+  --bg-muted: #1d1d1d;
+  --surface: #242424;
+  --surface-strong: #2a2a2a;
+  --surface-muted: #202020;
+  --surface-ink: #171717;
 
-  --text-primary: #edf2fb;
-  --text-muted: #b8c1d1;
-  --text-soft: #8e98ac;
+  --text-primary: #ececec;
+  --text-muted: #b9b9b9;
+  --text-soft: #8b8b8b;
 
-  --accent: #19c37d;
-  --accent-strong: #14a86c;
-  --accent-soft: rgba(25, 195, 125, 0.16);
+  --accent: #10a37f;
+  --accent-strong: #0d8b6b;
+  --accent-soft: rgba(16, 163, 127, 0.16);
 
   --warning: #e3a84f;
   --danger: #f87171;
@@ -52,8 +52,8 @@ body {
   font-family: var(--font-ui);
   color: var(--text-primary);
   background:
-    radial-gradient(900px 600px at 10% -10%, rgba(25, 195, 125, 0.18), transparent 58%),
-    radial-gradient(900px 600px at 100% 0%, rgba(84, 129, 255, 0.14), transparent 58%),
+    radial-gradient(900px 600px at 10% -10%, rgba(16, 163, 127, 0.12), transparent 58%),
+    radial-gradient(900px 600px at 100% 0%, rgba(255, 255, 255, 0.06), transparent 58%),
     linear-gradient(180deg, var(--bg-base) 0%, var(--bg-muted) 100%);
   background-attachment: fixed;
   overflow: hidden;
@@ -76,7 +76,7 @@ a {
 }
 
 ::selection {
-  background: rgba(25, 195, 125, 0.24);
+  background: rgba(16, 163, 127, 0.28);
 }
 
 ::-webkit-scrollbar {
