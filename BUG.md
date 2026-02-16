@@ -137,3 +137,37 @@ In `frontend/src/main/wakeword_bridge.cjs`, wakeword detections stop triggering 
 - Re-ran wakeword bridge tests:
   - `cd frontend && npm run test -- tests/frontend/WakewordBridge.test.cjs`
   - Result: `3 passed`.
+
+---
+
+## [x] Bug Report: Stale Wakeword Parser Buffer Survives Process Restart
+
+### Summary
+
+In `frontend/src/main/wakeword_bridge.cjs`, `resultBuffer` was not cleared when the wakeword Python process exited/errored/stopped. Partial frame bytes from the old process could remain and corrupt parsing for the next process instance.
+
+### Root Cause
+
+- Wakeword detection parser uses a module-level `resultBuffer` with length-prefixed frames.
+- Process lifecycle handlers reset `pythonProcess` and `stderrBuffer`, but did not reset `resultBuffer`.
+- After restart, new stdout bytes were appended to stale bytes, so the parser could read an invalid large frame length and stop emitting detections.
+
+### Why It's Problematic
+
+- Wakeword can silently stop detecting after restart/crash recovery.
+- The failure is stateful and hard to diagnose because process restart appears successful, but detections no longer flow.
+- Behavior depends on exact buffered bytes from the previous process, causing intermittent production issues.
+
+### Fix
+
+- Clear `resultBuffer` on wakeword process `exit`.
+- Clear `resultBuffer` on wakeword process `error`.
+- Clear `resultBuffer` in `stopWakewordService()` to avoid cross-instance contamination.
+
+### Validation
+
+- Added regression test in `tests/frontend/WakewordBridge.test.cjs`:
+  - `clears stale partial result buffer across process restart`
+- Re-ran wakeword bridge suite:
+  - `cd frontend && npm run test -- tests/frontend/WakewordBridge.test.cjs`
+  - Result: `4 passed`.

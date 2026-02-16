@@ -79,6 +79,10 @@ describe('wakeword_bridge', () => {
     stdoutHandler(Buffer.concat([lengthBuffer, jsonBuffer]));
   };
 
+  const emitRawBytes = (buffer) => {
+    stdoutHandler(buffer);
+  };
+
   test('fires wakeword callback and forwards detection', () => {
     const { mainWindow, onWakewordDetected } = initBridge();
 
@@ -138,6 +142,35 @@ describe('wakeword_bridge', () => {
       expect.objectContaining({
         model: 'hey_jarvis',
         confidence: 0.93,
+      }),
+    );
+  });
+
+  test('clears stale partial result buffer across process restart', () => {
+    const { mainWindow, onWakewordDetected, createdProcesses } = initBridge();
+
+    // Inject incomplete frame bytes so old process leaves parser state behind.
+    const partialHeader = Buffer.alloc(4);
+    partialHeader.writeUInt32LE(1024, 0);
+    emitRawBytes(partialHeader);
+
+    createdProcesses[0]._handlers.exit(0, null);
+    handlers['wakeword-enable']();
+    expect(createdProcesses).toHaveLength(2);
+
+    emitDetection({
+      detected: true,
+      model: 'hey_jarvis',
+      confidence: 0.95,
+      score: 0.95,
+    });
+
+    expect(onWakewordDetected).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      'wakeword-detected',
+      expect.objectContaining({
+        model: 'hey_jarvis',
+        confidence: 0.95,
       }),
     );
   });
