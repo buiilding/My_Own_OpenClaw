@@ -295,6 +295,42 @@ describe('local_backend_bridge', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { memories: [] } });
   });
 
+  test('get-conversation handler maps missing conversationId to null', async () => {
+    initBridge();
+    markReady();
+
+    const promise = handlers['get-conversation'](null, {
+      userId: 'u-1',
+      limit: 4,
+      recordKind: 'transcript',
+    });
+
+    const request = getLastWrittenRequest();
+    expect(request).toEqual(
+      expect.objectContaining({
+        method: 'get_conversation',
+        params: {
+          user_id: 'u-1',
+          conversation_id: null,
+          limit: 4,
+          record_kind: 'transcript',
+        },
+      }),
+    );
+
+    stdoutHandler(
+      Buffer.from(
+        `${JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'req-1',
+          result: { success: true, data: { messages: [] } },
+        })}\n`,
+      ),
+    );
+
+    await expect(promise).resolves.toEqual({ success: true, data: { messages: [] } });
+  });
+
   test('delete-conversation handler maps payload keys to backend params', async () => {
     initBridge();
     markReady();
@@ -397,6 +433,45 @@ describe('local_backend_bridge', () => {
     );
 
     await expect(promise).resolves.toEqual({ success: false, error: 'store failed' });
+  });
+
+  test('store-memory handler maps payload keys to backend params', async () => {
+    initBridge();
+    markReady();
+
+    const promise = handlers['store-memory'](null, {
+      userQuery: 'What is WindieOS?',
+      assistantResponse: 'A desktop assistant.',
+      memoryType: 'semantic',
+      userId: 'u-1',
+      sessionId: 'session-7',
+    });
+
+    const request = getLastWrittenRequest();
+    expect(request).toEqual(
+      expect.objectContaining({
+        method: 'store_memory',
+        params: {
+          user_query: 'What is WindieOS?',
+          assistant_response: 'A desktop assistant.',
+          memory_type: 'semantic',
+          user_id: 'u-1',
+          session_id: 'session-7',
+        },
+      }),
+    );
+
+    stdoutHandler(
+      Buffer.from(
+        `${JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'req-1',
+          result: { success: true, data: { stored: true } },
+        })}\n`,
+      ),
+    );
+
+    await expect(promise).resolves.toEqual({ success: true, data: { stored: true } });
   });
 
   test('execute-tool rejects in-flight request when sidecar exits', async () => {

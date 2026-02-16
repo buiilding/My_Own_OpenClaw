@@ -53,6 +53,40 @@ function toErrorResponse(error) {
   };
 }
 
+function getPayloadObject(payload = {}) {
+  if (payload && typeof payload === 'object') {
+    return payload;
+  }
+  return {};
+}
+
+function mapPayloadParams(payload, fieldMap) {
+  const source = getPayloadObject(payload);
+  const mapped = {};
+
+  for (const [targetKey, mapping] of Object.entries(fieldMap)) {
+    if (typeof mapping === 'function') {
+      mapped[targetKey] = mapping(source);
+      continue;
+    }
+    if (Array.isArray(mapping)) {
+      mapped[targetKey] = mapping.reduce((resolved, sourceKey) => (
+        resolved !== undefined ? resolved : source[sourceKey]
+      ), undefined);
+      continue;
+    }
+    mapped[targetKey] = source[mapping];
+  }
+
+  return mapped;
+}
+
+function registerMappedRpcHandlers(registerRpcHandler, definitions) {
+  for (const { channel, method, fieldMap } of definitions) {
+    registerRpcHandler(channel, method, (payload) => mapPayloadParams(payload, fieldMap));
+  }
+}
+
 function rejectPendingRequests(reason) {
   const pendingEntries = Array.from(pendingRequests.entries());
   for (const [requestId, pending] of pendingEntries) {
@@ -565,93 +599,93 @@ function initializeLocalBackendBridge(getWindows) {
   });
 
   // Handle memory search requests (integrated into local backend)
-  ipcMain.handle('search-memory', async (event, {
-    query,
-    user_id,
-    limit,
-    memory_type,
-    excludeConversationId,
-    exclude_conversation_id,
-  } = {}) => (
-    sendMemorySearchRequest({
-      query,
-      user_id,
-      limit,
-      memory_type,
-      exclude_conversation_id: excludeConversationId ?? exclude_conversation_id,
-    })
+  ipcMain.handle('search-memory', async (event, payload = {}) => (
+    sendMemorySearchRequest(
+      mapPayloadParams(payload, {
+        query: 'query',
+        user_id: 'user_id',
+        limit: 'limit',
+        memory_type: 'memory_type',
+        exclude_conversation_id: ['excludeConversationId', 'exclude_conversation_id'],
+      }),
+    )
   ));
 
-  // Handle conversation list requests
-  registerRpcHandler('list-conversations', 'list_conversations', ({ userId, limit, recordKind } = {}) => ({
-    user_id: userId,
-    limit: limit,
-    record_kind: recordKind,
-  }));
-
-  // Handle conversation detail requests
-  registerRpcHandler('get-conversation', 'get_conversation', ({ userId, conversationId, limit, recordKind } = {}) => ({
-    user_id: userId,
-    conversation_id: conversationId ?? null,
-    limit: limit,
-    record_kind: recordKind,
-  }));
-
-  // Handle semantic memory list requests
-  registerRpcHandler('list-semantic-memories', 'list_semantic_memories', ({ userId, limit } = {}) => ({
-    user_id: userId,
-    limit: limit,
-  }));
-
-  // Handle conversation deletion requests
-  registerRpcHandler('delete-conversation', 'delete_conversation', ({ userId, conversationId, recordKind } = {}) => ({
-    user_id: userId,
-    conversation_id: conversationId ?? null,
-    record_kind: recordKind,
-  }));
-
-  // Handle semantic memory deletion requests
-  registerRpcHandler('delete-semantic-memory', 'delete_semantic_memory', ({ userId, memoryId } = {}) => ({
-    user_id: userId,
-    memory_id: memoryId,
-  }));
-
-  // Handle memory storage requests
-  registerRpcHandler('store-memory', 'store_memory', ({ userQuery, assistantResponse, memoryType, userId, sessionId } = {}) => ({
-    user_query: userQuery,
-    assistant_response: assistantResponse,
-    memory_type: memoryType,
-    user_id: userId,
-    session_id: sessionId,
-  }));
-
-  registerRpcHandler('store-transcript', 'store_transcript', ({
-    content,
-    userId,
-    conversationRef,
-    role,
-    messageType,
-    toolName,
-    correlationId,
-    messageIndex,
-    modelId,
-    modelProvider,
-    screenshot,
-    timestamp,
-  } = {}) => ({
-    content: content,
-    user_id: userId,
-    conversation_ref: conversationRef,
-    role: role,
-    message_type: messageType,
-    tool_name: toolName,
-    correlation_id: correlationId,
-    message_index: messageIndex,
-    model_id: modelId,
-    model_provider: modelProvider,
-    screenshot: screenshot,
-    timestamp: timestamp,
-  }));
+  registerMappedRpcHandlers(registerRpcHandler, [
+    {
+      channel: 'list-conversations',
+      method: 'list_conversations',
+      fieldMap: {
+        user_id: 'userId',
+        limit: 'limit',
+        record_kind: 'recordKind',
+      },
+    },
+    {
+      channel: 'get-conversation',
+      method: 'get_conversation',
+      fieldMap: {
+        user_id: 'userId',
+        conversation_id: ({ conversationId }) => conversationId ?? null,
+        limit: 'limit',
+        record_kind: 'recordKind',
+      },
+    },
+    {
+      channel: 'list-semantic-memories',
+      method: 'list_semantic_memories',
+      fieldMap: {
+        user_id: 'userId',
+        limit: 'limit',
+      },
+    },
+    {
+      channel: 'delete-conversation',
+      method: 'delete_conversation',
+      fieldMap: {
+        user_id: 'userId',
+        conversation_id: ({ conversationId }) => conversationId ?? null,
+        record_kind: 'recordKind',
+      },
+    },
+    {
+      channel: 'delete-semantic-memory',
+      method: 'delete_semantic_memory',
+      fieldMap: {
+        user_id: 'userId',
+        memory_id: 'memoryId',
+      },
+    },
+    {
+      channel: 'store-memory',
+      method: 'store_memory',
+      fieldMap: {
+        user_query: 'userQuery',
+        assistant_response: 'assistantResponse',
+        memory_type: 'memoryType',
+        user_id: 'userId',
+        session_id: 'sessionId',
+      },
+    },
+    {
+      channel: 'store-transcript',
+      method: 'store_transcript',
+      fieldMap: {
+        content: 'content',
+        user_id: 'userId',
+        conversation_ref: 'conversationRef',
+        role: 'role',
+        message_type: 'messageType',
+        tool_name: 'toolName',
+        correlation_id: 'correlationId',
+        message_index: 'messageIndex',
+        model_id: 'modelId',
+        model_provider: 'modelProvider',
+        screenshot: 'screenshot',
+        timestamp: 'timestamp',
+      },
+    },
+  ]);
 
   // Only log initialization in development
   if (process.env.NODE_ENV !== 'production') {
