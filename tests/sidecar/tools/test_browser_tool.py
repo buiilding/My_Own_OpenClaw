@@ -96,7 +96,7 @@ class TestPhase2AdapterRouting:
             legacy_handlers = mock_get_adapter.call_args.kwargs.get("legacy_handlers")
             assert isinstance(legacy_handlers, dict)
             assert "snapshot" in legacy_handlers
-            assert "extract" in legacy_handlers
+            assert "extract" not in legacy_handlers
             assert "act" not in legacy_handlers
             mock_adapter.execute.assert_awaited_once()
 

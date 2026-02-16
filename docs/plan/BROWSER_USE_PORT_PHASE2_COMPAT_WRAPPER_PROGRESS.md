@@ -75,7 +75,8 @@ Additional routing update:
 
 - `profiles`, `snapshot`, `extract`, and `act` are now routed through adapter dispatch as well.
 - `act` is now adapter-native (no legacy delegate).
-- `snapshot` / `extract` currently use adapter legacy delegates that call existing sidecar handlers to preserve behavior while we transition internals.
+- `extract` is now adapter-native (no legacy delegate).
+- `snapshot` currently uses an adapter legacy delegate that calls the existing sidecar handler to preserve behavior while we transition internals.
 
 Current Phase 2 routing result:
 
@@ -112,5 +113,5 @@ Additional regression assertions added in:
 ## Remaining Phase 2 Work
 
 - Current adapter implementation is still backed by legacy `BrowserController` internals.
-- Replace adapter legacy delegates for `snapshot` / `extract` with native adapter-owned implementations.
+- Replace adapter legacy delegate for `snapshot` with a native adapter-owned implementation.
 - Replace controller-backed adapter internals action-by-action with Browser Use runtime primitives while preserving the same adapter return contract.
