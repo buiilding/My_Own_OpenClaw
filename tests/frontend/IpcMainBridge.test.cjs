@@ -303,6 +303,30 @@ describe('ipc.cjs bridge', () => {
     expect(lastMessage.payload).not.toHaveProperty('system_state_internal');
   });
 
+  test('builds query with empty memories when search response is malformed', async () => {
+    const { handlers, ws, backendBridge } = initIpc();
+    ws.triggerOpen();
+
+    backendBridge.getSystemState.mockResolvedValue({
+      active_window: 'App',
+      mouse_position: '0,0',
+    });
+    backendBridge.searchMemory.mockResolvedValue({
+      success: true,
+      data: {},
+    });
+
+    await handlers['to-backend']({ sender: null }, {
+      type: 'query',
+      payload: { text: 'memory malformed', conversation_ref: 'conv-4b' },
+    });
+
+    const lastMessage = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(lastMessage.payload.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
+    expect(lastMessage.payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
+    expect(lastMessage.payload.content).toContain('<user_query>\nmemory malformed\n</user_query>');
+  });
+
   test('gates first query behind settings-updated ack when frontend config exists', async () => {
     const { handlers, ws, backendBridge, fs } = initIpc();
     fs.existsSync.mockReturnValue(true);

@@ -472,6 +472,19 @@ function escapeXml(value) {
     .replace(/'/g, '&apos;');
 }
 
+function formatMemorySection(tagName, entries) {
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return `<${tagName}>\nNone\n</${tagName}>`;
+  }
+  const sectionText = entries.map((entry) => `- ${escapeXml(entry)}`).join('\n');
+  return `<${tagName}>\n${sectionText}\n</${tagName}>`;
+}
+
+function appendMemorySections(parts, memories = null) {
+  parts.push(formatMemorySection('episodic_memory', memories?.episodic));
+  parts.push(formatMemorySection('semantic_memory', memories?.semantic));
+}
+
 /**
  * Initializes the IPC bridge and establishes the WebSocket connection.
  * This function should be called once when the main Electron window is created.
@@ -606,29 +619,12 @@ function initializeIpc(win, options = {}) {
         }
 
         // 2. Memory sections
-        let memories = null;
         // Response structure: { success: true, data: { memories: {...} } }
         const responseData = memoryResponse.status === 'fulfilled' ? memoryResponse.value : null;
         if (responseData?.success && responseData?.data?.memories) {
-          memories = responseData.data.memories;
+          const memories = responseData.data.memories;
           log(`Memory response received - episodic: ${memories.episodic?.length || 0}, semantic: ${memories.semantic?.length || 0}`);
-          
-          // Add episodic memory section
-          if (memories.episodic && memories.episodic.length > 0) {
-            const episodicText = memories.episodic.map((m) => `- ${escapeXml(m)}`).join('\n');
-            parts.push(`<episodic_memory>\n${episodicText}\n</episodic_memory>`);
-          } else {
-            parts.push('<episodic_memory>\nNone\n</episodic_memory>');
-          }
-          
-          // Add semantic memory section
-          if (memories.semantic && memories.semantic.length > 0) {
-            const semanticText = memories.semantic.map((m) => `- ${escapeXml(m)}`).join('\n');
-            parts.push(`<semantic_memory>\n${semanticText}\n</semantic_memory>`);
-          } else {
-            parts.push('<semantic_memory>\nNone\n</semantic_memory>');
-          }
-          
+          appendMemorySections(parts, memories);
           log('Memories added to message');
         } else {
           // Log why memories weren't added
@@ -647,8 +643,7 @@ function initializeIpc(win, options = {}) {
             log(`Memory response status: ${memoryResponse.status}`);
           }
           // Add empty memory sections if search failed
-          parts.push('<episodic_memory>\nNone\n</episodic_memory>');
-          parts.push('<semantic_memory>\nNone\n</semantic_memory>');
+          appendMemorySections(parts);
         }
 
         // 3. User query
