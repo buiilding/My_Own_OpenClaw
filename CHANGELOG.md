@@ -62,6 +62,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-layout): remove the sidebar bottom-left `Ready` status block from the dashboard shell
 - fix(frontend-ui): remove remaining strong green accents from renderer surfaces and controls in favor of neutral ChatGPT-style slate tones
 - fix(frontend-chat-layout): remove centered width caps so chat text stream, header, and composer expand to fill the main content pane
+- fix(frontend-chat): remove the default seeded assistant greeting so new/reset chats start empty
 - docs(frontend-bridges): document wakeword stderr-buffer reset-on-restart and token-scoped local-backend readiness retries so restart-race protections are explicit in sidecar/frontend docs
 - docs(api-transport): document handshake failure close semantics (`1008`) and shared WebSocket JSON parse offload policy (`api/routes/websocket/json_parse.py`)
 - docs(sidecar/browser): clarify sidecar protocol internals (`core/stdout_json.py` shared JSON-line writer), local-backend/wakeword stale-callback guards, browser runbook test commands, and Browser Use plan status as a time-locked baseline

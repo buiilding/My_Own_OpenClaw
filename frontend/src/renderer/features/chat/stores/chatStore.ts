@@ -99,17 +99,6 @@ interface ChatState {
   clearMessages: () => void;
 }
 
-/**
- * Initial message
- */
-function createInitialMessage(): ChatMessage {
-  return {
-    id: crypto.randomUUID(),
-    text: 'Hello! How can I help you today?',
-    sender: 'assistant',
-  };
-}
-
 function createInitialStreamTracking(): StreamTracking {
   return {
     activeTurnRef: null,
@@ -134,7 +123,7 @@ function createInitialStreamTracking(): StreamTracking {
  */
 export const useChatStore = create<ChatState>((set) => ({
   // Initial state
-  messages: [createInitialMessage()],
+  messages: [],
   isSending: false,
   thinkingStatus: null,
   tokenCounts: null,
@@ -176,7 +165,7 @@ export const useChatStore = create<ChatState>((set) => ({
     })),
 
   clearMessages: () => set({
-    messages: [createInitialMessage()],
+    messages: [],
     streamTracking: createInitialStreamTracking(),
   }),
 }));
