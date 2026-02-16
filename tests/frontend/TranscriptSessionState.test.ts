@@ -1,6 +1,15 @@
 import { createTranscriptSessionState } from '../../frontend/src/renderer/infrastructure/transcript/sessionInfoState';
 
 describe('transcript session state', () => {
+  test('reads from storage only once across repeated get calls', () => {
+    const readStoredSessionInfo = jest.fn(() => ({ conversationRef: 'conv-1', userId: 'user-1' }));
+    const state = createTranscriptSessionState(readStoredSessionInfo);
+
+    expect(state.get()).toEqual({ conversationRef: 'conv-1', userId: 'user-1' });
+    expect(state.get()).toEqual({ conversationRef: 'conv-1', userId: 'user-1' });
+    expect(readStoredSessionInfo).toHaveBeenCalledTimes(1);
+  });
+
   test('loads session info lazily from storage reader', () => {
     const readStoredSessionInfo = jest.fn(() => ({ conversationRef: 'conv-1', userId: 'user-1' }));
     const state = createTranscriptSessionState(readStoredSessionInfo);
@@ -30,6 +39,14 @@ describe('transcript session state', () => {
     expect(state.update(undefined, 'new-user')).toEqual({
       conversationRef: 'conv-stored',
       userId: 'new-user',
+    });
+  });
+
+  test('update keeps current user id when an empty user id is passed', () => {
+    const state = createTranscriptSessionState(() => ({ conversationRef: 'conv-stored', userId: 'stored-user' }));
+    expect(state.update(undefined, '')).toEqual({
+      conversationRef: 'conv-stored',
+      userId: 'stored-user',
     });
   });
 

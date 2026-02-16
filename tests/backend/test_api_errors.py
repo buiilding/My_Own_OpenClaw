@@ -31,9 +31,29 @@ class FailingWebSocket(FakeWebSocket):
         raise ConnectionError("closed")
 
 
+class RuntimeFailingWebSocket(FakeWebSocket):
+    async def send_json(self, data: Any, mode: str = "text") -> None:  # noqa: ARG002
+        raise RuntimeError("socket write failed")
+
+
 def test_sanitize_error_message_returns_validation_error_message() -> None:
     exc = ValidationError("Invalid model_mode value")
     assert sanitize_error_message(exc) == "Invalid model_mode value"
+
+
+def test_sanitize_error_message_exposes_safe_value_error_keywords() -> None:
+    exc = ValueError("Invalid payload format")
+    assert sanitize_error_message(exc) == "Invalid payload format"
+
+
+def test_sanitize_error_message_hides_unsafe_value_error_details() -> None:
+    exc = ValueError("database DSN password leaked")
+    assert sanitize_error_message(exc) == "An internal error occurred"
+
+
+def test_sanitize_error_message_applies_context_for_internal_errors() -> None:
+    exc = RuntimeError("traceback details")
+    assert sanitize_error_message(exc, context="registry") == "registry: An internal error occurred"
 
 
 @pytest.mark.asyncio
@@ -52,6 +72,25 @@ async def test_send_error_response_sanitizes_internal_exception() -> None:
             "type": "error",
             "id": "msg_err_1",
             "payload": {"message": "An internal error occurred"},
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_send_error_response_uses_provided_message_when_no_exception() -> None:
+    websocket = FakeWebSocket()
+
+    await send_error_response(
+        websocket=websocket,
+        msg_id="msg_err_2",
+        message="safe validation error",
+    )
+
+    assert websocket.sent == [
+        {
+            "type": "error",
+            "id": "msg_err_2",
+            "payload": {"message": "safe validation error"},
         }
     ]
 
@@ -98,6 +137,23 @@ async def test_send_helpers_swallow_closed_connection_errors() -> None:
     await send_success_response(
         websocket=websocket,
         msg_id="msg_ok_closed",
+        response_type="settings-loaded",
+        payload={"config": {}},
+    )
+
+
+@pytest.mark.asyncio
+async def test_send_helpers_swallow_runtime_send_failures() -> None:
+    websocket = RuntimeFailingWebSocket()
+
+    await send_error_response(
+        websocket=websocket,
+        msg_id="msg_err_runtime",
+        message="safe error",
+    )
+    await send_success_response(
+        websocket=websocket,
+        msg_id="msg_ok_runtime",
         response_type="settings-loaded",
         payload={"config": {}},
     )
