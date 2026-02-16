@@ -57,3 +57,8 @@ Legend:
 | `act` | Existing WindieOS action envelope + mapped Browser Use primitive per `kind` | Preserve `act.request.kind` compatibility dispatch in adapter. | Browser Use has first-class actions, not OpenClaw envelope; adapter keeps legacy shape. | `tests/new_sidecar/test_browser_use_adapter_core.py`, `tests/sidecar/tools/test_browser_tool.py` | `compat` |
 | `close` | `BrowserSession.stop()` / `BrowserSession.kill()` | Map WindieOS close-session semantics to Browser Use session lifecycle stop. | Browser Use also has per-tab close; keep WindieOS `close` meaning as session-level close. | `tests/new_sidecar/test_browser_use_adapter_core.py`, `tests/sidecar/tools/test_browser_tool.py` | `port` |
 
+## Phase 1 Addendum (February 16, 2026)
+
+- Reviewed all migration decisions against the Phase 1 architecture boundary in `docs/plan/BROWSER_USE_PORT_PHASE1_ARCHITECTURE_AND_ADAPTER_SPEC.md`.
+- No action decision changed in Phase 1 (`port`/`compat`/`deprecate` status remains exactly as locked on February 16, 2026).
+- Adapter contract requirement added: every action must return normalized `decision` metadata matching this ledger.
