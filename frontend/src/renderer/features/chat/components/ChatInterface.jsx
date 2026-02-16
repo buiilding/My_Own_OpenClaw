@@ -48,11 +48,6 @@ function ChatInterface() {
   const interactionMode = config?.interaction_mode || 'chat';
   const voiceModeEnabled = config?.voice_mode_enabled === true;
   const interactionModeLabel = interactionMode === 'agent' ? 'Agent' : 'Chat';
-  const statusLabel = thinkingStatus
-    ? 'Thinking...'
-    : isSending
-      ? 'Sending...'
-      : 'Ready';
 
   const stopPlayback = useCallback(() => {
     audioPlayerRef.current?.stopPlayback();
@@ -67,7 +62,6 @@ function ChatInterface() {
       <header className="chat-header">
         <div className="chat-title-block">
           <div className="chat-title">Conversation</div>
-          <div className="chat-subtitle">{statusLabel}</div>
         </div>
         <div className="chat-meta">
           <div className={`chat-mode-badge chat-mode-${interactionMode}`}>

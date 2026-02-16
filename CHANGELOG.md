@@ -63,6 +63,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-ui): remove remaining strong green accents from renderer surfaces and controls in favor of neutral ChatGPT-style slate tones
 - fix(frontend-chat-layout): remove centered width caps so chat text stream, header, and composer expand to fill the main content pane
 - fix(frontend-chat): remove the default seeded assistant greeting so new/reset chats start empty
+- fix(frontend-chat): remove the `READY` subtitle beneath `Conversation` so the header renders only the conversation title
 - fix(frontend-window): hide the top-left native menu bar (`File/Edit/View/...`) on the main app window for non-macOS platforms
 - docs(frontend-bridges): document wakeword stderr-buffer reset-on-restart and token-scoped local-backend readiness retries so restart-race protections are explicit in sidecar/frontend docs
 - docs(api-transport): document handshake failure close semantics (`1008`) and shared WebSocket JSON parse offload policy (`api/routes/websocket/json_parse.py`)
