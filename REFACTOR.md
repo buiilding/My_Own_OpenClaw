@@ -116,3 +116,65 @@ Result:
 - `42 passed, 3 warnings`
 
 This confirms the refactor preserved existing sidecar behavior while reducing duplicated lifecycle logic.
+
+---
+
+# Refactor: Centralize LocalBackend Memory-Store Guarding
+
+## Target
+Remove repeated memory-store availability checks across `LocalBackend` memory handlers in:
+- `frontend/src/main/python/local_backend.py`
+
+## Current Structure and Root Cause
+`LocalBackend` had the same early-return guard duplicated in eight handlers:
+- `_handle_search_memory`
+- `_handle_list_conversations`
+- `_handle_get_conversation`
+- `_handle_list_semantic_memories`
+- `_handle_delete_conversation`
+- `_handle_delete_semantic_memory`
+- `_handle_store_transcript`
+- `_handle_store_memory`
+
+Each repeated:
+
+```python
+if not self.memory_store:
+    return {"success": False, "error": "Memory store not initialized"}
+```
+
+Root cause: precondition enforcement was implemented inline at each call site instead of being expressed as shared handler policy.
+
+## Refactor Plan
+1. Add a reusable async decorator for memory handlers (`requires_memory_store`).
+2. Add one canonical response builder (`_memory_store_not_initialized_response`) to preserve response shape/message consistency.
+3. Apply the decorator to all memory handlers that require the store.
+4. Remove duplicated inline guards.
+5. Add a regression test for one previously untested handler and rerun sidecar tests.
+
+## Implemented Changes
+### Shared guard policy in `LocalBackend`
+- Added `requires_memory_store` decorator in `frontend/src/main/python/local_backend.py`.
+- Added `LocalBackend._memory_store_not_initialized_response()`.
+- Decorated the eight memory handlers listed above and removed duplicated inline guards.
+
+Result:
+- Memory-store precondition logic now lives in one place.
+- Reduced duplicated guard blocks from 8 to 0.
+- Error response contract remains unchanged.
+
+### Test coverage
+- Added `test_handle_list_conversations_fails_without_store` in:
+  - `tests/sidecar/test_local_backend.py`
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py tests/sidecar/test_memory_service.py tests/sidecar/test_runtime_shutdown.py
+```
+
+Result:
+- `43 passed, 3 warnings`
+
+This confirms the refactor did not break existing sidecar behavior and preserved memory error response semantics.

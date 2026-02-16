@@ -10,8 +10,9 @@ via JSON-RPC 2.0 protocol over stdin/stdout.
 import asyncio
 import logging
 import sys
+from functools import wraps
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, Optional
 
 # Add the frontend python directory to the path
 frontend_python_dir = Path(__file__).parent
@@ -41,6 +42,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 _active_backend: Optional["LocalBackend"] = None
+
+
+def requires_memory_store(
+    handler: Callable[..., Awaitable[Dict[str, Any]]],
+) -> Callable[..., Awaitable[Dict[str, Any]]]:
+    """Ensure memory handlers consistently fail when the store is unavailable."""
+
+    @wraps(handler)
+    async def wrapper(self: "LocalBackend", *args, **kwargs) -> Dict[str, Any]:
+        if self.memory_store is None:
+            return self._memory_store_not_initialized_response()
+        return await handler(self, *args, **kwargs)
+
+    return wrapper
 
 
 class LocalBackend:
@@ -118,6 +133,14 @@ class LocalBackend:
             return False
 
         return normalized_type in ("", "llm-text", "error")
+
+    @staticmethod
+    def _memory_store_not_initialized_response() -> Dict[str, Any]:
+        """Canonical response shape for memory handlers when store is unavailable."""
+        return {
+            "success": False,
+            "error": "Memory store not initialized",
+        }
     
     async def initialize(self) -> None:
         """Initialize the backend services."""
@@ -217,6 +240,7 @@ class LocalBackend:
                 "error": str(e)
             }
     
+    @requires_memory_store
     async def _handle_search_memory(
         self,
         query: str,
@@ -227,12 +251,6 @@ class LocalBackend:
         **kwargs,
     ) -> Dict[str, Any]:
         """Search memory."""
-        if not self.memory_store:
-            return {
-                "success": False,
-                "error": "Memory store not initialized"
-            }
-        
         try:
             filters = build_memory_filters(memory_type)
             results = await self.memory_store.search(query, user_id, filters, limit)
@@ -252,6 +270,7 @@ class LocalBackend:
                 "error": str(e)
             }
 
+    @requires_memory_store
     async def _handle_list_conversations(
         self,
         user_id: str = "default_user",
@@ -260,12 +279,6 @@ class LocalBackend:
         **kwargs,
     ) -> Dict[str, Any]:
         """List episodic conversation windows."""
-        if not self.memory_store:
-            return {
-                "success": False,
-                "error": "Memory store not initialized"
-            }
-
         try:
             conversations = await self.memory_store.list_conversations(user_id, limit, record_kind)
             return {
@@ -282,6 +295,7 @@ class LocalBackend:
                 "error": str(e)
             }
 
+    @requires_memory_store
     async def _handle_get_conversation(
         self,
         conversation_id: Optional[str] = None,
@@ -291,12 +305,6 @@ class LocalBackend:
         **kwargs,
     ) -> Dict[str, Any]:
         """Get episodic memories for a conversation window."""
-        if not self.memory_store:
-            return {
-                "success": False,
-                "error": "Memory store not initialized"
-            }
-
         try:
             memories = await self.memory_store.get_episodic_memories_by_conversation(
                 user_id, conversation_id, limit, record_kind=record_kind
@@ -316,6 +324,7 @@ class LocalBackend:
                 "error": str(e)
             }
 
+    @requires_memory_store
     async def _handle_list_semantic_memories(
         self,
         user_id: str = "default_user",
@@ -323,12 +332,6 @@ class LocalBackend:
         **kwargs,
     ) -> Dict[str, Any]:
         """List semantic memories for a user."""
-        if not self.memory_store:
-            return {
-                "success": False,
-                "error": "Memory store not initialized"
-            }
-
         try:
             memories = await self.memory_store.list_semantic_memories(user_id, limit)
             return {
@@ -345,6 +348,7 @@ class LocalBackend:
                 "error": str(e)
             }
 
+    @requires_memory_store
     async def _handle_delete_conversation(
         self,
         user_id: str = "default_user",
@@ -353,12 +357,6 @@ class LocalBackend:
         **kwargs,
     ) -> Dict[str, Any]:
         """Delete episodic memories for a conversation window."""
-        if not self.memory_store:
-            return {
-                "success": False,
-                "error": "Memory store not initialized"
-            }
-
         try:
             deleted_count = await self.memory_store.delete_conversation(
                 user_id=user_id,
@@ -380,6 +378,7 @@ class LocalBackend:
                 "error": str(e)
             }
 
+    @requires_memory_store
     async def _handle_delete_semantic_memory(
         self,
         user_id: str = "default_user",
@@ -387,12 +386,6 @@ class LocalBackend:
         **kwargs,
     ) -> Dict[str, Any]:
         """Delete a semantic memory entry."""
-        if not self.memory_store:
-            return {
-                "success": False,
-                "error": "Memory store not initialized"
-            }
-
         if not memory_id:
             return {
                 "success": False,
@@ -418,6 +411,7 @@ class LocalBackend:
                 "error": str(e)
             }
 
+    @requires_memory_store
     async def _handle_store_transcript(
         self,
         content: str,
@@ -436,12 +430,6 @@ class LocalBackend:
         **kwargs,
     ) -> Dict[str, Any]:
         """Store a transcript entry with selective embeddings for recall/summarization."""
-        if not self.memory_store:
-            return {
-                "success": False,
-                "error": "Memory store not initialized"
-            }
-
         if not content:
             return {
                 "success": False,
@@ -515,14 +503,9 @@ class LocalBackend:
                 "error": str(e)
             }
     
+    @requires_memory_store
     async def _handle_store_memory(self, user_query: str, assistant_response: str, memory_type: str = "episodic", user_id: str = "default_user", session_id: str = None, **kwargs) -> Dict[str, Any]:
         """Store memory."""
-        if not self.memory_store:
-            return {
-                "success": False,
-                "error": "Memory store not initialized"
-            }
-        
         try:
             memory_content = format_interaction_memory(user_query, assistant_response)
             metadata = build_interaction_metadata(memory_type, session_id)

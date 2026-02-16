@@ -326,6 +326,16 @@ async def test_handle_store_memory_fails_without_store():
 
 
 @pytest.mark.asyncio
+async def test_handle_list_conversations_fails_without_store():
+    backend = LocalBackend()
+    backend.memory_store = None
+
+    result = await backend._handle_list_conversations(user_id="user-1")
+    assert result["success"] is False
+    assert result["error"] == "Memory store not initialized"
+
+
+@pytest.mark.asyncio
 async def test_handle_store_transcript_success():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
