@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 EMPTY_FINAL_RESPONSE_FALLBACK = (
     "I completed the requested action(s), but the model returned an empty final response."
 )
+_TEXT_CHUNK_EVENT_TYPES = frozenset({"chunk", "content", "streaming-response"})
 
 
 class QueryExecutionService:
@@ -86,20 +87,28 @@ class QueryExecutionService:
                 message_content=message.payload.content,
                 conversation_ref=message.payload.conversation_ref,
             ):
-                if self._is_non_empty_text_chunk(event):
-                    saw_text_chunk = True
-                    chunk_text = self._extract_chunk_text(event)
-                    if chunk_text:
-                        text_chunks.append(chunk_text)
+                event_type = self._extract_event_type(event)
 
-                assistant_full_text = self._extract_assistant_full_text(event)
+                chunk_text = self._extract_non_empty_chunk_text(
+                    event,
+                    event_type=event_type,
+                )
+                if chunk_text:
+                    saw_text_chunk = True
+                    text_chunks.append(chunk_text)
+
+                assistant_full_text = self._extract_assistant_full_text(
+                    event,
+                    event_type=event_type,
+                )
                 if assistant_full_text:
                     last_assistant_full_text = assistant_full_text
 
-                if self._is_streaming_complete_event(event):
+                if event_type == "streaming-complete":
                     saw_terminal_event = True
                     completion_text = self._resolve_completion_text(
                         event=event,
+                        event_type=event_type,
                         text_chunks=text_chunks,
                         assistant_full_text=last_assistant_full_text,
                         saw_text_chunk=saw_text_chunk,
@@ -114,7 +123,7 @@ class QueryExecutionService:
                     )
                     continue
 
-                if self._is_error_event(event):
+                if event_type == "error":
                     saw_terminal_event = True
 
                 await self._process_pipeline_event(
@@ -315,12 +324,23 @@ class QueryExecutionService:
 
     @classmethod
     def _is_non_empty_text_chunk(cls, event: Any) -> bool:
-        event_type = cls._extract_event_type(event)
-        if event_type not in {"chunk", "content", "streaming-response"}:
-            return False
+        return bool(cls._extract_non_empty_chunk_text(event))
+
+    @classmethod
+    def _extract_non_empty_chunk_text(
+        cls,
+        event: Any,
+        *,
+        event_type: Optional[str] = None,
+    ) -> str:
+        resolved_event_type = event_type or cls._extract_event_type(event)
+        if resolved_event_type not in _TEXT_CHUNK_EVENT_TYPES:
+            return ""
 
         content = cls._extract_chunk_text(event)
-        return isinstance(content, str) and bool(content.strip())
+        if not isinstance(content, str):
+            return ""
+        return content if content.strip() else ""
 
     @staticmethod
     def _extract_chunk_text(event: Any) -> Optional[str]:
@@ -334,8 +354,14 @@ class QueryExecutionService:
         return content if isinstance(content, str) else None
 
     @classmethod
-    def _extract_assistant_full_text(cls, event: Any) -> str:
-        if cls._extract_event_type(event) != "assistant_message_full":
+    def _extract_assistant_full_text(
+        cls,
+        event: Any,
+        *,
+        event_type: Optional[str] = None,
+    ) -> str:
+        resolved_event_type = event_type or cls._extract_event_type(event)
+        if resolved_event_type != "assistant_message_full":
             return ""
         if isinstance(event, dict):
             content = event.get("content")
@@ -346,10 +372,16 @@ class QueryExecutionService:
         return content.strip() if isinstance(content, str) else ""
 
     @classmethod
-    def _extract_streaming_complete_text(cls, event: Any) -> str:
+    def _extract_streaming_complete_text(
+        cls,
+        event: Any,
+        *,
+        event_type: Optional[str] = None,
+    ) -> str:
         if not event:
             return ""
-        if cls._extract_event_type(event) != "streaming-complete":
+        resolved_event_type = event_type or cls._extract_event_type(event)
+        if resolved_event_type != "streaming-complete":
             return ""
         if isinstance(event, dict):
             payload = event.get("payload")
@@ -366,11 +398,15 @@ class QueryExecutionService:
         cls,
         *,
         event: Any,
+        event_type: Optional[str] = None,
         text_chunks: list[str],
         assistant_full_text: str,
         saw_text_chunk: bool,
     ) -> str:
-        event_completion_text = cls._extract_streaming_complete_text(event)
+        event_completion_text = cls._extract_streaming_complete_text(
+            event,
+            event_type=event_type,
+        )
         if event_completion_text:
             return event_completion_text
         if saw_text_chunk:
