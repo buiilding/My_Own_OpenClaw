@@ -4,7 +4,13 @@ import pytest
 from pydantic import ValidationError
 
 from backend.src.sdk.context import ExecutionRuntime, SessionContext, ToolContext, UserContext
-from backend.src.tools.remote import RemoteMouseTool
+from backend.src.tools.remote import (
+    RemoteMouseTool,
+    RemoteToolBase,
+    RemoteToolResult,
+    get_all_remote_tools,
+    get_remote_tool,
+)
 from backend.src.tools.computer.schemas import MouseControlArgs, ScrollControlArgs
 
 
@@ -58,3 +64,60 @@ def test_scroll_control_requires_direction_for_scroll_action():
 
     args = ScrollControlArgs(action="scroll", x=10, y=20, direction="down")
     assert args.direction == "down"
+
+
+def test_remote_tool_result_to_dict():
+    result = RemoteToolResult(
+        tool_name="mouse_control",
+        args={"action": "click", "x": 1, "y": 2},
+        request_id="req-1",
+    )
+
+    assert result.to_dict() == {
+        "tool_name": "mouse_control",
+        "args": {"action": "click", "x": 1, "y": 2},
+        "request_id": "req-1",
+        "is_remote": True,
+    }
+
+
+def test_remote_tool_build_result_prefers_explicit_request_id_over_context():
+    ctx = _make_context(metadata={"request_id": "metadata-id"})
+    tool = RemoteMouseTool()
+    args = MouseControlArgs(action="click", x=1, y=2)
+
+    result = tool._build_remote_result(args, ctx, request_id="explicit-id")
+
+    assert result.request_id == "explicit-id"
+    assert result.args["x"] == 1
+    assert result.args["y"] == 2
+    assert getattr(result.args["action"], "value", result.args["action"]) == "click"
+    assert "duration" in result.args
+
+
+@pytest.mark.asyncio
+async def test_remote_tool_run_delegates_to_execute_remote():
+    class DummyRemoteTool(RemoteToolBase):
+        name = "dummy_remote"
+
+        async def execute_remote(self, args, ctx):
+            return RemoteToolResult(self.name, {"echo": args}, "delegated-id")
+
+    tool = DummyRemoteTool()
+    result = await tool.run({"k": "v"}, _make_context())
+
+    assert result.tool_name == "dummy_remote"
+    assert result.request_id == "delegated-id"
+    assert result.args == {"echo": {"k": "v"}}
+
+
+def test_get_remote_tool_unknown_name_returns_none():
+    assert get_remote_tool("does-not-exist") is None
+
+
+def test_get_all_remote_tools_returns_copy():
+    original = get_all_remote_tools()
+    original.pop("mouse_control", None)
+
+    fresh = get_all_remote_tools()
+    assert "mouse_control" in fresh
