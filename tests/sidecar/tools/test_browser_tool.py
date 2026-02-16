@@ -90,7 +90,14 @@ class TestPhase2AdapterRouting:
             assert result.success is True
             assert result.data["action"] == "navigate"
             assert result.data["url"] == "https://example.com"
-            mock_get_adapter.assert_called_once_with(mock_controller)
+            mock_get_adapter.assert_called_once()
+            called_controller = mock_get_adapter.call_args.args[0]
+            assert called_controller is mock_controller
+            legacy_handlers = mock_get_adapter.call_args.kwargs.get("legacy_handlers")
+            assert isinstance(legacy_handlers, dict)
+            assert "snapshot" in legacy_handlers
+            assert "extract" in legacy_handlers
+            assert "act" in legacy_handlers
             mock_adapter.execute.assert_awaited_once()
 
     @pytest.mark.asyncio
@@ -122,15 +129,36 @@ class TestPhase2AdapterRouting:
             assert result.error == "Tab not found: missing"
 
     @pytest.mark.asyncio
-    async def test_non_routed_action_does_not_use_adapter(self):
+    async def test_profiles_action_uses_adapter(self):
         with mock.patch(
+            "tools.browser.browser_tool.get_browser_controller"
+        ) as mock_get_controller, mock.patch(
             "tools.browser.browser_tool.get_browser_use_adapter"
         ) as mock_get_adapter:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_get_controller.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="profiles",
+                decision="compat",
+                data={
+                    "action": "profiles",
+                    "profiles": [
+                        {"name": "user_chrome", "driver": "cdp"},
+                        {"name": "managed", "driver": "playwright"},
+                    ],
+                    "default_profile": "user_chrome",
+                },
+            )
+            mock_get_adapter.return_value = mock_adapter
+
             result = await execute_browser_control({"action": "profiles"})
 
             assert result.success is True
             assert result.data["action"] == "profiles"
-            mock_get_adapter.assert_not_called()
+            mock_get_adapter.assert_called_once()
 
 
 class TestConnectAction:

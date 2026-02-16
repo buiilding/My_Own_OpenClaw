@@ -71,12 +71,14 @@ This update delivers those tasks with compatibility-wrapper routing while preser
 - `set_device`
 - `close`
 
-Remaining direct handlers in this phase:
+Additional routing update:
 
-- `profiles`
-- `snapshot`
-- `extract`
-- `act`
+- `profiles`, `snapshot`, `extract`, and `act` are now routed through adapter dispatch as well.
+- `snapshot` / `extract` / `act` currently use adapter legacy delegates that call existing sidecar handlers to preserve behavior while we transition internals.
+
+Current Phase 2 routing result:
+
+- All supported `browser_control` actions now pass through `tools/browser_use_adapter` dispatch.
 
 ## Contract Compatibility
 
@@ -109,5 +111,5 @@ Additional regression assertions added in:
 ## Remaining Phase 2 Work
 
 - Current adapter implementation is still backed by legacy `BrowserController` internals.
-- Next migration slice should route remaining direct handlers (`profiles`, `snapshot`, `extract`, `act`) through adapter while preserving payload contracts.
-- After routing completion, replace adapter internals action-by-action with Browser Use runtime primitives while preserving the same adapter return contract.
+- Replace adapter legacy delegates for `snapshot` / `extract` / `act` with native adapter-owned implementations.
+- Replace controller-backed adapter internals action-by-action with Browser Use runtime primitives while preserving the same adapter return contract.

@@ -9,9 +9,11 @@ from __future__ import annotations
 
 import asyncio
 import base64
-from typing import Any, Mapping, Protocol
+from typing import Any, Awaitable, Callable, Mapping, Protocol
 
 from tools.browser_use_adapter.types import AdapterActionResult
+
+LegacyHandler = Callable[[Mapping[str, Any]], Awaitable[AdapterActionResult]]
 
 
 class BrowserControllerLike(Protocol):
@@ -147,8 +149,13 @@ class BrowserUseCompatibilityAdapter:
     moving browser action execution behind an adapter seam.
     """
 
-    def __init__(self, controller: BrowserControllerLike):
+    def __init__(
+        self,
+        controller: BrowserControllerLike,
+        legacy_handlers: Mapping[str, LegacyHandler] | None = None,
+    ):
         self._controller = controller
+        self._legacy_handlers = dict(legacy_handlers or {})
 
     async def execute(
         self,
@@ -159,6 +166,8 @@ class BrowserUseCompatibilityAdapter:
             return await self.connect(args)
         if action == "status":
             return await self.status()
+        if action == "profiles":
+            return await self.profiles()
         if action == "navigate":
             return await self.navigate(args)
         if action == "open":
@@ -227,6 +236,8 @@ class BrowserUseCompatibilityAdapter:
             return await self.set_device(args)
         if action == "close":
             return await self.close()
+        if action in self._legacy_handlers:
+            return await self._legacy_handlers[action](args)
 
         return AdapterActionResult(
             success=False,
@@ -317,6 +328,21 @@ class BrowserUseCompatibilityAdapter:
                 "title": status.get("title", ""),
                 "tab_count": status.get("tab_count", 0),
                 "target_id": status.get("target_id"),
+            },
+        )
+
+    async def profiles(self) -> AdapterActionResult:
+        return AdapterActionResult(
+            success=True,
+            action="profiles",
+            decision="compat",
+            data={
+                "action": "profiles",
+                "profiles": [
+                    {"name": "user_chrome", "driver": "cdp"},
+                    {"name": "managed", "driver": "playwright"},
+                ],
+                "default_profile": "user_chrome",
             },
         )
 
@@ -1418,6 +1444,12 @@ class BrowserUseCompatibilityAdapter:
         )
 
 
-def get_browser_use_adapter(controller: BrowserControllerLike) -> BrowserUseCompatibilityAdapter:
+def get_browser_use_adapter(
+    controller: BrowserControllerLike,
+    legacy_handlers: Mapping[str, LegacyHandler] | None = None,
+) -> BrowserUseCompatibilityAdapter:
     """Factory seam for adapter injection in tests."""
-    return BrowserUseCompatibilityAdapter(controller)
+    return BrowserUseCompatibilityAdapter(
+        controller,
+        legacy_handlers=legacy_handlers,
+    )
