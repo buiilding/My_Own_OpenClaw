@@ -249,3 +249,56 @@ Result:
 - `13 passed, 0 failed`
 
 This confirms bridge behavior remains intact while reducing duplicated process-lifecycle code.
+
+---
+
+# Refactor: Remove Per-Request Async Introspection in JSON-RPC Dispatch
+
+## Target
+Optimize central JSON-RPC dispatch path in:
+- `frontend/src/main/python/core/ipc_protocol.py`
+
+## Current Structure and Root Cause
+`JSONRPCProtocol.handle_request()` previously did async dispatch detection on every request:
+- dynamic `import asyncio` inside handler execution path
+- `asyncio.iscoroutinefunction(handler)` checked for each call
+
+This logic runs on every JSON-RPC request from Electron to the sidecar.  
+Root cause: method metadata (callable/async callable) was inferred at execution time instead of registration time.
+
+## Refactor Plan
+1. Add registration-time dispatch metadata for each method.
+2. Compute `is_callable` and `is_async_callable` once in `register_method()`.
+3. Use precomputed metadata in `handle_request()` for fast dispatch.
+4. Keep request/response behavior unchanged.
+5. Add regression coverage for sync success path and run sidecar tests.
+
+## Implemented Changes
+### Protocol dispatch metadata
+- Added `RegisteredMethod` dataclass in `frontend/src/main/python/core/ipc_protocol.py`.
+- Changed `self.methods` to store `RegisteredMethod` entries.
+- `register_method()` now computes:
+  - `is_callable`
+  - `is_async_callable`
+- `handle_request()` now dispatches using precomputed metadata.
+
+### Behavior preservation details
+- Method lookup now checks `registered_method is None` (explicit missing-key check).
+- Error/response contracts are unchanged.
+- No external interface changes for call sites (`register_method`, `handle_request`, `process_line`, `send_response`).
+
+## Added Test Coverage
+- Added `test_handle_request_success_sync` in:
+  - `tests/sidecar/test_json_rpc_protocol.py`
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_local_backend.py
+```
+
+Result:
+- `34 passed, 3 warnings`
+
+This confirms the protocol refactor preserved sidecar behavior while removing repeated async introspection overhead from the request hot path.

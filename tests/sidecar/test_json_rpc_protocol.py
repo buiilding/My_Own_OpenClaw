@@ -26,6 +26,21 @@ async def test_handle_request_success_async():
 
 
 @pytest.mark.asyncio
+async def test_handle_request_success_sync():
+    protocol = JSONRPCProtocol()
+
+    def handler(value):
+        return {"value": value * 2}
+
+    protocol.register_method("double", handler)
+
+    request = {"jsonrpc": "2.0", "method": "double", "params": {"value": 3}, "id": "2"}
+    response = await protocol.handle_request(request)
+    assert response["result"] == {"value": 6}
+    assert response["id"] == "2"
+
+
+@pytest.mark.asyncio
 async def test_handle_request_invalid_version():
     protocol = JSONRPCProtocol()
     request = {"jsonrpc": "1.0", "method": "echo", "id": "1"}

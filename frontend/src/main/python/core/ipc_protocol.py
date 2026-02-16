@@ -8,9 +8,20 @@ with Electron main process.
 import json
 import logging
 import sys
-from typing import Any, Dict, Optional
+from dataclasses import dataclass
+from inspect import iscoroutinefunction
+from typing import Any, Callable, Dict, Optional
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class RegisteredMethod:
+    """Dispatch metadata computed once at registration time."""
+
+    handler: Any
+    is_callable: bool
+    is_async_callable: bool
 
 
 class JSONRPCError(Exception):
@@ -38,11 +49,16 @@ class JSONRPCProtocol:
     INTERNAL_ERROR = -32603
     
     def __init__(self):
-        self.methods: Dict[str, callable] = {}
+        self.methods: Dict[str, RegisteredMethod] = {}
     
-    def register_method(self, name: str, handler: callable) -> None:
+    def register_method(self, name: str, handler: Callable[..., Any]) -> None:
         """Register a method handler."""
-        self.methods[name] = handler
+        is_callable = callable(handler)
+        self.methods[name] = RegisteredMethod(
+            handler=handler,
+            is_callable=is_callable,
+            is_async_callable=is_callable and iscoroutinefunction(handler),
+        )
         logger.debug(f"Registered method: {name}")
     
     def create_request(self, method: str, params: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None) -> Dict[str, Any]:
@@ -104,8 +120,8 @@ class JSONRPCProtocol:
             )
         
         # Get method handler
-        handler = self.methods.get(method_name)
-        if not handler:
+        registered_method = self.methods.get(method_name)
+        if registered_method is None:
             return self.create_error_response(
                 request.get("id"),
                 self.METHOD_NOT_FOUND,
@@ -124,13 +140,11 @@ class JSONRPCProtocol:
         # Call handler
         request_id = request.get("id")
         try:
-            if callable(handler):
-                # Check if handler is async
-                import asyncio
-                if asyncio.iscoroutinefunction(handler):
-                    result = await handler(**params)
-                else:
-                    result = handler(**params)
+            handler = registered_method.handler
+            if registered_method.is_async_callable:
+                result = await handler(**params)
+            elif registered_method.is_callable:
+                result = handler(**params)
             else:
                 result = handler
             
