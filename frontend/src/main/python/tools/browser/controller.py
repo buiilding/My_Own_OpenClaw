@@ -46,13 +46,14 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PageSnapshot:
     """AI-friendly page snapshot."""
+
     text: str
     url: str = ""
     title: str = ""
     ref_count: int = 0
     refs: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     stats: Optional[Dict[str, int]] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "snapshot": self.text,
@@ -67,6 +68,7 @@ class PageSnapshot:
 @dataclass
 class BrowserTab:
     """Represents a browser tab."""
+
     target_id: str
     title: str
     url: str
@@ -75,11 +77,11 @@ class BrowserTab:
 class BrowserController:
     """
     Controller for browser automation.
-    
+
     Manages Playwright browser instances for both user Chrome
     and managed Chromium modes.
     """
-    
+
     def __init__(self):
         self._playwright: Optional[Playwright] = None
         self._browser: Optional[Browser] = None
@@ -104,19 +106,19 @@ class BrowserController:
         self._network_request_id_by_req: WeakKeyDictionary = WeakKeyDictionary()
         self._next_request_id_by_tab: Dict[str, int] = {}
         self._trace_active: bool = False
-        
+
     @property
     def is_connected(self) -> bool:
         """Check if browser is connected."""
         return self._browser is not None and self._page is not None
-    
+
     @property
     def current_url(self) -> str:
         """Get current page URL."""
         if self._page:
             return self._page.url
         return ""
-    
+
     @property
     def current_title(self) -> str:
         """Get current page title."""
@@ -230,7 +232,9 @@ class BrowserController:
         failure_text = None
         try:
             failure = req.failure
-            failure_text = failure.get("errorText") if isinstance(failure, dict) else None
+            failure_text = (
+                failure.get("errorText") if isinstance(failure, dict) else None
+            )
         except Exception:
             failure_text = None
         for record in reversed(records):
@@ -381,7 +385,7 @@ class BrowserController:
         if not target_id:
             return None
         return self._role_refs_frame_by_tab.get(target_id)
-    
+
     async def auto_connect_to_chrome(
         self,
         cdp_url: str = "http://127.0.0.1:9222",
@@ -390,34 +394,34 @@ class BrowserController:
     ) -> Dict[str, Any]:
         """
         Auto-connect to Chrome, launching if necessary.
-        
+
         This is the recommended method for connecting to user's Chrome.
         It handles all scenarios:
         1. Chrome already running with CDP → connect to it
         2. Chrome not running → launch it with CDP
         3. Chrome running without CDP → restart with CDP (if allowed)
-        
+
         Args:
             cdp_url: Chrome DevTools Protocol URL
             auto_launch: Automatically launch Chrome if not running
             timeout: Connection timeout in seconds
-        
+
         Returns:
             Connection info dict with 'auto_launched' flag
-        
+
         Raises:
             ConnectionError: If cannot connect or launch Chrome
         """
         logger.info(f"Auto-connecting to Chrome at {cdp_url}")
-        
+
         # Validate CDP URL
         parsed = urlparse(cdp_url)
         if parsed.hostname not in ("localhost", "127.0.0.1", None):
             raise ValueError("CDP URL must be localhost for security")
-        
+
         # Extract port from URL
         port = parsed.port or 9222
-        
+
         try:
             # Use chrome_launcher to ensure Chrome is available
             actual_cdp_url = await ensure_chrome_with_cdp(
@@ -426,22 +430,22 @@ class BrowserController:
                 restart_if_needed=False,  # Don't kill user's Chrome without asking
                 headless=False,
             )
-            
+
             # Now connect via Playwright
             self._playwright = await async_playwright().start()
-            
+
             self._browser = await self._playwright.chromium.connect_over_cdp(
                 actual_cdp_url,
                 timeout=timeout * 1000,
             )
-            
+
             # Get or create context
             contexts = self._browser.contexts
             if contexts:
                 self._context = contexts[0]
             else:
                 self._context = await self._browser.new_context()
-            
+
             # Get or create page
             pages = self._context.pages
             if pages:
@@ -450,13 +454,13 @@ class BrowserController:
                 self._page = await self._context.new_page()
             for page in self._context.pages:
                 self._ensure_page_observers(page)
-            
+
             self._cdp_url = actual_cdp_url
             self._mode = "user_chrome"
             self._reset_ref_registry(self._page)
-            
+
             logger.info(f"Connected to Chrome: {self._page.url}")
-            
+
             return {
                 "status": "connected",
                 "mode": "user_chrome",
@@ -464,7 +468,7 @@ class BrowserController:
                 "title": await self._page.title(),
                 "auto_launched": True,  # Chrome was auto-launched if needed
             }
-            
+
         except ChromeLauncherError as e:
             logger.error(f"Chrome launcher error: {e}")
             await self.close()
@@ -473,10 +477,9 @@ class BrowserController:
             logger.error(f"Failed to connect to Chrome: {e}")
             await self.close()
             raise ConnectionError(
-                f"Cannot connect to Chrome at {cdp_url}. "
-                f"Error: {e}"
+                f"Cannot connect to Chrome at {cdp_url}. " f"Error: {e}"
             ) from e
-    
+
     async def connect_to_user_chrome(
         self,
         cdp_url: str = "http://127.0.0.1:9222",
@@ -484,40 +487,40 @@ class BrowserController:
     ) -> Dict[str, Any]:
         """
         Connect to user's existing Chrome via CDP.
-        
+
         Args:
             cdp_url: Chrome DevTools Protocol URL
             timeout: Connection timeout in seconds
-        
+
         Returns:
             Connection info dict
-        
+
         Raises:
             ConnectionError: If cannot connect to Chrome
         """
         logger.info(f"Connecting to user Chrome at {cdp_url}")
-        
+
         # Validate CDP URL
         parsed = urlparse(cdp_url)
         if parsed.hostname not in ("localhost", "127.0.0.1", None):
             raise ValueError("CDP URL must be localhost for security")
-        
+
         try:
             self._playwright = await async_playwright().start()
-            
+
             # Connect to Chrome via CDP
             self._browser = await self._playwright.chromium.connect_over_cdp(
                 cdp_url,
                 timeout=timeout * 1000,
             )
-            
+
             # Get or create context
             contexts = self._browser.contexts
             if contexts:
                 self._context = contexts[0]
             else:
                 self._context = await self._browser.new_context()
-            
+
             # Get or create page
             pages = self._context.pages
             if pages:
@@ -526,20 +529,20 @@ class BrowserController:
                 self._page = await self._context.new_page()
             for page in self._context.pages:
                 self._ensure_page_observers(page)
-            
+
             self._cdp_url = cdp_url
             self._mode = "user_chrome"
             self._reset_ref_registry(self._page)
-            
+
             logger.info(f"Connected to Chrome: {self._page.url}")
-            
+
             return {
                 "status": "connected",
                 "mode": "user_chrome",
                 "url": self._page.url,
                 "title": await self._page.title(),
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to connect to Chrome: {e}")
             await self.close()
@@ -547,7 +550,7 @@ class BrowserController:
                 f"Cannot connect to Chrome at {cdp_url}. "
                 "Make sure Chrome is running with --remote-debugging-port=9222"
             ) from e
-    
+
     async def launch_managed_browser(
         self,
         headless: bool = False,
@@ -555,16 +558,16 @@ class BrowserController:
     ) -> Dict[str, Any]:
         """
         Launch an isolated Chromium instance.
-        
+
         Args:
             headless: Run browser without UI
             executable_path: Optional path to Chrome executable
-        
+
         Returns:
             Launch info dict
         """
         logger.info(f"Launching managed browser (headless={headless})")
-        
+
         # Find Chrome executable if not provided
         if not executable_path:
             exe = find_chrome_executable()
@@ -574,13 +577,13 @@ class BrowserController:
                     "Please install Chrome or Chromium."
                 )
             executable_path = exe.path
-        
+
         # Create temporary user data directory
         self._user_data_dir = Path(tempfile.mkdtemp(prefix="windieos_browser_"))
-        
+
         try:
             self._playwright = await async_playwright().start()
-            
+
             # Launch browser with custom args
             launch_args = {
                 "headless": headless,
@@ -595,10 +598,10 @@ class BrowserController:
                     "--disable-features=Translate,MediaRouter",
                 ],
             }
-            
+
             if not headless:
                 launch_args["args"].append("--start-maximized")
-            
+
             self._browser = await self._playwright.chromium.launch(**launch_args)
             self._context = await self._browser.new_context(
                 viewport={"width": 1920, "height": 1080}
@@ -607,9 +610,9 @@ class BrowserController:
             self._ensure_page_observers(self._page)
             self._mode = "managed"
             self._reset_ref_registry(self._page)
-            
+
             logger.info(f"Managed browser launched: {self._page.url}")
-            
+
             return {
                 "status": "launched",
                 "mode": "managed",
@@ -617,32 +620,34 @@ class BrowserController:
                 "title": "",
                 "executable": executable_path,
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to launch managed browser: {e}")
             await self.close()
             raise RuntimeError(f"Failed to launch browser: {e}") from e
-    
+
     async def get_tabs(self) -> List[BrowserTab]:
         """Get list of open tabs."""
         if not self._context:
             return []
-        
+
         tabs = []
         for page in self._context.pages:
             self._ensure_page_observers(page)
-            tabs.append(BrowserTab(
-                target_id=str(id(page)),  # Simple ID for now
-                title=await page.title(),
-                url=page.url,
-            ))
+            tabs.append(
+                BrowserTab(
+                    target_id=str(id(page)),  # Simple ID for now
+                    title=await page.title(),
+                    url=page.url,
+                )
+            )
         return tabs
-    
+
     async def switch_tab(self, target_id: str) -> bool:
         """Switch to a different tab by ID."""
         if not self._context:
             return False
-        
+
         for page in self._context.pages:
             if str(id(page)) == target_id:
                 self._page = page
@@ -651,24 +656,24 @@ class BrowserController:
                 await page.bring_to_front()
                 return True
         return False
-    
+
     async def navigate(self, url: str, wait_until: str = "load") -> Dict[str, Any]:
         """
         Navigate to a URL.
-        
+
         Args:
             url: URL to navigate to
             wait_until: When to consider navigation complete
                        (load/domcontentloaded/networkidle/commit)
-        
+
         Returns:
             Navigation result dict
         """
         if not self._page:
             raise RuntimeError("Browser not connected")
-        
+
         logger.info(f"Navigating to: {url}")
-        
+
         try:
             response = await self._page.goto(
                 url,
@@ -678,7 +683,7 @@ class BrowserController:
 
             # New document -> reset refs for this tab.
             self._reset_ref_registry(self._page)
-            
+
             return {
                 "success": True,
                 "url": self._page.url,
@@ -692,7 +697,9 @@ class BrowserController:
                 "error": str(e),
             }
 
-    async def open_tab(self, url: str, wait_until: str = "domcontentloaded") -> Dict[str, Any]:
+    async def open_tab(
+        self, url: str, wait_until: str = "domcontentloaded"
+    ) -> Dict[str, Any]:
         """Open a new tab and optionally navigate to a URL."""
         if not self._context:
             raise RuntimeError("Browser not connected")
@@ -782,7 +789,9 @@ class BrowserController:
             "prompt_text": prompt_text,
         }
 
-    async def wait_for_dialog(self, timeout_ms: int = 10000) -> Optional[Dict[str, Any]]:
+    async def wait_for_dialog(
+        self, timeout_ms: int = 10000
+    ) -> Optional[Dict[str, Any]]:
         """Wait for next dialog event in the active tab."""
         target_id = self._get_target_id(self._page)
         if not target_id:
@@ -798,9 +807,13 @@ class BrowserController:
             return None
         finally:
             waiters = self._dialog_waiters_by_tab.get(target_id, [])
-            self._dialog_waiters_by_tab[target_id] = [w for w in waiters if w is not waiter]
+            self._dialog_waiters_by_tab[target_id] = [
+                w for w in waiters if w is not waiter
+            ]
 
-    def get_dialog_events(self, limit: int = 20, clear: bool = False) -> List[Dict[str, Any]]:
+    def get_dialog_events(
+        self, limit: int = 20, clear: bool = False
+    ) -> List[Dict[str, Any]]:
         """Get recent handled dialog events for the active tab."""
         target_id = self._get_target_id(self._page)
         if not target_id:
@@ -815,7 +828,9 @@ class BrowserController:
 
         return events
 
-    def get_page_errors(self, limit: int = 100, clear: bool = False) -> List[Dict[str, Any]]:
+    def get_page_errors(
+        self, limit: int = 100, clear: bool = False
+    ) -> List[Dict[str, Any]]:
         """Get captured page errors for the active tab."""
         target_id = self._get_target_id(self._page)
         if not target_id:
@@ -859,7 +874,9 @@ class BrowserController:
 
         return requests
 
-    async def trace_start(self, *, snapshots: bool = True, screenshots: bool = True, sources: bool = True) -> Dict[str, Any]:
+    async def trace_start(
+        self, *, snapshots: bool = True, screenshots: bool = True, sources: bool = True
+    ) -> Dict[str, Any]:
         """Start Playwright tracing for current context."""
         if not self._context:
             raise RuntimeError("Browser not connected")
@@ -995,8 +1012,13 @@ class BrowserController:
                 await self._context.set_http_credentials(None)
             else:
                 if username is None or password is None:
-                    return {"success": False, "error": "username/password required unless clear=true"}
-                await self._context.set_http_credentials({"username": username, "password": password})
+                    return {
+                        "success": False,
+                        "error": "username/password required unless clear=true",
+                    }
+                await self._context.set_http_credentials(
+                    {"username": username, "password": password}
+                )
             return {"success": True, "cleared": clear}
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -1017,8 +1039,14 @@ class BrowserController:
                 await self._context.set_geolocation(None)
                 return {"success": True, "cleared": True}
             if latitude is None or longitude is None:
-                return {"success": False, "error": "latitude/longitude required unless clear=true"}
-            geo: Dict[str, Any] = {"latitude": float(latitude), "longitude": float(longitude)}
+                return {
+                    "success": False,
+                    "error": "latitude/longitude required unless clear=true",
+                }
+            geo: Dict[str, Any] = {
+                "latitude": float(latitude),
+                "longitude": float(longitude),
+            }
             if accuracy is not None:
                 geo["accuracy"] = float(accuracy)
             await self._context.grant_permissions(["geolocation"])
@@ -1027,7 +1055,9 @@ class BrowserController:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    async def set_media(self, media: Optional[str] = None, color_scheme: Optional[str] = None) -> Dict[str, Any]:
+    async def set_media(
+        self, media: Optional[str] = None, color_scheme: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Emulate media settings on current page."""
         if not self._page:
             raise RuntimeError("Browser not connected")
@@ -1106,19 +1136,19 @@ class BrowserController:
     ) -> PageSnapshot:
         """
         Get page snapshot for LLM consumption.
-        
+
         Args:
             format_type:
                 - "ai": Interactive refs + optional role-based contextual snapshot.
                 - "aria": Accessibility tree snapshot (no refs).
             max_chars: Maximum characters in snapshot
-        
+
         Returns:
             PageSnapshot object
         """
         if not self._page:
             raise RuntimeError("Browser not connected")
-        
+
         if format_type == "aria":
             return await self._get_aria_snapshot(max_chars=max_chars)
 
@@ -1141,24 +1171,25 @@ class BrowserController:
                 frame_selector=frame_selector,
             )
         return await self._get_ai_snapshot(max_chars)
-    
+
     async def _get_ai_snapshot(self, max_chars: int = 12000) -> PageSnapshot:
-        """Build a flat interactive snapshot with stable-ish refs."""
+        """Build a browser-use-like interactive DOM snapshot with stable-ish refs."""
         title = await self._page.title()
         url = self._page.url
         reg = self._get_ref_registry(self._page)
-        
+
         # Query interactive elements
         elements = await self._page.query_selector_all(
             'button, input, textarea, select, a, [role="button"], '
             '[role="link"], [role="textbox"], [role="checkbox"], '
             '[role="radio"], [role="combobox"], [role="searchbox"]'
         )
-        
-        lines = []
+
+        lines: list[str] = []
+        emitted_paths: set[tuple[str, ...]] = set()
         seen_refs: set[str] = set()
         max_elements = 100
-        
+
         for elem in elements:
             try:
                 if len(seen_refs) >= max_elements:
@@ -1235,37 +1266,92 @@ class BrowserController:
                     "(el, ref) => el.setAttribute('data-windie-ref', ref)",
                     ref,
                 )
-                
-                # Build description
-                description = self._describe_element(
-                    tag, role, elem_type, name, placeholder
+
+                # Emit stable ancestor scaffolding to create a readable DOM-like tree.
+                ancestors = info.get("ancestors") or []
+                normalized_ancestors: list[str] = []
+                if isinstance(ancestors, list):
+                    for anc in ancestors[:4]:
+                        anc_str = str(anc).strip()
+                        if anc_str:
+                            normalized_ancestors.append(anc_str)
+
+                for depth_idx in range(len(normalized_ancestors)):
+                    path = tuple(normalized_ancestors[: depth_idx + 1])
+                    if path in emitted_paths:
+                        continue
+                    emitted_paths.add(path)
+                    ancestor_label = normalized_ancestors[depth_idx]
+                    indent = "\t" * depth_idx
+                    lines.append(f"{indent}<{ancestor_label}>")
+
+                line = self._build_browser_use_like_interactive_line(
+                    ref=ref,
+                    is_new=is_new,
+                    tag=tag,
+                    role=role,
+                    elem_type=elem_type,
+                    name=name,
+                    placeholder=placeholder,
+                    href=str(info.get("href") or ""),
                 )
-                
-                if description:
-                    prefix = "*[" if is_new else "["
-                    lines.append(f"{prefix}{ref}] {description}")
+                if line:
+                    indent = "\t" * len(normalized_ancestors)
+                    lines.append(f"{indent}{line}")
                     seen_refs.add(ref)
             except Exception as e:
                 logger.debug(f"Error processing element: {e}")
                 continue
 
         reg.finalize_snapshot(seen_refs=seen_refs, url=url)
-        
+
         # Build snapshot text
         snapshot_text = f"Title: {title}\nURL: {url}\n\n"
-        snapshot_text += "Interactive elements:\n"
+        snapshot_text += "DOM tree (browser-use style):\n"
         snapshot_text += "\n".join(lines) if lines else "(none found)"
 
         # Truncate if too long
         if len(snapshot_text) > max_chars:
             snapshot_text = snapshot_text[:max_chars] + "\n... (truncated)"
-        
+
         return PageSnapshot(
             text=snapshot_text,
             url=url,
             title=title,
             ref_count=len(seen_refs),
         )
+
+    def _build_browser_use_like_interactive_line(
+        self,
+        *,
+        ref: str,
+        is_new: bool,
+        tag: str,
+        role: str,
+        elem_type: str,
+        name: str,
+        placeholder: str,
+        href: str,
+    ) -> str:
+        """Format a browser-use-like interactive line with lightweight tag attrs."""
+        tag_name = (tag or "element").strip().lower() or "element"
+        label = (name or placeholder or "").strip()
+        if len(label) > 80:
+            label = label[:80]
+
+        attrs: list[str] = []
+        if role:
+            attrs.append(f"role='{role}'")
+        if elem_type:
+            attrs.append(f"type='{elem_type}'")
+        if href:
+            trimmed_href = href[:200]
+            attrs.append(f"href='{trimmed_href}'")
+
+        attrs_text = f" {' '.join(attrs)}" if attrs else ""
+        content_text = label or ""
+        prefix = "*[" if is_new else "["
+        return f"{prefix}{ref}]<{tag_name}{attrs_text}>{content_text}</{tag_name}>"
 
     def _build_element_key(self, info: Dict[str, Any]) -> str:
         """
@@ -1366,7 +1452,9 @@ class BrowserController:
 
         # refs=aria keeps role snapshot structure but reuses numeric refs for direct actions.
         if refs_mode == "aria":
-            logger.debug("refs=aria requested; using role refs due sidecar aria-ref limitations")
+            logger.debug(
+                "refs=aria requested; using role refs due sidecar aria-ref limitations"
+            )
 
         return PageSnapshot(
             text=snapshot_text,
@@ -1381,32 +1469,32 @@ class BrowserController:
                 "interactive": stats.interactive,
             },
         )
-    
+
     async def _get_aria_snapshot(self, max_chars: int = 4000) -> PageSnapshot:
         """Build accessibility tree snapshot."""
         title = await self._page.title()
         url = self._page.url
-        
+
         # Use Playwright's accessibility snapshot
         snapshot = await self._page.accessibility.snapshot()
-        
+
         def format_node(node, depth=0):
             lines = []
             indent = "  " * depth
             role = node.get("role", "")
             name = node.get("name", "")
-            
+
             if role and role not in ["generic", "none"]:
                 line = f"{indent}- {role}"
                 if name:
                     line += f': "{name}"'
                 lines.append(line)
-            
+
             for child in node.get("children", []):
                 lines.extend(format_node(child, depth + 1))
-            
+
             return lines
-        
+
         lines = format_node(snapshot)
         snapshot_text = f"Title: {title}\nURL: {url}\n\nAccessibility Tree:\n"
         snapshot_text += "\n".join(lines)
@@ -1416,14 +1504,14 @@ class BrowserController:
                 snapshot_text = snapshot_text[:max_chars]
             else:
                 snapshot_text = snapshot_text[: max_chars - len(suffix)] + suffix
-        
+
         return PageSnapshot(
             text=snapshot_text,
             url=url,
             title=title,
             ref_count=0,
         )
-    
+
     async def _get_element_name(self, elem) -> str:
         """Extract human-readable name from element."""
         # Try different attributes for name
@@ -1437,7 +1525,7 @@ class BrowserController:
                 if val:
                     return val.strip()[:50]
         return ""
-    
+
     def _describe_element(
         self,
         tag: str,
@@ -1448,7 +1536,7 @@ class BrowserController:
     ) -> str:
         """Build human-readable element description."""
         parts = []
-        
+
         # Determine element type
         if role:
             parts.append(role)
@@ -1458,12 +1546,12 @@ class BrowserController:
             parts.append(tag)
         else:
             parts.append(tag)
-        
+
         # Add name/label
         display_name = name or placeholder
         if display_name:
             parts.append(f'"{display_name}"')
-        
+
         return " ".join(parts) if parts else ""
 
     def _resolve_ref_locator(self, ref: str):
@@ -1477,7 +1565,11 @@ class BrowserController:
             if role_ref:
                 try:
                     frame_selector = self._get_role_frame_selector(self._page)
-                    root = self._page.frame_locator(frame_selector) if frame_selector else self._page
+                    root = (
+                        self._page.frame_locator(frame_selector)
+                        if frame_selector
+                        else self._page
+                    )
                     role_locator_kwargs: Dict[str, Any] = {}
                     if role_ref.name:
                         role_locator_kwargs["name"] = role_ref.name
@@ -1696,7 +1788,7 @@ class BrowserController:
             "selected": selected,
             **resolution_meta,
         }
-    
+
     async def click(
         self,
         ref: str,
@@ -1706,7 +1798,7 @@ class BrowserController:
         """Click an element by reference."""
         if not self._page:
             raise RuntimeError("Browser not connected")
-        
+
         try:
             locator, resolution_meta = await self._resolve_click_locator(ref)
         except Exception as resolve_error:
@@ -1737,10 +1829,12 @@ class BrowserController:
             # Fallback 1: force click to bypass actionability checks.
             if not double_click and recoverable:
                 if button == "left":
-                    select_fallback_result = await self._try_select_option_click_fallback(
-                        locator,
-                        ref=ref,
-                        resolution_meta=resolution_meta,
+                    select_fallback_result = (
+                        await self._try_select_option_click_fallback(
+                            locator,
+                            ref=ref,
+                            resolution_meta=resolution_meta,
+                        )
                     )
                     if select_fallback_result is not None:
                         return select_fallback_result
@@ -1781,7 +1875,7 @@ class BrowserController:
 
             logger.error(f"Click failed after fallbacks: {error_text}")
             return {"success": False, "error": error_text}
-    
+
     async def type_text(
         self,
         ref: str,
@@ -1792,35 +1886,35 @@ class BrowserController:
         """Type text into an element."""
         if not self._page:
             raise RuntimeError("Browser not connected")
-        
+
         try:
             locator = self._resolve_ref_locator(ref)
-            
+
             if clear_first:
                 await locator.fill(text)
             else:
                 await locator.type(text)
-            
+
             if submit:
                 await locator.press("Enter")
-            
+
             return {"success": True, "action": "type", "ref": ref, "text": text}
         except Exception as e:
             logger.error(f"Type failed: {e}")
             return {"success": False, "error": str(e)}
-    
+
     async def press_key(self, key: str) -> Dict[str, Any]:
         """Press a keyboard key."""
         if not self._page:
             raise RuntimeError("Browser not connected")
-        
+
         try:
             await self._page.keyboard.press(key)
             return {"success": True, "action": "press", "key": key}
         except Exception as e:
             logger.error(f"Key press failed: {e}")
             return {"success": False, "error": str(e)}
-    
+
     async def scroll(
         self,
         direction: str = "down",
@@ -1829,7 +1923,7 @@ class BrowserController:
         """Scroll the page."""
         if not self._page:
             raise RuntimeError("Browser not connected")
-        
+
         try:
             if direction == "down":
                 await self._page.mouse.wheel(0, amount)
@@ -1839,12 +1933,12 @@ class BrowserController:
                 await self._page.mouse.wheel(-amount, 0)
             elif direction == "right":
                 await self._page.mouse.wheel(amount, 0)
-            
+
             return {"success": True, "action": "scroll", "direction": direction}
         except Exception as e:
             logger.error(f"Scroll failed: {e}")
             return {"success": False, "error": str(e)}
-    
+
     async def screenshot(
         self,
         full_page: bool = False,
@@ -1855,14 +1949,14 @@ class BrowserController:
     ) -> bytes:
         """
         Take a screenshot.
-        
+
         Args:
             full_page: Capture full page height
             ref: Optional element reference to screenshot
             element: Optional CSS selector to screenshot
             image_type: "png" or "jpeg"
             quality: JPEG quality (1-100)
-        
+
         Returns:
             Image bytes
         """
@@ -1874,7 +1968,9 @@ class BrowserController:
         if ref and element:
             raise ValueError("Specify only one of ref or element")
 
-        screenshot_args: Dict[str, Any] = {"type": "jpeg" if image_type == "jpeg" else "png"}
+        screenshot_args: Dict[str, Any] = {
+            "type": "jpeg" if image_type == "jpeg" else "png"
+        }
         if screenshot_args["type"] == "jpeg" and quality is not None:
             screenshot_args["quality"] = max(1, min(100, int(quality)))
 
@@ -1930,7 +2026,12 @@ class BrowserController:
         try:
             locator = self._resolve_ref_locator(ref)
             selected = await locator.select_option(values)
-            return {"success": True, "action": "select", "ref": ref, "selected": selected}
+            return {
+                "success": True,
+                "action": "select",
+                "ref": ref,
+                "selected": selected,
+            }
         except Exception as e:
             return {"success": False, "error": str(e)}
 
@@ -1956,16 +2057,30 @@ class BrowserController:
             ref = item.get("ref")
             text = item.get("text")
             if not isinstance(ref, str) or not isinstance(text, str):
-                errors.append({"ref": str(ref), "error": "Each field must include string ref/text"})
+                errors.append(
+                    {
+                        "ref": str(ref),
+                        "error": "Each field must include string ref/text",
+                    }
+                )
                 continue
 
-            result = await self.type_text(ref=ref, text=text, submit=False, clear_first=True)
+            result = await self.type_text(
+                ref=ref, text=text, submit=False, clear_first=True
+            )
             if result.get("success"):
                 filled += 1
             else:
-                errors.append({"ref": ref, "error": str(result.get("error", "fill failed"))})
+                errors.append(
+                    {"ref": ref, "error": str(result.get("error", "fill failed"))}
+                )
 
-        return {"success": len(errors) == 0, "action": "fill", "filled": filled, "errors": errors}
+        return {
+            "success": len(errors) == 0,
+            "action": "fill",
+            "filled": filled,
+            "errors": errors,
+        }
 
     async def resize_viewport(self, width: int, height: int) -> Dict[str, Any]:
         """Resize viewport dimensions."""
@@ -1978,7 +2093,7 @@ class BrowserController:
             return {"success": True, "action": "resize", "width": w, "height": h}
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
+
     async def wait_for_load(
         self,
         state: str = "networkidle",
@@ -1987,45 +2102,46 @@ class BrowserController:
         """Wait for page to reach a load state."""
         if not self._page:
             raise RuntimeError("Browser not connected")
-        
+
         try:
             await self._page.wait_for_load_state(state, timeout=timeout)
             return {"success": True, "state": state}
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
+
     async def evaluate(self, script: str) -> Any:
         """Evaluate JavaScript in the page."""
         if not self._page:
             raise RuntimeError("Browser not connected")
-        
+
         try:
             result = await self._page.evaluate(script)
             return {"success": True, "result": result}
         except Exception as e:
             return {"success": False, "error": str(e)}
-    
+
     async def close(self) -> None:
         """Close browser connection and cleanup."""
         logger.info("Closing browser controller")
-        
+
         try:
             if self._browser:
                 await self._browser.close()
                 self._browser = None
-            
+
             if self._playwright:
                 await self._playwright.stop()
                 self._playwright = None
-            
+
             # Cleanup temp user data dir for managed browser
             if self._user_data_dir and self._user_data_dir.exists():
                 import shutil
+
                 try:
                     shutil.rmtree(self._user_data_dir)
                 except Exception as e:
                     logger.warning(f"Failed to cleanup user data dir: {e}")
-            
+
             self._page = None
             self._context = None
             self._mode = None
@@ -2043,7 +2159,7 @@ class BrowserController:
             self._network_request_id_by_req = WeakKeyDictionary()
             self._next_request_id_by_tab.clear()
             self._trace_active = False
-            
+
         except Exception as e:
             logger.error(f"Error during browser close: {e}")
 
