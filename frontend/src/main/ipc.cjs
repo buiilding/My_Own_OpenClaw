@@ -463,6 +463,15 @@ function normalizeBackendPayload(type, payload) {
   return normalized;
 }
 
+function escapeXml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 /**
  * Initializes the IPC bridge and establishes the WebSocket connection.
  * This function should be called once when the main Electron window is created.
@@ -606,7 +615,7 @@ function initializeIpc(win, options = {}) {
           
           // Add episodic memory section
           if (memories.episodic && memories.episodic.length > 0) {
-            const episodicText = memories.episodic.map(m => `- ${m}`).join('\n');
+            const episodicText = memories.episodic.map((m) => `- ${escapeXml(m)}`).join('\n');
             parts.push(`<episodic_memory>\n${episodicText}\n</episodic_memory>`);
           } else {
             parts.push('<episodic_memory>\nNone\n</episodic_memory>');
@@ -614,7 +623,7 @@ function initializeIpc(win, options = {}) {
           
           // Add semantic memory section
           if (memories.semantic && memories.semantic.length > 0) {
-            const semanticText = memories.semantic.map(m => `- ${m}`).join('\n');
+            const semanticText = memories.semantic.map((m) => `- ${escapeXml(m)}`).join('\n');
             parts.push(`<semantic_memory>\n${semanticText}\n</semantic_memory>`);
           } else {
             parts.push('<semantic_memory>\nNone\n</semantic_memory>');
@@ -643,7 +652,7 @@ function initializeIpc(win, options = {}) {
         }
 
         // 3. User query
-        parts.push(`<user_query>\n${payload.text}\n</user_query>`);
+        parts.push(`<user_query>\n${escapeXml(payload.text)}\n</user_query>`);
 
         // Build complete content
         const completeContent = parts.join('\n\n');
@@ -662,7 +671,7 @@ function initializeIpc(win, options = {}) {
         log(`ERROR: Failed to build user message: ${error.message}`);
         // Fallback: include minimal system context even on error
         const fallbackContext = formatFallbackStateXml();
-        payload.content = `${fallbackContext}\n\n<user_query>\n${payload.text}\n</user_query>`;
+        payload.content = `${fallbackContext}\n\n<user_query>\n${escapeXml(payload.text)}\n</user_query>`;
         delete payload.system_state_internal;
         log('Using fallback system context in error handler');
       }
@@ -683,13 +692,13 @@ function initializeIpc(win, options = {}) {
  */
 function formatInitialStateXml(state) {
   const windows = state.windows || [];
-  const windowsXml = windows.map(w => `        <window>${w}</window>`).join('\n');
+  const windowsXml = windows.map((w) => `        <window>${escapeXml(w)}</window>`).join('\n');
   
   return `<system_context>
     <os_state>
-        <active_window>${state.active_window || 'Unknown'}</active_window>
-        <mouse_position>${state.mouse_position || 'Unknown'}</mouse_position>
-        <screen_resolution>${state.screen_resolution || 'Unknown'}</screen_resolution>
+        <active_window>${escapeXml(state.active_window || 'Unknown')}</active_window>
+        <mouse_position>${escapeXml(state.mouse_position || 'Unknown')}</mouse_position>
+        <screen_resolution>${escapeXml(state.screen_resolution || 'Unknown')}</screen_resolution>
         <all_open_windows>
 ${windowsXml}
         </all_open_windows>
@@ -703,8 +712,8 @@ ${windowsXml}
 function formatSequentialStateXml(state) {
   return `<system_context>
     <os_state>
-        <active_window>${state.active_window || 'Unknown'}</active_window>
-        <mouse_position>${state.mouse_position || 'Unknown'}</mouse_position>
+        <active_window>${escapeXml(state.active_window || 'Unknown')}</active_window>
+        <mouse_position>${escapeXml(state.mouse_position || 'Unknown')}</mouse_position>
     </os_state>
 </system_context>`;
 }

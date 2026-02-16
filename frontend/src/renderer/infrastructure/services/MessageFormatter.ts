@@ -136,6 +136,15 @@ function hasScreenshotData(data: ToolResult['data']): boolean {
   return Boolean(objectData && (objectData.screenshot || objectData.image_data || objectData.screenshot_ref));
 }
 
+function escapeXml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 /**
  * Format system state as sequential XML (minimal) for tool output
  */
@@ -151,8 +160,8 @@ export function formatSequentialStateXml(state: SystemState | null): string {
   
   return `<system_context>
     <os_state>
-        <active_window>${state.active_window || 'Unknown'}</active_window>
-        <mouse_position>${state.mouse_position || 'Unknown'}</mouse_position>
+        <active_window>${escapeXml(state.active_window || 'Unknown')}</active_window>
+        <mouse_position>${escapeXml(state.mouse_position || 'Unknown')}</mouse_position>
     </os_state>
 </system_context>`;
 }

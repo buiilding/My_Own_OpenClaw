@@ -127,6 +127,16 @@ describe('MessageFormatter', () => {
     expect(xml).toContain('<mouse_position>Unknown</mouse_position>');
   });
 
+  test('formatSequentialStateXml escapes XML-sensitive values', () => {
+    const xml = formatSequentialStateXml({
+      active_window: 'App <Root> & "Main"',
+      mouse_position: "1 > 0 & 'x'",
+    });
+    expect(xml).toContain('<active_window>App &lt;Root&gt; &amp; &quot;Main&quot;</active_window>');
+    expect(xml).toContain('<mouse_position>1 &gt; 0 &amp; &apos;x&apos;</mouse_position>');
+    expect(xml).not.toContain('<Root>');
+  });
+
   test('formatBundledToolOutputMessage omits screenshot indicator when absent', () => {
     const output = formatBundledToolOutputMessage(
       [
