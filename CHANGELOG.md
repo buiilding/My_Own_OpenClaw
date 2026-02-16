@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(api-registry): precompute middleware async-dispatch metadata in `MessageHandlerRegistry`, reduce per-message awaitability introspection on websocket message routing, and add backend coverage for async-callable/sync-awaitable/fail-closed middleware behavior
 - feat(browser-control): add Browser Use-style `extract` action to `browser_control` with query-focused DOM text extraction (`query`, `extract_links`, `start_from_char`, `max_chars`, `wait_until`), plus backend/sidecar schema wiring, tests, and docs
 - refactor(api-errors): centralize websocket transport send handling in `api/infrastructure/errors.py` via shared `_send_transport_message`, remove duplicated success/error send blocks, and add focused backend coverage for sanitization/context/closed-connection behavior
 - refactor(query-execution): reuse a single per-query stream context in `QueryExecutionService`, centralize completion emission helpers, and add backend handler assertions proving shared context reuse across streamed events
@@ -173,6 +174,7 @@ Includes the last 300 commits on `main`.
 ### Fixed
 - fix(frontend-chat): keep main dashboard visible when `include_query_screenshot` is disabled by centralizing send-window behavior in `messageSendUiPolicy` (`senderSurface` defaults + `returnToChatboxPolicy`), so no-image mode no longer hides the main window
 - fix(frontend-transcript): make pending transcript flush failure-safe by requeueing failed user/tool entries in `TranscriptWriter` instead of dropping drained queue items after a rejected `store-transcript` IPC call
+- fix(frontend-transcript): allow explicit active-conversation clearing (`setActiveConversationRef(null)`) by treating `null` as a valid clear signal in transcript session state updates instead of falling back to stale conversation refs
 - fix(sidecar-memory): rebuild FAISS indices with contiguous remapped `embedding_id` values in `LocalMemoryStore._rebuild_index()` so post-rebuild search results continue resolving to stored memories (no stale sparse vector-id mapping drift)
 - fix(local-backend-stop): bind delayed force-kill to the original sidecar process instance so shutdown timers cannot SIGKILL a newly restarted local backend process
 - fix(sidecar-memory): reject `store_memory` requests in `local_backend.py` when `user_query` or `assistant_response` is empty to avoid persisting invalid interaction memories
