@@ -75,6 +75,17 @@ class BrowserSnapshotArgs(BaseModel):
         ge=100,
         le=120000,
     )
+    offset: Optional[int] = Field(
+        None,
+        description="Optional character offset into snapshot text for paginated reads.",
+        ge=0,
+    )
+    limit: Optional[int] = Field(
+        None,
+        description="Optional character page size for snapshot text. aria pages are capped at 4,000 characters.",
+        ge=1,
+        le=120000,
+    )
     refs: Optional[Literal["role", "aria"]] = Field(
         None,
         description="Reference mode for role snapshots."
@@ -431,6 +442,11 @@ class BrowserControlArgs(BaseModel):
         ge=100,
         le=120000
     )
+    offset: Optional[int] = Field(
+        None,
+        description="Optional character offset into snapshot text for paginated reads.",
+        ge=0,
+    )
     refs: Optional[Literal["role", "aria"]] = Field(
         None,
         description="Reference mode for role snapshots."
@@ -628,7 +644,7 @@ class BrowserControlArgs(BaseModel):
     )
     limit: Optional[int] = Field(
         None,
-        description="Result item limit"
+        description="Result item limit (or snapshot character page size when action='snapshot')"
     )
     contains: Optional[str] = Field(
         None,

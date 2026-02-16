@@ -177,7 +177,9 @@ URL: https://github.com
 Snapshot options:
 - `format`: `ai` (default) or `aria`
 - `wait_until`: load state to wait for before capture (`load` default; supports `domcontentloaded`, `networkidle`, and `commit` where `commit` is treated as `load` for snapshot capture)
-- `max_chars`: optional cap for snapshot text. `ai` supports caller-defined values (within schema bounds); `aria` is hard-capped at `4000`.
+- `max_chars`: optional capture budget for snapshot text before pagination (`ai` supports caller-defined values; `aria` defaults to `4000`)
+- `offset`: optional character offset for paginated snapshot reads
+- `limit`: optional character page size for paginated snapshot reads (`aria` page size is capped at `4000`)
 - `mode: "efficient"`: sets `interactive=true`, `compact=true`, `depth=4`, and `max_chars=4000` (unless you pass `max_chars`)
 - `interactive`: only interactive roles in role snapshot
 - `compact`: prune structural noise in role snapshot
@@ -189,11 +191,21 @@ Snapshot options:
 Defaults:
 - Snapshot waits for `wait_until="load"` before capture (for both manual `snapshot` and automatic post-action snapshots)
 - `ai` snapshots default to `mode="efficient"` when mode is omitted
-- `ai` snapshot default budget: `4000` chars (efficient default behavior)
+- `ai` snapshot default page budget: `4000` chars (efficient default behavior)
 - `ai` non-efficient budget: `12000` chars
-- `aria` snapshot budget: capped at `4000` chars
+- `aria` snapshot default page budget: `4000` chars
 - If efficient AI snapshot capture returns `ref_count=0`, WindieOS retries with a deeper role snapshot (`depth=12`) and then an unscoped flat AI snapshot fallback.
-- Snapshot tool output returns `snapshot` text + lightweight metadata (`ref_count`) only; detailed ref/stats maps remain internal to reduce token usage.
+- Snapshot tool output returns `snapshot` text plus lightweight metadata (`ref_count`, `offset`, `limit`, `returned_chars`, `total_chars`, `has_more`, `next_offset` when available); detailed ref/stats maps remain internal to reduce token usage.
+
+Pagination example:
+```json
+{
+  "action": "snapshot",
+  "format": "aria",
+  "offset": 4000,
+  "limit": 4000
+}
+```
 
 Automatic post-action snapshots:
 - For page-affecting actions, WindieOS automatically captures an `ai` snapshot after a successful action and appends it to tool output as `post_action_snapshot`.

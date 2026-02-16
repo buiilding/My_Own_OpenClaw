@@ -137,6 +137,18 @@ class TestBrowserSnapshotArgs:
         args = BrowserSnapshotArgs(action="snapshot", max_chars=10000)
         assert args.max_chars == 10000
 
+    def test_snapshot_offset_and_limit_bounds(self):
+        """Test snapshot pagination args validation."""
+        args = BrowserSnapshotArgs(action="snapshot", offset=0, limit=4000)
+        assert args.offset == 0
+        assert args.limit == 4000
+
+        with pytest.raises(ValidationError):
+            BrowserSnapshotArgs(action="snapshot", offset=-1)
+
+        with pytest.raises(ValidationError):
+            BrowserSnapshotArgs(action="snapshot", limit=0)
+
 
 class TestBrowserClickArgs:
     """Test BrowserClickArgs schema."""
