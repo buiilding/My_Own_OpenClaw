@@ -178,6 +178,25 @@ describe('useChatMessageSender', () => {
     );
   });
 
+  test('returns to chatbox when explicit always policy overrides screenshot-disabled config', async () => {
+    mockFrontendConfig = { include_query_screenshot: false };
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, {
+        senderSurface: 'main-window',
+        returnToChatboxPolicy: 'always',
+      }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect((window as any).ipc.invoke).toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    );
+  });
+
   test('marks first user message capture path on first send', async () => {
     const { result } = renderHook(() =>
       useChatMessageSender(undefined, { returnToChatboxPolicy: 'never' }),
@@ -368,6 +387,26 @@ describe('useChatMessageSender', () => {
         sender: 'assistant',
         type: 'error',
         text: 'Failed to send message. Please try again.',
+      }),
+    );
+  });
+
+  test('reuses existing conversation ref without generating a new one', async () => {
+    mockActiveConversationRef = 'conv_existing';
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, { returnToChatboxPolicy: 'never' }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello again');
+    });
+
+    expect(mockSetActiveConversationRef).not.toHaveBeenCalled();
+    expect(mockSendQuery.mock.calls.length).toBe(1);
+    expect(mockSendQuery.mock.calls[0][1]).toBe('conv_existing');
+    expect(mockRecordUserMessage.mock.calls[0][1]).toEqual(
+      expect.objectContaining({
+        conversationRef: 'conv_existing',
       }),
     );
   });

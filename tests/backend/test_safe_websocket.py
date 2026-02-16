@@ -122,6 +122,17 @@ async def test_safe_websocket_send_text_delegates_through_sender_loop() -> None:
 
 
 @pytest.mark.asyncio
+async def test_safe_websocket_send_json_forwards_custom_mode() -> None:
+    raw = FakeRawWebSocket()
+    safe = SafeWebSocket(raw, max_queue_size=2)
+
+    await safe.send_json({"kind": "payload"}, mode="binary")
+
+    assert raw.sent_json == [({"kind": "payload"}, "binary")]
+    await safe.close()
+
+
+@pytest.mark.asyncio
 async def test_safe_websocket_accept_delegates_to_raw_socket() -> None:
     raw = FakeRawWebSocket()
     safe = SafeWebSocket(raw, max_queue_size=2)
@@ -129,3 +140,31 @@ async def test_safe_websocket_accept_delegates_to_raw_socket() -> None:
     await safe.accept()
 
     assert raw.accepted is True
+
+
+@pytest.mark.asyncio
+async def test_safe_websocket_close_is_idempotent() -> None:
+    raw = FakeRawWebSocket()
+    safe = SafeWebSocket(raw, max_queue_size=2)
+
+    await safe.close(code=1000, reason="first")
+    await safe.close(code=1001, reason="second")
+
+    assert raw.closed == [(1000, "first")]
+
+
+@pytest.mark.asyncio
+async def test_safe_websocket_unknown_queue_message_type_sets_sender_error() -> None:
+    raw = FakeRawWebSocket()
+    safe = SafeWebSocket(raw, max_queue_size=2)
+    safe._ensure_sender_task()
+    future = asyncio.get_running_loop().create_future()
+
+    await safe._enqueue(("unknown", {"bad": True}, None, future))
+
+    with pytest.raises(RuntimeError, match="Unknown websocket queue message type: unknown"):
+        await future
+    await safe._close_event.wait()
+
+    with pytest.raises(RuntimeError, match="Unknown websocket queue message type: unknown"):
+        await safe.send_text("after-error")

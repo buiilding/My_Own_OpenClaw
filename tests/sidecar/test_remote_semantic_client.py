@@ -170,3 +170,29 @@ async def test_close_is_noop_when_session_not_initialized():
     await client.close()
 
     assert client._session is None
+
+
+@pytest.mark.asyncio
+async def test_summarize_initializes_session_when_missing_and_normalizes_backend_url(monkeypatch):
+    response = DummyResponse(
+        200,
+        json_data={"success": True, "summary": "init ok", "facts": []},
+    )
+    session = DummySession(response=response)
+    client = RemoteSemanticClient(backend_url="http://localhost:9999/", timeout_seconds=8)
+    init_calls = 0
+
+    async def fake_initialize():
+        nonlocal init_calls
+        init_calls += 1
+        client._session = session
+
+    monkeypatch.setattr(client, "initialize", fake_initialize)
+
+    summary, facts = await client.summarize(["hello"], user_id="u-init")
+
+    assert init_calls == 1
+    assert summary == "init ok"
+    assert facts == []
+    assert session.last_post[0] == "http://localhost:9999/api/semantic/summarize"
+    assert session.last_post[2].total == 8
