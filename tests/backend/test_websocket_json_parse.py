@@ -1,0 +1,77 @@
+import asyncio
+import json
+
+import pytest
+
+from backend.src.api.routes.websocket import json_parse as json_parse_module
+
+
+@pytest.mark.asyncio
+async def test_parse_json_payload_small_inline_does_not_call_loop_getter():
+    payload = json.dumps({"hello": "world"})
+
+    def fail_loop_getter():
+        raise AssertionError("loop_getter should not be called for small payload")
+
+    result = await json_parse_module.parse_json_payload(
+        payload,
+        offload_threshold_bytes=4096,
+        loop_getter=fail_loop_getter,
+    )
+
+    assert result == {"hello": "world"}
+
+
+@pytest.mark.asyncio
+async def test_parse_json_payload_offloads_when_size_meets_threshold():
+    payload = json.dumps({"k": "v"})
+    threshold = len(payload)
+    called = {"executor": False}
+
+    class FakeLoop:
+        async def run_in_executor(self, executor, fn, data):
+            called["executor"] = True
+            return fn(data)
+
+    result = await json_parse_module.parse_json_payload(
+        payload,
+        offload_threshold_bytes=threshold,
+        loop_getter=lambda: FakeLoop(),
+    )
+
+    assert result == {"k": "v"}
+    assert called["executor"] is True
+
+
+@pytest.mark.asyncio
+async def test_parse_json_payload_offload_uses_json_loads_function():
+    payload = json.dumps({"x": 1})
+
+    class FakeLoop:
+        async def run_in_executor(self, executor, fn, data):
+            assert executor is None
+            assert fn is json.loads
+            assert data == payload
+            return {"x": 1}
+
+    result = await json_parse_module.parse_json_payload(
+        payload,
+        offload_threshold_bytes=1,
+        loop_getter=lambda: FakeLoop(),
+    )
+
+    assert result == {"x": 1}
+
+
+@pytest.mark.asyncio
+async def test_parse_json_payload_propagates_json_decode_error():
+    with pytest.raises(json.JSONDecodeError):
+        await json_parse_module.parse_json_payload(
+            "{bad-json",
+            offload_threshold_bytes=4096,
+            loop_getter=asyncio.get_running_loop,
+        )
+
+
+def test_default_json_offload_threshold_contract():
+    assert json_parse_module.DEFAULT_JSON_PARSE_OFFLOAD_BYTES == 64 * 1024
