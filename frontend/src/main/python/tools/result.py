@@ -3,7 +3,7 @@ Standardized tool result types for local backend.
 """
 
 from typing import Any, Dict, Optional
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -20,9 +20,9 @@ class ToolResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format for JSON-RPC response."""
         result = {"success": self.success}
-        if self.data:
+        if self.data is not None:
             result["data"] = self.data
-        if self.error:
+        if self.error is not None:
             result["error"] = self.error
         return result
     

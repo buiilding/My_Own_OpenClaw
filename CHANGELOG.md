@@ -204,6 +204,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(sidecar-tool-result): preserve explicit empty payload fields in `ToolResult.to_dict()` by checking `is not None` so `data={}` and `error=""` are serialized instead of dropped
 - fix(sidecar-tool-registry): reject non-object tool args in `ToolRegistry.execute_tool(...)` so malformed payloads fail validation instead of being coerced to `{}` and executed
 - fix(browser-aria-snapshot): switch `browser_control(action="snapshot", format="aria")` to Playwright Locator `aria_snapshot()` API (`page.locator(":root")`) so ARIA snapshots work on current Playwright versions where `Page.accessibility` is unavailable
 - feat(browser-extract): add extract modes (`focused`, `full_text`, `structured`) with optional `selector`/`frame` scoping; `structured` now captures DOM tables/lists into JSON payloads so table rows can be extracted more completely than keyword-only text filtering
