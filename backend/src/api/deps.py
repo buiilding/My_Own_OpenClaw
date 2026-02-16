@@ -36,7 +36,12 @@ def set_container(
         return
 
     existing_container = getattr(app.state, "container", None)
-    if existing_container is not None and container is not existing_container and not force:
+    if (
+        existing_container is not None
+        and container is not None
+        and container is not existing_container
+        and not force
+    ):
         raise RuntimeError(
             "Container already set on app.state. "
             "Use force=True only for controlled replacement."
