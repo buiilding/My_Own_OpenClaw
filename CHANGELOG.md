@@ -57,6 +57,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- docs(dev): align Dev Tool Selection canonical remote-tool source to `backend/src/tools/remote_tools/registry.py`, update Developer Guide protocol snippet to current SDK `run(args, ctx)` convention, and replace placeholder README community links with repository-tab guidance
 - docs(tooling): realign high-traffic tool docs with current SDK/runtime (`Tool[ArgsModel]` + `run()`, backend `remote_tools` registry flow, sidecar `EXPOSED_TO_BACKEND_TOOLS` contract), fix developer-guide event-bus import/publish example, add env-wrapper override vars to environment setup, and refresh README setup/community links
 - feat(frontend-ui): refresh renderer visuals with a ChatGPT-inspired dark shell (sidebar structure, centered conversation column, and restyled chat/status/input surfaces) while preserving existing behaviors and pill interactions
 - feat(frontend-ui): tighten ChatGPT-style proportions and tone (neutralized dark palette, denser left rail, cleaner assistant text blocks, and narrower centered composer/message column)

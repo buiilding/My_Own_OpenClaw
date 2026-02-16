@@ -369,9 +369,10 @@ Protocol interfaces for type safety:
 
 ```python
 from typing import Protocol
+from backend.src.sdk.context import ToolContext
 
 class ToolExecutor(Protocol):
-    async def execute(self, tool_call: ToolCall) -> ToolResult:
+    async def run(self, args: object, ctx: ToolContext) -> dict:
         ...
 ```
 
