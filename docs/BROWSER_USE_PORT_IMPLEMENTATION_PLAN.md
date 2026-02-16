@@ -264,7 +264,7 @@ Delivered Phase 2 artifacts so far:
 Current routing coverage:
 
 - Adapter-routed actions: `connect`, `status`, `profiles`, `navigate`, `open`, `snapshot`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `console`, `errors`, `requests`, `trace_start`, `trace_stop`, `pdf`, `upload`, `dialog`, `cookies`, `cookies_set`, `cookies_clear`, `storage_get`, `storage_set`, `storage_clear`, `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`, `set_timezone`, `set_locale`, `set_device`, `act`, `close`.
-- Current compatibility note: `snapshot` / `extract` are adapter-routed via legacy delegates to existing handlers pending native adapter implementation (`act` is adapter-native).
+- Current compatibility note: `snapshot` is adapter-routed via a legacy delegate to the existing handler pending native adapter implementation (`extract` and `act` are adapter-native).
 
 Validation snapshot:
 

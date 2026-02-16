@@ -9,11 +9,25 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import json
+import re
 from typing import Any, Awaitable, Callable, Mapping, Protocol
 
 from tools.browser_use_adapter.types import AdapterActionResult
 
 LegacyHandler = Callable[[Mapping[str, Any]], Awaitable[AdapterActionResult]]
+
+SNAPSHOT_WAIT_STATES = frozenset({"load", "domcontentloaded", "networkidle", "commit"})
+SNAPSHOT_TRUNCATION_SUFFIX = "... (truncated)"
+MAX_SNAPSHOT_CAPTURE_CHARS = 120_000
+DEFAULT_EXTRACT_MAX_CHARS = 12_000
+MAX_EXTRACT_SOURCE_CHARS = 100_000
+MAX_EXTRACT_LINKS = 200
+DEFAULT_EXTRACT_MODE = "focused"
+MAX_EXTRACT_STRUCTURED_TABLES = 20
+MAX_EXTRACT_STRUCTURED_ROWS_PER_TABLE = 100
+MAX_EXTRACT_STRUCTURED_LISTS = 20
+MAX_EXTRACT_STRUCTURED_ITEMS_PER_LIST = 100
 
 
 class BrowserControllerLike(Protocol):
@@ -177,6 +191,8 @@ class BrowserUseCompatibilityAdapter:
             return await self.navigate(args)
         if action == "open":
             return await self.open(args)
+        if action == "extract":
+            return await self.extract(args)
         if action == "click":
             return await self.click(args)
         if action == "type":
@@ -351,6 +367,217 @@ class BrowserUseCompatibilityAdapter:
                 ],
                 "default_profile": "user_chrome",
             },
+        )
+
+    async def extract(self, args: Mapping[str, Any]) -> AdapterActionResult:
+        if not self._controller.is_connected:
+            return self._not_connected("extract")
+
+        focus_error = await self._focus_target_if_requested(args)
+        if focus_error:
+            return focus_error
+
+        query = self._value_as_str(args.get("query"))
+        if not query:
+            return self._invalid_argument("extract", "Missing required 'query' parameter")
+
+        mode = self._resolve_extract_mode(args.get("mode"))
+        if mode is None:
+            return self._invalid_argument(
+                "extract",
+                "mode must be one of: focused, full_text, structured",
+            )
+
+        selector_raw = args.get("selector")
+        if selector_raw is not None and (
+            not isinstance(selector_raw, str) or not selector_raw.strip()
+        ):
+            return self._invalid_argument(
+                "extract",
+                "selector must be a non-empty string when set",
+            )
+        selector = selector_raw.strip() if isinstance(selector_raw, str) else None
+
+        frame_raw = args.get("frame")
+        if frame_raw is not None and (
+            not isinstance(frame_raw, str) or not frame_raw.strip()
+        ):
+            return self._invalid_argument(
+                "extract",
+                "frame must be a non-empty string when set",
+            )
+        frame_selector = frame_raw.strip() if isinstance(frame_raw, str) else None
+
+        start_from_char = args.get("start_from_char", 0)
+        if not isinstance(start_from_char, int) or start_from_char < 0:
+            return self._invalid_argument(
+                "extract",
+                "start_from_char must be a non-negative integer",
+            )
+
+        max_chars_raw = args.get("max_chars")
+        max_chars = DEFAULT_EXTRACT_MAX_CHARS
+        if max_chars_raw is not None:
+            if not isinstance(max_chars_raw, int) or max_chars_raw <= 0:
+                return self._invalid_argument(
+                    "extract",
+                    "max_chars must be a positive integer",
+                )
+            max_chars = min(max_chars_raw, MAX_SNAPSHOT_CAPTURE_CHARS)
+
+        wait_until, wait_error = self._resolve_wait_until(args, default="load")
+        if wait_error:
+            return self._invalid_argument("extract", wait_error)
+
+        wait_result = await self._controller.wait_for_load(wait_until)
+        if isinstance(wait_result, dict) and not wait_result.get("success", False):
+            return AdapterActionResult(
+                success=False,
+                action="extract",
+                decision="compat",
+                error=wait_result.get("error", f"wait_for_load({wait_until}) failed"),
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+
+        extract_links = bool(args.get("extract_links", False))
+        script = self._build_extract_script(
+            extract_links=extract_links,
+            max_links=MAX_EXTRACT_LINKS,
+            selector=selector,
+            frame_selector=frame_selector,
+            max_tables=MAX_EXTRACT_STRUCTURED_TABLES,
+            max_rows_per_table=MAX_EXTRACT_STRUCTURED_ROWS_PER_TABLE,
+            max_lists=MAX_EXTRACT_STRUCTURED_LISTS,
+            max_items_per_list=MAX_EXTRACT_STRUCTURED_ITEMS_PER_LIST,
+        )
+
+        eval_result = await self._controller.evaluate(script)
+        if not isinstance(eval_result, dict) or not eval_result.get("success", False):
+            if isinstance(eval_result, dict):
+                return AdapterActionResult(
+                    success=False,
+                    action="extract",
+                    decision="compat",
+                    error=eval_result.get("error", "Extract evaluate failed"),
+                    error_code="BROWSER_RUNTIME_ERROR",
+                )
+            return AdapterActionResult(
+                success=False,
+                action="extract",
+                decision="compat",
+                error="Extract evaluate failed",
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+
+        payload = eval_result.get("result")
+        if not isinstance(payload, dict):
+            return AdapterActionResult(
+                success=False,
+                action="extract",
+                decision="compat",
+                error="Extract evaluate returned invalid result",
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+        payload_error = payload.get("error")
+        if isinstance(payload_error, str) and payload_error.strip():
+            return AdapterActionResult(
+                success=False,
+                action="extract",
+                decision="compat",
+                error=f"Extract failed: {payload_error}",
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+
+        source_content = payload.get("content")
+        if not isinstance(source_content, str):
+            source_content = ""
+        structured_payload = payload.get("structured")
+        if not isinstance(structured_payload, (dict, list)):
+            structured_payload = None
+
+        source_for_mode = source_content
+        if mode == "structured":
+            if structured_payload is not None:
+                source_for_mode = json.dumps(
+                    structured_payload,
+                    ensure_ascii=True,
+                    indent=2,
+                )
+            else:
+                source_for_mode = source_content
+
+        total_source_chars = len(source_for_mode)
+        if start_from_char > total_source_chars:
+            return self._invalid_argument(
+                "extract",
+                f"start_from_char ({start_from_char}) exceeds content length {total_source_chars}",
+            )
+
+        source_window_end = min(
+            total_source_chars,
+            start_from_char + MAX_EXTRACT_SOURCE_CHARS,
+        )
+        source_window = source_for_mode[start_from_char:source_window_end]
+        source_has_more = source_window_end < total_source_chars
+        next_start_char = source_window_end if source_has_more else None
+
+        if mode == "focused":
+            relevant_content = self._extract_relevant_content(source_window, query)
+        else:
+            relevant_content = source_window
+        if len(relevant_content) > max_chars:
+            relevant_content = (
+                relevant_content[:max_chars] + f"\n{SNAPSHOT_TRUNCATION_SUFFIX}"
+            )
+
+        url = payload.get("url")
+        if not isinstance(url, str):
+            url = ""
+        title = payload.get("title")
+        if not isinstance(title, str):
+            title = ""
+
+        extracted_content = (
+            f"<url>\n{url}\n</url>\n"
+            f"<query>\n{query}\n</query>\n"
+            f"<result>\n{relevant_content}\n</result>"
+        )
+
+        result: dict[str, Any] = {
+            "action": "extract",
+            "query": query,
+            "mode": mode,
+            "wait_until": wait_until,
+            "extract_links": extract_links,
+            "url": url,
+            "title": title,
+            "result": relevant_content,
+            "extracted_content": extracted_content,
+            "start_from_char": start_from_char,
+            "next_start_char": next_start_char,
+            "has_more_source": source_has_more,
+            "returned_chars": len(relevant_content),
+            "source_window_chars": len(source_window),
+            "total_source_chars": total_source_chars,
+        }
+        if selector:
+            result["selector"] = selector
+        if frame_selector:
+            result["frame"] = frame_selector
+        if mode == "structured" and structured_payload is not None:
+            result["structured"] = structured_payload
+
+        if args.get("output_schema") is not None:
+            result["output_schema_applied"] = False
+            result["output_schema_note"] = (
+                "output_schema is accepted as metadata only; structured validation is not applied in sidecar extract."
+            )
+
+        return AdapterActionResult(
+            success=True,
+            action="extract",
+            decision="compat",
+            data=result,
         )
 
     async def navigate(self, args: Mapping[str, Any]) -> AdapterActionResult:
@@ -1637,6 +1864,347 @@ class BrowserUseCompatibilityAdapter:
             kind = "local"
         kind = kind.strip().lower()
         return "session" if kind == "session" else "local"
+
+    @staticmethod
+    def _resolve_wait_until(
+        args: Mapping[str, Any],
+        default: str = "load",
+    ) -> tuple[str, str | None]:
+        candidate = args.get("wait_until")
+        if candidate is None:
+            candidate = args.get("state")
+        if candidate is None:
+            return default, None
+        if not isinstance(candidate, str):
+            return (
+                "",
+                "wait_until must be one of: load, domcontentloaded, networkidle, commit",
+            )
+        wait_until = candidate.strip().lower()
+        if wait_until not in SNAPSHOT_WAIT_STATES:
+            return (
+                "",
+                "wait_until must be one of: load, domcontentloaded, networkidle, commit",
+            )
+        if wait_until == "commit":
+            return "load", None
+        return wait_until, None
+
+    @staticmethod
+    def _resolve_extract_mode(raw_mode: Any) -> str | None:
+        if raw_mode is None:
+            return DEFAULT_EXTRACT_MODE
+        if not isinstance(raw_mode, str):
+            return None
+        normalized = raw_mode.strip().lower()
+        if normalized in ("focused", "full_text", "structured"):
+            return normalized
+        return None
+
+    @staticmethod
+    def _query_tokens(query: str) -> list[str]:
+        tokens = re.findall(r"[a-z0-9]{3,}", query.lower())
+        seen: set[str] = set()
+        unique: list[str] = []
+        for token in tokens:
+            if token in seen:
+                continue
+            seen.add(token)
+            unique.append(token)
+        return unique
+
+    @classmethod
+    def _extract_relevant_content(cls, source: str, query: str) -> str:
+        source = (source or "").strip()
+        if not source:
+            return ""
+
+        query_text = query.strip().lower()
+        tokens = cls._query_tokens(query)
+        lines = [line.strip() for line in source.splitlines() if line.strip()]
+        if not lines:
+            return ""
+
+        selected: list[str] = []
+        seen_lines: set[str] = set()
+
+        def add_line(line: str) -> None:
+            if line in seen_lines:
+                return
+            seen_lines.add(line)
+            selected.append(line)
+
+        for idx, line in enumerate(lines):
+            lower_line = line.lower()
+            matches_exact = bool(query_text) and query_text in lower_line
+            matches_tokens = any(token in lower_line for token in tokens)
+            if not (matches_exact or matches_tokens):
+                continue
+            if idx > 0:
+                add_line(lines[idx - 1])
+            add_line(line)
+            if idx + 1 < len(lines):
+                add_line(lines[idx + 1])
+            if len(selected) >= 220:
+                break
+
+        if not selected:
+            return source
+        return "\n".join(selected)
+
+    @staticmethod
+    def _build_extract_script(
+        *,
+        extract_links: bool,
+        max_links: int,
+        selector: str | None,
+        frame_selector: str | None,
+        max_tables: int,
+        max_rows_per_table: int,
+        max_lists: int,
+        max_items_per_list: int,
+    ) -> str:
+        include_links_js = "true" if extract_links else "false"
+        max_links_js = str(max_links)
+        selector_js = json.dumps(selector if selector else "")
+        frame_selector_js = json.dumps(frame_selector if frame_selector else "")
+        max_tables_js = str(max_tables)
+        max_rows_per_table_js = str(max_rows_per_table)
+        max_lists_js = str(max_lists)
+        max_items_per_list_js = str(max_items_per_list)
+        return f"""
+() => {{
+  try {{
+    const scopeSelector = {selector_js};
+    const frameSelector = {frame_selector_js};
+    let sourceDoc = document;
+
+    if (frameSelector) {{
+      const frameEl = document.querySelector(frameSelector);
+      if (!frameEl) {{
+        return {{
+          error: `Frame not found for selector: ${{frameSelector}}`,
+          title: document.title || "",
+          url: String(location.href || ""),
+          content: "",
+          structured: {{ tables: [], lists: [] }},
+        }};
+      }}
+      const frameDoc = frameEl.contentDocument;
+      if (!frameDoc) {{
+        return {{
+          error: `Frame content is not accessible for selector: ${{frameSelector}}`,
+          title: document.title || "",
+          url: String(location.href || ""),
+          content: "",
+          structured: {{ tables: [], lists: [] }},
+        }};
+      }}
+      sourceDoc = frameDoc;
+    }}
+
+    const body = sourceDoc.body;
+    const title = sourceDoc.title || document.title || "";
+    let url = String(location.href || "");
+    try {{
+      url = String(sourceDoc.location?.href || location.href || "");
+    }} catch (_e) {{
+      url = String(location.href || "");
+    }}
+
+    if (!body) {{
+      return {{ title, url, content: "" }};
+    }}
+
+    const root = scopeSelector ? sourceDoc.querySelector(scopeSelector) : body;
+    if (!root) {{
+      return {{
+        error: `Selector not found: ${{scopeSelector}}`,
+        title,
+        url,
+        content: "",
+        structured: {{ tables: [], lists: [] }},
+      }};
+    }}
+
+    const clone = root.cloneNode(true);
+    const removeSelectors = [
+      "script", "style", "noscript", "template", "svg", "canvas",
+      "iframe", "object", "embed"
+    ];
+    for (const sel of removeSelectors) {{
+      clone.querySelectorAll(sel).forEach((el) => el.remove());
+    }}
+
+    const normalizeHeaders = (rawHeaders, width) => {{
+      const headers = [];
+      const used = new Map();
+      const total = Math.max(rawHeaders.length, width);
+      for (let idx = 0; idx < total; idx += 1) {{
+        const raw = (rawHeaders[idx] || "").replace(/\\s+/g, " ").trim();
+        const base = raw || `col_${{idx + 1}}`;
+        const seen = used.get(base) || 0;
+        used.set(base, seen + 1);
+        headers.push(seen === 0 ? base : `${{base}}_${{seen + 1}}`);
+      }}
+      return headers;
+    }};
+
+    const tables = [];
+    const tableNodes = Array.from(clone.querySelectorAll("table")).slice(0, {max_tables_js});
+    for (const [tableIdx, table] of tableNodes.entries()) {{
+      const caption = ((table.querySelector("caption")?.textContent) || "")
+        .replace(/\\s+/g, " ")
+        .trim();
+
+      const allRows = Array.from(table.querySelectorAll("tr"));
+      let headerCells = [];
+      let headerRowIndex = -1;
+
+      const theadRow = table.querySelector("thead tr");
+      if (theadRow) {{
+        headerRowIndex = allRows.indexOf(theadRow);
+        headerCells = Array.from(theadRow.querySelectorAll("th, td"))
+          .map((cell) => (cell.textContent || "").replace(/\\s+/g, " ").trim())
+          .filter((cell) => Boolean(cell));
+      }} else if (allRows.length > 0) {{
+        const firstRowCells = Array.from(allRows[0].querySelectorAll("th, td"));
+        const hasHeaderLikeCells = firstRowCells.some((cell) => cell.tagName.toLowerCase() === "th");
+        if (hasHeaderLikeCells) {{
+          headerRowIndex = 0;
+          headerCells = firstRowCells
+            .map((cell) => (cell.textContent || "").replace(/\\s+/g, " ").trim())
+            .filter((cell) => Boolean(cell));
+        }}
+      }}
+
+      const rows = [];
+      for (const [rowIdx, row] of allRows.entries()) {{
+        if (rowIdx === headerRowIndex) {{
+          continue;
+        }}
+        const cells = Array.from(row.querySelectorAll("th, td"))
+          .map((cell) => (cell.textContent || "").replace(/\\s+/g, " ").trim());
+        if (!cells.some((cell) => Boolean(cell))) {{
+          continue;
+        }}
+        rows.push(cells);
+        if (rows.length >= {max_rows_per_table_js}) {{
+          break;
+        }}
+      }}
+
+      const tableWidth = rows.reduce((maxCols, row) => Math.max(maxCols, row.length), 0);
+      const headers = normalizeHeaders(headerCells, tableWidth);
+      const rowObjects = rows.map((row) => {{
+        const rowObj = {{}};
+        for (let idx = 0; idx < headers.length; idx += 1) {{
+          rowObj[headers[idx]] = (row[idx] || "").trim();
+        }}
+        return rowObj;
+      }});
+
+      tables.push({{
+        index: tableIdx + 1,
+        caption,
+        headers,
+        rows,
+        row_objects: rowObjects,
+        row_count: rows.length,
+      }});
+    }}
+
+    const lists = [];
+    const listNodes = Array.from(clone.querySelectorAll("ul, ol")).slice(0, {max_lists_js});
+    for (const [listIdx, list] of listNodes.entries()) {{
+      const items = Array.from(list.querySelectorAll(":scope > li"))
+        .map((li) => (li.textContent || "").replace(/\\s+/g, " ").trim())
+        .filter((txt) => Boolean(txt))
+        .slice(0, {max_items_per_list_js});
+      if (!items.length) {{
+        continue;
+      }}
+      lists.push({{
+        index: listIdx + 1,
+        kind: list.tagName.toLowerCase(),
+        items,
+      }});
+    }}
+
+    const structured = {{
+      tables,
+      lists,
+      table_count: tables.length,
+      list_count: lists.length,
+    }};
+
+    const headingLines = [];
+    clone.querySelectorAll("h1, h2, h3").forEach((el) => {{
+      const text = (el.textContent || "").replace(/\\s+/g, " ").trim();
+      if (text) {{
+        headingLines.push(text);
+      }}
+    }});
+
+    const lines = [];
+    const walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {{
+      const node = walker.currentNode;
+      const raw = node && node.nodeValue ? node.nodeValue : "";
+      const text = raw.replace(/\\s+/g, " ").trim();
+      if (!text) continue;
+
+      const parent = node.parentElement;
+      if (!parent) continue;
+      const tag = String(parent.tagName || "").toLowerCase();
+      if (["script", "style", "noscript", "svg", "canvas"].includes(tag)) continue;
+      lines.push(text);
+    }}
+
+    const includeLinks = {include_links_js};
+    const maxLinks = {max_links_js};
+    const links = [];
+    if (includeLinks) {{
+      clone.querySelectorAll("a[href]").forEach((el) => {{
+        if (links.length >= maxLinks) return;
+        const href = (el.getAttribute("href") || "").trim();
+        if (!href) return;
+        const text = (el.textContent || "").replace(/\\s+/g, " ").trim();
+        links.push(text ? `${{text}} -> ${{href}}` : href);
+      }});
+    }}
+
+    let content = "";
+    if (headingLines.length) {{
+      content += "Headings:\\n" + headingLines.join("\\n") + "\\n\\n";
+    }}
+    content += "Page Text:\\n" + lines.join("\\n");
+    if (links.length) {{
+      content += "\\n\\nLinks:\\n" + links.join("\\n");
+    }}
+
+    return {{
+      title,
+      url,
+      content,
+      structured,
+      heading_count: headingLines.length,
+      line_count: lines.length,
+      link_count: links.length,
+      table_count: tables.length,
+      list_count: lists.length,
+    }};
+  }} catch (error) {{
+    return {{
+      error: (error && error.message) ? error.message : String(error || "unknown extract error"),
+      title: document.title || "",
+      url: String(location.href || ""),
+      content: "",
+      structured: {{ tables: [], lists: [] }},
+    }};
+  }}
+}}
+""".strip()
 
     @staticmethod
     def _retag_action(
