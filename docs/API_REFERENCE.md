@@ -361,6 +361,7 @@ Update application configuration.
   "model_mode": "online" | "local",
   "model_provider": "openai" | "anthropic" | ...,
   "selected_model_id": "gpt-5.1",
+  "interaction_mode": "chat" | "agent",
   "voice_mode_enabled": true | false,
   "speech_mode_enabled": true | false,
   "include_query_screenshot": true | false
@@ -381,6 +382,7 @@ Payload shape is validated at message-parse time; value semantics are validated 
     "model_mode": "online",
     "model_provider": "openai",
     "selected_model_id": "gpt-5.1",
+    "interaction_mode": "chat",
     "voice_mode_enabled": false,
     "speech_mode_enabled": true,
     "include_query_screenshot": true
@@ -502,7 +504,10 @@ Notify backend that wakeword was detected.
 
 **Payload**: `{}`
 
-**Response**: `wakeword-greeting` (optional)
+**Response Sequence**:
+1. `wakeword-activated`
+2. `wakeword-greeting`
+3. `audio-chunk` (zero or more messages when speech-mode TTS streaming is active)
 
 **Example**:
 ```json
@@ -536,6 +541,33 @@ Streaming text chunks from LLM.
   "type": "streaming-response",
   "payload": {
     "text": "I'll help you click the submit button."
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
+### Audio Chunk Message
+
+Base64 audio chunk emitted by backend TTS streaming.
+
+**Type**: `audio-chunk`
+
+**Payload**:
+```json
+{
+  "audio": "base64-encoded-pcm16le-audio",
+  "sample_rate": 22050
+}
+```
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174005",
+  "type": "audio-chunk",
+  "payload": {
+    "audio": "UklGRiQAAABXQVZF...",
+    "sample_rate": 22050
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }
@@ -707,6 +739,7 @@ Response to load-settings request.
     "model_mode": "online",
     "model_provider": "openai",
     "selected_model_id": "gpt-5.1",
+    "interaction_mode": "chat",
     "voice_mode_enabled": false,
     "speech_mode_enabled": true,
     "include_query_screenshot": true
@@ -726,6 +759,7 @@ Response to load-settings request.
       "model_mode": "online",
       "model_provider": "openai",
       "selected_model_id": "gpt-5.1",
+      "interaction_mode": "chat",
       "voice_mode_enabled": false,
       "speech_mode_enabled": true,
       "include_query_screenshot": true
@@ -921,9 +955,40 @@ Request to store memory in the local memory system.
 }
 ```
 
+### Wakeword Activated Message
+
+Wakeword activation status emitted before greeting text.
+
+**Type**: `wakeword-activated`
+
+**Payload**:
+```json
+{
+  "voice_mode_enabled": true,
+  "speech_mode_enabled": true,
+  "greeting": "Hello! I'm listening.",
+  "status": "listening"
+}
+```
+
+**Example**:
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174018",
+  "type": "wakeword-activated",
+  "payload": {
+    "voice_mode_enabled": true,
+    "speech_mode_enabled": true,
+    "greeting": "Hello! I'm listening.",
+    "status": "listening"
+  },
+  "timestamp": "2025-01-20T10:00:00Z"
+}
+```
+
 ### Wakeword Greeting Message
 
-Greeting message sent when wakeword is detected.
+Greeting message sent when wakeword is detected (after `wakeword-activated`).
 
 **Type**: `wakeword-greeting`
 
