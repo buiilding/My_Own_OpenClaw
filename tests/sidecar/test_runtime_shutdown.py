@@ -98,3 +98,69 @@ def test_register_shutdown_signal_handlers_registers_sigint_and_sigterm(monkeypa
     runtime_shutdown_module.register_shutdown_signal_handlers(handler)
 
     assert calls == [(signal.SIGINT, handler), (signal.SIGTERM, handler)]
+
+
+def test_request_stdin_shutdown_with_no_stdin_object(monkeypatch):
+    service = DummyService()
+    logger = logging.getLogger("test.runtime_shutdown")
+
+    monkeypatch.setattr(runtime_shutdown_module.sys, "stdin", None)
+
+    runtime_shutdown_module.request_stdin_shutdown(service, logger)
+
+    assert service._shutdown_requested is True
+    assert service.running is False
+
+
+def test_request_stdin_shutdown_skips_when_stdin_already_closed(monkeypatch):
+    service = DummyService()
+    logger = logging.getLogger("test.runtime_shutdown")
+
+    class DummyClosedStdin:
+        closed = True
+        close_calls = 0
+
+        def close(self):
+            self.close_calls += 1
+
+    stdin = DummyClosedStdin()
+    monkeypatch.setattr(runtime_shutdown_module.sys, "stdin", stdin)
+
+    runtime_shutdown_module.request_stdin_shutdown(service, logger)
+
+    assert stdin.close_calls == 0
+    assert service._shutdown_requested is True
+
+
+def test_request_stdin_shutdown_ignores_non_callable_close(monkeypatch):
+    service = DummyService()
+    logger = logging.getLogger("test.runtime_shutdown")
+
+    class DummyStdin:
+        closed = False
+        close = "not-callable"
+
+    monkeypatch.setattr(runtime_shutdown_module.sys, "stdin", DummyStdin())
+
+    runtime_shutdown_module.request_stdin_shutdown(service, logger)
+
+    assert service._shutdown_requested is True
+    assert service.running is False
+
+
+def test_request_stdin_shutdown_swallows_close_exceptions(monkeypatch):
+    service = DummyService()
+    logger = logging.getLogger("test.runtime_shutdown")
+
+    class DummyStdin:
+        closed = False
+
+        def close(self):
+            raise RuntimeError("cannot close")
+
+    monkeypatch.setattr(runtime_shutdown_module.sys, "stdin", DummyStdin())
+
+    runtime_shutdown_module.request_stdin_shutdown(service, logger)
+
+    assert service._shutdown_requested is True
+    assert service.running is False
