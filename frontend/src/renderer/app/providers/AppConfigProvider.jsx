@@ -155,6 +155,32 @@ export function AppConfigProvider({ children }) {
     };
   }, []);
 
+  useEffect(() => {
+    const handleStorage = (event) => {
+      if (
+        event?.storageArea !== window.localStorage
+        || (event?.key && !event.key.startsWith('desktop-assistant-config'))
+      ) {
+        return;
+      }
+
+      const syncedConfig = loadConfigFromStorage();
+      if (!syncedConfig || typeof syncedConfig !== 'object') {
+        return;
+      }
+
+      const filteredConfig = sanitizeFrontendProviderConfig(
+        mergeFrontendProviderConfig(configRef.current, filterFrontendConfig(syncedConfig)),
+      );
+      applyConfigIfChanged(filteredConfig, configRef, setConfig);
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
   const updateConfig = useCallback((newConfig) => {
     const filteredConfig = sanitizeFrontendProviderConfig(
       mergeFrontendProviderConfig(configRef.current, filterFrontendConfig(newConfig)),

@@ -229,6 +229,51 @@ describe('AppConfigProvider', () => {
     );
   });
 
+  test('applies cross-window config changes from localStorage events', () => {
+    const { result } = renderHook(() => useAppConfigContext(), { wrapper });
+
+    (loadConfigFromStorage as jest.Mock).mockReturnValue({
+      voice_mode_enabled: true,
+      include_query_screenshot: false,
+    });
+
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'desktop-assistant-config',
+        storageArea: window.localStorage,
+      }));
+    });
+
+    expect(result.current.config).toEqual(
+      expect.objectContaining({
+        voice_mode_enabled: true,
+        include_query_screenshot: false,
+      }),
+    );
+  });
+
+  test('ignores unrelated localStorage events', () => {
+    const { result } = renderHook(() => useAppConfigContext(), { wrapper });
+
+    (loadConfigFromStorage as jest.Mock).mockReturnValue({
+      voice_mode_enabled: true,
+      include_query_screenshot: false,
+    });
+
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'unrelated-key',
+        storageArea: window.localStorage,
+      }));
+    });
+
+    expect(result.current.config).toEqual(
+      expect.objectContaining({
+        voice_mode_enabled: false,
+      }),
+    );
+  });
+
   test('keeps updateConfig callback stable across config updates', () => {
     const { result } = renderHook(() => useAppConfigContext(), { wrapper });
     const firstUpdateConfig = result.current.updateConfig;
