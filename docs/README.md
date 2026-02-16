@@ -24,6 +24,8 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 ### Core Systems
 - [**Agent System**](AGENT_SYSTEM.md) - Agent orchestrator and execution flow
 - [**Tool System**](TOOL_SYSTEM.md) - Tool execution architecture and development
+- [**Browser Control**](BROWSER_CONTROL.md) - Browser automation architecture and tool behavior
+- [**Browser Control Runbook**](BROWSER_CONTROL_RUN.md) - Practical setup/testing flow for browser control
 - [**Memory System**](MEMORY_SYSTEM.md) - Memory management and retrieval
 - [**Python Sidecar**](PYTHON_SIDECAR.md) - Local tool execution + memory service
 - [**LLM Integration**](LLM_INTEGRATION.md) - LLM providers and configuration
@@ -32,6 +34,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 ### Development Guides
 - [**Developer Guide**](DEVELOPER_GUIDE.md) - Comprehensive development guide
 - Developer Guide includes local automation scripts (`bin/docs-list`, `scripts/check`, `scripts/test`, `scripts/check-loc.py`).
+- [**Dev Tool Selection**](DEV_TOOL_SELECTION.md) - Backend-only tool schema allow/denylist controls for development
 - [**Tool Development Guide**](TOOL_DEVELOPMENT.md) - Creating custom tools
 - [**API Reference**](API_REFERENCE.md) - Complete API documentation
 - [**Extension Points**](EXTENSION_POINTS.md) - How to extend the system
@@ -39,6 +42,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 ### Configuration & Deployment
 - [**Configuration Guide**](CONFIGURATION.md) - Configuration options and settings
 - [**Deployment Guide**](DEPLOYMENT.md) - Production deployment instructions
+- [**Release Guide**](release.md) - Repeatable release checklist and guardrails
 - [**Future Product Plan (Draft)**](FUTURE_PLAN.md) - Sequenced roadmap for packaging, hosted rollout, and major future features
 - [**Environment Setup**](ENVIRONMENT_SETUP.md) - Development environment configuration
 - [**Security & Compliance (Planned)**](SECURITY_AND_COMPLIANCE.md) - Security posture and compliance roadmap

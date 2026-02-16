@@ -30,14 +30,15 @@ This guide describes a safe, repeatable release process for WindieOS.
 
 From the repo root:
 
-- Backend tests: `pytest`
+- Backend tests: `./scripts/test-backend`
+- Sidecar tests: `./scripts/test-sidecar`
 - Frontend tests: `cd frontend && npm run test:ci`
 - Frontend lint: `cd frontend && npm run lint`
 - Frontend build: `cd frontend && npm run build`
 
 If you changed backend runtime behavior, also run the backend with:
 
-- `python -m backend.src.main`
+- `./scripts/run-backend`
 
 ## Release Steps
 

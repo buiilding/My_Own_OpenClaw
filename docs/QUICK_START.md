@@ -9,7 +9,7 @@ read_when:
 ## Prerequisites
 
 - **Windows 10/11, macOS, or Linux**
-- **Python 3.9+**
+- **Python 3.11+**
 - **Node.js 18+** and npm
 - **Git**
 
@@ -65,22 +65,20 @@ You must run the backend and frontend in separate terminals.
 export OPENAI_API_KEY="your-api-key"
 # Note: The backend can start without a key, but requests to that provider will fail.
 
-# Run the server as a module from the project root
-python -m backend.src.main
+# Run the backend from the project root (auto-uses `jarvis` env if present)
+./scripts/run-backend
 ```
 
 **Terminal 2: Start the Frontend UI (Vite)**
 
 ```bash
-cd frontend
-npm run dev
+./scripts/run-frontend-dev
 ```
 
 **Terminal 3: Start the Frontend App (Electron)**
 
 ```bash
-cd frontend
-npm run electron
+./scripts/run-frontend-electron
 ```
 
 ## Hosted Mode (Planned)
@@ -189,7 +187,7 @@ Read the file README.md
 
 1. **Check Python Version**:
    ```bash
-   python --version  # Should be 3.9+
+   python --version  # Should be 3.11+
    ```
 
 2. **Check Dependencies**:

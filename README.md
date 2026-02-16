@@ -3,7 +3,7 @@
 > Your AI-powered personal assistant that remembers context locally, controls your computer, and adapts to your workflow.
 
 [![Source](https://img.shields.io/badge/source-closed--source-red.svg)]()
-[![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Electron](https://img.shields.io/badge/electron-latest-brightgreen.svg)](https://www.electronjs.org/)
 [![Project Status](https://img.shields.io/badge/status-functional%20AI%20assistant-green.svg)]()
 
@@ -132,7 +132,7 @@ See our [Development Roadmap](#-development-roadmap) section below for the compl
 
 ### Prerequisites
 - **Windows 10/11, macOS, or Linux**
-- **Python 3.9+**
+- **Python 3.11+**
 - **Node.js 18+** and npm
 - **Git**
 
@@ -186,14 +186,24 @@ export OPENAI_API_KEY="your-key"
 ```
 
 ### Running Tests
-The project has basic test coverage for the backend.
+The project includes backend, sidecar, and frontend test suites.
 
-#### Backend Tests (pytest)
-1.  From the repo root, run split Python tests (auto-routes backend/sidecar to the right env):
+#### Full Test Gate
+1.  From the repo root, run:
     ```bash
     ./scripts/test
     ```
-    Note: `./scripts/test-backend` and `./scripts/test-sidecar` are available for targeted runs.
+    This runs backend + sidecar tests, and runs frontend tests when `frontend/node_modules` is present.
+
+#### Targeted Python Suites
+1.  Backend only:
+    ```bash
+    ./scripts/test-backend
+    ```
+2.  Sidecar only:
+    ```bash
+    ./scripts/test-sidecar
+    ```
 
 #### Frontend Tests (Jest)
 1.  Navigate to the frontend directory:
@@ -248,7 +258,7 @@ If you want to contribute, check out:
 │  ┌──────────────────────────────────────────┐  │
 │  │  React Components                        │  │
 │  │  - ChatInterface                         │  │
-│  │  - SettingsPanel                         │  │
+│  │  - Dashboard                             │  │
 │  │  - Screenshot Display                    │  │
 │  │  - Tool Execution Status                 │  │
 │  └──────────────────────────────────────────┘  │
@@ -265,11 +275,11 @@ If you want to contribute, check out:
 │  └──────────────────────────────────────────┘  │
 │   ↕          ↕          ↕           ↕         │
 │ ┌──────────┐  ┌────────┐  ┌──────────┐  ┌──────────┐ │
-│ │Embeddings│  │Computer│  │Plugins   │  │   AI     │ │
-│ │API       │  │Control │  │Registry  │  │  Models  │ │
-│ │• ST      │  │Tools   │  │• Hooks   │  │• OpenAI  │ │
-│ │• Cache   │  │• OCR   │  │• Config  │  │• Anthro- │ │
-│ │• HTTP    │  │• Mouse │  │          │  │pic/Gemini│ │
+│ │Embeddings│  │Computer│  │OCR/Vision│  │   AI     │ │
+│ │API       │  │Control │  │Services  │  │  Models  │ │
+│ │• ST      │  │Tools   │  │• OCR     │  │• OpenAI  │ │
+│ │• Cache   │  │• Mouse │  │• UI      │  │• Anthro- │ │
+│ │• HTTP    │  │• Scroll│  │  Ground  │  │pic/Gemini│ │
 │ └──────────┘  └────────┘  └──────────┘  └──────────┘ │
 └─────────────────────────────────────────────────┘
 ```
@@ -456,6 +466,6 @@ If this vision excites you, please star the repository! It helps others discover
 
 **🚀 Building the future of personal computing, one commit at a time**
 
-[Join Discussion](<your-repo>/discussions) · [Contribute](CONTRIBUTING.md)
+[Join Discussion](<your-repo>/discussions) · [Contribute](docs/CONTRIBUTING.md)
 
 </div>

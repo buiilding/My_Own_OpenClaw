@@ -44,7 +44,7 @@ read_when:
 
 4. **Check Python Version**:
    ```bash
-   python --version  # Should be 3.9+
+   python --version  # Should be 3.11+
    ```
 
 #### Import Errors
@@ -56,8 +56,8 @@ read_when:
 **Solutions**:
 1. **Run from Correct Directory**:
    ```bash
-   cd backend
-   python -m backend.src.main
+   cd /path/to/WindieOS
+   ./scripts/run-backend
    ```
 
 2. **Check PYTHONPATH**:
@@ -430,7 +430,7 @@ read_when:
 **Enable Debug Logging**:
 ```bash
 export DESKTOP_ASSISTANT_LOG_LEVEL=DEBUG
-python -m backend.src.main
+./scripts/run-backend
 ```
 
 ### Common Error Messages
