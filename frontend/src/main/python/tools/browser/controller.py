@@ -31,6 +31,7 @@ from tools.browser.chrome_launcher import (
     ensure_chrome_with_cdp,
     ChromeLauncherError,
 )
+from tools.browser.enhanced_cdp_pipeline import EnhancedCdpDomPipeline
 from tools.browser.ref_registry import RefRegistry
 from tools.browser.role_snapshot import (
     RoleRef,
@@ -106,6 +107,7 @@ class BrowserController:
         self._network_request_id_by_req: WeakKeyDictionary = WeakKeyDictionary()
         self._next_request_id_by_tab: Dict[str, int] = {}
         self._trace_active: bool = False
+        self._enhanced_cdp_pipeline = EnhancedCdpDomPipeline()
 
     @property
     def is_connected(self) -> bool:
@@ -1174,6 +1176,32 @@ class BrowserController:
 
     async def _get_ai_snapshot(self, max_chars: int = 12000) -> PageSnapshot:
         """Build a browser-use-like interactive DOM snapshot with stable-ish refs."""
+        reg = self._get_ref_registry(self._page)
+        max_elements = 100
+
+        try:
+            enhanced = await self._enhanced_cdp_pipeline.build_ai_snapshot(
+                page=self._page,
+                max_chars=max_chars,
+                max_elements=max_elements,
+                ref_registry=reg,
+                build_element_key=self._build_element_key,
+            )
+            return PageSnapshot(
+                text=enhanced.text,
+                url=enhanced.url,
+                title=enhanced.title,
+                ref_count=enhanced.ref_count,
+            )
+        except Exception as e:
+            logger.warning(
+                "Enhanced CDP snapshot failed, falling back to legacy snapshot path: %s",
+                e,
+            )
+            return await self._get_ai_snapshot_legacy(max_chars=max_chars)
+
+    async def _get_ai_snapshot_legacy(self, max_chars: int = 12000) -> PageSnapshot:
+        """Legacy query-selector snapshot path used when CDP pipeline is unavailable."""
         title = await self._page.title()
         url = self._page.url
         reg = self._get_ref_registry(self._page)

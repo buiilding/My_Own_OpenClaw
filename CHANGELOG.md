@@ -61,6 +61,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- feat(browser-snapshot): port browser-use-style enhanced CDP/DOM snapshot internals into sidecar AI snapshots (`DOMSnapshot` + `DOM.getDocument` + AX tree + JS click-listener hints, parallel fetch with retry, backend-node ref attachment), keep legacy selector snapshot as automatic fallback, and add focused sidecar pipeline/controller regression coverage
 - feat(browser-snapshot): make default `snapshot(format="ai")` emit a browser-use-style DOM tree view with tab-indented ancestor scaffolding and interactive lines in `[ref]<tag ...>text</tag>` form while preserving stable refs for click/type flows
 - docs(message-config-contract): document missing server events (`audio-chunk`, `wakeword-activated`), align wakeword response sequencing, add `interaction_mode` to settings payload docs, and clarify runtime config normalization (`tts_enabled` forced true + default `tts_model_path` injection)
 - docs(query-contract): update API/architecture/flow docs to reflect required `query.conversation_ref`, conditional user-query screenshot capture (`include_query_screenshot`, default true), and schema-accurate `tool-result.data.system_state` optionality

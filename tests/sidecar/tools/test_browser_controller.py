@@ -17,6 +17,7 @@ from tools.browser.controller import (
     get_browser_controller,
     reset_browser_controller,
 )
+from tools.browser.enhanced_cdp_pipeline import EnhancedAiSnapshotResult
 from tools.browser.role_snapshot import RoleRef
 
 
@@ -538,7 +539,29 @@ class TestBrowserControllerSnapshot:
     @pytest.mark.asyncio
     async def test_get_ai_snapshot(self):
         """Test AI snapshot generation."""
-        # Mock elements
+        self.controller._enhanced_cdp_pipeline.build_ai_snapshot = mock.AsyncMock(
+            return_value=EnhancedAiSnapshotResult(
+                text="Title: Example\nURL: https://example.com\n\nDOM tree (browser-use style):\n[1]<button>Submit</button>",
+                url="https://example.com",
+                title="Example",
+                ref_count=1,
+            )
+        )
+
+        snapshot = await self.controller.get_page_snapshot(format_type="ai")
+
+        assert snapshot.title == "Example"
+        assert snapshot.url == "https://example.com"
+        assert "Submit" in snapshot.text
+        assert snapshot.ref_count == 1
+
+    @pytest.mark.asyncio
+    async def test_get_ai_snapshot_falls_back_to_legacy_when_enhanced_path_fails(self):
+        """Enhanced pipeline failures should fall back to legacy query-selector path."""
+        self.controller._enhanced_cdp_pipeline.build_ai_snapshot = mock.AsyncMock(
+            side_effect=RuntimeError("cdp failed")
+        )
+
         mock_elem = mock.AsyncMock()
         mock_elem.evaluate = mock.AsyncMock(
             side_effect=[
@@ -554,18 +577,17 @@ class TestBrowserControllerSnapshot:
                     "visible": True,
                     "ancestors": [],
                 },
-                None,  # data-windie-ref setAttribute
+                None,
             ]
         )
-        
         self.controller._page.query_selector_all.return_value = [mock_elem]
-        
+
         snapshot = await self.controller.get_page_snapshot(format_type="ai")
-        
+
         assert snapshot.title == "Example"
         assert snapshot.url == "https://example.com"
-        assert "Submit" in snapshot.text
         assert snapshot.ref_count == 1
+        assert "Submit" in snapshot.text
     
     @pytest.mark.asyncio
     async def test_get_aria_snapshot(self):
