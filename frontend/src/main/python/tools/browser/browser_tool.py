@@ -18,7 +18,6 @@ from typing import Any, Dict, List, Optional
 from tools.browser.controller import get_browser_controller
 from tools.browser_use_adapter import (
     AdapterActionResult,
-    MigrationDecision,
     get_browser_use_adapter,
 )
 from tools.result import ToolResult
@@ -319,39 +318,10 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
     if action not in PHASE2_ADAPTER_ROUTED_ACTIONS:
         return ToolResult.error_result(f"Unhandled action: {action}")
 
-    async def _snapshot_delegate(delegate_args: Dict[str, Any]) -> AdapterActionResult:
-        result = await _handle_snapshot(dict(delegate_args))
-        return _tool_result_to_adapter_result(
-            action="snapshot",
-            decision="compat",
-            result=result,
-        )
-
     controller = get_browser_controller()
-    adapter = get_browser_use_adapter(
-        controller,
-        legacy_handlers={
-            "snapshot": _snapshot_delegate,
-        },
-    )
+    adapter = get_browser_use_adapter(controller)
     adapter_result = await adapter.execute(action, args)
     return _adapter_result_to_tool_result(adapter_result)
-
-
-def _tool_result_to_adapter_result(
-    *,
-    action: str,
-    decision: MigrationDecision,
-    result: ToolResult,
-) -> AdapterActionResult:
-    data = result.data if isinstance(result.data, dict) else {}
-    return AdapterActionResult(
-        success=result.success,
-        action=action,
-        decision=decision,
-        data=data,
-        error=result.error,
-    )
 
 
 async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:

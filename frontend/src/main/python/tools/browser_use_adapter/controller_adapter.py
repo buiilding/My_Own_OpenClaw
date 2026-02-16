@@ -20,6 +20,13 @@ LegacyHandler = Callable[[Mapping[str, Any]], Awaitable[AdapterActionResult]]
 SNAPSHOT_WAIT_STATES = frozenset({"load", "domcontentloaded", "networkidle", "commit"})
 SNAPSHOT_TRUNCATION_SUFFIX = "... (truncated)"
 MAX_SNAPSHOT_CAPTURE_CHARS = 120_000
+SNAPSHOT_PAGINATION_OVERFETCH_CHARS = 512
+DEFAULT_AI_SNAPSHOT_MAX_CHARS = 12_000
+DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS = 4_000
+DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH = 4
+AI_SNAPSHOT_ZERO_REF_FALLBACK_DEPTH = 12
+DEFAULT_ARIA_SNAPSHOT_MAX_CHARS = 4_000
+MAX_ARIA_SNAPSHOT_MAX_CHARS = 4_000
 DEFAULT_EXTRACT_MAX_CHARS = 12_000
 MAX_EXTRACT_SOURCE_CHARS = 100_000
 MAX_EXTRACT_LINKS = 200
@@ -72,6 +79,18 @@ class BrowserControllerLike(Protocol):
         quality: int | None,
     ) -> bytes: ...
     async def wait_for_load(self, state: str) -> dict[str, Any]: ...
+    async def get_page_snapshot(
+        self,
+        *,
+        format_type: str,
+        max_chars: int | None = None,
+        refs_mode: str | None = None,
+        interactive: bool | None = None,
+        compact: bool | None = None,
+        depth: int | None = None,
+        selector: str | None = None,
+        frame_selector: str | None = None,
+    ) -> Any: ...
     async def get_tabs(self) -> list[Any]: ...
     async def evaluate(self, script: str) -> dict[str, Any]: ...
     async def get_console_messages(
@@ -191,6 +210,8 @@ class BrowserUseCompatibilityAdapter:
             return await self.navigate(args)
         if action == "open":
             return await self.open(args)
+        if action == "snapshot":
+            return await self.snapshot(args)
         if action == "extract":
             return await self.extract(args)
         if action == "click":
@@ -367,6 +388,195 @@ class BrowserUseCompatibilityAdapter:
                 ],
                 "default_profile": "user_chrome",
             },
+        )
+
+    async def snapshot(self, args: Mapping[str, Any]) -> AdapterActionResult:
+        if not self._controller.is_connected:
+            return self._not_connected("snapshot")
+
+        focus_error = await self._focus_target_if_requested(args)
+        if focus_error:
+            return focus_error
+
+        format_type = args.get("format", args.get("snapshotFormat", "ai"))
+        if format_type not in ("ai", "aria"):
+            return self._invalid_argument(
+                "snapshot",
+                "Invalid snapshot format. Use 'ai' or 'aria'.",
+            )
+
+        wait_until, wait_error = self._resolve_wait_until(args, default="load")
+        if wait_error:
+            return self._invalid_argument("snapshot", wait_error)
+
+        wait_result = await self._controller.wait_for_load(wait_until)
+        if isinstance(wait_result, dict) and not wait_result.get("success", False):
+            return AdapterActionResult(
+                success=False,
+                action="snapshot",
+                decision="compat",
+                error=wait_result.get("error", f"wait_for_load({wait_until}) failed"),
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+
+        mode_raw = args.get("mode")
+        mode: str | None = None
+        if mode_raw == "efficient":
+            mode = "efficient"
+        elif format_type == "ai" and mode_raw in (None, "", "user_chrome"):
+            mode = "efficient"
+
+        if mode == "efficient" and format_type == "aria":
+            return self._invalid_argument(
+                "snapshot",
+                "mode='efficient' requires format='ai'.",
+            )
+
+        max_chars_raw = args.get("max_chars")
+        max_chars: int | None = None
+        if isinstance(max_chars_raw, int) and max_chars_raw > 0:
+            max_chars = max_chars_raw
+
+        offset_raw = args.get("offset")
+        offset = 0
+        if offset_raw is not None:
+            if not isinstance(offset_raw, int) or offset_raw < 0:
+                return self._invalid_argument(
+                    "snapshot",
+                    "offset must be a non-negative integer",
+                )
+            offset = offset_raw
+
+        limit_raw = args.get("limit")
+        limit: int | None = None
+        if limit_raw is not None:
+            if not isinstance(limit_raw, int) or limit_raw <= 0:
+                return self._invalid_argument(
+                    "snapshot",
+                    "limit must be a positive integer",
+                )
+            limit = limit_raw
+
+        refs_mode_raw = args.get("refs")
+        refs_mode = refs_mode_raw if refs_mode_raw in ("role", "aria") else None
+
+        interactive = (
+            args.get("interactive")
+            if isinstance(args.get("interactive"), bool)
+            else None
+        )
+        compact = args.get("compact") if isinstance(args.get("compact"), bool) else None
+        depth = args.get("depth") if isinstance(args.get("depth"), int) else None
+        selector = args.get("selector") if isinstance(args.get("selector"), str) else None
+        frame_selector = args.get("frame") if isinstance(args.get("frame"), str) else None
+
+        if mode == "efficient":
+            if interactive is None:
+                interactive = True
+            if compact is None:
+                compact = True
+            if depth is None:
+                depth = DEFAULT_AI_SNAPSHOT_EFFICIENT_DEPTH
+
+        resolved_max_chars = max_chars
+        if format_type == "ai" and resolved_max_chars is None:
+            resolved_max_chars = (
+                DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS
+                if mode == "efficient"
+                else DEFAULT_AI_SNAPSHOT_MAX_CHARS
+            )
+        elif format_type == "aria":
+            if resolved_max_chars is None:
+                resolved_max_chars = DEFAULT_ARIA_SNAPSHOT_MAX_CHARS
+            else:
+                resolved_max_chars = min(
+                    resolved_max_chars,
+                    MAX_ARIA_SNAPSHOT_MAX_CHARS,
+                )
+
+        page_limit = (
+            limit
+            if limit is not None
+            else (resolved_max_chars or DEFAULT_AI_SNAPSHOT_MAX_CHARS)
+        )
+        if format_type == "aria":
+            page_limit = min(page_limit, MAX_ARIA_SNAPSHOT_MAX_CHARS)
+
+        capture_max_chars = resolved_max_chars or DEFAULT_AI_SNAPSHOT_MAX_CHARS
+        pagination_requested = offset > 0 or limit is not None
+        if pagination_requested:
+            requested_window_end = offset + page_limit
+            if requested_window_end > MAX_SNAPSHOT_CAPTURE_CHARS:
+                return self._invalid_argument(
+                    "snapshot",
+                    "offset + limit exceeds maximum snapshot window (120000)",
+                )
+            capture_max_chars = max(
+                capture_max_chars,
+                min(
+                    MAX_SNAPSHOT_CAPTURE_CHARS,
+                    requested_window_end + SNAPSHOT_PAGINATION_OVERFETCH_CHARS,
+                ),
+            )
+        else:
+            capture_max_chars = min(capture_max_chars, MAX_SNAPSHOT_CAPTURE_CHARS)
+
+        if format_type == "ai":
+            snapshot = await self._capture_ai_snapshot_with_zero_ref_fallback(
+                max_chars=capture_max_chars,
+                refs_mode=refs_mode,
+                interactive=interactive,
+                compact=compact,
+                depth=depth,
+                selector=selector,
+                frame_selector=frame_selector,
+                enable_zero_ref_fallback=(mode == "efficient"),
+            )
+        else:
+            snapshot = await self._controller.get_page_snapshot(
+                format_type=format_type,
+                max_chars=capture_max_chars,
+                refs_mode=refs_mode,
+                interactive=interactive,
+                compact=compact,
+                depth=depth,
+                selector=selector,
+                frame_selector=frame_selector,
+            )
+
+        full_snapshot = snapshot.text if isinstance(snapshot.text, str) else ""
+        total_chars = len(full_snapshot)
+        window_start = min(offset, total_chars)
+        window_end = min(total_chars, window_start + page_limit)
+        window_text = full_snapshot[window_start:window_end]
+        is_truncated_capture = full_snapshot.rstrip().endswith(SNAPSHOT_TRUNCATION_SUFFIX)
+        has_more = window_end < total_chars or (
+            is_truncated_capture and window_end >= total_chars
+        )
+        next_offset = window_end if has_more else None
+
+        result: dict[str, Any] = {
+            "action": "snapshot",
+            "format": format_type,
+            "wait_until": wait_until,
+            "url": snapshot.url,
+            "title": snapshot.title,
+            "snapshot": window_text,
+            "ref_count": snapshot.ref_count,
+            "offset": offset,
+            "limit": page_limit,
+            "returned_chars": len(window_text),
+            "total_chars": total_chars,
+            "has_more": has_more,
+        }
+        if next_offset is not None:
+            result["next_offset"] = next_offset
+
+        return AdapterActionResult(
+            success=True,
+            action="snapshot",
+            decision="compat",
+            data=result,
         )
 
     async def extract(self, args: Mapping[str, Any]) -> AdapterActionResult:
@@ -1864,6 +2074,82 @@ class BrowserUseCompatibilityAdapter:
             kind = "local"
         kind = kind.strip().lower()
         return "session" if kind == "session" else "local"
+
+    @staticmethod
+    def _snapshot_ref_count(snapshot: Any) -> int:
+        ref_count = getattr(snapshot, "ref_count", None)
+        if isinstance(ref_count, int) and ref_count >= 0:
+            return ref_count
+        return 0
+
+    async def _capture_ai_snapshot_with_zero_ref_fallback(
+        self,
+        *,
+        max_chars: int,
+        refs_mode: str | None,
+        interactive: bool | None,
+        compact: bool | None,
+        depth: int | None,
+        selector: str | None,
+        frame_selector: str | None,
+        enable_zero_ref_fallback: bool,
+    ) -> Any:
+        snapshot = await self._controller.get_page_snapshot(
+            format_type="ai",
+            max_chars=max_chars,
+            refs_mode=refs_mode,
+            interactive=interactive,
+            compact=compact,
+            depth=depth,
+            selector=selector,
+            frame_selector=frame_selector,
+        )
+        if not enable_zero_ref_fallback or self._snapshot_ref_count(snapshot) > 0:
+            return snapshot
+
+        fallback_snapshot = snapshot
+        is_role_snapshot_path = (
+            refs_mode in ("role", "aria")
+            or interactive is True
+            or compact is True
+            or depth is not None
+            or bool((selector or "").strip())
+            or bool((frame_selector or "").strip())
+        )
+        if is_role_snapshot_path:
+            try:
+                fallback_snapshot = await self._controller.get_page_snapshot(
+                    format_type="ai",
+                    max_chars=max_chars,
+                    refs_mode=refs_mode,
+                    interactive=interactive,
+                    compact=compact,
+                    depth=max(depth or 0, AI_SNAPSHOT_ZERO_REF_FALLBACK_DEPTH),
+                    selector=selector,
+                    frame_selector=frame_selector,
+                )
+                if self._snapshot_ref_count(fallback_snapshot) > 0:
+                    return fallback_snapshot
+            except Exception:
+                pass
+
+        if selector or frame_selector:
+            return fallback_snapshot
+
+        try:
+            flat_snapshot = await self._controller.get_page_snapshot(
+                format_type="ai",
+                max_chars=max_chars,
+                refs_mode=None,
+                interactive=None,
+                compact=None,
+                depth=None,
+                selector=None,
+                frame_selector=None,
+            )
+            return flat_snapshot
+        except Exception:
+            return fallback_snapshot
 
     @staticmethod
     def _resolve_wait_until(

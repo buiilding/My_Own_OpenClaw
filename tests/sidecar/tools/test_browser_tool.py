@@ -94,10 +94,7 @@ class TestPhase2AdapterRouting:
             called_controller = mock_get_adapter.call_args.args[0]
             assert called_controller is mock_controller
             legacy_handlers = mock_get_adapter.call_args.kwargs.get("legacy_handlers")
-            assert isinstance(legacy_handlers, dict)
-            assert "snapshot" in legacy_handlers
-            assert "extract" not in legacy_handlers
-            assert "act" not in legacy_handlers
+            assert legacy_handlers is None
             mock_adapter.execute.assert_awaited_once()
 
     @pytest.mark.asyncio
