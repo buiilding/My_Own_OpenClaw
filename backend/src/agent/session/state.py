@@ -38,7 +38,6 @@ class ConversationHistory:
         self._llm_history_cache: List[LLMMessage] = []
         self.max_length = max_length
         self.system_prompt: Optional[str] = system_prompt
-        self._image_trimming_enabled = True
         self._pending_tool_call_ids: List[str] = []
         self._consume_all_tool_call_ids_on_next_output = False
         
@@ -63,13 +62,9 @@ class ConversationHistory:
         Add an actual user message to the conversation history.
         Content includes context XML, memory sections, and user query.
 
-        MEMORY DOS PROTECTION: Only the two most recent images are kept. When a new screenshot
-        arrives, the LLM compares previous state vs current state to verify actions; older
-        images add no value to that comparison. Text content is preserved for context.
-
         Args:
             content: Message content (context + memory + query)
-            image_data: Optional base64 image data (cleared except for the 2 most recent images to limit memory DoS)
+            image_data: Optional base64 image data
             episodic_memory: Optional list of episodic memory strings (structured data)
             semantic_memory: Optional list of semantic memory strings (structured data)
             user_query_raw: Optional raw user query text (structured data)
@@ -85,7 +80,6 @@ class ConversationHistory:
         # Invalidate token count cache (new message added)
         self._invalidate_token_cache()
         self._prune_if_needed()
-        self._maybe_trim_old_images()
 
     def add_tool_output(self, message: str, image_data: Optional[str] = None) -> None:
         """
@@ -168,8 +162,6 @@ class ConversationHistory:
         ):
             # Pruning occurred, cache already invalidated by _prune_if_needed
             logger.debug("Token count cache invalidated due to history pruning")
-        
-        self._maybe_trim_old_images()
 
     def add_assistant_message(
         self,
@@ -327,12 +319,6 @@ class ConversationHistory:
         self._invalidate_token_cache()
         # Note: system_prompt is preserved on clear
 
-    def set_image_trimming_enabled(self, enabled: bool) -> None:
-        """Enable or disable automatic image trimming."""
-        self._image_trimming_enabled = bool(enabled)
-        if self._image_trimming_enabled:
-            self._trim_old_images()
-
     def replace_with_entries(self, entries: List[Dict[str, Any]]) -> None:
         """Replace conversation history with provided stored entries."""
         self.clear()
@@ -373,41 +359,6 @@ class ConversationHistory:
             # Invalidate token count cache (history changed)
             self._invalidate_token_cache()
             logger.debug(f"Pruned conversation history to {self.max_length} messages (removed {removed_count})")
-    
-    def _trim_old_images(self, keep_recent_images: int = 2) -> None:
-        """
-        Keep only the last keep_recent_images image-bearing messages; clear image_data from all others.
-        
-        RATIONALE: When a new screenshot arrives, the LLM compares previous screen state vs current
-        to verify actions (e.g., "No Change" vs "Wrong Change"). Exactly two images (previous + current)
-        are needed for that comparison; older images contribute nothing. Also limits memory and context
-        (base64 screenshots can be ~10MB each).
-        
-        Args:
-            keep_recent_images: Number of most recent images to keep (default: 2)
-        """
-        image_indices = [i for i, msg in enumerate(self.history) if msg.image_data]
-        if len(image_indices) <= keep_recent_images:
-            return  # Nothing to clear
-        
-        indices_to_clear = set(image_indices[:-keep_recent_images])
-        cleared_count = 0
-        for i in indices_to_clear:
-            msg = self.history[i]
-            msg.image_data = None
-            cleared_count += 1
-            self._llm_history_cache[i] = msg.to_llm_message()
-        
-        if cleared_count > 0:
-            logger.debug(
-                f"Cleared image data from {cleared_count} old messages "
-                f"(keeping last {keep_recent_images} images) to limit memory and context size"
-            )
-
-    def _maybe_trim_old_images(self) -> None:
-        if not self._image_trimming_enabled:
-            return
-        self._trim_old_images()
 
     def _normalize_message_type(
         self,
