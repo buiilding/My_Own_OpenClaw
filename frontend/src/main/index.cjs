@@ -240,6 +240,7 @@ function createWindow() {
     width: 1000, // Increased width to accommodate sidebar
     height: 700,
     show: false,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload.js'),
       contextIsolation: true,
@@ -271,6 +272,10 @@ function createWindow() {
   initializeWakewordBridge(mainWindow, () => showChatWindow({ focus: true }));
   initializeLocalBackendBridge(() => ({ mainWindow, chatWindow, responseWindow }));
   initializeOverlayHandlers();
+
+  if (process.platform !== 'darwin') {
+    mainWindow.setMenuBarVisibility(false);
+  }
 
   // Instead of quitting, hide the window to the tray
   mainWindow.on('close', (event) => {
