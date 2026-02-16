@@ -9,7 +9,6 @@ via JSON-RPC 2.0 protocol over stdin/stdout.
 
 import asyncio
 import logging
-import signal
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -19,6 +18,11 @@ frontend_python_dir = Path(__file__).parent
 sys.path.insert(0, str(frontend_python_dir))
 
 from core.ipc_protocol import JSONRPCProtocol
+from core.runtime_shutdown import (
+    handle_shutdown_signal,
+    register_shutdown_signal_handlers,
+    request_stdin_shutdown,
+)
 from memory.local_store import LocalMemoryStore
 from memory.operations import (
     build_interaction_metadata,
@@ -587,24 +591,7 @@ class LocalBackend:
 
     def request_shutdown(self, signum: Optional[int] = None) -> None:
         """Request graceful shutdown, optionally from a signal handler."""
-        if self._shutdown_requested:
-            return
-        self._shutdown_requested = True
-        self.running = False
-        if signum is not None:
-            logger.info(f"Shutdown requested via signal {signum}")
-        stdin = getattr(sys, "stdin", None)
-        if stdin is None:
-            return
-        is_closed = bool(getattr(stdin, "closed", False))
-        if is_closed:
-            return
-        close = getattr(stdin, "close", None)
-        if callable(close):
-            try:
-                close()
-            except Exception as e:
-                logger.debug(f"Failed to close stdin during shutdown request: {e}")
+        request_stdin_shutdown(self, logger, signum)
     
     async def shutdown(self) -> None:
         """Shutdown the service gracefully."""
@@ -627,9 +614,7 @@ class LocalBackend:
 
 def signal_handler(signum, frame):
     """Handle system signals for graceful shutdown."""
-    logger.info(f"Received signal {signum}")
-    if _active_backend is not None:
-        _active_backend.request_shutdown(signum)
+    if handle_shutdown_signal(signum, _active_backend, logger):
         return
     raise KeyboardInterrupt
 
@@ -638,8 +623,7 @@ async def main():
     """Main entry point."""
     global _active_backend
     # Set up signal handlers
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+    register_shutdown_signal_handlers(signal_handler)
     
     # Create and run the service
     backend = LocalBackend()

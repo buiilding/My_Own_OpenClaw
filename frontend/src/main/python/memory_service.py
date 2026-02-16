@@ -9,7 +9,6 @@ No tool execution, no system state capture.
 import asyncio
 import json
 import logging
-import signal
 import sys
 from pathlib import Path
 from typing import Any, Dict
@@ -24,6 +23,11 @@ from memory.operations import (
     build_memory_filters,
     format_interaction_memory,
     group_memory_texts,
+)
+from core.runtime_shutdown import (
+    handle_shutdown_signal,
+    register_shutdown_signal_handlers,
+    request_stdin_shutdown,
 )
 
 # Configure logging
@@ -254,21 +258,7 @@ class MemoryService:
 
     def request_shutdown(self, signum: int | None = None) -> None:
         """Request graceful shutdown, optionally from a signal handler."""
-        if self._shutdown_requested:
-            return
-        self._shutdown_requested = True
-        self.running = False
-        if signum is not None:
-            logger.info(f"Shutdown requested via signal {signum}")
-        stdin = getattr(sys, "stdin", None)
-        if stdin is None or bool(getattr(stdin, "closed", False)):
-            return
-        close = getattr(stdin, "close", None)
-        if callable(close):
-            try:
-                close()
-            except Exception as e:
-                logger.debug(f"Failed to close stdin during shutdown request: {e}")
+        request_stdin_shutdown(self, logger, signum)
 
     async def shutdown(self) -> None:
         """Shutdown the service gracefully."""
@@ -284,9 +274,7 @@ class MemoryService:
 
 def signal_handler(signum, frame):
     """Handle system signals for graceful shutdown."""
-    logger.info(f"Received signal {signum}")
-    if _active_service is not None:
-        _active_service.request_shutdown(signum)
+    if handle_shutdown_signal(signum, _active_service, logger):
         return
     raise KeyboardInterrupt
 
@@ -295,8 +283,7 @@ async def main():
     """Main entry point."""
     global _active_service
     # Set up signal handlers
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+    register_shutdown_signal_handlers(signal_handler)
 
     # Create and run the service
     service = MemoryService()
