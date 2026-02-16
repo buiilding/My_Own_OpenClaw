@@ -51,6 +51,7 @@ Includes the last 300 commits on `main`.
 
 ### Changed
 - docs(repo): audit and sync high-traffic docs with current runtime/scripts (Python 3.11 baseline, root-level `scripts/run-*` commands, frontend/sidecar/backend test split), refresh frontend/backend architecture references, and remove stale/dead documentation links
+- docs(requirements): normalize Python requirement wording to explicit `3.11` (remove `3.11+`/`or higher` phrasing in core guides)
 - fix(conversation-history): stop trimming historical screenshot `image_data` so active and rehydrated conversations retain full screenshot history for provider cache continuity
 - docs(agents): update unexpected-change handling policy so agents continue when unrelated files change and only stop/escalate when unexpected edits touch actively implemented files
 - fix(prompt-xml-integrity): escape XML-sensitive characters when building query/system/memory prompt blocks in `frontend/src/main/ipc.cjs` and sequential system-context XML in `MessageFormatter`, preventing malformed `<user_query>/<system_context>` payloads from raw `<`, `>`, `&`, and quote characters in user/system/memory text

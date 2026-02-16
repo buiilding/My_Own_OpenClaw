@@ -89,7 +89,7 @@ frontend/src/
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.11
 - Node.js 18+
 - Git
 - IDE (VS Code recommended)

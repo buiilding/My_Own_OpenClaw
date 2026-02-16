@@ -4,7 +4,7 @@ Backend service for WindieOS. It hosts agent orchestration, LLM integration, API
 
 ## Runtime Requirements
 
-- Python 3.11+
+- Python 3.11
 - Optional conda env: `jarvis`
 - API keys for any cloud LLM providers you use
 

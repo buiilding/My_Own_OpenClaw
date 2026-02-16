@@ -8,7 +8,7 @@ read_when:
 
 ## Overview
 
-The backend is built using Python 3.11+ with FastAPI, following clean architecture principles. It uses dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR) instead of plugins.
+The backend is built using Python 3.11 with FastAPI, following clean architecture principles. It uses dependency injection, protocol-based interfaces, and service-based extensions (vision/OCR) instead of plugins.
 
 ## Core Runtime Refactors (2026-02-11)
 
