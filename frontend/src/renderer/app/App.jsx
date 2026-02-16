@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo, useState } from 'react';
 import ErrorBoundary from '../components/ErrorBoundary';
 import ChatInterface from '../features/chat/components/ChatInterface';
 import MainLayout from '../components/MainLayout';
+import WindowChrome from '../components/WindowChrome';
 import { AppProvider } from './providers/AppProvider';
 import { useAppConfigContext } from './providers/AppContextHooks';
 import { ChatProvider } from './providers/ChatProvider';
@@ -9,6 +10,7 @@ import WakewordController from './WakewordController';
 import '../styles/theme.css';
 import '../styles/ChatInterface.css';
 import '../styles/MainLayout.css';
+import '../styles/WindowChrome.css';
 import '../styles/accessibility.css';
 
 const DashboardContent = lazy(() => import('../features/dashboard/components/DashboardContent'));
@@ -49,12 +51,17 @@ function AppContent() {
   }, [activeSection, config, availableModels, updateConfig]);
 
   return (
-    <MainLayout
-      sections={SECTIONS}
-      activeSection={activeSection}
-      onSelectSection={setActiveSection}
-      content={content}
-    />
+    <div className="window-shell">
+      <WindowChrome />
+      <div className="window-content">
+        <MainLayout
+          sections={SECTIONS}
+          activeSection={activeSection}
+          onSelectSection={setActiveSection}
+          content={content}
+        />
+      </div>
+    </div>
   );
 }
 

@@ -42,6 +42,9 @@ contextBridge.exposeInMainWorld('ipc', {
       'get-displays',
       'load-frontend-config',
       'save-frontend-config',
+      'window-minimize',
+      'window-toggle-maximize',
+      'window-close',
     ];
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, data);
