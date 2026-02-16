@@ -17,6 +17,10 @@ let pendingRequests = new Map();
 let stdoutBuffer = '';
 let readinessCheckCallback = null;
 let readinessCheckToken = 0;
+const SUPPRESSED_STDERR_PATTERNS = [
+  '[DEP0169] DeprecationWarning: `url.parse()`',
+  'Use `node --trace-deprecation ...` to show where the warning was created',
+];
 
 // Cache Python path to avoid repeated file system checks
 let cachedPythonPath = null;
@@ -149,6 +153,20 @@ function getPythonPath() {
   return cachedPythonPath;
 }
 
+function withLocalBackendNodeOptions(baseEnv) {
+  const env = { ...baseEnv };
+  const nodeOptions = (env.NODE_OPTIONS || '').trim();
+
+  if (nodeOptions.includes('--no-deprecation')) {
+    return env;
+  }
+
+  env.NODE_OPTIONS = nodeOptions
+    ? `${nodeOptions} --no-deprecation`
+    : '--no-deprecation';
+  return env;
+}
+
 /**
  * Check if Python backend is ready by sending ping
  * Retries with exponential backoff until ready or max attempts
@@ -256,11 +274,11 @@ function startLocalBackend(mainWindow) {
   pythonProcess = spawn(pythonPath, [scriptPath], {
     stdio: ['pipe', 'pipe', 'pipe'],
     cwd: path.dirname(scriptPath),
-    env: {
+    env: withLocalBackendNodeOptions({
       ...process.env,
       PYTHONUNBUFFERED: '1',
       WINDIE_BACKEND_HTTP_URL: backendEndpoints.httpUrl,
-    }
+    }),
   });
 
   // Check readiness by sending ping request instead of arbitrary delay
@@ -299,6 +317,9 @@ function startLocalBackend(mainWindow) {
     const lines = text.split('\n');
     for (const line of lines) {
       if (line.trim()) {
+        if (SUPPRESSED_STDERR_PATTERNS.some((pattern) => line.includes(pattern))) {
+          continue;
+        }
         console.log(`[LocalBackend Python] ${line}`);
       }
     }

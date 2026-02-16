@@ -153,6 +153,22 @@ describe('local_backend_bridge', () => {
     );
   });
 
+  test('adds --no-deprecation to Node options for local backend subprocesses', () => {
+    process.env.NODE_OPTIONS = '--max-old-space-size=4096';
+    initBridge();
+    markReady();
+
+    expect(spawn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(Array),
+      expect.objectContaining({
+        env: expect.objectContaining({
+          NODE_OPTIONS: '--max-old-space-size=4096 --no-deprecation',
+        }),
+      }),
+    );
+  });
+
   test('execute-tool handler returns error on json-rpc error', async () => {
     initBridge();
     markReady();
