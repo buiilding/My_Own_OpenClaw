@@ -77,6 +77,7 @@ Additional routing update:
 - `act` is now adapter-native (no legacy delegate).
 - `extract` is now adapter-native (no legacy delegate).
 - `snapshot` is now adapter-native (no legacy delegate).
+- Removed now-unused `legacy_handlers` seam from adapter construction after delegate retirement.
 
 Current Phase 2 routing result:
 

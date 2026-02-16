@@ -11,11 +11,9 @@ import asyncio
 import base64
 import json
 import re
-from typing import Any, Awaitable, Callable, Mapping, Protocol
+from typing import Any, Mapping, Protocol
 
 from tools.browser_use_adapter.types import AdapterActionResult
-
-LegacyHandler = Callable[[Mapping[str, Any]], Awaitable[AdapterActionResult]]
 
 SNAPSHOT_WAIT_STATES = frozenset({"load", "domcontentloaded", "networkidle", "commit"})
 SNAPSHOT_TRUNCATION_SUFFIX = "... (truncated)"
@@ -190,10 +188,8 @@ class BrowserUseCompatibilityAdapter:
     def __init__(
         self,
         controller: BrowserControllerLike,
-        legacy_handlers: Mapping[str, LegacyHandler] | None = None,
     ):
         self._controller = controller
-        self._legacy_handlers = dict(legacy_handlers or {})
 
     async def execute(
         self,
@@ -280,8 +276,6 @@ class BrowserUseCompatibilityAdapter:
             return await self.act(args)
         if action == "close":
             return await self.close()
-        if action in self._legacy_handlers:
-            return await self._legacy_handlers[action](args)
 
         return AdapterActionResult(
             success=False,
@@ -2536,10 +2530,8 @@ class BrowserUseCompatibilityAdapter:
 
 def get_browser_use_adapter(
     controller: BrowserControllerLike,
-    legacy_handlers: Mapping[str, LegacyHandler] | None = None,
 ) -> BrowserUseCompatibilityAdapter:
     """Factory seam for adapter injection in tests."""
     return BrowserUseCompatibilityAdapter(
         controller,
-        legacy_handlers=legacy_handlers,
     )
