@@ -610,3 +610,70 @@ Result:
 - `31 passed in 0.32s`
 
 This confirms the refactor preserved websocket task lifecycle behavior while reducing per-completion scheduler overhead.
+
+---
+
+# Refactor: Extract IPC Query Enrichment Builder from Main Bridge
+
+## Target
+Separate query-content enrichment orchestration from transport/event handling in:
+- `frontend/src/main/ipc.cjs`
+
+## Current Structure and Root Cause
+Before this refactor, the `type === 'query'` branch inside `initializeIpc()` in `ipc.cjs` mixed multiple responsibilities in one high-churn path:
+- websocket/IPC event handling
+- system-state and memory I/O orchestration
+- XML section rendering and escaping
+- fallback/error behavior
+- payload mutation (`content`, `system_state_internal`)
+
+Root cause: query enrichment policy lived inline in the IPC bridge instead of a dedicated module. This made the bridge harder to reason about and increased change risk because transport logic and content-building logic had to evolve together.
+
+## Refactor Plan
+1. Introduce a dedicated query payload builder module in `frontend/src/main/`.
+2. Move query enrichment/formatting/fallback helpers into that module.
+3. Keep `ipc.cjs` responsible for lifecycle/transport only, delegating content construction.
+4. Preserve output payload shape and fallback behavior.
+5. Add focused unit tests for the builder and rerun IPC bridge tests.
+
+## Implemented Changes
+### New query builder module
+- Added `frontend/src/main/query_payload_builder.cjs`:
+  - `buildQueryPayloadContent(...)`
+  - moved XML escape/format helpers:
+    - `escapeXml`
+    - `formatMemorySection`
+    - `appendMemorySections`
+    - `formatInitialStateXml`
+    - `formatSequentialStateXml`
+    - `extractQueryRuntimeSystemState`
+    - `formatFallbackStateXml`
+
+### IPC bridge rewiring
+- Updated `frontend/src/main/ipc.cjs`:
+  - imports `buildQueryPayloadContent(...)`
+  - replaces the large inline query-enrichment block with one delegated call
+  - keeps overlay state changes, local-user-message broadcast, and backend send flow unchanged
+
+Result:
+- central query-enrichment policy now has one module boundary
+- `ipc.cjs` query branch is shorter and focused on bridge flow
+- payload contract remains unchanged (`payload.content`, memory sections, XML escaping, `system_state_internal` behavior)
+
+## Added Test Coverage
+- Added `tests/frontend/QueryPayloadBuilder.test.cjs`:
+  - `builds enriched query content for initial context`
+  - `uses fallback system context when system state retrieval fails`
+
+## Validation
+Ran:
+
+```bash
+cd frontend && npm run test -- --runTestsByPath ../tests/frontend/QueryPayloadBuilder.test.cjs ../tests/frontend/IpcMainBridge.test.cjs
+```
+
+Result:
+- `2 passed` test suites
+- `19 passed` tests
+
+This confirms query payload enrichment behavior remains intact while reducing complexity in the main IPC bridge module.
