@@ -90,6 +90,21 @@ async def test_summarize_success_returns_summary_and_facts():
 
 
 @pytest.mark.asyncio
+async def test_summarize_normalizes_missing_summary_and_facts_to_defaults():
+    response = DummyResponse(
+        200,
+        json_data={"success": True, "summary": None, "facts": None},
+    )
+    client = RemoteSemanticClient()
+    client._session = DummySession(response=response)
+
+    summary, facts = await client.summarize(["hello"], user_id="u-defaults")
+
+    assert summary == ""
+    assert facts == []
+
+
+@pytest.mark.asyncio
 async def test_summarize_non_200_raises_error_with_status_text():
     client = RemoteSemanticClient()
     client._session = DummySession(response=DummyResponse(503, text_data="backend down"))
@@ -146,3 +161,12 @@ async def test_initialize_creates_single_session_and_close_resets():
         assert client._session is None
     finally:
         monkeypatch.undo()
+
+
+@pytest.mark.asyncio
+async def test_close_is_noop_when_session_not_initialized():
+    client = RemoteSemanticClient()
+
+    await client.close()
+
+    assert client._session is None
