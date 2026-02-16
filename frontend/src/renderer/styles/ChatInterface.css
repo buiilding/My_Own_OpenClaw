@@ -59,10 +59,10 @@
 }
 
 .chat-window-control-btn {
-  width: 28px;
+  width: 24px;
   height: 24px;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.03);
   color: #d1d5de;
   display: inline-flex;
