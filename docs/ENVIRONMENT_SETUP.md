@@ -66,6 +66,10 @@ Use:
 
 If conda or the target env is unavailable, this script falls back to your current shell environment.
 
+Optional overrides:
+- `WINDIE_BACKEND_ENV`: override backend env name (default `jarvis`)
+- `WINDIE_FRONTEND_ENV`: override sidecar/frontend env name (default `frontend_jarvis`)
+
 ## Frontend Environment
 
 ```bash

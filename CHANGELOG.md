@@ -7,7 +7,6 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
-- refactor(websocket-route): centralize websocket connection cleanup in a single `finally` path in `api/routes/websocket/__init__.py`, extract timeout-close helper, and add timeout regression coverage for `websocket_endpoint`
 - refactor(ipc-query): extract query enrichment orchestration from `ipc.cjs` into dedicated `query_payload_builder.cjs`, reducing `to-backend` query-path complexity while preserving payload format and adding focused builder unit coverage
 - refactor(websocket-task-manager): remove per-completed-task cleanup coroutine scheduling in `TaskManager.task_done_callback`, using direct active-task discard with shutdown-safe fallback and updated websocket task-manager regression coverage
 - refactor(websocket): add shared websocket JSON parse utility (`routes/websocket/json_parse.py`), reuse it in handshake + message parsing, and remove unconditional handshake `run_in_executor` parsing for small payloads while preserving existing validation/error contracts
@@ -57,6 +56,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- docs(tooling): realign high-traffic tool docs with current SDK/runtime (`Tool[ArgsModel]` + `run()`, backend `remote_tools` registry flow, sidecar `EXPOSED_TO_BACKEND_TOOLS` contract), fix developer-guide event-bus import/publish example, add env-wrapper override vars to environment setup, and refresh README setup/community links
 - feat(frontend-ui): refresh renderer visuals with a ChatGPT-inspired dark shell (sidebar structure, centered conversation column, and restyled chat/status/input surfaces) while preserving existing behaviors and pill interactions
 - feat(frontend-ui): tighten ChatGPT-style proportions and tone (neutralized dark palette, denser left rail, cleaner assistant text blocks, and narrower centered composer/message column)
 - fix(frontend-layout): remove the sidebar bottom-left `Ready` status block from the dashboard shell

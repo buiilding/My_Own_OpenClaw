@@ -160,6 +160,25 @@ npm install
 cd .. # Return to project root
 ```
 
+#### 4. Python Sidecar Setup (Required for Electron Tool Execution)
+Install sidecar Python deps in the same environment you use to launch Electron:
+
+```bash
+cd frontend/src/main/python
+pip install -r requirements.txt
+cd ../../../../  # Return to project root
+```
+
+Helper scripts auto-route commands to conda envs when available:
+- backend commands -> `jarvis`
+- frontend/sidecar commands -> `frontend_jarvis`
+
+You can run commands through:
+
+```bash
+./scripts/python-in-env <backend|sidecar|frontend> <cmd...>
+```
+
 
 ### Running the Application for Development
 
@@ -230,7 +249,7 @@ The core AI assistant is functional. Current development priorities include:
 
 If you want to contribute, check out:
 
-- Open Issues: <your-repo>/issues
+- Open Issues: https://github.com/OWNER/REPO/issues
 - Look for issues tagged with `good-first-issue`, `help-wanted`, or `enhancement`
 
 ---
@@ -441,8 +460,8 @@ Inspired by:
 
 ## 📬 Contact & Community
 
-- **Issues**: <your-repo>/issues
-- **Discussions**: <your-repo>/discussions
+- **Issues**: https://github.com/OWNER/REPO/issues
+- **Discussions**: https://github.com/OWNER/REPO/discussions
 - **Email**: contact@yourproject.com
 - **Discord**: [Join our community](#) (coming soon)
 
@@ -466,6 +485,6 @@ If this vision excites you, please star the repository! It helps others discover
 
 **🚀 Building the future of personal computing, one commit at a time**
 
-[Join Discussion](<your-repo>/discussions) · [Contribute](docs/CONTRIBUTING.md)
+[Join Discussion](https://github.com/OWNER/REPO/discussions) · [Contribute](docs/CONTRIBUTING.md)
 
 </div>

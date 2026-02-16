@@ -151,63 +151,70 @@ Tool calls are sent by the agent tool sender; execution happens in the frontend 
 
 ### SDK Tool Base Class
 
-All tools inherit from `Tool` base class (`sdk/tool.py`):
+All tools inherit from `Tool` base class (`sdk/tool.py`) and define an
+`args_model` plus `run()` implementation:
 
 ```python
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
+
 from backend.src.sdk.tool import Tool
 from backend.src.sdk.context import ToolContext
-from backend.src.core.interfaces.tool import ToolResult
 
-class MyTool(Tool):
+
+class MyToolArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    param1: str = Field(..., description="Parameter 1")
+
+
+class MyTool(Tool[MyToolArgs]):
     name = "my_tool"
     description = "Description of my tool"
-    
-    def get_schema(self) -> dict:
+    args_model = MyToolArgs
+
+    async def run(self, args: MyToolArgs, ctx: ToolContext) -> dict[str, Any]:
         return {
-            "type": "object",
-            "properties": {
-                "param1": {"type": "string", "description": "Parameter 1"}
-            },
-            "required": ["param1"]
+            "success": True,
+            "llm_content": f"Tool executed: {args.param1}",
         }
-    
-    async def execute(
-        self,
-        args: dict,
-        context: ToolContext
-    ) -> ToolResult:
-        # Tool execution logic
-        return ToolResult(
-            success=True,
-            llm_content="Tool executed successfully",
-            data={"result": "..."}
-        )
 ```
 
 ### Remote Tool (Frontend Execution)
 
 Remote tools are executed on the frontend Python sidecar:
 
-**Backend Stub** (`tools/remote.py`):
+**Backend Stub** (`backend/src/tools/remote_tools/<domain>.py`):
 
 ```python
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
+from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
-from backend.src.tools.remote import RemoteToolBase
+from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 
 class MyRemoteToolArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     param1: str
 
 class MyRemoteTool(Tool[MyRemoteToolArgs], RemoteToolBase):
     name = "my_remote_tool"
     description = "Description of my remote tool"
     args_model = MyRemoteToolArgs
+
+    async def execute_remote(
+        self,
+        args: MyRemoteToolArgs,
+        ctx: ToolContext,
+    ) -> RemoteToolResult:
+        return self._build_remote_result(args, ctx)
 ```
 
 **Frontend Implementation** (`frontend/src/main/python/tools/my_tool.py`):
 
 ```python
+from typing import Any, Dict
+
 async def execute_my_tool(args: Dict[str, Any]) -> Dict[str, Any]:
     # Tool execution logic
     return {
@@ -223,8 +230,10 @@ async def execute_my_tool(args: Dict[str, Any]) -> Dict[str, Any]:
 
 Tools are automatically registered:
 
-1. **Remote Tools**: Discovered from `tools/remote.py`
-2. **Backend Tools**: Registered in the tool registry (`backend/src/tools/registry.py`)
+1. **Backend remote stubs**: Declared in `backend/src/tools/remote_tools/registry.py` and loaded by `backend/src/tools/registry.py`.
+2. **Sidecar executors**: Registered in `frontend/src/main/python/tools/registry.py`.
+3. **LLM-callable sidecar subset**: Explicitly declared in sidecar `EXPOSED_TO_BACKEND_TOOLS`.
+4. **Backend-only tools**: Require explicit `register_tool()` wiring; not auto-discovered by default runtime.
 
 ## Coordinate Resolution
 
@@ -431,13 +440,14 @@ No dual-shape fallback is supported in provider transport.
 Tools can be tested independently:
 
 ```python
+import pytest
+
+@pytest.mark.asyncio
 async def test_my_tool():
     tool = MyTool()
-    result = await tool.execute(
-        {"param1": "value"},
-        ToolContext(...)
-    )
-    assert result.success
+    args = MyToolArgs(param1="value")
+    result = await tool.run(args, ToolContext(...))
+    assert result["success"] is True
 ```
 
 ### Integration Testing
@@ -457,15 +467,16 @@ async def test_tool_execution_flow():
 ### Custom Tool Development
 
 1. Create tool class inheriting from `Tool`
-2. Implement `execute()` method
-3. Define tool schema
+2. Define a Pydantic `args_model`
+3. Implement `run()` (or `execute_remote()` for remote stubs)
 4. Register tool in registry
 
 ### Tool Registration
 
 1. Create tool class inheriting from `Tool`
-2. Define schema + `execute()` implementation
-3. Register in `backend/src/tools/registry.py`
+2. Add remote stubs in `backend/src/tools/remote_tools/registry.py`
+3. Add sidecar implementation + sidecar registry wiring
+4. Keep `EXPOSED_TO_BACKEND_TOOLS` in sync for LLM-callable tools
 
 ---
 
