@@ -873,3 +873,49 @@ In `frontend/src/main/python/tools/registry.py`, `ToolRegistry.execute_tool(...)
   - Result: `55 passed`
 - Runtime check:
   - `execute_tool("read_file", "not-a-dict")` now returns `{"success": False, "error": "Tool args must be an object"}`.
+
+---
+
+## [x] Bug Report: Sidecar ToolResult Serialization Dropped Empty Payloads
+
+### Summary
+
+In `frontend/src/main/python/tools/result.py`, `ToolResult.to_dict()` dropped valid empty values (`data={}` and `error=""`) because it used truthiness checks. This produced inconsistent JSON-RPC payloads for successful tools that intentionally return an empty object.
+
+### Root Cause
+
+- Serialization logic used:
+  - `if self.data:`
+  - `if self.error:`
+- Empty dict/string values are falsy in Python.
+- As a result, fields were omitted even when explicitly set.
+
+### Why It's Problematic
+
+- Breaks response-shape consistency between sidecar tool results:
+  - `ToolResult.success_result({})` serialized to `{"success": true}` instead of including `data`.
+- Callers can no longer distinguish between:
+  - "field intentionally empty" vs "field missing/unset".
+- This can create subtle parsing/branching bugs in downstream IPC handling.
+
+### Fix
+
+- Updated `ToolResult.to_dict()` in `tools/result.py`:
+  - include `data` when `self.data is not None`
+  - include `error` when `self.error is not None`
+- Removed unused `field` import from the same module.
+
+### Validation
+
+- Added regression tests:
+  - `tests/sidecar/test_tool_result.py`
+    - `test_tool_result_to_dict_preserves_empty_data_dict`
+    - `test_tool_result_to_dict_preserves_empty_error_string`
+  - `tests/sidecar/test_local_backend.py`
+    - `test_handle_execute_tool_preserves_empty_data_payload`
+- Re-ran targeted sidecar suites:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_result.py tests/sidecar/test_local_backend.py tests/sidecar/test_tool_registry.py`
+  - Result: `35 passed`
+- Runtime check:
+  - Before: `ToolResult.success_result({}).to_dict()` -> `{"success": True}`
+  - After: `ToolResult.success_result({}).to_dict()` -> `{"success": True, "data": {}}`

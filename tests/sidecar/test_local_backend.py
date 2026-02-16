@@ -109,6 +109,16 @@ async def test_handle_execute_tool_error():
 
 
 @pytest.mark.asyncio
+async def test_handle_execute_tool_preserves_empty_data_payload():
+    backend = LocalBackend()
+    backend.tool_registry = DummyRegistry(ToolResult.success_result({}))
+
+    result = await backend._handle_execute_tool("read_file", {"file_path": "/tmp/a"})
+
+    assert result == {"success": True, "data": {}}
+
+
+@pytest.mark.asyncio
 async def test_handle_execute_tool_exception():
     backend = LocalBackend()
     backend.tool_registry = DummyRegistryRaises(RuntimeError("boom"))
