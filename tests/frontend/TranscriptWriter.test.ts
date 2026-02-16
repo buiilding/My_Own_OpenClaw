@@ -18,6 +18,11 @@ function loadTranscriptWriter() {
 }
 
 describe('TranscriptWriter', () => {
+  const flushMicrotasks = async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     window.sessionStorage.clear();
@@ -260,5 +265,139 @@ describe('TranscriptWriter', () => {
       conversationRef: 'conv-active',
       userId: 'user-1',
     });
+  });
+
+  test('requeues queued user messages when a pending flush write fails', async () => {
+    const error = new Error('store failed');
+    const { writer, invokeMock } = loadTranscriptWriter();
+    invokeMock.mockRejectedValueOnce(error).mockResolvedValue(undefined);
+
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      writer.recordUserMessage('queued user message 1');
+      writer.recordUserMessage('queued user message 2');
+
+      writer.updateTranscriptSession('conv-retry-user', 'user-retry-user');
+      await flushMicrotasks();
+
+      expect(invokeMock).toHaveBeenCalledTimes(1);
+      expect(invokeMock).toHaveBeenNthCalledWith(1, 'store-transcript', {
+        content: 'queued user message 1',
+        userId: 'user-retry-user',
+        conversationRef: 'conv-retry-user',
+        role: 'user',
+        messageType: 'user',
+        toolName: undefined,
+        correlationId: undefined,
+        modelId: undefined,
+        modelProvider: undefined,
+        screenshot: undefined,
+        timestamp: undefined,
+      });
+
+      writer.updateTranscriptSession('conv-retry-user', 'user-retry-user');
+      await flushMicrotasks();
+
+      expect(invokeMock).toHaveBeenCalledTimes(3);
+      expect(invokeMock).toHaveBeenNthCalledWith(2, 'store-transcript', {
+        content: 'queued user message 1',
+        userId: 'user-retry-user',
+        conversationRef: 'conv-retry-user',
+        role: 'user',
+        messageType: 'user',
+        toolName: undefined,
+        correlationId: undefined,
+        modelId: undefined,
+        modelProvider: undefined,
+        screenshot: undefined,
+        timestamp: undefined,
+      });
+      expect(invokeMock).toHaveBeenNthCalledWith(3, 'store-transcript', {
+        content: 'queued user message 2',
+        userId: 'user-retry-user',
+        conversationRef: 'conv-retry-user',
+        role: 'user',
+        messageType: 'user',
+        toolName: undefined,
+        correlationId: undefined,
+        modelId: undefined,
+        modelProvider: undefined,
+        screenshot: undefined,
+        timestamp: undefined,
+      });
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  test('requeues queued tool messages when a pending flush write fails', async () => {
+    const error = new Error('store failed');
+    const { writer, invokeMock } = loadTranscriptWriter();
+    invokeMock.mockRejectedValueOnce(error).mockResolvedValue(undefined);
+
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      writer.recordToolMessage('queued tool message 1', {
+        messageType: 'tool-call',
+        toolName: 'read_file',
+        correlationId: 'corr-1',
+      });
+      writer.recordToolMessage('queued tool message 2', {
+        messageType: 'tool-output',
+        toolName: 'read_file',
+        correlationId: 'corr-2',
+      });
+
+      writer.updateTranscriptSession('conv-retry-tool', 'user-retry-tool');
+      await flushMicrotasks();
+
+      expect(invokeMock).toHaveBeenCalledTimes(1);
+      expect(invokeMock).toHaveBeenNthCalledWith(1, 'store-transcript', {
+        content: 'queued tool message 1',
+        userId: 'user-retry-tool',
+        conversationRef: 'conv-retry-tool',
+        role: 'tool',
+        messageType: 'tool-call',
+        toolName: 'read_file',
+        correlationId: 'corr-1',
+        modelId: undefined,
+        modelProvider: undefined,
+        screenshot: undefined,
+        timestamp: undefined,
+      });
+
+      writer.updateTranscriptSession('conv-retry-tool', 'user-retry-tool');
+      await flushMicrotasks();
+
+      expect(invokeMock).toHaveBeenCalledTimes(3);
+      expect(invokeMock).toHaveBeenNthCalledWith(2, 'store-transcript', {
+        content: 'queued tool message 1',
+        userId: 'user-retry-tool',
+        conversationRef: 'conv-retry-tool',
+        role: 'tool',
+        messageType: 'tool-call',
+        toolName: 'read_file',
+        correlationId: 'corr-1',
+        modelId: undefined,
+        modelProvider: undefined,
+        screenshot: undefined,
+        timestamp: undefined,
+      });
+      expect(invokeMock).toHaveBeenNthCalledWith(3, 'store-transcript', {
+        content: 'queued tool message 2',
+        userId: 'user-retry-tool',
+        conversationRef: 'conv-retry-tool',
+        role: 'tool',
+        messageType: 'tool-output',
+        toolName: 'read_file',
+        correlationId: 'corr-2',
+        modelId: undefined,
+        modelProvider: undefined,
+        screenshot: undefined,
+        timestamp: undefined,
+      });
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 });

@@ -7,11 +7,44 @@ import {
   readSessionInfoFromStorage,
 } from './sessionInfoStorage';
 import { createTranscriptSessionState } from './sessionInfoState';
-import type { SessionInfo, TranscriptEntry } from './types';
+import type {
+  PendingToolMessage,
+  PendingUserMessage,
+  SessionInfo,
+  TranscriptEntry,
+} from './types';
 
 const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
 const pendingUserQueue = createPendingUserQueue();
 const pendingToolQueue = createPendingToolQueue();
+
+const requeuePending = <T>(messages: T[], enqueue: (message: T) => void) => {
+  for (const message of messages) {
+    enqueue(message);
+  }
+};
+
+const flushPendingEntries = async <T>(
+  messages: T[],
+  toTranscriptEntry: (message: T) => TranscriptEntry,
+  requeue: (messages: T[]) => void,
+  category: 'user' | 'tool',
+): Promise<boolean> => {
+  for (let index = 0; index < messages.length; index += 1) {
+    const message = messages[index];
+    try {
+      await storeTranscriptEntry(toTranscriptEntry(message));
+    } catch (error) {
+      requeue(messages.slice(index));
+      console.warn(
+        `[TranscriptWriter] Failed to flush pending ${category} transcript entries; requeued ${messages.length - index}`,
+        error,
+      );
+      return false;
+    }
+  }
+  return true;
+};
 
 const flushPendingMessages = async () => {
   const currentInfo = sessionState.get();
@@ -24,8 +57,9 @@ const flushPendingMessages = async () => {
   }
 
   const pendingUserMessages = pendingUserQueue.drain();
-  for (const message of pendingUserMessages) {
-    await storeTranscriptEntry({
+  const flushedUserMessages = await flushPendingEntries<PendingUserMessage>(
+    pendingUserMessages,
+    (message) => ({
       content: message.text,
       role: 'user',
       messageType: 'user',
@@ -33,12 +67,18 @@ const flushPendingMessages = async () => {
       modelId: message.modelId,
       modelProvider: message.modelProvider,
       screenshotRef: message.screenshotRef,
-    });
+    }),
+    (messages) => requeuePending(messages, pendingUserQueue.enqueue),
+    'user',
+  );
+  if (!flushedUserMessages) {
+    return;
   }
 
   const pendingToolMessages = pendingToolQueue.drain();
-  for (const message of pendingToolMessages) {
-    await storeTranscriptEntry({
+  await flushPendingEntries<PendingToolMessage>(
+    pendingToolMessages,
+    (message) => ({
       content: message.text,
       role: 'tool',
       messageType: message.messageType,
@@ -47,8 +87,10 @@ const flushPendingMessages = async () => {
       modelId: message.modelId,
       modelProvider: message.modelProvider,
       screenshotRef: message.screenshotRef,
-    });
-  }
+    }),
+    (messages) => requeuePending(messages, pendingToolQueue.enqueue),
+    'tool',
+  );
 };
 
 export const updateTranscriptSession = (

@@ -169,6 +169,7 @@ Includes the last 300 commits on `main`.
 
 ### Fixed
 - fix(frontend-chat): keep main dashboard visible when `include_query_screenshot` is disabled by centralizing send-window behavior in `messageSendUiPolicy` (`senderSurface` defaults + `returnToChatboxPolicy`), so no-image mode no longer hides the main window
+- fix(frontend-transcript): make pending transcript flush failure-safe by requeueing failed user/tool entries in `TranscriptWriter` instead of dropping drained queue items after a rejected `store-transcript` IPC call
 - fix(sidecar-memory): rebuild FAISS indices with contiguous remapped `embedding_id` values in `LocalMemoryStore._rebuild_index()` so post-rebuild search results continue resolving to stored memories (no stale sparse vector-id mapping drift)
 - fix(local-backend-stop): bind delayed force-kill to the original sidecar process instance so shutdown timers cannot SIGKILL a newly restarted local backend process
 - fix(sidecar-memory): reject `store_memory` requests in `local_backend.py` when `user_query` or `assistant_response` is empty to avoid persisting invalid interaction memories
