@@ -40,6 +40,7 @@ export function useWakewordDetection(
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const scriptNodeRef = useRef<ScriptProcessorNode | null>(null);
   const isCapturingRef = useRef(false);
+  const captureGenerationRef = useRef(0);
   const lastDetectionRef = useRef(0);
   const cooldownPeriod = 2000; // 2 seconds cooldown between detections
   
@@ -72,6 +73,7 @@ export function useWakewordDetection(
     if (isCapturingRef.current) {
       return;
     }
+    const generation = ++captureGenerationRef.current;
 
     try {
       // Request microphone access
@@ -85,12 +87,24 @@ export function useWakewordDetection(
         }
       });
 
+      if (generation !== captureGenerationRef.current) {
+        stream.getTracks().forEach(track => track.stop());
+        return;
+      }
+
       mediaStreamRef.current = stream;
 
       // Create audio context
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
         sampleRate: sampleRate
       });
+
+      if (generation !== captureGenerationRef.current) {
+        stream.getTracks().forEach(track => track.stop());
+        await audioContext.close();
+        return;
+      }
+
       audioContextRef.current = audioContext;
 
       // Create source node from media stream
@@ -123,6 +137,9 @@ export function useWakewordDetection(
 
       isCapturingRef.current = true;
     } catch (err: any) {
+      if (generation !== captureGenerationRef.current) {
+        return;
+      }
       console.error('[Wakeword] Error starting audio capture:', err);
       setError(`Audio capture failed: ${err.message}`);
       isCapturingRef.current = false;
@@ -131,9 +148,14 @@ export function useWakewordDetection(
 
   // Stop audio capture
   const stopAudioCapture = useCallback(async () => {
-    if (!isCapturingRef.current) {
-      return;
-    }
+    captureGenerationRef.current += 1;
+    const hadResources = Boolean(
+      isCapturingRef.current
+      || scriptNodeRef.current
+      || sourceNodeRef.current
+      || mediaStreamRef.current
+      || audioContextRef.current
+    );
 
     isCapturingRef.current = false;
 
@@ -159,7 +181,9 @@ export function useWakewordDetection(
       audioContextRef.current = null;
     }
 
-    console.log('[Wakeword] Audio capture stopped');
+    if (hadResources) {
+      console.log('[Wakeword] Audio capture stopped');
+    }
   }, []);
 
   // Handle wakeword detection from main process

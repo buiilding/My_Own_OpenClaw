@@ -104,4 +104,53 @@ describe('useWakewordDetection', () => {
       '[Wakeword] chunkSize 1000 is not a power of 2, using 1024 instead',
     );
   });
+
+  test('stops late microphone stream when disabled before getUserMedia resolves', async () => {
+    let resolveMedia: ((stream: MediaStream) => void) | null = null;
+    const pendingMedia = new Promise<MediaStream>((resolve) => {
+      resolveMedia = resolve;
+    });
+
+    const track = { stop: jest.fn() };
+    const lateStream = {
+      getTracks: () => [track],
+    } as unknown as MediaStream;
+
+    const originalMediaDevices = navigator.mediaDevices;
+    try {
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: {
+          getUserMedia: jest.fn(() => pendingMedia),
+        },
+      });
+
+      const { rerender } = renderHook(
+        ({ enabled }) => useWakewordDetection(enabled),
+        { initialProps: { enabled: true } },
+      );
+
+      const statusHandler = listeners.get(ON_CHANNELS.WAKEWORD_STATUS);
+      expect(statusHandler).toEqual(expect.any(Function));
+
+      await act(async () => {
+        statusHandler?.({ ready: true });
+        await Promise.resolve();
+      });
+
+      rerender({ enabled: false });
+
+      await act(async () => {
+        resolveMedia?.(lateStream);
+        await Promise.resolve();
+      });
+
+      expect(track.stop).toHaveBeenCalledTimes(1);
+    } finally {
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: originalMediaDevices,
+      });
+    }
+  });
 });
