@@ -125,6 +125,7 @@ Includes the last 300 commits on `main`.
 - fix(frontend-chatbox-response): treat `tool-call` as first response chunk so overlay shows tool-first turns immediately (Kimi tool-calling no longer waits for final completion to reveal content)
 
 ### Fixed
+- fix(wakeword-bridge): preserve `onWakewordDetected` callback across wakeword subprocess restarts so detections continue triggering callback-driven behavior after `wakeword-enable` recovery
 - fix(memory-service-shutdown): make `memory_service.py` honor `SIGTERM`/`SIGINT` by requesting graceful shutdown and closing stdin so its read loop exits without forced-kill-only teardown
 - fix(sidecar-shutdown): handle `SIGTERM`/`SIGINT` in `local_backend.py` by requesting graceful backend shutdown and closing stdin to unblock the JSON-RPC read loop, preventing forced-kill-only sidecar teardown
 - fix(local-backend-bridge): reject and clear in-flight JSON-RPC requests when the Python sidecar exits/errors so renderer IPC calls do not hang indefinitely

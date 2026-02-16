@@ -102,3 +102,38 @@ In `frontend/src/main/python/memory_service.py`, the signal handler for `SIGTERM
 - Re-ran targeted sidecar suites:
   - `./scripts/python-in-env sidecar pytest tests/sidecar/test_memory_service.py tests/sidecar/test_local_backend.py`
   - Result: `37 passed`.
+
+---
+
+## [x] Bug Report: Wakeword Callback Is Lost After Wakeword Service Restart
+
+### Summary
+
+In `frontend/src/main/wakeword_bridge.cjs`, wakeword detections stop triggering the original callback after the Python wakeword subprocess exits and is restarted via `wakeword-enable`.
+
+### Root Cause
+
+- `initializeWakewordBridge(mainWindow, onWakewordDetected)` passes the callback only during the first `startWakewordService(...)`.
+- On restart, `wakeword-enable` called `startWakewordService(mainWindow)` without passing `onWakewordDetected`.
+- `processDetectionResults(...)` then received `undefined` callback, so only IPC event forwarding happened while callback-driven behavior (like auto-showing chat) was skipped.
+
+### Why It's Problematic
+
+- Wakeword feature becomes partially broken after a restart/crash cycle.
+- Detection still appears to work in logs/events, making the regression subtle and harder to diagnose.
+- User-visible behavior diverges from expected hotword UX (callback side effects no longer run).
+
+### Fix
+
+- Added persisted callback state: `wakewordDetectedCallback`.
+- Store callback at bridge initialization.
+- On service restart (`wakeword-enable` when no process), restart with the stored callback.
+- In stdout handling, use `onWakewordDetected || wakewordDetectedCallback` to keep callback continuity across lifecycle transitions.
+
+### Validation
+
+- Added regression test in `tests/frontend/WakewordBridge.test.cjs`:
+  - `preserves wakeword callback after process restart`
+- Re-ran wakeword bridge tests:
+  - `cd frontend && npm run test -- tests/frontend/WakewordBridge.test.cjs`
+  - Result: `3 passed`.

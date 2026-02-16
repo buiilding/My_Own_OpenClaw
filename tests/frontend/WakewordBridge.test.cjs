@@ -17,17 +17,20 @@ describe('wakeword_bridge', () => {
   let ipcMain;
   let handlers;
   let stdoutHandler;
-  let pythonProcess;
+  let createdProcesses;
 
   const initBridge = () => {
     jest.resetModules();
     handlers = {};
     stdoutHandler = null;
+    createdProcesses = [];
 
     spawn = require('child_process').spawn;
     ipcMain = require('electron').ipcMain;
 
-    pythonProcess = {
+    const createPythonProcess = () => {
+      const processHandlers = {};
+      const pythonProcess = {
       stdin: { write: jest.fn() },
       stdout: {
         on: jest.fn((event, handler) => {
@@ -37,11 +40,17 @@ describe('wakeword_bridge', () => {
         }),
       },
       stderr: { on: jest.fn() },
-      on: jest.fn(),
+      on: jest.fn((event, handler) => {
+        processHandlers[event] = handler;
+      }),
       kill: jest.fn(),
+      _handlers: processHandlers,
+      };
+      createdProcesses.push(pythonProcess);
+      return pythonProcess;
     };
 
-    spawn.mockReturnValue(pythonProcess);
+    spawn.mockImplementation(createPythonProcess);
     ipcMain.on.mockImplementation((channel, handler) => {
       handlers[channel] = handler;
     });
@@ -60,7 +69,7 @@ describe('wakeword_bridge', () => {
 
     bridge.initializeWakewordBridge(mainWindow, onWakewordDetected);
 
-    return { mainWindow, onWakewordDetected };
+    return { mainWindow, onWakewordDetected, createdProcesses };
   };
 
   const emitDetection = (payload) => {
@@ -105,5 +114,31 @@ describe('wakeword_bridge', () => {
 
     expect(onWakewordDetected).not.toHaveBeenCalled();
     expect(mainWindow.webContents.send).not.toHaveBeenCalled();
+  });
+
+  test('preserves wakeword callback after process restart', () => {
+    const { mainWindow, onWakewordDetected, createdProcesses } = initBridge();
+
+    expect(createdProcesses).toHaveLength(1);
+    createdProcesses[0]._handlers.exit(0, null);
+
+    handlers['wakeword-enable']();
+    expect(createdProcesses).toHaveLength(2);
+
+    emitDetection({
+      detected: true,
+      model: 'hey_jarvis',
+      confidence: 0.93,
+      score: 0.93,
+    });
+
+    expect(onWakewordDetected).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      'wakeword-detected',
+      expect.objectContaining({
+        model: 'hey_jarvis',
+        confidence: 0.93,
+      }),
+    );
   });
 });
