@@ -1346,3 +1346,67 @@ Result:
 - `18 passed`
 
 This confirms lifecycle helper extraction preserved existing IPC bridge behavior.
+
+---
+
+# Refactor: Lazy ResponseParser Executor + Plain-Text Fast Path
+
+## Target
+Reduce unnecessary parser overhead in:
+- `backend/src/llm/parser.py`
+
+This is a performance + maintainability refactor on a central LLM response handling path.
+
+## Current Structure and Root Cause
+Before this refactor, `ResponseParser` always:
+1. created a `ThreadPoolExecutor` at construction time
+2. offloaded every `parse_response(...)` call into that executor
+
+Even plain conversational responses with no JSON/tool-call structure paid executor-related overhead.
+
+Root cause: parser execution policy assumed all responses needed CPU-bound JSON/tool-call parsing, rather than recognizing the common plain-text case.
+
+## Refactor Plan
+1. Make executor allocation lazy (create only when parse offload is actually needed).
+2. Add a fast-path guard that returns immediately for responses that cannot contain JSON-object tool calls.
+3. Preserve all trust-boundary behavior:
+   - type checks
+   - response-size limits and exceptions
+4. Add regression coverage for the plain-text fast path.
+5. Run focused parser test suites.
+
+## Implemented Changes
+### Lazy executor initialization
+- Updated `backend/src/llm/parser.py`:
+  - `self._executor` now initializes as `None`
+  - existing `_ensure_executor()` remains the single creation path
+
+### Plain-text fast path
+- Added `ResponseParser._can_contain_tool_call(response)` with JSON-object delimiter check.
+- Updated `parse_response(...)` to:
+  - run existing trust-boundary validation first
+  - return a direct `ParsedResponse` for plain text without `{`
+  - skip thread-pool offload in that case
+
+Result:
+- no startup thread-pool allocation until needed
+- no executor scheduling for common no-tool conversational responses
+- unchanged parsing path for tool-call-capable responses
+
+## Added Test Coverage
+- Updated `tests/backend/test_response_parser.py`:
+  - added `test_parse_response_plain_text_fast_path_skips_executor_creation`
+
+The test verifies plain-text parsing returns no tool calls and leaves `_executor` uninitialized.
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_response_parser.py tests/backend/test_response_parser_limits.py tests/backend/test_parser_extraction.py
+```
+
+Result:
+- `24 passed in 1.40s`
+
+This confirms parser behavior is preserved while reducing unnecessary executor overhead on plain-text responses.

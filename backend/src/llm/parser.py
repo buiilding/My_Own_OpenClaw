@@ -116,11 +116,7 @@ class ResponseParser:
             self._extractor.parse_json_response,
             self._extractor.parse_embedded_json,
         )
-
-        self._executor = ThreadPoolExecutor(
-            max_workers=self.EXECUTOR_MAX_WORKERS,
-            thread_name_prefix=self.EXECUTOR_THREAD_PREFIX,
-        )
+        self._executor: Optional[ThreadPoolExecutor] = None
 
     def _ensure_executor(self) -> ThreadPoolExecutor:
         """Return active parser executor, creating a new one after shutdown if needed."""
@@ -180,6 +176,17 @@ class ResponseParser:
                 boundary_name=boundary_name,
             )
 
+        if not self._can_contain_tool_call(response):
+            logger.debug(
+                "Skipping parser executor: response contains no JSON object start delimiter",
+            )
+            return ParsedResponse(
+                original_response=response,
+                tool_calls=[],
+                text_content=response.strip(),
+                has_tool_calls=False,
+            )
+
         logger.debug("Parsing LLM response for tool calls: %s...", repr(response[:200]))
 
         loop = asyncio.get_running_loop()
@@ -201,6 +208,16 @@ class ResponseParser:
             )
 
         return parsed_response
+
+    @staticmethod
+    def _can_contain_tool_call(response: str) -> bool:
+        """
+        Fast reject for plain-text responses.
+
+        Current supported tool-call schemas are JSON-object based, so responses
+        without an object start delimiter cannot contain parseable tool calls.
+        """
+        return "{" in response
 
     def _parse_sync(self, response: str) -> ParsedResponse:
         """

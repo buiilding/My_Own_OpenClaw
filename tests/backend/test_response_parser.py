@@ -131,6 +131,19 @@ async def test_parse_response_recreates_executor_after_shutdown():
     assert parsed.tool_calls[0].tool_name == "read_file"
 
 
+@pytest.mark.asyncio
+async def test_parse_response_plain_text_fast_path_skips_executor_creation():
+    parser = _make_parser([DummyTool("read_file", ToolDomain.FILESYSTEM)])
+    assert parser._executor is None
+
+    parsed = await parser.parse_response("hello from assistant")
+
+    assert parsed.has_tool_calls is False
+    assert parsed.tool_calls == []
+    assert parsed.text_content == "hello from assistant"
+    assert parser._executor is None
+
+
 def test_parse_sync_skips_redundant_second_pass_text_removal(monkeypatch):
     parser = _make_parser([DummyTool("read_file", ToolDomain.FILESYSTEM)])
     response = '{"functionCall":{"name":"read_file","args":{"file_path":"/tmp/x"}}}'
