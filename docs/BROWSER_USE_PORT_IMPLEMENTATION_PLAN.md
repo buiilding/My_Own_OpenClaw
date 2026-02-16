@@ -266,7 +266,7 @@ Current routing coverage:
 
 - Adapter-routed actions: `connect`, `status`, `profiles`, `navigate`, `open`, `snapshot`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `console`, `errors`, `requests`, `trace_start`, `trace_stop`, `pdf`, `upload`, `dialog`, `cookies`, `cookies_set`, `cookies_clear`, `storage_get`, `storage_set`, `storage_clear`, `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`, `set_timezone`, `set_locale`, `set_device`, `act`, `close`.
 - Current compatibility note: `snapshot`, `extract`, and `act` are adapter-native (no legacy delegates remain in `browser_tool` Phase 2 routing).
-- Core session/tab actions now flow through adapter runtime-provider seam (`connect`, `status`, `navigate`, `open`, `get_tabs`, `switch_tab`, `close`) with controller-backed default provider.
+- Runtime-provider seam now covers core session/tab + interaction/capture actions (`connect`, `status`, `navigate`, `open`, `get_tabs`, `switch_tab`, `close`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`, `snapshot`, `extract`, `upload`) with controller-backed default provider.
 
 Validation snapshot:
 

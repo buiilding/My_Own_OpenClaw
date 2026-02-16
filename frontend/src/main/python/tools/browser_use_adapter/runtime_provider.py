@@ -30,6 +30,52 @@ class ControllerRuntimeLike(Protocol):
     async def open_tab(self, *, url: str) -> dict[str, Any]: ...
     async def get_tabs(self) -> list[Any]: ...
     async def switch_tab(self, target_id: str) -> bool: ...
+    async def click(
+        self,
+        *,
+        ref: str,
+        double_click: bool,
+        button: str,
+    ) -> dict[str, Any]: ...
+    async def type_text(
+        self,
+        *,
+        ref: str,
+        text: str,
+        submit: bool,
+        clear_first: bool,
+    ) -> dict[str, Any]: ...
+    async def press_key(self, key: str) -> dict[str, Any]: ...
+    async def scroll(self, direction: str, amount: int) -> dict[str, Any]: ...
+    async def screenshot(
+        self,
+        *,
+        full_page: bool,
+        ref: str | None,
+        element: str | None,
+        image_type: str,
+        quality: int | None,
+    ) -> bytes: ...
+    async def wait_for_load(self, state: str) -> dict[str, Any]: ...
+    async def evaluate(self, script: str) -> dict[str, Any]: ...
+    async def get_page_snapshot(
+        self,
+        *,
+        format_type: str,
+        max_chars: int | None = None,
+        refs_mode: str | None = None,
+        interactive: bool | None = None,
+        compact: bool | None = None,
+        depth: int | None = None,
+        selector: str | None = None,
+        frame_selector: str | None = None,
+    ) -> Any: ...
+    async def set_input_files(
+        self,
+        *,
+        ref: str,
+        paths: list[str],
+    ) -> dict[str, Any]: ...
 
 
 class BrowserRuntimeProvider(Protocol):
@@ -49,6 +95,47 @@ class BrowserRuntimeProvider(Protocol):
     async def open_tab(self, *, url: str) -> dict[str, Any]: ...
     async def get_tabs(self) -> list[Any]: ...
     async def switch_tab(self, target_id: str) -> bool: ...
+    async def click(
+        self,
+        *,
+        ref: str,
+        double_click: bool,
+        button: str,
+    ) -> dict[str, Any]: ...
+    async def type_text(
+        self,
+        *,
+        ref: str,
+        text: str,
+        submit: bool,
+        clear_first: bool,
+    ) -> dict[str, Any]: ...
+    async def press_key(self, key: str) -> dict[str, Any]: ...
+    async def scroll(self, *, direction: str, amount: int) -> dict[str, Any]: ...
+    async def screenshot(
+        self,
+        *,
+        full_page: bool,
+        ref: str | None,
+        element: str | None,
+        image_type: str,
+        quality: int | None,
+    ) -> bytes: ...
+    async def wait_for_load(self, *, state: str) -> dict[str, Any]: ...
+    async def evaluate(self, *, script: str) -> dict[str, Any]: ...
+    async def get_page_snapshot(
+        self,
+        *,
+        format_type: str,
+        max_chars: int | None = None,
+        refs_mode: str | None = None,
+        interactive: bool | None = None,
+        compact: bool | None = None,
+        depth: int | None = None,
+        selector: str | None = None,
+        frame_selector: str | None = None,
+    ) -> Any: ...
+    async def set_input_files(self, *, ref: str, paths: list[str]) -> dict[str, Any]: ...
 
 
 class ControllerBackedRuntimeProvider:
@@ -101,6 +188,92 @@ class ControllerBackedRuntimeProvider:
     async def switch_tab(self, target_id: str) -> bool:
         return await self._controller.switch_tab(target_id)
 
+    async def click(
+        self,
+        *,
+        ref: str,
+        double_click: bool,
+        button: str,
+    ) -> dict[str, Any]:
+        return await self._controller.click(
+            ref=ref,
+            double_click=double_click,
+            button=button,
+        )
+
+    async def type_text(
+        self,
+        *,
+        ref: str,
+        text: str,
+        submit: bool,
+        clear_first: bool,
+    ) -> dict[str, Any]:
+        return await self._controller.type_text(
+            ref=ref,
+            text=text,
+            submit=submit,
+            clear_first=clear_first,
+        )
+
+    async def press_key(self, key: str) -> dict[str, Any]:
+        return await self._controller.press_key(key)
+
+    async def scroll(self, *, direction: str, amount: int) -> dict[str, Any]:
+        return await self._controller.scroll(direction, amount)
+
+    async def screenshot(
+        self,
+        *,
+        full_page: bool,
+        ref: str | None,
+        element: str | None,
+        image_type: str,
+        quality: int | None,
+    ) -> bytes:
+        return await self._controller.screenshot(
+            full_page=full_page,
+            ref=ref,
+            element=element,
+            image_type=image_type,
+            quality=quality,
+        )
+
+    async def wait_for_load(self, *, state: str) -> dict[str, Any]:
+        return await self._controller.wait_for_load(state)
+
+    async def evaluate(self, *, script: str) -> dict[str, Any]:
+        return await self._controller.evaluate(script)
+
+    async def get_page_snapshot(
+        self,
+        *,
+        format_type: str,
+        max_chars: int | None = None,
+        refs_mode: str | None = None,
+        interactive: bool | None = None,
+        compact: bool | None = None,
+        depth: int | None = None,
+        selector: str | None = None,
+        frame_selector: str | None = None,
+    ) -> Any:
+        return await self._controller.get_page_snapshot(
+            format_type=format_type,
+            max_chars=max_chars,
+            refs_mode=refs_mode,
+            interactive=interactive,
+            compact=compact,
+            depth=depth,
+            selector=selector,
+            frame_selector=frame_selector,
+        )
+
+    async def set_input_files(self, *, ref: str, paths: list[str]) -> dict[str, Any]:
+        return await self._controller.set_input_files(
+            ref=ref,
+            paths=paths,
+        )
+
 
 def get_browser_runtime_provider(
     controller: ControllerRuntimeLike,
@@ -119,4 +292,3 @@ def get_browser_runtime_provider(
             requested,
         )
     return ControllerBackedRuntimeProvider(controller)
-
