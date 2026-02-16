@@ -211,9 +211,8 @@ Pagination example:
 ```
 
 Automatic post-action snapshots:
-- For page-affecting actions, WindieOS automatically captures an `ai` snapshot after a successful action and appends it to tool output as `post_action_snapshot`.
-- Current auto-snapshot actions: `connect`, `navigate`, `open`, `click`, `type`, `press`, `scroll`, `wait`, `switch_tab`, `evaluate`, `upload`, `set_media`, `set_device`, and `act` kinds (`click`, `type`, `press`, `hover`, `drag`, `select`, `fill`, `resize`, `wait`, `evaluate`).
-- Auto-snapshot now reuses the standard `snapshot` action implementation (`format="ai"`), so it carries the same metadata fields (`offset`, `limit`, `returned_chars`, `total_chars`, `has_more`, `next_offset` when available).
+- Temporarily disabled for testing.
+- Use explicit `snapshot` calls after actions when you need updated page refs/metadata.
 
 ### 4. Extract
 
