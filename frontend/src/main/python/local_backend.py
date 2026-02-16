@@ -141,6 +141,27 @@ class LocalBackend:
             "success": False,
             "error": "Memory store not initialized",
         }
+
+    async def _maybe_update_summarization_watermark(
+        self,
+        *,
+        should_update: bool,
+        user_id: str,
+    ) -> None:
+        """
+        Best-effort summarization watermark update for episodic turn storage.
+
+        Memory writes should not fail when pending-count bookkeeping fails.
+        """
+        if not should_update:
+            return
+
+        try:
+            await self.memory_store.increment_pending_count()
+            if self._summarizer:
+                self._summarizer.notify_new_memory(user_id)
+        except Exception as e:
+            logger.warning(f"Failed to update summarization watermark: {e}")
     
     async def initialize(self) -> None:
         """Initialize the backend services."""
@@ -479,13 +500,10 @@ class LocalBackend:
 
             counts_pending = self._counts_toward_pending_turns(role, message_type)
 
-            if counts_pending:
-                try:
-                    await self.memory_store.increment_pending_count()
-                    if self._summarizer:
-                        self._summarizer.notify_new_memory(user_id)
-                except Exception as e:
-                    logger.warning(f"Failed to update summarization watermark: {e}")
+            await self._maybe_update_summarization_watermark(
+                should_update=counts_pending,
+                user_id=user_id,
+            )
 
             return {
                 "success": True,
@@ -522,13 +540,10 @@ class LocalBackend:
                 conversation_id=session_id
             )
 
-            if memory_type == "episodic":
-                try:
-                    await self.memory_store.increment_pending_count()
-                    if self._summarizer:
-                        self._summarizer.notify_new_memory(user_id)
-                except Exception as e:
-                    logger.warning(f"Failed to update summarization watermark: {e}")
+            await self._maybe_update_summarization_watermark(
+                should_update=(memory_type == "episodic"),
+                user_id=user_id,
+            )
             
             return {
                 "success": True,

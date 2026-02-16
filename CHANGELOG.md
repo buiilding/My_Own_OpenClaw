@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(sidecar-memory): centralize LocalBackend summarization watermark updates in shared `_maybe_update_summarization_watermark(...)`, remove duplicated pending-count/summarizer notification blocks across transcript + memory handlers, and add transcript pending-failure regression coverage
 - test(browser-use-port): add adapter-core sidecar regression suite in `tests/sidecar/tools/test_browser_use_adapter.py` covering adapter-native `snapshot`, `extract`, `act`, argument validation, and unsupported-action handling
 - feat(browser-use-port): make `snapshot` adapter-native in Phase 2 by implementing snapshot capture, pagination, and efficient-mode zero-ref fallback inside `tools/browser_use_adapter` and removing the final `browser_tool` legacy delegate wiring
 - feat(browser-use-port): make `extract` adapter-native in Phase 2 by implementing extraction semantics directly inside `tools/browser_use_adapter` and removing the `extract` legacy delegate path
