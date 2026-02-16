@@ -41,6 +41,17 @@ For feature roadmap details, see `FUTURE_PLAN.md`.
 - macOS: `dmg` + `zip`.
 - Linux: AppImage + deb + rpm.
 
+Current repo packaging entrypoints (run from `frontend/`):
+- `npm run package:win`
+- `npm run package:mac`
+- `npm run package:linux`
+
+Bundled sidecar-runtime packaging profile:
+- `npm run package:win:bundled-python`
+- `npm run package:mac:bundled-python`
+- `npm run package:linux:bundled-python`
+- runtime build guide: `docs/SIDECAR_RUNTIME_PACKAGING.md`
+
 ### Signing & update channels
 - Signing required before production rollout (macOS notarization, Windows signing).
 - Channels: `canary`, `beta`, `stable`.

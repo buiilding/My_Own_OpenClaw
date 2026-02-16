@@ -1,0 +1,33 @@
+appId: com.windieos.desktop
+productName: WindieOS
+
+directories:
+  output: release
+
+files:
+  - dist/**/*
+  - src/main/**/*
+  - src/preload.js
+  - package.json
+
+asar: true
+asarUnpack:
+  - src/main/python/**/*
+
+publish: null
+
+win:
+  target:
+    - target: nsis
+
+mac:
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+    - target: zip
+
+linux:
+  target:
+    - target: AppImage
+    - target: deb
+    - target: rpm

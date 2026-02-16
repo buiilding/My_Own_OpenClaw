@@ -12,6 +12,9 @@ node_modules/
 dist/
 build/
 .vite/
+frontend/release/
+frontend/python-runtime/
+frontend/python-runtime.tar.gz
 
 # Environment variables
 .env

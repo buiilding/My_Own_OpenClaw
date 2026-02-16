@@ -210,6 +210,37 @@ npm run build
 ./scripts/run-frontend-electron
 ```
 
+### Package Installers (Frontend App)
+
+From `frontend/`:
+
+```bash
+npm run package:win
+npm run package:mac
+npm run package:linux
+```
+
+Build artifacts are written to `frontend/release/`.
+
+If you host the backend separately, set endpoint env vars before launching the
+packaged app:
+
+```bash
+export BACKEND_HTTP_URL="https://your-api.example.com"
+export BACKEND_WS_URL="wss://your-api.example.com/ws"
+```
+
+The app still starts the local Python sidecar for local tool execution.
+Packaged builds look for Python in this order:
+
+1. `WINDIE_PYTHON_PATH`
+2. bundled runtime under app resources (`python-runtime`/`python`)
+3. `CONDA_PREFIX`
+4. system `python3` (macOS/Linux) or `py` (Windows)
+
+For full frontend-only installer workflow (bundled runtime build + packaging),
+see `docs/SIDECAR_RUNTIME_PACKAGING.md`.
+
 ## Verification
 
 ### Check Backend

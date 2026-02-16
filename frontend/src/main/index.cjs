@@ -27,6 +27,25 @@ const RESPONSE_OVERLAY_PHASE = Object.freeze({
   ERROR: 'error',
 });
 
+function loadRendererView(targetWindow, view) {
+  if (app.isPackaged) {
+    const rendererEntryFile = path.join(__dirname, '../../dist/index.html');
+    if (view) {
+      targetWindow.loadFile(rendererEntryFile, { query: { view } });
+      return;
+    }
+    targetWindow.loadFile(rendererEntryFile);
+    return;
+  }
+
+  const devUrl = 'http://localhost:5173';
+  if (view) {
+    targetWindow.loadURL(`${devUrl}?view=${encodeURIComponent(view)}`);
+    return;
+  }
+  targetWindow.loadURL(devUrl);
+}
+
 function isResponseOverlayStreamingPhase() {
   return (
     responseOverlayPhase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK
@@ -259,13 +278,8 @@ function createWindow() {
     }
   }
 
-  const devUrl = 'http://localhost:5173';
-  if (process.env.NODE_ENV !== 'production') {
-    mainWindow.loadURL(devUrl);
-    // mainWindow.webContents.openDevTools();
-  } else {
-    mainWindow.loadFile(path.join(__dirname, '../../dist/index.html'));
-  }
+  loadRendererView(mainWindow);
+  // mainWindow.webContents.openDevTools();
 
   initializeIpc(mainWindow, {
     onResponseOverlayPhaseChange: handleResponseOverlayPhaseChange,
@@ -330,14 +344,7 @@ function createChatWindow() {
   chatWindow.setIgnoreMouseEvents(false);
   positionChatWindow();
 
-  const devUrl = 'http://localhost:5173';
-  if (process.env.NODE_ENV !== 'production') {
-    chatWindow.loadURL(`${devUrl}?view=chatbox`);
-  } else {
-    chatWindow.loadFile(path.join(__dirname, '../../dist/index.html'), {
-      query: { view: 'chatbox' },
-    });
-  }
+  loadRendererView(chatWindow, 'chatbox');
 
   chatWindow.on('close', (event) => {
     if (!app.isQuitting) {
@@ -388,14 +395,7 @@ function createResponseWindow() {
   responseWindow.setAlwaysOnTop(true, 'floating');
   responseWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 
-  const devUrl = 'http://localhost:5173';
-  if (process.env.NODE_ENV !== 'production') {
-    responseWindow.loadURL(`${devUrl}?view=chatbox-response`);
-  } else {
-    responseWindow.loadFile(path.join(__dirname, '../../dist/index.html'), {
-      query: { view: 'chatbox-response' },
-    });
-  }
+  loadRendererView(responseWindow, 'chatbox-response');
 
   responseWindow.on('close', (event) => {
     if (!app.isQuitting) {

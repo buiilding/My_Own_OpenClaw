@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -9,6 +10,7 @@ sys.path.insert(0, str(frontend_python_dir))
 
 from tools.system.shell_tool import run_shell_command  # noqa: E402
 from tools.system.process_tool import process_shell_command  # noqa: E402
+from tools.system import shell_process_registry as registry  # noqa: E402
 
 
 async def _wait_for_finish(session_id: str, timeout: float = 2.0):
@@ -46,6 +48,19 @@ async def test_run_shell_command_timeout_sets_flag():
     assert result["success"] is True
     assert result["data"]["timed_out"] is True
     assert "timed out" in (result["data"]["error"] or "").lower()
+
+
+@pytest.mark.asyncio
+async def test_run_shell_command_timeout_cleans_foreground_session_registry_entry():
+    registry.reset_registry_for_tests()
+    cmd = f'{sys.executable} -c "import time; time.sleep(0.2)"'
+    result = await run_shell_command(
+        {"command": cmd, "run_in_background": False, "terminate_after_seconds": 0.05}
+    )
+
+    assert result["success"] is True
+    assert result["data"]["timed_out"] is True
+    assert registry._running_sessions == {}
 
 
 @pytest.mark.asyncio
@@ -261,6 +276,32 @@ async def test_process_remove_clears_session():
 
 
 @pytest.mark.asyncio
+async def test_process_remove_closes_pty_master_fd():
+    registry.reset_registry_for_tests()
+    cmd = f'{sys.executable} -c "import time; time.sleep(5)"'
+    result = await run_shell_command({"command": cmd, "run_in_background": True, "pty": True})
+    assert result["success"] is True
+    session_id = result["data"]["session_id"]
+
+    session = registry.get_session(session_id)
+    if not session or not session.uses_pty or session.pty_master is None:
+        await process_shell_command({"action": "remove", "session_id": session_id})
+        pytest.skip("PTY not supported in this environment")
+
+    pty_master_fd = session.pty_master
+    try:
+        removed = await process_shell_command({"action": "remove", "session_id": session_id})
+        assert removed["success"] is True
+        with pytest.raises(OSError):
+            os.fstat(pty_master_fd)
+    finally:
+        try:
+            os.close(pty_master_fd)
+        except OSError:
+            pass
+
+
+@pytest.mark.asyncio
 async def test_process_log_missing_session():
     result = await process_shell_command({"action": "log", "session_id": "missing"})
     assert result["success"] is False
@@ -272,3 +313,26 @@ async def test_process_kill_missing_session():
     result = await process_shell_command({"action": "kill", "session_id": "missing"})
     assert result["success"] is False
     assert result["error"] == "No session found for missing"
+
+
+@pytest.mark.asyncio
+async def test_process_kill_immediately_removes_session_from_running_registry():
+    cmd = f'{sys.executable} -c "import time; time.sleep(5)"'
+    result = await run_shell_command({"command": cmd, "run_in_background": True})
+    assert result["success"] is True
+    session_id = result["data"]["session_id"]
+
+    killed = await process_shell_command({"action": "kill", "session_id": session_id})
+    assert killed["success"] is True
+    assert killed["data"]["status"] == "killed"
+
+    listing = await process_shell_command({"action": "list"})
+    assert listing["success"] is True
+    running_ids = {entry["session_id"] for entry in listing["data"]["running"]}
+    finished_ids = {entry["session_id"] for entry in listing["data"]["finished"]}
+    assert session_id not in running_ids
+    assert session_id in finished_ids
+
+    poll = await process_shell_command({"action": "poll", "session_id": session_id})
+    assert poll["success"] is True
+    assert poll["data"]["status"] in {"completed", "failed"}

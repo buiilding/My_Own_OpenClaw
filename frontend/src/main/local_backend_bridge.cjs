@@ -10,6 +10,11 @@ const path = require('path');
 const { ipcMain } = require('electron');
 const { v4: uuidv4 } = require('uuid');
 const { resolveBackendEndpoints } = require('./backend_endpoints.cjs');
+const {
+  firstExistingPath,
+  getBundledPythonExecutableCandidates,
+  resolvePythonScriptPath,
+} = require('./runtime_paths.cjs');
 
 let pythonProcess = null;
 let isPythonReady = false;
@@ -134,6 +139,18 @@ function getPythonPath() {
   }
 
   const fs = require('fs');
+
+  const explicitPythonPath = process.env.WINDIE_PYTHON_PATH;
+  if (explicitPythonPath && fs.existsSync(explicitPythonPath)) {
+    cachedPythonPath = explicitPythonPath;
+    return cachedPythonPath;
+  }
+
+  const bundledPython = firstExistingPath(getBundledPythonExecutableCandidates());
+  if (bundledPython) {
+    cachedPythonPath = bundledPython;
+    return cachedPythonPath;
+  }
   
   // Check conda environment first (common on Windows)
   const condaPrefix = process.env.CONDA_PREFIX;
@@ -248,7 +265,7 @@ function startLocalBackend(mainWindow) {
   }
 
   const pythonPath = getPythonPath();
-  const scriptPath = path.join(__dirname, 'python', 'local_backend.py');
+  const scriptPath = resolvePythonScriptPath('local_backend.py');
 
   // Verify script exists (only check once - script location is static)
   const fs = require('fs');

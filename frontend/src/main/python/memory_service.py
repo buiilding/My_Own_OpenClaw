@@ -81,9 +81,24 @@ class MemoryService:
             "data": {...} or "error": "..."
         }
         """
+        if not isinstance(request, dict):
+            return {
+                "id": "unknown",
+                "success": False,
+                "error": "Request must be a JSON object",
+            }
+
         request_id = request.get("id", "unknown")
         request_type = request.get("type")
-        payload = request.get("payload", {})
+        payload = request.get("payload")
+        if payload is None:
+            payload = {}
+        elif not isinstance(payload, dict):
+            return {
+                "id": request_id,
+                "success": False,
+                "error": "Request payload must be a JSON object",
+            }
 
         try:
             if request_type == "search":

@@ -8,6 +8,11 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const { ipcMain } = require('electron');
+const {
+  firstExistingPath,
+  getBundledPythonExecutableCandidates,
+  resolvePythonScriptPath,
+} = require('./runtime_paths.cjs');
 
 let pythonProcess = null;
 let isPythonReady = false;
@@ -21,6 +26,16 @@ let wakewordDetectedCallback = null;
  */
 function getPythonPath() {
   const fs = require('fs');
+
+  const explicitPythonPath = process.env.WINDIE_PYTHON_PATH;
+  if (explicitPythonPath && fs.existsSync(explicitPythonPath)) {
+    return explicitPythonPath;
+  }
+
+  const bundledPython = firstExistingPath(getBundledPythonExecutableCandidates());
+  if (bundledPython) {
+    return bundledPython;
+  }
   
   // Check conda environment first (common on Windows)
   const condaPrefix = process.env.CONDA_PREFIX;
@@ -53,14 +68,14 @@ function startWakewordService(mainWindow, onWakewordDetected) {
     return;
   }
 
-  const pythonScript = path.join(__dirname, 'python', 'wakeword_service.py');
+  const pythonScript = resolvePythonScriptPath('wakeword_service.py');
   const pythonExe = getPythonPath();
   stderrBuffer = '';
 
   console.log(`[Wakeword] Starting Python service: ${pythonExe} ${pythonScript}`);
   const spawnedProcess = spawn(pythonExe, [pythonScript], {
     stdio: ['pipe', 'pipe', 'pipe'], // stdin, stdout, stderr
-    cwd: __dirname,
+    cwd: path.dirname(pythonScript),
   });
   pythonProcess = spawnedProcess;
 

@@ -1,0 +1,7 @@
+extends: ./electron-builder.yml
+
+extraResources:
+  - from: python-runtime
+    to: python-runtime
+    filter:
+      - "**/*"
