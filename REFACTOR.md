@@ -677,3 +677,58 @@ Result:
 - `19 passed` tests
 
 This confirms query payload enrichment behavior remains intact while reducing complexity in the main IPC bridge module.
+
+---
+
+# Refactor: Centralize WebSocket Route Cleanup in One Control Path
+
+## Target
+Remove duplicated cleanup control flow in:
+- `backend/src/api/routes/websocket/__init__.py`
+
+## Current Structure and Root Cause
+Before this refactor, `websocket_endpoint()` invoked `cleanup_connection(...)` in three separate branches:
+- receive-timeout branch inside the message loop
+- `except WebSocketDisconnect`
+- `except Exception`
+
+Root cause: connection-lifecycle cleanup was handled at branch call sites instead of one canonical endpoint-exit path. This made the route harder to maintain and increased the chance of drift when timeout/disconnect/error behavior changes.
+
+## Refactor Plan
+1. Extract timeout close behavior into a helper to keep loop logic focused.
+2. Move cleanup responsibility to one `finally` block after successful handshake.
+3. Preserve existing timeout policy-close behavior (`1008`) and disconnect/error logging.
+4. Add regression test to verify timeout path cleans up exactly once.
+5. Run websocket route test suite.
+
+## Implemented Changes
+### Route cleanup control flow
+- Updated `backend/src/api/routes/websocket/__init__.py`:
+  - added `_close_connection_on_timeout(...)`
+  - timeout branch now closes socket via helper and breaks loop
+  - removed duplicated `cleanup_connection(...)` calls from timeout/disconnect/error branches
+  - added one canonical `finally: await cleanup_connection(...)` after handshake success
+
+Result:
+- one cleanup path for timeout/disconnect/unexpected error termination
+- lower branch complexity in central websocket route logic
+- unchanged external behavior for timeout close code and error propagation
+
+## Added Test Coverage
+- Added `tests/backend/test_websocket_route.py`:
+  - `test_websocket_endpoint_timeout_cleans_up_once`
+    - simulates receive timeout
+    - verifies timeout close uses `1008` reason
+    - verifies cleanup runs exactly once
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_websocket_route.py tests/backend/test_websocket_connection.py tests/backend/test_websocket_message_handler.py tests/backend/test_websocket_task_manager.py
+```
+
+Result:
+- `32 passed in 0.34s`
+
+This confirms websocket route behavior remains intact while consolidating cleanup into one canonical lifecycle path.
