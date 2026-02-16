@@ -74,7 +74,7 @@ The following initiative set is being tracked in `FUTURE_PLAN.md` and `DEPLOYMEN
 - **OCR-Enhanced UI**: `mouse_control` tool with `find_coordinates_by="ocr"` for clicking on text elements detected via optical character recognition from screenshots
 - **Vision-Language Models**: `mouse_control` tool with `find_coordinates_by="prediction"` using InternVL to analyze screenshots and intelligently detect UI elements
 - **Multi-Step Automation**: Complex workflows across applications, all driven by visual understanding of screen states
-- **Visual Feedback**: Screenshots captured for every user message and after computer-use tool execution to maintain visual context
+- **Visual Feedback**: Query screenshots are captured when enabled (`include_query_screenshot=true` by default), and screenshots are captured after computer-use tool execution to maintain visual context
 
 ### 🛠️ Tool System
 - **Registered Tools**: Tool registry + schema-driven execution

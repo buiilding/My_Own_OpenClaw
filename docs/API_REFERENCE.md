@@ -170,6 +170,7 @@ Send a user query with optional screenshot.
 ```json
 {
   "text": "User query text",
+  "conversation_ref": "conv_123",
   "content": "<system_context>...</system_context> ...", // Optional, built by Electron main process
   "screenshot": "base64-encoded-screenshot", // Optional (legacy)
   "screenshot_ref": "uuid.jpg", // Preferred
@@ -193,6 +194,7 @@ Send a user query with optional screenshot.
 - `token-count`: Token usage information
 
 **Note**: The Electron main process enriches `query` payloads by adding `content` (system context + memory + user query).
+`conversation_ref` is required and identifies the active transcript/session thread.
 `system_state_internal` is backend-only runtime state and is not model-facing prompt/tool-output content.
 
 **Example**:
@@ -202,6 +204,7 @@ Send a user query with optional screenshot.
   "type": "query",
   "payload": {
     "text": "Click the submit button",
+    "conversation_ref": "conv_123",
     "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg"
   },
   "timestamp": "2025-01-20T10:00:00Z"
@@ -429,7 +432,7 @@ Send tool execution result from frontend.
 ```
 
 `request_id` must echo the `tool-call` payload `request_id` value for correlation.
-`data.system_state.active_window` and `data.system_state.mouse_position` are required when `data` is present.
+`data.system_state` is optional in schema; when present it should include `active_window` and `mouse_position`.
 `data.system_state_internal` is optional backend-only runtime state and is not model-facing tool-output content.
 For non-computer tools, omit `data.screenshot_ref` and `data.screenshot`.
 
