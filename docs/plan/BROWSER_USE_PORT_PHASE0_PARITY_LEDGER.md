@@ -62,3 +62,11 @@ Legend:
 - Reviewed all migration decisions against the Phase 1 architecture boundary in `docs/plan/BROWSER_USE_PORT_PHASE1_ARCHITECTURE_AND_ADAPTER_SPEC.md`.
 - No action decision changed in Phase 1 (`port`/`compat`/`deprecate` status remains exactly as locked on February 16, 2026).
 - Adapter contract requirement added: every action must return normalized `decision` metadata matching this ledger.
+
+## Phase 2 Addendum (February 16, 2026)
+
+- Added sidecar adapter module (`tools/browser_use_adapter/*`) and routed initial action batch through adapter dispatch.
+- Adapter-routed actions in this slice:
+  - `connect`, `status`, `navigate`, `open`, `press`, `scroll`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `close`
+- Migration decisions in the ledger remain unchanged.
+- Remaining actions continue on direct handlers until subsequent Phase 2/3 migration slices.

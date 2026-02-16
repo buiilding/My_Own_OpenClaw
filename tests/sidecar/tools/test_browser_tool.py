@@ -11,6 +11,7 @@ from unittest import mock
 
 from tools.browser.browser_tool import execute_browser_control
 from tools.browser.controller import reset_browser_controller
+from tools.browser_use_adapter import AdapterActionResult
 from tools.result import ToolResult
 
 
@@ -52,6 +53,84 @@ class TestExecuteBrowserControl:
 
         assert result.success is False
         assert "ref" in result.error.lower()
+
+
+class TestPhase2AdapterRouting:
+    """Validate Phase 2 browser_control adapter routing behavior."""
+
+    @pytest.mark.asyncio
+    async def test_routed_action_uses_adapter(self):
+        with mock.patch(
+            "tools.browser.browser_tool.get_browser_controller"
+        ) as mock_get_controller, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_get_controller.return_value = mock_controller
+
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="navigate",
+                decision="port",
+                data={
+                    "action": "navigate",
+                    "url": "https://example.com",
+                    "title": "Example",
+                    "status": 200,
+                },
+            )
+            mock_get_adapter.return_value = mock_adapter
+
+            result = await execute_browser_control(
+                {"action": "navigate", "url": "https://example.com"}
+            )
+
+            assert result.success is True
+            assert result.data["action"] == "navigate"
+            assert result.data["url"] == "https://example.com"
+            mock_get_adapter.assert_called_once_with(mock_controller)
+            mock_adapter.execute.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_adapter_failure_maps_to_tool_error(self):
+        with mock.patch(
+            "tools.browser.browser_tool.get_browser_controller"
+        ) as mock_get_controller, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_get_controller.return_value = mock_controller
+
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=False,
+                action="switch_tab",
+                decision="port",
+                error="Tab not found: missing",
+                error_code="TAB_NOT_FOUND",
+            )
+            mock_get_adapter.return_value = mock_adapter
+
+            result = await execute_browser_control(
+                {"action": "switch_tab", "target_id": "missing"}
+            )
+
+            assert result.success is False
+            assert result.error == "Tab not found: missing"
+
+    @pytest.mark.asyncio
+    async def test_non_routed_action_does_not_use_adapter(self):
+        with mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
+            result = await execute_browser_control({"action": "profiles"})
+
+            assert result.success is True
+            assert result.data["action"] == "profiles"
+            mock_get_adapter.assert_not_called()
 
 
 class TestConnectAction:

@@ -16,6 +16,7 @@ import re
 from typing import Any, Dict, List, Optional
 
 from tools.browser.controller import get_browser_controller
+from tools.browser_use_adapter import AdapterActionResult, get_browser_use_adapter
 from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
@@ -69,6 +70,22 @@ POST_ACTION_SNAPSHOT_ACT_KINDS = frozenset(
         "resize",
         "wait",
         "evaluate",
+    }
+)
+
+PHASE2_ADAPTER_ROUTED_ACTIONS = frozenset(
+    {
+        "connect",
+        "status",
+        "navigate",
+        "open",
+        "press",
+        "scroll",
+        "wait",
+        "get_tabs",
+        "switch_tab",
+        "evaluate",
+        "close",
     }
 )
 
@@ -251,6 +268,30 @@ async def _attach_post_action_snapshot_if_needed(
     return result
 
 
+def _adapter_result_to_tool_result(result: AdapterActionResult) -> ToolResult:
+    if result.success:
+        return ToolResult.success_result(result.data)
+
+    if result.error:
+        return ToolResult.error_result(result.error)
+
+    return ToolResult.error_result("Action failed")
+
+
+async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
+    action = args.get("action")
+    if not isinstance(action, str) or not action:
+        return ToolResult.error_result("Missing required 'action' parameter")
+
+    if action not in PHASE2_ADAPTER_ROUTED_ACTIONS:
+        return ToolResult.error_result(f"Unhandled action: {action}")
+
+    controller = get_browser_controller()
+    adapter = get_browser_use_adapter(controller)
+    adapter_result = await adapter.execute(action, args)
+    return _adapter_result_to_tool_result(adapter_result)
+
+
 async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
     """
     Execute browser control action based on arguments.
@@ -271,21 +312,21 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
     # Route to appropriate handler
     try:
         if action == "connect":
-            result = await _handle_connect(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
         elif action == "status":
-            return await _handle_status(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "profiles":
             return await _handle_profiles(raw_args)
         elif action == "navigate":
-            result = await _handle_navigate(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
         elif action == "open":
-            result = await _handle_open(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
@@ -304,31 +345,31 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
                 action, raw_args, result
             )
         elif action == "press":
-            result = await _handle_press(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
         elif action == "scroll":
-            result = await _handle_scroll(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
         elif action == "screenshot":
             return await _handle_screenshot(raw_args)
         elif action == "wait":
-            result = await _handle_wait(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
         elif action == "get_tabs":
-            return await _handle_get_tabs(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "switch_tab":
-            result = await _handle_switch_tab(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
         elif action == "evaluate":
-            result = await _handle_evaluate(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
@@ -391,7 +432,7 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
                 action, raw_args, result
             )
         elif action == "close":
-            return await _handle_close(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         else:
             return ToolResult.error_result(f"Unhandled action: {action}")
     except Exception as e:
