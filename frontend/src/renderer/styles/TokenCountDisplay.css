@@ -1,11 +1,11 @@
 .token-count-display {
   display: flex;
-  gap: 10px;
-  padding: 6px 10px;
-  background: var(--surface-ink);
+  gap: 8px;
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 999px;
   border: 1px solid var(--border);
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   flex-wrap: wrap;
   align-items: center;
   font-family: var(--font-mono);
@@ -19,7 +19,7 @@
 }
 
 .token-label {
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-soft);
@@ -27,7 +27,7 @@
 
 .token-value {
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 @media (max-width: 720px) {

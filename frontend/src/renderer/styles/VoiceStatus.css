@@ -2,25 +2,26 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  width: min(940px, 100%);
+  margin: 0 auto 6px;
   padding: 8px 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text-muted);
-  font-size: 0.85rem;
-  margin-bottom: 6px;
+  font-size: 0.82rem;
 }
 
 .voice-status--error {
-  background: rgba(178, 60, 43, 0.08);
-  border-color: rgba(178, 60, 43, 0.3);
-  color: var(--danger);
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.36);
+  color: #fecaca;
 }
 
 .voice-status--active {
-  background: rgba(47, 143, 122, 0.12);
-  border-color: rgba(47, 143, 122, 0.3);
-  color: var(--accent-strong);
+  background: rgba(25, 195, 125, 0.12);
+  border-color: rgba(25, 195, 125, 0.36);
+  color: #9de9c7;
 }
 
 .voice-status-icon {
