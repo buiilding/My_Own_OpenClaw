@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(browser-use-port): complete Phase 0 artifacts for `docs/BROWSER_USE_PORT_IMPLEMENTATION_PLAN.md` with action-level parity ledger (`docs/plan/BROWSER_USE_PORT_PHASE0_PARITY_LEDGER.md`), baseline test run log (`docs/plan/BROWSER_USE_PORT_PHASE0_BASELINE_RUN_LOG.md`), and non-direct mapping decision log (`docs/plan/BROWSER_USE_PORT_PHASE0_DECISION_LOG.md`)
 - refactor(websocket-connection): centralize handshake failure policy in `api/routes/websocket/connection.py` with shared `_fail_handshake(...)`, remove duplicated exception-branch close/log handling, and add backend regression coverage for warning-vs-error handshake failure logging
 - refactor(websocket): centralize `handle_message` error-send fallback policy in `api/routes/websocket/message_handler.py` via shared `_send_error_with_fallback_logging(...)`, remove duplicated branch-level try/catch blocks, and add backend regression assertions for warning-vs-error fallback logging paths
 - refactor(sidecar-memory): centralize `conversation_id` SQL predicate construction in `LocalMemoryStore` with shared `_conversation_where_clause(...)`, remove duplicated NULL-vs-value query branches across transcript conversation methods, and add sidecar regression coverage for NULL-conversation delete cleanup
