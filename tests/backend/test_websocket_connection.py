@@ -177,6 +177,62 @@ async def test_perform_handshake_parse_runtime_error_closes_socket(monkeypatch) 
 
 
 @pytest.mark.asyncio
+async def test_perform_handshake_validation_failure_logs_warning(monkeypatch) -> None:
+    websocket = DummyWebSocket(json.dumps({"type": "handshake"}))
+    safe_ws = DummySafeWebSocket()
+    warning_calls = []
+    error_calls = []
+
+    monkeypatch.setattr(
+        connection_module.logger,
+        "warning",
+        lambda *args, **kwargs: warning_calls.append((args, kwargs)),
+    )
+    monkeypatch.setattr(
+        connection_module.logger,
+        "error",
+        lambda *args, **kwargs: error_calls.append((args, kwargs)),
+    )
+
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id is None
+    assert safe_ws.closed
+    assert len(warning_calls) == 1
+    assert error_calls == []
+
+
+@pytest.mark.asyncio
+async def test_perform_handshake_unexpected_failure_logs_error(monkeypatch) -> None:
+    websocket = DummyWebSocket(json.dumps({"type": "handshake", "user_id": "client_user"}))
+    safe_ws = DummySafeWebSocket()
+    warning_calls = []
+    error_calls = []
+
+    async def fail_parse(*_args, **_kwargs):
+        raise RuntimeError("parse blew up")
+
+    monkeypatch.setattr(connection_module, "parse_json_payload", fail_parse)
+    monkeypatch.setattr(
+        connection_module.logger,
+        "warning",
+        lambda *args, **kwargs: warning_calls.append((args, kwargs)),
+    )
+    monkeypatch.setattr(
+        connection_module.logger,
+        "error",
+        lambda *args, **kwargs: error_calls.append((args, kwargs)),
+    )
+
+    assigned_user_id = await perform_handshake(websocket, safe_ws)
+
+    assert assigned_user_id is None
+    assert safe_ws.closed
+    assert len(error_calls) == 1
+    assert warning_calls == []
+
+
+@pytest.mark.asyncio
 async def test_perform_handshake_handles_unexpected_errors_and_close_failures() -> None:
     class ExplodingWebSocket:
         async def receive_text(self) -> str:

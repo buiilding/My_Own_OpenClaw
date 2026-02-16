@@ -1,3 +1,69 @@
+# Refactor: Centralize WebSocket Handshake Failure Handling
+
+## Target
+Deduplicate handshake failure policy in:
+- `backend/src/api/routes/websocket/connection.py`
+
+This is a maintainability refactor on the WebSocket connection entry path.
+
+## Current Structure and Root Cause
+`perform_handshake(...)` had three separate `except` branches:
+- `PydanticValidationError`
+- `json.JSONDecodeError`
+- generic `Exception`
+
+Each branch duplicated the same control flow:
+1. log handshake failure
+2. close socket with policy-violation code via `_close_policy_violation(...)`
+3. return `None`
+
+Root cause: handshake failure policy (log + close + fail) lived inline per exception branch instead of being centralized.
+
+## Refactor Plan
+1. Add a shared helper for handshake failure handling.
+2. Keep severity split:
+  - validation/JSON failures -> warning
+  - unexpected runtime failures -> error
+3. Rewire all handshake exception branches to use helper.
+4. Keep handshake API unchanged (`str | None` return contract).
+5. Add regression assertions for warning-vs-error logging behavior and run connection tests.
+
+## Implemented Changes
+### Shared failure helper
+- Added `_fail_handshake(...)` in:
+  - `backend/src/api/routes/websocket/connection.py`
+
+Responsibilities:
+- log with correct severity based on `validation_error`
+- close socket via `_close_policy_violation(...)`
+
+### Handshake rewiring
+- Updated all `perform_handshake(...)` exception branches to delegate to `_fail_handshake(...)`.
+- Success path and return contract were preserved.
+
+### Regression coverage
+- Added:
+  - `test_perform_handshake_validation_failure_logs_warning`
+  - `test_perform_handshake_unexpected_failure_logs_error`
+- File:
+  - `tests/backend/test_websocket_connection.py`
+
+These tests verify log severity routing while preserving close-on-failure behavior.
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_websocket_connection.py
+```
+
+Result:
+- `15 passed`
+
+This confirms handshake behavior is unchanged while removing duplicated failure policy code.
+
+---
+
 # Refactor: Centralize WebSocket Error-Response Fallback Handling
 
 ## Target
