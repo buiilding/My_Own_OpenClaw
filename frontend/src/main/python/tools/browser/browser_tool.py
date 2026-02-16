@@ -16,7 +16,11 @@ import re
 from typing import Any, Dict, List, Optional
 
 from tools.browser.controller import get_browser_controller
-from tools.browser_use_adapter import AdapterActionResult, get_browser_use_adapter
+from tools.browser_use_adapter import (
+    AdapterActionResult,
+    MigrationDecision,
+    get_browser_use_adapter,
+)
 from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
@@ -77,6 +81,7 @@ PHASE2_ADAPTER_ROUTED_ACTIONS = frozenset(
     {
         "connect",
         "status",
+        "profiles",
         "navigate",
         "open",
         "click",
@@ -110,6 +115,9 @@ PHASE2_ADAPTER_ROUTED_ACTIONS = frozenset(
         "set_timezone",
         "set_locale",
         "set_device",
+        "snapshot",
+        "extract",
+        "act",
         "close",
     }
 )
@@ -311,10 +319,57 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
     if action not in PHASE2_ADAPTER_ROUTED_ACTIONS:
         return ToolResult.error_result(f"Unhandled action: {action}")
 
+    async def _snapshot_delegate(delegate_args: Dict[str, Any]) -> AdapterActionResult:
+        result = await _handle_snapshot(dict(delegate_args))
+        return _tool_result_to_adapter_result(
+            action="snapshot",
+            decision="compat",
+            result=result,
+        )
+
+    async def _extract_delegate(delegate_args: Dict[str, Any]) -> AdapterActionResult:
+        result = await _handle_extract(dict(delegate_args))
+        return _tool_result_to_adapter_result(
+            action="extract",
+            decision="compat",
+            result=result,
+        )
+
+    async def _act_delegate(delegate_args: Dict[str, Any]) -> AdapterActionResult:
+        result = await _handle_act(dict(delegate_args))
+        return _tool_result_to_adapter_result(
+            action="act",
+            decision="compat",
+            result=result,
+        )
+
     controller = get_browser_controller()
-    adapter = get_browser_use_adapter(controller)
+    adapter = get_browser_use_adapter(
+        controller,
+        legacy_handlers={
+            "snapshot": _snapshot_delegate,
+            "extract": _extract_delegate,
+            "act": _act_delegate,
+        },
+    )
     adapter_result = await adapter.execute(action, args)
     return _adapter_result_to_tool_result(adapter_result)
+
+
+def _tool_result_to_adapter_result(
+    *,
+    action: str,
+    decision: MigrationDecision,
+    result: ToolResult,
+) -> AdapterActionResult:
+    data = result.data if isinstance(result.data, dict) else {}
+    return AdapterActionResult(
+        success=result.success,
+        action=action,
+        decision=decision,
+        data=data,
+        error=result.error,
+    )
 
 
 async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
@@ -344,7 +399,7 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
         elif action == "status":
             return await _run_phase2_adapter_action(raw_args)
         elif action == "profiles":
-            return await _handle_profiles(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "navigate":
             result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
@@ -356,9 +411,9 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
                 action, raw_args, result
             )
         elif action == "snapshot":
-            return await _handle_snapshot(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "extract":
-            return await _handle_extract(raw_args)
+            return await _run_phase2_adapter_action(raw_args)
         elif action == "click":
             result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
@@ -452,7 +507,7 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
                 action, raw_args, result
             )
         elif action == "act":
-            result = await _handle_act(raw_args)
+            result = await _run_phase2_adapter_action(raw_args)
             return await _attach_post_action_snapshot_if_needed(
                 action, raw_args, result
             )
