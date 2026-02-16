@@ -248,6 +248,29 @@ Completion note:
 - Existing `browser_control` calls operate through Browser Use-backed internals for core actions.
 - No backend contract break in this phase.
 
+### Phase 2 Status (In Progress - Updated February 16, 2026)
+
+Delivered Phase 2 artifacts so far:
+
+1. Compatibility-wrapper module and adapter contract wiring:
+   - `frontend/src/main/python/tools/browser_use_adapter/types.py`
+   - `frontend/src/main/python/tools/browser_use_adapter/controller_adapter.py`
+   - `frontend/src/main/python/tools/browser_use_adapter/__init__.py`
+2. Browser tool routing through adapter for initial Phase 2 action batch:
+   - `frontend/src/main/python/tools/browser/browser_tool.py`
+3. Implementation progress log:
+   - `docs/plan/BROWSER_USE_PORT_PHASE2_COMPAT_WRAPPER_PROGRESS.md`
+
+Current routing coverage:
+
+- Adapter-routed actions: `connect`, `status`, `navigate`, `open`, `press`, `scroll`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `close`.
+- Remaining actions continue on direct handlers pending next migration slices.
+
+Validation snapshot:
+
+- Sidecar browser suites pass after routing (`tests/sidecar/tools/test_browser_tool.py`, `tests/sidecar/tools/test_browser_controller.py`).
+- Added adapter-routing regression coverage in `tests/sidecar/tools/test_browser_tool.py`.
+
 ## Phase 3: Core Action Migration (High-Value First)
 
 ### Minimum Action Set
