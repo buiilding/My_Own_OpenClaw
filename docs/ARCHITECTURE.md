@@ -144,7 +144,7 @@ Local-only mode remains available for privacy-first users:
    ↓
 2. useChatMessageSender hook handles message
    ↓
-3. Frontend captures screenshot (always, for visual context)
+3. Frontend captures screenshot when `include_query_screenshot=true` (default enabled)
    ↓
 4. Message sent via IpcBridge → Main Process
    ↓
@@ -190,7 +190,7 @@ Local-only mode remains available for privacy-first users:
 Screenshots are captured strategically at key points to provide visual context for AI decision-making. The system captures screenshots in the following scenarios:
 
 #### User Message Screenshots
-- **Timing**: Captured for every user message
+- **Timing**: Captured for user messages when `include_query_screenshot` is enabled (default `true`)
 - **Purpose**: Provides initial visual context showing the current screen state before any AI action
 - **Location**: `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - **Storage**: Included in user query payload sent to backend

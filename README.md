@@ -67,7 +67,7 @@ We have a **working AI assistant** with computer control, LLM integration, and t
 - [x] **Vision-First Navigation**: Primarily uses screenshots to navigate and understand the computer interface
 - [x] **OCR-Enhanced UI Automation**: `mouse_control` tool with `find_coordinates_by="ocr"` for precision clicking on detected text from screenshots
 - [x] **Vision-Language UI Control**: `mouse_control` tool with `find_coordinates_by="prediction"` using InternVL models to analyze screenshots and intelligently detect UI elements
-- [x] **Automatic Screenshot Capture**: Screenshots captured for user messages and after computer-use tool execution
+- [x] **Automatic Screenshot Capture**: Query screenshots captured when enabled (`include_query_screenshot=true` by default) and after computer-use tool execution
 - [x] **File System Tools**: Read/write/list file operations
 - [x] **Terminal Integration**: Safe command execution with process management
 
@@ -100,7 +100,7 @@ See our [Development Roadmap](#-development-roadmap) section below for the compl
 - **OCR-Enhanced UI**: `mouse_control` tool with `find_coordinates_by="ocr"` for clicking on text elements detected via optical character recognition from screenshots
 - **Vision-Language Models**: `mouse_control` tool with `find_coordinates_by="prediction"` using InternVL to analyze screenshots and intelligently detect UI elements
 - **Multi-Step Automation**: Complex workflows across applications, all driven by visual understanding of screen states
-- **Visual Feedback**: Screenshots captured for user messages and after computer-use tools for visual context
+- **Visual Feedback**: Query screenshots captured when enabled (`include_query_screenshot=true` by default), plus post-computer-use screenshots for visual context
 
 ### 🛠️ **Tool System**
 - **Registered Tools**: Tool registry + schema-driven execution
@@ -375,7 +375,7 @@ New to the project? No problem! Look for issues tagged:
 
 #### Milestone 5: Performance & Polish
 - [x] **Optional GPU Acceleration**: Embeddings/OCR/Vision when configured
-- [x] **Automatic Screenshots**: Screenshots for user messages and after computer-use tools
+- [x] **Automatic Screenshots**: Query screenshots when enabled (`include_query_screenshot=true` by default) and after computer-use tools
 - [x] **File System Integration**: Complete file operations toolkit
 - [x] **Example Tools**: Filesystem, system, and computer control tools
 

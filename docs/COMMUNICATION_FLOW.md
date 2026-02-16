@@ -136,7 +136,7 @@ so memory embedding/summarization calls target the same backend host.
 ```json
 {
   "id": "uuid-v4",
-  "type": "query|load-settings|list-models|update-settings|tool-result|tool-bundle-result|wakeword-detected",
+  "type": "query|rehydrate-conversation|load-settings|list-models|update-settings|tool-result|tool-bundle-result|wakeword-detected",
   "payload": { ... }
 }
 ```
@@ -156,7 +156,7 @@ so memory embedding/summarization calls target the same backend host.
 
 **`query`**
 - Purpose: User query with optional screenshot
-- Payload: `{ text: string, content?: string, screenshot?: string, config?: object }`
+- Payload: `{ text: string, conversation_ref: string, content?: string, screenshot?: string, screenshot_ref?: string, system_state_internal?: object }`
 - Response: Streaming response
 
 **`list-models`**
@@ -294,9 +294,9 @@ The Python sidecar uses REST endpoints on the same FastAPI server (default `http
    ↓
 2. useChatMessageSender hook handles message
    ↓
-3. Screenshot captured (always for visual context)
+3. Screenshot capture runs only when `include_query_screenshot=true` (default enabled)
    ↓
-4. Screenshot uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`
+4. If captured, screenshot uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`
    ↓
 5. IpcBridge.send('to-backend', { type: 'query', payload: { screenshot_ref, ... } })
    ↓
