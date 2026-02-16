@@ -33,6 +33,7 @@ This update delivers those tasks with compatibility-wrapper routing while preser
   - Adds strict-selection mode (`WINDIE_BROWSER_USE_RUNTIME_STRICT`) to fail fast instead of silently falling back when Browser Use runtime is explicitly requested.
 - `frontend/src/main/python/tools/browser_use_adapter/browser_use_native_runtime.py`
   - Adds optional Browser Use-native runtime factory entrypoint (`create_browser_use_native_runtime_provider`) for incremental action-level migration.
+  - When `browser_use` is installed and `WINDIE_BROWSER_USE_RUNTIME=browser_use_native`, the factory now returns a dedicated native-provider class scaffold (`BrowserUseNativeRuntimeProvider`) instead of always returning `None`.
 - `frontend/src/main/python/tools/browser_use_adapter/__init__.py`
   - Exposes adapter types/factory.
 
