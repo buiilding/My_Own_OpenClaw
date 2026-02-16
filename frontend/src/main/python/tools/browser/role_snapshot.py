@@ -281,29 +281,78 @@ def _remove_nth_from_non_duplicates(refs: Dict[str, RoleRef], tracker: _RoleName
 
 def _compact_tree(tree: str) -> str:
     lines = tree.split("\n")
-    result: List[str] = []
+    if not lines:
+        return tree
 
-    for i, line in enumerate(lines):
+    role_pattern = re.compile(r'^(\s*-\s*)(\w+)(?:\s+"([^"]*)")?(.*)$')
+    parsed: List[Tuple[Optional[str], Optional[str], int]] = []
+    for line in lines:
+        match = role_pattern.match(line)
+        role = match.group(2).lower() if match else None
+        name = match.group(3) if match else None
+        parsed.append((role, name, _get_indent_level(line)))
+
+    parents: List[Optional[int]] = [None] * len(lines)
+    children: List[List[int]] = [[] for _ in lines]
+    stack: List[Tuple[int, int]] = []
+    for idx, (_, _, depth) in enumerate(parsed):
+        while stack and stack[-1][0] >= depth:
+            stack.pop()
+        if stack:
+            parent_idx = stack[-1][1]
+            parents[idx] = parent_idx
+            children[parent_idx].append(idx)
+        stack.append((depth, idx))
+
+    core_keep: Set[int] = set()
+    for idx, line in enumerate(lines):
+        role, name, _ = parsed[idx]
         if "[ref=" in line:
-            result.append(line)
+            core_keep.add(idx)
             continue
-
-        # Keep content lines that include name text.
+        if role in CONTENT_ROLES and bool(name):
+            core_keep.add(idx)
+            continue
         if ":" in line and not line.rstrip().endswith(":"):
-            result.append(line)
+            core_keep.add(idx)
+
+    if not core_keep:
+        for line in lines:
+            if line.strip():
+                return line
+        return tree
+
+    subtree_has_core: List[bool] = [False] * len(lines)
+    for idx in range(len(lines) - 1, -1, -1):
+        has_core = idx in core_keep or any(subtree_has_core[child] for child in children[idx])
+        subtree_has_core[idx] = has_core
+
+    keep: Set[int] = set(core_keep)
+
+    # Keep immediate parent context for every relevant line.
+    for idx in core_keep:
+        parent_idx = parents[idx]
+        if parent_idx is not None:
+            keep.add(parent_idx)
+
+    # Keep branch points where multiple relevant branches exist.
+    for idx in range(len(lines)):
+        if not subtree_has_core[idx]:
             continue
+        relevant_children = 0
+        for child_idx in children[idx]:
+            if subtree_has_core[child_idx]:
+                relevant_children += 1
+                if relevant_children >= 2:
+                    keep.add(idx)
+                    break
 
-        current_indent = _get_indent_level(line)
-        has_relevant_children = False
-        for j in range(i + 1, len(lines)):
-            child_indent = _get_indent_level(lines[j])
-            if child_indent <= current_indent:
-                break
-            if "[ref=" in lines[j]:
-                has_relevant_children = True
-                break
+    # Keep each root that contains relevant descendants for minimal orientation.
+    for idx, parent_idx in enumerate(parents):
+        if parent_idx is None and subtree_has_core[idx]:
+            keep.add(idx)
 
-        if has_relevant_children:
-            result.append(line)
-
+    result: List[str] = [line for idx, line in enumerate(lines) if idx in keep]
+    if not result:
+        return tree
     return "\n".join(result)
