@@ -1,5 +1,3 @@
-import React from 'react';
-
 const RoadmapSection = () => {
   const phases = [
     {
@@ -63,12 +61,12 @@ const RoadmapSection = () => {
           <span className="badge badge-primary mb-4">Planned Roadmap</span>
           
           <h2 className="heading-2 mb-4">
-            Where we're
+            Where we&rsquo;re
             <span className="gradient-text"> headed.</span>
           </h2>
           <p className="text-large text-secondary max-w-2xl mx-auto">
-            WindieOS is actively developed. Here's what's available now and 
-            what's planned for future releases.
+            WindieOS is actively developed. Here&rsquo;s what&rsquo;s available now and
+            what&rsquo;s planned for future releases.
           </p>
         </div>
         

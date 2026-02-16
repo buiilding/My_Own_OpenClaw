@@ -1,5 +1,3 @@
-import React from 'react';
-
 const CTAFooter = () => {
   const currentYear = new Date().getFullYear();
 
