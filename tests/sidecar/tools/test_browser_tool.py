@@ -1060,14 +1060,17 @@ class TestPostActionSnapshots:
             assert (
                 result.data["post_action_snapshot"]["snapshot"] == "[1] button Submit"
             )
+            assert result.data["post_action_snapshot"]["offset"] == 0
+            assert result.data["post_action_snapshot"]["limit"] == 4000
+            assert result.data["post_action_snapshot"]["has_more"] is False
             mock_controller.wait_for_load.assert_awaited_once_with("load")
             mock_controller.get_page_snapshot.assert_awaited_once_with(
                 format_type="ai",
                 max_chars=4000,
                 refs_mode=None,
-                interactive=None,
-                compact=None,
-                depth=None,
+                interactive=True,
+                compact=True,
+                depth=4,
                 selector=None,
                 frame_selector=None,
             )
@@ -1109,21 +1112,24 @@ class TestPostActionSnapshots:
             assert (
                 result.data["post_action_snapshot"]["snapshot"] == "[1] button Submit"
             )
+            assert result.data["post_action_snapshot"]["offset"] == 0
+            assert result.data["post_action_snapshot"]["limit"] == 4000
+            assert result.data["post_action_snapshot"]["has_more"] is False
             mock_controller.wait_for_load.assert_awaited_once_with("load")
             mock_controller.get_page_snapshot.assert_awaited_once_with(
                 format_type="ai",
                 max_chars=4000,
                 refs_mode=None,
-                interactive=None,
-                compact=None,
-                depth=None,
+                interactive=True,
+                compact=True,
+                depth=4,
                 selector=None,
                 frame_selector=None,
             )
 
     @pytest.mark.asyncio
-    async def test_click_post_action_snapshot_keeps_zero_ref_result_without_retries(self):
-        """Post-action snapshot now uses flat AI capture and does not apply zero-ref retries."""
+    async def test_click_post_action_snapshot_uses_snapshot_retry_path(self):
+        """Post-action snapshot should use snapshot action defaults, including zero-ref retries."""
         from tools.browser.controller import PageSnapshot
 
         with mock.patch(
@@ -1158,16 +1164,40 @@ class TestPostActionSnapshots:
                 result.data["post_action_snapshot"]["snapshot"]
                 == "(no interactive elements)"
             )
-            mock_controller.get_page_snapshot.assert_awaited_once_with(
-                format_type="ai",
-                max_chars=4000,
-                refs_mode=None,
-                interactive=None,
-                compact=None,
-                depth=None,
-                selector=None,
-                frame_selector=None,
-            )
+            assert result.data["post_action_snapshot"]["offset"] == 0
+            assert result.data["post_action_snapshot"]["limit"] == 4000
+            assert result.data["post_action_snapshot"]["has_more"] is False
+            assert mock_controller.get_page_snapshot.await_count == 3
+            assert mock_controller.get_page_snapshot.await_args_list[0].kwargs == {
+                "format_type": "ai",
+                "max_chars": 4000,
+                "refs_mode": None,
+                "interactive": True,
+                "compact": True,
+                "depth": 4,
+                "selector": None,
+                "frame_selector": None,
+            }
+            assert mock_controller.get_page_snapshot.await_args_list[1].kwargs == {
+                "format_type": "ai",
+                "max_chars": 4000,
+                "refs_mode": None,
+                "interactive": True,
+                "compact": True,
+                "depth": 12,
+                "selector": None,
+                "frame_selector": None,
+            }
+            assert mock_controller.get_page_snapshot.await_args_list[2].kwargs == {
+                "format_type": "ai",
+                "max_chars": 4000,
+                "refs_mode": None,
+                "interactive": None,
+                "compact": None,
+                "depth": None,
+                "selector": None,
+                "frame_selector": None,
+            }
 
     @pytest.mark.asyncio
     async def test_snapshot_failure_does_not_fail_primary_action(self):

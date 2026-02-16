@@ -206,52 +206,6 @@ async def _capture_ai_snapshot_with_zero_ref_fallback(
         return fallback_snapshot
 
 
-async def _build_post_action_snapshot_payload(
-    controller,
-    *,
-    wait_until: str = "load",
-) -> Optional[Dict[str, Any]]:
-    wait_result = await controller.wait_for_load(wait_until)
-    if isinstance(wait_result, dict) and not wait_result.get("success", False):
-        raise RuntimeError(
-            wait_result.get("error", f"wait_for_load({wait_until}) failed")
-        )
-
-    snapshot = await _capture_ai_snapshot_with_zero_ref_fallback(
-        controller,
-        max_chars=DEFAULT_AI_SNAPSHOT_EFFICIENT_MAX_CHARS,
-        refs_mode=None,
-        interactive=None,
-        compact=None,
-        depth=None,
-        selector=None,
-        frame_selector=None,
-        enable_zero_ref_fallback=False,
-    )
-
-    text = getattr(snapshot, "text", None)
-    url = getattr(snapshot, "url", None)
-    title = getattr(snapshot, "title", None)
-    ref_count = getattr(snapshot, "ref_count", None)
-    if not isinstance(text, str):
-        return None
-    if not isinstance(url, str):
-        url = ""
-    if not isinstance(title, str):
-        title = ""
-    if not isinstance(ref_count, int):
-        ref_count = 0
-
-    return {
-        "action": "snapshot",
-        "format": "ai",
-        "url": url,
-        "title": title,
-        "snapshot": text,
-        "ref_count": ref_count,
-    }
-
-
 async def _attach_post_action_snapshot_if_needed(
     action: str,
     args: Dict[str, Any],
@@ -269,18 +223,22 @@ async def _attach_post_action_snapshot_if_needed(
         wait_until = "load"
 
     try:
-        payload = await _build_post_action_snapshot_payload(
-            controller, wait_until=wait_until
+        snapshot_result = await _handle_snapshot(
+            {
+                "action": "snapshot",
+                "format": "ai",
+                "wait_until": wait_until,
+            }
         )
     except Exception as exc:
         logger.warning("Post-action snapshot failed for '%s': %s", action, exc)
         return result
 
-    if not payload:
+    if not snapshot_result.success or not isinstance(snapshot_result.data, dict):
         return result
 
     assert isinstance(result.data, dict)
-    result.data["post_action_snapshot"] = payload
+    result.data["post_action_snapshot"] = dict(snapshot_result.data)
     return result
 
 

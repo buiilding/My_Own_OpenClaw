@@ -29,8 +29,8 @@ Workflow:
 5. Close: browser_control(action="close")
 
 For browser-mutating actions (including `connect`), successful results include
-`post_action_snapshot` with a compact `ai` snapshot payload
-(`snapshot`, `url`, `title`, `ref_count`).
+`post_action_snapshot` generated via the same `snapshot` action code path,
+including pagination metadata (`offset`, `limit`, `has_more`, `next_offset` when present).
 
 Actions:
 - connect: Initialize browser (requires mode)
