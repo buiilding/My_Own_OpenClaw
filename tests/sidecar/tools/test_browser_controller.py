@@ -584,6 +584,21 @@ class TestBrowserControllerSnapshot:
         assert "button" in snapshot.text
         assert snapshot.ref_count == 0
 
+    @pytest.mark.asyncio
+    async def test_get_aria_snapshot_truncates_to_max_chars(self):
+        """ARIA snapshot should respect max_chars truncation."""
+        self.controller._page.accessibility.snapshot.return_value = {
+            "role": "WebArea",
+            "name": "Example",
+            "children": [{"role": "button", "name": f"Item {i}"} for i in range(200)],
+        }
+
+        snapshot = await self.controller.get_page_snapshot(format_type="aria", max_chars=200)
+
+        assert snapshot.title == "Example"
+        assert snapshot.ref_count == 0
+        assert len(snapshot.text) <= 200
+
 
 class TestSingleton:
     """Test singleton pattern."""

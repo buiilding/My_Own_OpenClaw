@@ -535,7 +535,42 @@ class TestSnapshotAction:
             mock_controller.wait_for_load.assert_awaited_once_with("load")
             mock_controller.get_page_snapshot.assert_awaited_once_with(
                 format_type="aria",
-                max_chars=12000,
+                max_chars=4000,
+                refs_mode=None,
+                interactive=None,
+                compact=None,
+                depth=None,
+                selector=None,
+                frame_selector=None,
+            )
+
+    @pytest.mark.asyncio
+    async def test_snapshot_aria_max_chars_is_hard_capped_at_4000(self):
+        """ARIA snapshot requests should never exceed 4000 chars."""
+        with mock.patch("tools.browser.browser_tool.get_browser_controller") as mock_get:
+            mock_controller = mock.AsyncMock()
+            mock_controller.is_connected = True
+            mock_controller.wait_for_load.return_value = {"success": True, "state": "load"}
+
+            from tools.browser.controller import PageSnapshot
+            mock_controller.get_page_snapshot.return_value = PageSnapshot(
+                text='- button "Submit"',
+                url="https://example.com",
+                title="Example",
+                ref_count=0,
+            )
+            mock_get.return_value = mock_controller
+
+            result = await execute_browser_control({
+                "action": "snapshot",
+                "format": "aria",
+                "max_chars": 10000,
+            })
+
+            assert result.success is True
+            mock_controller.get_page_snapshot.assert_awaited_once_with(
+                format_type="aria",
+                max_chars=4000,
                 refs_mode=None,
                 interactive=None,
                 compact=None,

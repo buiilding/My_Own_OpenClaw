@@ -87,6 +87,7 @@ Includes the last 300 commits on `main`.
 - fix(browser-snapshot): make compact role snapshots prune redundant single-path structural wrappers while preserving actionable refs and minimal branch/root context
 - fix(browser-snapshot): lower efficient AI snapshot default budget from 8,000 to 4,000 chars for manual snapshots and automatic post-action snapshots (override remains available via `max_chars`)
 - fix(browser-snapshot): add efficient AI zero-ref auto-fallback (retry `depth=12` role snapshot, then flat AI snapshot when unscoped) for both manual `snapshot` and automatic `post_action_snapshot`
+- fix(browser-snapshot): cap `aria` snapshot output at 4,000 chars (including tool-level `max_chars` clamp + controller-side truncation)
 - fix(browser-switch-tab): resolve switch-tab tool crash by returning title/url from awaited controller status instead of sync `current_title` property access
 - fix(browser-click): for native `select/option` targets with recoverable click interception failures, try `select_option` fallback before force-click and surface `strategy="select_option"` in tool output
 - refactor(browser-control): remove `highlight` action from browser runtime routes, backend/sidecar schemas, and docs; delete unused `BrowserController.highlight()` and obsolete `duration_ms`/`durationMs` browser-control fields
