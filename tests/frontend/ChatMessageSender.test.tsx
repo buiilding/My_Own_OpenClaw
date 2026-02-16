@@ -1,8 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import {
-  resolveReturnToChatboxOnSend,
-  useChatMessageSender,
-} from '../../frontend/src/renderer/features/chat/hooks/useChatMessageSender';
+import { useChatMessageSender } from '../../frontend/src/renderer/features/chat/hooks/useChatMessageSender';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { extractOSstate } from '../../frontend/src/renderer/infrastructure/services/SystemCapture';
@@ -60,17 +57,6 @@ const mockGetActiveConversationRef = getActiveConversationRef as jest.MockedFunc
 const mockSetActiveConversationRef = setActiveConversationRef as jest.MockedFunction<typeof setActiveConversationRef>;
 const mockGetTranscriptSessionInfo = getTranscriptSessionInfo as jest.MockedFunction<typeof getTranscriptSessionInfo>;
 
-describe('resolveReturnToChatboxOnSend', () => {
-  test('returns policy-driven behavior for never/auto/always', () => {
-    expect(resolveReturnToChatboxOnSend('never', true)).toBe(false);
-    expect(resolveReturnToChatboxOnSend('never', false)).toBe(false);
-    expect(resolveReturnToChatboxOnSend('auto', true)).toBe(true);
-    expect(resolveReturnToChatboxOnSend('auto', false)).toBe(false);
-    expect(resolveReturnToChatboxOnSend('always', true)).toBe(true);
-    expect(resolveReturnToChatboxOnSend('always', false)).toBe(true);
-  });
-});
-
 describe('useChatMessageSender', () => {
   beforeEach(() => {
     jest.spyOn(console, 'warn').mockImplementation(() => {});
@@ -113,7 +99,7 @@ describe('useChatMessageSender', () => {
 
   test('returns to chatbox without focus when configured', async () => {
     const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { returnToChatboxPolicy: 'always' }),
+      useChatMessageSender(undefined, { senderSurface: 'main-window' }),
     );
 
     await act(async () => {
@@ -141,11 +127,26 @@ describe('useChatMessageSender', () => {
     expect(mockSendQuery.mock.calls[0]).toEqual(['hello', 'conv_msg-1', null, null]);
   });
 
+  test('overlay-chatbox surface never switches windows by default', async () => {
+    const { result } = renderHook(() =>
+      useChatMessageSender(undefined, { senderSurface: 'overlay-chatbox' }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SHOW_CHATBOX,
+      { focus: false },
+    );
+  });
+
   test('continues send flow when return-to-chatbox invoke fails', async () => {
     (window as any).ipc.invoke = jest.fn().mockRejectedValue(new Error('show-failed'));
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { returnToChatboxPolicy: 'always' }),
+      useChatMessageSender(undefined, { senderSurface: 'main-window' }),
     );
 
     await act(async () => {
@@ -164,7 +165,7 @@ describe('useChatMessageSender', () => {
   test('does not return to chatbox when screenshots are disabled even if requested', async () => {
     mockFrontendConfig = { include_query_screenshot: false };
     const { result } = renderHook(() =>
-      useChatMessageSender(undefined, { returnToChatboxPolicy: 'auto' }),
+      useChatMessageSender(undefined, { senderSurface: 'main-window' }),
     );
 
     await act(async () => {
