@@ -1,3 +1,64 @@
+# Refactor: Reuse Parsed Event Type in QueryExecutionService Stream Loop
+
+## Target
+Reduce repeated per-event parsing in:
+- `backend/src/api/services/query_execution.py`
+
+This is a performance + maintainability refactor on a central hot path (query streaming loop).
+
+## Current Structure and Root Cause
+Inside `QueryExecutionService.execute()`, each streamed event was repeatedly re-parsed:
+- `_is_non_empty_text_chunk(event)` called `_extract_event_type(event)`
+- `_extract_assistant_full_text(event)` called `_extract_event_type(event)` again
+- `_is_streaming_complete_event(event)` called `_extract_event_type(event)` again
+- `_is_error_event(event)` called `_extract_event_type(event)` again
+
+Root cause: event classification helpers did their own type extraction instead of reusing a single parsed event type in the loop. On long streaming responses, this multiplies dict/attribute lookups and adds avoidable CPU overhead.
+
+## Refactor Plan
+1. Parse `event_type` once per streamed event in `execute()`.
+2. Introduce a helper that returns non-empty chunk text with optional precomputed `event_type`.
+3. Update assistant/completion text extractors to accept optional precomputed `event_type`.
+4. Switch terminal/error checks in the loop to direct `event_type` comparisons.
+5. Add focused regression coverage for the new helper behavior and run backend handler tests.
+
+## Implemented Changes
+### Stream-loop optimization
+- Updated `execute()` in `backend/src/api/services/query_execution.py` to:
+  - compute `event_type` once per event
+  - reuse it for chunk, assistant-full, terminal, and error logic
+  - pass precomputed type into completion-text resolution
+
+### Helper consolidation
+- Added `_TEXT_CHUNK_EVENT_TYPES` constant.
+- Added `QueryExecutionService._extract_non_empty_chunk_text(...)`.
+- Updated these methods to accept optional precomputed event type:
+  - `_extract_assistant_full_text(...)`
+  - `_extract_streaming_complete_text(...)`
+  - `_resolve_completion_text(...)`
+
+Behavior was intentionally preserved; only repeated parsing work was removed.
+
+### Regression coverage
+- Added `test_query_execution_extract_non_empty_chunk_text_respects_precomputed_event_type` in:
+  - `tests/backend/test_api_handlers.py`
+
+The test validates chunk extraction behavior when `event_type` is precomputed, including payload-text extraction, whitespace-only chunk filtering, and non-chunk event rejection.
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_api_handlers.py
+```
+
+Result:
+- `24 passed`
+
+This confirms query handler behavior remains stable after stream-loop refactoring.
+
+---
+
 # Refactor: Short-Circuit Empty LocalMemoryStore Searches
 
 ## Target

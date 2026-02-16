@@ -13,6 +13,7 @@ from backend.src.api.handlers.settings import (
 from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.api.handlers import query as query_handler_module
+from backend.src.api.services import query_execution as query_execution_module
 from backend.src.api.services import rehydrate_execution as rehydrate_execution_module
 from backend.src.api.schemas.incoming import ToolResultData, ToolResultSystemState
 from backend.src.api.schema import (
@@ -577,6 +578,23 @@ async def test_query_handler_applies_runtime_system_state_internal(monkeypatch):
 
     assert len(session_manager.session.calls) == 1
     assert session_manager.session.runtime_state_updates[-1]["screen_resolution"] == "2560x1440"
+
+
+def test_query_execution_extract_non_empty_chunk_text_respects_precomputed_event_type():
+    service_cls = query_execution_module.QueryExecutionService
+
+    assert service_cls._extract_non_empty_chunk_text(
+        {"type": "content", "payload": {"text": "payload chunk"}},
+        event_type="content",
+    ) == "payload chunk"
+    assert service_cls._extract_non_empty_chunk_text(
+        {"type": "chunk", "content": "   "},
+        event_type="chunk",
+    ) == ""
+    assert service_cls._extract_non_empty_chunk_text(
+        {"type": "tool-call", "content": "ignored"},
+        event_type="tool-call",
+    ) == ""
 
 
 @pytest.mark.asyncio

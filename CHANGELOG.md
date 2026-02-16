@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(query-execution): parse stream event type once per loop iteration in `QueryExecutionService.execute()`, add shared non-empty chunk extractor with precomputed type support, and add backend regression coverage for precomputed chunk classification
 - refactor(sidecar-memory): short-circuit `LocalMemoryStore.search()` before embedding generation when no searchable FAISS indices are available, add shared search-target planner, and add sidecar regression coverage to ensure empty-index searches skip embedder calls
 - test(multi): add regression coverage for sidecar semantic-client default normalization and close-noop behavior, frontend transcript session-state cache/empty-user update behavior, and backend API error sanitization/send-failure branches
 - refactor(api-registry): precompute middleware async-dispatch metadata in `MessageHandlerRegistry`, reduce per-message awaitability introspection on websocket message routing, and add backend coverage for async-callable/sync-awaitable/fail-closed middleware behavior
