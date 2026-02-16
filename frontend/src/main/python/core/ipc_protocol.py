@@ -8,7 +8,7 @@ with Electron main process.
 import json
 import logging
 from dataclasses import dataclass
-from inspect import iscoroutinefunction
+from inspect import Signature, iscoroutinefunction, signature
 from typing import Any, Callable, Dict, Optional
 
 from core.stdout_json import write_json_line
@@ -23,6 +23,7 @@ class RegisteredMethod:
     handler: Any
     is_callable: bool
     is_async_callable: bool
+    handler_signature: Optional[Signature]
 
 
 class JSONRPCError(Exception):
@@ -55,10 +56,17 @@ class JSONRPCProtocol:
     def register_method(self, name: str, handler: Callable[..., Any]) -> None:
         """Register a method handler."""
         is_callable = callable(handler)
+        handler_signature: Optional[Signature] = None
+        if is_callable:
+            try:
+                handler_signature = signature(handler)
+            except (TypeError, ValueError):
+                handler_signature = None
         self.methods[name] = RegisteredMethod(
             handler=handler,
             is_callable=is_callable,
             is_async_callable=is_callable and iscoroutinefunction(handler),
+            handler_signature=handler_signature,
         )
         logger.debug(f"Registered method: {name}")
     
@@ -101,7 +109,7 @@ class JSONRPCProtocol:
         if data is not None:
             error["data"] = data
         return self.create_response(request_id, error=error)
-    
+
     async def handle_request(self, request: Any) -> Optional[Dict[str, Any]]:
         """
         Handle a JSON-RPC request.
@@ -122,7 +130,7 @@ class JSONRPCProtocol:
             response = self.create_error_response(
                 request_id,
                 self.INVALID_REQUEST,
-                "Invalid JSON-RPC version. Must be '2.0'"
+                "Invalid JSON-RPC version. Must be '2.0'",
             )
             return None if is_notification else response
         
@@ -132,14 +140,14 @@ class JSONRPCProtocol:
             response = self.create_error_response(
                 request_id,
                 self.INVALID_REQUEST,
-                "Method name is required"
+                "Method name is required",
             )
             return None if is_notification else response
         if not isinstance(method_name, str):
             response = self.create_error_response(
                 request_id,
                 self.INVALID_REQUEST,
-                "Method name must be a string"
+                "Method name must be a string",
             )
             return None if is_notification else response
         
@@ -149,7 +157,7 @@ class JSONRPCProtocol:
             response = self.create_error_response(
                 request_id,
                 self.METHOD_NOT_FOUND,
-                f"Method not found: {method_name}"
+                f"Method not found: {method_name}",
             )
             return None if is_notification else response
         
@@ -159,9 +167,20 @@ class JSONRPCProtocol:
             response = self.create_error_response(
                 request_id,
                 self.INVALID_PARAMS,
-                "Params must be an object"
+                "Params must be an object",
             )
             return None if is_notification else response
+
+        if registered_method.is_callable and registered_method.handler_signature is not None:
+            try:
+                registered_method.handler_signature.bind(**params)
+            except TypeError as exc:
+                response = self.create_error_response(
+                    request_id,
+                    self.INVALID_PARAMS,
+                    f"Invalid params: {exc}",
+                )
+                return None if is_notification else response
         
         # Call handler
         try:
@@ -183,7 +202,7 @@ class JSONRPCProtocol:
             response = self.create_error_response(
                 request_id,
                 self.INTERNAL_ERROR,
-                f"Internal error: {str(e)}"
+                f"Internal error: {str(e)}",
             )
             return None if is_notification else response
     

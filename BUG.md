@@ -919,3 +919,44 @@ In `frontend/src/main/python/tools/result.py`, `ToolResult.to_dict()` dropped va
 - Runtime check:
   - Before: `ToolResult.success_result({}).to_dict()` -> `{"success": True}`
   - After: `ToolResult.success_result({}).to_dict()` -> `{"success": True, "data": {}}`
+
+---
+
+## [x] Bug Report: JSON-RPC Argument Binding Errors Were Misclassified As Internal Errors
+
+### Summary
+
+In `frontend/src/main/python/core/ipc_protocol.py`, JSON-RPC calls with missing or unexpected method parameters were returned as `INTERNAL_ERROR` (`-32603`) instead of `INVALID_PARAMS` (`-32602`).
+
+### Root Cause
+
+- `handle_request(...)` called method handlers directly (`handler(**params)`).
+- Python `TypeError` from argument binding (for example missing required args) was caught by the generic exception handler.
+- The generic handler always mapped these failures to `INTERNAL_ERROR`.
+
+### Why It's Problematic
+
+- Violates JSON-RPC semantics: malformed params should return `INVALID_PARAMS`.
+- Misleads clients into treating caller-side request bugs as server faults.
+- Creates noisy stack traces and weakens retry/diagnostic behavior for tooling around the protocol.
+
+### Fix
+
+- Extended `RegisteredMethod` with precomputed callable signatures (`handler_signature`).
+- During method registration, capture `inspect.signature(handler)` when available.
+- In `handle_request(...)`, validate params with `handler_signature.bind(**params)` before invoking the handler.
+- If binding fails, return:
+  - code `-32602` (`INVALID_PARAMS`)
+  - message prefixed with `"Invalid params: ..."`
+
+### Validation
+
+- Added regression tests in `tests/sidecar/test_json_rpc_protocol.py`:
+  - `test_handle_request_missing_required_param_returns_invalid_params`
+  - `test_handle_request_unexpected_param_returns_invalid_params`
+- Re-ran targeted sidecar suites:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_local_backend.py`
+  - Result: `52 passed`
+- Runtime check:
+  - Before: missing/extra args returned `-32603 Internal error`
+  - After: missing/extra args return `-32602 Invalid params`
