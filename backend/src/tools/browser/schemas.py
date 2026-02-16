@@ -109,6 +109,10 @@ class BrowserExtractArgs(BaseModel):
         max_length=2000,
         description="Extraction goal/query (for example: 'list all pricing tiers and monthly cost')",
     )
+    mode: Literal["focused", "full_text", "structured"] = Field(
+        "focused",
+        description="Extraction mode: focused (keyword filter), full_text (unfiltered text window), or structured (table/list JSON window).",
+    )
     extract_links: bool = Field(
         False,
         description="Include page links in extracted source text before query filtering.",
@@ -126,6 +130,12 @@ class BrowserExtractArgs(BaseModel):
     )
     wait_until: Literal["load", "domcontentloaded", "networkidle", "commit"] = Field(
         "load", description="Wait for this load state before extracting page content."
+    )
+    selector: Optional[str] = Field(
+        None, description="Optional CSS selector to scope extraction."
+    )
+    frame: Optional[str] = Field(
+        None, description="Optional iframe selector scope for extraction."
     )
     output_schema: Optional[Dict[str, Any]] = Field(
         None,
@@ -424,9 +434,20 @@ class BrowserControlArgs(BaseModel):
     ] = Field(..., description="Browser action to perform")
 
     # Connection args
-    mode: Literal["user_chrome", "managed", "efficient"] = Field(
+    mode: Literal[
         "user_chrome",
-        description="Browser mode for connect action ('user_chrome'/'managed') or snapshot mode ('efficient')",
+        "managed",
+        "efficient",
+        "focused",
+        "full_text",
+        "structured",
+    ] = Field(
+        "user_chrome",
+        description=(
+            "Browser mode for connect action ('user_chrome'/'managed'), "
+            "snapshot mode ('efficient'), or extract modes "
+            "('focused'/'full_text'/'structured')."
+        ),
     )
     cdp_url: Optional[str] = Field(
         "http://127.0.0.1:9222", description="CDP URL for user Chrome mode"

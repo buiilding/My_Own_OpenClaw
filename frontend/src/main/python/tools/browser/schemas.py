@@ -121,6 +121,10 @@ class BrowserExtractArgs(BaseModel):
         max_length=2000,
         description="Extraction goal/query (for example: 'list all pricing tiers and monthly cost')",
     )
+    mode: Literal["focused", "full_text", "structured"] = Field(
+        "focused",
+        description="Extraction mode: focused (keyword filter), full_text (unfiltered text window), or structured (table/list JSON window).",
+    )
     extract_links: bool = Field(
         False,
         description="Include page links in extracted source text before query filtering.",
@@ -138,6 +142,12 @@ class BrowserExtractArgs(BaseModel):
     )
     wait_until: Literal["load", "domcontentloaded", "networkidle", "commit"] = Field(
         "load", description="Wait for this load state before extracting page content."
+    )
+    selector: Optional[str] = Field(
+        None, description="Optional CSS selector to scope extraction."
+    )
+    frame: Optional[str] = Field(
+        None, description="Optional iframe selector scope for extraction."
     )
     output_schema: Optional[Dict[str, Any]] = Field(
         None,
@@ -299,8 +309,20 @@ class BrowserOpenClawCompatArgs(BaseModel):
         "set_locale",
         "set_device",
     ] = Field(..., description="OpenClaw-compatible browser action")
-    mode: Optional[Literal["user_chrome", "managed", "efficient"]] = Field(
-        None, description="Connect/snapshot mode for compatible actions."
+    mode: Optional[
+        Literal[
+            "user_chrome",
+            "managed",
+            "efficient",
+            "focused",
+            "full_text",
+            "structured",
+        ]
+    ] = Field(
+        None,
+        description=(
+            "Connect/snapshot/extract mode for compatible actions."
+        ),
     )
     cdp_url: Optional[str] = Field(None, description="Optional CDP URL.")
     target_id: Optional[str] = Field(None, description="Tab target ID")

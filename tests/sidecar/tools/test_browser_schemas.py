@@ -159,8 +159,22 @@ class TestBrowserExtractArgs:
         args = BrowserExtractArgs(action="extract", query="find pricing tiers")
         assert args.action == "extract"
         assert args.query == "find pricing tiers"
+        assert args.mode == "focused"
         assert args.extract_links is False
         assert args.start_from_char == 0
+
+    def test_valid_extract_structured_mode(self):
+        """Test structured extract mode with selector scope."""
+        args = BrowserExtractArgs(
+            action="extract",
+            query="api keys",
+            mode="structured",
+            selector="table.wikitable",
+            frame="#main-frame",
+        )
+        assert args.mode == "structured"
+        assert args.selector == "table.wikitable"
+        assert args.frame == "#main-frame"
 
     def test_extract_bounds(self):
         """Test extract argument bounds."""
@@ -172,6 +186,9 @@ class TestBrowserExtractArgs:
 
         with pytest.raises(ValidationError):
             BrowserExtractArgs(action="extract", query="ok", max_chars=50)
+
+        with pytest.raises(ValidationError):
+            BrowserExtractArgs(action="extract", query="ok", mode="invalid")
 
 
 class TestBrowserClickArgs:
