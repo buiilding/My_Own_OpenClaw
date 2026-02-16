@@ -61,6 +61,24 @@ function rejectPendingRequests(reason) {
   }
 }
 
+function resetBackendProcessState(reason) {
+  pythonProcess = null;
+  isPythonReady = false;
+  readinessCheckCallback = null;
+  rejectPendingRequests(reason);
+  stdoutBuffer = '';
+}
+
+function notifyBackendUnavailable(mainWindow, error) {
+  if (!error) {
+    return;
+  }
+  mainWindow?.webContents.send('local-backend-status', {
+    ready: false,
+    error,
+  });
+}
+
 /**
  * Get Python executable path (cached after first lookup)
  */
@@ -241,38 +259,24 @@ function startLocalBackend(mainWindow) {
   // Handle process exit
   pythonProcess.on('exit', (code, signal) => {
     console.log(`[LocalBackend] Python process exited with code ${code}, signal ${signal}`);
-    pythonProcess = null;
-    isPythonReady = false;
-    readinessCheckCallback = null;
-    rejectPendingRequests('Local backend process exited');
-    stdoutBuffer = '';
-    
-    if (code !== 0 && code !== null) {
-      mainWindow?.webContents.send('local-backend-status', { 
-        ready: false,
-        error: `Python process exited with code ${code}`
-      });
-    }
+    resetBackendProcessState('Local backend process exited');
+    const exitError = code !== 0 && code !== null
+      ? `Python process exited with code ${code}`
+      : null;
+    notifyBackendUnavailable(mainWindow, exitError);
   });
 
   // Handle process errors
   pythonProcess.on('error', (error) => {
     console.error('[LocalBackend] Failed to start Python process:', error);
-    pythonProcess = null;
-    isPythonReady = false;
-    readinessCheckCallback = null;
-    rejectPendingRequests('Local backend process error');
-    stdoutBuffer = '';
-    
+    resetBackendProcessState('Local backend process error');
+
     let errorMessage = error.message;
     if (error.code === 'ENOENT') {
       errorMessage = `Python executable '${pythonPath}' not found. Please install Python 3 or ensure it is in your PATH.`;
     }
-    
-    mainWindow?.webContents.send('local-backend-status', { 
-      ready: false, 
-      error: errorMessage 
-    });
+
+    notifyBackendUnavailable(mainWindow, errorMessage);
   });
 }
 

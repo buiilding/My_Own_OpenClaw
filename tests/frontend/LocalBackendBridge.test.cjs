@@ -415,4 +415,37 @@ describe('local_backend_bridge', () => {
       error: 'Local backend process exited',
     });
   });
+
+  test('sidecar non-zero exit reports unavailable status', () => {
+    const { mainWindow } = initBridge();
+    markReady();
+
+    processHandlers.exit?.(2, null);
+
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', {
+      ready: false,
+      error: 'Python process exited with code 2',
+    });
+  });
+
+  test('execute-tool rejects in-flight request when sidecar emits process error', async () => {
+    const { mainWindow } = initBridge();
+    markReady();
+
+    const promise = handlers['execute-tool'](null, {
+      toolName: 'read_file',
+      args: { file_path: '/tmp/a' },
+    });
+
+    processHandlers.error?.(new Error('spawn fail'));
+
+    await expect(promise).resolves.toEqual({
+      success: false,
+      error: 'Local backend process error',
+    });
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('local-backend-status', {
+      ready: false,
+      error: 'spawn fail',
+    });
+  });
 });
