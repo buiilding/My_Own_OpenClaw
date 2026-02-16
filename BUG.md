@@ -203,3 +203,38 @@ In `frontend/src/main/python/local_backend.py`, `_handle_store_memory(...)` acce
 - Re-ran local backend sidecar tests:
   - `./scripts/python-in-env sidecar pytest tests/sidecar/test_local_backend.py`
   - Result: `25 passed`.
+
+---
+
+## [x] Bug Report: Stop Timer Can SIGKILL a Newly Restarted Local Backend Process
+
+### Summary
+
+In `frontend/src/main/local_backend_bridge.cjs`, `stopLocalBackend()` scheduled a delayed `SIGKILL` using the global `pythonProcess` reference. If the sidecar restarted before that timer fired, the delayed kill could target the new process instead of the original one.
+
+### Root Cause
+
+- `stopLocalBackend()` sent `SIGTERM` and then used:
+  - `setTimeout(() => { if (pythonProcess) pythonProcess.kill('SIGKILL'); }, 5000)`
+- `pythonProcess` is mutable and reused after restart.
+- The timer closure did not bind to the original process instance.
+
+### Why It's Problematic
+
+- Can kill a healthy restarted sidecar unexpectedly.
+- Produces flaky startup/reconnect behavior that is hard to diagnose.
+- Creates race-condition crashes during normal shutdown/restart cycles.
+
+### Fix
+
+- Capture the process instance at shutdown call time (`processToStop`).
+- Send `SIGTERM` to `processToStop`.
+- In delayed force-kill, only send `SIGKILL` when `pythonProcess === processToStop`.
+
+### Validation
+
+- Added regression test in `tests/frontend/LocalBackendBridge.test.cjs`:
+  - `stopLocalBackend force-kill timer does not kill restarted process`
+- Re-ran local backend bridge tests:
+  - `cd frontend && npm run test -- tests/frontend/LocalBackendBridge.test.cjs`
+  - Result: `14 passed`.

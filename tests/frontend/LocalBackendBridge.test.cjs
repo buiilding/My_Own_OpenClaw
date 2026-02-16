@@ -448,4 +448,68 @@ describe('local_backend_bridge', () => {
       error: 'spawn fail',
     });
   });
+
+  test('stopLocalBackend force-kill timer does not kill restarted process', () => {
+    jest.useFakeTimers();
+
+    const createProcess = () => {
+      const procHandlers = {};
+      const proc = {
+        stdin: { write: jest.fn() },
+        stdout: {
+          on: jest.fn((event, handler) => {
+            if (event === 'data') {
+              proc._stdoutHandler = handler;
+            }
+          }),
+        },
+        stderr: { on: jest.fn() },
+        on: jest.fn((event, handler) => {
+          procHandlers[event] = handler;
+        }),
+        kill: jest.fn(),
+        _handlers: procHandlers,
+        _stdoutHandler: null,
+      };
+      return proc;
+    };
+
+    const firstProcess = createProcess();
+    const secondProcess = createProcess();
+    jest.resetModules();
+    handlers = {};
+    stdoutHandler = null;
+    processHandlers = {};
+    spawn = require('child_process').spawn;
+    ipcMain = require('electron').ipcMain;
+    spawn.mockImplementationOnce(() => firstProcess);
+    spawn.mockImplementationOnce(() => secondProcess);
+    ipcMain.handle.mockImplementation((channel, handler) => {
+      handlers[channel] = handler;
+    });
+    bridge = require(path.join(
+      __dirname,
+      '../../frontend/src/main/local_backend_bridge.cjs',
+    ));
+
+    const mainWindow = {
+      webContents: {
+        send: jest.fn(),
+      },
+    };
+
+    bridge.initializeLocalBackendBridge(mainWindow);
+
+    bridge.stopLocalBackend();
+    expect(firstProcess.kill).toHaveBeenCalledWith('SIGTERM');
+
+    firstProcess._handlers.exit?.(0, null);
+    bridge.initializeLocalBackendBridge(mainWindow);
+
+    jest.advanceTimersByTime(5000);
+
+    expect(firstProcess.kill).not.toHaveBeenCalledWith('SIGKILL');
+    expect(secondProcess.kill).not.toHaveBeenCalledWith('SIGKILL');
+    jest.useRealTimers();
+  });
 });

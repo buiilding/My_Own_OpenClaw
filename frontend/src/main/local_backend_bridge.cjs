@@ -385,14 +385,15 @@ async function sendMemorySearchRequest({
  */
 function stopLocalBackend() {
   if (pythonProcess) {
+    const processToStop = pythonProcess;
     console.log('[LocalBackend] Stopping Python process...');
-    pythonProcess.kill('SIGTERM');
+    processToStop.kill('SIGTERM');
 
     // Force kill if still running after 5 seconds
     setTimeout(() => {
-      if (pythonProcess) {
+      if (pythonProcess && pythonProcess === processToStop) {
         console.log('[LocalBackend] Force killing Python process');
-        pythonProcess.kill('SIGKILL');
+        processToStop.kill('SIGKILL');
       }
     }, 5000);
   }
