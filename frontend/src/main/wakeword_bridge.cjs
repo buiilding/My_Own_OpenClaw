@@ -14,6 +14,7 @@ let isPythonReady = false;
 let audioQueue = [];
 let processingQueue = false;
 let stderrBuffer = '';
+let wakewordDetectedCallback = null;
 
 /**
  * Get Python executable path
@@ -118,7 +119,7 @@ function startWakewordService(mainWindow, onWakewordDetected) {
 
   // Handle stdout (detection results only - ready signal now comes via stderr)
   pythonProcess.stdout.on('data', (data) => {
-    processDetectionResults(data, mainWindow, onWakewordDetected);
+    processDetectionResults(data, mainWindow, onWakewordDetected || wakewordDetectedCallback);
   });
 
   // Handle process exit
@@ -267,6 +268,7 @@ function stopWakewordService() {
  * Initialize wakeword bridge IPC handlers
  */
 function initializeWakewordBridge(mainWindow, onWakewordDetected) {
+  wakewordDetectedCallback = onWakewordDetected;
   // Start service when bridge is initialized
   startWakewordService(mainWindow, onWakewordDetected);
 
@@ -308,7 +310,7 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected) {
     isWakewordEnabled = true;
     if (!pythonProcess) {
       console.log('[Wakeword] Starting Python service...');
-      startWakewordService(mainWindow);
+      startWakewordService(mainWindow, wakewordDetectedCallback);
     } else if (isPythonReady) {
       // Service already ready, send status immediately (silently, renderer will handle it)
       mainWindow?.webContents.send('wakeword-status', { ready: true });
@@ -342,4 +344,3 @@ module.exports = {
   startWakewordService,
   stopWakewordService,
 };
-
