@@ -78,6 +78,23 @@ async def test_parse_and_validate_message_rejects_malformed_json() -> None:
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_handles_unexpected_parse_errors(monkeypatch) -> None:
+    async def raise_unexpected(*_args, **_kwargs):
+        raise RuntimeError("decoder exploded")
+
+    monkeypatch.setattr(mh, "parse_json_payload", raise_unexpected)
+
+    message, error = await mh.parse_and_validate_message(
+        '{"id":"msg_unexpected","type":"query","payload":{"text":"hello"}}',
+        user_id="user_1",
+        max_message_size=2048,
+    )
+
+    assert message is None
+    assert error == "An internal error occurred"
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_returns_validation_error() -> None:
     payload = json.dumps({"type": "query", "payload": {"text": "hello"}})
 
@@ -311,6 +328,51 @@ async def test_send_error_delegates_to_send_error_response(monkeypatch) -> None:
     assert captured["ws"] is websocket
     assert captured["msg_id"] == "msg_300"
     assert captured["message"] == "boom"
+
+
+@pytest.mark.asyncio
+async def test_send_error_forwards_exception_when_provided(monkeypatch) -> None:
+    websocket = SimpleNamespace()
+    captured = {}
+
+    async def fake_send_error_response(ws, msg_id, message, exception=None):
+        captured["ws"] = ws
+        captured["msg_id"] = msg_id
+        captured["message"] = message
+        captured["exception"] = exception
+
+    error = RuntimeError("sensitive")
+    monkeypatch.setattr(mh, "send_error_response", fake_send_error_response)
+
+    await mh.send_error(websocket, "msg_301", "ignored message", exception=error)
+
+    assert captured["ws"] is websocket
+    assert captured["msg_id"] == "msg_301"
+    assert captured["message"] == "ignored message"
+    assert captured["exception"] is error
+
+
+@pytest.mark.asyncio
+async def test_handle_message_uses_sanitize_error_message_result(monkeypatch) -> None:
+    registry = DummyRegistry(exc=RuntimeError("raw exception"))
+    websocket = SimpleNamespace()
+    message = QueryMessage(
+        id="msg_105",
+        type="query",
+        user_id="user_1",
+        payload={"text": "test", "conversation_ref": "conv_test"},
+    )
+    sent_errors = []
+
+    async def fake_send_error(ws, msg_id, error_message):
+        sent_errors.append((ws, msg_id, error_message))
+
+    monkeypatch.setattr(mh, "send_error", fake_send_error)
+    monkeypatch.setattr(mh, "sanitize_error_message", lambda _e: "sanitized")
+
+    await mh.handle_message(websocket, message, registry, "user_1")
+
+    assert sent_errors == [(websocket, "msg_105", "sanitized")]
 
 
 @pytest.mark.asyncio
