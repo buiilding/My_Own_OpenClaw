@@ -956,7 +956,7 @@ class BrowserUseCompatibilityAdapter:
         )
 
     async def type_text(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        if not self._controller.is_connected:
+        if not self._runtime.is_connected:
             return self._not_connected("type")
 
         ref = self._value_as_str(args.get("ref"))
@@ -969,60 +969,72 @@ class BrowserUseCompatibilityAdapter:
                 "Missing required 'text' parameter",
             )
 
-        submit = bool(args.get("submit", False))
-        clear_first = bool(args.get("clear_first", False))
-        result = await self._runtime.type_text(
-            ref=ref,
-            text=text,
-            submit=submit,
-            clear_first=clear_first,
+        type_result = await self.execute_browser_use_action(
+            "input",
+            {
+                **dict(args),
+                "action": "input",
+                "ref": ref,
+                "text": text,
+            },
         )
-        if not result.get("success"):
-            return AdapterActionResult(
-                success=False,
-                action="type",
-                decision="compat",
-                error=result.get("error", "Type failed"),
-                error_code="BROWSER_RUNTIME_ERROR",
+        type_result = self._retag_action(type_result, "type")
+        if not type_result.success:
+            return type_result
+
+        submit = bool(args.get("submit", False))
+        if submit:
+            submit_result = await self.execute_browser_use_action(
+                "send_keys",
+                {
+                    "action": "send_keys",
+                    "keys": "Enter",
+                },
             )
+            if not submit_result.success:
+                return self._retag_action(submit_result, "type")
+
+        payload = dict(type_result.data)
+        payload["action"] = "type"
+        payload["ref"] = ref
+        payload["text"] = text
+        payload["submit"] = submit
+
         return AdapterActionResult(
             success=True,
             action="type",
-            decision="compat",
-            data={
-                "action": "type",
-                "ref": ref,
-                "text": text,
-                "submit": submit,
-            },
+            decision=type_result.decision,
+            data=payload,
+            warnings=list(type_result.warnings),
         )
 
     async def press(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        if not self._controller.is_connected:
+        if not self._runtime.is_connected:
             return self._not_connected("press")
 
         key = self._value_as_str(args.get("key"))
         if not key:
             return self._invalid_argument("press", "Missing required 'key' parameter")
 
-        result = await self._runtime.press_key(key)
-        if not result.get("success"):
-            return AdapterActionResult(
-                success=False,
-                action="press",
-                decision="port",
-                error=result.get("error", "Key press failed"),
-                error_code="BROWSER_RUNTIME_ERROR",
-            )
-
+        press_result = await self.execute_browser_use_action(
+            "send_keys",
+            {
+                "action": "send_keys",
+                "keys": key,
+            },
+        )
+        press_result = self._retag_action(press_result, "press")
+        if not press_result.success:
+            return press_result
+        payload = dict(press_result.data)
+        payload["action"] = "press"
+        payload["key"] = key
         return AdapterActionResult(
             success=True,
             action="press",
-            decision="port",
-            data={
-                "action": "press",
-                "key": key,
-            },
+            decision=press_result.decision,
+            data=payload,
+            warnings=list(press_result.warnings),
         )
 
     async def scroll(self, args: Mapping[str, Any]) -> AdapterActionResult:
