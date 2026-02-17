@@ -277,6 +277,41 @@ describe('local_backend_bridge', () => {
     expect(result).toEqual({ success: false, error: 'nope' });
   });
 
+  test('search-memory handler accepts snake_case exclude_conversation_id payload key', async () => {
+    initBridge();
+    markReady();
+
+    const promise = handlers['search-memory'](null, {
+      query: 'q2',
+      user_id: 'u2',
+      limit: 4,
+      memory_type: 'episodic',
+      exclude_conversation_id: 'conv-snake',
+    });
+    const request = getLastWrittenRequest();
+    expect(request).toEqual(
+      expect.objectContaining({
+        method: 'search_memory',
+        params: {
+          query: 'q2',
+          user_id: 'u2',
+          limit: 4,
+          memory_type: 'episodic',
+          exclude_conversation_id: 'conv-snake',
+        },
+      }),
+    );
+
+    stdoutHandler(Buffer.from(`${JSON.stringify({
+      jsonrpc: '2.0',
+      id: 'req-1',
+      result: { success: true, data: { memories: [] } },
+    })}\n`));
+
+    const result = await promise;
+    expect(result).toEqual({ success: true, data: { memories: [] } });
+  });
+
   test('list-conversations handler maps payload keys to backend params', async () => {
     initBridge();
     markReady();

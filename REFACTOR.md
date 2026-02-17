@@ -1,3 +1,85 @@
+# Refactor: Precompile Local Backend RPC Payload Mappers
+
+## Target
+Reduce per-initialization mapper allocation and duplicated JSON-RPC error handling in:
+- `frontend/src/main/local_backend_bridge.cjs`
+
+This is a maintainability + startup-allocation refactor in a high-churn IPC bridge module.
+
+## Current Structure and Root Cause
+Before this refactor:
+- `initializeLocalBackendBridge(...)` rebuilt the full mapped-handler field-map array each initialization call.
+- `registerMappedRpcHandlers(...)` recompiled each `fieldMap` into a mapper function every initialization.
+- JSON-RPC failure wrapping (`try/catch -> toErrorResponse`) was duplicated in:
+  - `registerRpcHandler(...)`
+  - `sendMemorySearchRequest(...)`
+
+Root cause: static mapping configuration and common request-failure policy were embedded inside runtime initialization flow, causing repeated allocations and duplicated error-handling branches.
+
+## Refactor Plan
+1. Precompile static payload mappers once at module load.
+2. Convert mapped-handler registration to consume precompiled mapper functions.
+3. Add shared safe-request helper for `sendRequest(...)` error wrapping.
+4. Rewire mapped RPC handlers and search-memory path to the shared helper.
+5. Add/adjust tests to protect mapping compatibility.
+
+## Implemented Changes
+### 1) Precompiled mappers and definitions
+Added module-level constants in `frontend/src/main/local_backend_bridge.cjs`:
+- `mapSearchMemoryPayload`
+- `COMPILED_RPC_HANDLER_DEFINITIONS`
+
+Each entry in `COMPILED_RPC_HANDLER_DEFINITIONS` now stores precompiled `mapParams` functions instead of raw `fieldMap` objects.
+
+### 2) Registration path simplification
+- Updated `registerMappedRpcHandlers(...)` to consume precompiled `mapParams`.
+- `initializeLocalBackendBridge(...)` now registers:
+  - `registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_HANDLER_DEFINITIONS)`
+
+This removes repeated mapper compilation from each bridge initialization.
+
+### 3) Shared request-failure wrapper
+Added:
+- `sendRequestOrError(method, params, options?)`
+
+Rewired:
+- `registerRpcHandler(...)`
+- `sendMemorySearchRequest(...)`
+
+This removes duplicated `try/catch` error-response wrapping and centralizes JSON-RPC request failure policy.
+
+### 4) Search-memory mapping consolidation
+- `sendMemorySearchRequest(payload)` now accepts raw payload and maps via shared `mapSearchMemoryPayload`.
+- `search-memory` IPC handler now forwards raw payload to `sendMemorySearchRequest(...)`.
+
+Behavior remains compatible for both:
+- `excludeConversationId`
+- `exclude_conversation_id`
+
+## Regression Coverage
+Updated:
+- `tests/frontend/LocalBackendBridge.test.cjs`
+
+Added test:
+- `search-memory handler accepts snake_case exclude_conversation_id payload key`
+
+This guards mapper fallback compatibility after moving search-memory mapping to module-level precompiled logic.
+
+## Validation
+Ran:
+
+```bash
+cd frontend && npm run test -- tests/frontend/LocalBackendBridge.test.cjs
+```
+
+Results:
+- `1 passed` suite
+- `22 passed` tests
+
+This confirms no behavior regressions while removing repeated mapper compilation and duplicated request-error wrapping from initialization paths.
+
+---
+
 # Refactor: Centralize Query Context Resolution in Electron IPC Bridge
 
 ## Target
