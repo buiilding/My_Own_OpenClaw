@@ -246,6 +246,43 @@ describe('ipc.cjs bridge', () => {
     });
   });
 
+  test('reuses backend conversation_ref fallback for local echo and outbound query payload', async () => {
+    const { handlers, ws, backendBridge, mainWindow } = initIpc();
+    ws.triggerOpen();
+
+    backendBridge.getSystemState.mockResolvedValue({
+      active_window: 'App',
+      mouse_position: '0,0',
+      screen_resolution: '1920x1080',
+      windows: ['A'],
+    });
+    backendBridge.searchMemory.mockResolvedValue({
+      success: true,
+      data: { memories: { episodic: [], semantic: [] } },
+    });
+
+    ws.handlers.message(JSON.stringify({
+      type: 'streaming-response',
+      conversation_ref: 'conv-backfill',
+    }));
+
+    await handlers['to-backend']({ sender: null }, {
+      type: 'query',
+      payload: { text: 'follow up without explicit conversation ref' },
+    });
+
+    const outgoingQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(outgoingQuery.type).toBe('query');
+    expect(outgoingQuery.payload.conversation_ref).toBe('conv-backfill');
+
+    const localUserMessages = mainWindow.webContents.send.mock.calls
+      .filter(([channel, payload]) => channel === 'from-backend' && payload?.type === 'local-user-message');
+    const latestLocalUserMessage = localUserMessages[localUserMessages.length - 1][1];
+
+    expect(latestLocalUserMessage.conversation_ref).toBe('conv-backfill');
+    expect(latestLocalUserMessage.payload.conversation_ref).toBe('conv-backfill');
+  });
+
   test('escapes XML-sensitive query, system state, and memory content', async () => {
     const { handlers, ws, backendBridge } = initIpc();
     ws.triggerOpen();

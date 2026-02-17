@@ -473,6 +473,82 @@ function normalizeBackendPayload(type, payload) {
   return normalized;
 }
 
+function resolveConversationRef(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return currentConversationRef || null;
+  }
+  return payload.conversation_ref || currentConversationRef || null;
+}
+
+function buildQueryContextFields({
+  queryMessageId,
+  conversationRef,
+  includeClientUserFallback = false,
+}) {
+  const serverUserId = currentServerUserId || null;
+  const resolvedUserId = includeClientUserFallback
+    ? (serverUserId || currentUserId || null)
+    : serverUserId;
+
+  return {
+    turn_ref: queryMessageId || null,
+    session_id: currentSessionId || null,
+    user_id: resolvedUserId,
+    conversation_ref: conversationRef,
+  };
+}
+
+function broadcastLocalUserMessage({
+  sourceWebContents,
+  payload,
+  queryMessageId,
+  conversationRef,
+}) {
+  if (!payload?.text) {
+    return;
+  }
+
+  const queryContext = buildQueryContextFields({
+    queryMessageId,
+    conversationRef,
+  });
+
+  broadcastToRenderers('from-backend', {
+    type: 'local-user-message',
+    ...queryContext,
+    payload: {
+      text: payload.text,
+      screenshot_ref: payload.screenshot_ref || null,
+      screenshot_url: payload.screenshot_url || null,
+      timestamp: new Date().toISOString(),
+      session_id: queryContext.session_id,
+      user_id: queryContext.user_id,
+      conversation_ref: queryContext.conversation_ref,
+    },
+  }, sourceWebContents);
+}
+
+function broadcastQuerySendFailure({
+  queryMessageId,
+  conversationRef,
+}) {
+  setResponseOverlayPhase('idle', 'query-send-failed');
+  const queryContext = buildQueryContextFields({
+    queryMessageId,
+    conversationRef,
+    includeClientUserFallback: true,
+  });
+
+  broadcastToRenderers('from-backend', {
+    type: 'error',
+    id: queryMessageId,
+    ...queryContext,
+    payload: {
+      message: 'Unable to send query: backend connection is unavailable.',
+    },
+  });
+}
+
 /**
  * Initializes the IPC bridge and establishes the WebSocket connection.
  * This function should be called once when the main Electron window is created.
@@ -545,25 +621,16 @@ function initializeIpc(win, options = {}) {
     if (type === 'query') {
       queryMessageId = uuidv4();
       setResponseOverlayPhase('awaiting-first-chunk', 'query');
-      const conversationRef = payload?.conversation_ref || currentConversationRef || null;
-      if (payload?.text) {
-        broadcastToRenderers('from-backend', {
-          type: 'local-user-message',
-          turn_ref: queryMessageId,
-          session_id: currentSessionId || null,
-          user_id: currentServerUserId || null,
-          conversation_ref: conversationRef,
-          payload: {
-            text: payload.text,
-            screenshot_ref: payload.screenshot_ref || null,
-            screenshot_url: payload.screenshot_url || null,
-            timestamp: new Date().toISOString(),
-            session_id: currentSessionId || null,
-            user_id: currentServerUserId || null,
-            conversation_ref: conversationRef,
-          },
-        }, event.sender);
+      const conversationRef = resolveConversationRef(payload);
+      if (!payload.conversation_ref && conversationRef) {
+        payload.conversation_ref = conversationRef;
       }
+      broadcastLocalUserMessage({
+        sourceWebContents: event.sender,
+        payload,
+        queryMessageId,
+        conversationRef,
+      });
       const contextType = isFirstQuery ? 'initial' : 'sequential';
       queryUsedInitialContext = contextType === 'initial';
       const userId = currentUserId || generateUserId();
@@ -593,17 +660,9 @@ function initializeIpc(win, options = {}) {
     
     const messageId = sendMessageToBackend(type, payload, queryMessageId);
     if (!messageId && type === 'query') {
-      setResponseOverlayPhase('idle', 'query-send-failed');
-      broadcastToRenderers('from-backend', {
-        type: 'error',
-        id: queryMessageId,
-        turn_ref: queryMessageId,
-        session_id: currentSessionId || null,
-        user_id: currentServerUserId || currentUserId || null,
-        conversation_ref: payload?.conversation_ref || currentConversationRef || null,
-        payload: {
-          message: 'Unable to send query: backend connection is unavailable.',
-        },
+      broadcastQuerySendFailure({
+        queryMessageId,
+        conversationRef: resolveConversationRef(payload),
       });
     } else if (type === 'query' && queryUsedInitialContext) {
       isFirstQuery = false;
