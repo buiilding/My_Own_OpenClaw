@@ -42,6 +42,7 @@ TRACE_DEPRECATION_MESSAGE = (
 )
 BROWSER_USE_DIRECT_ACTIONS = frozenset(
     {
+        "done",
         "search",
         "go_back",
         "search_page",
@@ -62,6 +63,13 @@ BROWSER_USE_DIRECT_ACTIONS = frozenset(
 )
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
+        "navigate",
+        "click",
+        "extract",
+        "scroll",
+        "screenshot",
+        "evaluate",
+        "close",
         "go_back",
         "search_page",
         "find_elements",
@@ -248,30 +256,73 @@ class BrowserUseCompatibilityAdapter:
         if action == "profiles":
             return await self.profiles()
         if action == "navigate":
+            browser_use_result = await self.execute_browser_use_action(action, args)
+            if browser_use_result.success or not self._should_fallback_to_compat(
+                browser_use_result
+            ):
+                return browser_use_result
             return await self.navigate(args)
         if action == "open":
             return await self.open(args)
         if action == "snapshot":
             return await self.snapshot(args)
         if action == "extract":
+            if any(key in args for key in ("mode", "selector", "frame", "output_schema")):
+                return await self.extract(args)
+            browser_use_result = await self.execute_browser_use_action(action, args)
+            if browser_use_result.success or not self._should_fallback_to_compat(
+                browser_use_result
+            ):
+                return browser_use_result
             return await self.extract(args)
         if action == "click":
+            ref = self._value_as_str(args.get("ref"))
+            if ref and ref.startswith("e") and self._extract_index(args) is None:
+                return await self.click(args)
+            browser_use_result = await self.execute_browser_use_action(action, args)
+            if browser_use_result.success or not self._should_fallback_to_compat(
+                browser_use_result
+            ):
+                return browser_use_result
             return await self.click(args)
         if action == "type":
             return await self.type_text(args)
         if action == "press":
             return await self.press(args)
         if action == "scroll":
+            browser_use_result = await self.execute_browser_use_action(action, args)
+            if browser_use_result.success or not self._should_fallback_to_compat(
+                browser_use_result
+            ):
+                return browser_use_result
             return await self.scroll(args)
         if action == "screenshot":
+            if any(key in args for key in ("full_page", "ref", "element", "type", "quality")):
+                return await self.screenshot(args)
+            browser_use_result = await self.execute_browser_use_action(action, args)
+            if browser_use_result.success or not self._should_fallback_to_compat(
+                browser_use_result
+            ):
+                return browser_use_result
             return await self.screenshot(args)
         if action == "wait":
+            if isinstance(args.get("seconds"), (int, float)):
+                browser_use_result = await self.execute_browser_use_action(action, args)
+                if browser_use_result.success or not self._should_fallback_to_compat(
+                    browser_use_result
+                ):
+                    return browser_use_result
             return await self.wait(args)
         if action == "get_tabs":
             return await self.get_tabs()
         if action == "switch_tab":
             return await self.switch_tab(args)
         if action == "evaluate":
+            browser_use_result = await self.execute_browser_use_action(action, args)
+            if browser_use_result.success or not self._should_fallback_to_compat(
+                browser_use_result
+            ):
+                return browser_use_result
             return await self.evaluate(args)
         if action in BROWSER_USE_DIRECT_ACTIONS:
             return await self.execute_browser_use_action(action, args)
@@ -322,6 +373,8 @@ class BrowserUseCompatibilityAdapter:
         if action == "act":
             return await self.act(args)
         if action == "close":
+            if self._extract_tab_id(args):
+                return await self.execute_browser_use_action("close", args)
             return await self.close()
 
         return AdapterActionResult(
@@ -1239,8 +1292,20 @@ class BrowserUseCompatibilityAdapter:
         params = params_or_error
         runtime_action = "close" if normalized == "close_tab" else normalized
 
+        runtime_execute = getattr(self._runtime, "execute_browser_use_action", None)
+        if not callable(runtime_execute):
+            return AdapterActionResult(
+                success=False,
+                action=action,
+                decision="port",
+                error=(
+                    f"Browser Use runtime does not expose execute_browser_use_action for '{runtime_action}'"
+                ),
+                error_code="ACTION_UNSUPPORTED",
+            )
+
         try:
-            result = await self._runtime.execute_browser_use_action(
+            result = await runtime_execute(
                 action=runtime_action,
                 params=params,
             )
@@ -1287,11 +1352,52 @@ class BrowserUseCompatibilityAdapter:
             data=payload,
         )
 
+    @staticmethod
+    def _should_fallback_to_compat(result: AdapterActionResult) -> bool:
+        if result.success:
+            return False
+        error = (result.error or "").lower()
+        if result.error_code == "ACTION_UNSUPPORTED":
+            return True
+        if "does not expose execute_browser_use_action" in error:
+            return True
+        if "unable to infer browser use session mode" in error:
+            return True
+        return False
+
     def _build_browser_use_action_params(
         self,
         action: str,
         args: Mapping[str, Any],
     ) -> dict[str, Any] | AdapterActionResult:
+        if action == "done":
+            text = self._value_as_str(args.get("text"))
+            if not text:
+                return self._invalid_argument("done", "done requires non-empty 'text'")
+            params: dict[str, Any] = {"text": text}
+            if isinstance(args.get("success"), bool):
+                params["success"] = bool(args.get("success"))
+            files_to_display = args.get("files_to_display")
+            if isinstance(files_to_display, list):
+                params["files_to_display"] = [
+                    str(path).strip()
+                    for path in files_to_display
+                    if isinstance(path, str) and path.strip()
+                ]
+            return params
+
+        if action == "navigate":
+            url = self._extract_url(args)
+            if not url:
+                return self._invalid_argument(
+                    "navigate",
+                    "navigate requires non-empty 'url'",
+                )
+            params = {"url": url}
+            if isinstance(args.get("new_tab"), bool):
+                params["new_tab"] = bool(args.get("new_tab"))
+            return params
+
         if action == "search":
             query = self._value_as_str(args.get("query"))
             if not query:
@@ -1364,6 +1470,30 @@ class BrowserUseCompatibilityAdapter:
                 )
             return {"text": text}
 
+        if action == "extract":
+            query = self._value_as_str(args.get("query"))
+            if not query:
+                return self._invalid_argument(
+                    "extract",
+                    "extract requires non-empty 'query'",
+                )
+            params = {"query": query}
+            if isinstance(args.get("extract_links"), bool):
+                params["extract_links"] = bool(args.get("extract_links"))
+            start_from_char = args.get("start_from_char")
+            if isinstance(start_from_char, int) and start_from_char >= 0:
+                params["start_from_char"] = start_from_char
+            return params
+
+        if action == "click":
+            index = self._extract_index(args)
+            if index is None:
+                return self._invalid_argument(
+                    "click",
+                    "click requires integer 'index' or numeric 'ref'",
+                )
+            return {"index": index}
+
         if action == "input":
             index = self._extract_index(args)
             if index is None:
@@ -1395,12 +1525,62 @@ class BrowserUseCompatibilityAdapter:
                 )
             return {"keys": keys}
 
+        if action == "wait":
+            seconds = args.get("seconds")
+            if isinstance(seconds, (int, float)):
+                return {"seconds": max(0, int(round(float(seconds))))}
+            return {}
+
+        if action == "scroll":
+            params: dict[str, Any] = {}
+            index = self._extract_index(args)
+            if index is not None:
+                params["index"] = index
+            pages = args.get("pages")
+            if isinstance(pages, int) and pages > 0:
+                params["pages"] = pages
+            elif isinstance(pages, float) and pages > 0 and pages.is_integer():
+                params["pages"] = int(pages)
+            amount = args.get("amount")
+            if "pages" not in params and isinstance(amount, (int, float)):
+                params["pages"] = max(1, int(round(abs(float(amount)) / 500.0)))
+            direction = self._value_as_str(args.get("direction"))
+            if direction:
+                params["down"] = direction.lower() not in {"up", "left"}
+            elif isinstance(args.get("down"), bool):
+                params["down"] = bool(args.get("down"))
+            return params
+
+        if action == "screenshot":
+            file_name = self._value_as_str(args.get("file_name"))
+            return {"file_name": file_name} if file_name else {}
+
+        if action == "evaluate":
+            code = self._value_as_str(args.get("code")) or self._value_as_str(
+                args.get("script")
+            )
+            if not code:
+                return self._invalid_argument(
+                    "evaluate",
+                    "evaluate requires non-empty 'code' or 'script'",
+                )
+            return {"code": code}
+
         if action == "switch":
             tab_id = self._extract_tab_id(args)
             if not tab_id:
                 return self._invalid_argument(
                     "switch",
                     "switch requires non-empty 'tab_id' or 'target_id'",
+                )
+            return {"tab_id": tab_id}
+
+        if action == "close":
+            tab_id = self._extract_tab_id(args)
+            if not tab_id:
+                return self._invalid_argument(
+                    "close",
+                    "close requires non-empty 'tab_id' or 'target_id'",
                 )
             return {"tab_id": tab_id}
 
@@ -2293,6 +2473,9 @@ class BrowserUseCompatibilityAdapter:
             return self._retag_action(browser_use_result, kind)
 
         if kind == "close":
+            if self._extract_tab_id(merged):
+                close_tab_result = await self.execute_browser_use_action("close", merged)
+                return self._retag_action(close_tab_result, "close")
             close_result = await self.close()
             return self._retag_action(close_result, "close")
 

@@ -114,6 +114,7 @@ PHASE2_ADAPTER_ROUTED_ACTIONS = frozenset(
         "set_timezone",
         "set_locale",
         "set_device",
+        "done",
         "search",
         "go_back",
         "search_page",

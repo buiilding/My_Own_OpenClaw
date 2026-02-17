@@ -38,6 +38,7 @@ Actions:
 - navigate: Go to URL (requires url)
 - open: Open a new tab and navigate
 - search/go_back: Browser Use search helper and back navigation helper
+- done: Browser Use completion action (`text`, optional `success`, optional `files_to_display`)
 - snapshot: Get contextual page snapshot with refs (waits for `wait_until=load` by default; supports mode=efficient, interactive/compact/depth/selector/frame)
 - extract: Pull page content via `mode` (`focused`/`full_text`/`structured`) with optional `selector`/`frame` scoping, `start_from_char`, and `extract_links`
 - search_page/find_elements/find_text: Browser Use discovery helpers for text pattern and selector discovery

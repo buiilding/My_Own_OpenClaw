@@ -8,6 +8,8 @@ from importlib import import_module
 import logging
 import os
 from pathlib import Path
+import re
+from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Mapping
 
 logger = logging.getLogger(__name__)
@@ -82,6 +84,7 @@ class _BrowserUseActionBridge:
         self._file_system: Any | None = None
         self._session_mode: str | None = None
         self._session_cdp_url: str | None = None
+        self._fallback_extraction_llm: Any | None = None
         self._lock = asyncio.Lock()
 
     def _ensure_browser_use_modules(self) -> None:
@@ -210,6 +213,36 @@ class _BrowserUseActionBridge:
         self._file_system = self._file_system_type(str(base_dir), create_default_files=True)
         return self._file_system
 
+    def _ensure_fallback_extraction_llm(self) -> Any:
+        if self._fallback_extraction_llm is not None:
+            return self._fallback_extraction_llm
+
+        class _FallbackExtractionLLM:
+            async def ainvoke(self, messages: list[Any]) -> Any:
+                prompt = ""
+                if messages:
+                    message = messages[-1]
+                    content = getattr(message, "content", "")
+                    if isinstance(content, str):
+                        prompt = content
+
+                lower_prompt = prompt.lower()
+                terms: list[str] = []
+                for token in re.findall(r"[a-z0-9]{4,}", lower_prompt):
+                    if token in {"extract", "search", "terms", "context", "goal"}:
+                        continue
+                    if token in terms:
+                        continue
+                    terms.append(token)
+                    if len(terms) >= 5:
+                        break
+                if not terms:
+                    terms = ["key", "value"]
+                return SimpleNamespace(completion="\n".join(terms))
+
+        self._fallback_extraction_llm = _FallbackExtractionLLM()
+        return self._fallback_extraction_llm
+
     @staticmethod
     def _normalize_action_result(action_name: str, result: Any) -> dict[str, Any]:
         if isinstance(result, Mapping):
@@ -274,6 +307,12 @@ class _BrowserUseActionBridge:
                     await self._ensure_browser_session() if needs_browser else None
                 )
                 file_system = self._ensure_file_system() if needs_file_system else None
+                available_file_paths: list[str] = []
+                page_extraction_llm = (
+                    self._ensure_fallback_extraction_llm()
+                    if normalized_action == "read_long_content"
+                    else None
+                )
                 execute_action = self._execute_action
                 assert callable(execute_action)
                 result = execute_action(
@@ -281,6 +320,8 @@ class _BrowserUseActionBridge:
                     dict(params),
                     browser_session=browser_session,
                     file_system=file_system,
+                    available_file_paths=available_file_paths,
+                    page_extraction_llm=page_extraction_llm,
                 )
                 if inspect.isawaitable(result):
                     result = await result
