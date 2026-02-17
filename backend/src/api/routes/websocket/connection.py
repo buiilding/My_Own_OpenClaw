@@ -15,7 +15,8 @@ from backend.src.api.schema import HandshakeMessage
 from backend.src.api.routes.websocket.task_manager import TaskManager
 from backend.src.api.routes.websocket.json_parse import (
     DEFAULT_JSON_PARSE_OFFLOAD_BYTES,
-    parse_json_payload,
+    JsonRootTypeError,
+    parse_json_object_payload,
 )
 
 logger = logging.getLogger(__name__)
@@ -66,7 +67,7 @@ async def perform_handshake(
     """
     try:
         raw_data = await websocket.receive_text()
-        handshake_data = await parse_json_payload(
+        handshake_data = await parse_json_object_payload(
             raw_data,
             offload_threshold_bytes=_HANDSHAKE_JSON_PARSE_OFFLOAD_BYTES,
             loop_getter=asyncio.get_running_loop,
@@ -79,7 +80,7 @@ async def perform_handshake(
             user_id,
         )
         return user_id
-    except PydanticValidationError as e:
+    except (PydanticValidationError, JsonRootTypeError) as e:
         await _fail_handshake(
             safe_ws=safe_ws,
             error=e,
