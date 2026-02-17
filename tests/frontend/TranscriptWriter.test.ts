@@ -210,13 +210,33 @@ describe('TranscriptWriter', () => {
     expect(invokeMock).not.toHaveBeenCalled();
   });
 
-  test('recordAssistantMessage is ignored when conversation info is unavailable', async () => {
+  test('queues assistant messages until conversation/user ids are available, then flushes', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
 
-    writer.recordAssistantMessage('assistant message');
+    writer.recordAssistantMessage('assistant message', {
+      messageType: 'llm-text',
+      modelId: 'model-a',
+      modelProvider: 'provider-a',
+      screenshotRef: 'artifact-1',
+    });
+    expect(invokeMock).not.toHaveBeenCalled();
+
+    writer.updateTranscriptSession('conv-assistant-queued', 'user-assistant-queued');
     await Promise.resolve();
 
-    expect(invokeMock).not.toHaveBeenCalled();
+    expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
+      content: 'assistant message',
+      userId: 'user-assistant-queued',
+      conversationRef: 'conv-assistant-queued',
+      role: 'assistant',
+      messageType: 'llm-text',
+      toolName: undefined,
+      correlationId: undefined,
+      modelId: 'model-a',
+      modelProvider: 'provider-a',
+      screenshot: 'artifact-1',
+      timestamp: undefined,
+    });
   });
 
   test('recordAssistantMessage uses default message type llm-text', async () => {

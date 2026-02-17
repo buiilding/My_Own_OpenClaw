@@ -287,6 +287,12 @@ export const recordAssistantMessage = (
     userId: options.userId ?? null,
   });
   if (!info.conversationRef || !info.userId) {
+    queueAssistantMessageForRetry(text, {
+      messageType: options.messageType || 'llm-text',
+      modelId: options.modelId,
+      modelProvider: options.modelProvider,
+      screenshotRef: options.screenshotRef,
+    });
     return;
   }
 

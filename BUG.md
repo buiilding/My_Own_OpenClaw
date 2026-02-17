@@ -1277,3 +1277,42 @@ In `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, transcript sess
 - Ran adjacent transcript smoke suite:
   - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptWriter.test.ts`
   - Result: `20 passed`.
+
+---
+
+## [x] Bug Report: Assistant Transcript Entries Were Dropped Before Session Context Hydrated
+
+### Summary
+
+In `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`, `recordAssistantMessage(...)` dropped assistant transcript entries when `conversationRef`/`userId` were not yet available, instead of retrying once session context arrived.
+
+### Root Cause
+
+- `recordAssistantMessage(...)` resolved session info and returned early when context was missing:
+  - `if (!info.conversationRef || !info.userId) { return; }`
+- User/tool transcript paths already had pending-queue fallback for missing context.
+- Assistant path only requeued on immediate IPC write failure, not on missing session context.
+
+### Why It's Problematic
+
+- Early assistant output can be permanently lost during conversation bootstrap races.
+- Transcript history becomes role-inconsistent (user/tool entries recover; assistant entries were dropped).
+- This degrades memory quality and conversation reconstruction.
+
+### Fix
+
+- Updated `recordAssistantMessage(...)` to queue assistant entries when session context is missing:
+  - enqueue to assistant pending queue with `messageType`, `modelId`, `modelProvider`, and `screenshotRef`
+  - rely on existing `flushPendingMessages()` flow to persist once `updateTranscriptSession(...)` provides context.
+- Updated regression coverage in `tests/frontend/TranscriptWriter.test.ts`:
+  - replaced drop-behavior test with queue-and-flush behavior:
+  - `queues assistant messages until conversation/user ids are available, then flushes`
+
+### Validation
+
+- Ran targeted transcript suite:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptWriter.test.ts`
+  - Result: `20 passed`.
+- Ran adjacent chat-stream smoke suite:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/ChatStreamThinkingStatus.test.tsx`
+  - Result: `28 passed`.
