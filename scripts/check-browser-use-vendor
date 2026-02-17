@@ -15,6 +15,42 @@ PRUNED_DIRS=(
   "dom/playground"
   "llm/tests"
   "tokens/tests"
+  "agent/system_prompts"
+  "code_use"
+  "controller"
+  "integrations/gmail"
+  "llm/anthropic"
+  "llm/aws"
+  "llm/deepseek"
+  "llm/groq"
+  "llm/ollama"
+  "llm/openrouter"
+  "llm/vercel"
+  "sandbox"
+  "screenshots"
+  "skills"
+  "agent/cloud_events.py"
+  "agent/gif.py"
+  "agent/judge.py"
+  "agent/prompts.py"
+  "agent/service.py"
+  "agent/variable_detector.py"
+  "agent/message_manager/service.py"
+  "agent/message_manager/utils.py"
+  "browser/python_highlights.py"
+  "browser/watchdogs/crash_watchdog.py"
+  "dom/serializer/code_use_serializer.py"
+  "tokens/custom_pricing.py"
+  "tokens/mappings.py"
+  "tokens/service.py"
+  "README.md"
+  "actor/README.md"
+  "llm/README.md"
+  "llm/oci_raw/README.md"
+  "py.typed"
+  "cli.py"
+  "init_cmd.py"
+  "exceptions.py"
 )
 RSYNC_EXCLUDES=(
   "__pycache__"
@@ -25,14 +61,42 @@ RSYNC_EXCLUDES=(
   "dom/playground/"
   "llm/tests/"
   "tokens/tests/"
-)
-DIFF_EXCLUDES=(
-  "__pycache__"
-  "*.pyc"
-  "skill_cli"
-  "mcp"
-  "playground"
-  "tests"
+  "agent/system_prompts/"
+  "code_use/"
+  "controller/"
+  "integrations/gmail/"
+  "llm/anthropic/"
+  "llm/aws/"
+  "llm/deepseek/"
+  "llm/groq/"
+  "llm/ollama/"
+  "llm/openrouter/"
+  "llm/vercel/"
+  "sandbox/"
+  "screenshots/"
+  "skills/"
+  "agent/cloud_events.py"
+  "agent/gif.py"
+  "agent/judge.py"
+  "agent/prompts.py"
+  "agent/service.py"
+  "agent/variable_detector.py"
+  "agent/message_manager/service.py"
+  "agent/message_manager/utils.py"
+  "browser/python_highlights.py"
+  "browser/watchdogs/crash_watchdog.py"
+  "dom/serializer/code_use_serializer.py"
+  "tokens/custom_pricing.py"
+  "tokens/mappings.py"
+  "tokens/service.py"
+  "/README.md"
+  "actor/README.md"
+  "llm/README.md"
+  "llm/oci_raw/README.md"
+  "/py.typed"
+  "/cli.py"
+  "/init_cmd.py"
+  "/exceptions.py"
 )
 
 if [[ ! -d "${VENDORED_DIR}" ]]; then
@@ -46,19 +110,20 @@ if [[ ! -d "${SOURCE_DIR}" ]]; then
   exit 1
 fi
 
-DIFF_ARGS=( -qr )
-for pattern in "${DIFF_EXCLUDES[@]}"; do
-  DIFF_ARGS+=( "--exclude=${pattern}" )
+VERIFY_ARGS=( -a --delete --delete-excluded --dry-run --itemize-changes )
+for pattern in "${RSYNC_EXCLUDES[@]}"; do
+  VERIFY_ARGS+=( "--exclude=${pattern}" )
 done
-if ! diff "${DIFF_ARGS[@]}" "${SOURCE_DIR}" "${VENDORED_DIR}" >/dev/null; then
+VERIFY_OUTPUT="$(rsync "${VERIFY_ARGS[@]}" "${SOURCE_DIR}/" "${VENDORED_DIR}/")"
+if [[ -n "${VERIFY_OUTPUT}" ]]; then
   echo "Vendored Browser Use tree is out of sync with source." >&2
   echo "Run: ./scripts/sync-browser-use-vendor" >&2
   exit 1
 fi
 
-for relative_dir in "${PRUNED_DIRS[@]}"; do
-  if [[ -d "${VENDORED_DIR}/${relative_dir}" ]]; then
-    echo "Vendored Browser Use includes pruned directory: ${VENDORED_DIR}/${relative_dir}" >&2
+for relative_path in "${PRUNED_DIRS[@]}"; do
+  if [[ -e "${VENDORED_DIR}/${relative_path}" ]]; then
+    echo "Vendored Browser Use includes pruned path: ${VENDORED_DIR}/${relative_path}" >&2
     echo "Run: ./scripts/sync-browser-use-vendor" >&2
     exit 1
   fi
