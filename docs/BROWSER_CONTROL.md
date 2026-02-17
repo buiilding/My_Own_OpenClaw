@@ -14,10 +14,10 @@ WindieOS provides a powerful **browser control tool** that allows the AI agent t
 
 Browser execution is routed through the Browser Use compatibility adapter. Runtime selection:
 
-- Default behavior: use Browser Use native runtime (`browser_use_native`).
+- Browser Use-native runtime is the default and required execution path (`browser_use_native`).
 - Optional runtime value: `WINDIE_BROWSER_USE_RUNTIME=browser_use` (alias of `browser_use_native`).
 - Startup fails fast if package `browser_use` is unavailable or native runtime provider loading fails.
-- Action-level native overrides: `WINDIE_BROWSER_USE_NATIVE_ACTIONS` (comma-separated, for example `wait_seconds`) with optional strict mode `WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT=1`.
+- Optional native handler controls remain available for diagnostics (`WINDIE_BROWSER_USE_NATIVE_ACTIONS`, `WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT=1`), but Browser Use handlers now ship as the default path for Browser Use action names.
 
 ## Overview
 
@@ -105,6 +105,22 @@ Launch an isolated browser instance with a clean profile.
 - `headless: false` - Show browser window (see what agent is doing)
 
 ## Actions
+
+### Browser Use Action Surface
+
+In addition to WindieOS compatibility actions (`connect`, `navigate`, `snapshot`, `click`, `type`, etc.), `browser_control` now exposes Browser Use-style action names directly:
+
+- `search`, `go_back`
+- `search_page`, `find_elements`, `find_text`
+- `input`, `send_keys`, `switch`, `close_tab`
+- `dropdown_options`, `select_dropdown`, `upload_file`
+- `write_file`, `replace_file`, `read_file`, `read_long_content`
+
+Notes:
+- `close` still closes the WindieOS browser session.
+- `close_tab` maps to Browser Use tab-close semantics.
+- Browser Use tab IDs are short IDs; when `target_id` is supplied, WindieOS derives a tab ID suffix.
+- Browser Use actions are also supported via `act.request.kind` using the same names.
 
 ### 1. Connect
 

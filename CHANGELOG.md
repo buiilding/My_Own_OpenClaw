@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(browser-use-port): expose Browser Use action names directly through `browser_control` (`search`, `go_back`, `search_page`, `find_elements`, `find_text`, `input`, `send_keys`, `switch`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`) while preserving WindieOS agent/tool-loop orchestration
+- refactor(browser-use-port): replace minimal native wait-only handler scaffold with a Browser Use action bridge (`Tools` registry + BrowserSession/FileSystem lifecycle), add runtime `execute_browser_use_action(...)`, and route Browser Use actions through adapter + `act.request.kind`
+- test(browser-use-port): extend sidecar adapter regressions for direct Browser Use action routing, connection-gated Browser Use actions, and Browser Use act-kind dispatch
 - docs(plan): add `docs/plan/WINDIEOS_VM_MULTI_AGENT_PLAN.md` detailing the one-agent-per-VM runtime model, signed agent-bundle porting flow, remote-control arbitration modes, control-plane APIs, and phased rollout gates for hosted multi-agent execution
 - docs(plan): add `docs/plan/WINDIEOS_MOBILE_APP_PLAN.md` with a phased iOS/Android delivery strategy covering renderer runtime decoupling, backend capability negotiation, mobile-safe tool policy, and release hardening gates
 - docs(plan): track additional planning docs under `docs/plan/` (`OS_LAYER_UX_EVOLUTION_PLAN.md`, `STOP_BUTTON_END_TO_END_PLAN.md`) and include `.gitkeep` scaffold
