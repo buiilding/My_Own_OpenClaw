@@ -1,3 +1,67 @@
+# Refactor: Centralize Query Context Resolution in Electron IPC Bridge
+
+## Target
+Remove duplicated query context construction and fallback logic in:
+- `frontend/src/main/ipc.cjs`
+
+This is a maintainability + correctness refactor in a high-churn IPC routing module.
+
+## Current Structure and Root Cause
+Before this refactor, query context fields (`conversation_ref`, `turn_ref`, `session_id`, `user_id`) were assembled inline across multiple branches in `ipcMain.on('to-backend', ...)`:
+- local user echo event construction
+- query-send failure error event construction
+- outbound query payload construction (partially)
+
+Root cause: context resolution policy was duplicated instead of centralized. This allowed behavior drift: one path used fallback `currentConversationRef`, while outbound query payload could omit that fallback.
+
+## Refactor Plan
+1. Introduce one helper for `conversation_ref` fallback resolution.
+2. Introduce one helper for shared query context fields.
+3. Replace inline local-echo and send-failure envelope construction with helper-backed functions.
+4. Apply resolved `conversation_ref` consistently to outbound query payloads when missing.
+5. Add regression coverage for fallback consistency.
+
+## Implemented Changes
+### 1) Shared query context helpers
+Added in `frontend/src/main/ipc.cjs`:
+- `resolveConversationRef(payload)`
+- `buildQueryContextFields(...)`
+- `broadcastLocalUserMessage(...)`
+- `broadcastQuerySendFailure(...)`
+
+### 2) Query-path rewiring
+Updated `ipcMain.on('to-backend', ...)` query branch to:
+- resolve `conversationRef` once
+- apply fallback `conversation_ref` to outbound query payload when absent
+- emit local-user-message via `broadcastLocalUserMessage(...)`
+- emit offline send failure via `broadcastQuerySendFailure(...)`
+
+This removes duplicated context-field assembly and ensures one source of truth for fallback behavior.
+
+## Regression Coverage
+Updated:
+- `tests/frontend/IpcMainBridge.test.cjs`
+
+Added test:
+- `reuses backend conversation_ref fallback for local echo and outbound query payload`
+
+This verifies fallback `conversation_ref` consistency across both renderer local-echo and outbound backend query payload paths.
+
+## Validation
+Ran:
+
+```bash
+cd frontend && npm run test -- tests/frontend/IpcMainBridge.test.cjs
+```
+
+Results:
+- `1 passed` suite
+- `23 passed` tests
+
+This confirms the refactor preserves existing IPC behavior while eliminating duplicated query context policy.
+
+---
+
 # Refactor: Centralize WebSocket JSON Object-Root Validation
 
 ## Target

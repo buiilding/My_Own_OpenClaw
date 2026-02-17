@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(ipc-query-context): centralize query context resolution in `frontend/src/main/ipc.cjs` with shared helpers for `conversation_ref` fallback, common query context fields, local-user echo emission, and query-send failure emission
+- fix(ipc-query-context): apply backend `conversation_ref` fallback to outbound query payloads when renderer query messages omit `payload.conversation_ref`, ensuring conversation continuity across IPC local-echo and backend dispatch paths
+- test(ipc-query-context): add frontend regression coverage in `tests/frontend/IpcMainBridge.test.cjs` validating fallback `conversation_ref` consistency for local-user-message echo and outbound query payloads
 - fix(frontend-chat-stream): preserve transcript session refs for backend events that omit `conversation_ref`/`user_id` by forwarding `undefined` instead of `null` in `useChatStream`, with regression coverage in `tests/frontend/ChatStreamThinkingStatus.test.tsx`
 - refactor(websocket-json-parse): centralize websocket object-root validation by adding shared `parse_json_object_payload` + `JsonRootTypeError` in `api/routes/websocket/json_parse.py`, and rewire `message_handler.py` + `connection.py` ingress paths to consume the shared helper for consistent root-shape handling
 - test(websocket-json-parse): add backend regression coverage for object-root helper acceptance/rejection and update websocket parse-failure monkeypatch tests to track the new shared parse entrypoint
