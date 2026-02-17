@@ -963,7 +963,7 @@ class TestBrowserUseCompatibilityAdapter:
         assert "search" in runtime._native_handlers
 
     @pytest.mark.asyncio
-    async def test_native_provider_uses_enabled_handler_for_navigate(
+    async def test_native_provider_executes_browser_use_action_handler(
         self,
         make_controller,
     ):
@@ -971,174 +971,52 @@ class TestBrowserUseCompatibilityAdapter:
         native_navigate = mock.AsyncMock(
             return_value={
                 "success": True,
+                "action": "navigate",
+                "native_source": "browser_use.tools",
                 "url": "https://native.example/nav",
-                "title": "Native Navigate",
-                "status": 202,
             }
         )
-        with mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_USE_NATIVE_ACTIONS": "navigate"},
-            clear=False,
-        ):
-            provider = BrowserUseNativeRuntimeProvider(
-                controller,
-                native_handlers={"navigate": native_navigate},
-            )
-
-        result = await provider.navigate(
-            url="https://native.example/nav",
-            wait_until="load",
+        provider = BrowserUseNativeRuntimeProvider(
+            controller,
+            native_handlers={"navigate": native_navigate},
         )
 
-        assert result["status"] == 202
-        native_navigate.assert_awaited_once_with(
-            url="https://native.example/nav",
-            wait_until="load",
+        result = await provider.execute_browser_use_action(
+            action="navigate",
+            params={"url": "https://native.example/nav"},
         )
+
+        assert result["success"] is True
+        assert result["native_source"] == "browser_use.tools"
+        native_navigate.assert_awaited_once_with(url="https://native.example/nav")
         controller.navigate.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_native_provider_falls_back_when_action_not_enabled(
+    async def test_native_provider_raises_without_handler(
         self,
         make_controller,
     ):
         controller = make_controller()
-        native_navigate = mock.AsyncMock(
-            return_value={"success": True, "url": "https://native.example", "title": "", "status": 204}
-        )
-        with mock.patch.dict("os.environ", {}, clear=True):
-            provider = BrowserUseNativeRuntimeProvider(
-                controller,
-                native_handlers={"navigate": native_navigate},
+        provider = BrowserUseNativeRuntimeProvider(controller, native_handlers={})
+
+        with pytest.raises(RuntimeError, match="No Browser Use native handler"):
+            await provider.execute_browser_use_action(
+                action="navigate",
+                params={"url": "https://example.com"},
             )
+
+    @pytest.mark.asyncio
+    async def test_native_provider_non_browser_use_methods_use_controller(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        provider = BrowserUseNativeRuntimeProvider(controller, native_handlers={})
 
         result = await provider.navigate(url="https://example.com", wait_until="load")
 
         assert result["status"] == 200
-        native_navigate.assert_not_awaited()
         controller.navigate.assert_awaited_once_with("https://example.com", "load")
-
-    @pytest.mark.asyncio
-    async def test_native_provider_strict_raises_without_handler(
-        self,
-        make_controller,
-    ):
-        controller = make_controller()
-        with mock.patch.dict(
-            "os.environ",
-            {
-                "WINDIE_BROWSER_USE_NATIVE_ACTIONS": "navigate",
-                "WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT": "1",
-            },
-            clear=False,
-        ):
-            provider = BrowserUseNativeRuntimeProvider(controller)
-
-        with pytest.raises(RuntimeError, match="no native handler"):
-            await provider.navigate(url="https://example.com", wait_until="load")
-
-    @pytest.mark.asyncio
-    async def test_native_provider_enabled_overrides_for_interaction_methods(
-        self,
-        make_controller,
-    ):
-        controller = make_controller()
-        controller.click = mock.AsyncMock(
-            side_effect=AssertionError("controller.click should not be called")
-        )
-        controller.wait_for_load = mock.AsyncMock(
-            side_effect=AssertionError("controller.wait_for_load should not be called")
-        )
-        controller.get_page_snapshot = mock.AsyncMock(
-            side_effect=AssertionError("controller.get_page_snapshot should not be called")
-        )
-        controller.set_input_files = mock.AsyncMock(
-            side_effect=AssertionError("controller.set_input_files should not be called")
-        )
-        controller.auto_connect_to_chrome = mock.AsyncMock(
-            side_effect=AssertionError("controller.auto_connect_to_chrome should not be called")
-        )
-
-        snapshot_obj = DummySnapshot(
-            text="native snapshot",
-            url="https://native.example/snapshot",
-            title="Native Snapshot",
-            ref_count=5,
-        )
-        native_handlers = {
-            "click": mock.AsyncMock(return_value={"success": True, "method": "native"}),
-            "wait": mock.AsyncMock(return_value={"success": True}),
-            "snapshot": mock.AsyncMock(return_value=snapshot_obj),
-            "upload": mock.AsyncMock(return_value={"success": True, "uploaded_count": 2}),
-            "connect_user_chrome": mock.AsyncMock(
-                return_value={
-                    "status": "connected",
-                    "mode": "user_chrome",
-                    "url": "https://native.example",
-                    "title": "Native",
-                    "auto_launched": False,
-                }
-            ),
-        }
-
-        with mock.patch.dict(
-            "os.environ",
-            {
-                "WINDIE_BROWSER_USE_NATIVE_ACTIONS": "click,wait,snapshot,upload,connect_user_chrome",
-            },
-            clear=False,
-        ):
-            provider = BrowserUseNativeRuntimeProvider(
-                controller,
-                native_handlers=native_handlers,
-            )
-
-        click_result = await provider.click(ref="e1", double_click=False, button="left")
-        assert click_result["method"] == "native"
-
-        wait_result = await provider.wait_for_load(state="load")
-        assert wait_result["success"] is True
-
-        snapshot_result = await provider.get_page_snapshot(format_type="ai")
-        assert snapshot_result.text == "native snapshot"
-
-        upload_result = await provider.set_input_files(ref="e1", paths=["/tmp/file.txt"])
-        assert upload_result["uploaded_count"] == 2
-
-        connect_result = await provider.connect_user_chrome(
-            cdp_url="http://127.0.0.1:9222",
-            auto_launch=True,
-        )
-        assert connect_result["url"] == "https://native.example"
-
-    @pytest.mark.asyncio
-    async def test_native_provider_uses_enabled_wait_seconds_handler(
-        self,
-        make_controller,
-    ):
-        controller = make_controller()
-        native_wait_seconds = mock.AsyncMock(
-            return_value={
-                "success": True,
-                "native_source": "browser_use.tools.wait",
-            }
-        )
-        with mock.patch.dict(
-            "os.environ",
-            {"WINDIE_BROWSER_USE_NATIVE_ACTIONS": "wait_seconds"},
-            clear=False,
-        ):
-            provider = BrowserUseNativeRuntimeProvider(
-                controller,
-                native_handlers={"wait_seconds": native_wait_seconds},
-            )
-
-        result = await provider.wait_seconds(seconds=2.5)
-
-        assert result["success"] is True
-        assert result["native_source"] == "browser_use.tools.wait"
-        native_wait_seconds.assert_awaited_once_with(seconds=2.5)
 
     @pytest.mark.asyncio
     async def test_default_native_handler_registry_includes_browser_use_wait_seconds(
@@ -1325,7 +1203,7 @@ class TestBrowserUseCompatibilityAdapter:
         assert "navigate" in runtime._native_handlers
         assert "bad_entry" not in runtime._native_handlers
 
-    def test_runtime_factory_invalid_handler_module_falls_back_to_empty_handlers(
+    def test_runtime_factory_invalid_handler_module_raises(
         self,
         make_controller,
     ):
@@ -1362,7 +1240,5 @@ class TestBrowserUseCompatibilityAdapter:
             "tools.browser_use_adapter.runtime_provider.import_module",
             side_effect=_import_module,
         ):
-            runtime = get_browser_runtime_provider(controller)
-
-        assert runtime.__class__.__name__ == "BrowserUseNativeRuntimeProvider"
-        assert runtime._native_handlers == {}
+            with pytest.raises(RuntimeError, match="returned non-mapping handlers"):
+                get_browser_runtime_provider(controller)

@@ -17,7 +17,7 @@ Browser execution is routed through the Browser Use compatibility adapter. Runti
 - Browser Use-native runtime is the default and required execution path (`browser_use_native`).
 - Optional runtime value: `WINDIE_BROWSER_USE_RUNTIME=browser_use` (alias of `browser_use_native`).
 - Startup fails fast if package `browser_use` is unavailable or native runtime provider loading fails.
-- Optional native handler controls remain available for diagnostics (`WINDIE_BROWSER_USE_NATIVE_ACTIONS`, `WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT=1`), but Browser Use handlers now ship as the default path for Browser Use action names.
+- Optional native handler module override remains available for diagnostics (`WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`).
 
 ## Overview
 
