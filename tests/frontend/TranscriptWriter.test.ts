@@ -88,6 +88,28 @@ describe('TranscriptWriter', () => {
     window.removeEventListener('transcript-session-update', handler);
   });
 
+  test('skips redundant persistence and session-update events when session info is unchanged', () => {
+    const { writer } = loadTranscriptWriter();
+    const updates: Array<{ conversationRef: string | null; userId: string | null }> = [];
+    const handler = (event: Event) => {
+      updates.push((event as CustomEvent<{ conversationRef: string | null; userId: string | null }>).detail);
+    };
+    const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
+    window.addEventListener('transcript-session-update', handler);
+
+    try {
+      writer.updateTranscriptSession('conv-stable', 'user-stable');
+      writer.updateTranscriptSession('conv-stable', 'user-stable');
+      writer.setActiveConversationRef('conv-stable');
+
+      expect(updates).toEqual([{ conversationRef: 'conv-stable', userId: 'user-stable' }]);
+      expect(setItemSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      window.removeEventListener('transcript-session-update', handler);
+      setItemSpy.mockRestore();
+    }
+  });
+
   test('preserves stored conversation ref when update only provides user id', () => {
     window.sessionStorage.setItem(
       TRANSCRIPT_SESSION_STORAGE_KEY,
