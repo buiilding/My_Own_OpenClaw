@@ -1302,6 +1302,34 @@ BROWSER_USE_DIRECT_ACTIONS = frozenset(
         "read_long_content",
     }
 )
+BROWSER_USE_PASSTHROUGH_ACTIONS = frozenset(
+    {
+        "navigate",
+        "snapshot",
+        "extract",
+        "click",
+        "scroll",
+        "screenshot",
+        "wait",
+        "evaluate",
+    }
+).union(BROWSER_USE_DIRECT_ACTIONS)
+ADAPTER_ACTIONS_WITH_ARGS = {
+    "connect": "connect",
+    "open": "open",
+    "type": "type_text",
+    "press": "press",
+    "switch_tab": "switch_tab",
+    "trace_start": "trace_start",
+    "upload": "upload",
+    "act": "act",
+}
+ADAPTER_ACTIONS_NO_ARGS = {
+    "status": "status",
+    "profiles": "profiles",
+    "get_tabs": "get_tabs",
+    "trace_stop": "trace_stop",
+}
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
         "snapshot",
@@ -1525,48 +1553,17 @@ class BrowserUseCompatibilityAdapter:
                 action,
                 LEGACY_ACTION_DEPRECATION_MESSAGE,
             )
-        if action == "connect":
-            return await self.connect(args)
-        if action == "status":
-            return await self.status()
-        if action == "profiles":
-            return await self.profiles()
-        if action == "navigate":
+
+        handler_with_args = ADAPTER_ACTIONS_WITH_ARGS.get(action)
+        if handler_with_args:
+            return await getattr(self, handler_with_args)(args)
+
+        handler_no_args = ADAPTER_ACTIONS_NO_ARGS.get(action)
+        if handler_no_args:
+            return await getattr(self, handler_no_args)()
+
+        if action in BROWSER_USE_PASSTHROUGH_ACTIONS:
             return await self.execute_browser_use_action(action, args)
-        if action == "open":
-            return await self.open(args)
-        if action == "snapshot":
-            return await self.execute_browser_use_action(action, args)
-        if action == "extract":
-            return await self.execute_browser_use_action(action, args)
-        if action == "click":
-            return await self.execute_browser_use_action(action, args)
-        if action == "type":
-            return await self.type_text(args)
-        if action == "press":
-            return await self.press(args)
-        if action == "scroll":
-            return await self.execute_browser_use_action(action, args)
-        if action == "screenshot":
-            return await self.execute_browser_use_action(action, args)
-        if action == "wait":
-            return await self.execute_browser_use_action(action, args)
-        if action == "get_tabs":
-            return await self.get_tabs()
-        if action == "switch_tab":
-            return await self.switch_tab(args)
-        if action == "evaluate":
-            return await self.execute_browser_use_action(action, args)
-        if action in BROWSER_USE_DIRECT_ACTIONS:
-            return await self.execute_browser_use_action(action, args)
-        if action == "trace_start":
-            return await self.trace_start(args)
-        if action == "trace_stop":
-            return await self.trace_stop()
-        if action == "upload":
-            return await self.upload(args)
-        if action == "act":
-            return await self.act(args)
         if action == "close":
             if self._extract_tab_id(args):
                 return await self.execute_browser_use_action("close", args)
