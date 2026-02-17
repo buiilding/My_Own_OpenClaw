@@ -40,9 +40,9 @@ Actions:
 - search/go_back: Browser Use search helper and back navigation helper
 - done: Browser Use completion action (`text`, optional `success`, optional `files_to_display`)
 - snapshot: Get contextual page snapshot with refs (waits for `wait_until=load` by default; supports mode=efficient, interactive/compact/depth/selector/frame)
-- extract: Pull page content via `mode` (`focused`/`full_text`/`structured`) with optional `selector`/`frame` scoping, `start_from_char`, and `extract_links`
+- extract: Browser Use extract semantics (`query`, optional `extract_links`, optional `start_from_char`, optional `output_schema`); compatibility `mode`/`selector`/`frame` fields are rejected
 - search_page/find_elements/find_text: Browser Use discovery helpers for text pattern and selector discovery
-- click: Click element (supports ref/index or coordinate_x+coordinate_y)
+- click: Click element using Browser Use semantics (numeric `index`/numeric `ref`, or `coordinate_x`+`coordinate_y`)
 - type: Type text (requires ref, text)
 - input/send_keys: Browser Use input and key-sequence aliases
 - switch/close_tab: Browser Use tab switch/close helpers (uses `tab_id` or `target_id` suffix)
@@ -51,7 +51,7 @@ Actions:
 - write_file/replace_file/read_file/read_long_content: Browser Use file-system tools
 - press: Press key like Enter/Escape (requires key)
 - scroll: Scroll page (direction: up/down/left/right, Browser Use `pages` supports fractional values)
-- screenshot: Capture screenshot (optional full_page)
+- screenshot: Browser Use screenshot semantics (`file_name` optional); compatibility `full_page`/`ref`/`element`/`type`/`quality` fields are rejected
 - pdf: Capture page as PDF
 - upload/dialog: File-input upload and dialog arming/wait handling
 - act: OpenClaw action envelope (`request.kind`)
@@ -59,7 +59,7 @@ Actions:
 - trace_start/trace_stop: Deprecated (returns ACTION_DEPRECATED with Browser Use migration guidance)
 - cookies*/storage*: Cookie and storage state management
 - set_*: Environment/state setters (offline, headers, credentials, geolocation, media, timezone, locale, device)
-- wait: Wait for load or time
+- wait: Browser Use timed wait (`seconds`)
 - get_tabs: List open tabs
 - switch_tab: Switch to tab (requires target_id)
 - evaluate: Run JavaScript (requires script)

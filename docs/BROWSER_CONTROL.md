@@ -123,6 +123,7 @@ Notes:
 - `done` is exposed for parity with Browser Use completion tooling.
 - Browser Use tab IDs are short IDs; when `target_id` is supplied, WindieOS derives a tab ID suffix.
 - Browser Use actions are also supported via `act.request.kind` using the same names.
+- Overlapping actions now run Browser Use-only semantics at runtime (`navigate`, `extract`, `click`, `scroll`, `screenshot`, `wait`, `evaluate`): compatibility-only fields (for example `extract.mode`, `extract.selector`, `extract.frame`, `wait.state`, `screenshot.full_page`, `screenshot.ref`, `screenshot.element`, `screenshot.type`, `screenshot.quality`) are rejected.
 
 ### 1. Connect
 

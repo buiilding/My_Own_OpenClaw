@@ -103,6 +103,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(browser-use-runtime): remove adapter compatibility fallbacks for overlapping Browser Use actions so `navigate`/`extract`/`click`/`scroll`/`screenshot`/`wait`/`evaluate` execute Browser Use-only runtime paths, reject compatibility-only argument fields for `extract`/`wait`/`screenshot`, and update sidecar/browser docs + regressions accordingly
 - fix(browser-use-parity): align Browser Use tool-parameter parity for `browser_control` by adding coordinate click fields (`coordinate_x`/`coordinate_y`), enabling fractional `scroll.pages`, and updating adapter/native-bridge routing so coordinate clicks and `upload_file(path=...)` pass through Browser Use-native execution semantics
 - fix(sidecar-process): harden `process` tool `send-keys` payload parsing in `process_tool.py` so non-string `keys`/`hex`/`literal` entries are ignored with warnings instead of raising runtime exceptions; add sidecar regression coverage for mixed invalid-key + valid-literal input
 - docs(browser-control): align runbook/tool docs with current `connect` behavior so auto-launch now explicitly means "connect to existing CDP Chrome or launch when Chrome is not running" and clarifies that WindieOS does not auto-restart an already-running non-CDP Chrome process

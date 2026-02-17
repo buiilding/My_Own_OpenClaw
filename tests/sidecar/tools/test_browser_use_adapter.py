@@ -123,9 +123,25 @@ def make_controller():
 class TestBrowserUseCompatibilityAdapter:
     @staticmethod
     def _make_adapter(controller: SimpleNamespace) -> BrowserUseCompatibilityAdapter:
+        async def _execute_browser_use_action(
+            *,
+            action: str,
+            params: dict[str, object],
+        ) -> dict[str, object]:
+            return {
+                "success": True,
+                "action": action,
+                "native_source": "browser_use.tools",
+                "params": dict(params),
+            }
+
+        runtime = ControllerBackedRuntimeProvider(controller)
+        runtime.execute_browser_use_action = mock.AsyncMock(
+            side_effect=_execute_browser_use_action
+        )
         return BrowserUseCompatibilityAdapter(
             controller,
-            runtime_provider=ControllerBackedRuntimeProvider(controller),
+            runtime_provider=runtime,
         )
 
     @pytest.mark.asyncio
@@ -247,27 +263,8 @@ class TestBrowserUseCompatibilityAdapter:
         controller.get_page_snapshot.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_extract_structured_mode_returns_structured_payload(self, make_controller):
-        controller = make_controller()
-        controller.evaluate.return_value = {
-            "success": True,
-            "result": {
-                "title": "Example",
-                "url": "https://example.com/table",
-                "content": "Page Text:\nIgnored in structured mode",
-                "structured": {
-                    "tables": [
-                        {
-                            "index": 1,
-                            "headers": ["Name", "Role"],
-                            "rows": [["A", "Engineer"]],
-                        }
-                    ],
-                    "lists": [],
-                },
-            },
-        }
-        adapter = self._make_adapter(controller)
+    async def test_extract_rejects_compatibility_mode(self, make_controller):
+        adapter = self._make_adapter(make_controller())
 
         result = await adapter.execute(
             "extract",
@@ -278,11 +275,10 @@ class TestBrowserUseCompatibilityAdapter:
             },
         )
 
-        assert result.success is True
+        assert result.success is False
         assert result.action == "extract"
-        assert result.data["mode"] == "structured"
-        assert "tables" in result.data["result"]
-        assert result.data["structured"]["tables"][0]["headers"] == ["Name", "Role"]
+        assert result.error_code == "INVALID_ARGUMENT"
+        assert "no longer supports compatibility 'mode'" in (result.error or "")
 
     @pytest.mark.asyncio
     async def test_extract_rejects_invalid_mode(self, make_controller):
@@ -300,10 +296,10 @@ class TestBrowserUseCompatibilityAdapter:
         assert result.success is False
         assert result.action == "extract"
         assert result.error_code == "INVALID_ARGUMENT"
-        assert "mode must be one of" in (result.error or "")
+        assert "no longer supports compatibility 'mode'" in (result.error or "")
 
     @pytest.mark.asyncio
-    async def test_act_click_routes_to_click_action_result(self, make_controller):
+    async def test_act_click_with_role_ref_is_rejected(self, make_controller):
         controller = make_controller()
         adapter = self._make_adapter(controller)
 
@@ -318,14 +314,11 @@ class TestBrowserUseCompatibilityAdapter:
             },
         )
 
-        assert result.success is True
+        assert result.success is False
         assert result.action == "click"
-        assert result.data["action"] == "click"
-        controller.click.assert_awaited_once_with(
-            ref="e1",
-            double_click=False,
-            button="left",
-        )
+        assert result.error_code == "INVALID_ARGUMENT"
+        assert "click requires integer 'index'" in (result.error or "")
+        controller.click.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_act_click_with_index_routes_to_browser_use_action(
@@ -727,6 +720,15 @@ class TestBrowserUseCompatibilityAdapter:
             )
         )
         runtime.set_input_files = mock.AsyncMock(return_value={"success": True, "uploaded_count": 1})
+        runtime.execute_browser_use_action = mock.AsyncMock(
+            side_effect=lambda *, action, params: {
+                "success": True,
+                "action": action,
+                "native_source": "browser_use.tools",
+                "result": {"ok": True},
+                "params": dict(params),
+            }
+        )
 
         adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
 
@@ -744,12 +746,12 @@ class TestBrowserUseCompatibilityAdapter:
             },
         )
         assert navigate_result.success is True
-        assert navigate_result.data["url"] == "https://runtime.example/nav"
-        runtime.switch_tab.assert_awaited_once_with("tab-2")
-        runtime.navigate.assert_awaited_once_with(
-            url="https://runtime.example/nav",
-            wait_until="load",
+        assert navigate_result.data["browser_use_action"] == "navigate"
+        runtime.execute_browser_use_action.assert_awaited_with(
+            action="navigate",
+            params={"url": "https://runtime.example/nav"},
         )
+        runtime.navigate.assert_not_awaited()
 
         open_result = await adapter.execute(
             "open",
@@ -772,38 +774,46 @@ class TestBrowserUseCompatibilityAdapter:
         )
         assert switch_result.success is True
         assert switch_result.data["target_id"] == "tab-1"
-        assert runtime.switch_tab.await_count == 2
+        assert runtime.switch_tab.await_count == 1
 
         close_result = await adapter.execute("close", {"action": "close"})
         assert close_result.success is True
         runtime.close.assert_awaited_once()
 
-        click_result = await adapter.execute("click", {"action": "click", "ref": "e1"})
+        click_result = await adapter.execute("click", {"action": "click", "index": 1})
         assert click_result.success is True
-        runtime.click.assert_awaited_once_with(
-            ref="e1",
-            double_click=False,
-            button="left",
+        runtime.execute_browser_use_action.assert_awaited_with(
+            action="click",
+            params={"index": 1},
         )
+        runtime.click.assert_not_awaited()
 
         wait_result = await adapter.execute("wait", {"action": "wait", "state": "load"})
-        assert wait_result.success is True
-        assert wait_result.data["type"] == "load_state"
+        assert wait_result.success is False
+        assert wait_result.error_code == "INVALID_ARGUMENT"
+        runtime.wait_for_load.assert_not_awaited()
 
         timed_wait_result = await adapter.execute(
             "wait",
             {"action": "wait", "seconds": 2.5},
         )
         assert timed_wait_result.success is True
-        assert timed_wait_result.data["type"] == "time"
-        runtime.wait_seconds.assert_awaited_once_with(seconds=2.5)
+        runtime.execute_browser_use_action.assert_awaited_with(
+            action="wait",
+            params={"seconds": 2},
+        )
+        runtime.wait_seconds.assert_not_awaited()
 
         evaluate_result = await adapter.execute(
             "evaluate",
             {"action": "evaluate", "script": "1 + 1"},
         )
         assert evaluate_result.success is True
-        runtime.evaluate.assert_awaited_with(script="1 + 1")
+        runtime.execute_browser_use_action.assert_awaited_with(
+            action="evaluate",
+            params={"code": "1 + 1"},
+        )
+        runtime.evaluate.assert_not_awaited()
 
         upload_result = await adapter.execute(
             "upload",
