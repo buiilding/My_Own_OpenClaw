@@ -36,6 +36,8 @@ This update delivers those tasks with compatibility-wrapper routing while preser
   - When `browser_use` is installed and `WINDIE_BROWSER_USE_RUNTIME=browser_use_native`, the factory now returns a dedicated native-provider class scaffold (`BrowserUseNativeRuntimeProvider`) instead of always returning `None`.
   - Adds action-level native override controls (`WINDIE_BROWSER_USE_NATIVE_ACTIONS`, `WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT`) with safe fallback to controller-backed behavior.
   - Native override hooks now cover core session and interaction/capture methods (connect mode handlers, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`, `snapshot`, `upload`) while preserving controller fallback.
+- `frontend/src/main/python/tools/browser_use_adapter/browser_use_native_handlers.py`
+  - Adds default native-handler registry scaffold (`get_native_runtime_handlers`) and module-loading seam (`WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`) so action-level Browser Use handlers can be supplied without editing provider code.
 - `frontend/src/main/python/tools/browser_use_adapter/__init__.py`
   - Exposes adapter types/factory.
 

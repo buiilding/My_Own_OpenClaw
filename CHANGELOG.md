@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(browser-use-port): add native-handler module loading seam (`WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`) plus default registry scaffold (`browser_use_native_handlers.py`) so Browser Use action handlers can be plugged into native runtime selection without provider code edits
 - refactor(browser-use-port): expand `BrowserUseNativeRuntimeProvider` action-level native override hooks across interaction/capture methods and connect-mode handlers, with environment-gated enablement and controller-backed fallback
 - refactor(browser-use-port): add action-level native-runtime override controls in `BrowserUseNativeRuntimeProvider` (`WINDIE_BROWSER_USE_NATIVE_ACTIONS`, `WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT`) with strict/fallback behavior and initial native-override hooks for core actions (`status`, `navigate`, `open`, `get_tabs`, `switch_tab`, `close`)
 - refactor(browser-use-port): make Browser Use runtime factory return a dedicated native-provider scaffold (`BrowserUseNativeRuntimeProvider`) when `browser_use` is installed, enabling action-by-action native overrides while preserving current controller-backed behavior
