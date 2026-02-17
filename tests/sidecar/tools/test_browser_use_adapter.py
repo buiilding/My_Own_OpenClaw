@@ -328,6 +328,42 @@ class TestBrowserUseCompatibilityAdapter:
         )
 
     @pytest.mark.asyncio
+    async def test_act_click_with_index_routes_to_browser_use_action(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        runtime = SimpleNamespace(
+            is_connected=True,
+            execute_browser_use_action=mock.AsyncMock(
+                return_value={
+                    "success": True,
+                    "action": "click",
+                    "native_source": "browser_use.tools",
+                }
+            ),
+        )
+        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "act",
+            {
+                "action": "act",
+                "request": {
+                    "kind": "click",
+                    "index": 3,
+                },
+            },
+        )
+
+        assert result.success is True
+        assert result.action == "click"
+        runtime.execute_browser_use_action.assert_awaited_once_with(
+            action="click",
+            params={"index": 3},
+        )
+
+    @pytest.mark.asyncio
     async def test_direct_browser_use_action_routes_to_runtime_executor(
         self,
         make_controller,
@@ -415,6 +451,153 @@ class TestBrowserUseCompatibilityAdapter:
         runtime.execute_browser_use_action.assert_awaited_once_with(
             action="switch",
             params={"tab_id": "1234"},
+        )
+
+    @pytest.mark.asyncio
+    async def test_extract_with_output_schema_routes_to_browser_use_action(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        output_schema = {
+            "type": "object",
+            "properties": {"price": {"type": "string"}},
+        }
+        runtime = SimpleNamespace(
+            is_connected=True,
+            execute_browser_use_action=mock.AsyncMock(
+                return_value={
+                    "success": True,
+                    "action": "extract",
+                    "native_source": "browser_use.tools",
+                    "extracted_content": '{"price":"$10"}',
+                }
+            ),
+        )
+        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "extract",
+            {
+                "action": "extract",
+                "query": "price",
+                "output_schema": output_schema,
+            },
+        )
+
+        assert result.success is True
+        assert result.action == "extract"
+        runtime.execute_browser_use_action.assert_awaited_once_with(
+            action="extract",
+            params={
+                "query": "price",
+                "output_schema": output_schema,
+            },
+        )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        ("kind", "request_payload", "expected_params"),
+        [
+            (
+                "navigate",
+                {"url": "https://example.com/path"},
+                {"url": "https://example.com/path"},
+            ),
+            (
+                "extract",
+                {"query": "pricing"},
+                {"query": "pricing"},
+            ),
+            (
+                "scroll",
+                {"pages": 2, "down": False},
+                {"pages": 2, "down": False},
+            ),
+            (
+                "screenshot",
+                {"file_name": "capture.png"},
+                {"file_name": "capture.png"},
+            ),
+            (
+                "wait",
+                {"seconds": 1},
+                {"seconds": 1},
+            ),
+        ],
+    )
+    async def test_act_forwards_browser_use_action_kinds(
+        self,
+        make_controller,
+        kind,
+        request_payload,
+        expected_params,
+    ):
+        controller = make_controller()
+        runtime = SimpleNamespace(
+            is_connected=True,
+            execute_browser_use_action=mock.AsyncMock(
+                return_value={
+                    "success": True,
+                    "action": kind,
+                    "native_source": "browser_use.tools",
+                }
+            ),
+        )
+        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "act",
+            {
+                "action": "act",
+                "request": {
+                    "kind": kind,
+                    **request_payload,
+                },
+            },
+        )
+
+        assert result.success is True
+        assert result.action == kind
+        runtime.execute_browser_use_action.assert_awaited_once_with(
+            action=kind,
+            params=expected_params,
+        )
+
+    @pytest.mark.asyncio
+    async def test_act_evaluate_routes_code_to_browser_use(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        runtime = SimpleNamespace(
+            is_connected=True,
+            execute_browser_use_action=mock.AsyncMock(
+                return_value={
+                    "success": True,
+                    "action": "evaluate",
+                    "native_source": "browser_use.tools",
+                }
+            ),
+        )
+        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "act",
+            {
+                "action": "act",
+                "request": {
+                    "kind": "evaluate",
+                    "code": "1 + 1",
+                },
+            },
+        )
+
+        assert result.success is True
+        assert result.action == "evaluate"
+        runtime.execute_browser_use_action.assert_awaited_once_with(
+            action="evaluate",
+            params={"code": "1 + 1"},
         )
 
     @pytest.mark.asyncio

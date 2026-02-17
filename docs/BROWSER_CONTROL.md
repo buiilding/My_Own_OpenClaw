@@ -110,8 +110,8 @@ Launch an isolated browser instance with a clean profile.
 
 In addition to WindieOS compatibility actions (`connect`, `navigate`, `snapshot`, `click`, `type`, etc.), `browser_control` now exposes Browser Use-style action names directly:
 
-- `search`, `go_back`
-- `done`
+- `navigate`, `click`, `extract`, `scroll`, `screenshot`, `wait`, `evaluate`, `close`
+- `search`, `go_back`, `done`
 - `search_page`, `find_elements`, `find_text`
 - `input`, `send_keys`, `switch`, `close_tab`
 - `dropdown_options`, `select_dropdown`, `upload_file`
@@ -263,7 +263,7 @@ Extract options:
 - `max_chars`: max characters returned in `result` (`12000` default).
 - `selector`: optional CSS selector to scope extraction to part of the page.
 - `frame`: optional iframe selector for scoped extraction.
-- `output_schema`: optional schema hint metadata (accepted but not enforced in sidecar extraction).
+- `output_schema`: optional schema hint. For Browser Use-native extract routing (default focused extract path), this is forwarded to Browser Use extraction. For compatibility extraction modes (`mode`, `selector`, `frame`), it is still treated as metadata only.
 
 Extract output includes:
 - `result`: extracted text window (query-focused for `focused`, raw window for `full_text`, JSON text window for `structured`).

@@ -84,6 +84,7 @@ BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
         "read_long_content",
     }
 )
+ACT_EXECUTE_FORWARD_ACTIONS = frozenset({"navigate", "extract", "scroll", "screenshot"})
 
 
 class BrowserControllerLike(Protocol):
@@ -267,7 +268,7 @@ class BrowserUseCompatibilityAdapter:
         if action == "snapshot":
             return await self.snapshot(args)
         if action == "extract":
-            if any(key in args for key in ("mode", "selector", "frame", "output_schema")):
+            if any(key in args for key in ("mode", "selector", "frame")):
                 return await self.extract(args)
             browser_use_result = await self.execute_browser_use_action(action, args)
             if browser_use_result.success or not self._should_fallback_to_compat(
@@ -1483,6 +1484,9 @@ class BrowserUseCompatibilityAdapter:
             start_from_char = args.get("start_from_char")
             if isinstance(start_from_char, int) and start_from_char >= 0:
                 params["start_from_char"] = start_from_char
+            output_schema = args.get("output_schema")
+            if isinstance(output_schema, dict):
+                params["output_schema"] = output_schema
             return params
 
         if action == "click":
@@ -2286,8 +2290,7 @@ class BrowserUseCompatibilityAdapter:
         merged.update(request)
 
         if kind == "click":
-            click_args = {"action": "click", **merged}
-            click_result = await self.click(click_args)
+            click_result = await self.execute("click", {"action": "click", **merged})
             return self._retag_action(click_result, "click")
 
         if kind == "type":
@@ -2299,6 +2302,10 @@ class BrowserUseCompatibilityAdapter:
             press_args = {"action": "press", "key": merged.get("key"), **merged}
             press_result = await self.press(press_args)
             return self._retag_action(press_result, "press")
+
+        if kind in ACT_EXECUTE_FORWARD_ACTIONS:
+            forward_result = await self.execute(kind, {"action": kind, **merged})
+            return self._retag_action(forward_result, kind)
 
         if kind == "hover":
             if not self._controller.is_connected:
@@ -2446,26 +2453,18 @@ class BrowserUseCompatibilityAdapter:
 
         if kind == "wait":
             time_ms = merged.get("timeMs")
+            wait_args = {"action": "wait", **merged}
             if isinstance(time_ms, (int, float)):
-                wait_result = await self.wait(
-                    {
-                        "action": "wait",
-                        "seconds": max(0.0, float(time_ms) / 1000.0),
-                        **merged,
-                    }
-                )
-            else:
-                wait_result = await self.wait({"action": "wait", **merged})
+                wait_args["seconds"] = max(0.0, float(time_ms) / 1000.0)
+            wait_result = await self.execute("wait", wait_args)
             return self._retag_action(wait_result, "wait")
 
         if kind == "evaluate":
             fn = merged.get("fn")
-            if isinstance(fn, str):
-                evaluate_result = await self.evaluate(
-                    {"action": "evaluate", "script": fn, **merged}
-                )
-            else:
-                evaluate_result = await self.evaluate({"action": "evaluate", **merged})
+            evaluate_args = {"action": "evaluate", **merged}
+            if isinstance(fn, str) and fn:
+                evaluate_args["script"] = fn
+            evaluate_result = await self.execute("evaluate", evaluate_args)
             return self._retag_action(evaluate_result, "evaluate")
 
         if kind in BROWSER_USE_DIRECT_ACTIONS:
