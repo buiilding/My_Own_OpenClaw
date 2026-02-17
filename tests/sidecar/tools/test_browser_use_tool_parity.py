@@ -17,6 +17,14 @@ from tools.browser_use_adapter.browser_use_native_handlers import (
 )
 
 
+def _is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+        return True
+    except Exception:
+        return False
+
+
 @lru_cache(maxsize=1)
 def _browser_use_actions() -> set[str]:
     try:
@@ -72,6 +80,19 @@ def _minimal_action_args() -> dict[str, dict[str, object]]:
         "wait": {"seconds": 1},
         "write_file": {"file_name": "notes.txt", "content": "hello"},
     }
+
+
+def test_browser_use_import_origin_is_vendored() -> None:
+    import browser_use
+
+    module_file = Path(getattr(browser_use, "__file__", "")).resolve()
+    root = Path(__file__).resolve().parents[3]
+    vendored_dir = root / "frontend" / "src" / "main" / "python" / "browser_use"
+    assert vendored_dir.is_dir()
+    assert _is_within(module_file, vendored_dir), (
+        "browser_use import must resolve to vendored runtime "
+        f"({vendored_dir}), got {module_file}"
+    )
 
 
 def test_schema_exposes_all_browser_use_actions() -> None:
