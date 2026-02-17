@@ -1180,16 +1180,73 @@ class TestBrowserUseCompatibilityAdapter:
             assert "wait_seconds" in handlers
             result = await handlers["wait_seconds"](seconds=2.2)
             assert result["success"] is True
-            assert result["native_source"] == "browser_use.tools"
+            assert result["native_source"] == "windie.timer"
             assert result["seconds"] == 2.2
-            execute_action.assert_awaited_once_with(
-                "wait",
-                {"seconds": 2},
-                browser_session=None,
-                file_system=None,
-                available_file_paths=[],
-                page_extraction_llm=None,
-            )
+            execute_action.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_wait_seconds_uses_browser_use_when_connected(self):
+        fake_service_module = ModuleType("browser_use.tools.service")
+        fake_browser_module = ModuleType("browser_use.browser")
+        fake_filesystem_module = ModuleType("browser_use.filesystem.file_system")
+        execute_action = mock.AsyncMock(
+            return_value=SimpleNamespace(extracted_content="Waited")
+        )
+
+        class FakeTools:
+            def __init__(self):
+                self.registry = SimpleNamespace(execute_action=execute_action)
+
+            def set_coordinate_clicking(self, _enabled: bool):
+                pass
+
+        class FakeBrowserSession:
+            def __init__(self, **_kwargs):
+                pass
+
+            async def start(self):
+                return None
+
+            async def stop(self):
+                return None
+
+        class FakeFileSystem:
+            def __init__(self, *_args, **_kwargs):
+                pass
+
+        fake_service_module.Tools = FakeTools
+        fake_browser_module.BrowserSession = FakeBrowserSession
+        fake_filesystem_module.FileSystem = FakeFileSystem
+
+        def _import_module(name: str):
+            if name == "browser_use.tools.service":
+                return fake_service_module
+            if name == "browser_use.browser":
+                return fake_browser_module
+            if name == "browser_use.filesystem.file_system":
+                return fake_filesystem_module
+            raise ImportError(name)
+
+        controller = SimpleNamespace(is_connected=True, _mode="managed", _cdp_url=None)
+
+        with mock.patch(
+            "tools.browser.browser_tool.import_module",
+            side_effect=_import_module,
+        ):
+            handlers = get_native_runtime_handlers(controller=controller)
+            result = await handlers["wait_seconds"](seconds=2.2)
+
+        assert result["success"] is True
+        assert result["native_source"] == "browser_use.tools"
+        assert result["seconds"] == 2.2
+        execute_action.assert_awaited_once_with(
+            "wait",
+            {"seconds": 2},
+            browser_session=mock.ANY,
+            file_system=None,
+            available_file_paths=[],
+            page_extraction_llm=None,
+        )
 
     @pytest.mark.asyncio
     async def test_native_handler_registry_enables_coordinate_clicking_and_upload_paths(

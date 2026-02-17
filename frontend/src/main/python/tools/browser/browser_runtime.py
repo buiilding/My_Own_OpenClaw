@@ -430,6 +430,7 @@ _BROWSER_REQUIRED_ACTIONS = frozenset(
         "search",
         "navigate",
         "go_back",
+        "wait",
         "click",
         "input",
         "upload_file",
@@ -1096,10 +1097,31 @@ def get_native_runtime_handlers(
     async def _wait_seconds_handler(*, seconds: float) -> dict[str, Any]:
         requested_seconds = max(0.0, float(seconds))
         wait_seconds = max(0, int(round(requested_seconds)))
+        controller_connected = bool(getattr(bridge._controller, "is_connected", False))
+        if not controller_connected:
+            await asyncio.sleep(requested_seconds)
+            return {
+                "success": True,
+                "action": "wait",
+                "seconds": requested_seconds,
+                "native_source": "windie.timer",
+            }
+
         result = await bridge.execute_action("wait", {"seconds": wait_seconds})
         if result.get("success"):
             result["seconds"] = requested_seconds
-        return result
+            return result
+
+        # Defensive fallback: if Browser Use wait fails due runtime internals,
+        # preserve deterministic timed-wait behavior.
+        await asyncio.sleep(requested_seconds)
+        return {
+            "success": True,
+            "action": "wait",
+            "seconds": requested_seconds,
+            "native_source": "windie.timer",
+            "warning": "Browser Use wait failed; timed-wait fallback applied.",
+        }
 
     handlers["wait_seconds"] = _wait_seconds_handler
 
