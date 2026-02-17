@@ -2,5 +2,13 @@
   "source_repo": "/mnt/E/Assistants/browser-use",
   "source_subdir": "browser_use",
   "source_commit": "8871ebafebe00795b7564bf5352eac2b657901d6",
-  "synced_at_utc": "2026-02-17T06:44:28Z"
+  "synced_at_utc": "2026-02-17T16:30:50Z",
+  "pruned_dirs": [
+    "skill_cli",
+    "mcp",
+    "actor/playground",
+    "dom/playground",
+    "llm/tests",
+    "tokens/tests"
+  ]
 }
