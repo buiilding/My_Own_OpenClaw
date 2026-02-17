@@ -38,14 +38,14 @@ Connect to my browser and go to Amazon
 
 ### Optional Runtime Flags
 
-Use these when validating Browser Use runtime cutover:
+Browser Use runtime is now the default execution path. These flags are optional:
 
 ```bash
 # Browser Use-native runtime (default; optional explicit alias)
 export WINDIE_BROWSER_USE_RUNTIME=browser_use_native
 
-# Enable selected native action handlers
-export WINDIE_BROWSER_USE_NATIVE_ACTIONS=wait_seconds
+# Strict handler mode for diagnostics (optional)
+export WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT=1
 ```
 
 That's it! WindieOS will connect to an existing CDP-enabled Chrome, or launch Chrome with CDP if Chrome is not running.
