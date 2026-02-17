@@ -91,6 +91,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- docs(browser-control): align runbook/tool docs with current `connect` behavior so auto-launch now explicitly means "connect to existing CDP Chrome or launch when Chrome is not running" and clarifies that WindieOS does not auto-restart an already-running non-CDP Chrome process
 - fix(sidecar-jsonrpc): validate `method` type in `JSONRPCProtocol.handle_request(...)` and return `INVALID_REQUEST` (`-32600`) for non-string method names instead of misclassifying them as `METHOD_NOT_FOUND`
 - fix(sidecar-jsonrpc): preserve valid falsy JSON-RPC request IDs (`0`, `""`) in `JSONRPCProtocol.create_request(...)` by checking `request_id is not None` so requests are not accidentally downgraded to notifications
 - fix(tool-selection): strengthen dev tool-selection cache invalidation in `backend/src/tools/tool_selection.py` by keying cache entries on `(st_mtime_ns, st_ctime_ns, st_size)` instead of only `st_mtime`, with backend regression coverage for same-mtime file rewrites
