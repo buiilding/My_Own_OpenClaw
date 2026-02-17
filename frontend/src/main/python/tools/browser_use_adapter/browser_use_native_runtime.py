@@ -300,6 +300,30 @@ class BrowserUseNativeRuntimeProvider(ControllerBackedRuntimeProvider):
             return native
         return await super().set_input_files(ref=ref, paths=paths)
 
+    async def execute_browser_use_action(
+        self,
+        *,
+        action: str,
+        params: dict[str, Any],
+    ) -> dict[str, Any]:
+        normalized = action.strip().lower()
+        handler = self._native_handlers.get(normalized)
+        if handler is None:
+            raise RuntimeError(
+                f"No Browser Use native handler configured for action '{normalized}'"
+            )
+        result = handler(**dict(params))
+        if inspect.isawaitable(result):
+            result = await result
+        if isinstance(result, dict):
+            return result
+        return {
+            "success": True,
+            "action": normalized,
+            "result": result,
+            "native_source": "browser_use.tools",
+        }
+
 
 def _load_native_handlers(controller: Any) -> dict[str, NativeActionHandler]:
     module_name = os.getenv(

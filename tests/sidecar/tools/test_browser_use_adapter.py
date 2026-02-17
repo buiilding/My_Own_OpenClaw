@@ -328,6 +328,96 @@ class TestBrowserUseCompatibilityAdapter:
         )
 
     @pytest.mark.asyncio
+    async def test_direct_browser_use_action_routes_to_runtime_executor(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        runtime = SimpleNamespace(
+            is_connected=True,
+            execute_browser_use_action=mock.AsyncMock(
+                return_value={
+                    "success": True,
+                    "action": "search",
+                    "native_source": "browser_use.tools",
+                    "extracted_content": "Found results",
+                }
+            ),
+        )
+        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "search",
+            {"action": "search", "query": "windie browser use"},
+        )
+
+        assert result.success is True
+        assert result.action == "search"
+        assert result.data["browser_use_action"] == "search"
+        runtime.execute_browser_use_action.assert_awaited_once_with(
+            action="search",
+            params={"query": "windie browser use"},
+        )
+
+    @pytest.mark.asyncio
+    async def test_browser_use_action_requires_connection_when_needed(
+        self,
+        make_controller,
+    ):
+        controller = make_controller(connected=False)
+        runtime = SimpleNamespace(
+            is_connected=False,
+            execute_browser_use_action=mock.AsyncMock(),
+        )
+        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "find_text",
+            {"action": "find_text", "text": "pricing"},
+        )
+
+        assert result.success is False
+        assert result.action == "find_text"
+        assert result.error_code == "BROWSER_NOT_CONNECTED"
+        runtime.execute_browser_use_action.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_act_switch_kind_routes_to_browser_use_action(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        runtime = SimpleNamespace(
+            is_connected=True,
+            execute_browser_use_action=mock.AsyncMock(
+                return_value={
+                    "success": True,
+                    "action": "switch",
+                    "native_source": "browser_use.tools",
+                }
+            ),
+        )
+        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "act",
+            {
+                "action": "act",
+                "request": {
+                    "kind": "switch",
+                    "tab_id": "abcd1234",
+                },
+            },
+        )
+
+        assert result.success is True
+        assert result.action == "switch"
+        runtime.execute_browser_use_action.assert_awaited_once_with(
+            action="switch",
+            params={"tab_id": "1234"},
+        )
+
+    @pytest.mark.asyncio
     async def test_runtime_provider_injection_for_core_actions(self, make_controller):
         controller = make_controller()
         controller.navigate = mock.AsyncMock(
@@ -639,7 +729,8 @@ class TestBrowserUseCompatibilityAdapter:
             runtime = get_browser_runtime_provider(controller)
 
         assert runtime.__class__.__name__ == "BrowserUseNativeRuntimeProvider"
-        assert runtime._native_handlers == {}
+        assert "wait_seconds" in runtime._native_handlers
+        assert "search" in runtime._native_handlers
 
     @pytest.mark.asyncio
     async def test_native_provider_uses_enabled_handler_for_navigate(
@@ -824,6 +915,8 @@ class TestBrowserUseCompatibilityAdapter:
         self,
     ):
         fake_service_module = ModuleType("browser_use.tools.service")
+        fake_browser_module = ModuleType("browser_use.browser")
+        fake_filesystem_module = ModuleType("browser_use.filesystem.file_system")
         execute_action = mock.AsyncMock(
             return_value=SimpleNamespace(extracted_content="Waited for 2 seconds")
         )
@@ -832,11 +925,31 @@ class TestBrowserUseCompatibilityAdapter:
             def __init__(self):
                 self.registry = SimpleNamespace(execute_action=execute_action)
 
+        class FakeBrowserSession:
+            def __init__(self, **_kwargs):
+                pass
+
+            async def start(self):
+                return None
+
+            async def stop(self):
+                return None
+
+        class FakeFileSystem:
+            def __init__(self, *_args, **_kwargs):
+                pass
+
         fake_service_module.Tools = FakeTools
+        fake_browser_module.BrowserSession = FakeBrowserSession
+        fake_filesystem_module.FileSystem = FakeFileSystem
 
         def _import_module(name: str):
             if name == "browser_use.tools.service":
                 return fake_service_module
+            if name == "browser_use.browser":
+                return fake_browser_module
+            if name == "browser_use.filesystem.file_system":
+                return fake_filesystem_module
             raise ImportError(name)
 
         with mock.patch(
@@ -844,16 +957,17 @@ class TestBrowserUseCompatibilityAdapter:
             side_effect=_import_module,
         ):
             handlers = get_native_runtime_handlers()
-
-        assert "wait_seconds" in handlers
-        result = await handlers["wait_seconds"](seconds=2.2)
-        assert result["success"] is True
-        assert result["native_source"] == "browser_use.tools.wait"
-        execute_action.assert_awaited_once_with(
-            "wait",
-            {"seconds": 2},
-            browser_session=None,
-        )
+            assert "wait_seconds" in handlers
+            result = await handlers["wait_seconds"](seconds=2.2)
+            assert result["success"] is True
+            assert result["native_source"] == "browser_use.tools"
+            assert result["seconds"] == 2.2
+            execute_action.assert_awaited_once_with(
+                "wait",
+                {"seconds": 2},
+                browser_session=None,
+                file_system=None,
+            )
 
     def test_runtime_factory_loads_handlers_from_custom_module(self, make_controller):
         controller = make_controller()
