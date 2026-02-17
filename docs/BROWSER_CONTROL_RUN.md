@@ -35,6 +35,8 @@ cd WindieOS
 ./scripts/check-browser-use-vendor
 ```
 
+This check also enforces that sidecar requirements do not reintroduce `browser-use` as a pip dependency.
+
 ### Step 2: Run WindieOS
 
 **Terminal 1 - Backend:**

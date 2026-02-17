@@ -95,6 +95,21 @@ def test_browser_use_import_origin_is_vendored() -> None:
     )
 
 
+def test_sidecar_requirements_do_not_depend_on_browser_use_package() -> None:
+    root = Path(__file__).resolve().parents[3]
+    requirements_files = (
+        root / "frontend" / "src" / "main" / "python" / "requirements.txt",
+        root / "frontend" / "src" / "main" / "python" / "requirements.runtime.txt",
+    )
+    pattern = re.compile(r"^\s*browser-use([<>=!~].*)?$", re.MULTILINE)
+    for req_file in requirements_files:
+        text = req_file.read_text(encoding="utf-8")
+        assert pattern.search(text) is None, (
+            "browser-use pip package dependency must be absent in "
+            f"{req_file}; Browser Use is vendored in-repo"
+        )
+
+
 def test_schema_exposes_all_browser_use_actions() -> None:
     browser_use_actions = _browser_use_actions()
     missing = sorted(browser_use_actions - set(BROWSER_SCHEMAS.keys()))

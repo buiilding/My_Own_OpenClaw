@@ -53,6 +53,11 @@ cd WindieOS
 ./scripts/check-browser-use-vendor
 ```
 
+Parity check guarantees:
+- Vendored tree matches `../browser-use/browser_use`.
+- Runtime import resolves to vendored `frontend/src/main/python/browser_use`.
+- Sidecar requirements do not depend on pip `browser-use`.
+
 ## User Chrome Mode
 
 Connect to your existing Chrome browser for full access to your logged-in sessions.
