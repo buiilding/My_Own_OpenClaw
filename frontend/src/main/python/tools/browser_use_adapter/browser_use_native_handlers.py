@@ -424,6 +424,97 @@ class _BrowserUseActionBridge:
                     "native_source": "browser_use.state",
                 }
 
+    @staticmethod
+    def _serialize_tab(tab: Any) -> dict[str, str]:
+        url = ""
+        title = ""
+        target_id = ""
+        if isinstance(tab, Mapping):
+            url_raw = tab.get("url")
+            title_raw = tab.get("title")
+            target_raw = tab.get("target_id") or tab.get("tab_id")
+            url = str(url_raw) if url_raw is not None else ""
+            title = str(title_raw) if title_raw is not None else ""
+            target_id = str(target_raw) if target_raw is not None else ""
+        else:
+            url_raw = getattr(tab, "url", "")
+            title_raw = getattr(tab, "title", "")
+            target_raw = getattr(tab, "target_id", "")
+            url = str(url_raw) if url_raw is not None else ""
+            title = str(title_raw) if title_raw is not None else ""
+            target_id = str(target_raw) if target_raw is not None else ""
+        if len(target_id) > 4:
+            target_id = target_id[-4:]
+        return {"target_id": target_id, "title": title, "url": url}
+
+    async def capture_tabs(self) -> dict[str, Any]:
+        async with self._lock:
+            try:
+                state = await self._current_state_summary()
+                tabs_raw = getattr(state, "tabs", None)
+                tabs = []
+                if isinstance(tabs_raw, list):
+                    tabs = [self._serialize_tab(tab) for tab in tabs_raw]
+                return {
+                    "success": True,
+                    "action": "get_tabs",
+                    "native_source": "browser_use.state",
+                    "tab_count": len(tabs),
+                    "tabs": tabs,
+                }
+            except Exception as exc:
+                return {
+                    "success": False,
+                    "action": "get_tabs",
+                    "error": f"Browser Use get_tabs failed: {exc}",
+                    "native_source": "browser_use.state",
+                }
+
+    async def capture_status(self) -> dict[str, Any]:
+        async with self._lock:
+            connected = bool(getattr(self._controller, "is_connected", False))
+            mode = self._controller_mode()
+            if not connected:
+                return {
+                    "success": True,
+                    "action": "status",
+                    "native_source": "browser_use.state",
+                    "connected": False,
+                    "mode": mode,
+                    "url": "",
+                    "title": "",
+                    "tab_count": 0,
+                    "target_id": None,
+                }
+            try:
+                state = await self._current_state_summary()
+                tabs_raw = getattr(state, "tabs", None)
+                tabs: list[dict[str, str]] = []
+                if isinstance(tabs_raw, list):
+                    tabs = [self._serialize_tab(tab) for tab in tabs_raw]
+                return {
+                    "success": True,
+                    "action": "status",
+                    "native_source": "browser_use.state",
+                    "connected": True,
+                    "mode": mode,
+                    "url": str(getattr(state, "url", "") or ""),
+                    "title": str(getattr(state, "title", "") or ""),
+                    "tab_count": len(tabs),
+                    "target_id": tabs[0]["target_id"] if tabs else None,
+                }
+            except Exception as exc:
+                return {
+                    "success": False,
+                    "action": "status",
+                    "error": f"Browser Use status failed: {exc}",
+                    "native_source": "browser_use.state",
+                }
+
+    async def _current_state_summary(self) -> Any:
+        browser_session = await self._ensure_browser_session()
+        return await browser_session.get_browser_state_summary(include_screenshot=False)
+
 
 def get_native_runtime_handlers(
     controller: Any | None = None,
@@ -447,6 +538,16 @@ def get_native_runtime_handlers(
         return await bridge.capture_snapshot(kwargs)
 
     handlers["snapshot"] = _snapshot_handler
+
+    async def _status_handler(**_kwargs: Any) -> dict[str, Any]:
+        return await bridge.capture_status()
+
+    handlers["status"] = _status_handler
+
+    async def _get_tabs_handler(**_kwargs: Any) -> dict[str, Any]:
+        return await bridge.capture_tabs()
+
+    handlers["get_tabs"] = _get_tabs_handler
 
     for action in _BROWSER_USE_ACTIONS:
         async def _handler(

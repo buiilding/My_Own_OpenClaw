@@ -203,23 +203,13 @@ Extract page content using focused text filtering, full-text windows, or structu
 }
 ```
 
-Extract options:
+Extract options (Browser Use semantics):
 - `query` (required): what to extract from the current page.
-- `mode`: `focused` (default keyword-focused excerpt), `full_text` (unfiltered source window), or `structured` (JSON window derived from detected tables/lists).
-- `wait_until`: load state to wait for before extraction (`load` default; supports `domcontentloaded`, `networkidle`, `commit`).
-- `extract_links`: include link lines (`text -> href`) in source text before query filtering (`false` default).
+- `extract_links`: include link lines in source text before extraction (`false` default).
 - `start_from_char`: continue extraction from a character offset for long pages (`0` default).
-- `max_chars`: max characters returned in `result` (`12000` default).
-- `selector`: optional CSS selector to scope extraction to part of the page.
-- `frame`: optional iframe selector for scoped extraction.
-- `output_schema`: optional schema hint. For Browser Use-native extract routing (default focused extract path), this is forwarded to Browser Use extraction. For compatibility extraction modes (`mode`, `selector`, `frame`), it is still treated as metadata only.
+- `output_schema`: optional structured-output hint passed to Browser Use extract.
 
-Extract output includes:
-- `result`: extracted text window (query-focused for `focused`, raw window for `full_text`, JSON text window for `structured`).
-- `structured`: parsed table/list payload when `mode="structured"` and DOM structures are detected.
-- `extracted_content`: tagged payload (`<url>`, `<query>`, `<result>`) for agent context.
-- pagination/source metadata: `start_from_char`, `next_start_char`, `has_more_source`, `source_window_chars`, `total_source_chars`.
-- diagnostics: `returned_chars`, `extract_links`, `wait_until`, `url`, `title`, `mode`.
+Extract output mirrors Browser Use action results (`extracted_content`, metadata, and optional schema-structured content when supported by Browser Use).
 
 ### 5. Click
 
@@ -370,28 +360,25 @@ Close browser connection.
 }
 ```
 
-## OpenClaw Compatibility Actions
+## Compatibility Aliases
 
-WindieOS now supports OpenClaw-style action names (compatibility layer):
+Supported aliases that map to Browser Use-native execution:
 
-- `status` -> session status summary
-- `open` -> opens a new tab and navigates
-- `pdf` -> returns PDF bytes (base64)
-- `act` -> envelope action with `request.kind`
-- `profiles` -> returns WindieOS profile equivalents
-- `upload` -> set file input files by `inputRef`/`ref`
-- `console` -> returns captured console messages for the active tab (`level`, `limit`, `clear`)
-- `dialog` -> arms next JS dialog handling (`accept`, `promptText`) and can optionally wait (`timeoutMs`)
-- `errors` / `requests` -> page errors + network request history
-- `trace_start` / `trace_stop` -> deprecated (`ACTION_DEPRECATED`); use `requests`/`errors` capture and HAR-style runbook workflows instead
+- `type` -> Browser Use `input`
+- `press` -> Browser Use `send_keys`
+- `open` -> Browser Use `navigate` with `new_tab=true`
+- `switch_tab` -> Browser Use `switch`
+- `upload` -> Browser Use `upload_file`
+- `get_tabs` / `status` -> Browser Use state summary bridge
+
+Deprecated legacy actions (`ACTION_DEPRECATED`):
+
+- `console`, `errors`, `requests`, `pdf`, `dialog`
 - `cookies`, `cookies_set`, `cookies_clear`
-- `storage_get`, `storage_set`, `storage_clear` (`kind: local|session`)
+- `storage_get`, `storage_set`, `storage_clear`
 - `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`
 - `set_timezone`, `set_locale`, `set_device`
-
-Notes:
-- `dialog` is one-shot per arm call; call it again to arm the next dialog.
-- Screenshot parity: `screenshot` supports `type: "png"|"jpeg"`, `quality` (jpeg), and CSS `element` targeting.
+- `act` legacy kinds: `hover`, `drag`, `select`, `fill`, `resize`
 
 ## Example Workflows
 
@@ -412,7 +399,7 @@ Notes:
 {"action": "type", "ref": "3", "text": "python async tutorial", "submit": true}
 
 // 5. Wait for results
-{"action": "wait", "state": "networkidle"}
+{"action": "wait", "seconds": 2}
 
 // 6. Get new snapshot
 {"action": "snapshot"}
@@ -447,7 +434,7 @@ Notes:
 {"action": "click", "ref": "4"}
 
 // Take screenshot
-{"action": "screenshot", "full_page": true}
+{"action": "screenshot", "file_name": "contact-form.png"}
 
 // Close
 {"action": "close"}
