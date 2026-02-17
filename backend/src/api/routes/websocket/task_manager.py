@@ -43,6 +43,17 @@ class TaskManager:
             # Ignore set-iteration edge cases during shutdown; cleanup() prunes done tasks.
             pass
 
+    def _prune_done_tasks_locked(self) -> int:
+        """
+        Remove completed tasks from active set.
+
+        Must be called while holding ``tasks_lock``.
+        """
+        done_tasks = {task for task in self.active_tasks if task.done()}
+        if done_tasks:
+            self.active_tasks.difference_update(done_tasks)
+        return len(done_tasks)
+
     @staticmethod
     def _close_if_coroutine(coro) -> None:
         """Close rejected coroutine inputs to avoid RuntimeWarning leaks."""
@@ -69,6 +80,14 @@ class TaskManager:
             Tuple of (task or None, limit_exceeded: bool)
         """
         async with self.tasks_lock:
+            pruned_count = self._prune_done_tasks_locked()
+            if pruned_count:
+                logger.debug(
+                    "Pruned %d completed tasks before scheduling for user %s",
+                    pruned_count,
+                    user_id,
+                )
+
             if len(self.active_tasks) >= self.max_concurrent_tasks:
                 logger.debug(
                     "Task limit exceeded for user %s (%d/%d)",
@@ -127,6 +146,4 @@ class TaskManager:
         # Prune completed tasks deterministically in case callback-driven cleanup
         # is delayed or unavailable during shutdown/loop edge cases.
         async with self.tasks_lock:
-            done_tasks = {t for t in self.active_tasks if t.done()}
-            if done_tasks:
-                self.active_tasks.difference_update(done_tasks)
+            self._prune_done_tasks_locked()
