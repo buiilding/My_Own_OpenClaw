@@ -960,3 +960,40 @@ In `frontend/src/main/python/core/ipc_protocol.py`, JSON-RPC calls with missing 
 - Runtime check:
   - Before: missing/extra args returned `-32603 Internal error`
   - After: missing/extra args return `-32602 Invalid params`
+
+---
+
+## [x] Bug Report: `process send-keys` Crashes On Non-String Key Tokens
+
+### Summary
+
+In `frontend/src/main/python/tools/system/process_tool.py`, `process_shell_command` action `send-keys` could raise an exception when `keys` contained non-string values.
+
+### Root Cause
+
+- `_encode_keys(...)` iterated `keys` and unconditionally called `key.strip().lower()`.
+- If a token was not a string (for example `123`), this raised `AttributeError`.
+- `process_shell_command(...)` does not wrap action handling in a top-level `try/except`, so the exception escaped the action handler path.
+
+### Why It's Problematic
+
+- A malformed `send-keys` payload caused tool execution failure instead of a controlled response.
+- Mixed payloads (valid literal + invalid key token) could not proceed, reducing robustness of sidecar command input handling.
+- Error handling became inconsistent with other validation flows that return structured `success: false` responses.
+
+### Fix
+
+- Hardened `_encode_keys(...)` in `process_tool.py`:
+  - validates `keys`/`hex` container types (`list` expected),
+  - ignores non-string entries with warnings instead of throwing,
+  - ignores non-string `literal` payloads with warnings.
+- Kept existing behavior for valid key aliases/hex/literal inputs.
+
+### Validation
+
+- Added regression test in `tests/sidecar/test_shell_process_tool.py`:
+  - `test_process_send_keys_ignores_non_string_key_tokens`
+- Re-ran targeted suites:
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py`
+  - `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py`
+  - Result: `29 passed` (22 + 7).

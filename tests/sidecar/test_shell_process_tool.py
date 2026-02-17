@@ -232,6 +232,28 @@ async def test_process_send_keys_literal():
 
 
 @pytest.mark.asyncio
+async def test_process_send_keys_ignores_non_string_key_tokens():
+    cmd = f'{sys.executable} -c "import sys; print(sys.stdin.readline().strip())"'
+    result = await run_shell_command({"command": cmd, "run_in_background": True})
+    session_id = result["data"]["session_id"]
+
+    send = await process_shell_command(
+        {
+            "action": "send-keys",
+            "session_id": session_id,
+            "keys": [123],
+            "literal": "keys\n",
+        }
+    )
+    assert send["success"] is True
+    assert "Ignored non-string key token: 123" in (send["data"].get("warnings") or [])
+
+    poll = await _wait_for_finish(session_id)
+    combined = poll["data"]["output"] + poll["data"].get("aggregated", "")
+    assert "keys" in combined
+
+
+@pytest.mark.asyncio
 async def test_process_log_slices_output():
     cmd = f'{sys.executable} -c "print(\'line1\'); print(\'line2\'); print(\'line3\')"'
     result = await run_shell_command({"command": cmd, "run_in_background": True})
