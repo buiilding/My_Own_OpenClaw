@@ -49,9 +49,11 @@ Connect to my browser and go to Amazon
 ```
 
 The agent will **automatically**:
-1. Check if Chrome is running with CDP enabled → connect to it
-2. If Chrome is running without CDP → restart it with CDP (restores your tabs)
-3. If Chrome is not running → launch it with CDP
+1. Check if Chrome is running with CDP enabled -> connect to it
+2. If Chrome is not running -> launch a CDP-enabled Chrome profile
+3. If Chrome is running without CDP -> return guidance to restart Chrome with `--remote-debugging-port`
+
+Note: WindieOS does not currently auto-restart an already-running non-CDP Chrome process.
 
 ### Manual Setup (Optional)
 
@@ -511,7 +513,8 @@ Notes:
 
 **Solutions:**
 
-1. **Auto-launch** (recommended): The agent automatically launches Chrome with CDP. Simply say "Connect to my browser" and it handles the rest, including restarting Chrome with the debugging flag if needed.
+1. **Auto-launch** (recommended): The agent will connect to an existing CDP-enabled Chrome instance, or launch Chrome with CDP if Chrome is not running.
+   If Chrome is already running without CDP, WindieOS will not restart that process automatically; restart Chrome manually with `--remote-debugging-port=9222`.
 
 2. **Manual launch** (if auto-launch fails):
    ```bash
