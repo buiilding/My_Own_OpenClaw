@@ -62,6 +62,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Browser-Use Port Phase 0 Artifacts**](plan/BROWSER_USE_PORT_PHASE0_PARITY_LEDGER.md) - Action parity ledger, baseline run log, and non-direct mapping decisions
 - [**Browser-Use Port Phase 1 Architecture Spec**](plan/BROWSER_USE_PORT_PHASE1_ARCHITECTURE_AND_ADAPTER_SPEC.md) - Ownership boundary, end-to-end sequence diagram, and adapter interface/normalized return contract
 - [**Browser-Use Port Phase 2 Progress**](plan/BROWSER_USE_PORT_PHASE2_COMPAT_WRAPPER_PROGRESS.md) - Compatibility-wrapper module wiring and current action routing coverage
+- [**Mobile App Plan**](plan/WINDIEOS_MOBILE_APP_PLAN.md) - Phased plan for iOS/Android client architecture, capability negotiation, and rollout
 - [**Contributing Guide**](CONTRIBUTING.md) - How to contribute to the project
 
 ### Hosted Platform (Planned)

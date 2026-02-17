@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(plan): add `docs/plan/WINDIEOS_MOBILE_APP_PLAN.md` with a phased iOS/Android delivery strategy covering renderer runtime decoupling, backend capability negotiation, mobile-safe tool policy, and release hardening gates
 - docs(plan): track additional planning docs under `docs/plan/` (`OS_LAYER_UX_EVOLUTION_PLAN.md`, `STOP_BUTTON_END_TO_END_PLAN.md`) and include `.gitkeep` scaffold
 - chore(sidecar-deps): add mandatory `browser-use` package to sidecar dependency manifests (`frontend/src/main/python/requirements.txt`, `frontend/src/main/python/requirements.runtime.txt`) and update browser-control runbooks to install from requirements
 - refactor(browser-use-port): remove legacy controller runtime fallback from adapter runtime selection so Browser Use runtime is required, delete strict runtime-selection mode (`WINDIE_BROWSER_USE_RUNTIME_STRICT`), and align sidecar adapter tests/docs with fail-fast runtime behavior
