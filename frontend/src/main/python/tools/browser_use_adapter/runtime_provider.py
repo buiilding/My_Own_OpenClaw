@@ -17,12 +17,23 @@ ENV_RUNTIME = "WINDIE_BROWSER_USE_RUNTIME"
 _BROWSER_USE_RUNTIME_ALIASES = {"browser_use", "browser_use_native"}
 
 
-def _ensure_vendored_browser_use_on_path() -> None:
-    """Prefer the in-repo Browser Use package when present."""
+def _is_within_path(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+        return True
+    except Exception:
+        return False
+
+
+def _ensure_vendored_browser_use_on_path() -> Path:
+    """Prefer and require the in-repo Browser Use package."""
     python_root = Path(__file__).resolve().parents[2]
     vendored_browser_use = python_root / "browser_use"
     if not vendored_browser_use.is_dir():
-        return
+        raise RuntimeError(
+            "Vendored Browser Use runtime is missing. "
+            "Expected directory: frontend/src/main/python/browser_use"
+        )
     root_path = str(python_root)
     try:
         existing_index = sys.path.index(root_path)
@@ -32,6 +43,41 @@ def _ensure_vendored_browser_use_on_path() -> None:
     if existing_index != 0:
         sys.path.pop(existing_index)
         sys.path.insert(0, root_path)
+    return vendored_browser_use
+
+
+def _purge_non_vendored_browser_use_modules(vendored_browser_use: Path) -> None:
+    for module_name, module in list(sys.modules.items()):
+        if module_name != "browser_use" and not module_name.startswith("browser_use."):
+            continue
+        module_file = getattr(module, "__file__", None)
+        if not isinstance(module_file, str) or not module_file.strip():
+            continue
+        if _is_within_path(Path(module_file), vendored_browser_use):
+            continue
+        del sys.modules[module_name]
+
+
+def _assert_vendored_browser_use_resolves(vendored_browser_use: Path) -> None:
+    _purge_non_vendored_browser_use_modules(vendored_browser_use)
+    try:
+        import browser_use  # type: ignore
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to import vendored Browser Use runtime: {exc}"
+        ) from exc
+
+    module_file = getattr(browser_use, "__file__", None)
+    if not isinstance(module_file, str) or not module_file.strip():
+        raise RuntimeError(
+            "Imported Browser Use module does not expose a filesystem path."
+        )
+    module_path = Path(module_file)
+    if not _is_within_path(module_path, vendored_browser_use):
+        raise RuntimeError(
+            "Browser Use import resolved outside vendored runtime. "
+            f"Resolved path: {module_file}"
+        )
 
 
 class ControllerRuntimeLike(Protocol):
@@ -328,7 +374,8 @@ def get_browser_runtime_provider(
     - controller/legacy runtime aliases are no longer supported
     """
 
-    _ensure_vendored_browser_use_on_path()
+    vendored_browser_use = _ensure_vendored_browser_use_on_path()
+    _assert_vendored_browser_use_resolves(vendored_browser_use)
 
     raw_requested = os.getenv(ENV_RUNTIME)
     if raw_requested is None:
@@ -343,9 +390,7 @@ def get_browser_runtime_provider(
         )
 
     if find_spec("browser_use") is None:
-        raise RuntimeError(
-            "Browser Use runtime is required but package 'browser_use' is not installed."
-        )
+        raise RuntimeError("Vendored Browser Use runtime is unavailable.")
 
     try:
         runtime_module = import_module(
