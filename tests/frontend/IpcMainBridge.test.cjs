@@ -157,6 +157,33 @@ describe('ipc.cjs bridge', () => {
     expect(queryMessage.payload.content).toContain('</user_query>');
   });
 
+  test('emits renderer error event when query send fails due to disconnected backend', async () => {
+    const { handlers, backendBridge, mainWindow } = initIpc();
+
+    backendBridge.getSystemState.mockResolvedValue({
+      active_window: 'App',
+      mouse_position: '0,0',
+    });
+    backendBridge.searchMemory.mockResolvedValue({
+      success: true,
+      data: { memories: { episodic: [], semantic: [] } },
+    });
+
+    await handlers['to-backend']({ sender: null }, {
+      type: 'query',
+      payload: { text: 'offline query', conversation_ref: 'conv-offline' },
+    });
+
+    const backendEvents = mainWindow.webContents.send.mock.calls
+      .filter(([channel]) => channel === 'from-backend')
+      .map(([, payload]) => payload);
+    const errorEvent = backendEvents.find((eventPayload) => eventPayload?.type === 'error');
+
+    expect(errorEvent).toBeDefined();
+    expect(errorEvent.turn_ref).toBe('uuid-1');
+    expect(errorEvent.payload.message).toContain('backend connection is unavailable');
+  });
+
   test('uses BACKEND_HOST and BACKEND_PORT for websocket + http endpoint metadata', async () => {
     process.env.BACKEND_HOST = '10.0.0.42';
     process.env.BACKEND_PORT = '9001';
