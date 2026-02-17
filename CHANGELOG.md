@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(local-backend-bridge): precompile static IPC payload mappers in `frontend/src/main/local_backend_bridge.cjs` (`mapSearchMemoryPayload` + `COMPILED_RPC_HANDLER_DEFINITIONS`) and consume precompiled mapper functions during handler registration instead of rebuilding field maps on every bridge initialization
+- refactor(local-backend-bridge): centralize JSON-RPC request failure wrapping with `sendRequestOrError(...)` and reuse it across mapped RPC handlers and memory-search dispatch to remove duplicated `try/catch` error-response branches
+- test(local-backend-bridge): add regression coverage in `tests/frontend/LocalBackendBridge.test.cjs` to validate snake_case `exclude_conversation_id` mapping compatibility in `search-memory` requests after mapper precompilation
 - fix(frontend-transcript): queue assistant transcript entries when conversation/user context is temporarily unavailable so entries flush after session hydration instead of being dropped, with regression coverage in `tests/frontend/TranscriptWriter.test.ts`
 - refactor(ipc-query-context): centralize query context resolution in `frontend/src/main/ipc.cjs` with shared helpers for `conversation_ref` fallback, common query context fields, local-user echo emission, and query-send failure emission
 - fix(ipc-query-context): apply backend `conversation_ref` fallback to outbound query payloads when renderer query messages omit `payload.conversation_ref`, ensuring conversation continuity across IPC local-echo and backend dispatch paths

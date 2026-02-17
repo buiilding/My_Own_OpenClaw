@@ -125,11 +125,94 @@ function createPayloadMapper(fieldMap) {
 }
 
 function registerMappedRpcHandlers(registerRpcHandler, definitions) {
-  for (const { channel, method, fieldMap } of definitions) {
-    const mapParams = createPayloadMapper(fieldMap);
+  for (const { channel, method, mapParams } of definitions) {
     registerRpcHandler(channel, method, mapParams);
   }
 }
+
+const mapSearchMemoryPayload = createPayloadMapper({
+  query: 'query',
+  user_id: 'user_id',
+  limit: 'limit',
+  memory_type: 'memory_type',
+  exclude_conversation_id: ['excludeConversationId', 'exclude_conversation_id'],
+});
+
+const COMPILED_RPC_HANDLER_DEFINITIONS = [
+  {
+    channel: 'list-conversations',
+    method: 'list_conversations',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      limit: 'limit',
+      record_kind: 'recordKind',
+    }),
+  },
+  {
+    channel: 'get-conversation',
+    method: 'get_conversation',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      conversation_id: ({ conversationId }) => conversationId ?? null,
+      limit: 'limit',
+      record_kind: 'recordKind',
+    }),
+  },
+  {
+    channel: 'list-semantic-memories',
+    method: 'list_semantic_memories',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      limit: 'limit',
+    }),
+  },
+  {
+    channel: 'delete-conversation',
+    method: 'delete_conversation',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      conversation_id: ({ conversationId }) => conversationId ?? null,
+      record_kind: 'recordKind',
+    }),
+  },
+  {
+    channel: 'delete-semantic-memory',
+    method: 'delete_semantic_memory',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      memory_id: 'memoryId',
+    }),
+  },
+  {
+    channel: 'store-memory',
+    method: 'store_memory',
+    mapParams: createPayloadMapper({
+      user_query: 'userQuery',
+      assistant_response: 'assistantResponse',
+      memory_type: 'memoryType',
+      user_id: 'userId',
+      session_id: 'sessionId',
+    }),
+  },
+  {
+    channel: 'store-transcript',
+    method: 'store_transcript',
+    mapParams: createPayloadMapper({
+      content: 'content',
+      user_id: 'userId',
+      conversation_ref: 'conversationRef',
+      role: 'role',
+      message_type: 'messageType',
+      tool_name: 'toolName',
+      correlation_id: 'correlationId',
+      message_index: 'messageIndex',
+      model_id: 'modelId',
+      model_provider: 'modelProvider',
+      screenshot: 'screenshot',
+      timestamp: 'timestamp',
+    }),
+  },
+];
 
 function rejectPendingRequests(reason) {
   const pendingEntries = Array.from(pendingRequests.entries());
@@ -462,6 +545,14 @@ function sendRequest(method, params = {}, options = {}) {
   });
 }
 
+async function sendRequestOrError(method, params = {}, options = {}) {
+  try {
+    return await sendRequest(method, params, options);
+  } catch (error) {
+    return toErrorResponse(error);
+  }
+}
+
 async function getSystemStateFromBackend(fields) {
   const params = fields ? { fields } : {};
   try {
@@ -476,24 +567,11 @@ async function getSystemStateFromBackend(fields) {
   }
 }
 
-async function sendMemorySearchRequest({
-  query,
-  user_id,
-  limit,
-  memory_type,
-  exclude_conversation_id,
-}) {
-  try {
-    return await sendRequest('search_memory', {
-      query: query,
-      user_id: user_id,
-      limit: limit,
-      memory_type: memory_type,
-      exclude_conversation_id: exclude_conversation_id,
-    });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
+async function sendMemorySearchRequest(payload = {}) {
+  return sendRequestOrError(
+    'search_memory',
+    mapSearchMemoryPayload(payload),
+  );
 }
 
 /**
@@ -560,13 +638,12 @@ function initializeLocalBackendBridge(getWindows) {
   startLocalBackend(mainWindow);
 
   const registerRpcHandler = (channel, method, mapParams) => {
-    ipcMain.handle(channel, async (event, payload = {}) => {
-      try {
-        return await sendRequest(method, mapParams(payload || {}));
-      } catch (error) {
-        return toErrorResponse(error);
-      }
-    });
+    ipcMain.handle(channel, async (event, payload = {}) => (
+      sendRequestOrError(
+        method,
+        mapParams(payload || {}),
+      )
+    ));
   };
 
   async function withHiddenWindowForScreenshot(task) {
@@ -672,94 +749,11 @@ function initializeLocalBackendBridge(getWindows) {
   });
 
   // Handle memory search requests (integrated into local backend)
-  const mapSearchMemoryPayload = createPayloadMapper({
-    query: 'query',
-    user_id: 'user_id',
-    limit: 'limit',
-    memory_type: 'memory_type',
-    exclude_conversation_id: ['excludeConversationId', 'exclude_conversation_id'],
-  });
   ipcMain.handle('search-memory', async (event, payload = {}) => (
-    sendMemorySearchRequest(
-      mapSearchMemoryPayload(payload),
-    )
+    sendMemorySearchRequest(payload)
   ));
 
-  registerMappedRpcHandlers(registerRpcHandler, [
-    {
-      channel: 'list-conversations',
-      method: 'list_conversations',
-      fieldMap: {
-        user_id: 'userId',
-        limit: 'limit',
-        record_kind: 'recordKind',
-      },
-    },
-    {
-      channel: 'get-conversation',
-      method: 'get_conversation',
-      fieldMap: {
-        user_id: 'userId',
-        conversation_id: ({ conversationId }) => conversationId ?? null,
-        limit: 'limit',
-        record_kind: 'recordKind',
-      },
-    },
-    {
-      channel: 'list-semantic-memories',
-      method: 'list_semantic_memories',
-      fieldMap: {
-        user_id: 'userId',
-        limit: 'limit',
-      },
-    },
-    {
-      channel: 'delete-conversation',
-      method: 'delete_conversation',
-      fieldMap: {
-        user_id: 'userId',
-        conversation_id: ({ conversationId }) => conversationId ?? null,
-        record_kind: 'recordKind',
-      },
-    },
-    {
-      channel: 'delete-semantic-memory',
-      method: 'delete_semantic_memory',
-      fieldMap: {
-        user_id: 'userId',
-        memory_id: 'memoryId',
-      },
-    },
-    {
-      channel: 'store-memory',
-      method: 'store_memory',
-      fieldMap: {
-        user_query: 'userQuery',
-        assistant_response: 'assistantResponse',
-        memory_type: 'memoryType',
-        user_id: 'userId',
-        session_id: 'sessionId',
-      },
-    },
-    {
-      channel: 'store-transcript',
-      method: 'store_transcript',
-      fieldMap: {
-        content: 'content',
-        user_id: 'userId',
-        conversation_ref: 'conversationRef',
-        role: 'role',
-        message_type: 'messageType',
-        tool_name: 'toolName',
-        correlation_id: 'correlationId',
-        message_index: 'messageIndex',
-        model_id: 'modelId',
-        model_provider: 'modelProvider',
-        screenshot: 'screenshot',
-        timestamp: 'timestamp',
-      },
-    },
-  ]);
+  registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_HANDLER_DEFINITIONS);
 
   // Only log initialization in development
   if (process.env.NODE_ENV !== 'production') {
