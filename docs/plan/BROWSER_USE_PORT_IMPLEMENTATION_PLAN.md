@@ -239,7 +239,7 @@ Completion note:
 
 ### Tasks
 
-1. Introduce a new sidecar module (example: `tools/browser_use_adapter/*`).
+1. Introduce a sidecar adapter/runtime module boundary (now in `tools/browser/*`).
 2. Route `browser_control` action handlers through adapter where possible.
 3. Preserve current payload shape expected by backend/frontend formatters.
 
@@ -253,12 +253,9 @@ Completion note:
 Delivered Phase 2 artifacts so far:
 
 1. Compatibility-wrapper module and adapter contract wiring:
-   - `frontend/src/main/python/tools/browser_use_adapter/types.py`
-   - `frontend/src/main/python/tools/browser_use_adapter/controller_adapter.py`
-   - `frontend/src/main/python/tools/browser_use_adapter/__init__.py`
-   - `frontend/src/main/python/tools/browser_use_adapter/runtime_provider.py`
-   - `frontend/src/main/python/tools/browser_use_adapter/browser_use_native_runtime.py`
-   - `frontend/src/main/python/tools/browser_use_adapter/browser_use_native_handlers.py`
+   - `frontend/src/main/python/tools/browser/browser_adapter.py`
+   - `frontend/src/main/python/tools/browser/browser_runtime.py`
+   - `frontend/src/main/python/tools/browser/browser_tool.py`
 2. Browser tool routing through adapter for initial Phase 2 action batch:
    - `frontend/src/main/python/tools/browser/browser_tool.py`
 3. Implementation progress log:
@@ -271,9 +268,8 @@ Current routing coverage:
 - Runtime-provider seam now covers core session/tab + interaction/capture actions (`connect`, `status`, `navigate`, `open`, `get_tabs`, `switch_tab`, `close`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`, `snapshot`, `extract`, `upload`) with controller-backed default provider.
 - Browser Use runtime selection scaffolding is now wired:
   - `WINDIE_BROWSER_USE_RUNTIME` (`browser_use` alias supported)
-  - `WINDIE_BROWSER_USE_NATIVE_ACTIONS`, `WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT`
   - `WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`
-  - `BrowserUseNativeRuntimeProvider` with action-level native override hooks; runtime selection now fails fast if Browser Use is unavailable.
+  - `BrowserUseNativeRuntimeProvider` with strict native handler loading; runtime selection now fails fast if Browser Use is unavailable.
 - Default native-handler set now includes a true Browser Use action path for `wait(seconds=...)` through `browser_use.tools.service.Tools` registry (`wait_seconds` runtime action key).
 
 Validation snapshot:
@@ -286,7 +282,7 @@ Validation snapshot:
 Phase 2 completion gate status:
 
 - Contract-preserving compatibility-wrapper routing is complete.
-- At least one core action now has true Browser Use-native execution: `wait(seconds=...)` via native runtime handler path (`WINDIE_BROWSER_USE_RUNTIME=browser_use_native`, `WINDIE_BROWSER_USE_NATIVE_ACTIONS=wait_seconds`).
+- At least one core action now has true Browser Use-native execution: `wait(seconds=...)` via native runtime handler path (`WINDIE_BROWSER_USE_RUNTIME=browser_use_native`).
 - Existing contract/test surfaces remain green after native-path introduction.
 
 ## Phase 3: Core Action Migration (High-Value First)

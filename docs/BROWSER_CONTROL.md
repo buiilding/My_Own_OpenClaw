@@ -19,7 +19,11 @@ Browser execution is routed through the Browser Use compatibility adapter. Runti
 - Startup fails fast if local `browser_use` runtime modules are unavailable or native runtime provider loading fails.
 - Runtime initialization enforces vendored Browser Use import origin (`frontend/src/main/python/tools/browser/browser_use`) and rejects external/site-packages `browser_use` resolution.
 - Optional native handler module override remains available for diagnostics (`WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`).
-- Browser Use extraction actions (`extract`, `read_long_content`) require a Browser Use LLM model via `WINDIE_BROWSER_USE_EXTRACTION_MODEL` (example: `openai_gpt_4o_mini`).
+- Browser Use extraction actions (`extract`, `read_long_content`) resolve the extraction LLM from WindieOS model settings by default.
+- Optional extraction overrides:
+  - Windie-style provider/model: `WINDIE_BROWSER_USE_EXTRACTION_PROVIDER` + `WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID`
+  - Optional provider credentials/endpoint: `WINDIE_BROWSER_USE_EXTRACTION_API_KEY`, `WINDIE_BROWSER_USE_EXTRACTION_BASE_URL`
+  - Browser Use explicit model-name override: `WINDIE_BROWSER_USE_EXTRACTION_MODEL` (example: `openai_gpt_4o_mini`)
 
 ## Overview
 
@@ -229,7 +233,7 @@ Extract options (Browser Use semantics):
 - `output_schema`: optional structured-output hint passed to Browser Use extract.
 
 Extract output mirrors Browser Use action results (`extracted_content`, metadata, and optional schema-structured content when supported by Browser Use).  
-Runtime requirement: set `WINDIE_BROWSER_USE_EXTRACTION_MODEL` to a Browser Use model name (for example `openai_gpt_4o_mini`).
+Runtime requirement: configure extraction LLM via Windie provider/model (`WINDIE_BROWSER_USE_EXTRACTION_PROVIDER` + `WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID`) or set explicit Browser Use model-name override (`WINDIE_BROWSER_USE_EXTRACTION_MODEL`, for example `openai_gpt_4o_mini`).
 
 ### 5. Click
 

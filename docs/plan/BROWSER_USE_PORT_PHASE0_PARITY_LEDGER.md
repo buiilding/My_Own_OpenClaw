@@ -65,15 +65,15 @@ Legend:
 
 ## Phase 2 Addendum (February 17, 2026)
 
-- Added sidecar adapter module (`tools/browser_use_adapter/*`) and routed initial action batch through adapter dispatch.
+- Added sidecar adapter/runtime modules (`tools/browser/browser_adapter.py`, `tools/browser/browser_runtime.py`) and routed initial action batch through adapter dispatch.
 - Added adapter-core sidecar regression module (`tests/sidecar/tools/test_browser_use_adapter.py`) as the primary Phase 2 coverage target for adapter-native behavior checks.
-- Added adapter runtime-provider seam (`tools/browser_use_adapter/runtime_provider.py`) so core session/tab actions can swap from controller internals to Browser Use primitives without changing adapter action contracts.
+- Added adapter runtime-provider seam (`tools/browser/browser_runtime.py`) so core session/tab actions can swap from controller internals to Browser Use primitives without changing adapter action contracts.
 - Expanded runtime-provider seam usage to interaction/capture primitives (`click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`, `snapshot`, `extract`, `upload`) and timed-wait execution (`wait_seconds`).
 - Adapter-routed actions now cover:
   - `connect`, `status`, `profiles`, `navigate`, `open`, `snapshot`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `console`, `errors`, `requests`, `trace_start`, `trace_stop`, `pdf`, `upload`, `dialog`, `cookies`, `cookies_set`, `cookies_clear`, `storage_get`, `storage_set`, `storage_clear`, `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`, `set_timezone`, `set_locale`, `set_device`, `act`, `close`
 - Migration decisions in the ledger remain unchanged.
 - `snapshot`, `extract`, and `act` are adapter-native in current Phase 2 implementation (no legacy delegates in `browser_tool` routing).
-- Core native-path completion gate is satisfied by `wait(seconds=...)`, which can now execute through Browser Use native tools (`browser_use.tools.service.Tools` `wait`) under runtime/action feature flags.
+- Core native-path completion gate is satisfied by `wait(seconds=...)`, which can now execute through Browser Use native tools (`browser_use.tools.service.Tools` `wait`) under `WINDIE_BROWSER_USE_RUNTIME=browser_use_native`.
 
 ## Phase 3-7 Addendum (February 17, 2026)
 
