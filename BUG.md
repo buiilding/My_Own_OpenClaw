@@ -1121,3 +1121,43 @@ In `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`, immedi
 - Re-ran targeted frontend suite:
   - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptWriter.test.ts`
   - Result: `19 passed`.
+
+---
+
+## [x] Bug Report: Assistant Transcript Entries Were Not Retried After Immediate IPC Write Failures
+
+### Summary
+
+In `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`, assistant transcript entries created by `recordAssistantMessage(...)` could be dropped when `store-transcript` IPC calls failed transiently.
+
+### Root Cause
+
+- `recordAssistantMessage(...)` used fire-and-forget persistence:
+  - `void storeTranscriptEntry(...)`
+- Unlike `recordUserMessage(...)` and `recordToolMessage(...)`, there was no failure catch-and-requeue path for immediate assistant writes.
+- Pending retry queues only covered user/tool entries, so assistant entries had no retry channel.
+
+### Why It's Problematic
+
+- Assistant responses are critical for chat history continuity; dropping them creates conversation gaps.
+- A transient renderer-main IPC failure could permanently lose assistant memory records.
+- This produced inconsistent reliability across transcript roles (user/tool had retries, assistant did not).
+
+### Fix
+
+- Added assistant pending retry queue infrastructure:
+  - `PendingAssistantMessage` in `frontend/src/renderer/infrastructure/transcript/types.ts`
+  - `createPendingAssistantQueue()` in `frontend/src/renderer/infrastructure/transcript/pendingAssistantQueue.ts`
+- Updated `TranscriptWriter`:
+  - new helper `queueAssistantMessageForRetry(...)`
+  - `recordAssistantMessage(...)` now catches immediate `storeTranscriptEntry(...)` failures, queues retry entry, and logs warning
+  - `flushPendingMessages()` now flushes assistant queue between user and tool queues
+- Updated test microtask drain helper depth in transcript tests to match the expanded async flush pipeline.
+
+### Validation
+
+- Added regression test in `tests/frontend/TranscriptWriter.test.ts`:
+  - `recordAssistantMessage requeues immediate writes when IPC store fails`
+- Re-ran targeted frontend suite:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptWriter.test.ts`
+  - Result: `20 passed`.

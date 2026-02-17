@@ -21,6 +21,14 @@ export type PendingToolMessage = {
   screenshotRef?: string | null;
 };
 
+export type PendingAssistantMessage = {
+  text: string;
+  messageType?: string;
+  modelId?: string | null;
+  modelProvider?: string | null;
+  screenshotRef?: string | null;
+};
+
 export type TranscriptEntry = {
   content: string;
   role?: string | null;

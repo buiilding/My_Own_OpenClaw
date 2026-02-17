@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-transcript): add assistant transcript retry queue so immediate `recordAssistantMessage` IPC failures are requeued and flushed instead of being dropped, with regression coverage in `tests/frontend/TranscriptWriter.test.ts`
 - refactor(query-execution): centralize dict-event payload/string extraction in `QueryExecutionService` with shared helpers, and remove unused legacy `_is_*` event-check helpers
 - test(query-execution): add regression coverage in `tests/backend/test_api_handlers.py` for assistant-full and streaming-complete payload/top-level extraction fallback paths
 - refactor(stream-pipeline): replace per-event inline TTS closure in `StreamPipeline.process` with dedicated `_run_tts_event` + done-callback cleanup to reduce hot-path allocation churn and simplify pending-task lifecycle logic

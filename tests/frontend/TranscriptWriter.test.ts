@@ -21,6 +21,8 @@ describe('TranscriptWriter', () => {
   const flushMicrotasks = async () => {
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
   };
 
   beforeEach(() => {
@@ -242,6 +244,56 @@ describe('TranscriptWriter', () => {
     });
   });
 
+  test('recordAssistantMessage requeues immediate writes when IPC store fails', async () => {
+    const error = new Error('store failed');
+    const { writer, invokeMock } = loadTranscriptWriter();
+    invokeMock.mockRejectedValueOnce(error).mockResolvedValue(undefined);
+    writer.updateTranscriptSession('conv-assistant-retry', 'user-assistant-retry');
+
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      writer.recordAssistantMessage('retry assistant message', {
+        messageType: 'llm-text',
+      });
+      await flushMicrotasks();
+
+      expect(invokeMock).toHaveBeenCalledTimes(1);
+      expect(invokeMock).toHaveBeenNthCalledWith(1, 'store-transcript', {
+        content: 'retry assistant message',
+        userId: 'user-assistant-retry',
+        conversationRef: 'conv-assistant-retry',
+        role: 'assistant',
+        messageType: 'llm-text',
+        toolName: undefined,
+        correlationId: undefined,
+        modelId: undefined,
+        modelProvider: undefined,
+        screenshot: undefined,
+        timestamp: undefined,
+      });
+
+      writer.updateTranscriptSession('conv-assistant-retry', 'user-assistant-retry');
+      await flushMicrotasks();
+
+      expect(invokeMock).toHaveBeenCalledTimes(2);
+      expect(invokeMock).toHaveBeenNthCalledWith(2, 'store-transcript', {
+        content: 'retry assistant message',
+        userId: 'user-assistant-retry',
+        conversationRef: 'conv-assistant-retry',
+        role: 'assistant',
+        messageType: 'llm-text',
+        toolName: undefined,
+        correlationId: undefined,
+        modelId: undefined,
+        modelProvider: undefined,
+        screenshot: undefined,
+        timestamp: undefined,
+      });
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
   test('recordAssistantMessage ignores empty text payloads', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
     writer.updateTranscriptSession('conv-1', 'user-1');
@@ -359,7 +411,7 @@ describe('TranscriptWriter', () => {
     expect(invokeMock).not.toHaveBeenCalled();
 
     writer.updateTranscriptSession('conv-tool-queued', 'user-tool-queued');
-    await Promise.resolve();
+    await flushMicrotasks();
 
     expect(invokeMock).toHaveBeenCalledWith('store-transcript', {
       content: 'tool call payload',
