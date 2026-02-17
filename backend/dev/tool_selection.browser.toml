@@ -3,6 +3,7 @@ enabled = true
 mode = "allowlist"
 tools = [
   "browser",
+  "run_shell_command",
 ]
 
 [tool_options.mouse_control]
