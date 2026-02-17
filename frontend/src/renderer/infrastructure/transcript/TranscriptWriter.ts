@@ -18,6 +18,19 @@ const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
 const pendingUserQueue = createPendingUserQueue();
 const pendingToolQueue = createPendingToolQueue();
 
+const sessionInfoChanged = (previous: SessionInfo, next: SessionInfo): boolean => (
+  previous.conversationRef !== next.conversationRef
+  || previous.userId !== next.userId
+);
+
+const persistAndEmitSessionInfoIfChanged = (previous: SessionInfo, next: SessionInfo) => {
+  if (!sessionInfoChanged(previous, next)) {
+    return;
+  }
+  persistSessionInfoToStorage(next);
+  emitSessionUpdateEvent(next);
+};
+
 const requeuePending = <T>(messages: T[], enqueue: (message: T) => void) => {
   for (const message of messages) {
     enqueue(message);
@@ -97,16 +110,16 @@ export const updateTranscriptSession = (
   conversationRef?: string | null,
   userId?: string | null,
 ) => {
-  const info = sessionState.update(conversationRef, userId);
-  persistSessionInfoToStorage(info);
-  emitSessionUpdateEvent(info);
+  const previousInfo = sessionState.get();
+  const nextInfo = sessionState.update(conversationRef, userId);
+  persistAndEmitSessionInfoIfChanged(previousInfo, nextInfo);
   void flushPendingMessages();
 };
 
 export const setActiveConversationRef = (conversationRef: string | null) => {
-  const info = sessionState.update(conversationRef, undefined);
-  persistSessionInfoToStorage(info);
-  emitSessionUpdateEvent(info);
+  const previousInfo = sessionState.get();
+  const nextInfo = sessionState.update(conversationRef, undefined);
+  persistAndEmitSessionInfoIfChanged(previousInfo, nextInfo);
   void flushPendingMessages();
 };
 

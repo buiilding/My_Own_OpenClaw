@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(transcript): avoid redundant `sessionStorage` writes and `transcript-session-update` event emissions in `TranscriptWriter` when `conversationRef`/`userId` are unchanged, while preserving pending-flush retry behavior for queued transcript entries
+- test(frontend-transcript): add no-op session-update regression coverage in `tests/frontend/TranscriptWriter.test.ts` and validate stream-hook compatibility with `tests/frontend/ChatStreamThinkingStatus.test.tsx`
 - docs(plan): add `docs/plan/WINDIEOS_NEW_CHAT_SESSION_PLAN.md` with a phased implementation plan for a UI `New Chat` action that mints a fresh `conversation_ref`, resets chat state, isolates stale stream events, and validates backend history separation
 - test(browser-runtime): add connected wait-semantics regression for native `wait_seconds` to ensure Browser Use wait receives a live browser session when connected and keeps non-connected timer fallback behavior deterministic
 - test(browser-runtime): cover extraction LLM resolution from Windie provider/model settings in `tests/sidecar/tools/test_browser_use_adapter.py` to prevent regressions when Browser Use model-name override is unset

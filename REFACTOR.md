@@ -1,3 +1,81 @@
+# Refactor: Avoid Redundant Transcript Session Persistence on Every Stream Event
+
+## Target
+Reduce redundant storage/event churn in:
+- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+
+This is a performance + maintainability refactor in the renderer transcript session path.
+
+## Current Structure and Root Cause
+`useChatStream` calls `updateTranscriptSession(...)` for each backend event, including high-frequency `streaming-response` chunks.
+
+Before this refactor, both session update entry points:
+- `updateTranscriptSession(...)`
+- `setActiveConversationRef(...)`
+
+always did:
+1. `persistSessionInfoToStorage(info)` (`sessionStorage.setItem`)
+2. `emitSessionUpdateEvent(info)` (DOM custom event dispatch)
+3. `flushPendingMessages()`
+
+even when `conversationRef` and `userId` were unchanged.
+
+Root cause: persistence/event side effects were not guarded by session identity changes.
+
+## Refactor Plan
+1. Add a small session-diff helper to detect whether session identity actually changed.
+2. Keep current APIs unchanged.
+3. Keep pending flush behavior unchanged (important for retry paths).
+4. Persist to storage + emit event only when session info changed.
+5. Add frontend regression tests to prove:
+  - unchanged updates do not re-persist/re-emit
+  - existing retry/flush behavior remains intact
+
+## Implemented Changes
+### 1) Session-change guard
+- Added:
+  - `sessionInfoChanged(previous, next)`
+  - `persistAndEmitSessionInfoIfChanged(previous, next)`
+- File:
+  - `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+
+### 2) Rewired update paths
+- Updated both:
+  - `updateTranscriptSession(...)`
+  - `setActiveConversationRef(...)`
+
+They now:
+1. read previous session info
+2. apply session update
+3. persist/emit only when changed
+4. always run `flushPendingMessages()` (unchanged behavior)
+
+### 3) Regression test coverage
+- Added test:
+  - `skips redundant persistence and session-update events when session info is unchanged`
+- File:
+  - `tests/frontend/TranscriptWriter.test.ts`
+
+This test asserts:
+- only one `transcript-session-update` event is emitted across repeated identical updates
+- only one `sessionStorage.setItem` call occurs across those no-op updates
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env frontend bash -lc "cd frontend && npm run test -- tests/frontend/TranscriptWriter.test.ts"
+./scripts/python-in-env frontend bash -lc "cd frontend && npm run test -- tests/frontend/ChatStreamThinkingStatus.test.tsx"
+```
+
+Results:
+- `TranscriptWriter`: 17 passed
+- `ChatStreamThinkingStatus`: 27 passed
+
+This confirms behavior is preserved while removing high-frequency redundant persistence/event work during streaming.
+
+---
+
 # Refactor: Centralize WebSocket Handshake Failure Handling
 
 ## Target
