@@ -112,6 +112,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(browser-use-runtime): remove vendored Browser Use cloud/sync/telemetry integrations from WindieOS runtime, add local-only stubs in `browser/session.py` + `browser/profile.py`, and replace telemetry wiring in `tools/registry/service.py` with a no-op implementation
+- chore(browser-use-runtime): extend Browser Use vendor sync/check policy and docs for the slimmer runtime footprint (`browser/cloud`, `sync`, `telemetry` pruned) while protecting WindieOS-local runtime override files during vendor parity checks
 - refactor(browser-runtime): convert Browser Use compatibility adapter action routing in `browser_tool.py` from long conditional chains to table-driven dispatch (`ADAPTER_ACTIONS_*` + `BROWSER_USE_PASSTHROUGH_ACTIONS`) while preserving WindieOS orchestration and Browser Use execution semantics
 - chore(browser-use-runtime): prune vendored `browser_use/integrations` directory and enforce it in vendor sync/check scripts so empty upstream integration scaffolding is no longer shipped in WindieOS
 - chore(browser-use-runtime): prune vendored Browser Use tree down to WindieOS runtime dependencies (agent runtime internals, code-use, sandbox, skills, unused LLM provider modules, and vendor docs/typing marker), and expand vendor sync/check prune policy + manifest to enforce the slimmer runtime footprint
