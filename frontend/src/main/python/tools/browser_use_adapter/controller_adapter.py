@@ -257,74 +257,31 @@ class BrowserUseCompatibilityAdapter:
         if action == "profiles":
             return await self.profiles()
         if action == "navigate":
-            browser_use_result = await self.execute_browser_use_action(action, args)
-            if browser_use_result.success or not self._should_fallback_to_compat(
-                browser_use_result
-            ):
-                return browser_use_result
-            return await self.navigate(args)
+            return await self.execute_browser_use_action(action, args)
         if action == "open":
             return await self.open(args)
         if action == "snapshot":
             return await self.snapshot(args)
         if action == "extract":
-            if any(key in args for key in ("mode", "selector", "frame")):
-                return await self.extract(args)
-            browser_use_result = await self.execute_browser_use_action(action, args)
-            if browser_use_result.success or not self._should_fallback_to_compat(
-                browser_use_result
-            ):
-                return browser_use_result
-            return await self.extract(args)
+            return await self.execute_browser_use_action(action, args)
         if action == "click":
-            ref = self._value_as_str(args.get("ref"))
-            if ref and ref.startswith("e") and self._extract_index(args) is None:
-                return await self.click(args)
-            browser_use_result = await self.execute_browser_use_action(action, args)
-            if browser_use_result.success or not self._should_fallback_to_compat(
-                browser_use_result
-            ):
-                return browser_use_result
-            return await self.click(args)
+            return await self.execute_browser_use_action(action, args)
         if action == "type":
             return await self.type_text(args)
         if action == "press":
             return await self.press(args)
         if action == "scroll":
-            browser_use_result = await self.execute_browser_use_action(action, args)
-            if browser_use_result.success or not self._should_fallback_to_compat(
-                browser_use_result
-            ):
-                return browser_use_result
-            return await self.scroll(args)
+            return await self.execute_browser_use_action(action, args)
         if action == "screenshot":
-            if any(key in args for key in ("full_page", "ref", "element", "type", "quality")):
-                return await self.screenshot(args)
-            browser_use_result = await self.execute_browser_use_action(action, args)
-            if browser_use_result.success or not self._should_fallback_to_compat(
-                browser_use_result
-            ):
-                return browser_use_result
-            return await self.screenshot(args)
+            return await self.execute_browser_use_action(action, args)
         if action == "wait":
-            if isinstance(args.get("seconds"), (int, float)):
-                browser_use_result = await self.execute_browser_use_action(action, args)
-                if browser_use_result.success or not self._should_fallback_to_compat(
-                    browser_use_result
-                ):
-                    return browser_use_result
-            return await self.wait(args)
+            return await self.execute_browser_use_action(action, args)
         if action == "get_tabs":
             return await self.get_tabs()
         if action == "switch_tab":
             return await self.switch_tab(args)
         if action == "evaluate":
-            browser_use_result = await self.execute_browser_use_action(action, args)
-            if browser_use_result.success or not self._should_fallback_to_compat(
-                browser_use_result
-            ):
-                return browser_use_result
-            return await self.evaluate(args)
+            return await self.execute_browser_use_action(action, args)
         if action in BROWSER_USE_DIRECT_ACTIONS:
             return await self.execute_browser_use_action(action, args)
         if action == "console":
@@ -1353,19 +1310,6 @@ class BrowserUseCompatibilityAdapter:
             data=payload,
         )
 
-    @staticmethod
-    def _should_fallback_to_compat(result: AdapterActionResult) -> bool:
-        if result.success:
-            return False
-        error = (result.error or "").lower()
-        if result.error_code == "ACTION_UNSUPPORTED":
-            return True
-        if "does not expose execute_browser_use_action" in error:
-            return True
-        if "unable to infer browser use session mode" in error:
-            return True
-        return False
-
     def _build_browser_use_action_params(
         self,
         action: str,
@@ -1472,6 +1416,21 @@ class BrowserUseCompatibilityAdapter:
             return {"text": text}
 
         if action == "extract":
+            if "mode" in args:
+                return self._invalid_argument(
+                    "extract",
+                    "extract no longer supports compatibility 'mode'; use Browser Use extract semantics",
+                )
+            if "selector" in args:
+                return self._invalid_argument(
+                    "extract",
+                    "extract no longer supports compatibility 'selector'; use Browser Use extract semantics",
+                )
+            if "frame" in args:
+                return self._invalid_argument(
+                    "extract",
+                    "extract no longer supports compatibility 'frame'; use Browser Use extract semantics",
+                )
             query = self._value_as_str(args.get("query"))
             if not query:
                 return self._invalid_argument(
@@ -1544,6 +1503,11 @@ class BrowserUseCompatibilityAdapter:
             return {"keys": keys}
 
         if action == "wait":
+            if "state" in args:
+                return self._invalid_argument(
+                    "wait",
+                    "wait no longer supports compatibility 'state'; provide Browser Use 'seconds'",
+                )
             seconds = args.get("seconds")
             if isinstance(seconds, (int, float)):
                 return {"seconds": max(0, int(round(float(seconds))))}
@@ -1576,6 +1540,31 @@ class BrowserUseCompatibilityAdapter:
             return params
 
         if action == "screenshot":
+            if "full_page" in args:
+                return self._invalid_argument(
+                    "screenshot",
+                    "screenshot no longer supports compatibility 'full_page'; only Browser Use screenshot parameters are supported",
+                )
+            if "ref" in args:
+                return self._invalid_argument(
+                    "screenshot",
+                    "screenshot no longer supports compatibility 'ref'; only Browser Use screenshot parameters are supported",
+                )
+            if "element" in args:
+                return self._invalid_argument(
+                    "screenshot",
+                    "screenshot no longer supports compatibility 'element'; only Browser Use screenshot parameters are supported",
+                )
+            if "type" in args:
+                return self._invalid_argument(
+                    "screenshot",
+                    "screenshot no longer supports compatibility 'type'; only Browser Use screenshot parameters are supported",
+                )
+            if "quality" in args:
+                return self._invalid_argument(
+                    "screenshot",
+                    "screenshot no longer supports compatibility 'quality'; only Browser Use screenshot parameters are supported",
+                )
             file_name = self._value_as_str(args.get("file_name"))
             return {"file_name": file_name} if file_name else {}
 

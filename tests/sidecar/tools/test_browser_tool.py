@@ -420,16 +420,26 @@ class TestNavigateAction:
         """Test successful navigation."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.navigate.return_value = {
-                "success": True,
-                "url": "https://example.com",
-                "title": "Example",
-                "status": 200,
-            }
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="navigate",
+                decision="port",
+                data={
+                    "action": "navigate",
+                    "browser_use_action": "navigate",
+                    "url": "https://example.com",
+                    "title": "Example",
+                    "status": 200,
+                },
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
@@ -466,14 +476,20 @@ class TestNavigateAction:
         """Test navigation failure."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.navigate.return_value = {
-                "success": False,
-                "error": "Connection refused",
-            }
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=False,
+                action="navigate",
+                decision="port",
+                error="Connection refused",
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
@@ -967,25 +983,27 @@ class TestExtractAction:
 
     @pytest.mark.asyncio
     async def test_extract_success(self):
-        """Extract should return query-focused content and source metadata."""
+        """Extract should route through Browser Use runtime semantics."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-            mock_controller.evaluate.return_value = {
-                "success": True,
-                "result": {
-                    "title": "Example",
-                    "url": "https://example.com",
-                    "content": "Pricing\\nFree plan\\nPro plan $20\\nEnterprise plan",
-                },
-            }
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="extract",
+                decision="port",
+                data={
+                    "action": "extract",
+                    "browser_use_action": "extract",
+                    "extracted_content": "Pricing\\nPro plan $20",
+                },
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
@@ -996,35 +1014,17 @@ class TestExtractAction:
 
             assert result.success is True
             assert result.data["action"] == "extract"
-            assert result.data["query"] == "pro plan price"
-            assert result.data["mode"] == "focused"
-            assert result.data["wait_until"] == "load"
-            assert result.data["url"] == "https://example.com"
-            assert "Pro plan" in result.data["result"]
-            assert "extracted_content" in result.data
-            mock_controller.wait_for_load.assert_awaited_once_with("load")
-            mock_controller.evaluate.assert_awaited_once()
+            assert result.data["browser_use_action"] == "extract"
+            assert "Pro plan" in result.data["extracted_content"]
 
     @pytest.mark.asyncio
-    async def test_extract_full_text_mode_returns_unfiltered_content(self):
-        """full_text mode should return the source window without relevance filtering."""
+    async def test_extract_full_text_mode_rejected(self):
+        """Compatibility extract modes are rejected in Browser Use-only runtime."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-            mock_controller.evaluate.return_value = {
-                "success": True,
-                "result": {
-                    "title": "Example",
-                    "url": "https://example.com",
-                    "content": "Alpha\nBeta\nGamma",
-                },
-            }
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control(
@@ -1035,47 +1035,17 @@ class TestExtractAction:
                 }
             )
 
-            assert result.success is True
-            assert result.data["mode"] == "full_text"
-            assert result.data["result"] == "Alpha\nBeta\nGamma"
+            assert result.success is False
+            assert "no longer supports compatibility 'mode'" in result.error
 
     @pytest.mark.asyncio
-    async def test_extract_structured_mode_returns_structured_payload(self):
-        """structured mode should expose parsed table/list payload and JSON text window."""
+    async def test_extract_structured_mode_rejected(self):
+        """Compatibility structured extraction mode is rejected."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-            mock_controller.evaluate.return_value = {
-                "success": True,
-                "result": {
-                    "title": "Kimi",
-                    "url": "https://example.com/keys",
-                    "content": "fallback text",
-                    "structured": {
-                        "tables": [
-                            {
-                                "caption": "API Keys",
-                                "headers": ["API ID", "Name", "Key"],
-                                "row_objects": [
-                                    {
-                                        "API ID": "1",
-                                        "Name": "prod",
-                                        "Key": "sk-...1234",
-                                    }
-                                ],
-                            }
-                        ],
-                        "lists": [],
-                        "table_count": 1,
-                    },
-                },
-            }
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control(
@@ -1088,15 +1058,8 @@ class TestExtractAction:
                 }
             )
 
-            assert result.success is True
-            assert result.data["mode"] == "structured"
-            assert result.data["selector"] == "table"
-            assert result.data["frame"] == "#content-frame"
-            assert result.data["structured"]["table_count"] == 1
-            assert '"table_count": 1' in result.data["result"]
-            script = mock_controller.evaluate.await_args.args[0]
-            assert "table" in script
-            assert "#content-frame" in script
+            assert result.success is False
+            assert "no longer supports compatibility 'mode'" in result.error
 
     @pytest.mark.asyncio
     async def test_extract_invalid_mode(self):
@@ -1113,7 +1076,7 @@ class TestExtractAction:
             )
 
             assert result.success is False
-            assert "mode must be one of" in result.error
+            assert "no longer supports compatibility 'mode'" in result.error
 
     @pytest.mark.asyncio
     async def test_extract_missing_query(self):
@@ -1132,25 +1095,23 @@ class TestExtractAction:
 
     @pytest.mark.asyncio
     async def test_extract_start_from_char_out_of_bounds(self):
-        """Extract should reject invalid continuation offsets."""
+        """Browser Use extract errors should surface through browser_control."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-            mock_controller.evaluate.return_value = {
-                "success": True,
-                "result": {
-                    "title": "Example",
-                    "url": "https://example.com",
-                    "content": "short content",
-                },
-            }
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=False,
+                action="extract",
+                decision="port",
+                error="start_from_char exceeds content length",
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
@@ -1172,50 +1133,59 @@ class TestClickAction:
         """Test successful click."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.click.return_value = {
-                "success": True,
-                "strategy": "force",
-                "forced": True,
-                "candidate_count": 2,
-                "candidate_index": 1,
-            }
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="click",
+                decision="port",
+                data={
+                    "action": "click",
+                    "browser_use_action": "click",
+                    "params": {"index": 5},
+                },
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
                     "action": "click",
-                    "ref": "5",
+                    "index": 5,
                 }
             )
 
             assert result.success is True
-            assert result.data["ref"] == "5"
-            assert result.data["strategy"] == "force"
-            assert result.data["forced"] is True
-            assert result.data["candidate_count"] == 2
-            assert result.data["candidate_index"] == 1
+            assert result.data["browser_use_action"] == "click"
 
     @pytest.mark.asyncio
     async def test_click_failure(self):
         """Test click failure."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.click.return_value = {
-                "success": False,
-                "error": "Element not found",
-            }
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=False,
+                action="click",
+                decision="port",
+                error="Element not found",
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
                     "action": "click",
-                    "ref": "999",
+                    "index": 999,
                 }
             )
 
@@ -1264,16 +1234,25 @@ class TestPostActionSnapshots:
         """Automatic post-action snapshots are disabled."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.click.return_value = {"success": True}
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="click",
+                decision="port",
+                data={"action": "click"},
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
                     "action": "click",
-                    "ref": "5",
+                    "index": 5,
                 }
             )
 
@@ -1287,16 +1266,25 @@ class TestPostActionSnapshots:
         """Disabled auto-snapshot should skip all snapshot-retry calls."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.click.return_value = {"success": True}
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="click",
+                decision="port",
+                data={"action": "click"},
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
                     "action": "click",
-                    "ref": "5",
+                    "index": 5,
                 }
             )
 
@@ -1310,20 +1298,29 @@ class TestPostActionSnapshots:
         """Disabled auto-snapshot should not run even if wait path would fail."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.click.return_value = {"success": True}
             mock_controller.wait_for_load.return_value = {
                 "success": False,
                 "error": "timed out",
             }
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="click",
+                decision="port",
+                data={"action": "click"},
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
                     "action": "click",
-                    "ref": "5",
+                    "index": 5,
                 }
             )
 
@@ -1411,36 +1408,46 @@ class TestScreenshotAction:
 
     @pytest.mark.asyncio
     async def test_screenshot_success(self):
-        """Test successful screenshot."""
+        """Test Browser Use screenshot success with native parameters."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.screenshot.return_value = b"pngdata"
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="screenshot",
+                decision="port",
+                data={
+                    "action": "screenshot",
+                    "browser_use_action": "screenshot",
+                    "native_source": "browser_use.tools",
+                },
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
                     "action": "screenshot",
-                    "full_page": True,
+                    "file_name": "capture.png",
                 }
             )
 
             assert result.success is True
-            assert result.data["format"] == "png"
-            assert result.data["full_page"] is True
-            assert "image_data" in result.data
+            assert result.data["browser_use_action"] == "screenshot"
 
     @pytest.mark.asyncio
     async def test_screenshot_element(self):
-        """Test element screenshot."""
+        """Legacy element screenshot fields are rejected."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.screenshot.return_value = b"pngdata"
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control(
@@ -1450,18 +1457,17 @@ class TestScreenshotAction:
                 }
             )
 
-            assert result.success is True
-            assert result.data["ref"] == "5"
+            assert result.success is False
+            assert "no longer supports compatibility 'ref'" in result.error
 
     @pytest.mark.asyncio
     async def test_screenshot_jpeg(self):
-        """Test jpeg screenshot option."""
+        """Legacy screenshot type field is rejected."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.screenshot.return_value = b"jpegdata"
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control(
@@ -1471,8 +1477,8 @@ class TestScreenshotAction:
                 }
             )
 
-            assert result.success is True
-            assert result.data["format"] == "jpeg"
+            assert result.success is False
+            assert "no longer supports compatibility 'type'" in result.error
 
 
 class TestGetTabsAction:
