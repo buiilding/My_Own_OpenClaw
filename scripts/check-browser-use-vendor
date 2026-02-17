@@ -6,6 +6,8 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 
 SOURCE_DIR="${1:-${REPO_ROOT}/../browser-use/browser_use}"
 VENDORED_DIR="${REPO_ROOT}/frontend/src/main/python/browser_use"
+REQ_FILE="${REPO_ROOT}/frontend/src/main/python/requirements.txt"
+REQ_RUNTIME_FILE="${REPO_ROOT}/frontend/src/main/python/requirements.runtime.txt"
 
 if [[ ! -d "${VENDORED_DIR}" ]]; then
   echo "Vendored Browser Use directory missing: ${VENDORED_DIR}" >&2
@@ -21,6 +23,12 @@ fi
 if ! diff -qr --exclude='__pycache__' --exclude='*.pyc' "${SOURCE_DIR}" "${VENDORED_DIR}" >/dev/null; then
   echo "Vendored Browser Use tree is out of sync with source." >&2
   echo "Run: ./scripts/sync-browser-use-vendor" >&2
+  exit 1
+fi
+
+if grep -Eq '^[[:space:]]*browser-use([<>=!~].*)?$' "${REQ_FILE}" "${REQ_RUNTIME_FILE}"; then
+  echo "browser-use pip package must not be listed in sidecar requirements." >&2
+  echo "Use vendored frontend/src/main/python/browser_use instead." >&2
   exit 1
 fi
 
