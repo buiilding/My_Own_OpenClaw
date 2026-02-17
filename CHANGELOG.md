@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(websocket-task-manager): prune completed tasks inside `create_task_if_under_limit` before enforcing concurrency limits, preventing false task-limit rejections when callback cleanup is delayed
+- test(websocket-task-manager): add stale-done-task scheduling regression in `tests/backend/test_websocket_task_manager.py` to verify pre-check pruning keeps capacity available
 - fix(frontend-query-dispatch): emit a `from-backend` error event when `ipc.cjs` cannot send `query` messages due to disconnected backend, preventing silent offline send failures and adding regression coverage in `tests/frontend/IpcMainBridge.test.cjs`
 - fix(ipc-main): harden `to-backend` event handling in `frontend/src/main/ipc.cjs` by normalizing malformed renderer messages (missing/non-object payloads) to prevent query-path crashes, with regression coverage in `tests/frontend/IpcMainBridge.test.cjs`
 - refactor(transcript): avoid redundant `sessionStorage` writes and `transcript-session-update` event emissions in `TranscriptWriter` when `conversationRef`/`userId` are unchanged, while preserving pending-flush retry behavior for queued transcript entries

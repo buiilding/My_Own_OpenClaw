@@ -73,6 +73,35 @@ async def test_create_task_if_under_limit_ignores_close_errors_on_rejected_input
 
 
 @pytest.mark.asyncio
+async def test_create_task_if_under_limit_prunes_done_tasks_before_limit_check(
+    monkeypatch,
+) -> None:
+    manager = TaskManager(max_concurrent_tasks=1, task_cancellation_timeout=0.1)
+    monkeypatch.setattr(manager, "task_done_callback", lambda _task: None)
+
+    first_task, first_limit_exceeded = await manager.create_task_if_under_limit(
+        asyncio.sleep(0),
+        "user_prune",
+    )
+    assert first_task is not None
+    assert first_limit_exceeded is False
+    await first_task
+
+    # Completed task remains in active set when callback removal is delayed.
+    assert len(manager.active_tasks) == 1
+
+    second_task, second_limit_exceeded = await manager.create_task_if_under_limit(
+        asyncio.sleep(0),
+        "user_prune",
+    )
+
+    # Scheduler should prune stale done tasks before enforcing max concurrency.
+    assert second_task is not None
+    assert second_limit_exceeded is False
+    await second_task
+
+
+@pytest.mark.asyncio
 async def test_create_task_if_under_limit_closes_coro_when_task_creation_fails(monkeypatch) -> None:
     manager = TaskManager(max_concurrent_tasks=1, task_cancellation_timeout=0.1)
 

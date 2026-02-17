@@ -1,3 +1,74 @@
+# Refactor: Prune Completed WebSocket Tasks Before Concurrency Checks
+
+## Target
+Prevent false task-limit rejections in:
+- `backend/src/api/routes/websocket/task_manager.py`
+
+This is a correctness + performance refactor in the WebSocket request scheduler hot path.
+
+## Current Structure and Root Cause
+`TaskManager.create_task_if_under_limit(...)` enforced limits using:
+- `len(self.active_tasks) >= self.max_concurrent_tasks`
+
+but did not prune completed tasks first.
+
+In normal flow, completed tasks are removed by `task_done_callback`, but callback cleanup can be delayed (or intentionally disabled in edge cases/tests). When that happens, stale done tasks inflate `active_tasks`, causing:
+- unnecessary "task limit exceeded" rejections
+- avoidable coroutine closes
+- underutilization of available concurrency
+
+Root cause: concurrency checks were coupled to a set that can temporarily contain completed tasks.
+
+## Refactor Plan
+1. Introduce a shared done-task pruning helper in `TaskManager`.
+2. Call pruning inside `create_task_if_under_limit(...)` while holding `tasks_lock`, before limit checks.
+3. Reuse the same helper in `cleanup(...)` to remove duplicated prune logic.
+4. Keep external API unchanged (`(task | None, limit_exceeded)` contract).
+5. Add regression coverage for stale-done-task scheduling.
+
+## Implemented Changes
+### 1) Shared prune helper
+- Added:
+  - `TaskManager._prune_done_tasks_locked()`
+- File:
+  - `backend/src/api/routes/websocket/task_manager.py`
+
+This helper removes completed tasks and returns prune count.
+
+### 2) Scheduler path improvement
+- Updated `create_task_if_under_limit(...)` to:
+  - prune done tasks first (under lock)
+  - then enforce max-concurrency limit
+
+This ensures stale completed tasks do not consume concurrency slots.
+
+### 3) Cleanup deduplication
+- Updated `cleanup(...)` to call `_prune_done_tasks_locked()` instead of open-coded set filtering.
+
+## Regression Coverage
+- Added test:
+  - `test_create_task_if_under_limit_prunes_done_tasks_before_limit_check`
+- File:
+  - `tests/backend/test_websocket_task_manager.py`
+
+The test simulates delayed callback cleanup by overriding `task_done_callback`, then verifies scheduling still accepts a new task after pruning stale done tasks.
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_websocket_task_manager.py
+./scripts/python-in-env backend pytest tests/backend/test_websocket_route.py
+```
+
+Results:
+- `10 passed`
+- `1 passed`
+
+This confirms behavior is preserved while removing false task-limit pressure from stale completed tasks.
+
+---
+
 # Refactor: Avoid Redundant Transcript Session Persistence on Every Stream Event
 
 ## Target
