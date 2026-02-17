@@ -1,3 +1,77 @@
+# Refactor: Normalize Query Enrichment Outcomes in Query Payload Builder
+
+## Target
+Reduce per-query branching/allocation overhead and remove duplicated failure-policy logic in:
+- `frontend/src/main/query_payload_builder.cjs`
+
+This is a maintainability + hot-path micro-performance refactor in IPC query payload enrichment.
+
+## Current Structure and Root Cause
+Before this refactor:
+- `buildQueryPayloadContent(...)` mixed enrichment orchestration and failure normalization inline.
+- Memory enrichment used `searchMemory(...).catch(...)` and then still wrapped the result in `Promise.allSettled(...)`.
+- State and memory handling depended on `PromiseSettledResult` status branching and a separate `logMemoryFailure(...)` path tied to settled-result wrappers.
+- Requested system-state field arrays were reallocated per query call.
+
+Root cause: error normalization and data shaping lived inside one large function with settled-result wrapper plumbing, causing duplicated branches and unnecessary per-query allocations.
+
+## Refactor Plan
+1. Extract system-state enrichment normalization into a dedicated helper.
+2. Extract memory enrichment normalization into a dedicated helper.
+3. Replace `Promise.allSettled(...)` orchestration with `Promise.all(...)` over already-normalized helper results.
+4. Hoist static requested-field arrays to module-level constants.
+5. Add regression tests for memory-rejection and null system-state payload behavior.
+
+## Implemented Changes
+### 1) Shared enrichment helpers
+Added:
+- `getRequestedSystemStateFields(contextType)`
+- `formatContextStateXml(contextType, state)`
+- `resolveSystemStateEnrichment(...)`
+- `resolveMemoryEnrichment(...)`
+
+### 2) Static field constants
+Added module-level constants:
+- `INITIAL_SYSTEM_STATE_FIELDS`
+- `SEQUENTIAL_SYSTEM_STATE_FIELDS`
+
+This removes per-query requested-field array reallocation.
+
+### 3) Orchestration simplification
+Updated `buildQueryPayloadContent(...)` to:
+- call `Promise.all([...])` over normalized helper promises
+- remove `Promise.allSettled(...)` status-wrapper branching
+- consume direct normalized outputs (`stateEnrichment`, `memories`)
+
+### 4) Memory failure logging cleanup
+- `logMemoryFailure(...)` now handles normalized memory response objects directly instead of settled-result wrappers.
+
+## Regression Coverage
+Updated:
+- `tests/frontend/QueryPayloadBuilder.test.cjs`
+
+Added tests:
+- `uses fallback memory sections when memory search rejects`
+- `uses fallback system context when system state payload is null`
+
+These guard the newly normalized helper paths and ensure fallback behavior remains unchanged.
+
+## Validation
+Ran:
+
+```bash
+cd frontend && npm run test -- tests/frontend/QueryPayloadBuilder.test.cjs
+cd frontend && npm run test -- tests/frontend/IpcMainBridge.test.cjs
+```
+
+Results:
+- `1 passed` suite, `4 passed` tests
+- `1 passed` suite, `23 passed` tests
+
+This confirms query payload output and IPC integration behavior remain intact while reducing query-path branching and transient settled-result allocations.
+
+---
+
 # Refactor: Precompile Local Backend RPC Payload Mappers
 
 ## Target

@@ -87,4 +87,56 @@ describe('query_payload_builder', () => {
     expect(result.content).toContain('<user_query>\nfallback\n</user_query>');
     expect(result.runtimeSystemState).toBeNull();
   });
+
+  test('uses fallback memory sections when memory search rejects', async () => {
+    const getSystemState = jest.fn().mockResolvedValue({
+      active_window: 'Editor',
+      mouse_position: '0,0',
+      screen_resolution: '2560x1440',
+      windows: ['Editor'],
+    });
+    const searchMemory = jest.fn().mockRejectedValue(new Error('memory backend unavailable'));
+
+    const result = await buildQueryPayloadContent({
+      text: 'memory fallback',
+      conversationRef: 'conv-mem',
+      userId: 'user-3',
+      contextType: 'initial',
+      getSystemState,
+      searchMemory,
+      log: jest.fn(),
+    });
+
+    expect(result.content).toContain('<active_window>Editor</active_window>');
+    expect(result.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
+    expect(result.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
+    expect(result.runtimeSystemState).toEqual({ screen_resolution: '2560x1440' });
+  });
+
+  test('uses fallback system context when system state payload is null', async () => {
+    const getSystemState = jest.fn().mockResolvedValue(null);
+    const searchMemory = jest.fn().mockResolvedValue({
+      success: true,
+      data: {
+        memories: {
+          episodic: ['entry'],
+          semantic: [],
+        },
+      },
+    });
+
+    const result = await buildQueryPayloadContent({
+      text: 'null state',
+      conversationRef: 'conv-null',
+      userId: 'user-4',
+      contextType: 'initial',
+      getSystemState,
+      searchMemory,
+      log: jest.fn(),
+    });
+
+    expect(result.content).toContain('<active_window>Unknown</active_window>');
+    expect(result.content).toContain('<episodic_memory>\n- entry\n</episodic_memory>');
+    expect(result.runtimeSystemState).toBeNull();
+  });
 });

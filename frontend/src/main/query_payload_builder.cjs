@@ -26,6 +26,19 @@ function appendMemorySections(parts, memories = null) {
   parts.push(formatMemorySection('semantic_memory', memories?.semantic));
 }
 
+const INITIAL_SYSTEM_STATE_FIELDS = Object.freeze([
+  'active_window',
+  'mouse_position',
+  'screen_resolution',
+  'windows',
+]);
+
+const SEQUENTIAL_SYSTEM_STATE_FIELDS = Object.freeze([
+  'active_window',
+  'mouse_position',
+  'screen_resolution',
+]);
+
 /**
  * Format system state as initial XML (with all windows and stats)
  */
@@ -83,23 +96,73 @@ function formatFallbackStateXml() {
 </system_context>`;
 }
 
-function logMemoryFailure(memoryResponse, log) {
-  if (memoryResponse.status === 'rejected') {
-    log(`Memory enrichment failed: ${memoryResponse.reason?.message || 'Unknown error'}`);
-    return;
-  }
-  if (memoryResponse.status === 'fulfilled') {
-    const data = memoryResponse.value;
-    log(`Memory response structure: success=${data?.success}, hasData=${!!data?.data}, hasMemories=${!!data?.data?.memories}`);
-    if (data && !data.data?.memories) {
-      log(`Memory data keys: ${Object.keys(data).join(', ')}`);
-      if (data.data) {
-        log(`Memory data keys: ${Object.keys(data.data).join(', ')}`);
-      }
+function getRequestedSystemStateFields(contextType) {
+  return contextType === 'initial'
+    ? INITIAL_SYSTEM_STATE_FIELDS
+    : SEQUENTIAL_SYSTEM_STATE_FIELDS;
+}
+
+function formatContextStateXml(contextType, state) {
+  return contextType === 'initial'
+    ? formatInitialStateXml(state)
+    : formatSequentialStateXml(state);
+}
+
+function logMemoryFailure(memoryData, log) {
+  log(`Memory response structure: success=${memoryData?.success}, hasData=${!!memoryData?.data}, hasMemories=${!!memoryData?.data?.memories}`);
+  if (memoryData && !memoryData.data?.memories) {
+    log(`Memory data keys: ${Object.keys(memoryData).join(', ')}`);
+    if (memoryData.data) {
+      log(`Memory data keys: ${Object.keys(memoryData.data).join(', ')}`);
     }
-    return;
   }
-  log(`Memory response status: ${memoryResponse.status}`);
+}
+
+async function resolveSystemStateEnrichment({
+  contextType,
+  getSystemState,
+  logger,
+}) {
+  const requestedFields = getRequestedSystemStateFields(contextType);
+  try {
+    const state = await getSystemState(requestedFields);
+    const systemStateXml = formatContextStateXml(contextType, state);
+    logger('System state added to message');
+    return {
+      systemStateXml: systemStateXml.trim(),
+      runtimeSystemState: extractQueryRuntimeSystemState(state),
+    };
+  } catch (error) {
+    logger(`ERROR: System state enrichment failed: ${error?.message || 'Unknown error'}`);
+    logger('Using fallback system context');
+    return {
+      systemStateXml: formatFallbackStateXml(),
+      runtimeSystemState: null,
+    };
+  }
+}
+
+async function resolveMemoryEnrichment({
+  text,
+  userId,
+  conversationRef,
+  searchMemory,
+  logger,
+}) {
+  try {
+    const memoryData = await searchMemory(text, userId, 5, null, conversationRef);
+    if (memoryData?.success && memoryData?.data?.memories) {
+      const memories = memoryData.data.memories;
+      logger(`Memory response received - episodic: ${memories.episodic?.length || 0}, semantic: ${memories.semantic?.length || 0}`);
+      logger('Memories added to message');
+      return memories;
+    }
+    logMemoryFailure(memoryData, logger);
+    return null;
+  } catch (error) {
+    logger(`Memory search failed: ${error.message}`);
+    return null;
+  }
 }
 
 async function buildQueryPayloadContent({
@@ -116,52 +179,28 @@ async function buildQueryPayloadContent({
   try {
     logger('Building complete user message with system state and memories...');
 
-    const memoryPromise = searchMemory(text, userId, 5, null, conversationRef).catch((err) => {
-      logger(`Memory search failed: ${err.message}`);
-      return { success: false, data: { memories: { episodic: [], semantic: [] } } };
-    });
-
-    const requestedFields = contextType === 'initial'
-      ? ['active_window', 'mouse_position', 'screen_resolution', 'windows']
-      : ['active_window', 'mouse_position', 'screen_resolution'];
-
-    const statePromise = getSystemState(requestedFields).then((state) => ({
-      systemStateXml: contextType === 'initial'
-        ? formatInitialStateXml(state)
-        : formatSequentialStateXml(state),
-      runtimeSystemState: extractQueryRuntimeSystemState(state),
-    }));
-
-    const [stateResponse, memoryResponse] = await Promise.allSettled([
-      statePromise,
-      memoryPromise,
+    const [stateEnrichment, memories] = await Promise.all([
+      resolveSystemStateEnrichment({
+        contextType,
+        getSystemState,
+        logger,
+      }),
+      resolveMemoryEnrichment({
+        text,
+        userId,
+        conversationRef,
+        searchMemory,
+        logger,
+      }),
     ]);
 
     const parts = [];
-    let runtimeSystemState = null;
+    const runtimeSystemState = stateEnrichment.runtimeSystemState || null;
+    parts.push(stateEnrichment.systemStateXml);
 
-    if (stateResponse.status === 'fulfilled' && stateResponse.value) {
-      const systemStateXml = stateResponse.value.systemStateXml;
-      runtimeSystemState = stateResponse.value.runtimeSystemState || null;
-      parts.push(systemStateXml.trim());
-      logger('System state added to message');
-    } else {
-      const errorMsg = stateResponse.status === 'rejected'
-        ? stateResponse.reason?.message || 'Unknown error'
-        : 'No system state data in response';
-      logger(`ERROR: System state enrichment failed: ${errorMsg}`);
-      parts.push(formatFallbackStateXml());
-      logger('Using fallback system context');
-    }
-
-    const responseData = memoryResponse.status === 'fulfilled' ? memoryResponse.value : null;
-    if (responseData?.success && responseData?.data?.memories) {
-      const memories = responseData.data.memories;
-      logger(`Memory response received - episodic: ${memories.episodic?.length || 0}, semantic: ${memories.semantic?.length || 0}`);
+    if (memories) {
       appendMemorySections(parts, memories);
-      logger('Memories added to message');
     } else {
-      logMemoryFailure(memoryResponse, logger);
       appendMemorySections(parts);
     }
 
