@@ -38,6 +38,7 @@ pytest-asyncio>=0.23.6
 
 # Browser automation
 playwright>=1.40.0
+browser-use>=0.11.0
 
 # Gitignore parsing
 pathspec>=0.10.0

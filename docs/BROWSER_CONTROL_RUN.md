@@ -9,11 +9,11 @@ read_when:
 
 ## Quick Start (2 Steps)
 
-### Step 1: Install Playwright
+### Step 1: Install Python Browser Dependencies
 
 ```bash
 cd WindieOS/frontend/src/main/python
-pip install playwright
+pip install -r requirements.txt
 playwright install chromium
 ```
 
@@ -321,12 +321,12 @@ taskkill /F /IM chrome.exe  # Windows
 google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.config/google-chrome-cdp" --profile-directory="Default"
 ```
 
-### "ModuleNotFoundError: No module named 'playwright'"
+### "ModuleNotFoundError: No module named 'playwright'" / "No module named 'browser_use'"
 
 **Fix:**
 ```bash
 cd WindieOS/frontend/src/main/python
-pip install playwright
+pip install -r requirements.txt
 playwright install chromium
 ```
 
