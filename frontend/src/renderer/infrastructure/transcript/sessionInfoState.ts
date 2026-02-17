@@ -11,15 +11,17 @@ export type TranscriptSessionState = {
 export function createTranscriptSessionState(readStoredSessionInfo: ReadSessionInfo): TranscriptSessionState {
   let currentConversationRef: string | null = null;
   let currentUserId: string | null = null;
+  let hasLoadedFromStorage = false;
 
   const ensureLoaded = () => {
-    if (currentConversationRef || currentUserId) {
+    if (hasLoadedFromStorage) {
       return;
     }
 
     const stored = readStoredSessionInfo();
     currentConversationRef = stored.conversationRef;
     currentUserId = stored.userId;
+    hasLoadedFromStorage = true;
   };
 
   const get = (): SessionInfo => {
