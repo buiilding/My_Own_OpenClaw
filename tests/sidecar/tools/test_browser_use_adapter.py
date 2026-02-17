@@ -962,7 +962,7 @@ class TestBrowserUseCompatibilityAdapter:
             "tools.browser_use_adapter.runtime_provider.find_spec",
             return_value=None,
         ):
-            with pytest.raises(RuntimeError, match="not installed"):
+            with pytest.raises(RuntimeError, match="unavailable"):
                 get_browser_runtime_provider(controller)
 
     def test_runtime_factory_defaults_to_native_when_browser_use_available(
