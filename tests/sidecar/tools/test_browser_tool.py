@@ -244,17 +244,29 @@ class TestCompatibilityActions:
     async def test_status_action(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
-            mock_controller.get_status.return_value = {
-                "connected": True,
-                "mode": "user_chrome",
-                "url": "https://example.com",
-                "title": "Example",
-                "tab_count": 1,
-                "target_id": "t1",
-            }
+            mock_controller.is_connected = True
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="status",
+                decision="port",
+                data={
+                    "action": "status",
+                    "connected": True,
+                    "mode": "managed",
+                    "url": "https://example.com",
+                    "title": "Example",
+                    "tab_count": 1,
+                    "target_id": "t1",
+                    "native_source": "browser_use.state",
+                },
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control({"action": "status"})
             assert result.success is True
@@ -265,24 +277,32 @@ class TestCompatibilityActions:
     async def test_open_action(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.open_tab.return_value = {
-                "success": True,
-                "target_id": "tab1",
-                "url": "https://example.com",
-                "title": "Example",
-                "status": 200,
-            }
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="open",
+                decision="port",
+                data={
+                    "action": "open",
+                    "browser_use_action": "navigate",
+                    "new_tab": True,
+                    "url": "https://example.com",
+                },
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {"action": "open", "targetUrl": "https://example.com"}
             )
             assert result.success is True
             assert result.data["action"] == "open"
-            assert result.data["target_id"] == "tab1"
+            assert result.data["browser_use_action"] == "navigate"
 
     @pytest.mark.asyncio
     async def test_act_hover(self):
@@ -291,18 +311,13 @@ class TestCompatibilityActions:
         ) as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.hover.return_value = {
-                "success": True,
-                "action": "hover",
-                "ref": "e1",
-            }
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control(
                 {"action": "act", "request": {"kind": "hover", "ref": "e1"}}
             )
-            assert result.success is True
-            assert result.data["action"] == "hover"
+            assert result.success is False
+            assert "deprecated" in (result.error or "").lower()
 
     @pytest.mark.asyncio
     async def test_console_action(self):
@@ -321,9 +336,8 @@ class TestCompatibilityActions:
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control({"action": "console", "limit": 50})
-            assert result.success is True
-            assert result.data["action"] == "console"
-            assert result.data["count"] == 1
+            assert result.success is False
+            assert "deprecated" in (result.error or "").lower()
 
     @pytest.mark.asyncio
     async def test_dialog_action_armed(self):
@@ -339,9 +353,8 @@ class TestCompatibilityActions:
             result = await execute_browser_control(
                 {"action": "dialog", "accept": False}
             )
-            assert result.success is True
-            assert result.data["action"] == "dialog"
-            assert result.data["armed"] is True
+            assert result.success is False
+            assert "deprecated" in (result.error or "").lower()
 
     @pytest.mark.asyncio
     async def test_dialog_action_wait(self):
@@ -361,9 +374,8 @@ class TestCompatibilityActions:
             result = await execute_browser_control(
                 {"action": "dialog", "accept": True, "timeoutMs": 1000}
             )
-            assert result.success is True
-            assert result.data["armed"] is False
-            assert result.data["handled"]["type"] == "alert"
+            assert result.success is False
+            assert "deprecated" in (result.error or "").lower()
 
     @pytest.mark.asyncio
     async def test_errors_action(self):
@@ -376,9 +388,8 @@ class TestCompatibilityActions:
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control({"action": "errors"})
-            assert result.success is True
-            assert result.data["action"] == "errors"
-            assert result.data["count"] == 1
+            assert result.success is False
+            assert "deprecated" in (result.error or "").lower()
 
     @pytest.mark.asyncio
     async def test_requests_action(self):
@@ -393,9 +404,8 @@ class TestCompatibilityActions:
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control({"action": "requests"})
-            assert result.success is True
-            assert result.data["action"] == "requests"
-            assert result.data["count"] == 1
+            assert result.success is False
+            assert "deprecated" in (result.error or "").lower()
 
     @pytest.mark.asyncio
     async def test_trace_start_action(self):
@@ -964,18 +974,30 @@ class TestPostActionSnapshots:
         """Non-page-affecting actions should not include post-action snapshot data."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
-            mock_controller.get_status.return_value = {
-                "connected": True,
-                "mode": "user_chrome",
-                "url": "https://example.com",
-                "title": "Example",
-                "tab_count": 1,
-                "target_id": "t1",
-            }
+            mock_controller.is_connected = True
             mock_controller.get_page_snapshot = mock.AsyncMock()
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="status",
+                decision="port",
+                data={
+                    "action": "status",
+                    "connected": True,
+                    "mode": "managed",
+                    "url": "https://example.com",
+                    "title": "Example",
+                    "tab_count": 1,
+                    "target_id": "t1",
+                    "native_source": "browser_use.state",
+                },
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control({"action": "status"})
 
@@ -1132,18 +1154,30 @@ class TestGetTabsAction:
     @pytest.mark.asyncio
     async def test_get_tabs_success(self):
         """Test successful get_tabs."""
-        from tools.browser.controller import BrowserTab
-
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.get_tabs.return_value = [
-                BrowserTab("id1", "Tab 1", "https://example.com"),
-                BrowserTab("id2", "Tab 2", "https://google.com"),
-            ]
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="get_tabs",
+                decision="port",
+                data={
+                    "action": "get_tabs",
+                    "tab_count": 2,
+                    "tabs": [
+                        {"target_id": "id1", "title": "Tab 1", "url": "https://example.com"},
+                        {"target_id": "id2", "title": "Tab 2", "url": "https://google.com"},
+                    ],
+                    "native_source": "browser_use.state",
+                },
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
@@ -1164,32 +1198,26 @@ class TestSwitchTabAction:
         """Successful switch_tab should report URL/title from get_status."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.switch_tab.return_value = True
-            mock_controller.get_status.return_value = {
-                "connected": True,
-                "mode": "user_chrome",
-                "url": "https://example.com/switched",
-                "title": "Switched Tab",
-                "tab_count": 2,
-                "target_id": "id2",
-            }
-
-            from tools.browser.controller import PageSnapshot
-
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-            mock_controller.get_page_snapshot.return_value = PageSnapshot(
-                text='[1] link "Example"',
-                url="https://example.com/switched",
-                title="Switched Tab",
-                ref_count=1,
-            )
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="switch_tab",
+                decision="port",
+                data={
+                    "action": "switch_tab",
+                    "target_id": "id2",
+                    "url": "https://example.com/switched",
+                    "title": "Switched Tab",
+                    "browser_use_action": "switch",
+                },
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {

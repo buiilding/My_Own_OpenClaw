@@ -40,6 +40,10 @@ TRACE_DEPRECATION_MESSAGE = (
     "trace_start/trace_stop are deprecated in Browser Use runtime mode. "
     "Use requests/errors capture and HAR-style runbook workflows instead."
 )
+LEGACY_ACTION_DEPRECATION_MESSAGE = (
+    "This browser_control action is deprecated in Browser Use-only runtime mode. "
+    "Use Browser Use native actions instead."
+)
 BROWSER_USE_DIRECT_ACTIONS = frozenset(
     {
         "done",
@@ -83,9 +87,34 @@ BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
         "select_dropdown",
         "upload_file",
         "read_long_content",
+        "get_tabs",
     }
 )
 ACT_EXECUTE_FORWARD_ACTIONS = frozenset({"navigate", "extract", "scroll", "screenshot"})
+DEPRECATED_LEGACY_ACTIONS = frozenset(
+    {
+        "console",
+        "errors",
+        "requests",
+        "pdf",
+        "dialog",
+        "cookies",
+        "cookies_set",
+        "cookies_clear",
+        "storage_get",
+        "storage_set",
+        "storage_clear",
+        "set_offline",
+        "set_headers",
+        "set_credentials",
+        "set_geolocation",
+        "set_media",
+        "set_timezone",
+        "set_locale",
+        "set_device",
+    }
+)
+DEPRECATED_LEGACY_ACT_KINDS = frozenset({"hover", "drag", "select", "fill", "resize"})
 
 
 class BrowserControllerLike(Protocol):
@@ -251,6 +280,11 @@ class BrowserUseCompatibilityAdapter:
         action: str,
         args: Mapping[str, Any],
     ) -> AdapterActionResult:
+        if action in DEPRECATED_LEGACY_ACTIONS:
+            return self._deprecated_action(
+                action,
+                LEGACY_ACTION_DEPRECATION_MESSAGE,
+            )
         if action == "connect":
             return await self.connect(args)
         if action == "status":
@@ -285,50 +319,12 @@ class BrowserUseCompatibilityAdapter:
             return await self.execute_browser_use_action(action, args)
         if action in BROWSER_USE_DIRECT_ACTIONS:
             return await self.execute_browser_use_action(action, args)
-        if action == "console":
-            return await self.console(args)
-        if action == "errors":
-            return await self.errors(args)
-        if action == "requests":
-            return await self.requests(args)
         if action == "trace_start":
             return await self.trace_start(args)
         if action == "trace_stop":
             return await self.trace_stop()
-        if action == "pdf":
-            return await self.pdf(args)
         if action == "upload":
             return await self.upload(args)
-        if action == "dialog":
-            return await self.dialog(args)
-        if action == "cookies":
-            return await self.cookies()
-        if action == "cookies_set":
-            return await self.cookies_set(args)
-        if action == "cookies_clear":
-            return await self.cookies_clear()
-        if action == "storage_get":
-            return await self.storage_get(args)
-        if action == "storage_set":
-            return await self.storage_set(args)
-        if action == "storage_clear":
-            return await self.storage_clear(args)
-        if action == "set_offline":
-            return await self.set_offline(args)
-        if action == "set_headers":
-            return await self.set_headers(args)
-        if action == "set_credentials":
-            return await self.set_credentials(args)
-        if action == "set_geolocation":
-            return await self.set_geolocation(args)
-        if action == "set_media":
-            return await self.set_media(args)
-        if action == "set_timezone":
-            return await self.set_timezone(args)
-        if action == "set_locale":
-            return await self.set_locale(args)
-        if action == "set_device":
-            return await self.set_device(args)
         if action == "act":
             return await self.act(args)
         if action == "close":
@@ -412,21 +408,7 @@ class BrowserUseCompatibilityAdapter:
         )
 
     async def status(self) -> AdapterActionResult:
-        status = await self._runtime.get_status()
-        return AdapterActionResult(
-            success=True,
-            action="status",
-            decision="compat",
-            data={
-                "action": "status",
-                "connected": status["connected"],
-                "mode": status.get("mode"),
-                "url": status.get("url", ""),
-                "title": status.get("title", ""),
-                "tab_count": status.get("tab_count", 0),
-                "target_id": status.get("target_id"),
-            },
-        )
+        return await self.execute_browser_use_action("status", {"action": "status"})
 
     async def profiles(self) -> AdapterActionResult:
         return AdapterActionResult(
@@ -885,27 +867,29 @@ class BrowserUseCompatibilityAdapter:
             return self._not_connected("open")
 
         url = self._extract_url(args) or "about:blank"
-        result = await self._runtime.open_tab(url=url)
-        if not result.get("success"):
-            return AdapterActionResult(
-                success=False,
-                action="open",
-                decision="port",
-                error=result.get("error", "Open failed"),
-                error_code="BROWSER_RUNTIME_ERROR",
-            )
-
+        open_result = await self.execute_browser_use_action(
+            "navigate",
+            {
+                **dict(args),
+                "action": "navigate",
+                "url": url,
+                "new_tab": True,
+            },
+        )
+        open_result = self._retag_action(open_result, "open")
+        if not open_result.success:
+            return open_result
+        payload = dict(open_result.data)
+        payload["action"] = "open"
+        payload["url"] = url
+        payload["browser_use_action"] = "navigate"
+        payload["new_tab"] = True
         return AdapterActionResult(
             success=True,
             action="open",
-            decision="port",
-            data={
-                "action": "open",
-                "target_id": result["target_id"],
-                "url": result["url"],
-                "title": result["title"],
-                "status": result.get("status"),
-            },
+            decision=open_result.decision,
+            data=payload,
+            warnings=list(open_result.warnings),
         )
 
     async def click(self, args: Mapping[str, Any]) -> AdapterActionResult:
@@ -1162,53 +1146,32 @@ class BrowserUseCompatibilityAdapter:
         )
 
     async def get_tabs(self) -> AdapterActionResult:
-        if not self._runtime.is_connected:
-            return self._not_connected("get_tabs")
-
-        tabs = await self._runtime.get_tabs()
-        return AdapterActionResult(
-            success=True,
-            action="get_tabs",
-            decision="port",
-            data={
-                "action": "get_tabs",
-                "tab_count": len(tabs),
-                "tabs": [self._tab_to_payload(tab) for tab in tabs],
-            },
+        return await self.execute_browser_use_action(
+            "get_tabs",
+            {"action": "get_tabs"},
         )
 
     async def switch_tab(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        if not self._runtime.is_connected:
-            return self._not_connected("switch_tab")
-
-        target_id = self._extract_target_id(args)
-        if not target_id:
-            return self._invalid_argument(
-                "switch_tab",
-                "Missing required 'target_id' parameter",
-            )
-
-        switched = await self._runtime.switch_tab(target_id)
-        if not switched:
-            return AdapterActionResult(
-                success=False,
-                action="switch_tab",
-                decision="port",
-                error=f"Tab not found: {target_id}",
-                error_code="TAB_NOT_FOUND",
-            )
-
-        status = await self._runtime.get_status()
+        switch_result = await self.execute_browser_use_action(
+            "switch",
+            {
+                **dict(args),
+                "action": "switch",
+            },
+        )
+        switch_result = self._retag_action(switch_result, "switch_tab")
+        if not switch_result.success:
+            return switch_result
+        payload = dict(switch_result.data)
+        payload["action"] = "switch_tab"
+        payload["target_id"] = self._extract_target_id(args)
+        payload["browser_use_action"] = "switch"
         return AdapterActionResult(
             success=True,
             action="switch_tab",
-            decision="port",
-            data={
-                "action": "switch_tab",
-                "target_id": target_id,
-                "url": status.get("url", "") if isinstance(status, dict) else "",
-                "title": status.get("title", "") if isinstance(status, dict) else "",
-            },
+            decision=switch_result.decision,
+            data=payload,
+            warnings=list(switch_result.warnings),
         )
 
     async def evaluate(self, args: Mapping[str, Any]) -> AdapterActionResult:
@@ -1343,6 +1306,12 @@ class BrowserUseCompatibilityAdapter:
                     if isinstance(path, str) and path.strip()
                 ]
             return params
+
+        if action == "status":
+            return {}
+
+        if action == "get_tabs":
+            return {}
 
         if action == "navigate":
             url = self._extract_url(args)
@@ -1927,45 +1896,31 @@ class BrowserUseCompatibilityAdapter:
         )
 
     async def upload(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        if not self._controller.is_connected:
-            return self._not_connected("upload")
-        focus_error = await self._focus_target_if_requested(args)
-        if focus_error:
-            return focus_error
-
-        paths_raw = args.get("paths")
-        if not isinstance(paths_raw, list) or not paths_raw:
-            return self._invalid_argument(
-                "upload",
-                "Missing required 'paths' parameter (string array)",
-            )
-        paths = [str(path) for path in paths_raw]
-
         ref = (
             self._value_as_str(args.get("inputRef"))
             or self._value_as_str(args.get("input_ref"))
             or self._value_as_str(args.get("ref"))
         )
-        if not ref:
-            return self._invalid_argument(
-                "upload",
-                "Missing required input ref ('inputRef', 'input_ref', or 'ref')",
-            )
-
-        result = await self._runtime.set_input_files(ref=ref, paths=paths)
-        if result.get("success"):
-            return AdapterActionResult(
-                success=True,
-                action="upload",
-                decision="compat",
-                data=result,
-            )
+        upload_result = await self.execute_browser_use_action(
+            "upload_file",
+            {
+                **dict(args),
+                "action": "upload_file",
+                "ref": ref,
+            },
+        )
+        upload_result = self._retag_action(upload_result, "upload")
+        if not upload_result.success:
+            return upload_result
+        payload = dict(upload_result.data)
+        payload["action"] = "upload"
+        payload["browser_use_action"] = "upload_file"
         return AdapterActionResult(
-            success=False,
+            success=True,
             action="upload",
-            decision="compat",
-            error=result.get("error", "Upload failed"),
-            error_code="BROWSER_RUNTIME_ERROR",
+            decision=upload_result.decision,
+            data=payload,
+            warnings=list(upload_result.warnings),
         )
 
     async def dialog(self, args: Mapping[str, Any]) -> AdapterActionResult:
@@ -2389,148 +2344,10 @@ class BrowserUseCompatibilityAdapter:
             forward_result = await self.execute(kind, {"action": kind, **merged})
             return self._retag_action(forward_result, kind)
 
-        if kind == "hover":
-            if not self._controller.is_connected:
-                return self._not_connected("act")
-            focus_error = await self._focus_target_if_requested(merged)
-            if focus_error:
-                return focus_error
-            ref = self._value_as_str(merged.get("ref"))
-            if not ref:
-                return self._invalid_argument("act", "act.hover requires 'ref'")
-            result = await self._controller.hover(ref=ref)
-            if result.get("success"):
-                return AdapterActionResult(
-                    success=True,
-                    action="hover",
-                    decision="compat",
-                    data=result,
-                )
-            return AdapterActionResult(
-                success=False,
-                action="hover",
-                decision="compat",
-                error=result.get("error", "Hover failed"),
-                error_code="BROWSER_RUNTIME_ERROR",
-            )
-
-        if kind == "drag":
-            if not self._controller.is_connected:
-                return self._not_connected("act")
-            focus_error = await self._focus_target_if_requested(merged)
-            if focus_error:
-                return focus_error
-            start_ref = self._value_as_str(merged.get("startRef"))
-            end_ref = self._value_as_str(merged.get("endRef"))
-            if not start_ref or not end_ref:
-                return self._invalid_argument(
-                    "act",
-                    "act.drag requires 'startRef' and 'endRef'",
-                )
-            result = await self._controller.drag(start_ref=start_ref, end_ref=end_ref)
-            if result.get("success"):
-                return AdapterActionResult(
-                    success=True,
-                    action="drag",
-                    decision="compat",
-                    data=result,
-                )
-            return AdapterActionResult(
-                success=False,
-                action="drag",
-                decision="compat",
-                error=result.get("error", "Drag failed"),
-                error_code="BROWSER_RUNTIME_ERROR",
-            )
-
-        if kind == "select":
-            if not self._controller.is_connected:
-                return self._not_connected("act")
-            focus_error = await self._focus_target_if_requested(merged)
-            if focus_error:
-                return focus_error
-            ref = self._value_as_str(merged.get("ref"))
-            values = merged.get("values")
-            if not ref:
-                return self._invalid_argument("act", "act.select requires 'ref'")
-            if not isinstance(values, list) or not values:
-                return self._invalid_argument(
-                    "act",
-                    "act.select requires non-empty 'values' array",
-                )
-            result = await self._controller.select_options(
-                ref=ref,
-                values=[str(value) for value in values],
-            )
-            if result.get("success"):
-                return AdapterActionResult(
-                    success=True,
-                    action="select",
-                    decision="compat",
-                    data=result,
-                )
-            return AdapterActionResult(
-                success=False,
-                action="select",
-                decision="compat",
-                error=result.get("error", "Select failed"),
-                error_code="BROWSER_RUNTIME_ERROR",
-            )
-
-        if kind == "fill":
-            if not self._controller.is_connected:
-                return self._not_connected("act")
-            focus_error = await self._focus_target_if_requested(merged)
-            if focus_error:
-                return focus_error
-            fields = merged.get("fields")
-            if not isinstance(fields, list):
-                return self._invalid_argument(
-                    "act",
-                    "act.fill requires 'fields' array",
-                )
-            result = await self._controller.fill_fields(fields)
-            if result.get("success"):
-                return AdapterActionResult(
-                    success=True,
-                    action="fill",
-                    decision="compat",
-                    data=result,
-                )
-            return AdapterActionResult(
-                success=False,
-                action="fill",
-                decision="compat",
-                error="Fill completed with errors",
-                error_code="BROWSER_RUNTIME_ERROR",
-            )
-
-        if kind == "resize":
-            if not self._controller.is_connected:
-                return self._not_connected("act")
-            width = merged.get("width")
-            height = merged.get("height")
-            if not isinstance(width, (int, float)) or not isinstance(
-                height, (int, float)
-            ):
-                return self._invalid_argument(
-                    "act",
-                    "act.resize requires numeric width/height",
-                )
-            result = await self._controller.resize_viewport(int(width), int(height))
-            if result.get("success"):
-                return AdapterActionResult(
-                    success=True,
-                    action="resize",
-                    decision="compat",
-                    data=result,
-                )
-            return AdapterActionResult(
-                success=False,
-                action="resize",
-                decision="compat",
-                error=result.get("error", "Resize failed"),
-                error_code="BROWSER_RUNTIME_ERROR",
+        if kind in DEPRECATED_LEGACY_ACT_KINDS:
+            return self._deprecated_action(
+                "act",
+                f"act.{kind} is deprecated in Browser Use-only runtime mode.",
             )
 
         if kind == "wait":
@@ -2587,15 +2404,21 @@ class BrowserUseCompatibilityAdapter:
         target_id = self._extract_target_id(args)
         if not target_id:
             return None
-        switched = await self._runtime.switch_tab(target_id)
-        if switched:
+        switch_result = await self.execute_browser_use_action(
+            "switch",
+            {
+                "action": "switch",
+                "target_id": target_id,
+            },
+        )
+        if switch_result.success:
             return None
         return AdapterActionResult(
             success=False,
             action="switch_tab",
             decision="port",
-            error=f"Tab not found: {target_id}",
-            error_code="TAB_NOT_FOUND",
+            error=switch_result.error or f"Tab not found: {target_id}",
+            error_code=switch_result.error_code or "TAB_NOT_FOUND",
         )
 
     @staticmethod
@@ -3130,6 +2953,17 @@ class BrowserUseCompatibilityAdapter:
             decision="compat",
             error=message,
             error_code="INVALID_ARGUMENT",
+        )
+
+    @staticmethod
+    def _deprecated_action(action: str, message: str) -> AdapterActionResult:
+        return AdapterActionResult(
+            success=False,
+            action=action,
+            decision="deprecate",
+            error=message,
+            error_code="ACTION_DEPRECATED",
+            deprecation=message,
         )
 
     @staticmethod

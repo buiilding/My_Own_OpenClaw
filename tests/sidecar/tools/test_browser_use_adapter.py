@@ -719,14 +719,63 @@ class TestBrowserUseCompatibilityAdapter:
             )
         )
         runtime.set_input_files = mock.AsyncMock(return_value={"success": True, "uploaded_count": 1})
-        runtime.execute_browser_use_action = mock.AsyncMock(
-            side_effect=lambda *, action, params: {
+        async def _execute_browser_use_action(*, action, params):
+            if action == "status":
+                return {
+                    "success": True,
+                    "action": "status",
+                    "native_source": "browser_use.state",
+                    "connected": True,
+                    "mode": "user_chrome",
+                    "url": "https://runtime.example/status",
+                    "title": "Runtime Status",
+                    "tab_count": 2,
+                    "target_id": "tab-2",
+                }
+            if action == "get_tabs":
+                return {
+                    "success": True,
+                    "action": "get_tabs",
+                    "native_source": "browser_use.state",
+                    "tab_count": 2,
+                    "tabs": [
+                        {"target_id": "tab-1", "title": "One", "url": "https://runtime.example/one"},
+                        {"target_id": "tab-2", "title": "Two", "url": "https://runtime.example/two"},
+                    ],
+                }
+            if action == "switch":
+                return {
+                    "success": True,
+                    "action": "switch",
+                    "native_source": "browser_use.tools",
+                    "extracted_content": "Switched",
+                }
+            if action == "upload_file":
+                return {
+                    "success": True,
+                    "action": "upload_file",
+                    "native_source": "browser_use.tools",
+                    "extracted_content": "Uploaded file",
+                }
+            if action == "navigate":
+                return {
+                    "success": True,
+                    "action": "navigate",
+                    "native_source": "browser_use.tools",
+                    "url": params.get("url", ""),
+                    "title": "Runtime Navigate",
+                    "status": 200,
+                }
+            return {
                 "success": True,
                 "action": action,
                 "native_source": "browser_use.tools",
                 "result": {"ok": True},
                 "params": dict(params),
             }
+
+        runtime.execute_browser_use_action = mock.AsyncMock(
+            side_effect=_execute_browser_use_action
         )
 
         adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
@@ -734,7 +783,11 @@ class TestBrowserUseCompatibilityAdapter:
         status_result = await adapter.execute("status", {"action": "status"})
         assert status_result.success is True
         assert status_result.data["url"] == "https://runtime.example/status"
-        runtime.get_status.assert_awaited_once()
+        runtime.execute_browser_use_action.assert_awaited_with(
+            action="status",
+            params={},
+        )
+        runtime.get_status.assert_not_awaited()
 
         navigate_result = await adapter.execute(
             "navigate",
@@ -757,23 +810,37 @@ class TestBrowserUseCompatibilityAdapter:
             {"action": "open", "url": "https://runtime.example/new"},
         )
         assert open_result.success is True
-        assert open_result.data["target_id"] == "tab-2"
-        runtime.open_tab.assert_awaited_once_with(url="https://runtime.example/new")
+        assert open_result.data["browser_use_action"] == "navigate"
+        assert open_result.data["new_tab"] is True
+        runtime.execute_browser_use_action.assert_awaited_with(
+            action="navigate",
+            params={"url": "https://runtime.example/new", "new_tab": True},
+        )
+        runtime.open_tab.assert_not_awaited()
 
         tabs_result = await adapter.execute("get_tabs", {"action": "get_tabs"})
         assert tabs_result.success is True
         assert tabs_result.data["tab_count"] == 2
         assert tabs_result.data["tabs"][0]["target_id"] == "tab-1"
         assert tabs_result.data["tabs"][1]["target_id"] == "tab-2"
-        runtime.get_tabs.assert_awaited_once()
+        runtime.execute_browser_use_action.assert_awaited_with(
+            action="get_tabs",
+            params={},
+        )
+        runtime.get_tabs.assert_not_awaited()
 
         switch_result = await adapter.execute(
             "switch_tab",
-            {"action": "switch_tab", "target_id": "tab-1"},
+            {"action": "switch_tab", "target_id": "abcd"},
         )
         assert switch_result.success is True
-        assert switch_result.data["target_id"] == "tab-1"
-        assert runtime.switch_tab.await_count == 1
+        assert switch_result.data["target_id"] == "abcd"
+        assert switch_result.data["browser_use_action"] == "switch"
+        runtime.execute_browser_use_action.assert_awaited_with(
+            action="switch",
+            params={"tab_id": "abcd"},
+        )
+        runtime.switch_tab.assert_not_awaited()
 
         close_result = await adapter.execute("close", {"action": "close"})
         assert close_result.success is True
@@ -840,13 +907,15 @@ class TestBrowserUseCompatibilityAdapter:
 
         upload_result = await adapter.execute(
             "upload",
-            {"action": "upload", "ref": "e1", "paths": ["/tmp/file.txt"]},
+            {"action": "upload", "ref": "1", "paths": ["/tmp/file.txt"]},
         )
         assert upload_result.success is True
-        runtime.set_input_files.assert_awaited_once_with(
-            ref="e1",
-            paths=["/tmp/file.txt"],
+        assert upload_result.data["browser_use_action"] == "upload_file"
+        runtime.execute_browser_use_action.assert_awaited_with(
+            action="upload_file",
+            params={"index": 1, "path": "/tmp/file.txt"},
         )
+        runtime.set_input_files.assert_not_awaited()
 
         snapshot_result = await adapter.execute(
             "snapshot",
