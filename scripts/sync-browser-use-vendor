@@ -17,7 +17,7 @@ PRUNED_DIRS=(
   "agent/system_prompts"
   "code_use"
   "controller"
-  "integrations/gmail"
+  "integrations"
   "llm/anthropic"
   "llm/aws"
   "llm/deepseek"
@@ -63,7 +63,7 @@ RSYNC_EXCLUDES=(
   "agent/system_prompts/"
   "code_use/"
   "controller/"
-  "integrations/gmail/"
+  "integrations/"
   "llm/anthropic/"
   "llm/aws/"
   "llm/deepseek/"
@@ -154,7 +154,7 @@ cat > "${MANIFEST_PATH}" <<MANIFEST
     "agent/system_prompts",
     "code_use",
     "controller",
-    "integrations/gmail",
+    "integrations",
     "llm/anthropic",
     "llm/aws",
     "llm/deepseek",
