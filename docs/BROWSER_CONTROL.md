@@ -31,9 +31,9 @@ The `browser_control` tool supports two modes:
 ### Prerequisites
 
 ```bash
-# Install Playwright browsers (run once)
+# Install Python deps (includes browser-use + playwright)
 cd frontend/src/main/python
-pip install playwright
+pip install -r requirements.txt
 playwright install chromium
 ```
 
@@ -556,13 +556,14 @@ Notes:
 2. Try longer wait: `{"action": "wait", "seconds": 5}`
 3. Check if site blocks automation (use managed mode)
 
-### Playwright Not Found
+### Browser Runtime Dependency Not Found
 
-**Error:** `ModuleNotFoundError: No module named 'playwright'`
+**Error:** `ModuleNotFoundError: No module named 'playwright'` or `No module named 'browser_use'`
 
 **Solution:**
 ```bash
-pip install playwright
+cd frontend/src/main/python
+pip install -r requirements.txt
 playwright install chromium
 ```
 
