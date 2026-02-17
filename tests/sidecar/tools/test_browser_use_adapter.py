@@ -364,6 +364,40 @@ class TestBrowserUseCompatibilityAdapter:
         )
 
     @pytest.mark.asyncio
+    async def test_click_with_coordinates_routes_to_browser_use_action(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        runtime = SimpleNamespace(
+            is_connected=True,
+            execute_browser_use_action=mock.AsyncMock(
+                return_value={
+                    "success": True,
+                    "action": "click",
+                    "native_source": "browser_use.tools",
+                }
+            ),
+        )
+        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
+
+        result = await adapter.execute(
+            "click",
+            {
+                "action": "click",
+                "coordinate_x": 120,
+                "coordinate_y": 220,
+            },
+        )
+
+        assert result.success is True
+        assert result.action == "click"
+        runtime.execute_browser_use_action.assert_awaited_once_with(
+            action="click",
+            params={"coordinate_x": 120, "coordinate_y": 220},
+        )
+
+    @pytest.mark.asyncio
     async def test_direct_browser_use_action_routes_to_runtime_executor(
         self,
         make_controller,
@@ -511,8 +545,8 @@ class TestBrowserUseCompatibilityAdapter:
             ),
             (
                 "scroll",
-                {"pages": 2, "down": False},
-                {"pages": 2, "down": False},
+                {"pages": 0.5, "down": False},
+                {"pages": 0.5, "down": False},
             ),
             (
                 "screenshot",
@@ -1153,6 +1187,77 @@ class TestBrowserUseCompatibilityAdapter:
                 available_file_paths=[],
                 page_extraction_llm=None,
             )
+
+    @pytest.mark.asyncio
+    async def test_native_handler_registry_enables_coordinate_clicking_and_upload_paths(
+        self,
+    ):
+        fake_service_module = ModuleType("browser_use.tools.service")
+        fake_browser_module = ModuleType("browser_use.browser")
+        fake_filesystem_module = ModuleType("browser_use.filesystem.file_system")
+        execute_action = mock.AsyncMock(
+            return_value=SimpleNamespace(extracted_content="Uploaded file")
+        )
+
+        class FakeTools:
+            last_instance = None
+
+            def __init__(self):
+                self.registry = SimpleNamespace(execute_action=execute_action)
+                self.coordinate_clicking_enabled = False
+                FakeTools.last_instance = self
+
+            def set_coordinate_clicking(self, enabled: bool):
+                self.coordinate_clicking_enabled = enabled
+
+        class FakeBrowserSession:
+            def __init__(self, **_kwargs):
+                pass
+
+            async def start(self):
+                return None
+
+            async def stop(self):
+                return None
+
+        class FakeFileSystem:
+            def __init__(self, *_args, **_kwargs):
+                pass
+
+        fake_service_module.Tools = FakeTools
+        fake_browser_module.BrowserSession = FakeBrowserSession
+        fake_filesystem_module.FileSystem = FakeFileSystem
+
+        def _import_module(name: str):
+            if name == "browser_use.tools.service":
+                return fake_service_module
+            if name == "browser_use.browser":
+                return fake_browser_module
+            if name == "browser_use.filesystem.file_system":
+                return fake_filesystem_module
+            raise ImportError(name)
+
+        controller = SimpleNamespace(is_connected=True, _mode="managed", _cdp_url=None)
+
+        with mock.patch(
+            "tools.browser_use_adapter.browser_use_native_handlers.import_module",
+            side_effect=_import_module,
+        ):
+            handlers = get_native_runtime_handlers(controller=controller)
+            result = await handlers["upload_file"](index=3, path="/tmp/upload.txt")
+
+        assert result["success"] is True
+        assert result["native_source"] == "browser_use.tools"
+        assert FakeTools.last_instance is not None
+        assert FakeTools.last_instance.coordinate_clicking_enabled is True
+        execute_action.assert_awaited_once_with(
+            "upload_file",
+            {"index": 3, "path": "/tmp/upload.txt"},
+            browser_session=mock.ANY,
+            file_system=None,
+            available_file_paths=["/tmp/upload.txt"],
+            page_extraction_llm=None,
+        )
 
     def test_runtime_factory_loads_handlers_from_custom_module(self, make_controller):
         controller = make_controller()

@@ -168,6 +168,14 @@ class BrowserClickArgs(BaseModel):
     index: Optional[int] = Field(
         None, description="Browser Use element index", ge=0
     )
+    coordinate_x: Optional[int] = Field(
+        None,
+        description="Browser Use coordinate click X position (requires coordinate_y).",
+    )
+    coordinate_y: Optional[int] = Field(
+        None,
+        description="Browser Use coordinate click Y position (requires coordinate_x).",
+    )
     double_click: bool = Field(False, description="Perform double click")
     button: Literal["left", "right", "middle"] = Field(
         "left", description="Mouse button"
@@ -175,8 +183,18 @@ class BrowserClickArgs(BaseModel):
 
     @model_validator(mode="after")
     def validate_ref_or_index(self):
-        if self.ref is None and self.index is None:
-            raise ValueError("click requires either 'ref' or 'index'")
+        has_ref_or_index = self.ref is not None or self.index is not None
+        has_coordinates = (
+            self.coordinate_x is not None and self.coordinate_y is not None
+        )
+        if not has_ref_or_index and not has_coordinates:
+            raise ValueError(
+                "click requires either 'ref'/'index' or both 'coordinate_x' and 'coordinate_y'"
+            )
+        if (self.coordinate_x is None) != (self.coordinate_y is None):
+            raise ValueError(
+                "click requires both 'coordinate_x' and 'coordinate_y' when using coordinate click"
+            )
         return self
 
 
@@ -214,7 +232,9 @@ class BrowserScrollArgs(BaseModel):
     )
     amount: int = Field(500, description="Scroll amount in pixels", ge=100, le=5000)
     down: Optional[bool] = Field(None, description="Browser Use scroll direction flag")
-    pages: Optional[int] = Field(None, description="Browser Use page count", ge=1)
+    pages: Optional[float] = Field(
+        None, description="Browser Use page count", gt=0
+    )
     index: Optional[int] = Field(None, description="Optional Browser Use element index", ge=0)
 
 
@@ -493,7 +513,7 @@ class BrowserOpenClawCompatArgs(BaseModel):
     source: Optional[str] = Field(None, description="Source for read_long_content")
     context: Optional[str] = Field(None, description="Context for read_long_content")
     keys: Optional[str] = Field(None, description="Keyboard sequence for send_keys")
-    pages: Optional[int] = Field(None, description="Browser Use page count", ge=1)
+    pages: Optional[float] = Field(None, description="Browser Use page count", gt=0)
     down: Optional[bool] = Field(None, description="Browser Use scroll direction flag")
     code: Optional[str] = Field(None, description="Browser Use evaluate code")
     success: Optional[bool] = Field(None, description="Success flag for done action")

@@ -222,6 +222,24 @@ class TestBrowserClickArgs:
         )
         assert args.button == "right"
 
+    def test_coordinate_click(self):
+        """Test Browser Use coordinate click args."""
+        args = BrowserClickArgs(
+            action="click",
+            coordinate_x=120,
+            coordinate_y=340,
+        )
+        assert args.coordinate_x == 120
+        assert args.coordinate_y == 340
+
+    def test_coordinate_click_requires_pair(self):
+        """Test coordinate click requires both coordinates."""
+        with pytest.raises(ValidationError):
+            BrowserClickArgs(
+                action="click",
+                coordinate_x=120,
+            )
+
 
 class TestBrowserTypeArgs:
     """Test BrowserTypeArgs schema."""
@@ -297,6 +315,11 @@ class TestBrowserScrollArgs:
         # Too high
         with pytest.raises(ValidationError):
             BrowserScrollArgs(action="scroll", amount=10000)
+
+    def test_scroll_supports_fractional_pages(self):
+        """Test Browser Use fractional page scrolling support."""
+        args = BrowserScrollArgs(action="scroll", pages=0.5)
+        assert args.pages == 0.5
 
 
 class TestBrowserScreenshotArgs:

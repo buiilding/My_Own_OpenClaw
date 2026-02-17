@@ -98,6 +98,9 @@ class _BrowserUseActionBridge:
             raise RuntimeError("browser_use.tools.service.Tools is unavailable")
 
         tools_instance = tools_type()
+        set_coordinate_clicking = getattr(tools_instance, "set_coordinate_clicking", None)
+        if callable(set_coordinate_clicking):
+            set_coordinate_clicking(True)
         registry = getattr(tools_instance, "registry", None)
         execute_action = getattr(registry, "execute_action", None)
         if not callable(execute_action):
@@ -309,6 +312,10 @@ class _BrowserUseActionBridge:
                 )
                 file_system = self._ensure_file_system() if needs_file_system else None
                 available_file_paths: list[str] = []
+                if normalized_action == "upload_file":
+                    raw_path = params.get("path")
+                    if isinstance(raw_path, str) and raw_path.strip():
+                        available_file_paths.append(raw_path.strip())
                 page_extraction_llm = (
                     self._ensure_fallback_extraction_llm()
                     if normalized_action == "read_long_content"

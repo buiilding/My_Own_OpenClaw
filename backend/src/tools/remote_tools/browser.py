@@ -42,7 +42,7 @@ Actions:
 - snapshot: Get contextual page snapshot with refs (waits for `wait_until=load` by default; supports mode=efficient, interactive/compact/depth/selector/frame)
 - extract: Pull page content via `mode` (`focused`/`full_text`/`structured`) with optional `selector`/`frame` scoping, `start_from_char`, and `extract_links`
 - search_page/find_elements/find_text: Browser Use discovery helpers for text pattern and selector discovery
-- click: Click element (requires ref from snapshot)
+- click: Click element (supports ref/index or coordinate_x+coordinate_y)
 - type: Type text (requires ref, text)
 - input/send_keys: Browser Use input and key-sequence aliases
 - switch/close_tab: Browser Use tab switch/close helpers (uses `tab_id` or `target_id` suffix)
@@ -50,7 +50,7 @@ Actions:
 - upload_file: Browser Use upload helper (`index` + `path`)
 - write_file/replace_file/read_file/read_long_content: Browser Use file-system tools
 - press: Press key like Enter/Escape (requires key)
-- scroll: Scroll page (direction: up/down/left/right)
+- scroll: Scroll page (direction: up/down/left/right, Browser Use `pages` supports fractional values)
 - screenshot: Capture screenshot (optional full_page)
 - pdf: Capture page as PDF
 - upload/dialog: File-input upload and dialog arming/wait handling
