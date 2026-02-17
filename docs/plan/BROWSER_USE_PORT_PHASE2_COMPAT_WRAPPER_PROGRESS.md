@@ -111,6 +111,8 @@ Additional routing update:
 - Removed now-unused `legacy_handlers` seam from adapter construction after delegate retirement.
 - Core session/tab actions (`connect`, `status`, `navigate`, `open`, `get_tabs`, `switch_tab`, `close`) now execute via runtime-provider seam inside adapter.
 - Runtime-provider seam coverage expanded to interaction/capture actions as well (`click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`, `snapshot`, `extract`, `upload`).
+- `act.request.kind` forwarding now includes Browser Use parity for `navigate`, `extract`, `scroll`, and `screenshot` (in addition to the previously-routed Browser Use names).
+- Browser Use `extract.output_schema` now passes through to Browser Use-native extraction when using direct Browser Use routing; compatibility extraction modes continue to accept it as metadata only.
 
 Current Phase 2 routing result:
 
