@@ -22,7 +22,7 @@ Define the target architecture for Browser Use execution inside WindieOS without
 | Frontend renderer/main (`frontend/src/renderer/*`, `frontend/src/main/*.cjs`) | Tool-call transport to sidecar, timeout/capture flow, tool-result return to backend | Browser action semantics |
 | Sidecar tool registry (`frontend/src/main/python/tools/registry.py`) | Routing `browser_control` to a single browser-domain entrypoint | LLM orchestration/history ownership |
 | Browser tool entrypoint (`frontend/src/main/python/tools/browser/browser_tool.py`) | Action parsing/validation, compatibility payload shaping to `ToolResult` | Direct Playwright-heavy action internals after migration |
-| Browser Use adapter (`frontend/src/main/python/tools/browser_use_adapter/*`) | Browser session lifecycle + action execution via Browser Use primitives, deterministic normalized action results | WindieOS interaction loop, prompt/history, tool policy |
+| Browser Use adapter/runtime (`frontend/src/main/python/tools/browser/browser_adapter.py`, `frontend/src/main/python/tools/browser/browser_runtime.py`) | Browser session lifecycle + action execution via Browser Use primitives, deterministic normalized action results | WindieOS interaction loop, prompt/history, tool policy |
 
 Hard rule: Browser Use `Agent` runtime is not used in WindieOS turn orchestration.
 

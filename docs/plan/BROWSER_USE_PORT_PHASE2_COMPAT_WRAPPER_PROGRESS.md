@@ -2,7 +2,7 @@
 summary: "Phase 2 compatibility-wrapper implementation status for browser_control adapter routing."
 read_when:
   - Continuing Browser Use Phase 2 execution work.
-  - Verifying which browser_control actions are now routed through browser_use_adapter.
+  - Verifying which browser_control actions are now routed through browser adapter/runtime.
   - Planning the next step to swap adapter internals from legacy controller calls to Browser Use primitives.
 ---
 
@@ -14,7 +14,7 @@ Updated: **February 17, 2026**
 
 Phase 2 tasks from `docs/plan/BROWSER_USE_PORT_IMPLEMENTATION_PLAN.md`:
 
-1. Introduce sidecar `tools/browser_use_adapter/*` module.
+1. Introduce sidecar browser adapter/runtime module boundary (`tools/browser/*`).
 2. Route `browser_control` handlers through adapter where possible.
 3. Preserve current backend/frontend payload contract.
 
@@ -22,26 +22,25 @@ This update delivers those tasks with compatibility-wrapper routing while preser
 
 ## Implemented Module
 
-- `frontend/src/main/python/tools/browser_use_adapter/types.py`
+- `frontend/src/main/python/tools/browser/browser_adapter.py`
   - Defines normalized adapter result contract (`AdapterActionResult`, `MigrationDecision`).
-- `frontend/src/main/python/tools/browser_use_adapter/controller_adapter.py`
   - Adds `BrowserUseCompatibilityAdapter` dispatch and action methods.
   - Adds factory seam `get_browser_use_adapter(...)` for testable injection.
-- `frontend/src/main/python/tools/browser_use_adapter/runtime_provider.py`
+- `frontend/src/main/python/tools/browser/browser_runtime.py`
   - Adds runtime-provider seam for adapter internals.
   - Defaults to Browser Use native runtime provider and exposes runtime selection hook (`WINDIE_BROWSER_USE_RUNTIME`, with `browser_use` alias support).
   - Removes controller runtime fallback; startup now fails fast when Browser Use runtime is unavailable.
   - Adds `execute_browser_use_action(...)` runtime seam for direct Browser Use tool execution from adapter routing.
-- `frontend/src/main/python/tools/browser_use_adapter/browser_use_native_runtime.py`
+- `frontend/src/main/python/tools/browser/browser_runtime.py`
   - Adds Browser Use-native runtime factory entrypoint (`create_browser_use_native_runtime_provider`) with strict native handler loading.
   - When `browser_use` is installed and `WINDIE_BROWSER_USE_RUNTIME=browser_use_native`, the factory returns dedicated native provider `BrowserUseNativeRuntimeProvider`.
   - Removes per-action native toggles and controller fallback path for Browser Use action execution.
   - Direct Browser Use action execution routes through native handlers only; runtime creation fails fast when handler module loading is invalid.
-- `frontend/src/main/python/tools/browser_use_adapter/browser_use_native_handlers.py`
+- `frontend/src/main/python/tools/browser/browser_runtime.py`
   - Adds Browser Use action bridge (`Tools` registry + optional `BrowserSession` + `FileSystem`) and module-loading seam (`WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`).
   - Ships handler coverage for Browser Use action names (`search`, `go_back`, `search_page`, `find_elements`, `find_text`, `input`, `send_keys`, `switch`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`, and more) plus `wait_seconds`.
-- `frontend/src/main/python/tools/browser_use_adapter/__init__.py`
-  - Exposes adapter types/factory.
+- `frontend/src/main/python/tools/browser/__init__.py`
+  - Exposes browser module exports.
 
 ## Routed Actions (Phase 2 Coverage)
 
@@ -115,7 +114,7 @@ Additional routing update:
 
 Current Phase 2 routing result:
 
-- All supported `browser_control` actions now pass through `tools/browser_use_adapter` dispatch.
+- All supported `browser_control` actions now pass through `tools/browser` adapter/runtime dispatch.
 
 ## Contract Compatibility
 
