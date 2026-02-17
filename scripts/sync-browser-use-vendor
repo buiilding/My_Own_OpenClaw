@@ -7,6 +7,32 @@ REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 SOURCE_DIR="${1:-${REPO_ROOT}/../browser-use/browser_use}"
 DEST_DIR="${REPO_ROOT}/frontend/src/main/python/browser_use"
 MANIFEST_PATH="${REPO_ROOT}/frontend/src/main/python/browser_use_vendor_manifest.json"
+PRUNED_DIRS=(
+  "skill_cli"
+  "mcp"
+  "actor/playground"
+  "dom/playground"
+  "llm/tests"
+  "tokens/tests"
+)
+RSYNC_EXCLUDES=(
+  "__pycache__"
+  "*.pyc"
+  "skill_cli/"
+  "mcp/"
+  "actor/playground/"
+  "dom/playground/"
+  "llm/tests/"
+  "tokens/tests/"
+)
+DIFF_EXCLUDES=(
+  "__pycache__"
+  "*.pyc"
+  "skill_cli"
+  "mcp"
+  "playground"
+  "tests"
+)
 
 if [[ ! -d "${SOURCE_DIR}" ]]; then
   echo "Source directory not found: ${SOURCE_DIR}" >&2
@@ -16,15 +42,28 @@ fi
 
 mkdir -p "${DEST_DIR}"
 
-rsync -a --delete \
-  --exclude='__pycache__' \
-  --exclude='*.pyc' \
-  "${SOURCE_DIR}/" "${DEST_DIR}/"
+RSYNC_ARGS=( -a --delete --delete-excluded )
+for pattern in "${RSYNC_EXCLUDES[@]}"; do
+  RSYNC_ARGS+=( "--exclude=${pattern}" )
+done
 
-if ! diff -qr --exclude='__pycache__' --exclude='*.pyc' "${SOURCE_DIR}" "${DEST_DIR}" >/dev/null; then
+rsync "${RSYNC_ARGS[@]}" "${SOURCE_DIR}/" "${DEST_DIR}/"
+
+DIFF_ARGS=( -qr )
+for pattern in "${DIFF_EXCLUDES[@]}"; do
+  DIFF_ARGS+=( "--exclude=${pattern}" )
+done
+if ! diff "${DIFF_ARGS[@]}" "${SOURCE_DIR}" "${DEST_DIR}" >/dev/null; then
   echo "Vendor sync verification failed: destination differs from source." >&2
   exit 1
 fi
+
+for relative_dir in "${PRUNED_DIRS[@]}"; do
+  if [[ -d "${DEST_DIR}/${relative_dir}" ]]; then
+    echo "Vendor sync pruning failed: ${DEST_DIR}/${relative_dir} still exists." >&2
+    exit 1
+  fi
+done
 
 SOURCE_REPO_ROOT="$(cd "${SOURCE_DIR}/.." && pwd)"
 SOURCE_COMMIT="unknown"
@@ -39,7 +78,15 @@ cat > "${MANIFEST_PATH}" <<MANIFEST
   "source_repo": "${SOURCE_REPO_ROOT}",
   "source_subdir": "browser_use",
   "source_commit": "${SOURCE_COMMIT}",
-  "synced_at_utc": "${SYNCED_AT_UTC}"
+  "synced_at_utc": "${SYNCED_AT_UTC}",
+  "pruned_dirs": [
+    "skill_cli",
+    "mcp",
+    "actor/playground",
+    "dom/playground",
+    "llm/tests",
+    "tokens/tests"
+  ]
 }
 MANIFEST
 

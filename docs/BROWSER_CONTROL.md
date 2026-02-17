@@ -57,6 +57,7 @@ Parity check guarantees:
 - Vendored tree matches `../browser-use/browser_use`.
 - Runtime import resolves to vendored `frontend/src/main/python/browser_use`.
 - Sidecar requirements do not depend on pip `browser-use`.
+- Non-runtime vendored paths remain pruned: `skill_cli`, `mcp`, `actor/playground`, `dom/playground`, `llm/tests`, `tokens/tests`.
 
 ## User Chrome Mode
 

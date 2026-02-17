@@ -8,6 +8,32 @@ SOURCE_DIR="${1:-${REPO_ROOT}/../browser-use/browser_use}"
 VENDORED_DIR="${REPO_ROOT}/frontend/src/main/python/browser_use"
 REQ_FILE="${REPO_ROOT}/frontend/src/main/python/requirements.txt"
 REQ_RUNTIME_FILE="${REPO_ROOT}/frontend/src/main/python/requirements.runtime.txt"
+PRUNED_DIRS=(
+  "skill_cli"
+  "mcp"
+  "actor/playground"
+  "dom/playground"
+  "llm/tests"
+  "tokens/tests"
+)
+RSYNC_EXCLUDES=(
+  "__pycache__"
+  "*.pyc"
+  "skill_cli/"
+  "mcp/"
+  "actor/playground/"
+  "dom/playground/"
+  "llm/tests/"
+  "tokens/tests/"
+)
+DIFF_EXCLUDES=(
+  "__pycache__"
+  "*.pyc"
+  "skill_cli"
+  "mcp"
+  "playground"
+  "tests"
+)
 
 if [[ ! -d "${VENDORED_DIR}" ]]; then
   echo "Vendored Browser Use directory missing: ${VENDORED_DIR}" >&2
@@ -20,11 +46,23 @@ if [[ ! -d "${SOURCE_DIR}" ]]; then
   exit 1
 fi
 
-if ! diff -qr --exclude='__pycache__' --exclude='*.pyc' "${SOURCE_DIR}" "${VENDORED_DIR}" >/dev/null; then
+DIFF_ARGS=( -qr )
+for pattern in "${DIFF_EXCLUDES[@]}"; do
+  DIFF_ARGS+=( "--exclude=${pattern}" )
+done
+if ! diff "${DIFF_ARGS[@]}" "${SOURCE_DIR}" "${VENDORED_DIR}" >/dev/null; then
   echo "Vendored Browser Use tree is out of sync with source." >&2
   echo "Run: ./scripts/sync-browser-use-vendor" >&2
   exit 1
 fi
+
+for relative_dir in "${PRUNED_DIRS[@]}"; do
+  if [[ -d "${VENDORED_DIR}/${relative_dir}" ]]; then
+    echo "Vendored Browser Use includes pruned directory: ${VENDORED_DIR}/${relative_dir}" >&2
+    echo "Run: ./scripts/sync-browser-use-vendor" >&2
+    exit 1
+  fi
+done
 
 if grep -Eq '^[[:space:]]*browser-use([<>=!~].*)?$' "${REQ_FILE}" "${REQ_RUNTIME_FILE}"; then
   echo "browser-use pip package must not be listed in sidecar requirements." >&2

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- chore(browser-use-runtime): prune non-runtime vendored Browser Use directories (`skill_cli`, `mcp`, `actor/playground`, `dom/playground`, `llm/tests`, `tokens/tests`) and enforce pruning in vendor sync/check scripts + manifest metadata
 - test(browser-use-runtime): enforce that sidecar requirements do not include pip `browser-use` (vendored runtime only) in both vendor check script and Browser Use parity tests
 - test(browser-use-runtime): enforce vendored `browser_use` import origin in sidecar parity tests and add `scripts/check-browser-use-vendor` to verify source-tree parity against `../browser-use/browser_use` plus runtime import resolution
 - chore(browser-use-runtime): add `scripts/sync-browser-use-vendor` and vendor manifest (`frontend/src/main/python/browser_use_vendor_manifest.json`) to keep WindieOS Browser Use implementation synced from `../browser-use/browser_use` without pip package install

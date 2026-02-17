@@ -36,6 +36,8 @@ cd WindieOS
 ```
 
 This check also enforces that sidecar requirements do not reintroduce `browser-use` as a pip dependency.
+It also enforces that non-runtime vendored Browser Use paths remain pruned:
+`skill_cli`, `mcp`, `actor/playground`, `dom/playground`, `llm/tests`, `tokens/tests`.
 
 ### Step 2: Run WindieOS
 
