@@ -15,7 +15,6 @@ from browser_use.browser import BrowserSession
 from browser_use.filesystem.file_system import FileSystem
 from browser_use.llm.base import BaseChatModel
 from browser_use.observability import observe_debug
-from browser_use.telemetry.service import ProductTelemetry
 from browser_use.tools.registry.views import (
 	ActionModel,
 	ActionRegistry,
@@ -27,6 +26,16 @@ from browser_use.utils import is_new_tab_page, match_url_with_domain_pattern, ti
 Context = TypeVar('Context')
 
 logger = logging.getLogger(__name__)
+
+
+class ProductTelemetry:
+	"""WindieOS vendored runtime disables Browser Use telemetry integrations."""
+
+	def capture(self, event: Any) -> None:
+		return None
+
+	def flush(self) -> None:
+		return None
 
 
 class Registry(Generic[Context]):
