@@ -40,6 +40,42 @@ TRACE_DEPRECATION_MESSAGE = (
     "trace_start/trace_stop are deprecated in Browser Use runtime mode. "
     "Use requests/errors capture and HAR-style runbook workflows instead."
 )
+BROWSER_USE_DIRECT_ACTIONS = frozenset(
+    {
+        "search",
+        "go_back",
+        "search_page",
+        "find_elements",
+        "find_text",
+        "input",
+        "send_keys",
+        "switch",
+        "close_tab",
+        "dropdown_options",
+        "select_dropdown",
+        "upload_file",
+        "write_file",
+        "replace_file",
+        "read_file",
+        "read_long_content",
+    }
+)
+BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
+    {
+        "go_back",
+        "search_page",
+        "find_elements",
+        "find_text",
+        "input",
+        "send_keys",
+        "switch",
+        "close_tab",
+        "dropdown_options",
+        "select_dropdown",
+        "upload_file",
+        "read_long_content",
+    }
+)
 
 
 class BrowserControllerLike(Protocol):
@@ -237,6 +273,8 @@ class BrowserUseCompatibilityAdapter:
             return await self.switch_tab(args)
         if action == "evaluate":
             return await self.evaluate(args)
+        if action in BROWSER_USE_DIRECT_ACTIONS:
+            return await self.execute_browser_use_action(action, args)
         if action == "console":
             return await self.console(args)
         if action == "errors":
@@ -1185,6 +1223,309 @@ class BrowserUseCompatibilityAdapter:
             },
         )
 
+    async def execute_browser_use_action(
+        self,
+        action: str,
+        args: Mapping[str, Any],
+    ) -> AdapterActionResult:
+        normalized = action.strip().lower()
+        if normalized in BROWSER_USE_ACTIONS_REQUIRING_CONNECTION:
+            if not self._runtime.is_connected:
+                return self._not_connected(action)
+
+        params_or_error = self._build_browser_use_action_params(normalized, args)
+        if isinstance(params_or_error, AdapterActionResult):
+            return params_or_error
+        params = params_or_error
+        runtime_action = "close" if normalized == "close_tab" else normalized
+
+        try:
+            result = await self._runtime.execute_browser_use_action(
+                action=runtime_action,
+                params=params,
+            )
+        except Exception as exc:
+            error_text = str(exc)
+            error_code = (
+                "INVALID_ARGUMENT"
+                if "invalid parameters" in error_text.lower()
+                else "BROWSER_RUNTIME_ERROR"
+            )
+            return AdapterActionResult(
+                success=False,
+                action=action,
+                decision="port",
+                error=error_text,
+                error_code=error_code,
+            )
+
+        if not isinstance(result, dict):
+            return AdapterActionResult(
+                success=False,
+                action=action,
+                decision="port",
+                error=f"Browser Use action '{runtime_action}' returned invalid response",
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+
+        if not result.get("success", False):
+            return AdapterActionResult(
+                success=False,
+                action=action,
+                decision="port",
+                error=result.get("error", f"Browser Use action '{runtime_action}' failed"),
+                error_code="BROWSER_RUNTIME_ERROR",
+            )
+
+        payload: dict[str, Any] = dict(result)
+        payload["action"] = action
+        payload["browser_use_action"] = runtime_action
+        return AdapterActionResult(
+            success=True,
+            action=action,
+            decision="port",
+            data=payload,
+        )
+
+    def _build_browser_use_action_params(
+        self,
+        action: str,
+        args: Mapping[str, Any],
+    ) -> dict[str, Any] | AdapterActionResult:
+        if action == "search":
+            query = self._value_as_str(args.get("query"))
+            if not query:
+                return self._invalid_argument("search", "search requires non-empty 'query'")
+            params: dict[str, Any] = {"query": query}
+            engine = self._value_as_str(args.get("engine"))
+            if engine:
+                params["engine"] = engine
+            return params
+
+        if action == "go_back":
+            description = self._value_as_str(args.get("description"))
+            return {"description": description} if description else {}
+
+        if action == "search_page":
+            pattern = self._value_as_str(args.get("pattern")) or self._value_as_str(
+                args.get("query")
+            )
+            if not pattern:
+                return self._invalid_argument(
+                    "search_page",
+                    "search_page requires non-empty 'pattern'",
+                )
+            params = {"pattern": pattern}
+            if isinstance(args.get("regex"), bool):
+                params["regex"] = bool(args.get("regex"))
+            if isinstance(args.get("case_sensitive"), bool):
+                params["case_sensitive"] = bool(args.get("case_sensitive"))
+            context_chars = args.get("context_chars")
+            if isinstance(context_chars, int) and context_chars >= 0:
+                params["context_chars"] = context_chars
+            css_scope = self._value_as_str(args.get("css_scope"))
+            if css_scope:
+                params["css_scope"] = css_scope
+            max_results = args.get("max_results")
+            if isinstance(max_results, int) and max_results > 0:
+                params["max_results"] = max_results
+            return params
+
+        if action == "find_elements":
+            selector = self._value_as_str(args.get("selector"))
+            if not selector:
+                return self._invalid_argument(
+                    "find_elements",
+                    "find_elements requires non-empty 'selector'",
+                )
+            params = {"selector": selector}
+            attributes = args.get("attributes")
+            if isinstance(attributes, list):
+                params["attributes"] = [
+                    str(attribute).strip()
+                    for attribute in attributes
+                    if isinstance(attribute, str) and attribute.strip()
+                ]
+            max_results = args.get("max_results")
+            if isinstance(max_results, int) and max_results > 0:
+                params["max_results"] = max_results
+            if isinstance(args.get("include_text"), bool):
+                params["include_text"] = bool(args.get("include_text"))
+            return params
+
+        if action == "find_text":
+            text = self._value_as_str(args.get("text")) or self._value_as_str(
+                args.get("pattern")
+            )
+            if not text:
+                return self._invalid_argument(
+                    "find_text",
+                    "find_text requires non-empty 'text'",
+                )
+            return {"text": text}
+
+        if action == "input":
+            index = self._extract_index(args)
+            if index is None:
+                return self._invalid_argument(
+                    "input",
+                    "input requires integer 'index' or numeric 'ref'",
+                )
+            text = args.get("text")
+            if not isinstance(text, str):
+                return self._invalid_argument("input", "input requires string 'text'")
+            params = {
+                "index": index,
+                "text": text,
+            }
+            if isinstance(args.get("clear"), bool):
+                params["clear"] = bool(args.get("clear"))
+            elif isinstance(args.get("clear_first"), bool):
+                params["clear"] = bool(args.get("clear_first"))
+            return params
+
+        if action == "send_keys":
+            keys = self._value_as_str(args.get("keys")) or self._value_as_str(
+                args.get("key")
+            )
+            if not keys:
+                return self._invalid_argument(
+                    "send_keys",
+                    "send_keys requires non-empty 'keys'",
+                )
+            return {"keys": keys}
+
+        if action == "switch":
+            tab_id = self._extract_tab_id(args)
+            if not tab_id:
+                return self._invalid_argument(
+                    "switch",
+                    "switch requires non-empty 'tab_id' or 'target_id'",
+                )
+            return {"tab_id": tab_id}
+
+        if action == "close_tab":
+            tab_id = self._extract_tab_id(args)
+            if not tab_id:
+                return self._invalid_argument(
+                    "close_tab",
+                    "close_tab requires non-empty 'tab_id' or 'target_id'",
+                )
+            return {"tab_id": tab_id}
+
+        if action == "dropdown_options":
+            index = self._extract_index(args)
+            if index is None:
+                return self._invalid_argument(
+                    "dropdown_options",
+                    "dropdown_options requires integer 'index' or numeric 'ref'",
+                )
+            return {"index": index}
+
+        if action == "select_dropdown":
+            index = self._extract_index(args)
+            if index is None:
+                return self._invalid_argument(
+                    "select_dropdown",
+                    "select_dropdown requires integer 'index' or numeric 'ref'",
+                )
+            text = self._value_as_str(args.get("text"))
+            if not text:
+                return self._invalid_argument(
+                    "select_dropdown",
+                    "select_dropdown requires non-empty 'text'",
+                )
+            return {"index": index, "text": text}
+
+        if action == "upload_file":
+            index = self._extract_index(args)
+            if index is None:
+                return self._invalid_argument(
+                    "upload_file",
+                    "upload_file requires integer 'index' or numeric 'ref'",
+                )
+            path = self._value_as_str(args.get("path"))
+            if not path:
+                paths = args.get("paths")
+                if isinstance(paths, list) and paths:
+                    first = paths[0]
+                    if isinstance(first, str) and first.strip():
+                        path = first.strip()
+            if not path:
+                return self._invalid_argument(
+                    "upload_file",
+                    "upload_file requires non-empty 'path' (or first entry in 'paths')",
+                )
+            return {"index": index, "path": path}
+
+        if action == "write_file":
+            file_name = self._value_as_str(args.get("file_name"))
+            content = args.get("content")
+            if not file_name:
+                return self._invalid_argument(
+                    "write_file",
+                    "write_file requires non-empty 'file_name'",
+                )
+            if not isinstance(content, str):
+                return self._invalid_argument(
+                    "write_file",
+                    "write_file requires string 'content'",
+                )
+            params = {"file_name": file_name, "content": content}
+            for key in ("append", "trailing_newline", "leading_newline"):
+                value = args.get(key)
+                if isinstance(value, bool):
+                    params[key] = value
+            return params
+
+        if action == "replace_file":
+            file_name = self._value_as_str(args.get("file_name"))
+            old_str = args.get("old_str")
+            new_str = args.get("new_str")
+            if not file_name:
+                return self._invalid_argument(
+                    "replace_file",
+                    "replace_file requires non-empty 'file_name'",
+                )
+            if not isinstance(old_str, str) or not isinstance(new_str, str):
+                return self._invalid_argument(
+                    "replace_file",
+                    "replace_file requires string 'old_str' and 'new_str'",
+                )
+            return {"file_name": file_name, "old_str": old_str, "new_str": new_str}
+
+        if action == "read_file":
+            file_name = self._value_as_str(args.get("file_name"))
+            if not file_name:
+                return self._invalid_argument(
+                    "read_file",
+                    "read_file requires non-empty 'file_name'",
+                )
+            return {"file_name": file_name}
+
+        if action == "read_long_content":
+            goal = self._value_as_str(args.get("goal")) or self._value_as_str(
+                args.get("query")
+            )
+            if not goal:
+                return self._invalid_argument(
+                    "read_long_content",
+                    "read_long_content requires non-empty 'goal'",
+                )
+            params = {"goal": goal}
+            source = self._value_as_str(args.get("source"))
+            if source:
+                params["source"] = source
+            context = self._value_as_str(args.get("context"))
+            if context:
+                params["context"] = context
+            return params
+
+        return self._invalid_argument(
+            action,
+            f"Unsupported Browser Use action '{action}'",
+        )
+
     async def console(self, args: Mapping[str, Any]) -> AdapterActionResult:
         if not self._controller.is_connected:
             return self._not_connected("console")
@@ -1947,6 +2288,10 @@ class BrowserUseCompatibilityAdapter:
                 evaluate_result = await self.evaluate({"action": "evaluate", **merged})
             return self._retag_action(evaluate_result, "evaluate")
 
+        if kind in BROWSER_USE_DIRECT_ACTIONS:
+            browser_use_result = await self.execute_browser_use_action(kind, merged)
+            return self._retag_action(browser_use_result, kind)
+
         if kind == "close":
             close_result = await self.close()
             return self._retag_action(close_result, "close")
@@ -2003,6 +2348,29 @@ class BrowserUseCompatibilityAdapter:
             value = args.get(key)
             if isinstance(value, str) and value.strip():
                 return value.strip()
+        return None
+
+    @staticmethod
+    def _extract_tab_id(args: Mapping[str, Any]) -> str | None:
+        raw_tab_id = args.get("tab_id")
+        if isinstance(raw_tab_id, str) and raw_tab_id.strip():
+            tab_id = raw_tab_id.strip()
+            return tab_id[-4:] if len(tab_id) > 4 else tab_id
+        target_id = BrowserUseCompatibilityAdapter._extract_target_id(args)
+        if target_id:
+            return target_id[-4:] if len(target_id) > 4 else target_id
+        return None
+
+    @staticmethod
+    def _extract_index(args: Mapping[str, Any]) -> int | None:
+        index = args.get("index")
+        if isinstance(index, int) and index >= 0:
+            return index
+        if isinstance(index, float) and index.is_integer() and index >= 0:
+            return int(index)
+        ref = args.get("ref")
+        if isinstance(ref, str) and ref.strip().isdigit():
+            return int(ref.strip())
         return None
 
     @staticmethod

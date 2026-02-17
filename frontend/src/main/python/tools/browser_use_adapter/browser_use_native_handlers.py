@@ -1,92 +1,329 @@
-"""Default Browser Use native-runtime handler registry.
-
-Phase 2 keeps controller-backed behavior as fallback, but ships a minimal native
-action path for `wait(seconds=...)` when Browser Use is available.
-"""
+"""Browser Use native-runtime handler registry."""
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 from importlib import import_module
 import logging
-from typing import Any, Awaitable, Callable
+import os
+from pathlib import Path
+from typing import Any, Awaitable, Callable, Mapping
 
 logger = logging.getLogger(__name__)
 
 NativeActionHandler = Callable[..., Awaitable[Any] | Any]
+DEFAULT_CDP_URL = "http://127.0.0.1:9222"
+DEFAULT_FILESYSTEM_DIR = Path.home() / ".config" / "desktop-assistant" / "browser-use"
+
+_BROWSER_REQUIRED_ACTIONS = frozenset(
+    {
+        "navigate",
+        "go_back",
+        "click",
+        "input",
+        "upload_file",
+        "switch",
+        "close",
+        "extract",
+        "search_page",
+        "find_elements",
+        "scroll",
+        "send_keys",
+        "find_text",
+        "screenshot",
+        "dropdown_options",
+        "select_dropdown",
+        "evaluate",
+        "read_long_content",
+    }
+)
+_FILESYSTEM_REQUIRED_ACTIONS = frozenset(
+    {"done", "write_file", "replace_file", "read_file"}
+)
+_BROWSER_USE_ACTIONS = (
+    "done",
+    "search",
+    "navigate",
+    "go_back",
+    "wait",
+    "click",
+    "input",
+    "upload_file",
+    "switch",
+    "close",
+    "extract",
+    "search_page",
+    "find_elements",
+    "scroll",
+    "send_keys",
+    "find_text",
+    "screenshot",
+    "dropdown_options",
+    "select_dropdown",
+    "write_file",
+    "replace_file",
+    "read_file",
+    "read_long_content",
+    "evaluate",
+)
 
 
-def _build_browser_use_wait_seconds_handler() -> NativeActionHandler | None:
-    """Create a handler that executes Browser Use's native `wait` action."""
+class _BrowserUseActionBridge:
+    """Thin bridge around Browser Use `Tools` action execution."""
 
-    try:
+    def __init__(self, controller: Any | None = None):
+        self._controller = controller
+        self._tools: Any | None = None
+        self._execute_action: Any | None = None
+        self._file_system_type: Any | None = None
+        self._browser_session_type: Any | None = None
+        self._browser_session: Any | None = None
+        self._file_system: Any | None = None
+        self._session_mode: str | None = None
+        self._session_cdp_url: str | None = None
+        self._lock = asyncio.Lock()
+
+    def _ensure_browser_use_modules(self) -> None:
+        if self._execute_action is not None:
+            return
+
         service_module = import_module("browser_use.tools.service")
         tools_type = getattr(service_module, "Tools", None)
         if not inspect.isclass(tools_type):
-            return None
+            raise RuntimeError("browser_use.tools.service.Tools is unavailable")
+
         tools_instance = tools_type()
         registry = getattr(tools_instance, "registry", None)
         execute_action = getattr(registry, "execute_action", None)
         if not callable(execute_action):
+            raise RuntimeError("Browser Use action registry execute_action is unavailable")
+
+        browser_module = import_module("browser_use.browser")
+        browser_session_type = getattr(browser_module, "BrowserSession", None)
+        if not inspect.isclass(browser_session_type):
+            raise RuntimeError("browser_use.browser.BrowserSession is unavailable")
+
+        fs_module = import_module("browser_use.filesystem.file_system")
+        file_system_type = getattr(fs_module, "FileSystem", None)
+        if not inspect.isclass(file_system_type):
+            raise RuntimeError("browser_use.filesystem.file_system.FileSystem is unavailable")
+
+        self._tools = tools_instance
+        self._execute_action = execute_action
+        self._browser_session_type = browser_session_type
+        self._file_system_type = file_system_type
+
+    async def _stop_browser_session(self) -> None:
+        session = self._browser_session
+        self._browser_session = None
+        self._session_mode = None
+        self._session_cdp_url = None
+        if session is None:
+            return
+        stop = getattr(session, "stop", None)
+        if not callable(stop):
+            return
+        try:
+            maybe = stop()
+            if inspect.isawaitable(maybe):
+                await maybe
+        except Exception as exc:
+            logger.debug("Ignoring Browser Use session stop failure: %s", exc)
+
+    def _controller_mode(self) -> str | None:
+        mode_raw = getattr(self._controller, "_mode", None)
+        if not isinstance(mode_raw, str):
             return None
-    except Exception as exc:
-        logger.debug("Browser Use wait handler unavailable: %s", exc)
+        mode = mode_raw.strip().lower()
+        if mode in {"user_chrome", "managed"}:
+            return mode
         return None
+
+    def _controller_cdp_url(self) -> str | None:
+        cdp_raw = getattr(self._controller, "_cdp_url", None)
+        if not isinstance(cdp_raw, str):
+            return None
+        cdp = cdp_raw.strip()
+        return cdp or None
+
+    async def _ensure_browser_session(self) -> Any:
+        self._ensure_browser_use_modules()
+
+        controller_connected = bool(getattr(self._controller, "is_connected", False))
+        mode = self._controller_mode()
+        cdp_url = self._controller_cdp_url()
+
+        if not controller_connected:
+            await self._stop_browser_session()
+            raise RuntimeError(
+                "Browser is not connected. Run browser_control connect first."
+            )
+
+        if mode == "user_chrome":
+            desired_cdp_url = (
+                cdp_url
+                or os.getenv("WINDIE_BROWSER_USE_CDP_URL", DEFAULT_CDP_URL).strip()
+                or DEFAULT_CDP_URL
+            )
+            should_reuse = (
+                self._browser_session is not None
+                and self._session_mode == "user_chrome"
+                and self._session_cdp_url == desired_cdp_url
+            )
+            if should_reuse:
+                return self._browser_session
+
+            await self._stop_browser_session()
+            session = self._browser_session_type(cdp_url=desired_cdp_url)
+            await session.start()
+            self._browser_session = session
+            self._session_mode = "user_chrome"
+            self._session_cdp_url = desired_cdp_url
+            return session
+
+        if mode == "managed":
+            if self._browser_session is not None and self._session_mode == "managed":
+                return self._browser_session
+
+            await self._stop_browser_session()
+            session = self._browser_session_type(is_local=True, headless=False)
+            await session.start()
+            self._browser_session = session
+            self._session_mode = "managed"
+            self._session_cdp_url = None
+            return session
+
+        await self._stop_browser_session()
+        raise RuntimeError("Unable to infer Browser Use session mode from controller")
+
+    def _ensure_file_system(self) -> Any:
+        self._ensure_browser_use_modules()
+        if self._file_system is not None:
+            return self._file_system
+
+        base_dir_env = os.getenv("WINDIE_BROWSER_USE_FILES_DIR")
+        if isinstance(base_dir_env, str) and base_dir_env.strip():
+            base_dir = Path(base_dir_env.strip()).expanduser()
+        else:
+            base_dir = DEFAULT_FILESYSTEM_DIR
+        self._file_system = self._file_system_type(str(base_dir), create_default_files=True)
+        return self._file_system
+
+    @staticmethod
+    def _normalize_action_result(action_name: str, result: Any) -> dict[str, Any]:
+        if isinstance(result, Mapping):
+            payload = dict(result)
+        elif hasattr(result, "model_dump"):
+            payload = result.model_dump(exclude_none=True)
+        else:
+            payload = {"result": result}
+
+        error = payload.get("error")
+        success = not (isinstance(error, str) and error.strip())
+        normalized: dict[str, Any] = {
+            "success": success,
+            "action": action_name,
+            "native_source": "browser_use.tools",
+        }
+        if isinstance(error, str) and error.strip():
+            normalized["error"] = error.strip()
+
+        for key in (
+            "extracted_content",
+            "long_term_memory",
+            "metadata",
+            "attachments",
+            "images",
+            "is_done",
+        ):
+            value = payload.get(key)
+            if value is not None:
+                normalized[key] = value
+
+        # Browser Use `ActionResult.success` is meaningful for `done`.
+        if payload.get("is_done") is True and payload.get("success") is not None:
+            normalized["done_success"] = payload.get("success")
+
+        if not success and "error" not in normalized:
+            normalized["error"] = f"Browser Use action '{action_name}' failed"
+
+        return normalized
+
+    async def execute_action(
+        self,
+        action_name: str,
+        params: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        self._ensure_browser_use_modules()
+
+        normalized_action = action_name.strip().lower()
+        if normalized_action not in _BROWSER_USE_ACTIONS:
+            return {
+                "success": False,
+                "action": normalized_action,
+                "error": f"Unsupported Browser Use action: {normalized_action}",
+            }
+
+        async with self._lock:
+            needs_browser = normalized_action in _BROWSER_REQUIRED_ACTIONS
+            needs_file_system = normalized_action in _FILESYSTEM_REQUIRED_ACTIONS
+
+            try:
+                browser_session = (
+                    await self._ensure_browser_session() if needs_browser else None
+                )
+                file_system = self._ensure_file_system() if needs_file_system else None
+                execute_action = self._execute_action
+                assert callable(execute_action)
+                result = execute_action(
+                    normalized_action,
+                    dict(params),
+                    browser_session=browser_session,
+                    file_system=file_system,
+                )
+                if inspect.isawaitable(result):
+                    result = await result
+                return self._normalize_action_result(normalized_action, result)
+            except Exception as exc:
+                return {
+                    "success": False,
+                    "action": normalized_action,
+                    "error": f"Browser Use action '{normalized_action}' failed: {exc}",
+                    "native_source": "browser_use.tools",
+                }
+
+
+def get_native_runtime_handlers(
+    controller: Any | None = None,
+) -> dict[str, NativeActionHandler]:
+    """Return action->handler map for BrowserUseNativeRuntimeProvider."""
+
+    bridge = _BrowserUseActionBridge(controller=controller)
+    handlers: dict[str, NativeActionHandler] = {}
 
     async def _wait_seconds_handler(*, seconds: float) -> dict[str, Any]:
         requested_seconds = max(0.0, float(seconds))
-        # Browser Use wait action expects integer seconds.
         wait_seconds = max(0, int(round(requested_seconds)))
-        try:
-            result = execute_action(
-                "wait",
-                {"seconds": wait_seconds},
-                browser_session=None,
-            )
-            if inspect.isawaitable(result):
-                await result
-        except Exception as exc:
-            return {
-                "success": False,
-                "error": f"Browser Use native wait failed: {exc}",
-            }
-        return {
-            "success": True,
-            "seconds": requested_seconds,
-            "native_source": "browser_use.tools.wait",
-        }
+        result = await bridge.execute_action("wait", {"seconds": wait_seconds})
+        if result.get("success"):
+            result["seconds"] = requested_seconds
+        return result
 
-    return _wait_seconds_handler
+    handlers["wait_seconds"] = _wait_seconds_handler
 
+    for action in _BROWSER_USE_ACTIONS:
+        async def _handler(
+            _action: str = action,
+            **kwargs: Any,
+        ) -> dict[str, Any]:
+            return await bridge.execute_action(_action, kwargs)
 
-def get_native_runtime_handlers(controller: Any | None = None) -> dict[str, NativeActionHandler]:
-    """Return action->handler map for BrowserUseNativeRuntimeProvider.
+        handlers[action] = _handler
 
-    Supported action keys are runtime-layer names, for example:
-    - connect_user_chrome
-    - connect_managed
-    - status
-    - navigate
-    - open
-    - get_tabs
-    - switch_tab
-    - close
-    - click
-    - type
-    - press
-    - scroll
-    - screenshot
-    - wait
-    - wait_seconds
-    - evaluate
-    - snapshot
-    - upload
-    """
-    del controller  # reserved for future handler sets that need controller context.
+    async def _close_tab_alias_handler(**kwargs: Any) -> dict[str, Any]:
+        return await bridge.execute_action("close", kwargs)
 
-    handlers: dict[str, NativeActionHandler] = {}
-    wait_handler = _build_browser_use_wait_seconds_handler()
-    if wait_handler is not None:
-        handlers["wait_seconds"] = wait_handler
+    handlers["close_tab"] = _close_tab_alias_handler
 
     return handlers

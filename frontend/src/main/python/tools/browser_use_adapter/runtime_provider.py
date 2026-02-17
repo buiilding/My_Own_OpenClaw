@@ -138,6 +138,12 @@ class BrowserRuntimeProvider(Protocol):
         frame_selector: str | None = None,
     ) -> Any: ...
     async def set_input_files(self, *, ref: str, paths: list[str]) -> dict[str, Any]: ...
+    async def execute_browser_use_action(
+        self,
+        *,
+        action: str,
+        params: dict[str, Any],
+    ) -> dict[str, Any]: ...
 
 
 class ControllerBackedRuntimeProvider:
@@ -278,6 +284,16 @@ class ControllerBackedRuntimeProvider:
         return await self._controller.set_input_files(
             ref=ref,
             paths=paths,
+        )
+
+    async def execute_browser_use_action(
+        self,
+        *,
+        action: str,
+        params: dict[str, Any],
+    ) -> dict[str, Any]:
+        raise RuntimeError(
+            f"Browser Use action '{action}' is unavailable in controller-backed runtime"
         )
 
 

@@ -114,6 +114,22 @@ PHASE2_ADAPTER_ROUTED_ACTIONS = frozenset(
         "set_timezone",
         "set_locale",
         "set_device",
+        "search",
+        "go_back",
+        "search_page",
+        "find_elements",
+        "find_text",
+        "input",
+        "send_keys",
+        "switch",
+        "close_tab",
+        "dropdown_options",
+        "select_dropdown",
+        "upload_file",
+        "write_file",
+        "replace_file",
+        "read_file",
+        "read_long_content",
         "snapshot",
         "extract",
         "act",
@@ -346,130 +362,10 @@ async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
 
     # Route to appropriate handler
     try:
-        if action == "connect":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "status":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "profiles":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "navigate":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "open":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "snapshot":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "extract":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "click":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "type":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "press":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "scroll":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "screenshot":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "wait":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "get_tabs":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "switch_tab":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "evaluate":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "console":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "errors":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "requests":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "trace_start":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "trace_stop":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "pdf":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "upload":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "dialog":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "cookies":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "cookies_set":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "cookies_clear":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "storage_get":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "storage_set":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "storage_clear":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "set_offline":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "set_headers":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "set_credentials":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "set_geolocation":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "set_media":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "set_timezone":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "set_locale":
-            return await _run_phase2_adapter_action(raw_args)
-        elif action == "set_device":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "act":
-            result = await _run_phase2_adapter_action(raw_args)
-            return await _attach_post_action_snapshot_if_needed(
-                action, raw_args, result
-            )
-        elif action == "close":
-            return await _run_phase2_adapter_action(raw_args)
-        else:
+        if action not in PHASE2_ADAPTER_ROUTED_ACTIONS:
             return ToolResult.error_result(f"Unhandled action: {action}")
+        result = await _run_phase2_adapter_action(raw_args)
+        return await _attach_post_action_snapshot_if_needed(action, raw_args, result)
     except Exception as e:
         logger.exception(f"Browser action '{action}' failed")
         return ToolResult.error_result(f"Action failed: {str(e)}")

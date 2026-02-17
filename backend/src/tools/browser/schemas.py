@@ -272,6 +272,22 @@ class BrowserOpenClawCompatArgs(BaseModel):
         "status",
         "profiles",
         "open",
+        "search",
+        "go_back",
+        "search_page",
+        "find_elements",
+        "find_text",
+        "input",
+        "send_keys",
+        "switch",
+        "close_tab",
+        "dropdown_options",
+        "select_dropdown",
+        "upload_file",
+        "write_file",
+        "replace_file",
+        "read_file",
+        "read_long_content",
         "console",
         "pdf",
         "upload",
@@ -307,6 +323,28 @@ class BrowserOpenClawCompatArgs(BaseModel):
         None, description="URL to open/navigate (camelCase)"
     )
     url: Optional[str] = Field(None, description="URL to open/navigate")
+    query: Optional[str] = Field(None, description="Search/extract query text")
+    engine: Optional[str] = Field(None, description="Search engine (for search action)")
+    pattern: Optional[str] = Field(
+        None, description="Pattern to find for search_page/find_text"
+    )
+    regex: Optional[bool] = Field(None, description="Interpret pattern as regex")
+    case_sensitive: Optional[bool] = Field(
+        None, description="Case-sensitive match toggle"
+    )
+    context_chars: Optional[int] = Field(
+        None, description="Context window chars for search_page", ge=0
+    )
+    css_scope: Optional[str] = Field(None, description="CSS scope for search_page")
+    max_results: Optional[int] = Field(None, description="Maximum result count", ge=1)
+    attributes: Optional[List[str]] = Field(
+        None, description="Attributes to include for find_elements"
+    )
+    include_text: Optional[bool] = Field(
+        None, description="Include text output for find_elements"
+    )
+    index: Optional[int] = Field(None, description="Browser Use element index", ge=0)
+    tab_id: Optional[str] = Field(None, description="Browser Use tab id")
     snapshotFormat: Optional[Literal["ai", "aria"]] = Field(
         None, description="Snapshot format alias."
     )
@@ -368,6 +406,24 @@ class BrowserOpenClawCompatArgs(BaseModel):
         None, description="Screenshot image type"
     )
     quality: Optional[int] = Field(None, description="JPEG quality", ge=1, le=100)
+    file_name: Optional[str] = Field(None, description="Filename for file actions")
+    content: Optional[str] = Field(None, description="Content for write_file")
+    append: Optional[bool] = Field(None, description="Append mode for write_file")
+    trailing_newline: Optional[bool] = Field(
+        None, description="Append trailing newline for write_file"
+    )
+    leading_newline: Optional[bool] = Field(
+        None, description="Append leading newline for write_file"
+    )
+    old_str: Optional[str] = Field(None, description="Target string for replace_file")
+    new_str: Optional[str] = Field(
+        None, description="Replacement string for replace_file"
+    )
+    path: Optional[str] = Field(None, description="File path for upload_file")
+    goal: Optional[str] = Field(None, description="Goal for read_long_content")
+    source: Optional[str] = Field(None, description="Source for read_long_content")
+    context: Optional[str] = Field(None, description="Context for read_long_content")
+    keys: Optional[str] = Field(None, description="Keyboard sequence for send_keys")
     profile: Optional[str] = Field(
         None, description="Compatibility field (unused in WindieOS)"
     )
@@ -408,6 +464,22 @@ class BrowserControlArgs(BaseModel):
         "status",
         "profiles",
         "open",
+        "search",
+        "go_back",
+        "search_page",
+        "find_elements",
+        "find_text",
+        "input",
+        "send_keys",
+        "switch",
+        "close_tab",
+        "dropdown_options",
+        "select_dropdown",
+        "upload_file",
+        "write_file",
+        "replace_file",
+        "read_file",
+        "read_long_content",
         "console",
         "pdf",
         "upload",
@@ -516,6 +588,41 @@ class BrowserControlArgs(BaseModel):
         None,
         description="Optional JSON schema hint for caller-side structured parsing (extract action).",
     )
+    engine: Optional[str] = Field(None, description="Search engine for search action")
+    pattern: Optional[str] = Field(None, description="Pattern for search_page/find_text")
+    regex: Optional[bool] = Field(None, description="Regex toggle for search_page")
+    case_sensitive: Optional[bool] = Field(
+        None, description="Case-sensitive toggle for search_page"
+    )
+    context_chars: Optional[int] = Field(
+        None, description="Context chars for search_page", ge=0
+    )
+    css_scope: Optional[str] = Field(None, description="CSS scope for search_page")
+    max_results: Optional[int] = Field(None, description="Max results for find/search", ge=1)
+    attributes: Optional[List[str]] = Field(
+        None, description="Attributes for find_elements output"
+    )
+    include_text: Optional[bool] = Field(
+        None, description="Include element text for find_elements"
+    )
+    index: Optional[int] = Field(None, description="Browser Use element index", ge=0)
+    tab_id: Optional[str] = Field(None, description="Browser Use tab id")
+    file_name: Optional[str] = Field(None, description="Filename for file actions")
+    content: Optional[str] = Field(None, description="Content for write_file action")
+    append: Optional[bool] = Field(None, description="Append mode for write_file")
+    trailing_newline: Optional[bool] = Field(
+        None, description="Append trailing newline for write_file"
+    )
+    leading_newline: Optional[bool] = Field(
+        None, description="Append leading newline for write_file"
+    )
+    old_str: Optional[str] = Field(None, description="Old string for replace_file")
+    new_str: Optional[str] = Field(None, description="New string for replace_file")
+    path: Optional[str] = Field(None, description="File path for upload_file")
+    goal: Optional[str] = Field(None, description="Goal for read_long_content")
+    source: Optional[str] = Field(None, description="Source for read_long_content")
+    context: Optional[str] = Field(None, description="Context for read_long_content")
+    keys: Optional[str] = Field(None, description="Key sequence for send_keys")
 
     # Element interaction args
     ref: Optional[str] = Field(None, description="Element reference from snapshot")
