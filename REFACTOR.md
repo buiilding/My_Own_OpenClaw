@@ -1,3 +1,70 @@
+# Refactor: Remove Per-Event TTS Closure Allocation in StreamPipeline
+
+## Target
+Reduce per-event allocation overhead and simplify TTS task lifecycle management in:
+- `backend/src/api/processing/pipeline.py`
+
+This is a performance + maintainability refactor in the query streaming hot path.
+
+## Current Structure and Root Cause
+For every streamed event with TTS enabled, `StreamPipeline.process(...)` created an inline nested coroutine:
+- closure captured `event`, `tts_service`, and `task`
+- `finally` block removed the task from `_pending_tts_tasks`
+
+This introduced avoidable per-event closure allocations and mixed TTS execution, error handling, and task cleanup logic inside one nested function.
+
+Root cause: TTS background scheduling used ad-hoc inline closures instead of stable class methods with done callbacks.
+
+## Refactor Plan
+1. Extract TTS execution into a dedicated method (`_run_tts_event(...)`).
+2. Extract pending-set cleanup into a dedicated done callback (`_on_tts_task_done(...)`).
+3. Keep existing behavior:
+  - text transport remains non-blocking relative to TTS
+  - TTS failures are logged and swallowed
+  - `wait_for_pending_tts()` still waits for tracked tasks
+4. Add focused unit tests for scheduling and failure-isolation behavior.
+
+## Implemented Changes
+### 1) Stable TTS execution method
+- Added `_run_tts_event(event, tts_service)`:
+  - calls `tts_processor.process_event(...)`
+  - logs and swallows exceptions
+
+### 2) Done callback cleanup
+- Added `_on_tts_task_done(task)`:
+  - removes completed task from `_pending_tts_tasks`
+
+### 3) Process-path rewiring
+- Updated `process(...)` TTS branch to:
+  - schedule `asyncio.create_task(self._run_tts_event(...))`
+  - add task to `_pending_tts_tasks`
+  - attach `task.add_done_callback(self._on_tts_task_done)`
+
+This removes per-event nested function allocation and clarifies responsibility boundaries.
+
+### 4) Regression coverage
+- Added new test module:
+  - `tests/backend/test_stream_pipeline.py`
+- Tests:
+  - `test_process_schedules_tts_in_background_and_tracks_pending_tasks`
+  - `test_process_swallows_tts_failures_and_cleans_pending_tasks`
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_stream_pipeline.py
+./scripts/python-in-env backend pytest tests/backend/test_api_handlers.py
+```
+
+Results:
+- `2 passed`
+- `24 passed`
+
+This confirms no behavior regression while reducing allocation churn in the streaming TTS path.
+
+---
+
 # Refactor: Prune Completed WebSocket Tasks Before Concurrency Checks
 
 ## Target

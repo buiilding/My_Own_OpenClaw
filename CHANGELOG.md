@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(stream-pipeline): replace per-event inline TTS closure in `StreamPipeline.process` with dedicated `_run_tts_event` + done-callback cleanup to reduce hot-path allocation churn and simplify pending-task lifecycle logic
+- test(stream-pipeline): add focused backend unit coverage in `tests/backend/test_stream_pipeline.py` for non-blocking TTS scheduling and failure-isolated pending-task cleanup
 - fix(frontend-transcript): requeue immediate `store-transcript` failures in `TranscriptWriter` for user/tool messages instead of dropping entries on transient IPC errors, with regression coverage in `tests/frontend/TranscriptWriter.test.ts`
 - refactor(websocket-task-manager): prune completed tasks inside `create_task_if_under_limit` before enforcing concurrency limits, preventing false task-limit rejections when callback cleanup is delayed
 - test(websocket-task-manager): add stale-done-task scheduling regression in `tests/backend/test_websocket_task_manager.py` to verify pre-check pruning keeps capacity available
