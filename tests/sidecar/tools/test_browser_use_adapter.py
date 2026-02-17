@@ -1335,6 +1335,81 @@ class TestBrowserUseCompatibilityAdapter:
             page_extraction_llm=fake_page_extraction_llm,
         )
 
+    @pytest.mark.asyncio
+    async def test_native_handler_extract_uses_windie_provider_model_settings(
+        self,
+    ):
+        fake_service_module = ModuleType("browser_use.tools.service")
+        fake_browser_module = ModuleType("browser_use.browser")
+        fake_filesystem_module = ModuleType("browser_use.filesystem.file_system")
+        fake_openai_chat_module = ModuleType("browser_use.llm.openai.chat")
+        execute_action = mock.AsyncMock(
+            return_value=SimpleNamespace(extracted_content="Extracted content")
+        )
+
+        class FakeTools:
+            def __init__(self):
+                self.registry = SimpleNamespace(execute_action=execute_action)
+
+        class FakeBrowserSession:
+            def __init__(self, **_kwargs):
+                pass
+
+            async def start(self):
+                return None
+
+            async def stop(self):
+                return None
+
+        class FakeFileSystem:
+            def __init__(self, *_args, **_kwargs):
+                pass
+
+        class FakeChatOpenAI:
+            def __init__(self, **kwargs):
+                self.kwargs = kwargs
+
+        fake_service_module.Tools = FakeTools
+        fake_browser_module.BrowserSession = FakeBrowserSession
+        fake_filesystem_module.FileSystem = FakeFileSystem
+        fake_openai_chat_module.ChatOpenAI = FakeChatOpenAI
+
+        def _import_module(name: str):
+            if name == "browser_use.tools.service":
+                return fake_service_module
+            if name == "browser_use.browser":
+                return fake_browser_module
+            if name == "browser_use.filesystem.file_system":
+                return fake_filesystem_module
+            if name == "browser_use.llm.openai.chat":
+                return fake_openai_chat_module
+            raise ImportError(name)
+
+        controller = SimpleNamespace(is_connected=True, _mode="managed", _cdp_url=None)
+
+        with mock.patch.dict(
+            "os.environ",
+            {
+                "WINDIE_BROWSER_USE_EXTRACTION_PROVIDER": "openai",
+                "WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID": "gpt-5.1",
+                "WINDIE_BROWSER_USE_EXTRACTION_API_KEY": "test-openai-key",
+            },
+            clear=False,
+        ), mock.patch(
+            "tools.browser.browser_tool.import_module",
+            side_effect=_import_module,
+        ):
+            handlers = get_native_runtime_handlers(controller=controller)
+            result = await handlers["extract"](query="pricing")
+
+        assert result["success"] is True
+        assert result["native_source"] == "browser_use.tools"
+        execute_action.assert_awaited_once()
+        assert execute_action.await_args.kwargs["page_extraction_llm"].kwargs == {
+            "model": "gpt-5.1",
+            "api_key": "test-openai-key",
+        }
+
     def test_runtime_factory_loads_handlers_from_custom_module(self, make_controller):
         controller = make_controller()
         custom_module = ModuleType("custom.native.handlers")
