@@ -51,7 +51,9 @@ export WINDIE_BROWSER_USE_RUNTIME_STRICT=1
 export WINDIE_BROWSER_USE_NATIVE_ACTIONS=wait_seconds
 ```
 
-That's it! Chrome will be **automatically launched** with CDP enabled.
+That's it! WindieOS will connect to an existing CDP-enabled Chrome, or launch Chrome with CDP if Chrome is not running.
+
+If Chrome is already running without CDP, restart Chrome manually with `--remote-debugging-port=9222`.
 
 **Optional:** If you prefer to use an already-running Chrome window, start it with:
 
