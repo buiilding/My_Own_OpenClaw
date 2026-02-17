@@ -7,6 +7,7 @@ with Browser Use-native execution.
 
 from __future__ import annotations
 
+import asyncio
 from importlib import import_module
 import logging
 import os
@@ -128,6 +129,7 @@ class BrowserRuntimeProvider(Protocol):
         quality: int | None,
     ) -> bytes: ...
     async def wait_for_load(self, *, state: str) -> dict[str, Any]: ...
+    async def wait_seconds(self, *, seconds: float) -> dict[str, Any]: ...
     async def evaluate(self, *, script: str) -> dict[str, Any]: ...
     async def get_page_snapshot(
         self,
@@ -247,6 +249,10 @@ class ControllerBackedRuntimeProvider:
 
     async def wait_for_load(self, *, state: str) -> dict[str, Any]:
         return await self._controller.wait_for_load(state)
+
+    async def wait_seconds(self, *, seconds: float) -> dict[str, Any]:
+        await asyncio.sleep(max(0.0, float(seconds)))
+        return {"success": True}
 
     async def evaluate(self, *, script: str) -> dict[str, Any]:
         return await self._controller.evaluate(script)

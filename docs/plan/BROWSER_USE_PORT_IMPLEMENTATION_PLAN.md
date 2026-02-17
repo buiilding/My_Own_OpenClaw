@@ -248,7 +248,7 @@ Completion note:
 - Existing `browser_control` calls operate through Browser Use-backed internals for core actions.
 - No backend contract break in this phase.
 
-### Phase 2 Status (In Progress - Updated February 16, 2026)
+### Phase 2 Status (Completed February 17, 2026)
 
 Delivered Phase 2 artifacts so far:
 
@@ -257,6 +257,8 @@ Delivered Phase 2 artifacts so far:
    - `frontend/src/main/python/tools/browser_use_adapter/controller_adapter.py`
    - `frontend/src/main/python/tools/browser_use_adapter/__init__.py`
    - `frontend/src/main/python/tools/browser_use_adapter/runtime_provider.py`
+   - `frontend/src/main/python/tools/browser_use_adapter/browser_use_native_runtime.py`
+   - `frontend/src/main/python/tools/browser_use_adapter/browser_use_native_handlers.py`
 2. Browser tool routing through adapter for initial Phase 2 action batch:
    - `frontend/src/main/python/tools/browser/browser_tool.py`
 3. Implementation progress log:
@@ -267,14 +269,31 @@ Current routing coverage:
 - Adapter-routed actions: `connect`, `status`, `profiles`, `navigate`, `open`, `snapshot`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch_tab`, `evaluate`, `console`, `errors`, `requests`, `trace_start`, `trace_stop`, `pdf`, `upload`, `dialog`, `cookies`, `cookies_set`, `cookies_clear`, `storage_get`, `storage_set`, `storage_clear`, `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`, `set_timezone`, `set_locale`, `set_device`, `act`, `close`.
 - Current compatibility note: `snapshot`, `extract`, and `act` are adapter-native (no legacy delegates remain in `browser_tool` Phase 2 routing).
 - Runtime-provider seam now covers core session/tab + interaction/capture actions (`connect`, `status`, `navigate`, `open`, `get_tabs`, `switch_tab`, `close`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`, `snapshot`, `extract`, `upload`) with controller-backed default provider.
+- Browser Use runtime selection scaffolding is now wired:
+  - `WINDIE_BROWSER_USE_RUNTIME`, `WINDIE_BROWSER_USE_RUNTIME_STRICT`
+  - `WINDIE_BROWSER_USE_NATIVE_ACTIONS`, `WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT`
+  - `WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`
+  - Selectable `BrowserUseNativeRuntimeProvider` with action-level native override hooks and safe fallback.
+- Default native-handler set now includes a true Browser Use action path for `wait(seconds=...)` through `browser_use.tools.service.Tools` registry (`wait_seconds` runtime action key).
 
 Validation snapshot:
 
 - Sidecar browser suites pass after routing (`tests/sidecar/tools/test_browser_tool.py`, `tests/sidecar/tools/test_browser_controller.py`).
 - Added adapter-routing regression coverage in `tests/sidecar/tools/test_browser_tool.py`.
 - Added adapter-core regression coverage in `tests/sidecar/tools/test_browser_use_adapter.py`.
+- Runtime-provider and native-selection/override behavior is covered by sidecar adapter tests (`tests/sidecar/tools/test_browser_use_adapter.py`).
+
+Phase 2 completion gate status:
+
+- Contract-preserving compatibility-wrapper routing is complete.
+- At least one core action now has true Browser Use-native execution: `wait(seconds=...)` via native runtime handler path (`WINDIE_BROWSER_USE_RUNTIME=browser_use_native`, `WINDIE_BROWSER_USE_NATIVE_ACTIONS=wait_seconds`).
+- Existing contract/test surfaces remain green after native-path introduction.
 
 ## Phase 3: Core Action Migration (High-Value First)
+
+### Phase 3 Status (In Progress - Updated February 17, 2026)
+
+- Native runtime pilot shipped in Phase 2 (`wait(seconds=...)`), establishing the default handler pattern for additional core action migrations.
 
 ### Minimum Action Set
 

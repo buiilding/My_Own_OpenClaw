@@ -251,6 +251,12 @@ class BrowserUseNativeRuntimeProvider(ControllerBackedRuntimeProvider):
             return native
         return await super().wait_for_load(state=state)
 
+    async def wait_seconds(self, *, seconds: float) -> dict[str, Any]:
+        native = await self._maybe_native_result("wait_seconds", seconds=seconds)
+        if isinstance(native, dict):
+            return native
+        return await super().wait_seconds(seconds=seconds)
+
     async def evaluate(self, *, script: str) -> dict[str, Any]:
         native = await self._maybe_native_result("evaluate", script=script)
         if isinstance(native, dict):
@@ -300,7 +306,7 @@ class BrowserUseNativeRuntimeProvider(ControllerBackedRuntimeProvider):
         return await super().set_input_files(ref=ref, paths=paths)
 
 
-def _load_native_handlers() -> dict[str, NativeActionHandler]:
+def _load_native_handlers(controller: Any) -> dict[str, NativeActionHandler]:
     module_name = os.getenv(
         ENV_NATIVE_HANDLER_MODULE,
         DEFAULT_NATIVE_HANDLER_MODULE,
@@ -328,7 +334,11 @@ def _load_native_handlers() -> dict[str, NativeActionHandler]:
         return {}
 
     try:
-        handlers = factory()
+        factory_signature = inspect.signature(factory)
+        if factory_signature.parameters:
+            handlers = factory(controller=controller)
+        else:
+            handlers = factory()
     except Exception as exc:
         logger.warning(
             "Native handler module '%s' handler factory failed: %s. "
@@ -367,7 +377,7 @@ def create_browser_use_native_runtime_provider(
 
     if find_spec("browser_use") is None:
         return None
-    native_handlers = _load_native_handlers()
+    native_handlers = _load_native_handlers(controller)
     return BrowserUseNativeRuntimeProvider(
         controller,
         native_handlers=native_handlers,
