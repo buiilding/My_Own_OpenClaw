@@ -64,6 +64,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Browser-Use Port Phase 2 Progress**](plan/BROWSER_USE_PORT_PHASE2_COMPAT_WRAPPER_PROGRESS.md) - Compatibility-wrapper module wiring and current action routing coverage
 - [**Mobile App Plan**](plan/WINDIEOS_MOBILE_APP_PLAN.md) - Phased plan for iOS/Android client architecture, capability negotiation, and rollout
 - [**VM Multi-Agent Plan**](plan/WINDIEOS_VM_MULTI_AGENT_PLAN.md) - One-agent-per-VM architecture, agent-port workflow, and user remote-control plan
+- [**Install Permission Onboarding Plan**](plan/WINDIEOS_INSTALL_PERMISSION_ONBOARDING_PLAN.md) - First-run permission-first wizard and capability gating plan
 - [**Contributing Guide**](CONTRIBUTING.md) - How to contribute to the project
 
 ### Hosted Platform (Planned)
