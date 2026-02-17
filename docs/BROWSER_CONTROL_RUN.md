@@ -41,11 +41,8 @@ Connect to my browser and go to Amazon
 Use these when validating Browser Use runtime cutover:
 
 ```bash
-# Prefer Browser Use-native runtime (when browser_use is installed)
+# Browser Use-native runtime (default; optional explicit alias)
 export WINDIE_BROWSER_USE_RUNTIME=browser_use_native
-
-# Fail fast if native runtime is unavailable
-export WINDIE_BROWSER_USE_RUNTIME_STRICT=1
 
 # Enable selected native action handlers
 export WINDIE_BROWSER_USE_NATIVE_ACTIONS=wait_seconds

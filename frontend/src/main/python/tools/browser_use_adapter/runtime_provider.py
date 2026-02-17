@@ -1,8 +1,6 @@
 """Runtime-provider seam for Browser Use adapter internals.
 
-Phase 2 keeps behavior controller-backed by default while introducing an
-adapter-owned runtime interface that can later be replaced action-by-action
-with Browser Use-native execution.
+Browser Use native runtime is mandatory for browser_control execution.
 """
 
 from __future__ import annotations
@@ -10,15 +8,10 @@ from __future__ import annotations
 import asyncio
 from importlib import import_module
 from importlib.util import find_spec
-import logging
 import os
 from typing import Any, Protocol
 
-logger = logging.getLogger(__name__)
-
 ENV_RUNTIME = "WINDIE_BROWSER_USE_RUNTIME"
-ENV_RUNTIME_STRICT = "WINDIE_BROWSER_USE_RUNTIME_STRICT"
-_CONTROLLER_RUNTIME_ALIASES = {"", "controller", "legacy_controller"}
 _BROWSER_USE_RUNTIME_ALIASES = {"browser_use", "browser_use_native"}
 
 
@@ -295,67 +288,47 @@ def get_browser_runtime_provider(
 
     Runtime selection behavior:
 
-    - default (unset `WINDIE_BROWSER_USE_RUNTIME`):
-      `browser_use_native` when `browser_use` is installed, otherwise controller
-    - `browser_use` / `browser_use_native`: try Browser Use runtime provider
-      module and fall back to controller provider if unavailable
-    - strict mode (`WINDIE_BROWSER_USE_RUNTIME_STRICT=1`): unavailable requested
-      runtimes raise `RuntimeError` instead of falling back
+    - default (unset `WINDIE_BROWSER_USE_RUNTIME`): `browser_use_native`
+    - allowed explicit values: `browser_use`, `browser_use_native`
+    - controller/legacy runtime aliases are no longer supported
     """
 
     raw_requested = os.getenv(ENV_RUNTIME)
     if raw_requested is None:
-        requested = (
-            "browser_use_native"
-            if find_spec("browser_use") is not None
-            else "controller"
-        )
+        requested = "browser_use_native"
     else:
         requested = raw_requested.strip().lower()
-    strict_raw = os.getenv(ENV_RUNTIME_STRICT, "").strip().lower()
-    strict = strict_raw in {"1", "true", "yes", "on"}
 
-    if requested in _CONTROLLER_RUNTIME_ALIASES:
-        return ControllerBackedRuntimeProvider(controller)
-
-    if requested in _BROWSER_USE_RUNTIME_ALIASES:
-        try:
-            runtime_module = import_module(
-                "tools.browser_use_adapter.browser_use_native_runtime"
-            )
-            factory = getattr(
-                runtime_module,
-                "create_browser_use_native_runtime_provider",
-                None,
-            )
-            if callable(factory):
-                native_provider = factory(controller)
-                if native_provider is not None:
-                    return native_provider
-        except Exception as exc:
-            message = (
-                f"Requested browser runtime '{requested}' is unavailable "
-                f"(native provider load failed: {exc})."
-            )
-            if strict:
-                raise RuntimeError(message) from exc
-            logger.warning("%s Falling back to controller-backed runtime.", message)
-            return ControllerBackedRuntimeProvider(controller)
-
-        message = (
-            f"Requested browser runtime '{requested}' is unavailable "
-            "(native provider not configured)."
+    if requested not in _BROWSER_USE_RUNTIME_ALIASES:
+        raise RuntimeError(
+            f"Unknown browser runtime '{requested}'. "
+            "Supported values: browser_use, browser_use_native."
         )
-        if strict:
-            raise RuntimeError(message)
-        logger.warning("%s Falling back to controller-backed runtime.", message)
-        return ControllerBackedRuntimeProvider(controller)
 
-    message = (
-        f"Unknown browser runtime '{requested}'. "
-        f"Supported values: controller, browser_use."
-    )
-    if strict:
-        raise RuntimeError(message)
-    logger.warning("%s Falling back to controller-backed runtime.", message)
-    return ControllerBackedRuntimeProvider(controller)
+    if find_spec("browser_use") is None:
+        raise RuntimeError(
+            "Browser Use runtime is required but package 'browser_use' is not installed."
+        )
+
+    try:
+        runtime_module = import_module(
+            "tools.browser_use_adapter.browser_use_native_runtime"
+        )
+        factory = getattr(
+            runtime_module,
+            "create_browser_use_native_runtime_provider",
+            None,
+        )
+        if not callable(factory):
+            raise RuntimeError("Browser Use native runtime factory is not configured.")
+        native_provider = factory(controller)
+        if native_provider is None:
+            raise RuntimeError("Browser Use native runtime provider is unavailable.")
+        return native_provider
+    except RuntimeError:
+        raise
+    except Exception as exc:
+        raise RuntimeError(
+            f"Requested browser runtime '{requested}' is unavailable "
+            f"(native provider load failed: {exc})."
+        ) from exc
