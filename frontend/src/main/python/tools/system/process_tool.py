@@ -47,24 +47,39 @@ def _encode_keys(keys: Optional[List[str]], hex_bytes: Optional[List[str]], lite
         "c-d": b"\x04",
     }
 
-    if keys:
-        for key in keys:
-            token = key.strip().lower()
-            if not token:
-                continue
-            payload += key_map.get(token, key.encode("utf-8", errors="replace"))
+    if keys is not None:
+        if not isinstance(keys, list):
+            warnings.append("keys must be a list of strings")
+        else:
+            for key in keys:
+                if not isinstance(key, str):
+                    warnings.append(f"Ignored non-string key token: {key!r}")
+                    continue
+                token = key.strip().lower()
+                if not token:
+                    continue
+                payload += key_map.get(token, key.encode("utf-8", errors="replace"))
 
-    if hex_bytes:
-        for entry in hex_bytes:
-            if not entry:
-                continue
-            try:
-                payload += bytes.fromhex(entry)
-            except ValueError:
-                warnings.append(f"Invalid hex byte: {entry}")
+    if hex_bytes is not None:
+        if not isinstance(hex_bytes, list):
+            warnings.append("hex must be a list of hex strings")
+        else:
+            for entry in hex_bytes:
+                if not isinstance(entry, str):
+                    warnings.append(f"Ignored non-string hex byte: {entry!r}")
+                    continue
+                if not entry:
+                    continue
+                try:
+                    payload += bytes.fromhex(entry)
+                except ValueError:
+                    warnings.append(f"Invalid hex byte: {entry}")
 
-    if literal:
-        payload += literal.encode("utf-8", errors="replace")
+    if literal is not None:
+        if isinstance(literal, str):
+            payload += literal.encode("utf-8", errors="replace")
+        else:
+            warnings.append("Ignored non-string literal payload")
 
     return payload, warnings
 
