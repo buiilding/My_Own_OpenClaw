@@ -112,6 +112,8 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(browser-tool): remove legacy non-Browser Use action routing from sidecar/browser schemas (`console`, `errors`, `requests`, `trace_*`, `pdf`, `dialog`, `cookies*`, `storage*`, `set_*`, `upload`) so runtime now exposes Browser Use-native actions plus WindieOS session wrappers only
+- docs(browser-tool): align browser runbooks and remote tool docs with strict Browser Use-only runtime surface (legacy actions now return `Unhandled action`)
 - refactor(browser-tool): remove unused adapter controller instance state in `BrowserUseCompatibilityAdapter` after runtime initialization to trim packaging/runtime footprint
 - refactor(browser-tool): deduplicate adapter typing surface by reusing runtime controller protocol (`ControllerRuntimeLike`) instead of maintaining a second legacy browser-controller protocol block
 - refactor(browser-tool): split monolithic `frontend/src/main/python/tools/browser/browser_tool.py` into focused modules (`browser_runtime.py`, `browser_adapter.py`, thin entrypoint `browser_tool.py`) while preserving WindieOS orchestration and Browser Use-native action execution

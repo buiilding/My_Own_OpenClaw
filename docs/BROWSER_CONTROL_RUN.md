@@ -247,9 +247,9 @@ cd WindieOS
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar -k browser -v
 ```
 
-## Deprecation Note
+## Action Surface Note
 
-- `trace_start` and `trace_stop` are deprecated in Browser Use runtime migration and return `ACTION_DEPRECATED`.
+- Legacy non-Browser Use actions (`trace_*`, `console`, `errors`, `requests`, `cookies*`, `storage*`, `set_*`, `pdf`, `dialog`, `upload`) are no longer routed at runtime and return `Unhandled action`.
 
 ## Using Browser Control via Chat
 
@@ -282,7 +282,7 @@ What do you see on the page?
 
 Agent executes:
 ```json
-{"action": "snapshot", "format": "ai"}
+{"action": "snapshot"}
 ```
 
 **4. Extract targeted content (optional, useful for long pages):**

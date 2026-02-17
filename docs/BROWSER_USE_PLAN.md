@@ -72,7 +72,7 @@ For current browser behavior and supported actions/defaults, see `docs/BROWSER_C
 
 - Browser Use `input` ~= WindieOS `type`
 - Browser Use `switch` ~= WindieOS `switch_tab`/`focus`
-- Browser Use `upload_file` ~= WindieOS `upload`
+- Browser Use `upload_file` is exposed directly as `upload_file`
 - Browser Use `send_keys` ~= WindieOS `press` (Browser Use has richer shortcut ergonomics)
 
 ## Not Browser-Specific (Keep Outside Browser Tool)

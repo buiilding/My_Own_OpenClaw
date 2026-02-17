@@ -52,13 +52,7 @@ Actions:
 - press: Press key like Enter/Escape (requires key)
 - scroll: Scroll page (direction: up/down/left/right, Browser Use `pages` supports fractional values)
 - screenshot: Browser Use screenshot semantics (`file_name` optional); compatibility `full_page`/`ref`/`element`/`type`/`quality` fields are rejected
-- pdf: Capture page as PDF
-- upload/dialog: File-input upload and dialog arming/wait handling
-- act: OpenClaw action envelope (`request.kind`)
-- errors/requests: Captured page errors and network request history
-- trace_start/trace_stop: Deprecated (returns ACTION_DEPRECATED with Browser Use migration guidance)
-- cookies*/storage*: Cookie and storage state management
-- set_*: Environment/state setters (offline, headers, credentials, geolocation, media, timezone, locale, device)
+- act: WindieOS action envelope (`request.kind`) mapped to Browser Use actions
 - wait: Browser Use timed wait (`seconds`)
 - get_tabs: List open tabs
 - switch_tab: Switch to tab (requires target_id)

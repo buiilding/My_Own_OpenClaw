@@ -317,7 +317,7 @@ class TestCompatibilityActions:
                 {"action": "act", "request": {"kind": "hover", "ref": "e1"}}
             )
             assert result.success is False
-            assert "deprecated" in (result.error or "").lower()
+            assert "Unsupported act kind" in (result.error or "")
 
     @pytest.mark.asyncio
     async def test_console_action(self):
@@ -337,7 +337,7 @@ class TestCompatibilityActions:
 
             result = await execute_browser({"action": "console", "limit": 50})
             assert result.success is False
-            assert "deprecated" in (result.error or "").lower()
+            assert "Unhandled action: console" == result.error
 
     @pytest.mark.asyncio
     async def test_dialog_action_armed(self):
@@ -354,7 +354,7 @@ class TestCompatibilityActions:
                 {"action": "dialog", "accept": False}
             )
             assert result.success is False
-            assert "deprecated" in (result.error or "").lower()
+            assert "Unhandled action: dialog" == result.error
 
     @pytest.mark.asyncio
     async def test_dialog_action_wait(self):
@@ -375,7 +375,7 @@ class TestCompatibilityActions:
                 {"action": "dialog", "accept": True, "timeoutMs": 1000}
             )
             assert result.success is False
-            assert "deprecated" in (result.error or "").lower()
+            assert "Unhandled action: dialog" == result.error
 
     @pytest.mark.asyncio
     async def test_errors_action(self):
@@ -389,7 +389,7 @@ class TestCompatibilityActions:
 
             result = await execute_browser({"action": "errors"})
             assert result.success is False
-            assert "deprecated" in (result.error or "").lower()
+            assert "Unhandled action: errors" == result.error
 
     @pytest.mark.asyncio
     async def test_requests_action(self):
@@ -405,7 +405,7 @@ class TestCompatibilityActions:
 
             result = await execute_browser({"action": "requests"})
             assert result.success is False
-            assert "deprecated" in (result.error or "").lower()
+            assert "Unhandled action: requests" == result.error
 
     @pytest.mark.asyncio
     async def test_trace_start_action(self):
@@ -418,7 +418,7 @@ class TestCompatibilityActions:
 
             result = await execute_browser({"action": "trace_start"})
             assert result.success is False
-            assert "deprecated" in (result.error or "").lower()
+            assert "Unhandled action: trace_start" == result.error
 
 
 class TestNavigateAction:
