@@ -9,7 +9,7 @@
 # - If `mode = "allowlist"`, ONLY tools listed in `tools` are available.
 #
 # Notes:
-# - Tool names are the tool schema names (e.g. "mouse_control", "browser_control",
+# - Tool names are the tool schema names (e.g. "mouse_control", "browser",
 #   "read_file"). See `backend/src/tools/remote.py` for the canonical list.
 # - This is intended for development/testing. For normal behavior, keep disabled.
 # - Method-level options are available under [tool_options.<tool_name>].
@@ -19,7 +19,7 @@ mode = "allowlist" # "denylist" | "allowlist"
 
 # Tools to disable (denylist) or enable (allowlist).
 tools = [
-  "browser_control",
+  "browser",
   "mouse_control",
   "keyboard_control",
   "screenshot",

@@ -2,7 +2,7 @@
 enabled = true
 mode = "allowlist"
 tools = [
-  "browser_control",
+  "browser",
 ]
 
 [tool_options.mouse_control]

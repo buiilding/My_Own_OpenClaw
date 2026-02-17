@@ -25,7 +25,7 @@ EXPOSED_TO_BACKEND_TOOLS = frozenset({
     "process",
     "read_file",
     "replace",
-    "browser_control",
+    "browser",
 })
 
 
@@ -114,8 +114,8 @@ class ToolRegistry:
         
         # Browser tools
         try:
-            from tools.browser.browser_tool import execute_browser_control
-            self.tools["browser_control"] = execute_browser_control
+            from tools.browser.browser_tool import execute_browser
+            self.tools["browser"] = execute_browser
         except ImportError as e:
             logger.warning(f"Failed to import browser_tool: {e}")
 

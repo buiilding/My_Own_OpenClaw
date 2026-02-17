@@ -31,7 +31,7 @@ class TestMockLLMBrowserClient:
         
         result = await client.get_completion("gpt-4", [])
         
-        assert "browser_control" in result
+        assert "browser" in result
         assert "connect" in result
         assert client._iteration == 1
     
@@ -74,7 +74,7 @@ class TestMockLLMBrowserClient:
         # Should have streamed some content
         assert len(chunks) > 0
         full_response = "".join(chunks)
-        assert "browser_control" in full_response
+        assert "browser" in full_response
 
     @pytest.mark.asyncio
     async def test_get_completion_response_returns_native_tool_calls(self):
@@ -89,7 +89,7 @@ class TestMockLLMBrowserClient:
         assert len(result["tool_calls"]) == 1
         tool_call = result["tool_calls"][0]
         assert tool_call["id"].startswith("browser_simulation_call_0_")
-        assert tool_call["name"] == "browser_control"
+        assert tool_call["name"] == "browser"
         assert tool_call["arguments"]["action"] == "connect"
 
     @pytest.mark.asyncio
@@ -101,7 +101,7 @@ class TestMockLLMBrowserClient:
 
         tool_turn = await client.get_completion_response("gpt-4", [], tools=[{}])
         assert tool_turn["content"] == ""
-        assert tool_turn["tool_calls"][0]["name"] == "browser_control"
+        assert tool_turn["tool_calls"][0]["name"] == "browser"
         assert tool_turn["tool_calls"][0]["arguments"]["action"] == "close"
 
         final_turn = await client.get_completion_response("gpt-4", [], tools=[{}])

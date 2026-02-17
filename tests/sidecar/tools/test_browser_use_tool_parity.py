@@ -1,4 +1,4 @@
-"""Parity checks between Browser Use action registry and WindieOS browser_control."""
+"""Parity checks between Browser Use action registry and WindieOS browser."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ def _browser_use_actions() -> set[str]:
 
 
 @lru_cache(maxsize=1)
-def _backend_browser_control_actions() -> set[str]:
+def _backend_browser_actions() -> set[str]:
     root = Path(__file__).resolve().parents[3]
     schema_path = root / "backend" / "src" / "tools" / "browser" / "schemas.py"
     text = schema_path.read_text(encoding="utf-8")
@@ -118,7 +118,7 @@ def test_schema_exposes_all_browser_use_actions() -> None:
 
 def test_backend_schema_exposes_all_browser_use_actions() -> None:
     browser_use_actions = _browser_use_actions()
-    backend_actions = _backend_browser_control_actions()
+    backend_actions = _backend_browser_actions()
     missing = sorted(browser_use_actions - backend_actions)
     assert missing == []
 

@@ -105,8 +105,8 @@ async def _run_phase2_adapter_action(args: Dict[str, Any]) -> ToolResult:
     return _adapter_result_to_tool_result(adapter_result)
 
 
-async def execute_browser_control(raw_args: Dict[str, Any]) -> ToolResult:
-    """Execute browser_control actions through Browser Use-native adapter/runtime."""
+async def execute_browser(raw_args: Dict[str, Any]) -> ToolResult:
+    """Execute browser actions through Browser Use-native adapter/runtime."""
     if not isinstance(raw_args, dict):
         return ToolResult.error_result("Arguments must be an object")
 
@@ -147,7 +147,7 @@ class AdapterActionResult:
 
 """Runtime-provider seam for Browser Use adapter internals.
 
-Browser Use native runtime is mandatory for browser_control execution.
+Browser Use native runtime is mandatory for browser execution.
 """
 
 
@@ -726,7 +726,7 @@ class _BrowserUseActionBridge:
         if not controller_connected:
             await self._stop_browser_session()
             raise RuntimeError(
-                "Browser is not connected. Run browser_control connect first."
+                "Browser is not connected. Run browser connect first."
             )
 
         if mode == "user_chrome":
@@ -1243,7 +1243,7 @@ def create_browser_use_native_runtime_provider(
 """Phase 2 browser adapter routing through the current browser controller seam.
 
 This module defines the Browser Use adapter boundary and a compatibility
-implementation that preserves existing browser_control payload contracts while
+implementation that preserves existing browser payload contracts while
 we migrate internals incrementally.
 """
 
@@ -1278,7 +1278,7 @@ TRACE_DEPRECATION_MESSAGE = (
     "Use requests/errors capture and HAR-style runbook workflows instead."
 )
 LEGACY_ACTION_DEPRECATION_MESSAGE = (
-    "This browser_control action is deprecated in Browser Use-only runtime mode. "
+    "This browser action is deprecated in Browser Use-only runtime mode. "
     "Use Browser Use native actions instead."
 )
 BROWSER_USE_DIRECT_ACTIONS = frozenset(

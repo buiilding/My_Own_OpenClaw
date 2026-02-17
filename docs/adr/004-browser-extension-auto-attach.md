@@ -14,7 +14,7 @@ Proposed - Pending Implementation
 
 ## Context
 
-The current `browser_control` implementation (see `docs/BROWSER_CONTROL.md`) requires users to start Chrome with `--remote-debugging-port=9222`. This is a significant friction point:
+The current `browser` implementation (see `docs/BROWSER_CONTROL.md`) requires users to start Chrome with `--remote-debugging-port=9222`. This is a significant friction point:
 
 - Users must restart their browser
 - Loses current session state unless "Continue where you left off" is enabled
@@ -382,7 +382,7 @@ Agent: "I'll need to install the WindieOS browser extension first. One moment...
 Agent actions:
 1. screenshot() - see current state
 2. run_shell_command("google-chrome") - ensure Chrome is open
-3. browser_control(action="navigate", url="chrome://extensions")
+3. browser(action="navigate", url="chrome://extensions")
 4. screenshot() - locate Developer mode toggle
 5. mouse_control(action="click", x=..., y=...) - enable Developer mode
 6. screenshot() - locate "Load unpacked"
@@ -390,7 +390,7 @@ Agent actions:
 8. keyboard_control(action="type", text="/path/to/WindieOS/assets/chrome-extension")
 9. keyboard_control(action="press", key="Enter")
 10. screenshot() - verify extension installed (green "ON" badge)
-11. browser_control(action="connect", mode="extension")
+11. browser(action="connect", mode="extension")
 12. Continue with flight booking task...
 ```
 
@@ -399,7 +399,7 @@ This **procedural knowledge** should be in `skills.md` or agent's procedural mem
 ```markdown
 ## Skill: Browser Extension Installation
 
-Trigger: User requests browser_control but extension not detected
+Trigger: User requests browser but extension not detected
 
 Steps:
 1. Open Chrome (if not open)
@@ -409,7 +409,7 @@ Steps:
 5. Navigate to {WINDIEOS_PATH}/assets/chrome-extension
 6. Click "Select Folder"
 7. Verify extension shows "ON" badge
-8. Connect browser_control with mode="extension"
+8. Connect browser with mode="extension"
 
 Expected outcome: Extension installed and connected
 ```

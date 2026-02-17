@@ -2,7 +2,7 @@
 enabled = true
 mode = "allowlist"
 tools = [
-  "browser_control",
+  "browser",
   "mouse_control",
   "keyboard_control",
   "screenshot",

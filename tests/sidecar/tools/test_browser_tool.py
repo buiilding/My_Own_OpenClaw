@@ -9,7 +9,7 @@ pytest.importorskip("playwright")
 
 from unittest import mock
 
-from tools.browser.browser_tool import execute_browser_control
+from tools.browser.browser_tool import execute_browser
 from tools.browser.controller import reset_browser_controller
 from tools.browser.browser_tool import AdapterActionResult
 
@@ -26,7 +26,7 @@ class TestExecuteBrowserControl:
     @pytest.mark.asyncio
     async def test_missing_action(self):
         """Test error when action is missing."""
-        result = await execute_browser_control({})
+        result = await execute_browser({})
 
         assert result.success is False
         assert "action" in result.error.lower()
@@ -34,7 +34,7 @@ class TestExecuteBrowserControl:
     @pytest.mark.asyncio
     async def test_unknown_action(self):
         """Test error for unknown action."""
-        result = await execute_browser_control({"action": "unknown"})
+        result = await execute_browser({"action": "unknown"})
 
         assert result.success is False
         assert "Unhandled" in result.error
@@ -48,14 +48,14 @@ class TestExecuteBrowserControl:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
-            result = await execute_browser_control({"action": "click"})  # Missing ref
+            result = await execute_browser({"action": "click"})  # Missing ref
 
         assert result.success is False
         assert "ref" in result.error.lower()
 
 
 class TestPhase2AdapterRouting:
-    """Validate Phase 2 browser_control adapter routing behavior."""
+    """Validate Phase 2 browser adapter routing behavior."""
 
     @pytest.mark.asyncio
     async def test_routed_action_uses_adapter(self):
@@ -82,7 +82,7 @@ class TestPhase2AdapterRouting:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {"action": "navigate", "url": "https://example.com"}
             )
 
@@ -116,7 +116,7 @@ class TestPhase2AdapterRouting:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {"action": "switch_tab", "target_id": "missing"}
             )
 
@@ -149,7 +149,7 @@ class TestPhase2AdapterRouting:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control({"action": "profiles"})
+            result = await execute_browser({"action": "profiles"})
 
             assert result.success is True
             assert result.data["action"] == "profiles"
@@ -174,7 +174,7 @@ class TestConnectAction:
             }
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "connect",
                     "mode": "user_chrome",
@@ -201,7 +201,7 @@ class TestConnectAction:
             }
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "connect",
                     "mode": "managed",
@@ -226,7 +226,7 @@ class TestConnectAction:
             mock_controller.close = mock.AsyncMock()
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "connect",
                     "mode": "user_chrome",
@@ -268,7 +268,7 @@ class TestCompatibilityActions:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control({"action": "status"})
+            result = await execute_browser({"action": "status"})
             assert result.success is True
             assert result.data["action"] == "status"
             assert result.data["connected"] is True
@@ -297,7 +297,7 @@ class TestCompatibilityActions:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {"action": "open", "targetUrl": "https://example.com"}
             )
             assert result.success is True
@@ -313,7 +313,7 @@ class TestCompatibilityActions:
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {"action": "act", "request": {"kind": "hover", "ref": "e1"}}
             )
             assert result.success is False
@@ -335,7 +335,7 @@ class TestCompatibilityActions:
             ]
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control({"action": "console", "limit": 50})
+            result = await execute_browser({"action": "console", "limit": 50})
             assert result.success is False
             assert "deprecated" in (result.error or "").lower()
 
@@ -350,7 +350,7 @@ class TestCompatibilityActions:
             mock_controller.arm_dialog = mock.Mock()
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {"action": "dialog", "accept": False}
             )
             assert result.success is False
@@ -371,7 +371,7 @@ class TestCompatibilityActions:
             }
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {"action": "dialog", "accept": True, "timeoutMs": 1000}
             )
             assert result.success is False
@@ -387,7 +387,7 @@ class TestCompatibilityActions:
             mock_controller.get_page_errors.return_value = [{"message": "boom"}]
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control({"action": "errors"})
+            result = await execute_browser({"action": "errors"})
             assert result.success is False
             assert "deprecated" in (result.error or "").lower()
 
@@ -403,7 +403,7 @@ class TestCompatibilityActions:
             ]
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control({"action": "requests"})
+            result = await execute_browser({"action": "requests"})
             assert result.success is False
             assert "deprecated" in (result.error or "").lower()
 
@@ -416,7 +416,7 @@ class TestCompatibilityActions:
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control({"action": "trace_start"})
+            result = await execute_browser({"action": "trace_start"})
             assert result.success is False
             assert "deprecated" in (result.error or "").lower()
 
@@ -450,7 +450,7 @@ class TestNavigateAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "navigate",
                     "url": "https://example.com",
@@ -470,7 +470,7 @@ class TestNavigateAction:
             mock_controller.is_connected = False
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "navigate",
                     "url": "https://example.com",
@@ -500,7 +500,7 @@ class TestNavigateAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "navigate",
                     "url": "https://example.com",
@@ -546,7 +546,7 @@ class TestSnapshotAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "snapshot",
                     "offset": 0,
@@ -583,7 +583,7 @@ class TestSnapshotAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "snapshot",
                     "format": "ai",
@@ -614,7 +614,7 @@ class TestSnapshotAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control({"action": "snapshot"})
+            result = await execute_browser({"action": "snapshot"})
 
             assert result.success is False
             assert "not connected" in result.error.lower()
@@ -646,7 +646,7 @@ class TestExtractAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "extract",
                     "query": "pro plan price",
@@ -668,7 +668,7 @@ class TestExtractAction:
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "extract",
                     "query": "not-present",
@@ -689,7 +689,7 @@ class TestExtractAction:
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "extract",
                     "query": "api keys",
@@ -712,7 +712,7 @@ class TestExtractAction:
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {"action": "extract", "query": "pricing", "mode": "bad_mode"}
             )
 
@@ -729,14 +729,14 @@ class TestExtractAction:
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control({"action": "extract"})
+            result = await execute_browser({"action": "extract"})
 
             assert result.success is False
             assert "query" in result.error.lower()
 
     @pytest.mark.asyncio
     async def test_extract_start_from_char_out_of_bounds(self):
-        """Browser Use extract errors should surface through browser_control."""
+        """Browser Use extract errors should surface through browser."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get, mock.patch(
@@ -754,7 +754,7 @@ class TestExtractAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "extract",
                     "query": "price",
@@ -793,7 +793,7 @@ class TestClickAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "click",
                     "index": 5,
@@ -823,7 +823,7 @@ class TestClickAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "click",
                     "index": 999,
@@ -858,7 +858,7 @@ class TestPostActionSnapshots:
             mock_controller.auto_connect_to_chrome.side_effect = _auto_connect
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "connect",
                     "mode": "user_chrome",
@@ -890,7 +890,7 @@ class TestPostActionSnapshots:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "click",
                     "index": 5,
@@ -922,7 +922,7 @@ class TestPostActionSnapshots:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "click",
                     "index": 5,
@@ -958,7 +958,7 @@ class TestPostActionSnapshots:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "click",
                     "index": 5,
@@ -999,7 +999,7 @@ class TestPostActionSnapshots:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control({"action": "status"})
+            result = await execute_browser({"action": "status"})
 
             assert result.success is True
             assert "post_action_snapshot" not in result.data
@@ -1017,7 +1017,7 @@ class TestPostActionSnapshots:
             mock_controller.get_page_snapshot = mock.AsyncMock()
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "act",
                     "request": {"kind": "close"},
@@ -1057,7 +1057,7 @@ class TestTypeAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "type",
                     "ref": "3",
@@ -1097,7 +1097,7 @@ class TestScreenshotAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "screenshot",
                     "file_name": "capture.png",
@@ -1117,7 +1117,7 @@ class TestScreenshotAction:
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "screenshot",
                     "ref": "5",
@@ -1137,7 +1137,7 @@ class TestScreenshotAction:
             mock_controller.is_connected = True
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "screenshot",
                     "type": "jpeg",
@@ -1179,7 +1179,7 @@ class TestGetTabsAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "get_tabs",
                 }
@@ -1219,7 +1219,7 @@ class TestSwitchTabAction:
             )
             mock_get_adapter.return_value = mock_adapter
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "switch_tab",
                     "target_id": "id2",
@@ -1246,7 +1246,7 @@ class TestCloseAction:
             mock_controller.close = mock.AsyncMock()
             mock_get.return_value = mock_controller
 
-            result = await execute_browser_control(
+            result = await execute_browser(
                 {
                     "action": "close",
                 }

@@ -1,10 +1,10 @@
 """
 Mock LLM Client for Browser Control Simulation.
 
-Demonstrates the browser_control tool by navigating to Amazon,
+Demonstrates the browser tool by navigating to Amazon,
 searching for shoes, and clicking on the cheapest option.
 
-Uses browser_control tool instead of computer-use tools for more
+Uses browser tool instead of computer-use tools for more
 reliable automation via Playwright.
 """
 import json
@@ -26,14 +26,14 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 # BROWSER CONTROL SIMULATION SEQUENCE
 # ============================================================================
-# Demonstrates using browser_control tool to automate Amazon shopping
+# Demonstrates using browser tool to automate Amazon shopping
 
 BROWSER_SIMULATION_RESPONSES = [
     # Iteration 1: Connect to browser (user's Chrome)
     {
         "response": json.dumps({
             "functionCall": {
-                "name": "browser_control",
+                "name": "browser",
                 "args": {
                     "action": "connect",
                     "mode": "user_chrome",
@@ -52,7 +52,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "navigate",
                         "url": "https://amazon.com",
@@ -72,7 +72,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "snapshot",
                         "format": "ai",
@@ -93,7 +93,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "type",
                         "ref": "11",
@@ -114,7 +114,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "wait",
                         "state": "domcontentloaded"
@@ -133,7 +133,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "snapshot",
                         "format": "ai",
@@ -153,7 +153,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "evaluate",
                         "script": "(() => { const select = document.querySelector('#s-result-sort-select'); if (!select) return { ok: false, reason: 'select not found' }; const option = Array.from(select.options).find(o => (o.textContent || '').includes('Price: Low to High')); if (!option) return { ok: false, reason: 'option not found' }; select.value = option.value; select.dispatchEvent(new Event('change', { bubbles: true })); return { ok: true, value: option.value, label: option.textContent }; })()"
@@ -172,7 +172,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "wait",
                         "seconds": 0.5
@@ -191,7 +191,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "wait",
                         "state": "domcontentloaded"
@@ -210,7 +210,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "wait",
                         "state": "domcontentloaded"
@@ -229,7 +229,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "snapshot",
                         "format": "ai",
@@ -249,7 +249,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "evaluate",
                         "script": "(() => { const selector = 'a.a-link-normal.s-underline-text.s-underline-link-text.s-link-style.a-text-normal'; const link = document.querySelector(selector); if (!link) return { ok: false, reason: 'no product link found' }; link.click(); return { ok: true, href: link.href, text: (link.textContent || '').trim() }; })()"
@@ -268,7 +268,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "wait",
                         "state": "domcontentloaded"
@@ -287,7 +287,7 @@ BROWSER_SIMULATION_RESPONSES = [
             },
             "action": {
                 "functionCall": {
-                    "name": "browser_control",
+                    "name": "browser",
                     "args": {
                         "action": "screenshot",
                         "full_page": True
@@ -300,7 +300,7 @@ BROWSER_SIMULATION_RESPONSES = [
     {
         "response": json.dumps({
             "functionCall": {
-                "name": "browser_control",
+                "name": "browser",
                 "args": {
                     "action": "close"
                 }
@@ -314,7 +314,7 @@ BROWSER_SIMULATION_RESPONSES = [
 
 class MockLLMBrowserClient(LLMClient):
     """
-    Mock LLM Client that demonstrates browser_control tool.
+    Mock LLM Client that demonstrates browser tool.
     
     Simulates an agent that:
     1. Connects to user's Chrome browser
@@ -325,7 +325,7 @@ class MockLLMBrowserClient(LLMClient):
     6. Takes a screenshot
     7. Closes browser connection
     
-    Uses browser_control tool with element refs instead of OCR/vision
+    Uses browser tool with element refs instead of OCR/vision
     for more reliable automation.
     """
     
