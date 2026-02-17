@@ -9,10 +9,29 @@ import asyncio
 from importlib import import_module
 from importlib.util import find_spec
 import os
+from pathlib import Path
+import sys
 from typing import Any, Protocol
 
 ENV_RUNTIME = "WINDIE_BROWSER_USE_RUNTIME"
 _BROWSER_USE_RUNTIME_ALIASES = {"browser_use", "browser_use_native"}
+
+
+def _ensure_vendored_browser_use_on_path() -> None:
+    """Prefer the in-repo Browser Use package when present."""
+    python_root = Path(__file__).resolve().parents[2]
+    vendored_browser_use = python_root / "browser_use"
+    if not vendored_browser_use.is_dir():
+        return
+    root_path = str(python_root)
+    try:
+        existing_index = sys.path.index(root_path)
+    except ValueError:
+        sys.path.insert(0, root_path)
+        return
+    if existing_index != 0:
+        sys.path.pop(existing_index)
+        sys.path.insert(0, root_path)
 
 
 class ControllerRuntimeLike(Protocol):
@@ -308,6 +327,8 @@ def get_browser_runtime_provider(
     - allowed explicit values: `browser_use`, `browser_use_native`
     - controller/legacy runtime aliases are no longer supported
     """
+
+    _ensure_vendored_browser_use_on_path()
 
     raw_requested = os.getenv(ENV_RUNTIME)
     if raw_requested is None:
