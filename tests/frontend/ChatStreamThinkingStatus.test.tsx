@@ -635,6 +635,22 @@ describe('useChatStream', () => {
     expect(updateTranscriptSession).toHaveBeenCalledWith('conv-2', 'user-2');
   });
 
+  test('preserves transcript session refs when backend event omits conversation and user ids', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'tool-schemas',
+        payload: {
+          tool_schemas: [{ type: 'function', function: { name: 'tool-x', parameters: { type: 'object' } } }],
+        },
+      });
+    });
+
+    expect(updateTranscriptSession).toHaveBeenCalledTimes(1);
+    expect(updateTranscriptSession).toHaveBeenCalledWith(undefined, undefined);
+  });
+
   test('does not append chunk to non-contiguous older llm-text for same turn_ref', () => {
     const { emitBackendEvent } = registerBackendListener();
 
