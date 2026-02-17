@@ -1039,3 +1039,43 @@ In `frontend/src/main/ipc.cjs`, malformed renderer IPC messages could throw in t
 - Re-ran targeted frontend suite:
   - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/IpcMainBridge.test.cjs`
   - Result: `20 passed`.
+
+---
+
+## [x] Bug Report: Offline Query Dispatch Could Leave Frontend Chat Stuck In Sending State
+
+### Summary
+
+In `frontend/src/main/ipc.cjs`, when the renderer sent a `query` while backend WebSocket was disconnected, the main process dropped the outbound send but did not emit an error event back to renderer.
+
+### Root Cause
+
+- Query dispatch path in `ipc.cjs`:
+  - builds query payload and local-user event
+  - calls `sendMessageToBackend(...)`
+  - if send fails (`null`), only resets overlay phase to `idle`
+- No `from-backend` error event was emitted for renderer state machines (`useChatStream`) to clear pending send state and show failure.
+
+### Why It's Problematic
+
+- User sees a pending query with no completion/error feedback.
+- Chat sending lifecycle can remain in an ambiguous or stuck state.
+- Failure is silent during transient disconnects, hurting resilience and debuggability.
+
+### Fix
+
+- Updated `frontend/src/main/ipc.cjs` query send-failure branch:
+  - when `sendMessageToBackend(...)` returns `null` for `query`,
+  - emit a structured `from-backend` `error` event with:
+    - `turn_ref`
+    - session/user/conversation refs
+    - payload message: `"Unable to send query: backend connection is unavailable."`
+- Existing overlay reset behavior is preserved.
+
+### Validation
+
+- Added regression test in `tests/frontend/IpcMainBridge.test.cjs`:
+  - `emits renderer error event when query send fails due to disconnected backend`
+- Re-ran targeted frontend suite:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/IpcMainBridge.test.cjs`
+  - Result: `21 passed`.

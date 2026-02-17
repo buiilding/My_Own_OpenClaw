@@ -593,6 +593,17 @@ function initializeIpc(win, options = {}) {
     const messageId = sendMessageToBackend(type, payload, queryMessageId);
     if (!messageId && type === 'query') {
       setResponseOverlayPhase('idle', 'query-send-failed');
+      broadcastToRenderers('from-backend', {
+        type: 'error',
+        id: queryMessageId,
+        turn_ref: queryMessageId,
+        session_id: currentSessionId || null,
+        user_id: currentServerUserId || currentUserId || null,
+        conversation_ref: payload?.conversation_ref || currentConversationRef || null,
+        payload: {
+          message: 'Unable to send query: backend connection is unavailable.',
+        },
+      });
     }
   });
 }

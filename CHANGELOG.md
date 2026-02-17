@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-query-dispatch): emit a `from-backend` error event when `ipc.cjs` cannot send `query` messages due to disconnected backend, preventing silent offline send failures and adding regression coverage in `tests/frontend/IpcMainBridge.test.cjs`
 - fix(ipc-main): harden `to-backend` event handling in `frontend/src/main/ipc.cjs` by normalizing malformed renderer messages (missing/non-object payloads) to prevent query-path crashes, with regression coverage in `tests/frontend/IpcMainBridge.test.cjs`
 - refactor(transcript): avoid redundant `sessionStorage` writes and `transcript-session-update` event emissions in `TranscriptWriter` when `conversationRef`/`userId` are unchanged, while preserving pending-flush retry behavior for queued transcript entries
 - test(frontend-transcript): add no-op session-update regression coverage in `tests/frontend/TranscriptWriter.test.ts` and validate stream-hook compatibility with `tests/frontend/ChatStreamThinkingStatus.test.tsx`
