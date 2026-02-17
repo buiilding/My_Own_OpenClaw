@@ -33,7 +33,7 @@ Current backend-exposed sidecar tool set (source: `frontend/src/main/python/tool
 - Computer control: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`
 - Filesystem: `read_file`, `replace`
 - System: `get_open_windows`, `get_system_stats`, `run_shell_command`, `process`
-- Browser: `browser_control`
+- Browser: `browser`
 
 Current settings UI already has a `Permissions` section placeholder in `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`, but no real permission workflow or gating enforcement.
 
@@ -70,7 +70,7 @@ Suggested initial permissions:
   - Unlocks: `run_shell_command`, `process`.
 - `browser_automation`:
   - Needed for browser control runtime and CDP flows.
-  - Unlocks: `browser_control`.
+  - Unlocks: `browser`.
 - `planned_system_access` (future flag group):
   - Declared in onboarding for future capabilities.
   - Remains disabled in runtime until feature ships.

@@ -40,7 +40,7 @@ REMOTE_TOOLS: Dict[str, Type[Tool]] = {
     "process": RemoteProcessTool,
     "read_file": RemoteReadFileTool,
     "replace": RemoteReplaceTool,
-    "browser_control": RemoteBrowserTool,
+    "browser": RemoteBrowserTool,
 }
 
 

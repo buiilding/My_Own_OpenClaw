@@ -1,7 +1,7 @@
 """
 Simulation Backend Entry Point (Browser Control).
 
-Uses MockLLMBrowserClient to drive browser_control tool calls.
+Uses MockLLMBrowserClient to drive browser tool calls.
 Run with: python -m backend.src.simulation.browser
 """
 

@@ -16,7 +16,7 @@ class TestRemoteBrowserTool:
     def test_tool_name(self):
         """Test tool has correct name."""
         tool = RemoteBrowserTool()
-        assert tool.name == "browser_control"
+        assert tool.name == "browser"
 
     def test_tool_category(self):
         """Test tool has correct category."""
@@ -50,21 +50,21 @@ class TestRemoteBrowserTool:
         result = await tool.execute_remote(args, mock_ctx)
 
         assert result.is_remote is True
-        assert result.tool_name == "browser_control"
+        assert result.tool_name == "browser"
         assert result.args["action"] == "connect"
 
 
 class TestBrowserToolRegistry:
     """Test browser tool in registry."""
 
-    def test_browser_control_in_remote_tools(self):
-        """Test browser_control is in REMOTE_TOOLS."""
-        assert "browser_control" in REMOTE_TOOLS
-        assert REMOTE_TOOLS["browser_control"] == RemoteBrowserTool
+    def test_browser_in_remote_tools(self):
+        """Test browser is in REMOTE_TOOLS."""
+        assert "browser" in REMOTE_TOOLS
+        assert REMOTE_TOOLS["browser"] == RemoteBrowserTool
 
     def test_get_remote_tool_returns_browser_tool(self):
         """Test get_remote_tool returns browser tool."""
-        tool_class = get_remote_tool("browser_control")
+        tool_class = get_remote_tool("browser")
         assert tool_class == RemoteBrowserTool
 
 

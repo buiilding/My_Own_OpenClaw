@@ -14,7 +14,7 @@ from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 
 
 class RemoteBrowserTool(RemoteToolBase, Tool[BrowserControlArgs]):
-    name = "browser_control"
+    name = "browser"
     description = """Control a web browser for online tasks.
 
 Two modes available:
@@ -22,14 +22,14 @@ Two modes available:
 - 'managed': Launch isolated Chromium instance (clean profile, no logins)
 
 Workflow:
-1. Connect: browser_control(action="connect", mode="user_chrome")
-2. Navigate: browser_control(action="navigate", url="https://example.com")
-3. Snapshot: browser_control(action="snapshot") - shows page with numbered refs like [1] button
-4. Interact: browser_control(action="click", ref="1") or browser_control(action="type", ref="2", text="hello")
-5. Close: browser_control(action="close")
+1. Connect: browser(action="connect", mode="user_chrome")
+2. Navigate: browser(action="navigate", url="https://example.com")
+3. Snapshot: browser(action="snapshot") - shows page with numbered refs like [1] button
+4. Interact: browser(action="click", ref="1") or browser(action="type", ref="2", text="hello")
+5. Close: browser(action="close")
 
 Automatic `post_action_snapshot` attachment is temporarily disabled for testing.
-Use explicit `browser_control(action="snapshot", ...)` calls when snapshot data is needed.
+Use explicit `browser(action="snapshot", ...)` calls when snapshot data is needed.
 
 Actions:
 - connect: Initialize browser (requires mode)

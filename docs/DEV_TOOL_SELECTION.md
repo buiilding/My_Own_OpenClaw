@@ -11,7 +11,7 @@ Behavior:
 - `mode = "denylist"`: all tools available except those in `tools`.
 - `mode = "allowlist"`: only tools in `tools` are available.
 
-Tool names are the schema names (example: `mouse_control`, `browser_control`, `read_file`). Canonical list: `backend/src/tools/remote_tools/registry.py` (`REMOTE_TOOLS`).
+Tool names are the schema names (example: `mouse_control`, `browser`, `read_file`). Canonical list: `backend/src/tools/remote_tools/registry.py` (`REMOTE_TOOLS`).
 
 Policy implementation lives in `backend/src/tools/tool_policy.py` and is used by:
 - prompt schema injection filtering

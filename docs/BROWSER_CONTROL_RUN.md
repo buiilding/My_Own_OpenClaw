@@ -1,7 +1,7 @@
 ---
 summary: "How to Run Browser Control"
 read_when:
-  - Running browser_control for the first time
+  - Running browser for the first time
   - Testing the browser automation
 ---
 
@@ -205,14 +205,14 @@ async def test():
     registry = ToolRegistry()
     
     # Connect to browser
-    result = await registry.execute_tool('browser_control', {
+    result = await registry.execute_tool('browser', {
         'action': 'connect',
         'mode': 'user_chrome'
     })
     print(f'Connect: {result}')
     
     # Navigate
-    result = await registry.execute_tool('browser_control', {
+    result = await registry.execute_tool('browser', {
         'action': 'navigate',
         'url': 'https://example.com'
     })

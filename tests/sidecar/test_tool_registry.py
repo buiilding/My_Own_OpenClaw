@@ -16,8 +16,8 @@ def test_registered_tools_match_exposed_tool_set():
     registered = set(registry.tools.keys())
     exposed = ToolRegistry.get_exposed_tool_names()
 
-    # Some exposed tools are optional at runtime (e.g. browser_control requires Playwright).
-    optional_missing = {"browser_control"}
+    # Some exposed tools are optional at runtime (e.g. browser requires Playwright).
+    optional_missing = {"browser"}
     missing_from_registered = sorted((exposed - registered) - optional_missing)
     extra_in_registered = sorted(registered - exposed)
 

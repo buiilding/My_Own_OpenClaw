@@ -9,7 +9,7 @@ from tools.registry import ToolRegistry
 
 # Skip all tests if playwright is not installed
 try:
-    from tools.browser.browser_tool import execute_browser_control
+    from tools.browser.browser_tool import execute_browser
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
@@ -19,13 +19,13 @@ except ImportError:
 class TestBrowserToolRegistration:
     """Test browser tool is properly registered."""
     
-    def test_browser_control_in_registry(self):
-        """Test browser_control tool is in registry."""
+    def test_browser_in_registry(self):
+        """Test browser tool is in registry."""
         registry = ToolRegistry()
-        assert "browser_control" in registry.tools
+        assert "browser" in registry.tools
     
     @pytest.mark.asyncio
-    async def test_execute_browser_control_via_registry(self):
+    async def test_execute_browser_via_registry(self):
         """Test executing browser tool through registry."""
         registry = ToolRegistry()
         
@@ -39,7 +39,7 @@ class TestBrowserToolRegistration:
             }
             mock_get.return_value = mock_controller
             
-            result = await registry.execute_tool("browser_control", {
+            result = await registry.execute_tool("browser", {
                 "action": "connect",
                 "mode": "user_chrome",
             })
@@ -49,12 +49,12 @@ class TestBrowserToolRegistration:
             mock_controller.auto_connect_to_chrome.assert_awaited_once()
     
     @pytest.mark.asyncio
-    async def test_browser_control_validation_error(self):
-        """Test validation error for browser_control."""
+    async def test_browser_validation_error(self):
+        """Test validation error for browser."""
         registry = ToolRegistry()
         
         # Missing required action
-        result = await registry.execute_tool("browser_control", {})
+        result = await registry.execute_tool("browser", {})
         
         assert result.success is False
         assert "action" in result.error.lower() or "Validation" in result.error

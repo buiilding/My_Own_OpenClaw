@@ -86,11 +86,11 @@ Browser Use bundles these in the same toolset, but WindieOS should keep them as 
 
 ## Schema Strategy Decision
 
-Do **not** keep adding every Browser Use capability into one giant `browser_control(action=...)` surface.
+Do **not** keep adding every Browser Use capability into one giant `browser(action=...)` surface.
 
 Preferred split:
 
-1. Keep `browser_control` for low-level browser primitives and debug/state operations.
+1. Keep `browser` for low-level browser primitives and debug/state operations.
 2. Introduce a higher-level tool layer (for example: `browser_task`) for:
    - `search_page`
    - `find_elements`

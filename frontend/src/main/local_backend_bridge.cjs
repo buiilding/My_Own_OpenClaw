@@ -638,7 +638,7 @@ function initializeLocalBackendBridge(getWindows) {
   // Handle tool execution requests
   ipcMain.handle('execute-tool', async (event, { toolName, args, skipAutoCapture = false }) => {
     try {
-      const timeoutMs = toolName === 'browser_control' ? 120000 : 30000;
+      const timeoutMs = toolName === 'browser' ? 120000 : 30000;
       const runTool = () =>
         sendRequest('execute_tool', {
           tool_name: toolName,

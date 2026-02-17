@@ -69,7 +69,7 @@ Most tools are executed on the frontend Python sidecar:
 - **Computer Control Tools**: `mouse_control`, `keyboard_control`, `screenshot`, `scroll_control`, `switch_tab`, `wait`
 - **File System Tools**: `read_file`, `replace`
 - **System Tools**: `get_system_stats`, `get_open_windows`, `run_shell_command`, `process`
-- **Browser Tools**: `browser_control`
+- **Browser Tools**: `browser`
 
 ### Backend Responsibilities (No Tool Execution)
 
@@ -400,7 +400,7 @@ No dual-shape fallback is supported in provider transport.
 
 ### Browser Tools
 
-- **browser_control**: Browser automation and extraction tool (connect/navigation/snapshot/actions/extract); see `docs/BROWSER_CONTROL.md` and `docs/BROWSER_CONTROL_RUN.md` for full action contracts and runbook usage.
+- **browser**: Browser automation and extraction tool (connect/navigation/snapshot/actions/extract); see `docs/BROWSER_CONTROL.md` and `docs/BROWSER_CONTROL_RUN.md` for full action contracts and runbook usage.
 
 **Note**: The backend advertises a fixed set of remote tool schemas (LLM-callable). The sidecar may register additional helpers, but only tools listed in `frontend/src/main/python/tools/registry.py` `EXPOSED_TO_BACKEND_TOOLS` are available for LLM tool calling.
 

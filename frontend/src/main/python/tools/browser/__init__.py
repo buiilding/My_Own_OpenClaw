@@ -47,12 +47,12 @@ from tools.browser.schemas import (
 # Optional imports (require playwright)
 try:
     from tools.browser.controller import BrowserController, get_browser_controller
-    from tools.browser.browser_tool import execute_browser_control
+    from tools.browser.browser_tool import execute_browser
 except ImportError:
     # Playwright not installed
     BrowserController = None  # type: ignore
     get_browser_controller = None  # type: ignore
-    execute_browser_control = None  # type: ignore
+    execute_browser = None  # type: ignore
 
 __all__ = [
     # Chrome detection
@@ -85,5 +85,5 @@ __all__ = [
     # Controller (may be None if playwright not installed)
     "BrowserController",
     "get_browser_controller",
-    "execute_browser_control",
+    "execute_browser",
 ]

@@ -2,7 +2,7 @@
 summary: "Browser Control Tool"
 read_when:
   - Setting up browser automation
-  - Using browser_control tool
+  - Using browser tool
   - Troubleshooting browser connection
 ---
 
@@ -23,7 +23,7 @@ Browser execution is routed through the Browser Use compatibility adapter. Runti
 
 ## Overview
 
-The `browser_control` tool supports two modes:
+The `browser` tool supports two modes:
 
 1. **User Chrome Mode** - Control your existing Chrome browser with all your logins and cookies
 2. **Managed Mode** - Launch an isolated Chromium instance for safe automation
@@ -130,7 +130,7 @@ Launch an isolated browser instance with a clean profile.
 
 ### Browser Use Action Surface
 
-In addition to WindieOS compatibility actions (`connect`, `navigate`, `snapshot`, `click`, `type`, etc.), `browser_control` now exposes Browser Use-style action names directly:
+In addition to WindieOS compatibility actions (`connect`, `navigate`, `snapshot`, `click`, `type`, etc.), `browser` now exposes Browser Use-style action names directly:
 
 - `navigate`, `click`, `extract`, `scroll`, `screenshot`, `wait`, `evaluate`, `close`
 - `search`, `go_back`, `done`
