@@ -112,6 +112,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(browser-tool): deduplicate adapter typing surface by reusing runtime controller protocol (`ControllerRuntimeLike`) instead of maintaining a second legacy browser-controller protocol block
 - refactor(browser-tool): split monolithic `frontend/src/main/python/tools/browser/browser_tool.py` into focused modules (`browser_runtime.py`, `browser_adapter.py`, thin entrypoint `browser_tool.py`) while preserving WindieOS orchestration and Browser Use-native action execution
 - refactor(browser-use-runtime): remove vendored Browser Use cloud/sync/telemetry integrations from WindieOS runtime, add local-only stubs in `browser/session.py` + `browser/profile.py`, and replace telemetry wiring in `tools/registry/service.py` with a no-op implementation
 - chore(browser-use-runtime): extend Browser Use vendor sync/check policy and docs for the slimmer runtime footprint (`browser/cloud`, `sync`, `telemetry` pruned) while protecting WindieOS-local runtime override files during vendor parity checks
