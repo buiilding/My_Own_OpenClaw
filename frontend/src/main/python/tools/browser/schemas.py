@@ -285,6 +285,7 @@ class BrowserOpenClawCompatArgs(BaseModel):
         "status",
         "profiles",
         "open",
+        "done",
         "search",
         "go_back",
         "search_page",
@@ -449,6 +450,10 @@ class BrowserOpenClawCompatArgs(BaseModel):
     source: Optional[str] = Field(None, description="Source for read_long_content")
     context: Optional[str] = Field(None, description="Context for read_long_content")
     keys: Optional[str] = Field(None, description="Keyboard sequence for send_keys")
+    success: Optional[bool] = Field(None, description="Success flag for done action")
+    files_to_display: Optional[List[str]] = Field(
+        None, description="Optional attachment paths for done action"
+    )
     profile: Optional[str] = Field(
         None, description="Compatibility field (unused in WindieOS)"
     )
@@ -499,6 +504,7 @@ BROWSER_SCHEMAS = {
     "status": BrowserOpenClawCompatArgs,
     "profiles": BrowserOpenClawCompatArgs,
     "open": BrowserOpenClawCompatArgs,
+    "done": BrowserOpenClawCompatArgs,
     "search": BrowserOpenClawCompatArgs,
     "go_back": BrowserOpenClawCompatArgs,
     "search_page": BrowserOpenClawCompatArgs,

@@ -967,6 +967,8 @@ class TestBrowserUseCompatibilityAdapter:
                 {"seconds": 2},
                 browser_session=None,
                 file_system=None,
+                available_file_paths=[],
+                page_extraction_llm=None,
             )
 
     def test_runtime_factory_loads_handlers_from_custom_module(self, make_controller):
