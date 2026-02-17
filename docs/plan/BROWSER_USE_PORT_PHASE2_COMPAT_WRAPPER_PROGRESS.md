@@ -85,6 +85,7 @@ This update delivers those tasks with compatibility-wrapper routing while preser
 - `set_device`
 - `search`
 - `go_back`
+- `done`
 - `search_page`
 - `find_elements`
 - `find_text`
@@ -151,6 +152,7 @@ Additional regression assertions added in:
 - Compatibility-wrapper routing is complete for all supported `browser_control` actions.
 - Contract-preserving native runtime wiring is complete, including strict/fallback selection behavior.
 - Browser Use-native action execution now includes a broad tool surface (not only `wait(seconds=...)`) through direct adapter routing.
+- Overlapping action names (`navigate`, `extract`, `click`, `scroll`, `wait(seconds)`, `evaluate`) are now Browser Use-first with compatibility fallback when Browser Use runtime/session context is unavailable.
 
 ## Next Slice (Phase 3)
 

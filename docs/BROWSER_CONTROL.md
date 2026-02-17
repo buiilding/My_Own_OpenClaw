@@ -111,14 +111,16 @@ Launch an isolated browser instance with a clean profile.
 In addition to WindieOS compatibility actions (`connect`, `navigate`, `snapshot`, `click`, `type`, etc.), `browser_control` now exposes Browser Use-style action names directly:
 
 - `search`, `go_back`
+- `done`
 - `search_page`, `find_elements`, `find_text`
 - `input`, `send_keys`, `switch`, `close_tab`
 - `dropdown_options`, `select_dropdown`, `upload_file`
 - `write_file`, `replace_file`, `read_file`, `read_long_content`
 
 Notes:
-- `close` still closes the WindieOS browser session.
 - `close_tab` maps to Browser Use tab-close semantics.
+- `close` uses Browser Use close semantics when `tab_id`/`target_id` is provided; otherwise it closes the WindieOS browser session.
+- `done` is exposed for parity with Browser Use completion tooling.
 - Browser Use tab IDs are short IDs; when `target_id` is supplied, WindieOS derives a tab ID suffix.
 - Browser Use actions are also supported via `act.request.kind` using the same names.
 
