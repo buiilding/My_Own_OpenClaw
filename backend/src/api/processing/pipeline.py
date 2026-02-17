@@ -52,6 +52,26 @@ class StreamPipeline:
         # Pushed down to formatter.format() call to keep pipeline focused on event flow
         # TTS STREAMING RACE FIX: Track pending TTS tasks to prevent audio loss
         self._pending_tts_tasks: Set[asyncio.Task] = set()
+
+    async def _run_tts_event(
+        self,
+        event: AgentStreamingEvent,
+        tts_service: TTSService,
+    ) -> None:
+        """
+        Execute one TTS processing step with failure isolation.
+
+        TTS errors are logged and swallowed so text streaming and tool feedback
+        are not disrupted by audio failures.
+        """
+        try:
+            await self.tts_processor.process_event(event, tts_service)
+        except Exception:
+            logger.error("TTS processing failed, continuing stream", exc_info=True)
+
+    def _on_tts_task_done(self, task: asyncio.Task) -> None:
+        """Drop completed TTS tasks from the pending set."""
+        self._pending_tts_tasks.discard(task)
     
     async def process(
         self, 
@@ -94,24 +114,12 @@ class StreamPipeline:
         # Fork TTS processing into background task to avoid blocking text response
         # Isolated: TTS failure should not block formatting/transport
         if tts_service:
-            # Create background task for TTS (fire and forget)
-            # Errors are logged but don't affect text streaming
-            async def tts_task():
-                try:
-                    await self.tts_processor.process_event(event, tts_service)
-                except Exception:
-                    # Log and continue - TTS failure should not kill stream
-                    # Preserves UI streaming, tool execution feedback, and system resilience
-                    logger.error("TTS processing failed, continuing stream", exc_info=True)
-                finally:
-                    # TTS STREAMING RACE FIX: Remove task from tracking when done
-                    # This ensures we don't wait for already-completed tasks
-                    if task in self._pending_tts_tasks:
-                        self._pending_tts_tasks.discard(task)
-            
-            # TTS STREAMING RACE FIX: Track task to await before flush
-            task = asyncio.create_task(tts_task())
+            # TTS STREAMING RACE FIX: Track task to await before flush.
+            # Use stable methods instead of per-event nested closures to reduce
+            # per-event allocations on the hot streaming path.
+            task = asyncio.create_task(self._run_tts_event(event, tts_service))
             self._pending_tts_tasks.add(task)
+            task.add_done_callback(self._on_tts_task_done)
     
     async def wait_for_pending_tts(self) -> None:
         """
