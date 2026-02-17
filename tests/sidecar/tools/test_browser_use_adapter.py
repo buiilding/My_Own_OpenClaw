@@ -787,6 +787,30 @@ class TestBrowserUseCompatibilityAdapter:
         )
         runtime.click.assert_not_awaited()
 
+        type_result = await adapter.execute(
+            "type",
+            {"action": "type", "ref": "3", "text": "Hello"},
+        )
+        assert type_result.success is True
+        assert type_result.data["browser_use_action"] == "input"
+        runtime.execute_browser_use_action.assert_awaited_with(
+            action="input",
+            params={"index": 3, "text": "Hello"},
+        )
+        runtime.type_text.assert_not_awaited()
+
+        press_result = await adapter.execute(
+            "press",
+            {"action": "press", "key": "Enter"},
+        )
+        assert press_result.success is True
+        assert press_result.data["browser_use_action"] == "send_keys"
+        runtime.execute_browser_use_action.assert_awaited_with(
+            action="send_keys",
+            params={"keys": "Enter"},
+        )
+        runtime.press_key.assert_not_awaited()
+
         wait_result = await adapter.execute("wait", {"action": "wait", "state": "load"})
         assert wait_result.success is False
         assert wait_result.error_code == "INVALID_ARGUMENT"

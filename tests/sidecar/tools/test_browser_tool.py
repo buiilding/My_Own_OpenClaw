@@ -1016,11 +1016,24 @@ class TestTypeAction:
         """Test successful type."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.type_text.return_value = {"success": True}
             mock_get.return_value = mock_controller
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="type",
+                decision="port",
+                data={
+                    "action": "type",
+                    "browser_use_action": "input",
+                    "text": "Hello World",
+                },
+            )
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
@@ -1032,6 +1045,7 @@ class TestTypeAction:
 
             assert result.success is True
             assert result.data["text"] == "Hello World"
+            assert result.data["browser_use_action"] == "input"
 
 
 class TestScreenshotAction:
