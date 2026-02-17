@@ -1079,3 +1079,45 @@ In `frontend/src/main/ipc.cjs`, when the renderer sent a `query` while backend W
 - Re-ran targeted frontend suite:
   - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/IpcMainBridge.test.cjs`
   - Result: `21 passed`.
+
+---
+
+## [x] Bug Report: Immediate Transcript Writes Could Be Lost On IPC Failure
+
+### Summary
+
+In `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`, immediate transcript writes from `recordUserMessage(...)` and `recordToolMessage(...)` could be dropped when `IpcBridge.invoke('store-transcript', ...)` failed.
+
+### Root Cause
+
+- When conversation/user identity was available, both methods used fire-and-forget writes:
+  - `void storeTranscriptEntry(...)`
+- There was no `.catch(...)` fallback to queue failed writes for retry.
+- Pending queues/retry logic existed only for:
+  - missing identity at write time, and
+  - flush-time failures for already queued items.
+
+### Why It's Problematic
+
+- Transient IPC failures can silently lose user/tool transcript entries.
+- This creates durable history gaps in local memory and dashboard conversation views.
+- It also introduces unhandled async rejection risk from uncaught fire-and-forget promises.
+
+### Fix
+
+- Added shared retry-queue helpers:
+  - `queueUserMessageForRetry(...)`
+  - `queueToolMessageForRetry(...)`
+- Updated immediate write paths:
+  - `recordUserMessage(...)` now catches `storeTranscriptEntry(...)` failures, queues the entry, and logs a warning.
+  - `recordToolMessage(...)` now does the same.
+- Existing pending flush flow remains unchanged and now retries these immediate-failure entries as well.
+
+### Validation
+
+- Added regression tests in `tests/frontend/TranscriptWriter.test.ts`:
+  - `recordUserMessage requeues immediate writes when IPC store fails`
+  - `recordToolMessage requeues immediate writes when IPC store fails`
+- Re-ran targeted frontend suite:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptWriter.test.ts`
+  - Result: `19 passed`.

@@ -106,6 +106,46 @@ const flushPendingMessages = async () => {
   );
 };
 
+const queueUserMessageForRetry = (
+  text: string,
+  options: {
+    timestamp?: string;
+    modelId?: string | null;
+    modelProvider?: string | null;
+    screenshotRef?: string | null;
+  } = {},
+) => {
+  pendingUserQueue.enqueue({
+    text,
+    timestamp: options.timestamp,
+    modelId: options.modelId,
+    modelProvider: options.modelProvider,
+    screenshotRef: options.screenshotRef,
+  });
+};
+
+const queueToolMessageForRetry = (
+  text: string,
+  options: {
+    messageType: string;
+    toolName?: string;
+    correlationId?: string;
+    modelId?: string | null;
+    modelProvider?: string | null;
+    screenshotRef?: string | null;
+  },
+) => {
+  pendingToolQueue.enqueue({
+    text,
+    messageType: options.messageType,
+    toolName: options.toolName,
+    correlationId: options.correlationId,
+    modelId: options.modelId,
+    modelProvider: options.modelProvider,
+    screenshotRef: options.screenshotRef,
+  });
+};
+
 export const updateTranscriptSession = (
   conversationRef?: string | null,
   userId?: string | null,
@@ -161,7 +201,7 @@ export const recordUserMessage = (
   });
 
   if (!info.conversationRef || !info.userId) {
-    pendingUserQueue.enqueue({ text, timestamp, modelId, modelProvider, screenshotRef });
+    queueUserMessageForRetry(text, { timestamp, modelId, modelProvider, screenshotRef });
     return;
   }
 
@@ -175,6 +215,12 @@ export const recordUserMessage = (
     screenshotRef,
     conversationRef: info.conversationRef,
     userId: info.userId,
+  }).catch((error) => {
+    queueUserMessageForRetry(text, { timestamp, modelId, modelProvider, screenshotRef });
+    console.warn(
+      '[TranscriptWriter] Failed to store immediate user transcript entry; queued for retry',
+      error,
+    );
   });
 };
 
@@ -235,8 +281,7 @@ export const recordToolMessage = (
     userId: options.userId ?? null,
   });
   if (!info.conversationRef || !info.userId) {
-    pendingToolQueue.enqueue({
-      text,
+    queueToolMessageForRetry(text, {
       messageType: options.messageType,
       toolName: options.toolName,
       correlationId: options.correlationId,
@@ -258,6 +303,19 @@ export const recordToolMessage = (
     screenshotRef: options.screenshotRef,
     conversationRef: info.conversationRef,
     userId: info.userId,
+  }).catch((error) => {
+    queueToolMessageForRetry(text, {
+      messageType: options.messageType,
+      toolName: options.toolName,
+      correlationId: options.correlationId,
+      modelId: options.modelId,
+      modelProvider: options.modelProvider,
+      screenshotRef: options.screenshotRef,
+    });
+    console.warn(
+      '[TranscriptWriter] Failed to store immediate tool transcript entry; queued for retry',
+      error,
+    );
   });
 };
 

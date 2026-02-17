@@ -150,6 +150,54 @@ describe('TranscriptWriter', () => {
     });
   });
 
+  test('recordUserMessage requeues immediate writes when IPC store fails', async () => {
+    const error = new Error('store failed');
+    const { writer, invokeMock } = loadTranscriptWriter();
+    invokeMock.mockRejectedValueOnce(error).mockResolvedValue(undefined);
+    writer.updateTranscriptSession('conv-retry', 'user-retry');
+
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      writer.recordUserMessage('retry user message');
+      await flushMicrotasks();
+
+      expect(invokeMock).toHaveBeenCalledTimes(1);
+      expect(invokeMock).toHaveBeenNthCalledWith(1, 'store-transcript', {
+        content: 'retry user message',
+        userId: 'user-retry',
+        conversationRef: 'conv-retry',
+        role: 'user',
+        messageType: 'user',
+        toolName: undefined,
+        correlationId: undefined,
+        modelId: undefined,
+        modelProvider: undefined,
+        screenshot: undefined,
+        timestamp: undefined,
+      });
+
+      writer.updateTranscriptSession('conv-retry', 'user-retry');
+      await flushMicrotasks();
+
+      expect(invokeMock).toHaveBeenCalledTimes(2);
+      expect(invokeMock).toHaveBeenNthCalledWith(2, 'store-transcript', {
+        content: 'retry user message',
+        userId: 'user-retry',
+        conversationRef: 'conv-retry',
+        role: 'user',
+        messageType: 'user',
+        toolName: undefined,
+        correlationId: undefined,
+        modelId: undefined,
+        modelProvider: undefined,
+        screenshot: undefined,
+        timestamp: undefined,
+      });
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
   test('recordUserMessage ignores empty text payloads', async () => {
     const { writer, invokeMock } = loadTranscriptWriter();
     writer.updateTranscriptSession('conv-1', 'user-1');
@@ -231,6 +279,58 @@ describe('TranscriptWriter', () => {
       screenshot: 'artifact-1',
       timestamp: undefined,
     });
+  });
+
+  test('recordToolMessage requeues immediate writes when IPC store fails', async () => {
+    const error = new Error('store failed');
+    const { writer, invokeMock } = loadTranscriptWriter();
+    invokeMock.mockRejectedValueOnce(error).mockResolvedValue(undefined);
+    writer.updateTranscriptSession('conv-tool-retry', 'user-tool-retry');
+
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      writer.recordToolMessage('retry tool output', {
+        messageType: 'tool-output',
+        toolName: 'read_file',
+        correlationId: 'corr-retry',
+      });
+      await flushMicrotasks();
+
+      expect(invokeMock).toHaveBeenCalledTimes(1);
+      expect(invokeMock).toHaveBeenNthCalledWith(1, 'store-transcript', {
+        content: 'retry tool output',
+        userId: 'user-tool-retry',
+        conversationRef: 'conv-tool-retry',
+        role: 'tool',
+        messageType: 'tool-output',
+        toolName: 'read_file',
+        correlationId: 'corr-retry',
+        modelId: undefined,
+        modelProvider: undefined,
+        screenshot: undefined,
+        timestamp: undefined,
+      });
+
+      writer.updateTranscriptSession('conv-tool-retry', 'user-tool-retry');
+      await flushMicrotasks();
+
+      expect(invokeMock).toHaveBeenCalledTimes(2);
+      expect(invokeMock).toHaveBeenNthCalledWith(2, 'store-transcript', {
+        content: 'retry tool output',
+        userId: 'user-tool-retry',
+        conversationRef: 'conv-tool-retry',
+        role: 'tool',
+        messageType: 'tool-output',
+        toolName: 'read_file',
+        correlationId: 'corr-retry',
+        modelId: undefined,
+        modelProvider: undefined,
+        screenshot: undefined,
+        timestamp: undefined,
+      });
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 
   test('recordToolMessage ignores empty text payloads', async () => {

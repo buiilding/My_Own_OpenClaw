@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-transcript): requeue immediate `store-transcript` failures in `TranscriptWriter` for user/tool messages instead of dropping entries on transient IPC errors, with regression coverage in `tests/frontend/TranscriptWriter.test.ts`
 - refactor(websocket-task-manager): prune completed tasks inside `create_task_if_under_limit` before enforcing concurrency limits, preventing false task-limit rejections when callback cleanup is delayed
 - test(websocket-task-manager): add stale-done-task scheduling regression in `tests/backend/test_websocket_task_manager.py` to verify pre-check pruning keeps capacity available
 - fix(frontend-query-dispatch): emit a `from-backend` error event when `ipc.cjs` cannot send `query` messages due to disconnected backend, preventing silent offline send failures and adding regression coverage in `tests/frontend/IpcMainBridge.test.cjs`
