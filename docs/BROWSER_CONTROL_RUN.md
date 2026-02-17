@@ -36,6 +36,21 @@ cd WindieOS
 Connect to my browser and go to Amazon
 ```
 
+### Optional Runtime Flags
+
+Use these when validating Browser Use runtime cutover:
+
+```bash
+# Prefer Browser Use-native runtime (when browser_use is installed)
+export WINDIE_BROWSER_USE_RUNTIME=browser_use_native
+
+# Fail fast if native runtime is unavailable
+export WINDIE_BROWSER_USE_RUNTIME_STRICT=1
+
+# Enable selected native action handlers
+export WINDIE_BROWSER_USE_NATIVE_ACTIONS=wait_seconds
+```
+
 That's it! Chrome will be **automatically launched** with CDP enabled.
 
 **Optional:** If you prefer to use an already-running Chrome window, start it with:
@@ -210,6 +225,10 @@ cd WindieOS
 ./scripts/python-in-env backend python -m pytest tests/backend -k browser -v
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar -k browser -v
 ```
+
+## Deprecation Note
+
+- `trace_start` and `trace_stop` are deprecated in Browser Use runtime migration and return `ACTION_DEPRECATED`.
 
 ## Using Browser Control via Chat
 

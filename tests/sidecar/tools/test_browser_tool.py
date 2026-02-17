@@ -405,12 +405,11 @@ class TestCompatibilityActions:
         ) as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.trace_start.return_value = {"success": True}
             mock_get.return_value = mock_controller
 
             result = await execute_browser_control({"action": "trace_start"})
-            assert result.success is True
-            assert result.data["action"] == "trace_start"
+            assert result.success is False
+            assert "deprecated" in (result.error or "").lower()
 
 
 class TestNavigateAction:

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 from importlib import import_module
+from importlib.util import find_spec
 import logging
 import os
 from typing import Any, Protocol
@@ -294,14 +295,23 @@ def get_browser_runtime_provider(
 
     Runtime selection behavior:
 
-    - default / `controller`: always controller-backed provider
+    - default (unset `WINDIE_BROWSER_USE_RUNTIME`):
+      `browser_use_native` when `browser_use` is installed, otherwise controller
     - `browser_use` / `browser_use_native`: try Browser Use runtime provider
       module and fall back to controller provider if unavailable
     - strict mode (`WINDIE_BROWSER_USE_RUNTIME_STRICT=1`): unavailable requested
       runtimes raise `RuntimeError` instead of falling back
     """
 
-    requested = os.getenv(ENV_RUNTIME, "controller").strip().lower()
+    raw_requested = os.getenv(ENV_RUNTIME)
+    if raw_requested is None:
+        requested = (
+            "browser_use_native"
+            if find_spec("browser_use") is not None
+            else "controller"
+        )
+    else:
+        requested = raw_requested.strip().lower()
     strict_raw = os.getenv(ENV_RUNTIME_STRICT, "").strip().lower()
     strict = strict_raw in {"1", "true", "yes", "on"}
 

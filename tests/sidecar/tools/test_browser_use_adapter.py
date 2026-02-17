@@ -108,6 +108,10 @@ def make_controller():
         )
         controller.switch_tab = mock.AsyncMock(return_value=True)
         controller.click = mock.AsyncMock(return_value={"success": True, "ref": "e1"})
+        controller.trace_start = mock.AsyncMock(return_value={"success": True})
+        controller.trace_stop = mock.AsyncMock(
+            return_value={"success": True, "trace_bytes": b"zip"}
+        )
         return controller
 
     return _make_controller
@@ -123,6 +127,22 @@ class TestBrowserUseCompatibilityAdapter:
         assert result.success is False
         assert result.action == "unknown_action"
         assert result.error_code == "ACTION_UNSUPPORTED"
+
+    @pytest.mark.asyncio
+    async def test_trace_actions_return_explicit_deprecation(self, make_controller):
+        controller = make_controller()
+        adapter = BrowserUseCompatibilityAdapter(controller)
+
+        start_result = await adapter.execute("trace_start", {"action": "trace_start"})
+        stop_result = await adapter.execute("trace_stop", {"action": "trace_stop"})
+
+        assert start_result.success is False
+        assert start_result.error_code == "ACTION_DEPRECATED"
+        assert "deprecated" in (start_result.error or "").lower()
+        assert stop_result.success is False
+        assert stop_result.error_code == "ACTION_DEPRECATED"
+        controller.trace_start.assert_not_awaited()
+        controller.trace_stop.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_snapshot_requires_connection(self, make_controller):
@@ -496,6 +516,35 @@ class TestBrowserUseCompatibilityAdapter:
             runtime = get_browser_runtime_provider(controller)
 
         assert runtime.__class__.__name__ == "ControllerBackedRuntimeProvider"
+
+    def test_runtime_factory_defaults_to_controller_when_browser_use_unavailable(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        with mock.patch.dict("os.environ", {}, clear=True), mock.patch(
+            "tools.browser_use_adapter.runtime_provider.find_spec",
+            return_value=None,
+        ):
+            runtime = get_browser_runtime_provider(controller)
+
+        assert runtime.__class__.__name__ == "ControllerBackedRuntimeProvider"
+
+    def test_runtime_factory_defaults_to_native_when_browser_use_available(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        with mock.patch.dict("os.environ", {}, clear=True), mock.patch(
+            "tools.browser_use_adapter.runtime_provider.find_spec",
+            return_value=object(),
+        ), mock.patch(
+            "tools.browser_use_adapter.browser_use_native_runtime.find_spec",
+            return_value=object(),
+        ):
+            runtime = get_browser_runtime_provider(controller)
+
+        assert runtime.__class__.__name__ == "BrowserUseNativeRuntimeProvider"
 
     def test_runtime_factory_browser_use_strict_raises_when_unavailable(
         self,
