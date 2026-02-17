@@ -1738,3 +1738,82 @@ Result:
 - `26 passed in 0.03s`
 
 This confirms JSON-RPC behavior remains stable after centralizing notification-aware error handling.
+
+---
+
+# Refactor: Collapse Watermark Lookup to Single Query in LocalMemoryStore
+
+## Target
+Reduce duplicated query branches and database round-trips in:
+- `frontend/src/main/python/memory/local_store.py`
+
+This is a performance + maintainability refactor for episodic memory retrieval.
+
+## Current Structure and Root Cause
+`get_unprocessed_memories_after_id(...)` used three SQL branches:
+- `last_id is None` path
+- `last_id` exists path (after first querying watermark timestamp)
+- `last_id` missing path (fallback to full fetch)
+
+For non-null `last_id`, the method always did two SQL calls:
+1. `SELECT timestamp FROM memories WHERE id = ?`
+2. second query to fetch unprocessed rows
+
+The same transcript row-shaping logic was also duplicated across:
+- `get_unsemanticized_episodic_memories_by_conversation(...)`
+- `get_unsemanticized_episodic_memories(...)`
+- `get_unprocessed_memories_after_id(...)`
+
+Root cause: watermark filtering and transcript result shaping were implemented inline per method/branch instead of shared query/formatting policy.
+
+## Refactor Plan
+1. Replace the multi-branch watermark lookup flow with one SQL query using a CTE.
+2. Preserve existing semantics:
+   - `last_id=None` returns all unsemanticized transcript rows
+   - missing watermark id behaves like no watermark
+   - existing watermark returns rows after `(timestamp, id)` watermark tuple
+3. Extract transcript row formatting into one helper.
+4. Rewire the three unsemanticized transcript retrieval methods to use the helper.
+5. Add regression coverage for existing-watermark and missing-watermark behavior.
+
+## Implemented Changes
+### Single-query watermark filtering
+- Updated `get_unprocessed_memories_after_id(...)` in:
+  - `frontend/src/main/python/memory/local_store.py`
+
+It now uses a CTE (`WITH watermark AS (...)`) and one `SELECT` with conditional filtering, removing the pre-query watermark lookup branch.
+
+### Shared transcript row formatter
+- Added:
+  - `LocalMemoryStore._format_transcript_rows(...)`
+
+- Rewired methods to use it:
+  - `get_unsemanticized_episodic_memories_by_conversation(...)`
+  - `get_unsemanticized_episodic_memories(...)`
+  - `get_unprocessed_memories_after_id(...)`
+
+Result:
+- reduced duplicated transcript row-mapping logic in three call paths
+- centralized transcript output shaping in one helper
+
+### Regression coverage
+- Added:
+  - `test_get_unprocessed_memories_after_id_handles_existing_and_missing_watermarks`
+- File:
+  - `tests/sidecar/test_local_store_delete_cleanup.py`
+
+The test verifies:
+- existing watermark returns only newer rows
+- missing watermark id still returns the full unsemanticized transcript set
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env sidecar pytest tests/sidecar/test_local_store_delete_cleanup.py tests/sidecar/test_memory_summarizer.py
+```
+
+Result:
+- `14 passed, 3 warnings`
+
+This confirms behavior stability while reducing SQL branching and per-call DB round-trips in the watermark retrieval path.
