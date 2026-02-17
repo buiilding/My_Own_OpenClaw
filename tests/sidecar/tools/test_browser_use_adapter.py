@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from types import ModuleType
 from types import SimpleNamespace
 from unittest import mock
 
@@ -546,6 +547,7 @@ class TestBrowserUseCompatibilityAdapter:
             runtime = get_browser_runtime_provider(controller)
 
         assert runtime.__class__.__name__ == "BrowserUseNativeRuntimeProvider"
+        assert runtime._native_handlers == {}
 
     @pytest.mark.asyncio
     async def test_native_provider_uses_enabled_handler_for_navigate(
@@ -696,3 +698,92 @@ class TestBrowserUseCompatibilityAdapter:
             auto_launch=True,
         )
         assert connect_result["url"] == "https://native.example"
+
+    def test_runtime_factory_loads_handlers_from_custom_module(self, make_controller):
+        controller = make_controller()
+        custom_module = ModuleType("custom.native.handlers")
+        custom_navigate = mock.AsyncMock(
+            return_value={
+                "success": True,
+                "url": "https://native-module.example/nav",
+                "title": "Native Module Navigate",
+                "status": 209,
+            }
+        )
+        custom_module.get_native_runtime_handlers = mock.Mock(
+            return_value={
+                "navigate": custom_navigate,
+                "bad_entry": "not_callable",
+            }
+        )
+
+        def _import_module(name: str):
+            if name == "tools.browser_use_adapter.browser_use_native_runtime":
+                import tools.browser_use_adapter.browser_use_native_runtime as runtime_module
+
+                return runtime_module
+            if name == "custom.native.handlers":
+                return custom_module
+            raise ImportError(name)
+
+        with mock.patch.dict(
+            "os.environ",
+            {
+                "WINDIE_BROWSER_USE_RUNTIME": "browser_use_native",
+                "WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE": "custom.native.handlers",
+            },
+            clear=False,
+        ), mock.patch(
+            "tools.browser_use_adapter.browser_use_native_runtime.find_spec",
+            return_value=object(),
+        ), mock.patch(
+            "tools.browser_use_adapter.browser_use_native_runtime.import_module",
+            side_effect=_import_module,
+        ), mock.patch(
+            "tools.browser_use_adapter.runtime_provider.import_module",
+            side_effect=_import_module,
+        ):
+            runtime = get_browser_runtime_provider(controller)
+
+        assert runtime.__class__.__name__ == "BrowserUseNativeRuntimeProvider"
+        assert "navigate" in runtime._native_handlers
+        assert "bad_entry" not in runtime._native_handlers
+
+    def test_runtime_factory_invalid_handler_module_falls_back_to_empty_handlers(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        invalid_module = ModuleType("custom.invalid.handlers")
+        invalid_module.get_native_runtime_handlers = mock.Mock(return_value="not_a_mapping")
+
+        def _import_module(name: str):
+            if name == "tools.browser_use_adapter.browser_use_native_runtime":
+                import tools.browser_use_adapter.browser_use_native_runtime as runtime_module
+
+                return runtime_module
+            if name == "custom.invalid.handlers":
+                return invalid_module
+            raise ImportError(name)
+
+        with mock.patch.dict(
+            "os.environ",
+            {
+                "WINDIE_BROWSER_USE_RUNTIME": "browser_use_native",
+                "WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE": "custom.invalid.handlers",
+            },
+            clear=False,
+        ), mock.patch(
+            "tools.browser_use_adapter.browser_use_native_runtime.find_spec",
+            return_value=object(),
+        ), mock.patch(
+            "tools.browser_use_adapter.browser_use_native_runtime.import_module",
+            side_effect=_import_module,
+        ), mock.patch(
+            "tools.browser_use_adapter.runtime_provider.import_module",
+            side_effect=_import_module,
+        ):
+            runtime = get_browser_runtime_provider(controller)
+
+        assert runtime.__class__.__name__ == "BrowserUseNativeRuntimeProvider"
+        assert runtime._native_handlers == {}

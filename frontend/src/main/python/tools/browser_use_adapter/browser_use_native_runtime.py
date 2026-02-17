@@ -12,6 +12,7 @@ mode behavior.
 from __future__ import annotations
 
 import inspect
+from importlib import import_module
 from importlib.util import find_spec
 import logging
 import os
@@ -26,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 ENV_NATIVE_ACTIONS = "WINDIE_BROWSER_USE_NATIVE_ACTIONS"
 ENV_NATIVE_ACTIONS_STRICT = "WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT"
+ENV_NATIVE_HANDLER_MODULE = "WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE"
+DEFAULT_NATIVE_HANDLER_MODULE = "tools.browser_use_adapter.browser_use_native_handlers"
 NativeActionHandler = Callable[..., Awaitable[Any] | Any]
 
 
@@ -297,6 +300,63 @@ class BrowserUseNativeRuntimeProvider(ControllerBackedRuntimeProvider):
         return await super().set_input_files(ref=ref, paths=paths)
 
 
+def _load_native_handlers() -> dict[str, NativeActionHandler]:
+    module_name = os.getenv(
+        ENV_NATIVE_HANDLER_MODULE,
+        DEFAULT_NATIVE_HANDLER_MODULE,
+    ).strip()
+    if not module_name:
+        return {}
+    try:
+        module = import_module(module_name)
+    except Exception as exc:
+        logger.warning(
+            "Native handler module '%s' failed to load: %s. "
+            "Proceeding with controller-backed fallbacks.",
+            module_name,
+            exc,
+        )
+        return {}
+
+    factory = getattr(module, "get_native_runtime_handlers", None)
+    if not callable(factory):
+        logger.warning(
+            "Native handler module '%s' does not expose get_native_runtime_handlers(). "
+            "Proceeding with controller-backed fallbacks.",
+            module_name,
+        )
+        return {}
+
+    try:
+        handlers = factory()
+    except Exception as exc:
+        logger.warning(
+            "Native handler module '%s' handler factory failed: %s. "
+            "Proceeding with controller-backed fallbacks.",
+            module_name,
+            exc,
+        )
+        return {}
+
+    if not isinstance(handlers, Mapping):
+        logger.warning(
+            "Native handler module '%s' returned non-mapping handlers. "
+            "Proceeding with controller-backed fallbacks.",
+            module_name,
+        )
+        return {}
+
+    normalized: dict[str, NativeActionHandler] = {}
+    for action, handler in handlers.items():
+        if not isinstance(action, str):
+            continue
+        action_key = action.strip().lower()
+        if not action_key or not callable(handler):
+            continue
+        normalized[action_key] = handler
+    return normalized
+
+
 def create_browser_use_native_runtime_provider(
     controller: Any,
 ) -> BrowserRuntimeProvider | None:
@@ -307,4 +367,8 @@ def create_browser_use_native_runtime_provider(
 
     if find_spec("browser_use") is None:
         return None
-    return BrowserUseNativeRuntimeProvider(controller)
+    native_handlers = _load_native_handlers()
+    return BrowserUseNativeRuntimeProvider(
+        controller,
+        native_handlers=native_handlers,
+    )
