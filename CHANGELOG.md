@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(query-execution): centralize dict-event payload/string extraction in `QueryExecutionService` with shared helpers, and remove unused legacy `_is_*` event-check helpers
+- test(query-execution): add regression coverage in `tests/backend/test_api_handlers.py` for assistant-full and streaming-complete payload/top-level extraction fallback paths
 - refactor(stream-pipeline): replace per-event inline TTS closure in `StreamPipeline.process` with dedicated `_run_tts_event` + done-callback cleanup to reduce hot-path allocation churn and simplify pending-task lifecycle logic
 - test(stream-pipeline): add focused backend unit coverage in `tests/backend/test_stream_pipeline.py` for non-blocking TTS scheduling and failure-isolated pending-task cleanup
 - fix(frontend-transcript): requeue immediate `store-transcript` failures in `TranscriptWriter` for user/tool messages instead of dropping entries on transient IPC errors, with regression coverage in `tests/frontend/TranscriptWriter.test.ts`

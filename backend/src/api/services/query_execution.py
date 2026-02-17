@@ -309,22 +309,35 @@ class QueryExecutionService:
         value = getattr(event_type, "value", None)
         return str(value) if isinstance(value, str) else None
 
-    @classmethod
-    def _is_terminal_event(cls, event: Any) -> bool:
-        event_type = cls._extract_event_type(event)
-        return event_type in {"streaming-complete", "error"}
+    @staticmethod
+    def _extract_dict_payload(event: Any) -> Optional[dict[str, Any]]:
+        if not isinstance(event, dict):
+            return None
+        payload = event.get("payload")
+        return payload if isinstance(payload, dict) else None
 
     @classmethod
-    def _is_streaming_complete_event(cls, event: Any) -> bool:
-        return cls._extract_event_type(event) == "streaming-complete"
+    def _extract_dict_string_field(
+        cls,
+        event: Any,
+        *,
+        top_level_key: str,
+        payload_key: Optional[str] = None,
+    ) -> Optional[str]:
+        if not isinstance(event, dict):
+            return None
 
-    @classmethod
-    def _is_error_event(cls, event: Any) -> bool:
-        return cls._extract_event_type(event) == "error"
+        top_level_value = event.get(top_level_key)
+        if isinstance(top_level_value, str):
+            return top_level_value
 
-    @classmethod
-    def _is_non_empty_text_chunk(cls, event: Any) -> bool:
-        return bool(cls._extract_non_empty_chunk_text(event))
+        payload = cls._extract_dict_payload(event)
+        resolved_payload_key = payload_key or top_level_key
+        if not payload:
+            return None
+
+        payload_value = payload.get(resolved_payload_key)
+        return payload_value if isinstance(payload_value, str) else None
 
     @classmethod
     def _extract_non_empty_chunk_text(
@@ -342,13 +355,14 @@ class QueryExecutionService:
             return ""
         return content if content.strip() else ""
 
-    @staticmethod
-    def _extract_chunk_text(event: Any) -> Optional[str]:
+    @classmethod
+    def _extract_chunk_text(cls, event: Any) -> Optional[str]:
         if isinstance(event, dict):
-            content = event.get("content")
-            if not content and isinstance(event.get("payload"), dict):
-                content = event["payload"].get("text")
-            return content if isinstance(content, str) else None
+            return cls._extract_dict_string_field(
+                event,
+                top_level_key="content",
+                payload_key="text",
+            )
 
         content = getattr(event, "content", None)
         return content if isinstance(content, str) else None
@@ -364,9 +378,7 @@ class QueryExecutionService:
         if resolved_event_type != "assistant_message_full":
             return ""
         if isinstance(event, dict):
-            content = event.get("content")
-            if not content and isinstance(event.get("payload"), dict):
-                content = event["payload"].get("content")
+            content = cls._extract_dict_string_field(event, top_level_key="content")
             return content.strip() if isinstance(content, str) else ""
         content = getattr(event, "content", None)
         return content.strip() if isinstance(content, str) else ""
@@ -384,11 +396,13 @@ class QueryExecutionService:
         if resolved_event_type != "streaming-complete":
             return ""
         if isinstance(event, dict):
-            payload = event.get("payload")
-            if isinstance(payload, dict):
-                final_response = payload.get("final_response")
-                if isinstance(final_response, str):
-                    return final_response.strip()
+            final_response = cls._extract_dict_string_field(
+                event,
+                top_level_key="final_response",
+                payload_key="final_response",
+            )
+            if isinstance(final_response, str):
+                return final_response.strip()
             return ""
         final_response = getattr(event, "final_response", None)
         return final_response.strip() if isinstance(final_response, str) else ""
