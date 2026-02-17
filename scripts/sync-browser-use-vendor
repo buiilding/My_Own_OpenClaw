@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+
+SOURCE_DIR="${1:-${REPO_ROOT}/../browser-use/browser_use}"
+DEST_DIR="${REPO_ROOT}/frontend/src/main/python/browser_use"
+MANIFEST_PATH="${REPO_ROOT}/frontend/src/main/python/browser_use_vendor_manifest.json"
+
+if [[ ! -d "${SOURCE_DIR}" ]]; then
+  echo "Source directory not found: ${SOURCE_DIR}" >&2
+  echo "Usage: scripts/sync-browser-use-vendor [path-to-browser_use-source-dir]" >&2
+  exit 1
+fi
+
+mkdir -p "${DEST_DIR}"
+
+rsync -a --delete \
+  --exclude='__pycache__' \
+  --exclude='*.pyc' \
+  "${SOURCE_DIR}/" "${DEST_DIR}/"
+
+if ! diff -qr --exclude='__pycache__' --exclude='*.pyc' "${SOURCE_DIR}" "${DEST_DIR}" >/dev/null; then
+  echo "Vendor sync verification failed: destination differs from source." >&2
+  exit 1
+fi
+
+SOURCE_REPO_ROOT="$(cd "${SOURCE_DIR}/.." && pwd)"
+SOURCE_COMMIT="unknown"
+if git -C "${SOURCE_REPO_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  SOURCE_COMMIT="$(git -C "${SOURCE_REPO_ROOT}" rev-parse HEAD)"
+fi
+
+SYNCED_AT_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+cat > "${MANIFEST_PATH}" <<MANIFEST
+{
+  "source_repo": "${SOURCE_REPO_ROOT}",
+  "source_subdir": "browser_use",
+  "source_commit": "${SOURCE_COMMIT}",
+  "synced_at_utc": "${SYNCED_AT_UTC}"
+}
+MANIFEST
+
+echo "Synced Browser Use vendor tree"
+echo "  source: ${SOURCE_DIR}"
+echo "  dest:   ${DEST_DIR}"
+echo "  commit: ${SOURCE_COMMIT}"

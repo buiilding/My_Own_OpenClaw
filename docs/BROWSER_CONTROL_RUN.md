@@ -19,6 +19,15 @@ playwright install chromium
 
 `browser_use` is vendored in this repository at `frontend/src/main/python/browser_use`, so no pip install of the `browser-use` package is required.
 
+To resync Browser Use implementation code from `../browser-use/browser_use`:
+
+```bash
+cd WindieOS
+./scripts/sync-browser-use-vendor
+```
+
+The sync command also writes `frontend/src/main/python/browser_use_vendor_manifest.json` with source commit metadata.
+
 ### Step 2: Run WindieOS
 
 **Terminal 1 - Backend:**

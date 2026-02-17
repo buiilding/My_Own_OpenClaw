@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- chore(browser-use-runtime): add `scripts/sync-browser-use-vendor` and vendor manifest (`frontend/src/main/python/browser_use_vendor_manifest.json`) to keep WindieOS Browser Use implementation synced from `../browser-use/browser_use` without pip package install
 - refactor(browser-use-runtime): enforce vendored-only Browser Use module resolution by requiring `frontend/src/main/python/browser_use`, purging non-vendored `browser_use*` modules from `sys.modules`, and validating imported module origin before runtime-provider initialization
 - refactor(browser-use-runtime): vendor Browser Use source into WindieOS at `frontend/src/main/python/browser_use` from `../browser-use/browser_use` so browser_control runtime behavior comes from in-repo Browser Use implementation instead of pip package resolution; runtime provider now prepends vendored path before Browser Use module discovery
 - chore(sidecar-deps): remove `browser-use` from sidecar requirements files and document vendored Browser Use runtime usage in browser-control runbooks
