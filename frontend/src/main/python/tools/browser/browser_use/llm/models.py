@@ -1,319 +1,219 @@
-"""
-Convenient access to LLM models.
+"""Convenient access to WindieOS-supported Browser Use LLM models."""
 
-Usage:
-    from browser_use import llm
-
-    # Simple model access
-    model = llm.azure_gpt_4_1_mini
-    model = llm.openai_gpt_4o
-    model = llm.google_gemini_2_5_pro
-    model = llm.bu_latest  # or bu_1_0, bu_2_0
-"""
+from __future__ import annotations
 
 import os
 from typing import TYPE_CHECKING
 
-from browser_use.llm.azure.chat import ChatAzureOpenAI
-from browser_use.llm.browser_use.chat import ChatBrowserUse
-from browser_use.llm.cerebras.chat import ChatCerebras
 from browser_use.llm.google.chat import ChatGoogle
 from browser_use.llm.mistral.chat import ChatMistral
 from browser_use.llm.openai.chat import ChatOpenAI
 
-# Optional OCI import
-try:
-	from browser_use.llm.oci_raw.chat import ChatOCIRaw
-
-	OCI_AVAILABLE = True
-except ImportError:
-	ChatOCIRaw = None
-	OCI_AVAILABLE = False
-
 if TYPE_CHECKING:
-	from browser_use.llm.base import BaseChatModel
+    from browser_use.llm.base import BaseChatModel
 
-# Type stubs for IDE autocomplete
-openai_gpt_4o: 'BaseChatModel'
-openai_gpt_4o_mini: 'BaseChatModel'
-openai_gpt_4_1_mini: 'BaseChatModel'
-openai_o1: 'BaseChatModel'
-openai_o1_mini: 'BaseChatModel'
-openai_o1_pro: 'BaseChatModel'
-openai_o3: 'BaseChatModel'
-openai_o3_mini: 'BaseChatModel'
-openai_o3_pro: 'BaseChatModel'
-openai_o4_mini: 'BaseChatModel'
-openai_gpt_5: 'BaseChatModel'
-openai_gpt_5_mini: 'BaseChatModel'
-openai_gpt_5_nano: 'BaseChatModel'
+openai_gpt_4o: "BaseChatModel"
+openai_gpt_4o_mini: "BaseChatModel"
+openai_gpt_4_1_mini: "BaseChatModel"
+openai_o1: "BaseChatModel"
+openai_o1_mini: "BaseChatModel"
+openai_o1_pro: "BaseChatModel"
+openai_o3: "BaseChatModel"
+openai_o3_mini: "BaseChatModel"
+openai_o3_pro: "BaseChatModel"
+openai_o4_mini: "BaseChatModel"
+openai_gpt_5: "BaseChatModel"
+openai_gpt_5_mini: "BaseChatModel"
+openai_gpt_5_nano: "BaseChatModel"
 
-azure_gpt_4o: 'BaseChatModel'
-azure_gpt_4o_mini: 'BaseChatModel'
-azure_gpt_4_1_mini: 'BaseChatModel'
-azure_o1: 'BaseChatModel'
-azure_o1_mini: 'BaseChatModel'
-azure_o1_pro: 'BaseChatModel'
-azure_o3: 'BaseChatModel'
-azure_o3_mini: 'BaseChatModel'
-azure_o3_pro: 'BaseChatModel'
-azure_gpt_5: 'BaseChatModel'
-azure_gpt_5_mini: 'BaseChatModel'
+openrouter_openai_gpt_4o_mini: "BaseChatModel"
+ollama_qwen3_32b: "BaseChatModel"
+lmstudio_gpt_oss_20b: "BaseChatModel"
+kimi_coding_kimi_k2_turbo_preview: "BaseChatModel"
 
-google_gemini_2_0_flash: 'BaseChatModel'
-google_gemini_2_0_pro: 'BaseChatModel'
-google_gemini_2_5_pro: 'BaseChatModel'
-google_gemini_2_5_flash: 'BaseChatModel'
-google_gemini_2_5_flash_lite: 'BaseChatModel'
-mistral_large: 'BaseChatModel'
-mistral_medium: 'BaseChatModel'
-mistral_small: 'BaseChatModel'
-codestral: 'BaseChatModel'
-pixtral_large: 'BaseChatModel'
+google_gemini_2_0_flash: "BaseChatModel"
+google_gemini_2_0_pro: "BaseChatModel"
+google_gemini_2_5_pro: "BaseChatModel"
+google_gemini_2_5_flash: "BaseChatModel"
+google_gemini_2_5_flash_lite: "BaseChatModel"
 
-cerebras_llama3_1_8b: 'BaseChatModel'
-cerebras_llama3_3_70b: 'BaseChatModel'
-cerebras_gpt_oss_120b: 'BaseChatModel'
-cerebras_llama_4_scout_17b_16e_instruct: 'BaseChatModel'
-cerebras_llama_4_maverick_17b_128e_instruct: 'BaseChatModel'
-cerebras_qwen_3_32b: 'BaseChatModel'
-cerebras_qwen_3_235b_a22b_instruct_2507: 'BaseChatModel'
-cerebras_qwen_3_235b_a22b_thinking_2507: 'BaseChatModel'
-cerebras_qwen_3_coder_480b: 'BaseChatModel'
+mistral_large: "BaseChatModel"
+mistral_medium: "BaseChatModel"
+mistral_small: "BaseChatModel"
+codestral: "BaseChatModel"
+pixtral_large: "BaseChatModel"
 
-bu_latest: 'BaseChatModel'
-bu_1_0: 'BaseChatModel'
-bu_2_0: 'BaseChatModel'
+_OPENAI_COMPAT_PROVIDERS = {
+    "openai": {
+        "api_key_envs": ("OPENAI_API_KEY",),
+        "default_base_url": None,
+    },
+    "openrouter": {
+        "api_key_envs": ("OPENROUTER_API_KEY", "OPENAI_API_KEY"),
+        "default_base_url": "https://openrouter.ai/api/v1",
+    },
+    "ollama": {
+        "api_key_envs": ("OLLAMA_API_KEY",),
+        "default_base_url": "http://localhost:11434/v1",
+    },
+    "lmstudio": {
+        "api_key_envs": ("LMSTUDIO_API_KEY",),
+        "default_base_url": "http://localhost:1234/v1",
+    },
+    "kimi_coding": {
+        "api_key_envs": ("KIMI_API_KEY", "KIMICODE_API_KEY"),
+        "default_base_url": "https://api.kimi.com/coding",
+    },
+}
+
+
+def _first_env(*keys: str) -> str | None:
+    for key in keys:
+        value = os.getenv(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+def _normalize_provider(provider: str) -> str:
+    normalized = provider.strip().lower().replace("-", "_")
+    if normalized == "kimi_code":
+        return "kimi_coding"
+    return normalized
+
+
+def _normalize_model_name(model_part: str) -> str:
+    replacements = {
+        "gpt_4_1_mini": "gpt-4.1-mini",
+        "gpt_4o_mini": "gpt-4o-mini",
+        "gpt_4o": "gpt-4o",
+        "gemini_2_0": "gemini-2.0",
+        "gemini_2_5": "gemini-2.5",
+    }
+    model = model_part
+    for source, target in replacements.items():
+        model = model.replace(source, target)
+    return model.replace("_", "-")
+
+
+def _build_openai_compatible(provider: str, model: str) -> ChatOpenAI:
+    provider_config = _OPENAI_COMPAT_PROVIDERS[provider]
+    base_url = _first_env("OPENAI_BASE_URL")
+    if provider != "openai":
+        provider_env_name = f"{provider.upper()}_BASE_URL"
+        base_url = _first_env(provider_env_name) or base_url
+    base_url = base_url or provider_config["default_base_url"]
+
+    api_key = _first_env(*provider_config["api_key_envs"])
+    kwargs: dict[str, str] = {"model": model}
+    if api_key:
+        kwargs["api_key"] = api_key
+    if base_url:
+        kwargs["base_url"] = base_url
+    return ChatOpenAI(**kwargs)
 
 
 def get_llm_by_name(model_name: str):
-	"""
-	Factory function to create LLM instances from string names with API keys from environment.
+    """Factory function to create LLM instances from string names."""
+    if not model_name:
+        raise ValueError("Model name cannot be empty")
 
-	Args:
-	    model_name: String name like 'azure_gpt_4_1_mini', 'openai_gpt_4o', etc.
+    mistral_aliases = {
+        "mistral_large": "mistral-large-latest",
+        "mistral_medium": "mistral-medium-latest",
+        "mistral_small": "mistral-small-latest",
+        "codestral": "codestral-latest",
+        "pixtral_large": "pixtral-large-latest",
+    }
+    if model_name in mistral_aliases:
+        return ChatMistral(
+            model=mistral_aliases[model_name],
+            api_key=_first_env("MISTRAL_API_KEY"),
+            base_url=_first_env("MISTRAL_BASE_URL") or "https://api.mistral.ai/v1",
+        )
 
-	Returns:
-	    LLM instance with API keys from environment variables
+    parts = model_name.split("_", 1)
+    if len(parts) < 2:
+        raise ValueError(
+            f"Invalid model name format: '{model_name}'. Expected format: 'provider_model_name'"
+        )
 
-	Raises:
-	    ValueError: If model_name is not recognized
-	"""
-	if not model_name:
-		raise ValueError('Model name cannot be empty')
+    provider = _normalize_provider(parts[0])
+    model_part = parts[1]
+    model = _normalize_model_name(model_part)
 
-	# Handle top-level Mistral aliases without provider prefix
-	mistral_aliases = {
-		'mistral_large': 'mistral-large-latest',
-		'mistral_medium': 'mistral-medium-latest',
-		'mistral_small': 'mistral-small-latest',
-		'codestral': 'codestral-latest',
-		'pixtral_large': 'pixtral-large-latest',
-	}
-	if model_name in mistral_aliases:
-		api_key = os.getenv('MISTRAL_API_KEY')
-		base_url = os.getenv('MISTRAL_BASE_URL', 'https://api.mistral.ai/v1')
-		return ChatMistral(model=mistral_aliases[model_name], api_key=api_key, base_url=base_url)
+    if provider in _OPENAI_COMPAT_PROVIDERS:
+        return _build_openai_compatible(provider, model)
 
-	# Parse model name
-	parts = model_name.split('_', 1)
-	if len(parts) < 2:
-		raise ValueError(f"Invalid model name format: '{model_name}'. Expected format: 'provider_model_name'")
+    if provider == "google":
+        return ChatGoogle(model=model, api_key=_first_env("GOOGLE_API_KEY"))
 
-	provider = parts[0]
-	model_part = parts[1]
+    if provider == "mistral":
+        mistral_map = {
+            "large": "mistral-large-latest",
+            "medium": "mistral-medium-latest",
+            "small": "mistral-small-latest",
+            "codestral": "codestral-latest",
+            "pixtral-large": "pixtral-large-latest",
+        }
+        normalized_model_part = model_part.replace("_", "-")
+        resolved_model = mistral_map.get(normalized_model_part, model)
+        return ChatMistral(
+            model=resolved_model,
+            api_key=_first_env("MISTRAL_API_KEY"),
+            base_url=_first_env("MISTRAL_BASE_URL") or "https://api.mistral.ai/v1",
+        )
 
-	# Convert underscores back to dots/dashes for actual model names
-	if 'gpt_4_1_mini' in model_part:
-		model = model_part.replace('gpt_4_1_mini', 'gpt-4.1-mini')
-	elif 'gpt_4o_mini' in model_part:
-		model = model_part.replace('gpt_4o_mini', 'gpt-4o-mini')
-	elif 'gpt_4o' in model_part:
-		model = model_part.replace('gpt_4o', 'gpt-4o')
-	elif 'gemini_2_0' in model_part:
-		model = model_part.replace('gemini_2_0', 'gemini-2.0').replace('_', '-')
-	elif 'gemini_2_5' in model_part:
-		model = model_part.replace('gemini_2_5', 'gemini-2.5').replace('_', '-')
-	elif 'llama3_1' in model_part:
-		model = model_part.replace('llama3_1', 'llama3.1').replace('_', '-')
-	elif 'llama3_3' in model_part:
-		model = model_part.replace('llama3_3', 'llama-3.3').replace('_', '-')
-	elif 'llama_4_scout' in model_part:
-		model = model_part.replace('llama_4_scout', 'llama-4-scout').replace('_', '-')
-	elif 'llama_4_maverick' in model_part:
-		model = model_part.replace('llama_4_maverick', 'llama-4-maverick').replace('_', '-')
-	elif 'gpt_oss_120b' in model_part:
-		model = model_part.replace('gpt_oss_120b', 'gpt-oss-120b')
-	elif 'qwen_3_32b' in model_part:
-		model = model_part.replace('qwen_3_32b', 'qwen-3-32b')
-	elif 'qwen_3_235b_a22b_instruct' in model_part:
-		if model_part.endswith('_2507'):
-			model = model_part.replace('qwen_3_235b_a22b_instruct_2507', 'qwen-3-235b-a22b-instruct-2507')
-		else:
-			model = model_part.replace('qwen_3_235b_a22b_instruct', 'qwen-3-235b-a22b-instruct-2507')
-	elif 'qwen_3_235b_a22b_thinking' in model_part:
-		if model_part.endswith('_2507'):
-			model = model_part.replace('qwen_3_235b_a22b_thinking_2507', 'qwen-3-235b-a22b-thinking-2507')
-		else:
-			model = model_part.replace('qwen_3_235b_a22b_thinking', 'qwen-3-235b-a22b-thinking-2507')
-	elif 'qwen_3_coder_480b' in model_part:
-		model = model_part.replace('qwen_3_coder_480b', 'qwen-3-coder-480b')
-	else:
-		model = model_part.replace('_', '-')
-
-	# OpenAI Models
-	if provider == 'openai':
-		api_key = os.getenv('OPENAI_API_KEY')
-		return ChatOpenAI(model=model, api_key=api_key)
-
-	# Azure OpenAI Models
-	elif provider == 'azure':
-		api_key = os.getenv('AZURE_OPENAI_KEY') or os.getenv('AZURE_OPENAI_API_KEY')
-		azure_endpoint = os.getenv('AZURE_OPENAI_ENDPOINT')
-		return ChatAzureOpenAI(model=model, api_key=api_key, azure_endpoint=azure_endpoint)
-
-	# Google Models
-	elif provider == 'google':
-		api_key = os.getenv('GOOGLE_API_KEY')
-		return ChatGoogle(model=model, api_key=api_key)
-
-	# Mistral Models
-	elif provider == 'mistral':
-		api_key = os.getenv('MISTRAL_API_KEY')
-		base_url = os.getenv('MISTRAL_BASE_URL', 'https://api.mistral.ai/v1')
-		mistral_map = {
-			'large': 'mistral-large-latest',
-			'medium': 'mistral-medium-latest',
-			'small': 'mistral-small-latest',
-			'codestral': 'codestral-latest',
-			'pixtral-large': 'pixtral-large-latest',
-		}
-		normalized_model_part = model_part.replace('_', '-')
-		resolved_model = mistral_map.get(normalized_model_part, model.replace('_', '-'))
-		return ChatMistral(model=resolved_model, api_key=api_key, base_url=base_url)
-
-	# OCI Models
-	elif provider == 'oci':
-		# OCI requires more complex configuration that can't be easily inferred from env vars
-		# Users should use ChatOCIRaw directly with proper configuration
-		raise ValueError('OCI models require manual configuration. Use ChatOCIRaw directly with your OCI credentials.')
-
-	# Cerebras Models
-	elif provider == 'cerebras':
-		api_key = os.getenv('CEREBRAS_API_KEY')
-		return ChatCerebras(model=model, api_key=api_key)
-
-	# Browser Use Models
-	elif provider == 'bu':
-		# Handle bu_latest -> bu-latest conversion (need to prepend 'bu-' back)
-		model = f'bu-{model_part.replace("_", "-")}'
-		api_key = os.getenv('BROWSER_USE_API_KEY')
-		return ChatBrowserUse(model=model, api_key=api_key)
-
-	else:
-		available_providers = ['openai', 'azure', 'google', 'oci', 'cerebras', 'bu']
-
-		raise ValueError(f"Unknown provider: '{provider}'. Available providers: {', '.join(available_providers)}")
+    available_providers = sorted(list(_OPENAI_COMPAT_PROVIDERS.keys()) + ["google", "mistral"])
+    raise ValueError(
+        f"Unknown provider: '{provider}'. Available providers: {', '.join(available_providers)}"
+    )
 
 
-# Pre-configured model instances (lazy loaded via __getattr__)
-def __getattr__(name: str) -> 'BaseChatModel':
-	"""Create model instances on demand with API keys from environment."""
-	# Handle chat classes first
-	if name == 'ChatOpenAI':
-		return ChatOpenAI  # type: ignore
-	elif name == 'ChatAzureOpenAI':
-		return ChatAzureOpenAI  # type: ignore
-	elif name == 'ChatGoogle':
-		return ChatGoogle  # type: ignore
+def __getattr__(name: str) -> "BaseChatModel":
+    if name == "ChatOpenAI":
+        return ChatOpenAI  # type: ignore[return-value]
+    if name == "ChatGoogle":
+        return ChatGoogle  # type: ignore[return-value]
+    if name == "ChatMistral":
+        return ChatMistral  # type: ignore[return-value]
 
-	elif name == 'ChatMistral':
-		return ChatMistral  # type: ignore
-
-	elif name == 'ChatOCIRaw':
-		if not OCI_AVAILABLE:
-			raise ImportError('OCI integration not available. Install with: pip install "browser-use[oci]"')
-		return ChatOCIRaw  # type: ignore
-	elif name == 'ChatCerebras':
-		return ChatCerebras  # type: ignore
-	elif name == 'ChatBrowserUse':
-		return ChatBrowserUse  # type: ignore
-
-	# Handle model instances - these are the main use case
-	try:
-		return get_llm_by_name(name)
-	except ValueError:
-		raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+    try:
+        return get_llm_by_name(name)
+    except ValueError as exc:
+        raise AttributeError(f"module '{__name__}' has no attribute '{name}'") from exc
 
 
-# Export all classes and preconfigured instances, conditionally including ChatOCIRaw
 __all__ = [
-	'ChatOpenAI',
-	'ChatAzureOpenAI',
-	'ChatGoogle',
-	'ChatMistral',
-	'ChatCerebras',
-	'ChatBrowserUse',
+    "ChatOpenAI",
+    "ChatGoogle",
+    "ChatMistral",
+    "get_llm_by_name",
+    "openai_gpt_4o",
+    "openai_gpt_4o_mini",
+    "openai_gpt_4_1_mini",
+    "openai_o1",
+    "openai_o1_mini",
+    "openai_o1_pro",
+    "openai_o3",
+    "openai_o3_mini",
+    "openai_o3_pro",
+    "openai_o4_mini",
+    "openai_gpt_5",
+    "openai_gpt_5_mini",
+    "openai_gpt_5_nano",
+    "openrouter_openai_gpt_4o_mini",
+    "ollama_qwen3_32b",
+    "lmstudio_gpt_oss_20b",
+    "kimi_coding_kimi_k2_turbo_preview",
+    "google_gemini_2_0_flash",
+    "google_gemini_2_0_pro",
+    "google_gemini_2_5_pro",
+    "google_gemini_2_5_flash",
+    "google_gemini_2_5_flash_lite",
+    "mistral_large",
+    "mistral_medium",
+    "mistral_small",
+    "codestral",
+    "pixtral_large",
 ]
-
-if OCI_AVAILABLE:
-	__all__.append('ChatOCIRaw')
-
-__all__ += [
-	'get_llm_by_name',
-	# OpenAI instances - created on demand
-	'openai_gpt_4o',
-	'openai_gpt_4o_mini',
-	'openai_gpt_4_1_mini',
-	'openai_o1',
-	'openai_o1_mini',
-	'openai_o1_pro',
-	'openai_o3',
-	'openai_o3_mini',
-	'openai_o3_pro',
-	'openai_o4_mini',
-	'openai_gpt_5',
-	'openai_gpt_5_mini',
-	'openai_gpt_5_nano',
-	# Azure instances - created on demand
-	'azure_gpt_4o',
-	'azure_gpt_4o_mini',
-	'azure_gpt_4_1_mini',
-	'azure_o1',
-	'azure_o1_mini',
-	'azure_o1_pro',
-	'azure_o3',
-	'azure_o3_mini',
-	'azure_o3_pro',
-	'azure_gpt_5',
-	'azure_gpt_5_mini',
-	# Google instances - created on demand
-	'google_gemini_2_0_flash',
-	'google_gemini_2_0_pro',
-	'google_gemini_2_5_pro',
-	'google_gemini_2_5_flash',
-	'google_gemini_2_5_flash_lite',
-	# Mistral instances - created on demand
-	'mistral_large',
-	'mistral_medium',
-	'mistral_small',
-	'codestral',
-	'pixtral_large',
-	# Cerebras instances - created on demand
-	'cerebras_llama3_1_8b',
-	'cerebras_llama3_3_70b',
-	'cerebras_gpt_oss_120b',
-	'cerebras_llama_4_scout_17b_16e_instruct',
-	'cerebras_llama_4_maverick_17b_128e_instruct',
-	'cerebras_qwen_3_32b',
-	'cerebras_qwen_3_235b_a22b_instruct_2507',
-	'cerebras_qwen_3_235b_a22b_thinking_2507',
-	'cerebras_qwen_3_coder_480b',
-	# Browser Use instances - created on demand
-	'bu_latest',
-	'bu_1_0',
-	'bu_2_0',
-]
-
-# NOTE: OCI backend is optional. The try/except ImportError and conditional __all__ are required
-# so this module can be imported without browser-use[oci] installed.

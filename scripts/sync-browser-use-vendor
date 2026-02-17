@@ -28,6 +28,10 @@ PRUNED_DIRS=(
   "llm/ollama"
   "llm/openrouter"
   "llm/vercel"
+  "llm/azure"
+  "llm/browser_use"
+  "llm/cerebras"
+  "llm/oci_raw"
   "sandbox"
   "screenshots"
   "skills"
@@ -45,6 +49,8 @@ PRUNED_DIRS=(
   "tokens/custom_pricing.py"
   "tokens/mappings.py"
   "tokens/service.py"
+  "llm/openai/like.py"
+  "llm/openai/responses_serializer.py"
   "README.md"
   "actor/README.md"
   "llm/README.md"
@@ -77,6 +83,10 @@ RSYNC_EXCLUDES=(
   "llm/ollama/"
   "llm/openrouter/"
   "llm/vercel/"
+  "llm/azure/"
+  "llm/browser_use/"
+  "llm/cerebras/"
+  "llm/oci_raw/"
   "sandbox/"
   "screenshots/"
   "skills/"
@@ -94,6 +104,9 @@ RSYNC_EXCLUDES=(
   "tokens/custom_pricing.py"
   "tokens/mappings.py"
   "tokens/service.py"
+  "llm/openai/like.py"
+  "llm/openai/responses_serializer.py"
+  "llm/models.py"
   "browser/profile.py"
   "browser/session.py"
   "tools/registry/service.py"
@@ -107,6 +120,7 @@ RSYNC_EXCLUDES=(
   "/exceptions.py"
 )
 RSYNC_PROTECTED=(
+  "llm/models.py"
   "browser/profile.py"
   "browser/session.py"
   "tools/registry/service.py"
@@ -185,6 +199,10 @@ cat > "${MANIFEST_PATH}" <<MANIFEST
     "llm/ollama",
     "llm/openrouter",
     "llm/vercel",
+    "llm/azure",
+    "llm/browser_use",
+    "llm/cerebras",
+    "llm/oci_raw",
     "sandbox",
     "screenshots",
     "skills",
@@ -202,6 +220,8 @@ cat > "${MANIFEST_PATH}" <<MANIFEST
     "tokens/custom_pricing.py",
     "tokens/mappings.py",
     "tokens/service.py",
+    "llm/openai/like.py",
+    "llm/openai/responses_serializer.py",
     "README.md",
     "actor/README.md",
     "llm/README.md",
