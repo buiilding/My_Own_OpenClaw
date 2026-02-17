@@ -6,7 +6,7 @@ They mirror the sidecar schemas for consistency.
 """
 
 from typing import Any, Dict, List, Literal, Optional
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class BrowserConnectArgs(BaseModel):
@@ -33,6 +33,7 @@ class BrowserNavigateArgs(BaseModel):
 
     action: Literal["navigate"] = Field(..., description="Navigate to URL")
     url: str = Field(..., description="URL to navigate to")
+    new_tab: bool = Field(False, description="Open URL in a new tab")
     wait_until: Literal["load", "domcontentloaded", "networkidle", "commit"] = Field(
         "load", description="When to consider navigation complete"
     )
@@ -149,11 +150,22 @@ class BrowserClickArgs(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     action: Literal["click"] = Field(..., description="Click element")
-    ref: str = Field(..., description="Element reference from snapshot (e.g., '5')")
+    ref: Optional[str] = Field(
+        None, description="Element reference from snapshot (e.g., '5')"
+    )
+    index: Optional[int] = Field(
+        None, description="Browser Use element index", ge=0
+    )
     double_click: bool = Field(False, description="Perform double click")
     button: Literal["left", "right", "middle"] = Field(
         "left", description="Mouse button"
     )
+
+    @model_validator(mode="after")
+    def validate_ref_or_index(self):
+        if self.ref is None and self.index is None:
+            raise ValueError("click requires either 'ref' or 'index'")
+        return self
 
 
 class BrowserTypeArgs(BaseModel):
@@ -188,6 +200,9 @@ class BrowserScrollArgs(BaseModel):
         "down", description="Scroll direction"
     )
     amount: int = Field(500, description="Scroll amount in pixels", ge=100, le=5000)
+    down: Optional[bool] = Field(None, description="Browser Use scroll direction flag")
+    pages: Optional[int] = Field(None, description="Browser Use page count", ge=1)
+    index: Optional[int] = Field(None, description="Optional Browser Use element index", ge=0)
 
 
 class BrowserScreenshotArgs(BaseModel):
@@ -209,6 +224,9 @@ class BrowserScreenshotArgs(BaseModel):
         description="JPEG quality (1-100)",
         ge=1,
         le=100,
+    )
+    file_name: Optional[str] = Field(
+        None, description="Browser Use screenshot filename"
     )
 
 
@@ -252,7 +270,18 @@ class BrowserEvaluateArgs(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     action: Literal["evaluate"] = Field(..., description="Evaluate JavaScript")
-    script: str = Field(..., description="JavaScript code to execute", max_length=5000)
+    script: Optional[str] = Field(
+        None, description="JavaScript code to execute", max_length=5000
+    )
+    code: Optional[str] = Field(
+        None, description="Browser Use evaluate code", max_length=5000
+    )
+
+    @model_validator(mode="after")
+    def validate_script_or_code(self):
+        if self.script is None and self.code is None:
+            raise ValueError("evaluate requires either 'script' or 'code'")
+        return self
 
 
 class BrowserCloseArgs(BaseModel):
@@ -261,6 +290,12 @@ class BrowserCloseArgs(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     action: Literal["close"] = Field(..., description="Close browser connection")
+    tab_id: Optional[str] = Field(
+        None, description="Browser Use tab id (close tab semantics)"
+    )
+    target_id: Optional[str] = Field(
+        None, description="Tab target id alias for close tab semantics"
+    )
 
 
 class BrowserOpenClawCompatArgs(BaseModel):
@@ -325,6 +360,7 @@ class BrowserOpenClawCompatArgs(BaseModel):
     )
     url: Optional[str] = Field(None, description="URL to open/navigate")
     query: Optional[str] = Field(None, description="Search/extract query text")
+    description: Optional[str] = Field(None, description="Description for go_back action")
     engine: Optional[str] = Field(None, description="Search engine (for search action)")
     pattern: Optional[str] = Field(
         None, description="Pattern to find for search_page/find_text"
@@ -346,6 +382,7 @@ class BrowserOpenClawCompatArgs(BaseModel):
     )
     index: Optional[int] = Field(None, description="Browser Use element index", ge=0)
     tab_id: Optional[str] = Field(None, description="Browser Use tab id")
+    new_tab: Optional[bool] = Field(None, description="Open navigate URL in new tab")
     snapshotFormat: Optional[Literal["ai", "aria"]] = Field(
         None, description="Snapshot format alias."
     )
@@ -372,6 +409,12 @@ class BrowserOpenClawCompatArgs(BaseModel):
     )
     request: Optional[Dict[str, Any]] = Field(
         None, description="Nested action payload for act."
+    )
+    text: Optional[str] = Field(
+        None, description="Text payload for done/input/find_text/select_dropdown actions"
+    )
+    selector: Optional[str] = Field(
+        None, description="CSS selector for find_elements action"
     )
     cookies: Optional[List[Dict[str, Any]]] = Field(
         None, description="Cookies payload for cookies_set"
@@ -425,6 +468,9 @@ class BrowserOpenClawCompatArgs(BaseModel):
     source: Optional[str] = Field(None, description="Source for read_long_content")
     context: Optional[str] = Field(None, description="Context for read_long_content")
     keys: Optional[str] = Field(None, description="Keyboard sequence for send_keys")
+    pages: Optional[int] = Field(None, description="Browser Use page count", ge=1)
+    down: Optional[bool] = Field(None, description="Browser Use scroll direction flag")
+    code: Optional[str] = Field(None, description="Browser Use evaluate code")
     success: Optional[bool] = Field(None, description="Success flag for done action")
     files_to_display: Optional[List[str]] = Field(
         None, description="Optional attachment paths for done action"
@@ -581,6 +627,7 @@ class BrowserControlArgs(BaseModel):
     query: Optional[str] = Field(
         None, description="Extraction goal/query for extract action."
     )
+    description: Optional[str] = Field(None, description="Description for go_back action")
     extract_links: bool = Field(
         False,
         description="Include links in extracted source text before query filtering (extract action).",
@@ -641,6 +688,7 @@ class BrowserControlArgs(BaseModel):
     )
     submit: bool = Field(False, description="Submit after type")
     key: Optional[str] = Field(None, description="Key for press action")
+    code: Optional[str] = Field(None, description="Browser Use evaluate code")
     double_click: bool = Field(False, description="Double click")
     button: Literal["left", "right", "middle"] = Field(
         "left", description="Mouse button"
@@ -651,6 +699,9 @@ class BrowserControlArgs(BaseModel):
         "down", description="Scroll direction"
     )
     amount: int = Field(500, description="Scroll amount", ge=100, le=5000)
+    down: Optional[bool] = Field(None, description="Browser Use scroll direction flag")
+    pages: Optional[int] = Field(None, description="Browser Use page count", ge=1)
+    index: Optional[int] = Field(None, description="Optional Browser Use element index", ge=0)
 
     # Screenshot args
     full_page: bool = Field(False, description="Full page screenshot")
@@ -658,6 +709,7 @@ class BrowserControlArgs(BaseModel):
         None, description="Optional CSS selector to screenshot"
     )
     type: Literal["png", "jpeg"] = Field("png", description="Screenshot image type")
+    file_name: Optional[str] = Field(None, description="Browser Use screenshot filename")
     quality: Optional[int] = Field(
         None,
         description="JPEG quality (1-100)",
@@ -673,10 +725,12 @@ class BrowserControlArgs(BaseModel):
 
     # Tab args
     target_id: Optional[str] = Field(None, description="Tab target ID")
+    tab_id: Optional[str] = Field(None, description="Browser Use tab id")
     targetId: Optional[str] = Field(None, description="Tab target ID (camelCase alias)")
     target_url: Optional[str] = Field(
         None, description="Open/navigate URL (snake_case)"
     )
+    new_tab: Optional[bool] = Field(None, description="Open navigate URL in new tab")
     targetUrl: Optional[str] = Field(None, description="Open/navigate URL (camelCase)")
     profile: Optional[str] = Field(
         None, description="Compatibility field (unused in WindieOS)"
