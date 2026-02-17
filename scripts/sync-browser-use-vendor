@@ -14,6 +14,42 @@ PRUNED_DIRS=(
   "dom/playground"
   "llm/tests"
   "tokens/tests"
+  "agent/system_prompts"
+  "code_use"
+  "controller"
+  "integrations/gmail"
+  "llm/anthropic"
+  "llm/aws"
+  "llm/deepseek"
+  "llm/groq"
+  "llm/ollama"
+  "llm/openrouter"
+  "llm/vercel"
+  "sandbox"
+  "screenshots"
+  "skills"
+  "agent/cloud_events.py"
+  "agent/gif.py"
+  "agent/judge.py"
+  "agent/prompts.py"
+  "agent/service.py"
+  "agent/variable_detector.py"
+  "agent/message_manager/service.py"
+  "agent/message_manager/utils.py"
+  "browser/python_highlights.py"
+  "browser/watchdogs/crash_watchdog.py"
+  "dom/serializer/code_use_serializer.py"
+  "tokens/custom_pricing.py"
+  "tokens/mappings.py"
+  "tokens/service.py"
+  "README.md"
+  "actor/README.md"
+  "llm/README.md"
+  "llm/oci_raw/README.md"
+  "py.typed"
+  "cli.py"
+  "init_cmd.py"
+  "exceptions.py"
 )
 RSYNC_EXCLUDES=(
   "__pycache__"
@@ -24,14 +60,42 @@ RSYNC_EXCLUDES=(
   "dom/playground/"
   "llm/tests/"
   "tokens/tests/"
-)
-DIFF_EXCLUDES=(
-  "__pycache__"
-  "*.pyc"
-  "skill_cli"
-  "mcp"
-  "playground"
-  "tests"
+  "agent/system_prompts/"
+  "code_use/"
+  "controller/"
+  "integrations/gmail/"
+  "llm/anthropic/"
+  "llm/aws/"
+  "llm/deepseek/"
+  "llm/groq/"
+  "llm/ollama/"
+  "llm/openrouter/"
+  "llm/vercel/"
+  "sandbox/"
+  "screenshots/"
+  "skills/"
+  "agent/cloud_events.py"
+  "agent/gif.py"
+  "agent/judge.py"
+  "agent/prompts.py"
+  "agent/service.py"
+  "agent/variable_detector.py"
+  "agent/message_manager/service.py"
+  "agent/message_manager/utils.py"
+  "browser/python_highlights.py"
+  "browser/watchdogs/crash_watchdog.py"
+  "dom/serializer/code_use_serializer.py"
+  "tokens/custom_pricing.py"
+  "tokens/mappings.py"
+  "tokens/service.py"
+  "/README.md"
+  "actor/README.md"
+  "llm/README.md"
+  "llm/oci_raw/README.md"
+  "/py.typed"
+  "/cli.py"
+  "/init_cmd.py"
+  "/exceptions.py"
 )
 
 if [[ ! -d "${SOURCE_DIR}" ]]; then
@@ -49,18 +113,19 @@ done
 
 rsync "${RSYNC_ARGS[@]}" "${SOURCE_DIR}/" "${DEST_DIR}/"
 
-DIFF_ARGS=( -qr )
-for pattern in "${DIFF_EXCLUDES[@]}"; do
-  DIFF_ARGS+=( "--exclude=${pattern}" )
+VERIFY_ARGS=( -a --delete --delete-excluded --dry-run --itemize-changes )
+for pattern in "${RSYNC_EXCLUDES[@]}"; do
+  VERIFY_ARGS+=( "--exclude=${pattern}" )
 done
-if ! diff "${DIFF_ARGS[@]}" "${SOURCE_DIR}" "${DEST_DIR}" >/dev/null; then
+VERIFY_OUTPUT="$(rsync "${VERIFY_ARGS[@]}" "${SOURCE_DIR}/" "${DEST_DIR}/")"
+if [[ -n "${VERIFY_OUTPUT}" ]]; then
   echo "Vendor sync verification failed: destination differs from source." >&2
   exit 1
 fi
 
-for relative_dir in "${PRUNED_DIRS[@]}"; do
-  if [[ -d "${DEST_DIR}/${relative_dir}" ]]; then
-    echo "Vendor sync pruning failed: ${DEST_DIR}/${relative_dir} still exists." >&2
+for relative_path in "${PRUNED_DIRS[@]}"; do
+  if [[ -e "${DEST_DIR}/${relative_path}" ]]; then
+    echo "Vendor sync pruning failed: ${DEST_DIR}/${relative_path} still exists." >&2
     exit 1
   fi
 done
@@ -79,13 +144,49 @@ cat > "${MANIFEST_PATH}" <<MANIFEST
   "source_subdir": "browser_use",
   "source_commit": "${SOURCE_COMMIT}",
   "synced_at_utc": "${SYNCED_AT_UTC}",
-  "pruned_dirs": [
+  "pruned_paths": [
     "skill_cli",
     "mcp",
     "actor/playground",
     "dom/playground",
     "llm/tests",
-    "tokens/tests"
+    "tokens/tests",
+    "agent/system_prompts",
+    "code_use",
+    "controller",
+    "integrations/gmail",
+    "llm/anthropic",
+    "llm/aws",
+    "llm/deepseek",
+    "llm/groq",
+    "llm/ollama",
+    "llm/openrouter",
+    "llm/vercel",
+    "sandbox",
+    "screenshots",
+    "skills",
+    "agent/cloud_events.py",
+    "agent/gif.py",
+    "agent/judge.py",
+    "agent/prompts.py",
+    "agent/service.py",
+    "agent/variable_detector.py",
+    "agent/message_manager/service.py",
+    "agent/message_manager/utils.py",
+    "browser/python_highlights.py",
+    "browser/watchdogs/crash_watchdog.py",
+    "dom/serializer/code_use_serializer.py",
+    "tokens/custom_pricing.py",
+    "tokens/mappings.py",
+    "tokens/service.py",
+    "README.md",
+    "actor/README.md",
+    "llm/README.md",
+    "llm/oci_raw/README.md",
+    "py.typed",
+    "cli.py",
+    "init_cmd.py",
+    "exceptions.py"
   ]
 }
 MANIFEST
