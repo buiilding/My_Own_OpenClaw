@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(frontend-transcript): queue assistant transcript entries when conversation/user context is temporarily unavailable so entries flush after session hydration instead of being dropped, with regression coverage in `tests/frontend/TranscriptWriter.test.ts`
 - refactor(ipc-query-context): centralize query context resolution in `frontend/src/main/ipc.cjs` with shared helpers for `conversation_ref` fallback, common query context fields, local-user echo emission, and query-send failure emission
 - fix(ipc-query-context): apply backend `conversation_ref` fallback to outbound query payloads when renderer query messages omit `payload.conversation_ref`, ensuring conversation continuity across IPC local-echo and backend dispatch paths
 - test(ipc-query-context): add frontend regression coverage in `tests/frontend/IpcMainBridge.test.cjs` validating fallback `conversation_ref` consistency for local-user-message echo and outbound query payloads
