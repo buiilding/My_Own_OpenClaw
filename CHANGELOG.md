@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(browser-use-adapter): close remaining Browser Use tool parity gaps by forwarding `act.request.kind` for `navigate`/`extract`/`scroll`/`screenshot`/`wait` through Browser Use-aware routing, allowing index-based `act.click`, and passing `extract.output_schema` to Browser Use-native extract execution when on the direct extract path
 - feat(browser-use-port): expose Browser Use action names directly through `browser_control` (`search`, `go_back`, `search_page`, `find_elements`, `find_text`, `input`, `send_keys`, `switch`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`) while preserving WindieOS agent/tool-loop orchestration
 - refactor(browser-use-port): replace minimal native wait-only handler scaffold with a Browser Use action bridge (`Tools` registry + BrowserSession/FileSystem lifecycle), add runtime `execute_browser_use_action(...)`, and route Browser Use actions (including `done` and Browser Use-first `navigate`/`extract`/`click`/`scroll`/`evaluate`) through adapter + `act.request.kind`
 - fix(browser-use-port): close remaining Browser Use schema parity gaps by accepting Browser Use-native argument shapes (`navigate.new_tab`, `evaluate.code`, `screenshot.file_name`, tab-close args on `close`, and direct `text`/`selector` fields for Browser Use compatibility actions), and require Browser Use session context for `search`
