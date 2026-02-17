@@ -82,7 +82,7 @@ async def test_parse_and_validate_message_handles_unexpected_parse_errors(monkey
     async def raise_unexpected(*_args, **_kwargs):
         raise RuntimeError("decoder exploded")
 
-    monkeypatch.setattr(mh, "parse_json_payload", raise_unexpected)
+    monkeypatch.setattr(mh, "parse_json_object_payload", raise_unexpected)
 
     message, error = await mh.parse_and_validate_message(
         '{"id":"msg_unexpected","type":"query","payload":{"text":"hello"}}',

@@ -167,7 +167,7 @@ async def test_perform_handshake_parse_runtime_error_closes_socket(monkeypatch) 
     async def fail_parse(*_args, **_kwargs):
         raise RuntimeError("parse failed")
 
-    monkeypatch.setattr(connection_module, "parse_json_payload", fail_parse)
+    monkeypatch.setattr(connection_module, "parse_json_object_payload", fail_parse)
 
     assigned_user_id = await perform_handshake(websocket, safe_ws)
 
@@ -212,7 +212,7 @@ async def test_perform_handshake_unexpected_failure_logs_error(monkeypatch) -> N
     async def fail_parse(*_args, **_kwargs):
         raise RuntimeError("parse blew up")
 
-    monkeypatch.setattr(connection_module, "parse_json_payload", fail_parse)
+    monkeypatch.setattr(connection_module, "parse_json_object_payload", fail_parse)
     monkeypatch.setattr(
         connection_module.logger,
         "warning",

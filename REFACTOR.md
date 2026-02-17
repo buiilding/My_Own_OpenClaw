@@ -1,3 +1,75 @@
+# Refactor: Centralize WebSocket JSON Object-Root Validation
+
+## Target
+Remove duplicated object-root checks and parse policy wiring across:
+- `backend/src/api/routes/websocket/json_parse.py`
+- `backend/src/api/routes/websocket/message_handler.py`
+- `backend/src/api/routes/websocket/connection.py`
+
+This is a maintainability refactor in central WebSocket ingress paths.
+
+## Current Structure and Root Cause
+Before this refactor:
+- `parse_json_payload(...)` handled JSON parsing only.
+- `message_handler.parse_and_validate_message(...)` separately checked `isinstance(json_data, dict)` and built root-type errors.
+- `connection.perform_handshake(...)` relied on downstream model validation for non-object roots.
+
+Root cause: JSON parsing and root-shape validation responsibilities were split across modules, creating duplicate checks and inconsistent ingress behavior.
+
+## Refactor Plan
+1. Add a shared helper that parses JSON and enforces object root in one place.
+2. Introduce a typed root-shape exception carrying payload type.
+3. Rewire message and handshake paths to consume the shared helper.
+4. Preserve user-facing error messages and handshake close semantics.
+5. Add/adjust regression tests for helper behavior and monkeypatched parse failure paths.
+
+## Implemented Changes
+### 1) Shared object-root parser
+- Added in `json_parse.py`:
+  - `JsonRootTypeError`
+  - `parse_json_object_payload(...)`
+
+Behavior:
+- Uses existing offload-aware `parse_json_payload(...)`.
+- Raises `JsonRootTypeError(payload_type)` when root is not `dict`.
+
+### 2) Message handler rewiring
+- `parse_and_validate_message(...)` now calls `parse_json_object_payload(...)`.
+- Root-type failures are handled in one `except JsonRootTypeError` branch and mapped to:
+  - `"Invalid message format: root must be an object, got <type>"`
+- Added `_format_validation_errors(...)` helper to centralize Pydantic error-string formatting.
+
+### 3) Handshake rewiring
+- `perform_handshake(...)` now calls `parse_json_object_payload(...)`.
+- `JsonRootTypeError` is treated as validation-class handshake failure (warning + policy close), matching existing contract.
+
+## Regression Coverage
+- Updated:
+  - `tests/backend/test_websocket_message_handler.py`
+  - `tests/backend/test_websocket_connection.py`
+- Added:
+  - `test_parse_json_object_payload_returns_object_root`
+  - `test_parse_json_object_payload_rejects_non_object_root`
+  in `tests/backend/test_websocket_json_parse.py`
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_websocket_json_parse.py
+./scripts/python-in-env backend pytest tests/backend/test_websocket_message_handler.py
+./scripts/python-in-env backend pytest tests/backend/test_websocket_connection.py
+```
+
+Results:
+- `10 passed`
+- `19 passed`
+- `15 passed`
+
+This confirms ingress behavior is preserved while consolidating object-root validation into one shared path.
+
+---
+
 # Refactor: Consolidate Dict Event Field Extraction in QueryExecutionService
 
 ## Target

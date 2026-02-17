@@ -114,5 +114,31 @@ async def test_parse_json_payload_supports_non_object_roots():
     assert result == ["a", 1, {"b": 2}]
 
 
+@pytest.mark.asyncio
+async def test_parse_json_object_payload_returns_object_root():
+    payload = json.dumps({"root": "object"})
+    result = await json_parse_module.parse_json_object_payload(
+        payload,
+        offload_threshold_bytes=4096,
+        loop_getter=asyncio.get_running_loop,
+    )
+
+    assert result == {"root": "object"}
+
+
+@pytest.mark.asyncio
+async def test_parse_json_object_payload_rejects_non_object_root():
+    payload = json.dumps(["not", "object"])
+
+    with pytest.raises(json_parse_module.JsonRootTypeError) as exc_info:
+        await json_parse_module.parse_json_object_payload(
+            payload,
+            offload_threshold_bytes=4096,
+            loop_getter=asyncio.get_running_loop,
+        )
+
+    assert exc_info.value.payload_type == "list"
+
+
 def test_default_json_offload_threshold_contract():
     assert json_parse_module.DEFAULT_JSON_PARSE_OFFLOAD_BYTES == 64 * 1024
