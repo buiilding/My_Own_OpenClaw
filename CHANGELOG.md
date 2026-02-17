@@ -7,7 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
-- test(browser-use-parity): add `tests/sidecar/tools/test_browser_use_tool_parity.py` to enforce Browser Use tool-surface parity by checking canonical `browser_use.tools.service.Tools` action names against WindieOS schema exposure, native handler registry coverage, and adapter dispatch routing
+- test(browser-use-parity): add `tests/sidecar/tools/test_browser_use_tool_parity.py` to enforce Browser Use tool-surface parity by checking canonical `browser_use.tools.service.Tools` action names against WindieOS backend+sidecar schema exposure, native handler registry coverage, and adapter dispatch routing
 - docs(plan): add `docs/plan/WINDIEOS_INSTALL_PERMISSION_ONBOARDING_PLAN.md` defining a first-run permission-first onboarding wizard, OS-specific probe and verification flow, frontend+backend capability gating, and planned system-access consent model
 - feat(browser-use-adapter): close remaining Browser Use tool parity gaps by forwarding `act.request.kind` for `navigate`/`extract`/`scroll`/`screenshot`/`wait` through Browser Use-aware routing, allowing index-based `act.click`, and passing `extract.output_schema` to Browser Use-native extract execution when on the direct extract path
 - feat(browser-use-port): expose Browser Use action names directly through `browser_control` (`search`, `go_back`, `search_page`, `find_elements`, `find_text`, `input`, `send_keys`, `switch`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`) while preserving WindieOS agent/tool-loop orchestration
