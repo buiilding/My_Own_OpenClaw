@@ -473,6 +473,56 @@ describe('ipc.cjs bridge', () => {
     expect(queryMessage.payload.content).toContain('<user_query>\nafter settings update\n</user_query>');
   });
 
+  test('keeps initial query context after transient query send failure', async () => {
+    const { handlers, ws, backendBridge } = initIpc();
+    ws.triggerOpen();
+
+    backendBridge.getSystemState.mockResolvedValue({
+      active_window: 'App',
+      mouse_position: '0,0',
+      screen_resolution: '1920x1080',
+      windows: ['A', 'B'],
+    });
+    backendBridge.searchMemory.mockResolvedValue({
+      success: true,
+      data: { memories: { episodic: [], semantic: [] } },
+    });
+
+    const originalSend = ws.send.bind(ws);
+    let failNextQuerySend = true;
+    ws.send = (data) => {
+      const parsed = JSON.parse(data);
+      if (parsed?.type === 'query' && failNextQuerySend) {
+        failNextQuerySend = false;
+        throw new Error('send failed');
+      }
+      originalSend(data);
+    };
+
+    await handlers['to-backend']({ sender: null }, {
+      type: 'query',
+      payload: { text: 'first query', conversation_ref: 'conv-a' },
+    });
+    await handlers['to-backend']({ sender: null }, {
+      type: 'query',
+      payload: { text: 'second query', conversation_ref: 'conv-a' },
+    });
+
+    expect(backendBridge.getSystemState).toHaveBeenCalledTimes(2);
+    expect(backendBridge.getSystemState.mock.calls[0][0]).toEqual([
+      'active_window',
+      'mouse_position',
+      'screen_resolution',
+      'windows',
+    ]);
+    expect(backendBridge.getSystemState.mock.calls[1][0]).toEqual([
+      'active_window',
+      'mouse_position',
+      'screen_resolution',
+      'windows',
+    ]);
+  });
+
   test('reconnect clears stale conversation ref fallback before next query', async () => {
     jest.useFakeTimers();
     try {

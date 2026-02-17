@@ -538,6 +538,7 @@ function initializeIpc(win, options = {}) {
     }
 
     let queryMessageId = null;
+    let queryUsedInitialContext = false;
 
     // Build complete user message content with system state and memories
     // System context MUST be retrieved - never skip it
@@ -564,7 +565,7 @@ function initializeIpc(win, options = {}) {
         }, event.sender);
       }
       const contextType = isFirstQuery ? 'initial' : 'sequential';
-      isFirstQuery = false;
+      queryUsedInitialContext = contextType === 'initial';
       const userId = currentUserId || generateUserId();
       const {
         content: completeContent,
@@ -604,6 +605,8 @@ function initializeIpc(win, options = {}) {
           message: 'Unable to send query: backend connection is unavailable.',
         },
       });
+    } else if (type === 'query' && queryUsedInitialContext) {
+      isFirstQuery = false;
     }
   });
 }

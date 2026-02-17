@@ -1161,3 +1161,40 @@ In `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`, assist
 - Re-ran targeted frontend suite:
   - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptWriter.test.ts`
   - Result: `20 passed`.
+
+---
+
+## [x] Bug Report: Failed First Query Send Incorrectly Consumed Initial-Context Mode
+
+### Summary
+
+In `frontend/src/main/ipc.cjs`, a transient failure while sending the first query could incorrectly flip the query-context mode from `initial` to `sequential`, causing the next successful query to miss initial context fields.
+
+### Root Cause
+
+- In `to-backend` query handling:
+  - `contextType` was computed from `isFirstQuery`
+  - `isFirstQuery = false` was set **before** send success was known
+- If `sendMessageToBackend(...)` failed (returned `null` after send exception), initial-context mode was still consumed.
+- Subsequent queries then used sequential context (`active_window`, `mouse_position`, `screen_resolution`) instead of initial context (includes `windows`).
+
+### Why It's Problematic
+
+- A transient transport failure changes behavior of later successful requests.
+- First successful query can lose richer initial system context unexpectedly.
+- This creates hard-to-debug prompt-context inconsistency after temporary send faults.
+
+### Fix
+
+- Updated `frontend/src/main/ipc.cjs` query dispatch flow:
+  - track whether current query used initial context (`queryUsedInitialContext`)
+  - only set `isFirstQuery = false` after send succeeds (`messageId` truthy)
+  - preserve existing error event/overlay behavior when send fails
+
+### Validation
+
+- Added regression test in `tests/frontend/IpcMainBridge.test.cjs`:
+  - `keeps initial query context after transient query send failure`
+- Re-ran targeted frontend suite:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/IpcMainBridge.test.cjs`
+  - Result: `22 passed`.
