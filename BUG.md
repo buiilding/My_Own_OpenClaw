@@ -1237,3 +1237,43 @@ In `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`, sessio
 - Ran adjacent transcript smoke suite:
   - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptWriter.test.ts`
   - Result: `20 passed`.
+
+---
+
+## [x] Bug Report: Chat Stream Events Without Refs Could Clear Active Transcript Session
+
+### Summary
+
+In `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, transcript session updates were normalizing missing backend refs to `null` for every event. For events that legitimately omit refs (for example `tool-schemas`), this could clear active transcript session context.
+
+### Root Cause
+
+- `useChatStream` called:
+  - `updateTranscriptSession(data.conversation_ref ?? null, data.user_id ?? null)`
+- `conversation_ref` is optional in backend events.
+- `updateTranscriptSession(..., ...)` forwards to `sessionInfoState.update(...)`, where `conversationRef = null` is treated as an explicit clear.
+- Result: events with omitted refs could unintentionally reset conversation tracking.
+
+### Why It's Problematic
+
+- Active transcript session can be cleared by unrelated backend events that are not conversation-scoped.
+- Subsequent transcript writes may be queued/skipped until conversation info is restored.
+- This creates subtle state drift in renderer transcript behavior.
+
+### Fix
+
+- Updated `useChatStream` to forward optional refs without null-coalescing:
+  - from `updateTranscriptSession(data.conversation_ref ?? null, data.user_id ?? null)`
+  - to `updateTranscriptSession(data.conversation_ref, data.user_id)`
+- Added regression test in `tests/frontend/ChatStreamThinkingStatus.test.tsx`:
+  - `preserves transcript session refs when backend event omits conversation and user ids`
+- The regression asserts `updateTranscriptSession(undefined, undefined)` for a `tool-schemas` event that omits refs.
+
+### Validation
+
+- Ran targeted frontend hook suite:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/ChatStreamThinkingStatus.test.tsx`
+  - Result: `28 passed`.
+- Ran adjacent transcript smoke suite:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptWriter.test.ts`
+  - Result: `20 passed`.

@@ -538,7 +538,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         return;
       }
       if (enableTranscript) {
-        updateTranscriptSession(data.conversation_ref ?? null, data.user_id ?? null);
+        updateTranscriptSession(data.conversation_ref, data.user_id);
       }
       const handler = handlers[data.type];
       if (handler) {
