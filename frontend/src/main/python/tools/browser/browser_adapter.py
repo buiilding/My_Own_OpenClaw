@@ -156,7 +156,6 @@ class BrowserUseCompatibilityAdapter:
         controller: BrowserControllerLike,
         runtime_provider: BrowserRuntimeProvider | None = None,
     ):
-        self._controller = controller
         self._runtime = runtime_provider or get_browser_runtime_provider(controller)
 
     async def execute(
