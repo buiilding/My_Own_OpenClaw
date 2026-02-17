@@ -102,6 +102,28 @@ def _create_rebuild_memories_table(db_path: Path) -> None:
         conn.commit()
 
 
+def _create_unprocessed_memories_table(db_path: Path) -> None:
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE memories (
+                id TEXT PRIMARY KEY,
+                user_id TEXT,
+                content TEXT,
+                timestamp TEXT,
+                metadata TEXT,
+                conversation_id TEXT,
+                record_kind TEXT,
+                role TEXT,
+                message_type TEXT,
+                tool_name TEXT,
+                is_semanticized INTEGER
+            )
+            """
+        )
+        conn.commit()
+
+
 @pytest.mark.asyncio
 async def test_search_short_circuits_without_embedding_when_no_searchable_indices(
     tmp_path: Path,
@@ -266,3 +288,113 @@ async def test_rebuild_index_rewrites_sparse_embedding_ids_to_contiguous_ids(
     embedding_by_id = {row[0]: row[1] for row in rows}
     assert embedding_by_id["episodic-b"] == 0
     assert embedding_by_id["episodic-a"] == 1
+
+
+@pytest.mark.asyncio
+async def test_get_unprocessed_memories_after_id_handles_existing_and_missing_watermarks(
+    tmp_path: Path,
+):
+    store = _build_store(tmp_path)
+    _create_unprocessed_memories_table(store.episodic_db_path)
+
+    with sqlite3.connect(store.episodic_db_path) as conn:
+        conn.executemany(
+            """
+            INSERT INTO memories (
+                id,
+                user_id,
+                content,
+                timestamp,
+                metadata,
+                conversation_id,
+                record_kind,
+                role,
+                message_type,
+                tool_name,
+                is_semanticized
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    "m1",
+                    "user-1",
+                    "first",
+                    "2026-01-01T00:00:00+00:00",
+                    "{}",
+                    "conv-1",
+                    "transcript",
+                    "user",
+                    "llm-text",
+                    None,
+                    0,
+                ),
+                (
+                    "m2",
+                    "user-1",
+                    "second",
+                    "2026-01-02T00:00:00+00:00",
+                    "{}",
+                    "conv-1",
+                    "transcript",
+                    "assistant",
+                    "llm-text",
+                    None,
+                    0,
+                ),
+                (
+                    "m3",
+                    "user-1",
+                    "same-timestamp-after-watermark",
+                    "2026-01-02T00:00:00+00:00",
+                    "{}",
+                    "conv-1",
+                    "transcript",
+                    "assistant",
+                    "llm-text",
+                    None,
+                    0,
+                ),
+                (
+                    "m4",
+                    "user-1",
+                    "semanticized",
+                    "2026-01-03T00:00:00+00:00",
+                    "{}",
+                    "conv-1",
+                    "transcript",
+                    "assistant",
+                    "llm-text",
+                    None,
+                    1,
+                ),
+                (
+                    "m5",
+                    "user-2",
+                    "different-user",
+                    "2026-01-03T00:00:00+00:00",
+                    "{}",
+                    "conv-1",
+                    "transcript",
+                    "assistant",
+                    "llm-text",
+                    None,
+                    0,
+                ),
+            ],
+        )
+        conn.commit()
+
+    after_existing_watermark = await store.get_unprocessed_memories_after_id(
+        last_id="m2",
+        user_id="user-1",
+        limit=100,
+    )
+    all_after_missing_watermark = await store.get_unprocessed_memories_after_id(
+        last_id="missing-watermark",
+        user_id="user-1",
+        limit=100,
+    )
+
+    assert [row["id"] for row in after_existing_watermark] == ["m3"]
+    assert [row["id"] for row in all_after_missing_watermark] == ["m1", "m2", "m3"]

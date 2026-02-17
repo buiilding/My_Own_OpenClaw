@@ -1655,23 +1655,7 @@ class LocalMemoryStore:
             )
             
             rows = await cursor.fetchall()
-            
-            results = []
-            for row in rows:
-                metadata = self._parse_raw_metadata(row["metadata"])
-                results.append({
-                    "id": row["id"],
-                    "content": row["content"],
-                    "timestamp": row["timestamp"],
-                    "metadata": metadata,
-                    "conversation_id": row["conversation_id"],
-                    "record_kind": row["record_kind"] or metadata.get("record_kind"),
-                    "role": row["role"] or metadata.get("role"),
-                    "message_type": row["message_type"] or metadata.get("message_type"),
-                    "tool_name": row["tool_name"] or metadata.get("tool_name"),
-                })
-            
-            return results
+            return self._format_transcript_rows(rows, include_conversation_id=True)
 
     @staticmethod
     def _conversation_where_clause(conversation_id: Optional[str]) -> Tuple[str, Tuple[Any, ...]]:
@@ -1707,22 +1691,7 @@ class LocalMemoryStore:
                 (user_id, limit),
             )
             rows = await cursor.fetchall()
-            
-            results = []
-            for row in rows:
-                metadata = self._parse_raw_metadata(row["metadata"])
-                results.append({
-                    "id": row["id"],
-                    "content": row["content"],
-                    "timestamp": row["timestamp"],
-                    "metadata": metadata,
-                    "record_kind": row["record_kind"] or metadata.get("record_kind"),
-                    "role": row["role"] or metadata.get("role"),
-                    "message_type": row["message_type"] or metadata.get("message_type"),
-                    "tool_name": row["tool_name"] or metadata.get("tool_name"),
-                })
-            
-            return results
+            return self._format_transcript_rows(rows, include_conversation_id=False)
     
     async def mark_episodic_memories_semanticized(
         self, memory_ids: List[str]
@@ -1799,105 +1768,64 @@ class LocalMemoryStore:
         async with aiosqlite.connect(self.episodic_db_path) as conn:
             conn.row_factory = aiosqlite.Row
             cursor = await conn.cursor()
-            
-            if last_id is None:
-                # No watermark - get all unprocessed memories
-                await cursor.execute(
-                    """
-                    SELECT
-                        id,
-                        content,
-                        timestamp,
-                        metadata,
-                        conversation_id,
-                        record_kind,
-                        role,
-                        message_type,
-                        tool_name
+            await cursor.execute(
+                """
+                WITH watermark AS (
+                    SELECT timestamp
                     FROM memories
-                    WHERE user_id = ? AND is_semanticized = 0
-                      AND record_kind = 'transcript'
-                    ORDER BY timestamp ASC, id ASC
-                    LIMIT ?
-                """,
-                    (user_id, limit),
+                    WHERE id = ?
                 )
-            else:
-                # Get memories after the watermark ID
-                # First, get the timestamp of the watermark memory
-                await cursor.execute(
-                    "SELECT timestamp FROM memories WHERE id = ?",
-                    (last_id,)
-                )
-                watermark_row = await cursor.fetchone()
-                
-                if watermark_row:
-                    watermark_timestamp = watermark_row[0]
-                    # Get all memories with timestamp > watermark, or same timestamp but id > watermark
-                    await cursor.execute(
-                        """
-                        SELECT
-                            id,
-                            content,
-                            timestamp,
-                            metadata,
-                            conversation_id,
-                            record_kind,
-                            role,
-                            message_type,
-                            tool_name
-                        FROM memories
-                        WHERE user_id = ? 
-                          AND is_semanticized = 0
-                          AND record_kind = 'transcript'
-                          AND (
-                              timestamp > ?
-                              OR (timestamp = ? AND id > ?)
-                          )
-                        ORDER BY timestamp ASC, id ASC
-                        LIMIT ?
-                    """,
-                        (user_id, watermark_timestamp, watermark_timestamp, last_id, limit),
-                    )
-                else:
-                    # Watermark ID not found - treat as if no watermark
-                    logger.warning(f"Watermark ID {last_id} not found in database, treating as no watermark")
-                    await cursor.execute(
-                        """
-                        SELECT
-                            id,
-                            content,
-                            timestamp,
-                            metadata,
-                            conversation_id,
-                            record_kind,
-                            role,
-                            message_type,
-                            tool_name
-                        FROM memories
-                        WHERE user_id = ? AND is_semanticized = 0
-                          AND record_kind = 'transcript'
-                        ORDER BY timestamp ASC, id ASC
-                        LIMIT ?
-                    """,
-                        (user_id, limit),
-                    )
-            
+                SELECT
+                    id,
+                    content,
+                    timestamp,
+                    metadata,
+                    conversation_id,
+                    record_kind,
+                    role,
+                    message_type,
+                    tool_name
+                FROM memories
+                WHERE user_id = ?
+                  AND is_semanticized = 0
+                  AND record_kind = 'transcript'
+                  AND (
+                      ? IS NULL
+                      OR NOT EXISTS (SELECT 1 FROM watermark)
+                      OR timestamp > (SELECT timestamp FROM watermark)
+                      OR (
+                          timestamp = (SELECT timestamp FROM watermark)
+                          AND id > ?
+                      )
+                  )
+                ORDER BY timestamp ASC, id ASC
+                LIMIT ?
+            """,
+                (last_id, user_id, last_id, last_id, limit),
+            )
             rows = await cursor.fetchall()
-            
-            results = []
-            for row in rows:
-                metadata = self._parse_raw_metadata(row["metadata"])
-                results.append({
-                    "id": row["id"],
-                    "content": row["content"],
-                    "timestamp": row["timestamp"],
-                    "metadata": metadata,
-                    "conversation_id": row["conversation_id"],
-                    "record_kind": row["record_kind"] or metadata.get("record_kind"),
-                    "role": row["role"] or metadata.get("role"),
-                    "message_type": row["message_type"] or metadata.get("message_type"),
-                    "tool_name": row["tool_name"] or metadata.get("tool_name"),
-                })
-            
-            return results
+            return self._format_transcript_rows(rows, include_conversation_id=True)
+
+    def _format_transcript_rows(
+        self,
+        rows: List[Dict[str, Any]],
+        *,
+        include_conversation_id: bool,
+    ) -> List[Dict[str, Any]]:
+        results: List[Dict[str, Any]] = []
+        for row in rows:
+            metadata = self._parse_raw_metadata(row["metadata"])
+            entry = {
+                "id": row["id"],
+                "content": row["content"],
+                "timestamp": row["timestamp"],
+                "metadata": metadata,
+                "record_kind": row["record_kind"] or metadata.get("record_kind"),
+                "role": row["role"] or metadata.get("role"),
+                "message_type": row["message_type"] or metadata.get("message_type"),
+                "tool_name": row["tool_name"] or metadata.get("tool_name"),
+            }
+            if include_conversation_id:
+                entry["conversation_id"] = row["conversation_id"]
+            results.append(entry)
+        return results
