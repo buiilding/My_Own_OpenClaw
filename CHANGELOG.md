@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(browser-use-runtime): vendor Browser Use source into WindieOS at `frontend/src/main/python/browser_use` from `../browser-use/browser_use` so browser_control runtime behavior comes from in-repo Browser Use implementation instead of pip package resolution; runtime provider now prepends vendored path before Browser Use module discovery
+- chore(sidecar-deps): remove `browser-use` from sidecar requirements files and document vendored Browser Use runtime usage in browser-control runbooks
 - refactor(browser-use-runtime): cache Browser Use adapter/runtime per controller instance so selector-map continuity is preserved across `browser_control` calls (`snapshot` -> `type`/`click` flows no longer recreate runtime bridge/session each call)
 - refactor(browser-use-runtime): remove synthetic extraction fallback model from native handlers; `extract`/`read_long_content` now require a Browser Use-native extraction model via `WINDIE_BROWSER_USE_EXTRACTION_MODEL`
 - test(browser-use-parity): add `tests/sidecar/tools/test_browser_use_tool_parity.py` to enforce Browser Use tool-surface parity by checking canonical `browser_use.tools.service.Tools` action names against WindieOS backend+sidecar schema exposure, native handler registry coverage, and adapter dispatch routing

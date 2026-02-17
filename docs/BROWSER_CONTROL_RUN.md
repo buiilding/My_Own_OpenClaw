@@ -17,6 +17,8 @@ pip install -r requirements.txt
 playwright install chromium
 ```
 
+`browser_use` is vendored in this repository at `frontend/src/main/python/browser_use`, so no pip install of the `browser-use` package is required.
+
 ### Step 2: Run WindieOS
 
 **Terminal 1 - Backend:**
