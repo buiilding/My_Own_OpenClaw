@@ -112,6 +112,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(browser-runtime): convert Browser Use compatibility adapter action routing in `browser_tool.py` from long conditional chains to table-driven dispatch (`ADAPTER_ACTIONS_*` + `BROWSER_USE_PASSTHROUGH_ACTIONS`) while preserving WindieOS orchestration and Browser Use execution semantics
 - chore(browser-use-runtime): prune vendored `browser_use/integrations` directory and enforce it in vendor sync/check scripts so empty upstream integration scaffolding is no longer shipped in WindieOS
 - chore(browser-use-runtime): prune vendored Browser Use tree down to WindieOS runtime dependencies (agent runtime internals, code-use, sandbox, skills, unused LLM provider modules, and vendor docs/typing marker), and expand vendor sync/check prune policy + manifest to enforce the slimmer runtime footprint
 - refactor(browser-use-runtime): relocate vendored Browser Use runtime tree and vendor manifest under `frontend/src/main/python/tools/browser/` (`browser_use/` + `browser_use_vendor_manifest.json`), update browser runtime path resolution, vendor sync/check scripts, parity tests, and browser runbook/docs to keep Browser Use imports/tooling aligned with the new location
