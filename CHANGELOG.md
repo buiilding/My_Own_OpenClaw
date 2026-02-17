@@ -112,6 +112,7 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(browser-use-runtime): relocate vendored Browser Use runtime tree and vendor manifest under `frontend/src/main/python/tools/browser/` (`browser_use/` + `browser_use_vendor_manifest.json`), update browser runtime path resolution, vendor sync/check scripts, parity tests, and browser runbook/docs to keep Browser Use imports/tooling aligned with the new location
 - refactor(tool-naming): rename the frontend-executed browser tool contract from `browser_control` to `browser` across backend remote registry, sidecar registry, local backend bridge timeout policy, simulation fixtures, dev tool-selection profiles, and user-facing browser tool docs while keeping Browser Use-native execution internals unchanged
 - refactor(browser-control): overhaul `frontend/src/main/python/tools/browser/browser_tool.py` into a Browser Use-native orchestration entrypoint, removing unreachable legacy snapshot/extract/controller handler code and keeping WindieOS tool-loop execution routed through `get_browser_use_adapter(...)`
 - refactor(browser-control): inline Browser Use adapter/runtime/native-handler code into `frontend/src/main/python/tools/browser/browser_tool.py`, delete `frontend/src/main/python/tools/browser_use_adapter/`, and repoint sidecar Browser Use adapter tests + runbook native-handler override path to `tools.browser.browser_tool`

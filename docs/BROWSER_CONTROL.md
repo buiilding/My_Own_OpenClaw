@@ -17,7 +17,7 @@ Browser execution is routed through the Browser Use compatibility adapter. Runti
 - Browser Use-native runtime is the default and required execution path (`browser_use_native`).
 - Optional runtime value: `WINDIE_BROWSER_USE_RUNTIME=browser_use` (alias of `browser_use_native`).
 - Startup fails fast if local `browser_use` runtime modules are unavailable or native runtime provider loading fails.
-- Runtime initialization enforces vendored Browser Use import origin (`frontend/src/main/python/browser_use`) and rejects external/site-packages `browser_use` resolution.
+- Runtime initialization enforces vendored Browser Use import origin (`frontend/src/main/python/tools/browser/browser_use`) and rejects external/site-packages `browser_use` resolution.
 - Optional native handler module override remains available for diagnostics (`WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`).
 - Browser Use extraction actions (`extract`, `read_long_content`) require a Browser Use LLM model via `WINDIE_BROWSER_USE_EXTRACTION_MODEL` (example: `openai_gpt_4o_mini`).
 
@@ -55,7 +55,7 @@ cd WindieOS
 
 Parity check guarantees:
 - Vendored tree matches `../browser-use/browser_use`.
-- Runtime import resolves to vendored `frontend/src/main/python/browser_use`.
+- Runtime import resolves to vendored `frontend/src/main/python/tools/browser/browser_use`.
 - Sidecar requirements do not depend on pip `browser-use`.
 - Non-runtime vendored paths remain pruned: `skill_cli`, `mcp`, `actor/playground`, `dom/playground`, `llm/tests`, `tokens/tests`.
 

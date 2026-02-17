@@ -173,19 +173,19 @@ def _is_within_path(path: Path, parent: Path) -> bool:
 
 def _ensure_vendored_browser_use_on_path() -> Path:
     """Prefer and require the in-repo Browser Use package."""
-    python_root = Path(__file__).resolve().parents[2]
-    vendored_browser_use = python_root / "browser_use"
+    browser_tools_root = Path(__file__).resolve().parent
+    vendored_browser_use = browser_tools_root / "browser_use"
     if not vendored_browser_use.is_dir():
         raise RuntimeError(
             "Vendored Browser Use runtime is missing. "
-            "Expected directory: frontend/src/main/python/browser_use"
+            "Expected directory: frontend/src/main/python/tools/browser/browser_use"
         )
-    root_path = str(python_root)
+    root_path = str(browser_tools_root)
     try:
         existing_index = sys.path.index(root_path)
     except ValueError:
         sys.path.insert(0, root_path)
-        return
+        return vendored_browser_use
     if existing_index != 0:
         sys.path.pop(existing_index)
         sys.path.insert(0, root_path)

@@ -28,6 +28,8 @@ def _is_within(path: Path, parent: Path) -> bool:
 @lru_cache(maxsize=1)
 def _browser_use_actions() -> set[str]:
     try:
+        from tools.browser.browser_tool import _ensure_vendored_browser_use_on_path
+        _ensure_vendored_browser_use_on_path()
         from browser_use.tools.service import Tools
     except Exception as exc:
         pytest.skip(f"browser_use import unavailable for parity checks: {exc}")
@@ -83,11 +85,11 @@ def _minimal_action_args() -> dict[str, dict[str, object]]:
 
 
 def test_browser_use_import_origin_is_vendored() -> None:
+    from tools.browser.browser_tool import _ensure_vendored_browser_use_on_path
+    vendored_dir = _ensure_vendored_browser_use_on_path()
     import browser_use
 
     module_file = Path(getattr(browser_use, "__file__", "")).resolve()
-    root = Path(__file__).resolve().parents[3]
-    vendored_dir = root / "frontend" / "src" / "main" / "python" / "browser_use"
     assert vendored_dir.is_dir()
     assert _is_within(module_file, vendored_dir), (
         "browser_use import must resolve to vendored runtime "

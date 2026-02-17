@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 
 SOURCE_DIR="${1:-${REPO_ROOT}/../browser-use/browser_use}"
-VENDORED_DIR="${REPO_ROOT}/frontend/src/main/python/browser_use"
+VENDORED_DIR="${REPO_ROOT}/frontend/src/main/python/tools/browser/browser_use"
 REQ_FILE="${REPO_ROOT}/frontend/src/main/python/requirements.txt"
 REQ_RUNTIME_FILE="${REPO_ROOT}/frontend/src/main/python/requirements.runtime.txt"
 PRUNED_DIRS=(
@@ -66,13 +66,15 @@ done
 
 if grep -Eq '^[[:space:]]*browser-use([<>=!~].*)?$' "${REQ_FILE}" "${REQ_RUNTIME_FILE}"; then
   echo "browser-use pip package must not be listed in sidecar requirements." >&2
-  echo "Use vendored frontend/src/main/python/browser_use instead." >&2
+  echo "Use vendored frontend/src/main/python/tools/browser/browser_use instead." >&2
   exit 1
 fi
 
 IMPORT_PATH="$(${REPO_ROOT}/scripts/python-in-env sidecar bash -lc '
   cd "'"${REPO_ROOT}"'"/frontend/src/main/python
   python - <<"PY"
+from tools.browser.browser_tool import _ensure_vendored_browser_use_on_path
+_ensure_vendored_browser_use_on_path()
 import browser_use
 print(browser_use.__file__)
 PY
