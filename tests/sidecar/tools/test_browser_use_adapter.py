@@ -9,16 +9,16 @@ from unittest import mock
 
 import pytest
 
-from tools.browser_use_adapter import BrowserUseCompatibilityAdapter
-from tools.browser_use_adapter import get_browser_use_adapter
-from tools.browser_use_adapter.runtime_provider import (
+from tools.browser.browser_tool import BrowserUseCompatibilityAdapter
+from tools.browser.browser_tool import get_browser_use_adapter
+from tools.browser.browser_tool import (
     ControllerBackedRuntimeProvider,
     get_browser_runtime_provider,
 )
-from tools.browser_use_adapter.browser_use_native_handlers import (
+from tools.browser.browser_tool import (
     get_native_runtime_handlers,
 )
-from tools.browser_use_adapter.browser_use_native_runtime import (
+from tools.browser.browser_tool import (
     BrowserUseNativeRuntimeProvider,
 )
 
@@ -935,7 +935,7 @@ class TestBrowserUseCompatibilityAdapter:
         make_controller,
     ):
         controller = make_controller()
-        fake_runtime_module = ModuleType("tools.browser_use_adapter.browser_use_native_runtime")
+        fake_runtime_module = ModuleType("tools.browser.browser_tool")
         fake_runtime_module.create_browser_use_native_runtime_provider = mock.Mock(
             return_value=None
         )
@@ -944,10 +944,10 @@ class TestBrowserUseCompatibilityAdapter:
             {"WINDIE_BROWSER_USE_RUNTIME": "browser_use_native"},
             clear=False,
         ), mock.patch(
-            "tools.browser_use_adapter.runtime_provider.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ), mock.patch(
-            "tools.browser_use_adapter.runtime_provider.import_module",
+            "tools.browser.browser_tool.import_module",
             return_value=fake_runtime_module,
         ):
             with pytest.raises(RuntimeError, match="provider is unavailable"):
@@ -959,7 +959,7 @@ class TestBrowserUseCompatibilityAdapter:
     ):
         controller = make_controller()
         with mock.patch.dict("os.environ", {}, clear=True), mock.patch(
-            "tools.browser_use_adapter.runtime_provider.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=None,
         ):
             with pytest.raises(RuntimeError, match="unavailable"):
@@ -971,10 +971,10 @@ class TestBrowserUseCompatibilityAdapter:
     ):
         controller = make_controller()
         with mock.patch.dict("os.environ", {}, clear=True), mock.patch(
-            "tools.browser_use_adapter.runtime_provider.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ), mock.patch(
-            "tools.browser_use_adapter.browser_use_native_runtime.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ):
             runtime = get_browser_runtime_provider(controller)
@@ -993,10 +993,10 @@ class TestBrowserUseCompatibilityAdapter:
             },
             clear=False,
         ), mock.patch(
-            "tools.browser_use_adapter.runtime_provider.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ), mock.patch(
-            "tools.browser_use_adapter.browser_use_native_runtime.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ):
             runtime = get_browser_runtime_provider(controller)
@@ -1025,10 +1025,10 @@ class TestBrowserUseCompatibilityAdapter:
             {"WINDIE_BROWSER_USE_RUNTIME": "browser_use_native"},
             clear=False,
         ), mock.patch(
-            "tools.browser_use_adapter.runtime_provider.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ), mock.patch(
-            "tools.browser_use_adapter.runtime_provider.import_module",
+            "tools.browser.browser_tool.import_module",
             side_effect=ImportError("simulated import failure"),
         ):
             with pytest.raises(RuntimeError, match="native provider load failed"):
@@ -1044,10 +1044,10 @@ class TestBrowserUseCompatibilityAdapter:
             {"WINDIE_BROWSER_USE_RUNTIME": "browser_use_native"},
             clear=False,
         ), mock.patch(
-            "tools.browser_use_adapter.runtime_provider.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ), mock.patch(
-            "tools.browser_use_adapter.browser_use_native_runtime.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ):
             runtime = get_browser_runtime_provider(controller)
@@ -1120,7 +1120,7 @@ class TestBrowserUseCompatibilityAdapter:
         fake_runtime = mock.Mock()
 
         with mock.patch(
-            "tools.browser_use_adapter.controller_adapter.get_browser_runtime_provider",
+            "tools.browser.browser_tool.get_browser_runtime_provider",
             return_value=fake_runtime,
         ) as runtime_factory:
             adapter_one = get_browser_use_adapter(controller)
@@ -1173,7 +1173,7 @@ class TestBrowserUseCompatibilityAdapter:
             raise ImportError(name)
 
         with mock.patch(
-            "tools.browser_use_adapter.browser_use_native_handlers.import_module",
+            "tools.browser.browser_tool.import_module",
             side_effect=_import_module,
         ):
             handlers = get_native_runtime_handlers()
@@ -1243,7 +1243,7 @@ class TestBrowserUseCompatibilityAdapter:
         controller = SimpleNamespace(is_connected=True, _mode="managed", _cdp_url=None)
 
         with mock.patch(
-            "tools.browser_use_adapter.browser_use_native_handlers.import_module",
+            "tools.browser.browser_tool.import_module",
             side_effect=_import_module,
         ):
             handlers = get_native_runtime_handlers(controller=controller)
@@ -1317,7 +1317,7 @@ class TestBrowserUseCompatibilityAdapter:
             {"WINDIE_BROWSER_USE_EXTRACTION_MODEL": "openai_gpt_4o_mini"},
             clear=False,
         ), mock.patch(
-            "tools.browser_use_adapter.browser_use_native_handlers.import_module",
+            "tools.browser.browser_tool.import_module",
             side_effect=_import_module,
         ):
             handlers = get_native_runtime_handlers(controller=controller)
@@ -1354,8 +1354,8 @@ class TestBrowserUseCompatibilityAdapter:
         )
 
         def _import_module(name: str):
-            if name == "tools.browser_use_adapter.browser_use_native_runtime":
-                import tools.browser_use_adapter.browser_use_native_runtime as runtime_module
+            if name == "tools.browser.browser_tool":
+                import tools.browser.browser_tool as runtime_module
 
                 return runtime_module
             if name == "custom.native.handlers":
@@ -1370,16 +1370,16 @@ class TestBrowserUseCompatibilityAdapter:
             },
             clear=False,
         ), mock.patch(
-            "tools.browser_use_adapter.runtime_provider.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ), mock.patch(
-            "tools.browser_use_adapter.browser_use_native_runtime.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ), mock.patch(
-            "tools.browser_use_adapter.browser_use_native_runtime.import_module",
+            "tools.browser.browser_tool.import_module",
             side_effect=_import_module,
         ), mock.patch(
-            "tools.browser_use_adapter.runtime_provider.import_module",
+            "tools.browser.browser_tool.import_module",
             side_effect=_import_module,
         ):
             runtime = get_browser_runtime_provider(controller)
@@ -1397,8 +1397,8 @@ class TestBrowserUseCompatibilityAdapter:
         invalid_module.get_native_runtime_handlers = mock.Mock(return_value="not_a_mapping")
 
         def _import_module(name: str):
-            if name == "tools.browser_use_adapter.browser_use_native_runtime":
-                import tools.browser_use_adapter.browser_use_native_runtime as runtime_module
+            if name == "tools.browser.browser_tool":
+                import tools.browser.browser_tool as runtime_module
 
                 return runtime_module
             if name == "custom.invalid.handlers":
@@ -1413,16 +1413,16 @@ class TestBrowserUseCompatibilityAdapter:
             },
             clear=False,
         ), mock.patch(
-            "tools.browser_use_adapter.runtime_provider.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ), mock.patch(
-            "tools.browser_use_adapter.browser_use_native_runtime.find_spec",
+            "tools.browser.browser_tool.find_spec",
             return_value=object(),
         ), mock.patch(
-            "tools.browser_use_adapter.browser_use_native_runtime.import_module",
+            "tools.browser.browser_tool.import_module",
             side_effect=_import_module,
         ), mock.patch(
-            "tools.browser_use_adapter.runtime_provider.import_module",
+            "tools.browser.browser_tool.import_module",
             side_effect=_import_module,
         ):
             with pytest.raises(RuntimeError, match="returned non-mapping handlers"):

@@ -11,8 +11,8 @@ from unittest import mock
 import pytest
 
 from tools.browser.schemas import BROWSER_SCHEMAS
-from tools.browser_use_adapter import BrowserUseCompatibilityAdapter
-from tools.browser_use_adapter.browser_use_native_handlers import (
+from tools.browser.browser_tool import BrowserUseCompatibilityAdapter
+from tools.browser.browser_tool import (
     get_native_runtime_handlers,
 )
 
