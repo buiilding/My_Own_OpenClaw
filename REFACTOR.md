@@ -1,3 +1,83 @@
+# Refactor: Consolidate Dict Event Field Extraction in QueryExecutionService
+
+## Target
+Reduce duplicated event-payload parsing logic and remove stale helper surface in:
+- `backend/src/api/services/query_execution.py`
+
+This is a maintainability + micro-performance refactor in a hot query-stream processing path.
+
+## Current Structure and Root Cause
+`QueryExecutionService` had repeated dict-event extraction logic across:
+- `_extract_chunk_text(...)`
+- `_extract_assistant_full_text(...)`
+- `_extract_streaming_complete_text(...)`
+
+Each method manually repeated:
+- dict type checks
+- payload lookup checks
+- string field extraction fallback logic
+
+The class also retained stale helper methods that were no longer used after earlier stream-loop refactors:
+- `_is_terminal_event(...)`
+- `_is_streaming_complete_event(...)`
+- `_is_error_event(...)`
+- `_is_non_empty_text_chunk(...)`
+
+Root cause: extraction behavior evolved incrementally, leaving duplicated branches and dead helper APIs.
+
+## Refactor Plan
+1. Introduce shared helpers for dict event payload/string extraction.
+2. Rewire chunk/assistant/completion extractors to use shared helpers.
+3. Remove unused stale `_is_*` helper methods.
+4. Preserve external behavior and signatures of active extraction methods.
+5. Add regression tests for payload-fallback extraction paths.
+
+## Implemented Changes
+### 1) Shared dict extraction helpers
+- Added:
+  - `_extract_dict_payload(event)`
+  - `_extract_dict_string_field(event, top_level_key, payload_key=...)`
+- File:
+  - `backend/src/api/services/query_execution.py`
+
+### 2) Rewired active extractors
+- Updated to use shared helpers:
+  - `_extract_chunk_text(...)`
+  - `_extract_assistant_full_text(...)`
+  - `_extract_streaming_complete_text(...)`
+
+This centralizes fallback semantics and removes repeated branching.
+
+### 3) Dead helper removal
+- Removed unused methods:
+  - `_is_terminal_event(...)`
+  - `_is_streaming_complete_event(...)`
+  - `_is_error_event(...)`
+  - `_is_non_empty_text_chunk(...)`
+
+## Regression Coverage
+- Added tests in:
+  - `tests/backend/test_api_handlers.py`
+- New tests:
+  - `test_query_execution_extract_assistant_full_text_uses_payload_fallback`
+  - `test_query_execution_extract_streaming_complete_text_uses_payload_or_top_level`
+
+These tests verify unchanged fallback behavior for top-level vs payload string extraction.
+
+## Validation
+Ran:
+
+```bash
+./scripts/python-in-env backend pytest tests/backend/test_api_handlers.py
+```
+
+Results:
+- `26 passed`
+
+This confirms no behavior regression while simplifying extraction logic and reducing dead code in the query execution service.
+
+---
+
 # Refactor: Remove Per-Event TTS Closure Allocation in StreamPipeline
 
 ## Target

@@ -597,6 +597,40 @@ def test_query_execution_extract_non_empty_chunk_text_respects_precomputed_event
     ) == ""
 
 
+def test_query_execution_extract_assistant_full_text_uses_payload_fallback():
+    service_cls = query_execution_module.QueryExecutionService
+
+    assert service_cls._extract_assistant_full_text(
+        {"type": "assistant_message_full", "payload": {"content": "  payload full  "}},
+        event_type="assistant_message_full",
+    ) == "payload full"
+    assert service_cls._extract_assistant_full_text(
+        {"type": "assistant_message_full", "content": "  top level full  "},
+        event_type="assistant_message_full",
+    ) == "top level full"
+    assert service_cls._extract_assistant_full_text(
+        {"type": "streaming-response", "payload": {"content": "ignored"}},
+        event_type="streaming-response",
+    ) == ""
+
+
+def test_query_execution_extract_streaming_complete_text_uses_payload_or_top_level():
+    service_cls = query_execution_module.QueryExecutionService
+
+    assert service_cls._extract_streaming_complete_text(
+        {"type": "streaming-complete", "payload": {"final_response": "  payload done  "}},
+        event_type="streaming-complete",
+    ) == "payload done"
+    assert service_cls._extract_streaming_complete_text(
+        {"type": "streaming-complete", "final_response": "  top level done  "},
+        event_type="streaming-complete",
+    ) == "top level done"
+    assert service_cls._extract_streaming_complete_text(
+        {"type": "tool-call", "payload": {"final_response": "ignored"}},
+        event_type="tool-call",
+    ) == ""
+
+
 @pytest.mark.asyncio
 async def test_tool_result_handler_routes_to_session():
     websocket = FakeWebSocket()
