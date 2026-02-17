@@ -11,6 +11,7 @@ import base64
 import json
 import re
 from typing import Any, Mapping, Protocol
+from weakref import WeakKeyDictionary
 
 from tools.browser_use_adapter.runtime_provider import (
     BrowserRuntimeProvider,
@@ -115,6 +116,9 @@ DEPRECATED_LEGACY_ACTIONS = frozenset(
     }
 )
 DEPRECATED_LEGACY_ACT_KINDS = frozenset({"hover", "drag", "select", "fill", "resize"})
+_ADAPTER_CACHE_BY_CONTROLLER: "WeakKeyDictionary[Any, BrowserUseCompatibilityAdapter]" = (
+    WeakKeyDictionary()
+)
 
 
 class BrowserControllerLike(Protocol):
@@ -2981,8 +2985,25 @@ def get_browser_use_adapter(
     controller: BrowserControllerLike,
     runtime_provider: BrowserRuntimeProvider | None = None,
 ) -> BrowserUseCompatibilityAdapter:
-    """Factory seam for adapter injection in tests."""
-    return BrowserUseCompatibilityAdapter(
-        controller,
-        runtime_provider=runtime_provider,
-    )
+    """Factory seam for adapter injection in tests and runtime caching."""
+    if runtime_provider is not None:
+        return BrowserUseCompatibilityAdapter(
+            controller,
+            runtime_provider=runtime_provider,
+        )
+
+    try:
+        cached = _ADAPTER_CACHE_BY_CONTROLLER.get(controller)
+        if cached is not None:
+            return cached
+    except TypeError:
+        # Some test doubles (for example SimpleNamespace) are not weak-referenceable.
+        # Skip caching for those objects.
+        return BrowserUseCompatibilityAdapter(controller)
+
+    adapter = BrowserUseCompatibilityAdapter(controller)
+    try:
+        _ADAPTER_CACHE_BY_CONTROLLER[controller] = adapter
+    except TypeError:
+        return adapter
+    return adapter

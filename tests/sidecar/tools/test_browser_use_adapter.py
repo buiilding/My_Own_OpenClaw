@@ -10,6 +10,7 @@ from unittest import mock
 import pytest
 
 from tools.browser_use_adapter import BrowserUseCompatibilityAdapter
+from tools.browser_use_adapter import get_browser_use_adapter
 from tools.browser_use_adapter.runtime_provider import (
     ControllerBackedRuntimeProvider,
     get_browser_runtime_provider,
@@ -1111,6 +1112,24 @@ class TestBrowserUseCompatibilityAdapter:
         assert result["status"] == 200
         controller.navigate.assert_awaited_once_with("https://example.com", "load")
 
+    def test_get_browser_use_adapter_caches_for_weakrefable_controller(self):
+        class _Controller:
+            is_connected = False
+
+        controller = _Controller()
+        fake_runtime = mock.Mock()
+
+        with mock.patch(
+            "tools.browser_use_adapter.controller_adapter.get_browser_runtime_provider",
+            return_value=fake_runtime,
+        ) as runtime_factory:
+            adapter_one = get_browser_use_adapter(controller)
+            adapter_two = get_browser_use_adapter(controller)
+
+        assert adapter_one is adapter_two
+        assert adapter_one._runtime is fake_runtime
+        runtime_factory.assert_called_once_with(controller)
+
     @pytest.mark.asyncio
     async def test_default_native_handler_registry_includes_browser_use_wait_seconds(
         self,
@@ -1241,6 +1260,79 @@ class TestBrowserUseCompatibilityAdapter:
             file_system=None,
             available_file_paths=["/tmp/upload.txt"],
             page_extraction_llm=None,
+        )
+
+    @pytest.mark.asyncio
+    async def test_native_handler_extract_uses_configured_browser_use_llm_and_filesystem(
+        self,
+    ):
+        fake_service_module = ModuleType("browser_use.tools.service")
+        fake_browser_module = ModuleType("browser_use.browser")
+        fake_filesystem_module = ModuleType("browser_use.filesystem.file_system")
+        fake_llm_models_module = ModuleType("browser_use.llm.models")
+        execute_action = mock.AsyncMock(
+            return_value=SimpleNamespace(extracted_content="Extracted content")
+        )
+        fake_page_extraction_llm = object()
+        get_llm_by_name = mock.Mock(return_value=fake_page_extraction_llm)
+
+        class FakeTools:
+            def __init__(self):
+                self.registry = SimpleNamespace(execute_action=execute_action)
+
+        class FakeBrowserSession:
+            def __init__(self, **_kwargs):
+                pass
+
+            async def start(self):
+                return None
+
+            async def stop(self):
+                return None
+
+        class FakeFileSystem:
+            def __init__(self, *_args, **_kwargs):
+                pass
+
+        fake_service_module.Tools = FakeTools
+        fake_browser_module.BrowserSession = FakeBrowserSession
+        fake_filesystem_module.FileSystem = FakeFileSystem
+        fake_llm_models_module.get_llm_by_name = get_llm_by_name
+
+        def _import_module(name: str):
+            if name == "browser_use.tools.service":
+                return fake_service_module
+            if name == "browser_use.browser":
+                return fake_browser_module
+            if name == "browser_use.filesystem.file_system":
+                return fake_filesystem_module
+            if name == "browser_use.llm.models":
+                return fake_llm_models_module
+            raise ImportError(name)
+
+        controller = SimpleNamespace(is_connected=True, _mode="managed", _cdp_url=None)
+
+        with mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_USE_EXTRACTION_MODEL": "openai_gpt_4o_mini"},
+            clear=False,
+        ), mock.patch(
+            "tools.browser_use_adapter.browser_use_native_handlers.import_module",
+            side_effect=_import_module,
+        ):
+            handlers = get_native_runtime_handlers(controller=controller)
+            result = await handlers["extract"](query="pricing")
+
+        assert result["success"] is True
+        assert result["native_source"] == "browser_use.tools"
+        get_llm_by_name.assert_called_once_with("openai_gpt_4o_mini")
+        execute_action.assert_awaited_once_with(
+            "extract",
+            {"query": "pricing"},
+            browser_session=mock.ANY,
+            file_system=mock.ANY,
+            available_file_paths=[],
+            page_extraction_llm=fake_page_extraction_llm,
         )
 
     def test_runtime_factory_loads_handlers_from_custom_module(self, make_controller):
