@@ -10,7 +10,14 @@ from urllib.parse import urlparse
 
 from pydantic import AfterValidator, AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from browser_use.browser.cloud.views import CloudBrowserParams
+try:
+	from browser_use.browser.cloud.views import CloudBrowserParams
+except Exception:
+	class CloudBrowserParams(BaseModel):
+		cloud_profile_id: str | None = None
+		cloud_proxy_country_code: str | None = None
+		cloud_timeout: int | None = None
+
 from browser_use.config import CONFIG
 from browser_use.utils import _log_pretty_path, logger
 

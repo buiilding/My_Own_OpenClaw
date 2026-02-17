@@ -17,11 +17,32 @@ from cdp_use.cdp.target import AttachedToTargetEvent, SessionID, TargetID
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 from uuid_extensions import uuid7str
 
-from browser_use.browser.cloud.cloud import CloudBrowserAuthError, CloudBrowserClient, CloudBrowserError
-
 # CDP logging is now handled by setup_logging() in logging_config.py
 # It automatically sets CDP logs to the same level as browser_use logs
-from browser_use.browser.cloud.views import CloudBrowserParams, CreateBrowserRequest, ProxyCountryCode
+try:
+	from browser_use.browser.cloud.cloud import CloudBrowserAuthError, CloudBrowserClient, CloudBrowserError
+	from browser_use.browser.cloud.views import CloudBrowserParams, CreateBrowserRequest, ProxyCountryCode
+except Exception:
+	class CloudBrowserError(RuntimeError):
+		pass
+
+	class CloudBrowserAuthError(CloudBrowserError):
+		pass
+
+	class CreateBrowserRequest(BaseModel):
+		cloud_profile_id: UUID | str | None = None
+		cloud_proxy_country_code: str | None = None
+		cloud_timeout: int | None = None
+
+	CloudBrowserParams = CreateBrowserRequest
+	ProxyCountryCode = str
+
+	class CloudBrowserClient:
+		async def create_browser(self, params: CreateBrowserRequest) -> Any:
+			raise CloudBrowserError('Browser Use cloud integration is disabled in WindieOS vendored runtime.')
+
+		async def stop_browser(self, session_id: str | None = None) -> Any:
+			raise CloudBrowserError('Browser Use cloud integration is disabled in WindieOS vendored runtime.')
 from browser_use.browser.events import (
 	AgentFocusChangedEvent,
 	BrowserConnectedEvent,
