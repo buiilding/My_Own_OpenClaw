@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(ipc-main): harden `to-backend` event handling in `frontend/src/main/ipc.cjs` by normalizing malformed renderer messages (missing/non-object payloads) to prevent query-path crashes, with regression coverage in `tests/frontend/IpcMainBridge.test.cjs`
 - refactor(transcript): avoid redundant `sessionStorage` writes and `transcript-session-update` event emissions in `TranscriptWriter` when `conversationRef`/`userId` are unchanged, while preserving pending-flush retry behavior for queued transcript entries
 - test(frontend-transcript): add no-op session-update regression coverage in `tests/frontend/TranscriptWriter.test.ts` and validate stream-hook compatibility with `tests/frontend/ChatStreamThinkingStatus.test.tsx`
 - docs(plan): add `docs/plan/WINDIEOS_NEW_CHAT_SESSION_PLAN.md` with a phased implementation plan for a UI `New Chat` action that mints a fresh `conversation_ref`, resets chat state, isolates stale stream events, and validates backend history separation
