@@ -14,9 +14,9 @@ WindieOS provides a powerful **browser control tool** that allows the AI agent t
 
 Browser execution is routed through the Browser Use compatibility adapter. Runtime selection:
 
-- Default behavior: prefer Browser Use native runtime when `browser_use` is installed; otherwise fall back to controller-backed runtime.
-- Force runtime: set `WINDIE_BROWSER_USE_RUNTIME=controller` or `WINDIE_BROWSER_USE_RUNTIME=browser_use_native`.
-- Strict mode: set `WINDIE_BROWSER_USE_RUNTIME_STRICT=1` to fail instead of silent fallback.
+- Default behavior: use Browser Use native runtime (`browser_use_native`).
+- Optional runtime value: `WINDIE_BROWSER_USE_RUNTIME=browser_use` (alias of `browser_use_native`).
+- Startup fails fast if package `browser_use` is unavailable or native runtime provider loading fails.
 - Action-level native overrides: `WINDIE_BROWSER_USE_NATIVE_ACTIONS` (comma-separated, for example `wait_seconds`) with optional strict mode `WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT=1`.
 
 ## Overview

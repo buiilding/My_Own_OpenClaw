@@ -1,12 +1,7 @@
-"""Optional Browser Use-native runtime provider factory.
+"""Browser Use-native runtime provider factory.
 
-This module is intentionally conservative in Phase 2:
-- If `browser_use` is not installed, return `None`.
-- If installed, return a dedicated provider class that currently delegates to
-  controller-backed behavior and can be overridden action-by-action.
-
-`runtime_provider.get_browser_runtime_provider(...)` handles fallback and strict
-mode behavior.
+This module returns a dedicated provider class that currently delegates to
+controller-backed behavior and can be overridden action-by-action.
 """
 
 from __future__ import annotations

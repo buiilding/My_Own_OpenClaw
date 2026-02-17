@@ -270,10 +270,10 @@ Current routing coverage:
 - Current compatibility note: `snapshot`, `extract`, and `act` are adapter-native (no legacy delegates remain in `browser_tool` Phase 2 routing).
 - Runtime-provider seam now covers core session/tab + interaction/capture actions (`connect`, `status`, `navigate`, `open`, `get_tabs`, `switch_tab`, `close`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`, `snapshot`, `extract`, `upload`) with controller-backed default provider.
 - Browser Use runtime selection scaffolding is now wired:
-  - `WINDIE_BROWSER_USE_RUNTIME`, `WINDIE_BROWSER_USE_RUNTIME_STRICT`
+  - `WINDIE_BROWSER_USE_RUNTIME` (`browser_use` alias supported)
   - `WINDIE_BROWSER_USE_NATIVE_ACTIONS`, `WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT`
   - `WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`
-  - Selectable `BrowserUseNativeRuntimeProvider` with action-level native override hooks and safe fallback.
+  - `BrowserUseNativeRuntimeProvider` with action-level native override hooks; runtime selection now fails fast if Browser Use is unavailable.
 - Default native-handler set now includes a true Browser Use action path for `wait(seconds=...)` through `browser_use.tools.service.Tools` registry (`wait_seconds` runtime action key).
 
 Validation snapshot:
