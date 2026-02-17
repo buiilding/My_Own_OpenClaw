@@ -20,6 +20,7 @@ DEFAULT_FILESYSTEM_DIR = Path.home() / ".config" / "desktop-assistant" / "browse
 
 _BROWSER_REQUIRED_ACTIONS = frozenset(
     {
+        "search",
         "navigate",
         "go_back",
         "click",
