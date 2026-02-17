@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(plan): add `docs/plan/WINDIEOS_NEW_CHAT_SESSION_PLAN.md` with a phased implementation plan for a UI `New Chat` action that mints a fresh `conversation_ref`, resets chat state, isolates stale stream events, and validates backend history separation
 - test(browser-runtime): add connected wait-semantics regression for native `wait_seconds` to ensure Browser Use wait receives a live browser session when connected and keeps non-connected timer fallback behavior deterministic
 - test(browser-runtime): cover extraction LLM resolution from Windie provider/model settings in `tests/sidecar/tools/test_browser_use_adapter.py` to prevent regressions when Browser Use model-name override is unset
 - chore(browser-use-runtime): prune non-runtime vendored Browser Use directories (`skill_cli`, `mcp`, `actor/playground`, `dom/playground`, `llm/tests`, `tokens/tests`) and enforce pruning in vendor sync/check scripts + manifest metadata
