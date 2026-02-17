@@ -2,7 +2,7 @@
   "source_repo": "/mnt/E/Assistants/browser-use",
   "source_subdir": "browser_use",
   "source_commit": "8871ebafebe00795b7564bf5352eac2b657901d6",
-  "synced_at_utc": "2026-02-17T17:04:18Z",
+  "synced_at_utc": "2026-02-17T17:17:33Z",
   "pruned_paths": [
     "skill_cli",
     "mcp",
@@ -13,7 +13,7 @@
     "agent/system_prompts",
     "code_use",
     "controller",
-    "integrations/gmail",
+    "integrations",
     "llm/anthropic",
     "llm/aws",
     "llm/deepseek",
