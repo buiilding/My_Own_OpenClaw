@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- test(browser-runtime): cover extraction LLM resolution from Windie provider/model settings in `tests/sidecar/tools/test_browser_use_adapter.py` to prevent regressions when Browser Use model-name override is unset
 - chore(browser-use-runtime): prune non-runtime vendored Browser Use directories (`skill_cli`, `mcp`, `actor/playground`, `dom/playground`, `llm/tests`, `tokens/tests`) and enforce pruning in vendor sync/check scripts + manifest metadata
 - test(browser-use-runtime): enforce that sidecar requirements do not include pip `browser-use` (vendored runtime only) in both vendor check script and Browser Use parity tests
 - test(browser-use-runtime): enforce vendored `browser_use` import origin in sidecar parity tests and add `scripts/check-browser-use-vendor` to verify source-tree parity against `../browser-use/browser_use` plus runtime import resolution
@@ -112,6 +113,9 @@ Includes the last 300 commits on `main`.
 - f39c197 feat(browser): add backend browser tool schemas and remote stub
 
 ### Changed
+- refactor(browser-runtime): resolve Browser Use extraction LLM from WindieOS model orchestration settings by default (`WINDIE_BROWSER_USE_EXTRACTION_PROVIDER` + `WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID` with optional API key/base URL overrides) while retaining explicit Browser Use model-name override support via `WINDIE_BROWSER_USE_EXTRACTION_MODEL`
+- chore(browser-use-runtime): make `scripts/check-browser-use-vendor` auto-clean vendored `__pycache__`/`*.pyc` artifacts before parity diff so packaging checks only fail on real source drift
+- docs(browser-use-port): align Browser Use migration docs with current inlined adapter/runtime module paths under `frontend/src/main/python/tools/browser/*` and current extraction LLM runtime env surface
 - refactor(browser-tool): remove legacy non-Browser Use action routing from sidecar/browser schemas (`console`, `errors`, `requests`, `trace_*`, `pdf`, `dialog`, `cookies*`, `storage*`, `set_*`, `upload`) so runtime now exposes Browser Use-native actions plus WindieOS session wrappers only
 - docs(browser-tool): align browser runbooks and remote tool docs with strict Browser Use-only runtime surface (legacy actions now return `Unhandled action`)
 - refactor(browser-tool): remove unused adapter controller instance state in `BrowserUseCompatibilityAdapter` after runtime initialization to trim packaging/runtime footprint
