@@ -1,4 +1,5 @@
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
+import { createPendingAssistantQueue } from './pendingAssistantQueue';
 import { createPendingUserQueue } from './pendingUserQueue';
 import { createPendingToolQueue } from './pendingToolQueue';
 import {
@@ -8,6 +9,7 @@ import {
 } from './sessionInfoStorage';
 import { createTranscriptSessionState } from './sessionInfoState';
 import type {
+  PendingAssistantMessage,
   PendingToolMessage,
   PendingUserMessage,
   SessionInfo,
@@ -15,6 +17,7 @@ import type {
 } from './types';
 
 const sessionState = createTranscriptSessionState(readSessionInfoFromStorage);
+const pendingAssistantQueue = createPendingAssistantQueue();
 const pendingUserQueue = createPendingUserQueue();
 const pendingToolQueue = createPendingToolQueue();
 
@@ -41,7 +44,7 @@ const flushPendingEntries = async <T>(
   messages: T[],
   toTranscriptEntry: (message: T) => TranscriptEntry,
   requeue: (messages: T[]) => void,
-  category: 'user' | 'tool',
+  category: 'user' | 'assistant' | 'tool',
 ): Promise<boolean> => {
   for (let index = 0; index < messages.length; index += 1) {
     const message = messages[index];
@@ -64,7 +67,11 @@ const flushPendingMessages = async () => {
   if (
     !currentInfo.conversationRef
     || !currentInfo.userId
-    || (pendingUserQueue.size() === 0 && pendingToolQueue.size() === 0)
+    || (
+      pendingUserQueue.size() === 0
+      && pendingAssistantQueue.size() === 0
+      && pendingToolQueue.size() === 0
+    )
   ) {
     return;
   }
@@ -85,6 +92,24 @@ const flushPendingMessages = async () => {
     'user',
   );
   if (!flushedUserMessages) {
+    return;
+  }
+
+  const pendingAssistantMessages = pendingAssistantQueue.drain();
+  const flushedAssistantMessages = await flushPendingEntries<PendingAssistantMessage>(
+    pendingAssistantMessages,
+    (message) => ({
+      content: message.text,
+      role: 'assistant',
+      messageType: message.messageType || 'llm-text',
+      modelId: message.modelId,
+      modelProvider: message.modelProvider,
+      screenshotRef: message.screenshotRef,
+    }),
+    (messages) => requeuePending(messages, pendingAssistantQueue.enqueue),
+    'assistant',
+  );
+  if (!flushedAssistantMessages) {
     return;
   }
 
@@ -118,6 +143,24 @@ const queueUserMessageForRetry = (
   pendingUserQueue.enqueue({
     text,
     timestamp: options.timestamp,
+    modelId: options.modelId,
+    modelProvider: options.modelProvider,
+    screenshotRef: options.screenshotRef,
+  });
+};
+
+const queueAssistantMessageForRetry = (
+  text: string,
+  options: {
+    messageType?: string;
+    modelId?: string | null;
+    modelProvider?: string | null;
+    screenshotRef?: string | null;
+  } = {},
+) => {
+  pendingAssistantQueue.enqueue({
+    text,
+    messageType: options.messageType,
     modelId: options.modelId,
     modelProvider: options.modelProvider,
     screenshotRef: options.screenshotRef,
@@ -256,6 +299,17 @@ export const recordAssistantMessage = (
     screenshotRef: options.screenshotRef,
     conversationRef: info.conversationRef,
     userId: info.userId,
+  }).catch((error) => {
+    queueAssistantMessageForRetry(text, {
+      messageType: options.messageType || 'llm-text',
+      modelId: options.modelId,
+      modelProvider: options.modelProvider,
+      screenshotRef: options.screenshotRef,
+    });
+    console.warn(
+      '[TranscriptWriter] Failed to store immediate assistant transcript entry; queued for retry',
+      error,
+    );
   });
 };
 
