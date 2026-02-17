@@ -48,7 +48,7 @@ Actions:
 - upload/dialog: File-input upload and dialog arming/wait handling
 - act: OpenClaw action envelope (`request.kind`)
 - errors/requests: Captured page errors and network request history
-- trace_start/trace_stop: Playwright tracing control
+- trace_start/trace_stop: Deprecated (returns ACTION_DEPRECATED with Browser Use migration guidance)
 - cookies*/storage*: Cookie and storage state management
 - set_*: Environment/state setters (offline, headers, credentials, geolocation, media, timezone, locale, device)
 - wait: Wait for load or time

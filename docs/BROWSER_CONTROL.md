@@ -10,6 +10,15 @@ read_when:
 
 WindieOS provides a powerful **browser control tool** that allows the AI agent to automate web browsers for online tasks.
 
+## Runtime Selection
+
+Browser execution is routed through the Browser Use compatibility adapter. Runtime selection:
+
+- Default behavior: prefer Browser Use native runtime when `browser_use` is installed; otherwise fall back to controller-backed runtime.
+- Force runtime: set `WINDIE_BROWSER_USE_RUNTIME=controller` or `WINDIE_BROWSER_USE_RUNTIME=browser_use_native`.
+- Strict mode: set `WINDIE_BROWSER_USE_RUNTIME_STRICT=1` to fail instead of silent fallback.
+- Action-level native overrides: `WINDIE_BROWSER_USE_NATIVE_ACTIONS` (comma-separated, for example `wait_seconds`) with optional strict mode `WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT=1`.
+
 ## Overview
 
 The `browser_control` tool supports two modes:
@@ -398,7 +407,7 @@ WindieOS now supports OpenClaw-style action names (compatibility layer):
 - `console` -> returns captured console messages for the active tab (`level`, `limit`, `clear`)
 - `dialog` -> arms next JS dialog handling (`accept`, `promptText`) and can optionally wait (`timeoutMs`)
 - `errors` / `requests` -> page errors + network request history
-- `trace_start` / `trace_stop` -> Playwright trace capture (zip data on stop)
+- `trace_start` / `trace_stop` -> deprecated (`ACTION_DEPRECATED`); use `requests`/`errors` capture and HAR-style runbook workflows instead
 - `cookies`, `cookies_set`, `cookies_clear`
 - `storage_get`, `storage_set`, `storage_clear` (`kind: local|session`)
 - `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`

@@ -74,3 +74,10 @@ Legend:
 - Migration decisions in the ledger remain unchanged.
 - `snapshot`, `extract`, and `act` are adapter-native in current Phase 2 implementation (no legacy delegates in `browser_tool` routing).
 - Core native-path completion gate is satisfied by `wait(seconds=...)`, which can now execute through Browser Use native tools (`browser_use.tools.service.Tools` `wait`) under runtime/action feature flags.
+
+## Phase 3-7 Addendum (February 17, 2026)
+
+- Core runtime cutover behavior now prefers Browser Use native runtime by default when `browser_use` is installed, with explicit controller fallback and strict-mode controls.
+- `trace_start` and `trace_stop` disposition is now explicit deprecation (`ACTION_DEPRECATED`) with mitigation guidance (`requests`/`errors` + HAR-style workflows).
+- Advanced action compatibility dispositions remain explicit (`compat`) and adapter-owned; no silent removals were introduced.
+- Schema evolution decision for this migration: preserve monolithic `browser_control(action=...)` contract during compatibility period.

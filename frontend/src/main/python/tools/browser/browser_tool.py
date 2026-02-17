@@ -307,6 +307,9 @@ def _adapter_result_to_tool_result(result: AdapterActionResult) -> ToolResult:
     if result.error:
         return ToolResult.error_result(result.error)
 
+    if result.deprecation:
+        return ToolResult.error_result(result.deprecation)
+
     return ToolResult.error_result("Action failed")
 
 

@@ -36,6 +36,10 @@ MAX_EXTRACT_STRUCTURED_TABLES = 20
 MAX_EXTRACT_STRUCTURED_ROWS_PER_TABLE = 100
 MAX_EXTRACT_STRUCTURED_LISTS = 20
 MAX_EXTRACT_STRUCTURED_ITEMS_PER_LIST = 100
+TRACE_DEPRECATION_MESSAGE = (
+    "trace_start/trace_stop are deprecated in Browser Use runtime mode. "
+    "Use requests/errors capture and HAR-style runbook workflows instead."
+)
 
 
 class BrowserControllerLike(Protocol):
@@ -1275,76 +1279,23 @@ class BrowserUseCompatibilityAdapter:
         )
 
     async def trace_start(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        if not self._controller.is_connected:
-            return self._not_connected("trace_start")
-        focus_error = await self._focus_target_if_requested(args)
-        if focus_error:
-            return focus_error
-
-        snapshots = bool(args.get("snapshots", True))
-        screenshots = bool(args.get("screenshots", True))
-        sources = bool(args.get("sources", True))
-        result = await self._controller.trace_start(
-            snapshots=snapshots,
-            screenshots=screenshots,
-            sources=sources,
-        )
-        if result.get("success"):
-            return AdapterActionResult(
-                success=True,
-                action="trace_start",
-                decision="deprecate",
-                data={
-                    "action": "trace_start",
-                    "snapshots": snapshots,
-                    "screenshots": screenshots,
-                    "sources": sources,
-                },
-            )
-
         return AdapterActionResult(
             success=False,
             action="trace_start",
             decision="deprecate",
-            error=result.get("error", "Trace start failed"),
-            error_code="BROWSER_RUNTIME_ERROR",
+            error=TRACE_DEPRECATION_MESSAGE,
+            error_code="ACTION_DEPRECATED",
+            deprecation=TRACE_DEPRECATION_MESSAGE,
         )
 
     async def trace_stop(self) -> AdapterActionResult:
-        if not self._controller.is_connected:
-            return self._not_connected("trace_stop")
-
-        result = await self._controller.trace_stop()
-        if not result.get("success"):
-            return AdapterActionResult(
-                success=False,
-                action="trace_stop",
-                decision="deprecate",
-                error=result.get("error", "Trace stop failed"),
-                error_code="BROWSER_RUNTIME_ERROR",
-            )
-
-        trace_bytes = result.get("trace_bytes")
-        if not isinstance(trace_bytes, (bytes, bytearray)):
-            return AdapterActionResult(
-                success=False,
-                action="trace_stop",
-                decision="deprecate",
-                error="Trace stop failed: missing trace bytes",
-                error_code="BROWSER_RUNTIME_ERROR",
-            )
-
-        trace_b64 = base64.b64encode(bytes(trace_bytes)).decode("utf-8")
         return AdapterActionResult(
-            success=True,
+            success=False,
             action="trace_stop",
             decision="deprecate",
-            data={
-                "action": "trace_stop",
-                "format": "zip",
-                "trace_data": trace_b64,
-                "trace_size_bytes": len(trace_bytes),
-            },
+            error=TRACE_DEPRECATION_MESSAGE,
+            error_code="ACTION_DEPRECATED",
+            deprecation=TRACE_DEPRECATION_MESSAGE,
         )
 
     async def pdf(self, args: Mapping[str, Any]) -> AdapterActionResult:

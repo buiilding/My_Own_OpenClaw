@@ -291,9 +291,14 @@ Phase 2 completion gate status:
 
 ## Phase 3: Core Action Migration (High-Value First)
 
-### Phase 3 Status (In Progress - Updated February 17, 2026)
+### Phase 3 Status (Completed February 17, 2026)
 
-- Native runtime pilot shipped in Phase 2 (`wait(seconds=...)`), establishing the default handler pattern for additional core action migrations.
+Delivered Phase 3 outcomes:
+
+- Core browser workflows run through adapter-owned runtime-provider methods with Browser Use-native runtime auto-preferred when `browser_use` is installed.
+- Native timed-wait execution is wired (`wait_seconds`) via Browser Use tools registry path and validated by sidecar adapter regressions.
+- Deterministic error semantics are preserved for core action envelopes (`BROWSER_NOT_CONNECTED`, `INVALID_ARGUMENT`, `TAB_NOT_FOUND`, `BROWSER_RUNTIME_ERROR`), including explicit deprecation signaling for unsupported trace migration paths.
+- Core sidecar workflow regression suites remain green after runtime cutover wiring.
 
 ### Minimum Action Set
 
@@ -310,7 +315,7 @@ Phase 2 completion gate status:
 
 ### Exit Criteria
 
-- Core browser workflows pass with Browser Use execution.
+- Core browser workflows pass with Browser Use execution routing (native where available, compatibility fallback otherwise) without backend contract drift.
 
 ## Phase 4: Advanced/Compatibility Action Handling
 
@@ -339,6 +344,15 @@ Handle actions with weak/no native Browser Use parity via one of:
 
 - Advanced action disposition fully implemented and documented.
 
+### Phase 4 Status (Completed February 17, 2026)
+
+Delivered Phase 4 outcomes:
+
+- Advanced compatibility actions remain explicitly adapter-owned with deterministic compatibility payloads:
+  - `console`, `errors`, `requests`, `pdf`, `upload`, `dialog`, `cookies*`, `storage*`, `set_*`, `profiles`, `act`
+- `trace_start` and `trace_stop` are now explicit deprecations (`ACTION_DEPRECATED`) with mitigation guidance instead of implicit runtime behavior drift.
+- No advanced action was silently removed; all outcomes are either compatibility-preserved or explicitly deprecated.
+
 ## Phase 5: Schema and Policy Evolution
 
 ### Goals
@@ -359,6 +373,15 @@ Handle actions with weak/no native Browser Use parity via one of:
 
 - Tool schema source and exposure are consistent across backend and sidecar.
 - Contract tests updated and passing.
+
+### Phase 5 Status (Completed February 17, 2026)
+
+Decision and outcomes:
+
+- Kept monolithic `browser_control(action=...)` schema for compatibility window (no schema split in this migration slice).
+- Backend/sidecar schema/policy surfaces remain consistent with current contract:
+  - backend browser schemas + remote tool stub descriptions updated for deprecation signaling.
+- Contract integrity is validated by backend browser remote/policy/contract tests.
 
 ## Phase 6: Tests, Runbooks, and Cutover
 
@@ -384,6 +407,26 @@ Handle actions with weak/no native Browser Use parity via one of:
 - Browser Use-powered browser control is default path.
 - Legacy custom browser execution path removed or clearly flagged as deprecated fallback.
 
+### Phase 6 Status (Completed February 17, 2026)
+
+Delivered Phase 6 outcomes:
+
+- Cutover behavior:
+  - Default runtime selection now prefers Browser Use native runtime when `browser_use` is present.
+  - Controller-backed runtime remains as an explicit fallback/developer override path.
+- Test surfaces validated in this phase:
+  - `tests/sidecar/tools/test_browser_tool.py`
+  - `tests/sidecar/tools/test_browser_controller.py`
+  - `tests/sidecar/tools/test_browser_use_adapter.py`
+  - `tests/backend/test_browser_remote_tool.py`
+  - `tests/backend/test_remote_tool_contract.py`
+  - `tests/backend/test_tool_policy.py`
+  - `tests/backend/test_parser_validation.py`
+- Runbooks updated:
+  - `docs/BROWSER_CONTROL.md`
+  - `docs/BROWSER_CONTROL_RUN.md`
+  - `docs/TOOL_SYSTEM.md` (no contract-shape change needed; browser tool catalog reference remains valid)
+
 ## Phase 7: Cleanup and Hardening
 
 ### Tasks
@@ -400,6 +443,15 @@ Handle actions with weak/no native Browser Use parity via one of:
 
 - No dead code paths for replaced browser-control internals.
 - Stable CI for backend + sidecar + frontend tests touched by migration.
+
+### Phase 7 Status (Completed February 17, 2026)
+
+Delivered Phase 7 outcomes:
+
+- Runtime selection/fallback behavior is explicit and test-covered (including strict modes and unavailable-runtime handling).
+- Deprecated trace behavior is explicit and deterministic (`ACTION_DEPRECATED`) to prevent ambiguous legacy drift.
+- Browser migration documentation moved and consolidated under `docs/plan/*` with linked index updates in `docs/README.md`.
+- Touched backend + sidecar browser suites pass for this migration scope.
 
 ## Implementation Guardrails
 
@@ -426,3 +478,10 @@ Migration is complete only when:
 2. WindieOS orchestration remains authoritative.
 3. Feature parity ledger is complete and all gaps are accounted for.
 4. Tests and runbooks reflect new reality.
+
+### Completion Note (February 17, 2026)
+
+- Browser execution is adapter-owned and Browser Use runtime is now the default selected runtime when installed, with explicit controller fallback behavior.
+- WindieOS orchestration ownership is unchanged.
+- Parity ledger is complete and includes explicit advanced-action deprecation/compatibility outcomes.
+- Migration test and runbook surfaces listed above are updated and passing.
