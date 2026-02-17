@@ -181,44 +181,47 @@ class TestBrowserUseCompatibilityAdapter:
         assert result.error_code == "BROWSER_NOT_CONNECTED"
 
     @pytest.mark.asyncio
-    async def test_snapshot_rejects_efficient_mode_for_aria(self, make_controller):
+    async def test_snapshot_rejects_compatibility_fields(self, make_controller):
         adapter = self._make_adapter(make_controller())
 
         result = await adapter.execute(
             "snapshot",
-            {"action": "snapshot", "format": "aria", "mode": "efficient"},
+            {"action": "snapshot", "format": "ai"},
         )
 
         assert result.success is False
         assert result.action == "snapshot"
         assert result.error_code == "INVALID_ARGUMENT"
-        assert "requires format='ai'" in (result.error or "")
+        assert "no longer supports compatibility 'format'" in (result.error or "")
 
     @pytest.mark.asyncio
-    async def test_snapshot_paginates_and_retries_on_zero_refs(self, make_controller):
+    async def test_snapshot_routes_to_browser_use_runtime(self, make_controller):
         controller = make_controller()
-        full_text = "x" * 6000
-        controller.get_page_snapshot.side_effect = [
-            DummySnapshot(
-                text=full_text,
-                url="https://example.com/page",
-                title="Example",
-                ref_count=0,
-            ),
-            DummySnapshot(
-                text=full_text,
-                url="https://example.com/page",
-                title="Example",
-                ref_count=3,
-            ),
-        ]
-        adapter = self._make_adapter(controller)
+        runtime = ControllerBackedRuntimeProvider(controller)
+        runtime.execute_browser_use_action = mock.AsyncMock(
+            return_value={
+                "success": True,
+                "action": "snapshot",
+                "native_source": "browser_use.state",
+                "format": "browser_use_state",
+                "url": "https://example.com/page",
+                "title": "Example",
+                "snapshot": "x" * 300,
+                "ref_count": 3,
+                "offset": 4500,
+                "limit": 300,
+                "returned_chars": 300,
+                "total_chars": 6000,
+                "has_more": True,
+                "next_offset": 4800,
+            }
+        )
+        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
 
         result = await adapter.execute(
             "snapshot",
             {
                 "action": "snapshot",
-                "format": "ai",
                 "offset": 4500,
                 "limit": 300,
             },
@@ -226,32 +229,28 @@ class TestBrowserUseCompatibilityAdapter:
 
         assert result.success is True
         assert result.action == "snapshot"
-        assert result.data["wait_until"] == "load"
-        assert result.data["snapshot"] == full_text[4500:4800]
+        assert result.data["browser_use_action"] == "snapshot"
         assert result.data["returned_chars"] == 300
-        assert result.data["total_chars"] == len(full_text)
+        assert result.data["total_chars"] == 6000
         assert result.data["has_more"] is True
         assert result.data["next_offset"] == 4800
-
-        assert controller.get_page_snapshot.await_count == 2
-        first_call = controller.get_page_snapshot.await_args_list[0].kwargs
-        second_call = controller.get_page_snapshot.await_args_list[1].kwargs
-        assert first_call["max_chars"] == 5312
-        assert first_call["depth"] == 4
-        assert first_call["interactive"] is True
-        assert first_call["compact"] is True
-        assert second_call["depth"] == 12
+        runtime.execute_browser_use_action.assert_awaited_once_with(
+            action="snapshot",
+            params={"offset": 4500, "limit": 300, "include_screenshot": False},
+        )
+        controller.get_page_snapshot.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_snapshot_rejects_window_above_cap(self, make_controller):
         controller = make_controller()
-        adapter = self._make_adapter(controller)
+        runtime = ControllerBackedRuntimeProvider(controller)
+        runtime.execute_browser_use_action = mock.AsyncMock()
+        adapter = BrowserUseCompatibilityAdapter(controller, runtime_provider=runtime)
 
         result = await adapter.execute(
             "snapshot",
             {
                 "action": "snapshot",
-                "format": "ai",
                 "offset": 119_500,
                 "limit": 1_000,
             },
@@ -260,7 +259,7 @@ class TestBrowserUseCompatibilityAdapter:
         assert result.success is False
         assert result.error_code == "INVALID_ARGUMENT"
         assert "offset + limit exceeds maximum snapshot window" in (result.error or "")
-        controller.get_page_snapshot.assert_not_awaited()
+        runtime.execute_browser_use_action.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_extract_rejects_compatibility_mode(self, make_controller):
@@ -827,11 +826,15 @@ class TestBrowserUseCompatibilityAdapter:
 
         snapshot_result = await adapter.execute(
             "snapshot",
-            {"action": "snapshot", "format": "ai"},
+            {"action": "snapshot", "offset": 100, "limit": 250},
         )
         assert snapshot_result.success is True
-        assert snapshot_result.data["snapshot"] == "runtime snapshot"
-        runtime.get_page_snapshot.assert_awaited()
+        assert snapshot_result.data["browser_use_action"] == "snapshot"
+        runtime.execute_browser_use_action.assert_awaited_with(
+            action="snapshot",
+            params={"offset": 100, "limit": 250, "include_screenshot": False},
+        )
+        runtime.get_page_snapshot.assert_not_awaited()
 
     def test_runtime_factory_raises_when_native_provider_unavailable(
         self,

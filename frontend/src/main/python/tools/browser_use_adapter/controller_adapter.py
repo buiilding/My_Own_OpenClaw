@@ -63,6 +63,7 @@ BROWSER_USE_DIRECT_ACTIONS = frozenset(
 )
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
+        "snapshot",
         "navigate",
         "click",
         "extract",
@@ -261,7 +262,7 @@ class BrowserUseCompatibilityAdapter:
         if action == "open":
             return await self.open(args)
         if action == "snapshot":
-            return await self.snapshot(args)
+            return await self.execute_browser_use_action(action, args)
         if action == "extract":
             return await self.execute_browser_use_action(action, args)
         if action == "click":
@@ -1342,6 +1343,66 @@ class BrowserUseCompatibilityAdapter:
             if isinstance(args.get("new_tab"), bool):
                 params["new_tab"] = bool(args.get("new_tab"))
             return params
+
+        if action == "snapshot":
+            compatibility_fields = (
+                "format",
+                "snapshotFormat",
+                "wait_until",
+                "state",
+                "mode",
+                "max_chars",
+                "refs",
+                "interactive",
+                "compact",
+                "depth",
+                "selector",
+                "frame",
+            )
+            for field in compatibility_fields:
+                if field in args:
+                    return self._invalid_argument(
+                        "snapshot",
+                        (
+                            f"snapshot no longer supports compatibility '{field}'; "
+                            "use Browser Use snapshot semantics"
+                        ),
+                    )
+
+            offset = args.get("offset")
+            if offset is None:
+                resolved_offset = 0
+            elif isinstance(offset, int) and offset >= 0:
+                resolved_offset = offset
+            else:
+                return self._invalid_argument(
+                    "snapshot",
+                    "snapshot offset must be a non-negative integer",
+                )
+
+            limit = args.get("limit")
+            if limit is None:
+                resolved_limit = 4000
+            elif isinstance(limit, int) and limit > 0:
+                resolved_limit = limit
+            else:
+                return self._invalid_argument(
+                    "snapshot",
+                    "snapshot limit must be a positive integer",
+                )
+
+            if resolved_offset + resolved_limit > MAX_SNAPSHOT_CAPTURE_CHARS:
+                return self._invalid_argument(
+                    "snapshot",
+                    "offset + limit exceeds maximum snapshot window (120000)",
+                )
+
+            include_screenshot = bool(args.get("include_screenshot", False))
+            return {
+                "offset": resolved_offset,
+                "limit": resolved_limit,
+                "include_screenshot": include_screenshot,
+            }
 
         if action == "search":
             query = self._value_as_str(args.get("query"))

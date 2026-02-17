@@ -39,7 +39,7 @@ Actions:
 - open: Open a new tab and navigate
 - search/go_back: Browser Use search helper and back navigation helper
 - done: Browser Use completion action (`text`, optional `success`, optional `files_to_display`)
-- snapshot: Get contextual page snapshot with refs (waits for `wait_until=load` by default; supports mode=efficient, interactive/compact/depth/selector/frame)
+- snapshot: Browser Use state snapshot (`offset`, `limit`, optional `include_screenshot`); compatibility `format`/`snapshotFormat`/`wait_until`/`state`/`mode`/`max_chars`/`refs`/`interactive`/`compact`/`depth`/`selector`/`frame` fields are rejected
 - extract: Browser Use extract semantics (`query`, optional `extract_links`, optional `start_from_char`, optional `output_schema`); compatibility `mode`/`selector`/`frame` fields are rejected
 - search_page/find_elements/find_text: Browser Use discovery helpers for text pattern and selector discovery
 - click: Click element using Browser Use semantics (numeric `index`/numeric `ref`, or `coordinate_x`+`coordinate_y`)
