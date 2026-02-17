@@ -997,3 +997,45 @@ In `frontend/src/main/python/tools/system/process_tool.py`, `process_shell_comma
   - `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py`
   - `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py`
   - Result: `29 passed` (22 + 7).
+
+---
+
+## [x] Bug Report: Malformed Renderer `to-backend` Events Could Crash Main IPC Query Handler
+
+### Summary
+
+In `frontend/src/main/ipc.cjs`, malformed renderer IPC messages could throw in the `to-backend` event handler:
+- missing event payload object caused unsafe parameter destructuring issues
+- query events with missing `payload` caused `payload.content = ...` to throw
+
+### Root Cause
+
+- The handler signature assumed a valid shape:
+  - `ipcMain.on('to-backend', async (event, { type, payload }) => { ... })`
+- Query enrichment later mutates payload directly:
+  - `payload.content = completeContent`
+- If renderer sends `{ type: 'query' }` (or no message object), `payload` is `undefined`, which raises a runtime `TypeError`.
+
+### Why It's Problematic
+
+- A malformed renderer event can crash query-path execution in the Electron main process.
+- The failure happens before backend send, so the request is silently dropped.
+- This is a robustness bug in a high-churn frontend routing path (`ipc.cjs`).
+
+### Fix
+
+- Hardened `to-backend` handler input normalization in `frontend/src/main/ipc.cjs`:
+  - switched to safe signature: `(event, message = {})`
+  - normalized `type` to string-or-null
+  - normalized `payload` to an object fallback (`{}`) for non-object/missing payloads
+  - added early return for malformed messages missing string `type`
+- Kept existing behavior for valid renderer payloads.
+
+### Validation
+
+- Added regression tests in `tests/frontend/IpcMainBridge.test.cjs`:
+  - `ignores malformed to-backend event payloads without crashing`
+  - `handles query events with missing payload object without throwing`
+- Re-ran targeted frontend suite:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/IpcMainBridge.test.cjs`
+  - Result: `20 passed`.

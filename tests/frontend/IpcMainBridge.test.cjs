@@ -125,6 +125,38 @@ describe('ipc.cjs bridge', () => {
     expect(handshake.user_id).toBe('bad_user_');
   });
 
+  test('ignores malformed to-backend event payloads without crashing', async () => {
+    const { handlers, ws } = initIpc();
+    ws.triggerOpen();
+
+    await handlers['to-backend']({ sender: null });
+
+    expect(ws.sent).toHaveLength(1);
+    const handshake = JSON.parse(ws.sent[0]);
+    expect(handshake.type).toBe('handshake');
+  });
+
+  test('handles query events with missing payload object without throwing', async () => {
+    const { handlers, ws, backendBridge } = initIpc();
+    ws.triggerOpen();
+
+    backendBridge.getSystemState.mockResolvedValue({
+      active_window: 'App',
+      mouse_position: '0,0',
+    });
+    backendBridge.searchMemory.mockResolvedValue({
+      success: true,
+      data: { memories: { episodic: [], semantic: [] } },
+    });
+
+    await handlers['to-backend']({ sender: null }, { type: 'query' });
+
+    const queryMessage = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(queryMessage.type).toBe('query');
+    expect(queryMessage.payload.content).toContain('<user_query>');
+    expect(queryMessage.payload.content).toContain('</user_query>');
+  });
+
   test('uses BACKEND_HOST and BACKEND_PORT for websocket + http endpoint metadata', async () => {
     process.env.BACKEND_HOST = '10.0.0.42';
     process.env.BACKEND_PORT = '9001';

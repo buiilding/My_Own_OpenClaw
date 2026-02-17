@@ -510,7 +510,19 @@ function initializeIpc(win, options = {}) {
     return await saveFrontendConfigToDisk(config);
   });
 
-  ipcMain.on('to-backend', async (event, { type, payload }) => {
+  ipcMain.on('to-backend', async (event, message = {}) => {
+    const type = typeof message?.type === 'string' ? message.type : null;
+    const payload = (
+      message?.payload
+      && typeof message.payload === 'object'
+      && !Array.isArray(message.payload)
+    ) ? { ...message.payload } : {};
+
+    if (!type) {
+      log('Ignoring malformed to-backend message: missing string "type"');
+      return;
+    }
+
     if (type === 'update-settings') {
       sendSettingsUpdate(payload, 'renderer-update');
       return;
