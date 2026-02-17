@@ -5,9 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Callable
 from typing import Any, Literal
-from typing import Mapping, Protocol
+from typing import Mapping
 from weakref import WeakKeyDictionary
 
+from tools.browser.browser_runtime import ControllerRuntimeLike
 from tools.browser.browser_runtime import BrowserRuntimeProvider
 from tools.browser.browser_runtime import get_browser_runtime_provider
 
@@ -140,147 +141,7 @@ _ADAPTER_CACHE_BY_CONTROLLER: "WeakKeyDictionary[Any, BrowserUseCompatibilityAda
 )
 
 
-class BrowserControllerLike(Protocol):
-    is_connected: bool
-
-    async def close(self) -> None: ...
-    async def auto_connect_to_chrome(self, *, cdp_url: str, auto_launch: bool) -> dict[str, Any]: ...
-    async def launch_managed_browser(
-        self,
-        *,
-        headless: bool,
-        executable_path: str | None,
-    ) -> dict[str, Any]: ...
-    async def get_status(self) -> dict[str, Any]: ...
-    async def switch_tab(self, target_id: str) -> bool: ...
-    async def navigate(self, url: str, wait_until: str) -> dict[str, Any]: ...
-    async def open_tab(self, *, url: str) -> dict[str, Any]: ...
-    async def click(
-        self,
-        *,
-        ref: str,
-        double_click: bool,
-        button: str,
-    ) -> dict[str, Any]: ...
-    async def type_text(
-        self,
-        *,
-        ref: str,
-        text: str,
-        submit: bool,
-        clear_first: bool,
-    ) -> dict[str, Any]: ...
-    async def press_key(self, key: str) -> dict[str, Any]: ...
-    async def scroll(self, direction: str, amount: int) -> dict[str, Any]: ...
-    async def screenshot(
-        self,
-        *,
-        full_page: bool,
-        ref: str | None,
-        element: str | None,
-        image_type: str,
-        quality: int | None,
-    ) -> bytes: ...
-    async def wait_for_load(self, state: str) -> dict[str, Any]: ...
-    async def get_page_snapshot(
-        self,
-        *,
-        format_type: str,
-        max_chars: int | None = None,
-        refs_mode: str | None = None,
-        interactive: bool | None = None,
-        compact: bool | None = None,
-        depth: int | None = None,
-        selector: str | None = None,
-        frame_selector: str | None = None,
-    ) -> Any: ...
-    async def get_tabs(self) -> list[Any]: ...
-    async def evaluate(self, script: str) -> dict[str, Any]: ...
-    async def get_console_messages(
-        self,
-        *,
-        level: str | None,
-        limit: int,
-        clear: bool,
-    ) -> list[dict[str, Any]]: ...
-    async def get_page_errors(
-        self,
-        *,
-        limit: int,
-        clear: bool,
-    ) -> list[dict[str, Any]]: ...
-    async def get_network_requests(
-        self,
-        *,
-        limit: int,
-        contains: str | None,
-        clear: bool,
-    ) -> list[dict[str, Any]]: ...
-    async def trace_start(
-        self,
-        *,
-        snapshots: bool,
-        screenshots: bool,
-        sources: bool,
-    ) -> dict[str, Any]: ...
-    async def trace_stop(self) -> dict[str, Any]: ...
-    async def pdf(self) -> bytes: ...
-    async def set_input_files(
-        self,
-        *,
-        ref: str,
-        paths: list[str],
-    ) -> dict[str, Any]: ...
-    async def get_dialog_events(
-        self,
-        *,
-        limit: int = 20,
-        clear: bool = False,
-    ) -> list[dict[str, Any]]: ...
-    def arm_dialog(
-        self,
-        *,
-        accept: bool,
-        prompt_text: str | None,
-    ) -> None: ...
-    async def wait_for_dialog(self, *, timeout_ms: int) -> dict[str, Any] | None: ...
-    async def get_cookies(self) -> list[dict[str, Any]]: ...
-    async def set_cookies(self, cookies: list[dict[str, Any]]) -> dict[str, Any]: ...
-    async def clear_cookies(self) -> dict[str, Any]: ...
-    async def get_storage(self, kind: str) -> dict[str, str]: ...
-    async def set_storage(self, kind: str, values: dict[str, str]) -> dict[str, Any]: ...
-    async def clear_storage(self, kind: str) -> dict[str, Any]: ...
-    async def set_offline(self, offline: bool) -> dict[str, Any]: ...
-    async def set_headers(self, headers: dict[str, str]) -> dict[str, Any]: ...
-    async def set_http_credentials(
-        self,
-        *,
-        username: str | None,
-        password: str | None,
-        clear: bool,
-    ) -> dict[str, Any]: ...
-    async def set_geolocation(
-        self,
-        *,
-        latitude: float | None,
-        longitude: float | None,
-        accuracy: float | None,
-        clear: bool,
-    ) -> dict[str, Any]: ...
-    async def set_media(
-        self,
-        *,
-        media: str | None,
-        color_scheme: str | None,
-    ) -> dict[str, Any]: ...
-    async def set_timezone(self, timezone: str) -> dict[str, Any]: ...
-    async def set_locale(self, locale: str) -> dict[str, Any]: ...
-    async def set_device(self, device: str) -> dict[str, Any]: ...
-    async def hover(self, ref: str) -> dict[str, Any]: ...
-    async def drag(self, start_ref: str, end_ref: str) -> dict[str, Any]: ...
-    async def select_options(self, ref: str, values: list[str]) -> dict[str, Any]: ...
-    async def fill_fields(self, fields: list[dict[str, Any]]) -> dict[str, Any]: ...
-    async def resize_viewport(self, width: int, height: int) -> dict[str, Any]: ...
+BrowserControllerLike = ControllerRuntimeLike
 
 
 class BrowserUseCompatibilityAdapter:
