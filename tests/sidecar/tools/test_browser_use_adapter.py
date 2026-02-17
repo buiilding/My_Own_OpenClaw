@@ -11,6 +11,9 @@ import pytest
 
 from tools.browser_use_adapter import BrowserUseCompatibilityAdapter
 from tools.browser_use_adapter.runtime_provider import get_browser_runtime_provider
+from tools.browser_use_adapter.browser_use_native_handlers import (
+    get_native_runtime_handlers,
+)
 from tools.browser_use_adapter.browser_use_native_runtime import (
     BrowserUseNativeRuntimeProvider,
 )
@@ -375,6 +378,7 @@ class TestBrowserUseCompatibilityAdapter:
         runtime.press_key = mock.AsyncMock(return_value={"success": True})
         runtime.scroll = mock.AsyncMock(return_value={"success": True})
         runtime.wait_for_load = mock.AsyncMock(return_value={"success": True})
+        runtime.wait_seconds = mock.AsyncMock(return_value={"success": True})
         runtime.evaluate = mock.AsyncMock(return_value={"success": True, "result": {"ok": True}})
         runtime.screenshot = mock.AsyncMock(return_value=b"img")
         runtime.get_page_snapshot = mock.AsyncMock(
@@ -448,6 +452,14 @@ class TestBrowserUseCompatibilityAdapter:
         wait_result = await adapter.execute("wait", {"action": "wait", "state": "load"})
         assert wait_result.success is True
         assert wait_result.data["type"] == "load_state"
+
+        timed_wait_result = await adapter.execute(
+            "wait",
+            {"action": "wait", "seconds": 2.5},
+        )
+        assert timed_wait_result.success is True
+        assert timed_wait_result.data["type"] == "time"
+        runtime.wait_seconds.assert_awaited_once_with(seconds=2.5)
 
         evaluate_result = await adapter.execute(
             "evaluate",
@@ -698,6 +710,70 @@ class TestBrowserUseCompatibilityAdapter:
             auto_launch=True,
         )
         assert connect_result["url"] == "https://native.example"
+
+    @pytest.mark.asyncio
+    async def test_native_provider_uses_enabled_wait_seconds_handler(
+        self,
+        make_controller,
+    ):
+        controller = make_controller()
+        native_wait_seconds = mock.AsyncMock(
+            return_value={
+                "success": True,
+                "native_source": "browser_use.tools.wait",
+            }
+        )
+        with mock.patch.dict(
+            "os.environ",
+            {"WINDIE_BROWSER_USE_NATIVE_ACTIONS": "wait_seconds"},
+            clear=False,
+        ):
+            provider = BrowserUseNativeRuntimeProvider(
+                controller,
+                native_handlers={"wait_seconds": native_wait_seconds},
+            )
+
+        result = await provider.wait_seconds(seconds=2.5)
+
+        assert result["success"] is True
+        assert result["native_source"] == "browser_use.tools.wait"
+        native_wait_seconds.assert_awaited_once_with(seconds=2.5)
+
+    @pytest.mark.asyncio
+    async def test_default_native_handler_registry_includes_browser_use_wait_seconds(
+        self,
+    ):
+        fake_service_module = ModuleType("browser_use.tools.service")
+        execute_action = mock.AsyncMock(
+            return_value=SimpleNamespace(extracted_content="Waited for 2 seconds")
+        )
+
+        class FakeTools:
+            def __init__(self):
+                self.registry = SimpleNamespace(execute_action=execute_action)
+
+        fake_service_module.Tools = FakeTools
+
+        def _import_module(name: str):
+            if name == "browser_use.tools.service":
+                return fake_service_module
+            raise ImportError(name)
+
+        with mock.patch(
+            "tools.browser_use_adapter.browser_use_native_handlers.import_module",
+            side_effect=_import_module,
+        ):
+            handlers = get_native_runtime_handlers()
+
+        assert "wait_seconds" in handlers
+        result = await handlers["wait_seconds"](seconds=2.2)
+        assert result["success"] is True
+        assert result["native_source"] == "browser_use.tools.wait"
+        execute_action.assert_awaited_once_with(
+            "wait",
+            {"seconds": 2},
+            browser_session=None,
+        )
 
     def test_runtime_factory_loads_handlers_from_custom_module(self, make_controller):
         controller = make_controller()

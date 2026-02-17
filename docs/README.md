@@ -58,7 +58,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Multi-User Runtime Hardening**](MULTI_USER_RUNTIME_HARDENING.md) - Session identity, multi-device policy, and per-user model isolation guidance
 - [**Performance Guide**](PERFORMANCE.md) - Performance optimization strategies
 - [**Browser-Use Plan (Time-Locked Baseline)**](BROWSER_USE_PLAN.md) - Historical parity baseline and phased Browser Use capability plan
-- [**Browser-Use Port Implementation Plan**](BROWSER_USE_PORT_IMPLEMENTATION_PLAN.md) - Migration plan preserving WindieOS orchestration with Browser Use execution internals
+- [**Browser-Use Port Implementation Plan**](plan/BROWSER_USE_PORT_IMPLEMENTATION_PLAN.md) - Migration plan preserving WindieOS orchestration with Browser Use execution internals
 - [**Browser-Use Port Phase 0 Artifacts**](plan/BROWSER_USE_PORT_PHASE0_PARITY_LEDGER.md) - Action parity ledger, baseline run log, and non-direct mapping decisions
 - [**Browser-Use Port Phase 1 Architecture Spec**](plan/BROWSER_USE_PORT_PHASE1_ARCHITECTURE_AND_ADAPTER_SPEC.md) - Ownership boundary, end-to-end sequence diagram, and adapter interface/normalized return contract
 - [**Browser-Use Port Phase 2 Progress**](plan/BROWSER_USE_PORT_PHASE2_COMPAT_WRAPPER_PROGRESS.md) - Compatibility-wrapper module wiring and current action routing coverage

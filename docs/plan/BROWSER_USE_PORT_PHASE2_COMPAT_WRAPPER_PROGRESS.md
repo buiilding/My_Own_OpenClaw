@@ -8,11 +8,11 @@ read_when:
 
 # Browser Use Port Phase 2 Compatibility Wrapper Progress
 
-Updated: **February 16, 2026**
+Updated: **February 17, 2026**
 
 ## Phase 2 Goal Alignment
 
-Phase 2 tasks from `docs/BROWSER_USE_PORT_IMPLEMENTATION_PLAN.md`:
+Phase 2 tasks from `docs/plan/BROWSER_USE_PORT_IMPLEMENTATION_PLAN.md`:
 
 1. Introduce sidecar `tools/browser_use_adapter/*` module.
 2. Route `browser_control` handlers through adapter where possible.
@@ -31,13 +31,15 @@ This update delivers those tasks with compatibility-wrapper routing while preser
   - Adds runtime-provider seam for adapter internals.
   - Defaults to controller-backed provider and exposes Browser Use runtime selection hook (`WINDIE_BROWSER_USE_RUNTIME`) with safe fallback.
   - Adds strict-selection mode (`WINDIE_BROWSER_USE_RUNTIME_STRICT`) to fail fast instead of silently falling back when Browser Use runtime is explicitly requested.
+  - Adds `wait_seconds(...)` runtime seam so timed waits can route through native providers while preserving existing `wait` action payload semantics.
 - `frontend/src/main/python/tools/browser_use_adapter/browser_use_native_runtime.py`
   - Adds optional Browser Use-native runtime factory entrypoint (`create_browser_use_native_runtime_provider`) for incremental action-level migration.
   - When `browser_use` is installed and `WINDIE_BROWSER_USE_RUNTIME=browser_use_native`, the factory now returns a dedicated native-provider class scaffold (`BrowserUseNativeRuntimeProvider`) instead of always returning `None`.
   - Adds action-level native override controls (`WINDIE_BROWSER_USE_NATIVE_ACTIONS`, `WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT`) with safe fallback to controller-backed behavior.
-  - Native override hooks now cover core session and interaction/capture methods (connect mode handlers, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`, `snapshot`, `upload`) while preserving controller fallback.
+  - Native override hooks now cover core session and interaction/capture methods (connect mode handlers, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `wait_seconds`, `evaluate`, `snapshot`, `upload`) while preserving controller fallback.
 - `frontend/src/main/python/tools/browser_use_adapter/browser_use_native_handlers.py`
   - Adds default native-handler registry scaffold (`get_native_runtime_handlers`) and module-loading seam (`WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`) so action-level Browser Use handlers can be supplied without editing provider code.
+  - Ships built-in Browser Use-native timed-wait handler (`wait_seconds`) using `browser_use.tools.service.Tools` -> `registry.execute_action("wait", ...)`.
 - `frontend/src/main/python/tools/browser_use_adapter/__init__.py`
   - Exposes adapter types/factory.
 
@@ -127,7 +129,12 @@ Additional regression assertions added in:
 - `tests/sidecar/tools/test_browser_tool.py` (`TestPhase2AdapterRouting`)
 - `tests/sidecar/tools/test_browser_use_adapter.py` (`TestBrowserUseCompatibilityAdapter`)
 
-## Remaining Phase 2 Work
+## Phase 2 Completion Gate
 
-- Runtime-provider seam is now in place across most high-value actions, but the default provider remains fully controller-backed.
-- Replace controller-backed adapter internals action-by-action with Browser Use runtime primitives while preserving the same adapter return contract.
+- Compatibility-wrapper routing is complete for all supported `browser_control` actions.
+- Contract-preserving native runtime wiring is complete, including strict/fallback selection behavior.
+- At least one core action now runs on a true Browser Use-native path (`wait(seconds=...)`) when native runtime/action toggles are enabled.
+
+## Next Slice (Phase 3)
+
+- Continue replacing controller-backed internals action-by-action with Browser Use runtime primitives while preserving adapter output contracts.

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(browser-use-port): wire timed `wait(seconds=...)` through runtime-provider seam (`wait_seconds`) and add default Browser Use-native handler (`browser_use.tools.service.Tools` wait action) under `WINDIE_BROWSER_USE_RUNTIME=browser_use_native` + `WINDIE_BROWSER_USE_NATIVE_ACTIONS=wait_seconds`, with sidecar regression coverage
 - refactor(browser-use-port): add native-handler module loading seam (`WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`) plus default registry scaffold (`browser_use_native_handlers.py`) so Browser Use action handlers can be plugged into native runtime selection without provider code edits
 - refactor(browser-use-port): expand `BrowserUseNativeRuntimeProvider` action-level native override hooks across interaction/capture methods and connect-mode handlers, with environment-gated enablement and controller-backed fallback
 - refactor(browser-use-port): add action-level native-runtime override controls in `BrowserUseNativeRuntimeProvider` (`WINDIE_BROWSER_USE_NATIVE_ACTIONS`, `WINDIE_BROWSER_USE_NATIVE_ACTIONS_STRICT`) with strict/fallback behavior and initial native-override hooks for core actions (`status`, `navigate`, `open`, `get_tabs`, `switch_tab`, `close`)

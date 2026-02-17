@@ -7,7 +7,6 @@ we migrate internals incrementally.
 
 from __future__ import annotations
 
-import asyncio
 import base64
 import json
 import re
@@ -1055,7 +1054,15 @@ class BrowserUseCompatibilityAdapter:
 
         seconds = args.get("seconds")
         if isinstance(seconds, (int, float)):
-            await asyncio.sleep(float(seconds))
+            result = await self._runtime.wait_seconds(seconds=float(seconds))
+            if isinstance(result, dict) and not result.get("success", False):
+                return AdapterActionResult(
+                    success=False,
+                    action="wait",
+                    decision="compat",
+                    error=result.get("error", "Wait failed"),
+                    error_code="BROWSER_RUNTIME_ERROR",
+                )
             return AdapterActionResult(
                 success=True,
                 action="wait",
