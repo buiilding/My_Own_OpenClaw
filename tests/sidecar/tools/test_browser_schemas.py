@@ -447,9 +447,9 @@ class TestSchemaRegistry:
         """Test getting compat schema for OpenClaw action names."""
         schema = get_browser_schema("act")
         assert schema is not None
-        assert get_browser_schema("errors") is not None
-        assert get_browser_schema("requests") is not None
-        assert get_browser_schema("set_offline") is not None
+        assert get_browser_schema("errors") is None
+        assert get_browser_schema("requests") is None
+        assert get_browser_schema("set_offline") is None
 
     def test_get_browser_schema_extract(self):
         """Test getting extract schema."""

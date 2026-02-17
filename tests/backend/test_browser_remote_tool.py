@@ -91,11 +91,11 @@ class TestBrowserControlArgs:
         args = BrowserControlArgs(action="status")
         assert args.action == "status"
 
-    def test_requests_action(self):
-        """Test debug requests action args."""
-        args = BrowserControlArgs(action="requests", limit=50, clear=True)
-        assert args.action == "requests"
-        assert args.limit == 50
+    def test_search_action(self):
+        """Test Browser Use search action args."""
+        args = BrowserControlArgs(action="search", query="pricing tiers")
+        assert args.action == "search"
+        assert args.query == "pricing tiers"
 
     def test_extract_action(self):
         """Test extract action args."""

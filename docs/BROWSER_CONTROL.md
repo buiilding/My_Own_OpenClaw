@@ -384,17 +384,11 @@ Supported aliases that map to Browser Use-native execution:
 - `press` -> Browser Use `send_keys`
 - `open` -> Browser Use `navigate` with `new_tab=true`
 - `switch_tab` -> Browser Use `switch`
-- `upload` -> Browser Use `upload_file`
 - `get_tabs` / `status` -> Browser Use state summary bridge
 
-Deprecated legacy actions (`ACTION_DEPRECATED`):
-
-- `console`, `errors`, `requests`, `pdf`, `dialog`
-- `cookies`, `cookies_set`, `cookies_clear`
-- `storage_get`, `storage_set`, `storage_clear`
-- `set_offline`, `set_headers`, `set_credentials`, `set_geolocation`, `set_media`
-- `set_timezone`, `set_locale`, `set_device`
-- `act` legacy kinds: `hover`, `drag`, `select`, `fill`, `resize`
+Legacy non-Browser Use actions were removed from runtime routing and now return
+`Unhandled action` if called (for example: `console`, `errors`, `requests`,
+`trace_start`, `trace_stop`, `pdf`, `dialog`, `cookies*`, `storage*`, `set_*`, `upload`).
 
 ## Example Workflows
 

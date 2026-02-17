@@ -156,7 +156,7 @@ class TestBrowserUseCompatibilityAdapter:
         assert result.error_code == "ACTION_UNSUPPORTED"
 
     @pytest.mark.asyncio
-    async def test_trace_actions_return_explicit_deprecation(self, make_controller):
+    async def test_trace_actions_are_not_supported(self, make_controller):
         controller = make_controller()
         adapter = self._make_adapter(controller)
 
@@ -164,10 +164,10 @@ class TestBrowserUseCompatibilityAdapter:
         stop_result = await adapter.execute("trace_stop", {"action": "trace_stop"})
 
         assert start_result.success is False
-        assert start_result.error_code == "ACTION_DEPRECATED"
-        assert "deprecated" in (start_result.error or "").lower()
+        assert start_result.error_code == "ACTION_UNSUPPORTED"
+        assert "Unhandled action" in (start_result.error or "")
         assert stop_result.success is False
-        assert stop_result.error_code == "ACTION_DEPRECATED"
+        assert stop_result.error_code == "ACTION_UNSUPPORTED"
         controller.trace_start.assert_not_awaited()
         controller.trace_stop.assert_not_awaited()
 
@@ -907,8 +907,8 @@ class TestBrowserUseCompatibilityAdapter:
         runtime.evaluate.assert_not_awaited()
 
         upload_result = await adapter.execute(
-            "upload",
-            {"action": "upload", "ref": "1", "paths": ["/tmp/file.txt"]},
+            "upload_file",
+            {"action": "upload_file", "ref": "1", "paths": ["/tmp/file.txt"]},
         )
         assert upload_result.success is True
         assert upload_result.data["browser_use_action"] == "upload_file"

@@ -29,14 +29,6 @@ class AdapterActionResult:
     deprecation: str | None = None
 
 MAX_SNAPSHOT_CAPTURE_CHARS = 120_000
-TRACE_DEPRECATION_MESSAGE = (
-    "trace_start/trace_stop are deprecated in Browser Use runtime mode. "
-    "Use requests/errors capture and HAR-style runbook workflows instead."
-)
-LEGACY_ACTION_DEPRECATION_MESSAGE = (
-    "This browser action is deprecated in Browser Use-only runtime mode. "
-    "Use Browser Use native actions instead."
-)
 BROWSER_USE_DIRECT_ACTIONS = frozenset(
     {
         "done",
@@ -76,15 +68,12 @@ ADAPTER_ACTIONS_WITH_ARGS = {
     "type": "type_text",
     "press": "press",
     "switch_tab": "switch_tab",
-    "trace_start": "trace_start",
-    "upload": "upload",
     "act": "act",
 }
 ADAPTER_ACTIONS_NO_ARGS = {
     "status": "status",
     "profiles": "profiles",
     "get_tabs": "get_tabs",
-    "trace_stop": "trace_stop",
 }
 BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     {
@@ -112,30 +101,6 @@ BROWSER_USE_ACTIONS_REQUIRING_CONNECTION = frozenset(
     }
 )
 ACT_EXECUTE_FORWARD_ACTIONS = frozenset({"navigate", "extract", "scroll", "screenshot"})
-DEPRECATED_LEGACY_ACTIONS = frozenset(
-    {
-        "console",
-        "errors",
-        "requests",
-        "pdf",
-        "dialog",
-        "cookies",
-        "cookies_set",
-        "cookies_clear",
-        "storage_get",
-        "storage_set",
-        "storage_clear",
-        "set_offline",
-        "set_headers",
-        "set_credentials",
-        "set_geolocation",
-        "set_media",
-        "set_timezone",
-        "set_locale",
-        "set_device",
-    }
-)
-DEPRECATED_LEGACY_ACT_KINDS = frozenset({"hover", "drag", "select", "fill", "resize"})
 _ADAPTER_CACHE_BY_CONTROLLER: "WeakKeyDictionary[Any, BrowserUseCompatibilityAdapter]" = (
     WeakKeyDictionary()
 )
@@ -163,12 +128,6 @@ class BrowserUseCompatibilityAdapter:
         action: str,
         args: Mapping[str, Any],
     ) -> AdapterActionResult:
-        if action in DEPRECATED_LEGACY_ACTIONS:
-            return self._deprecated_action(
-                action,
-                LEGACY_ACTION_DEPRECATION_MESSAGE,
-            )
-
         handler_with_args = ADAPTER_ACTIONS_WITH_ARGS.get(action)
         if handler_with_args:
             return await getattr(self, handler_with_args)(args)
@@ -978,72 +937,6 @@ class BrowserUseCompatibilityAdapter:
         )
 
 
-
-
-    async def trace_start(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        return AdapterActionResult(
-            success=False,
-            action="trace_start",
-            decision="deprecate",
-            error=TRACE_DEPRECATION_MESSAGE,
-            error_code="ACTION_DEPRECATED",
-            deprecation=TRACE_DEPRECATION_MESSAGE,
-        )
-
-    async def trace_stop(self) -> AdapterActionResult:
-        return AdapterActionResult(
-            success=False,
-            action="trace_stop",
-            decision="deprecate",
-            error=TRACE_DEPRECATION_MESSAGE,
-            error_code="ACTION_DEPRECATED",
-            deprecation=TRACE_DEPRECATION_MESSAGE,
-        )
-
-
-    async def upload(self, args: Mapping[str, Any]) -> AdapterActionResult:
-        ref = (
-            self._value_as_str(args.get("inputRef"))
-            or self._value_as_str(args.get("input_ref"))
-            or self._value_as_str(args.get("ref"))
-        )
-        upload_result = await self.execute_browser_use_action(
-            "upload_file",
-            {
-                **dict(args),
-                "action": "upload_file",
-                "ref": ref,
-            },
-        )
-        upload_result = self._retag_action(upload_result, "upload")
-        if not upload_result.success:
-            return upload_result
-        payload = dict(upload_result.data)
-        payload["action"] = "upload"
-        payload["browser_use_action"] = "upload_file"
-        return AdapterActionResult(
-            success=True,
-            action="upload",
-            decision=upload_result.decision,
-            data=payload,
-            warnings=list(upload_result.warnings),
-        )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     async def act(self, args: Mapping[str, Any]) -> AdapterActionResult:
         request = args.get("request")
         if not isinstance(request, dict):
@@ -1074,12 +967,6 @@ class BrowserUseCompatibilityAdapter:
         if kind in ACT_EXECUTE_FORWARD_ACTIONS:
             forward_result = await self.execute(kind, {"action": kind, **merged})
             return self._retag_action(forward_result, kind)
-
-        if kind in DEPRECATED_LEGACY_ACT_KINDS:
-            return self._deprecated_action(
-                "act",
-                f"act.{kind} is deprecated in Browser Use-only runtime mode.",
-            )
 
         if kind == "wait":
             time_ms = merged.get("timeMs")
@@ -1213,17 +1100,6 @@ class BrowserUseCompatibilityAdapter:
             decision="compat",
             error=message,
             error_code="INVALID_ARGUMENT",
-        )
-
-    @staticmethod
-    def _deprecated_action(action: str, message: str) -> AdapterActionResult:
-        return AdapterActionResult(
-            success=False,
-            action=action,
-            decision="deprecate",
-            error=message,
-            error_code="ACTION_DEPRECATED",
-            deprecation=message,
         )
 
     @staticmethod
