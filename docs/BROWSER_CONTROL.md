@@ -123,7 +123,7 @@ Notes:
 - `done` is exposed for parity with Browser Use completion tooling.
 - Browser Use tab IDs are short IDs; when `target_id` is supplied, WindieOS derives a tab ID suffix.
 - Browser Use actions are also supported via `act.request.kind` using the same names.
-- Overlapping actions now run Browser Use-only semantics at runtime (`navigate`, `extract`, `click`, `scroll`, `screenshot`, `wait`, `evaluate`): compatibility-only fields (for example `extract.mode`, `extract.selector`, `extract.frame`, `wait.state`, `screenshot.full_page`, `screenshot.ref`, `screenshot.element`, `screenshot.type`, `screenshot.quality`) are rejected.
+- Overlapping actions now run Browser Use-only semantics at runtime (`snapshot`, `navigate`, `extract`, `click`, `scroll`, `screenshot`, `wait`, `evaluate`): compatibility-only fields are rejected (for example `snapshot.format`, `snapshot.snapshotFormat`, `snapshot.wait_until`, `snapshot.mode`, `snapshot.max_chars`, `snapshot.refs`, `snapshot.interactive`, `snapshot.compact`, `snapshot.depth`, `snapshot.selector`, `snapshot.frame`, `extract.mode`, `extract.selector`, `extract.frame`, `wait.state`, `screenshot.full_page`, `screenshot.ref`, `screenshot.element`, `screenshot.type`, `screenshot.quality`).
 
 ### 1. Connect
 
@@ -153,88 +153,36 @@ Wait options: `load`, `domcontentloaded`, `networkidle`, `commit`
 
 ### 3. Snapshot
 
-Get page overview with element references and optional rich contextual role snapshots.
-
-Notes:
-- Refs are designed to be stable across repeated snapshots on the same page/tab, but can still change if the page navigates or the DOM replaces elements.
-- Newly-appeared interactive elements since the last snapshot are prefixed with `*` (example: `*[12]`).
-- `format="ai"` snapshots use an enhanced CDP pipeline (`DOMSnapshot` + full DOM + AX tree + JS click-listener hints) to identify interactive elements more reliably than selector-only scanning.
-- If the enhanced CDP path fails, WindieOS automatically falls back to the legacy selector-based snapshot path for resilience.
+Get Browser Use-native browser state text (`dom_state.llm_representation()`) with numeric interactive indexes.
 
 ```json
 {
   "action": "snapshot",
-  "format": "ai",
-  "max_chars": 12000
+  "offset": 0,
+  "limit": 4000
 }
 ```
 
-**AI Format Output:**
+**Snapshot Output:**
 ```
-Title: GitHub
-URL: https://github.com
-
-DOM tree (browser-use style):
-<main#site-content>
-	[1]<a role='link' href='/login'>Sign in</a>
-	[2]<a role='link' href='/signup'>Sign up</a>
-	[3]<input role='searchbox' type='search'>Search</input>
-	[4]<button role='button'>Search GitHub</button>
-```
-
-**Role Snapshot (OpenClaw-style, more context control):**
-```json
-{
-  "action": "snapshot",
-  "format": "ai",
-  "mode": "efficient"
-}
-```
-```
-Title: GitHub
-URL: https://github.com
-
-- link "Sign in" [ref=e1]
-- link "Sign up" [ref=e2]
-- searchbox "Search" [ref=e3]
-- button "Search GitHub" [ref=e4]
-```
-
-**ARIA Format Output:**
-```
-- heading: "Let's build from here"
-- link: "Sign in"
-- searchbox: "Search"
+[33]<div>User form</div>
+[35]<button aria-label='Submit form'>Submit</button>
 ```
 
 Snapshot options:
-- `format`: `ai` (default) or `aria`
-- `wait_until`: load state to wait for before capture (`load` default; supports `domcontentloaded`, `networkidle`, and `commit` where `commit` is treated as `load` for snapshot capture)
-- `max_chars`: optional capture budget for snapshot text before pagination (`ai` supports caller-defined values; `aria` defaults to `4000`)
 - `offset`: optional character offset for paginated snapshot reads
-- `limit`: optional character page size for paginated snapshot reads (`aria` page size is capped at `4000`)
-- `mode: "efficient"`: sets `interactive=true`, `compact=true`, `depth=4`, and `max_chars=4000` (unless you pass `max_chars`)
-- `interactive`: only interactive roles in role snapshot
-- `compact`: prune structural noise in role snapshot
-- `depth`: max role snapshot depth
-- `selector`: scope role snapshot to a CSS selector
-- `frame`: scope role snapshot to an iframe selector
-- `refs`: `role` (default) or `aria`
+- `limit`: optional character page size for snapshot text (`4000` default)
+- `include_screenshot`: optional boolean to include Browser Use base64 screenshot in response
 
 Defaults:
-- Snapshot waits for `wait_until="load"` before capture (for both manual `snapshot` and automatic post-action snapshots)
-- `ai` snapshots default to `mode="efficient"` when mode is omitted
-- `ai` snapshot default page budget: `4000` chars (efficient default behavior)
-- `ai` non-efficient budget: `12000` chars
-- `aria` snapshot default page budget: `4000` chars
-- If efficient AI snapshot capture returns `ref_count=0`, WindieOS retries with a deeper role snapshot (`depth=12`) and then an unscoped flat AI snapshot fallback.
-- Snapshot tool output returns `snapshot` text plus lightweight metadata (`ref_count`, `offset`, `limit`, `returned_chars`, `total_chars`, `has_more`, `next_offset` when available); detailed ref/stats maps remain internal to reduce token usage.
+- Snapshot output returns Browser Use state text plus metadata (`ref_count`, `offset`, `limit`, `returned_chars`, `total_chars`, `has_more`, `next_offset`).
+- `offset + limit` must be `<= 120000`.
+- Compatibility snapshot fields are rejected at runtime (`format`, `snapshotFormat`, `wait_until`, `state`, `mode`, `max_chars`, `refs`, `interactive`, `compact`, `depth`, `selector`, `frame`).
 
 Pagination example:
 ```json
 {
   "action": "snapshot",
-  "format": "aria",
   "offset": 4000,
   "limit": 4000
 }

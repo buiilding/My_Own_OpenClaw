@@ -12,7 +12,6 @@ from unittest import mock
 from tools.browser.browser_tool import execute_browser_control
 from tools.browser.controller import reset_browser_controller
 from tools.browser_use_adapter import AdapterActionResult
-from tools.result import ToolResult
 
 
 @pytest.fixture(autouse=True)
@@ -506,477 +505,109 @@ class TestSnapshotAction:
     """Test snapshot action."""
 
     @pytest.mark.asyncio
-    async def test_snapshot_ai_format(self):
-        """Test AI format snapshot."""
+    async def test_snapshot_routes_to_adapter_and_returns_payload(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get_controller, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
+            mock_get_controller.return_value = mock_controller
 
-            from tools.browser.controller import PageSnapshot
-
-            mock_controller.get_page_snapshot.return_value = PageSnapshot(
-                text="[1] button Submit",
-                url="https://example.com",
-                title="Example",
-                ref_count=1,
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=True,
+                action="snapshot",
+                decision="port",
+                data={
+                    "action": "snapshot",
+                    "browser_use_action": "snapshot",
+                    "native_source": "browser_use.state",
+                    "format": "browser_use_state",
+                    "snapshot": "[1]<button>Buy now</button>",
+                    "ref_count": 1,
+                    "offset": 0,
+                    "limit": 4000,
+                    "returned_chars": 28,
+                    "total_chars": 28,
+                    "has_more": False,
+                },
             )
-            mock_get.return_value = mock_controller
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
                     "action": "snapshot",
-                    "format": "ai",
+                    "offset": 0,
+                    "limit": 4000,
                 }
             )
 
             assert result.success is True
-            assert result.data["format"] == "ai"
-            assert result.data["wait_until"] == "load"
-            assert result.data["ref_count"] == 1
-            assert "refs" not in result.data
-            assert "stats" not in result.data
-            mock_controller.wait_for_load.assert_awaited_once_with("load")
-            mock_controller.get_page_snapshot.assert_awaited_once_with(
-                format_type="ai",
-                max_chars=4000,
-                refs_mode=None,
-                interactive=True,
-                compact=True,
-                depth=4,
-                selector=None,
-                frame_selector=None,
+            assert result.data["browser_use_action"] == "snapshot"
+            assert "[1]" in result.data["snapshot"]
+            mock_adapter.execute.assert_awaited_once_with(
+                "snapshot",
+                {"action": "snapshot", "offset": 0, "limit": 4000},
             )
 
     @pytest.mark.asyncio
-    async def test_snapshot_efficient_role_output(self):
-        """Test efficient role snapshot output returns text payload only."""
+    async def test_snapshot_rejects_compatibility_fields(self):
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get_controller, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
+            mock_get_controller.return_value = mock_controller
 
-            from tools.browser.controller import PageSnapshot
-
-            mock_controller.get_page_snapshot.return_value = PageSnapshot(
-                text='- button "Submit" [ref=e1]',
-                url="https://example.com",
-                title="Example",
-                ref_count=1,
-                refs={"e1": {"role": "button", "name": "Submit"}},
-                stats={"lines": 1, "chars": 26, "refs": 1, "interactive": 1},
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=False,
+                action="snapshot",
+                decision="compat",
+                error="snapshot no longer supports compatibility 'format'; use Browser Use snapshot semantics",
+                error_code="INVALID_ARGUMENT",
             )
-            mock_get.return_value = mock_controller
+            mock_get_adapter.return_value = mock_adapter
 
             result = await execute_browser_control(
                 {
                     "action": "snapshot",
                     "format": "ai",
-                    "mode": "efficient",
                 }
             )
 
-            assert result.success is True
-            assert result.data["format"] == "ai"
-            assert result.data["wait_until"] == "load"
-            assert result.data["ref_count"] == 1
-            assert "refs" not in result.data
-            assert "stats" not in result.data
-
-    @pytest.mark.asyncio
-    async def test_snapshot_efficient_zero_refs_retries_with_higher_depth(self):
-        """Efficient AI snapshot should retry with deeper role depth when refs are empty."""
-        with mock.patch(
-            "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-
-            from tools.browser.controller import PageSnapshot
-
-            mock_controller.get_page_snapshot.side_effect = [
-                PageSnapshot(
-                    text="(no interactive elements)",
-                    url="https://example.com",
-                    title="Example",
-                    ref_count=0,
-                ),
-                PageSnapshot(
-                    text='- button "Submit" [ref=e1]',
-                    url="https://example.com",
-                    title="Example",
-                    ref_count=1,
-                ),
-            ]
-            mock_get.return_value = mock_controller
-
-            result = await execute_browser_control(
-                {
-                    "action": "snapshot",
-                    "format": "ai",
-                    "mode": "efficient",
-                }
-            )
-
-            assert result.success is True
-            assert result.data["ref_count"] == 1
-            assert mock_controller.get_page_snapshot.await_count == 2
-            assert (
-                mock_controller.get_page_snapshot.await_args_list[0].kwargs["depth"]
-                == 4
-            )
-            assert (
-                mock_controller.get_page_snapshot.await_args_list[1].kwargs["depth"]
-                == 12
-            )
-
-    @pytest.mark.asyncio
-    async def test_snapshot_efficient_zero_refs_retries_flat_ai_when_depth_retry_empty(
-        self,
-    ):
-        """Efficient AI snapshot should retry flat AI extraction if role retries still have zero refs."""
-        with mock.patch(
-            "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-
-            from tools.browser.controller import PageSnapshot
-
-            mock_controller.get_page_snapshot.side_effect = [
-                PageSnapshot(
-                    text="(no interactive elements)",
-                    url="https://example.com",
-                    title="Example",
-                    ref_count=0,
-                ),
-                PageSnapshot(
-                    text="(still no interactive elements)",
-                    url="https://example.com",
-                    title="Example",
-                    ref_count=0,
-                ),
-                PageSnapshot(
-                    text='[1] link "Story"',
-                    url="https://example.com",
-                    title="Example",
-                    ref_count=1,
-                ),
-            ]
-            mock_get.return_value = mock_controller
-
-            result = await execute_browser_control(
-                {
-                    "action": "snapshot",
-                    "format": "ai",
-                    "mode": "efficient",
-                }
-            )
-
-            assert result.success is True
-            assert result.data["ref_count"] == 1
-            assert mock_controller.get_page_snapshot.await_count == 3
-            assert mock_controller.get_page_snapshot.await_args_list[2].kwargs == {
-                "format_type": "ai",
-                "max_chars": 4000,
-                "refs_mode": None,
-                "interactive": None,
-                "compact": None,
-                "depth": None,
-                "selector": None,
-                "frame_selector": None,
-            }
+            assert result.success is False
+            assert "no longer supports compatibility 'format'" in result.error
 
     @pytest.mark.asyncio
     async def test_snapshot_not_connected(self):
-        """Test snapshot when not connected."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
+        ) as mock_get_controller, mock.patch(
+            "tools.browser.browser_tool.get_browser_use_adapter"
+        ) as mock_get_adapter:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = False
-            mock_get.return_value = mock_controller
+            mock_get_controller.return_value = mock_controller
 
-            result = await execute_browser_control(
-                {
-                    "action": "snapshot",
-                }
+            mock_adapter = mock.AsyncMock()
+            mock_adapter.execute.return_value = AdapterActionResult(
+                success=False,
+                action="snapshot",
+                decision="compat",
+                error="Browser not connected. Run 'connect' action first.",
+                error_code="BROWSER_NOT_CONNECTED",
             )
+            mock_get_adapter.return_value = mock_adapter
+
+            result = await execute_browser_control({"action": "snapshot"})
 
             assert result.success is False
             assert "not connected" in result.error.lower()
-
-    @pytest.mark.asyncio
-    async def test_snapshot_aria_does_not_force_efficient_defaults(self):
-        """Test aria snapshot keeps non-efficient defaults."""
-        with mock.patch(
-            "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-
-            from tools.browser.controller import PageSnapshot
-
-            mock_controller.get_page_snapshot.return_value = PageSnapshot(
-                text='- button "Submit"',
-                url="https://example.com",
-                title="Example",
-                ref_count=0,
-            )
-            mock_get.return_value = mock_controller
-
-            result = await execute_browser_control(
-                {
-                    "action": "snapshot",
-                    "format": "aria",
-                }
-            )
-
-            assert result.success is True
-            assert result.data["format"] == "aria"
-            assert result.data["wait_until"] == "load"
-            mock_controller.wait_for_load.assert_awaited_once_with("load")
-            mock_controller.get_page_snapshot.assert_awaited_once_with(
-                format_type="aria",
-                max_chars=4000,
-                refs_mode=None,
-                interactive=None,
-                compact=None,
-                depth=None,
-                selector=None,
-                frame_selector=None,
-            )
-
-    @pytest.mark.asyncio
-    async def test_snapshot_aria_max_chars_is_hard_capped_at_4000(self):
-        """ARIA snapshot requests should never exceed 4000 chars."""
-        with mock.patch(
-            "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-
-            from tools.browser.controller import PageSnapshot
-
-            mock_controller.get_page_snapshot.return_value = PageSnapshot(
-                text='- button "Submit"',
-                url="https://example.com",
-                title="Example",
-                ref_count=0,
-            )
-            mock_get.return_value = mock_controller
-
-            result = await execute_browser_control(
-                {
-                    "action": "snapshot",
-                    "format": "aria",
-                    "max_chars": 10000,
-                }
-            )
-
-            assert result.success is True
-            mock_controller.get_page_snapshot.assert_awaited_once_with(
-                format_type="aria",
-                max_chars=4000,
-                refs_mode=None,
-                interactive=None,
-                compact=None,
-                depth=None,
-                selector=None,
-                frame_selector=None,
-            )
-
-    @pytest.mark.asyncio
-    async def test_snapshot_ai_offset_limit_expands_capture_and_returns_window(self):
-        """AI snapshot should support offset/limit pagination with expanded capture budget."""
-        with mock.patch(
-            "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-
-            from tools.browser.controller import PageSnapshot
-
-            full_text = "x" * 6000
-            mock_controller.get_page_snapshot.return_value = PageSnapshot(
-                text=full_text,
-                url="https://example.com",
-                title="Example",
-                ref_count=10,
-            )
-            mock_get.return_value = mock_controller
-
-            result = await execute_browser_control(
-                {
-                    "action": "snapshot",
-                    "format": "ai",
-                    "offset": 4500,
-                    "limit": 300,
-                }
-            )
-
-            assert result.success is True
-            assert result.data["snapshot"] == full_text[4500:4800]
-            assert result.data["offset"] == 4500
-            assert result.data["limit"] == 300
-            assert result.data["returned_chars"] == 300
-            assert result.data["total_chars"] == 6000
-            assert result.data["has_more"] is True
-            assert result.data["next_offset"] == 4800
-            mock_controller.get_page_snapshot.assert_awaited_once_with(
-                format_type="ai",
-                max_chars=5312,
-                refs_mode=None,
-                interactive=True,
-                compact=True,
-                depth=4,
-                selector=None,
-                frame_selector=None,
-            )
-
-    @pytest.mark.asyncio
-    async def test_snapshot_aria_offset_limit_caps_page_limit_and_paginates(self):
-        """ARIA snapshot should cap page limit at 4000 while allowing paged reads."""
-        with mock.patch(
-            "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-
-            from tools.browser.controller import PageSnapshot
-
-            full_text = "z" * 12000
-            mock_controller.get_page_snapshot.return_value = PageSnapshot(
-                text=full_text,
-                url="https://example.com",
-                title="Example",
-                ref_count=0,
-            )
-            mock_get.return_value = mock_controller
-
-            result = await execute_browser_control(
-                {
-                    "action": "snapshot",
-                    "format": "aria",
-                    "offset": 4000,
-                    "limit": 10000,
-                }
-            )
-
-            assert result.success is True
-            assert result.data["snapshot"] == full_text[4000:8000]
-            assert result.data["offset"] == 4000
-            assert result.data["limit"] == 4000
-            assert result.data["returned_chars"] == 4000
-            assert result.data["total_chars"] == 12000
-            assert result.data["has_more"] is True
-            assert result.data["next_offset"] == 8000
-            mock_controller.get_page_snapshot.assert_awaited_once_with(
-                format_type="aria",
-                max_chars=8512,
-                refs_mode=None,
-                interactive=None,
-                compact=None,
-                depth=None,
-                selector=None,
-                frame_selector=None,
-            )
-
-    @pytest.mark.asyncio
-    async def test_snapshot_offset_limit_window_has_upper_bound(self):
-        """Snapshot pagination window should enforce a hard capture ceiling."""
-        with mock.patch(
-            "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "load",
-            }
-            mock_get.return_value = mock_controller
-
-            result = await execute_browser_control(
-                {
-                    "action": "snapshot",
-                    "format": "ai",
-                    "offset": 119900,
-                    "limit": 200,
-                }
-            )
-
-            assert result.success is False
-            assert "offset + limit exceeds maximum snapshot window" in result.error
-            mock_controller.get_page_snapshot.assert_not_awaited()
-
-    @pytest.mark.asyncio
-    async def test_snapshot_custom_wait_until(self):
-        """Test snapshot accepts custom wait_until."""
-        with mock.patch(
-            "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = True
-            mock_controller.wait_for_load.return_value = {
-                "success": True,
-                "state": "networkidle",
-            }
-
-            from tools.browser.controller import PageSnapshot
-
-            mock_controller.get_page_snapshot.return_value = PageSnapshot(
-                text='- button "Submit"',
-                url="https://example.com",
-                title="Example",
-                ref_count=1,
-            )
-            mock_get.return_value = mock_controller
-
-            result = await execute_browser_control(
-                {
-                    "action": "snapshot",
-                    "wait_until": "networkidle",
-                }
-            )
-
-            assert result.success is True
-            assert result.data["wait_until"] == "networkidle"
-            mock_controller.wait_for_load.assert_awaited_once_with("networkidle")
-
 
 class TestExtractAction:
     """Test extract action."""

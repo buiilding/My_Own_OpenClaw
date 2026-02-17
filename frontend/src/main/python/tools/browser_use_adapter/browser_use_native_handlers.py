@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 NativeActionHandler = Callable[..., Awaitable[Any] | Any]
 DEFAULT_CDP_URL = "http://127.0.0.1:9222"
 DEFAULT_FILESYSTEM_DIR = Path.home() / ".config" / "desktop-assistant" / "browser-use"
+DEFAULT_SNAPSHOT_PAGE_LIMIT = 4_000
+MAX_SNAPSHOT_WINDOW_CHARS = 120_000
 
 _BROWSER_REQUIRED_ACTIONS = frozenset(
     {
@@ -342,6 +344,86 @@ class _BrowserUseActionBridge:
                     "native_source": "browser_use.tools",
                 }
 
+    async def capture_snapshot(
+        self,
+        params: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        async with self._lock:
+            try:
+                browser_session = await self._ensure_browser_session()
+
+                include_screenshot = bool(params.get("include_screenshot", False))
+
+                raw_offset = params.get("offset", 0)
+                offset = raw_offset if isinstance(raw_offset, int) and raw_offset >= 0 else 0
+                raw_limit = params.get("limit", DEFAULT_SNAPSHOT_PAGE_LIMIT)
+                limit = (
+                    raw_limit
+                    if isinstance(raw_limit, int) and raw_limit > 0
+                    else DEFAULT_SNAPSHOT_PAGE_LIMIT
+                )
+                if offset + limit > MAX_SNAPSHOT_WINDOW_CHARS:
+                    return {
+                        "success": False,
+                        "action": "snapshot",
+                        "error": "offset + limit exceeds maximum snapshot window (120000)",
+                        "native_source": "browser_use.state",
+                    }
+
+                state = await browser_session.get_browser_state_summary(
+                    include_screenshot=include_screenshot
+                )
+                dom_state = getattr(state, "dom_state", None)
+                snapshot_text = ""
+                ref_count = 0
+                if dom_state is not None:
+                    llm_representation = getattr(dom_state, "llm_representation", None)
+                    if callable(llm_representation):
+                        rendered = llm_representation()
+                        if isinstance(rendered, str):
+                            snapshot_text = rendered
+                    selector_map = getattr(dom_state, "selector_map", None)
+                    if isinstance(selector_map, dict):
+                        ref_count = len(selector_map)
+
+                total_chars = len(snapshot_text)
+                window_start = min(offset, total_chars)
+                window_end = min(total_chars, window_start + limit)
+                window_text = snapshot_text[window_start:window_end]
+                has_more = window_end < total_chars
+
+                payload: dict[str, Any] = {
+                    "success": True,
+                    "action": "snapshot",
+                    "native_source": "browser_use.state",
+                    "format": "browser_use_state",
+                    "url": str(getattr(state, "url", "") or ""),
+                    "title": str(getattr(state, "title", "") or ""),
+                    "snapshot": window_text,
+                    "ref_count": ref_count,
+                    "offset": offset,
+                    "limit": limit,
+                    "returned_chars": len(window_text),
+                    "total_chars": total_chars,
+                    "has_more": has_more,
+                }
+
+                if has_more:
+                    payload["next_offset"] = window_end
+
+                screenshot = getattr(state, "screenshot", None)
+                if include_screenshot and isinstance(screenshot, str) and screenshot:
+                    payload["screenshot"] = screenshot
+
+                return payload
+            except Exception as exc:
+                return {
+                    "success": False,
+                    "action": "snapshot",
+                    "error": f"Browser Use snapshot failed: {exc}",
+                    "native_source": "browser_use.state",
+                }
+
 
 def get_native_runtime_handlers(
     controller: Any | None = None,
@@ -360,6 +442,11 @@ def get_native_runtime_handlers(
         return result
 
     handlers["wait_seconds"] = _wait_seconds_handler
+
+    async def _snapshot_handler(**kwargs: Any) -> dict[str, Any]:
+        return await bridge.capture_snapshot(kwargs)
+
+    handlers["snapshot"] = _snapshot_handler
 
     for action in _BROWSER_USE_ACTIONS:
         async def _handler(
