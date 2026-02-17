@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
+import re
 from types import SimpleNamespace
 from unittest import mock
 
@@ -22,6 +24,21 @@ def _browser_use_actions() -> set[str]:
     except Exception as exc:
         pytest.skip(f"browser_use import unavailable for parity checks: {exc}")
     return set(Tools().registry.registry.actions.keys())
+
+
+@lru_cache(maxsize=1)
+def _backend_browser_control_actions() -> set[str]:
+    root = Path(__file__).resolve().parents[3]
+    schema_path = root / "backend" / "src" / "tools" / "browser" / "schemas.py"
+    text = schema_path.read_text(encoding="utf-8")
+    match = re.search(
+        r"class\s+BrowserControlArgs\(BaseModel\):.*?action:\s*Literal\[(.*?)\]\s*=\s*Field",
+        text,
+        re.S,
+    )
+    if not match:
+        pytest.fail("Unable to parse backend BrowserControlArgs action literal")
+    return set(re.findall(r'"([a-z_]+)"', match.group(1)))
 
 
 def _minimal_action_args() -> dict[str, dict[str, object]]:
@@ -60,6 +77,13 @@ def _minimal_action_args() -> dict[str, dict[str, object]]:
 def test_schema_exposes_all_browser_use_actions() -> None:
     browser_use_actions = _browser_use_actions()
     missing = sorted(browser_use_actions - set(BROWSER_SCHEMAS.keys()))
+    assert missing == []
+
+
+def test_backend_schema_exposes_all_browser_use_actions() -> None:
+    browser_use_actions = _browser_use_actions()
+    backend_actions = _backend_browser_control_actions()
+    missing = sorted(browser_use_actions - backend_actions)
     assert missing == []
 
 
