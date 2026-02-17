@@ -19,6 +19,9 @@ PRUNED_DIRS=(
   "code_use"
   "controller"
   "integrations"
+  "browser/cloud"
+  "sync"
+  "telemetry"
   "llm/anthropic"
   "llm/aws"
   "llm/deepseek"
@@ -65,6 +68,9 @@ RSYNC_EXCLUDES=(
   "code_use/"
   "controller/"
   "integrations/"
+  "browser/cloud/"
+  "sync/"
+  "telemetry/"
   "llm/anthropic/"
   "llm/aws/"
   "llm/deepseek/"
@@ -89,6 +95,9 @@ RSYNC_EXCLUDES=(
   "tokens/custom_pricing.py"
   "tokens/mappings.py"
   "tokens/service.py"
+  "browser/profile.py"
+  "browser/session.py"
+  "tools/registry/service.py"
   "/README.md"
   "actor/README.md"
   "llm/README.md"
@@ -97,6 +106,11 @@ RSYNC_EXCLUDES=(
   "/cli.py"
   "/init_cmd.py"
   "/exceptions.py"
+)
+RSYNC_PROTECTED=(
+  "browser/profile.py"
+  "browser/session.py"
+  "tools/registry/service.py"
 )
 
 if [[ ! -d "${VENDORED_DIR}" ]]; then
@@ -110,9 +124,12 @@ if [[ ! -d "${SOURCE_DIR}" ]]; then
   exit 1
 fi
 
-VERIFY_ARGS=( -a --delete --delete-excluded --dry-run --itemize-changes )
+VERIFY_ARGS=( -a -O --delete --delete-excluded --dry-run --itemize-changes )
 for pattern in "${RSYNC_EXCLUDES[@]}"; do
   VERIFY_ARGS+=( "--exclude=${pattern}" )
+done
+for pattern in "${RSYNC_PROTECTED[@]}"; do
+  VERIFY_ARGS+=( "--filter=P ${pattern}" )
 done
 VERIFY_OUTPUT="$(rsync "${VERIFY_ARGS[@]}" "${SOURCE_DIR}/" "${VENDORED_DIR}/")"
 if [[ -n "${VERIFY_OUTPUT}" ]]; then
