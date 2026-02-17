@@ -8,8 +8,6 @@ from importlib import import_module
 import logging
 import os
 from pathlib import Path
-import re
-from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Mapping
 
 logger = logging.getLogger(__name__)
@@ -17,6 +15,7 @@ logger = logging.getLogger(__name__)
 NativeActionHandler = Callable[..., Awaitable[Any] | Any]
 DEFAULT_CDP_URL = "http://127.0.0.1:9222"
 DEFAULT_FILESYSTEM_DIR = Path.home() / ".config" / "desktop-assistant" / "browser-use"
+DEFAULT_EXTRACTION_MODEL_ENV = "WINDIE_BROWSER_USE_EXTRACTION_MODEL"
 DEFAULT_SNAPSHOT_PAGE_LIMIT = 4_000
 MAX_SNAPSHOT_WINDOW_CHARS = 120_000
 
@@ -44,7 +43,7 @@ _BROWSER_REQUIRED_ACTIONS = frozenset(
     }
 )
 _FILESYSTEM_REQUIRED_ACTIONS = frozenset(
-    {"done", "write_file", "replace_file", "read_file"}
+    {"done", "write_file", "replace_file", "read_file", "extract"}
 )
 _BROWSER_USE_ACTIONS = (
     "done",
@@ -87,7 +86,7 @@ class _BrowserUseActionBridge:
         self._file_system: Any | None = None
         self._session_mode: str | None = None
         self._session_cdp_url: str | None = None
-        self._fallback_extraction_llm: Any | None = None
+        self._page_extraction_llm: Any | None = None
         self._lock = asyncio.Lock()
 
     def _ensure_browser_use_modules(self) -> None:
@@ -219,35 +218,27 @@ class _BrowserUseActionBridge:
         self._file_system = self._file_system_type(str(base_dir), create_default_files=True)
         return self._file_system
 
-    def _ensure_fallback_extraction_llm(self) -> Any:
-        if self._fallback_extraction_llm is not None:
-            return self._fallback_extraction_llm
+    def _ensure_page_extraction_llm(self) -> Any:
+        if self._page_extraction_llm is not None:
+            return self._page_extraction_llm
 
-        class _FallbackExtractionLLM:
-            async def ainvoke(self, messages: list[Any]) -> Any:
-                prompt = ""
-                if messages:
-                    message = messages[-1]
-                    content = getattr(message, "content", "")
-                    if isinstance(content, str):
-                        prompt = content
+        model_name_raw = os.getenv(DEFAULT_EXTRACTION_MODEL_ENV, "")
+        model_name = model_name_raw.strip()
+        if not model_name:
+            raise RuntimeError(
+                "Browser Use extraction actions require a native page_extraction_llm. "
+                f"Set {DEFAULT_EXTRACTION_MODEL_ENV} to a Browser Use model name "
+                "(for example: openai_gpt_4o_mini)."
+            )
 
-                lower_prompt = prompt.lower()
-                terms: list[str] = []
-                for token in re.findall(r"[a-z0-9]{4,}", lower_prompt):
-                    if token in {"extract", "search", "terms", "context", "goal"}:
-                        continue
-                    if token in terms:
-                        continue
-                    terms.append(token)
-                    if len(terms) >= 5:
-                        break
-                if not terms:
-                    terms = ["key", "value"]
-                return SimpleNamespace(completion="\n".join(terms))
+        llm_models_module = import_module("browser_use.llm.models")
+        get_llm_by_name = getattr(llm_models_module, "get_llm_by_name", None)
+        if not callable(get_llm_by_name):
+            raise RuntimeError("browser_use.llm.models.get_llm_by_name is unavailable")
 
-        self._fallback_extraction_llm = _FallbackExtractionLLM()
-        return self._fallback_extraction_llm
+        llm = get_llm_by_name(model_name)
+        self._page_extraction_llm = llm
+        return llm
 
     @staticmethod
     def _normalize_action_result(action_name: str, result: Any) -> dict[str, Any]:
@@ -319,8 +310,8 @@ class _BrowserUseActionBridge:
                     if isinstance(raw_path, str) and raw_path.strip():
                         available_file_paths.append(raw_path.strip())
                 page_extraction_llm = (
-                    self._ensure_fallback_extraction_llm()
-                    if normalized_action == "read_long_content"
+                    self._ensure_page_extraction_llm()
+                    if normalized_action in {"extract", "read_long_content"}
                     else None
                 )
                 execute_action = self._execute_action

@@ -7,6 +7,8 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(browser-use-runtime): cache Browser Use adapter/runtime per controller instance so selector-map continuity is preserved across `browser_control` calls (`snapshot` -> `type`/`click` flows no longer recreate runtime bridge/session each call)
+- refactor(browser-use-runtime): remove synthetic extraction fallback model from native handlers; `extract`/`read_long_content` now require a Browser Use-native extraction model via `WINDIE_BROWSER_USE_EXTRACTION_MODEL`
 - test(browser-use-parity): add `tests/sidecar/tools/test_browser_use_tool_parity.py` to enforce Browser Use tool-surface parity by checking canonical `browser_use.tools.service.Tools` action names against WindieOS backend+sidecar schema exposure, native handler registry coverage, and adapter dispatch routing
 - docs(plan): add `docs/plan/WINDIEOS_INSTALL_PERMISSION_ONBOARDING_PLAN.md` defining a first-run permission-first onboarding wizard, OS-specific probe and verification flow, frontend+backend capability gating, and planned system-access consent model
 - feat(browser-use-adapter): close remaining Browser Use tool parity gaps by forwarding `act.request.kind` for `navigate`/`extract`/`scroll`/`screenshot`/`wait` through Browser Use-aware routing, allowing index-based `act.click`, and passing `extract.output_schema` to Browser Use-native extract execution when on the direct extract path

@@ -18,6 +18,7 @@ Browser execution is routed through the Browser Use compatibility adapter. Runti
 - Optional runtime value: `WINDIE_BROWSER_USE_RUNTIME=browser_use` (alias of `browser_use_native`).
 - Startup fails fast if package `browser_use` is unavailable or native runtime provider loading fails.
 - Optional native handler module override remains available for diagnostics (`WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`).
+- Browser Use extraction actions (`extract`, `read_long_content`) require a Browser Use LLM model via `WINDIE_BROWSER_USE_EXTRACTION_MODEL` (example: `openai_gpt_4o_mini`).
 
 ## Overview
 
@@ -144,12 +145,9 @@ Go to a URL.
 ```json
 {
   "action": "navigate",
-  "url": "https://github.com",
-  "wait_until": "networkidle"
+  "url": "https://github.com"
 }
 ```
-
-Wait options: `load`, `domcontentloaded`, `networkidle`, `commit`
 
 ### 3. Snapshot
 
@@ -194,7 +192,7 @@ Automatic post-action snapshots:
 
 ### 4. Extract
 
-Extract page content using focused text filtering, full-text windows, or structured DOM captures.
+Extract page content using Browser Use native extract tooling.
 
 ```json
 {
@@ -209,7 +207,8 @@ Extract options (Browser Use semantics):
 - `start_from_char`: continue extraction from a character offset for long pages (`0` default).
 - `output_schema`: optional structured-output hint passed to Browser Use extract.
 
-Extract output mirrors Browser Use action results (`extracted_content`, metadata, and optional schema-structured content when supported by Browser Use).
+Extract output mirrors Browser Use action results (`extracted_content`, metadata, and optional schema-structured content when supported by Browser Use).  
+Runtime requirement: set `WINDIE_BROWSER_USE_EXTRACTION_MODEL` to a Browser Use model name (for example `openai_gpt_4o_mini`).
 
 ### 5. Click
 
@@ -231,10 +230,6 @@ Browser Use-style alternatives:
 Options:
 - `double_click: true` - Double click
 - `button: "right"` - Right click
-
-Click fallback behavior:
-- If normal click fails with recoverable actionability errors (for example pointer interception), WindieOS may use fallback strategies.
-- For native `<select>/<option>` targets, WindieOS now attempts `select_option` before force-click; tool output reports `strategy: "select_option"` when this path is used.
 
 ### 6. Type
 
