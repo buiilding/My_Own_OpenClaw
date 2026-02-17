@@ -38,7 +38,7 @@ pytest-asyncio>=0.23.6
 
 # Browser automation
 playwright>=1.40.0
-# Browser Use is vendored in-repo at frontend/src/main/python/browser_use
+# Browser Use is vendored in-repo at frontend/src/main/python/tools/browser/browser_use
 
 # Gitignore parsing
 pathspec>=0.10.0

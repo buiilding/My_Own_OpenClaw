@@ -5,8 +5,8 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 
 SOURCE_DIR="${1:-${REPO_ROOT}/../browser-use/browser_use}"
-DEST_DIR="${REPO_ROOT}/frontend/src/main/python/browser_use"
-MANIFEST_PATH="${REPO_ROOT}/frontend/src/main/python/browser_use_vendor_manifest.json"
+DEST_DIR="${REPO_ROOT}/frontend/src/main/python/tools/browser/browser_use"
+MANIFEST_PATH="${REPO_ROOT}/frontend/src/main/python/tools/browser/browser_use_vendor_manifest.json"
 PRUNED_DIRS=(
   "skill_cli"
   "mcp"
