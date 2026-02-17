@@ -274,7 +274,7 @@ Extract output includes:
 
 ### 5. Click
 
-Click an element by reference.
+Click an element by reference/index or Browser Use coordinate pair.
 
 ```json
 {
@@ -285,6 +285,9 @@ Click an element by reference.
 ```
 
 `ref` can be numeric (`"12"`) or role-based (`"e12"`).
+Browser Use-style alternatives:
+- `index`: element index from Browser Use snapshot state.
+- `coordinate_x` + `coordinate_y`: viewport coordinate click pair.
 
 Options:
 - `double_click: true` - Double click
@@ -333,6 +336,10 @@ Scroll the page.
 ```
 
 Directions: `up`, `down`, `left`, `right`
+Browser Use-style alternatives:
+- `pages`: fractional or whole page increments (`0.5`, `1`, `2`).
+- `down`: explicit Browser Use direction flag.
+- `index`: scroll within a specific element index.
 
 ### 9. Screenshot
 

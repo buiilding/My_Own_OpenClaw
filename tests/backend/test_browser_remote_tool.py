@@ -111,6 +111,13 @@ class TestBrowserControlArgs:
         assert args.action == "click"
         assert args.ref == "5"
 
+    def test_click_action_with_coordinates(self):
+        """Test Browser Use coordinate click args."""
+        args = BrowserControlArgs(action="click", coordinate_x=100, coordinate_y=250)
+        assert args.action == "click"
+        assert args.coordinate_x == 100
+        assert args.coordinate_y == 250
+
     def test_type_action(self):
         """Test type action args."""
         args = BrowserControlArgs(
@@ -132,3 +139,8 @@ class TestBrowserControlArgs:
         assert args.button == "left"
         assert args.direction == "down"
         assert args.amount == 500
+
+    def test_scroll_action_with_fractional_pages(self):
+        """Test Browser Use fractional scroll pages."""
+        args = BrowserControlArgs(action="scroll", pages=0.5)
+        assert args.pages == 0.5

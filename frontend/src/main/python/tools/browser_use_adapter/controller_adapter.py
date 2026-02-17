@@ -1492,9 +1492,23 @@ class BrowserUseCompatibilityAdapter:
         if action == "click":
             index = self._extract_index(args)
             if index is None:
+                coordinate_x = self._extract_coordinate(args.get("coordinate_x"))
+                coordinate_y = self._extract_coordinate(args.get("coordinate_y"))
+                has_coordinate_x = coordinate_x is not None
+                has_coordinate_y = coordinate_y is not None
+                if has_coordinate_x != has_coordinate_y:
+                    return self._invalid_argument(
+                        "click",
+                        "click requires both 'coordinate_x' and 'coordinate_y' when using coordinate click",
+                    )
+                if has_coordinate_x and has_coordinate_y:
+                    return {
+                        "coordinate_x": coordinate_x,
+                        "coordinate_y": coordinate_y,
+                    }
                 return self._invalid_argument(
                     "click",
-                    "click requires integer 'index' or numeric 'ref'",
+                    "click requires integer 'index', numeric 'ref', or coordinate pair 'coordinate_x'/'coordinate_y'",
                 )
             return {"index": index}
 
@@ -1541,13 +1555,19 @@ class BrowserUseCompatibilityAdapter:
             if index is not None:
                 params["index"] = index
             pages = args.get("pages")
-            if isinstance(pages, int) and pages > 0:
-                params["pages"] = pages
-            elif isinstance(pages, float) and pages > 0 and pages.is_integer():
-                params["pages"] = int(pages)
+            if (
+                isinstance(pages, (int, float))
+                and not isinstance(pages, bool)
+                and float(pages) > 0
+            ):
+                params["pages"] = float(pages)
             amount = args.get("amount")
-            if "pages" not in params and isinstance(amount, (int, float)):
-                params["pages"] = max(1, int(round(abs(float(amount)) / 500.0)))
+            if (
+                "pages" not in params
+                and isinstance(amount, (int, float))
+                and not isinstance(amount, bool)
+            ):
+                params["pages"] = max(0.1, abs(float(amount)) / 500.0)
             direction = self._value_as_str(args.get("direction"))
             if direction:
                 params["down"] = direction.lower() not in {"up", "left"}
@@ -2553,6 +2573,16 @@ class BrowserUseCompatibilityAdapter:
         ref = args.get("ref")
         if isinstance(ref, str) and ref.strip().isdigit():
             return int(ref.strip())
+        return None
+
+    @staticmethod
+    def _extract_coordinate(value: Any) -> int | None:
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, int):
+            return value
+        if isinstance(value, float):
+            return int(round(value))
         return None
 
     @staticmethod
