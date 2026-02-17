@@ -10,6 +10,16 @@ describe('transcript session state', () => {
     expect(readStoredSessionInfo).toHaveBeenCalledTimes(1);
   });
 
+  test('reads null session state from storage only once', () => {
+    const readStoredSessionInfo = jest.fn(() => ({ conversationRef: null, userId: null }));
+    const state = createTranscriptSessionState(readStoredSessionInfo);
+
+    expect(state.get()).toEqual({ conversationRef: null, userId: null });
+    expect(state.get()).toEqual({ conversationRef: null, userId: null });
+    expect(state.resolve()).toEqual({ conversationRef: null, userId: null });
+    expect(readStoredSessionInfo).toHaveBeenCalledTimes(1);
+  });
+
   test('loads session info lazily from storage reader', () => {
     const readStoredSessionInfo = jest.fn(() => ({ conversationRef: 'conv-1', userId: 'user-1' }));
     const state = createTranscriptSessionState(readStoredSessionInfo);

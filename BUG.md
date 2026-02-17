@@ -1198,3 +1198,42 @@ In `frontend/src/main/ipc.cjs`, a transient failure while sending the first quer
 - Re-ran targeted frontend suite:
   - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/IpcMainBridge.test.cjs`
   - Result: `22 passed`.
+
+---
+
+## [x] Bug Report: Transcript Session State Re-reads Storage Indefinitely for Null Values
+
+### Summary
+
+In `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`, session hydration from storage could execute on every `get()`/`resolve()` call when stored values were both `null`.
+
+### Root Cause
+
+- `ensureLoaded()` used value-truthiness as the hydration guard:
+  - `if (currentConversationRef || currentUserId) return;`
+- When storage returns `{ conversationRef: null, userId: null }`, the guard never becomes true.
+- That causes repeated `readStoredSessionInfo()` calls even though storage was already read.
+
+### Why It's Problematic
+
+- Adds unnecessary repeated reads/parsing on a hot renderer path.
+- Increases avoidable work for transcript/session-dependent flows.
+- Makes session-state behavior inconsistent between null and non-null storage values.
+
+### Fix
+
+- Added explicit one-time hydration sentinel in `sessionInfoState.ts`:
+  - `let hasLoadedFromStorage = false;`
+- Updated `ensureLoaded()` to guard on `hasLoadedFromStorage` instead of truthiness.
+- Set `hasLoadedFromStorage = true` immediately after first storage read.
+- Added regression test in `tests/frontend/TranscriptSessionState.test.ts`:
+  - `reads null session state from storage only once`
+
+### Validation
+
+- Ran targeted regression suite:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptSessionState.test.ts`
+  - Result: `9 passed`.
+- Ran adjacent transcript smoke suite:
+  - `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/TranscriptWriter.test.ts`
+  - Result: `20 passed`.

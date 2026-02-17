@@ -7,6 +7,9 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(websocket-json-parse): centralize websocket object-root validation by adding shared `parse_json_object_payload` + `JsonRootTypeError` in `api/routes/websocket/json_parse.py`, and rewire message + handshake ingress paths to consume the shared helper for consistent root-shape handling
+- test(websocket-json-parse): add backend regression coverage for object-root helper acceptance/rejection and update websocket parse-failure monkeypatch tests to track the new shared parse entrypoint
+- fix(frontend-transcript-state): cache transcript session-state storage hydration even when stored `conversationRef`/`userId` are `null`, eliminating repeated storage reads in `sessionInfoState` and adding regression coverage in `tests/frontend/TranscriptSessionState.test.ts`
 - fix(frontend-query-dispatch): preserve first-query `initial` context mode in `ipc.cjs` when a transient query send fails, so only successfully sent first queries consume initial-context state; add regression coverage in `tests/frontend/IpcMainBridge.test.cjs`
 - fix(frontend-transcript): add assistant transcript retry queue so immediate `recordAssistantMessage` IPC failures are requeued and flushed instead of being dropped, with regression coverage in `tests/frontend/TranscriptWriter.test.ts`
 - refactor(query-execution): centralize dict-event payload/string extraction in `QueryExecutionService` with shared helpers, and remove unused legacy `_is_*` event-check helpers
