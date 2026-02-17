@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
+
+SOURCE_DIR="${1:-${REPO_ROOT}/../browser-use/browser_use}"
+VENDORED_DIR="${REPO_ROOT}/frontend/src/main/python/browser_use"
+
+if [[ ! -d "${VENDORED_DIR}" ]]; then
+  echo "Vendored Browser Use directory missing: ${VENDORED_DIR}" >&2
+  exit 1
+fi
+
+if [[ ! -d "${SOURCE_DIR}" ]]; then
+  echo "Source Browser Use directory missing: ${SOURCE_DIR}" >&2
+  echo "Usage: scripts/check-browser-use-vendor [path-to-browser_use-source-dir]" >&2
+  exit 1
+fi
+
+if ! diff -qr --exclude='__pycache__' --exclude='*.pyc' "${SOURCE_DIR}" "${VENDORED_DIR}" >/dev/null; then
+  echo "Vendored Browser Use tree is out of sync with source." >&2
+  echo "Run: ./scripts/sync-browser-use-vendor" >&2
+  exit 1
+fi
+
+IMPORT_PATH="$(${REPO_ROOT}/scripts/python-in-env sidecar bash -lc '
+  cd "'"${REPO_ROOT}"'"/frontend/src/main/python
+  python - <<"PY"
+import browser_use
+print(browser_use.__file__)
+PY
+')"
+
+EXPECTED_PREFIX="${VENDORED_DIR}/"
+if [[ "${IMPORT_PATH}" != ${EXPECTED_PREFIX}* ]]; then
+  echo "browser_use import does not resolve to vendored path." >&2
+  echo "Resolved: ${IMPORT_PATH}" >&2
+  echo "Expected prefix: ${EXPECTED_PREFIX}" >&2
+  exit 1
+fi
+
+echo "Browser Use vendor check passed"
+echo "  source:  ${SOURCE_DIR}"
+echo "  vendor:  ${VENDORED_DIR}"
+echo "  import:  ${IMPORT_PATH}"

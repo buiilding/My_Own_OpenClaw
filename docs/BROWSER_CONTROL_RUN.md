@@ -28,6 +28,13 @@ cd WindieOS
 
 The sync command also writes `frontend/src/main/python/browser_use_vendor_manifest.json` with source commit metadata.
 
+To verify vendored parity + import origin:
+
+```bash
+cd WindieOS
+./scripts/check-browser-use-vendor
+```
+
 ### Step 2: Run WindieOS
 
 **Terminal 1 - Backend:**

@@ -46,6 +46,13 @@ cd WindieOS
 ./scripts/sync-browser-use-vendor
 ```
 
+Vendored parity check command:
+
+```bash
+cd WindieOS
+./scripts/check-browser-use-vendor
+```
+
 ## User Chrome Mode
 
 Connect to your existing Chrome browser for full access to your logged-in sessions.
