@@ -67,7 +67,7 @@ Browser Use runtime is now the default execution path. These flags are optional:
 export WINDIE_BROWSER_USE_RUNTIME=browser_use_native
 
 # Optional: use a custom native handler module
-export WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE=tools.browser_use_adapter.browser_use_native_handlers
+export WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE=tools.browser.browser_tool
 ```
 
 That's it! WindieOS will connect to an existing CDP-enabled Chrome, or launch Chrome with CDP if Chrome is not running.

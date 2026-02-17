@@ -11,7 +11,7 @@ from unittest import mock
 
 from tools.browser.browser_tool import execute_browser_control
 from tools.browser.controller import reset_browser_controller
-from tools.browser_use_adapter import AdapterActionResult
+from tools.browser.browser_tool import AdapterActionResult
 
 
 @pytest.fixture(autouse=True)
