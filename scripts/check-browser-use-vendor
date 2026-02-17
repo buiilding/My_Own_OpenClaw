@@ -124,6 +124,22 @@ if [[ ! -d "${SOURCE_DIR}" ]]; then
   exit 1
 fi
 
+# Remove runtime-generated cache artifacts before parity diff so checks fail
+# only on source drift (not local bytecode noise from test runs).
+VENDORED_DIR_ENV="${VENDORED_DIR}" python - <<'PY'
+import os
+from pathlib import Path
+import shutil
+
+root = Path(os.environ["VENDORED_DIR_ENV"])
+for pycache_dir in root.rglob("__pycache__"):
+    if pycache_dir.is_dir():
+        shutil.rmtree(pycache_dir, ignore_errors=True)
+for pyc_file in root.rglob("*.pyc"):
+    if pyc_file.is_file():
+        pyc_file.unlink(missing_ok=True)
+PY
+
 VERIFY_ARGS=( -a -O --delete --delete-excluded --dry-run --itemize-changes )
 for pattern in "${RSYNC_EXCLUDES[@]}"; do
   VERIFY_ARGS+=( "--exclude=${pattern}" )

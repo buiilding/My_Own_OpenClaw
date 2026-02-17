@@ -418,6 +418,10 @@ NativeActionHandler = Callable[..., Awaitable[Any] | Any]
 DEFAULT_CDP_URL = "http://127.0.0.1:9222"
 DEFAULT_FILESYSTEM_DIR = Path.home() / ".config" / "desktop-assistant" / "browser-use"
 DEFAULT_EXTRACTION_MODEL_ENV = "WINDIE_BROWSER_USE_EXTRACTION_MODEL"
+DEFAULT_EXTRACTION_PROVIDER_ENV = "WINDIE_BROWSER_USE_EXTRACTION_PROVIDER"
+DEFAULT_EXTRACTION_MODEL_ID_ENV = "WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID"
+DEFAULT_EXTRACTION_API_KEY_ENV = "WINDIE_BROWSER_USE_EXTRACTION_API_KEY"
+DEFAULT_EXTRACTION_BASE_URL_ENV = "WINDIE_BROWSER_USE_EXTRACTION_BASE_URL"
 DEFAULT_SNAPSHOT_PAGE_LIMIT = 4_000
 MAX_SNAPSHOT_WINDOW_CHARS = 120_000
 
@@ -626,27 +630,188 @@ class _BrowserUseActionBridge:
         self._file_system = self._file_system_type(str(base_dir), create_default_files=True)
         return self._file_system
 
+    @staticmethod
+    def _normalize_provider_name(provider_name: str | None) -> str | None:
+        if not isinstance(provider_name, str):
+            return None
+        normalized = provider_name.strip().lower().replace("-", "_")
+        if not normalized:
+            return None
+        if normalized == "kimi_code":
+            return "kimi_coding"
+        if normalized == "gemini":
+            return "google"
+        return normalized
+
+    def _resolve_windie_extraction_target(self) -> tuple[str | None, str | None, str | None, str | None]:
+        provider_name = self._normalize_provider_name(
+            os.getenv(DEFAULT_EXTRACTION_PROVIDER_ENV, "")
+        )
+        model_id_raw = os.getenv(DEFAULT_EXTRACTION_MODEL_ID_ENV, "")
+        model_id = model_id_raw.strip() or None
+        api_key_raw = os.getenv(DEFAULT_EXTRACTION_API_KEY_ENV, "")
+        api_key = api_key_raw.strip() or None
+        base_url_raw = os.getenv(DEFAULT_EXTRACTION_BASE_URL_ENV, "")
+        base_url = base_url_raw.strip() or None
+
+        # Resolve from WindieOS runtime settings when explicit extraction overrides
+        # are not supplied.
+        try:
+            loader_module = self._import_module("backend.src.core.config.loader")
+            load_settings_from_file = getattr(loader_module, "load_settings_from_file", None)
+            if not callable(load_settings_from_file):
+                return provider_name, model_id, api_key, base_url
+            runtime_config = load_settings_from_file()
+        except Exception:
+            return provider_name, model_id, api_key, base_url
+
+        runtime_provider = self._normalize_provider_name(
+            getattr(runtime_config, "model_provider", None)
+        )
+        runtime_model_id_raw = getattr(runtime_config, "selected_model_id", None)
+        runtime_model_id = (
+            runtime_model_id_raw.strip()
+            if isinstance(runtime_model_id_raw, str) and runtime_model_id_raw.strip()
+            else None
+        )
+        if provider_name is None:
+            provider_name = runtime_provider
+        if model_id is None:
+            model_id = runtime_model_id
+
+        if provider_name is None:
+            return None, model_id, api_key, base_url
+
+        llm_providers = getattr(runtime_config, "llm_providers", None)
+        provider_config = None
+        if llm_providers is not None:
+            get_provider_config = getattr(llm_providers, "get_provider_config", None)
+            if callable(get_provider_config):
+                try:
+                    provider_config = get_provider_config(provider_name)
+                except Exception:
+                    provider_config = None
+
+        if base_url is None and provider_config is not None:
+            provider_base_url = getattr(provider_config, "base_url", None)
+            if isinstance(provider_base_url, str) and provider_base_url.strip():
+                base_url = provider_base_url.strip()
+
+        if api_key is None and runtime_provider == provider_name:
+            runtime_api_key = getattr(runtime_config, "api_key", None)
+            if isinstance(runtime_api_key, str) and runtime_api_key.strip():
+                api_key = runtime_api_key.strip()
+
+        if api_key is None and provider_config is not None:
+            api_key_env = getattr(provider_config, "api_key_env", None)
+            if isinstance(api_key_env, str) and api_key_env.strip():
+                api_key_value = os.getenv(api_key_env.strip())
+                if isinstance(api_key_value, str) and api_key_value.strip():
+                    api_key = api_key_value.strip()
+
+        if api_key is None and provider_name == "kimi_coding":
+            kimi_legacy_key = os.getenv("KIMICODE_API_KEY")
+            if isinstance(kimi_legacy_key, str) and kimi_legacy_key.strip():
+                api_key = kimi_legacy_key.strip()
+
+        return provider_name, model_id, api_key, base_url
+
+    def _build_windie_extraction_llm(self) -> tuple[Any | None, str | None]:
+        provider_name, model_id, api_key, base_url = self._resolve_windie_extraction_target()
+        if not provider_name or not model_id:
+            return None, None
+
+        if provider_name in {
+            "openai",
+            "openrouter",
+            "ollama",
+            "lmstudio",
+            "kimi_coding",
+        }:
+            chat_openai_module = self._import_module("browser_use.llm.openai.chat")
+            chat_openai_type = getattr(chat_openai_module, "ChatOpenAI", None)
+            if not inspect.isclass(chat_openai_type):
+                raise RuntimeError("browser_use.llm.openai.chat.ChatOpenAI is unavailable")
+            resolved_base_url = base_url
+            if not resolved_base_url and provider_name == "openrouter":
+                resolved_base_url = "https://openrouter.ai/api/v1"
+            if not resolved_base_url and provider_name == "ollama":
+                resolved_base_url = "http://localhost:11434/v1"
+            if not resolved_base_url and provider_name == "lmstudio":
+                resolved_base_url = "http://localhost:1234/v1"
+            if not resolved_base_url and provider_name == "kimi_coding":
+                resolved_base_url = "https://api.kimi.com/coding"
+            kwargs: dict[str, Any] = {"model": model_id}
+            if api_key:
+                kwargs["api_key"] = api_key
+            if resolved_base_url:
+                kwargs["base_url"] = resolved_base_url
+            return chat_openai_type(**kwargs), None
+
+        if provider_name in {"google"}:
+            chat_google_module = self._import_module("browser_use.llm.google.chat")
+            chat_google_type = getattr(chat_google_module, "ChatGoogle", None)
+            if not inspect.isclass(chat_google_type):
+                raise RuntimeError("browser_use.llm.google.chat.ChatGoogle is unavailable")
+            kwargs: dict[str, Any] = {"model": model_id}
+            if api_key:
+                kwargs["api_key"] = api_key
+            return chat_google_type(**kwargs), None
+
+        if provider_name == "mistral":
+            chat_mistral_module = self._import_module("browser_use.llm.mistral.chat")
+            chat_mistral_type = getattr(chat_mistral_module, "ChatMistral", None)
+            if not inspect.isclass(chat_mistral_type):
+                raise RuntimeError("browser_use.llm.mistral.chat.ChatMistral is unavailable")
+            kwargs: dict[str, Any] = {"model": model_id}
+            if api_key:
+                kwargs["api_key"] = api_key
+            if base_url:
+                kwargs["base_url"] = base_url
+            return chat_mistral_type(**kwargs), None
+
+        return (
+            None,
+            (
+                "WindieOS extraction provider "
+                f"'{provider_name}' is not mapped to a Browser Use LLM adapter."
+            ),
+        )
+
     def _ensure_page_extraction_llm(self) -> Any:
         if self._page_extraction_llm is not None:
             return self._page_extraction_llm
 
         model_name_raw = os.getenv(DEFAULT_EXTRACTION_MODEL_ENV, "")
         model_name = model_name_raw.strip()
-        if not model_name:
-            raise RuntimeError(
-                "Browser Use extraction actions require a native page_extraction_llm. "
-                f"Set {DEFAULT_EXTRACTION_MODEL_ENV} to a Browser Use model name "
-                "(for example: openai_gpt_4o_mini)."
-            )
+        if model_name:
+            llm_models_module = self._import_module("browser_use.llm.models")
+            get_llm_by_name = getattr(llm_models_module, "get_llm_by_name", None)
+            if not callable(get_llm_by_name):
+                raise RuntimeError("browser_use.llm.models.get_llm_by_name is unavailable")
+            llm = get_llm_by_name(model_name)
+            self._page_extraction_llm = llm
+            return llm
 
-        llm_models_module = self._import_module("browser_use.llm.models")
-        get_llm_by_name = getattr(llm_models_module, "get_llm_by_name", None)
-        if not callable(get_llm_by_name):
-            raise RuntimeError("browser_use.llm.models.get_llm_by_name is unavailable")
+        windie_llm, windie_resolution_error = self._build_windie_extraction_llm()
+        if windie_llm is not None:
+            self._page_extraction_llm = windie_llm
+            return windie_llm
 
-        llm = get_llm_by_name(model_name)
-        self._page_extraction_llm = llm
-        return llm
+        error_suffix = (
+            f" {windie_resolution_error}" if isinstance(windie_resolution_error, str) else ""
+        )
+        raise RuntimeError(
+            "Browser Use extraction actions require a native page_extraction_llm. "
+            "Configure WindieOS extraction settings via "
+            f"{DEFAULT_EXTRACTION_PROVIDER_ENV}/{DEFAULT_EXTRACTION_MODEL_ID_ENV} "
+            "(optionally with "
+            f"{DEFAULT_EXTRACTION_API_KEY_ENV}/{DEFAULT_EXTRACTION_BASE_URL_ENV}), "
+            "or set "
+            f"{DEFAULT_EXTRACTION_MODEL_ENV} to a Browser Use model name "
+            "(for example: openai_gpt_4o_mini)."
+            f"{error_suffix}"
+        )
 
     @staticmethod
     def _normalize_action_result(action_name: str, result: Any) -> dict[str, Any]:
