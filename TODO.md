@@ -20,3 +20,12 @@
 - [ ] fully test browser-control workfflow, perfect tools.
 - [ ] fully test coding capabilities workflow, perfect tools.
 - [ ] make the ui click-through so it doesnt interfere with the main window, better the ui.
+
+## 02/22/2026
+
+- [] Fix the UI in macos, to make the pills go everywhere on wherever the window the user goes to. (active. Pranav)
+- [] Find a way to show thinking in the UI when the model thinks (ex. Kimi code)
+- [] Package the UI so users can download
+- [] have browser-use have only one seperate instance and one connect method, this instance has to be persistent across sessions too so users can save credentials in there.
+- [] Create new UI for optimial user experience (active. Peter)
+- [] Create new, adaptive system prompt.
