@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- chore(docs): remove obsolete Browser Use port planning/migration prompt docs and superseded ADR planning notes from `docs/plan/`, `docs/prompts/`, and `docs/adr/`
 - refactor(query-payload-builder): normalize system-state and memory enrichment in `frontend/src/main/query_payload_builder.cjs` via shared helpers (`resolveSystemStateEnrichment`, `resolveMemoryEnrichment`) and replace settled-result orchestration with direct normalized `Promise.all(...)` flow
 - refactor(query-payload-builder): hoist requested system-state field lists to module-level constants (`INITIAL_SYSTEM_STATE_FIELDS`, `SEQUENTIAL_SYSTEM_STATE_FIELDS`) to avoid per-query field-array allocation in query payload enrichment
 - test(query-payload-builder): extend `tests/frontend/QueryPayloadBuilder.test.cjs` with regressions for memory-search rejection fallback and null system-state payload fallback behavior
