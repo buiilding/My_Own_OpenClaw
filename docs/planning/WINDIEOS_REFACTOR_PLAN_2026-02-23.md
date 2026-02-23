@@ -499,3 +499,25 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/EpisodicMemoryUtils.test.js tests/frontend/MessageFormatter.test.ts tests/frontend/ToolExecutionCapture.test.ts` (pass)
   - `cd frontend && npm run test:ci` (pass; 78 suites)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual wakeword exports only)
+
+## Phase 11 Outcome (2026-02-23)
+
+- Wakeword bridge export cleanup shipped:
+  - removed private lifecycle exports from `frontend/src/main/wakeword_bridge.cjs`:
+    - `startWakewordService`
+    - `stopWakewordService`
+  - kept runtime entrypoint export unchanged:
+    - `initializeWakewordBridge`
+- Wakeword test migration shipped:
+  - updated `tests/frontend/WakewordBridge.test.cjs` to cover restart/cleanup behavior using public lifecycle paths only:
+    - `initializeWakewordBridge(...)`
+    - IPC channels `wakeword-enable` and `wakeword-disable`
+    - captured `process.on('beforeExit', ...)` callback
+- knip findings delta after Phase 11 slice:
+  - unused exports: `2 -> 0`
+  - remaining findings: none (`knip` exit code `0`)
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/WakewordBridge.test.cjs` (pass)
+  - `cd frontend && npm run test:ci` (pass; 78 suites)
+  - `cd frontend && npm run audit:knip` (pass; no findings)

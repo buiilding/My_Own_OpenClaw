@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-wakeword-bridge): internalize `startWakewordService`/`stopWakewordService` exports in `wakeword_bridge.cjs`, preserve runtime API with `initializeWakewordBridge`, and migrate wakeword lifecycle tests to public IPC + `beforeExit` paths
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 11 execution slice for wakeword-bridge final export cleanup and public-lifecycle-path test migration (`initializeWakewordBridge`, IPC handlers, `beforeExit` hook)
 - refactor(frontend-knip-exports): internalize test-only helper exports in `episodicMemoryUtils` (`UNASSIGNED_CONVERSATION_KEY`, `parseMemoryContent`), `MessageFormatter` (`formatSequentialStateXml`), and `ToolExecutionCapture` (`getWaitSeconds`, `extractCaptureFromResult`, `applyCaptureToResult`), then update tests to assert behavior through public APIs only
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 10 execution slice for test-only helper export internalization (`episodicMemoryUtils`, `MessageFormatter`, `ToolExecutionCapture`) and public-API behavior-test migration gates

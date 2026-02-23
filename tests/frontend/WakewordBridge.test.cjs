@@ -18,15 +18,27 @@ describe('wakeword_bridge', () => {
   let handlers;
   let stdoutHandler;
   let createdProcesses;
+  let beforeExitHandler;
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   const initBridge = () => {
     jest.resetModules();
     handlers = {};
     stdoutHandler = null;
     createdProcesses = [];
+    beforeExitHandler = null;
 
     spawn = require('child_process').spawn;
     ipcMain = require('electron').ipcMain;
+    jest.spyOn(process, 'on').mockImplementation((event, handler) => {
+      if (event === 'beforeExit') {
+        beforeExitHandler = handler;
+      }
+      return process;
+    });
 
     const createPythonProcess = () => {
       const processHandlers = {};
@@ -76,7 +88,13 @@ describe('wakeword_bridge', () => {
 
     bridge.initializeWakewordBridge(mainWindow, onWakewordDetected);
 
-    return { bridge, mainWindow, onWakewordDetected, createdProcesses };
+    return {
+      bridge,
+      mainWindow,
+      onWakewordDetected,
+      createdProcesses,
+      beforeExitHandler,
+    };
   };
 
   const emitDetection = (payload) => {
@@ -182,11 +200,12 @@ describe('wakeword_bridge', () => {
     );
   });
 
-  test('ignores stale exit from old process after stop/start restart', () => {
-    const { bridge, mainWindow, onWakewordDetected, createdProcesses } = initBridge();
+  test('ignores stale exit from old process after beforeExit/enable restart', () => {
+    const { createdProcesses, beforeExitHandler } = initBridge();
 
-    bridge.stopWakewordService();
-    bridge.startWakewordService(mainWindow, onWakewordDetected);
+    expect(typeof beforeExitHandler).toBe('function');
+    beforeExitHandler();
+    handlers['wakeword-enable']();
     expect(createdProcesses).toHaveLength(2);
 
     createdProcesses[1]._stderrDataHandler(Buffer.from('{"status":"ready"}\n'));
@@ -200,13 +219,14 @@ describe('wakeword_bridge', () => {
     expect(createdProcesses[1].stdin.write).toHaveBeenCalledTimes(4);
   });
 
-  test('clears stale partial stderr buffer across stop/start restart', () => {
-    const { bridge, mainWindow, onWakewordDetected, createdProcesses } = initBridge();
+  test('clears stale partial stderr buffer across beforeExit/enable restart', () => {
+    const { mainWindow, createdProcesses, beforeExitHandler } = initBridge();
 
     createdProcesses[0]._stderrDataHandler(Buffer.from('{"status":"rea'));
 
-    bridge.stopWakewordService();
-    bridge.startWakewordService(mainWindow, onWakewordDetected);
+    expect(typeof beforeExitHandler).toBe('function');
+    beforeExitHandler();
+    handlers['wakeword-enable']();
     expect(createdProcesses).toHaveLength(2);
 
     createdProcesses[1]._stderrDataHandler(Buffer.from('{"status":"ready"}\n'));

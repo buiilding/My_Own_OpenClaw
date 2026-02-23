@@ -369,6 +369,4 @@ function initializeWakewordBridge(mainWindow, onWakewordDetected) {
 
 module.exports = {
   initializeWakewordBridge,
-  startWakewordService,
-  stopWakewordService,
 };
