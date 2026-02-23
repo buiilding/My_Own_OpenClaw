@@ -78,7 +78,6 @@ frontend/src/renderer/
 │   │       ├── DashboardContent.jsx     # DashboardContent - Section-specific content panels
 │   │       └── sections/                # Dashboard section components
 │   │           ├── EpisodicMemorySection.jsx # EpisodicMemorySection - Episodic memory list/actions panel
-│   │           ├── MemorySection.jsx    # MemorySection - Episodic/Semantic placeholders
 │   │           ├── ModelsSection.jsx    # ModelsSection - Model list + API key input
 │   │           ├── ProceduralSection.jsx # ProceduralSection - Skills placeholder
 │   │           ├── SettingsSection.jsx  # SettingsSection - Wakeword/TTS/screen/permissions

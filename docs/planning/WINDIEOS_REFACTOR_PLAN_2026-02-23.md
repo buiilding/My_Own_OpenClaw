@@ -163,3 +163,17 @@ read_when:
   - `cd frontend && npm run test:ci`
   - `cd frontend && npm run audit:jscpd`
   - `cd frontend && npm run audit:knip` (findings unchanged; still requires triage)
+
+## Phase 3 Outcome (2026-02-23)
+
+- Dead-code cleanup shipped:
+  - removed unused placeholder component `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`.
+  - removed stale reference from `frontend/src/renderer/folder_structure.md`.
+  - removed stale knip ignore entry for the deleted file from `frontend/knip.json`.
+- Regression coverage completion shipped:
+  - added `tests/frontend/useMemoryContextMenuHotkeys.test.js` covering Escape/Delete/no-menu behavior for the shared hook.
+- Verification:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/useMemoryContextMenuHotkeys.test.js`
+  - `cd frontend && npm run test:ci -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
+  - `cd frontend && npm run audit:knip` (unused files section remained absent; export/dependency/type findings unchanged)
