@@ -3,7 +3,7 @@ body {
 }
 
 .chatbox-shell-wrap {
-  width: min(560px, calc(100vw - 24px));
+  width: min(560px, 100vw);
   margin: 0 auto;
   animation: fadeUp 320ms ease;
 }
