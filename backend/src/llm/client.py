@@ -89,6 +89,15 @@ class LLMClient(ABC):
         """
         return None
 
+    def supports_streaming_tool_turns(self, model: str) -> bool:
+        """
+        Return whether tool-enabled turns can safely use stream transport.
+
+        Default stays conservative for compatibility with existing clients.
+        """
+        _ = model
+        return False
+
 
 class LiteLLMClient(LLMClient):
     """
@@ -344,6 +353,20 @@ class LiteLLMClient(LLMClient):
         if self._last_stream_response_payload is None:
             return None
         return dict(self._last_stream_response_payload)
+
+    def supports_streaming_tool_turns(self, model: str) -> bool:
+        """
+        Delegate tool-turn streaming capability checks to the resolved provider.
+        """
+        try:
+            provider = self._resolve_provider(model)
+        except LLMAPIError as exc:
+            logger.warning(
+                "Unable to resolve provider for streaming tool-turn capability check: %s",
+                exc,
+            )
+            return False
+        return bool(provider.supports_streaming_tool_turns(model))
 
 
 def get_llm_client(cfg: AppConfig) -> LLMClient:

@@ -6,6 +6,11 @@ from backend.src.core.events.streaming_events import ChunkEvent, ThinkingEvent
 from backend.src.llm.providers.kimi_coding import KimiCodingProvider
 
 
+def test_kimi_provider_supports_streaming_tool_turns():
+    provider = KimiCodingProvider(api_key="test-key")
+    assert provider.supports_streaming_tool_turns("k2p5") is True
+
+
 @pytest.mark.asyncio
 async def test_kimi_stream_emits_thinking_and_captures_stream_tool_calls(monkeypatch):
     provider = KimiCodingProvider(api_key="test-key")

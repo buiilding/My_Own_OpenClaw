@@ -239,7 +239,7 @@ Identity notes:
 - Usage: Tool execution complete
 
 **`llm-thought`**
-- Purpose: LLM thinking tokens (Gemini)
+- Purpose: LLM thinking tokens from providers/models that expose reasoning deltas (for example Gemini and Kimi Coding).
 - Payload: `{ status: string }`
 - Usage: Display reasoning
 
