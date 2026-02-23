@@ -2,8 +2,9 @@ import {
   emitSessionUpdateEvent,
   persistSessionInfoToStorage,
   readSessionInfoFromStorage,
-  TRANSCRIPT_SESSION_STORAGE_KEY,
 } from '../../frontend/src/renderer/infrastructure/transcript/sessionInfoStorage';
+
+const TRANSCRIPT_SESSION_STORAGE_KEY = 'transcript-session-info';
 
 describe('transcript session info storage', () => {
   beforeEach(() => {

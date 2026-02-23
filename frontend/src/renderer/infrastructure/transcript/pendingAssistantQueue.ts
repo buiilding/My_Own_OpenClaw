@@ -1,6 +1,6 @@
 import type { PendingAssistantMessage } from './types';
 
-export type PendingAssistantQueue = {
+type PendingAssistantQueue = {
   size: () => number;
   enqueue: (message: PendingAssistantMessage) => void;
   drain: () => PendingAssistantMessage[];

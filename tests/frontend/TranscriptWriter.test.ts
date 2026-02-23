@@ -1,8 +1,6 @@
 type TranscriptWriterModule = typeof import('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter');
 
-const { TRANSCRIPT_SESSION_STORAGE_KEY } = require(
-  '../../frontend/src/renderer/infrastructure/transcript/sessionInfoStorage',
-) as typeof import('../../frontend/src/renderer/infrastructure/transcript/sessionInfoStorage');
+const TRANSCRIPT_SESSION_STORAGE_KEY = 'transcript-session-info';
 
 function loadTranscriptWriter() {
   jest.resetModules();

@@ -1,4 +1,4 @@
-export type ArtifactImageContentType = 'image/jpeg' | 'image/png';
+type ArtifactImageContentType = 'image/jpeg' | 'image/png';
 
 export function normalizeArtifactImageContentType(contentType?: string | null): ArtifactImageContentType {
   const normalized = (contentType || '').toLowerCase();

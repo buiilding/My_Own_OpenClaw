@@ -1,6 +1,6 @@
 import type { SessionInfo } from './types';
 
-export const TRANSCRIPT_SESSION_STORAGE_KEY = 'transcript-session-info';
+const TRANSCRIPT_SESSION_STORAGE_KEY = 'transcript-session-info';
 
 export function readSessionInfoFromStorage(): SessionInfo {
   if (typeof window === 'undefined') {

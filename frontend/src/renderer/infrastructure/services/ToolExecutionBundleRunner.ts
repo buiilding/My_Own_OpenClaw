@@ -9,7 +9,7 @@ export type BundleStepResult = {
   output: string;
 };
 
-export type BundleRunOutcome = {
+type BundleRunOutcome = {
   stepResults: BundleStepResult[];
   systemState: SystemState | null;
   screenshot: string | null;
