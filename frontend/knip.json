@@ -10,7 +10,6 @@
     "../tests/frontend/**/*.{js,jsx,ts,tsx,cjs,mjs}"
   ],
   "ignore": [
-    "src/renderer/features/dashboard/components/sections/MemorySection.jsx",
     "src/types/schema.ts"
   ]
 }

@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-dashboard): remove unused dashboard placeholder component (`MemorySection.jsx`), clean stale structure/knip references, and add direct regression tests for `useMemoryContextMenuHotkeys` (`Escape`/`Delete`/no-menu behavior)
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 3 execution slice for knip-driven dead-code cleanup (`MemorySection.jsx`) and direct hotkey-hook regression tests
 - refactor(frontend-dashboard-tests): extract shared memory context-menu hotkey hook (`useMemoryContextMenuHotkeys`) for episodic/semantic sections and split oversized `tests/frontend/ToolRunnerHook.test.ts` into focused `events` + `callbacks` suites with shared test utils, plus docs updates for new test paths and Phase-2 outcome metrics
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with current-loop Phase 2 execution slice (dashboard keyboard shortcut dedupe + ToolRunnerHook test file split + verification gates)
