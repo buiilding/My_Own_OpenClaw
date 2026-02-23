@@ -92,6 +92,19 @@ read_when:
   - Add regression tests for every extracted shared helper.
   - Keep comments brief; only for non-obvious control flow/state invariants.
 
+### Phase 3 Execution Slice (Current Loop)
+
+- Dead-code cleanup (`knip`-driven, low-risk):
+  - Remove unused placeholder component `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx` if no runtime references remain.
+  - Update docs references that still point to removed file.
+- Regression coverage completion:
+  - Add direct unit tests for `useMemoryContextMenuHotkeys` (`Escape` closes; `Delete` triggers delete only with active menu/target).
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/useMemoryContextMenuHotkeys.test.js`
+  - `cd frontend && npm run test:ci -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
+  - `cd frontend && npm run audit:knip` (expect one fewer unused file finding)
+
 ## Phase 4
 
 - Dependency/tool upgrades:
