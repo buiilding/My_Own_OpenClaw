@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(stop-query-logging): emit explicit backend INFO logs when frontend sends `stop-query` (cancellation signaled / no-active-task), and log query-task cancellation propagation in `QueryMessageHandler`
 - docs(memory-system): add a reusable local-memory reset command (nuke episodic/semantic SQLite, FAISS indices, watermark) for dev machines
 - fix(llm-stream): replace the global `tools => non-stream` gate with provider capability checks and enable Kimi Coding tool-turn streaming so `llm-thought` tokens can stream during tool-calling turns while still finalizing structured `tool_calls`
 - docs(docs-structure): regroup `docs/` into topic subfolders (`getting-started`, `architecture`, `browser`, `development`, `operations`, `reference`, `product`, `planning`) and remove implemented `docs/planning/BROWSER_USE_PLAN.md`

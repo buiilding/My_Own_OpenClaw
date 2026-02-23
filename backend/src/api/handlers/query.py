@@ -103,6 +103,15 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
                 transport_sender_cls=WebSocketTransportSender,
                 tts_processor_cls=TTSProcessor,
             )
+        except asyncio.CancelledError:
+            logger.info(
+                "[Query Cancelled] Active query task cancelled "
+                "(user_id=%s, turn_ref=%s, conversation_ref=%s)",
+                user_id,
+                msg_id,
+                message.payload.conversation_ref,
+            )
+            raise
         except ValidationError as e:
             await self._send_error(websocket, msg_id, f"Invalid query: {e.message}")
         except Exception as e:
