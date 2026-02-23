@@ -135,6 +135,25 @@ read_when:
   - Replace event-listener `useEffect` state mirrors with stable subscription hooks.
   - Reduce unnecessary `useEffect` usage where render-derivation/memoized selectors are sufficient.
 
+## Phase 6
+
+- `knip` signal hardening (type/export surface):
+  - Convert `unused exported types` findings into internal file-local types where no cross-module imports exist.
+  - Remove unused re-export aliases in service façade files when the canonical type module remains exported.
+  - Keep runtime behavior unchanged; scope is API surface and audit-noise reduction.
+
+### Phase 6 Execution Slice (Current Loop)
+
+- Type de-export cleanup (`knip` `unused exported types` set):
+  - de-export 17 flagged type/interface symbols across chat/infrastructure/transcript utilities where usage is local-only.
+- Export cleanup:
+  - remove unused re-exported types from `ToolExecutionService` (`ToolExecutionOptions`, `ToolExecutionCallbacks`).
+  - de-export transcript session storage key constant (`TRANSCRIPT_SESSION_STORAGE_KEY`) and update tests to use explicit fixture key value.
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptWriter.test.ts tests/frontend/ToolExecutionService.test.ts`
+  - `cd frontend && npm run audit:knip` (expect remaining `unused exported types` section to clear)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
