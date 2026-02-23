@@ -5,10 +5,11 @@ import { useChatStore } from '../../../chat/stores/chatStore';
 import { ApiClient } from '../../../../infrastructure/api/client';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import {
-  getTranscriptSessionInfo,
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../../infrastructure/transcript/TranscriptWriter';
+import MemoryContextMenu from '../shared/MemoryContextMenu';
+import { useTranscriptSessionInfo } from '../../hooks/useTranscriptSessionInfo';
 import {
   buildConversationKey,
   DEFAULT_USER_ID,
@@ -65,7 +66,7 @@ function EpisodicMemorySection({ onSelectSection }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isResumingConversation, setIsResumingConversation] = useState(false);
 
-  const [sessionInfo, setSessionInfo] = useState(() => getTranscriptSessionInfo());
+  const sessionInfo = useTranscriptSessionInfo();
   const setChatMessages = useChatStore((state) => state.setMessages);
   const setChatIsSending = useChatStore((state) => state.setIsSending);
   const setChatThinkingStatus = useChatStore((state) => state.setThinkingStatus);
@@ -230,19 +231,6 @@ function EpisodicMemorySection({ onSelectSection }) {
     }
     loadConversation(selectedConversationKey);
   }, [loadConversation, selectedConversationKey]);
-
-  useEffect(() => {
-    const handleSessionUpdate = (event) => {
-      if (event?.detail) {
-        setSessionInfo({
-          conversationRef: event.detail.conversationRef || null,
-          userId: event.detail.userId || null,
-        });
-      }
-    };
-    window.addEventListener('transcript-session-update', handleSessionUpdate);
-    return () => window.removeEventListener('transcript-session-update', handleSessionUpdate);
-  }, []);
 
   const conversationCountLabel = conversations.length === 1
     ? '1 conversation'
@@ -413,53 +401,12 @@ function EpisodicMemorySection({ onSelectSection }) {
           </div>
         </section>
       )}
-      {contextMenu ? (
-        <div
-          className="memory-context-menu"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-          role="menu"
-          onMouseDown={(event) => {
-            // Prevent closing when clicking inside menu.
-            event.stopPropagation();
-          }}
-          onClick={(event) => event.stopPropagation()}
-          onContextMenu={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-          }}
-        >
-          <button
-            type="button"
-            className="danger"
-            disabled={isDeleting}
-            onClick={() => deleteConversation(contextMenu.conversation)}
-          >
-            Delete
-          </button>
-          <button
-            type="button"
-            disabled={isDeleting}
-            onClick={closeContextMenu}
-          >
-            Cancel
-          </button>
-        </div>
-      ) : null}
-      {contextMenu ? (
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9998,
-          }}
-          onMouseDown={closeContextMenu}
-          onContextMenu={(event) => {
-            event.preventDefault();
-            closeContextMenu();
-          }}
-        />
-      ) : null}
+      <MemoryContextMenu
+        menu={contextMenu}
+        isDeleting={isDeleting}
+        onDelete={(menu) => deleteConversation(menu.conversation)}
+        onClose={closeContextMenu}
+      />
     </div>
   );
 }

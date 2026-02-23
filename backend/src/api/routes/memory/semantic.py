@@ -9,6 +9,11 @@ from fastapi import APIRouter
 from pydantic import BaseModel, Field, field_validator
 
 from backend.src.api.deps import ContainerDep, SessionManagerDep
+from backend.src.api.routes.memory.health import (
+    healthy_payload,
+    safe_health_check,
+    unhealthy_payload,
+)
 from backend.src.api.routes.memory.semantic_parser import (
     extract_fallback_facts,
     parse_summarization_response,
@@ -96,18 +101,17 @@ async def summarize_conversations(
 @router.get("/health")
 async def health_check(container: ContainerDep) -> Dict[str, Any]:
     """Health check for semantic summarization service."""
-    try:
+    async def check() -> Dict[str, Any]:
         llm_client = container.llm_client
         if not llm_client:
-            return {
-                "status": "unhealthy",
-                "message": "LLM client not available",
-            }
+            return unhealthy_payload("LLM client not available")
+        return healthy_payload(message="Semantic summarization service ready")
 
-        return {"status": "healthy", "message": "Semantic summarization service ready"}
-    except Exception as e:
-        logger.error("Semantic health check failed: %s", e, exc_info=True)
-        return {"status": "unhealthy", "message": "Health check failed"}
+    return await safe_health_check(
+        check,
+        logger=logger,
+        error_log_prefix="Semantic health check failed",
+    )
 
 
 # Backward-compatible exports for existing tests/callers.
