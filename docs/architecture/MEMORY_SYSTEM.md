@@ -49,6 +49,28 @@ Files created per user:
 - `semantic.faiss.index`
 - `watermark_state.json` (summarization progress)
 
+## Developer Reset (Nuke Local Memory)
+
+Use when you need a full local-memory reset in dev (episodic + semantic + FAISS + watermark).
+
+1. Stop Electron/sidecar first.
+2. Run one command:
+
+Linux/macOS (auto-detect path):
+```bash
+if [[ "$OSTYPE" == "darwin"* ]]; then MEM="$HOME/Library/Application Support/desktop-assistant/memory"; else MEM="$HOME/.config/desktop-assistant/memory"; fi; rm -f "$MEM"/{episodic.db,semantic.db,episodic.faiss.index,semantic.faiss.index,watermark_state.json} && ls -la "$MEM"
+```
+
+Windows PowerShell:
+```powershell
+$mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
+  (Join-Path $mem "episodic.db"), `
+  (Join-Path $mem "semantic.db"), `
+  (Join-Path $mem "episodic.faiss.index"), `
+  (Join-Path $mem "semantic.faiss.index"), `
+  (Join-Path $mem "watermark_state.json"); Get-ChildItem $mem
+```
+
 ## Core Components
 
 ### LocalMemoryStore
