@@ -45,6 +45,8 @@ _IMPORTANT_PROFILE_LOGGERS: Dict[str, int] = {
     # Agent internals + parser chatter
     "backend.src.agent.session.session": logging.WARNING,
     "backend.src.agent.llm": logging.WARNING,
+    # Keep cache diagnostics visible without enabling full verbose logs.
+    "backend.src.agent.llm.llm_stream_processor": logging.INFO,
     "backend.src.agent.tools": logging.WARNING,
     "backend.src.llm.parser": logging.WARNING,
     "backend.src.llm.parser_extraction": logging.WARNING,

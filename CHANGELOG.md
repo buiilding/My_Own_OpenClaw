@@ -10,6 +10,7 @@ Includes the last 300 commits on `main`.
 - docs(setup): expand `docs/PLATFORM_SETUP_BACKEND_FRONTEND.md` with RapidOCR 15s timeout diagnostics, CUDA/onnxruntime-gpu reinstall flow, and `WINDIE_PYTHON_PATH` usage for Electron sidecar Python 3.11
 - fix(frontend-electron): make `npm run electron` auto-fallback to `xvfb-run -a` when Linux has no `$DISPLAY`, reducing startup failures in headless/container dev environments
 - docs(setup): add `docs/PLATFORM_SETUP_BACKEND_FRONTEND.md` with Windows/Ubuntu/macOS instructions for Python 3.11 backend + sidecar environments, CUDA-aware torch/onnxruntime-gpu validation, and frontend npm dev/electron startup flow
+- fix(logging): keep `backend.src.agent.llm.llm_stream_processor` at INFO in `important` log profile so cache diagnostics (`[Cache Hint]`, `[Provider Cache]`) stay visible without full verbose logging
 - feat(llm-cache): add Kimi `prompt_cache_key` steering (conversation-ref/session scoped), include cache-hit diagnostics (`cached_tokens`, `cache_hit`, `cache_status`) in `token-count` events, and surface cache status in chat token counters
 - fix(stop-query-logging): emit explicit backend INFO logs when frontend sends `stop-query` (cancellation signaled / no-active-task), and log query-task cancellation propagation in `QueryMessageHandler`
 - docs(memory-system): add a reusable local-memory reset command (nuke episodic/semantic SQLite, FAISS indices, watermark) for dev machines
