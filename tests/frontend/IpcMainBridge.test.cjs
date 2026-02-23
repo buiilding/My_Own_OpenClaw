@@ -82,7 +82,7 @@ describe('ipc.cjs bridge', () => {
     process.env = ORIGINAL_ENV;
   });
 
-  const initIpc = () => {
+  const initIpc = (options = {}) => {
     jest.resetModules();
 
     const { ipcMain } = require('electron');
@@ -108,7 +108,7 @@ describe('ipc.cjs bridge', () => {
       isDestroyed: jest.fn(() => false),
       webContents: { send: jest.fn() },
     };
-    ipc.initializeIpc(mainWindow);
+    ipc.initializeIpc(mainWindow, options);
 
     const ws = WebSocketMock.instances[0];
 
@@ -155,6 +155,58 @@ describe('ipc.cjs bridge', () => {
     expect(queryMessage.type).toBe('query');
     expect(queryMessage.payload.content).toContain('<user_query>');
     expect(queryMessage.payload.content).toContain('</user_query>');
+  });
+
+  test('runs overlay pre-capture hook for chatbox-origin query sends', async () => {
+    const onBeforeOverlayQueryCapture = jest.fn().mockResolvedValue(undefined);
+    const { handlers, ws, backendBridge } = initIpc({ onBeforeOverlayQueryCapture });
+    ws.triggerOpen();
+
+    backendBridge.getSystemState.mockResolvedValue({
+      active_window: 'App',
+      mouse_position: '0,0',
+    });
+    backendBridge.searchMemory.mockResolvedValue({
+      success: true,
+      data: { memories: { episodic: [], semantic: [] } },
+    });
+
+    await handlers['to-backend']({
+      sender: {
+        getURL: () => 'http://localhost:5173/?view=chatbox',
+      },
+    }, {
+      type: 'query',
+      payload: { text: 'overlay query' },
+    });
+
+    expect(onBeforeOverlayQueryCapture).toHaveBeenCalledTimes(1);
+  });
+
+  test('skips overlay pre-capture hook for dashboard-origin query sends', async () => {
+    const onBeforeOverlayQueryCapture = jest.fn().mockResolvedValue(undefined);
+    const { handlers, ws, backendBridge } = initIpc({ onBeforeOverlayQueryCapture });
+    ws.triggerOpen();
+
+    backendBridge.getSystemState.mockResolvedValue({
+      active_window: 'App',
+      mouse_position: '0,0',
+    });
+    backendBridge.searchMemory.mockResolvedValue({
+      success: true,
+      data: { memories: { episodic: [], semantic: [] } },
+    });
+
+    await handlers['to-backend']({
+      sender: {
+        getURL: () => 'http://localhost:5173/',
+      },
+    }, {
+      type: 'query',
+      payload: { text: 'dashboard query' },
+    });
+
+    expect(onBeforeOverlayQueryCapture).not.toHaveBeenCalled();
   });
 
   test('emits renderer error event when query send fails due to disconnected backend', async () => {

@@ -32,6 +32,7 @@ let hasAttemptedInitialSettingsSync = false; // One-time per connection query ga
 let pendingSettingsSyncPromise = null; // Last outbound update-settings ACK promise
 const pendingSettingsSyncs = new Map(); // msg_id -> { resolve, timer }
 let onResponseOverlayPhaseChange = null;
+let onBeforeOverlayQueryCapture = null;
 let responseOverlayPhase = 'idle';
 
 const RESPONSE_OVERLAY_PHASES = new Set([
@@ -308,6 +309,46 @@ function setResponseOverlayPhase(phase, source = 'ipc') {
   broadcastToRenderers('response-overlay-phase', payload);
 }
 
+function resolveRendererViewFromWebContents(webContents) {
+  if (!webContents || typeof webContents.getURL !== 'function') {
+    return null;
+  }
+  const rawUrl = webContents.getURL();
+  if (!rawUrl) {
+    return null;
+  }
+  try {
+    const parsed = new URL(rawUrl);
+    return parsed.searchParams.get('view');
+  } catch (_error) {
+    const match = rawUrl.match(/[?&]view=([^&#]+)/);
+    if (!match) {
+      return null;
+    }
+    try {
+      return decodeURIComponent(match[1]);
+    } catch (_decodeError) {
+      return match[1];
+    }
+  }
+}
+
+async function runBeforeOverlayQueryCapture(webContents) {
+  if (typeof onBeforeOverlayQueryCapture !== 'function') {
+    return;
+  }
+  if (resolveRendererViewFromWebContents(webContents) !== 'chatbox') {
+    return;
+  }
+  try {
+    await onBeforeOverlayQueryCapture({
+      senderWebContents: webContents,
+    });
+  } catch (error) {
+    log(`Overlay pre-capture hook failed: ${error.message}`);
+  }
+}
+
 /**
  * Generate a valid user_id from system username or fallback to UUID-based ID.
  * Backend rejects 'default_user', empty, or whitespace-only values.
@@ -561,6 +602,9 @@ function initializeIpc(win, options = {}) {
   onResponseOverlayPhaseChange = typeof options.onResponseOverlayPhaseChange === 'function'
     ? options.onResponseOverlayPhaseChange
     : null;
+  onBeforeOverlayQueryCapture = typeof options.onBeforeOverlayQueryCapture === 'function'
+    ? options.onBeforeOverlayQueryCapture
+    : null;
   rendererWindows = new Set();
   trackRendererWindow(win);
   connect();
@@ -619,6 +663,7 @@ function initializeIpc(win, options = {}) {
     // Build complete user message content with system state and memories
     // System context MUST be retrieved - never skip it
     if (type === 'query') {
+      await runBeforeOverlayQueryCapture(event.sender);
       queryMessageId = uuidv4();
       setResponseOverlayPhase('awaiting-first-chunk', 'query');
       const conversationRef = resolveConversationRef(payload);

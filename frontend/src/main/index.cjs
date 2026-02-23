@@ -3,6 +3,12 @@ const path = require('path');
 const { initializeIpc, registerRendererWindow } = require('./ipc.cjs');
 const { initializeWakewordBridge } = require('./wakeword_bridge.cjs');
 const { initializeLocalBackendBridge, stopLocalBackend } = require('./local_backend_bridge.cjs');
+let windowManager = null;
+try {
+  ({ windowManager } = require('node-window-manager'));
+} catch (_error) {
+  windowManager = null;
+}
 
 // Disable hardware acceleration to prevent GPU crashes
 app.disableHardwareAcceleration();
@@ -18,6 +24,8 @@ let tray = null;
 let overlayHandlersInitialized = false;
 let responseOverlayVisible = false;
 let responseOverlayPhase = 'idle';
+let lastExternalFocusedWindowId = null;
+let lastExternalFocusedWindowTitle = null;
 const WAKEWORD_HOTKEY = 'Super+Alt+W';
 const RESPONSE_OVERLAY_PHASE = Object.freeze({
   IDLE: 'idle',
@@ -26,6 +34,81 @@ const RESPONSE_OVERLAY_PHASE = Object.freeze({
   COMPLETE: 'complete',
   ERROR: 'error',
 });
+const APP_WINDOW_TITLE_MARKERS = ['desktop assistant', 'windieos'];
+
+function isAppWindowTitle(title) {
+  const normalized = String(title || '').trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+  return APP_WINDOW_TITLE_MARKERS.some((marker) => normalized.includes(marker));
+}
+
+function capturePreviousExternalFocusedWindow() {
+  if (process.platform !== 'win32' || !windowManager || typeof windowManager.getActiveWindow !== 'function') {
+    return;
+  }
+  try {
+    const activeWindow = windowManager.getActiveWindow();
+    if (!activeWindow) {
+      return;
+    }
+    const activeTitle = typeof activeWindow.getTitle === 'function'
+      ? activeWindow.getTitle()
+      : '';
+    if (!activeTitle || isAppWindowTitle(activeTitle)) {
+      return;
+    }
+    if (typeof activeWindow.id === 'number') {
+      lastExternalFocusedWindowId = activeWindow.id;
+    }
+    lastExternalFocusedWindowTitle = activeTitle;
+  } catch (error) {
+    console.warn('[Main] Failed to snapshot external focused window:', error?.message || error);
+  }
+}
+
+function restorePreviousExternalFocusedWindow() {
+  if (process.platform !== 'win32' || !windowManager || typeof windowManager.getWindows !== 'function') {
+    return false;
+  }
+  try {
+    const windows = windowManager.getWindows();
+    if (!Array.isArray(windows) || windows.length === 0) {
+      return false;
+    }
+    let target = null;
+    if (typeof lastExternalFocusedWindowId === 'number') {
+      target = windows.find((win) => win && win.id === lastExternalFocusedWindowId) || null;
+    }
+    if (!target && lastExternalFocusedWindowTitle) {
+      target = windows.find((win) => (
+        win
+        && typeof win.getTitle === 'function'
+        && win.getTitle() === lastExternalFocusedWindowTitle
+      )) || null;
+    }
+    if (!target || typeof target.bringToTop !== 'function') {
+      return false;
+    }
+    target.bringToTop();
+    return true;
+  } catch (error) {
+    console.warn('[Main] Failed to restore external focused window:', error?.message || error);
+    return false;
+  }
+}
+
+async function prepareOverlayQueryCaptureFocus() {
+  if (chatWindow && !chatWindow.isDestroyed() && typeof chatWindow.blur === 'function') {
+    chatWindow.blur();
+  }
+  if (mainWindow && !mainWindow.isDestroyed() && typeof mainWindow.blur === 'function') {
+    mainWindow.blur();
+  }
+  restorePreviousExternalFocusedWindow();
+  await new Promise((resolve) => setTimeout(resolve, 120));
+}
 
 function loadRendererView(targetWindow, view) {
   if (app.isPackaged) {
@@ -178,6 +261,7 @@ function showChatWindow({ focus = true } = {}) {
     showResponseWindowInactive();
   }
   if (focus) {
+    capturePreviousExternalFocusedWindow();
     chatWindow.focus();
     chatWindow.webContents.send('chatbox-focus');
   }
@@ -283,6 +367,7 @@ function createWindow() {
 
   initializeIpc(mainWindow, {
     onResponseOverlayPhaseChange: handleResponseOverlayPhaseChange,
+    onBeforeOverlayQueryCapture: prepareOverlayQueryCaptureFocus,
   });
   initializeWakewordBridge(mainWindow, () => showChatWindow({ focus: true }));
   initializeLocalBackendBridge(() => ({ mainWindow, chatWindow, responseWindow }));
