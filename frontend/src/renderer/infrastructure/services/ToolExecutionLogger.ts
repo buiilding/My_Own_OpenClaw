@@ -22,7 +22,7 @@ function logInfo(message?: any, ...optionalParams: any[]): void {
   console.log(message, ...optionalParams);
 }
 
-export function shortCorrelationId(correlationId?: string): string {
+function shortCorrelationId(correlationId?: string): string {
   return correlationId ? correlationId.substring(0, 15) : 'unknown';
 }
 

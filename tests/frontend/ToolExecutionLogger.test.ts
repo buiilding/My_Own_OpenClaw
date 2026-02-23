@@ -7,7 +7,6 @@ import {
   logBundleTiming,
   logToolStart,
   logToolTiming,
-  shortCorrelationId,
 } from '../../frontend/src/renderer/infrastructure/services/ToolExecutionLogger';
 
 describe('ToolExecutionLogger', () => {
@@ -23,9 +22,9 @@ describe('ToolExecutionLogger', () => {
     delete (window as any).__WINDIE_VERBOSE_TOOL_LOGS__;
   });
 
-  test('shortCorrelationId truncates long ids and handles missing ids', () => {
-    expect(shortCorrelationId('1234567890abcdef')).toBe('1234567890abcde');
-    expect(shortCorrelationId(undefined)).toBe('unknown');
+  test('logToolStart returns truncated ids and default unknown id', () => {
+    expect(logToolStart('read_file', '1234567890abcdef')).toBe('1234567890abcde');
+    expect(logToolStart('read_file', undefined)).toBe('unknown');
   });
 
   test('does not emit info logs in test mode by default', () => {
@@ -68,4 +67,3 @@ describe('ToolExecutionLogger', () => {
     expect(logSpy).toHaveBeenCalled();
   });
 });
-
