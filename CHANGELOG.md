@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 15 execution slice for landing `PrivacySection` highlight-item dedupe via data-driven rendering
 - refactor(frontend-chat-overlay): dedupe chat overlay phase/listener and frame-size normalization logic by introducing shared `overlayPhaseListener` + `overlayFrameSize` helpers, rewiring `ChatBox`/`ChatBoxResponse`, and adding focused regression suites (`OverlayPhaseListener`, `OverlayFrameSize`)
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 14 execution slice for shared chat overlay-phase listener extraction (`ChatBox` + `ChatBoxResponse`) and helper regression coverage
 - refactor(frontend-message-list): dedupe repeated message `PropTypes` in `MessageList.jsx` via shared `messageShapePropType` while preserving message rendering behavior and existing MessageList class/thinking-display coverage

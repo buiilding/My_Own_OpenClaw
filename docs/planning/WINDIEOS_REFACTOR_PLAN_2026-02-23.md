@@ -326,6 +326,26 @@ read_when:
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 15
+
+- `jscpd` duplication cleanup (landing privacy highlights):
+  - replace repeated highlight-item JSX in `PrivacySection` with mapped data.
+  - keep landing copy and icon semantics unchanged.
+
+### Phase 15 Execution Slice (Current Loop)
+
+- Frontend dedupe:
+  - refactor `frontend/src/landing/components/PrivacySection.jsx` highlight list to data-driven rendering for:
+    - Local-First
+    - Transparent
+    - Your Choice
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/landing/LandingPage.test.jsx`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
