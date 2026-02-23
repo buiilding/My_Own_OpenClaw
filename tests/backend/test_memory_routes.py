@@ -15,6 +15,7 @@ fake_deps.HandlerRegistryDep = object
 sys.modules["backend.src.api.deps"] = fake_deps
 
 from backend.src.api.routes.memory import embeddings as embeddings_routes
+from backend.src.api.routes.memory import health as health_routes
 from backend.src.api.routes.memory import semantic as semantic_routes
 from backend.src.core.config.models import AppConfig
 
@@ -203,6 +204,47 @@ async def test_semantic_health_check_reports_status() -> None:
 
     assert healthy["status"] == "healthy"
     assert unhealthy["status"] == "unhealthy"
+
+
+@pytest.mark.asyncio
+async def test_safe_health_check_returns_check_result() -> None:
+    async def check():
+        return health_routes.healthy_payload(message="ok")
+
+    result = await health_routes.safe_health_check(
+        check,
+        logger=semantic_routes.logger,
+        error_log_prefix="test",
+    )
+
+    assert result == {"status": "healthy", "message": "ok"}
+
+
+@pytest.mark.asyncio
+async def test_safe_health_check_returns_unhealthy_on_exception() -> None:
+    async def check():
+        raise RuntimeError("boom")
+
+    result = await health_routes.safe_health_check(
+        check,
+        logger=semantic_routes.logger,
+        error_log_prefix="test",
+    )
+
+    assert result == {"status": "unhealthy", "message": "Health check failed"}
+
+
+@pytest.mark.asyncio
+async def test_semantic_health_check_unhealthy_on_exception() -> None:
+    class RaisingContainer:
+        @property
+        def llm_client(self):
+            raise RuntimeError("container read failure")
+
+    result = await semantic_routes.health_check(RaisingContainer())
+
+    assert result["status"] == "unhealthy"
+    assert result["message"] == "Health check failed"
 
 
 def test_summarize_request_rejects_default_user() -> None:

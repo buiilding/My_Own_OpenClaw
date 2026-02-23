@@ -1,0 +1,16 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/main/ipc.cjs",
+    "src/preload.js",
+    "src/landing/main.jsx"
+  ],
+  "project": [
+    "src/**/*.{js,jsx,ts,tsx,cjs,mjs}",
+    "../tests/frontend/**/*.{js,jsx,ts,tsx,cjs,mjs}"
+  ],
+  "ignore": [
+    "src/renderer/features/dashboard/components/sections/MemorySection.jsx",
+    "src/types/schema.ts"
+  ]
+}

@@ -12,6 +12,11 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
 from backend.src.api.deps import ContainerDep
+from backend.src.api.routes.memory.health import (
+    healthy_payload,
+    safe_health_check,
+    unhealthy_payload,
+)
 
 router = APIRouter(prefix="/api/embeddings", tags=["embeddings"])
 logger = logging.getLogger(__name__)
@@ -117,28 +122,22 @@ async def health_check(
     Returns:
         Health status information
     """
-    try:
+    async def check() -> Dict[str, Any]:
         embedding_provider = container.embedder
         if not embedding_provider:
-            return {
-                "status": "unhealthy",
-                "message": "Embedding provider not available"
-            }
+            return unhealthy_payload("Embedding provider not available")
 
         # Try a simple embedding to verify functionality
         test_embedding = await embedding_provider.embed_text("test")
         dimension = len(_embedding_to_list(test_embedding))
 
-        return {
-            "status": "healthy",
-            "model_name": getattr(embedding_provider, 'model_name', 'unknown'),
-            "dimension": dimension
-        }
+        return healthy_payload(
+            model_name=getattr(embedding_provider, 'model_name', 'unknown'),
+            dimension=dimension,
+        )
 
-    except Exception as e:
-        logger.error(f"Embeddings health check failed: {e}", exc_info=True)
-        # Sanitize error to prevent information leakage
-        return {
-            "status": "unhealthy",
-            "message": "Health check failed"
-        }
+    return await safe_health_check(
+        check,
+        logger=logger,
+        error_log_prefix="Embeddings health check failed",
+    )

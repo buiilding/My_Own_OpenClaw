@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
-import { getTranscriptSessionInfo } from '../../../../infrastructure/transcript/TranscriptWriter';
+import MemoryContextMenu from '../shared/MemoryContextMenu';
+import { useTranscriptSessionInfo } from '../../hooks/useTranscriptSessionInfo';
 import {
   DEFAULT_USER_ID,
   formatTimestamp,
@@ -59,7 +60,7 @@ function SemanticMemorySection() {
   const [loadError, setLoadError] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [sessionInfo, setSessionInfo] = useState(() => getTranscriptSessionInfo());
+  const sessionInfo = useTranscriptSessionInfo();
 
   const closeContextMenu = useCallback(() => {
     setContextMenu(null);
@@ -152,19 +153,6 @@ function SemanticMemorySection() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [closeContextMenu, contextMenu, deleteSemanticMemory]);
-
-  useEffect(() => {
-    const handleSessionUpdate = (event) => {
-      if (event?.detail) {
-        setSessionInfo({
-          conversationRef: event.detail.conversationRef || null,
-          userId: event.detail.userId || null,
-        });
-      }
-    };
-    window.addEventListener('transcript-session-update', handleSessionUpdate);
-    return () => window.removeEventListener('transcript-session-update', handleSessionUpdate);
-  }, []);
 
   const selectedMemory = useMemo(
     () => memories.find((memory) => memory.id === selectedMemoryId) || null,
@@ -259,52 +247,12 @@ function SemanticMemorySection() {
           </div>
         </div>
       </section>
-      {contextMenu ? (
-        <div
-          className="memory-context-menu"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-          role="menu"
-          onMouseDown={(event) => {
-            event.stopPropagation();
-          }}
-          onClick={(event) => event.stopPropagation()}
-          onContextMenu={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-          }}
-        >
-          <button
-            type="button"
-            className="danger"
-            disabled={isDeleting}
-            onClick={() => deleteSemanticMemory(contextMenu.memory)}
-          >
-            Delete
-          </button>
-          <button
-            type="button"
-            disabled={isDeleting}
-            onClick={closeContextMenu}
-          >
-            Cancel
-          </button>
-        </div>
-      ) : null}
-      {contextMenu ? (
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9998,
-          }}
-          onMouseDown={closeContextMenu}
-          onContextMenu={(event) => {
-            event.preventDefault();
-            closeContextMenu();
-          }}
-        />
-      ) : null}
+      <MemoryContextMenu
+        menu={contextMenu}
+        isDeleting={isDeleting}
+        onDelete={(menu) => deleteSemanticMemory(menu.memory)}
+        onClose={closeContextMenu}
+      />
     </div>
   );
 }
