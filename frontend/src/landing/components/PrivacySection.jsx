@@ -63,6 +63,38 @@ const PrivacySection = () => {
       description: 'Clear your memory at any time. Full control over what WindieOS remembers and for how long. No persistent tracking across sessions.'
     }
   ];
+  const privacyHighlights = [
+    {
+      title: 'Local-First',
+      detail: 'Memory & files stay on your device',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      ),
+    },
+    {
+      title: 'Transparent',
+      detail: 'Open source, auditable code',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      ),
+    },
+    {
+      title: 'Your Choice',
+      detail: 'Pick your LLM provider',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      ),
+    },
+  ];
 
   return (
     <section id="privacy" className="privacy-section">
@@ -83,44 +115,15 @@ const PrivacySection = () => {
             </p>
             
             <div className="privacy-highlights">
-              <div className="highlight-item">
-                <div className="highlight-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  </svg>
+              {privacyHighlights.map((highlight) => (
+                <div key={highlight.title} className="highlight-item">
+                  <div className="highlight-icon">{highlight.icon}</div>
+                  <div className="highlight-text">
+                    <strong>{highlight.title}</strong>
+                    <span>{highlight.detail}</span>
+                  </div>
                 </div>
-                <div className="highlight-text">
-                  <strong>Local-First</strong>
-                  <span>Memory & files stay on your device</span>
-                </div>
-              </div>
-              
-              <div className="highlight-item">
-                <div className="highlight-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                </div>
-                <div className="highlight-text">
-                  <strong>Transparent</strong>
-                  <span>Open source, auditable code</span>
-                </div>
-              </div>
-              
-              <div className="highlight-item">
-                <div className="highlight-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                    <path d="M2 17l10 5 10-5"/>
-                    <path d="M2 12l10 5 10-5"/>
-                  </svg>
-                </div>
-                <div className="highlight-text">
-                  <strong>Your Choice</strong>
-                  <span>Pick your LLM provider</span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
           
