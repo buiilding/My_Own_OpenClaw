@@ -204,6 +204,16 @@ class LLMProvider(ABC):
         """Store normalized stream payload for downstream tool-call handling."""
         self._last_stream_response_payload = copy.deepcopy(payload)
 
+    def supports_streaming_tool_turns(self, model: str) -> bool:
+        """
+        Return whether tool-enabled turns can safely use stream transport.
+
+        Default is conservative: providers must opt in once stream payloads are
+        known to reliably include final tool-call metadata.
+        """
+        _ = model
+        return False
+
     def get_stream_cache_diagnostics(self, model: str) -> Dict[str, Any]:
         """
         Summarize provider-reported cache usage for the most recent stream.

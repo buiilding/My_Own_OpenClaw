@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- fix(llm-stream): replace the global `tools => non-stream` gate with provider capability checks and enable Kimi Coding tool-turn streaming so `llm-thought` tokens can stream during tool-calling turns while still finalizing structured `tool_calls`
 - docs(docs-structure): regroup `docs/` into topic subfolders (`getting-started`, `architecture`, `browser`, `development`, `operations`, `reference`, `product`, `planning`) and remove implemented `docs/planning/BROWSER_USE_PLAN.md`
 - docs(planning): remove implemented `docs/planning/CONVERSATION_REF_RESUME_PLAN.md` from planning docs set
 - fix(chat-new-session): mint fresh `conversation_ref` immediately on `New Chat` and ignore stale backend stream events from other conversations to prevent cross-chat leakage

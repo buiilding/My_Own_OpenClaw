@@ -211,10 +211,28 @@ class LLMStreamProcessor:
         model_id: str,
     ) -> bool:
         """
-        Use non-stream completion whenever tool-calling is enabled.
+        Use non-stream completion for tool turns unless provider explicitly opts in.
         """
-        _ = model_id  # Reserved for future provider-specific routing.
-        return bool(tools)
+        if not tools:
+            return False
+
+        capability_checker = getattr(
+            self.llm_client,
+            "supports_streaming_tool_turns",
+            None,
+        )
+        if not callable(capability_checker):
+            return True
+
+        try:
+            supports_streaming = bool(capability_checker(model_id))
+        except Exception:
+            logger.warning(
+                "Provider streaming tool-turn capability check failed; using non-stream fallback.",
+                exc_info=True,
+            )
+            return True
+        return not supports_streaming
 
     async def _iter_completion_stream(
         self,

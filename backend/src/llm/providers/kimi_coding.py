@@ -33,6 +33,13 @@ class KimiCodingProvider(LLMProvider):
         if not self.api_key:
             raise ValueError("KimiCodingProvider requires an 'api_key'.")
 
+    def supports_streaming_tool_turns(self, model: str) -> bool:
+        """
+        Kimi stream path accumulates and finalizes tool-call payloads safely.
+        """
+        _ = model
+        return True
+
     async def get_completion(
         self,
         model: str,

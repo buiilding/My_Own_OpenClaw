@@ -183,7 +183,7 @@ Notes:
 - `content` is always present (`""` when provider omits text).
 - `tool_calls` is structured and validated before it leaves the client layer.
 - `get_completion()` remains backward-compatible and returns only `content`.
-- Runtime behavior: when tool schemas are present for a turn, backend uses non-stream `get_completion_response()` to receive structured `tool_calls`; pure text turns keep streaming path.
+- Runtime behavior: when tool schemas are present for a turn, backend uses non-stream `get_completion_response()` by default, but allows provider/model opt-in for safe stream tool turns. Current opt-in is `kimi-coding`, which streams `ThinkingEvent`/`ChunkEvent` while still finalizing structured `tool_calls` from the stream payload.
 - Token usage behavior: backend now captures provider usage for both streaming and non-stream turns and emits `token-count` with split fields (`visible_output_tokens`, `thinking_tokens`, `output_tokens_total`) plus `usage_source` (`provider` or `estimated`).
 
 ### LLM Message Typing (History / Follow-up Turns)

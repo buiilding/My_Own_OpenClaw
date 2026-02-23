@@ -9,6 +9,7 @@ from backend.src.core.events.streaming_events import (
     ChunkEvent,
     ErrorEvent,
     FullResponseEvent,
+    ThinkingEvent,
     TokenCountEvent,
 )
 from backend.src.core.infrastructure.exceptions import LLMAPIError
@@ -196,6 +197,56 @@ class _KimiToolCompletionLLMClient:
     def get_last_stream_cache_diagnostics(self):
         return None
 
+    def supports_streaming_tool_turns(self, model):
+        _ = model
+        return False
+
+
+class _KimiStreamingToolTurnLLMClient:
+    def __init__(self):
+        self._payload = {
+            "content": "",
+            "tool_calls": [
+                {
+                    "id": "call_1",
+                    "name": "read_file",
+                    "arguments": {"path": "/tmp/demo.txt"},
+                }
+            ],
+            "finish_reason": "tool_calls",
+        }
+
+    async def get_completion_response(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        raise AssertionError("Tool turns should stay on stream path when supported")
+
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (model, messages, tools, tool_choice, parallel_tool_calls)
+        yield ThinkingEvent(content="thinking...")
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+    def get_last_stream_response_payload(self):
+        return dict(self._payload)
+
+    def supports_streaming_tool_turns(self, model):
+        _ = model
+        return True
+
 @pytest.mark.asyncio
 async def test_logs_cache_hint_and_provider_cache_diagnostics(caplog, monkeypatch):
     monkeypatch.setattr(
@@ -325,7 +376,7 @@ async def test_token_count_falls_back_to_estimate_when_provider_usage_missing(mo
 
 
 @pytest.mark.asyncio
-async def test_kimi_uses_non_stream_completion_when_tools_present(monkeypatch):
+async def test_kimi_uses_non_stream_completion_when_tools_present_if_streaming_unsupported(monkeypatch):
     monkeypatch.setattr(
         "backend.src.agent.llm.llm_stream_processor.get_token_service",
         lambda: _FakeTokenService(),
@@ -352,5 +403,37 @@ async def test_kimi_uses_non_stream_completion_when_tools_present(monkeypatch):
     payload = processor.get_last_response_payload()
     assert payload is not None
     assert payload["content"] == ""
+    assert payload["finish_reason"] == "tool_calls"
+    assert payload["tool_calls"][0]["id"] == "call_1"
+
+
+@pytest.mark.asyncio
+async def test_kimi_streams_thinking_when_tools_present_if_streaming_supported(monkeypatch):
+    monkeypatch.setattr(
+        "backend.src.agent.llm.llm_stream_processor.get_token_service",
+        lambda: _FakeTokenService(),
+    )
+    processor = LLMStreamProcessor(
+        llm_client=_KimiStreamingToolTurnLLMClient(),
+        session=_KimiSession(),
+    )
+
+    noop_tools = [
+        {
+            "type": "function",
+            "function": {"name": "read_file", "parameters": {"type": "object"}},
+        }
+    ]
+    events = [
+        event
+        async for event in processor.get_response(
+            [{"role": "user", "content": "hello"}],
+            tools=noop_tools,
+        )
+    ]
+
+    assert any(isinstance(event, ThinkingEvent) for event in events)
+    payload = processor.get_last_response_payload()
+    assert payload is not None
     assert payload["finish_reason"] == "tool_calls"
     assert payload["tool_calls"][0]["id"] == "call_1"
