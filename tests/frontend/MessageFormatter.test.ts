@@ -1,14 +1,17 @@
 import {
   formatBundledToolOutputMessage,
-  formatSequentialStateXml,
   formatToolOutputMessage,
 } from '../../frontend/src/renderer/infrastructure/services/MessageFormatter';
 
 describe('MessageFormatter', () => {
-  test('formatSequentialStateXml uses Unknown when missing', () => {
-    const xml = formatSequentialStateXml(null);
-    expect(xml).toContain('<active_window>Unknown</active_window>');
-    expect(xml).toContain('<mouse_position>Unknown</mouse_position>');
+  test('formatToolOutputMessage includes Unknown system context values when missing', () => {
+    const output = formatToolOutputMessage(
+      'read_file',
+      { success: true, data: { output: 'ok' } },
+      null,
+    );
+    expect(output).toContain('<active_window>Unknown</active_window>');
+    expect(output).toContain('<mouse_position>Unknown</mouse_position>');
   });
 
   test('formatToolOutputMessage formats success with llm_content and screenshot indicator', () => {
@@ -121,20 +124,28 @@ describe('MessageFormatter', () => {
     expect(bundledOutput).not.toContain('bundle-message');
   });
 
-  test('formatSequentialStateXml fills missing fields with Unknown', () => {
-    const xml = formatSequentialStateXml({ active_window: 'Browser' });
-    expect(xml).toContain('<active_window>Browser</active_window>');
-    expect(xml).toContain('<mouse_position>Unknown</mouse_position>');
+  test('formatToolOutputMessage fills missing system context fields with Unknown', () => {
+    const output = formatToolOutputMessage(
+      'read_file',
+      { success: true, data: { output: 'ok' } },
+      { active_window: 'Browser' },
+    );
+    expect(output).toContain('<active_window>Browser</active_window>');
+    expect(output).toContain('<mouse_position>Unknown</mouse_position>');
   });
 
-  test('formatSequentialStateXml escapes XML-sensitive values', () => {
-    const xml = formatSequentialStateXml({
-      active_window: 'App <Root> & "Main"',
-      mouse_position: "1 > 0 & 'x'",
-    });
-    expect(xml).toContain('<active_window>App &lt;Root&gt; &amp; &quot;Main&quot;</active_window>');
-    expect(xml).toContain('<mouse_position>1 &gt; 0 &amp; &apos;x&apos;</mouse_position>');
-    expect(xml).not.toContain('<Root>');
+  test('formatToolOutputMessage escapes XML-sensitive system context values', () => {
+    const output = formatToolOutputMessage(
+      'read_file',
+      { success: true, data: { output: 'ok' } },
+      {
+        active_window: 'App <Root> & "Main"',
+        mouse_position: "1 > 0 & 'x'",
+      },
+    );
+    expect(output).toContain('<active_window>App &lt;Root&gt; &amp; &quot;Main&quot;</active_window>');
+    expect(output).toContain('<mouse_position>1 &gt; 0 &amp; &apos;x&apos;</mouse_position>');
+    expect(output).not.toContain('<Root>');
   });
 
   test('formatBundledToolOutputMessage omits screenshot indicator when absent', () => {

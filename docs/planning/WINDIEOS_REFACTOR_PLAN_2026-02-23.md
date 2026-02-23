@@ -454,3 +454,27 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/ToolExecutionLogger.test.ts tests/frontend/ChatBoxResponse.test.jsx` (pass)
   - `cd frontend && npm run test:ci` (pass; 78 suites after dead-module test removal)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)
+
+## Phase 10 Outcome (2026-02-23)
+
+- Export-surface cleanup shipped:
+  - de-exported dashboard test-only internals from `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`:
+    - `UNASSIGNED_CONVERSATION_KEY`
+    - `parseMemoryContent`
+  - de-exported formatter helper `formatSequentialStateXml` from `frontend/src/renderer/infrastructure/services/MessageFormatter.ts`.
+  - de-exported capture helper internals from `frontend/src/renderer/infrastructure/services/ToolExecutionCapture.ts`:
+    - `getWaitSeconds`
+    - `extractCaptureFromResult`
+    - `applyCaptureToResult`
+- Test-surface updates shipped:
+  - updated episodic-memory, message-formatter, and capture tests to validate behavior via public APIs only.
+- knip findings delta after Phase 10 slice:
+  - unused exports: `8 -> 2`
+  - remaining unused exports:
+    - `startWakewordService`
+    - `stopWakewordService`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/EpisodicMemoryUtils.test.js tests/frontend/MessageFormatter.test.ts tests/frontend/ToolExecutionCapture.test.ts` (pass)
+  - `cd frontend && npm run test:ci` (pass; 78 suites)
+  - `cd frontend && npm run audit:knip` (remaining command non-zero from residual wakeword exports only)

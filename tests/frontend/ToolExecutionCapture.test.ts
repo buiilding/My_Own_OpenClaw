@@ -3,11 +3,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/SystemCapture', (
 }));
 
 import {
-  applyCaptureToResult,
   captureAfterTool,
   ensureAutoCapture,
-  extractCaptureFromResult,
-  getWaitSeconds,
   isComputerUseTool,
   resolveSystemState,
 } from '../../frontend/src/renderer/infrastructure/services/ToolExecutionCapture';
@@ -25,12 +22,6 @@ describe('ToolExecutionCapture', () => {
     expect(isComputerUseTool('read_file', {})).toBe(false);
     expect(isComputerUseTool('run_shell_command', { wait: 3 })).toBe(true);
     expect(isComputerUseTool('run_shell_command', { wait: 0 })).toBe(false);
-  });
-
-  test('getWaitSeconds prefers explicit seconds and args.wait', () => {
-    expect(getWaitSeconds('wait', { seconds: 5 }, 2)).toBe(5);
-    expect(getWaitSeconds('mouse_control', { wait: 4 }, 2)).toBe(4);
-    expect(getWaitSeconds('mouse_control', {}, 2)).toBe(2);
   });
 
   test('captureAfterTool uses computed wait seconds and returns system state', async () => {
@@ -55,6 +46,21 @@ describe('ToolExecutionCapture', () => {
     nowSpy.mockRestore();
   });
 
+  test('captureAfterTool prefers args.wait and falls back to default wait', async () => {
+    mockExtractOSstate.mockResolvedValue({
+      systemState: null,
+      screenshot: 'shot',
+    } as any);
+
+    const waitArgResult = await captureAfterTool('run_shell_command', { wait: 4 }, true, 2);
+    expect(mockExtractOSstate).toHaveBeenNthCalledWith(1, true, true, 4, false);
+    expect(waitArgResult.waitSeconds).toBe(4);
+
+    const defaultWaitResult = await captureAfterTool('mouse_control', {}, true, 2);
+    expect(mockExtractOSstate).toHaveBeenNthCalledWith(2, true, true, 2, false);
+    expect(defaultWaitResult.waitSeconds).toBe(2);
+  });
+
   test('captureAfterTool drops system state when disabled', async () => {
     mockExtractOSstate.mockResolvedValue({
       systemState: { active_window: 'App' },
@@ -68,37 +74,45 @@ describe('ToolExecutionCapture', () => {
     expect(result.screenshot).toBe('shot');
   });
 
-  test('extractCaptureFromResult resolves screenshot/image_data only from string fields', () => {
-    const fromScreenshot = extractCaptureFromResult({
+  test('ensureAutoCapture resolves existing screenshot fields without new capture', async () => {
+    const fromScreenshot = await ensureAutoCapture('read_file', {}, false, {
       success: true,
       data: {
         screenshot: 'shot-a',
         screenshot_content_type: 'image/png',
         system_state: { active_window: 'App' },
       },
-    });
+    } as any);
     expect(fromScreenshot).toEqual({
       screenshot: 'shot-a',
       screenshotContentType: 'image/png',
       systemState: { active_window: 'App' },
+      waitDelay: 0,
+      captureTime: 0,
+      isComputerTool: false,
     });
 
-    const fromImageData = extractCaptureFromResult({
+    const fromImageData = await ensureAutoCapture('read_file', {}, false, {
       success: true,
       data: {
         image_data: 'shot-b',
         compression: 'jpeg',
       },
-    });
+    } as any);
     expect(fromImageData).toEqual({
       screenshot: 'shot-b',
       screenshotContentType: 'image/jpeg',
       systemState: null,
+      waitDelay: 0,
+      captureTime: 0,
+      isComputerTool: false,
     });
+
+    expect(mockExtractOSstate).not.toHaveBeenCalled();
   });
 
-  test('extractCaptureFromResult ignores non-string screenshot fields', () => {
-    const result = extractCaptureFromResult({
+  test('ensureAutoCapture ignores non-string screenshot fields for non-capture tools', async () => {
+    const result = await ensureAutoCapture('read_file', {}, false, {
       success: true,
       data: {
         screenshot: { invalid: true },
@@ -111,38 +125,11 @@ describe('ToolExecutionCapture', () => {
       screenshot: null,
       screenshotContentType: 'image/png',
       systemState: null,
+      waitDelay: 0,
+      captureTime: 0,
+      isComputerTool: false,
     });
-  });
-
-  test('applyCaptureToResult mutates object data when screenshot is present', () => {
-    const result: any = {
-      success: true,
-      data: { output: 'ok' },
-    };
-
-    applyCaptureToResult(
-      result,
-      'shot-a',
-      { active_window: 'App' } as any,
-      'image/png'
-    );
-
-    expect(result.data).toEqual({
-      output: 'ok',
-      screenshot: 'shot-a',
-      system_state: { active_window: 'App' },
-      screenshot_content_type: 'image/png',
-    });
-  });
-
-  test('applyCaptureToResult is a no-op when screenshot is empty', () => {
-    const result: any = {
-      success: true,
-      data: { output: 'ok' },
-    };
-
-    applyCaptureToResult(result, null, { active_window: 'App' } as any, 'image/png');
-    expect(result.data).toEqual({ output: 'ok' });
+    expect(mockExtractOSstate).not.toHaveBeenCalled();
   });
 
   test('resolveSystemState prefers explicit state then payload fallback', () => {
@@ -214,5 +201,6 @@ describe('ToolExecutionCapture', () => {
     expect(capture.screenshotContentType).toBeNull();
     expect(capture.systemState).toBeNull();
     expect(capture.isComputerTool).toBe(true);
+    expect(result.data).toEqual({ output: 'ok' });
   });
 });

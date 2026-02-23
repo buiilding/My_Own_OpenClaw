@@ -1,18 +1,15 @@
 import {
   DEFAULT_USER_ID,
-  UNASSIGNED_CONVERSATION_KEY,
   buildConversationKey,
   formatModelLabel,
   formatTimestamp,
   parseMemoriesToMessages,
-  parseMemoryContent,
   toTimestampValue,
 } from '../../frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils';
 
 describe('episodicMemoryUtils', () => {
   test('exports expected constants', () => {
     expect(DEFAULT_USER_ID).toBe('default_user');
-    expect(UNASSIGNED_CONVERSATION_KEY).toBe('__unassigned_conversation__');
   });
 
   test('formatTimestamp handles missing and invalid timestamps', () => {
@@ -27,101 +24,118 @@ describe('episodicMemoryUtils', () => {
     expect(result).not.toBe('2026-01-01T00:00:00.000Z');
   });
 
-  test('parseMemoryContent returns empty list for empty legacy content', () => {
-    expect(parseMemoryContent({ content: '  \n\t ' })).toEqual([]);
-    expect(parseMemoryContent(null)).toEqual([]);
+  test('parseMemoriesToMessages drops empty legacy content payloads', () => {
+    expect(parseMemoriesToMessages([{ content: '  \n\t ' }])).toEqual([]);
+    expect(parseMemoriesToMessages([])).toEqual([]);
   });
 
-  test('parseMemoryContent parses legacy User/Assistant transcript format', () => {
+  test('parseMemoriesToMessages parses legacy User/Assistant transcript format', () => {
     const memory = {
+      id: 'legacy',
       content: 'User: hello there\nAssistant: hi!',
     };
-    expect(parseMemoryContent(memory)).toEqual([
-      { sender: 'user', text: 'hello there', type: 'user' },
-      { sender: 'assistant', text: 'hi!', type: 'llm-text' },
+    expect(parseMemoriesToMessages([memory])).toEqual([
+      {
+        id: 'legacy-0',
+        sender: 'user',
+        text: 'hello there',
+        type: 'user',
+        isComplete: true,
+      },
+      {
+        id: 'legacy-1',
+        sender: 'assistant',
+        text: 'hi!',
+        type: 'llm-text',
+        isComplete: true,
+      },
     ]);
   });
 
-  test('parseMemoryContent role-based parsing for user keeps screenshot', () => {
+  test('parseMemoriesToMessages role-based parsing for user keeps screenshot', () => {
     const memory = {
+      id: 'role-user',
       content: 'user says hi',
       role: 'user',
       screenshot: 'user-shot',
     };
-    expect(parseMemoryContent(memory)).toEqual([
+    expect(parseMemoriesToMessages([memory])).toEqual([
       {
+        id: 'role-user-0',
         sender: 'user',
         text: 'user says hi',
         type: 'llm-text',
         screenshot: 'user-shot',
-        screenshotRef: null,
-        screenshotUrl: null,
-        screenshotContentType: null,
+        isComplete: true,
       },
     ]);
   });
 
-  test('parseMemoryContent role-based parsing for assistant drops screenshot on llm-text', () => {
+  test('parseMemoriesToMessages role-based parsing for assistant drops screenshot on llm-text', () => {
     const memory = {
+      id: 'role-assistant',
       content: 'assistant answer',
       role: 'assistant',
       screenshot: 'assistant-shot',
     };
-    expect(parseMemoryContent(memory)).toEqual([
+    expect(parseMemoriesToMessages([memory])).toEqual([
       {
+        id: 'role-assistant-0',
         sender: 'assistant',
         text: 'assistant answer',
         type: 'llm-text',
-        screenshot: null,
-        screenshotRef: null,
-        screenshotUrl: null,
-        screenshotContentType: null,
+        isComplete: true,
       },
     ]);
   });
 
-  test('parseMemoryContent normalizes tool role and tool-bundle message type', () => {
+  test('parseMemoriesToMessages normalizes tool role and tool-bundle message type', () => {
     const memory = {
+      id: 'tool-bundle',
       content: 'bundle issued',
       role: 'tool',
       message_type: 'tool-bundle',
       metadata: { screenshot: 'tool-shot' },
     };
-    expect(parseMemoryContent(memory)).toEqual([
+    expect(parseMemoriesToMessages([memory])).toEqual([
       {
+        id: 'tool-bundle-0',
         sender: 'assistant',
         text: 'bundle issued',
         type: 'tool-call',
-        screenshot: null,
-        screenshotRef: null,
-        screenshotUrl: null,
-        screenshotContentType: null,
+        isComplete: true,
       },
     ]);
   });
 
-  test('parseMemoryContent keeps screenshot for tool-output role messages', () => {
+  test('parseMemoriesToMessages keeps screenshot for tool-output role messages', () => {
     const memory = {
+      id: 'tool-output',
       content: 'tool output text',
       role: 'tool',
       metadata: { screenshot: 'tool-shot' },
     };
-    expect(parseMemoryContent(memory)).toEqual([
+    expect(parseMemoriesToMessages([memory])).toEqual([
       {
+        id: 'tool-output-0',
         sender: 'assistant',
         text: 'tool output text',
         type: 'tool-output',
         screenshot: 'tool-shot',
-        screenshotRef: null,
-        screenshotUrl: null,
-        screenshotContentType: null,
+        isComplete: true,
       },
     ]);
   });
 
-  test('parseMemoryContent falls back to assistant llm-text for generic content', () => {
-    expect(parseMemoryContent({ content: 'plain message' })).toEqual([
-      { sender: 'assistant', text: 'plain message', type: 'llm-text' },
+  test('parseMemoriesToMessages falls back to assistant llm-text for generic content', () => {
+    expect(parseMemoriesToMessages([{ id: 'plain', content: 'plain message' }])).toEqual([
+      {
+        id: 'plain-0',
+        sender: 'assistant',
+        text: 'plain message',
+        type: 'llm-text',
+        isComplete: true,
+      },
     ]);
   });
 
@@ -129,7 +143,7 @@ describe('episodicMemoryUtils', () => {
     expect(buildConversationKey({ record_kind: 'transcript', conversation_id: 'conv-1' })).toBe(
       'transcript::conv-1',
     );
-    expect(buildConversationKey({})).toBe(`memory::${UNASSIGNED_CONVERSATION_KEY}`);
+    expect(buildConversationKey({})).toBe('memory::__unassigned_conversation__');
   });
 
   test('toTimestampValue returns 0 for invalid values', () => {
