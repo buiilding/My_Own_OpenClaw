@@ -11,6 +11,7 @@ Single entrypoint for future work. Use this page first.
 
 ## Canonical Roadmap
 
+- Company future framing: `WINDIEOS_COMPANY_FUTURE_OVERVIEW.md`
 - Product roadmap and sequencing: `FUTURE_PLAN.md`
 - Deployment and hosting rollout: `../operations/DEPLOYMENT.md`
 - Plan tiers and limits:
