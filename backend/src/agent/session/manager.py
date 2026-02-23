@@ -45,6 +45,64 @@ class SessionManager(ConfigSubscriber):
         self._user_locks: Dict[str, asyncio.Lock] = {}
         # Lock for managing user_locks dictionary itself
         self._locks_lock = asyncio.Lock()
+        # Active query task metadata by user_id: (task, turn_ref, conversation_ref)
+        self._active_query_tasks: Dict[
+            str, tuple[asyncio.Task[Any], str, Optional[str]]
+        ] = {}
+
+    def register_active_query_task(
+        self,
+        user_id: str,
+        task: asyncio.Task[Any],
+        *,
+        turn_ref: str,
+        conversation_ref: Optional[str] = None,
+    ) -> None:
+        """Track the currently running query task for a user."""
+        self._active_query_tasks[user_id] = (task, turn_ref, conversation_ref)
+
+    def clear_active_query_task(
+        self,
+        user_id: str,
+        task: Optional[asyncio.Task[Any]] = None,
+    ) -> None:
+        """
+        Clear active query tracking for a user.
+
+        If ``task`` is provided, clear only when it matches the tracked task.
+        """
+        active_entry = self._active_query_tasks.get(user_id)
+        if active_entry is None:
+            return
+
+        active_task, _, _ = active_entry
+        if task is not None and active_task is not task:
+            return
+
+        self._active_query_tasks.pop(user_id, None)
+
+    def cancel_active_query_task(
+        self,
+        user_id: str,
+    ) -> Optional[tuple[str, Optional[str]]]:
+        """
+        Cancel the currently active query task for a user.
+
+        Returns:
+            Tuple of ``(turn_ref, conversation_ref)`` when a live task was canceled;
+            otherwise ``None``.
+        """
+        active_entry = self._active_query_tasks.get(user_id)
+        if active_entry is None:
+            return None
+
+        active_task, turn_ref, conversation_ref = active_entry
+        if active_task.done():
+            self._active_query_tasks.pop(user_id, None)
+            return None
+
+        active_task.cancel()
+        return turn_ref, conversation_ref
 
     async def _get_user_lock(self, user_id: str) -> asyncio.Lock:
         """
@@ -235,6 +293,7 @@ class SessionManager(ConfigSubscriber):
             finally:
                 # Always remove from cache, even if cleanup fails
                 del self.active_sessions[user_id]
+                self.clear_active_query_task(user_id)
                 
                 # Clean up lock if no longer needed
                 async with self._locks_lock:

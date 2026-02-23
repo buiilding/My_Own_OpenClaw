@@ -4,6 +4,7 @@ Query Message Handler.
 Handles user query messages and streams responses back to the client.
 """
 
+import asyncio
 import logging
 from typing import TYPE_CHECKING, Optional
 
@@ -61,6 +62,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
             tts_manager: TTS manager for text-to-speech handling
             response_formatter: Response formatter for WebSocket messages
         """
+        self.session_manager = session_manager
         self.execution_service = QueryExecutionService(
             session_manager=session_manager,
             tts_manager=tts_manager,
@@ -81,6 +83,14 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
             user_id: User ID from connection context
         """
         msg_id = message.id
+        current_task = asyncio.current_task()
+        if current_task is not None:
+            self.session_manager.register_active_query_task(
+                user_id,
+                current_task,
+                turn_ref=msg_id,
+                conversation_ref=message.payload.conversation_ref,
+            )
 
         try:
             logger.info("[Timing] Query received from frontend (user_id=%s)", user_id)
@@ -98,6 +108,9 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
         except Exception as e:
             # Full details logged server-side, sanitized message sent to client
             await self._send_error(websocket, msg_id, None, exception=e)
+        finally:
+            if current_task is not None:
+                self.session_manager.clear_active_query_task(user_id, current_task)
 
     async def _send_error(
         self,

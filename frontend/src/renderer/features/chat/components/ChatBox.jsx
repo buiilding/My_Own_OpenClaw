@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
+import { ApiClient } from '../../../infrastructure/api/client';
+import { setActiveConversationRef } from '../../../infrastructure/transcript/TranscriptWriter';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
 const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
 const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
+const ACTIVE_QUERY_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
 function SettingsIcon() {
   return (
@@ -34,6 +37,11 @@ function MicIcon() {
 function ChatBox() {
   const isSending = useChatStore((state) => state.isSending);
   const streamPhase = useChatStore((state) => state.streamTracking.phase);
+  const clearMessages = useChatStore((state) => state.clearMessages);
+  const setIsSending = useChatStore((state) => state.setIsSending);
+  const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
+  const setTokenCounts = useChatStore((state) => state.setTokenCounts);
+  const canStop = ACTIVE_QUERY_PHASES.has(streamPhase);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
   });
@@ -156,10 +164,52 @@ function ChatBox() {
     }
   }, []);
 
+  const handleCloseChatbox = useCallback(async () => {
+    try {
+      await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
+    } catch (error) {
+      console.warn('[ChatBox] Failed to hide chatbox:', error);
+    }
+  }, []);
+
+  const handleStopQuery = useCallback(() => {
+    if (!canStop) {
+      return;
+    }
+    ApiClient.stopQuery();
+  }, [canStop]);
+
+  const handleNewChat = useCallback(() => {
+    if (canStop) {
+      ApiClient.stopQuery();
+    }
+    clearMessages();
+    setIsSending(false);
+    setThinkingStatus(null);
+    setTokenCounts(null);
+    setActiveConversationRef(null);
+    setInputValue('');
+  }, [
+    canStop,
+    clearMessages,
+    setIsSending,
+    setThinkingStatus,
+    setTokenCounts,
+  ]);
+
   return (
     <div className="chatbox-shell-wrap">
       <div className="chatbox-shell" ref={shellRef}>
         <form className="chatbox-pill" onSubmit={handleSubmit}>
+          <button
+            type="button"
+            className="chatbox-pill-close"
+            onClick={handleCloseChatbox}
+            aria-label="Close chatbox"
+            title="Close chatbox"
+          >
+            ×
+          </button>
           <div className="chatbox-input-wrap">
             <input
               ref={inputRef}
@@ -172,6 +222,25 @@ function ChatBox() {
             />
           </div>
           <div className="chatbox-actions">
+            <button
+              type="button"
+              className="chatbox-icon chatbox-new-chat"
+              onClick={handleNewChat}
+              aria-label="New chat"
+              title="New chat"
+            >
+              <span aria-hidden="true">+</span>
+            </button>
+            <button
+              type="button"
+              className="chatbox-icon chatbox-stop"
+              onClick={handleStopQuery}
+              disabled={!canStop}
+              aria-label="Stop response"
+              title="Stop response"
+            >
+              <span aria-hidden="true">■</span>
+            </button>
             <button
               type="button"
               className="chatbox-icon chatbox-mic"

@@ -4,6 +4,7 @@ export function selectChatInterfaceState(state) {
     isSending: state.isSending,
     thinkingStatus: state.thinkingStatus,
     tokenCounts: state.tokenCounts,
+    streamPhase: state.streamTracking?.phase ?? 'idle',
   };
 }
 

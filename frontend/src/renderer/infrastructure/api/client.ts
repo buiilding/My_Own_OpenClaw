@@ -45,6 +45,16 @@ export const ApiClient = {
     });
   },
 
+  /**
+   * Request cancellation of the currently active query stream
+   */
+  stopQuery: (): void => {
+    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+      type: 'stop-query',
+      payload: {},
+    });
+  },
+
   sendRehydrateConversation: async (
     conversationRef: string,
     messages: RehydrateConversationEntry[]

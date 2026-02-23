@@ -12,6 +12,7 @@ from dependency_injector import containers, providers
 from backend.src.agent.session.manager import SessionManager
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
 from backend.src.api.handlers.query import QueryMessageHandler
+from backend.src.api.handlers.stop_query import StopQueryHandler
 from backend.src.api.handlers.rehydrate import RehydrateConversationHandler
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.handlers.settings import (
@@ -73,6 +74,11 @@ class ApiContainer(containers.DeclarativeContainer):
         session_manager=session_manager,
     )
 
+    stop_query_handler = providers.Singleton(
+        StopQueryHandler,
+        session_manager=session_manager,
+    )
+
     tool_result_handler = providers.Singleton(
         ToolResultHandler,
         session_manager=session_manager,
@@ -101,10 +107,11 @@ class ApiContainer(containers.DeclarativeContainer):
 
     # Handler Registry (registers all handlers)
     handler_registry = providers.Singleton(
-        lambda qh, rch, trh, wh, lmh, lsh, ush: _create_handler_registry(
-            qh, rch, trh, wh, lmh, lsh, ush
+        lambda qh, sqh, rch, trh, wh, lmh, lsh, ush: _create_handler_registry(
+            qh, sqh, rch, trh, wh, lmh, lsh, ush
         ),
         qh=query_handler,
+        sqh=stop_query_handler,
         rch=rehydrate_conversation_handler,
         trh=tool_result_handler,
         wh=wakeword_handler,
@@ -116,6 +123,7 @@ class ApiContainer(containers.DeclarativeContainer):
 
 def _create_handler_registry(
     query_handler: QueryMessageHandler,
+    stop_query_handler: StopQueryHandler,
     rehydrate_conversation_handler: RehydrateConversationHandler,
     tool_result_handler: ToolResultHandler,
     wakeword_handler: WakewordHandler,
@@ -140,6 +148,7 @@ def _create_handler_registry(
     for message_type, handler in build_handler_bindings(
         {
             "query_handler": query_handler,
+            "stop_query_handler": stop_query_handler,
             "rehydrate_conversation_handler": rehydrate_conversation_handler,
             "tool_result_handler": tool_result_handler,
             "wakeword_handler": wakeword_handler,

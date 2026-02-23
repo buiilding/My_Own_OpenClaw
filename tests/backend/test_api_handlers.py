@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import suppress
 from typing import Any, Dict, List, Optional
 
 import pytest
@@ -10,6 +11,7 @@ from backend.src.api.handlers.settings import (
     LoadSettingsHandler,
     UpdateSettingsHandler,
 )
+from backend.src.api.handlers.stop_query import StopQueryHandler
 from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
 from backend.src.api.handlers import query as query_handler_module
@@ -21,6 +23,7 @@ from backend.src.api.schema import (
     LoadSettingsMessage,
     QueryMessage,
     RehydrateConversationMessage,
+    StopQueryMessage,
     ToolBundleResultMessage,
     ToolResultMessage,
     UpdateSettingsMessage,
@@ -154,12 +157,52 @@ class DummyAssistantFullThenCompleteAgent:
 class DummySessionManager:
     def __init__(self):
         self.session = DummyAgent()
+        self.registered_query_tasks = {}
+        self.register_calls = []
+        self.clear_calls = []
+        self.cancel_calls = []
 
     async def get_or_create_session(self, user_id: str):
         return self.session
 
     def get_session(self, user_id: str):
         return getattr(self, "session_instance", None)
+
+    def register_active_query_task(
+        self,
+        user_id: str,
+        task,
+        *,
+        turn_ref: str,
+        conversation_ref: Optional[str] = None,
+    ) -> None:
+        self.register_calls.append(
+            {
+                "user_id": user_id,
+                "turn_ref": turn_ref,
+                "conversation_ref": conversation_ref,
+                "task": task,
+            }
+        )
+        self.registered_query_tasks[user_id] = (task, turn_ref, conversation_ref)
+
+    def clear_active_query_task(self, user_id: str, task=None) -> None:
+        self.clear_calls.append({"user_id": user_id, "task": task})
+        registered = self.registered_query_tasks.get(user_id)
+        if registered is None:
+            return
+        if task is not None and registered[0] is not task:
+            return
+        self.registered_query_tasks.pop(user_id, None)
+
+    def cancel_active_query_task(self, user_id: str):
+        self.cancel_calls.append(user_id)
+        registered = self.registered_query_tasks.get(user_id)
+        if registered is None:
+            return None
+        task, turn_ref, conversation_ref = registered
+        task.cancel()
+        return turn_ref, conversation_ref
 
     async def update_session_config(
         self, user_id: str, updates: Dict[str, Any]
@@ -257,6 +300,8 @@ async def test_query_handler_success(monkeypatch):
         "turn_ref": "msg_1",
     }
     assert second_event.final_response == "ok"
+    assert len(session_manager.register_calls) == 1
+    assert len(session_manager.clear_calls) == 1
 
 
 @pytest.mark.asyncio
@@ -629,6 +674,47 @@ def test_query_execution_extract_streaming_complete_text_uses_payload_or_top_lev
         {"type": "tool-call", "payload": {"final_response": "ignored"}},
         event_type="tool-call",
     ) == ""
+
+
+@pytest.mark.asyncio
+async def test_stop_query_handler_cancels_active_query_and_emits_streaming_complete():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = StopQueryHandler(session_manager)
+
+    loop = asyncio.get_running_loop()
+    pending_task = loop.create_task(asyncio.sleep(3600))
+    session_manager.register_active_query_task(
+        "user_1",
+        pending_task,
+        turn_ref="turn_active_1",
+        conversation_ref="conv_active_1",
+    )
+    session_manager.session_instance = DummySession()
+    session_manager.session_instance.session_id = "session_active_1"
+
+    message = StopQueryMessage(
+        id="msg_stop_1",
+        type="stop-query",
+        user_id="user_1",
+        payload={},
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert pending_task.cancelled() or pending_task.cancelling() > 0
+    assert websocket.sent
+    response = websocket.sent[0]
+    assert response["type"] == "streaming-complete"
+    assert response["id"] == "msg_stop_1"
+    assert response["turn_ref"] == "turn_active_1"
+    assert response["conversation_ref"] == "conv_active_1"
+    assert response["session_id"] == "session_active_1"
+    assert response["user_id"] == "user_1"
+    assert response["payload"] == {}
+    pending_task.cancel()
+    with suppress(asyncio.CancelledError):
+        await pending_task
 
 
 @pytest.mark.asyncio

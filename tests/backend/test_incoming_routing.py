@@ -27,6 +27,7 @@ def test_build_handler_bindings_supports_shared_handler_keys() -> None:
     bindings = build_handler_bindings(
         {
             "query_handler": object(),
+            "stop_query_handler": object(),
             "rehydrate_conversation_handler": object(),
             "tool_result_handler": shared,
             "wakeword_handler": object(),
@@ -44,6 +45,7 @@ def test_build_handler_bindings_supports_shared_handler_keys() -> None:
 def test_build_handler_bindings_preserves_route_order() -> None:
     handlers = {
         "query_handler": object(),
+        "stop_query_handler": object(),
         "rehydrate_conversation_handler": object(),
         "tool_result_handler": object(),
         "wakeword_handler": object(),
@@ -64,6 +66,7 @@ def test_build_handler_bindings_raises_for_missing_handler_keys() -> None:
         build_handler_bindings(
             {
                 "query_handler": object(),
+                "stop_query_handler": object(),
                 "rehydrate_conversation_handler": object(),
                 "tool_result_handler": object(),
                 "wakeword_handler": object(),

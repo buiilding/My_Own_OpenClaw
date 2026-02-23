@@ -23,6 +23,7 @@ class IncomingRoute:
 
 INCOMING_ROUTES: tuple[IncomingRoute, ...] = (
     IncomingRoute(message_type="query", handler_key="query_handler"),
+    IncomingRoute(message_type="stop-query", handler_key="stop_query_handler"),
     IncomingRoute(
         message_type="rehydrate-conversation",
         handler_key="rehydrate_conversation_handler",

@@ -30,6 +30,17 @@ class QueryMessage(BaseMessage):
     payload: QueryPayload
 
 
+class StopQueryPayload(BaseModel):
+    """Payload for `stop-query` messages."""
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class StopQueryMessage(BaseMessage):
+    type: Literal["stop-query"]
+    payload: StopQueryPayload = Field(default_factory=StopQueryPayload)
+
+
 class RehydrateConversationEntry(BaseModel):
     """One transcript row used to rebuild conversation history."""
 
@@ -190,6 +201,7 @@ class ToolBundleResultMessage(BaseMessage):
 IncomingMessage = Annotated[
     Union[
         QueryMessage,
+        StopQueryMessage,
         RehydrateConversationMessage,
         LoadSettingsMessage,
         ListModelsMessage,
