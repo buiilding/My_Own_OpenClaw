@@ -303,6 +303,28 @@ read_when:
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 14
+
+- `jscpd` duplication cleanup (chat overlay phase listener):
+  - extract repeated `response-overlay-phase` payload normalization/subscription logic shared by `ChatBox` and `ChatBoxResponse`.
+  - keep overlay behavior unchanged for awaiting/streaming/complete/error phase transitions.
+
+### Phase 14 Execution Slice (Current Loop)
+
+- Frontend dedupe:
+  - add shared response-overlay phase subscription helper under `frontend/src/renderer/features/chat/utils/`.
+  - replace duplicate listener blocks in:
+    - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+    - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- Regression coverage:
+  - add focused helper test verifying phase normalization and listener cleanup behavior.
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/OverlayPhaseListener.test.js tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.test.jsx`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
