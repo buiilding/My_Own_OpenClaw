@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
-import { ApiClient } from '../../../infrastructure/api/client';
-import { startNewChatSession } from '../utils/newChatSession';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
 const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 const OVERLAY_ACTIVE_PHASES = new Set(['awaiting-first-chunk', 'streaming']);
 const OVERLAY_TERMINAL_PHASES = new Set(['idle', 'complete', 'error']);
-const ACTIVE_QUERY_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
 
 function isDragBlockedTarget(target) {
   if (!(target instanceof Element)) {
@@ -32,13 +29,10 @@ function SettingsIcon() {
   );
 }
 
-function MicIcon() {
+function SendIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="9" y="3.5" width="6" height="11" rx="3" />
-      <path d="M6.5 11.5a5.5 5.5 0 0011 0" />
-      <line x1="12" y1="17" x2="12" y2="21" />
-      <line x1="9" y1="21" x2="15" y2="21" />
+      <path d="M5 12L19 5L15.5 19L12.5 13.5L7 12.5L5 12Z" />
     </svg>
   );
 }
@@ -46,12 +40,6 @@ function MicIcon() {
 function ChatBox() {
   const isSending = useChatStore((state) => state.isSending);
   const streamPhase = useChatStore((state) => state.streamTracking.phase);
-  const clearMessages = useChatStore((state) => state.clearMessages);
-  const setIsSending = useChatStore((state) => state.setIsSending);
-  const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
-  const setTokenCounts = useChatStore((state) => state.setTokenCounts);
-  const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
-  const canStop = ACTIVE_QUERY_PHASES.has(streamPhase);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
   });
@@ -183,48 +171,6 @@ function ChatBox() {
     }
   }, []);
 
-  const handleCloseChatbox = useCallback(async () => {
-    try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
-    } catch (error) {
-      console.warn('[ChatBox] Failed to hide chatbox:', error);
-    }
-  }, []);
-
-  const handleStopQuery = useCallback(() => {
-    if (!canStop) {
-      return;
-    }
-    const stoppedAt = new Date().toISOString();
-    setIsSending(false);
-    setThinkingStatus(null);
-    updateStreamTracking((current) => ({
-      ...current,
-      phase: 'complete',
-      completedAt: stoppedAt,
-      lastEventAt: stoppedAt,
-      lastEventType: 'stop-query',
-    }));
-    ApiClient.stopQuery();
-  }, [canStop, setIsSending, setThinkingStatus, updateStreamTracking]);
-
-  const handleNewChat = useCallback(() => {
-    startNewChatSession({
-      clearMessages,
-      setIsSending,
-      setThinkingStatus,
-      setTokenCounts,
-      stopActiveQuery: canStop ? () => ApiClient.stopQuery() : undefined,
-    });
-    setInputValue('');
-  }, [
-    canStop,
-    clearMessages,
-    setIsSending,
-    setThinkingStatus,
-    setTokenCounts,
-  ]);
-
   const handleDragMove = useCallback((event) => {
     const dragState = dragStateRef.current;
     if (!dragState.isDragging) {
@@ -296,12 +242,12 @@ function ChatBox() {
         <form className="chatbox-pill" onSubmit={handleSubmit} onMouseDown={handlePillMouseDown}>
           <button
             type="button"
-            className="chatbox-pill-close"
-            onClick={handleCloseChatbox}
-            aria-label="Close chatbox"
-            title="Close chatbox"
+            className="chatbox-icon chatbox-settings"
+            onClick={handleOpenSettings}
+            aria-label="Open settings"
+            title="Open settings"
           >
-            ×
+            <SettingsIcon />
           </button>
           <div className="chatbox-input-wrap">
             <input
@@ -309,48 +255,20 @@ function ChatBox() {
               type="text"
               value={inputValue}
               onChange={(event) => setInputValue(event.target.value)}
-              placeholder="Type a command…"
+              placeholder="Ask me anything..."
               className="chatbox-input"
               disabled={isSending}
             />
           </div>
-          <div className="chatbox-actions">
-            <button
-              type="button"
-              className="chatbox-icon chatbox-new-chat"
-              onClick={handleNewChat}
-              aria-label="New chat"
-              title="New chat"
-            >
-              <span aria-hidden="true">+</span>
-            </button>
-            <button
-              type="button"
-              className="chatbox-icon chatbox-stop"
-              onClick={handleStopQuery}
-              disabled={!canStop}
-              aria-label="Stop response"
-              title="Stop response"
-            >
-              <span aria-hidden="true">■</span>
-            </button>
-            <button
-              type="button"
-              className="chatbox-icon chatbox-mic"
-              disabled
-              aria-label="Voice input disabled"
-            >
-              <MicIcon />
-            </button>
-            <button
-              type="button"
-              className="chatbox-icon chatbox-settings"
-              onClick={handleOpenSettings}
-              aria-label="Open settings"
-            >
-              <SettingsIcon />
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="chatbox-icon chatbox-send"
+            aria-label="Send message"
+            title="Send message"
+            disabled={isSending || !inputValue.trim()}
+          >
+            <SendIcon />
+          </button>
         </form>
       </div>
     </div>
