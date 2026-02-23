@@ -1,6 +1,5 @@
 import {
   filterFrontendConfig,
-  isFrontendConfigOnly,
 } from '../../frontend/src/renderer/utils/configFilter.js';
 
 describe('configFilter', () => {
@@ -29,22 +28,6 @@ describe('configFilter', () => {
     expect(filterFrontendConfig(null)).toEqual({});
     expect(filterFrontendConfig('nope')).toEqual({});
     expect(filterFrontendConfig([])).toEqual({});
-  });
-
-  test('isFrontendConfigOnly validates allowed keys', () => {
-    expect(
-      isFrontendConfigOnly({
-        model_mode: 'online',
-        model_provider: 'openai',
-      }),
-    ).toBe(true);
-
-    expect(
-      isFrontendConfigOnly({
-        model_mode: 'online',
-        extra: 'nope',
-      }),
-    ).toBe(false);
   });
 
   test('filterFrontendConfig keeps interaction_mode', () => {

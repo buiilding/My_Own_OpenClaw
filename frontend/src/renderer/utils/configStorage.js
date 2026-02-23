@@ -10,7 +10,7 @@
 const CONFIG_STORAGE_KEY = 'desktop-assistant-config';
 const CONFIG_VERSION_KEY = 'desktop-assistant-config-version';
 
-export const DEFAULT_FRONTEND_CONFIG = {
+const DEFAULT_FRONTEND_CONFIG = {
   model_mode: 'online',
   model_provider: 'openai',
   selected_model_id: 'gpt-5.1',
@@ -59,15 +59,6 @@ export function loadConfigFromStorage() {
   }
 }
 
-export function hasStoredConfig() {
-  try {
-    return localStorage.getItem(CONFIG_STORAGE_KEY) !== null;
-  } catch (error) {
-    console.error('[ConfigStorage] Failed to read config storage:', error);
-    return false;
-  }
-}
-
 /**
  * Save configuration to localStorage.
  * 
@@ -90,40 +81,5 @@ export function saveConfigToStorage(config, version = null) {
   } catch (error) {
     console.error('[ConfigStorage] Failed to save config to localStorage:', error);
     return false;
-  }
-}
-
-/**
- * Get the stored config version timestamp.
- * 
- * @returns {number|null} - Version timestamp or null if not found
- */
-export function getConfigVersion() {
-  try {
-    const versionStr = localStorage.getItem(CONFIG_VERSION_KEY);
-    if (!versionStr) {
-      return null;
-    }
-    
-    const version = parseInt(versionStr, 10);
-    if (isNaN(version)) {
-      return null;
-    }
-    
-    return version;
-  } catch (error) {
-    console.error('[ConfigStorage] Failed to get config version:', error);
-    return null;
-  }
-}
-
-/**
- * Clear stored configuration from localStorage.
- */
-export function clearConfigStorage() {
-  try {
-    clearStoredConfigUnsafe();
-  } catch (error) {
-    console.error('[ConfigStorage] Failed to clear config storage:', error);
   }
 }
