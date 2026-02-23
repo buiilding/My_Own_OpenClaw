@@ -14,6 +14,7 @@ Includes the last 300 commits on `main`.
 - fix(chatbox-pill): increase settings/send brightness to match `windieos-ui-concept` (near-foreground white settings icon and near-white send button)
 - fix(chatbox-pill): match concept control scale and disabled-send luminance (larger pill spacing, full-size settings control, and brighter disabled send button)
 - fix(chatbox-pill): tighten 1:1 parity with `windieos-ui-concept` by switching to lucide-equivalent settings icon geometry, full-pill radius, shadcn-matching input/button metrics, and concept font stack in the chat pill
+- fix(chatbox-pill): use exact `lucide-react@0.507.0` settings/send SVG paths from `windieos-ui-concept` and raise disabled-send luminance to match concept brightness in idle state
 - docs(setup): expand `docs/PLATFORM_SETUP_BACKEND_FRONTEND.md` with RapidOCR 15s timeout diagnostics, CUDA/onnxruntime-gpu reinstall flow, and `WINDIE_PYTHON_PATH` usage for Electron sidecar Python 3.11
 - fix(frontend-electron): make `npm run electron` auto-fallback to `xvfb-run -a` when Linux has no `$DISPLAY`, reducing startup failures in headless/container dev environments
 - docs(setup): add `docs/PLATFORM_SETUP_BACKEND_FRONTEND.md` with Windows/Ubuntu/macOS instructions for Python 3.11 backend + sidecar environments, CUDA-aware torch/onnxruntime-gpu validation, and frontend npm dev/electron startup flow
