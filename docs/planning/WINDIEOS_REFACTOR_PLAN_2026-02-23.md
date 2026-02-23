@@ -135,6 +135,29 @@ read_when:
   - Replace event-listener `useEffect` state mirrors with stable subscription hooks.
   - Reduce unnecessary `useEffect` usage where render-derivation/memoized selectors are sufficient.
 
+### Phase 5 Execution Slice (Current Loop)
+
+- `knip` export-surface cleanup (`true-positive`, low-risk):
+  - Remove dead legacy hook exports with no runtime/test imports:
+    - `useAppContext` (`frontend/src/renderer/app/providers/AppContextHooks.js`)
+    - `useChatContext` (`frontend/src/renderer/app/providers/ChatContext.jsx`)
+  - Remove unused CJS constants from module exports:
+    - `DEFAULT_BACKEND_HOST`
+    - `DEFAULT_BACKEND_PORT`
+  - De-export internal-only helper/type symbols that are only file-local:
+    - `getBackendHttpUrl`
+    - `DisplayBounds`
+    - `TranscriptSessionState`
+    - `ToolCallPayloadLike`
+    - `ToolBundlePayloadLike`
+    - `ToolOutputPayloadLike`
+- Docs sync:
+  - Update folder structure notes that still reference removed legacy hooks.
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/AppProvider.test.tsx tests/frontend/configStorage.test.js tests/frontend/TranscriptSessionState.test.ts tests/frontend/ChatStreamFormatting.test.ts tests/frontend/ArtifactUploader.test.ts tests/frontend/BackendEndpoints.test.cjs`
+  - `cd frontend && npm run audit:knip` (expect export/type findings count reduction)
+
 ## Tracking
 
 - Update this plan per phase completion with:
