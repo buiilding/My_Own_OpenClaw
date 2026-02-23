@@ -187,17 +187,18 @@ class TestConnectAction:
             mock_controller.auto_connect_to_chrome.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_connect_managed(self):
-        """Test launching managed browser."""
+    async def test_connect_managed_mode_is_ignored(self):
+        """Test connect ignores managed mode and uses dedicated Windie connect path."""
         with mock.patch(
             "tools.browser.browser_tool.get_browser_controller"
         ) as mock_get:
             mock_controller = mock.AsyncMock()
             mock_controller.is_connected = False
-            mock_controller.launch_managed_browser.return_value = {
-                "status": "launched",
-                "mode": "managed",
+            mock_controller.auto_connect_to_chrome.return_value = {
+                "status": "connected",
+                "mode": "user_chrome",
                 "url": "about:blank",
+                "auto_launched": True,
             }
             mock_get.return_value = mock_controller
 
@@ -210,7 +211,8 @@ class TestConnectAction:
             )
 
             assert result.success is True
-            assert result.data["mode"] == "managed"
+            assert result.data["mode"] == "user_chrome"
+            mock_controller.auto_connect_to_chrome.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_connect_error(self):

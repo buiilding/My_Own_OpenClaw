@@ -27,10 +27,11 @@ Browser execution is routed through the Browser Use compatibility adapter. Runti
 
 ## Overview
 
-The `browser` tool supports two modes:
+The `browser` tool uses one connect model:
 
-1. **User Chrome Mode** - Control your existing Chrome browser with all your logins and cookies
-2. **Managed Mode** - Launch an isolated Chromium instance for safe automation
+1. **WindieOS Dedicated Browser Instance** - A persistent, Windie-owned Chrome profile used only for WindieOS automation.
+2. This instance is isolated from the user's default browser profile (credentials/session state do not affect the default profile).
+3. `connect` auto-attaches to this instance when already running, or launches it when not running.
 
 ## Installation
 
@@ -60,72 +61,23 @@ Parity check guarantees:
 - Sidecar requirements do not depend on pip `browser-use`.
 - Sidecar schema, backend schema, native handler registry, and adapter dispatch all cover Browser Use action registry names.
 
-## User Chrome Mode
+## Connect Behavior
 
-Connect to your existing Chrome browser for full access to your logged-in sessions.
+**No manual setup required.** When you issue a browser request, WindieOS connect will:
+1. Attach to the WindieOS dedicated browser instance when its CDP endpoint is already available.
+2. Otherwise launch a dedicated instance with persistent WindieOS profile data.
+3. Leave the user's default browser process/profile untouched, even if it is currently active.
 
-### Auto-Launch (Recommended)
-
-**No manual setup required!** When you say:
-```
-Connect to my browser and go to Amazon
-```
-
-The agent will **automatically**:
-1. Check if Chrome is running with CDP enabled -> connect to it
-2. If Chrome is not running -> launch a CDP-enabled Chrome profile
-3. If Chrome is running without CDP -> return guidance to restart Chrome with `--remote-debugging-port`
-
-Note: WindieOS does not currently auto-restart an already-running non-CDP Chrome process.
-
-### Manual Setup (Optional)
-
-If you prefer to start Chrome manually:
-
-**Linux:**
-```bash
-google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.config/google-chrome-cdp" --profile-directory="Default"
-```
-
-**macOS:**
-```bash
-/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
-```
-
-**Windows:**
-```cmd
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
-```
-
-Then connect via the tool:
+Connect via the tool:
 ```json
 {
-  "action": "connect",
-  "mode": "user_chrome",
-  "cdp_url": "http://127.0.0.1:9222"
+  "action": "connect"
 }
 ```
 
 ### Security Note
 
 CDP connections are restricted to localhost for security. The agent can only connect to browsers running on your local machine.
-
-## Managed Mode
-
-Launch an isolated browser instance with a clean profile.
-
-```json
-{
-  "action": "connect",
-  "mode": "managed",
-  "headless": false
-}
-```
-
-### Options
-
-- `headless: true` - Run without visible window (faster, no UI)
-- `headless: false` - Show browser window (see what agent is doing)
 
 ## Actions
 
@@ -150,13 +102,11 @@ Notes:
 
 ### 1. Connect
 
-Initialize browser connection.
+Initialize/attach the WindieOS dedicated browser instance.
 
 ```json
 {
-  "action": "connect",
-  "mode": "user_chrome",
-  "cdp_url": "http://127.0.0.1:9222"
+  "action": "connect"
 }
 ```
 
@@ -397,7 +347,7 @@ Legacy non-Browser Use actions were removed from runtime routing and now return
 
 ```json
 // 1. Connect to browser
-{"action": "connect", "mode": "user_chrome"}
+{"action": "connect"}
 
 // 2. Navigate to Google
 {"action": "navigate", "url": "https://google.com"}
@@ -426,7 +376,7 @@ Legacy non-Browser Use actions were removed from runtime routing and now return
 
 ```json
 // Connect and navigate
-{"action": "connect", "mode": "managed"}
+{"action": "connect"}
 {"action": "navigate", "url": "https://example.com/contact"}
 
 // Get form fields
@@ -454,7 +404,7 @@ Legacy non-Browser Use actions were removed from runtime routing and now return
 ### Check Multiple Tabs
 
 ```json
-{"action": "connect", "mode": "user_chrome"}
+{"action": "connect"}
 
 // List all tabs
 {"action": "get_tabs"}
@@ -479,38 +429,23 @@ Legacy non-Browser Use actions were removed from runtime routing and now return
 
 ## Troubleshooting
 
-### Cannot Connect to Chrome
+### Cannot Connect to Windie Browser
 
-**Error:** `Cannot connect to Chrome at http://127.0.0.1:9222`
+**Error:** `Cannot connect to Chrome at http://127.0.0.1:9333`
 
 **Solutions:**
 
-1. **Auto-launch** (recommended): The agent will connect to an existing CDP-enabled Chrome instance, or launch Chrome with CDP if Chrome is not running.
-   If Chrome is already running without CDP, WindieOS will not restart that process automatically; restart Chrome manually with `--remote-debugging-port=9222`.
-
-2. **Manual launch** (if auto-launch fails):
+1. **Auto-launch** (recommended): WindieOS connect auto-attaches to an existing Windie browser instance or launches one automatically.
+2. **If launch still fails**, close stale Windie browser instances and retry `{"action":"connect"}`.
+3. **Check Windie CDP port availability**:
    ```bash
-   # macOS
-   /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
-
-   # Linux
-   google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.config/google-chrome-cdp" --profile-directory="Default"
-
-   # Windows
-   "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
+   lsof -i :9333  # macOS/Linux
+   netstat -ano | findstr :9333  # Windows
    ```
-
-3. Check no other process is using port 9222:
+4. **Use a different Windie CDP port** by setting:
    ```bash
-   lsof -i :9222  # macOS/Linux
-   netstat -ano | findstr :9222  # Windows
+   export WINDIE_BROWSER_CDP_PORT=9334
    ```
-
-4. Try a different port:
-   ```bash
-   google-chrome --remote-debugging-port=9223
-   ```
-   Then use `"cdp_url": "http://127.0.0.1:9223"`
 
 ### Element Not Found
 

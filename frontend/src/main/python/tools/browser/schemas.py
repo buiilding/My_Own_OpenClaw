@@ -16,10 +16,17 @@ class BrowserConnectArgs(BaseModel):
     action: Literal["connect"] = Field(..., description="Connect to browser")
     mode: Literal["user_chrome", "managed"] = Field(
         "user_chrome",
-        description="Connection mode: 'user_chrome' connects to existing Chrome, 'managed' launches isolated Chromium",
+        description=(
+            "Compatibility field (ignored). WindieOS connect always targets the "
+            "dedicated Windie browser instance."
+        ),
     )
     cdp_url: Optional[str] = Field(
-        "http://127.0.0.1:9222", description="CDP URL for user Chrome mode"
+        "http://127.0.0.1:9333",
+        description=(
+            "Compatibility field (ignored). WindieOS connect uses the dedicated "
+            "Windie browser CDP endpoint."
+        ),
     )
     headless: bool = Field(False, description="Run managed browser headless (no UI)")
     executable_path: Optional[str] = Field(
@@ -371,10 +378,13 @@ class BrowserOpenClawCompatArgs(BaseModel):
     ] = Field(
         None,
         description=(
-            "Connect/snapshot/extract mode for compatible actions."
+            "Compatibility connect/snapshot/extract mode for compatible actions."
         ),
     )
-    cdp_url: Optional[str] = Field(None, description="Optional CDP URL.")
+    cdp_url: Optional[str] = Field(
+        None,
+        description="Compatibility CDP URL for connect action (ignored at runtime).",
+    )
     target_id: Optional[str] = Field(None, description="Tab target ID")
     targetId: Optional[str] = Field(None, description="Tab target ID (camelCase)")
     target_url: Optional[str] = Field(None, description="URL to open/navigate")

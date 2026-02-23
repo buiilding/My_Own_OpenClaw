@@ -17,12 +17,12 @@ class RemoteBrowserTool(RemoteToolBase, Tool[BrowserControlArgs]):
     name = "browser"
     description = """Control a web browser for online tasks.
 
-Two modes available:
-- 'user_chrome': Connect to your existing Chrome (must start with --remote-debugging-port=9222)
-- 'managed': Launch isolated Chromium instance (clean profile, no logins)
+Connection model:
+- WindieOS always uses a dedicated browser instance/profile (persistent credentials, isolated from the user's default browser profile).
+- `connect` auto-attaches to that WindieOS instance if running, or launches it if not.
 
 Workflow:
-1. Connect: browser(action="connect", mode="user_chrome")
+1. Connect: browser(action="connect")
 2. Navigate: browser(action="navigate", url="https://example.com")
 3. Snapshot: browser(action="snapshot") - shows page with numbered refs like [1] button
 4. Interact: browser(action="click", ref="1") or browser(action="type", ref="2", text="hello")
@@ -32,7 +32,7 @@ Automatic `post_action_snapshot` attachment is temporarily disabled for testing.
 Use explicit `browser(action="snapshot", ...)` calls when snapshot data is needed.
 
 Actions:
-- connect: Initialize browser (requires mode)
+- connect: Initialize/attach WindieOS dedicated browser instance
 - status: Session status summary
 - profiles: Lists WindieOS profile equivalents
 - navigate: Go to URL (requires url)

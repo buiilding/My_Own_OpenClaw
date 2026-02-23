@@ -17,11 +17,17 @@ class BrowserConnectArgs(BaseModel):
     action: Literal["connect"] = Field(..., description="Connect to browser")
     mode: Literal["user_chrome", "managed"] = Field(
         "user_chrome",
-        description="Connection mode: 'user_chrome' connects to existing Chrome, 'managed' launches isolated Chromium",
+        description=(
+            "Compatibility field (ignored). WindieOS connect always targets the "
+            "dedicated Windie browser instance."
+        ),
     )
     cdp_url: Optional[str] = Field(
-        "http://127.0.0.1:9222",
-        description="CDP URL for user Chrome mode (must be localhost)",
+        "http://127.0.0.1:9333",
+        description=(
+            "Compatibility field (ignored). WindieOS connect uses the dedicated "
+            "Windie browser CDP endpoint."
+        ),
     )
     headless: bool = Field(False, description="Run managed browser headless (no UI)")
 
@@ -544,13 +550,15 @@ class BrowserControlArgs(BaseModel):
     ] = Field(
         "user_chrome",
         description=(
-            "Browser mode for connect action ('user_chrome'/'managed'), "
+            "Compatibility field for connect action ('user_chrome'/'managed') "
+            "(ignored at runtime), "
             "snapshot mode ('efficient'), or extract modes "
             "('focused'/'full_text'/'structured')."
         ),
     )
     cdp_url: Optional[str] = Field(
-        "http://127.0.0.1:9222", description="CDP URL for user Chrome mode"
+        "http://127.0.0.1:9333",
+        description="Compatibility field for connect action (ignored at runtime).",
     )
     headless: bool = Field(False, description="Run managed browser headless")
 

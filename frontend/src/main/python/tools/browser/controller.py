@@ -1,9 +1,8 @@
 """
 Browser controller for web automation via Playwright.
 
-Supports two modes:
-1. User's Chrome: Connect to existing Chrome via CDP
-2. Managed Chromium: Launch isolated browser instance
+Primary mode:
+1. WindieOS browser instance: Connect/launch dedicated Chrome via CDP
 """
 
 import logging
@@ -28,6 +27,9 @@ from playwright.async_api import (
 
 from tools.browser.chrome_detection import find_chrome_executable
 from tools.browser.chrome_launcher import (
+    DEFAULT_WINDIE_CDP_PORT,
+    DEFAULT_WINDIE_CDP_URL,
+    is_cdp_available,
     ensure_chrome_with_cdp,
     ChromeLauncherError,
 )
@@ -390,22 +392,19 @@ class BrowserController:
 
     async def auto_connect_to_chrome(
         self,
-        cdp_url: str = "http://127.0.0.1:9222",
+        cdp_url: str = DEFAULT_WINDIE_CDP_URL,
         auto_launch: bool = True,
         timeout: int = 30,
     ) -> Dict[str, Any]:
         """
-        Auto-connect to Chrome, launching if necessary.
+        Auto-connect to WindieOS browser instance, launching if necessary.
 
-        This is the recommended method for connecting to user's Chrome.
-        It handles all scenarios:
-        1. Chrome already running with CDP → connect to it
-        2. Chrome not running → launch it with CDP
-        3. Chrome running without CDP → restart with CDP (if allowed)
+        This always targets WindieOS' dedicated browser profile and does not
+        interact with the user's default Chrome profile.
 
         Args:
             cdp_url: Chrome DevTools Protocol URL
-            auto_launch: Automatically launch Chrome if not running
+            auto_launch: Automatically launch WindieOS browser if not running
             timeout: Connection timeout in seconds
 
         Returns:
@@ -414,7 +413,7 @@ class BrowserController:
         Raises:
             ConnectionError: If cannot connect or launch Chrome
         """
-        logger.info(f"Auto-connecting to Chrome at {cdp_url}")
+        logger.info("Auto-connecting to WindieOS browser at %s", cdp_url)
 
         # Validate CDP URL
         parsed = urlparse(cdp_url)
@@ -422,9 +421,11 @@ class BrowserController:
             raise ValueError("CDP URL must be localhost for security")
 
         # Extract port from URL
-        port = parsed.port or 9222
+        port = parsed.port or DEFAULT_WINDIE_CDP_PORT
 
         try:
+            was_cdp_available = await is_cdp_available(cdp_url)
+
             # Use chrome_launcher to ensure Chrome is available
             actual_cdp_url = await ensure_chrome_with_cdp(
                 cdp_port=port,
@@ -468,7 +469,7 @@ class BrowserController:
                 "mode": "user_chrome",
                 "url": self._page.url,
                 "title": await self._page.title(),
-                "auto_launched": True,  # Chrome was auto-launched if needed
+                "auto_launched": not was_cdp_available,
             }
 
         except ChromeLauncherError as e:
@@ -484,7 +485,7 @@ class BrowserController:
 
     async def connect_to_user_chrome(
         self,
-        cdp_url: str = "http://127.0.0.1:9222",
+        cdp_url: str = DEFAULT_WINDIE_CDP_URL,
         timeout: int = 30,
     ) -> Dict[str, Any]:
         """
@@ -550,7 +551,7 @@ class BrowserController:
             await self.close()
             raise ConnectionError(
                 f"Cannot connect to Chrome at {cdp_url}. "
-                "Make sure Chrome is running with --remote-debugging-port=9222"
+                "Make sure the WindieOS browser instance is running with a reachable CDP endpoint."
             ) from e
 
     async def launch_managed_browser(
