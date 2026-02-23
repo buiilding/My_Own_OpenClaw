@@ -132,7 +132,7 @@ function ChatInterface() {
           <div className="chat-window-controls">
             <button
               type="button"
-              className="chat-window-control-btn"
+              className="chat-window-control-btn chat-window-control-minimize"
               onClick={handleWindowMinimize}
               aria-label="Minimize window"
               title="Minimize"
@@ -141,7 +141,7 @@ function ChatInterface() {
             </button>
             <button
               type="button"
-              className="chat-window-control-btn"
+              className="chat-window-control-btn chat-window-control-maximize"
               onClick={handleWindowToggleMaximize}
               aria-label="Toggle maximize window"
               title="Maximize / Restore"
