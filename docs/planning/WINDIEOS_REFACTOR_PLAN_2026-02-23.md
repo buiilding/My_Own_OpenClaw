@@ -154,6 +154,30 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/TranscriptStorage.test.ts tests/frontend/TranscriptWriter.test.ts tests/frontend/ToolExecutionService.test.ts`
   - `cd frontend && npm run audit:knip` (expect remaining `unused exported types` section to clear)
 
+## Phase 7
+
+- `knip` export-surface cleanup (test-only helper exports):
+  - remove unused helper exports from CJS utility modules where runtime entrypoints stay unchanged.
+  - internalize config helper exports that are test-only and keep runtime callers on `loadConfigFromStorage`/`saveConfigToStorage`.
+  - update tests to use local fixtures and behavior-based assertions instead of private helper imports.
+
+### Phase 7 Execution Slice (Current Loop)
+
+- Query payload export pruning:
+  - remove helper-only exports from `frontend/src/main/query_payload_builder.cjs` and keep only `buildQueryPayloadContent` in module exports.
+- Config helper export pruning:
+  - de-export test-only symbols in `frontend/src/renderer/utils/configStorage.js`:
+    - `DEFAULT_FRONTEND_CONFIG`
+    - `hasStoredConfig`
+    - `getConfigVersion`
+    - `clearConfigStorage`
+  - de-export `isFrontendConfigOnly` from `frontend/src/renderer/utils/configFilter.js`.
+  - update `tests/frontend/configStorage.test.js` and `tests/frontend/configFilter.test.js` to use fixture constants + public behavior checks.
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/QueryPayloadBuilder.test.cjs tests/frontend/configStorage.test.js tests/frontend/configFilter.test.js`
+  - `cd frontend && npm run audit:knip` (expect unused exports count reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
