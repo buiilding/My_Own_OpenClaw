@@ -29,7 +29,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Memory System**](architecture/MEMORY_SYSTEM.md) - Memory management and retrieval
 - [**Python Sidecar**](architecture/PYTHON_SIDECAR.md) - Local tool execution + memory service
 - [**LLM Integration**](architecture/LLM_INTEGRATION.md) - LLM providers and configuration
-- [**Billing & Usage (Planned)**](product/BILLING_AND_USAGE.md) - Subscriptions, entitlements, and usage limits
+- [**Billing & Usage (Planned)**](planning/BILLING_AND_USAGE.md) - Subscriptions, entitlements, and usage limits
 
 ### Development Guides
 - [**Developer Guide**](development/DEVELOPER_GUIDE.md) - Comprehensive development guide
@@ -43,10 +43,10 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Configuration Guide**](operations/CONFIGURATION.md) - Configuration options and settings
 - [**Deployment Guide**](operations/DEPLOYMENT.md) - Production deployment instructions
 - [**Release Guide**](operations/release.md) - Repeatable release checklist and guardrails
-- [**Future Product Plan (Draft)**](product/FUTURE_PLAN.md) - Sequenced roadmap for packaging, hosted rollout, and major future features
+- [**Future Product Plan (Draft)**](planning/FUTURE_PLAN.md) - Sequenced roadmap for packaging, hosted rollout, and major future features
 - [**Environment Setup**](development/ENVIRONMENT_SETUP.md) - Development environment configuration
-- [**Security & Compliance (Planned)**](product/SECURITY_AND_COMPLIANCE.md) - Security posture and compliance roadmap
-- [**Plan Matrix (Draft)**](product/PLAN_MATRIX.md) - Subscription tiers and limits
+- [**Security & Compliance (Planned)**](planning/SECURITY_AND_COMPLIANCE.md) - Security posture and compliance roadmap
+- [**Plan Matrix (Draft)**](planning/PLAN_MATRIX.md) - Subscription tiers and limits
 
 ### User Guides
 - [**User Guide**](getting-started/USER_GUIDE.md) - End-user documentation

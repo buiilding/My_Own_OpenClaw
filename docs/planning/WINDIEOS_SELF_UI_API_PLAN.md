@@ -23,7 +23,7 @@ Primary target flows:
 Current tool path is sidecar-first and optimized for OS/browser actions. For app-internal UX, direct intent APIs are more stable, testable, and secure than selector/pixel clicks.
 
 Relevant baseline:
-- Planned roadmap item: `docs/product/FUTURE_PLAN.md` (self-interaction mode, safe subset, audit trail).
+- Planned roadmap item: `docs/planning/FUTURE_PLAN.md` (self-interaction mode, safe subset, audit trail).
 - Current sidecar execution path: `frontend/src/main/local_backend_bridge.cjs` (`execute-tool` handler).
 - Current frontend-owned settings path: `frontend/src/renderer/app/providers/AppConfigProvider.jsx` (`updateConfig`).
 - Backend allowlist validation: `backend/src/api/schemas/incoming.py`, `backend/src/core/validation/validators.py`.
@@ -190,4 +190,3 @@ E2E:
 1. Should self-interaction mode require per-session user confirmation or per-action confirmation in v1?
 2. Should settings mutations via self-UI API reuse deterministic intent resolver patterns from `WINDIEOS_SELF_EDIT_CONFIG_PLAN.md`?
 3. Where should audit history be surfaced first: chat timeline, dashboard panel, or both?
-

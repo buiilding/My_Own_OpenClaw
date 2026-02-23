@@ -202,5 +202,5 @@ Manual E2E checks:
 ## Cross References
 
 - `docs/operations/CONFIGURATION.md`
-- `docs/product/FUTURE_PLAN.md`
+- `docs/planning/FUTURE_PLAN.md`
 - `docs/architecture/FRONTEND_ARCHITECTURE.md`

@@ -341,10 +341,10 @@ Initial targets:
 ## Dependencies on Existing Roadmap
 
 This plan depends on and extends:
-- `docs/product/FUTURE_PLAN.md` (Windie-owned machine strategy).
+- `docs/planning/FUTURE_PLAN.md` (Windie-owned machine strategy).
 - `docs/operations/DEPLOYMENT.md` (hosted disposable workspace track).
 - `docs/operations/MULTI_USER_RUNTIME_HARDENING.md` (identity/session safety).
-- `docs/product/SECURITY_AND_COMPLIANCE.md` and `docs/product/BILLING_AND_USAGE.md`.
+- `docs/planning/SECURITY_AND_COMPLIANCE.md` and `docs/planning/BILLING_AND_USAGE.md`.
 
 ## Open Decisions
 

@@ -152,7 +152,7 @@ frontend/src/
 ## Future: Productization Checklist (Planned)
 
 To ship to end users with subscriptions and usage limits, plan for:
-See `../product/FUTURE_PLAN.md` and `../operations/DEPLOYMENT.md` for sequencing and deployment tracks.
+See `../planning/FUTURE_PLAN.md` and `../operations/DEPLOYMENT.md` for sequencing and deployment tracks.
 
 ### Backend
 - Multi-tenant auth + session management
