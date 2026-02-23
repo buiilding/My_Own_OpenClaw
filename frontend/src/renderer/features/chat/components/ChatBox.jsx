@@ -62,8 +62,10 @@ function ChatBox() {
     isDragging: false,
     startClientX: 0,
     startClientY: 0,
-    lastScreenX: 0,
-    lastScreenY: 0,
+    pointerOffsetX: 0,
+    pointerOffsetY: 0,
+    lastTargetX: null,
+    lastTargetY: null,
   });
 
   const setOverlayIgnore = useCallback(async (ignore) => {
@@ -227,21 +229,23 @@ function ChatBox() {
       return;
     }
 
-    const dx = screenX - dragState.lastScreenX;
-    const dy = screenY - dragState.lastScreenY;
-    dragState.lastScreenX = screenX;
-    dragState.lastScreenY = screenY;
+    const nextX = screenX - dragState.pointerOffsetX;
+    const nextY = screenY - dragState.pointerOffsetY;
 
-    if (dx === 0 && dy === 0) {
+    if (nextX === dragState.lastTargetX && nextY === dragState.lastTargetY) {
       return;
     }
+    dragState.lastTargetX = nextX;
+    dragState.lastTargetY = nextY;
 
-    IpcBridge.send(SEND_CHANNELS.MOVE_CHATBOX_BY, { dx, dy });
+    IpcBridge.send(SEND_CHANNELS.MOVE_CHATBOX_TO, { x: nextX, y: nextY });
     event.preventDefault();
   }, []);
 
   const stopDragging = useCallback(() => {
     dragStateRef.current.isDragging = false;
+    dragStateRef.current.lastTargetX = null;
+    dragStateRef.current.lastTargetY = null;
   }, []);
 
   useEffect(() => {
@@ -259,12 +263,19 @@ function ChatBox() {
     if (event.button !== 0 || isDragBlockedTarget(event.target)) {
       return;
     }
+    const screenX = Math.round(Number(event.screenX) || 0);
+    const screenY = Math.round(Number(event.screenY) || 0);
+    const windowScreenX = Math.round(Number(window.screenX) || 0);
+    const windowScreenY = Math.round(Number(window.screenY) || 0);
 
     dragStateRef.current.isDragging = true;
     dragStateRef.current.startClientX = Math.round(Number(event.clientX) || 0);
     dragStateRef.current.startClientY = Math.round(Number(event.clientY) || 0);
-    dragStateRef.current.lastScreenX = Math.round(Number(event.screenX) || 0);
-    dragStateRef.current.lastScreenY = Math.round(Number(event.screenY) || 0);
+    dragStateRef.current.pointerOffsetX = screenX - windowScreenX;
+    dragStateRef.current.pointerOffsetY = screenY - windowScreenY;
+    dragStateRef.current.lastTargetX = windowScreenX;
+    dragStateRef.current.lastTargetY = windowScreenY;
+    event.preventDefault();
   }, []);
 
   return (
