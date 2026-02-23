@@ -104,13 +104,13 @@ body {
   margin-right: 4px;
   border: none;
   background: transparent;
-  color: rgba(232, 236, 242, 0.82);
+  color: rgba(246, 248, 252, 0.96);
 }
 
 .chatbox-settings:hover:not(:disabled) {
   border: none;
   background: transparent;
-  color: rgba(244, 247, 252, 0.96);
+  color: rgba(255, 255, 255, 1);
 }
 
 .chatbox-settings svg {
@@ -123,14 +123,14 @@ body {
 }
 
 .chatbox-send {
-  background: rgba(160, 164, 171, 0.95);
-  border-color: rgba(180, 184, 192, 0.95);
-  color: rgba(23, 27, 34, 0.96);
+  background: rgba(238, 241, 246, 0.98);
+  border-color: rgba(245, 247, 251, 0.98);
+  color: rgba(18, 22, 28, 0.96);
 }
 
 .chatbox-send:hover:not(:disabled) {
-  background: rgba(184, 188, 196, 0.98);
-  border-color: rgba(203, 208, 216, 0.98);
+  background: rgba(248, 250, 253, 1);
+  border-color: rgba(255, 255, 255, 1);
 }
 
 .chatbox-send:disabled {
