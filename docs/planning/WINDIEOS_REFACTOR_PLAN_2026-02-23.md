@@ -262,6 +262,29 @@ read_when:
   - `cd frontend && npm run test:ci`
   - `cd frontend && npm run audit:knip` (expect unused exports count reduction to zero)
 
+## Phase 12
+
+- `jscpd` duplication cleanup (dashboard settings toggles):
+  - extract repeated toggle-control JSX in `SettingsSection` to one shared renderer component.
+  - keep toggle behavior identical for wakeword, voice mode, speech replies, and query screenshot controls.
+  - add focused SettingsSection regressions for toggle update wiring and wakeword suppression messaging.
+
+### Phase 12 Execution Slice (Current Loop)
+
+- Frontend dedupe:
+  - extract `SettingsToggleField` in `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx` and replace repeated toggle blocks.
+- Test coverage:
+  - add `tests/frontend/SettingsSection.test.jsx` for:
+    - wakeword toggle dispatch to `setWakewordEnabled`
+    - `onConfigChange` payload wiring for voice/speech/screenshot toggles
+    - suppressed wakeword helper messaging visibility
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/SettingsSection.test.jsx`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
