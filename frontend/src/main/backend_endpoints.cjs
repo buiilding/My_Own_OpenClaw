@@ -98,7 +98,5 @@ function resolveBackendEndpoints(env = process.env) {
 }
 
 module.exports = {
-  DEFAULT_BACKEND_HOST,
-  DEFAULT_BACKEND_PORT,
   resolveBackendEndpoints,
 };

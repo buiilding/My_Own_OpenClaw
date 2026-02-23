@@ -1,10 +1,11 @@
 import {
-  DISPLAY_BOUNDS_STORAGE_KEY,
-  DISPLAY_STORAGE_KEY,
   getStoredDisplayBounds,
   getStoredDisplayId,
   persistDisplaySelection,
 } from '../../frontend/src/renderer/utils/displaySelection';
+
+const DISPLAY_STORAGE_KEY = 'desktop-assistant-display-id';
+const DISPLAY_BOUNDS_STORAGE_KEY = 'desktop-assistant-display-bounds';
 
 describe('displaySelection', () => {
   beforeEach(() => {

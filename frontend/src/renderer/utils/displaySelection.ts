@@ -1,7 +1,7 @@
-export const DISPLAY_STORAGE_KEY = 'desktop-assistant-display-id';
-export const DISPLAY_BOUNDS_STORAGE_KEY = 'desktop-assistant-display-bounds';
+const DISPLAY_STORAGE_KEY = 'desktop-assistant-display-id';
+const DISPLAY_BOUNDS_STORAGE_KEY = 'desktop-assistant-display-bounds';
 
-export type DisplayBounds = {
+type DisplayBounds = {
   x: number;
   y: number;
   width: number;

@@ -3,7 +3,7 @@ import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 const DEFAULT_BACKEND_HTTP_URL = 'http://127.0.0.1:8765';
 let backendHttpUrl = DEFAULT_BACKEND_HTTP_URL;
 
-export type ArtifactUploadResult = {
+type ArtifactUploadResult = {
   artifactId: string;
   contentType: string;
   sizeBytes: number;
@@ -49,7 +49,7 @@ export function setBackendHttpUrl(url: string | null | undefined): void {
   }
 }
 
-export function getBackendHttpUrl(): string {
+function getBackendHttpUrl(): string {
   return backendHttpUrl;
 }
 

@@ -19,13 +19,13 @@ frontend/src/renderer/
 │   └── providers/                       # Context providers for global state
 │       ├── AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
 │       ├── AppConfigProvider.jsx        # AppConfigProvider - Manages config/models/wakeword and syncs frontend config to backend on connect/startup
-│       ├── AppContextHooks.js           # AppContext hooks (useAppContext, useAppConfigContext, useAppStatusContext)
+│       ├── AppContextHooks.js           # AppContext hooks (useAppConfigContext)
 │       ├── AppProvider.jsx              # AppProvider - Combines AppConfigProvider and AppStatusProvider
 │       ├── AppStatusContext.jsx         # AppStatusContext + useAppStatusContext hook
 │       ├── AppStatusProvider.jsx        # AppStatusProvider - Manages saveStatus (transient, frequent changes)
 │       ├── appConfigEvents.js           # appConfigEvents - Backend event routing + transcript user-id extraction helpers
 │       ├── appConfigPersistence.js      # appConfigPersistence - Config sanitization + changed-config apply helpers
-│       ├── ChatContext.jsx              # ChatContext + useChatContext hook
+│       ├── ChatContext.jsx              # ChatContext constants for ChatProvider wiring
 │       ├── ChatProvider.jsx             # ChatProvider - Sets up chat hooks (useChatStream, useToolRunner)
 │       └── configComparison.ts          # configComparison - Shallow config change detection helpers
 │
