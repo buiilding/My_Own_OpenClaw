@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import ChatBox from '../../frontend/src/renderer/features/chat/components/ChatBox';
 
 const mockInvoke = jest.fn().mockResolvedValue({ success: true });
+const mockSend = jest.fn();
 const mockStopQuery = jest.fn();
 const mockClearMessages = jest.fn();
 const mockSetIsSending = jest.fn();
@@ -18,7 +19,11 @@ const mockUseChatMessageSender = jest.fn(() => ({
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: (...args) => mockInvoke(...args),
+    send: (...args) => mockSend(...args),
     on: () => () => {},
+  },
+  SEND_CHANNELS: {
+    MOVE_CHATBOX_BY: 'move-chatbox-by',
   },
   INVOKE_CHANNELS: {
     SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
@@ -70,6 +75,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWrite
 describe('ChatBox overlay mouse ignore', () => {
   beforeEach(() => {
     mockInvoke.mockClear();
+    mockSend.mockClear();
     mockUseChatMessageSender.mockClear();
     mockSendMessage.mockClear();
     mockStopQuery.mockClear();
@@ -149,6 +155,18 @@ describe('ChatBox overlay mouse ignore', () => {
       ([channel]) => channel === 'hide-chatbox',
     );
     expect(sawHideChatbox).toBe(true);
+  });
+
+  test('dragging pill sends move-chatbox-by deltas', () => {
+    const { container } = render(<ChatBox />);
+    const pill = container.querySelector('.chatbox-pill');
+    expect(pill).toBeTruthy();
+
+    fireEvent.mouseDown(pill, { button: 0, clientX: 10, clientY: 10, screenX: 100, screenY: 100 });
+    fireEvent.mouseMove(window, { clientX: 18, clientY: 20, screenX: 110, screenY: 118 });
+    fireEvent.mouseUp(window);
+
+    expect(mockSend).toHaveBeenCalledWith('move-chatbox-by', { dx: 10, dy: 18 });
   });
 
   test('stop button calls stop-query when a response is active', () => {

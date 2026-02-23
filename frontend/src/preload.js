@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('ipc', {
   send: (channel, data) => {
     const validChannels = [
       'to-backend',
+      'move-chatbox-by',
       'wakeword-audio-chunk',
       'wakeword-enable',
       'wakeword-disable',
