@@ -148,7 +148,7 @@ function escapeXml(value: unknown): string {
 /**
  * Format system state as sequential XML (minimal) for tool output
  */
-export function formatSequentialStateXml(state: SystemState | null): string {
+function formatSequentialStateXml(state: SystemState | null): string {
   if (!state) {
     return `<system_context>
     <os_state>

@@ -1,5 +1,5 @@
 export const DEFAULT_USER_ID = 'default_user';
-export const UNASSIGNED_CONVERSATION_KEY = '__unassigned_conversation__';
+const UNASSIGNED_CONVERSATION_KEY = '__unassigned_conversation__';
 
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.length > 0 ? value : null;
@@ -63,7 +63,7 @@ export function formatTimestamp(timestamp) {
   return parsed.toLocaleString();
 }
 
-export function parseMemoryContent(memory) {
+function parseMemoryContent(memory) {
   if (!memory) {
     return [];
   }

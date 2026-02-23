@@ -33,7 +33,7 @@ export function isComputerUseTool(toolName: string, args: any): boolean {
   return isStandardComputerUseTool || isRunShellCommandWithWait;
 }
 
-export function getWaitSeconds(
+function getWaitSeconds(
   toolName: string,
   args: any,
   defaultWaitSeconds: number
@@ -47,7 +47,7 @@ export function getWaitSeconds(
   return defaultWaitSeconds;
 }
 
-export function extractCaptureFromResult(result: ToolResult): {
+function extractCaptureFromResult(result: ToolResult): {
   screenshot: string | null;
   screenshotContentType: string | null;
   systemState: SystemState | null;
@@ -64,7 +64,7 @@ export function extractCaptureFromResult(result: ToolResult): {
   return { screenshot: null, screenshotContentType: null, systemState: null };
 }
 
-export function applyCaptureToResult(
+function applyCaptureToResult(
   result: ToolResult,
   screenshot: string | null,
   systemState: SystemState | null,
