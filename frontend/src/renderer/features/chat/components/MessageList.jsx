@@ -6,6 +6,17 @@ import MessageTransparencySections from './MessageTransparencySections';
 import { buildMessageClassName } from '../utils/messageListClasses';
 import '../../../styles/ThinkingDisplay.css';
 
+const messageShapePropType = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  text: PropTypes.string.isRequired,
+  sender: PropTypes.oneOf(['user', 'assistant']).isRequired,
+  isComplete: PropTypes.bool,
+  type: PropTypes.string,
+  screenshot: PropTypes.string,
+  screenshotRef: PropTypes.string,
+  screenshotUrl: PropTypes.string,
+});
+
 const MessageItem = memo(function MessageItem({ message }) {
   const messageClass = buildMessageClassName(message);
 
@@ -18,16 +29,7 @@ const MessageItem = memo(function MessageItem({ message }) {
 });
 
 MessageItem.propTypes = {
-  message: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    text: PropTypes.string.isRequired,
-    sender: PropTypes.oneOf(['user', 'assistant']).isRequired,
-    isComplete: PropTypes.bool,
-    type: PropTypes.string,
-    screenshot: PropTypes.string,
-    screenshotRef: PropTypes.string,
-    screenshotUrl: PropTypes.string,
-  }).isRequired,
+  message: messageShapePropType.isRequired,
 };
 
 function MessageList({ messages, thinkingStatus }) {
@@ -55,18 +57,7 @@ function MessageList({ messages, thinkingStatus }) {
 }
 
 MessageList.propTypes = {
-  messages: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      text: PropTypes.string.isRequired,
-      sender: PropTypes.oneOf(['user', 'assistant']).isRequired,
-      isComplete: PropTypes.bool,
-      type: PropTypes.string,
-      screenshot: PropTypes.string,
-      screenshotRef: PropTypes.string,
-      screenshotUrl: PropTypes.string,
-    })
-  ).isRequired,
+  messages: PropTypes.arrayOf(messageShapePropType).isRequired,
   thinkingStatus: PropTypes.string,
 };
 

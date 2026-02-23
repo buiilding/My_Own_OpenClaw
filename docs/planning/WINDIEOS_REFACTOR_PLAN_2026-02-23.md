@@ -584,3 +584,20 @@ read_when:
   - `cd frontend && npm run test:ci` (pass; 79 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 13 Outcome (2026-02-23)
+
+- Message list prop-typing dedupe shipped:
+  - extracted shared `messageShapePropType` in `frontend/src/renderer/features/chat/components/MessageList.jsx`.
+  - reused shared shape for both `MessageItem.propTypes` and `MessageList.propTypes`.
+  - no runtime behavior changes to message rendering or thinking-status flow.
+- jscpd delta after Phase 13 slice:
+  - clones: `222 -> 221`
+  - duplicated lines: `3292 -> 3282`
+  - duplicated tokens: `29060 -> 28963`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/MessageListClasses.test.js tests/frontend/MessageListThinkingDisplay.test.jsx` (pass)
+  - `cd frontend && npm run test:ci` (pass; 79 suites)
+  - `cd frontend && npm run audit:knip` (pass; no findings)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
