@@ -65,26 +65,10 @@ export WINDIE_BROWSER_USE_RUNTIME=browser_use_native
 export WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE=tools.browser.browser_tool
 ```
 
-That's it! WindieOS will connect to an existing CDP-enabled Chrome, or launch Chrome with CDP if Chrome is not running.
-
-If Chrome is already running without CDP, restart Chrome manually with `--remote-debugging-port=9222`.
-
-**Optional:** If you prefer to use an already-running Chrome window, start it with:
-
-**Linux:**
-```bash
-google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.config/google-chrome-cdp" --profile-directory="Default"
-```
-
-**macOS:**
-```bash
-/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
-```
-
-**Windows:**
-```cmd
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222
-```
+That's it! WindieOS connect now targets a dedicated Windie browser instance/profile:
+- If Windie browser is already running, it attaches to that instance.
+- If not, it launches the Windie browser instance automatically.
+- Your default browser process/profile is not modified.
 
 **Terminal 1 - Backend:**
 ```bash
@@ -257,7 +241,7 @@ Connect to my Chrome browser
 
 Agent executes:
 ```json
-{"action": "connect", "mode": "user_chrome"}
+{"action": "connect"}
 ```
 
 **2. Navigate to a website:**
@@ -326,16 +310,18 @@ User: Close the browser
 
 ### "Cannot connect to Chrome"
 
-**Problem:** Chrome not running with CDP
+**Problem:** Windie dedicated browser instance failed to launch/attach
 
 **Fix:**
 ```bash
-# Kill existing Chrome
-pkill chrome  # Linux/Mac
-taskkill /F /IM chrome.exe  # Windows
+# Check Windie CDP port listener
+lsof -i :9333  # Linux/Mac
+netstat -ano | findstr :9333  # Windows
+```
 
-# Start with CDP
-google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/.config/google-chrome-cdp" --profile-directory="Default"
+Then retry:
+```json
+{"action":"connect"}
 ```
 
 ### "ModuleNotFoundError: No module named 'playwright'" / "No module named 'browser_use'"
@@ -366,21 +352,11 @@ brew install --cask google-chrome
 
 **Windows:** Download from https://google.com/chrome
 
-### "Port 9222 already in use"
+### "Port 9333 already in use"
 
-**Fix:** Use a different port:
+**Fix:** Set a different Windie browser CDP port:
 ```bash
-google-chrome --remote-debugging-port=9223
-```
-
-Then tell the agent:
-```
-Connect to Chrome on port 9223
-```
-
-Or set environment variable:
-```bash
-export CHROME_CDP_URL="http://127.0.0.1:9223"
+export WINDIE_BROWSER_CDP_PORT=9334
 ```
 
 ### Extension Badge Shows "OFF"
@@ -394,31 +370,16 @@ export CHROME_CDP_URL="http://127.0.0.1:9223"
 
 ## Advanced Usage
 
-### Using Managed Browser (No Chrome Setup)
+### Windie Dedicated Browser
 
 ```
-Launch a new browser and go to example.com
-```
-
-Agent uses:
-```json
-{"action": "connect", "mode": "managed", "headless": false}
-```
-
-This launches an isolated Chromium instance without affecting your main Chrome.
-
-### Headless Mode
-
-```
-Open a headless browser and check the price of Bitcoin
+Open the browser and go to example.com
 ```
 
 Agent uses:
 ```json
-{"action": "connect", "mode": "managed", "headless": true}
+{"action": "connect"}
 ```
-
-No visible window, but screenshots still work.
 
 ### JavaScript Evaluation
 
@@ -447,8 +408,8 @@ Agent:
 ### Environment Variables
 
 ```bash
-# Chrome CDP URL (default: http://127.0.0.1:9222)
-export CHROME_CDP_URL="http://127.0.0.1:9222"
+# Windie browser CDP port (default: 9333)
+export WINDIE_BROWSER_CDP_PORT=9333
 
 # Use mock LLM for testing
 export WINDIEOS_LLM_CLIENT="mock_browser"

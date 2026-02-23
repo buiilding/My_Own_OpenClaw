@@ -8,6 +8,7 @@ from typing import Any, Literal
 from typing import Mapping
 from weakref import WeakKeyDictionary
 
+from tools.browser.chrome_launcher import DEFAULT_WINDIE_CDP_URL
 from tools.browser.browser_runtime import ControllerRuntimeLike
 from tools.browser.browser_runtime import BrowserRuntimeProvider
 from tools.browser.browser_runtime import get_browser_runtime_provider
@@ -155,37 +156,31 @@ class BrowserUseCompatibilityAdapter:
         if self._runtime.is_connected:
             await self._runtime.close()
 
-        mode = self._value_as_str(args.get("mode")) or "user_chrome"
+        requested_mode = self._value_as_str(args.get("mode"))
+        warnings: list[str] = []
+        if requested_mode and requested_mode.lower() not in {
+            "user_chrome",
+            "windie",
+            "windie_chrome",
+        }:
+            warnings.append(
+                f"Connect mode '{requested_mode}' is ignored; using WindieOS dedicated browser instance."
+            )
+
         try:
-            if mode == "user_chrome":
-                result = await self._runtime.connect_user_chrome(
-                    cdp_url=self._value_as_str(args.get("cdp_url"))
-                    or "http://127.0.0.1:9222",
-                    auto_launch=True,
+            result = await self._runtime.connect_user_chrome(
+                cdp_url=DEFAULT_WINDIE_CDP_URL,
+                auto_launch=True,
+            )
+            if result.get("auto_launched"):
+                message = (
+                    "WindieOS browser connected "
+                    "(dedicated instance was auto-launched)"
                 )
-                if result.get("auto_launched"):
-                    message = (
-                        f"Browser {result['status']} in {result['mode']} mode "
-                        "(Chrome was auto-launched)"
-                    )
-                else:
-                    message = (
-                        f"Browser {result['status']} in {result['mode']} mode "
-                        "(connected to existing Chrome)"
-                    )
-            elif mode == "managed":
-                result = await self._runtime.connect_managed(
-                    headless=bool(args.get("headless", False)),
-                    executable_path=self._value_as_str(args.get("executable_path")),
-                )
-                message = f"Browser {result['status']} in {result['mode']} mode"
             else:
-                return AdapterActionResult(
-                    success=False,
-                    action="connect",
-                    decision="compat",
-                    error=f"Unknown browser mode: {mode}",
-                    error_code="INVALID_ARGUMENT",
+                message = (
+                    "WindieOS browser connected "
+                    "(attached to existing WindieOS browser instance)"
                 )
         except ConnectionError as exc:
             return AdapterActionResult(
@@ -215,7 +210,9 @@ class BrowserUseCompatibilityAdapter:
                 "title": result.get("title", ""),
                 "auto_launched": result.get("auto_launched", False),
                 "message": message,
+                "scope": "windieos_dedicated",
             },
+            warnings=warnings,
         )
 
     async def status(self) -> AdapterActionResult:
@@ -229,10 +226,9 @@ class BrowserUseCompatibilityAdapter:
             data={
                 "action": "profiles",
                 "profiles": [
-                    {"name": "user_chrome", "driver": "cdp"},
-                    {"name": "managed", "driver": "playwright"},
+                    {"name": "windie_chrome", "driver": "cdp", "scope": "windieos_dedicated"},
                 ],
-                "default_profile": "user_chrome",
+                "default_profile": "windie_chrome",
             },
         )
 

@@ -415,7 +415,7 @@ def get_browser_runtime_provider(
 
 
 NativeActionHandler = Callable[..., Awaitable[Any] | Any]
-DEFAULT_CDP_URL = "http://127.0.0.1:9222"
+DEFAULT_CDP_URL = "http://127.0.0.1:9333"
 DEFAULT_FILESYSTEM_DIR = Path.home() / ".config" / "desktop-assistant" / "browser-use"
 DEFAULT_EXTRACTION_MODEL_ENV = "WINDIE_BROWSER_USE_EXTRACTION_MODEL"
 DEFAULT_EXTRACTION_PROVIDER_ENV = "WINDIE_BROWSER_USE_EXTRACTION_PROVIDER"

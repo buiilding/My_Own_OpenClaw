@@ -2,9 +2,9 @@
 Chrome launcher with auto-detection and CDP support.
 
 Provides automatic Chrome detection, launch, and connection:
-- Detects Chrome running with CDP
-- Auto-launches Chrome if not running
-- Transparent fallback to managed browser
+- Uses a WindieOS-dedicated Chrome profile
+- Auto-launches/attaches to a WindieOS CDP instance
+- Leaves the user's default Chrome instance untouched
 """
 
 import asyncio
@@ -23,10 +23,32 @@ from tools.browser.chrome_detection import find_chrome_executable
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CDP_URL = "http://127.0.0.1:9222"
-DEFAULT_CDP_PORT = 9222
+DEFAULT_CDP_PORT = 9333
 CHROME_STARTUP_TIMEOUT = 10  # seconds
 CHROME_CHECK_INTERVAL = 0.5  # seconds
+
+
+def _resolve_default_cdp_port() -> int:
+    raw = os.getenv("WINDIE_BROWSER_CDP_PORT", "").strip()
+    if not raw:
+        return DEFAULT_CDP_PORT
+    try:
+        parsed = int(raw)
+        if parsed <= 0:
+            raise ValueError
+        return parsed
+    except ValueError:
+        logger.warning(
+            "Invalid WINDIE_BROWSER_CDP_PORT=%r; falling back to %d",
+            raw,
+            DEFAULT_CDP_PORT,
+        )
+        return DEFAULT_CDP_PORT
+
+
+DEFAULT_WINDIE_CDP_PORT = _resolve_default_cdp_port()
+DEFAULT_WINDIE_CDP_URL = f"http://127.0.0.1:{DEFAULT_WINDIE_CDP_PORT}"
+DEFAULT_CDP_URL = DEFAULT_WINDIE_CDP_URL
 
 
 class ChromeLauncherError(Exception):
@@ -44,7 +66,7 @@ class ChromeLaunchTimeoutError(ChromeLauncherError):
     pass
 
 
-async def is_cdp_available(cdp_url: str = DEFAULT_CDP_URL, timeout: float = 2.0) -> bool:
+async def is_cdp_available(cdp_url: str = DEFAULT_WINDIE_CDP_URL, timeout: float = 2.0) -> bool:
     """
     Check if Chrome is running with CDP available.
     
@@ -131,23 +153,24 @@ def is_chrome_running_with_cdp(port: int = DEFAULT_CDP_PORT) -> bool:
 
 def get_chrome_user_data_dir() -> Path:
     """
-    Get dedicated Chrome user data directory for CDP launches.
+    Get WindieOS-owned Chrome profile directory.
 
-    This avoids launching CDP against the default profile directory.
+    This profile is separate from the user's default Chrome profile so
+    credentials and browser state are isolated to WindieOS automation.
     """
     system = platform.system()
     home = Path.home()
 
     if system == "Windows":
-        local_app_data = os.environ.get("LOCALAPPDATA", home / "AppData" / "Local")
-        return Path(local_app_data) / "Google" / "Chrome" / "User Data-cdp"
+        local_app_data = os.environ.get("LOCALAPPDATA", str(home / "AppData" / "Local"))
+        return Path(local_app_data) / "WindieOS" / "BrowserProfile"
     if system == "Darwin":
-        return home / "Library" / "Application Support" / "Google" / "Chrome-cdp"
-    return home / ".config" / "google-chrome-cdp"
+        return home / "Library" / "Application Support" / "WindieOS" / "BrowserProfile"
+    return home / ".config" / "windieos" / "browser-profile"
 
 
 async def launch_chrome_with_cdp(
-    cdp_port: int = DEFAULT_CDP_PORT,
+    cdp_port: int = DEFAULT_WINDIE_CDP_PORT,
     headless: bool = False,
     executable_path: Optional[str] = None,
     extra_args: Optional[List[str]] = None,
@@ -177,7 +200,7 @@ async def launch_chrome_with_cdp(
             )
         executable_path = exe.path
     
-    logger.info(f"Launching Chrome with CDP on port {cdp_port}")
+    logger.info("Launching WindieOS browser instance with CDP on port %s", cdp_port)
 
     user_data_dir = get_chrome_user_data_dir()
     user_data_dir.mkdir(parents=True, exist_ok=True)
@@ -276,24 +299,22 @@ async def kill_existing_chrome(graceful: bool = True) -> bool:
 
 
 async def ensure_chrome_with_cdp(
-    cdp_port: int = DEFAULT_CDP_PORT,
+    cdp_port: int = DEFAULT_WINDIE_CDP_PORT,
     auto_launch: bool = True,
     restart_if_needed: bool = False,
     headless: bool = False,
 ) -> str:
     """
-    Ensure Chrome is running with CDP available.
-    
-    This is the main entry point - it handles all cases:
-    1. CDP already available → return URL
-    2. Chrome running without CDP → restart with CDP (if allowed)
-    3. Chrome not running → launch with CDP (if allowed)
-    4. None of above → raise error
+    Ensure the WindieOS-dedicated Chrome instance is running with CDP.
+
+    This path intentionally does not inspect/kill the user's default Chrome
+    process. If the WindieOS CDP endpoint is unavailable, it launches a
+    separate Chrome instance with WindieOS profile data.
     
     Args:
         cdp_port: Port for CDP
         auto_launch: Launch Chrome if not running
-        restart_if_needed: Restart Chrome if running without CDP
+        restart_if_needed: Deprecated compatibility parameter (ignored)
         headless: Launch headless if auto-launching
     
     Returns:
@@ -304,48 +325,31 @@ async def ensure_chrome_with_cdp(
     """
     cdp_url = f"http://127.0.0.1:{cdp_port}"
     
-    # Case 1: CDP already available
+    # Case 1: WindieOS CDP endpoint already available.
     if await is_cdp_available(cdp_url):
-        logger.info(f"Chrome with CDP already available at {cdp_url}")
+        logger.info("WindieOS browser with CDP already available at %s", cdp_url)
         return cdp_url
-    
-    # Check if Chrome is running
-    chrome_pid = find_chrome_process()
-    
-    if chrome_pid:
-        # Case 2: Chrome running but without CDP on our port
-        logger.info(f"Chrome running (PID {chrome_pid}) but CDP not available")
-        
-        if restart_if_needed:
-            logger.info("Restarting Chrome with CDP enabled")
-            await kill_existing_chrome(graceful=True)
-            await asyncio.sleep(1)  # Wait for shutdown
-            
-            _, cdp_url = await launch_chrome_with_cdp(
-                cdp_port=cdp_port,
-                headless=headless,
-            )
-            return cdp_url
-        else:
-            raise ChromeLauncherError(
-                "Chrome is running but not with --remote-debugging-port. "
-                "Please restart Chrome with: google-chrome --remote-debugging-port=9222 "
-                "Or enable restart_if_needed to automatically restart."
-            )
-    
-    # Case 3: Chrome not running
+
+    if restart_if_needed:
+        logger.warning(
+            "restart_if_needed is ignored for WindieOS dedicated browser connect."
+        )
+
+    # Case 2: WindieOS CDP endpoint unavailable -> launch dedicated instance.
     if auto_launch:
-        logger.info("Chrome not running, launching with CDP")
+        logger.info(
+            "WindieOS browser CDP endpoint unavailable; launching dedicated instance"
+        )
         _, cdp_url = await launch_chrome_with_cdp(
             cdp_port=cdp_port,
             headless=headless,
         )
         return cdp_url
-    
-    # Case 4: Cannot proceed
+
+    # Case 3: Cannot proceed
     raise ChromeLauncherError(
-        "Chrome not running and auto_launch disabled. "
-        "Please start Chrome with: google-chrome --remote-debugging-port=9222"
+        "WindieOS browser is not running and auto_launch is disabled. "
+        f"Start a WindieOS browser instance with --remote-debugging-port={cdp_port}."
     )
 
 
@@ -362,7 +366,7 @@ class ChromeLauncher:
     
     def __init__(
         self,
-        cdp_port: int = DEFAULT_CDP_PORT,
+        cdp_port: int = DEFAULT_WINDIE_CDP_PORT,
         auto_launch: bool = True,
         headless: bool = False,
     ):
