@@ -45,9 +45,10 @@ class SessionManager(ConfigSubscriber):
         self._user_locks: Dict[str, asyncio.Lock] = {}
         # Lock for managing user_locks dictionary itself
         self._locks_lock = asyncio.Lock()
-        # Active query task metadata by user_id: (task, turn_ref, conversation_ref)
+        # Active query task metadata by user_id:
+        # task -> (turn_ref, conversation_ref)
         self._active_query_tasks: Dict[
-            str, tuple[asyncio.Task[Any], str, Optional[str]]
+            str, Dict[asyncio.Task[Any], tuple[str, Optional[str]]]
         ] = {}
 
     def register_active_query_task(
@@ -59,7 +60,8 @@ class SessionManager(ConfigSubscriber):
         conversation_ref: Optional[str] = None,
     ) -> None:
         """Track the currently running query task for a user."""
-        self._active_query_tasks[user_id] = (task, turn_ref, conversation_ref)
+        user_tasks = self._active_query_tasks.setdefault(user_id, {})
+        user_tasks[task] = (turn_ref, conversation_ref)
 
     def clear_active_query_task(
         self,
@@ -71,15 +73,17 @@ class SessionManager(ConfigSubscriber):
 
         If ``task`` is provided, clear only when it matches the tracked task.
         """
-        active_entry = self._active_query_tasks.get(user_id)
-        if active_entry is None:
+        user_tasks = self._active_query_tasks.get(user_id)
+        if not user_tasks:
             return
 
-        active_task, _, _ = active_entry
-        if task is not None and active_task is not task:
+        if task is None:
+            self._active_query_tasks.pop(user_id, None)
             return
 
-        self._active_query_tasks.pop(user_id, None)
+        user_tasks.pop(task, None)
+        if not user_tasks:
+            self._active_query_tasks.pop(user_id, None)
 
     def cancel_active_query_task(
         self,
@@ -92,17 +96,25 @@ class SessionManager(ConfigSubscriber):
             Tuple of ``(turn_ref, conversation_ref)`` when a live task was canceled;
             otherwise ``None``.
         """
-        active_entry = self._active_query_tasks.get(user_id)
-        if active_entry is None:
+        user_tasks = self._active_query_tasks.get(user_id)
+        if not user_tasks:
             return None
 
-        active_task, turn_ref, conversation_ref = active_entry
-        if active_task.done():
+        cancelled_entries: list[tuple[str, Optional[str]]] = []
+        for active_task, (turn_ref, conversation_ref) in list(user_tasks.items()):
+            if active_task.done():
+                user_tasks.pop(active_task, None)
+                continue
+            active_task.cancel()
+            user_tasks.pop(active_task, None)
+            cancelled_entries.append((turn_ref, conversation_ref))
+
+        if not user_tasks:
             self._active_query_tasks.pop(user_id, None)
-            return None
 
-        active_task.cancel()
-        return turn_ref, conversation_ref
+        if not cancelled_entries:
+            return None
+        return cancelled_entries[-1]
 
     async def _get_user_lock(self, user_id: str) -> asyncio.Lock:
         """

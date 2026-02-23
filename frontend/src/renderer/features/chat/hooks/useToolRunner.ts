@@ -45,6 +45,21 @@ function shouldIgnoreToolEventForTurn(turnRef: string | null | undefined): boole
   return TERMINAL_STREAM_PHASES.has(streamTracking.phase);
 }
 
+function resolveToolRequestIdForCancellation(
+  payload: ToolCallEvent['payload'] | undefined,
+): string | null {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return null;
+  }
+  if (typeof payload.request_id === 'string' && payload.request_id.length > 0) {
+    return payload.request_id;
+  }
+  if (typeof payload.correlation_id === 'string' && payload.correlation_id.length > 0) {
+    return payload.correlation_id;
+  }
+  return null;
+}
+
 /**
  * Custom hook for managing tool execution.
  * Connects UI to ToolExecutionService and handles tool-related events.
@@ -190,6 +205,18 @@ export function useToolRunner(enabled = true) {
 
   const handleToolBundle = useCallback((event: ToolBundleEvent) => {
     if (shouldIgnoreToolEventForTurn(event.turn_ref)) {
+      const bundleId = event.payload?.bundle_id;
+      if (typeof bundleId === 'string' && bundleId.length > 0) {
+        IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+          type: 'tool-bundle-result',
+          payload: {
+            bundle_id: bundleId,
+            status: 'failure',
+            step_results: [],
+            error: 'frontend_stale_turn_cancelled',
+          },
+        });
+      }
       return;
     }
     const bundleId = event.payload?.bundle_id || `bundle-${crypto.randomUUID()}`;
@@ -211,6 +238,18 @@ export function useToolRunner(enabled = true) {
 
   const handleToolCall = useCallback((event: ToolCallEvent) => {
     if (shouldIgnoreToolEventForTurn(event.turn_ref)) {
+      const requestId = resolveToolRequestIdForCancellation(event.payload);
+      if (requestId) {
+        IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+          type: 'tool-result',
+          payload: {
+            request_id: requestId,
+            success: false,
+            data: null,
+            error: 'frontend_stale_turn_cancelled',
+          },
+        });
+      }
       return;
     }
     const toolName = event.payload?.tool_name;

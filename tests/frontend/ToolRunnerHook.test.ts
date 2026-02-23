@@ -169,6 +169,18 @@ describe('useToolRunner', () => {
     });
 
     expect(mockExecuteTool).not.toHaveBeenCalled();
+    expect(IpcBridge.send).toHaveBeenCalledWith(
+      SEND_CHANNELS.TO_BACKEND,
+      {
+        type: 'tool-result',
+        payload: {
+          request_id: 'corr-1',
+          success: false,
+          data: null,
+          error: 'frontend_stale_turn_cancelled',
+        },
+      },
+    );
   });
 
   test('dispatches tool-bundle events with mapped tools', async () => {
@@ -232,6 +244,49 @@ describe('useToolRunner', () => {
     });
 
     expect(mockExecuteToolBundle).not.toHaveBeenCalled();
+    expect(IpcBridge.send).toHaveBeenCalledWith(
+      SEND_CHANNELS.TO_BACKEND,
+      {
+        type: 'tool-bundle-result',
+        payload: {
+          bundle_id: 'bundle-abc',
+          status: 'failure',
+          step_results: [],
+          error: 'frontend_stale_turn_cancelled',
+        },
+      },
+    );
+  });
+
+  test('sends stale-turn cancellation when active turn was reset by new chat', async () => {
+    renderHook(() => useToolRunner(true));
+
+    await act(async () => {
+      backendHandler?.({
+        type: 'tool-call',
+        id: 'event-reset',
+        turn_ref: 'turn-old',
+        payload: {
+          tool_name: 'read_file',
+          parameters: { file_path: '/tmp/a' },
+          request_id: 'req-old',
+        },
+      });
+    });
+
+    expect(mockExecuteTool).not.toHaveBeenCalled();
+    expect(IpcBridge.send).toHaveBeenCalledWith(
+      SEND_CHANNELS.TO_BACKEND,
+      {
+        type: 'tool-result',
+        payload: {
+          request_id: 'req-old',
+          success: false,
+          data: null,
+          error: 'frontend_stale_turn_cancelled',
+        },
+      },
+    );
   });
 
   test('uses generated bundle id when bundle_id is missing', async () => {

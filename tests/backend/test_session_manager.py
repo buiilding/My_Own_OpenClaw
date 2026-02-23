@@ -203,3 +203,38 @@ async def test_on_config_changed_forwards_new_config() -> None:
     await manager.on_config_changed(old_cfg, new_cfg)
 
     manager.update_all_sessions_config.assert_called_once_with(new_cfg)
+
+
+@pytest.mark.asyncio
+async def test_cancel_active_query_task_cancels_all_registered_tasks() -> None:
+    manager = SessionManager(AppConfig(), lambda user_id, config: DummySession())
+
+    async def _sleep_forever() -> None:
+        await asyncio.sleep(3600)
+
+    first_task = asyncio.create_task(_sleep_forever())
+    second_task = asyncio.create_task(_sleep_forever())
+
+    try:
+        manager.register_active_query_task(
+            "user-1",
+            first_task,
+            turn_ref="turn-1",
+            conversation_ref="conv-1",
+        )
+        manager.register_active_query_task(
+            "user-1",
+            second_task,
+            turn_ref="turn-2",
+            conversation_ref="conv-2",
+        )
+
+        cancelled = manager.cancel_active_query_task("user-1")
+        await asyncio.sleep(0)
+
+        assert cancelled == ("turn-2", "conv-2")
+        assert first_task.cancelled() is True
+        assert second_task.cancelled() is True
+        assert "user-1" not in manager._active_query_tasks
+    finally:
+        await asyncio.gather(first_task, second_task, return_exceptions=True)
