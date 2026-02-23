@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- feat(chatbox-pill): port the `windieos-ui-concept` pill layout into WindieOS chatbox (left settings, center input, right send) and remove overlay pill action buttons for new-chat/stop/mic/dashboard parity
 - docs(setup): expand `docs/PLATFORM_SETUP_BACKEND_FRONTEND.md` with RapidOCR 15s timeout diagnostics, CUDA/onnxruntime-gpu reinstall flow, and `WINDIE_PYTHON_PATH` usage for Electron sidecar Python 3.11
 - fix(frontend-electron): make `npm run electron` auto-fallback to `xvfb-run -a` when Linux has no `$DISPLAY`, reducing startup failures in headless/container dev environments
 - docs(setup): add `docs/PLATFORM_SETUP_BACKEND_FRONTEND.md` with Windows/Ubuntu/macOS instructions for Python 3.11 backend + sidecar environments, CUDA-aware torch/onnxruntime-gpu validation, and frontend npm dev/electron startup flow

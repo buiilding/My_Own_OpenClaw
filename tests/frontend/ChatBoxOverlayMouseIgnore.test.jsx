@@ -5,13 +5,6 @@ import ChatBox from '../../frontend/src/renderer/features/chat/components/ChatBo
 
 const mockInvoke = jest.fn().mockResolvedValue({ success: true });
 const mockSend = jest.fn();
-const mockStopQuery = jest.fn();
-const mockClearMessages = jest.fn();
-const mockSetIsSending = jest.fn();
-const mockSetThinkingStatus = jest.fn();
-const mockSetTokenCounts = jest.fn();
-const mockUpdateStreamTracking = jest.fn();
-const mockSetActiveConversationRef = jest.fn();
 const mockSendMessage = jest.fn();
 const mockUseChatMessageSender = jest.fn(() => ({
   sendMessage: mockSendMessage,
@@ -30,7 +23,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     SET_OVERLAY_IGNORE_MOUSE: 'set-overlay-ignore-mouse',
     SET_CHATBOX_SIZE: 'set-chatbox-size',
     SHOW_MAIN_WINDOW: 'show-main-window',
-    HIDE_CHATBOX: 'hide-chatbox',
   },
   ON_CHANNELS: {
     CHATBOX_FOCUS: 'chatbox-focus',
@@ -42,11 +34,6 @@ const mockChatState = {
   isSending: false,
   thinkingStatus: null,
   streamTracking: { phase: 'idle' },
-  clearMessages: (...args) => mockClearMessages(...args),
-  setIsSending: (...args) => mockSetIsSending(...args),
-  setThinkingStatus: (...args) => mockSetThinkingStatus(...args),
-  setTokenCounts: (...args) => mockSetTokenCounts(...args),
-  updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
 };
 
 jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
@@ -63,29 +50,12 @@ jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender'
   useChatMessageSender: (...args) => mockUseChatMessageSender(...args),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
-  ApiClient: {
-    stopQuery: (...args) => mockStopQuery(...args),
-  },
-}));
-
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
-}));
-
 describe('ChatBox overlay mouse ignore', () => {
   beforeEach(() => {
     mockInvoke.mockClear();
     mockSend.mockClear();
     mockUseChatMessageSender.mockClear();
     mockSendMessage.mockClear();
-    mockStopQuery.mockClear();
-    mockClearMessages.mockClear();
-    mockSetIsSending.mockClear();
-    mockSetThinkingStatus.mockClear();
-    mockSetTokenCounts.mockClear();
-    mockUpdateStreamTracking.mockClear();
-    mockSetActiveConversationRef.mockClear();
     mockChatState.streamTracking.phase = 'idle';
   });
 
@@ -148,17 +118,6 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(sawShowMainWindow).toBe(true);
   });
 
-  test('close button invokes hide-chatbox', () => {
-    render(<ChatBox />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'Close chatbox' }));
-
-    const sawHideChatbox = mockInvoke.mock.calls.some(
-      ([channel]) => channel === 'hide-chatbox',
-    );
-    expect(sawHideChatbox).toBe(true);
-  });
-
   test('dragging pill sends absolute move-chatbox-to coordinates', () => {
     Object.defineProperty(window, 'screenX', {
       value: 90,
@@ -195,7 +154,7 @@ describe('ChatBox overlay mouse ignore', () => {
     });
 
     render(<ChatBox />);
-    const input = screen.getByPlaceholderText('Type a command…');
+    const input = screen.getByPlaceholderText('Ask me anything...');
 
     fireEvent.mouseDown(input, { button: 0, clientX: 10, clientY: 10, screenX: 100, screenY: 100 });
     fireEvent.mouseMove(window, { clientX: 34, clientY: 30, screenX: 140, screenY: 130 });
@@ -204,36 +163,17 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockSend).not.toHaveBeenCalledWith('move-chatbox-to', expect.anything());
   });
 
-  test('stop button calls stop-query when a response is active', () => {
-    mockChatState.streamTracking.phase = 'streaming';
+  test('send button dispatches message and clears input', async () => {
     render(<ChatBox />);
+    const input = screen.getByPlaceholderText('Ask me anything...');
+    fireEvent.change(input, { target: { value: 'hello world' } });
+    const sendButton = screen.getByRole('button', { name: 'Send message' });
 
-    const stopButton = screen.getByRole('button', { name: 'Stop response' });
-    expect(stopButton).toBeEnabled();
+    await act(async () => {
+      fireEvent.click(sendButton);
+    });
 
-    fireEvent.click(stopButton);
-    expect(mockStopQuery).toHaveBeenCalledTimes(1);
-    expect(mockSetIsSending).toHaveBeenCalledWith(false);
-    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
-    expect(mockUpdateStreamTracking).toHaveBeenCalledTimes(1);
-  });
-
-  test('stop button remains disabled while idle', () => {
-    mockChatState.streamTracking.phase = 'idle';
-    render(<ChatBox />);
-
-    expect(screen.getByRole('button', { name: 'Stop response' })).toBeDisabled();
-  });
-
-  test('new chat button clears local conversation state', () => {
-    render(<ChatBox />);
-
-    fireEvent.click(screen.getByRole('button', { name: 'New chat' }));
-
-    expect(mockClearMessages).toHaveBeenCalledTimes(1);
-    expect(mockSetIsSending).toHaveBeenCalledWith(false);
-    expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
-    expect(mockSetTokenCounts).toHaveBeenCalledWith(null);
-    expect(mockSetActiveConversationRef).toHaveBeenCalledWith(expect.stringMatching(/^conv_/));
+    expect(mockSendMessage).toHaveBeenCalledWith('hello world');
+    expect(input).toHaveValue('');
   });
 });
