@@ -28,15 +28,12 @@
     "test:shell": "node src/main/test_shell.cjs"
   },
   "dependencies": {
-    "clipboardy": "^3.0.0",
     "dompurify": "^3.3.1",
     "marked": "^17.0.3",
     "node-window-manager": "^2.2.4",
-    "pngjs": "^7.0.0",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "systeminformation": "^5.31.1",
     "uuid": "^8.3.2",
     "ws": "^8.19.0"
   },
@@ -53,7 +50,6 @@
     "@typescript-eslint/parser": "^8.56.1",
     "@vitejs/plugin-react": "^4.0.3",
     "babel-plugin-transform-import-meta": "^2.2.1",
-    "baseline-browser-mapping": "^2.10.0",
     "electron": "^27.1.2",
     "electron-builder": "^24.13.3",
     "eslint": "^8.45.0",
