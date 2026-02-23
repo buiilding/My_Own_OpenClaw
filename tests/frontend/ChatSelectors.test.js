@@ -1,7 +1,6 @@
 import {
   selectChatBoxState,
   selectChatInterfaceState,
-  selectStreamTracking,
 } from '../../frontend/src/renderer/features/chat/utils/chatSelectors';
 
 describe('chatSelectors', () => {
@@ -78,9 +77,4 @@ describe('chatSelectors', () => {
     });
   });
 
-  test('returns stream tracking reference directly', () => {
-    const streamTracking = { phase: 'streaming', chunkCount: 2 };
-    const state = { streamTracking };
-    expect(selectStreamTracking(state)).toBe(streamTracking);
-  });
 });

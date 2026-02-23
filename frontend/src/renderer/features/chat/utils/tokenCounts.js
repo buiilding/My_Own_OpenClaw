@@ -9,11 +9,11 @@ const CACHE_STATUS_FIELD = {
   label: 'Cache',
 };
 
-export function formatTokenCount(value, fallback = '0') {
+function formatTokenCount(value, fallback = '0') {
   return typeof value === 'number' ? value.toLocaleString() : fallback;
 }
 
-export function getActiveConversationTokenCount(tokenCounts) {
+function getActiveConversationTokenCount(tokenCounts) {
   const conversationTokens = tokenCounts?.conversation_tokens;
   if (typeof conversationTokens === 'number') {
     return formatTokenCount(conversationTokens);
