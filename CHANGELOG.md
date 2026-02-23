@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 9 execution slice for dead chatbox-presentation module removal and logger helper export internalization
 - refactor(frontend-chat-utils): internalize test-only chat helper exports (message-send policy helpers, stream selector helper, message-input normalization helper, token-count formatting helpers) and update tests to validate behavior through public APIs
 - docs(planning): add `docs/planning/WINDIEOS_VC_PRODUCT_VISION.md` as a non-technical investor/stakeholder brief describing the product thesis (agent messaging/control platform, local primary agent + remote VM agents, mobile as control/messaging client)
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 8 execution slice for chat helper export internalization and public-behavior test updates
