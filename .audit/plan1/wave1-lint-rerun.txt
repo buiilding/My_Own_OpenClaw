@@ -1,0 +1,119 @@
+
+> desktop-assistant-frontend@0.6.1 lint
+> eslint . --ext js,jsx,cjs,ts,tsx --report-unused-disable-directives --max-warnings 0
+
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/app/providers/configComparison.ts
+  2:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  3:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/features/chat/hooks/useToolRunner.ts
+  197:32  warning  The ref value 'trackedExecutionTurnsRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'trackedExecutionTurnsRef.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/features/chat/hooks/useTranscription.ts
+   55:6  warning  React Hook useCallback has a missing dependency: 'setInputValue'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   70:6  warning  React Hook useCallback has a missing dependency: 'setInputValue'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  102:6  warning  React Hook useCallback has a missing dependency: 'setInputValue'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/features/chat/stores/chatStore.ts
+  30:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  32:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/features/chat/utils/chatStreamEventUtils.ts
+  40:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts
+  16:23  error  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+  17:32  error  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+  18:3   error  'setSaveStatus' is assigned a value but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  19:3   error  'configBeforeSave' is assigned a value but never used. Allowed unused args must match /^_/u   @typescript-eslint/no-unused-vars
+  19:21  error  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+  20:3   error  'saveTimeoutId' is assigned a value but never used. Allowed unused args must match /^_/u      @typescript-eslint/no-unused-vars
+  20:18  error  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+  21:3   error  'lastSaveTimestamp' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  21:22  error  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+  23:49  error  Unexpected any. Specify a different type                                                      @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/features/voice/hooks/useVoiceMode.ts
+  106:15  error  Unexpected lexical declaration in case block  no-case-declarations
+  166:22  error  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  195:67  error  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  237:19  error  Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts
+   78:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  116:67  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  157:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  208:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  251:82  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/infrastructure/api/client.ts
+  85:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/infrastructure/audio/PlayerService.ts
+   31:67  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  141:16  error  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  146:16  error  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/infrastructure/ipc/bridge.ts
+   13:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   14:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   14:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   15:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   16:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   72:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   83:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   83:63  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/infrastructure/services/MessageFormatter.ts
+   31:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   32:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   45:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  210:10  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/infrastructure/services/SystemCapture.ts
+   11:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  144:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/infrastructure/services/ToolExecutionBundleRunner.ts
+  78:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/infrastructure/services/ToolExecutionCapture.ts
+   25:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   38:9   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:9   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  144:9   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  166:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  177:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/infrastructure/services/ToolExecutionInvoker.ts
+  12:9  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts
+  18:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/infrastructure/services/ToolExecutionService.ts
+   78:11  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  159:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  215:12  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  315:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  415:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/infrastructure/services/ToolExecutionTypes.ts
+  37:9   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  89:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/infrastructure/transcript/sessionInfoStorage.ts
+  24:12  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  36:12  error  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/types/schema.ts
+  1:1  error  Unused eslint-disable directive (no problems were reported)
+
+✖ 69 problems (65 errors, 4 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

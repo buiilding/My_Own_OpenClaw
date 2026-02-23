@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- chore(tooling-audit): add Plan 1 audit artifacts under `.audit/plan1`, modernize frontend lint coverage to `js/jsx/cjs/ts/tsx` with TS-aware ESLint parser setup, add `lint:audit` + `audit:jscpd` + `audit:knip` scripts, and refresh safe frontend tool/runtime dependency ranges with validated backend/sidecar/frontend/docs gates
 - feat(chatbox-pill): port the `windieos-ui-concept` pill layout into WindieOS chatbox (left settings, center input, right send) and remove overlay pill action buttons for new-chat/stop/mic/dashboard parity
 - fix(chatbox-pill): align WindieOS chat pill visual tokens with `windieos-ui-concept` (gear icon, flatter dark shell, subtle border/shadow, and gray circular send button) for closer parity
 - fix(chatbox-pill): prevent overlay pill auto-disappearing by removing chatbox-size resize feedback (`calc(100vw - 24px)` shrink loop) and restoring stable width sizing

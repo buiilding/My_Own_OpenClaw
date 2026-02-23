@@ -1,0 +1,89 @@
+
+> desktop-assistant-frontend@0.6.1 audit:knip
+> knip --directory . --include files,dependencies,unlisted,binaries,exports,types --no-progress
+
+Unused files (5)
+.prettierrc.cjs                                                      
+src/landing/main.jsx                                                 
+src/preload.js                                                       
+src/renderer/features/dashboard/components/sections/MemorySection.jsx
+src/types/schema.ts                                                  
+Unused dependencies (3)
+clipboardy         package.json:31:6
+pngjs              package.json:35:6
+systeminformation  package.json:39:6
+Unused devDependencies (5)
+@testing-library/react        package.json:49:6
+baseline-browser-mapping      package.json:56:6
+eslint-plugin-deprecation     package.json:60:6
+eslint-plugin-react-compiler  package.json:62:6
+json-schema-to-typescript     package.json:68:6
+Unused exports (44)
+default                                 variable  src/landing/LandingPage.jsx:24:16                                 
+DEFAULT_BACKEND_HOST                              src/main/backend_endpoints.cjs:101:3                              
+DEFAULT_BACKEND_PORT                              src/main/backend_endpoints.cjs:102:3                              
+sendMessageToBackend                              src/main/ipc.cjs:718:3                                            
+escapeXml                                         src/main/query_payload_builder.cjs:225:3                          
+formatMemorySection                               src/main/query_payload_builder.cjs:226:3                          
+appendMemorySections                              src/main/query_payload_builder.cjs:227:3                          
+formatInitialStateXml                             src/main/query_payload_builder.cjs:228:3                          
+formatSequentialStateXml                          src/main/query_payload_builder.cjs:229:3                          
+extractQueryRuntimeSystemState                    src/main/query_payload_builder.cjs:230:3                          
+formatFallbackStateXml                            src/main/query_payload_builder.cjs:231:3                          
+startWakewordService                              src/main/wakeword_bridge.cjs:372:3                                
+stopWakewordService                               src/main/wakeword_bridge.cjs:373:3                                
+useAppStatusContext                               src/renderer/app/providers/AppContextHooks.js:4:31                
+useAppContext                                     src/renderer/app/providers/AppContextHooks.js:6:14                
+useChatContext                          function  src/renderer/app/providers/ChatContext.jsx:7:17                   
+defaultReturnToChatboxPolicyForSurface  function  src/renderer/features/chat/policies/messageSendUiPolicy.ts:16:17  
+resolveReturnToChatboxOnSend            function  src/renderer/features/chat/policies/messageSendUiPolicy.ts:25:17  
+getLatestAssistantMessage               function  src/renderer/features/chat/utils/chatBoxPresentation.js:1:17      
+trimPreview                             function  src/renderer/features/chat/utils/chatBoxPresentation.js:11:17     
+getChatBoxStatusText                    function  src/renderer/features/chat/utils/chatBoxPresentation.js:21:17     
+getInteractionModeLabel                 function  src/renderer/features/chat/utils/chatBoxPresentation.js:31:17     
+selectStreamTracking                    function  src/renderer/features/chat/utils/chatSelectors.js:19:17           
+normalizeMessageForSend                 function  src/renderer/features/chat/utils/messageInput.js:1:17             
+formatTokenCount                        function  src/renderer/features/chat/utils/tokenCounts.js:12:17             
+getActiveConversationTokenCount         function  src/renderer/features/chat/utils/tokenCounts.js:16:17             
+UNASSIGNED_CONVERSATION_KEY                       src/renderer/features/dashboard/utils/episodicMemoryUtils.js:2:14 
+parseMemoryContent                      function  src/renderer/features/dashboard/utils/episodicMemoryUtils.js:66:17
+getBackendHttpUrl                       function  src/renderer/infrastructure/services/ArtifactUploader.ts:52:17    
+formatSequentialStateXml                function  src/renderer/infrastructure/services/MessageFormatter.ts:151:17   
+getWaitSeconds                          function  src/renderer/infrastructure/services/ToolExecutionCapture.ts:36:17
+extractCaptureFromResult                function  src/renderer/infrastructure/services/ToolExecutionCapture.ts:50:17
+applyCaptureToResult                    function  src/renderer/infrastructure/services/ToolExecutionCapture.ts:67:17
+shortCorrelationId                      function  src/renderer/infrastructure/services/ToolExecutionLogger.ts:25:17 
+ToolExecutionOptions                              src/renderer/infrastructure/services/ToolExecutionService.ts:50:3 
+ToolExecutionCallbacks                            src/renderer/infrastructure/services/ToolExecutionService.ts:53:3 
+TRANSCRIPT_SESSION_STORAGE_KEY                    src/renderer/infrastructure/transcript/sessionInfoStorage.ts:3:14 
+isFrontendConfigOnly                    function  src/renderer/utils/configFilter.js:45:17                          
+DEFAULT_FRONTEND_CONFIG                           src/renderer/utils/configStorage.js:13:14                         
+hasStoredConfig                         function  src/renderer/utils/configStorage.js:62:17                         
+getConfigVersion                        function  src/renderer/utils/configStorage.js:101:17                        
+clearConfigStorage                      function  src/renderer/utils/configStorage.js:123:17                        
+DISPLAY_STORAGE_KEY                               src/renderer/utils/displaySelection.ts:1:14                       
+DISPLAY_BOUNDS_STORAGE_KEY                        src/renderer/utils/displaySelection.ts:2:14                       
+Unused exported types (23)
+ToolCallPayloadLike         type       src/renderer/features/chat/utils/chatStreamFormatting.ts:3:13          
+ToolBundlePayloadLike       type       src/renderer/features/chat/utils/chatStreamFormatting.ts:9:13          
+ToolOutputPayloadLike       type       src/renderer/features/chat/utils/chatStreamFormatting.ts:14:13         
+StreamingResponseAction     type       src/renderer/features/chat/utils/chatStreamMessageUpdates.ts:18:13     
+BundleToolInput             type       src/renderer/features/chat/utils/toolRunnerMessages.ts:9:13            
+TranscriptionRegion         type       src/renderer/features/chat/utils/transcriptionRegions.ts:1:13          
+RehydrateConversationEntry  type       src/renderer/infrastructure/api/client.ts:9:13                         
+AudioChunk                  interface  src/renderer/infrastructure/audio/PlayerService.ts:10:18               
+ArtifactImageContentType    type       src/renderer/infrastructure/services/ArtifactImageUtils.ts:1:13        
+ArtifactUploadResult        type       src/renderer/infrastructure/services/ArtifactUploader.ts:6:13          
+BundleRunOutcome            type       src/renderer/infrastructure/services/ToolExecutionBundleRunner.ts:12:13
+ToolCaptureResult           type       src/renderer/infrastructure/services/ToolExecutionCapture.ts:5:13      
+AutoCaptureResult           type       src/renderer/infrastructure/services/ToolExecutionCapture.ts:13:13     
+ToolInvokeOutcome           type       src/renderer/infrastructure/services/ToolExecutionInvoker.ts:5:13      
+BundleStatus                type       src/renderer/infrastructure/services/ToolExecutionPayloads.ts:4:13     
+NormalizedBundleResult      type       src/renderer/infrastructure/services/ToolExecutionPayloads.ts:6:13     
+ToolResultPayloadOptions    type       src/renderer/infrastructure/services/ToolExecutionPayloads.ts:16:13    
+ToolBundleItem              interface  src/renderer/infrastructure/services/ToolExecutionTypes.ts:35:18       
+PendingAssistantQueue       type       src/renderer/infrastructure/transcript/pendingAssistantQueue.ts:3:13   
+PendingToolQueue            type       src/renderer/infrastructure/transcript/pendingToolQueue.ts:3:13        
+PendingUserQueue            type       src/renderer/infrastructure/transcript/pendingUserQueue.ts:3:13        
+TranscriptSessionState      type       src/renderer/infrastructure/transcript/sessionInfoState.ts:5:13        
+DisplayBounds               type       src/renderer/utils/displaySelection.ts:4:13                            

@@ -1,0 +1,976 @@
+
+> desktop-assistant-frontend@0.6.1 audit:jscpd
+> jscpd --gitignore --reporters console,markdown --output ../.audit/plan1/jscpd-report ../backend/src ./src ../tests
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/tools/registry/service.py[39m[22m [239:7 - 253:5] (14 lines, 139 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/tools/registry/service.py[39m[22m [220:8 - 234:10]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/llm/openai/chat.py[39m[22m [256:2 - 275:3] (19 lines, 140 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/llm/openai/chat.py[39m[22m [198:16 - 217:6]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/llm/mistral/chat.py[39m[22m [161:2 - 172:8] (11 lines, 172 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/llm/openai/chat.py[39m[22m [144:2 - 164:6]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/llm/google/chat.py[39m[22m [188:3 - 212:75] (24 lines, 182 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/llm/openai/chat.py[39m[22m [142:3 - 166:16]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/llm/google/chat.py[39m[22m [443:9 - 450:44] (7 lines, 73 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/llm/google/chat.py[39m[22m [362:10 - 369:44]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/browser/watchdogs/har_recording_watchdog.py[39m[22m [319:2 - 326:17] (7 lines, 94 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/browser/watchdogs/har_recording_watchdog.py[39m[22m [233:2 - 240:16]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/browser/watchdogs/dom_watchdog.py[39m[22m [441:5 - 455:23] (14 lines, 112 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/browser/watchdogs/dom_watchdog.py[39m[22m [321:6 - 335:7]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/tools/utils.py[39m[22m [39:4 - 47:63] (8 lines, 93 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/tools/utils.py[39m[22m [22:4 - 30:22]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/llm/messages.py[39m[22m [177:2 - 190:37] (13 lines, 117 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/llm/messages.py[39m[22m [149:2 - 162:35]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/llm/base.py[39m[22m [34:2 - 44:2] (10 lines, 171 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/llm/openai/chat.py[39m[22m [144:2 - 164:6]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/filesystem/file_system.py[39m[22m [262:2 - 271:9] (9 lines, 85 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/filesystem/file_system.py[39m[22m [222:6 - 231:9]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/browser/session_manager.py[39m[22m [807:4 - 820:5] (13 lines, 129 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/browser/session_manager.py[39m[22m [777:5 - 791:3]
+
+Clone found (jsx):
+ - [1m[32msrc/renderer/features/dashboard/components/sections/SettingsSection.jsx[39m[22m [105:8 - 116:8] (11 lines, 93 tokens)
+   [1m[32msrc/renderer/features/dashboard/components/sections/SettingsSection.jsx[39m[22m [83:7 - 94:6]
+
+Clone found (jsx):
+ - [1m[32msrc/renderer/features/dashboard/components/sections/SettingsSection.jsx[39m[22m [120:4 - 131:3] (11 lines, 84 tokens)
+   [1m[32msrc/renderer/features/dashboard/components/sections/SettingsSection.jsx[39m[22m [83:7 - 94:2]
+
+Clone found (jsx):
+ - [1m[32msrc/renderer/features/dashboard/components/sections/SettingsSection.jsx[39m[22m [163:6 - 174:5] (11 lines, 92 tokens)
+   [1m[32msrc/renderer/features/dashboard/components/sections/SettingsSection.jsx[39m[22m [83:2 - 94:6]
+
+Clone found (javascript):
+ - [1m[32msrc/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx[39m[22m [422:46 - 442:17] (20 lines, 121 tokens)
+   [1m[32msrc/renderer/features/dashboard/components/sections/SemanticMemorySection.jsx[39m[22m [267:2 - 280:2]
+
+Clone found (javascript):
+ - [1m[32msrc/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx[39m[22m [429:2 - 460:2] (31 lines, 168 tokens)
+   [1m[32msrc/renderer/features/dashboard/components/sections/SemanticMemorySection.jsx[39m[22m [280:2 - 305:2]
+
+Clone found (jsx):
+ - [1m[32msrc/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx[39m[22m [205:18 - 217:13] (12 lines, 100 tokens)
+   [1m[32msrc/renderer/features/dashboard/components/sections/SemanticMemorySection.jsx[39m[22m [136:21 - 148:7]
+
+Clone found (jsx):
+ - [1m[32msrc/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx[39m[22m [232:24 - 247:23] (15 lines, 133 tokens)
+   [1m[32msrc/renderer/features/dashboard/components/sections/SemanticMemorySection.jsx[39m[22m [154:21 - 169:15]
+
+Clone found (jsx):
+ - [1m[32msrc/renderer/features/dashboard/components/sections/EpisodicMemorySection.jsx[39m[22m [437:13 - 467:22] (30 lines, 146 tokens)
+   [1m[32msrc/renderer/features/dashboard/components/sections/SemanticMemorySection.jsx[39m[22m [282:13 - 312:7]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/utils.py[39m[22m [388:4 - 406:10] (18 lines, 152 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/utils.py[39m[22m [359:4 - 377:21]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/observability.py[39m[22m [134:14 - 167:5] (33 lines, 105 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/observability.py[39m[22m [87:8 - 115:5]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/browser/browser_use/__init__.py[39m[22m [61:2 - 67:7] (6 lines, 96 tokens)
+   [1m[32msrc/main/python/tools/browser/browser_use/llm/__init__.py[39m[22m [36:2 - 42:11]
+
+Clone found (typescript):
+ - [1m[32msrc/renderer/features/voice/hooks/useVoiceMode.ts[39m[22m [33:2 - 38:20] (5 lines, 92 tokens)
+   [1m[32msrc/renderer/features/voice/hooks/useWakewordDetection.ts[39m[22m [36:2 - 42:15]
+
+Clone found (typescript):
+ - [1m[32msrc/renderer/features/voice/hooks/useVoiceMode.ts[39m[22m [253:2 - 272:3] (19 lines, 137 tokens)
+   [1m[32msrc/renderer/features/voice/hooks/useWakewordDetection.ts[39m[22m [178:6 - 197:6]
+
+Clone found (typescript):
+ - [1m[32msrc/renderer/features/chat/hooks/useChatMessageSender.ts[39m[22m [44:1 - 49:2] (5 lines, 91 tokens)
+   [1m[32msrc/renderer/features/chat/hooks/useChatStream.ts[39m[22m [129:5 - 134:15]
+
+Clone found (jsx):
+ - [1m[32msrc/renderer/features/chat/components/MessageList.jsx[39m[22m [59:5 - 69:2] (10 lines, 97 tokens)
+   [1m[32msrc/renderer/features/chat/components/MessageList.jsx[39m[22m [21:2 - 30:2]
+
+Clone found (jsx):
+ - [1m[32msrc/renderer/features/chat/components/ChatBox.jsx[39m[22m [92:7 - 99:3] (7 lines, 85 tokens)
+   [1m[32msrc/renderer/features/chat/components/ChatBoxResponse.jsx[39m[22m [137:5 - 143:6]
+
+Clone found (typescript):
+ - [1m[32msrc/renderer/infrastructure/transcript/TranscriptWriter.ts[39m[22m [273:12 - 285:5] (12 lines, 113 tokens)
+   [1m[32msrc/renderer/infrastructure/transcript/TranscriptWriter.ts[39m[22m [220:10 - 232:2]
+
+Clone found (typescript):
+ - [1m[32msrc/renderer/infrastructure/transcript/TranscriptWriter.ts[39m[22m [334:3 - 344:25] (10 lines, 99 tokens)
+   [1m[32msrc/renderer/infrastructure/transcript/TranscriptWriter.ts[39m[22m [280:2 - 290:30]
+
+Clone found (python):
+ - [1m[32msrc/main/python/tools/schemas.py[39m[22m [331:80 - 350:8] (19 lines, 120 tokens)
+   [1m[32msrc/main/python/tools/schemas.py[39m[22m [269:53 - 288:9]
+
+Clone found (python):
+ - [1m[32msrc/main/python/core/system_state.py[39m[22m [333:5 - 357:7] (24 lines, 191 tokens)
+   [1m[32msrc/main/python/tools/system/stats_tool.py[39m[22m [22:5 - 47:7]
+
+Clone found (css):
+ - [1m[32msrc/renderer/styles/SettingsPanel.css[39m[22m [409:3 - 419:19] (10 lines, 107 tokens)
+   [1m[32msrc/renderer/styles/SettingsPanel.css[39m[22m [221:3 - 231:18]
+
+Clone found (jsx):
+ - [1m[32msrc/landing/components/PrivacySection.jsx[39m[22m [43:5 - 52:18] (9 lines, 99 tokens)
+   [1m[32msrc/landing/components/WhySection.jsx[39m[22m [23:5 - 66:25]
+
+Clone found (jsx):
+ - [1m[32msrc/landing/components/PrivacySection.jsx[39m[22m [96:4 - 101:45] (5 lines, 74 tokens)
+   [1m[32msrc/landing/components/PrivacySection.jsx[39m[22m [85:2 - 89:44]
+
+Clone found (jsx):
+ - [1m[32msrc/landing/components/PrivacySection.jsx[39m[22m [107:5 - 114:26] (7 lines, 86 tokens)
+   [1m[32msrc/landing/components/PrivacySection.jsx[39m[22m [94:7 - 89:44]
+
+Clone found (jsx):
+ - [1m[32msrc/landing/components/PrivacySection.jsx[39m[22m [113:3 - 118:3] (5 lines, 66 tokens)
+   [1m[32msrc/landing/components/WhySection.jsx[39m[22m [60:3 - 65:2]
+
+Clone found (jsx):
+ - [1m[32msrc/landing/components/CTAFooter.jsx[39m[22m [58:3 - 63:4] (5 lines, 66 tokens)
+   [1m[32msrc/landing/components/WhySection.jsx[39m[22m [60:3 - 65:2]
+
+Clone found (javascript):
+ - [1m[32msrc/main/local_backend_bridge.cjs[39m[22m [265:17 - 276:17] (11 lines, 95 tokens)
+   [1m[32msrc/main/wakeword_bridge.cjs[39m[22m [35:14 - 46:7]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/tools/test_chrome_launcher.py[39m[22m [61:9 - 70:6] (9 lines, 99 tokens)
+   [1m[32m../tests/sidecar/tools/test_chrome_launcher.py[39m[22m [43:9 - 52:5]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/tools/test_browser_controller.py[39m[22m [292:9 - 304:12] (12 lines, 91 tokens)
+   [1m[32m../tests/sidecar/tools/test_browser_controller.py[39m[22m [258:2 - 270:13]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/tools/test_browser_controller.py[39m[22m [399:7 - 405:5] (6 lines, 74 tokens)
+   [1m[32m../tests/sidecar/tools/test_browser_controller.py[39m[22m [361:9 - 367:5]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/tools/test_browser_controller.py[39m[22m [453:9 - 459:8] (6 lines, 82 tokens)
+   [1m[32m../tests/sidecar/tools/test_browser_controller.py[39m[22m [439:9 - 445:14]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/test_system_state.py[39m[22m [103:5 - 112:2] (9 lines, 111 tokens)
+   [1m[32m../tests/sidecar/test_system_state.py[39m[22m [54:5 - 62:2]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/test_stdout_json.py[39m[22m [37:45 - 56:2] (19 lines, 140 tokens)
+   [1m[32m../tests/sidecar/test_stdout_json.py[39m[22m [12:51 - 31:2]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/test_stdout_json.py[39m[22m [90:53 - 109:5] (19 lines, 136 tokens)
+   [1m[32m../tests/sidecar/test_stdout_json.py[39m[22m [12:51 - 31:19]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/test_runtime_shutdown.py[39m[22m [47:42 - 64:24] (17 lines, 132 tokens)
+   [1m[32m../tests/sidecar/test_runtime_shutdown.py[39m[22m [23:64 - 41:7]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/test_remote_embedding_client.py[39m[22m [6:1 - 33:24] (27 lines, 195 tokens)
+   [1m[32m../tests/sidecar/test_remote_semantic_client.py[39m[22m [5:1 - 32:23]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/test_remote_embedding_client.py[39m[22m [34:3 - 57:2] (23 lines, 160 tokens)
+   [1m[32m../tests/sidecar/test_remote_semantic_client.py[39m[22m [33:3 - 56:2]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/test_remote_embedding_client.py[39m[22m [62:2 - 71:4] (9 lines, 83 tokens)
+   [1m[32m../tests/sidecar/test_remote_semantic_client.py[39m[22m [59:2 - 68:6]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/test_remote_embedding_client.py[39m[22m [169:22 - 182:8] (13 lines, 88 tokens)
+   [1m[32m../tests/sidecar/test_remote_semantic_client.py[39m[22m [151:21 - 162:8]
+
+Clone found (python):
+ - [1m[32m../tests/sidecar/test_local_store_delete_cleanup.py[39m[22m [234:5 - 249:67] (15 lines, 127 tokens)
+   [1m[32m../tests/sidecar/test_local_store_delete_cleanup.py[39m[22m [195:9 - 210:85]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/WakewordDetectionHook.test.ts[39m[22m [72:4 - 81:4] (9 lines, 101 tokens)
+   [1m[32m../tests/frontend/WakewordDetectionHook.test.ts[39m[22m [48:2 - 57:8]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/WakewordDetectionHook.test.ts[39m[22m [195:2 - 208:6] (13 lines, 129 tokens)
+   [1m[32m../tests/frontend/WakewordDetectionHook.test.ts[39m[22m [128:2 - 141:9]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/TranscriptionHook.test.ts[39m[22m [20:61 - 29:18] (9 lines, 93 tokens)
+   [1m[32m../tests/frontend/TranscriptionHook.test.ts[39m[22m [6:58 - 15:20]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/TranscriptionHook.test.ts[39m[22m [75:68 - 86:9] (11 lines, 107 tokens)
+   [1m[32m../tests/frontend/TranscriptionHook.test.ts[39m[22m [6:58 - 31:9]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [93:87 - 99:6] (6 lines, 127 tokens)
+   [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [75:76 - 81:7]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [185:2 - 198:2] (13 lines, 90 tokens)
+   [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [167:2 - 181:7]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [299:2 - 312:2] (13 lines, 90 tokens)
+   [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [281:2 - 295:7]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [390:2 - 403:2] (13 lines, 90 tokens)
+   [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [372:2 - 386:7]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [525:2 - 538:7] (13 lines, 90 tokens)
+   [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [507:2 - 521:7]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [541:18 - 556:65] (15 lines, 90 tokens)
+   [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [188:13 - 203:48]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [556:65 - 563:18] (7 lines, 97 tokens)
+   [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [493:65 - 500:18]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [596:2 - 609:7] (13 lines, 90 tokens)
+   [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [578:2 - 592:7]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/TranscriptStorage.test.ts[39m[22m [100:5 - 106:23] (6 lines, 114 tokens)
+   [1m[32m../tests/frontend/TranscriptWriter.test.ts[39m[22m [77:5 - 83:7]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/TranscriptSessionState.test.ts[39m[22m [23:48 - 28:22] (5 lines, 90 tokens)
+   [1m[32m../tests/frontend/TranscriptSessionState.test.ts[39m[22m [4:57 - 9:6]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/ToolRunnerHook.test.ts[39m[22m [57:2 - 71:2] (14 lines, 95 tokens)
+   [1m[32msrc/renderer/features/chat/stores/chatStore.ts[39m[22m [106:2 - 120:2]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/ToolRunnerHook.test.ts[39m[22m [141:11 - 156:11] (15 lines, 90 tokens)
+   [1m[32m../tests/frontend/ToolRunnerHook.test.ts[39m[22m [59:7 - 74:2]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/ToolRunnerHook.test.ts[39m[22m [216:12 - 235:14] (19 lines, 130 tokens)
+   [1m[32m../tests/frontend/ToolRunnerHook.test.ts[39m[22m [59:7 - 160:12]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/ToolRunnerHook.test.ts[39m[22m [598:12 - 618:24] (20 lines, 143 tokens)
+   [1m[32m../tests/frontend/ToolRunnerHook.test.ts[39m[22m [215:14 - 161:11]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/ToolRunnerHook.test.ts[39m[22m [631:12 - 646:6] (15 lines, 96 tokens)
+   [1m[32m../tests/frontend/ToolRunnerHook.test.ts[39m[22m [140:9 - 74:2]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/ToolExecutionService.test.ts[39m[22m [317:2 - 324:11] (7 lines, 89 tokens)
+   [1m[32m../tests/frontend/ToolExecutionService.test.ts[39m[22m [246:2 - 253:11]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/ToolExecutionService.test.ts[39m[22m [342:2 - 352:11] (10 lines, 121 tokens)
+   [1m[32m../tests/frontend/ToolExecutionService.test.ts[39m[22m [314:5 - 253:11]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/ToolExecutionBundleRunner.test.ts[39m[22m [87:5 - 95:22] (8 lines, 93 tokens)
+   [1m[32m../tests/frontend/ToolExecutionBundleRunner.test.ts[39m[22m [55:5 - 63:24]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/ToolExecutionBundleRunner.test.ts[39m[22m [155:2 - 164:25] (9 lines, 91 tokens)
+   [1m[32m../tests/frontend/ToolExecutionBundleRunner.test.ts[39m[22m [140:2 - 149:51]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/ToolExecutionBundleRunner.test.ts[39m[22m [172:4 - 183:67] (11 lines, 96 tokens)
+   [1m[32m../tests/frontend/ToolExecutionBundleRunner.test.ts[39m[22m [127:4 - 138:76]
+
+Clone found (jsx):
+ - [1m[32m../tests/frontend/SemanticMemorySection.test.jsx[39m[22m [1:2 - 11:2] (10 lines, 87 tokens)
+   [1m[32m../tests/frontend/SemanticMemorySectionDelete.test.jsx[39m[22m [1:2 - 11:23]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/PlayerService.test.ts[39m[22m [88:87 - 96:6] (8 lines, 90 tokens)
+   [1m[32m../tests/frontend/PlayerService.test.ts[39m[22m [74:52 - 82:7]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/LocalBackendBridge.test.cjs[39m[22m [213:2 - 224:6] (11 lines, 99 tokens)
+   [1m[32m../tests/frontend/LocalBackendBridge.test.cjs[39m[22m [133:2 - 144:5]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/LocalBackendBridge.test.cjs[39m[22m [360:2 - 377:69] (17 lines, 119 tokens)
+   [1m[32m../tests/frontend/LocalBackendBridge.test.cjs[39m[22m [333:9 - 350:64]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/LocalBackendBridge.test.cjs[39m[22m [673:14 - 690:83] (17 lines, 109 tokens)
+   [1m[32m../tests/frontend/LocalBackendBridge.test.cjs[39m[22m [87:14 - 105:7]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/LocalBackendBridge.test.cjs[39m[22m [715:92 - 766:69] (51 lines, 441 tokens)
+   [1m[32m../tests/frontend/LocalBackendBridge.test.cjs[39m[22m [639:87 - 105:7]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/LocalBackendBridge.test.cjs[39m[22m [774:3 - 790:6] (16 lines, 89 tokens)
+   [1m[32m../tests/frontend/LocalBackendBridge.test.cjs[39m[22m [697:4 - 712:5]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/LocalBackendBridge.test.cjs[39m[22m [797:68 - 848:7] (51 lines, 441 tokens)
+   [1m[32m../tests/frontend/LocalBackendBridge.test.cjs[39m[22m [639:87 - 105:7]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [162:2 - 175:2] (13 lines, 105 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [140:2 - 152:5]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [186:66 - 202:25] (16 lines, 170 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [160:63 - 176:38]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [213:8 - 225:2] (12 lines, 109 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [141:12 - 152:2]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [380:2 - 394:6] (14 lines, 114 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [302:2 - 316:3]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [387:2 - 397:8] (10 lines, 95 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [145:6 - 226:16]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [415:2 - 423:5] (8 lines, 90 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [146:2 - 226:16]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [454:69 - 464:2] (10 lines, 91 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [139:68 - 149:9]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [469:2 - 475:48] (6 lines, 81 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [444:2 - 450:43]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [484:2 - 496:6] (12 lines, 92 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [140:2 - 152:6]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [523:70 - 537:18] (14 lines, 145 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [139:68 - 152:8]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [554:22 - 562:53] (8 lines, 88 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [512:16 - 520:42]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [565:65 - 577:2] (12 lines, 120 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [268:57 - 280:5]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [618:2 - 630:3] (12 lines, 98 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [140:2 - 152:6]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [623:6 - 632:13] (9 lines, 82 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [309:2 - 318:16]
+
+Clone found (javascript):
+ - [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [646:2 - 652:9] (6 lines, 86 tokens)
+   [1m[32m../tests/frontend/IpcMainBridge.test.cjs[39m[22m [328:16 - 334:5]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/IpcBridge.test.ts[39m[22m [4:2 - 11:2] (7 lines, 87 tokens)
+   [1m[32m../tests/frontend/IpcBridgeValidation.test.ts[39m[22m [1:2 - 8:2]
+
+Clone found (jsx):
+ - [1m[32m../tests/frontend/EpisodicMemorySectionDelete.test.jsx[39m[22m [45:2 - 55:21] (10 lines, 91 tokens)
+   [1m[32m../tests/frontend/SemanticMemorySectionDelete.test.jsx[39m[22m [23:2 - 33:25]
+
+Clone found (jsx):
+ - [1m[32m../tests/frontend/EpisodicMemorySectionDelete.test.jsx[39m[22m [220:9 - 231:17] (11 lines, 83 tokens)
+   [1m[32m../tests/frontend/EpisodicMemorySectionDelete.test.jsx[39m[22m [74:2 - 85:17]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/ChatStreamThinkingStatus.test.tsx[39m[22m [443:2 - 449:6] (6 lines, 98 tokens)
+   [1m[32m../tests/frontend/ChatStreamThinkingStatus.test.tsx[39m[22m [30:2 - 37:2]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/ChatStreamThinkingStatus.test.tsx[39m[22m [449:2 - 458:2] (9 lines, 96 tokens)
+   [1m[32m../tests/frontend/ChatStreamThinkingStatus.test.tsx[39m[22m [336:2 - 347:2]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/ChatStreamThinkingStatus.test.tsx[39m[22m [601:38 - 607:5] (6 lines, 100 tokens)
+   [1m[32m../tests/frontend/ChatStreamThinkingStatus.test.tsx[39m[22m [443:64 - 37:2]
+
+Clone found (typescript):
+ - [1m[32m../tests/frontend/ChatStore.test.ts[39m[22m [12:7 - 32:2] (20 lines, 131 tokens)
+   [1m[32m../tests/frontend/ToolRunnerHook.test.ts[39m[22m [53:2 - 74:2]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [116:2 - 126:7] (10 lines, 77 tokens)
+   [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [103:5 - 113:2]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [170:5 - 180:2] (10 lines, 100 tokens)
+   [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [101:5 - 111:7]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [171:2 - 184:62] (13 lines, 93 tokens)
+   [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [132:2 - 145:66]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [190:7 - 203:55] (13 lines, 90 tokens)
+   [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [102:2 - 115:36]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [204:5 - 215:2] (11 lines, 85 tokens)
+   [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [148:5 - 159:14]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [338:16 - 348:17] (10 lines, 84 tokens)
+   [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [312:17 - 322:4]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [370:2 - 381:13] (11 lines, 86 tokens)
+   [1m[32m../tests/frontend/ChatMessageSender.test.tsx[39m[22m [152:7 - 160:5]
+
+Clone found (jsx):
+ - [1m[32m../tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx[39m[22m [37:2 - 45:2] (8 lines, 87 tokens)
+   [1m[32m../tests/frontend/ChatInterfaceWiring.test.jsx[39m[22m [43:2 - 51:11]
+
+Clone found (jsx):
+ - [1m[32m../tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx[39m[22m [144:48 - 156:7] (12 lines, 89 tokens)
+   [1m[32m../tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx[39m[22m [121:59 - 133:6]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/AppStatusProvider.test.tsx[39m[22m [92:5 - 101:61] (9 lines, 70 tokens)
+   [1m[32m../tests/frontend/AppStatusProvider.test.tsx[39m[22m [59:5 - 68:66]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/AppProvider.test.tsx[39m[22m [187:7 - 202:7] (15 lines, 93 tokens)
+   [1m[32m../tests/frontend/AppProvider.test.tsx[39m[22m [149:13 - 165:7]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/AppProvider.test.tsx[39m[22m [190:5 - 204:18] (14 lines, 90 tokens)
+   [1m[32m../tests/frontend/AppProvider.test.tsx[39m[22m [55:2 - 69:6]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/AppConfigProvider.test.tsx[39m[22m [145:37 - 158:17] (13 lines, 129 tokens)
+   [1m[32m../tests/frontend/AppConfigProvider.test.tsx[39m[22m [119:49 - 132:16]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/AppConfigProvider.test.tsx[39m[22m [255:40 - 265:16] (10 lines, 104 tokens)
+   [1m[32m../tests/frontend/AppConfigProvider.test.tsx[39m[22m [232:63 - 242:27]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/AppConfigProvider.test.tsx[39m[22m [343:57 - 350:15] (7 lines, 83 tokens)
+   [1m[32m../tests/frontend/AppConfigProvider.test.tsx[39m[22m [330:64 - 337:7]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/AppConfigProvider.test.tsx[39m[22m [356:68 - 363:12] (7 lines, 83 tokens)
+   [1m[32m../tests/frontend/AppConfigProvider.test.tsx[39m[22m [330:64 - 337:7]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/AppConfigProvider.test.tsx[39m[22m [371:60 - 378:6] (7 lines, 86 tokens)
+   [1m[32m../tests/frontend/AppConfigProvider.test.tsx[39m[22m [330:64 - 363:5]
+
+Clone found (tsx):
+ - [1m[32m../tests/frontend/AppConfigProvider.test.tsx[39m[22m [384:51 - 391:3] (7 lines, 86 tokens)
+   [1m[32m../tests/frontend/AppConfigProvider.test.tsx[39m[22m [330:64 - 337:13]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_websocket_message_handler.py[39m[22m [6:1 - 16:16] (10 lines, 81 tokens)
+   [1m[32m../tests/backend/test_websocket_task_manager.py[39m[22m [7:1 - 17:13]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_websocket_message_handler.py[39m[22m [294:10 - 308:4] (14 lines, 115 tokens)
+   [1m[32m../tests/backend/test_websocket_message_handler.py[39m[22m [272:10 - 286:12]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_websocket_message_handler.py[39m[22m [334:49 - 344:6] (10 lines, 92 tokens)
+   [1m[32m../tests/backend/test_websocket_message_handler.py[39m[22m [314:49 - 324:12]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_websocket_message_handler.py[39m[22m [360:10 - 371:12] (11 lines, 92 tokens)
+   [1m[32m../tests/backend/test_websocket_message_handler.py[39m[22m [272:10 - 284:6]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_websocket_message_handler.py[39m[22m [418:10 - 444:12] (26 lines, 206 tokens)
+   [1m[32m../tests/backend/test_websocket_message_handler.py[39m[22m [383:10 - 409:14]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_websocket_connection.py[39m[22m [2:1 - 15:11] (13 lines, 90 tokens)
+   [1m[32m../tests/backend/test_websocket_task_manager.py[39m[22m [4:1 - 17:13]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_websocket_connection.py[39m[22m [216:5 - 231:12] (15 lines, 123 tokens)
+   [1m[32m../tests/backend/test_websocket_connection.py[39m[22m [186:5 - 201:14]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_vision_provider_loader.py[39m[22m [282:6 - 297:6] (15 lines, 85 tokens)
+   [1m[32m../tests/backend/test_vision_provider_loader.py[39m[22m [118:9 - 133:6]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_vision_provider_loader.py[39m[22m [314:15 - 329:9] (15 lines, 99 tokens)
+   [1m[32m../tests/backend/test_vision_provider_loader.py[39m[22m [282:9 - 297:13]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_single_tool_execution.py[39m[22m [94:2 - 104:11] (10 lines, 91 tokens)
+   [1m[32m../tests/backend/test_single_tool_execution.py[39m[22m [62:2 - 72:8]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_response_parser.py[39m[22m [17:1 - 28:6] (11 lines, 96 tokens)
+   [1m[32m../tests/backend/test_response_parser_limits.py[39m[22m [16:1 - 27:7]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_response_parser.py[39m[22m [102:5 - 111:41] (9 lines, 85 tokens)
+   [1m[32m../tests/backend/test_response_parser.py[39m[22m [88:5 - 97:55]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_provider_factory_helpers.py[39m[22m [100:65 - 111:12] (11 lines, 128 tokens)
+   [1m[32m../tests/backend/test_provider_factory_helpers.py[39m[22m [60:66 - 71:15]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_parser_validation.py[39m[22m [148:9 - 156:4] (8 lines, 79 tokens)
+   [1m[32m../tests/backend/test_parser_validation.py[39m[22m [122:9 - 132:22]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_parser_validation.py[39m[22m [159:57 - 177:10] (18 lines, 102 tokens)
+   [1m[32m../tests/backend/test_parser_validation.py[39m[22m [136:69 - 155:5]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_parser_validation.py[39m[22m [232:75 - 242:10] (10 lines, 76 tokens)
+   [1m[32m../tests/backend/test_parser_validation.py[39m[22m [211:73 - 221:5]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_parser_validation.py[39m[22m [315:69 - 325:20] (10 lines, 84 tokens)
+   [1m[32m../tests/backend/test_parser_validation.py[39m[22m [298:61 - 309:19]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_model_service.py[39m[22m [292:6 - 314:4] (22 lines, 104 tokens)
+   [1m[32m../tests/backend/test_model_service.py[39m[22m [262:25 - 284:8]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_mock_llm_browser_client.py[39m[22m [83:21 - 91:29] (8 lines, 94 tokens)
+   [1m[32m../tests/backend/test_mock_llm_client.py[39m[22m [15:14 - 23:21]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_memory_routes.py[39m[22m [9:1 - 17:7] (8 lines, 72 tokens)
+   [1m[32m../tests/backend/test_websocket_task_manager.py[39m[22m [9:1 - 17:10]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_local_llm_providers.py[39m[22m [51:2 - 59:63] (8 lines, 80 tokens)
+   [1m[32m../tests/backend/test_local_llm_providers.py[39m[22m [41:14 - 49:54]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_local_llm_providers.py[39m[22m [73:17 - 81:41] (8 lines, 81 tokens)
+   [1m[32m../tests/backend/test_local_llm_providers.py[39m[22m [51:13 - 49:54]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_local_llm_providers.py[39m[22m [83:10 - 89:34] (6 lines, 73 tokens)
+   [1m[32m../tests/backend/test_local_llm_providers.py[39m[22m [26:16 - 32:34]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_local_llm_providers.py[39m[22m [133:2 - 145:10] (12 lines, 91 tokens)
+   [1m[32m../tests/backend/test_local_llm_providers.py[39m[22m [101:10 - 113:11]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_llm_stream_processor.py[39m[22m [388:23 - 395:2] (7 lines, 91 tokens)
+   [1m[32m../tests/backend/test_llm_stream_processor.py[39m[22m [363:24 - 370:3]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_llm_stream_processor.py[39m[22m [447:2 - 465:4] (18 lines, 117 tokens)
+   [1m[32m../tests/backend/test_llm_stream_processor.py[39m[22m [414:11 - 431:4]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_llm_provider_base.py[39m[22m [242:68 - 258:15] (16 lines, 107 tokens)
+   [1m[32m../tests/backend/test_llm_provider_base.py[39m[22m [207:59 - 223:9]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_llm_provider_base.py[39m[22m [782:17 - 791:12] (9 lines, 90 tokens)
+   [1m[32m../tests/backend/test_llm_provider_base.py[39m[22m [750:17 - 759:13]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_llm_provider_base.py[39m[22m [806:16 - 816:26] (10 lines, 93 tokens)
+   [1m[32m../tests/backend/test_llm_provider_base.py[39m[22m [781:17 - 759:13]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_event_bus.py[39m[22m [642:6 - 656:2] (14 lines, 101 tokens)
+   [1m[32m../tests/backend/test_event_bus.py[39m[22m [624:5 - 638:7]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_dev_tool_selection.py[39m[22m [18:1 - 37:4] (19 lines, 113 tokens)
+   [1m[32m../tests/backend/test_parser_validation.py[39m[22m [10:1 - 29:6]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_coordinate_scaling.py[39m[22m [118:2 - 129:4] (11 lines, 90 tokens)
+   [1m[32m../tests/backend/test_coordinate_scaling.py[39m[22m [66:24 - 77:5]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_coordinate_scaling.py[39m[22m [131:5 - 149:12] (18 lines, 103 tokens)
+   [1m[32m../tests/backend/test_coordinate_scaling.py[39m[22m [79:5 - 97:12]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_coordinate_scaling.py[39m[22m [231:5 - 254:8] (23 lines, 189 tokens)
+   [1m[32m../tests/backend/test_coordinate_scaling.py[39m[22m [62:5 - 85:10]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_coordinate_scaling.py[39m[22m [281:5 - 288:11] (7 lines, 75 tokens)
+   [1m[32m../tests/backend/test_coordinate_scaling.py[39m[22m [164:5 - 170:4]
+
+Clone found (python):
+ - [1m[32m../tests/backend/test_coordinate_scaling.py[39m[22m [298:5 - 316:16] (18 lines, 103 tokens)
+   [1m[32m../tests/backend/test_coordinate_scaling.py[39m[22m [79:5 - 97:12]
+
+Clone found (python):
+ - [1m[32m../backend/src/api/processing/formatters/tool_call.py[39m[22m [2:1 - 12:23] (10 lines, 86 tokens)
+   [1m[32m../backend/src/api/processing/formatters/tool_output.py[39m[22m [2:1 - 12:25]
+
+Clone found (python):
+ - [1m[32m../backend/src/api/processing/formatters/tool_call.py[39m[22m [15:5 - 20:11] (5 lines, 76 tokens)
+   [1m[32m../backend/src/api/processing/formatters/tool_output.py[39m[22m [15:5 - 20:8]
+
+Clone found (python):
+ - [1m[32m../backend/src/api/processing/formatters/thinking.py[39m[22m [2:1 - 12:23] (10 lines, 86 tokens)
+   [1m[32m../backend/src/api/processing/formatters/tool_output.py[39m[22m [2:1 - 12:25]
+
+Clone found (python):
+ - [1m[32m../backend/src/api/processing/formatters/memory_store.py[39m[22m [2:1 - 12:26] (10 lines, 86 tokens)
+   [1m[32m../backend/src/api/processing/formatters/tool_output.py[39m[22m [2:1 - 12:25]
+
+Clone found (python):
+ - [1m[32m../backend/src/api/processing/formatters/chunk.py[39m[22m [2:1 - 12:20] (10 lines, 86 tokens)
+   [1m[32m../backend/src/api/processing/formatters/tool_output.py[39m[22m [2:1 - 12:25]
+
+Clone found (python):
+ - [1m[32m../backend/src/api/processing/formatters/chunk.py[39m[22m [15:5 - 21:48] (6 lines, 90 tokens)
+   [1m[32m../backend/src/api/processing/formatters/thinking.py[39m[22m [15:5 - 21:51]
+
+Clone found (python):
+ - [1m[32m../backend/src/api/processing/formatters/assistant_message.py[39m[22m [2:1 - 12:35] (10 lines, 86 tokens)
+   [1m[32m../backend/src/api/processing/formatters/tool_output.py[39m[22m [2:1 - 12:25]
+
+Clone found (python):
+ - [1m[32m../backend/src/api/processing/formatters/assistant_message.py[39m[22m [15:5 - 21:63] (6 lines, 90 tokens)
+   [1m[32m../backend/src/api/processing/formatters/thinking.py[39m[22m [15:5 - 21:51]
+
+Clone found (python):
+ - [1m[32m../backend/src/agent/tools/preparation/preparer.py[39m[22m [27:1 - 34:5] (7 lines, 98 tokens)
+   [1m[32m../backend/src/agent/tools/preparation/helpers/preparation_helper.py[39m[22m [23:1 - 30:6]
+
+Clone found (python):
+ - [1m[32m../backend/src/agent/tools/preparation/preparer.py[39m[22m [164:9 - 180:11] (16 lines, 117 tokens)
+   [1m[32m../backend/src/agent/tools/preparation/preparer.py[39m[22m [112:13 - 128:10]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/system/schemas.py[39m[22m [79:5 - 91:30] (12 lines, 199 tokens)
+   [1m[32msrc/main/python/tools/schemas.py[39m[22m [205:47 - 217:6]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/remote_tools/__init__.py[39m[22m [6:1 - 20:9] (14 lines, 98 tokens)
+   [1m[32m../backend/src/tools/remote_tools/registry.py[39m[22m [10:1 - 24:7]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/computer/schemas.py[39m[22m [140:9 - 145:66] (5 lines, 87 tokens)
+   [1m[32msrc/main/python/tools/schemas.py[39m[22m [107:9 - 114:2]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [8:1 - 35:6] (27 lines, 182 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [7:1 - 32:16]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [35:1 - 67:127] (32 lines, 285 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [48:1 - 80:131]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [67:127 - 206:6] (139 lines, 1064 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [80:131 - 217:12]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [203:27 - 264:30] (61 lines, 518 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [217:28 - 278:22]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [264:30 - 355:2] (91 lines, 605 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [278:22 - 373:2]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [358:20 - 493:47] (135 lines, 1919 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [387:5 - 522:37]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [519:9 - 540:28] (21 lines, 97 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [347:9 - 368:37]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [585:2 - 608:15] (23 lines, 176 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [93:7 - 118:6]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [648:32 - 656:30] (8 lines, 91 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [487:25 - 495:33]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [657:30 - 662:29] (5 lines, 104 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [498:5 - 503:34]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [693:16 - 698:18] (5 lines, 87 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [240:26 - 248:6]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [726:32 - 736:10] (10 lines, 87 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [510:5 - 522:37]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [741:27 - 757:29] (16 lines, 170 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [428:20 - 444:33]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [758:5 - 768:6] (10 lines, 137 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [451:5 - 461:9]
+
+Clone found (python):
+ - [1m[32m../backend/src/tools/browser/schemas.py[39m[22m [771:5 - 793:16] (22 lines, 430 tokens)
+   [1m[32msrc/main/python/tools/browser/schemas.py[39m[22m [460:23 - 481:8]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [58:17 - 66:15] (8 lines, 94 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [35:15 - 43:22]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/openai.py[39m[22m [1:1 - 16:15] (15 lines, 107 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [1:1 - 16:19]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/openai.py[39m[22m [30:40 - 50:9] (20 lines, 164 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [33:44 - 53:13]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/openai.py[39m[22m [50:9 - 88:12] (38 lines, 302 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [53:13 - 87:41]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/mistral.py[39m[22m [1:1 - 16:16] (15 lines, 107 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [1:1 - 16:19]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/mistral.py[39m[22m [19:5 - 28:35] (9 lines, 90 tokens)
+   [1m[32m../backend/src/llm/providers/openai.py[39m[22m [19:5 - 28:34]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/mistral.py[39m[22m [30:41 - 50:10] (20 lines, 164 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [33:44 - 53:13]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/mistral.py[39m[22m [50:10 - 84:38] (34 lines, 302 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [53:13 - 87:41]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/local.py[39m[22m [8:1 - 19:84] (11 lines, 79 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [4:1 - 16:6]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/local.py[39m[22m [130:41 - 150:5] (20 lines, 164 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [33:44 - 53:13]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/local.py[39m[22m [150:2 - 167:12] (17 lines, 128 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [53:13 - 67:77]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/local.py[39m[22m [168:9 - 186:2] (18 lines, 146 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [68:9 - 86:6]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/local.py[39m[22m [251:22 - 259:5] (8 lines, 94 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [35:15 - 43:22]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/kimi_coding.py[39m[22m [43:5 - 60:7] (17 lines, 148 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [35:5 - 52:7]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/kimi_coding.py[39m[22m [62:14 - 85:22] (23 lines, 178 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [53:13 - 76:9]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/gemini.py[39m[22m [20:5 - 29:34] (9 lines, 90 tokens)
+   [1m[32m../backend/src/llm/providers/openai.py[39m[22m [19:5 - 28:34]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/gemini.py[39m[22m [31:40 - 51:9] (20 lines, 164 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [33:44 - 53:13]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/gemini.py[39m[22m [54:41 - 69:12] (15 lines, 116 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [55:7 - 67:77]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/gemini.py[39m[22m [70:9 - 84:3] (14 lines, 117 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [68:9 - 82:8]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/gemini.py[39m[22m [98:9 - 117:14] (19 lines, 155 tokens)
+   [1m[32m../backend/src/llm/providers/local.py[39m[22m [249:13 - 268:75]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/anthropic.py[39m[22m [1:1 - 16:82] (15 lines, 123 tokens)
+   [1m[32m../backend/src/llm/providers/gemini.py[39m[22m [1:1 - 17:6]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/anthropic.py[39m[22m [23:5 - 32:37] (9 lines, 90 tokens)
+   [1m[32m../backend/src/llm/providers/openai.py[39m[22m [19:5 - 28:34]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/anthropic.py[39m[22m [34:43 - 54:12] (20 lines, 164 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [33:44 - 53:13]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/anthropic.py[39m[22m [54:12 - 93:40] (39 lines, 341 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [53:13 - 96:37]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/providers/anthropic.py[39m[22m [94:9 - 113:12] (19 lines, 159 tokens)
+   [1m[32m../backend/src/llm/providers/local.py[39m[22m [249:13 - 117:9]
+
+Clone found (python):
+ - [1m[32m../backend/src/core/validation/validators.py[39m[22m [105:5 - 113:12] (8 lines, 85 tokens)
+   [1m[32m../backend/src/core/validation/validators.py[39m[22m [71:5 - 79:14]
+
+Clone found (python):
+ - [1m[32m../backend/src/core/infrastructure/exceptions.py[39m[22m [134:12 - 141:14] (7 lines, 85 tokens)
+   [1m[32m../backend/src/core/infrastructure/exceptions.py[39m[22m [113:12 - 120:14]
+
+Clone found (python):
+ - [1m[32m../backend/src/core/infrastructure/exceptions.py[39m[22m [257:5 - 266:8] (9 lines, 83 tokens)
+   [1m[32m../backend/src/core/infrastructure/exceptions.py[39m[22m [217:5 - 226:11]
+
+Clone found (python):
+ - [1m[32m../backend/src/core/infrastructure/exceptions.py[39m[22m [340:6 - 347:22] (7 lines, 76 tokens)
+   [1m[32m../backend/src/core/infrastructure/exceptions.py[39m[22m [313:4 - 320:25]
+
+Clone found (python):
+ - [1m[32m../backend/src/core/infrastructure/exceptions.py[39m[22m [365:2 - 372:25] (7 lines, 76 tokens)
+   [1m[32m../backend/src/core/infrastructure/exceptions.py[39m[22m [313:4 - 320:25]
+
+Clone found (python):
+ - [1m[32m../backend/src/agent/session/session.py[39m[22m [375:9 - 399:12] (24 lines, 101 tokens)
+   [1m[32m../backend/src/agent/tools/waiting/handler.py[39m[22m [88:9 - 110:12]
+
+Clone found (python):
+ - [1m[32m../backend/src/agent/llm/llm_stream_processor.py[39m[22m [273:25 - 281:22] (8 lines, 78 tokens)
+   [1m[32m../backend/src/agent/llm/llm_stream_processor.py[39m[22m [246:24 - 254:15]
+
+Clone found (python):
+ - [1m[32m../backend/src/agent/llm/llm_stream_processor.py[39m[22m [283:9 - 294:7] (11 lines, 93 tokens)
+   [1m[32m../backend/src/agent/llm/llm_stream_processor.py[39m[22m [256:9 - 268:6]
+
+Clone found (python):
+ - [1m[32m../backend/src/simulation/mock_llm_browser_client.py[39m[22m [12:1 - 26:79] (14 lines, 116 tokens)
+   [1m[32m../backend/src/simulation/mock_llm_client.py[39m[22m [10:1 - 24:4]
+
+Clone found (python):
+ - [1m[32m../backend/src/simulation/mock_llm_browser_client.py[39m[22m [404:13 - 425:12] (21 lines, 91 tokens)
+   [1m[32m../backend/src/simulation/mock_llm_client.py[39m[22m [361:13 - 382:12]
+
+Clone found (python):
+ - [1m[32m../backend/src/simulation/browser.py[39m[22m [10:1 - 21:14] (11 lines, 107 tokens)
+   [1m[32m../backend/src/simulation/main.py[39m[22m [7:1 - 18:10]
+
+Clone found (python):
+ - [1m[32m../backend/src/simulation/browser.py[39m[22m [37:74 - 63:4] (26 lines, 173 tokens)
+   [1m[32m../backend/src/simulation/main.py[39m[22m [36:59 - 62:61]
+
+Clone found (python):
+ - [1m[32m../backend/src/simulation/browser.py[39m[22m [86:41 - 104:4] (18 lines, 92 tokens)
+   [1m[32m../backend/src/simulation/main.py[39m[22m [96:33 - 113:3]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/parser_validation.py[39m[22m [135:5 - 145:23] (10 lines, 91 tokens)
+   [1m[32m../backend/src/tools/tool_policy.py[39m[22m [173:5 - 183:19]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/client.py[39m[22m [33:5 - 41:4] (8 lines, 99 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [35:5 - 43:22]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/client.py[39m[22m [46:24 - 59:12] (13 lines, 98 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [35:15 - 44:7]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/client.py[39m[22m [71:22 - 82:12] (11 lines, 104 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [35:15 - 67:77]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/client.py[39m[22m [243:5 - 254:12] (11 lines, 103 tokens)
+   [1m[32m../backend/src/llm/client.py[39m[22m [46:5 - 44:7]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/client.py[39m[22m [287:5 - 303:12] (16 lines, 103 tokens)
+   [1m[32m../backend/src/llm/providers/openrouter.py[39m[22m [35:5 - 44:12]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/client.py[39m[22m [314:5 - 328:12] (14 lines, 109 tokens)
+   [1m[32m../backend/src/llm/client.py[39m[22m [71:5 - 67:77]
+
+Clone found (python):
+ - [1m[32m../backend/src/llm/client.py[39m[22m [336:9 - 349:84] (13 lines, 99 tokens)
+   [1m[32m../backend/src/llm/client.py[39m[22m [256:9 - 270:9]
+
+Clone found (python):
+ - [1m[32m../backend/src/api/schema.py[39m[22m [53:24 - 107:2] (54 lines, 211 tokens)
+   [1m[32m../backend/src/api/schemas/__init__.py[39m[22m [50:25 - 104:2]
+
+Clone found (python):
+ - [1m[32m../backend/src/main.py[39m[22m [7:1 - 21:18] (14 lines, 130 tokens)
+   [1m[32m../backend/src/simulation/main.py[39m[22m [7:1 - 20:5]
+
+Clone found (python):
+ - [1m[32m../backend/src/main.py[39m[22m [54:1 - 64:23] (10 lines, 82 tokens)
+   [1m[32m../backend/src/simulation/main.py[39m[22m [108:1 - 118:34]
+
+[90m┌────────────[39m[90m┬────────────────[39m[90m┬─────────────[39m[90m┬──────────────[39m[90m┬──────────────[39m[90m┬──────────────────[39m[90m┬───────────────────┐[39m
+[90m│[39m[31m Format     [39m[90m│[39m[31m Files analyzed [39m[90m│[39m[31m Total lines [39m[90m│[39m[31m Total tokens [39m[90m│[39m[31m Clones found [39m[90m│[39m[31m Duplicated lines [39m[90m│[39m[31m Duplicated tokens [39m[90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m python     [90m│[39m 502            [90m│[39m 82032       [90m│[39m 569953       [90m│[39m 143          [90m│[39m 2414 (2.94%)     [90m│[39m 20788 (3.65%)     [90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m jsx        [90m│[39m 53             [90m│[39m 5470        [90m│[39m 48403        [90m│[39m 18           [90m│[39m 189 (3.46%)      [90m│[39m 1658 (3.43%)      [90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m javascript [90m│[39m 80             [90m│[39m 8643        [90m│[39m 71555        [90m│[39m 24           [90m│[39m 387 (4.48%)      [90m│[39m 3248 (4.54%)      [90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m typescript [90m│[39m 81             [90m│[39m 11302       [90m│[39m 96788        [90m│[39m 32           [90m│[39m 360 (3.19%)      [90m│[39m 3282 (3.39%)      [90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m json       [90m│[39m 3              [90m│[39m 77          [90m│[39m 365          [90m│[39m 0            [90m│[39m 0 (0%)           [90m│[39m 0 (0%)            [90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m css        [90m│[39m 11             [90m│[39m 2169        [90m│[39m 14052        [90m│[39m 1            [90m│[39m 10 (0.46%)       [90m│[39m 107 (0.76%)       [90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m markdown   [90m│[39m 9              [90m│[39m 2026        [90m│[39m 14962        [90m│[39m 0            [90m│[39m 0 (0%)           [90m│[39m 0 (0%)            [90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m tsx        [90m│[39m 7              [90m│[39m 2201        [90m│[39m 19293        [90m│[39m 19           [90m│[39m 188 (8.54%)      [90m│[39m 1733 (8.98%)      [90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m [1mTotal:[22m     [90m│[39m 746            [90m│[39m 113920      [90m│[39m 835371       [90m│[39m 237          [90m│[39m 3548 (3.11%)     [90m│[39m 30816 (3.69%)     [90m│[39m
+[90m└────────────[39m[90m┴────────────────[39m[90m┴─────────────[39m[90m┴──────────────[39m[90m┴──────────────[39m[90m┴──────────────────[39m[90m┴───────────────────┘[39m
+[90mFound 237 clones.[39m
+[32mMarkdown report saved to ../.audit/plan1/jscpd-report/jscpd-report.md[39m
+[3m[90mDetection time:[39m[23m: 5.119s

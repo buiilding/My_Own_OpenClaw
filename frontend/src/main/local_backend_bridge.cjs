@@ -713,7 +713,7 @@ function initializeLocalBackendBridge(getWindows) {
   }
 
   // Handle tool execution requests
-  ipcMain.handle('execute-tool', async (event, { toolName, args, skipAutoCapture = false }) => {
+  ipcMain.handle('execute-tool', async (event, { toolName, args }) => {
     try {
       const timeoutMs = toolName === 'browser' ? 120000 : 30000;
       const runTool = () =>

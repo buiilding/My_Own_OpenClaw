@@ -1,0 +1,4 @@
+
+> desktop-assistant-frontend@0.6.1 lint
+> eslint . --ext js,jsx,cjs,ts,tsx --report-unused-disable-directives --max-warnings 0
+

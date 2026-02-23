@@ -16,8 +16,6 @@ const {
 
 let pythonProcess = null;
 let isPythonReady = false;
-let audioQueue = [];
-let processingQueue = false;
 let stderrBuffer = '';
 let wakewordDetectedCallback = null;
 
@@ -261,7 +259,6 @@ function processDetectionResults(data, mainWindow, onWakewordDetected) {
   }
 }
 
-let sentChunkCount = 0;
 /**
  * Send audio chunk to Python service
  */
@@ -271,8 +268,6 @@ function sendAudioChunk(audioData) {
   }
 
   try {
-    sentChunkCount++;
-    
     // Send length (4 bytes) + audio data
     const lengthBuffer = Buffer.alloc(4);
     lengthBuffer.writeUInt32LE(audioData.length, 0);

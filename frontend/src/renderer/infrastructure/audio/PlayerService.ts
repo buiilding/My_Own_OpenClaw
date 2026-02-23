@@ -138,12 +138,12 @@ export class PlayerService {
       this.activeSource.onended = null;
       try {
         this.activeSource.stop(0);
-      } catch (error) {
+      } catch (_error) {
         // Ignore source stop errors for already-ended sources.
       }
       try {
         this.activeSource.disconnect();
-      } catch (error) {
+      } catch (_error) {
         // Ignore source disconnect errors during cleanup.
       }
       this.activeSource = null;
