@@ -241,6 +241,27 @@ read_when:
   - `cd frontend && npm run test:ci`
   - `cd frontend && npm run audit:knip` (expect unused exports count reduction)
 
+## Phase 11
+
+- `knip` export-surface cleanup (wakeword bridge final pass):
+  - remove private wakeword lifecycle exports that are not part of runtime entrypoint usage.
+  - keep lifecycle behavior coverage via public bridge initialization + IPC handlers + process lifecycle hook paths.
+
+### Phase 11 Execution Slice (Current Loop)
+
+- Export cleanup:
+  - remove `startWakewordService` and `stopWakewordService` from `frontend/src/main/wakeword_bridge.cjs` module exports.
+- Test migration:
+  - update `tests/frontend/WakewordBridge.test.cjs` to validate restart/cleanup behavior using public paths only:
+    - `initializeWakewordBridge(...)`
+    - `wakeword-enable` / `wakeword-disable` IPC handlers
+    - captured `process.on('beforeExit', ...)` cleanup callback
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/WakewordBridge.test.cjs`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip` (expect unused exports count reduction to zero)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
