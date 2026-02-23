@@ -313,11 +313,12 @@ read_when:
 
 - Frontend dedupe:
   - add shared response-overlay phase subscription helper under `frontend/src/renderer/features/chat/utils/`.
+  - add shared overlay frame-size normalization helper under `frontend/src/renderer/features/chat/utils/`.
   - replace duplicate listener blocks in:
     - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
     - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - Regression coverage:
-  - add focused helper test verifying phase normalization and listener cleanup behavior.
+  - add focused helper tests verifying phase normalization/listener cleanup and frame-size rounding behavior.
 - Success checks:
   - `cd frontend && npm run lint`
   - `cd frontend && npm run test:ci -- tests/frontend/OverlayPhaseListener.test.js tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.test.jsx`
@@ -621,5 +622,35 @@ read_when:
   - `cd frontend && npm run lint` (pass)
   - `cd frontend && npm run test:ci -- tests/frontend/MessageListClasses.test.js tests/frontend/MessageListThinkingDisplay.test.jsx` (pass)
   - `cd frontend && npm run test:ci` (pass; 79 suites)
+  - `cd frontend && npm run audit:knip` (pass; no findings)
+  - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)
+
+## Phase 14 Outcome (2026-02-23)
+
+- Chat overlay listener dedupe shipped:
+  - added shared response-overlay phase subscriber helper:
+    - `frontend/src/renderer/features/chat/utils/overlayPhaseListener.js`
+  - replaced duplicated phase-payload parsing/listener wiring in:
+    - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+    - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- Chat overlay frame-size dedupe shipped:
+  - added shared frame-size normalization helper:
+    - `frontend/src/renderer/features/chat/utils/overlayFrameSize.js`
+  - replaced duplicate element-rect size normalization blocks in `ChatBox` and `ChatBoxResponse`.
+- Regression coverage shipped:
+  - added:
+    - `tests/frontend/OverlayPhaseListener.test.js`
+    - `tests/frontend/OverlayFrameSize.test.js`
+  - preserved existing chat overlay behavior coverage via:
+    - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
+    - `tests/frontend/ChatBoxResponse.test.jsx`
+- jscpd delta after Phase 14 slice:
+  - clones: `221 -> 220`
+  - duplicated lines: `3282 -> 3275`
+  - duplicated tokens: `28963 -> 28878`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/OverlayPhaseListener.test.js tests/frontend/OverlayFrameSize.test.js tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx tests/frontend/ChatBoxResponse.test.jsx` (pass)
+  - `cd frontend && npm run test:ci` (pass; 81 suites)
   - `cd frontend && npm run audit:knip` (pass; no findings)
   - `cd frontend && npm run audit:jscpd` (pass; clone reduction confirmed)

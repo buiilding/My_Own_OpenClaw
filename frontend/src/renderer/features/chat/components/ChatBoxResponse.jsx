@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../stores/chatStore';
-import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { selectChatBoxState } from '../utils/chatSelectors';
+import { getRoundedFrameSize } from '../utils/overlayFrameSize';
+import { subscribeResponseOverlayPhase } from '../utils/overlayPhaseListener';
 
 const RESPONSE_TYPES = new Set(['tool-call', 'llm-text', 'error']);
 const FIRST_CHUNK_TYPES = new Set(['llm-text', 'tool-call', 'error']);
@@ -134,12 +136,11 @@ function ChatBoxResponse() {
       return;
     }
 
-    const rect = shellRef.current?.getBoundingClientRect();
-    if (!rect) {
+    const nextFrame = getRoundedFrameSize(shellRef.current);
+    if (!nextFrame) {
       return;
     }
-    const width = Math.max(1, Math.round(rect.width));
-    const height = Math.max(1, Math.round(rect.height));
+    const { width, height } = nextFrame;
     const unchanged = (
       lastFrameRef.current.visible === true
       && lastFrameRef.current.width === width
@@ -162,11 +163,7 @@ function ChatBoxResponse() {
   }, []);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_PHASE, (payload) => {
-      const phase = typeof payload?.phase === 'string' ? payload.phase : null;
-      if (!phase) {
-        return;
-      }
+    return subscribeResponseOverlayPhase((phase) => {
       setOverlayPhase(phase);
       if (phase === 'awaiting-first-chunk') {
         setAwaitingFirstChunk(true);
@@ -175,9 +172,6 @@ function ChatBoxResponse() {
         setAwaitingFirstChunk(false);
       }
     });
-    return () => {
-      removeListener?.();
-    };
   }, []);
 
   useEffect(() => {
