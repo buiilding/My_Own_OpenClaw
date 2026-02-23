@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
 import MemoryContextMenu from '../shared/MemoryContextMenu';
+import { useMemoryContextMenuHotkeys } from '../../hooks/useMemoryContextMenuHotkeys';
 import { useTranscriptSessionInfo } from '../../hooks/useTranscriptSessionInfo';
 import {
   DEFAULT_USER_ID,
@@ -136,23 +137,12 @@ function SemanticMemorySection() {
     loadSemanticMemories();
   }, [loadSemanticMemories]);
 
-  useEffect(() => {
-    if (!contextMenu) {
-      return () => undefined;
-    }
-
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        closeContextMenu();
-        return;
-      }
-      if (event.key === 'Delete' && contextMenu?.memory) {
-        deleteSemanticMemory(contextMenu.memory);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [closeContextMenu, contextMenu, deleteSemanticMemory]);
+  useMemoryContextMenuHotkeys({
+    menu: contextMenu,
+    onClose: closeContextMenu,
+    onDelete: deleteSemanticMemory,
+    deleteTarget: contextMenu?.memory,
+  });
 
   const selectedMemory = useMemo(
     () => memories.find((memory) => memory.id === selectedMemoryId) || null,

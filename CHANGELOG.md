@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-dashboard-tests): extract shared memory context-menu hotkey hook (`useMemoryContextMenuHotkeys`) for episodic/semantic sections and split oversized `tests/frontend/ToolRunnerHook.test.ts` into focused `events` + `callbacks` suites with shared test utils, plus docs updates for new test paths and Phase-2 outcome metrics
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with current-loop Phase 2 execution slice (dashboard keyboard shortcut dedupe + ToolRunnerHook test file split + verification gates)
 - docs(planning): add `docs/planning/WINDIEOS_COMPANY_FUTURE_OVERVIEW.md` as non-technical company/product framing for the multi-agent messaging + VM runtime direction (desktop primary agent + mobile control/messaging client model)
 - refactor(memory-routes-dashboard): add 2026-02-23 refactor plan doc (`docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md`), extract shared dashboard memory session/menu UI (`useTranscriptSessionInfo`, `MemoryContextMenu`), and consolidate memory route health checks via shared backend helper (`backend/src/api/routes/memory/health.py`) with frontend/backend regression coverage

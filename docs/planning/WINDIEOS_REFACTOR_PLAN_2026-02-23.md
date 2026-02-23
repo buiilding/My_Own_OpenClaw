@@ -73,9 +73,13 @@ read_when:
   - Keep behavior unchanged for menu close and delete actions.
 - Test suite restructuring:
   - Split `tests/frontend/ToolRunnerHook.test.ts` (over LOC guideline) into smaller focused files with shared test harness utilities.
+  - Land split outputs:
+    - `tests/frontend/ToolRunnerHook.testUtils.ts`
+    - `tests/frontend/ToolRunnerHook.events.test.ts`
+    - `tests/frontend/ToolRunnerHook.callbacks.test.ts`
   - Preserve all current assertions while reducing per-file complexity.
 - Success checks:
-  - `cd frontend && npm run test:ci -- tests/frontend/*ToolRunner*`
+  - `cd frontend && npm run test:ci -- tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts`
   - `cd frontend && npm run test:ci -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
   - `cd frontend && npm run lint`
 
@@ -125,3 +129,24 @@ read_when:
   - `cd frontend && npm run lint:audit`
   - `cd frontend && npm run test:ci`
   - `pytest tests/backend/test_memory_routes.py`
+
+## Phase 2 Outcome (2026-02-23)
+
+- Dashboard dedupe shipped:
+  - shared context-menu keyboard shortcut hook extracted and reused in episodic + semantic memory sections.
+- Slow/large test restructure shipped:
+  - replaced `tests/frontend/ToolRunnerHook.test.ts` with:
+    - `tests/frontend/ToolRunnerHook.testUtils.ts`
+    - `tests/frontend/ToolRunnerHook.events.test.ts`
+    - `tests/frontend/ToolRunnerHook.callbacks.test.ts`
+- jscpd delta after Phase 2 extraction work:
+  - clones: `230 -> 225`
+  - duplicated lines: `3410 -> 3325`
+  - duplicated tokens: `29922 -> 29329`
+- Verification:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts`
+  - `cd frontend && npm run test:ci -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:jscpd`
+  - `cd frontend && npm run audit:knip` (findings unchanged; still requires triage)
