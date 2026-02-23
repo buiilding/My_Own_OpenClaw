@@ -220,6 +220,27 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/ToolExecutionLogger.test.ts tests/frontend/ChatBoxResponse.test.jsx`
   - `cd frontend && npm run audit:knip` (expect unused exports count reduction)
 
+## Phase 10
+
+- `knip` export-surface cleanup (test-only service/dashboard helpers):
+  - internalize dashboard parsing constants/helpers used only within module implementation.
+  - internalize formatter/capture helper exports used only by module internals and tests.
+  - update tests to validate behavior through public APIs (`parseMemoriesToMessages`, `buildConversationKey`, `formatToolOutputMessage`, `formatBundledToolOutputMessage`, `captureAfterTool`, `ensureAutoCapture`).
+
+### Phase 10 Execution Slice (Current Loop)
+
+- Export/internal API cleanup:
+  - de-export `UNASSIGNED_CONVERSATION_KEY` and `parseMemoryContent` from `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`.
+  - de-export `formatSequentialStateXml` from `frontend/src/renderer/infrastructure/services/MessageFormatter.ts`.
+  - de-export `getWaitSeconds`, `extractCaptureFromResult`, and `applyCaptureToResult` from `frontend/src/renderer/infrastructure/services/ToolExecutionCapture.ts`.
+- Test-surface updates:
+  - migrate tests away from private helper imports and keep behavioral assertions on public entrypoints.
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/EpisodicMemoryUtils.test.js tests/frontend/MessageFormatter.test.ts tests/frontend/ToolExecutionCapture.test.ts`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip` (expect unused exports count reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
