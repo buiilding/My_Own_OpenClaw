@@ -26,7 +26,6 @@ Single entrypoint for future work. Use this page first.
 - `WINDIEOS_INSTALL_PERMISSION_ONBOARDING_PLAN.md`
 - `WINDIEOS_MOBILE_APP_PLAN.md`
 - `WINDIEOS_SELF_EDIT_CONFIG_PLAN.md`
-- `WINDIEOS_SELF_UI_API_PLAN.md`
 - `WINDIEOS_VM_MULTI_AGENT_PLAN.md`
 
 ## Scope Rules
