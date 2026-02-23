@@ -189,3 +189,24 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/useMemoryContextMenuHotkeys.test.js`
   - `cd frontend && npm run test:ci -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
   - `cd frontend && npm run audit:knip` (unused files section remained absent; export/dependency/type findings unchanged)
+
+## Phase 4 Outcome (2026-02-23)
+
+- Dependency cleanup shipped:
+  - removed unused runtime deps from `frontend/package.json`: `clipboardy`, `pngjs`, `systeminformation`.
+  - removed unused dev dep from `frontend/package.json`: `baseline-browser-mapping`.
+  - lockfile regenerated via targeted npm uninstall commands.
+- `knip` calibration shipped:
+  - added `ignoreDependencies` entries in `frontend/knip.json` for intentional tooling-only/manual-use packages:
+    - `@testing-library/react`
+    - `eslint-plugin-deprecation`
+    - `eslint-plugin-react-compiler`
+    - `json-schema-to-typescript`
+- knip dependency findings delta:
+  - unused dependencies: `3 -> 0`
+  - unused devDependencies: `5 -> 0`
+  - remaining findings (unchanged category): `unused exports (42)`, `unused exported types (23)`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/useMemoryContextMenuHotkeys.test.js tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts` (pass)
+  - `cd frontend && npm run audit:knip` (dependency findings removed; command still non-zero from export/type findings)

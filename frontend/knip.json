@@ -9,6 +9,12 @@
     "src/**/*.{js,jsx,ts,tsx,cjs,mjs}",
     "../tests/frontend/**/*.{js,jsx,ts,tsx,cjs,mjs}"
   ],
+  "ignoreDependencies": [
+    "@testing-library/react",
+    "eslint-plugin-deprecation",
+    "eslint-plugin-react-compiler",
+    "json-schema-to-typescript"
+  ],
   "ignore": [
     "src/types/schema.ts"
   ]
