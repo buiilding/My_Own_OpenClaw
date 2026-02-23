@@ -155,7 +155,7 @@ class TestGetChromeUserDataDir:
         result = get_chrome_user_data_dir()
         
         assert result is not None
-        assert "Library/Application Support/Google/Chrome-cdp" in str(result)
+        assert str(result).endswith("Library/Application Support/WindieOS/BrowserProfile")
     
     @mock.patch("platform.system")
     @mock.patch("pathlib.Path.home")
@@ -167,7 +167,7 @@ class TestGetChromeUserDataDir:
         result = get_chrome_user_data_dir()
         
         assert result is not None
-        assert ".config/google-chrome-cdp" in str(result)
+        assert str(result).endswith(".config/windieos/browser-profile")
     
     @mock.patch("platform.system")
     @mock.patch("os.environ.get")
@@ -181,7 +181,7 @@ class TestGetChromeUserDataDir:
         result = get_chrome_user_data_dir()
         
         assert result is not None
-        assert "Google/Chrome/User Data-cdp" in str(result)
+        assert str(result).endswith("AppData/Local/WindieOS/BrowserProfile")
 
 
 class TestLaunchChromeWithCdp:
@@ -204,7 +204,7 @@ class TestLaunchChromeWithCdp:
         process, cdp_url = await launch_chrome_with_cdp()
         
         assert process is mock_process
-        assert "9222" in cdp_url
+        assert cdp_url == DEFAULT_CDP_URL
         mock_popen.assert_called_once()
         launch_args = mock_popen.call_args.args[0]
         assert "--user-data-dir=/tmp/test-google-chrome-cdp" in launch_args
@@ -283,7 +283,7 @@ class TestEnsureChromeWithCdp:
         
         result = await ensure_chrome_with_cdp()
         
-        assert "9222" in result
+        assert result == DEFAULT_CDP_URL
     
     @pytest.mark.asyncio
     @mock.patch("tools.browser.chrome_launcher.is_cdp_available")
@@ -312,7 +312,7 @@ class TestEnsureChromeWithCdp:
         with pytest.raises(Exception) as exc_info:
             await ensure_chrome_with_cdp(auto_launch=False)
         
-        assert "auto_launch disabled" in str(exc_info.value)
+        assert "auto_launch is disabled" in str(exc_info.value)
 
 
 class TestChromeLauncher:
@@ -327,7 +327,7 @@ class TestChromeLauncher:
         launcher = ChromeLauncher()
         result = await launcher.launch()
         
-        assert "9222" in result
+        assert result == DEFAULT_CDP_URL
         assert not launcher._launched_by_us
     
     @pytest.mark.asyncio

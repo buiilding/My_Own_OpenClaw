@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+(
+  cd "$ROOT"
+  "$ROOT/scripts/test-backend"
+  "$ROOT/scripts/test-sidecar"
+)
+
+if [ -d "$ROOT/frontend" ]; then
+  if [ -d "$ROOT/frontend/node_modules" ]; then
+    (
+      cd "$ROOT/frontend"
+      npm run test:ci
+    )
+  else
+    echo "Skipping frontend tests (frontend/node_modules missing)."
+  fi
+fi
