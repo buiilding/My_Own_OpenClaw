@@ -113,6 +113,18 @@ read_when:
 - File restructuring:
   - Co-locate reusable dashboard hooks/components under feature-owned `hooks/` and `components/shared/`.
 
+### Phase 4 Execution Slice (Current Loop)
+
+- `knip`-driven dependency cleanup:
+  - remove true-positive unused runtime dependencies from `frontend/package.json` when no code references exist.
+  - remove low-risk unused dev dependency (`baseline-browser-mapping`) when only transitive usage remains.
+- `knip` signal quality improvements:
+  - codify intentional/tooling-only dependencies in `frontend/knip.json` using explicit ignore list (for CLI-invoked lint plugins and manual codegen tooling).
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/useMemoryContextMenuHotkeys.test.js tests/frontend/ToolRunnerHook.events.test.ts tests/frontend/ToolRunnerHook.callbacks.test.ts`
+  - `cd frontend && npm run audit:knip` (expect dependency findings count reduction)
+
 ## Phase 5
 
 - Slow-test rewrite plan:
