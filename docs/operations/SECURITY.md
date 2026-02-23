@@ -30,4 +30,4 @@ This document describes **current** security-related behavior in the codebase.
 
 ## Hosted Mode (Planned)
 
-See `docs/product/SECURITY_AND_COMPLIANCE.md` for future hosted security and compliance plans.
+See `docs/planning/SECURITY_AND_COMPLIANCE.md` for future hosted security and compliance plans.

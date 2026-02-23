@@ -26,7 +26,7 @@ Our mission: **Democratize computer power** - making advanced capabilities acces
 
 > **Note**: The capabilities described below are **planned features** that have not yet been implemented. They represent our strategic vision and roadmap for future development.
 >
-> For sequencing and implementation tracks, see `../product/FUTURE_PLAN.md` and `../operations/DEPLOYMENT.md`.
+> For sequencing and implementation tracks, see `../planning/FUTURE_PLAN.md` and `../operations/DEPLOYMENT.md`.
 
 ### 🚢 Bringing This to Users (Planned)
 To move from a developer-focused build to a product for end users, we will add a hosted, multi-tenant backend with subscriptions and usage limits while preserving a local-only mode for privacy-first users.
@@ -40,7 +40,7 @@ To move from a developer-focused build to a product for end users, we will add a
 - **Distribution**: Signed installers, auto-updates, crash/telemetry opt-in.
 
 ### 📌 Focused Initiative Set (Current Planning)
-The following initiative set is being tracked in `../product/FUTURE_PLAN.md` and `../operations/DEPLOYMENT.md`:
+The following initiative set is being tracked in `../planning/FUTURE_PLAN.md` and `../operations/DEPLOYMENT.md`:
 - Scale OCR and vision grounding instances dynamically for concurrent multi-user workloads.
 - Split system prompt policy between computer-use models and non-computer-use models.
 - Add controlled self-evolution workflow so Windie can propose frontend implementation changes safely.

@@ -102,4 +102,4 @@ Before shared deployment:
 - `docs/operations/SECURITY.md`
 - `docs/architecture/COMMUNICATION_FLOW.md`
 - `docs/architecture/MEMORY_SYSTEM.md`
-- `docs/product/SECURITY_AND_COMPLIANCE.md`
+- `docs/planning/SECURITY_AND_COMPLIANCE.md`

@@ -423,7 +423,7 @@ BaseException
 
 > **Note**: The capabilities described below are **planned features** that have not yet been implemented. They represent our strategic vision for future architectural enhancements.
 >
-> Detailed sequencing and delivery plan: `../product/FUTURE_PLAN.md` and `../operations/DEPLOYMENT.md`.
+> Detailed sequencing and delivery plan: `../planning/FUTURE_PLAN.md` and `../operations/DEPLOYMENT.md`.
 
 #### Multi-Agent Orchestration (Planned - Strategic Priority)
 The future architecture would be designed to support **multi-agent orchestration across machines** - a capability that would be extremely difficult to replicate and represents a core competitive advantage:

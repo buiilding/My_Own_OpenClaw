@@ -15,7 +15,7 @@ This document is the practical plan for:
 - Deploying backend services.
 - Scaling from single-user local mode to multi-user hosted mode.
 
-For feature roadmap details, see `../product/FUTURE_PLAN.md`.
+For feature roadmap details, see `../planning/FUTURE_PLAN.md`.
 
 ## Target Modes
 

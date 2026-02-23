@@ -11,14 +11,14 @@ Single entrypoint for future work. Use this page first.
 
 ## Canonical Roadmap
 
-- Product roadmap and sequencing: `../product/FUTURE_PLAN.md`
+- Product roadmap and sequencing: `FUTURE_PLAN.md`
 - Deployment and hosting rollout: `../operations/DEPLOYMENT.md`
 - Plan tiers and limits:
-  - `../product/PLAN_MATRIX.md`
-  - `../product/BILLING_AND_USAGE.md`
-  - `../product/USAGE_LIMITS.md`
-  - `../product/SECURITY_AND_COMPLIANCE.md`
-  - `../product/DATABASE_SCHEMA.md`
+  - `PLAN_MATRIX.md`
+  - `BILLING_AND_USAGE.md`
+  - `USAGE_LIMITS.md`
+  - `SECURITY_AND_COMPLIANCE.md`
+  - `DATABASE_SCHEMA.md`
 
 ## Initiative Plans (Execution Tracks)
 
@@ -32,8 +32,7 @@ Single entrypoint for future work. Use this page first.
 
 ## Scope Rules
 
-- Put cross-product strategy in `../product/FUTURE_PLAN.md`.
+- Put cross-product strategy in `docs/planning/FUTURE_PLAN.md`.
 - Put implementation-track plans in `docs/planning/*.md`.
 - In feature docs (`architecture/*`, `getting-started/*`, root `README.md`), keep only short summaries and link back here.
 - When a plan ships, move behavior docs to the relevant stable area and remove/trim the planning item.
-
