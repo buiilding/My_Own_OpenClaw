@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(docs-structure): regroup `docs/` into topic subfolders (`getting-started`, `architecture`, `browser`, `development`, `operations`, `reference`, `product`, `planning`) and remove implemented `docs/planning/BROWSER_USE_PLAN.md`
 - docs(plan): add `docs/plan/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md` for safe natural-language self-configuration (TTS/screenshot/voice preference intents) and link it from docs index + future roadmap
 - fix(frontend-chatbox-focus): run a chatbox-only pre-query hook that restores the previously focused external Windows app before query system-state capture, preventing `active_window` from being captured as Desktop Assistant when chat pill queries are sent
 - fix(frontend-chatbox-input): block drag-start on chat pill interactive controls (`input`/editable/action areas) so users can immediately click/focus/type after startup and after response completion without needing Win+Alt+W hide/show refresh

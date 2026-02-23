@@ -216,6 +216,6 @@ If you add backend-only tools, document the wiring point in the same PR.
 ---
 
 See also:
-- [Tool System](TOOL_SYSTEM.md)
-- [Python Sidecar](PYTHON_SIDECAR.md)
-- [API Reference](API_REFERENCE.md)
+- [Tool System](../architecture/TOOL_SYSTEM.md)
+- [Python Sidecar](../architecture/PYTHON_SIDECAR.md)
+- [API Reference](../reference/API_REFERENCE.md)

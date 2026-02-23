@@ -663,5 +663,5 @@ tests/frontend/
 
 For more detailed information, see:
 - [Communication Flow](COMMUNICATION_FLOW.md)
-- [API Reference](API_REFERENCE.md)
+- [API Reference](../reference/API_REFERENCE.md)
 - [Tool System](TOOL_SYSTEM.md)

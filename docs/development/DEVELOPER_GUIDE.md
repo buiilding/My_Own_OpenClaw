@@ -148,7 +148,7 @@ frontend/src/
 ## Future: Productization Checklist (Planned)
 
 To ship to end users with subscriptions and usage limits, plan for:
-See `FUTURE_PLAN.md` and `DEPLOYMENT.md` for sequencing and deployment tracks.
+See `../product/FUTURE_PLAN.md` and `../operations/DEPLOYMENT.md` for sequencing and deployment tracks.
 
 ### Backend
 - Multi-tenant auth + session management
@@ -560,8 +560,8 @@ test: Add tests for tool execution
 
 ### Documentation
 
-- [Architecture Overview](ARCHITECTURE.md)
-- [API Reference](API_REFERENCE.md)
+- [Architecture Overview](../architecture/ARCHITECTURE.md)
+- [API Reference](../reference/API_REFERENCE.md)
 - [Tool Development Guide](TOOL_DEVELOPMENT.md)
 
 ### External Resources
@@ -574,5 +574,5 @@ test: Add tests for tool execution
 
 For more information, see:
 - [Tool Development Guide](TOOL_DEVELOPMENT.md)
-- [API Reference](API_REFERENCE.md)
+- [API Reference](../reference/API_REFERENCE.md)
 - [Contributing Guide](CONTRIBUTING.md)
