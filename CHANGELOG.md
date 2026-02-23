@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 14 execution slice for shared chat overlay-phase listener extraction (`ChatBox` + `ChatBoxResponse`) and helper regression coverage
 - refactor(frontend-message-list): dedupe repeated message `PropTypes` in `MessageList.jsx` via shared `messageShapePropType` while preserving message rendering behavior and existing MessageList class/thinking-display coverage
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 13 execution slice for `MessageList.jsx` prop-shape dedupe (shared message `PropTypes` constant) and validation gates
 - refactor(frontend-settings): dedupe repeated SettingsSection toggle JSX via shared `SettingsToggleField` and add `SettingsSection.test.jsx` regressions for wakeword toggle dispatch, config-update payload wiring, and suppressed-listening helper visibility
