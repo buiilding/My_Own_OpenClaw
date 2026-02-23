@@ -182,6 +182,28 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockSend).toHaveBeenCalledWith('move-chatbox-to', { x: 100, y: 108 });
   });
 
+  test('input interactions do not start drag movement', () => {
+    Object.defineProperty(window, 'screenX', {
+      value: 90,
+      configurable: true,
+      writable: true,
+    });
+    Object.defineProperty(window, 'screenY', {
+      value: 90,
+      configurable: true,
+      writable: true,
+    });
+
+    render(<ChatBox />);
+    const input = screen.getByPlaceholderText('Type a command…');
+
+    fireEvent.mouseDown(input, { button: 0, clientX: 10, clientY: 10, screenX: 100, screenY: 100 });
+    fireEvent.mouseMove(window, { clientX: 34, clientY: 30, screenX: 140, screenY: 130 });
+    fireEvent.mouseUp(window);
+
+    expect(mockSend).not.toHaveBeenCalledWith('move-chatbox-to', expect.anything());
+  });
+
   test('stop button calls stop-query when a response is active', () => {
     mockChatState.streamTracking.phase = 'streaming';
     render(<ChatBox />);

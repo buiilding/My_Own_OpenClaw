@@ -14,7 +14,9 @@ function isDragBlockedTarget(target) {
   if (!(target instanceof Element)) {
     return false;
   }
-  return Boolean(target.closest('button, a, [role="button"]'));
+  return Boolean(target.closest(
+    'button, a, [role="button"], input, textarea, select, option, label, [role="textbox"], [contenteditable=""], [contenteditable="true"], [contenteditable=true], .chatbox-input-wrap, .chatbox-actions',
+  ));
 }
 
 function SettingsIcon() {
