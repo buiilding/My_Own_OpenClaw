@@ -61,24 +61,66 @@
 .chat-window-control-btn {
   width: 24px;
   height: 24px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.03);
-  color: #d1d5de;
+  background: rgba(255, 255, 255, 0.09);
+  color: #e1e5ee;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.14s ease, color 0.14s ease;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
 }
 
 .chat-window-control-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.26);
   color: #f3f6fb;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+}
+
+.chat-window-control-btn:focus-visible {
+  outline: none;
+  border-color: rgba(142, 151, 165, 0.8);
+  box-shadow:
+    0 0 0 2px rgba(142, 151, 165, 0.28),
+    0 2px 12px rgba(0, 0, 0, 0.28);
+}
+
+.chat-window-control-minimize {
+  background: rgba(227, 168, 79, 0.78);
+  border-color: rgba(227, 168, 79, 0.9);
+  color: #ffffff;
+}
+
+.chat-window-control-minimize:hover {
+  background: rgba(227, 168, 79, 0.96);
+  border-color: rgba(227, 168, 79, 1);
+  color: #ffffff;
+}
+
+.chat-window-control-maximize {
+  background: rgba(43, 200, 102, 0.78);
+  border-color: rgba(43, 200, 102, 0.9);
+  color: #ffffff;
+}
+
+.chat-window-control-maximize:hover {
+  background: rgba(43, 200, 102, 0.96);
+  border-color: rgba(43, 200, 102, 1);
+  color: #ffffff;
+}
+
+.chat-window-control-close {
+  background: rgba(233, 89, 89, 0.78);
+  border-color: rgba(233, 89, 89, 0.88);
+  color: #ffffff;
 }
 
 .chat-window-control-close:hover {
-  background: rgba(233, 89, 89, 0.9);
+  background: rgba(233, 89, 89, 0.96);
+  border-color: rgba(233, 89, 89, 1);
   color: #ffffff;
 }
 
