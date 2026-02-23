@@ -58,7 +58,7 @@ npm run audit:knip
 - Wakeword bridge stale-buffer/stale-process restart behavior is covered by `tests/frontend/WakewordBridge.test.cjs`.
 - For CI parity: `cd frontend && npm run test:ci`.
 - Frontend tests use Jest + React Testing Library.
-- `tests/frontend/ToolRunnerHook.test.ts` covers backend-listener cleanup and malformed tool event guards to prevent false-positive dispatch behavior.
+- `tests/frontend/ToolRunnerHook.events.test.ts` and `tests/frontend/ToolRunnerHook.callbacks.test.ts` cover backend listener cleanup, malformed tool event guards, callback wiring, and stale-turn result drops.
 - Transcript/session persistence behavior is covered directly by `tests/frontend/TranscriptWriter.test.ts` and `tests/frontend/TranscriptSessionState.test.ts`.
 - Transcript storage/event and queue primitives are covered directly by `tests/frontend/TranscriptStorage.test.ts` and `tests/frontend/TranscriptPendingQueue.test.ts`.
 - Audio playback lifecycle behavior is covered directly by `tests/frontend/PlayerService.test.ts`.

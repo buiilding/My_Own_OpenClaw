@@ -1,0 +1,150 @@
+import { act, renderHook } from '@testing-library/react';
+
+import { IpcBridge, ON_CHANNELS, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { useToolRunner } from '../../frontend/src/renderer/features/chat/hooks/useToolRunner';
+import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import { recordToolMessage } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
+
+export const mockExecuteTool = jest.fn().mockResolvedValue(undefined);
+export const mockExecuteToolBundle = jest.fn().mockResolvedValue(undefined);
+let mockCapturedServiceCallbacks: any = null;
+let mockConfig = {
+  selected_model_id: 'test-model',
+  model_provider: 'test-provider',
+};
+const mockUseAppConfigContext = jest.fn(() => ({ config: mockConfig }));
+
+jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
+  useAppConfigContext: () => mockUseAppConfigContext(),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
+  recordToolMessage: jest.fn(),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/services/ToolExecutionService', () => ({
+  ToolExecutionService: jest.fn().mockImplementation((callbacks) => {
+    mockCapturedServiceCallbacks = callbacks;
+    return {
+      executeTool: mockExecuteTool,
+      executeToolBundle: mockExecuteToolBundle,
+    };
+  }),
+}));
+
+let backendHandler: ((data: unknown) => void) | null = null;
+let removeListener: jest.Mock;
+
+const STREAM_TRACKING_BASE = {
+  activeTurnRef: null,
+  phase: 'idle',
+  startedAt: null,
+  firstChunkAt: null,
+  completedAt: null,
+  lastEventAt: null,
+  lastEventType: null,
+  eventCount: 0,
+  chunkCount: 0,
+  toolCallCount: 0,
+  toolOutputCount: 0,
+  lastChunkSize: 0,
+  lastError: null,
+};
+
+export function createStreamTracking(overrides: Record<string, unknown> = {}) {
+  return {
+    ...STREAM_TRACKING_BASE,
+    ...overrides,
+  };
+}
+
+export function setStreamTracking(overrides: Record<string, unknown>) {
+  useChatStore.setState({
+    streamTracking: createStreamTracking(overrides),
+  });
+}
+
+export function setMockConfig(nextConfig: { selected_model_id: string; model_provider: string }) {
+  mockConfig = nextConfig;
+  mockUseAppConfigContext.mockReturnValue({ config: mockConfig });
+}
+
+export function getCapturedServiceCallbacks() {
+  return mockCapturedServiceCallbacks;
+}
+
+export function getRemoveListenerMock() {
+  return removeListener;
+}
+
+export function getToolExecutionServiceMock() {
+  return jest.requireMock(
+    '../../frontend/src/renderer/infrastructure/services/ToolExecutionService',
+  ).ToolExecutionService as jest.Mock;
+}
+
+export function renderToolRunner(enabled = true) {
+  return renderHook(() => useToolRunner(enabled));
+}
+
+export function renderToolRunnerWithProps(initialEnabled = true) {
+  return renderHook(
+    ({ enabled }) => useToolRunner(enabled),
+    { initialProps: { enabled: initialEnabled } },
+  );
+}
+
+export function emitBackendEvent(data: unknown) {
+  backendHandler?.(data);
+}
+
+export async function emitBackendEventAsync(data: unknown) {
+  await act(async () => {
+    backendHandler?.(data);
+  });
+}
+
+export function resetToolRunnerTestState() {
+  jest.clearAllMocks();
+  mockCapturedServiceCallbacks = null;
+  backendHandler = null;
+  setMockConfig({
+    selected_model_id: 'test-model',
+    model_provider: 'test-provider',
+  });
+  mockExecuteTool.mockResolvedValue(undefined);
+  mockExecuteToolBundle.mockResolvedValue(undefined);
+  removeListener = jest.fn();
+
+  useChatStore.setState({
+    messages: [],
+    isSending: false,
+    thinkingStatus: null,
+    tokenCounts: null,
+    streamTracking: createStreamTracking(),
+  });
+
+  (global as any).crypto = {
+    randomUUID: jest.fn(() => 'generated-id'),
+  };
+
+  jest.spyOn(IpcBridge, 'on').mockImplementation((channel: any, handler: any) => {
+    if (channel === ON_CHANNELS.FROM_BACKEND) {
+      backendHandler = handler;
+    }
+    return removeListener;
+  });
+  jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
+}
+
+export function restoreToolRunnerMocks() {
+  jest.restoreAllMocks();
+}
+
+export {
+  IpcBridge,
+  ON_CHANNELS,
+  SEND_CHANNELS,
+  useChatStore,
+  recordToolMessage,
+};

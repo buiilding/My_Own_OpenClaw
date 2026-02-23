@@ -9,6 +9,7 @@ import {
   updateTranscriptSession,
 } from '../../../../infrastructure/transcript/TranscriptWriter';
 import MemoryContextMenu from '../shared/MemoryContextMenu';
+import { useMemoryContextMenuHotkeys } from '../../hooks/useMemoryContextMenuHotkeys';
 import { useTranscriptSessionInfo } from '../../hooks/useTranscriptSessionInfo';
 import {
   buildConversationKey,
@@ -205,23 +206,12 @@ function EpisodicMemorySection({ onSelectSection }) {
     loadConversations();
   }, [loadConversations]);
 
-  useEffect(() => {
-    if (!contextMenu) {
-      return () => undefined;
-    }
-
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        closeContextMenu();
-        return;
-      }
-      if (event.key === 'Delete' && contextMenu?.conversation) {
-        deleteConversation(contextMenu.conversation);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [closeContextMenu, contextMenu, deleteConversation]);
+  useMemoryContextMenuHotkeys({
+    menu: contextMenu,
+    onClose: closeContextMenu,
+    onDelete: deleteConversation,
+    deleteTarget: contextMenu?.conversation,
+  });
 
   useEffect(() => {
     if (!selectedConversationKey) {
