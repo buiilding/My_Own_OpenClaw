@@ -26,6 +26,7 @@ Includes the last 300 commits on `main`.
 - docs(planning): delete implemented `docs/planning/STOP_BUTTON_END_TO_END_PLAN.md` and remove stale references from planning index/OS-layer UX doc
 - docs(planning): remove duplicate `docs/planning/WINDIEOS_SELF_UI_API_PLAN.md` and keep `docs/planning/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md` as the single self-configuration planning track
 - docs(overview): rewrite `docs/getting-started/OVERVIEW.md` to stay purpose-focused (current product overview only) and remove roadmap/planned-feature sections from the overview document
+- docs(planning): add `docs/planning/WINDIEOS_AGENT_TO_AGENT_COMMUNICATION_PLAN.md` with phased brokered protocol/policy design for safe inter-agent task handoff and collaboration across multi-VM runtime
 - fix(stop-query): track multiple concurrent query tasks per user in `SessionManager` and cancel all active tasks on `stop-query` to prevent orphaned tool waits from older turns
 - fix(tool-runner): when stale/ignored `tool-call` or `tool-bundle` events arrive after turn reset/stop, frontend now sends synthetic failure `tool-result`/`tool-bundle-result` (`frontend_stale_turn_cancelled`) so backend tool futures unblock instead of waiting indefinitely
 - fix(wakeword-audio): make renderer wakeword audio cleanup idempotent by safely closing `AudioContext`, nulling refs before async close, and using `void` stop/start effect calls to prevent `Cannot close a closed AudioContext` unhandled promise races that can interrupt tool-result flow

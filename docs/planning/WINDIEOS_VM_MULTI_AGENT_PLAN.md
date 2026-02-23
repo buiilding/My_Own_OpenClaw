@@ -31,7 +31,7 @@ In scope:
 Out of scope for initial rollout:
 - Cross-cloud/multi-region active-active from day one.
 - Full enterprise RBAC productization in V1.
-- Agent-to-agent autonomous collaboration without explicit policy gates.
+- Agent-to-agent autonomous collaboration without explicit policy gates (see `docs/planning/WINDIEOS_AGENT_TO_AGENT_COMMUNICATION_PLAN.md`).
 
 ## Baseline (Current Reality)
 
