@@ -1,42 +1,8 @@
 import {
   buildTokenCountItems,
-  formatTokenCount,
-  getActiveConversationTokenCount,
 } from '../../frontend/src/renderer/features/chat/utils/tokenCounts';
 
 describe('tokenCounts utils', () => {
-  test('formats numeric token counts with locale separators', () => {
-    expect(formatTokenCount(12345)).toBe('12,345');
-  });
-
-  test('defaults missing token counts to zero text', () => {
-    expect(formatTokenCount(undefined)).toBe('0');
-    expect(formatTokenCount(null)).toBe('0');
-  });
-
-  test('supports custom fallback text for missing values', () => {
-    expect(formatTokenCount(undefined, 'N/A')).toBe('N/A');
-  });
-
-  test('formats zero and decimal values', () => {
-    expect(formatTokenCount(0)).toBe('0');
-    expect(formatTokenCount(1234.5)).toBe('1,234.5');
-  });
-
-  test('returns active conversation tokens when available', () => {
-    expect(getActiveConversationTokenCount({
-      total_tokens: 300,
-      conversation_tokens: 120,
-    })).toBe('120');
-  });
-
-  test('falls back to total tokens when conversation tokens are missing', () => {
-    expect(getActiveConversationTokenCount({
-      total_tokens: 300,
-      conversation_tokens: undefined,
-    })).toBe('300');
-  });
-
   test('builds a single token count item for active conversation total', () => {
     const items = buildTokenCountItems({
       prompt_tokens: 10,
@@ -84,5 +50,35 @@ describe('tokenCounts utils', () => {
         value: 'Miss',
       }),
     );
+  });
+
+  test('formats conversation token values and falls back to total tokens', () => {
+    const withConversation = buildTokenCountItems({
+      total_tokens: 300,
+      conversation_tokens: 120,
+    });
+    expect(withConversation[0].value).toBe('120');
+
+    const withoutConversation = buildTokenCountItems({
+      total_tokens: 300,
+      conversation_tokens: undefined,
+    });
+    expect(withoutConversation[0].value).toBe('300');
+  });
+
+  test('defaults missing token counts to zero text', () => {
+    const missing = buildTokenCountItems({});
+    expect(missing[0].value).toBe('0');
+  });
+
+  test('formats zero, decimal, and large values', () => {
+    const zero = buildTokenCountItems({ conversation_tokens: 0 });
+    expect(zero[0].value).toBe('0');
+
+    const decimal = buildTokenCountItems({ conversation_tokens: 1234.5 });
+    expect(decimal[0].value).toBe('1,234.5');
+
+    const large = buildTokenCountItems({ conversation_tokens: 12345 });
+    expect(large[0].value).toBe('12,345');
   });
 });

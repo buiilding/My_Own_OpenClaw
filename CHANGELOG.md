@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- refactor(frontend-chat-utils): internalize test-only chat helper exports (message-send policy helpers, stream selector helper, message-input normalization helper, token-count formatting helpers) and update tests to validate behavior through public APIs
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 8 execution slice for chat helper export internalization and public-behavior test updates
 - refactor(frontend-knip-exports): prune helper-only exports in `query_payload_builder.cjs`, internalize test-only config helper exports in `configStorage.js`, remove `isFrontendConfigOnly` export from `configFilter.js`, and migrate config tests to explicit fixture/public-behavior assertions
 - docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with Phase 7 execution slice for query-payload/config helper export cleanup and test fixture-based assertion updates

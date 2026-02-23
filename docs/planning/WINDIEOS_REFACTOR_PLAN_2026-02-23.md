@@ -368,3 +368,29 @@ read_when:
   - `cd frontend && npm run test:ci -- tests/frontend/QueryPayloadBuilder.test.cjs tests/frontend/configStorage.test.js tests/frontend/configFilter.test.js` (pass)
   - `cd frontend && npm run test:ci` (pass)
   - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)
+
+## Phase 8 Outcome (2026-02-23)
+
+- Chat helper export cleanup shipped:
+  - de-exported private helper symbols from chat policy/utility modules:
+    - `defaultReturnToChatboxPolicyForSurface`
+    - `resolveReturnToChatboxOnSend`
+    - `selectStreamTracking`
+    - `normalizeMessageForSend`
+    - `formatTokenCount`
+    - `getActiveConversationTokenCount`
+  - kept runtime API entrypoints exported:
+    - `resolveMessageSendUiBehavior`
+    - `selectChatInterfaceState` and `selectChatBoxState`
+    - `buildOutgoingMessage`
+    - `buildTokenCountItems`
+- Test surface adjustments shipped:
+  - updated chat utility tests to assert public behavior paths instead of importing private helper symbols.
+- knip findings delta after Phase 8 slice:
+  - unused exports: `19 -> 13`
+  - unused exported types: `0 -> 0`
+- Verification:
+  - `cd frontend && npm run lint` (pass)
+  - `cd frontend && npm run test:ci -- tests/frontend/MessageSendUiPolicy.test.ts tests/frontend/ChatSelectors.test.js tests/frontend/MessageInputUtils.test.js tests/frontend/TokenCounts.test.js` (pass)
+  - `cd frontend && npm run test:ci` (pass)
+  - `cd frontend && npm run audit:knip` (remaining command non-zero from residual unused exports only)

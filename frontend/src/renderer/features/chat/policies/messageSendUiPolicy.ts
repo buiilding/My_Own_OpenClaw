@@ -13,7 +13,7 @@ type MessageSendUiBehavior = {
   shouldReturnToChatboxOnSend: boolean;
 };
 
-export function defaultReturnToChatboxPolicyForSurface(
+function defaultReturnToChatboxPolicyForSurface(
   senderSurface: ChatSendSurface,
 ): ReturnToChatboxPolicy {
   if (senderSurface === 'main-window') {
@@ -22,7 +22,7 @@ export function defaultReturnToChatboxPolicyForSurface(
   return 'never';
 }
 
-export function resolveReturnToChatboxOnSend(
+function resolveReturnToChatboxOnSend(
   returnToChatboxPolicy: ReturnToChatboxPolicy,
   includeQueryScreenshot: boolean,
 ): boolean {
