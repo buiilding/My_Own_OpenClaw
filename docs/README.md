@@ -33,7 +33,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 
 ### Development Guides
 - [**Developer Guide**](development/DEVELOPER_GUIDE.md) - Comprehensive development guide
-- Developer Guide includes local automation scripts (`bin/docs-list`, `scripts/check`, `scripts/test`, `scripts/check-loc.py`).
+- Developer Guide includes local automation scripts (`node scripts/doc-lists.js`, `scripts/check`, `scripts/test`, `scripts/check-loc.py`) and frontend audit commands (`npm run lint:audit`, `npm run audit:jscpd`, `npm run audit:knip`).
 - [**Dev Tool Selection**](development/DEV_TOOL_SELECTION.md) - Backend-only tool schema allow/denylist controls for development
 - [**Tool Development Guide**](development/TOOL_DEVELOPMENT.md) - Creating custom tools
 - [**API Reference**](reference/API_REFERENCE.md) - Complete API documentation
@@ -57,19 +57,11 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Security Guide**](operations/SECURITY.md) - Security considerations and best practices
 - [**Multi-User Runtime Hardening**](operations/MULTI_USER_RUNTIME_HARDENING.md) - Session identity, multi-device policy, and per-user model isolation guidance
 - [**Performance Guide**](operations/PERFORMANCE.md) - Performance optimization strategies
-- [**Mobile App Plan**](planning/WINDIEOS_MOBILE_APP_PLAN.md) - Phased plan for iOS/Android client architecture, capability negotiation, and rollout
-- [**VM Multi-Agent Plan**](planning/WINDIEOS_VM_MULTI_AGENT_PLAN.md) - One-agent-per-VM architecture, agent-port workflow, and user remote-control plan
-- [**Install Permission Onboarding Plan**](planning/WINDIEOS_INSTALL_PERMISSION_ONBOARDING_PLAN.md) - First-run permission-first wizard and capability gating plan
-- [**Self-Edit Config Plan**](planning/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md) - Natural-language user preference edits (for example TTS/screenshot attach toggles) through a safe allowlisted config path
+- [**Planning Hub**](planning/README.md) - Single entrypoint for roadmap and future initiative plans
 - [**Contributing Guide**](development/CONTRIBUTING.md) - How to contribute to the project
 
 ### Hosted Platform (Planned)
-- [**Future Product Plan (Draft)**](product/FUTURE_PLAN.md) - Feature sequencing and decision tracks
-- [**Billing & Usage (Planned)**](product/BILLING_AND_USAGE.md) - Subscriptions, entitlements, and usage limits
-- [**Security & Compliance (Planned)**](product/SECURITY_AND_COMPLIANCE.md) - Security posture and compliance roadmap
-- [**Plan Matrix (Draft)**](product/PLAN_MATRIX.md) - Subscription tiers and limits
-- [**Database Schema (Planned)**](product/DATABASE_SCHEMA.md) - Multi-tenant DB tables
-- [**Usage Limits (Planned)**](product/USAGE_LIMITS.md) - Rate limits + quota enforcement
+- [**Planning Hub**](planning/README.md) - Canonical list of hosted roadmap + initiative docs
 
 ## 🎯 Quick Navigation
 

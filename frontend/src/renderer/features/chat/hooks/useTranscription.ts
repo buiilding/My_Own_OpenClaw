@@ -52,7 +52,7 @@ export function useTranscription(initialValue: string = '') {
       transcriptionRegionRef.current = appended.region;
       return appended.value;
     });
-  }, []);
+  }, [setInputValue]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -67,7 +67,7 @@ export function useTranscription(initialValue: string = '') {
       );
       return newValue;
     });
-  }, []);
+  }, [setInputValue]);
 
   const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
     const pastedText = e.clipboardData.getData('text');
@@ -99,7 +99,7 @@ export function useTranscription(initialValue: string = '') {
     });
     
     e.preventDefault();
-  }, []);
+  }, [setInputValue]);
 
   return {
     inputValue,

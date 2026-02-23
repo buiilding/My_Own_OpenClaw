@@ -21,7 +21,7 @@ export function readSessionInfoFromStorage(): SessionInfo {
       conversationRef,
       userId: typeof parsed?.userId === 'string' ? parsed.userId : null,
     };
-  } catch (error) {
+  } catch (_error) {
     return { conversationRef: null, userId: null };
   }
 }
@@ -33,7 +33,7 @@ export function persistSessionInfoToStorage(info: SessionInfo): void {
 
   try {
     window.sessionStorage.setItem(TRANSCRIPT_SESSION_STORAGE_KEY, JSON.stringify(info));
-  } catch (error) {
+  } catch (_error) {
     // Ignore storage errors.
   }
 }

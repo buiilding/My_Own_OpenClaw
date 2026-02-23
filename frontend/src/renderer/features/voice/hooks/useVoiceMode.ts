@@ -101,13 +101,14 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
               }
               break;
 
-            case 'realtime':
+            case 'realtime': {
               // Transcription result
               const transcriptionText = data.translation || data.text || '';
               if (transcriptionText && onTranscriptionUpdateRef.current) {
                 onTranscriptionUpdateRef.current(transcriptionText, data.is_final === true || data.is_final === 'true');
               }
               break;
+            }
 
             case 'utterance_end':
               // Silence detected, trigger auto-send

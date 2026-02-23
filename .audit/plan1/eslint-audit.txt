@@ -1,0 +1,27 @@
+
+> desktop-assistant-frontend@0.6.1 lint:audit
+> npm run lint:audit:react && npm run lint:audit:deprecation
+
+
+> desktop-assistant-frontend@0.6.1 lint:audit:react
+> eslint . --ext js,jsx,cjs,ts,tsx --plugin react-compiler --rule 'react-compiler/react-compiler:error' --report-unused-disable-directives --max-warnings 0
+
+
+> desktop-assistant-frontend@0.6.1 lint:audit:deprecation
+> eslint "src/**/*.{ts,tsx}" --plugin deprecation --rule 'deprecation/deprecation:warn' --report-unused-disable-directives
+
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/features/voice/hooks/useVoiceMode.ts
+   37:32  warning  'ScriptProcessorNode' is deprecated. As of the August 29 2014 Web Audio API spec publication, this feature has been marked as deprecated, and was replaced by AudioWorklet (see AudioWorkletNode).
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/ScriptProcessorNode)  deprecation/deprecation
+  258:29  warning  'onaudioprocess' is deprecated. [MDN Reference](https://developer.mozilla.org/docs/Web/API/ScriptProcessorNode/audioprocess_event)                                                                                                                                                   deprecation/deprecation
+
+/mnt/E/Assistants/WindieOS_workspace/windieos/frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts
+   41:32  warning  'ScriptProcessorNode' is deprecated. As of the August 29 2014 Web Audio API spec publication, this feature has been marked as deprecated, and was replaced by AudioWorklet (see AudioWorkletNode).
+
+[MDN Reference](https://developer.mozilla.org/docs/Web/API/ScriptProcessorNode)  deprecation/deprecation
+  183:29  warning  'onaudioprocess' is deprecated. [MDN Reference](https://developer.mozilla.org/docs/Web/API/ScriptProcessorNode/audioprocess_event)                                                                                                                                                   deprecation/deprecation
+
+✖ 4 problems (0 errors, 4 warnings)
+

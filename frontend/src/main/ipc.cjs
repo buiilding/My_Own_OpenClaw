@@ -3,7 +3,7 @@
  * renderer process, and the Python backend.
  */
 
-const { ipcMain, BrowserWindow, app } = require('electron');
+const { ipcMain, app } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const WebSocket = require('ws');
@@ -18,7 +18,6 @@ const BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
 const BACKEND_HTTP_URL = BACKEND_ENDPOINTS.httpUrl;
 const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 let ws = null;
-let mainWindow = null;
 let rendererWindows = new Set();
 let isConnected = false;
 let reconnectInterval = 5000; // 5 seconds
@@ -91,11 +90,6 @@ function log(message) {
   if (process.env.NODE_ENV !== 'production') {
     console.log(`[IPC Bridge] ${message}`);
   }
-}
-
-function logDebug(message) {
-  // Debug logging - can be enabled for troubleshooting
-  // console.log(`[IPC Bridge] ${message}`);
 }
 
 function clearPendingSettingsSyncs() {
@@ -598,7 +592,6 @@ function broadcastQuerySendFailure({
  * @param {object} options - Optional lifecycle callbacks.
  */
 function initializeIpc(win, options = {}) {
-  mainWindow = win;
   onResponseOverlayPhaseChange = typeof options.onResponseOverlayPhaseChange === 'function'
     ? options.onResponseOverlayPhaseChange
     : null;

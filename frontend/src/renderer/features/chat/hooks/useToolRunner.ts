@@ -191,10 +191,11 @@ export function useToolRunner(enabled = true) {
     });
 
     toolServiceRef.current = toolService;
+    const trackedExecutionTurns = trackedExecutionTurnsRef.current;
 
     return () => {
       toolServiceRef.current = null;
-      trackedExecutionTurnsRef.current.clear();
+      trackedExecutionTurns.clear();
     };
   }, [
     addMessage,

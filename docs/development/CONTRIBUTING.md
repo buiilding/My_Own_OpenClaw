@@ -38,5 +38,7 @@ feat(frontend-dashboard): delete semantic memory entries
 
 - Full gate: `scripts/check`
 - Tests only: `scripts/test`
-- Docs sanity: `bin/docs-list`
+- Docs sanity: `node scripts/doc-lists.js`
+- Frontend lint: `cd frontend && npm run lint`
+- Frontend audits: `cd frontend && npm run lint:audit && npm run audit:jscpd && npm run audit:knip`
 - Frontend checks auto-skip when `frontend/node_modules` is missing.

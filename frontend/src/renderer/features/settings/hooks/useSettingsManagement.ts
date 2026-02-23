@@ -13,14 +13,14 @@ import { useCallback, useMemo } from 'react';
  * @returns {Object} - Object containing settings handlers
  */
 export function useSettingsManagement(
-  setConfig: (config: any) => void,
-  setAvailableModels: (models: any) => void,
-  setSaveStatus: (status: string) => void = () => {},
-  configBeforeSave: any = null,
-  saveTimeoutId: any = null,
-  lastSaveTimestamp: any = null
+  _setConfig: (config: unknown) => void,
+  setAvailableModels: (models: unknown) => void,
+  _setSaveStatus: (status: string) => void = () => {},
+  _configBeforeSave: unknown = null,
+  _saveTimeoutId: unknown = null,
+  _lastSaveTimestamp: unknown = null
 ) {
-  const handleModelsListed = useCallback((data: any) => {
+  const handleModelsListed = useCallback((data: { payload?: unknown }) => {
     setAvailableModels(data.payload);
   }, [setAvailableModels]);
 
