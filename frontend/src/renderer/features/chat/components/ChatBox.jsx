@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { ApiClient } from '../../../infrastructure/api/client';
-import { setActiveConversationRef } from '../../../infrastructure/transcript/TranscriptWriter';
+import { startNewChatSession } from '../utils/newChatSession';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 
 const CLICK_THROUGH_PHASES = new Set(['awaiting-first-chunk', 'streaming', 'tool-call', 'tool-output']);
@@ -209,14 +209,13 @@ function ChatBox() {
   }, [canStop, setIsSending, setThinkingStatus, updateStreamTracking]);
 
   const handleNewChat = useCallback(() => {
-    if (canStop) {
-      ApiClient.stopQuery();
-    }
-    clearMessages();
-    setIsSending(false);
-    setThinkingStatus(null);
-    setTokenCounts(null);
-    setActiveConversationRef(null);
+    startNewChatSession({
+      clearMessages,
+      setIsSending,
+      setThinkingStatus,
+      setTokenCounts,
+      stopActiveQuery: canStop ? () => ApiClient.stopQuery() : undefined,
+    });
     setInputValue('');
   }, [
     canStop,

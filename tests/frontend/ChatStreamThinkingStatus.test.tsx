@@ -12,6 +12,7 @@ let mockConfig = {
   selected_model_id: 'test-model',
   model_provider: 'test-provider',
 };
+let mockActiveConversationRef: string | null = null;
 const mockUseAppConfigContext = jest.fn(() => ({ config: mockConfig }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
@@ -19,6 +20,7 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
+  getActiveConversationRef: jest.fn(() => mockActiveConversationRef),
   recordAssistantMessage: jest.fn(),
   recordToolMessage: jest.fn(),
   updateTranscriptSession: jest.fn(),
@@ -49,6 +51,7 @@ describe('useChatStream', () => {
       selected_model_id: 'test-model',
       model_provider: 'test-provider',
     };
+    mockActiveConversationRef = null;
     mockUseAppConfigContext.mockReturnValue({ config: mockConfig });
     useChatStore.setState({
       messages: [
@@ -633,6 +636,50 @@ describe('useChatStream', () => {
     });
 
     expect(updateTranscriptSession).toHaveBeenCalledWith('conv-2', 'user-2');
+  });
+
+  test('ignores stale events when conversation_ref does not match active conversation', () => {
+    mockActiveConversationRef = 'conv-active';
+    const { emitBackendEvent } = registerBackendListener();
+    const beforeState = useChatStore.getState();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'streaming-response',
+        conversation_ref: 'conv-stale',
+        payload: { text: 'stale chunk' },
+      });
+    });
+
+    expect(useChatStore.getState()).toEqual(beforeState);
+    expect(updateTranscriptSession).not.toHaveBeenCalled();
+  });
+
+  test('still processes events that omit conversation_ref for compatibility', () => {
+    mockActiveConversationRef = 'conv-active';
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'token-count',
+        payload: {
+          prompt_tokens: 1,
+          visible_output_tokens: 1,
+          output_tokens_total: 1,
+          total_tokens: 2,
+          conversation_tokens: 2,
+          usage_source: 'provider',
+        },
+      });
+    });
+
+    expect(useChatStore.getState().tokenCounts).toEqual(
+      expect.objectContaining({
+        prompt_tokens: 1,
+        visible_output_tokens: 1,
+      }),
+    );
+    expect(updateTranscriptSession).toHaveBeenCalledWith(undefined, undefined);
   });
 
   test('preserves transcript session refs when backend event omits conversation and user ids', () => {

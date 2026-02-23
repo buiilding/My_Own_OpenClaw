@@ -155,6 +155,9 @@ class TokenCountEvent(StreamingEvent):
     total_tokens: int
     conversation_tokens: int
     usage_source: str
+    cached_tokens: Optional[int] = None
+    cache_hit: Optional[bool] = None
+    cache_status: Optional[str] = None
 
     def __post_init__(self):
         self.type = StreamingEventType.TOKEN_COUNT

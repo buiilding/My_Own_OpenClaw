@@ -10,6 +10,16 @@ Includes the last 300 commits on `main`.
 - docs(setup): expand `docs/PLATFORM_SETUP_BACKEND_FRONTEND.md` with RapidOCR 15s timeout diagnostics, CUDA/onnxruntime-gpu reinstall flow, and `WINDIE_PYTHON_PATH` usage for Electron sidecar Python 3.11
 - fix(frontend-electron): make `npm run electron` auto-fallback to `xvfb-run -a` when Linux has no `$DISPLAY`, reducing startup failures in headless/container dev environments
 - docs(setup): add `docs/PLATFORM_SETUP_BACKEND_FRONTEND.md` with Windows/Ubuntu/macOS instructions for Python 3.11 backend + sidecar environments, CUDA-aware torch/onnxruntime-gpu validation, and frontend npm dev/electron startup flow
+- feat(llm-cache): add Kimi `prompt_cache_key` steering (conversation-ref/session scoped), include cache-hit diagnostics (`cached_tokens`, `cache_hit`, `cache_status`) in `token-count` events, and surface cache status in chat token counters
+- fix(stop-query-logging): emit explicit backend INFO logs when frontend sends `stop-query` (cancellation signaled / no-active-task), and log query-task cancellation propagation in `QueryMessageHandler`
+- docs(memory-system): add a reusable local-memory reset command (nuke episodic/semantic SQLite, FAISS indices, watermark) for dev machines
+- fix(llm-stream): replace the global `tools => non-stream` gate with provider capability checks and enable Kimi Coding tool-turn streaming so `llm-thought` tokens can stream during tool-calling turns while still finalizing structured `tool_calls`
+- docs(docs-structure): regroup `docs/` into topic subfolders (`getting-started`, `architecture`, `browser`, `development`, `operations`, `reference`, `product`, `planning`) and remove implemented `docs/planning/BROWSER_USE_PLAN.md`
+- docs(planning): remove implemented `docs/planning/CONVERSATION_REF_RESUME_PLAN.md` from planning docs set
+- fix(chat-new-session): mint fresh `conversation_ref` immediately on `New Chat` and ignore stale backend stream events from other conversations to prevent cross-chat leakage
+- refactor(chat-new-session): centralize New Chat reset flow in `frontend/src/renderer/features/chat/utils/newChatSession.ts` and reuse shared conversation-ref generator
+- test(chat-stream): add regression coverage for stale `conversation_ref` event filtering and compatibility for events without conversation refs
+- docs(planning): remove implemented `docs/planning/WINDIEOS_NEW_CHAT_SESSION_PLAN.md` and document shipped New Chat behavior in `docs/getting-started/USER_GUIDE.md`
 - docs(plan): add `docs/plan/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md` for safe natural-language self-configuration (TTS/screenshot/voice preference intents) and link it from docs index + future roadmap
 - fix(frontend-chatbox-focus): run a chatbox-only pre-query hook that restores the previously focused external Windows app before query system-state capture, preventing `active_window` from being captured as Desktop Assistant when chat pill queries are sent
 - fix(frontend-chatbox-input): block drag-start on chat pill interactive controls (`input`/editable/action areas) so users can immediately click/focus/type after startup and after response completion without needing Win+Alt+W hide/show refresh

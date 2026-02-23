@@ -49,6 +49,40 @@ describe('tokenCounts utils', () => {
 
     expect(items).toEqual([
       { key: 'conversation_tokens', label: 'Conversation Total', className: '', value: '40' },
+      { key: 'cache_status', label: 'Cache', className: '', value: 'Unknown' },
     ]);
+  });
+
+  test('shows cache hit details when cached tokens are present', () => {
+    const items = buildTokenCountItems({
+      conversation_tokens: 40,
+      cached_tokens: 128,
+      cache_status: 'hit',
+      cache_hit: true,
+    });
+
+    expect(items[1]).toEqual(
+      expect.objectContaining({
+        key: 'cache_status',
+        label: 'Cache',
+        className: 'token-count-cache-hit',
+        value: 'Hit (128 cached)',
+      }),
+    );
+  });
+
+  test('shows cache miss when provider reports miss', () => {
+    const items = buildTokenCountItems({
+      conversation_tokens: 40,
+      cache_status: 'miss',
+      cache_hit: false,
+    });
+
+    expect(items[1]).toEqual(
+      expect.objectContaining({
+        key: 'cache_status',
+        value: 'Miss',
+      }),
+    );
   });
 });

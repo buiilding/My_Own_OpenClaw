@@ -483,5 +483,5 @@ When reporting issues, include:
 
 For more help, see:
 - [Installation Guide](INSTALLATION.md)
-- [Configuration Guide](CONFIGURATION.md)
-- [Developer Guide](DEVELOPER_GUIDE.md)
+- [Configuration Guide](../operations/CONFIGURATION.md)
+- [Developer Guide](../development/DEVELOPER_GUIDE.md)

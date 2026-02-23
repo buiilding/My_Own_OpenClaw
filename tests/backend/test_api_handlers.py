@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from contextlib import suppress
 from typing import Any, Dict, List, Optional
 
@@ -152,6 +153,32 @@ class DummyAssistantFullThenCompleteAgent:
     ):
         yield {"type": "assistant_message_full", "content": "Final answer from assistant full"}
         yield {"type": "streaming-complete", "payload": {}}
+
+
+class DummyBlockingAgent:
+    def __init__(self, started_event: asyncio.Event):
+        self.cfg = AppConfig()
+        self.user_id = "user_1"
+        self.session_id = "session_1"
+        self._started_event = started_event
+
+    async def process_query(
+        self,
+        text,
+        image_data=None,
+        message_content=None,
+        conversation_ref=None,
+    ):
+        self._started_event.set()
+        await asyncio.sleep(3600)
+        if False:
+            yield {
+                "type": "chunk",
+                "content": text,
+                "image_data": image_data,
+                "message_content": message_content,
+                "conversation_ref": conversation_ref,
+            }
 
 
 class DummySessionManager:
@@ -411,6 +438,44 @@ async def test_query_handler_backfills_chunk_from_assistant_full_before_completi
     assert second_event.content == "Final answer from assistant full"
     assert isinstance(third_event, StreamingCompleteEvent)
     assert third_event.final_response == "Final answer from assistant full"
+
+
+@pytest.mark.asyncio
+async def test_query_handler_logs_when_active_query_is_cancelled(caplog):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    started_event = asyncio.Event()
+    session_manager.session = DummyBlockingAgent(started_event)
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+    caplog.set_level(logging.INFO, logger="backend.src.api.handlers.query")
+
+    message = QueryMessage(
+        id="msg_cancelled_1",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "long running query",
+            "conversation_ref": "conv_cancelled_1",
+            "content": "<user_query>long running query</user_query>",
+        },
+    )
+
+    task = asyncio.create_task(handler.handle(message, websocket, "user_1"))
+    await asyncio.wait_for(started_event.wait(), timeout=1.0)
+    canceled = session_manager.cancel_active_query_task("user_1")
+
+    assert canceled == ("msg_cancelled_1", "conv_cancelled_1")
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert any(
+        "[Query Cancelled] Active query task cancelled" in record.message
+        and "turn_ref=msg_cancelled_1" in record.message
+        and "conversation_ref=conv_cancelled_1" in record.message
+        for record in caplog.records
+    )
 
 
 @pytest.mark.asyncio
@@ -677,10 +742,13 @@ def test_query_execution_extract_streaming_complete_text_uses_payload_or_top_lev
 
 
 @pytest.mark.asyncio
-async def test_stop_query_handler_cancels_active_query_and_emits_streaming_complete():
+async def test_stop_query_handler_cancels_active_query_and_emits_streaming_complete(
+    caplog,
+):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     handler = StopQueryHandler(session_manager)
+    caplog.set_level(logging.INFO, logger="backend.src.api.handlers.stop_query")
 
     loop = asyncio.get_running_loop()
     pending_task = loop.create_task(asyncio.sleep(3600))
@@ -712,6 +780,12 @@ async def test_stop_query_handler_cancels_active_query_and_emits_streaming_compl
     assert response["session_id"] == "session_active_1"
     assert response["user_id"] == "user_1"
     assert response["payload"] == {}
+    assert any(
+        "[Stop Query] User requested stop; cancellation signaled" in record.message
+        and "user_id=user_1" in record.message
+        and "turn_ref=turn_active_1" in record.message
+        for record in caplog.records
+    )
     pending_task.cancel()
     with suppress(asyncio.CancelledError):
         await pending_task

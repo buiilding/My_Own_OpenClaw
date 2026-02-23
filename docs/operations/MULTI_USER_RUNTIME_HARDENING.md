@@ -99,7 +99,7 @@ Before shared deployment:
 
 ## Related Docs
 
-- `docs/SECURITY.md`
-- `docs/COMMUNICATION_FLOW.md`
-- `docs/MEMORY_SYSTEM.md`
-- `docs/SECURITY_AND_COMPLIANCE.md`
+- `docs/operations/SECURITY.md`
+- `docs/architecture/COMMUNICATION_FLOW.md`
+- `docs/architecture/MEMORY_SYSTEM.md`
+- `docs/product/SECURITY_AND_COMPLIANCE.md`

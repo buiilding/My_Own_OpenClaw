@@ -233,14 +233,14 @@ Read the file README.md
 
 ## Next Steps
 
-- **Read the Documentation**: See [Documentation Index](README.md)
-- **Configure Settings**: See [Configuration Guide](CONFIGURATION.md)
-- **Develop Tools**: See [Tool Development Guide](TOOL_DEVELOPMENT.md)
-- **Understand Architecture**: See [Architecture Overview](ARCHITECTURE.md)
+- **Read the Documentation**: See [Documentation Index](../README.md)
+- **Configure Settings**: See [Configuration Guide](../operations/CONFIGURATION.md)
+- **Develop Tools**: See [Tool Development Guide](../development/TOOL_DEVELOPMENT.md)
+- **Understand Architecture**: See [Architecture Overview](../architecture/ARCHITECTURE.md)
 
 ## Getting Help
 
-- **Documentation**: See [Documentation Index](README.md)
+- **Documentation**: See [Documentation Index](../README.md)
 - **Troubleshooting**: See [Troubleshooting Guide](TROUBLESHOOTING.md)
 - **Issues**: Check GitHub Issues
 - **Discussions**: Check GitHub Discussions

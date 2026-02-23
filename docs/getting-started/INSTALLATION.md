@@ -239,7 +239,7 @@ Packaged builds look for Python in this order:
 4. system `python3` (macOS/Linux) or `py` (Windows)
 
 For full frontend-only installer workflow (bundled runtime build + packaging),
-see `docs/SIDECAR_RUNTIME_PACKAGING.md`.
+see `docs/operations/SIDECAR_RUNTIME_PACKAGING.md`.
 
 ## Verification
 
@@ -341,13 +341,13 @@ node --version  # Should be 18+
 
 After installation:
 
-1. **Configure Settings**: See [Configuration Guide](CONFIGURATION.md)
+1. **Configure Settings**: See [Configuration Guide](../operations/CONFIGURATION.md)
 2. **Quick Start**: See [Quick Start Guide](QUICK_START.md)
-3. **Read Documentation**: See [Documentation Index](README.md)
+3. **Read Documentation**: See [Documentation Index](../README.md)
 
 ---
 
 For more help, see:
 - [Troubleshooting Guide](TROUBLESHOOTING.md)
-- [Configuration Guide](CONFIGURATION.md)
+- [Configuration Guide](../operations/CONFIGURATION.md)
 - [Quick Start Guide](QUICK_START.md)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
@@ -12,6 +13,8 @@ from backend.src.api.transport.protocol import WebSocketSender
 
 if TYPE_CHECKING:
     from backend.src.agent.session.manager import SessionManager
+
+logger = logging.getLogger(__name__)
 
 
 class StopQueryHandler(TypedMessageHandler[StopQueryMessage]):
@@ -43,6 +46,21 @@ class StopQueryHandler(TypedMessageHandler[StopQueryMessage]):
                     context["turn_ref"] = turn_ref
                 if conversation_ref:
                     context["conversation_ref"] = conversation_ref
+                logger.info(
+                    "[Stop Query] User requested stop; cancellation signaled "
+                    "(user_id=%s, turn_ref=%s, conversation_ref=%s, session_id=%s)",
+                    user_id,
+                    turn_ref,
+                    conversation_ref,
+                    context.get("session_id"),
+                )
+            else:
+                logger.info(
+                    "[Stop Query] User requested stop but no active query task was running "
+                    "(user_id=%s, session_id=%s)",
+                    user_id,
+                    context.get("session_id"),
+                )
 
             # Always emit completion so frontend leaves active streaming state.
             await send_success_response(
@@ -53,4 +71,10 @@ class StopQueryHandler(TypedMessageHandler[StopQueryMessage]):
                 context=context,
             )
         except Exception as exc:  # pragma: no cover - defensive error path
+            logger.error(
+                "[Stop Query] Failed to process stop request (user_id=%s): %s",
+                user_id,
+                exc,
+                exc_info=True,
+            )
             await send_error_response(websocket, message.id, None, exception=exc)

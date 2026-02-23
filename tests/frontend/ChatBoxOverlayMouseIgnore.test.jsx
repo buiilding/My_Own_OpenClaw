@@ -234,6 +234,6 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(mockSetIsSending).toHaveBeenCalledWith(false);
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null);
     expect(mockSetTokenCounts).toHaveBeenCalledWith(null);
-    expect(mockSetActiveConversationRef).toHaveBeenCalledWith(null);
+    expect(mockSetActiveConversationRef).toHaveBeenCalledWith(expect.stringMatching(/^conv_/));
   });
 });

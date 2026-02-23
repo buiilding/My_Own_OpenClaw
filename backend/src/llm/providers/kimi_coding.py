@@ -33,6 +33,13 @@ class KimiCodingProvider(LLMProvider):
         if not self.api_key:
             raise ValueError("KimiCodingProvider requires an 'api_key'.")
 
+    def supports_streaming_tool_turns(self, model: str) -> bool:
+        """
+        Kimi stream path accumulates and finalizes tool-call payloads safely.
+        """
+        _ = model
+        return True
+
     async def get_completion(
         self,
         model: str,
@@ -40,6 +47,7 @@ class KimiCodingProvider(LLMProvider):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> NormalizedLLMResponse:
         params = self._build_request_params(
             model,
@@ -47,6 +55,7 @@ class KimiCodingProvider(LLMProvider):
             tools=tools,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
         )
         params["custom_llm_provider"] = "anthropic"
         return await self._get_completion_with_standard_errors(
@@ -62,6 +71,7 @@ class KimiCodingProvider(LLMProvider):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """Internal streaming implementation. Exceptions bubble up to base class."""
         params = self._build_request_params(
@@ -70,6 +80,7 @@ class KimiCodingProvider(LLMProvider):
             tools=tools,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
         )
         params["custom_llm_provider"] = "anthropic"
         params["stream"] = True

@@ -15,7 +15,7 @@ This document is the practical plan for:
 - Deploying backend services.
 - Scaling from single-user local mode to multi-user hosted mode.
 
-For feature roadmap details, see `FUTURE_PLAN.md`.
+For feature roadmap details, see `../product/FUTURE_PLAN.md`.
 
 ## Target Modes
 
@@ -50,7 +50,7 @@ Bundled sidecar-runtime packaging profile:
 - `npm run package:win:bundled-python`
 - `npm run package:mac:bundled-python`
 - `npm run package:linux:bundled-python`
-- runtime build guide: `docs/SIDECAR_RUNTIME_PACKAGING.md`
+- runtime build guide: `docs/operations/SIDECAR_RUNTIME_PACKAGING.md`
 
 ### Signing & update channels
 - Signing required before production rollout (macOS notarization, Windows signing).

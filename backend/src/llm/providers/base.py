@@ -70,6 +70,7 @@ class LLMProvider(ABC):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> NormalizedLLMResponse:
         """
         Gets a completion from the LLM and returns a normalized response.
@@ -141,6 +142,7 @@ class LLMProvider(ABC):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Public streaming method with uniform error handling.
@@ -159,6 +161,7 @@ class LLMProvider(ABC):
                 tools=tools,
                 tool_choice=tool_choice,
                 parallel_tool_calls=parallel_tool_calls,
+                prompt_cache_key=prompt_cache_key,
             ):
                 yield event
         except litellm_exceptions.RateLimitError as e:
@@ -203,6 +206,16 @@ class LLMProvider(ABC):
     ) -> None:
         """Store normalized stream payload for downstream tool-call handling."""
         self._last_stream_response_payload = copy.deepcopy(payload)
+
+    def supports_streaming_tool_turns(self, model: str) -> bool:
+        """
+        Return whether tool-enabled turns can safely use stream transport.
+
+        Default is conservative: providers must opt in once stream payloads are
+        known to reliably include final tool-call metadata.
+        """
+        _ = model
+        return False
 
     def get_stream_cache_diagnostics(self, model: str) -> Dict[str, Any]:
         """
@@ -460,6 +473,7 @@ class LLMProvider(ABC):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Internal streaming implementation.
@@ -487,6 +501,7 @@ class LLMProvider(ABC):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> dict:
         """
         Helper to construct the basic request parameters for LiteLLM.
@@ -524,6 +539,10 @@ class LLMProvider(ABC):
             params["tool_choice"] = tool_choice
         if parallel_tool_calls is not None:
             params["parallel_tool_calls"] = parallel_tool_calls
+        if isinstance(prompt_cache_key, str):
+            normalized_key = prompt_cache_key.strip()
+            if normalized_key:
+                params["prompt_cache_key"] = normalized_key
         return params
 
     @staticmethod

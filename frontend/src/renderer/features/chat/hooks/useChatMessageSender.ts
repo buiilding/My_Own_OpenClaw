@@ -27,6 +27,7 @@ import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,
 } from '../policies/messageSendUiPolicy';
+import { createConversationRef } from '../utils/conversationRef';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -73,7 +74,7 @@ export function useChatMessageSender(
     if (activeRef) {
       return activeRef;
     }
-    const generatedRef = `conv_${crypto.randomUUID()}`;
+    const generatedRef = createConversationRef();
     setActiveConversationRef(generatedRef);
     return generatedRef;
   }, []);

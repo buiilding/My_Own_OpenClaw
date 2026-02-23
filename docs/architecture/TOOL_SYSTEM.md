@@ -400,7 +400,7 @@ No dual-shape fallback is supported in provider transport.
 
 ### Browser Tools
 
-- **browser**: Browser automation and extraction tool (connect/navigation/snapshot/actions/extract); see `docs/BROWSER_CONTROL.md` and `docs/BROWSER_CONTROL_RUN.md` for full action contracts and runbook usage.
+- **browser**: Browser automation and extraction tool (connect/navigation/snapshot/actions/extract); see `docs/browser/BROWSER_CONTROL.md` and `docs/browser/BROWSER_CONTROL_RUN.md` for full action contracts and runbook usage.
 
 **Note**: The backend advertises a fixed set of remote tool schemas (LLM-callable). The sidecar may register additional helpers, but only tools listed in `frontend/src/main/python/tools/registry.py` `EXPOSED_TO_BACKEND_TOOLS` are available for LLM tool calling.
 
@@ -483,6 +483,6 @@ async def test_tool_execution_flow():
 ---
 
 For more detailed information, see:
-- [Tool Development Guide](TOOL_DEVELOPMENT.md)
-- [API Reference](API_REFERENCE.md)
+- [Tool Development Guide](../development/TOOL_DEVELOPMENT.md)
+- [API Reference](../reference/API_REFERENCE.md)
 - [Backend Architecture](BACKEND_ARCHITECTURE.md)

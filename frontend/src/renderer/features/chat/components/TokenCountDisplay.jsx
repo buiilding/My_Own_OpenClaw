@@ -28,6 +28,9 @@ TokenCountDisplay.propTypes = {
   tokenCounts: PropTypes.shape({
     total_tokens: PropTypes.number,
     conversation_tokens: PropTypes.number,
+    cached_tokens: PropTypes.number,
+    cache_hit: PropTypes.bool,
+    cache_status: PropTypes.oneOf(['hit', 'miss', 'unknown']),
   }),
 };
 

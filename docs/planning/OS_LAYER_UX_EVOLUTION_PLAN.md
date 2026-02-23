@@ -18,7 +18,7 @@ Implement the five UX directions below using the current Electron + backend + Py
 4. Trust dial + approval friction system.
 5. Ambient context indicators.
 
-This plan is intentionally compatible with `docs/plan/STOP_BUTTON_END_TO_END_PLAN.md` and assumes Stop/cancel semantics are part of the same UX surface.
+This plan is intentionally compatible with `docs/planning/STOP_BUTTON_END_TO_END_PLAN.md` and assumes Stop/cancel semantics are part of the same UX surface.
 
 ## Codebase Reality (Current Baseline)
 
@@ -210,7 +210,7 @@ Acceptance:
 
 ## Cross-Cutting Dependency: Stop/Cancel
 
-This UX plan should not ship without the stop-path contract from `docs/plan/STOP_BUTTON_END_TO_END_PLAN.md`.
+This UX plan should not ship without the stop-path contract from `docs/planning/STOP_BUTTON_END_TO_END_PLAN.md`.
 
 Required integration points:
 

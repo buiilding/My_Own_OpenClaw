@@ -239,7 +239,7 @@ Identity notes:
 - Usage: Tool execution complete
 
 **`llm-thought`**
-- Purpose: LLM thinking tokens (Gemini)
+- Purpose: LLM thinking tokens from providers/models that expose reasoning deltas (for example Gemini and Kimi Coding).
 - Payload: `{ status: string }`
 - Usage: Display reasoning
 
@@ -284,7 +284,7 @@ Identity notes:
 
 **`token-count`**
 - Purpose: Token usage metrics for the current turn/conversation.
-- Payload: `{ prompt_tokens, output_tokens_total, total_tokens, conversation_tokens, ... }`
+- Payload: `{ prompt_tokens, visible_output_tokens, thinking_tokens, output_tokens_total, total_tokens, conversation_tokens, usage_source, cached_tokens?, cache_hit?, cache_status? }`
 
 **`memory-store`**
 - Purpose: Request sidecar memory persistence.
@@ -518,4 +518,4 @@ Settings are persisted locally and synced to the backend session:
 For more detailed information, see:
 - [Frontend Architecture](FRONTEND_ARCHITECTURE.md)
 - [Backend Architecture](BACKEND_ARCHITECTURE.md)
-- [API Reference](API_REFERENCE.md)
+- [API Reference](../reference/API_REFERENCE.md)

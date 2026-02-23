@@ -137,7 +137,7 @@ Let users change common behavior (speech replies, screenshot attach, voice mode)
 - M3: optional structured tool path for broader language with strict schema validation.
 
 Implementation details tracked in:
-- `docs/plan/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md`
+- `docs/planning/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md`
 
 ### 7) Student Chat Mode UX
 

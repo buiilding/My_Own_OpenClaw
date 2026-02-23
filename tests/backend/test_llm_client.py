@@ -7,10 +7,18 @@ from backend.src.llm.client import LiteLLMClient
 
 
 class DummyProvider:
-    def __init__(self, response=None, stream_events=None, diagnostics=None, stream_payload=None):
+    def __init__(
+        self,
+        response=None,
+        stream_events=None,
+        diagnostics=None,
+        stream_payload=None,
+        supports_streaming_tool_turns=False,
+    ):
         self.response = response
         self.stream_events = stream_events or []
         self.stream_payload = stream_payload
+        self._supports_streaming_tool_turns = supports_streaming_tool_turns
         self.diagnostics = diagnostics or {
             "model": "model",
             "status": "unknown",
@@ -46,6 +54,10 @@ class DummyProvider:
     def get_last_stream_response_payload(self):
         return self.stream_payload
 
+    def supports_streaming_tool_turns(self, model):
+        _ = model
+        return self._supports_streaming_tool_turns
+
 
 class FailingStreamProvider:
     async def get_completion(self, model, messages, **kwargs):
@@ -73,6 +85,10 @@ class FailingStreamProvider:
 
     def get_last_stream_response_payload(self):
         return None
+
+    def supports_streaming_tool_turns(self, model):
+        _ = model
+        return False
 
 
 @pytest.mark.asyncio
@@ -331,6 +347,27 @@ async def test_get_completion_response_forwards_native_tool_calling_params(monke
 
 
 @pytest.mark.asyncio
+async def test_get_completion_response_forwards_prompt_cache_key(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(response={"content": "ok"})
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    _ = await client.get_completion_response(
+        "model",
+        [],
+        prompt_cache_key="conv-123",
+    )
+
+    assert provider.last_completion_kwargs == {
+        "tools": None,
+        "tool_choice": None,
+        "parallel_tool_calls": None,
+        "prompt_cache_key": "conv-123",
+    }
+
+
+@pytest.mark.asyncio
 async def test_get_completion_response_normalizes_tool_calls(monkeypatch):
     cfg = AppConfig()
     client = LiteLLMClient(cfg)
@@ -400,3 +437,48 @@ async def test_native_tool_calling_params_and_tool_calls_always_preserved(monkey
         "parallel_tool_calls": True,
     }
     assert response["tool_calls"] == [{"id": "call_1", "name": "read_file", "arguments": {}}]
+
+
+@pytest.mark.asyncio
+async def test_get_completion_stream_forwards_prompt_cache_key(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(stream_events=[ChunkEvent(content="ok")])
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    _ = [
+        event
+        async for event in client.get_completion_stream(
+            "model",
+            [],
+            prompt_cache_key="conv-xyz",
+        )
+    ]
+
+    assert provider.last_stream_kwargs == {
+        "tools": None,
+        "tool_choice": None,
+        "parallel_tool_calls": None,
+        "prompt_cache_key": "conv-xyz",
+    }
+
+
+def test_supports_streaming_tool_turns_delegates_to_provider(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+    provider = DummyProvider(supports_streaming_tool_turns=True)
+    monkeypatch.setattr("backend.src.llm.client.get_provider", lambda *_: provider)
+
+    assert client.supports_streaming_tool_turns("model") is True
+
+
+def test_supports_streaming_tool_turns_falls_back_to_false_on_provider_error(monkeypatch):
+    cfg = AppConfig()
+    client = LiteLLMClient(cfg)
+
+    def raise_provider(*_args, **_kwargs):
+        raise ValueError("missing provider")
+
+    monkeypatch.setattr("backend.src.llm.client.get_provider", raise_provider)
+
+    assert client.supports_streaming_tool_turns("model") is False

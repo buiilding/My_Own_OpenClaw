@@ -50,6 +50,9 @@ export interface TokenCounts {
   total_tokens?: number;
   conversation_tokens?: number;
   usage_source?: 'provider' | 'estimated';
+  cached_tokens?: number | null;
+  cache_hit?: boolean | null;
+  cache_status?: 'hit' | 'miss' | 'unknown' | null;
 }
 
 export type StreamPhase =

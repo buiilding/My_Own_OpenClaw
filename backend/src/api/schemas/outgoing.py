@@ -179,6 +179,9 @@ class TokenCountPayload(BaseModel):
     total_tokens: int
     conversation_tokens: int
     usage_source: Literal["provider", "estimated"]
+    cached_tokens: Optional[int] = None
+    cache_hit: Optional[bool] = None
+    cache_status: Optional[Literal["hit", "miss", "unknown"]] = None
 
 
 class TokenCountMessage(BaseMessage):

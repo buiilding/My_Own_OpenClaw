@@ -30,6 +30,10 @@
   font-weight: 700;
 }
 
+.token-count-item.token-count-cache-hit .token-value {
+  color: var(--accent);
+}
+
 @media (max-width: 720px) {
   .token-count-display {
     width: 100%;

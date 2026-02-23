@@ -38,6 +38,9 @@ class TokenCounts(NamedTuple):
     total_tokens: int
     conversation_tokens: int
     usage_source: str
+    cached_tokens: Optional[int]
+    cache_hit: Optional[bool]
+    cache_status: Optional[str]
 
 
 class LLMStreamProcessor:
@@ -88,6 +91,7 @@ class LLMStreamProcessor:
         llm_start_time = time.perf_counter()
         model_id = self.session.cfg.selected_model_id
         turn = self._log_prompt_cache_hint(prompt, model_id)
+        prompt_cache_key = self._resolve_prompt_cache_key()
         self._last_response_payload = None
         logger.info(
             "[Timing] LLM request started (session=%s, turn=%s, model=%s)",
@@ -104,6 +108,7 @@ class LLMStreamProcessor:
                     tools=tools,
                     tool_choice=tool_choice,
                     parallel_tool_calls=parallel_tool_calls,
+                    prompt_cache_key=prompt_cache_key,
                 )
                 full_text = response.get("content", "")
                 self._last_response_payload = response
@@ -122,6 +127,7 @@ class LLMStreamProcessor:
                     tools=tools,
                     tool_choice=tool_choice,
                     parallel_tool_calls=parallel_tool_calls,
+                    prompt_cache_key=prompt_cache_key,
                 ):
                     if first_token_time is None:
                         first_token_time = time.perf_counter()
@@ -177,6 +183,9 @@ class LLMStreamProcessor:
                 total_tokens=token_counts.total_tokens,
                 conversation_tokens=token_counts.conversation_tokens,
                 usage_source=token_counts.usage_source,
+                cached_tokens=token_counts.cached_tokens,
+                cache_hit=token_counts.cache_hit,
+                cache_status=token_counts.cache_status,
             )
 
             llm_total_time = time.perf_counter() - llm_start_time
@@ -211,10 +220,28 @@ class LLMStreamProcessor:
         model_id: str,
     ) -> bool:
         """
-        Use non-stream completion whenever tool-calling is enabled.
+        Use non-stream completion for tool turns unless provider explicitly opts in.
         """
-        _ = model_id  # Reserved for future provider-specific routing.
-        return bool(tools)
+        if not tools:
+            return False
+
+        capability_checker = getattr(
+            self.llm_client,
+            "supports_streaming_tool_turns",
+            None,
+        )
+        if not callable(capability_checker):
+            return True
+
+        try:
+            supports_streaming = bool(capability_checker(model_id))
+        except Exception:
+            logger.warning(
+                "Provider streaming tool-turn capability check failed; using non-stream fallback.",
+                exc_info=True,
+            )
+            return True
+        return not supports_streaming
 
     async def _iter_completion_stream(
         self,
@@ -223,14 +250,23 @@ class LLMStreamProcessor:
         tools: Optional[List[Dict[str, Any]]],
         tool_choice: Optional[Any],
         parallel_tool_calls: Optional[bool],
+        prompt_cache_key: Optional[str],
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """Stream completion using native tool-calling transport params."""
+        request_kwargs: Dict[str, Any] = {
+            "model": model_id,
+            "messages": prompt,
+            "tools": tools,
+            "tool_choice": tool_choice,
+            "parallel_tool_calls": parallel_tool_calls,
+        }
+        if isinstance(prompt_cache_key, str):
+            normalized_cache_key = prompt_cache_key.strip()
+            if normalized_cache_key:
+                request_kwargs["prompt_cache_key"] = normalized_cache_key
+
         async for event in self.llm_client.get_completion_stream(
-            model=model_id,
-            messages=prompt,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
+            **request_kwargs,
         ):
             yield event
 
@@ -241,15 +277,21 @@ class LLMStreamProcessor:
         tools: Optional[List[Dict[str, Any]]],
         tool_choice: Optional[Any],
         parallel_tool_calls: Optional[bool],
+        prompt_cache_key: Optional[str],
     ) -> NormalizedLLMResponse:
         """Completion call using native tool-calling transport params."""
-        return await self.llm_client.get_completion_response(
-            model=model_id,
-            messages=prompt,
-            tools=tools,
-            tool_choice=tool_choice,
-            parallel_tool_calls=parallel_tool_calls,
-        )
+        request_kwargs: Dict[str, Any] = {
+            "model": model_id,
+            "messages": prompt,
+            "tools": tools,
+            "tool_choice": tool_choice,
+            "parallel_tool_calls": parallel_tool_calls,
+        }
+        if isinstance(prompt_cache_key, str):
+            normalized_cache_key = prompt_cache_key.strip()
+            if normalized_cache_key:
+                request_kwargs["prompt_cache_key"] = normalized_cache_key
+        return await self.llm_client.get_completion_response(**request_kwargs)
 
     def _log_prompt_cache_hint(self, prompt: List[LLMMessage], model_id: str) -> int:
         """
@@ -448,6 +490,11 @@ class LLMStreamProcessor:
         provider_output_tokens = self._safe_int(diagnostics.get("completion_tokens"))
         provider_total_tokens = self._safe_int(diagnostics.get("total_tokens"))
         thinking_tokens = self._safe_int(diagnostics.get("thinking_tokens"))
+        cached_tokens = self._safe_int(diagnostics.get("cached_tokens"))
+        cache_hit = self._safe_bool(diagnostics.get("cache_hit"))
+        cache_status = diagnostics.get("status")
+        if not isinstance(cache_status, str):
+            cache_status = None
 
         prompt_tokens = (
             provider_prompt_tokens
@@ -482,6 +529,9 @@ class LLMStreamProcessor:
             total_tokens=total_tokens,
             conversation_tokens=conversation_tokens,
             usage_source=usage_source,
+            cached_tokens=cached_tokens,
+            cache_hit=cache_hit,
+            cache_status=cache_status,
         )
 
     @staticmethod
@@ -497,4 +547,44 @@ class LLMStreamProcessor:
             stripped = value.strip()
             if stripped.isdigit():
                 return int(stripped)
+        return None
+
+    @staticmethod
+    def _safe_bool(value: Any) -> Optional[bool]:
+        """Parse bool-ish values from provider diagnostics."""
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            lowered = value.strip().lower()
+            if lowered == "true":
+                return True
+            if lowered == "false":
+                return False
+        return None
+
+    def _resolve_prompt_cache_key(self) -> Optional[str]:
+        """
+        Resolve a stable cache key for providers that support prompt cache steering.
+
+        Uses active conversation identity when available and falls back to session id.
+        """
+        provider_name = str(getattr(self.session.cfg, "model_provider", "") or "").strip().lower()
+        normalized_provider_name = provider_name.replace("_", "-")
+        if normalized_provider_name in ("kimi-code", "kimi-coding"):
+            normalized_provider_name = "kimi-coding"
+        if normalized_provider_name != "kimi-coding":
+            return None
+
+        runtime = getattr(self.session, "runtime", None)
+        active_conversation_ref = getattr(runtime, "active_conversation_ref", None)
+        if isinstance(active_conversation_ref, str):
+            normalized_ref = active_conversation_ref.strip()
+            if normalized_ref:
+                return normalized_ref
+
+        session_id = getattr(self.session, "session_id", None)
+        if isinstance(session_id, str):
+            normalized_session_id = session_id.strip()
+            if normalized_session_id:
+                return normalized_session_id
         return None

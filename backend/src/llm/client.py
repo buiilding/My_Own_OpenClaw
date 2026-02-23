@@ -37,6 +37,7 @@ class LLMClient(ABC):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> str:
         """
         Gets a completion from the LLM based on a list of messages.
@@ -49,6 +50,7 @@ class LLMClient(ABC):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> NormalizedLLMResponse:
         """
         Gets a normalized completion payload.
@@ -61,6 +63,7 @@ class LLMClient(ABC):
             tools=tools,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
         )
         return {"content": content}
 
@@ -72,6 +75,7 @@ class LLMClient(ABC):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Gets a streaming completion from the LLM, yielding StreamingEvent objects.
@@ -88,6 +92,15 @@ class LLMClient(ABC):
         Return normalized payload for the last streaming request, if available.
         """
         return None
+
+    def supports_streaming_tool_turns(self, model: str) -> bool:
+        """
+        Return whether tool-enabled turns can safely use stream transport.
+
+        Default stays conservative for compatibility with existing clients.
+        """
+        _ = model
+        return False
 
 
 class LiteLLMClient(LLMClient):
@@ -234,6 +247,7 @@ class LiteLLMClient(LLMClient):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> NormalizedLLMResponse:
         """
         Delegates completion to provider and validates canonical response payload.
@@ -244,12 +258,19 @@ class LiteLLMClient(LLMClient):
         self._last_stream_response_payload = None
 
         try:
+            request_kwargs = {
+                "tools": tools,
+                "tool_choice": tool_choice,
+                "parallel_tool_calls": parallel_tool_calls,
+            }
+            if isinstance(prompt_cache_key, str):
+                normalized_key = prompt_cache_key.strip()
+                if normalized_key:
+                    request_kwargs["prompt_cache_key"] = normalized_key
             response = await provider.get_completion(
                 model,
                 messages,
-                tools=tools,
-                tool_choice=tool_choice,
-                parallel_tool_calls=parallel_tool_calls,
+                **request_kwargs,
             )
         except LLMAPIError:
             raise
@@ -270,6 +291,7 @@ class LiteLLMClient(LLMClient):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> str:
         """
         Delegates getting a completion to the appropriate provider.
@@ -285,6 +307,7 @@ class LiteLLMClient(LLMClient):
             tools=tools,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
+            prompt_cache_key=prompt_cache_key,
         )
         return response["content"]
 
@@ -295,6 +318,7 @@ class LiteLLMClient(LLMClient):
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Any] = None,
         parallel_tool_calls: Optional[bool] = None,
+        prompt_cache_key: Optional[str] = None,
     ) -> AsyncGenerator[StreamingEvent, None]:
         """
         Delegates getting a streaming completion to the appropriate provider.
@@ -313,13 +337,20 @@ class LiteLLMClient(LLMClient):
         self._last_stream_cache_diagnostics = None
         self._last_stream_response_payload = None
         try:
+            request_kwargs = {
+                "tools": tools,
+                "tool_choice": tool_choice,
+                "parallel_tool_calls": parallel_tool_calls,
+            }
+            if isinstance(prompt_cache_key, str):
+                normalized_key = prompt_cache_key.strip()
+                if normalized_key:
+                    request_kwargs["prompt_cache_key"] = normalized_key
             # Provider's get_completion_stream handles its own exceptions and yields ErrorEvent
             async for event in provider.get_completion_stream(
                 model,
                 messages,
-                tools=tools,
-                tool_choice=tool_choice,
-                parallel_tool_calls=parallel_tool_calls,
+                **request_kwargs,
             ):
                 yield event
         except Exception as exc:
@@ -344,6 +375,20 @@ class LiteLLMClient(LLMClient):
         if self._last_stream_response_payload is None:
             return None
         return dict(self._last_stream_response_payload)
+
+    def supports_streaming_tool_turns(self, model: str) -> bool:
+        """
+        Delegate tool-turn streaming capability checks to the resolved provider.
+        """
+        try:
+            provider = self._resolve_provider(model)
+        except LLMAPIError as exc:
+            logger.warning(
+                "Unable to resolve provider for streaming tool-turn capability check: %s",
+                exc,
+            )
+            return False
+        return bool(provider.supports_streaming_tool_turns(model))
 
 
 def get_llm_client(cfg: AppConfig) -> LLMClient:

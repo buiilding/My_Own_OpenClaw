@@ -14,6 +14,7 @@ import {
 } from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
+  getActiveConversationRef,
   recordAssistantMessage,
   recordToolMessage,
   updateTranscriptSession,
@@ -93,6 +94,32 @@ function createTrackingForNewTurn(
     lastChunkSize: 0,
     lastError: null,
   };
+}
+
+function resolveEventConversationRef(event: BackendEvent): string | null {
+  if (typeof event.conversation_ref === 'string' && event.conversation_ref.length > 0) {
+    return event.conversation_ref;
+  }
+  if (event.type !== 'local-user-message') {
+    return null;
+  }
+  const payloadConversationRef = event.payload?.conversation_ref;
+  if (typeof payloadConversationRef !== 'string' || payloadConversationRef.length === 0) {
+    return null;
+  }
+  return payloadConversationRef;
+}
+
+function shouldIgnoreEventForActiveConversation(event: BackendEvent): boolean {
+  const activeConversationRef = getActiveConversationRef();
+  if (!activeConversationRef) {
+    return false;
+  }
+  const eventConversationRef = resolveEventConversationRef(event);
+  if (!eventConversationRef) {
+    return false;
+  }
+  return eventConversationRef !== activeConversationRef;
 }
 
 /**
@@ -537,8 +564,11 @@ export function useChatStream(enableTranscript: boolean = true) {
       if (!isBackendEvent(data)) {
         return;
       }
+      if (shouldIgnoreEventForActiveConversation(data)) {
+        return;
+      }
       if (enableTranscript) {
-        updateTranscriptSession(data.conversation_ref, data.user_id);
+        updateTranscriptSession(resolveEventConversationRef(data) ?? undefined, data.user_id);
       }
       const handler = handlers[data.type];
       if (handler) {
