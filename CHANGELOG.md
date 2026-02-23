@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 Includes the last 300 commits on `main`.
 
 ### Added
+- docs(planning): extend `docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md` with current-loop Phase 2 execution slice (dashboard keyboard shortcut dedupe + ToolRunnerHook test file split + verification gates)
 - refactor(memory-routes-dashboard): add 2026-02-23 refactor plan doc (`docs/planning/WINDIEOS_REFACTOR_PLAN_2026-02-23.md`), extract shared dashboard memory session/menu UI (`useTranscriptSessionInfo`, `MemoryContextMenu`), and consolidate memory route health checks via shared backend helper (`backend/src/api/routes/memory/health.py`) with frontend/backend regression coverage
 - chore(tooling-audit): add Plan 1 audit artifacts under `.audit/plan1`, modernize frontend lint coverage to `js/jsx/cjs/ts/tsx` with TS-aware ESLint parser setup, add `lint:audit` + `audit:jscpd` + `audit:knip` scripts, and refresh safe frontend tool/runtime dependency ranges with validated backend/sidecar/frontend/docs gates
 - feat(chatbox-pill): port the `windieos-ui-concept` pill layout into WindieOS chatbox (left settings, center input, right send) and remove overlay pill action buttons for new-chat/stop/mic/dashboard parity

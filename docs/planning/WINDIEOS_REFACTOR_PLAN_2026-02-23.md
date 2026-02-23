@@ -66,6 +66,19 @@ read_when:
   - Keep files under ~500 LOC.
   - Split large UI containers by concern: data loaders, actions, view components.
 
+### Phase 2 Execution Slice (Current Loop)
+
+- Frontend dashboard dedupe:
+  - Extract shared `Escape/Delete` context-menu keyboard shortcut hook used by both memory sections.
+  - Keep behavior unchanged for menu close and delete actions.
+- Test suite restructuring:
+  - Split `tests/frontend/ToolRunnerHook.test.ts` (over LOC guideline) into smaller focused files with shared test harness utilities.
+  - Preserve all current assertions while reducing per-file complexity.
+- Success checks:
+  - `cd frontend && npm run test:ci -- tests/frontend/*ToolRunner*`
+  - `cd frontend && npm run test:ci -- tests/frontend/SemanticMemorySectionDelete.test.jsx tests/frontend/EpisodicMemorySectionDelete.test.jsx`
+  - `cd frontend && npm run lint`
+
 ## Phase 3
 
 - Docs maintenance:
