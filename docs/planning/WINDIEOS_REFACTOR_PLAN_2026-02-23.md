@@ -285,6 +285,24 @@ read_when:
   - `cd frontend && npm run audit:knip`
   - `cd frontend && npm run audit:jscpd` (expect clone reduction)
 
+## Phase 13
+
+- `jscpd` duplication cleanup (message prop typing):
+  - remove repeated message shape `PropTypes` definitions in `MessageList.jsx`.
+  - keep runtime/message rendering behavior unchanged.
+
+### Phase 13 Execution Slice (Current Loop)
+
+- Frontend dedupe:
+  - extract shared message-shape prop type constant in `frontend/src/renderer/features/chat/components/MessageList.jsx`.
+  - reuse the shared constant in both `MessageItem.propTypes` and `MessageList.propTypes`.
+- Success checks:
+  - `cd frontend && npm run lint`
+  - `cd frontend && npm run test:ci -- tests/frontend/MessageListClasses.test.js tests/frontend/MessageListThinkingDisplay.test.jsx`
+  - `cd frontend && npm run test:ci`
+  - `cd frontend && npm run audit:knip`
+  - `cd frontend && npm run audit:jscpd` (expect clone reduction)
+
 ### Phase 5 Execution Slice (Current Loop)
 
 - `knip` export-surface cleanup (`true-positive`, low-risk):
