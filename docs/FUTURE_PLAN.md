@@ -119,6 +119,26 @@ Move from developer app to product onboarding funnel.
 - M2: login/signup + session persistence.
 - M3: subscription-aware feature gating.
 
+### 7) Natural-Language Self-Configuration for User Preferences
+
+### Goal
+Let users change common behavior (speech replies, screenshot attach, voice mode) by saying it directly, without opening Settings.
+
+### Plan
+- Add a safe config-intent resolver on user text before normal query send.
+- Restrict edits to existing frontend-managed allowlisted fields.
+- Reuse the current persistence/sync path (`updateConfig` -> localStorage + disk + `update-settings`).
+- Return explicit confirmation messages for each applied preference change.
+- Add rollback command support for recent changes.
+
+### Milestones
+- M1: deterministic phrase resolver for high-confidence commands.
+- M2: shared dashboard + chat-pill + voice-transcript behavior parity.
+- M3: optional structured tool path for broader language with strict schema validation.
+
+Implementation details tracked in:
+- `docs/plan/WINDIEOS_SELF_EDIT_CONFIG_PLAN.md`
+
 ### 7) Student Chat Mode UX
 
 ### Goal
