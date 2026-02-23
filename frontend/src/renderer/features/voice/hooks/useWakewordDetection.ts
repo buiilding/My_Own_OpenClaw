@@ -68,6 +68,24 @@ export function useWakewordDetection(
     IpcBridge.send(SEND_CHANNELS.WAKEWORD_AUDIO_CHUNK, buffer);
   }, []);
 
+  const closeAudioContextSafely = useCallback(async (audioContext: AudioContext | null) => {
+    if (!audioContext || audioContext.state === 'closed') {
+      return;
+    }
+
+    try {
+      await audioContext.close();
+    } catch (err: any) {
+      const message = String(err?.message || '').toLowerCase();
+      const alreadyClosed = message.includes('cannot close a closed audiocontext')
+        || message.includes('cannot close closed audiocontext')
+        || message.includes('already closed');
+      if (!alreadyClosed) {
+        console.warn('[Wakeword] Failed to close AudioContext:', err);
+      }
+    }
+  }, []);
+
   // Start audio capture
   const startAudioCapture = useCallback(async () => {
     if (isCapturingRef.current) {
@@ -101,7 +119,7 @@ export function useWakewordDetection(
 
       if (generation !== captureGenerationRef.current) {
         stream.getTracks().forEach(track => track.stop());
-        await audioContext.close();
+        await closeAudioContextSafely(audioContext);
         return;
       }
 
@@ -144,7 +162,7 @@ export function useWakewordDetection(
       setError(`Audio capture failed: ${err.message}`);
       isCapturingRef.current = false;
     }
-  }, [sampleRate, chunkSize, sendAudioChunk]);
+  }, [sampleRate, chunkSize, sendAudioChunk, closeAudioContextSafely]);
 
   // Stop audio capture
   const stopAudioCapture = useCallback(async () => {
@@ -176,15 +194,14 @@ export function useWakewordDetection(
       mediaStreamRef.current = null;
     }
 
-    if (audioContextRef.current) {
-      await audioContextRef.current.close();
-      audioContextRef.current = null;
-    }
+    const audioContext = audioContextRef.current;
+    audioContextRef.current = null;
+    await closeAudioContextSafely(audioContext);
 
     if (hadResources) {
       console.log('[Wakeword] Audio capture stopped');
     }
-  }, []);
+  }, [closeAudioContextSafely]);
 
   // Handle wakeword detection from main process
   useEffect(() => {
@@ -265,7 +282,7 @@ export function useWakewordDetection(
         lastDetectionRef.current = Date.now();
         // Send enable signal to main process to clear buffers
         IpcBridge.send(SEND_CHANNELS.WAKEWORD_ENABLE);
-        startAudioCapture();
+        void startAudioCapture();
       }
     } else {
       // Only stop if currently capturing or if disabled
@@ -279,12 +296,12 @@ export function useWakewordDetection(
         } else if (!isReady) {
           console.log('[Wakeword] Service not ready, stopping audio capture');
         }
-        stopAudioCapture();
+        void stopAudioCapture();
       }
     }
 
     return () => {
-      stopAudioCapture();
+      void stopAudioCapture();
     };
   }, [enabled, isReady, startAudioCapture, stopAudioCapture]);
 

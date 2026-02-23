@@ -153,4 +153,73 @@ describe('useWakewordDetection', () => {
       });
     }
   });
+
+  test('stops audio safely when stop is triggered multiple times', async () => {
+    const track = { stop: jest.fn() };
+    const stream = {
+      getTracks: () => [track],
+    } as unknown as MediaStream;
+
+    const sourceNode = {
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+    };
+    const scriptNode = {
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      onaudioprocess: null as ((event: AudioProcessingEvent) => void) | null,
+    };
+    const closeMock = jest.fn(async () => undefined);
+    const fakeAudioContext = {
+      state: 'running',
+      destination: {},
+      createMediaStreamSource: jest.fn(() => sourceNode),
+      createScriptProcessor: jest.fn(() => scriptNode),
+      close: closeMock,
+    };
+
+    const originalMediaDevices = navigator.mediaDevices;
+    const originalAudioContext = (window as any).AudioContext;
+    const originalWebkitAudioContext = (window as any).webkitAudioContext;
+
+    try {
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: {
+          getUserMedia: jest.fn(async () => stream),
+        },
+      });
+      (window as any).AudioContext = jest.fn(() => fakeAudioContext);
+      (window as any).webkitAudioContext = undefined;
+
+      const { rerender, unmount } = renderHook(
+        ({ enabled }) => useWakewordDetection(enabled),
+        { initialProps: { enabled: true } },
+      );
+
+      const statusHandler = listeners.get(ON_CHANNELS.WAKEWORD_STATUS);
+      expect(statusHandler).toEqual(expect.any(Function));
+
+      await act(async () => {
+        statusHandler?.({ ready: true });
+        await Promise.resolve();
+      });
+
+      await act(async () => {
+        rerender({ enabled: false });
+        unmount();
+        await Promise.resolve();
+      });
+
+      expect(closeMock).toHaveBeenCalledTimes(1);
+      expect(track.stop).toHaveBeenCalledTimes(1);
+    } finally {
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: originalMediaDevices,
+      });
+      (window as any).AudioContext = originalAudioContext;
+      (window as any).webkitAudioContext = originalWebkitAudioContext;
+    }
+  });
 });
